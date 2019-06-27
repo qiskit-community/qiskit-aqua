@@ -39,7 +39,11 @@ which is used in Aqua's
 [`TruthTableOracle`](https://github.com/Qiskit/qiskit-aqua/blob/master/qiskit/aqua/components/oracles/truth_table_oracle.py) implementations,
 will not be automatically installed on any platform.
 You can follow [these notes](https://pyeda.readthedocs.io/en/latest/install.html)
-to manually install PyEDA if necessary. Also, for non Windows installs, you can run 'pip install qiskit-aqua[eda]'
+to manually install PyEDA if necessary. Also, for non Windows installs, you can run:
+
+ ```bash
+ pip install qiskit-aqua[eda]
+ ```
 
 ## Creating Your First Quantum Program in Qiskit Aqua
 
