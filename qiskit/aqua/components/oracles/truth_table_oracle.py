@@ -26,7 +26,6 @@ from qiskit.aqua import AquaError
 from qiskit.aqua.circuits import ESOP
 from qiskit.aqua.components.oracles import Oracle
 from qiskit.aqua.utils.arithmetic import is_power_of_2
-from ._pyeda_check import _check_pluggable_valid as check_pyeda_valid
 
 logger = logging.getLogger(__name__)
 
@@ -220,6 +219,9 @@ class TruthTableOracle(Oracle):
         self._nbits = int(math.log(len(bitmaps[0]), 2))
         self._num_outputs = len(bitmaps)
 
+        self._lit_to_var = None
+        self._var_to_lit = None
+
         esop_exprs = []
         for bitmap in bitmaps:
             esop_expr = self._get_esop_ast(bitmap)
@@ -231,13 +233,15 @@ class TruthTableOracle(Oracle):
 
         self.construct_circuit()
 
-    @staticmethod
-    def check_pluggable_valid():
-        check_pyeda_valid(TruthTableOracle.CONFIGURATION['name'])
-
     def _get_esop_ast(self, bitmap):
-        from pyeda.inter import exprvars, And, Xor
-        v = exprvars('v', self._nbits)
+        from sympy import symbols
+        from sympy.logic.boolalg import Xor, And
+        from .ast_utils import get_ast
+        v = symbols('v:{}'.format(self._nbits))
+        if self._lit_to_var is None:
+            self._lit_to_var = [None] + sorted(v, key=str)
+        if self._var_to_lit is None:
+            self._var_to_lit = {v: l for v, l in zip(self._lit_to_var[1:], range(1, self._nbits + 1))}
 
         def binstr_to_vars(binstr):
             return [
@@ -248,11 +252,12 @@ class TruthTableOracle(Oracle):
         if self._optimization == 'off':
             expression = Xor(*[
                 And(*binstr_to_vars(term)) for term in
-                [np.binary_repr(idx, self._nbits) for idx, v in enumerate(bitmap) if v == '1']])
+                [np.binary_repr(idx, self._nbits) for idx, v in enumerate(bitmap) if v == '1']
+            ])
         else:  # self._optimization == 'qm-dlx':
             ones = [i for i, v in enumerate(bitmap) if v == '1']
             if not ones:
-                return ('const', 0,)
+                return 'const', 0
             dcs = [i for i, v in enumerate(bitmap) if v == '*' or v == '-' or v.lower() == 'x']
             pis = get_prime_implicants(ones=ones, dcs=dcs)
             cover = get_exact_covers(ones, pis)[-1]
@@ -276,31 +281,11 @@ class TruthTableOracle(Oracle):
                     clauses.append(clause)
             expression = Xor(*clauses)
 
-        raw_ast = expression.to_ast()
-        idx_mapping = {
-            u: v + 1 for u, v in zip(sorted(expression.usupport), [v.indices[0] for v in sorted(expression.support)])
-        }
-
-        if raw_ast[0] == 'and' or raw_ast[0] == 'or' or raw_ast[0] == 'xor':
-            clauses = []
-            for c in raw_ast[1:]:
-                if c[0] == 'lit':
-                    clauses.append(('lit', (idx_mapping[c[1]]) if c[1] > 0 else (-idx_mapping[-c[1]])))
-                elif (c[0] == 'or' or c[0] == 'and') and (raw_ast[0] != c[0]):
-                    clause = []
-                    for l in c[1:]:
-                        clause.append(('lit', (idx_mapping[l[1]]) if l[1] > 0 else (-idx_mapping[-l[1]])))
-                    clauses.append((c[0], *clause))
-                else:
-                    raise AquaError('Unrecognized logic expression: {}'.format(raw_ast))
-        elif raw_ast[0] == 'lit':
-            return 'lit', idx_mapping[raw_ast[1]] if raw_ast[1] > 0 else -idx_mapping[-raw_ast[1]]
-        elif raw_ast[0] == 'const':
-            return raw_ast
+        ast = get_ast(self._var_to_lit, expression)
+        if ast is not None:
+            return ast
         else:
-            raise AquaError('Unrecognized root expression type: {}.'.format(raw_ast[0]))
-        ast = (raw_ast[0], *clauses)
-        return ast
+            return 'const', 0
 
     @property
     def variable_register(self):
