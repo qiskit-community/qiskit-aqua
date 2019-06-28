@@ -79,6 +79,5 @@ setuptools.setup(
     python_requires=">=3.5",
     extras_require={
         'torch': ["torch; sys_platform != 'win32'"],
-        'eda': ["pyeda; sys_platform != 'win32'"],
     }
 )

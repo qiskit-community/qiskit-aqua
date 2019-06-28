@@ -59,7 +59,7 @@ class TestMeasurementErrorMitigation(QiskitAquaTestCase):
                                                            measurement_error_mitigation_cls=CompleteMeasFitter)
 
         input = 'a & b & c'
-        oracle = LogicalExpressionOracle(input, optimization='off')
+        oracle = LogicalExpressionOracle(input)
         grover = Grover(oracle)
 
         result_wo_mitigation = grover.run(quantum_instance)
@@ -92,7 +92,7 @@ class TestMeasurementErrorMitigation(QiskitAquaTestCase):
                                            measurement_error_mitigation_cls=CompleteMeasFitter,
                                            cals_matrix_refresh_period=0)
         input = 'a & b & c'
-        oracle = LogicalExpressionOracle(input, optimization='off')
+        oracle = LogicalExpressionOracle(input)
         grover = Grover(oracle)
         _ = grover.run(quantum_instance)
         cals_matrix_1, timestamp_1 = quantum_instance.cals_matrix(qubit_index=[0, 1, 2])
@@ -126,7 +126,7 @@ class TestMeasurementErrorMitigation(QiskitAquaTestCase):
                                            measurement_error_mitigation_cls=CompleteMeasFitter,
                                            cals_matrix_refresh_period=0)
         input = 'a & b & c'
-        oracle = LogicalExpressionOracle(input, optimization='off')
+        oracle = LogicalExpressionOracle(input)
         grover = Grover(oracle)
         _ = grover.run(quantum_instance)
         cals_matrix_1, timestamp_1 = quantum_instance.cals_matrix(qubit_index=[0, 1, 2])

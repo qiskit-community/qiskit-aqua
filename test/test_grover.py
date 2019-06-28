@@ -37,19 +37,16 @@ tests = [
 
 mct_modes = ['basic', 'basic-dirty-ancilla', 'advanced', 'noancilla']
 simulators = ['statevector_simulator', 'qasm_simulator']
-optimizations = ['on', 'off']
+optimizations = [True, False]
 
 
 class TestGrover(QiskitAquaTestCase):
     @parameterized.expand(
         [x[0] + list(x[1:]) for x in list(itertools.product(tests, mct_modes, simulators, optimizations))]
     )
-    def test_grover(self, input, sol, oracle_cls, mct_mode, simulator, optimization='off'):
+    def test_grover(self, input, sol, oracle_cls, mct_mode, simulator, optimization):
         self.groundtruth = sol
-        if optimization == 'off':
-            oracle = oracle_cls(input, optimization='off')
-        else:
-            oracle = oracle_cls(input, optimization='qm-dlx' if oracle_cls == TTO else 'espresso')
+        oracle = oracle_cls(input, optimization=optimization)
         grover = Grover(oracle, incremental=True, mct_mode=mct_mode)
         backend = BasicAer.get_backend(simulator)
         quantum_instance = QuantumInstance(backend, shots=1000)

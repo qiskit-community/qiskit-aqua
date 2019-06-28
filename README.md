@@ -33,17 +33,6 @@ and you will always install the latest (and well-tested) version.
 
 To install from source, follow the instructions in the [contribution guidelines](./CONTRIBUTING.md).
 
-Please note that one of Aqua's dependencies, [PyEDA](https://pyeda.readthedocs.io/en/latest/),
-which is used in Aqua's
-[`LogicalExpressionOracle`](https://github.com/Qiskit/qiskit-aqua/blob/master/qiskit/aqua/components/oracles/logical_expression_oracle.py) and
-[`TruthTableOracle`](https://github.com/Qiskit/qiskit-aqua/blob/master/qiskit/aqua/components/oracles/truth_table_oracle.py) implementations,
-will not be automatically installed on any platform.
-You can follow [these notes](https://pyeda.readthedocs.io/en/latest/install.html)
-to manually install PyEDA if necessary. Also, for non Windows installs, you can run:
-
- ```bash
- pip install qiskit-aqua[eda]
- ```
 
 ## Creating Your First Quantum Program in Qiskit Aqua
 

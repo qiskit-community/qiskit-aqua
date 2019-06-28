@@ -23,7 +23,7 @@ from test.common import QiskitAquaTestCase
 
 bitmaps = ['0000', '0101', '1111', '11110000']
 mct_modes = ['basic', 'basic-dirty-ancilla', 'advanced', 'noancilla']
-optimizations = ['off', 'qm-dlx']
+optimizations = [True, False]
 simulators = ['statevector_simulator', 'qasm_simulator']
 
 
