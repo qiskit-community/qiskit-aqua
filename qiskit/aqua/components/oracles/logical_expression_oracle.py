@@ -16,13 +16,14 @@ The General Logical Expression-based Quantum Oracle.
 """
 
 import logging
-import warnings
 import re
+from sympy.parsing.sympy_parser import parse_expr
+from sympy.logic.boolalg import to_cnf, BooleanTrue, BooleanFalse
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.aqua import AquaError
 from qiskit.aqua.circuits import CNF, DNF
 from .oracle import Oracle
-from ._pyeda_check import _check_pluggable_valid as check_pyeda_valid
+from .ast_utils import get_ast
 logger = logging.getLogger(__name__)
 
 
@@ -41,12 +42,8 @@ class LogicalExpressionOracle(Oracle):
                     'default': None
                 },
                 "optimization": {
-                    "type": "string",
-                    "default": "off",
-                    'enum': [
-                        'off',
-                        'espresso'
-                    ]
+                    "type": "boolean",
+                    "default": False,
                 },
                 'mct_mode': {
                     'type': 'string',
@@ -63,7 +60,7 @@ class LogicalExpressionOracle(Oracle):
         }
     }
 
-    def __init__(self, expression=None, optimization='off', mct_mode='basic'):
+    def __init__(self, expression=None, optimization=False, mct_mode='basic'):
         """
         Constructor.
 
@@ -71,75 +68,37 @@ class LogicalExpressionOracle(Oracle):
             expression (str): The string of the desired logical expression.
                 It could be either in the DIMACS CNF format,
                 or a general boolean logical expression, such as 'a ^ b' and 'v[0] & (~v[1] | v[2])'
-            optimization (str): The mode of optimization to use for minimizing the circuit.
-                Currently, besides no optimization ('off'), Aqua also supports an 'espresso' mode
-                <https://en.wikipedia.org/wiki/Espresso_heuristic_logic_minimizer>
+            optimization (bool): Boolean flag for attempting logical expression optimization
             mct_mode (str): The mode to use for building Multiple-Control Toffoli.
         """
         self.validate(locals())
         super().__init__()
 
-        try:
-            import pyeda
-            self._pyeda = True
-        except ImportError:
-            self._pyeda = False
-            warnings.warn('Please consider installing PyEDA for richer functionality.')
+        if expression is None:
+            raise AquaError('Missing logical expression.')
 
         self._mct_mode = mct_mode.strip().lower()
-        self._optimization = optimization.strip().lower()
+        self._optimization = optimization
 
-        if not self._optimization == 'off' and not self._pyeda:
-            warnings.warn('Logical expression optimization will not be performed without PyEDA.')
+        expression = re.sub('(?i)' + re.escape(' and '), ' & ', expression)
+        expression = re.sub('(?i)' + re.escape(' xor '), ' ^ ', expression)
+        expression = re.sub('(?i)' + re.escape(' or '),  ' | ', expression)
+        expression = re.sub('(?i)' + re.escape('not '),  '~',   expression)
 
-        if not expression is None:
-            expression = re.sub('(?i)' + re.escape(' and '), ' & ', expression)
-            expression = re.sub('(?i)' + re.escape(' xor '), ' ^ ', expression)
-            expression = re.sub('(?i)' + re.escape(' or '),  ' | ', expression)
-            expression = re.sub('(?i)' + re.escape('not '),  '~',   expression)
-
-        if self._pyeda:
-            from pyeda.boolalg.expr import ast2expr, expr
-            from pyeda.parsing.dimacs import parse_cnf
-            if expression is None:
-                raw_expr = expr(None)
-            else:
-                orig_expression = expression
-                # try parsing as normal logical expression that pyeda recognizes
-                try:
-                    raw_expr = expr(expression)
-                except Exception:
-                    # try parsing as dimacs cnf
-                    try:
-                        raw_expr = ast2expr(parse_cnf(expression.strip(), varname='v'))
-                    except Exception:
-                        raise AquaError('Failed to parse the input expression: {}.'.format(orig_expression))
-
-            self._expr = raw_expr
-            self._process_expr_with_pyeda()
-        else:
-            from sympy.parsing.sympy_parser import parse_expr
-            if expression is None:
-                raise AquaError('do none expr!')
-            else:
-                orig_expression = expression
-                # try parsing as normal logical expression that sympy recognizes
-                try:
-                    raw_expr = parse_expr(expression)
-                except Exception:
-                    # try parsing as dimacs cnf
-                    try:
-                        expression = LogicalExpressionOracle._dimacs_cnf_to_expression(expression)
-                        raw_expr = parse_expr(expression)
-                    except Exception:
-                        raise AquaError('Failed to parse the input expression: {}.'.format(orig_expression))
-            self._expr = raw_expr
-            self._process_expr_with_sympy()
+        orig_expression = expression
+        # try parsing as normal logical expression that sympy recognizes
+        try:
+            raw_expr = parse_expr(expression)
+        except Exception:
+            # try parsing as dimacs cnf
+            try:
+                expression = LogicalExpressionOracle._dimacs_cnf_to_expression(expression)
+                raw_expr = parse_expr(expression)
+            except Exception:
+                raise AquaError('Failed to parse the input expression: {}.'.format(orig_expression))
+        self._expr = raw_expr
+        self._process_expr()
         self.construct_circuit()
-
-    @staticmethod
-    def check_pluggable_valid():
-        check_pyeda_valid(LogicalExpressionOracle.CONFIGURATION['name'])
 
     @staticmethod
     def _dimacs_cnf_to_expression(dimacs):
@@ -166,49 +125,23 @@ class LogicalExpressionOracle(Oracle):
                 )))
         return ' & '.join(clauses)
 
-    def _process_expr_with_sympy(self):
-        from sympy.logic.boolalg import to_cnf
-        from .ast_utils import get_ast
+    def _process_expr(self):
         self._num_vars = len(self._expr.binary_symbols)
         self._lit_to_var = [None] + sorted(self._expr.binary_symbols, key=str)
         self._var_to_lit = {v: l for v, l in zip(self._lit_to_var[1:], range(1, self._num_vars + 1))}
-        cnf = to_cnf(self._expr)
+        cnf = to_cnf(self._expr, simplify=self._optimization)
 
-        ast = get_ast(self._var_to_lit, cnf)
+        if isinstance(cnf, BooleanTrue):
+            ast = 'const', 1
+        elif isinstance(cnf, BooleanFalse):
+            ast = 'const', 0
+        else:
+            ast = get_ast(self._var_to_lit, cnf)
 
         if ast[0] == 'or':
             self._nf = DNF(ast, num_vars=self._num_vars)
         else:
             self._nf = CNF(ast, num_vars=self._num_vars)
-
-    def _process_expr_with_pyeda(self):
-        from pyeda.inter import espresso_exprs
-        from pyeda.boolalg.expr import AndOp, OrOp, Variable
-        from .ast_utils import normalize_literal_indices
-        self._num_vars = self._expr.degree
-        ast = self._expr.to_ast() if self._expr.is_cnf() else self._expr.to_cnf().to_ast()
-        ast = normalize_literal_indices(ast, self._expr.usupport)
-
-        if self._optimization == 'off':
-            if ast[0] == 'or':
-                self._nf = DNF(ast, num_vars=self._num_vars)
-            else:
-                self._nf = CNF(ast, num_vars=self._num_vars)
-        else:  # self._optimization == 'espresso':
-            expr_dnf = self._expr.to_dnf()
-            if expr_dnf.is_zero() or expr_dnf.is_one():
-                self._nf = CNF(('const', 0 if expr_dnf.is_zero() else 1), num_vars=self._num_vars)
-            else:
-                expr_dnf_m = espresso_exprs(expr_dnf)[0]
-                expr_dnf_m_ast = normalize_literal_indices(
-                    expr_dnf_m.to_ast(), expr_dnf_m.usupport
-                )
-                if isinstance(expr_dnf_m, AndOp) or isinstance(expr_dnf_m, Variable):
-                    self._nf = CNF(expr_dnf_m_ast, num_vars=self._num_vars)
-                elif isinstance(expr_dnf_m, OrOp):
-                    self._nf = DNF(expr_dnf_m_ast, num_vars=self._num_vars)
-                else:
-                    raise AquaError('Unexpected espresso optimization result expr: {}'.format(expr_dnf_m))
 
     @property
     def variable_register(self):
@@ -236,47 +169,9 @@ class LogicalExpressionOracle(Oracle):
                 self._circuit = QuantumCircuit(self._variable_register, self._output_register)
         return self._circuit
 
-    def _evaluate_classically_with_pyeda(self, assignment):
-        from pyeda.boolalg.expr import AndOp, OrOp, Variable
-        from .ast_utils import normalize_literal_indices
-        if self._expr.is_zero():
-            return False, assignment
-        elif self._expr.is_one():
-            return True, assignment
-        else:
-            prime_implicants = self._expr.complete_sum()
-            if prime_implicants.is_zero():
-                sols = []
-            elif isinstance(prime_implicants, AndOp):
-                prime_implicants_ast = normalize_literal_indices(
-                    prime_implicants.to_ast(), prime_implicants.usupport
-                )
-                sols = [[l[1] for l in prime_implicants_ast[1:]]]
-            elif isinstance(prime_implicants, OrOp):
-                expr_complete_sum = self._expr.complete_sum()
-                complete_sum_ast = normalize_literal_indices(
-                    expr_complete_sum.to_ast(), expr_complete_sum.usupport
-                )
-                sols = [[c[1]] if c[0] == 'lit' else [l[1] for l in c[1:]] for c in complete_sum_ast[1:]]
-            elif isinstance(prime_implicants, Variable):
-                sols = [[prime_implicants.to_ast()[1]]]
-            else:
-                raise AquaError('Unexpected solution: {}'.format(prime_implicants))
-            for sol in sols:
-                if set(sol).issubset(assignment):
-                    return True, assignment
-            else:
-                return False, assignment
-
-    def _evaluate_classically_with_sympy(self, assignment):
+    def evaluate_classically(self, measurement):
+        assignment = [(var + 1) * (int(tf) * 2 - 1) for tf, var in zip(measurement[::-1], range(len(measurement)))]
         assignment_dict = dict()
         for v in assignment:
             assignment_dict[self._lit_to_var[abs(v)]] = True if v > 0 else False
         return self._expr.subs(assignment_dict), assignment
-
-    def evaluate_classically(self, measurement):
-        assignment = [(var + 1) * (int(tf) * 2 - 1) for tf, var in zip(measurement[::-1], range(len(measurement)))]
-        if self._pyeda:
-            return self._evaluate_classically_with_pyeda(assignment)
-        else:
-            return self._evaluate_classically_with_sympy(assignment)
