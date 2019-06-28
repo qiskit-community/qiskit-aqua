@@ -21,11 +21,14 @@ import math
 import numpy as np
 from functools import reduce
 from dlx import DLX
+from sympy import symbols
+from sympy.logic.boolalg import Xor, And
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.aqua import AquaError
 from qiskit.aqua.circuits import ESOP
 from qiskit.aqua.components.oracles import Oracle
 from qiskit.aqua.utils.arithmetic import is_power_of_2
+from .ast_utils import get_ast
 
 logger = logging.getLogger(__name__)
 
@@ -164,12 +167,8 @@ class TruthTableOracle(Oracle):
                     }
                 },
                 "optimization": {
-                    "type": "string",
-                    "default": "off",
-                    'enum': [
-                        'off',
-                        'qm-dlx'
-                    ]
+                    "type": "boolean",
+                    "default": False,
                 },
                 'mct_mode': {
                     'type': 'string',
@@ -186,17 +185,16 @@ class TruthTableOracle(Oracle):
         }
     }
 
-    def __init__(self, bitmaps, optimization='off', mct_mode='basic'):
+    def __init__(self, bitmaps, optimization=False, mct_mode='basic'):
         """
         Constructor for Truth Table-based Oracle
 
         Args:
             bitmaps (str or [str]): A single binary string or a list of binary strings representing the desired
                 single- and multi-value truth table.
-            optimization (str): Optimization mode to use for minimizing the circuit.
-                Currently, besides no optimization ('off'), Aqua also supports a 'qm-dlx' mode,
-                which uses the Quine-McCluskey algorithm to compute the prime implicants of the truth table,
-                and then compute an exact cover to try to reduce the circuit.
+            optimization (bool): Boolean flag for attempting circuit optimization.
+                When set, the Quine-McCluskey algorithm is used to compute the prime implicants of the truth table,
+                and then its exact cover is computed to try to reduce the circuit.
             mct_mode (str): The mode to use when constructing multiple-control Toffoli.
         """
         if isinstance(bitmaps, str):
@@ -205,7 +203,7 @@ class TruthTableOracle(Oracle):
         self.validate(locals())
         super().__init__()
 
-        self._mct_mode = mct_mode
+        self._mct_mode = mct_mode.strip().lower()
         self._optimization = optimization
 
         self._bitmaps = bitmaps
@@ -234,9 +232,6 @@ class TruthTableOracle(Oracle):
         self.construct_circuit()
 
     def _get_esop_ast(self, bitmap):
-        from sympy import symbols
-        from sympy.logic.boolalg import Xor, And
-        from .ast_utils import get_ast
         v = symbols('v:{}'.format(self._nbits))
         if self._lit_to_var is None:
             self._lit_to_var = [None] + sorted(v, key=str)
@@ -249,12 +244,12 @@ class TruthTableOracle(Oracle):
                        for x in zip(binstr, reversed(range(1, self._nbits + 1)))
                    ][::-1]
 
-        if self._optimization == 'off':
+        if not self._optimization:
             expression = Xor(*[
                 And(*binstr_to_vars(term)) for term in
                 [np.binary_repr(idx, self._nbits) for idx, v in enumerate(bitmap) if v == '1']
             ])
-        else:  # self._optimization == 'qm-dlx':
+        else:
             ones = [i for i, v in enumerate(bitmap) if v == '1']
             if not ones:
                 return 'const', 0
