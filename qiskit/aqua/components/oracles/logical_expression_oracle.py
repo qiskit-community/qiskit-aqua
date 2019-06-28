@@ -92,6 +92,12 @@ class LogicalExpressionOracle(Oracle):
         if not self._optimization == 'off' and not self._pyeda:
             warnings.warn('Logical expression optimization will not be performed without PyEDA.')
 
+        if not expression is None:
+            expression = re.sub('(?i)' + re.escape(' and '), ' & ', expression)
+            expression = re.sub('(?i)' + re.escape(' xor '), ' ^ ', expression)
+            expression = re.sub('(?i)' + re.escape(' or '),  ' | ', expression)
+            expression = re.sub('(?i)' + re.escape('not '),  '~',   expression)
+
         if self._pyeda:
             from pyeda.boolalg.expr import ast2expr, expr
             from pyeda.parsing.dimacs import parse_cnf
@@ -101,10 +107,6 @@ class LogicalExpressionOracle(Oracle):
                 orig_expression = expression
                 # try parsing as normal logical expression that pyeda recognizes
                 try:
-                    expression = re.sub('(?i)' + re.escape(' and '), ' & ', expression)
-                    expression = re.sub('(?i)' + re.escape(' xor '), ' ^ ', expression)
-                    expression = re.sub('(?i)' + re.escape(' or '),  ' | ', expression)
-                    expression = re.sub('(?i)' + re.escape('not '),  '~',   expression)
                     raw_expr = expr(expression)
                 except Exception:
                     # try parsing as dimacs cnf
@@ -116,28 +118,23 @@ class LogicalExpressionOracle(Oracle):
             self._expr = raw_expr
             self._process_expr_with_pyeda()
         else:
-            from tt import BooleanExpression, to_cnf
+            from sympy.parsing.sympy_parser import parse_expr
             if expression is None:
-                raise AquaError('do none expr for tt!')
+                raise AquaError('do none expr!')
             else:
                 orig_expression = expression
-                # try parsing as normal logical expression that tt recognizes
+                # try parsing as normal logical expression that sympy recognizes
                 try:
-                    expression = re.sub('(?i)' + re.escape('^'), ' xor ', expression)
-                    expression = to_cnf(BooleanExpression(expression)).raw_expr
-                    expression = re.sub('(?i)' + re.escape(' and '), ' & ', expression)
-                    expression = re.sub('(?i)' + re.escape('not '), '~', expression)
-                    expression = re.sub('(?i)' + re.escape(' or '), ' | ', expression)
-                    raw_expr = BooleanExpression(expression)
+                    raw_expr = parse_expr(expression)
                 except Exception:
                     # try parsing as dimacs cnf
                     try:
                         expression = LogicalExpressionOracle._dimacs_cnf_to_expression(expression)
-                        raw_expr = BooleanExpression(expression)
+                        raw_expr = parse_expr(expression)
                     except Exception:
                         raise AquaError('Failed to parse the input expression: {}.'.format(orig_expression))
             self._expr = raw_expr
-            self._process_expr_with_tt()
+            self._process_expr_with_sympy()
         self.construct_circuit()
 
     @staticmethod
@@ -190,27 +187,28 @@ class LogicalExpressionOracle(Oracle):
             raise AquaError('Unrecognized root expression type: {}.'.format(raw_ast[0]))
         return (raw_ast[0], *clauses)
 
-    def _process_expr_with_tt(self):
-        self._num_vars = len(self._expr.symbols)
-        self._lit_to_var = [None] + sorted(self._expr.symbols)
+    def _process_expr_with_sympy(self):
+        from sympy.logic.boolalg import to_cnf, And, Or, Not
+        from sympy.core.symbol import Symbol
+        self._num_vars = len(self._expr.binary_symbols)
+        self._lit_to_var = [None] + sorted(self._expr.binary_symbols, key=str)
         self._var_to_lit = {v: l for v, l in zip(self._lit_to_var[1:], range(1, self._num_vars + 1))}
-        # ast = self._expr.to_ast() if self._expr.is_cnf() else self._expr.to_cnf().to_ast()
-        ast_clauses = []
-        for clause in self._expr.iter_cnf_clauses():
-            literals = []
-            for literal in clause.iter_dnf_clauses():
-                if not literal.raw_expr[0] == '~':
-                    literals.append(('lit', self._var_to_lit[literal.raw_expr]))
-                else:
-                    literals.append(('lit', -1 * self._var_to_lit[literal.raw_expr[1:]]))
-            if len(literals) == 1:
-                ast_clauses.append(literals[0])
-            else:
-                ast_clauses.append(('or', *literals))
-        if len(ast_clauses) == 1:
-            ast = ast_clauses[0]
-        else:
-            ast = ('and', *ast_clauses,)
+        cnf = to_cnf(self._expr)
+
+        def get_ast_for_clause(clause):
+            # only a single variable
+            if isinstance(clause, Symbol):
+                return 'lit', self._var_to_lit[clause.binary_symbols.pop()]
+            # only a single negated variable
+            elif isinstance(clause, Not):
+                return 'lit', self._var_to_lit[clause.binary_symbols.pop()] * -1
+            # only a single clause
+            elif isinstance(clause, Or):
+                return ('or', *[get_ast_for_clause(v) for v in clause.args])
+            elif isinstance(clause, And):
+                return ('and', *[get_ast_for_clause(v) for v in clause.args])
+
+        ast = get_ast_for_clause(cnf)
 
         if ast[0] == 'or':
             self._nf = DNF(ast, num_vars=self._num_vars)
@@ -271,9 +269,8 @@ class LogicalExpressionOracle(Oracle):
                 self._circuit = QuantumCircuit(self._variable_register, self._output_register)
         return self._circuit
 
-    def evaluate_classically_with_pyeda(self, measurement):
+    def _evaluate_classically_with_pyeda(self, assignment):
         from pyeda.boolalg.expr import AndOp, OrOp, Variable
-        assignment = [(var + 1) * (int(tf) * 2 - 1) for tf, var in zip(measurement[::-1], range(len(measurement)))]
         if self._expr.is_zero():
             return False, assignment
         elif self._expr.is_one():
@@ -303,21 +300,15 @@ class LogicalExpressionOracle(Oracle):
             else:
                 return False, assignment
 
-    def evaluate_classically_with_tt(self, measurement):
-        from tt import BooleanExpression
-        assignment = [(var + 1) * (int(tf) * 2 - 1) for tf, var in zip(measurement[::-1], range(len(measurement)))]
-        if self._expr == BooleanExpression('0'):
-            return False, assignment
-        elif self._expr == BooleanExpression('1'):
-            return True, assignment
-        else:
-            assignment_dict = dict()
-            for v in assignment:
-                assignment_dict[self._lit_to_var[abs(v)]] = 1 if v > 0 else 0
-            return self._expr.evaluate(**assignment_dict), assignment
+    def _evaluate_classically_with_sympy(self, assignment):
+        assignment_dict = dict()
+        for v in assignment:
+            assignment_dict[self._lit_to_var[abs(v)]] = True if v > 0 else False
+        return self._expr.subs(assignment_dict), assignment
 
     def evaluate_classically(self, measurement):
+        assignment = [(var + 1) * (int(tf) * 2 - 1) for tf, var in zip(measurement[::-1], range(len(measurement)))]
         if self._pyeda:
-            return self.evaluate_classically_with_pyeda(measurement)
+            return self._evaluate_classically_with_pyeda(assignment)
         else:
-            return self.evaluate_classically_with_tt(measurement)
+            return self._evaluate_classically_with_sympy(assignment)
