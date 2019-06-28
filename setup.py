@@ -34,7 +34,7 @@ requirements = [
     "jsonschema>=2.6,<2.7",
     "scikit-learn>=0.20.0",
     "cvxopt",
-    "ttable",
+    "ttable==0.5.1",
     "dlx",
     "docplex",
     "fastdtw",
