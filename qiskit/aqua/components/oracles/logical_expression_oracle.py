@@ -166,49 +166,15 @@ class LogicalExpressionOracle(Oracle):
                 )))
         return ' & '.join(clauses)
 
-    @staticmethod
-    def _normalize_literal_indices(raw_ast, raw_indices):
-        idx_mapping = {r: i + 1 for r, i in zip(sorted(raw_indices), range(len(raw_indices)))}
-        if raw_ast[0] == 'and' or raw_ast[0] == 'or':
-            clauses = []
-            for c in raw_ast[1:]:
-                if c[0] == 'lit':
-                    clauses.append(('lit', (idx_mapping[c[1]]) if c[1] > 0 else (-idx_mapping[-c[1]])))
-                elif (c[0] == 'or' or c[0] == 'and') and (raw_ast[0] != c[0]):
-                    clause = []
-                    for l in c[1:]:
-                        clause.append(('lit', (idx_mapping[l[1]]) if l[1] > 0 else (-idx_mapping[-l[1]])))
-                    clauses.append((c[0], *clause))
-                else:
-                    raise AquaError('Unrecognized logical expression: {}'.format(raw_ast))
-        elif raw_ast[0] == 'const' or raw_ast[0] == 'lit':
-            return raw_ast
-        else:
-            raise AquaError('Unrecognized root expression type: {}.'.format(raw_ast[0]))
-        return (raw_ast[0], *clauses)
-
     def _process_expr_with_sympy(self):
-        from sympy.logic.boolalg import to_cnf, And, Or, Not
-        from sympy.core.symbol import Symbol
+        from sympy.logic.boolalg import to_cnf
+        from .ast_utils import get_ast
         self._num_vars = len(self._expr.binary_symbols)
         self._lit_to_var = [None] + sorted(self._expr.binary_symbols, key=str)
         self._var_to_lit = {v: l for v, l in zip(self._lit_to_var[1:], range(1, self._num_vars + 1))}
         cnf = to_cnf(self._expr)
 
-        def get_ast_for_clause(clause):
-            # only a single variable
-            if isinstance(clause, Symbol):
-                return 'lit', self._var_to_lit[clause.binary_symbols.pop()]
-            # only a single negated variable
-            elif isinstance(clause, Not):
-                return 'lit', self._var_to_lit[clause.binary_symbols.pop()] * -1
-            # only a single clause
-            elif isinstance(clause, Or):
-                return ('or', *[get_ast_for_clause(v) for v in clause.args])
-            elif isinstance(clause, And):
-                return ('and', *[get_ast_for_clause(v) for v in clause.args])
-
-        ast = get_ast_for_clause(cnf)
+        ast = get_ast(self._var_to_lit, cnf)
 
         if ast[0] == 'or':
             self._nf = DNF(ast, num_vars=self._num_vars)
@@ -218,9 +184,10 @@ class LogicalExpressionOracle(Oracle):
     def _process_expr_with_pyeda(self):
         from pyeda.inter import espresso_exprs
         from pyeda.boolalg.expr import AndOp, OrOp, Variable
+        from .ast_utils import normalize_literal_indices
         self._num_vars = self._expr.degree
         ast = self._expr.to_ast() if self._expr.is_cnf() else self._expr.to_cnf().to_ast()
-        ast = LogicalExpressionOracle._normalize_literal_indices(ast, self._expr.usupport)
+        ast = normalize_literal_indices(ast, self._expr.usupport)
 
         if self._optimization == 'off':
             if ast[0] == 'or':
@@ -233,7 +200,7 @@ class LogicalExpressionOracle(Oracle):
                 self._nf = CNF(('const', 0 if expr_dnf.is_zero() else 1), num_vars=self._num_vars)
             else:
                 expr_dnf_m = espresso_exprs(expr_dnf)[0]
-                expr_dnf_m_ast = LogicalExpressionOracle._normalize_literal_indices(
+                expr_dnf_m_ast = normalize_literal_indices(
                     expr_dnf_m.to_ast(), expr_dnf_m.usupport
                 )
                 if isinstance(expr_dnf_m, AndOp) or isinstance(expr_dnf_m, Variable):
@@ -271,6 +238,7 @@ class LogicalExpressionOracle(Oracle):
 
     def _evaluate_classically_with_pyeda(self, assignment):
         from pyeda.boolalg.expr import AndOp, OrOp, Variable
+        from .ast_utils import normalize_literal_indices
         if self._expr.is_zero():
             return False, assignment
         elif self._expr.is_one():
@@ -280,13 +248,13 @@ class LogicalExpressionOracle(Oracle):
             if prime_implicants.is_zero():
                 sols = []
             elif isinstance(prime_implicants, AndOp):
-                prime_implicants_ast = LogicalExpressionOracle._normalize_literal_indices(
+                prime_implicants_ast = normalize_literal_indices(
                     prime_implicants.to_ast(), prime_implicants.usupport
                 )
                 sols = [[l[1] for l in prime_implicants_ast[1:]]]
             elif isinstance(prime_implicants, OrOp):
                 expr_complete_sum = self._expr.complete_sum()
-                complete_sum_ast = LogicalExpressionOracle._normalize_literal_indices(
+                complete_sum_ast = normalize_literal_indices(
                     expr_complete_sum.to_ast(), expr_complete_sum.usupport
                 )
                 sols = [[c[1]] if c[0] == 'lit' else [l[1] for l in c[1:]] for c in complete_sum_ast[1:]]
