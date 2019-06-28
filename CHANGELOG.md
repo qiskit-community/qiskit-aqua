@@ -34,6 +34,8 @@ Changed
 -   Improve `mct`'s `'basic'` mode by using relative-phase Toffoli gates to build intermediate results.
 -   Adapt to Qiskit Terra's newly introduced `Qubit` class.
 -   Prevent `QPE/IQPE` from modifying input `Operator`s.
+-   The PyEDA dependency was removed; 
+    corresponding oracles' underlying logic operations are now handled by SymPy.
 
 Fixed
 -------

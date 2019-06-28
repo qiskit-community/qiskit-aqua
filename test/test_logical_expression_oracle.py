@@ -40,7 +40,7 @@ dimacs_tests = [
     ],
 
     [
-        '(v[0] | v[1]) & (v[0] | ~v[1]) & (~v[0] | v[1])',
+        '(v0 or v1) & (v0 | ~v1) & (not v0 | v1)',
         [(True, True)]
     ],
 
@@ -56,14 +56,14 @@ dimacs_tests = [
 ]
 
 mct_modes = ['basic', 'basic-dirty-ancilla', 'advanced', 'noancilla']
-optimizations = ['off', 'espresso']
+optimizations = [True, False]
 
 
 class TestLogicalExpressionOracle(QiskitAquaTestCase):
     @parameterized.expand(
         [x[0] + list(x[1:]) for x in list(itertools.product(dimacs_tests, mct_modes, optimizations))]
     )
-    def test_logic_expr_oracle(self, dimacs_str, sols, mct_mode, optimization='off'):
+    def test_logic_expr_oracle(self, dimacs_str, sols, mct_mode, optimization):
         num_shots = 1024
         leo = LogicalExpressionOracle(dimacs_str, optimization=optimization, mct_mode=mct_mode)
         leo_circuit = leo.circuit
