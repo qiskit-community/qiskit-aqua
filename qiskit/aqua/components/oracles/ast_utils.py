@@ -12,10 +12,11 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+from sympy.core.symbol import Symbol
+from sympy.logic.boolalg import And, Or, Not, Xor
+
 
 def get_ast(var_to_lit_map, clause):
-    from sympy.core.symbol import Symbol
-    from sympy.logic.boolalg import And, Or, Not, Xor
     # only a single variable
     if isinstance(clause, Symbol):
         return 'lit', var_to_lit_map[clause.binary_symbols.pop()]

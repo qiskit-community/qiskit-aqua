@@ -17,13 +17,16 @@ The General Logical Expression-based Quantum Oracle.
 
 import logging
 import re
+
 from sympy.parsing.sympy_parser import parse_expr
 from sympy.logic.boolalg import to_cnf, BooleanTrue, BooleanFalse
 from qiskit import QuantumCircuit, QuantumRegister
+
 from qiskit.aqua import AquaError
 from qiskit.aqua.circuits import CNF, DNF
 from .oracle import Oracle
 from .ast_utils import get_ast
+
 logger = logging.getLogger(__name__)
 
 

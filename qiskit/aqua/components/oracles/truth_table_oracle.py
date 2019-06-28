@@ -18,12 +18,14 @@ The Truth Table-based Quantum Oracle.
 import logging
 import operator
 import math
-import numpy as np
 from functools import reduce
+
+import numpy as np
 from dlx import DLX
 from sympy import symbols
 from sympy.logic.boolalg import Xor, And
 from qiskit import QuantumRegister, QuantumCircuit
+
 from qiskit.aqua import AquaError
 from qiskit.aqua.circuits import ESOP
 from qiskit.aqua.components.oracles import Oracle
