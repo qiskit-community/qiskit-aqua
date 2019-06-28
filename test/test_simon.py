@@ -29,7 +29,7 @@ bitmaps = [
     ['01101001', '10011001', '01100110'],
 ]
 mct_modes = ['basic', 'basic-dirty-ancilla', 'advanced', 'noancilla']
-optimizations = ['off', 'qm-dlx']
+optimizations = [True, False]
 simulators = ['statevector_simulator', 'qasm_simulator']
 
 
