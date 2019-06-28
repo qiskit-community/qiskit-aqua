@@ -13,27 +13,6 @@
 # that they have been altered from the originals.
 
 
-def normalize_literal_indices(raw_ast, raw_indices):
-    idx_mapping = {r: i + 1 for r, i in zip(sorted(raw_indices), range(len(raw_indices)))}
-    if raw_ast[0] == 'and' or raw_ast[0] == 'or':
-        clauses = []
-        for c in raw_ast[1:]:
-            if c[0] == 'lit':
-                clauses.append(('lit', (idx_mapping[c[1]]) if c[1] > 0 else (-idx_mapping[-c[1]])))
-            elif (c[0] == 'or' or c[0] == 'and') and (raw_ast[0] != c[0]):
-                clause = []
-                for l in c[1:]:
-                    clause.append(('lit', (idx_mapping[l[1]]) if l[1] > 0 else (-idx_mapping[-l[1]])))
-                clauses.append((c[0], *clause))
-            else:
-                raise AquaError('Unrecognized logical expression: {}'.format(raw_ast))
-    elif raw_ast[0] == 'const' or raw_ast[0] == 'lit':
-        return raw_ast
-    else:
-        raise AquaError('Unrecognized root expression type: {}.'.format(raw_ast[0]))
-    return (raw_ast[0], *clauses)
-
-
 def get_ast(var_to_lit_map, clause):
     from sympy.core.symbol import Symbol
     from sympy.logic.boolalg import And, Or, Not, Xor
