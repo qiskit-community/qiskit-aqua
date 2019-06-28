@@ -32,7 +32,7 @@ Changed
 -   Improve `mct`'s `'basic'` mode by using relative-phase Toffoli gates to build intermediate results.
 -   Adapt to Qiskit Terra's newly introduced `Qubit` class.
 -   Prevent `QPE/IQPE` from modifying input `Operator`s.
--   The pyeda requirement was made optional instead of an install requirement
+-   The PyEDA dependency was removed.
 
 Fixed
 -------
