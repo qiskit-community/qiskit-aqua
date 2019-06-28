@@ -37,9 +37,13 @@ Please note that one of Aqua's dependencies, [PyEDA](https://pyeda.readthedocs.i
 which is used in Aqua's
 [`LogicalExpressionOracle`](https://github.com/Qiskit/qiskit-aqua/blob/master/qiskit/aqua/components/oracles/logical_expression_oracle.py) and
 [`TruthTableOracle`](https://github.com/Qiskit/qiskit-aqua/blob/master/qiskit/aqua/components/oracles/truth_table_oracle.py) implementations,
-will not be automatically installed on the Windows platform.
-You can follow [these notes](https://pyeda.readthedocs.io/en/latest/install.html#windows-notes)
-to manually install PyEDA on Windows if necessary.
+will not be automatically installed on any platform.
+You can follow [these notes](https://pyeda.readthedocs.io/en/latest/install.html)
+to manually install PyEDA if necessary. Also, for non Windows installs, you can run:
+
+ ```bash
+ pip install qiskit-aqua[eda]
+ ```
 
 ## Creating Your First Quantum Program in Qiskit Aqua
 
