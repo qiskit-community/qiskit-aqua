@@ -43,10 +43,10 @@ Chemistry installation bundle.
 Qiskit Chemistry comes with prebuilt support to interface the following classical computational chemistry
 software programs:
 
-1. [Gaussian 16&trade;](http://gaussian.com/gaussian16/), a commercial chemistry program
-2. [PSI4](http://www.psicode.org/), a chemistry program that exposes a Python interface allowing for accessing internal objects
-3. [PySCF](https://github.com/sunqm/pyscf), an open-source Python chemistry program
-4. [PyQuante](https://github.com/rpmuller/pyquante2), a pure cross-platform open-source Python chemistry program
+1. [Gaussian 16&trade;](https://qiskit.org/documentation/aqua/chemistry/qiskit_chemistry_drivers.html#gaussian-16), a commercial chemistry program
+2. [PSI4](https://qiskit.org/documentation/aqua/chemistry/qiskit_chemistry_drivers.html#psi4), a chemistry program that exposes a Python interface allowing for accessing internal objects
+3. [PySCF](https://qiskit.org/documentation/aqua/chemistry/qiskit_chemistry_drivers.html#pyscf), an open-source Python chemistry program
+4. [PyQuante](https://qiskit.org/documentation/aqua/chemistry/qiskit_chemistry_drivers.html#pyquante), a pure cross-platform open-source Python chemistry program
 
 Except for the Windows platform, PySCF is installed automatically as a dependency by the pip tool whenever Qiskit Chemistry is
 installed.  The other classical computational chemistry software programs will have to be installed separately, even though
@@ -60,7 +60,9 @@ executing an experiment.  Qiskit Chemistry can then use that data to initiate th
 data into a fermionic operator and then a qubit operator, which can then be used as an input to a quantum
 algorithm.  Therefore, even without installing one of the drivers above, it is still possible to run
 chemistry experiments as long as you have a Hierarchical Data Format 5 (HDF5) file that has been previously
-created.  Qiskit Chemistry's built-in HDF5 driver accepts such such HDF5 files as input.  
+created.  Qiskit Chemistry's built-in
+[HDF5 driver](https://qiskit.org/documentation/aqua/chemistry/qiskit_chemistry_drivers.html#hdf5) accepts such such HDF5 files
+as input.  
 A few sample HDF5 files for different are provided in the 
 [chemistry folder](https://github.com/Qiskit/qiskit-tutorials/tree/master/qiskit/chemistry) of the
 [Qiskit Tutorials](https://github.com/Qiskit/qiskit-tutorials) repository.
