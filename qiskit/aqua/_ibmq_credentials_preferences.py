@@ -30,7 +30,6 @@ logger = logging.getLogger(__name__)
 
 class IBMQCredentialsPreferences(object):
 
-    IBMQ_URL = QX_AUTH_URL
     _IBMQ_KEY = 'ibmq'
     _HUB_KEY = 'hub'
     _GROUP_KEY = 'group'
@@ -96,10 +95,10 @@ class IBMQCredentialsPreferences(object):
     def credentials(self):
         return self._credentials
 
-    def set_credentials(self, token, url=IBMQ_URL, proxy_urls=None):
-        if url is not None and token is not None:
+    def set_credentials(self, token, proxy_urls=None):
+        if token is not None:
             proxies = {} if proxy_urls is None else {'urls': proxy_urls}
-            self._credentials = Credentials(token, url, proxies=proxies)
+            self._credentials = Credentials(token, QX_AUTH_URL, proxies=proxies)
             self._credentials_changed = True
             return self._credentials
         else:
