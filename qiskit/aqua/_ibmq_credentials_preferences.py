@@ -98,13 +98,17 @@ class IBMQCredentialsPreferences(object):
     def set_credentials(self, token, proxy_urls=None):
         if token is not None:
             proxies = {} if proxy_urls is None else {'urls': proxy_urls}
-            self._credentials = Credentials(token, QX_AUTH_URL, proxies=proxies)
-            self._credentials_changed = True
-            return self._credentials
+            cred = Credentials(token, QX_AUTH_URL, proxies=proxies)
+            if self._credentials is None or self._credentials != cred:
+                self._credentials = cred
+                self._credentials_changed = True
         else:
+            if self._credentials is not None:
+                self._credentials_changed = True
+
             self._credentials = None
 
-        return None
+        return self._credentials
 
     @property
     def url(self):
