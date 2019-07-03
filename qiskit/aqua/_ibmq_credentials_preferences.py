@@ -16,12 +16,16 @@
 """IBMQ Credential preferences"""
 
 import copy
+import logging
+from collections import OrderedDict
 # pylint: disable=no-name-in-module, import-error
 from qiskit.providers.ibmq.ibmqfactory import QX_AUTH_URL
 from qiskit.providers.ibmq.credentials import Credentials
 from qiskit.providers.ibmq.credentials.configrc import (read_credentials_from_qiskitrc,
-                                                        store_credentials,
-                                                        remove_credentials)
+                                                        write_qiskit_rc)
+from qiskit.providers.ibmq.credentials.updater import is_directly_updatable, QE2_AUTH_URL
+
+logger = logging.getLogger(__name__)
 
 
 class IBMQCredentialsPreferences(object):
@@ -34,32 +38,52 @@ class IBMQCredentialsPreferences(object):
 
     def __init__(self, preferences_dict):
         """Create IBMQCredentialsPreferences object."""
-        self._credentials_changed = False
-        self._read_credentials()
         self._ibmq_dict = preferences_dict.get(IBMQCredentialsPreferences._IBMQ_KEY, {})
         self._ibmq_changed = False
+        self._credentials_changed = False
+        self._read_credentials()
 
     def _read_credentials(self):
+        """Read first credential from file and attempt to convert to v2"""
+        self._credentials = None
         try:
             credentials = read_credentials_from_qiskitrc()
             if credentials:
-                self._credentials = list(credentials.values())[0]
-        except Exception:
-            self._credentials = None
-
-        self._old_credentials = self._credentials
+                credentials = list(credentials.values())[0]
+                if credentials:
+                    if is_directly_updatable(credentials):
+                        self._credentials = Credentials(credentials.token,
+                                                        QE2_AUTH_URL,
+                                                        proxies=credentials.proxies,
+                                                        verify=credentials.verify)
+                    elif credentials.url == QE2_AUTH_URL:
+                        self._credentials = credentials
+                    elif credentials.is_ibmq():
+                        self._credentials = Credentials(credentials.token,
+                                                        QE2_AUTH_URL,
+                                                        proxies=credentials.proxies,
+                                                        verify=credentials.verify)
+                        self._ibmq_dict[IBMQCredentialsPreferences._HUB_KEY] = credentials.hub
+                        self._ibmq_dict[IBMQCredentialsPreferences._GROUP_KEY] = credentials.group
+                        self._ibmq_dict[IBMQCredentialsPreferences._PROJECT_KEY] = credentials.project
+                    else:
+                        # Unknown URL - do not act on it.
+                        logger.debug('The stored account with url "{}" could not be '
+                                     'parsed.'.format(credentials.url))
+        except Exception as ex:
+            logger.debug("Failed to read IBM credentials: '{}'".format(str(ex)))
 
     def save(self, preferences_dict):
+        """Save credentials, always keep only one"""
         if self._credentials_changed:
             try:
+                stored_credentials = OrderedDict()
                 if self._credentials is not None:
-                    store_credentials(self._credentials, overwrite=True)
-                elif self._old_credentials is not None:
-                    credentials_dict = read_credentials_from_qiskitrc()
-                    if credentials_dict and self._old_credentials.unique_id() in credentials_dict:
-                        remove_credentials(self._old_credentials)
-            except Exception:
-                pass
+                    stored_credentials[self._credentials.unique_id()] = self._credentials
+
+                write_qiskit_rc(stored_credentials)
+            except Exception as ex:
+                logger.debug("Failed to store IBM credentials: '{}'".format(str(ex)))
 
             self._credentials_changed = False
             self._read_credentials()
@@ -78,6 +102,8 @@ class IBMQCredentialsPreferences(object):
             self._credentials = Credentials(token, url, proxies=proxies)
             self._credentials_changed = True
             return self._credentials
+        else:
+            self._credentials = None
 
         return None
 

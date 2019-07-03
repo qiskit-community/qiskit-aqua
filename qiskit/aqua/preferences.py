@@ -17,6 +17,9 @@
 import os
 import json
 import copy
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Preferences(object):
@@ -69,7 +72,10 @@ class Preferences(object):
     def ibmq_credentials_preferences(self):
         """Return IBMQ Credentials Preferences"""
         if self._ibmq_credentials_preferences is None:
-            from ._ibmq_credentials_preferences import IBMQCredentialsPreferences
-            self._ibmq_credentials_preferences = IBMQCredentialsPreferences(self._preferences)
+            try:
+                from ._ibmq_credentials_preferences import IBMQCredentialsPreferences
+                self._ibmq_credentials_preferences = IBMQCredentialsPreferences(self._preferences)
+            except Exception as ex:
+                logger.debug("IBMQCredentialsPreferences not created: '{}'".format(str(ex)))
 
         return self._ibmq_credentials_preferences
