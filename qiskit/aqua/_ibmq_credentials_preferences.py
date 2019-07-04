@@ -107,6 +107,9 @@ class IBMQCredentialsPreferences(object):
                 self._credentials_changed = True
 
             self._credentials = None
+            self.hub = None
+            self.group = None
+            self.project = None
 
         return self._credentials
 
