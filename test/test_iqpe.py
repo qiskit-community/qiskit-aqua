@@ -60,7 +60,7 @@ qubitOp_zz = Operator.load_from_dict(pauli_dict_zz)
 class TestIQPE(QiskitAquaTestCase):
     """IQPE tests."""
 
-     # TODO: disabled failing test_iqpe(qubitOp_simple)
+    # TODO: disabled failing test_iqpe(qubitOp_simple)
     @parameterized.expand([
         # [qubitOp_simple, 'qasm_simulator'],
         [qubitOp_zz, 'statevector_simulator'],
