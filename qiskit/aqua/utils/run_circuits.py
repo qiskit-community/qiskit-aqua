@@ -246,15 +246,27 @@ def _safe_submit_qobj(qobj, backend, backend_options, noise_config, skip_qobj_va
     while True:
         job = run_on_backend(backend, qobj, backend_options=backend_options, noise_config=noise_config,
                              skip_qobj_validation=skip_qobj_validation)
-        try:
-            job_id = job.job_id()
-            break
-        except JobError as e:
-            logger.warning("FAILURE: Can not get job id, Resubmit the qobj to get job id."
-                           "Terra job error: {} ".format(e))
-        except Exception as e:
-            logger.warning("FAILURE: Can not get job id, Resubmit the qobj to get job id."
-                           "Error: {} ".format(e))
+        msg = "FAILURE: Can not get job id, Resubmit the qobj to get job id. "
+        if is_ibmq_provider(backend):
+            from qiskit.providers.ibmq.api import ApiError
+            try:
+                job_id = job.job_id()
+                break
+            except ApiError as e:
+                logger.warning(msg + "IBMQ api error: {} ".format(e))
+            except JobError as e:
+                logger.warning(msg + "Terra job error: {} ".format(e))
+            except Exception as e:
+                logger.warning(msg + "Error: {} ".format(e))
+        else:
+            try:
+                job_id = job.job_id()
+                break
+            except JobError as e:
+                logger.warning(msg + "Terra job error: {} ".format(e))
+            except Exception as e:
+                logger.warning(msg + "Error: {} ".format(e))
+        time.sleep(5)
 
     return job, job_id
 
