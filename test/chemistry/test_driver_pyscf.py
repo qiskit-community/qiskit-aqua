@@ -16,7 +16,7 @@ import unittest
 from test.chemistry.common import QiskitChemistryTestCase
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
-from .test_driver import TestDriver
+from test.chemistry.test_driver import TestDriver
 
 
 class TestDriverPySCF(QiskitChemistryTestCase, TestDriver):

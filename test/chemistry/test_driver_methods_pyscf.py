@@ -15,7 +15,7 @@
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType, HFMethodType
 from qiskit.chemistry.core import TransformationType, QubitMappingType
-from .test_driver_methods import TestDriverMethods
+from test.chemistry.test_driver_methods import TestDriverMethods
 
 
 class TestDriverMethodsPySCF(TestDriverMethods):

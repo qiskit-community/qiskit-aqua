@@ -17,7 +17,7 @@ import unittest
 from test.chemistry.common import QiskitChemistryTestCase
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import GaussianDriver
-from .test_driver import TestDriver
+from test.chemistry.test_driver import TestDriver
 
 
 class TestDriverGaussian(QiskitChemistryTestCase, TestDriver):
