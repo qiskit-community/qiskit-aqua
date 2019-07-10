@@ -14,7 +14,6 @@
 
 """Main public functionality."""
 
-from .version import __version__
 from .qiskit_chemistry_error import QiskitChemistryError
 from .qmolecule import QMolecule
 from .qiskit_chemistry_problem import ChemistryProblem
@@ -27,8 +26,7 @@ from ._logging import (get_logging_level,
                        get_qiskit_chemistry_logging,
                        set_qiskit_chemistry_logging)
 
-__all__ = ['__version__',
-           'QiskitChemistryError',
+__all__ = ['QiskitChemistryError',
            'QMolecule',
            'ChemistryProblem',
            'QiskitChemistry',
