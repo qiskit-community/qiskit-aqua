@@ -22,7 +22,7 @@ Removed
 -------
 
 -   Moved Command line and GUI interfaces to separate repo
-    (qiskit\_aqua\_uis)
+    (qiskit\_aqua\_interfaces)
 
 0.4.2 - 2019-01-09
 ======================================================================================
