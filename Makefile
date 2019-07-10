@@ -14,10 +14,10 @@
 .PHONY: lint style test
 
 lint:
-	pylint -rn --errors-only qiskit/aqua test
+	pylint -rn --errors-only --ignore=gauopen qiskit test
 
 style:
-	pycodestyle --max-line-length=170 qiskit/aqua test
+	pycodestyle --max-line-length=210 --exclude=gauopen qiskit test
 
 test:
 	python -m unittest discover -v test

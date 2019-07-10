@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2019.
@@ -9,15 +11,3 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-
-
-.PHONY: lint style test
-
-lint:
-	pylint -rn --errors-only --ignore=gauopen qiskit/chemistry test
-
-style:
-	pycodestyle --max-line-length=210 --exclude=gauopen qiskit/chemistry test
-
-test:
-	python -m unittest discover -v test

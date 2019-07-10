@@ -1,3 +1,0 @@
-recursive-include qiskit/chemistry *.json *.txt
-graft qiskit/chemistry/drivers/gaussiand/gauopen
-global-exclude *.py[co] .DS_Store
