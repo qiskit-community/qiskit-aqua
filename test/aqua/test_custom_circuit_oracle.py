@@ -17,7 +17,7 @@ from qiskit import BasicAer, QuantumCircuit, QuantumRegister
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.components.oracles import CustomCircuitOracle
 from qiskit.aqua.algorithms import DeutschJozsa
-from test.common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 
 
 class TestCustomCircuitOracle(QiskitAquaTestCase):

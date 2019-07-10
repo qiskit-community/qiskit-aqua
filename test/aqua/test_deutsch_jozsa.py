@@ -19,7 +19,7 @@ from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.components.oracles import TruthTableOracle
 from qiskit.aqua.algorithms import DeutschJozsa
-from test.common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 
 bitmaps = ['0000', '0101', '1111', '11110000']
 mct_modes = ['basic', 'basic-dirty-ancilla', 'advanced', 'noancilla']

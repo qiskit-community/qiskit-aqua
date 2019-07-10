@@ -17,7 +17,7 @@ InputParser test.
 """
 
 import unittest
-from test.common import QiskitChemistryTestCase
+from test.chemistry.common import QiskitChemistryTestCase
 from qiskit.aqua import AquaError
 from qiskit.chemistry.parser import InputParser
 import os

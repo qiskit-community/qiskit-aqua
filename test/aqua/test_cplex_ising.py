@@ -14,7 +14,7 @@
 
 import numpy as np
 
-from test.common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua import run_algorithm, AquaError
 from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.translators.ising import max_cut

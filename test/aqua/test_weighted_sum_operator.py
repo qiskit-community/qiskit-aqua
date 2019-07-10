@@ -14,7 +14,7 @@
 
 import unittest
 
-from test.common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 
 from parameterized import parameterized
 

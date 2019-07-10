@@ -22,7 +22,7 @@ from qiskit.aqua.utils import decimal_to_binary
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms.single_sample import IQPE
 from qiskit.aqua.algorithms.classical import ExactEigensolver
-from test.common import QiskitChemistryTestCase
+from test.chemistry.common import QiskitChemistryTestCase
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry import FermionicOperator, QiskitChemistryError
 from qiskit.chemistry.aqua_extensions.components.initial_states import HartreeFock

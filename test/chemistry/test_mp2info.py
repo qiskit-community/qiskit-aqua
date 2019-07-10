@@ -18,7 +18,7 @@ import numpy as np
 
 from qiskit.chemistry import QiskitChemistryError, MP2Info
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
-from test.common import QiskitChemistryTestCase
+from test.chemistry.common import QiskitChemistryTestCase
 
 
 class TestMP2Info(QiskitChemistryTestCase):

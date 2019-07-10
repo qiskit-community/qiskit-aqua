@@ -13,10 +13,10 @@
 # that they have been altered from the originals.
 
 import unittest
-from test.common import QiskitChemistryTestCase
+from test.chemistry.common import QiskitChemistryTestCase
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PyQuanteDriver, UnitsType, BasisType
-from test.test_driver import TestDriver
+from .test_driver import TestDriver
 
 
 class TestDriverPyQuante(QiskitChemistryTestCase, TestDriver):

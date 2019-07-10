@@ -22,7 +22,7 @@ from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.translators.ising.portfolio_diversification import (get_portfoliodiversification_solution,
                                                                      get_portfoliodiversification_qubitops,
                                                                      get_portfoliodiversification_value)
-from test.common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 
 
 class ClassicalOptimizer:

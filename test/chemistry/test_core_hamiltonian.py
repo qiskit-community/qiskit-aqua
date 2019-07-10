@@ -13,7 +13,7 @@
 # that they have been altered from the originals.
 
 import unittest
-from test.common import QiskitChemistryTestCase
+from test.chemistry.common import QiskitChemistryTestCase
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType

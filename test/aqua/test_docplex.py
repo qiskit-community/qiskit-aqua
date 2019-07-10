@@ -22,7 +22,7 @@ from qiskit.quantum_info import Pauli
 from qiskit.aqua import Operator, AquaError
 from qiskit.aqua.algorithms import ExactEigensolver
 from qiskit.aqua.translators.ising import tsp, docplex
-from test.common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 
 # Reference operators and offsets for maxcut and tsp.
 qubitOp_maxcut = Operator(paulis=[[0.5, Pauli(z=[True, True, False, False], x=[False, False, False, False])],

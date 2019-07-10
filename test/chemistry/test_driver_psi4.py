@@ -14,10 +14,10 @@
 
 import unittest
 
-from test.common import QiskitChemistryTestCase
+from test.chemistry.common import QiskitChemistryTestCase
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PSI4Driver
-from test.test_driver import TestDriver
+from .test_driver import TestDriver
 
 
 class TestDriverPSI4(QiskitChemistryTestCase, TestDriver):

@@ -16,7 +16,7 @@ import unittest
 
 import numpy as np
 
-from test.common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua.components.initial_states import Zero
 
 

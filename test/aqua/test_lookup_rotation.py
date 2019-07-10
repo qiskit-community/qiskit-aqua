@@ -16,7 +16,7 @@ import unittest
 
 from parameterized import parameterized
 from qiskit import QuantumRegister, QuantumCircuit
-from test.common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua.components.reciprocals.lookup_rotation import LookupRotation
 from qiskit import execute
 from qiskit import BasicAer

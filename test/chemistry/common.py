@@ -28,7 +28,7 @@ class Path(Enum):
     """Helper with paths commonly used during the tests."""
     # Main SDK path:    qiskit/chemistry/
     SDK = qiskit_chemistry_path[0]
-    # test.python path: test/
+    # test.python path: test/chemistry
     TEST = os.path.dirname(__file__)
 
 

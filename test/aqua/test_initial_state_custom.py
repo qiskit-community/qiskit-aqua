@@ -18,7 +18,7 @@ import numpy as np
 
 from qiskit.aqua import AquaError
 from qiskit.aqua.components.initial_states import Custom
-from test.common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 
 
 class TestInitialStateCustom(QiskitAquaTestCase):

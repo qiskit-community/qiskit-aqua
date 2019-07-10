@@ -16,7 +16,7 @@ import unittest
 
 from qiskit.quantum_info import pauli_group
 
-from test.common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua import Operator
 
 

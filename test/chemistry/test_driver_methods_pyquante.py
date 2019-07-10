@@ -14,7 +14,7 @@
 
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PyQuanteDriver, UnitsType, BasisType, HFMethodType
-from test.test_driver_methods import TestDriverMethods
+from .test_driver_methods import TestDriverMethods
 
 
 class TestDriverMethodsPyquante(TestDriverMethods):

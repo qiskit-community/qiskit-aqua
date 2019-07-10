@@ -27,7 +27,7 @@ from qiskit.aqua.algorithms import ExactEigensolver
 from qiskit.aqua.algorithms import QPE
 from qiskit.aqua.components.iqfts import Standard
 from qiskit.aqua.components.initial_states import Custom
-from test.common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 
 
 X = np.array([[0, 1], [1, 0]])

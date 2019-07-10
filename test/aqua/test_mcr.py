@@ -22,7 +22,7 @@ from qiskit import QuantumCircuit, QuantumRegister
 from qiskit import execute
 from qiskit import BasicAer
 
-from test.common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 
 nums_controls = [[i + 1] for i in range(6)]
 nums_controls_basic = [[i + 1] for i in range(4)]

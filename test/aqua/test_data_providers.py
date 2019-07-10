@@ -21,7 +21,7 @@ from qiskit.aqua.translators.data_providers import (RandomDataProvider,
                                                     StockMarket,
                                                     DataOnDemandProvider,
                                                     ExchangeDataProvider)
-from test.common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 
 
 # This can be run as python -m unittest test.test_data_providers.TestDataProviders

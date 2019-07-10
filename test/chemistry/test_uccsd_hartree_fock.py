@@ -16,7 +16,7 @@
 Test of UCCSD and HartreeFock Aqua extensions.
 """
 
-from test.common import QiskitChemistryTestCase
+from test.chemistry.common import QiskitChemistryTestCase
 from qiskit.chemistry import QiskitChemistry
 # from qiskit.chemistry import set_qiskit_chemistry_logging
 # import logging

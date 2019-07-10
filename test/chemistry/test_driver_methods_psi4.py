@@ -14,7 +14,7 @@
 
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PSI4Driver
-from test.test_driver_methods import TestDriverMethods
+from .test_driver_methods import TestDriverMethods
 
 
 class TestDriverMethodsPSI4(TestDriverMethods):

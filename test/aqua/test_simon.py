@@ -21,7 +21,7 @@ from qiskit.aqua import QuantumInstance
 from qiskit.aqua.components.oracles import TruthTableOracle
 from qiskit.aqua.algorithms import Simon
 from qiskit import BasicAer
-from test.common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 
 bitmaps = [
     ['00011110', '01100110', '10101010'],

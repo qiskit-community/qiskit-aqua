@@ -14,7 +14,7 @@
 
 import numpy as np
 
-from test.common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.translators.ising.vehicle_routing import get_vehiclerouting_qubitops

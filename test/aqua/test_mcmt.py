@@ -22,7 +22,7 @@ from qiskit import execute as q_execute
 from qiskit.quantum_info import state_fidelity
 
 from qiskit import BasicAer
-from test.common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 
 nums_controls = [i + 1 for i in range(7)]
 nums_targets = [i + 1 for i in range(5)]

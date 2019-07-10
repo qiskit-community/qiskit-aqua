@@ -7,7 +7,7 @@ import tempfile
 import pickle
 
 from qiskit import BasicAer
-from test.common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua import Operator, QuantumInstance, QiskitAqua
 from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.components.variational_forms import RY, RYRZ

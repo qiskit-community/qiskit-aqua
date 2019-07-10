@@ -14,7 +14,7 @@
 
 from parameterized import parameterized
 
-from test.common import QiskitChemistryTestCase
+from test.chemistry.common import QiskitChemistryTestCase
 from qiskit.aqua.algorithms import ExactEigensolver
 from qiskit.chemistry import FermionicOperator, QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType, HFMethodType

@@ -15,7 +15,7 @@
 import numpy as np
 import json
 
-from test.common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 from qiskit import BasicAer
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import EnergyInput

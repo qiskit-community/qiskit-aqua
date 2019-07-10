@@ -16,7 +16,7 @@ import unittest
 
 import numpy as np
 
-from test.common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import LinearSystemInput
 from qiskit.aqua.algorithms import ExactLSsolver

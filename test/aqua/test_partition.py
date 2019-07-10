@@ -14,7 +14,7 @@
 
 import numpy as np
 
-from test.common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 from qiskit import BasicAer
 
 from qiskit.aqua import run_algorithm

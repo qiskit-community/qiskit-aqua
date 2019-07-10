@@ -14,7 +14,7 @@
 
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
 from qiskit.aqua.algorithms.classical import ExactEigensolver
-from test.common import QiskitChemistryTestCase
+from test.chemistry.common import QiskitChemistryTestCase
 
 
 class TestDriverMethods(QiskitChemistryTestCase):

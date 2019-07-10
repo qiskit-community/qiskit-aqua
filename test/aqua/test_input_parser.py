@@ -20,7 +20,7 @@ import unittest
 import os
 import json
 
-from test.common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua import AquaError
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.parser._inputparser import InputParser

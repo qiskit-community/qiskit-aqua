@@ -17,7 +17,7 @@ import unittest
 import numpy as np
 from qiskit.transpiler import PassManager
 
-from test.common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 from qiskit import BasicAer
 from qiskit.aqua import Operator, QuantumInstance
 from qiskit.aqua.input import EnergyInput

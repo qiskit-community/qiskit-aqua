@@ -18,7 +18,7 @@ import numpy as np
 from parameterized import parameterized
 from qiskit import BasicAer
 
-from test.common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua.translators.ising import max_cut
 from qiskit.aqua.components.optimizers import COBYLA
 from qiskit.aqua.algorithms import QAOA

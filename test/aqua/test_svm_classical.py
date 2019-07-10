@@ -16,7 +16,7 @@ import numpy as np
 from qiskit.aqua import aqua_globals
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import ClassificationInput
-from test.common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 
 
 class TestSVMClassical(QiskitAquaTestCase):

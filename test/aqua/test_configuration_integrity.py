@@ -13,7 +13,7 @@
 # that they have been altered from the originals.
 
 import unittest
-from test.common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua import (local_pluggables_types,
                          local_pluggables,
                          get_pluggable_class,

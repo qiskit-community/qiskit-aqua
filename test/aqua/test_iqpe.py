@@ -20,7 +20,7 @@ from scipy.linalg import expm
 from scipy import sparse
 from qiskit.transpiler import PassManager
 
-from test.common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 from qiskit import BasicAer
 from qiskit.aqua import Operator, QuantumInstance
 from qiskit.aqua.utils import decimal_to_binary

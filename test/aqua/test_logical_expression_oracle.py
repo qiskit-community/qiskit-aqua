@@ -21,7 +21,7 @@ from qiskit import QuantumCircuit, ClassicalRegister
 from qiskit import BasicAer
 
 from qiskit.aqua.components.oracles import LogicalExpressionOracle
-from test.common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 
 dimacs_tests = [
     [

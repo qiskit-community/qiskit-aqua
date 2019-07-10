@@ -76,25 +76,38 @@ stage_dependencies: &stage_dependencies
   
 # Define the order of the stages.
 stages:
-  - test first
-  - test second
-  - test third
+  - test chemistry
+  - test aqua first
+  - test aqua second
+  - test aqua third
 
 jobs:
   include:
-    - stage: test first
+    - stage: test chemistry
       <<: *stage_dependencies
+      before_install:
+        # download PyQuante master and unzip it
+        - wget https://codeload.github.com/rpmuller/pyquante2/zip/master -O /tmp/pyquante2.zip
+        - unzip /tmp/pyquante2.zip -d /tmp/
+        # Install local PyQuante
+        - pip install -e /tmp/pyquante2-master --progress-bar off
       script:
-        - make style && make lint && python test/custom_tests.py 0 -end 24
+        # Remove OpenBLAS warning message when compiled without USE_OPENMP=1 in PySCF
+        - make style && make lint && export OPENBLAS_NUM_THREADS=1 && python -m unittest discover -v test/chemistry
 
-    - stage: test second
+    - stage: test aqua first
       <<: *stage_dependencies
       script:
-        - python test/custom_tests.py 24 -end 43
+        - python test/custom_tests.py aqua -end 24
 
-    - stage: test third
+    - stage: test aqua second
       <<: *stage_dependencies
       script:
-        - python test/custom_tests.py 43
+        - python test/custom_tests.py aqua -start 24 -end 43
+
+    - stage: test aqua third
+      <<: *stage_dependencies
+      script:
+        - python test/custom_tests.py aqua -start 43
         
 

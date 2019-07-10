@@ -21,7 +21,7 @@ from qiskit import BasicAer
 from qiskit import execute as q_execute
 from qiskit.quantum_info import state_fidelity
 
-from test.common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua import Operator
 from qiskit.aqua.components.initial_states import Custom
 

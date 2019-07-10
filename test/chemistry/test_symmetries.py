@@ -17,7 +17,7 @@ Test of Symmetry UCCSD processing.
 """
 
 import itertools
-from test.common import QiskitChemistryTestCase
+from test.chemistry.common import QiskitChemistryTestCase
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance, Operator
 from qiskit.aqua.algorithms.adaptive import VQE

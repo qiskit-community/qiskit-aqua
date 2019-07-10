@@ -23,7 +23,7 @@ from qiskit.quantum_info import Pauli
 from qiskit.assembler import RunConfig
 from qiskit.transpiler import PassManager
 
-from test.common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua import Operator, aqua_globals
 from qiskit.aqua.components.variational_forms import RYRZ
 

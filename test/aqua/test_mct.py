@@ -22,7 +22,7 @@ from qiskit import execute
 from qiskit.quantum_info import state_fidelity
 
 from qiskit import BasicAer
-from test.common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 
 nums_controls = [i + 1 for i in range(6)]
 clean_ancilla_modes = ['basic']

@@ -17,7 +17,7 @@ import unittest
 import numpy as np
 from parameterized import parameterized
 
-from test.common import QiskitChemistryTestCase
+from test.chemistry.common import QiskitChemistryTestCase
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType

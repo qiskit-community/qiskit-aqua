@@ -19,7 +19,7 @@ from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms.adaptive import VQE
 from qiskit.aqua.components.variational_forms import RYRZ
 from qiskit.aqua.components.optimizers import COBYLA, SPSA
-from test.common import QiskitChemistryTestCase
+from test.chemistry.common import QiskitChemistryTestCase
 from qiskit.chemistry.drivers import HDF5Driver
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
 

@@ -17,7 +17,7 @@ import unittest
 import numpy as np
 from numpy.random import random
 from parameterized import parameterized
-from test.common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import LinearSystemInput
 from qiskit.aqua.utils import random_matrix_generator as rmg

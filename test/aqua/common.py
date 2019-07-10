@@ -28,7 +28,7 @@ class Path(Enum):
     """Helper with paths commonly used during the tests."""
     # Main SDK path:    qiskit/aqua/
     SDK = qiskit_aqua_path[0]
-    # test.python path: test/
+    # test.python path: test/aqua
     TEST = os.path.dirname(__file__)
 
 
