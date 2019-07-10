@@ -69,10 +69,9 @@ stage_dependencies: &stage_dependencies
         # back to current repo directory
         cd $TRAVIS_BUILD_DIR
       fi
-  install:
-      # install Aqua and dev requirements
-      - pip install -e $TRAVIS_BUILD_DIR --progress-bar off
-      - pip install -U -r requirements-dev.txt --progress-bar off
+    # install Aqua and dev requirements
+    - pip install -e $TRAVIS_BUILD_DIR --progress-bar off
+    - pip install -U -r requirements-dev.txt --progress-bar off
   
 # Define the order of the stages.
 stages:
@@ -85,7 +84,7 @@ jobs:
   include:
     - stage: test chemistry
       <<: *stage_dependencies
-      before_install:
+      install:
         # download PyQuante master and unzip it
         - wget https://codeload.github.com/rpmuller/pyquante2/zip/master -O /tmp/pyquante2.zip
         - unzip /tmp/pyquante2.zip -d /tmp/
