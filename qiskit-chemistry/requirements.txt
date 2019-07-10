@@ -1,0 +1,8 @@
+qiskit-aqua>=0.5.3
+numpy>=1.13
+h5py
+psutil>=5
+jsonschema>=2.6,<2.7
+networkx>=2.2
+pyscf; sys_platform != 'win32'
+setuptools>=40.1.0

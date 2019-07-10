@@ -25,6 +25,10 @@ __pycache__/
 *.so
 *.so.dSYM
 *.dll
+#Allow
+!qiskit/chemistry/drivers/gaussiand/gauopen/*.so
+!qiskit/chemistry/drivers/gaussiand/gauopen/*.pyd
+
 
 # Distribution / packaging
 .Python
@@ -59,6 +63,7 @@ pip-delete-this-directory.txt
 # Unit test / coverage reports
 *.hdf5
 !examples/*.hdf5
+!test/*.hdf5
 htmlcov/
 .tox/
 .coverage
@@ -89,9 +94,6 @@ instance/
 
 # Scrapy stuff:
 .scrapy
-
-# Sphinx documentation
-docs/_build/
 
 # PyBuilder
 target/
