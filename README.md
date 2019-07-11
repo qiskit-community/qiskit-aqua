@@ -191,7 +191,7 @@ For the full set of options, please refer to the documentation of the Aqua `Quan
 
 You can also use Qiskit to execute your code on a **real quantum chip**.
 In order to do so, you need to configure Qiskit to use the credentials in
-your [IBM Q](https://quantumexperience.ng.bluemix.net) account.
+your [IBM Q](https://quantum-computing.ibm.com) account.
 Please consult the relevant instructions in the
 [Qiskit Terra GitHub repository](https://github.com/Qiskit/qiskit-terra/blob/master/README.md#executing-your-code-on-a-real-quantum-chip)
 for more details.
