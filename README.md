@@ -130,7 +130,8 @@ Now that Qiskit Aqua is installed, it's time to begin working with it.  We are r
 from qiskit.chemistry import FermionicOperator
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 
-# Use PySCF, a classical computational chemistry software package, to compute the one-body and two-body integrals in
+# Use PySCF, a classical computational chemistry software
+# package, to compute the one-body and two-body integrals in
 # molecular-orbital basis, necessary to form the Fermionic operator
 driver = PySCFDriver(atom='H .0 .0 .0; H .0 .0 0.735',
                     unit=UnitsType.ANGSTROM,
@@ -233,6 +234,12 @@ to the project at different levels. If you use Qiskit, please cite as per the in
 
 ## License
 
-[Apache License 2.0](LICENSE.txt)
+This project uses the [Apache License 2.0](LICENSE.txt).
+
+Some of the code embedded in Qiskit Chemistry to interface some of the computational chemistry
+software drivers requires additional licensing:
+* The [Gaussian 16 driver](qiskit/chemistry/drivers/gaussiand/README.md) contains work licensed under the
+[Gaussian Open-Source Public License](qiskit/chemistry/drivers/gaussiand/gauopen/LICENSE.txt).
+
 
 
