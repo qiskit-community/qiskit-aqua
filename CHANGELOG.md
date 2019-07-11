@@ -44,7 +44,7 @@ Added
 -   Chemistry: Processing output added to debug log from PyQuante and PySCF computations (Gaussian16 
     and PSI4 outputs were already added to debug log)
 -   Chemistry: Merged qiskit-chemistry to this repo. The old chemistry changelog is at 
-    [OLD_CHEMISTRY_CHANGELOG.md](https://github.com/Qiskit/qiskit-aqua/blob/master/OLD_CHEMISTRY_CHANGELOG.md)
+    [OLD_CHEMISTRY_CHANGELOG.md](OLD_CHEMISTRY_CHANGELOG.md)
 
 Changed
 -------
