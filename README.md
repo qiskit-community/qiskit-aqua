@@ -115,13 +115,6 @@ For example, output `1, -2, 3` indicates
 that logical expression (<i>x</i><sub>1</sub> &or; &not;<i>x</i><sub>2</sub> &or; <i>x</i><sub>3</sub>)
 satisfies the given CNF.
 
-You can also use Qiskit to execute your code on a **real quantum chip**.
-In order to do so, you need to configure Qiskit to use the credentials in
-your [IBM Q](https://quantumexperience.ng.bluemix.net) account.
-Please consult the relevant instructions in the
-[Qiskit Terra GitHub repository](https://github.com/Qiskit/qiskit-terra/blob/master/README.md#executing-your-code-on-a-real-quantum-chip)
-for more details.
-
 ## Creating Your First Qiskit Chemistry Programming Experiment
 
 Now that Qiskit Aqua is installed, it's time to begin working with it.  We are ready to try out an experiment using Qiskit Chemistry:
@@ -193,7 +186,18 @@ a dictionary with the configuration settings for the simulator, a dictionary wit
 in the mapping, and the Terra `PassManager` that will handle the compilation of the circuits.
 For the full set of options, please refer to the documentation of the Aqua `QuantumInstance` API.
 
-### Qiskit Chemistry Wizard and Command-line Interfaces
+
+## Using Real Device
+
+You can also use Qiskit to execute your code on a **real quantum chip**.
+In order to do so, you need to configure Qiskit to use the credentials in
+your [IBM Q](https://quantumexperience.ng.bluemix.net) account.
+Please consult the relevant instructions in the
+[Qiskit Terra GitHub repository](https://github.com/Qiskit/qiskit-terra/blob/master/README.md#executing-your-code-on-a-real-quantum-chip)
+for more details.
+
+
+## Qiskit Chemistry Wizard and Command-line Interfaces
 
 Qiskit Chemistry is a modular and extensible software framework that allows researchers to contribute new components to it
 and extend its functionality.  For this reason, Qiskit Chemistry exposes all the Application Programming Interfaces (APIs) 
