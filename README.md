@@ -238,7 +238,7 @@ This project uses the [Apache License 2.0](LICENSE.txt).
 
 Some of the code embedded in Qiskit Chemistry to interface some of the computational chemistry
 software drivers requires additional licensing:
-* The [Gaussian 16 driver](qiskit/chemistry/drivers/gaussiand/README.md) contains work licensed under the
+* The [Gaussian 16 driver](qiskit/chemistry/drivers/gaussiand) contains work licensed under the
 [Gaussian Open-Source Public License](qiskit/chemistry/drivers/gaussiand/gauopen/LICENSE.txt).
 
 
