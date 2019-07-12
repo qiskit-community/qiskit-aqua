@@ -27,7 +27,7 @@ from qiskit.aqua.utils.controlled_circuit import apply_cu1
 logger = logging.getLogger(__name__)
 
 
-def _apply_mcu1(circuit, theta, ctls, tgt, global_phase=0):
+def _apply_mcu1(circuit, lam, ctls, tgt, global_phase=0):
     """Apply multi-controlled u1 gate from ctls to tgt with angle theta."""
 
     n = len(ctls)
@@ -35,7 +35,7 @@ def _apply_mcu1(circuit, theta, ctls, tgt, global_phase=0):
     gray_code = list(GrayCode(n).generate_gray())
     last_pattern = None
 
-    theta_angle = theta*(1/(2**(n-1)))
+    lam_angle = lam*(1/(2**(n-1)))
     gp_angle = angle(global_phase)*(1/(2**(n-1)))
 
     for pattern in gray_code:
@@ -62,23 +62,23 @@ def _apply_mcu1(circuit, theta, ctls, tgt, global_phase=0):
         # check parity
         if pattern.count('1') % 2 == 0:
             # inverse
-            apply_cu1(circuit, -theta_angle, ctls[lm_pos], tgt)
+            apply_cu1(circuit, -lam_angle, ctls[lm_pos], tgt)
             if global_phase:
                 circuit.u1(-gp_angle, ctls[lm_pos])
         else:
-            apply_cu1(circuit, theta_angle, ctls[lm_pos], tgt)
+            apply_cu1(circuit, lam_angle, ctls[lm_pos], tgt)
             if global_phase:
                 circuit.u1(gp_angle, ctls[lm_pos])
         last_pattern = pattern
 
 
-def mcu1(self, theta, control_qubits, target_qubit):
+def mcu1(self, lam, control_qubits, target_qubit):
     """
     Apply Multiple-Controlled U1 gate
 
     Args:
         self (QuantumCircuit): The QuantumCircuit object to apply the mcu1 gate on.
-        theta (float): angle theta
+        lam (float): angle lambda
         control_qubits (list of Qubit): The list of control qubits
         target_qubit (Qubit): The target qubit
     """
@@ -95,9 +95,9 @@ def mcu1(self, theta, control_qubits, target_qubit):
     self._check_dups(temp)
     n_c = len(control_qubits)
     if n_c == 1:  # cu1
-        apply_cu1(self, theta, control_qubits[0], target_qubit)
+        apply_cu1(self, lam, control_qubits[0], target_qubit)
     else:
-        _apply_mcu1(self, theta, control_qubits, target_qubit)
+        _apply_mcu1(self, lam, control_qubits, target_qubit)
 
 
 QuantumCircuit.mcu1 = mcu1

@@ -15,7 +15,7 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 > -   **Fixed**: for any bug fixes.
 > -   **Security**: in case of vulnerabilities.
 
-[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.5.1...HEAD)
+[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.5.2...HEAD)
 ========================================================================
 
 Added
@@ -23,7 +23,10 @@ Added
 
 -   Relative-Phase Toffoli gates `rccx` (with 2 controls) and `rcccx`
     (with 3 controls).
+-   Variational form `RYCRX` 
 -   A new `'basic-no-ancilla'` mode to `mct`.
+-   Multi-controlled rotation gates `mcrx`, `mcry`, and `mcrz` as a general 
+    `u3` gate is not supported by graycode implementation
 
 Changed
 -------
@@ -31,6 +34,8 @@ Changed
 -   Improve `mct`'s `'basic'` mode by using relative-phase Toffoli gates to build intermediate results.
 -   Adapt to Qiskit Terra's newly introduced `Qubit` class.
 -   Prevent `QPE/IQPE` from modifying input `Operator`s.
+-   The PyEDA dependency was removed; 
+    corresponding oracles' underlying logic operations are now handled by SymPy.
 
 Fixed
 -------
@@ -39,6 +44,20 @@ Fixed
 -   A bug caused by `PyEDA`'s indeterminism.
 -   A bug with `QPE/IQPE`'s translation and stretch computation.
 -   A bug with `docplex.get_qubitops`'s incorrect translation
+
+Removed
+-------
+
+-   General multi-controlled rotation gate `mcu3` is removed and replaced by 
+    multi-controlled rotation gates `mcrx`, `mcry`, and `mcrz` 
+
+[0.5.2](https://github.com/Qiskit/qiskit-aqua/compare/0.5.1...0.5.2) - 2019-06-27
+=================================================================================
+
+Changed
+-------
+
+-   The pyeda requirement was made optional instead of an install requirement
 
 [0.5.1](https://github.com/Qiskit/qiskit-aqua/compare/0.5.0...0.5.1) - 2019-05-24
 =================================================================================

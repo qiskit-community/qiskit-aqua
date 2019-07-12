@@ -35,7 +35,6 @@ requirements = [
     "scikit-learn>=0.20.0",
     "cvxopt",
     "dlx",
-    "pyeda; sys_platform != 'win32'",
     "docplex",
     "fastdtw",
     "quandl",
@@ -79,6 +78,6 @@ setuptools.setup(
     include_package_data=True,
     python_requires=">=3.5",
     extras_require={
-        'torch': ["torch; sys_platform != 'win32'"]
+        'torch': ["torch; sys_platform != 'win32'"],
     }
 )
