@@ -19,17 +19,18 @@ import sys
 import argparse
 
 
-def get_all_test_modules():
+def get_all_test_modules(folder):
     """
     Gathers all test modules
     """
     test_modules = []
     current_directory = os.path.dirname(__file__)
     sys.path.insert(0, os.path.join(current_directory, '..'))
-    files = sorted(os.listdir(current_directory))
+    test_directory = os.path.join(current_directory, folder)
+    files = sorted(os.listdir(test_directory))
     for file in files:
         if file.startswith('test') and file.endswith('.py'):
-            test_modules.append(file[:-3])
+            test_modules.append('{}.{}'.format(folder, file[:-3]))
 
     return test_modules
 
@@ -69,10 +70,14 @@ def check_positive_or_zero(value):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Qiskit Aqua Unit Test Tool')
-    parser.add_argument('start',
+    parser.add_argument('dir',
+                        metavar='dir',
+                        help='folder with test modules to run')
+    parser.add_argument('-start',
                         metavar='start',
                         type=check_positive_or_zero,
-                        help='start index of test modules to run')
+                        help='start index of test modules to run',
+                        required=False)
     parser.add_argument('-end',
                         metavar='index',
                         type=check_positive,
@@ -81,7 +86,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    test_modules = get_all_test_modules()
+    test_modules = get_all_test_modules(args.dir)
     tests_count = len(test_modules)
     if tests_count == 0:
         raise Exception('No test modules found.')
@@ -90,7 +95,7 @@ if __name__ == '__main__':
     #    print(index, test_module)
 
     # print('Total modules:', tests_count)
-    start_index = args.start
+    start_index = args.start if args.start is not None else 0
     if start_index >= tests_count:
         raise Exception('Start index {} >= number of test modules {}.'.format(
             start_index, tests_count))
