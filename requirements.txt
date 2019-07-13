@@ -12,3 +12,6 @@ docplex
 fastdtw
 quandl
 setuptools>=40.1.0
+h5py
+networkx>=2.2
+pyscf; sys_platform != 'win32'
