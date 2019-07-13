@@ -1,0 +1,62 @@
+&name
+H2 molecule experiment
+&end
+
+&problem
+   name=energy
+   auto_substitutions=True
+   random_seed=None
+&end
+
+&driver
+   name=PYSCF
+   hdf5_output=None
+&end
+
+&pyscf
+   atom=H .0 .0 .0; H .0 .0 0.735
+   unit=Angstrom
+   charge=0
+   spin=0
+   basis=sto3g
+   max_memory=None
+&end
+
+&operator
+   name=hamiltonian
+   transformation=full
+   qubit_mapping=parity
+   two_qubit_reduction=True
+   freeze_core=False
+   orbital_reduction=[]
+&end
+
+&algorithm
+   name=VQE
+   operator_mode=matrix
+   initial_point=None
+&end
+
+&initial_state
+   name=ZERO
+&end
+
+&optimizer
+   name=L_BFGS_B
+   maxfun=1000
+   factr=10
+   iprint=-1
+&end
+
+&variational_form
+   name=RYRZ
+   depth=3
+   entanglement=full
+   entangler_map=None
+&end
+
+&backend
+   provider=qiskit.BasicAer
+   name=statevector_simulator
+   skip_transpiler=False
+&end
