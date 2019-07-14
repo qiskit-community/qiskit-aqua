@@ -26,13 +26,14 @@ def get_all_test_modules(folder):
     test_modules = []
     current_directory = os.path.dirname(__file__)
     sys.path.insert(0, os.path.join(current_directory, '..'))
-    test_directory = os.path.join(current_directory, folder)
-    files = sorted(os.listdir(test_directory))
-    for file in files:
-        if file.startswith('test') and file.endswith('.py'):
-            test_modules.append('{}.{}'.format(folder, file[:-3]))
+    test_directory = os.path.join(current_directory, folder) if folder else current_directory
+    for dirpath, dirnames, filenames in os.walk(test_directory):
+        module = os.path.relpath(dirpath, current_directory).replace('/', '.')
+        for file in filenames:
+            if file.startswith('test') and file.endswith('.py'):
+                test_modules.append('{}.{}'.format(module, file[:-3]))
 
-    return test_modules
+    return sorted(test_modules)
 
 
 class CustomTests():
@@ -70,9 +71,10 @@ def check_positive_or_zero(value):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Qiskit Aqua Unit Test Tool')
-    parser.add_argument('dir',
+    parser.add_argument('-dir',
                         metavar='dir',
-                        help='folder with test modules to run')
+                        help='relative folder from test with modules',
+                        required=False)
     parser.add_argument('-start',
                         metavar='start',
                         type=check_positive_or_zero,
