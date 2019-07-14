@@ -27,6 +27,24 @@ Added
 -   A new `'basic-no-ancilla'` mode to `mct`.
 -   Multi-controlled rotation gates `mcrx`, `mcry`, and `mcrz` as a general 
     `u3` gate is not supported by graycode implementation
+-   Chemistry: ROHF open-shell support
+    - Supported for all drivers: Gaussian16, PyQuante, PySCF and PSI4
+    - HartreeFock initial state, UCCSD variational form and two qubit reduction for
+      parity mapping now support different alpha and beta particle numbers for open
+      shell support
+-   Chemistry: UHF open-shell support
+    - Supported for all drivers: Gaussian16, PyQuante, PySCF and PSI4
+    - QMolecule extended to include integrals, coeffiecients etc for separate beta   
+-   Chemistry: QMolecule extended with integrals in atomic orbital basis to facilitate common access
+    to these for experimentation
+    - Supported for all drivers: Gaussian16, PyQuante, PySCF and PSI4
+-   Chemistry: Additional PyQuante and PySCF driver configuration
+    - Convergence tolerance and max convergence iteration controls.
+    - For PySCF initial guess choice   
+-   Chemistry: Processing output added to debug log from PyQuante and PySCF computations (Gaussian16 
+    and PSI4 outputs were already added to debug log)
+-   Chemistry: Merged qiskit-chemistry to this repo. The old chemistry changelog is at 
+    [OLD_CHEMISTRY_CHANGELOG.md](OLD_CHEMISTRY_CHANGELOG.md)
 
 Changed
 -------
@@ -44,12 +62,14 @@ Fixed
 -   A bug caused by `PyEDA`'s indeterminism.
 -   A bug with `QPE/IQPE`'s translation and stretch computation.
 -   A bug with `docplex.get_qubitops`'s incorrect translation
+-   Chemistry: Bravyi-Kitaev mapping fixed when num qubits was not a power of 2
 
 Removed
 -------
 
 -   General multi-controlled rotation gate `mcu3` is removed and replaced by 
     multi-controlled rotation gates `mcrx`, `mcry`, and `mcrz` 
+ 
 
 [0.5.2](https://github.com/Qiskit/qiskit-aqua/compare/0.5.1...0.5.2) - 2019-06-27
 =================================================================================
@@ -374,8 +394,8 @@ Changed
 -------
 
 -   Changed short and long descriptions in setup.py.
-
-[0.1.0]{.title-ref} - 2018-06-13
+                                                      
+[0.1.0](https://github.com/Qiskit/qiskit-aqua/compare/7e913ef...0.1.0) - 2018-06-13
 ================================
 
 Changed
