@@ -111,6 +111,7 @@ class QKernelCluster(QuantumAlgorithm):
     @classmethod
     def init_params(cls, params, algo_input):
         """Constructor from params."""
+
         dataset = algo_input
 
         if dataset is None:
@@ -147,7 +148,7 @@ class QKernelCluster(QuantumAlgorithm):
 
         overlap = self.qkernel.kernel_matrix
         self._return['overlap_matrix'] = overlap
-        
+
         distance = self.qkernel.distance_matrix
         self._return['distance_matrix'] = distance
 

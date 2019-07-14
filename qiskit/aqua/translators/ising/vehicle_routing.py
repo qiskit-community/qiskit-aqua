@@ -95,6 +95,7 @@ def get_vehiclerouting_cost(instance, n, K, x_sol):
         cost (float): objective function value.
         """
     (Q, g, c) = get_vehiclerouting_matrices(instance, n, K)
+
     def fun(x): return np.dot(np.around(x), np.dot(Q, np.around(x))) + np.dot(g, np.around(x)) + c
     cost = fun(x_sol)
     return cost

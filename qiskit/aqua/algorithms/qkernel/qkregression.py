@@ -74,7 +74,9 @@ class QKernelRegression(QuantumAlgorithm):
         """Constructor.
 
         Args:
-            feature_map (FeatureMap): feature map module, used to transform data
+            circuit_maker (VariationalForm or FeatureMap): variational form or feature map, containing a
+            _construct_circuit function taking an input (data vector) to a circuit
+            into a circuit
             X : {array-like, sparse matrix}, shape (n_samples, n_features)
             y : array-like, shape (n_samples,)
 

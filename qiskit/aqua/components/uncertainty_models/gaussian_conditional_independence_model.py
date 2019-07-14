@@ -106,7 +106,9 @@ class GaussianConditionalIndependenceModel(MultivariateDistribution):
 
         # get normal (inverse) CDF and pdf
         def F(x): return norm.cdf(x)
+
         def F_inv(x): return norm.ppf(x)
+
         def f(x): return norm.pdf(x)
 
         # set low/high values
