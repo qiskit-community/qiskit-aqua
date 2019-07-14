@@ -27,7 +27,7 @@ from sklearn.multiclass import OneVsOneClassifier, OneVsRestClassifier, OutputCo
 
 from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class, QuantumAlgorithm, register_pluggable, AquaError
 
-from qkernels.code.qkernel import QKernel
+from qiskit.aqua.algorithms.qkernel import QKernel
 
 logger = logging.getLogger(__name__)
 

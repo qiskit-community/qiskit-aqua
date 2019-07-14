@@ -19,7 +19,7 @@ Quantum Kernel tests.
 import unittest
 import numpy as np
 
-from test.common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua.components.variational_forms import RYRZ
 from qiskit.aqua.components.feature_maps import SecondOrderExpansion
 from qiskit.aqua.quantum_instance import QuantumInstance
