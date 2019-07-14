@@ -16,7 +16,6 @@ Quantum Kernel Classifier tests.
 
 """
 
-import unittest
 import numpy as np
 
 from test.aqua.common import QiskitAquaTestCase
@@ -58,8 +57,8 @@ class QkClassificationTest(QiskitAquaTestCase):
         samples = 6
         second_order = SecondOrderExpansion(feature_dimension=samples, depth=2)
         params = np.zeros((samples, second_order.num_qubits))
-        params[2:4,:] = 1
-        params[4:6,:] = 2
+        params[2:4, :] = 1
+        params[4:6, :] = 2
         labels = np.mean(params, axis=1)
         backend = BasicAer.get_backend('qasm_simulator')
         qkcluster = QKernelClassification(circuit_maker=second_order, X=params, y=labels)
@@ -71,15 +70,15 @@ class QkClassificationTest(QiskitAquaTestCase):
         samples = 6
         second_order = SecondOrderExpansion(feature_dimension=samples, depth=2)
         params = np.zeros((samples, second_order.num_qubits))
-        params[2:4,:] = 1
-        params[4:6,:] = 2
+        params[2:4, :] = 1
+        params[4:6, :] = 2
         labels = np.mean(params, axis=1)
         backend = BasicAer.get_backend('qasm_simulator')
         qkcluster = QKernelClassification(circuit_maker=second_order, X=params, y=labels)
         qkcluster.run(backend)
 
         new_x = np.ones((2, second_order.num_qubits))
-        new_x[1,:] = 0
+        new_x[1, :] = 0
         new_y = np.mean(new_x, axis=1)
         predict = qkcluster.predict(new_x=new_x)
         score = qkcluster.score(new_x=new_x, new_y=new_y)
@@ -121,6 +120,3 @@ class QkClassificationTest(QiskitAquaTestCase):
         result = run_algorithm(qkclassifier_params, qkcluster_input)
         np.testing.assert_array_equal(result['labels'], labels)
         self.assertGreaterEqual(result['score'], 1)
-
-if __name__ == '__main__':
-    unittest.main()

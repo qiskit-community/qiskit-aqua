@@ -16,7 +16,6 @@ Quantum Kernel Regression algorithm tests.
 
 """
 
-import unittest
 import numpy as np
 import copy
 
@@ -60,12 +59,12 @@ class QkRegressionTest(QiskitAquaTestCase):
         qk_reg = QKernelRegression(circuit_maker=ryrz,
                                    X=params,
                                    y=ys,
-                                   mode_kwargs={'ridge': {'alpha':.00001},
-                                    'svr': {'C':50, 'epsilon':.00001},
-                                    'gpr': {}}
-        )
+                                   mode_kwargs={'ridge': {'alpha': .00001},
+                                                'svr': {'C': 50, 'epsilon': .00001},
+                                                'gpr': {}}
+                                   )
         qk_reg.run(backend)
-        predictions, errors = qk_reg.predict(new_x=params[0:2,:].reshape(2, -1),
+        predictions, errors = qk_reg.predict(new_x=params[0:2, :].reshape(2, -1),
                                              new_y_to_score=ys[0:2].reshape(2))
         for error in errors.values():
             np.testing.assert_array_less(error, np.ones(error.shape)/5)
@@ -74,16 +73,15 @@ class QkRegressionTest(QiskitAquaTestCase):
         ryrz = RYRZ(3, depth=3)
         samples = 5
         params = np.linspace(0, np.pi, samples*ryrz.num_parameters).reshape(samples, ryrz.num_parameters)
-        ys = np.sum(params, axis=1)
         backend = QuantumInstance(BasicAer.get_backend('qasm_simulator'), seed_transpiler=50, seed_simulator=50)
         qk_reg = QKernelRegression(circuit_maker=ryrz,
                                    X=params,
                                    y=np.sum(params, axis=1),
                                    modes='all',
-                                   mode_kwargs={'ridge': {'alpha':.00001},
-                                    'svr': {'C':50, 'epsilon':.00001},
-                                    'gpr': {}}
-        )
+                                   mode_kwargs={'ridge': {'alpha': .00001},
+                                                'svr': {'C': 50, 'epsilon': .00001},
+                                                'gpr': {}}
+                                   )
         qk_reg.run(backend)
         orig_kernel = copy.deepcopy(qk_reg.qkernel.kernel_matrix)
         predictions, scores = qk_reg.score_round_robin(quantum_instance=backend)
@@ -128,6 +126,3 @@ class QkRegressionTest(QiskitAquaTestCase):
         modes = ['svr', 'ridge', 'gpr']
         for mode in modes:
             self.assertGreaterEqual(result[mode]['score'], .05)
-
-if __name__ == '__main__':
-    unittest.main()

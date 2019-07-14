@@ -18,6 +18,7 @@ Quantum Kernel Class, for use in Quantum Kernel Algorithms.
 
 import logging
 import numpy as np
+import sys
 
 from qiskit import ClassicalRegister
 from qiskit.tools import parallel_map
@@ -30,7 +31,7 @@ from itertools import permutations
 logger = logging.getLogger(__name__)
 
 
-class QKernel():
+class QKernel:
 
     def __init__(self, construct_circuit_fn=None, num_qubits=None, quantum_instance=None, measurement_edit_distance=0):
         self.construct_circuit_fn = construct_circuit_fn
@@ -42,7 +43,6 @@ class QKernel():
 
     BATCH_SIZE = 1000
 
-    # @staticmethod
     def _construct_circuit(self, x, construct_circuit_fn):
 
         x1, x2 = x
@@ -74,9 +74,9 @@ class QKernel():
         Construct kernel matrix, if x2_vec is None, self-innerproduct is conducted.
 
         Args:
-            x1_vec (numpy.ndarray): data points, 2-D array, N1xD, where N1 is the number of data,
+            x1_vec (numpy.array): data points, 2-D array, N1xD, where N1 is the number of data,
                                     D is the feature dimension
-            x2_vec (numpy.ndarray): data points, 2-D array, N2xD, where N2 is the number of data,
+            x2_vec (numpy.array): data points, 2-D array, N2xD, where N2 is the number of data,
                                     D is the feature dimension
         Returns:
             numpy.ndarray: 2-D matrix, N1xN2
@@ -102,7 +102,7 @@ class QKernel():
 
         mat = np.ones((x1_vec.shape[0], x2_vec.shape[0]))
         if preserve_counts:
-            self.counts = [[{} for x in range(x1_vec.shape[0])] for y in range(x2_vec.shape[0])]
+            self.counts = [[{} for _ in range(x1_vec.shape[0])] for _ in range(x2_vec.shape[0])]
 
         # get all indices
         if is_symmetric:
@@ -141,9 +141,9 @@ class QKernel():
             matrix_elements = parallel_map(self._compute_overlap, range(len(circuits)),
                                            task_args=(results, measurement_basis))
 
-            for idx in range(len(to_be_computed_index)):
-                i, j = to_be_computed_index[idx]
-                mat[i, j] = matrix_elements[idx]
+            for index in range(len(to_be_computed_index)):
+                i, j = to_be_computed_index[index]
+                mat[i, j] = matrix_elements[index]
                 if is_symmetric:
                     mat[j, i] = mat[i, j]
                 if preserve_counts:
@@ -179,7 +179,7 @@ class QKernel():
         return self.kernel_matrix
 
     def center_matrix(self, metric='linear'):
-        K = pairwise_kernels(self.kernel_matrix, metric=metric)
-        transformer = KernelCenterer().fit(K)
-        self.kernel_matrix = transformer.transform(K)
+        k = pairwise_kernels(self.kernel_matrix, metric=metric)
+        transformer = KernelCenterer().fit(k)
+        self.kernel_matrix = transformer.transform(k)
         return self.kernel_matrix

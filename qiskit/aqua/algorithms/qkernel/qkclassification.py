@@ -25,7 +25,7 @@ import numpy as np
 from sklearn.svm import SVC
 from sklearn.multiclass import OneVsOneClassifier, OneVsRestClassifier, OutputCodeClassifier
 
-from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class, QuantumAlgorithm, register_pluggable, AquaError
+from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class, QuantumAlgorithm, AquaError
 
 from qiskit.aqua.algorithms.qkernel import QKernel
 
@@ -126,12 +126,12 @@ class QKernelClassification(QuantumAlgorithm):
             circuit_maker_params = params.get(Pluggable.SECTION_KEY_FEATURE_MAP)
             circuit_maker_params['feature_dimension'] = num_qubits
             circuit_maker = get_pluggable_class(PluggableType.FEATURE_MAP,
-                                              circuit_maker_params['name']).init_params(params)
+                                                circuit_maker_params['name']).init_params(params)
         elif 'variational_form' in params:
             circuit_maker_params = params.get(Pluggable.SECTION_KEY_VAR_FORM)
             circuit_maker_params['num_qubits'] = num_qubits
             circuit_maker = get_pluggable_class(PluggableType.VARIATIONAL_FORM,
-                                           circuit_maker_params['name']).init_params(params)
+                                                circuit_maker_params['name']).init_params(params)
         else:
             raise AquaError('No var_form or feature_map specified in dictionary')
 
@@ -160,9 +160,9 @@ class QKernelClassification(QuantumAlgorithm):
         self._return['labels'] = labels
         self._return['score'] = score
         if self._num_classes > 2:
-            self._return['support_indices'] = {i:est.support_
+            self._return['support_indices'] = {i: est.support_
                                                for (i, est) in enumerate(self._model.estimators_)}
-            self._return['support_vectors'] = {i:est.support_vectors_
+            self._return['support_vectors'] = {i: est.support_vectors_
                                                for (i, est) in enumerate(self._model.estimators_)}
         else:
             self._return['support_indices'] = self._model.support_
@@ -176,9 +176,9 @@ class QKernelClassification(QuantumAlgorithm):
         else:
             comp_vectors = self._model.support_vectors_
         new_samples_kernel_entries = self.qkernel.construct_kernel_matrix(new_x, comp_vectors,
-                                                 quantum_instance=self.quantum_instance,
-                                                 calculate_diags=True,
-                                                 save_as_kernel=False)
+                                                                          quantum_instance=self.quantum_instance,
+                                                                          calculate_diags=True,
+                                                                          save_as_kernel=False)
         return self._model.predict(new_samples_kernel_entries)
 
     def score(self, new_x, new_y=None):

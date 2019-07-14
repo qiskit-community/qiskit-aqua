@@ -30,7 +30,7 @@ from sklearn.metrics import silhouette_score
 from sklearn.metrics import calinski_harabaz_score
 from sklearn.metrics import davies_bouldin_score
 
-from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class, QuantumAlgorithm, register_pluggable, AquaError
+from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class, QuantumAlgorithm, AquaError
 
 from qiskit.aqua.algorithms.qkernel import QKernel
 
@@ -141,7 +141,9 @@ class QKernelCluster(QuantumAlgorithm):
 
     def _run(self):
         if not self.qkernel.kernel_matrix:
-            self.qkernel.construct_kernel_matrix(self.dataset, quantum_instance=self.quantum_instance,preserve_counts=True)
+            self.qkernel.construct_kernel_matrix(self.dataset,
+                                                 quantum_instance=self.quantum_instance,
+                                                 preserve_counts=True)
 
         overlap = self.qkernel.kernel_matrix
         self._return['overlap_matrix'] = overlap
@@ -150,7 +152,6 @@ class QKernelCluster(QuantumAlgorithm):
         self._return['distance_matrix'] = distance
 
         for mode in self.modes:
-            model = None
             if mode == 'spectral':
                 model = SpectralClustering(n_clusters=self.num_clusters, affinity='precomputed')
                 model.fit_predict(overlap)

@@ -16,7 +16,6 @@ Quantum Kernel tests.
 
 """
 
-import unittest
 import numpy as np
 
 from test.aqua.common import QiskitAquaTestCase
@@ -94,6 +93,3 @@ class QkClusterTest(QiskitAquaTestCase):
             self.assertGreaterEqual(result[mode]['silhouette_score'], -1)
             self.assertGreaterEqual(result[mode]['calinski_harabaz_score'], -1)
             self.assertGreaterEqual(result[mode]['davies_bouldin_score'], -1)
-
-if __name__ == '__main__':
-    unittest.main()

@@ -16,7 +16,6 @@ Quantum Kernel tests.
 
 """
 
-import unittest
 import numpy as np
 
 from test.aqua.common import QiskitAquaTestCase
@@ -42,7 +41,7 @@ class QkernelTest(QiskitAquaTestCase):
                                       [1., 1., 1., 1., 1.],
                                       [1., 1., 1., 1., 1.],
                                       [1., 1., 1., 1., 1.],
-                                      [1., 1., 1., 1., 1.],])
+                                      [1., 1., 1., 1., 1.]])
 
     def test_build_qkernel_featmap(self):
         second_order = SecondOrderExpansion(feature_dimension=5, depth=2)
@@ -56,7 +55,7 @@ class QkernelTest(QiskitAquaTestCase):
                                       [1., 1., 1., 1., 1.],
                                       [1., 1., 1., 1., 1.],
                                       [1., 1., 1., 1., 1.],
-                                      [1., 1., 1., 1., 1.],])
+                                      [1., 1., 1., 1., 1.]])
 
     def test_qkernel_statevector(self):
         second_order = SecondOrderExpansion(feature_dimension=5, depth=2)
@@ -70,7 +69,7 @@ class QkernelTest(QiskitAquaTestCase):
                                       [1., 1., 1., 1., 1.],
                                       [1., 1., 1., 1., 1.],
                                       [1., 1., 1., 1., 1.],
-                                      [1., 1., 1., 1., 1.],])
+                                      [1., 1., 1., 1., 1.]])
 
     def test_qkernel_calculate_diags(self):
         ryrz = RYRZ(3, depth=3)
@@ -89,10 +88,10 @@ class QkernelTest(QiskitAquaTestCase):
         qkernel = QKernel(construct_circuit_fn=ryrz.construct_circuit,
                           num_qubits=3,
                           quantum_instance=QuantumInstance(backend),)
-        kernel = qkernel.construct_kernel_matrix(x1_vec=params, preserve_counts=True).tolist()
+        qkernel.construct_kernel_matrix(x1_vec=params, preserve_counts=True).tolist()
         self.assertIn({'000': 1024}, qkernel.counts[0])
 
-    def test_qkernel_normalize_matrix(self, norm='l1'):
+    def test_qkernel_normalize_matrix(self):
         ryrz = RYRZ(3, depth=3)
         params = np.zeros((5, ryrz.num_parameters))
         backend = BasicAer.get_backend('qasm_simulator')
@@ -103,7 +102,7 @@ class QkernelTest(QiskitAquaTestCase):
         norm_mat = qkernel.normalize_matrix()
         self.assertListEqual(list(np.sum(norm_mat, axis=0)), list(np.ones(norm_mat.shape[0])))
 
-    def test_qkernel_center_matrix(self, metric='linear'):
+    def test_qkernel_center_matrix(self):
         ryrz = RYRZ(3, depth=3)
         params = np.zeros((5, ryrz.num_parameters))
         backend = BasicAer.get_backend('qasm_simulator')
@@ -122,10 +121,10 @@ class QkernelTest(QiskitAquaTestCase):
         max_dist = 4
         for dist in range(max_dist):
             qkernel = QKernel(construct_circuit_fn=ryrz.construct_circuit,
-                          num_qubits=3,
-                          quantum_instance=QuantumInstance(backend, seed_simulator=50, seed_transpiler=50),
-                          measurement_edit_distance=dist
-                          )
+                              num_qubits=3,
+                              quantum_instance=QuantumInstance(backend, seed_simulator=50, seed_transpiler=50),
+                              measurement_edit_distance=dist
+                              )
             kernels += [qkernel.construct_kernel_matrix(x1_vec=params)]
         for dist in range(max_dist-1):
             self.assertTrue((kernels[dist] <= kernels[dist+1]).all())
@@ -140,9 +139,5 @@ class QkernelTest(QiskitAquaTestCase):
                           num_qubits=3,
                           quantum_instance=QuantumInstance(backend, seed_simulator=50, seed_transpiler=50))
         kernel = qkernel.construct_kernel_matrix(x1_vec=params)
-        new_vec = qkernel.construct_kernel_matrix(x1_vec=params, x2_vec=params[0,:].reshape(1, -1))
-        np.testing.assert_array_almost_equal(kernel[0,:].reshape(-1,1), new_vec)
-
-
-if __name__ == '__main__':
-    unittest.main()
+        new_vec = qkernel.construct_kernel_matrix(x1_vec=params, x2_vec=params[0, :].reshape(1, -1))
+        np.testing.assert_array_almost_equal(kernel[0, :].reshape(-1, 1), new_vec)

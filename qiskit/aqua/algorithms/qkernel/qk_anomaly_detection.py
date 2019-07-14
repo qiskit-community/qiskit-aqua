@@ -24,7 +24,7 @@ import numpy as np
 
 from sklearn.svm import OneClassSVM
 
-from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class, QuantumAlgorithm, register_pluggable
+from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class, QuantumAlgorithm, AquaError
 
 from qiskit.aqua.algorithms.qkernel import QKernel
 

@@ -28,7 +28,7 @@ from sklearn.kernel_ridge import KernelRidge
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import PairwiseKernel
 
-from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class, QuantumAlgorithm, register_pluggable
+from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class, QuantumAlgorithm
 from qiskit.aqua import AquaError
 
 from qiskit.aqua.algorithms.qkernel import QKernel
@@ -70,7 +70,7 @@ class QKernelRegression(QuantumAlgorithm):
         ],
     }
 
-    def __init__(self, circuit_maker, X, y, modes='all', mode_kwargs={}, qkernel=None):
+    def __init__(self, circuit_maker, X, y, modes='all', mode_kwargs=None, qkernel=None):
         """Constructor.
 
         Args:
@@ -92,10 +92,10 @@ class QKernelRegression(QuantumAlgorithm):
         all_modes = ['svr', 'ridge', 'gpr']
         if modes == 'all':
             self.modes = all_modes
-            self.mode_kwargs = mode_kwargs
+            self.mode_kwargs = mode_kwargs or {}
         elif set(modes) <= set(all_modes):
             self.modes = modes
-            self.mode_kwargs = mode_kwargs
+            self.mode_kwargs = mode_kwargs or {}
         else:
             raise ValueError('Regression mode {} not supported'.format(modes))
         self._models = {}
@@ -152,7 +152,6 @@ class QKernelRegression(QuantumAlgorithm):
 
         for mode in self.modes:
             kwargs = self.mode_kwargs.get(mode, {})
-            model = None
             if mode == 'svr':
                 model = SVR(kernel='precomputed', **kwargs)
             elif mode == 'ridge':
@@ -176,9 +175,9 @@ class QKernelRegression(QuantumAlgorithm):
 
     def predict(self, new_x, new_y_to_score=None):
         new_samples_kernel_entries = self.qkernel.construct_kernel_matrix(new_x, self._independent,
-                                                 quantum_instance=self.quantum_instance,
-                                                 calculate_diags=True,
-                                                 save_as_kernel=False)
+                                                                          quantum_instance=self.quantum_instance,
+                                                                          calculate_diags=True,
+                                                                          save_as_kernel=False)
         predictions = {}
         # scores = {}
         errors = {}
