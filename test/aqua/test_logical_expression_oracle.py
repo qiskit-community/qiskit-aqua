@@ -60,11 +60,11 @@ optimizations = [True, False]
 
 
 class TestLogicalExpressionOracle(QiskitAquaTestCase):
-    # TODO: disabled failing test_logic_expr_oracle
+
     @parameterized.expand(
         [x[0] + list(x[1:]) for x in list(itertools.product(dimacs_tests, mct_modes, optimizations))]
     )
-    def disable_test_logic_expr_oracle(self, dimacs_str, sols, mct_mode, optimization):
+    def test_logic_expr_oracle(self, dimacs_str, sols, mct_mode, optimization):
         num_shots = 1024
         leo = LogicalExpressionOracle(dimacs_str, optimization=optimization, mct_mode=mct_mode)
         leo_circuit = leo.circuit
