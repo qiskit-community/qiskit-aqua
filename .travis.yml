@@ -97,16 +97,16 @@ jobs:
     - stage: test aqua first
       <<: *stage_dependencies
       script:
-        - python test/custom_tests.py aqua -end 24
+        - python test/custom_tests.py -dir aqua -end 27
 
     - stage: test aqua second
       <<: *stage_dependencies
       script:
-        - python test/custom_tests.py aqua -start 24 -end 43
+        - python test/custom_tests.py -dir aqua -start 27 -end 46
 
     - stage: test aqua third
       <<: *stage_dependencies
       script:
-        - python test/custom_tests.py aqua -start 43
+        - python test/custom_tests.py -dir aqua -start 46
         
 
