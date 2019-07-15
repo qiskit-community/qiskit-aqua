@@ -70,7 +70,7 @@ class QKernelPCA(QuantumAlgorithm):
         ],
     }
 
-    def __init__(self, circuit_maker, dataset, num_components=None, qkernel=None):
+    def __init__(self, circuit_maker, dataset, num_components=2, qkernel=None):
         """Constructor.
 
         Args:
