@@ -153,7 +153,7 @@ class FermionicOperator(object):
 	a_i^\\dagger = Z^i (X + iY) I^(n-i-1) = (Z^i X I^(n-i-1)) + i (Z^i Y I^(n-i-1))
 	a_i = Z^i (X - iY) I^(n-i-1)
 
-	This is implemented by creating an array of tuples, each including two operators, X and Y. The phase between two elements in a tuple is implicitly assumed, and added calculated at the appropriate time (see for example _one_body_mapping).
+	This is implemented by creating an array of tuples, each including two operators. The phase between two elements in a tuple is implicitly assumed, and added calculated at the appropriate time (see for example _one_body_mapping).
  
 
         Args:
