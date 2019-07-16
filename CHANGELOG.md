@@ -54,6 +54,8 @@ Changed
 -   Prevent `QPE/IQPE` from modifying input `Operator`s.
 -   The PyEDA dependency was removed; 
     corresponding oracles' underlying logic operations are now handled by SymPy.
+-   Refactor the `Operator` class, each representation has its own class `MatrixOperator`, 
+    `WeightedPauliOperator` and `TPBGroupedPauliOperator` (#593).
 
 Fixed
 -------
