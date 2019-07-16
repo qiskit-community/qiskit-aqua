@@ -309,7 +309,9 @@ class BinaryTree:
         if len(register) <= 3:
             circ = QuantumCircuit(register)
         else:
-            num_ancillae = len(register) - 3
+            # TODO: Figure out exactly how many ancillae are needed.
+            num_ancillae = max(len(register) - 3, 3)
+            print(len(register))
             ancilla_register = QuantumRegister(num_ancillae)
             circ = QuantumCircuit(register, ancilla_register)
 
@@ -421,7 +423,10 @@ class BinaryTree:
         for ii in range(len(self._tree) - 1):
             for (jj, val) in enumerate(self._tree[ii]):
                 # Format the value
-                string = "%0.2f" % val
+                if np.isclose(val, 0.0):
+                    string = "    "
+                else:
+                    string = "%0.2f" % val
 
                 # Get the correct column index
                 col = len(self._tree) - ii - 2
@@ -1026,6 +1031,10 @@ class QSVE(CircuitFactory):
         self._matrix_nrows = nrows
         self._matrix_ncols = ncols
 
+        # Store the number of qubits needed for the matrix rows and cols
+        self._num_qubits_for_row = int(np.log2(ncols))
+        self._num_qubits_for_col = int(np.log2(nrows))
+
         # Get the number of qubits needed for the circuit
         nqubits = int(np.log2(nrows * ncols) + nprecision_bits)
 
@@ -1167,7 +1176,40 @@ class QSVE(CircuitFactory):
             The input circuit.
             Adds gates to this circuit to implement the controlled-W unitary.
         """
-        pass
+        # =====================
+        # Check input arguments
+        # =====================
+
+        if type(circuit) != qiskit.QuantumCircuit:
+            raise ValueError(
+                "The argument circuit must be of type qiskit.QuantumCircuit."
+            )
+
+        if len(circuit.qregs) < 4:
+            raise ValueError(
+                "The input circuit does not have enough quantum registers."
+            )
+
+        if len(row_register) != len(col_register):
+            raise ValueError(
+                "Only square matrices are currently supported. \
+                This means the row_register and col_register must have the same number of qubits."
+            )
+
+        if len(row_register) != self._num_qubits_for_row:
+            raise ValueError(
+                "Invalid number of qubits for row_register. This number should be {}".format(self._num_qubits_for_row)
+            )
+
+        if type(pkb_register) == qiskit.QuantumRegister:
+            pkb = pkb_register[0]
+        elif type(pkb_register) == qiskit.circuit.quantumregister.Qubit:
+            pkb = pkb_register
+        else:
+            raise ValueError(
+                "The argument pbk_register must be of type qiskit.QuantumRegister \
+                or qiskit.circuit.quantumregister.Qubit"
+            )
 
 
 # ===================
@@ -1274,7 +1316,7 @@ def test_shift():
 if __name__ == "__main__":
     # Flags for testing
     TEST_QSVE = True
-    TEST_BINARY_TREE = False
+    TEST_BINARY_TREE = True
 
     # Unit tests for QSVE
     if TEST_QSVE:
