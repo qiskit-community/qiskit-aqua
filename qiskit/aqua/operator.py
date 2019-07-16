@@ -615,7 +615,7 @@ class Operator(object):
                         if pauli[1].x[qubit_idx]:
                             if pauli[1].z[qubit_idx]:
                                 # Measure Y
-                                circuit.u1(np.pi/2, q[qubit_idx]).inverse()  # s
+                                circuit.u1(-np.pi/2, q[qubit_idx])  # sdg
                                 circuit.u2(0.0, np.pi, q[qubit_idx])  # h
                             else:
                                 # Measure X
@@ -634,7 +634,7 @@ class Operator(object):
                         if tpb_set[0][1].x[qubit_idx]:
                             if tpb_set[0][1].z[qubit_idx]:
                                 # Measure Y
-                                circuit.u1(np.pi/2, q[qubit_idx]).inverse()  # s
+                                circuit.u1(-np.pi/2, q[qubit_idx])  # sdg
                                 circuit.u2(0.0, np.pi, q[qubit_idx])  # h
                             else:
                                 # Measure X
