@@ -19,94 +19,83 @@ os: linux
 dist: trusty
 
 language: python
-python:
-  - "3.6"
+python: "3.6"
 
-stage_dependencies: &stage_dependencies
-  # Install Dependencies
-  env:
+env:
+  global:
     - DEPENDENCY_BRANCH=$(if [ "$TRAVIS_BRANCH" = "stable" ]; then echo "stable"; else echo "master"; fi)
     - INIT_FILE="$TRAVIS_BUILD_DIR/qiskit/__init__.py"
-        
-  before_install:
-    - |
-      if [ -f $INIT_FILE ]; then
-        # stops travis if __init__.py exists under qiskit
-        echo "File '$INIT_FILE' found. It should not exist, since this repo extends qiskit namespace.";
-        travis_terminate 1;
-      fi
-      if [ "$BUILD_AER" != "false" ]; then
-        # install Qiskit Aer build dependencies
-        sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-        sudo apt-get -y update
-        sudo apt-get -y install g++-7
-        sudo apt-get -y install libopenblas-dev
-      fi
-    - pip install --upgrade pip setuptools wheel
-    # Download github Terra
-    - wget https://codeload.github.com/Qiskit/qiskit-terra/zip/$DEPENDENCY_BRANCH -O /tmp/qiskit-terra.zip
-    - unzip /tmp/qiskit-terra.zip -d /tmp/
-    # Install Qiskit Terra requirements.
-    - pip install -U -r /tmp/qiskit-terra-$DEPENDENCY_BRANCH/requirements-dev.txt --progress-bar off
-    # Install local Qiskit Terra
-    - pip install -e /tmp/qiskit-terra-$DEPENDENCY_BRANCH --progress-bar off
-    # Download github Ignis
-    - wget https://codeload.github.com/Qiskit/qiskit-ignis/zip/$DEPENDENCY_BRANCH -O /tmp/qiskit-ignis.zip
-    - unzip /tmp/qiskit-ignis.zip -d /tmp/
-    # Install local Qiskit Ignis
-    - pip install -e /tmp/qiskit-ignis-$DEPENDENCY_BRANCH --progress-bar off
-    - |
-      if [ "$BUILD_AER" != "false" ]; then
-        # Download github Qiskit Aer
-        wget https://codeload.github.com/Qiskit/qiskit-aer/zip/$DEPENDENCY_BRANCH -O /tmp/qiskit-aer.zip
-        unzip /tmp/qiskit-aer.zip -d /tmp/
-        # Install Qiskit Aer requirements.
-        pip install -U -r /tmp/qiskit-aer-$DEPENDENCY_BRANCH/requirements-dev.txt --progress-bar off
-        # build Qiskit Aer
-        cd /tmp/qiskit-aer-$DEPENDENCY_BRANCH
-        python setup.py bdist_wheel -- -DCMAKE_CXX_COMPILER=g++-7 -- -j4
-        pip install dist/qiskit_aer*whl
-        # back to current repo directory
-        cd $TRAVIS_BUILD_DIR
-      fi
-    # install Aqua and dev requirements
-    - pip install -e $TRAVIS_BUILD_DIR --progress-bar off
-    - pip install -U -r requirements-dev.txt --progress-bar off
-  
-# Define the order of the stages.
-stages:
-  - test chemistry
-  - test aqua first
-  - test aqua second
-  - test aqua third
 
-jobs:
+matrix:
   include:
-    - stage: test chemistry
-      <<: *stage_dependencies
-      install:
-        # download PyQuante master and unzip it
-        - wget https://codeload.github.com/rpmuller/pyquante2/zip/master -O /tmp/pyquante2.zip
-        - unzip /tmp/pyquante2.zip -d /tmp/
-        # Install local PyQuante
-        - pip install -e /tmp/pyquante2-master --progress-bar off
-      script:
-        # Remove OpenBLAS warning message when compiled without USE_OPENMP=1 in PySCF
-        - make style && make lint && export OPENBLAS_NUM_THREADS=1 && python -m unittest discover -v test/chemistry
-
-    - stage: test aqua first
-      <<: *stage_dependencies
-      script:
-        - python test/custom_tests.py -dir aqua -end 27
-
-    - stage: test aqua second
-      <<: *stage_dependencies
-      script:
-        - python test/custom_tests.py -dir aqua -start 27 -end 46
-
-    - stage: test aqua third
-      <<: *stage_dependencies
-      script:
-        - python test/custom_tests.py -dir aqua -start 46
+  - name: "Test Chemistry"
+    env: TEST_DIR=chemistry
+  - name: "Test Aqua 1"
+    env: TEST_DIR=aqua TEST_PARAMS="-end 27"
+  - name: "Test Aqua 2"
+    env: TEST_DIR=aqua TEST_PARAMS="-start 27 -end 46"
+  - name: "Test Aqua 3"
+    env: TEST_DIR=aqua TEST_PARAMS="-start 46"  
+        
+before_install:
+  - |
+    if [ -f $INIT_FILE ]; then
+      # stops travis if __init__.py exists under qiskit
+      echo "File '$INIT_FILE' found. It should not exist, since this repo extends qiskit namespace.";
+      travis_terminate 1;
+    fi
+    if [ "$BUILD_AER" != "false" ]; then
+      # install Qiskit Aer build dependencies
+      sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+      sudo apt-get -y update
+      sudo apt-get -y install g++-7
+      sudo apt-get -y install libopenblas-dev
+    fi
+  - pip install --upgrade pip setuptools wheel
+  # Download github Terra
+  - wget https://codeload.github.com/Qiskit/qiskit-terra/zip/$DEPENDENCY_BRANCH -O /tmp/qiskit-terra.zip
+  - unzip /tmp/qiskit-terra.zip -d /tmp/
+  # Install Qiskit Terra requirements.
+  - pip install -U -r /tmp/qiskit-terra-$DEPENDENCY_BRANCH/requirements-dev.txt --progress-bar off
+  # Install local Qiskit Terra
+  - pip install -e /tmp/qiskit-terra-$DEPENDENCY_BRANCH --progress-bar off
+  # Download github Ignis
+  - wget https://codeload.github.com/Qiskit/qiskit-ignis/zip/$DEPENDENCY_BRANCH -O /tmp/qiskit-ignis.zip
+  - unzip /tmp/qiskit-ignis.zip -d /tmp/
+  # Install local Qiskit Ignis
+  - pip install -e /tmp/qiskit-ignis-$DEPENDENCY_BRANCH --progress-bar off
+  - |
+    if [ "$BUILD_AER" != "false" ]; then
+      # Download github Qiskit Aer
+      wget https://codeload.github.com/Qiskit/qiskit-aer/zip/$DEPENDENCY_BRANCH -O /tmp/qiskit-aer.zip
+      unzip /tmp/qiskit-aer.zip -d /tmp/
+      # Install Qiskit Aer requirements.
+      pip install -U -r /tmp/qiskit-aer-$DEPENDENCY_BRANCH/requirements-dev.txt --progress-bar off
+      # build Qiskit Aer
+      cd /tmp/qiskit-aer-$DEPENDENCY_BRANCH
+      python setup.py bdist_wheel -- -DCMAKE_CXX_COMPILER=g++-7 -- -j4
+      pip install dist/qiskit_aer*whl
+      # back to current repo directory
+      cd $TRAVIS_BUILD_DIR
+    fi
+  # install Aqua and dev requirements
+  - pip install -e $TRAVIS_BUILD_DIR --progress-bar off
+  - pip install -U -r requirements-dev.txt --progress-bar off
+  - |
+    if [ "$TEST_DIR" == "chemistry" ]; then
+      # download PyQuante master and unzip it
+      wget https://codeload.github.com/rpmuller/pyquante2/zip/master -O /tmp/pyquante2.zip
+      unzip /tmp/pyquante2.zip -d /tmp/
+      # Install local PyQuante
+      pip install -e /tmp/pyquante2-master --progress-bar off
+    fi
+  
+script:
+  - |
+    if [ "$TEST_DIR" == "chemistry" ];
+      # Chemistry: remove OpenBLAS warning message when compiled without USE_OPENMP=1 in PySCF
+      then make style && make lint && export OPENBLAS_NUM_THREADS=1 && python -m unittest discover -v test/$TEST_DIR
+      else python test/custom_tests.py -dir $TEST_DIR $TEST_PARAMS
+    fi
         
 
