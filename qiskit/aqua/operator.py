@@ -31,7 +31,8 @@ from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
 
 from qiskit.aqua import AquaError, aqua_globals
-from qiskit.aqua.utils import PauliGraph, compile_and_run_circuits, find_regs_by_name
+from qiskit.aqua.operators import PauliGraph
+from qiskit.aqua.utils import compile_and_run_circuits, find_regs_by_name
 from qiskit.aqua.utils.backend_utils import is_statevector_backend
 
 logger = logging.getLogger(__name__)

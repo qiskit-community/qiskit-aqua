@@ -13,7 +13,6 @@
 # that they have been altered from the originals.
 
 from .tensor_product import tensorproduct
-from .pauli_graph import PauliGraph
 from .json_utils import convert_dict_to_json, convert_json_to_dict
 from .random_matrix_generator import (random_unitary, random_h2_body,
                                       random_h1_body, random_hermitian,
@@ -35,7 +34,6 @@ from .measurement_error_mitigation import (get_measured_qubits_from_qobj,
 
 __all__ = [
     'tensorproduct',
-    'PauliGraph',
     'convert_dict_to_json',
     'convert_json_to_dict',
     'random_unitary',
