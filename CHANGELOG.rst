@@ -18,6 +18,14 @@ The format is based on `Keep a Changelog`_.
 `UNRELEASED`_
 =============
 
+`0.5.3`_ - 2019-07-16
+=====================
+
+Fixed
+-----
+
+- Since the syntax inverse() on a gate does not invert a gate now, the bug introduced wrong post rotation for Pauli Y.
+
 `0.5.2`_ - 2019-06-27
 =====================
 
@@ -269,7 +277,8 @@ Changed
 - Updated qiskit minimum version in setup.py.
 - Fixed links in readme.me.
 
-.. _UNRELEASED: https://github.com/Qiskit/qiskit-aqua/compare/0.5.2...HEAD
+.. _UNRELEASED: https://github.com/Qiskit/qiskit-aqua/compare/0.5.3...HEAD
+.. _0.5.3: https://github.com/Qiskit/qiskit-aqua/compare/0.5.2...0.5.3
 .. _0.5.2: https://github.com/Qiskit/qiskit-aqua/compare/0.5.1...0.5.2
 .. _0.5.1: https://github.com/Qiskit/qiskit-aqua/compare/0.5.0...0.5.1
 .. _0.5.0: https://github.com/Qiskit/qiskit-aqua/compare/0.4.1...0.5.0
