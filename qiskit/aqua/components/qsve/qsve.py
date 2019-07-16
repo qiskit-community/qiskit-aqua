@@ -40,8 +40,8 @@ from copy import deepcopy
 import numpy as np
 
 from qiskit.aqua.utils import CircuitFactory
-from qiskit.aqua.circuits.gates import mct
-from qiskit.aqua.circuits.gates.controlled_ry_gates import mcry
+from qiskit.aqua.circuits.gates.multi_control_toffoli_gate import mct
+from qiskit.aqua.circuits.gates.multi_control_rotation_gates import mcry
 from qiskit import QuantumRegister, QuantumCircuit, execute, BasicAer
 
 
@@ -61,14 +61,12 @@ class BinaryTree:
         self._nvals = len(vector)
 
         # Make sure the matrix row has length that's a power of two
+        # TODO: Give the option to pad the vector and do this automatically
         if self._nvals & (self._nvals - 1) != 0:
             raise ValueError(
                 "Matrix row must have a number of elements that is a power of two. " +
                 "Please append zero entries to the row."
             )
-
-        # If the L2 norm of the matrix row isn't unity, normalize it
-        vector /= np.linalg.norm(vector, ord=2)
 
         # Store the input matrix_row
         self._values = list(vector)
@@ -459,7 +457,7 @@ def test_basic():
     tree = BinaryTree([1, 1])
 
     # Simple checks
-    assert np.isclose(tree.root, 1.0)
+    assert np.isclose(tree.root, 2.0)
     assert tree.number_leaves == 2
     assert tree.number_levels == 2
 
@@ -487,7 +485,7 @@ def test_example_in_paper():
 def test_print_small():
     """Tests the correct string format is obtained when printing a small tree."""
     tree = BinaryTree([1, 1])
-    correct = "    1.00    \n0.50    0.50\n"
+    correct = "    2.00    \n1.00    1.00\n"
     assert tree.__str__() == correct
 
 
@@ -553,14 +551,14 @@ def test_parent_value():
     assert tree.parent_value(0, 0) is None
 
     # Make sure the parent's of the first level (root) are correct
-    assert np.isclose(tree.parent_value(1, 0), 1.0)
-    assert np.isclose(tree.parent_value(1, 1), 1.0)
+    assert np.isclose(tree.parent_value(1, 0), 4.0)
+    assert np.isclose(tree.parent_value(1, 1), 4.0)
 
     # Make sure the parent's of the second level are correct
-    assert np.isclose(tree.parent_value(2, 0), 0.50)
-    assert np.isclose(tree.parent_value(2, 1), 0.50)
-    assert np.isclose(tree.parent_value(2, 2), 0.50)
-    assert np.isclose(tree.parent_value(2, 3), 0.50)
+    assert np.isclose(tree.parent_value(2, 0), 2.0)
+    assert np.isclose(tree.parent_value(2, 1), 2.0)
+    assert np.isclose(tree.parent_value(2, 2), 2.0)
+    assert np.isclose(tree.parent_value(2, 3), 2.0)
 
 
 def test_left_child_index():
@@ -607,14 +605,14 @@ def test_left_child_value():
     tree = BinaryTree([1, 1, 1, 1])
 
     # Check the root value
-    assert np.isclose(tree.root, 1.0)
+    assert np.isclose(tree.root, 4.0)
 
     # Left child of the root
-    assert np.isclose(tree.left_child_value(0, 0), 0.5)
+    assert np.isclose(tree.left_child_value(0, 0), 2.0)
 
     # Left child indices for the first level
-    assert np.isclose(tree.left_child_value(1, 0), 0.25)
-    assert np.isclose(tree.left_child_value(1, 1), 0.25)
+    assert np.isclose(tree.left_child_value(1, 0), 1.0)
+    assert np.isclose(tree.left_child_value(1, 1), 1.0)
 
     # Left child indices for leaves
     assert tree.left_child_value(2, 0) is None
@@ -629,14 +627,14 @@ def test_right_child_value():
     tree = BinaryTree([1, 1, 1, 1])
 
     # Check root value
-    assert np.isclose(tree.root, 1.0)
+    assert np.isclose(tree.root, 4.0)
 
     # Right child of the root
-    assert np.isclose(tree.right_child_value(0, 0), 0.5)
+    assert np.isclose(tree.right_child_value(0, 0), 2.0)
 
     # Right child indices for the first level
-    assert np.isclose(tree.right_child_value(1, 0), 0.25)
-    assert np.isclose(tree.right_child_value(1, 1), 0.25)
+    assert np.isclose(tree.right_child_value(1, 0), 1.0)
+    assert np.isclose(tree.right_child_value(1, 1), 1.0)
 
     # Right child indices for leaves
     assert tree.right_child_value(2, 0) is None
@@ -1012,12 +1010,17 @@ class QSVE(CircuitFactory):
                 The number of qubits to use in phase estimation.
                 Equivalently, the number of bits of precision to read out singular values.
         """
-        # Make sure the matrix dimension is supported
+        # Get the number of rows and columns in the matrix
         nrows, ncols = matrix.shape
+
+        # Make sure the matrix is square
+        # TODO: Pad matrix to automatically make it square
+        if nrows != ncols:
+            raise ValueError("Input matrix must be square.")
+
+        # Make sure the number of columns is supported
         if ncols & (ncols - 1) != 0:
-            raise ValueError(
-                "Number of columns in matrix must be a power of two."
-            )
+            raise ValueError("Number of columns in matrix must be a power of two.")
 
         # Store these as attributes
         self._matrix_nrows = nrows
@@ -1030,12 +1033,12 @@ class QSVE(CircuitFactory):
         CircuitFactory.__init__(self, nqubits)
 
         # Store a copy of the matrix
-        self._matrix = matrix.copy()
+        self._matrix = deepcopy(matrix)
 
         # Get BinaryTree objects for each row of the matrix
-        self._binary_trees = []
+        self._trees = []
         for row in matrix:
-            self._binary_trees.append(BinaryTree(row))
+            self._trees.append(BinaryTree(row))
 
         # Flag to indicate whether the matrix has been shifted or not
         self._shifted = False
@@ -1057,23 +1060,32 @@ class QSVE(CircuitFactory):
 
     def get_tree(self, index):
         """Returns the BinaryTree representing a matrix row."""
-        return self._binary_trees[index]
+        return self._trees[index]
 
     def matrix_norm(self):
         """Returns the Froebenius norm of the matrix."""
+        # Compute the value using the BinaryTree's storing matrix rows.
+        # With this data structure, the Froebenius norm is the sum of all roots
         value = 0.0
-        for tree in self._binary_trees:
+        for tree in self._trees:
             value += tree.root
         return np.sqrt(value)
 
     def shift_matrix(self):
-        """Shifts the matrix diagonal by the Froebenius norm to make all eigenvalues positive.
+        """Shifts the matrix diagonal by the Froebenius norm to make all eigenvalues positive. That is,
+        if A is the matrix of the system and ||A||_F is the Froebenius norm, this method does the shift
 
-        If A is the matrix of the system and ||A||_F is the Froebenius norm, this method makes the shift
-
-        A --> A + ||A||_F * I
+        A --> A + ||A||_F * I =: A'
 
         where I is the identity matrix of the same dimension as A.
+
+        This transformation ensures all eigenvalues of A' are non-negative.
+
+        Note: If the matrix has already been shifted (i.e., if this method has already been called), then
+        calling this method again will do nothing.
+
+        Modifies:
+            The matrix of QSVE and the BinaryTrees.
         """
         # If the matrix is already shifted, do nothing
         if self._shifted:
@@ -1083,12 +1095,12 @@ class QSVE(CircuitFactory):
         norm = self.matrix_norm()
 
         # Shift each diagonal entry, updating both the tree and matrix
-        for (diag, tree) in enumerate(self._binary_trees):
+        for (diag, tree) in enumerate(self._trees):
             # Get the current value
             value = self._matrix[diag][diag]
 
             # Update the matrix
-            self._matrix[diag][diag] += norm
+            self._matrix[diag][diag] = value + norm
 
             # Update the BinaryTree
             tree.update_entry(diag, value + norm)
@@ -1096,13 +1108,64 @@ class QSVE(CircuitFactory):
         # Set the shifted flag to True
         self._shifted = True
 
-    def build(self, circuit, qubits, ancillae=None):
-        """Adds corresponding sub-circuit to given circuit.
+    def build(self, circuit, qpe_register, row_register, col_register, pkb_register):
+        """Adds the gates for one Controlled-W unitary.
+
+        The input circuit must have at least four registers corresponding to the input arguments
+
+        At a high-level, this circuit has the following structure:
+
+                    QPE (p qubits)  -------@--------
+                                           \
+                    ROW (n qubits)  ----|      |----
+                                        |      |
+                    COL (m qubits)  ----|  W   |----
+                                        |      |
+                    PKB (1 qubit)   ----|______|----
+
+        At a lower level, the controlled-W circuit is implemented as follows:
+
+            QPE (p qubits)  ---------------------@------------------------------@-----------------
+                                                 |                              |
+            ROW (n qubits)  ----| V^dagger |-----O----| V |----|           |----|----|   |--------
+                                                 |             | W^dagger  |    |    | W |
+            COL (m qubits)  ---------------------|-------------|           |----O----|   |--------
+                                                 |                              |
+            PKB (1 qubit)   |-> -----------------X------------------------------X-----------------
+
+        where @ is a control symbol and O is an "anti-control" symbol (i.e., controlled on the |0> state).
+
+        TODO: Add "mathematical section" explaining what V and W are.
 
         Args:
-            qc : quantum circuit
-            q : list of qubits (has to be same length as self._num_qubits)
-            q_ancillas : list of ancilla qubits (or None if none needed)
+            circuit : qiskit.QuantumCircuit
+                The QuantumCircuit object that gates will be added to.
+                This QuantumCircuit must have at least four registers, enumerated below.
+                Any gates already in the circuit are un-modified. The gates to implement Controlled-W are added after
+                these gates.
+
+            qpe_register : qiskit.QuantumRegister
+                Quantum register used for precision in phase estimation. In the diagrams above, this is labeled QPE.
+                The number of qubits in this register (p) is chosen by the user.
+
+            row_register : qiskit.QuantumRegister
+                Quantum register used to load/store rows of the matrix. In the diagrams above, this is labeled ROW.
+                The number of qubits in this register (m) must be m = log2(number of matrix rows).
+
+            col_register : qiskit.QuantumRegister
+                Quantum register used to load/store columns of the matrix. In the diagrams above, this is labeled COL.
+                The number of qubits in this register (n) must be n = log2(number of matrix cols).
+
+            pkb_register : Union[qiskit.QuantumRegister, qiskit.QuantumRegister.Qubit]
+                Quantum register or qubit used for phase kickback (PKB). In the diagrams above, this is labeled PKB.
+                If pbk_register is a register, it must have one qubit. Otherwise, it must be a single qubit.
+
+        Returns:
+            None
+
+        Modifies:
+            The input circuit.
+            Adds gates to this circuit to implement the controlled-W unitary.
         """
         pass
 
@@ -1145,10 +1208,6 @@ def test_norm_random():
         matrix = np.random.rand(4, 4)
         matrix += matrix.conj().T
 
-        # Normalize the matrix the same way QSVE does
-        for row in matrix:
-            row /= np.linalg.norm(row)
-
         # Create a QSVE object
         qsve = QSVE(matrix)
 
@@ -1180,71 +1239,82 @@ def test_shift():
     # Matrix for QSVE
     matrix = np.array([[1, 2], [2, 4]], dtype=np.float64)
 
+    # Compute the correct norm for testing the shift
+    norm_correct = np.linalg.norm(matrix)
+
     # Get a QSVE object
     qsve = QSVE(matrix)
 
-    tree1 = qsve.get_tree(0)
-    tree2 = qsve.get_tree(1)
-
-    print(tree1)
-    print(tree2)
+    # Get the BinaryTree's (one for each row of the matrix)
+    tree1 = deepcopy(qsve.get_tree(0))
+    tree2 = deepcopy(qsve.get_tree(1))
 
     # Shift the matrix
     qsve.shift_matrix()
 
-    print(matrix)
-
     # Get the correct shifted matrix
-    correct = matrix + np.linalg.norm(matrix) * np.identity(2)
-
-    print(qsve.matrix)
-    print(correct)
+    correct = matrix + norm_correct * np.identity(2)
 
     # Make sure the QSVE shifted matrix is correct
-    # assert np.allclose(qsve.matrix, correct)
+    assert np.allclose(qsve.matrix, correct)
 
-    # Make sure the new BinaryTree's are correct
-    tree1 = qsve.get_tree(0)
-    tree2 = qsve.get_tree(1)
+    # Get the new BinaryTrees after shifting
+    new_tree1 = qsve.get_tree(0)
+    new_tree2 = qsve.get_tree(1)
 
-    print(tree1)
-    print(tree2)
+    # Get the new correct tree values
+    correct_new_tree1_values = np.array([tree1._values[0] + norm_correct, tree1._values[1]])
+    correct_new_tree2_values = np.array([tree2._values[0], tree2._values[1] + norm_correct])
+
+    # Make sure the BinaryTrees in the qsve object were updated correctly
+    assert(np.array_equal(new_tree1._values, correct_new_tree1_values))
+    assert(np.array_equal(new_tree2._values, correct_new_tree2_values))
 
 
 if __name__ == "__main__":
+    # Flags for testing
+    TEST_QSVE = True
+    TEST_BINARY_TREE = False
+
     # Unit tests for QSVE
-    test_create_qsve()
-    test_qsve_norm()
-    test_norm_random()
-    test_shift_identity()
-    test_shift()
+    if TEST_QSVE:
+        print("Now testing QSVE class...")
+        test_create_qsve()
+        test_qsve_norm()
+        test_norm_random()
+        test_shift_identity()
+        test_shift()
+        print("...All tests for QSVE passed!")
 
     # Unit tests for BinaryTree
-    test_basic()
-    test_example_in_paper()
-    test_print_small()
-    # test_print_medium()
-    test_number_leaves()
-    test_number_levels()
-    test_parent_indices()
-    test_parent_value()
-    test_left_child_index()
-    test_right_child_index()
-    test_left_child_value()
-    test_right_child_value()
-    test_prep_circuit_one_qubit()
-    test_prep_circuit_one_qubit2()
-    test_prep_circuit_one_qubit3()
-    test_prep_circuit_example_in_paper()
-    test_prep_circuit_three_qubits()
-    test_prep_circuit_medium()
-    test_prep_circuit_large()
-    test_prep_circuit_large2()
-    test_prepare_negative_amplitudes()
-    test_prepare_negative_amplitudes2()
-    test_prepare_negative_amplitudes3()
-    test_prepare_negative_amplitudes_two_qubits()
-    test_prepare_negative_amplitudes_two_qubits2()
-    test_prepare_negative_amplitudes_three_qubits()
-    test_prepare_negative_amplitudes_four_qubits()
-    test_prep_circuit_negative_amplitudes_large()
+    if TEST_BINARY_TREE:
+        print("Now testing BinaryTree class...")
+        test_basic()
+        test_example_in_paper()
+        test_print_small()
+        # test_print_medium()
+        test_number_leaves()
+        test_number_levels()
+        test_parent_indices()
+        test_parent_value()
+        test_left_child_index()
+        test_right_child_index()
+        test_left_child_value()
+        test_right_child_value()
+        test_prep_circuit_one_qubit()
+        test_prep_circuit_one_qubit2()
+        test_prep_circuit_one_qubit3()
+        test_prep_circuit_example_in_paper()
+        test_prep_circuit_three_qubits()
+        test_prep_circuit_medium()
+        test_prep_circuit_large()
+        test_prep_circuit_large2()
+        test_prepare_negative_amplitudes()
+        test_prepare_negative_amplitudes2()
+        test_prepare_negative_amplitudes3()
+        test_prepare_negative_amplitudes_two_qubits()
+        test_prepare_negative_amplitudes_two_qubits2()
+        test_prepare_negative_amplitudes_three_qubits()
+        test_prepare_negative_amplitudes_four_qubits()
+        test_prep_circuit_negative_amplitudes_large()
+        print("...All tests for BinaryTree passed!")
