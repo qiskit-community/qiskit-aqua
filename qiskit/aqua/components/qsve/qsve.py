@@ -35,8 +35,9 @@ References:
 # Imports
 from itertools import permutations
 
-import numpy as np
+from copy import deepcopy
 
+import numpy as np
 
 from qiskit.aqua.utils import CircuitFactory
 from qiskit.aqua.circuits.gates import mct
@@ -45,7 +46,7 @@ from qiskit import QuantumRegister, QuantumCircuit, execute, BasicAer
 
 
 class BinaryTree:
-    """Binary tree data structure used to store and access matrix elements in QSVD."""
+    """Binary tree data structure used to store and access matrix elements in QSVE."""
     def __init__(self, vector):
         """Initializes a BinaryTree.
 
@@ -53,6 +54,9 @@ class BinaryTree:
             vector : array-like
                 Array of values in one row of a matrix.
         """
+        # Make a copy of the vector
+        vector = deepcopy(vector)
+
         # Store the number of values in the matrix row
         self._nvals = len(vector)
 
@@ -171,10 +175,10 @@ class BinaryTree:
 
         Return type: tuple<int, int>.
         """
-        if level == 0:
+        if level == 0 or level > self.number_levels:
             return None
 
-        return (level - 1, index // 2)
+        return level - 1, index // 2
 
     def parent_value(self, level, index):
         """Returns the value of the parent of a specified node.
@@ -213,7 +217,7 @@ class BinaryTree:
         if level == self.number_levels - 1:
             return None
 
-        return (level + 1, 2 * index)
+        return level + 1, 2 * index
 
     def right_child_index(self, level, index):
         """Returns the index of the right child of a specified parent node.
@@ -230,7 +234,7 @@ class BinaryTree:
         if level == self.number_levels - 1:
             return None
 
-        return (level + 1, 2 * index + 1)
+        return level + 1, 2 * index + 1
 
     def left_child_value(self, level, index):
         """Returns the value of the left child of a specified parent node.
@@ -343,8 +347,7 @@ class BinaryTree:
                 parent = self._tree[level][index]
                 left_child = self.left_child_value(level, index)
 
-                # Don't divide by zero. Note that parent == 0 implies both children are 0,
-                #  so theta = 0.0 is indeed the correct angle to rotate by.
+                # If the angle is zero, the gate is identity.
                 if np.isclose(parent, 0.0):
                     continue
                 else:
@@ -388,13 +391,11 @@ class BinaryTree:
                 if len(register) <= 3:
                     if mct_flag:
                         mct(circ, register[:level], register[level], None)
-                        mct_flag = False
                     mcry(circ, theta, register[:level], register[level], None)
                 # For more than three qubits, ancilla are needed
                 else:
                     if mct_flag:
                         mct(circ, register[:level], register[level], ancilla_register)
-                        mct_flag = False
                     mcry(circ, theta, register[:level], register[level], ancilla_register)
 
                 # Do X gates for anti-controls
@@ -441,19 +442,16 @@ class BinaryTree:
         for row in arr:
             rowstring = ""
             for elt in row:
-                rowstring += elt  # Note: "".join(row) does not format correctly here.
+                rowstring += elt
             rowstring += "\n"
             string += rowstring
         return string
 
 
-class QSVE(CircuitFactory):
-    pass
-
-
 # ==========
 # Unit tests
 # ==========
+
 
 def test_basic():
     """Basic checks for a BinaryTree."""
@@ -825,40 +823,49 @@ def test_prep_circuit_large2():
 
 def test_prepare_negative_amplitudes():
     """Tests preparing a vector with negative amplitudes on a single qubit."""
+    # Input vector
     vec = [0.6, -0.8]
 
+    # Get a BinaryTree
     tree = BinaryTree(vec)
 
+    # Get the state preparation circuit
     circuit = tree.preparation_circuit(QuantumRegister(1))
 
+    # Make sure the final state of the circuit is the same as the input vector
     state = np.real(final_state(circuit))
-
     assert np.allclose(state, vec)
 
 
 def test_prepare_negative_amplitudes2():
     """Tests preparing a vector with negative amplitudes on a single qubit."""
+    # Input vector
     vec = [-0.6, 0.8]
 
+    # Get a BinaryTree
     tree = BinaryTree(vec)
 
+    # Get the state preparation circuit
     circuit = tree.preparation_circuit(QuantumRegister(1))
 
+    # Make sure the final state of the circuit is the same as the input vector
     state = np.real(final_state(circuit))
-
     assert np.allclose(state, vec)
 
 
 def test_prepare_negative_amplitudes3():
     """Tests preparing a vector with negative amplitudes on a single qubit."""
+    # Input vector
     vec = [-0.6, -0.8]
 
+    # Get a BinaryTree
     tree = BinaryTree(vec)
 
+    # Get the state preparation circuit
     circuit = tree.preparation_circuit(QuantumRegister(1))
 
+    # Make sure the final state of the circuit is the same as the input vector
     state = np.real(final_state(circuit))
-
     assert np.allclose(state, vec)
 
 
@@ -866,18 +873,23 @@ def test_prepare_negative_amplitudes_two_qubits():
     """Tests preparing a vector with negative amplitudes for the example from
     the quantum recommendations systems paper.
     """
+    # Input vector
     vec = [-0.4, 0.4, -0.8, 0.2]
 
+    # Get a BinaryTree
     tree = BinaryTree(vec)
 
+    # Get a Quantum Register
     qreg = QuantumRegister(2)
 
+    # Get the state preparation circuit
     circuit = tree.preparation_circuit(qreg)
 
+    # Swap the qubits to compare to the natural ordering of the vector
     circuit.swap(qreg[0], qreg[1])
 
+    # Make sure the final state of the circuit is the same as the input vector
     state = np.real(final_state(circuit))
-
     assert np.allclose(state, vec)
 
 
@@ -891,20 +903,24 @@ def test_prepare_negative_amplitudes_two_qubits2():
 
     for sign in one_neg | two_neg | three_neg | four_neg:
         # Input vector (normalized)
-        vec = np.array([-1, -2, 3, 4], dtype=np.float64)
+        vec = np.array([1, 2, 3, 4], dtype=np.float64)
         vec *= np.array(sign, dtype=np.float64)
         vec /= np.linalg.norm(vec, ord=2)
 
+        # Get a BinaryTree
         tree = BinaryTree(vec)
 
+        # Get a quantum register
         qreg = QuantumRegister(2)
 
+        # Get the state preparation circuit
         circuit = tree.preparation_circuit(qreg)
 
+        # Swap qubits to compare with natural ordering of vector
         circuit.swap(qreg[0], qreg[1])
 
+        # Make sure the final state is the same as the input vector
         state = np.real(final_state(circuit))
-
         assert np.allclose(state, vec)
 
 
@@ -929,27 +945,6 @@ def test_prepare_negative_amplitudes_three_qubits():
     # Make sure the final state is equal to the input vector
     state = np.real(final_state(circuit))
     assert np.allclose(state, vec)
-
-
-def test_prep_circuit_negative_amplitudes_large():
-    """Tests the state preparation circuit produces the correct state for many qubits."""
-    # Input vector (normalized)
-    vec = -1.0 * np.ones(64)
-    vec /= np.linalg.norm(vec, ord=2)
-
-    # Make a tree from the vector
-    tree = BinaryTree(vec)
-
-    # Do the state preparation circuit
-    circ = tree.preparation_circuit(QuantumRegister(6))
-
-    # Check that the circuit produces the correct state
-    # Note: No swaps are necessary here since all amplitudes are equal.
-    state = np.real(final_state(circ))
-
-    # Note: The output state has an additional ancilla needed to do the multi-controlled-Y rotations,
-    # so we discard the additional (zero) amplitudes when comparing to the input vector
-    assert np.allclose(state[:64], vec)
 
 
 def test_prepare_negative_amplitudes_four_qubits():
@@ -978,10 +973,10 @@ def test_prepare_negative_amplitudes_four_qubits():
     assert np.allclose(state[:16], vec)
 
 
-def test_prep_circuit_large():
+def test_prep_circuit_negative_amplitudes_large():
     """Tests the state preparation circuit produces the correct state for many qubits."""
     # Input vector (normalized)
-    vec = np.ones(64)
+    vec = -1.0 * np.ones(64)
     vec /= np.linalg.norm(vec, ord=2)
 
     # Make a tree from the vector
@@ -999,7 +994,232 @@ def test_prep_circuit_large():
     assert np.allclose(state[:64], vec)
 
 
+# ==========
+# QSVE Class
+# ==========
+
+class QSVE(CircuitFactory):
+    """Quantum Singular Value Estimation (QSVE) class."""
+
+    def __init__(self, matrix, nprecision_bits=3):
+        """Initializes a QSVE object.
+
+        Args:
+            matrix : numpy.ndarray
+                The matrix to perform singular value estimation on.
+
+            nprecision_bits : int
+                The number of qubits to use in phase estimation.
+                Equivalently, the number of bits of precision to read out singular values.
+        """
+        # Make sure the matrix dimension is supported
+        nrows, ncols = matrix.shape
+        if ncols & (ncols - 1) != 0:
+            raise ValueError(
+                "Number of columns in matrix must be a power of two."
+            )
+
+        # Store these as attributes
+        self._matrix_nrows = nrows
+        self._matrix_ncols = ncols
+
+        # Get the number of qubits needed for the circuit
+        nqubits = int(np.log2(nrows * ncols) + nprecision_bits)
+
+        # Initialize the base class
+        CircuitFactory.__init__(self, nqubits)
+
+        # Store a copy of the matrix
+        self._matrix = matrix.copy()
+
+        # Get BinaryTree objects for each row of the matrix
+        self._binary_trees = []
+        for row in matrix:
+            self._binary_trees.append(BinaryTree(row))
+
+        # Flag to indicate whether the matrix has been shifted or not
+        self._shifted = False
+
+    @property
+    def matrix(self):
+        """The matrix to perform singular value estimation on."""
+        return self._matrix
+
+    @property
+    def matrix_nrows(self):
+        """The number of rows in the matrix."""
+        return self._matrix_nrows
+
+    @property
+    def matrix_ncols(self):
+        """The number of columns in the matrix."""
+        return self._matrix_ncols
+
+    def get_tree(self, index):
+        """Returns the BinaryTree representing a matrix row."""
+        return self._binary_trees[index]
+
+    def matrix_norm(self):
+        """Returns the Froebenius norm of the matrix."""
+        value = 0.0
+        for tree in self._binary_trees:
+            value += tree.root
+        return np.sqrt(value)
+
+    def shift_matrix(self):
+        """Shifts the matrix diagonal by the Froebenius norm to make all eigenvalues positive.
+
+        If A is the matrix of the system and ||A||_F is the Froebenius norm, this method makes the shift
+
+        A --> A + ||A||_F * I
+
+        where I is the identity matrix of the same dimension as A.
+        """
+        # If the matrix is already shifted, do nothing
+        if self._shifted:
+            return
+
+        # Compute the Froebenius norm
+        norm = self.matrix_norm()
+
+        # Shift each diagonal entry, updating both the tree and matrix
+        for (diag, tree) in enumerate(self._binary_trees):
+            # Get the current value
+            value = self._matrix[diag][diag]
+
+            # Update the matrix
+            self._matrix[diag][diag] += norm
+
+            # Update the BinaryTree
+            tree.update_entry(diag, value + norm)
+
+        # Set the shifted flag to True
+        self._shifted = True
+
+    def build(self, circuit, qubits, ancillae=None):
+        """Adds corresponding sub-circuit to given circuit.
+
+        Args:
+            qc : quantum circuit
+            q : list of qubits (has to be same length as self._num_qubits)
+            q_ancillas : list of ancilla qubits (or None if none needed)
+        """
+        pass
+
+
+# ===================
+# Unit tests for QSVE
+# ===================
+
+
+def test_create_qsve():
+    """Basic test for instantiating a QSVE object."""
+    # Matrix to perform QSVE on
+    matrix = np.array([[1, 0], [0, 1]], dtype=np.float64)
+
+    # Create a QSVE object
+    qsve = QSVE(matrix)
+
+    # Basic checks
+    assert np.allclose(qsve.matrix, matrix)
+    assert qsve.matrix_ncols == 2
+    assert qsve.matrix_nrows == 2
+
+
+def test_qsve_norm():
+    """Tests correctness for computing the norm."""
+    # Matrix to perform QSVE on
+    matrix = np.array([[1, 0], [0, 1]], dtype=np.float64)
+
+    # Create a QSVE object
+    qsve = QSVE(matrix)
+
+    # Make sure the Froebenius norm is correct
+    assert np.isclose(qsve.matrix_norm(), np.sqrt(2))
+
+
+def test_norm_random():
+    """Tests correctness for computing the norm on random matrices."""
+    for _ in range(100):
+        # Matrix to perform QSVE on
+        matrix = np.random.rand(4, 4)
+        matrix += matrix.conj().T
+
+        # Normalize the matrix the same way QSVE does
+        for row in matrix:
+            row /= np.linalg.norm(row)
+
+        # Create a QSVE object
+        qsve = QSVE(matrix)
+
+        # Make sure the Froebenius norm is correct
+        correct = np.linalg.norm(matrix)
+        assert np.isclose(qsve.matrix_norm(), correct)
+
+
+def test_shift_identity():
+    """Tests shifting the identity matrix in QSVE."""
+    # Matrix for QSVE
+    matrix = np.identity(2)
+
+    # Get a QSVE object
+    qsve = QSVE(matrix)
+
+    # Shift the matrix
+    qsve.shift_matrix()
+
+    # Get the correct shifted matrix
+    correct = matrix + np.linalg.norm(matrix) * np.identity(2)
+
+    # Make sure the QSVE shifted matrix is correct
+    assert np.allclose(qsve.matrix, correct)
+
+
+def test_shift():
+    """Tests shifting an input matrix to QSVE."""
+    # Matrix for QSVE
+    matrix = np.array([[1, 2], [2, 4]], dtype=np.float64)
+
+    # Get a QSVE object
+    qsve = QSVE(matrix)
+
+    tree1 = qsve.get_tree(0)
+    tree2 = qsve.get_tree(1)
+
+    print(tree1)
+    print(tree2)
+
+    # Shift the matrix
+    qsve.shift_matrix()
+
+    print(matrix)
+
+    # Get the correct shifted matrix
+    correct = matrix + np.linalg.norm(matrix) * np.identity(2)
+
+    print(qsve.matrix)
+    print(correct)
+
+    # Make sure the QSVE shifted matrix is correct
+    # assert np.allclose(qsve.matrix, correct)
+
+    # Make sure the new BinaryTree's are correct
+    tree1 = qsve.get_tree(0)
+    tree2 = qsve.get_tree(1)
+
+    print(tree1)
+    print(tree2)
+
+
 if __name__ == "__main__":
+    # Unit tests for QSVE
+    test_create_qsve()
+    test_qsve_norm()
+    test_norm_random()
+    test_shift_identity()
+    test_shift()
+
+    # Unit tests for BinaryTree
     test_basic()
     test_example_in_paper()
     test_print_small()
