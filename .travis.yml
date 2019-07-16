@@ -25,11 +25,17 @@ env:
   global:
     - DEPENDENCY_BRANCH=$(if [ "$TRAVIS_BRANCH" = "stable" ]; then echo "stable"; else echo "master"; fi)
     - INIT_FILE="$TRAVIS_BUILD_DIR/qiskit/__init__.py"
-  matrix:
-    - TEST_DIR=chemistry
-    - TEST_DIR=aqua TEST_PARAMS="-end 27"
-    - TEST_DIR=aqua TEST_PARAMS="-start 27 -end 46"
-    - TEST_DIR=aqua TEST_PARAMS="-start 46" 
+
+matrix:
+  include:
+  - name: "Test Chemistry"
+    env: TEST_DIR=chemistry
+  - name: "Test Aqua 1"
+    env: TEST_DIR=aqua TEST_PARAMS="-end 27"
+  - name: "Test Aqua 2"
+    env: TEST_DIR=aqua TEST_PARAMS="-start 27 -end 46"
+  - name: "Test Aqua 3"
+    env: TEST_DIR=aqua TEST_PARAMS="-start 46"  
         
 before_install:
   - |
