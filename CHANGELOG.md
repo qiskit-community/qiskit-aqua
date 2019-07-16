@@ -70,6 +70,13 @@ Removed
 -   General multi-controlled rotation gate `mcu3` is removed and replaced by 
     multi-controlled rotation gates `mcrx`, `mcry`, and `mcrz` 
  
+[0.5.3](https://github.com/Qiskit/qiskit-aqua/compare/0.5.2...0.5.3) - 2019-07-16
+=================================================================================
+
+Fixed
+-----
+
+-   Since the syntax inverse() on a gate does not invert a gate now, the bug introduced wrong post rotation for Pauli Y.
 
 [0.5.2](https://github.com/Qiskit/qiskit-aqua/compare/0.5.1...0.5.2) - 2019-06-27
 =================================================================================
