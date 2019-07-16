@@ -28,7 +28,7 @@ env:
 
 matrix:
   include:
-  - name: "Test Chemistry"
+  - name: "Lint and Style check and Test Chemistry"
     env: TEST_DIR=chemistry
   - name: "Test Aqua 1"
     env: TEST_DIR=aqua TEST_PARAMS="-end 27"
