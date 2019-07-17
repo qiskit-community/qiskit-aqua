@@ -19,7 +19,7 @@ from collections import OrderedDict
 import numpy as np
 
 from qiskit.quantum_info import Pauli
-from qiskit.aqua import Operator
+from qiskit.aqua.operators import WeightedPauliOperator
 
 logger = logging.getLogger(__name__)
 
@@ -96,7 +96,7 @@ def get_exact_cover_qubitops(list_of_subsets):
             vp[i] = 1
             pauli_list.append([-Y, Pauli(vp, wp)])
 
-    return Operator(paulis=pauli_list), shift
+    return WeightedPauliOperator(paulis=pauli_list), shift
 
 
 def read_numbers_from_file(filename):

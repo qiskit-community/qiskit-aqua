@@ -22,7 +22,7 @@ from collections import OrderedDict
 import numpy as np
 
 from qiskit.quantum_info import Pauli
-from qiskit.aqua import Operator
+from qiskit.aqua.operators import WeightedPauliOperator
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +71,7 @@ def get_partition_qubitops(values):
             zp[i] = True
             zp[j] = True
             pauli_list.append([2. * values[i] * values[j], Pauli(zp, xp)])
-    return Operator(paulis=pauli_list), sum(values*values)
+    return WeightedPauliOperator(paulis=pauli_list), sum(values*values)
 
 
 def read_numbers_from_file(filename):

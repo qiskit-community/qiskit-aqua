@@ -16,9 +16,9 @@ import logging
 from collections import OrderedDict
 
 import numpy as np
-
 from qiskit.quantum_info import Pauli
-from qiskit.aqua import Operator
+
+from qiskit.aqua.operators import WeightedPauliOperator
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +94,7 @@ def get_set_packing_qubitops(list_of_subsets):
         pauli_list.append([-0.5, Pauli(vp, wp)])
         shift += -0.5
 
-    return Operator(paulis=pauli_list), shift
+    return WeightedPauliOperator(paulis=pauli_list), shift
 
 
 def read_numbers_from_file(filename):

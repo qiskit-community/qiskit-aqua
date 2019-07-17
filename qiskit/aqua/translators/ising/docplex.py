@@ -60,7 +60,8 @@ from docplex.mp.constants import ComparisonType
 from docplex.mp.model import Model
 from qiskit.quantum_info import Pauli
 
-from qiskit.aqua import Operator, AquaError
+from qiskit.aqua import AquaError
+from qiskit.aqua.operators import WeightedPauliOperator
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +76,7 @@ def get_qubitops(mdl, auto_penalty=True, default_penalty=1e5):
             This value is used if "auto_penalty" is False.
 
     Returns:
-        operator.Operator, float: operator for the Hamiltonian and a
+        operators.WeightedPauliOperator, float: operator for the Hamiltonian and a
         constant shift for the obj function.
     """
 
@@ -192,8 +193,7 @@ def get_qubitops(mdl, auto_penalty=True, default_penalty=1e5):
                 shift += penalty_weight1_weight2
 
     # Remove paulis whose coefficients are zeros.
-    qubitOp = Operator(paulis=pauli_list)
-    qubitOp.zeros_coeff_elimination()
+    qubitOp = WeightedPauliOperator(paulis=pauli_list)
 
     return qubitOp, shift
 
