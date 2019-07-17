@@ -45,6 +45,8 @@ Added
     and PSI4 outputs were already added to debug log)
 -   Chemistry: Merged qiskit-chemistry to this repo. The old chemistry changelog is at 
     [OLD_CHEMISTRY_CHANGELOG.md](OLD_CHEMISTRY_CHANGELOG.md)
+-   Add `evolution_instruction` function to get registerless instruction of time evolution. 
+   
 
 Changed
 -------
@@ -71,6 +73,12 @@ Removed
 
 -   General multi-controlled rotation gate `mcu3` is removed and replaced by 
     multi-controlled rotation gates `mcrx`, `mcry`, and `mcrz` 
+
+Deprecated
+----------
+-   The `Operator` class is deprecated, in favor of using `MatrixOperator`, 
+    `WeightedPauliOperator` and `TPBGroupedPauliOperator`
+
  
 [0.5.3](https://github.com/Qiskit/qiskit-aqua/compare/0.5.2...0.5.3) - 2019-07-16
 =================================================================================

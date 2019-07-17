@@ -22,10 +22,11 @@ from qiskit.transpiler import PassManager
 
 from test.aqua.common import QiskitAquaTestCase
 from qiskit import BasicAer
-from qiskit.aqua import Operator, QuantumInstance
+from qiskit.aqua import QuantumInstance
 from qiskit.aqua.utils import decimal_to_binary
 from qiskit.aqua.algorithms import IQPE
 from qiskit.aqua.algorithms import ExactEigensolver
+from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator
 from qiskit.aqua.components.initial_states import Custom
 
 
@@ -34,7 +35,8 @@ Y = np.array([[0, -1j], [1j, 0]])
 Z = np.array([[1, 0], [0, -1]])
 _I = np.array([[1, 0], [0, 1]])
 h1 = X + Y + Z + _I
-qubitOp_simple = Operator(matrix=h1)
+qubit_op_simple = MatrixOperator(matrix=h1)
+qubit_op_simple = qubit_op_simple.to_weighted_pauli_operator()
 
 
 pauli_dict = {
@@ -46,7 +48,7 @@ pauli_dict = {
         {"coeff": {"imag": 0.0, "real": 0.18093119978423156}, "label": "XX"}
     ]
 }
-qubitOp_h2_with_2_qubit_reduction = Operator.load_from_dict(pauli_dict)
+qubit_op_h2_with_2_qubit_reduction = WeightedPauliOperator.from_dict(pauli_dict)
 
 
 pauli_dict_zz = {
@@ -54,52 +56,39 @@ pauli_dict_zz = {
         {"coeff": {"imag": 0.0, "real": 1.0}, "label": "ZZ"}
     ]
 }
-qubitOp_zz = Operator.load_from_dict(pauli_dict_zz)
+qubit_op_zz = WeightedPauliOperator.from_dict(pauli_dict_zz)
 
 
 class TestIQPE(QiskitAquaTestCase):
     """IQPE tests."""
 
     @parameterized.expand([
-        [qubitOp_simple, 'qasm_simulator'],
-        [qubitOp_zz, 'statevector_simulator'],
-        [qubitOp_h2_with_2_qubit_reduction, 'statevector_simulator'],
+        [qubit_op_simple, 'qasm_simulator'],
+        [qubit_op_zz, 'statevector_simulator'],
+        [qubit_op_h2_with_2_qubit_reduction, 'statevector_simulator'],
     ])
-    def test_iqpe(self, qubitOp, simulator):
+    def test_iqpe(self, qubit_op, simulator):
         self.algorithm = 'IQPE'
         self.log.debug('Testing IQPE')
 
-        self.qubitOp = qubitOp
+        self.qubit_op = qubit_op
 
-        exact_eigensolver = ExactEigensolver(self.qubitOp, k=1)
+        exact_eigensolver = ExactEigensolver(self.qubit_op, k=1)
         results = exact_eigensolver.run()
 
-        w = results['eigvals']
-        v = results['eigvecs']
-
-        self.qubitOp.to_matrix()
-        np.testing.assert_almost_equal(
-            self.qubitOp._matrix @ v[0],
-            w[0] * v[0]
-        )
-        np.testing.assert_almost_equal(
-            expm(-1.j * sparse.csc_matrix(self.qubitOp._matrix)) @ v[0],
-            np.exp(-1.j * w[0]) * v[0]
-        )
-
-        self.ref_eigenval = w[0]
-        self.ref_eigenvec = v[0]
+        self.ref_eigenval = results['eigvals'][0]
+        self.ref_eigenvec = results['eigvecs'][0]
         self.log.debug('The exact eigenvalue is:       {}'.format(self.ref_eigenval))
         self.log.debug('The corresponding eigenvector: {}'.format(self.ref_eigenvec))
 
         num_time_slices = 50
         num_iterations = 6
-        state_in = Custom(self.qubitOp.num_qubits, state_vector=self.ref_eigenvec)
-        iqpe = IQPE(self.qubitOp, state_in, num_time_slices, num_iterations,
+        state_in = Custom(self.qubit_op.num_qubits, state_vector=self.ref_eigenvec)
+        iqpe = IQPE(self.qubit_op, state_in, num_time_slices, num_iterations,
                     expansion_mode='suzuki', expansion_order=2, shallow_circuit_concat=True)
 
         backend = BasicAer.get_backend(simulator)
-        quantum_instance = QuantumInstance(backend, shots=100, pass_manager=PassManager())
+        quantum_instance = QuantumInstance(backend, shots=100)
 
         result = iqpe.run(quantum_instance)
 
@@ -118,8 +107,7 @@ class TestIQPE(QiskitAquaTestCase):
             fractional_part_only=True
         )))
 
-        np.testing.assert_approx_equal(result['energy'], self.ref_eigenval.real, significant=2)
-
+        self.assertAlmostEqual(result['energy'], self.ref_eigenval.real, places=2)
 
 if __name__ == '__main__':
     unittest.main()

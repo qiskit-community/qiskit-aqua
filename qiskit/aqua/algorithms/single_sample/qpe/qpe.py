@@ -21,11 +21,12 @@ from copy import deepcopy
 import numpy as np
 from qiskit.quantum_info import Pauli
 
-from qiskit.aqua import Operator, AquaError
+from qiskit.aqua import AquaError
 from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.circuits import PhaseEstimationCircuit
+from qiskit.aqua.operators import WeightedPauliOperator
 
 
 logger = logging.getLogger(__name__)
@@ -97,7 +98,7 @@ class QPE(QuantumAlgorithm):
         Constructor.
 
         Args:
-            operator (Operator): the hamiltonian Operator object
+            operator (WeightedPauliOperator): the hamiltonian Operator object
             state_in (InitialState): the InitialState pluggable component representing the initial quantum state
             iqft (IQFT): the Inverse Quantum Fourier Transform pluggable component
             num_time_slices (int): the number of time slices
@@ -113,12 +114,12 @@ class QPE(QuantumAlgorithm):
         self._ret = {}
         self._operator = deepcopy(operator)
 
-        self._ret['translation'] = sum([abs(p[0]) for p in self._operator.get_flat_pauli_list()])
+        self._ret['translation'] = sum([abs(p[0]) for p in self._operator.reorder_paulis()])
         self._ret['stretch'] = 0.5 / self._ret['translation']
 
         # translate the operator
-        self._operator._simplify_paulis()
-        translation_op = Operator([
+        self._operator.simplify()
+        translation_op = WeightedPauliOperator([
             [
                 self._ret['translation'],
                 Pauli(
@@ -127,9 +128,9 @@ class QPE(QuantumAlgorithm):
                 )
             ]
         ])
-        translation_op._simplify_paulis()
+        translation_op.simplify()
         self._operator += translation_op
-        self._pauli_list = self._operator.get_flat_pauli_list()
+        self._pauli_list = self._operator.reorder_paulis()
 
         # stretch the operator
         for p in self._pauli_list:
