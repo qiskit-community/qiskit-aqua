@@ -31,9 +31,9 @@ matrix:
   - name: "Lint and Style check and Test Chemistry"
     env: TEST_DIR=chemistry
   - name: "Test Aqua 1"
-    env: TEST_DIR=aqua TEST_PARAMS="-end 26"
+    env: TEST_DIR=aqua TEST_PARAMS="-end 27"
   - name: "Test Aqua 2"
-    env: TEST_DIR=aqua TEST_PARAMS="-start 26 -end 45"
+    env: TEST_DIR=aqua TEST_PARAMS="-start 27 -end 45"
   - name: "Test Aqua 3"
     env: TEST_DIR=aqua TEST_PARAMS="-start 45"
         

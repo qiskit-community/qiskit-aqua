@@ -52,7 +52,7 @@ class TestHHL(QiskitAquaTestCase):
                 'name': 'EigsQPE',
                 'negative_evals': False,
                 'num_ancillae': 3,
-                'num_time_slices': 50
+                'num_time_slices': 8
             },
             'reciprocal': {
                 'name': 'Lookup',
