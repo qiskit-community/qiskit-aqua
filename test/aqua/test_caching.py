@@ -34,6 +34,9 @@ class TestCaching(QiskitAquaTestCase):
         qubit_op = Operator.load_from_dict(pauli_dict)
         self.algo_input = EnergyInput(qubit_op)
 
+        # TODO: only work with optimization_level 0 now
+        self.optimization_level = 0
+
     def _build_refrence_result(self, backends):
         res = {}
         for backend in backends:
@@ -69,6 +72,7 @@ class TestCaching(QiskitAquaTestCase):
             'algorithm': {'name': 'VQE', 'operator_mode': 'matrix' if backend == 'statevector_simulator' else 'paulis'},
             'problem': {'name': 'energy',
                         'random_seed': 50,
+                        'circuit_optimization_level': self.optimization_level,
                         'circuit_caching': caching,
                         'skip_qobj_deepcopy': skip_qobj_deepcopy,
                         'skip_qobj_validation': skip_validation,
@@ -108,7 +112,8 @@ class TestCaching(QiskitAquaTestCase):
         quantum_instance_caching = QuantumInstance(backend,
                                                    circuit_caching=True,
                                                    skip_qobj_deepcopy=True,
-                                                   skip_qobj_validation=True)
+                                                   skip_qobj_validation=True,
+                                                   optimization_level=self.optimization_level)
         result_caching = algo.run(quantum_instance_caching)
         self.assertLessEqual(quantum_instance_caching.circuit_cache.misses, 0)
         self.assertAlmostEqual(self.reference_vqe_result['statevector_simulator']['energy'], result_caching['energy'])
@@ -131,7 +136,8 @@ class TestCaching(QiskitAquaTestCase):
                                                        circuit_caching=True,
                                                        cache_file=cache_tmp_file_name,
                                                        skip_qobj_deepcopy=True,
-                                                       skip_qobj_validation=True)
+                                                       skip_qobj_validation=True,
+                                                       optimization_level=self.optimization_level)
             algo.run(quantum_instance_caching)
             self.assertLessEqual(quantum_instance_caching.circuit_cache.misses, 0)
 
@@ -155,7 +161,8 @@ class TestCaching(QiskitAquaTestCase):
                                                 circuit_caching=True,
                                                 cache_file=cache_tmp_file_name,
                                                 skip_qobj_deepcopy=True,
-                                                skip_qobj_validation=True)
+                                                skip_qobj_validation=True,
+                                                optimization_level=self.optimization_level)
 
             _ = quantum_instance0.execute([circ0])
             with open(cache_tmp_file_name, "rb") as cache_handler:
@@ -170,7 +177,8 @@ class TestCaching(QiskitAquaTestCase):
                                                 circuit_caching=True,
                                                 cache_file=cache_tmp_file_name,
                                                 skip_qobj_deepcopy=True,
-                                                skip_qobj_validation=True)
+                                                skip_qobj_validation=True,
+                                                optimization_level=self.optimization_level)
 
             params1 = np.random.random(var_form.num_parameters)
             circ1 = var_form.construct_circuit(params1)

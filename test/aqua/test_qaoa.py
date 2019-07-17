@@ -65,7 +65,8 @@ class TestQAOA(QiskitAquaTestCase):
         qubitOp, offset = max_cut.get_max_cut_qubitops(w)
 
         qaoa = QAOA(qubitOp, optimizer, p, operator_mode='matrix', mixer=m)
-        quantum_instance = QuantumInstance(backend)
+        # TODO: cache only work with optimization_level 0
+        quantum_instance = QuantumInstance(backend, optimization_level=0)
 
         result = qaoa.run(quantum_instance)
         x = max_cut.sample_most_likely(result['eigvecs'][0])
