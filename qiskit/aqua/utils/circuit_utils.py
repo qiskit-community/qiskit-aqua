@@ -45,7 +45,7 @@ def summarize_circuits(circuits):
     for i, circuit in enumerate(circuits):
         dag = circuit_to_dag(circuit)
         depth = dag.depth()
-        width = dag.width()
+        width = dag.num_qubits()
         size = dag.size()
         classical_bits = dag.num_clbits()
         op_counts = dag.count_ops()
