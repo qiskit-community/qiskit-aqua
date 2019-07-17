@@ -20,6 +20,7 @@ from scipy import sparse as scisparse
 
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua import AquaError, Pluggable
+from qiskit.aqua.operators import MatrixOperator
 
 logger = logging.getLogger(__name__)
 
@@ -51,19 +52,21 @@ class ExactEigensolver(QuantumAlgorithm):
         """Constructor.
 
         Args:
-            operator: Operator instance
-            k: How many eigenvalues are to be computed
-            aux_operators: Auxiliary operators to be evaluated at each eigenvalue
+            operator (MatrixOperator): instance
+            k (int): How many eigenvalues are to be computed
+            aux_operators (list[MatrixOperator]): Auxiliary operators to be evaluated at each eigenvalue
         """
         self.validate(locals())
         super().__init__()
-        self._operator = operator
+
+        self._operator = operator if isinstance(operator, MatrixOperator) else operator.to_matrix_operator()
         if aux_operators is None:
             self._aux_operators = []
         else:
-            self._aux_operators = [aux_operators] if not isinstance(aux_operators, list) else aux_operators
+            aux_operators = [aux_operators] if not isinstance(aux_operators, list) else aux_operators
+            self._aux_operators = [aux_op if isinstance(aux_op, MatrixOperator) else aux_op.to_matrix_operator()
+                                   for aux_op in aux_operators]
         self._k = k
-        self._operator.to_matrix()
         if self._k > self._operator.matrix.shape[0]:
             self._k = self._operator.matrix.shape[0]
             logger.debug("WARNING: Asked for {} eigenvalues but max possible is {}.".format(k, self._k))
