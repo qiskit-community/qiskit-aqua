@@ -18,7 +18,7 @@ import itertools
 import networkx
 import numpy as np
 from qiskit.quantum_info import Pauli
-from qiskit.aqua import Operator
+from qiskit.aqua.operators import WeightedPauliOperator
 
 
 def _one_body(edge_list, p, q, h1_pq):
@@ -31,10 +31,9 @@ def _one_body(edge_list, p, q, h1_pq):
         h1_pq (complex): coeffient of the one body term at (p, q)
 
     Return:
-        Operator: mapped qubit operator
+        WeightedPauliOperator: mapped qubit operator
     """
     # Handle off-diagonal terms.
-    final_coeff = 1.0
     if p != q:
         a, b = sorted([p, q])
         b_a = edge_operator_bi(edge_list, a)
@@ -50,12 +49,12 @@ def _one_body(edge_list, p, q, h1_pq):
         w = np.zeros(edge_list.shape[1])
         id_pauli = Pauli(v, w)
 
-        id_op = Operator(paulis=[[1.0, id_pauli]])
+        id_op = WeightedPauliOperator(paulis=[[1.0, id_pauli]])
         qubit_op = id_op - b_p
         final_coeff = 0.5
 
-    qubit_op.scaling_coeff(final_coeff * h1_pq)
-    qubit_op.zeros_coeff_elimination()
+    qubit_op = (final_coeff * h1_pq) * qubit_op
+    qubit_op.simplify()
     return qubit_op
 
 
@@ -72,11 +71,11 @@ def _two_body(edge_list, p, q, r, s, h2_pqrs):
         h2_pqrs (complex): coeffient of the two body term at (p, q, r, s)
 
     Returns:
-        Operator: mapped qubit operator
+        WeightedPauliOperator: mapped qubit operator
     """
     # Handle case of four unique indices.
     v = np.zeros(edge_list.shape[1])
-    id_op = Operator(paulis=[[1, Pauli(v, v)]])
+    id_op = WeightedPauliOperator(paulis=[[1, Pauli(v, v)]])
     final_coeff = 1.0
 
     if len(set([p, q, r, s])) == 4:
@@ -137,8 +136,8 @@ def _two_body(edge_list, p, q, r, s, h2_pqrs):
     else:
         pass
 
-    qubit_op.scaling_coeff(final_coeff * h2_pqrs)
-    qubit_op.zeros_coeff_elimination()
+    qubit_op = (final_coeff * h2_pqrs) * qubit_op
+    qubit_op.simplify()
     return qubit_op
 
 
@@ -213,7 +212,7 @@ def edge_operator_aij(edge_list, i, j):
         j (int): specifying the edge operator A
 
     Returns:
-        Operator: qubit operator
+        WeightedPauliOperator: qubit operator
     """
     v = np.zeros(edge_list.shape[1])
     w = np.zeros(edge_list.shape[1])
@@ -241,7 +240,7 @@ def edge_operator_aij(edge_list, i, j):
         if edge_list[ii][jj] < i:
             v[jj] = 1
 
-    qubit_op = Operator(paulis=[[1.0, Pauli(v, w)]])
+    qubit_op = WeightedPauliOperator(paulis=[[1.0, Pauli(v, w)]])
     return qubit_op
 
 
@@ -249,21 +248,20 @@ def stabilizers(fer_op):
 
     edge_list = bravyi_kitaev_fast_edge_list(fer_op)
     num_qubits = edge_list.shape[1]
-    # vac_operator = Operator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
 
     g = networkx.Graph()
     g.add_edges_from(tuple(edge_list.transpose()))
     stabs = np.asarray(networkx.cycle_basis(g))
-    stabilizers = []
+    stabilizer_ops = []
     for stab in stabs:
-        a = Operator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
+        a = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
         stab = np.asarray(stab)
         for i in range(np.size(stab)):
-            a = a * edge_operator_aij(edge_list, stab[i], stab[(i + 1) % np.size(stab)])
-            a.scaling_coeff(1j)
-        stabilizers.append(a)
+            # TODO: double check
+            a = a * edge_operator_aij(edge_list, stab[i], stab[(i + 1) % np.size(stab)]) * 1j
+        stabilizer_ops.append(a)
 
-    return stabilizers
+    return stabilizer_ops
 
 
 def edge_operator_bi(edge_list, i):
@@ -277,14 +275,14 @@ def edge_operator_bi(edge_list, i):
         i (int): index for specifying the edge operator B.
 
     Returns:
-        Operator: qubit operator
+        WeightedPauliOperator: qubit operator
     """
     qubit_position_matrix = np.asarray(np.where(edge_list == i))
     qubit_position = qubit_position_matrix[1]
     v = np.zeros(edge_list.shape[1])
     w = np.zeros(edge_list.shape[1])
     v[qubit_position] = 1
-    qubit_op = Operator(paulis=[[1.0, Pauli(v, w)]])
+    qubit_op = WeightedPauliOperator(paulis=[[1.0, Pauli(v, w)]])
     return qubit_op
 
 
@@ -318,14 +316,14 @@ def bksf_mapping(fer_op):
         fer_op (FermionicOperator): the fermionic operator in the second quanitzed form
 
     Returns:
-        Operator: mapped qubit operator
+        WeightedPauliOperator: mapped qubit operator
     """
     fer_op = copy.deepcopy(fer_op)
     # bksf mapping works with the 'physicist' notation.
     fer_op.h2 = np.einsum('ijkm->ikmj', fer_op.h2)
     modes = fer_op.modes
     # Initialize qubit operator as constant.
-    qubit_op = Operator(paulis=[])
+    qubit_op = WeightedPauliOperator(paulis=[])
     edge_list = bravyi_kitaev_fast_edge_list(fer_op)
     # Loop through all indices.
     for p in range(modes):
@@ -359,7 +357,7 @@ def bksf_mapping(fer_op):
 
                     qubit_op += _two_body(edge_list, p, q, r, s, h2_pqrs)
 
-    qubit_op.zeros_coeff_elimination()
+    qubit_op.simplify()
     return qubit_op
 
 
@@ -370,24 +368,24 @@ def vacuum_operator(fer_op):
         fer_op (FermionicOperator): the fermionic operator in the second quanitzed form
 
     Returns:
-        Operator: the qubit operator
+        WeightedPauliOperator: the qubit operator
     """
     edge_list = bravyi_kitaev_fast_edge_list(fer_op)
     num_qubits = edge_list.shape[1]
-    vac_operator = Operator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
+    vac_operator = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
 
     g = networkx.Graph()
     g.add_edges_from(tuple(edge_list.transpose()))
     stabs = np.asarray(networkx.cycle_basis(g))
     for stab in stabs:
-        a = Operator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
+        a = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
         stab = np.asarray(stab)
         for i in range(np.size(stab)):
-            a = a * edge_operator_aij(edge_list, stab[i], stab[(i + 1) % np.size(stab)])
-            a.scaling_coeff(1j)
-        a += Operator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
-        vac_operator = vac_operator * a
-        vac_operator.scaling_coeff(np.sqrt(2))
+            a = a * edge_operator_aij(edge_list, stab[i], stab[(i + 1) % np.size(stab)]) * 1j
+            # a.scaling_coeff(1j)
+        a += WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
+        vac_operator = vac_operator * a * np.sqrt(2)
+        # vac_operator.scaling_coeff()
 
     return vac_operator
 
@@ -400,23 +398,22 @@ def number_operator(fer_op, mode_number=None):
         mode_number (int): index, it corresponds to the mode for which number operator is required.
 
     Returns:
-        Operator: the qubit operator
+        WeightedPauliOperator: the qubit operator
     """
     modes = fer_op.h1.modes
     edge_list = bravyi_kitaev_fast_edge_list(fer_op)
     num_qubits = edge_list.shape[1]
-    num_operator = Operator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
+    num_operator = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
 
     if mode_number is None:
         for i in range(modes):
             num_operator -= edge_operator_bi(edge_list, i)
-        num_operator += Operator(paulis=[[1.0 * modes, Pauli.from_label('I' * num_qubits)]])
+        num_operator += WeightedPauliOperator(paulis=[[1.0 * modes, Pauli.from_label('I' * num_qubits)]])
     else:
-        num_operator += (Operator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]]
+        num_operator += (WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]]
                                   ) - edge_operator_bi(edge_list, mode_number))
 
-    num_operator.scaling_coeff(0.5)
-
+    num_operator = 0.5 * num_operator
     return num_operator
 
 
@@ -429,11 +426,11 @@ def generate_fermions(fer_op, i, j):
         j (int): index of fermions
 
     Returns:
-        Operator: the qubit operator
+        WeightedPauliOperator: the qubit operator
     """
     edge_list = bravyi_kitaev_fast_edge_list(fer_op)
     gen_fer_operator = edge_operator_aij(edge_list, i, j) * edge_operator_bi(edge_list, j) \
         - edge_operator_bi(edge_list, i) * edge_operator_aij(edge_list, i, j)
 
-    gen_fer_operator.scaling_coeff(-1j * 0.5)
+    gen_fer_operator = -0.5j * gen_fer_operator
     return gen_fer_operator
