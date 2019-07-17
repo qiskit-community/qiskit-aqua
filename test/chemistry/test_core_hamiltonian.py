@@ -13,7 +13,9 @@
 # that they have been altered from the originals.
 
 import unittest
+
 from test.chemistry.common import QiskitChemistryTestCase
+from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
@@ -45,10 +47,10 @@ class TestCoreHamiltonian(QiskitChemistryTestCase):
                                               'two_qubit_reduction': actual_two_qubit_reduction})
 
     def _validate_input_object(self, qubit_op, num_qubits=4, num_paulis=15):
-        self.assertEqual(type(qubit_op).__name__, 'Operator')
+        self.assertTrue(isinstance(qubit_op, WeightedPauliOperator))
         self.assertIsNotNone(qubit_op)
         self.assertEqual(qubit_op.num_qubits, num_qubits)
-        self.assertEqual(len(qubit_op.save_to_dict()['paulis']), num_paulis)
+        self.assertEqual(len(qubit_op.to_dict()['paulis']), num_paulis)
 
     def test_output(self):
         core = Hamiltonian(transformation=TransformationType.FULL,

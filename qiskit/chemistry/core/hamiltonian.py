@@ -16,13 +16,17 @@ This module implements a molecular Hamiltonian operator, representing the
 energy of the electrons and nuclei in a molecule.
 """
 
-from .chemistry_operator import ChemistryOperator
+import logging
+from enum import Enum
+
+import numpy as np
+
+from qiskit.aqua.input import EnergyInput
+from qiskit.aqua.operators import TaperedWeightedPauliOperator
 from qiskit.chemistry import ChemistryProblem, QMolecule
 from qiskit.chemistry.fermionic_operator import FermionicOperator
-from qiskit.aqua.input import EnergyInput
-import numpy as np
-from enum import Enum
-import logging
+from .chemistry_operator import ChemistryOperator
+
 
 logger = logging.getLogger(__name__)
 
@@ -238,6 +242,7 @@ class Hamiltonian(ChemistryOperator):
         logger.debug('Converting to qubit using {} mapping'.format(self._qubit_mapping))
         qubit_op = Hamiltonian._map_fermionic_operator_to_qubit(fer_op, self._qubit_mapping, new_nel,
                                                                 self._two_qubit_reduction)
+
         logger.debug('  num paulis: {}, num qubits: {}'.format(len(qubit_op.paulis), qubit_op.num_qubits))
         algo_input = EnergyInput(qubit_op)
 
@@ -394,7 +399,7 @@ class Hamiltonian(ChemistryOperator):
     def _map_fermionic_operator_to_qubit(fer_op, qubit_mapping, num_particles, two_qubit_reduction):
         qubit_op = fer_op.mapping(map_type=qubit_mapping, threshold=0.00000001)
         if qubit_mapping == 'parity' and two_qubit_reduction:
-            qubit_op = qubit_op.two_qubit_reduced_operator(num_particles)
+            qubit_op = TaperedWeightedPauliOperator.two_qubit_reduction(qubit_op, num_particles)
         return qubit_op
 
     @staticmethod
