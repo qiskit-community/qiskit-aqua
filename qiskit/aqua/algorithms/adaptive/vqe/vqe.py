@@ -255,7 +255,8 @@ class VQE(VQAlgorithm):
                                                                 is_statevector=self._quantum_instance.is_statevector,
                                                                 use_simulator_operator_mode=self._use_simulator_operator_mode,
                                                                 circuit_name_prefix=str(idx))
-                params.append(operator.aer_paulis)
+                if self._use_simulator_operator_mode:
+                    params.append(operator.aer_paulis)
             else:
                 circuit = None
             circuits.append(circuit)
@@ -302,7 +303,8 @@ class VQE(VQAlgorithm):
         if self._auto_conversion:
             self._operator = self._config_the_best_mode(self._operator, self._quantum_instance.backend)
             for i in range(len(self._aux_operators)):
-                self._aux_operators[i] = self._config_the_best_mode(self._aux_operators[i], self._quantum_instance.backend)
+                if not self._aux_operators[i].is_empty():
+                    self._aux_operators[i] = self._config_the_best_mode(self._aux_operators[i], self._quantum_instance.backend)
 
         # sanity check
         if isinstance(self._operator, MatrixOperator) and not self._quantum_instance.is_statevector:

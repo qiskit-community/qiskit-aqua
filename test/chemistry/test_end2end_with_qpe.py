@@ -13,16 +13,18 @@
 # that they have been altered from the originals.
 
 import unittest
+
 from parameterized import parameterized
 import numpy as np
 import qiskit
-from qiskit.transpiler import PassManager
+
+from test.chemistry.common import QiskitChemistryTestCase
 from qiskit.aqua.utils import decimal_to_binary
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms.single_sample import QPE
 from qiskit.aqua.algorithms.classical import ExactEigensolver
 from qiskit.aqua.components.iqfts import Standard
-from test.chemistry.common import QiskitChemistryTestCase
+from qiskit.aqua.operators import TaperedWeightedPauliOperator
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry import FermionicOperator, QiskitChemistryError
 from qiskit.chemistry.aqua_extensions.components.initial_states import HartreeFock
@@ -53,7 +55,8 @@ class TestEnd2EndWithQPE(QiskitChemistryTestCase):
         fer_op = FermionicOperator(
             h1=self.molecule.one_body_integrals, h2=self.molecule.two_body_integrals)
         self.qubit_op = fer_op.mapping(map_type=qubit_mapping,
-                                       threshold=1e-10).two_qubit_reduced_operator(2)
+                                       threshold=1e-10)
+        self.qubit_op = TaperedWeightedPauliOperator.two_qubit_reduction(self.qubit_op, 2)
 
         exact_eigensolver = ExactEigensolver(self.qubit_op, k=1)
         results = exact_eigensolver.run()
@@ -66,7 +69,7 @@ class TestEnd2EndWithQPE(QiskitChemistryTestCase):
         num_orbitals = self.qubit_op.num_qubits + \
             (2 if two_qubit_reduction else 0)
 
-        num_time_slices = 50
+        num_time_slices = 1
         n_ancillae = 9
 
         state_in = HartreeFock(self.qubit_op.num_qubits, num_orbitals,
@@ -77,7 +80,7 @@ class TestEnd2EndWithQPE(QiskitChemistryTestCase):
                   expansion_mode='suzuki',
                   expansion_order=2, shallow_circuit_concat=True)
         backend = qiskit.BasicAer.get_backend('qasm_simulator')
-        quantum_instance = QuantumInstance(backend, shots=100, pass_manager=PassManager())
+        quantum_instance = QuantumInstance(backend, shots=100)
         result = qpe.run(quantum_instance)
 
         self.log.debug('eigvals:                  {}'.format(result['eigvals']))

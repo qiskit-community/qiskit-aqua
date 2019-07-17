@@ -42,8 +42,8 @@ class TestEnd2End(QiskitChemistryTestCase):
         self.reference_energy = -1.857275027031588
 
     @parameterized.expand([
-        ['COBYLA_M', 'COBYLA', qiskit.BasicAer.get_backend('statevector_simulator'), 'matrix', 1],
-        ['COBYLA_P', 'COBYLA', qiskit.BasicAer.get_backend('statevector_simulator'), 'paulis', 1],
+        ['COBYLA_M', 'COBYLA', qiskit.BasicAer.get_backend('statevector_simulator'), 1],
+        ['COBYLA_P', 'COBYLA', qiskit.BasicAer.get_backend('statevector_simulator'), 1],
         # ['SPSA_P', 'SPSA', qiskit.BasicAer.get_backend('qasm_simulator'), 'paulis', 1024],
         # ['SPSA_GP', 'SPSA', qiskit.BasicAer.get_backend('qasm_simulator'), 'grouped_paulis', 1024]
     ])
@@ -56,7 +56,7 @@ class TestEnd2End(QiskitChemistryTestCase):
             optimizer = SPSA(max_trials=2000)
 
         ryrz = RYRZ(self.qubit_op.num_qubits, depth=3, entanglement='full')
-        vqe = VQE(self.qubit_op, ryrz, optimizer, mode, aux_operators=self.aux_ops)
+        vqe = VQE(self.qubit_op, ryrz, optimizer, aux_operators=self.aux_ops)
         quantum_instance = QuantumInstance(backend, shots=shots)
         results = vqe.run(quantum_instance)
         self.assertAlmostEqual(results['energy'], self.reference_energy, places=4)
