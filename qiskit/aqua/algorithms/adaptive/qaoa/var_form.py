@@ -16,13 +16,23 @@ import numpy as np
 from functools import reduce
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.quantum_info import Pauli
-from qiskit.aqua import Operator
+from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator
 
 
 class QAOAVarForm:
     """Global X phases and parameterized problem hamiltonian."""
 
     def __init__(self, cost_operator, p, initial_state=None, mixer_operator=None):
+        """
+        TODO: docstring
+        Args:
+            cost_operator (WeightedPauliOperator):
+            p:
+            initial_state:
+            mixer_operator:
+        """
+        if isinstance(cost_operator, MatrixOperator):
+            cost_operator = cost_operator.to_weighted_pauli_operator()
         self._cost_operator = cost_operator
         self._p = p
         self._initial_state = initial_state
@@ -37,12 +47,12 @@ class QAOAVarForm:
             self._mixer_operator = reduce(
                 lambda x, y: x + y,
                 [
-                    Operator([[1, Pauli(v, ws[i, :])]])
+                    WeightedPauliOperator([[1.0, Pauli(v, ws[i, :])]])
                     for i in range(self._cost_operator.num_qubits)
                 ]
             )
         else:
-            if not type(mixer_operator) == Operator:
+            if not isinstance(mixer_operator, WeightedPauliOperator):
                 raise TypeError('The mixer should be a qiskit.aqua.Operator '
                                 + 'object, found {} instead'.format(type(mixer_operator)))
             self._mixer_operator = mixer_operator
@@ -66,10 +76,10 @@ class QAOAVarForm:
         for idx in range(self._p):
             beta, gamma = angles[idx], angles[idx + self._p]
             circuit += self._cost_operator.evolve(
-                evo_time=gamma, evo_mode='circuit', num_time_slices=1, quantum_registers=q
+                evo_time=gamma, num_time_slices=1, quantum_registers=q
             )
             circuit += self._mixer_operator.evolve(
-                evo_time=beta, evo_mode='circuit', num_time_slices=1, quantum_registers=q
+                evo_time=beta, num_time_slices=1, quantum_registers=q
             )
         return circuit
 

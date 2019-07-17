@@ -12,8 +12,9 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from qiskit.aqua import AquaError, Operator
+from qiskit.aqua import AquaError
 from qiskit.aqua.input import AlgorithmInput
+from qiskit.aqua.operators import WeightedPauliOperator
 
 
 class EnergyInput(AlgorithmInput):
@@ -65,9 +66,9 @@ class EnergyInput(AlgorithmInput):
         params = {}
         for key, value in args_dict.items():
             if key == EnergyInput.PROP_KEY_QUBITOP:
-                value = value.save_to_dict() if value is not None else {}
+                value = value.to_dict() if value is not None else {}
             elif key == EnergyInput.PROP_KEY_AUXOPS:
-                value = [value[i].save_to_dict() for i in range(len(value))] if value is not None else None
+                value = [value[i].to_dict() for i in range(len(value))] if value is not None else None
 
             params[key] = value
 
@@ -81,8 +82,8 @@ class EnergyInput(AlgorithmInput):
 
     def to_params(self):
         params = {}
-        params[EnergyInput.PROP_KEY_QUBITOP] = self._qubit_op.save_to_dict()
-        params[EnergyInput.PROP_KEY_AUXOPS] = [self._aux_ops[i].save_to_dict() for i in range(len(self._aux_ops))]
+        params[EnergyInput.PROP_KEY_QUBITOP] = self._qubit_op.to_dict()
+        params[EnergyInput.PROP_KEY_AUXOPS] = [self._aux_ops[i].to_dict() for i in range(len(self._aux_ops))]
         return params
 
     @classmethod
@@ -90,8 +91,8 @@ class EnergyInput(AlgorithmInput):
         if EnergyInput.PROP_KEY_QUBITOP not in params:
             raise AquaError("Qubit operator is required.")
         qparams = params[EnergyInput.PROP_KEY_QUBITOP]
-        qubit_op = Operator.load_from_dict(qparams)
+        qubit_op = WeightedPauliOperator.from_dict(qparams)
         if EnergyInput.PROP_KEY_AUXOPS in params:
             auxparams = params[EnergyInput.PROP_KEY_AUXOPS]
-            aux_ops = [Operator.load_from_dict(auxparams[i]) for i in range(len(auxparams))]
+            aux_ops = [WeightedPauliOperator.from_dict(auxparams[i]) for i in range(len(auxparams))]
         return cls(qubit_op, aux_ops)

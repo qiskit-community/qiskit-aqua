@@ -22,7 +22,8 @@ from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua.translators.ising import max_cut
 from qiskit.aqua.components.optimizers import COBYLA
 from qiskit.aqua.algorithms import QAOA
-from qiskit.aqua import Operator, QuantumInstance
+from qiskit.aqua import QuantumInstance
+from qiskit.aqua.operators import WeightedPauliOperator
 
 w1 = np.array([
     [0, 1, 0, 1],
@@ -31,11 +32,11 @@ w1 = np.array([
     [1, 0, 1, 0]
 ])
 p1 = 1
-m1 = Operator().load_from_dict({'paulis': [{'label': 'IIIX', 'coeff': {'real': 1}},
-                                           {'label': 'IIXI', 'coeff': {'real': 1}},
-                                           {'label': 'IXII', 'coeff': {'real': 1}},
-                                           {'label': 'XIII', 'coeff': {'real': 1}}]
-                                })
+m1 = WeightedPauliOperator.from_dict({'paulis': [{'label': 'IIIX', 'coeff': {'real': 1}},
+                                                 {'label': 'IIXI', 'coeff': {'real': 1}},
+                                                 {'label': 'IXII', 'coeff': {'real': 1}},
+                                                 {'label': 'XIII', 'coeff': {'real': 1}}]
+                                      })
 s1 = {'0101', '1010'}
 
 
@@ -64,7 +65,7 @@ class TestQAOA(QiskitAquaTestCase):
         optimizer = COBYLA()
         qubitOp, offset = max_cut.get_max_cut_qubitops(w)
 
-        qaoa = QAOA(qubitOp, optimizer, p, operator_mode='matrix', mixer=m)
+        qaoa = QAOA(qubitOp, optimizer, p, mixer=m)
         # TODO: cache only work with optimization_level 0
         quantum_instance = QuantumInstance(backend, optimization_level=0)
 

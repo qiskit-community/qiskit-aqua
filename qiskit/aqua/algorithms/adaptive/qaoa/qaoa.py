@@ -13,8 +13,10 @@
 # that they have been altered from the originals.
 
 import logging
+import warnings
 
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
+from qiskit.aqua.operators import WeightedPauliOperator, TPBGroupedWeightedPauliOperator, MatrixOperator
 from qiskit.aqua.algorithms.adaptive import VQE
 from .var_form import QAOAVarForm
 
@@ -37,9 +39,9 @@ class QAOA(VQE):
             'type': 'object',
             'properties': {
                 'operator_mode': {
-                    'type': 'string',
-                    'default': 'matrix',
-                    'enum': ['matrix', 'paulis', 'grouped_paulis']
+                    'type': ['string', 'null'],
+                    'default': None,
+                    'enum': ['matrix', 'paulis', 'grouped_paulis', None]
                 },
                 'p': {
                     'type': 'integer',
@@ -75,15 +77,15 @@ class QAOA(VQE):
         ],
     }
 
-    def __init__(self, operator, optimizer, p=1, initial_state=None, mixer=None, operator_mode='matrix',
-                 initial_point=None, max_evals_grouped=1, aux_operators=None, callback=None):
+    def __init__(self, operator, optimizer, p=1, initial_state=None, mixer=None, operator_mode=None,
+                 initial_point=None, max_evals_grouped=1, aux_operators=None, callback=None, auto_conversion=False):
         """
         Args:
-            operator (Operator): Qubit operator
+            operator (BaseOperator): Qubit operator
             operator_mode (str): operator mode, used for eval of operator
             p (int): the integer parameter p as specified in https://arxiv.org/abs/1411.4028
             initial_state (InitialState): the initial state to prepend the QAOA circuit with
-            mixer (Operator): the mixer Hamiltonian to evolve with. Allows support
+            mixer (BaseOperator): the mixer Hamiltonian to evolve with. Allows support
                               of optimizations in constrained subspaces as
                               specified in https://arxiv.org/abs/1709.03489
             optimizer (Optimizer): the classical optimization algorithm.
@@ -95,11 +97,15 @@ class QAOA(VQE):
                                  evaluated mean, evaluated standard devation.
 
         """
+        if operator_mode is not None:
+            warnings.warn("operator_mode option is deprecated and it will be removed after 0.6. "
+                          "Now the operator has its own mode, no need extra info to tell the VQE.", DeprecationWarning)
+
         self.validate(locals())
         var_form = QAOAVarForm(operator.copy(), p, initial_state=initial_state, mixer_operator=mixer)
-        super().__init__(operator, var_form, optimizer,
-                         operator_mode=operator_mode, initial_point=initial_point,
-                         max_evals_grouped=max_evals_grouped, aux_operators=aux_operators, callback=callback)
+        super().__init__(operator, var_form, optimizer, initial_point=initial_point,
+                         max_evals_grouped=max_evals_grouped, aux_operators=aux_operators, callback=callback,
+                         auto_conversion=auto_conversion)
 
     @classmethod
     def init_params(cls, params, algo_input):
@@ -116,7 +122,6 @@ class QAOA(VQE):
         operator = algo_input.qubit_op
 
         qaoa_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
-        operator_mode = qaoa_params.get('operator_mode')
         p = qaoa_params.get('p')
         initial_point = qaoa_params.get('initial_point')
         max_evals_grouped = qaoa_params.get('max_evals_grouped')
