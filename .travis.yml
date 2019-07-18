@@ -31,13 +31,13 @@ matrix:
   - name: "Lint and Style check and Test Chemistry"
     env: TEST_DIR=chemistry
   - name: "Test Aqua 1"
-    env: TEST_DIR=aqua TEST_PARAMS="-end 27"
+    env: TEST_DIR=aqua TEST_PARAMS="-end 26"
   - name: "Test Aqua 2"
-    env: TEST_DIR=aqua TEST_PARAMS="-start 27 -end 43"
+    env: TEST_DIR=aqua TEST_PARAMS="-start 26 -end 40"
   - name: "Test Aqua 3"
-    env: TEST_DIR=aqua TEST_PARAMS="-start 43 -end 49"
+    env: TEST_DIR=aqua TEST_PARAMS="-start 40 -end 51"
   - name: "Test Aqua 4"
-    env: TEST_DIR=aqua TEST_PARAMS="-start 49"
+    env: TEST_DIR=aqua TEST_PARAMS="-start 51"
         
 before_install:
   - |
