@@ -487,7 +487,7 @@ class BinaryTree:
                     for (ii, bit) in enumerate(bitstring):
                         if bit == "0":
                             if control_register_qubits:
-                                mct(circ, control_register_qubits, register[ii], None)
+                                mct(circ, control_register_qubits, register[ii], None, mode="noancilla")
                             else:
                                 circ.x(register[ii])
 
@@ -525,7 +525,7 @@ class BinaryTree:
                     for (ii, bit) in enumerate(bitstring):
                         if bit == "0":
                             if control_register_qubits:
-                                mct(circ, control_register_qubits, register[ii], None)
+                                mct(circ, control_register_qubits, register[ii], None, mode="noancilla")
                             else:
                                 circ.x(register[ii])
 
@@ -1633,13 +1633,44 @@ def test_prep_with_ctrl_twoq_control_all_keys_negative_amplitudes():
         circ = tree.preparation_circuit(register, control_register, control_key)
 
         # Get the final state of the circuit
-        state = final_state(circ)
+        state = np.real(final_state(circ))
 
         # Make sure the state is the input vector if the correct control key is given, otherwise the |0> state.
         if control_key == 3:
-            print(" Debugging Negative Amplitudes two qubit control ".center(80, "="), end="\n\n")
-            print(circ)
-            print(state[:len(vec)])
+            assert np.allclose(state[:len(vec)], vec / np.linalg.norm(vec, ord=2))
+        else:
+            assert np.allclose(state[:len(vec)], zero)
+
+
+def test_prep_with_ctrl_three_qubit_state():
+    """Tests creating a three qubit state with a control register of three qubits."""
+    # Input vector
+    vec = np.array([1, 1, 1, -5, 1, 1, 1, 1], dtype=np.float64)
+
+    # Zero state
+    zero = np.array([1, 0, 0, 0, 0, 0, 0, 0], dtype=np.float64)
+
+    # Make a binary tree from the vector
+    tree = BinaryTree(vec)
+
+    # Register to store the vector
+    register = QuantumRegister(3)
+
+    # Register to control on.
+    control_register = QuantumRegister(3)
+
+    for control_key in range(8):
+        # Build the circuit
+        circ = tree.preparation_circuit(register, control_register, control_key)
+
+        # Swap the qubits to compare with vector
+        circ.swap(register[0], register[2])
+
+        # Get the final state of the circuit
+        state = np.real(final_state(circ))
+
+        # Make sure the state is the input vector if the correct control key is given, otherwise the |0> state.
+        if control_key == 7:
             assert np.allclose(state[:len(vec)], vec / np.linalg.norm(vec, ord=2))
         else:
             assert np.allclose(state[:len(vec)], zero)
@@ -1649,7 +1680,7 @@ if __name__ == "__main__":
     # Flags for testing
     TEST_QSVE = False
     TEST_BINARY_TREE = False
-    TEST_TREE_CTRL = False
+    TEST_TREE_CTRL = True
 
     # Unit tests for QSVE
     if TEST_QSVE:
@@ -1700,49 +1731,7 @@ if __name__ == "__main__":
         test_prep_with_ctrl_string_keys()
         test_prep_with_ctrl_twoq_control_all_keys()
         test_prep_with_ctrl_twoq_control_all_keys_strings()
-        # test_prep_with_ctrl_oneq_control_all_keys_negative_amplitudes()
-        # test_prep_with_ctrl_twoq_control_all_keys_negative_amplitudes()
-
+        test_prep_with_ctrl_oneq_control_all_keys_negative_amplitudes()
+        test_prep_with_ctrl_twoq_control_all_keys_negative_amplitudes()
+        test_prep_with_ctrl_three_qubit_state()
         print("...All tests for BinaryTree.state_preparation with control passed!")
-
-    # Input vector
-    vec = np.array([0, 1], dtype=np.float64)
-
-    # Make a binary tree from the vector
-    tree = BinaryTree(vec)
-
-    # Register to store the vector
-    register = QuantumRegister(1)
-
-    # Register to control on
-    control_register = QuantumRegister(2)
-
-    # Get the state preparation circuit
-    circ = tree.preparation_circuit(register, control_register=control_register, control_key=1)
-
-    # Swap the qubits for standard ordering to compare with input vector
-    # circ.swap(register[0], register[1])
-
-    # Get the final state of the circuit
-    state = np.real(final_state(circ))
-
-    print(state[:len(vec)])
-
-    # assert np.allclose(state[:len(vec)], vec / np.linalg.norm(vec, ord=2))
-
-    # # Test
-    # register = QuantumRegister(1)
-    # control_register = QuantumRegister(1)
-    # control_key = 1
-    #
-    # tree = BinaryTree([1, 1])
-    #
-    # circ = tree.preparation_circuit(register, control_register=control_register, control_key=control_key)
-    #
-    # print(circ)
-    #
-    # print(circ.count_ops())
-    #
-    # state = final_state(circ)
-    #
-    # print(state)
