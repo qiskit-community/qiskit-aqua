@@ -41,14 +41,8 @@ import numpy as np
 
 from qiskit.aqua.utils import CircuitFactory
 from qiskit.aqua.circuits.gates.multi_control_toffoli_gate import mct
-from qiskit.aqua.circuits.gates.multi_control_rotation_gates import _apply_mcu3_graycode as mcu3
 from qiskit.aqua.circuits.gates.multi_control_rotation_gates import mcry
 from qiskit import QuantumRegister, QuantumCircuit, execute, BasicAer
-
-
-def mcz(circuit, controls, target, use_basis_gates):
-    """Implements a multi-controlled X gate in a circuit. (Wrapper of mcu3 with correct angles.)"""
-    mcu3(circuit, 0, 0, np.pi, controls, target, use_basis_gates)
 
 
 class BinaryTree:
@@ -1755,6 +1749,10 @@ if __name__ == "__main__":
     TEST_BINARY_TREE = True
     TEST_TREE_CTRL = True
 
+    import time
+
+    start = time.time()
+
     # Unit tests for QSVE
     if TEST_QSVE:
         print("Now testing QSVE class...")
@@ -1810,3 +1808,7 @@ if __name__ == "__main__":
         test_prep_with_ctrl_three_qubit_state_four_controls()
         test_prep_with_ctrl_three_qubit_state_five_controls()
         print("...All tests for BinaryTree.state_preparation with control passed!")
+
+    runtime = time.time() - start
+
+    print("Testing took %0.3f minutes." %(runtime / 60))
