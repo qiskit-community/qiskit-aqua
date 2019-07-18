@@ -131,7 +131,7 @@ def get_tsp_qubitops(ins, penalty=1e5):
         penalty (float) : Penalty coefficient for the constraints
 
     Returns:
-        operator.Operator, float: operator for the Hamiltonian and a
+        WeightedPauliOperator, float: operator for the Hamiltonian and a
         constant shift for the obj function.
 
     """

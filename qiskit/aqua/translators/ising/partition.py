@@ -56,7 +56,7 @@ def get_partition_qubitops(values):
         values (numpy.ndarray): array of values.
 
     Returns:
-        operator.Operator, float: operator for the Hamiltonian and a
+        WeightedPauliOperator, float: operator for the Hamiltonian and a
         constant shift for the obj function.
 
     """
