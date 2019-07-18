@@ -120,16 +120,9 @@ class BinaryTree:
         """The number of levels in the tree."""
         return int(np.ceil(np.log2(self._nvals)) + 1)
 
-    def get_leaf(self, index):
-        """Returns the indexed element.
-
-        Args:
-            index : int
-                Index of leaf element to return.
-
-        Return type: float.
-        """
-        return self._values[index]
+    @property
+    def leaves(self):
+        return self._tree[-2]
 
     def get_level(self, level):
         """Returns a level in the tree.
@@ -378,8 +371,10 @@ class BinaryTree:
             # If provided as an integer
             if type(control_key) == int:
                 if 0 > control_key > max_control_key:
-                    raise ValueError("Invalid integer value for control_key. \
-                                      This argument must be in the range [0, 2^(len(control_register)).")
+                    raise ValueError(
+                        "Invalid integer value for control_key." +
+                        "This argument must be in the range [0, 2^(len(control_register))."
+                    )
 
                 # Convert to a string
                 control_key = np.binary_repr(control_key, num_control_qubits)
@@ -1167,6 +1162,9 @@ class QSVE(CircuitFactory):
         for row in matrix:
             self._trees.append(BinaryTree(row))
 
+        # Get the "row norm tree"
+        self._row_norm_tree = self._make_row_norm_tree()
+
         # Flag to indicate whether the matrix has been shifted or not
         self._shifted = False
 
@@ -1189,6 +1187,10 @@ class QSVE(CircuitFactory):
         """Returns the BinaryTree representing a matrix row."""
         return self._trees[index]
 
+    @property
+    def row_norm_tree(self):
+        return self._row_norm_tree
+
     def matrix_norm(self):
         """Returns the Froebenius norm of the matrix."""
         # Compute the value using the BinaryTree's storing matrix rows.
@@ -1197,6 +1199,45 @@ class QSVE(CircuitFactory):
         for tree in self._trees:
             value += tree.root
         return np.sqrt(value)
+
+    def _make_row_norm_tree(self):
+        """Creates the BinaryTree of row norms.
+
+        Each row norm is the square root of the root of each matrix tree.
+
+        Example:
+
+            Let the matrix of the QSVE be:
+
+                    A = [[0, 1],
+                         [1, 0]]
+
+            The tree for row_0(A) = [0, 1] is:      | The tree for row_1(A) = [1, 0] is:
+                                                    |
+                        1.00                        |           1.00
+                0.00            1.00                |   1.00            0.00
+
+            This method first creates the vector of row norms [ ||row_0(A)||, ||row_1(A)|| ] = [1, 1], and uses this to
+            create a BinaryTree, called the "row norm tree." In this case, the row norm tree would be:
+
+                                                    2.00
+                                            1.00            1.00
+
+        Returns:
+            The "row norm tree" described above.
+
+        Return type:
+            BinaryTree
+        """
+        # Initialize an empty list for the vector of row norms
+        row_norm_vector = []
+
+        # Append all the row norms
+        for tree in self._trees:
+            row_norm_vector.append(np.sqrt(tree.root))
+
+        # Return the BinaryTree made from the row norm vector
+        return BinaryTree(row_norm_vector)
 
     def shift_matrix(self):
         """Shifts the matrix diagonal by the Froebenius norm to make all eigenvalues positive. That is,
@@ -1429,6 +1470,71 @@ def test_shift():
     # Make sure the BinaryTrees in the qsve object were updated correctly
     assert(np.array_equal(new_tree1._values, correct_new_tree1_values))
     assert(np.array_equal(new_tree2._values, correct_new_tree2_values))
+
+
+def test_row_norm_tree():
+    """Tests creating the row norm tree for a matrix."""
+    # Test matrix
+    matrix = np.array([[1, 1, 0, 1],
+                       [0, 1, 0, 1],
+                       [1, 1, 1, 0],
+                       [0, 1, 1, 0]], dtype=np.float64)
+
+    # Create the QSVE object
+    qsve = QSVE(matrix)
+
+    # Calculate the correct two-norms for each row of the matrix
+    two_norms = np.array([np.linalg.norm(row, ord=2) for row in matrix])
+
+    assert np.allclose(two_norms, qsve.row_norm_tree._values)
+    assert np.allclose(two_norms**2, qsve.row_norm_tree.leaves)
+    assert np.isclose(qsve.row_norm_tree.root, np.linalg.norm(matrix, "fro")**2)
+
+
+def test_row_norm_tree_random():
+    """Tests correctness of the row norm tree for random matrices."""
+    for _ in range(100):
+        # Get a random matrix
+        matrix = np.random.randn(8, 8)
+
+        # Create the QSVE object
+        qsve = QSVE(matrix)
+
+        # Calculate the correct two-norms for each row of the matrix
+        two_norms = np.array([np.linalg.norm(row, ord=2) for row in matrix])
+
+        assert np.allclose(two_norms, qsve.row_norm_tree._values)
+        assert np.allclose(two_norms ** 2, qsve.row_norm_tree.leaves)
+        assert np.isclose(qsve.row_norm_tree.root, np.linalg.norm(matrix, "fro")**2)
+
+
+def test_row_norm_tree_prep_circuit():
+    """Tests the state preparation circuit for the row norm tree."""
+    # Test matrix
+    matrix = np.array([[1, 1, 0, 1],
+                       [0, 1, 0, 1],
+                       [1, 1, 1, 1],
+                       [0, 1, 0, 0]], dtype=np.float64)
+
+    # Create the QSVE object
+    qsve = QSVE(matrix)
+
+    # Calculate the correct two-norms for each row of the matrix. This vector is the state the prep circuit should make.
+    two_norms = np.array([np.linalg.norm(row, ord=2) for row in matrix]) / np.linalg.norm(matrix, "fro")
+
+    # Get a register to prepare the row norm state in
+    register = QuantumRegister(2)
+
+    # Get the state preparation circuit
+    circ = qsve.row_norm_tree.preparation_circuit(register)
+
+    # Add a swap gate to get the amplitudes in a sensible order
+    circ.swap(register[0], register[1])
+
+    # Get the final state of the circuit
+    state = np.real(final_state(circ))
+
+    assert np.allclose(state, two_norms)
 
 
 # ==========================================================
@@ -1761,6 +1867,9 @@ if __name__ == "__main__":
         test_norm_random()
         test_shift_identity()
         test_shift()
+        test_row_norm_tree()
+        test_row_norm_tree_random()
+        test_row_norm_tree_prep_circuit()
         print("...All tests for QSVE passed!")
 
     # Unit tests for BinaryTree
