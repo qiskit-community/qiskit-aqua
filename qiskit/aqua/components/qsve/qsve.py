@@ -426,52 +426,18 @@ class BinaryTree:
         # Add the gates to the circuit
         # ============================
 
-        # Do the initial pattern of X gates on the control qubits to get controls & anti-controls correct
+        # Do the initial pattern of X gates on control register (if provided) to get controls & anti-controls correct
         if control_register_qubits:
             for (ii, bit) in enumerate(control_key):
                 if bit == "1":
                     circ.x(control_register[ii])
-
-        # First rotation angle
-        parent = self.root
-        left_child = self.left_child_value(0, 0)
-        theta = 2 * np.arccos(np.sqrt(left_child / parent))
-
-        # Do the first Y-rotation for the root value
-        if control_register:
-            mcry(circ, theta, control_register, register[0], None, mode="noancilla")
-        else:
-            circ.ry(theta, register[0])
-
-        # Special case for getting the signs correct with only a single qubit in state register and no control register
-        if self.number_levels == 2 and len(control_register_qubits) == 0:
-            if self._values[0] < 0:
-                circ.x(register[0])
-                circ.z(register[0])
-                circ.x(register[0])
-            if self._values[1] < 0:
-                circ.z(register[0])
-
-        # Special case for getting the signs correct with a single qubit in the state register and control qubits
-        if self.number_levels == 2 and len(control_register_qubits) > 0:
-            print("One Qubit State")
-            print("{} Controls!".format(len(control_register_qubits)))
-            if self._values[0] < 0:
-                print("The first amplitude is negative")
-                mct(circ, control_register_qubits, register[0], None, mode="noancilla")
-                mcz(circ, control_register_qubits, register[0], use_basis_gates=True)
-                mct(circ, control_register_qubits, register[0], None, mode="noancilla")
-            if self._values[1] < 0:
-                print("The second amplitude is negative")
-                mcz(circ, control_register_qubits, register[0], use_basis_gates=True)
-
 
         # =========================================
         # Traverse the tree and add the Y-rotations
         # =========================================
 
         # Loop down the levels of the tree, starting at the first level (below the root)
-        for level in range(1, self.number_levels - 1):
+        for level in range(0, self.number_levels - 1):
             # Within this level, loop from left to right across nodes
             for index in range(len(self._tree[level])):
                 # Get the index of the node in binary
@@ -512,37 +478,56 @@ class BinaryTree:
                         # Set flag to do the controlled bit flip on the target of the MCRY gate
                         mct_flag = True
 
-                # Do X gates for anti-controls
-                for (ii, bit) in enumerate(bitstring):
-                    if bit == "0":
-                        if control_register_qubits:
-                            mct(circ, control_register_qubits, register[ii], None)
-                        else:
-                            circ.x(register[ii])
-
                 # =========================================
                 # Do the Multi-Controlled-Y (MCRY) rotation
                 # =========================================
 
+                # Do X gates for anti-controls
+                if level > 0:
+                    for (ii, bit) in enumerate(bitstring):
+                        if bit == "0":
+                            if control_register_qubits:
+                                mct(circ, control_register_qubits, register[ii], None)
+                            else:
+                                circ.x(register[ii])
+
+                # Get all control qubits
+                if level == 0:
+                    all_control_qubits = control_register_qubits
+                else:
+                    all_control_qubits = control_register_qubits + register[:level]
+
                 # For three qubits or less, no ancilla are needed to do the MCRY
                 if len(register) <= 3:
                     if mct_flag:
-                        mct(circ, control_register_qubits + register[:level], register[level], None, mode="noancilla")
-                    # TODO: Erase this comment if no error in next line!
-                    mcry(circ, theta, control_register_qubits + register[:level], register[level], None, mode="noancilla")
+                        if len(all_control_qubits) > 0:
+                            mct(circ, all_control_qubits, register[level], None, mode="noancilla")
+                        else:
+                            circ.x(register[level])
+                    if len(all_control_qubits) > 0:
+                        mcry(circ, theta, all_control_qubits, register[level], None, mode="noancilla")
+                    else:
+                        circ.ry(theta, register[level])
                 # For more than three qubits, ancilla are needed
                 else:
                     if mct_flag:
-                        mct(circ, control_register_qubits + register[:level], register[level], ancilla_register)
-                    mcry(circ, theta, control_register_qubits + register[:level], register[level], ancilla_register)
+                        if len(all_control_qubits) > 0:
+                            mct(circ, all_control_qubits, register[level], ancilla_register)
+                        else:
+                            circ.x(register[level])
+                    if len(all_control_qubits) > 0:
+                        mcry(circ, theta, all_control_qubits, register[level], ancilla_register)
+                    else:
+                        circ.ry(theta, register[level])
 
                 # Do X gates for anti-controls
-                for (ii, bit) in enumerate(bitstring):
-                    if bit == "0":
-                        if control_register_qubits:
-                            mct(circ, control_register_qubits, register[ii], None)
-                        else:
-                            circ.x(register[ii])
+                if level > 0:
+                    for (ii, bit) in enumerate(bitstring):
+                        if bit == "0":
+                            if control_register_qubits:
+                                mct(circ, control_register_qubits, register[ii], None)
+                            else:
+                                circ.x(register[ii])
 
         # Do the final pattern of X gates on the control qubits to get controls & anti-controls correct
         if control_register_qubits:
@@ -1721,7 +1706,7 @@ if __name__ == "__main__":
         print("...All tests for BinaryTree.state_preparation with control passed!")
 
     # Input vector
-    vec = np.array([-1, 1], dtype=np.float64)
+    vec = np.array([0, 1], dtype=np.float64)
 
     # Make a binary tree from the vector
     tree = BinaryTree(vec)
@@ -1733,7 +1718,7 @@ if __name__ == "__main__":
     control_register = QuantumRegister(2)
 
     # Get the state preparation circuit
-    circ = tree.preparation_circuit(register, control_register=control_register, control_key=3)
+    circ = tree.preparation_circuit(register, control_register=control_register, control_key=1)
 
     # Swap the qubits for standard ordering to compare with input vector
     # circ.swap(register[0], register[1])
@@ -1741,7 +1726,6 @@ if __name__ == "__main__":
     # Get the final state of the circuit
     state = np.real(final_state(circ))
 
-    print(circ)
     print(state[:len(vec)])
 
     # assert np.allclose(state[:len(vec)], vec / np.linalg.norm(vec, ord=2))
