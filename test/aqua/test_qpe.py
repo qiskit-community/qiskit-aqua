@@ -60,11 +60,11 @@ class TestQPE(QiskitAquaTestCase):
     """QPE tests."""
 
     @parameterized.expand([
-        [qubit_op_simple, 'qasm_simulator'],
-        [qubit_op_zz, 'statevector_simulator'],
-        [qubit_op_h2_with_2_qubit_reduction, 'statevector_simulator'],
+        [qubit_op_simple, 'qasm_simulator', 1, 5],
+        [qubit_op_zz, 'statevector_simulator', 1, 1],
+        [qubit_op_h2_with_2_qubit_reduction, 'statevector_simulator', 1, 6],
     ])
-    def test_qpe(self, qubit_op, simulator):
+    def test_qpe(self, qubit_op, simulator, num_time_slices, n_ancillae):
         self.algorithm = 'QPE'
         self.log.debug('Testing QPE')
 
@@ -77,9 +77,6 @@ class TestQPE(QiskitAquaTestCase):
         self.ref_eigenvec = results['eigvecs'][0]
         self.log.debug('The exact eigenvalue is:       {}'.format(self.ref_eigenval))
         self.log.debug('The corresponding eigenvector: {}'.format(self.ref_eigenvec))
-
-        num_time_slices = 1
-        n_ancillae = 6
 
         state_in = Custom(self.qubit_op.num_qubits, state_vector=self.ref_eigenvec)
         iqft = Standard(n_ancillae)
@@ -110,7 +107,7 @@ class TestQPE(QiskitAquaTestCase):
             fractional_part_only=True
         )))
 
-        self.assertAlmostEqual(result['energy'], self.ref_eigenval.real, places=2)
+        np.testing.assert_approx_equal(result['energy'], self.ref_eigenval.real, significant=2)
 
 
 if __name__ == '__main__':

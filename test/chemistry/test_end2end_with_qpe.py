@@ -70,7 +70,7 @@ class TestEnd2EndWithQPE(QiskitChemistryTestCase):
             (2 if two_qubit_reduction else 0)
 
         num_time_slices = 1
-        n_ancillae = 9
+        n_ancillae = 6
 
         state_in = HartreeFock(self.qubit_op.num_qubits, num_orbitals,
                                num_particles, qubit_mapping, two_qubit_reduction)
@@ -96,8 +96,7 @@ class TestEnd2EndWithQPE(QiskitChemistryTestCase):
                                                                                max_num_digits=n_ancillae + 3,
                                                                                fractional_part_only=True)))
 
-        np.testing.assert_approx_equal(
-            result['energy'], self.reference_energy, significant=2)
+        np.testing.assert_approx_equal(result['energy'], self.reference_energy, significant=2)
 
 
 if __name__ == '__main__':

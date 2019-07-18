@@ -61,7 +61,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         self.ref_eigenval = -1.85727503
 
         num_time_slices = 1
-        num_iterations = 11
+        num_iterations = 6
 
         state_in = VarFormBased(var_form, result['opt_params'])
         iqpe = IQPE(self.algo_input.qubit_op, state_in, num_time_slices, num_iterations,
