@@ -8,13 +8,14 @@ import pickle
 
 from qiskit import BasicAer
 from test.aqua.common import QiskitAquaTestCase
-from qiskit.aqua import Operator, QuantumInstance, QiskitAqua
+from qiskit.aqua import QuantumInstance, QiskitAqua
 from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.components.variational_forms import RY, RYRZ
 from qiskit.aqua.components.optimizers import L_BFGS_B
 from qiskit.aqua.components.initial_states import Zero
 from qiskit.aqua.algorithms.adaptive import VQE
 from qiskit.aqua.utils import CircuitCache
+from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.qobj import Qobj
 
 
@@ -31,7 +32,7 @@ class TestCaching(QiskitAquaTestCase):
                        {"coeff": {"imag": 0.0, "real": 0.18093119978423156}, "label": "XX"}
                        ]
         }
-        qubit_op = Operator.load_from_dict(pauli_dict)
+        qubit_op = WeightedPauliOperator.from_dict(pauli_dict)
         self.algo_input = EnergyInput(qubit_op)
 
         # TODO: only work with optimization_level 0 now
@@ -41,8 +42,7 @@ class TestCaching(QiskitAquaTestCase):
         res = {}
         for backend in backends:
             params_no_caching = {
-                'algorithm': {'name': 'VQE',
-                              'operator_mode': 'matrix' if backend == 'statevector_simulator' else 'paulis'},
+                'algorithm': {'name': 'VQE'},
                 'problem': {'name': 'energy',
                             'random_seed': 50,
                             'circuit_caching': False,
@@ -69,7 +69,7 @@ class TestCaching(QiskitAquaTestCase):
         self._build_refrence_result(backends=[backend])
         skip_validation = True
         params_caching = {
-            'algorithm': {'name': 'VQE', 'operator_mode': 'matrix' if backend == 'statevector_simulator' else 'paulis'},
+            'algorithm': {'name': 'VQE'},
             'problem': {'name': 'energy',
                         'random_seed': 50,
                         'circuit_optimization_level': self.optimization_level,

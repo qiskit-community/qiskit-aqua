@@ -15,13 +15,13 @@
 import unittest
 
 import numpy as np
-from qiskit.transpiler import PassManager
+from qiskit import BasicAer
 
 from test.aqua.common import QiskitAquaTestCase
-from qiskit import BasicAer
-from qiskit.aqua import Operator, QuantumInstance
+from qiskit.aqua import QuantumInstance
 from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.utils import decimal_to_binary
+from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.aqua.components.initial_states import VarFormBased
 from qiskit.aqua.components.variational_forms import RYRZ
 from qiskit.aqua.components.optimizers import SPSA
@@ -43,7 +43,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
                        {"coeff": {"imag": 0.0, "real": 0.18093119978423156}, "label": "XX"}
                        ]
         }
-        qubit_op = Operator.load_from_dict(pauli_dict)
+        qubit_op = WeightedPauliOperator.from_dict(pauli_dict)
         self.algo_input = EnergyInput(qubit_op)
 
     def test_vqe_2_iqpe(self):
@@ -52,7 +52,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         var_form = RYRZ(num_qbits, 3)
         optimizer = SPSA(max_trials=10)
         # optimizer.set_options(**{'max_trials': 500})
-        algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'paulis')
+        algo = VQE(self.algo_input.qubit_op, var_form, optimizer)
         quantum_instance = QuantumInstance(backend)
         result = algo.run(quantum_instance)
 
@@ -60,14 +60,14 @@ class TestVQE2IQPE(QiskitAquaTestCase):
 
         self.ref_eigenval = -1.85727503
 
-        num_time_slices = 50
+        num_time_slices = 1
         num_iterations = 11
 
         state_in = VarFormBased(var_form, result['opt_params'])
         iqpe = IQPE(self.algo_input.qubit_op, state_in, num_time_slices, num_iterations,
                     expansion_mode='suzuki', expansion_order=2, shallow_circuit_concat=True)
         quantum_instance = QuantumInstance(
-            backend, shots=100, pass_manager=PassManager(), seed_transpiler=self.random_seed
+            backend, shots=100, seed_transpiler=self.random_seed
         )
         result = iqpe.run(quantum_instance)
 

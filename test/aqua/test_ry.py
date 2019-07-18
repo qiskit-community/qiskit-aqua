@@ -19,8 +19,9 @@ from parameterized import parameterized
 
 from test.aqua.common import QiskitAquaTestCase
 from qiskit import BasicAer
-from qiskit.aqua import Operator, run_algorithm
+from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import EnergyInput
+from qiskit.aqua.operators import WeightedPauliOperator
 
 
 class TestRYCRX(QiskitAquaTestCase):
@@ -36,7 +37,7 @@ class TestRYCRX(QiskitAquaTestCase):
                        {"coeff": {"imag": 0.0, "real": 0.18093119978423156}, "label": "XX"}
                        ]
         }
-        qubit_op = Operator.load_from_dict(pauli_dict)
+        qubit_op = WeightedPauliOperator.from_dict(pauli_dict)
         self.algo_input = EnergyInput(qubit_op)
 
     @parameterized.expand([

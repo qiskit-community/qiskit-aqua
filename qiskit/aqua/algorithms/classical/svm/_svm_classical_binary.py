@@ -142,7 +142,7 @@ class _SVM_Classical_Binary(_SVM_Classical_ABC):
         return self._ret
 
     def load_model(self, file_path):
-        model_npz = np.load(file_path)
+        model_npz = np.load(file_path, allow_pickle=True)
         model = {'alphas': model_npz['alphas'],
                  'bias': model_npz['bias'],
                  'support_vectors': model_npz['support_vectors'],
