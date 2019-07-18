@@ -73,9 +73,10 @@ coverage.xml
 *,cover
 .hypothesis/
 .pytest_cache/
-test/*.log
-test/*.pdf
-test/*.prof
+test/**/*.log
+test/**/*.pdf
+test/**/*.prof
+test/**/*.npz
 
 # Translations
 *.mo
