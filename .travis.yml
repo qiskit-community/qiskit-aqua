@@ -33,11 +33,11 @@ matrix:
   - name: "Test Aqua 1"
     env: TEST_DIR=aqua TEST_PARAMS="-end 26"
   - name: "Test Aqua 2"
-    env: TEST_DIR=aqua TEST_PARAMS="-start 26 -end 40"
+    env: TEST_DIR=aqua TEST_PARAMS="-start 26 -end 38"
   - name: "Test Aqua 3"
-    env: TEST_DIR=aqua TEST_PARAMS="-start 40 -end 51"
+    env: TEST_DIR=aqua TEST_PARAMS="-start 38 -end 49"
   - name: "Test Aqua 4"
-    env: TEST_DIR=aqua TEST_PARAMS="-start 51"
+    env: TEST_DIR=aqua TEST_PARAMS="-start 49"
         
 before_install:
   - |
