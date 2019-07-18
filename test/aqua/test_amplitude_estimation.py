@@ -15,13 +15,10 @@
 import unittest
 
 import numpy as np
-
-from test.aqua.common import QiskitAquaTestCase
-
 from parameterized import parameterized
-
 from qiskit import QuantumRegister, QuantumCircuit, BasicAer, execute
 
+from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.components.uncertainty_models import LogNormalDistribution, MultivariateNormalDistribution
 from qiskit.aqua.components.uncertainty_models import GaussianConditionalIndependenceModel as GCI

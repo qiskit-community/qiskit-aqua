@@ -14,10 +14,12 @@
 
 import numpy as np
 from qiskit import QuantumRegister
-from qiskit.aqua import Operator, AquaError
+
+from qiskit.aqua import AquaError
 from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.components.eigs import Eigenvalues
 from qiskit.aqua.circuits import PhaseEstimationCircuit
+from qiskit.aqua.operators import MatrixOperator
 
 
 class EigsQPE(Eigenvalues):
@@ -146,7 +148,8 @@ class EigsQPE(Eigenvalues):
             num_ancillae += 1
             args['num_ancillae'] = num_ancillae
 
-        args['operator'] = Operator(matrix=matrix)
+        # TODO: do we need a matrix of a pauli?
+        args['operator'] = MatrixOperator(matrix=matrix).to_weighted_pauli_operator()
 
         # Set up iqft, we need to add num qubits to params which is our num_ancillae bits here
         iqft_params = params.get(Pluggable.SECTION_KEY_IQFT)
@@ -176,8 +179,6 @@ class EigsQPE(Eigenvalues):
 
     def _init_constants(self):
         # estimate evolution time
-        self._operator._check_representation('paulis')
-        # paulis = self._operator.paulis
         if self._evo_time is None:
             lmax = sum([abs(p[0]) for p in self._operator.paulis])
             if not self._negative_evals:

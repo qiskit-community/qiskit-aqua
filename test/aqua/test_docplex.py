@@ -19,108 +19,111 @@ import numpy as np
 from docplex.mp.model import Model
 from qiskit.quantum_info import Pauli
 
-from qiskit.aqua import Operator, AquaError
+from test.aqua.common import QiskitAquaTestCase
+from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms import ExactEigensolver
 from qiskit.aqua.translators.ising import tsp, docplex
-from test.aqua.common import QiskitAquaTestCase
+from qiskit.aqua.operators import WeightedPauliOperator
 
 # Reference operators and offsets for maxcut and tsp.
-qubitOp_maxcut = Operator(paulis=[[0.5, Pauli(z=[True, True, False, False], x=[False, False, False, False])],
-                                  [0.5, Pauli(z=[True, False, True, False], x=[False, False, False, False])],
-                                  [0.5, Pauli(z=[False, True, True, False], x=[False, False, False, False])],
-                                  [0.5, Pauli(z=[True, False, False, True], x=[False, False, False, False])],
-                                  [0.5, Pauli(z=[False, False, True, True], x=[False, False, False, False])]])
+qubit_op_maxcut = WeightedPauliOperator(
+    paulis=[[0.5, Pauli(z=[True, True, False, False], x=[False, False, False, False])],
+            [0.5, Pauli(z=[True, False, True, False], x=[False, False, False, False])],
+            [0.5, Pauli(z=[False, True, True, False], x=[False, False, False, False])],
+            [0.5, Pauli(z=[True, False, False, True], x=[False, False, False, False])],
+            [0.5, Pauli(z=[False, False, True, True], x=[False, False, False, False])]])
 offset_maxcut = -2.5
-qubitOp_tsp = Operator(paulis=[[-100057.0, Pauli(z=[True, False, False, False, False, False, False, False, False],
-                                                 x=[False, False, False, False, False, False, False, False, False])],
-                               [-100071.0, Pauli(z=[False, False, False, False, True, False, False, False, False],
-                                                 x=[False, False, False, False, False, False, False, False, False])],
-                               [14.5, Pauli(z=[True, False, False, False, True, False, False, False, False],
-                                            x=[False, False, False, False, False, False, False, False, False])],
-                               [-100057.0, Pauli(z=[False, True, False, False, False, False, False, False, False],
-                                                 x=[False, False, False, False, False, False, False, False, False])],
-                               [-100071.0, Pauli(z=[False, False, False, False, False, True, False, False, False],
-                                                 x=[False, False, False, False, False, False, False, False, False])],
-                               [14.5, Pauli(z=[False, True, False, False, False, True, False, False, False],
-                                            x=[False, False, False, False, False, False, False, False, False])],
-                               [-100057.0, Pauli(z=[False, False, True, False, False, False, False, False, False],
-                                                 x=[False, False, False, False, False, False, False, False, False])],
-                               [-100071.0, Pauli(z=[False, False, False, True, False, False, False, False, False],
-                                                 x=[False, False, False, False, False, False, False, False, False])],
-                               [14.5, Pauli(z=[False, False, True, True, False, False, False, False, False],
-                                            x=[False, False, False, False, False, False, False, False, False])],
-                               [-100070.0, Pauli(z=[False, False, False, False, False, False, False, True, False],
-                                                 x=[False, False, False, False, False, False, False, False, False])],
-                               [14.0, Pauli(z=[True, False, False, False, False, False, False, True, False],
-                                            x=[False, False, False, False, False, False, False, False, False])],
-                               [-100070.0, Pauli(z=[False, False, False, False, False, False, False, False, True],
-                                                 x=[False, False, False, False, False, False, False, False, False])],
-                               [14.0, Pauli(z=[False, True, False, False, False, False, False, False, True],
-                                            x=[False, False, False, False, False, False, False, False, False])],
-                               [-100070.0, Pauli(z=[False, False, False, False, False, False, True, False, False],
-                                                 x=[False, False, False, False, False, False, False, False, False])],
-                               [14.0, Pauli(z=[False, False, True, False, False, False, True, False, False],
-                                            x=[False, False, False, False, False, False, False, False, False])],
-                               [14.5, Pauli(z=[False, True, False, True, False, False, False, False, False],
-                                            x=[False, False, False, False, False, False, False, False, False])],
-                               [14.5, Pauli(z=[False, False, True, False, True, False, False, False, False],
-                                            x=[False, False, False, False, False, False, False, False, False])],
-                               [14.5, Pauli(z=[True, False, False, False, False, True, False, False, False],
-                                            x=[False, False, False, False, False, False, False, False, False])],
-                               [21.0, Pauli(z=[False, False, False, True, False, False, False, True, False],
-                                            x=[False, False, False, False, False, False, False, False, False])],
-                               [21.0, Pauli(z=[False, False, False, False, True, False, False, False, True],
-                                            x=[False, False, False, False, False, False, False, False, False])],
-                               [21.0, Pauli(z=[False, False, False, False, False, True, True, False, False],
-                                            x=[False, False, False, False, False, False, False, False, False])],
-                               [14.0, Pauli(z=[False, True, False, False, False, False, True, False, False],
-                                            x=[False, False, False, False, False, False, False, False, False])],
-                               [14.0, Pauli(z=[False, False, True, False, False, False, False, True, False],
-                                            x=[False, False, False, False, False, False, False, False, False])],
-                               [14.0, Pauli(z=[True, False, False, False, False, False, False, False, True],
-                                            x=[False, False, False, False, False, False, False, False, False])],
-                               [21.0, Pauli(z=[False, False, False, False, True, False, True, False, False],
-                                            x=[False, False, False, False, False, False, False, False, False])],
-                               [21.0, Pauli(z=[False, False, False, False, False, True, False, True, False],
-                                            x=[False, False, False, False, False, False, False, False, False])],
-                               [21.0, Pauli(z=[False, False, False, True, False, False, False, False, True],
-                                            x=[False, False, False, False, False, False, False, False, False])],
-                               [50000.0, Pauli(z=[True, False, False, True, False, False, False, False, False],
-                                               x=[False, False, False, False, False, False, False, False, False])],
-                               [50000.0, Pauli(z=[True, False, False, False, False, False, True, False, False],
-                                               x=[False, False, False, False, False, False, False, False, False])],
-                               [50000.0, Pauli(z=[False, False, False, True, False, False, True, False, False],
-                                               x=[False, False, False, False, False, False, False, False, False])],
-                               [50000.0, Pauli(z=[False, True, False, False, True, False, False, False, False],
-                                               x=[False, False, False, False, False, False, False, False, False])],
-                               [50000.0, Pauli(z=[False, True, False, False, False, False, False, True, False],
-                                               x=[False, False, False, False, False, False, False, False, False])],
-                               [50000.0, Pauli(z=[False, False, False, False, True, False, False, True, False],
-                                               x=[False, False, False, False, False, False, False, False, False])],
-                               [50000.0, Pauli(z=[False, False, True, False, False, True, False, False, False],
-                                               x=[False, False, False, False, False, False, False, False, False])],
-                               [50000.0, Pauli(z=[False, False, True, False, False, False, False, False, True],
-                                               x=[False, False, False, False, False, False, False, False, False])],
-                               [50000.0, Pauli(z=[False, False, False, False, False, True, False, False, True],
-                                               x=[False, False, False, False, False, False, False, False, False])],
-                               [50000.0, Pauli(z=[True, True, False, False, False, False, False, False, False],
-                                               x=[False, False, False, False, False, False, False, False, False])],
-                               [50000.0, Pauli(z=[True, False, True, False, False, False, False, False, False],
-                                               x=[False, False, False, False, False, False, False, False, False])],
-                               [50000.0, Pauli(z=[False, True, True, False, False, False, False, False, False],
-                                               x=[False, False, False, False, False, False, False, False, False])],
-                               [50000.0, Pauli(z=[False, False, False, True, True, False, False, False, False],
-                                               x=[False, False, False, False, False, False, False, False, False])],
-                               [50000.0, Pauli(z=[False, False, False, True, False, True, False, False, False],
-                                               x=[False, False, False, False, False, False, False, False, False])],
-                               [50000.0, Pauli(z=[False, False, False, False, True, True, False, False, False],
-                                               x=[False, False, False, False, False, False, False, False, False])],
-                               [50000.0, Pauli(z=[False, False, False, False, False, False, True, True, False],
-                                               x=[False, False, False, False, False, False, False, False, False])],
-                               [50000.0, Pauli(z=[False, False, False, False, False, False, True, False, True],
-                                               x=[False, False, False, False, False, False, False, False, False])],
-                               [50000.0, Pauli(z=[False, False, False, False, False, False, False, True, True],
-                                               x=[False, False, False, False, False, False, False, False, False])]])
+qubit_op_tsp = WeightedPauliOperator(
+    paulis=[[-100057.0, Pauli(z=[True, False, False, False, False, False, False, False, False],
+                              x=[False, False, False, False, False, False, False, False, False])],
+            [-100071.0, Pauli(z=[False, False, False, False, True, False, False, False, False],
+                              x=[False, False, False, False, False, False, False, False, False])],
+            [14.5, Pauli(z=[True, False, False, False, True, False, False, False, False],
+                         x=[False, False, False, False, False, False, False, False, False])],
+            [-100057.0, Pauli(z=[False, True, False, False, False, False, False, False, False],
+                              x=[False, False, False, False, False, False, False, False, False])],
+            [-100071.0, Pauli(z=[False, False, False, False, False, True, False, False, False],
+                              x=[False, False, False, False, False, False, False, False, False])],
+            [14.5, Pauli(z=[False, True, False, False, False, True, False, False, False],
+                         x=[False, False, False, False, False, False, False, False, False])],
+            [-100057.0, Pauli(z=[False, False, True, False, False, False, False, False, False],
+                              x=[False, False, False, False, False, False, False, False, False])],
+            [-100071.0, Pauli(z=[False, False, False, True, False, False, False, False, False],
+                              x=[False, False, False, False, False, False, False, False, False])],
+            [14.5, Pauli(z=[False, False, True, True, False, False, False, False, False],
+                         x=[False, False, False, False, False, False, False, False, False])],
+            [-100070.0, Pauli(z=[False, False, False, False, False, False, False, True, False],
+                              x=[False, False, False, False, False, False, False, False, False])],
+            [14.0, Pauli(z=[True, False, False, False, False, False, False, True, False],
+                         x=[False, False, False, False, False, False, False, False, False])],
+            [-100070.0, Pauli(z=[False, False, False, False, False, False, False, False, True],
+                              x=[False, False, False, False, False, False, False, False, False])],
+            [14.0, Pauli(z=[False, True, False, False, False, False, False, False, True],
+                         x=[False, False, False, False, False, False, False, False, False])],
+            [-100070.0, Pauli(z=[False, False, False, False, False, False, True, False, False],
+                              x=[False, False, False, False, False, False, False, False, False])],
+            [14.0, Pauli(z=[False, False, True, False, False, False, True, False, False],
+                         x=[False, False, False, False, False, False, False, False, False])],
+            [14.5, Pauli(z=[False, True, False, True, False, False, False, False, False],
+                         x=[False, False, False, False, False, False, False, False, False])],
+            [14.5, Pauli(z=[False, False, True, False, True, False, False, False, False],
+                         x=[False, False, False, False, False, False, False, False, False])],
+            [14.5, Pauli(z=[True, False, False, False, False, True, False, False, False],
+                         x=[False, False, False, False, False, False, False, False, False])],
+            [21.0, Pauli(z=[False, False, False, True, False, False, False, True, False],
+                         x=[False, False, False, False, False, False, False, False, False])],
+            [21.0, Pauli(z=[False, False, False, False, True, False, False, False, True],
+                         x=[False, False, False, False, False, False, False, False, False])],
+            [21.0, Pauli(z=[False, False, False, False, False, True, True, False, False],
+                         x=[False, False, False, False, False, False, False, False, False])],
+            [14.0, Pauli(z=[False, True, False, False, False, False, True, False, False],
+                         x=[False, False, False, False, False, False, False, False, False])],
+            [14.0, Pauli(z=[False, False, True, False, False, False, False, True, False],
+                         x=[False, False, False, False, False, False, False, False, False])],
+            [14.0, Pauli(z=[True, False, False, False, False, False, False, False, True],
+                         x=[False, False, False, False, False, False, False, False, False])],
+            [21.0, Pauli(z=[False, False, False, False, True, False, True, False, False],
+                         x=[False, False, False, False, False, False, False, False, False])],
+            [21.0, Pauli(z=[False, False, False, False, False, True, False, True, False],
+                         x=[False, False, False, False, False, False, False, False, False])],
+            [21.0, Pauli(z=[False, False, False, True, False, False, False, False, True],
+                         x=[False, False, False, False, False, False, False, False, False])],
+            [50000.0, Pauli(z=[True, False, False, True, False, False, False, False, False],
+                            x=[False, False, False, False, False, False, False, False, False])],
+            [50000.0, Pauli(z=[True, False, False, False, False, False, True, False, False],
+                            x=[False, False, False, False, False, False, False, False, False])],
+            [50000.0, Pauli(z=[False, False, False, True, False, False, True, False, False],
+                            x=[False, False, False, False, False, False, False, False, False])],
+            [50000.0, Pauli(z=[False, True, False, False, True, False, False, False, False],
+                            x=[False, False, False, False, False, False, False, False, False])],
+            [50000.0, Pauli(z=[False, True, False, False, False, False, False, True, False],
+                            x=[False, False, False, False, False, False, False, False, False])],
+            [50000.0, Pauli(z=[False, False, False, False, True, False, False, True, False],
+                            x=[False, False, False, False, False, False, False, False, False])],
+            [50000.0, Pauli(z=[False, False, True, False, False, True, False, False, False],
+                            x=[False, False, False, False, False, False, False, False, False])],
+            [50000.0, Pauli(z=[False, False, True, False, False, False, False, False, True],
+                            x=[False, False, False, False, False, False, False, False, False])],
+            [50000.0, Pauli(z=[False, False, False, False, False, True, False, False, True],
+                            x=[False, False, False, False, False, False, False, False, False])],
+            [50000.0, Pauli(z=[True, True, False, False, False, False, False, False, False],
+                            x=[False, False, False, False, False, False, False, False, False])],
+            [50000.0, Pauli(z=[True, False, True, False, False, False, False, False, False],
+                            x=[False, False, False, False, False, False, False, False, False])],
+            [50000.0, Pauli(z=[False, True, True, False, False, False, False, False, False],
+                            x=[False, False, False, False, False, False, False, False, False])],
+            [50000.0, Pauli(z=[False, False, False, True, True, False, False, False, False],
+                            x=[False, False, False, False, False, False, False, False, False])],
+            [50000.0, Pauli(z=[False, False, False, True, False, True, False, False, False],
+                            x=[False, False, False, False, False, False, False, False, False])],
+            [50000.0, Pauli(z=[False, False, False, False, True, True, False, False, False],
+                            x=[False, False, False, False, False, False, False, False, False])],
+            [50000.0, Pauli(z=[False, False, False, False, False, False, True, True, False],
+                            x=[False, False, False, False, False, False, False, False, False])],
+            [50000.0, Pauli(z=[False, False, False, False, False, False, True, False, True],
+                            x=[False, False, False, False, False, False, False, False, False])],
+            [50000.0, Pauli(z=[False, False, False, False, False, False, False, True, True],
+                            x=[False, False, False, False, False, False, False, False, False])]])
 offset_tsp = 600297.0
 
 
@@ -219,12 +222,12 @@ class TestDocplex(QiskitAquaTestCase):
         mdl.node_vars = mdl.binary_var_list(list(range(4)), name='node')
         maxcut_func = mdl.sum(w[i, j] * mdl.node_vars[i] * (1 - mdl.node_vars[j]) for i in range(n) for j in range(n))
         mdl.maximize(maxcut_func)
-        qubitOp, offset = docplex.get_qubitops(mdl)
+        qubit_op, offset = docplex.get_qubitops(mdl)
 
-        ee = ExactEigensolver(qubitOp, k=1)
+        ee = ExactEigensolver(qubit_op, k=1)
         result = ee.run()
 
-        ee_expected = ExactEigensolver(qubitOp_maxcut, k=1)
+        ee_expected = ExactEigensolver(qubit_op_maxcut, k=1)
         expected_result = ee_expected.run()
 
         # Compare objective
@@ -249,12 +252,12 @@ class TestDocplex(QiskitAquaTestCase):
             mdl.add_constraint(mdl.sum(x[(i, p)] for p in range(num_node)) == 1)
         for p in range(num_node):
             mdl.add_constraint(mdl.sum(x[(i, p)] for i in range(num_node)) == 1)
-        qubitOp, offset = docplex.get_qubitops(mdl)
+        qubit_op, offset = docplex.get_qubitops(mdl)
 
-        ee = ExactEigensolver(qubitOp, k=1)
+        ee = ExactEigensolver(qubit_op, k=1)
         result = ee.run()
 
-        ee_expected = ExactEigensolver(qubitOp_tsp, k=1)
+        ee_expected = ExactEigensolver(qubit_op_tsp, k=1)
         expected_result = ee_expected.run()
 
         # Compare objective
@@ -267,9 +270,9 @@ class TestDocplex(QiskitAquaTestCase):
         max_vars_func = mdl.sum(x[i] for i in range(1, 5))
         mdl.maximize(max_vars_func)
         mdl.add_constraint(mdl.sum(i * x[i] for i in range(1, 5)) == 3)
-        qubitOp, offset = docplex.get_qubitops(mdl)
+        qubit_op, offset = docplex.get_qubitops(mdl)
 
-        ee = ExactEigensolver(qubitOp, k=1)
+        ee = ExactEigensolver(qubit_op, k=1)
         result = ee.run()
 
         expected_result = -2
@@ -293,9 +296,9 @@ class TestDocplex(QiskitAquaTestCase):
         bias_func = mdl.sum(float(bias[i]) * x[i] for i in range(n))
         ising_func = couplers_func + bias_func
         mdl.minimize(ising_func)
-        qubitOp, offset = docplex.get_qubitops(mdl)
+        qubit_op, offset = docplex.get_qubitops(mdl)
 
-        ee = ExactEigensolver(qubitOp, k=1)
+        ee = ExactEigensolver(qubit_op, k=1)
         result = ee.run()
 
         expected_result = -22
