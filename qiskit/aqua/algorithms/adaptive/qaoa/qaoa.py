@@ -136,6 +136,6 @@ class QAOA(VQE):
         optimizer = get_pluggable_class(PluggableType.OPTIMIZER,
                                         opt_params['name']).init_params(params)
 
-        return cls(operator, optimizer, p=p, initial_state=init_state, operator_mode=operator_mode,
+        return cls(operator, optimizer, p=p, initial_state=init_state,
                    initial_point=initial_point, max_evals_grouped=max_evals_grouped,
                    aux_operators=algo_input.aux_ops)

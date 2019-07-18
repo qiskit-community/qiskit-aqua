@@ -109,5 +109,6 @@ class TestIQPE(QiskitAquaTestCase):
 
         self.assertAlmostEqual(result['energy'], self.ref_eigenval.real, places=2)
 
+
 if __name__ == '__main__':
     unittest.main()

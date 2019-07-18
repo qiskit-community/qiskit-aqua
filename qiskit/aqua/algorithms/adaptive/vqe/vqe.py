@@ -193,7 +193,7 @@ class VQE(VQAlgorithm):
 
     def _config_the_best_mode(self, operator, backend):
         ret_op = operator
-        if not is_statevector_backend(backend): #  assume qasm, should use grouped paulis.
+        if not is_statevector_backend(backend):  # assume qasm, should use grouped paulis.
             if isinstance(operator, (WeightedPauliOperator, MatrixOperator, TaperedWeightedPauliOperator)):
                 logger.info("When running with Qasm simulator, grouped pauli can save number of measurements. "
                             "We convert the operator into grouped ones.")

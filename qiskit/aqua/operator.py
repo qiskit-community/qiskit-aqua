@@ -211,6 +211,7 @@ class Operator(object):
         warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
                       "Use the class for each representation instead, including `MatrixOperator`, "
                       "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`", DeprecationWarning)
+
         def chop_real_imag(coeff, threshold):
             temp_real = coeff.real if np.absolute(coeff.real) >= threshold else 0.0
             temp_imag = coeff.imag if np.absolute(coeff.imag) >= threshold else 0.0

@@ -410,8 +410,8 @@ def number_operator(fer_op, mode_number=None):
             num_operator -= edge_operator_bi(edge_list, i)
         num_operator += WeightedPauliOperator(paulis=[[1.0 * modes, Pauli.from_label('I' * num_qubits)]])
     else:
-        num_operator += (WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]]
-                                  ) - edge_operator_bi(edge_list, mode_number))
+        num_operator += (WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
+                         - edge_operator_bi(edge_list, mode_number))
 
     num_operator = 0.5 * num_operator
     return num_operator

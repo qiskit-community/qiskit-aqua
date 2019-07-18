@@ -128,10 +128,9 @@ class ExactEigensolver(QuantumAlgorithm):
     def _eval_aux_operators(self, wavefn, threshold=1e-12):
         values = []
         for operator in self._aux_operators:
-            operator.to_matrix()
             value = 0.0
             if not operator.is_empty():
-                value, _ = operator.eval('matrix', wavefn, None)
+                value, _ = operator.evaluate_with_statevector(wavefn)
                 value = value.real if abs(value.real) > threshold else 0.0
             values.append((value, 0))
         return np.asarray(values)
