@@ -41,8 +41,8 @@ class TestParticleHole(QiskitChemistryTestCase):
         [H2O, 0, 0, 'sto3g', HFMethodType.RHF],
         [OH,  0, 1, 'sto3g', HFMethodType.ROHF],
         [OH,  0, 1, 'sto3g', HFMethodType.UHF],
-        [CH2, 0, 2, 'sto3g', HFMethodType.ROHF],
-        [CH2, 0, 2, 'sto3g', HFMethodType.UHF],
+        # [CH2, 0, 2, 'sto3g', HFMethodType.ROHF],
+        # [CH2, 0, 2, 'sto3g', HFMethodType.UHF],
     ])
     def test_particle_hole(self, atom, charge=0, spin=0, basis='sto3g', hf_method=HFMethodType.RHF):
         try:
