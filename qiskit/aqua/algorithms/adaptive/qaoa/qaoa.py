@@ -78,7 +78,7 @@ class QAOA(VQE):
     }
 
     def __init__(self, operator, optimizer, p=1, initial_state=None, mixer=None, operator_mode=None,
-                 initial_point=None, max_evals_grouped=1, aux_operators=None, callback=None, auto_conversion=False):
+                 initial_point=None, max_evals_grouped=1, aux_operators=None, callback=None, auto_conversion=True):
         """
         Args:
             operator (BaseOperator): Qubit operator
@@ -95,6 +95,11 @@ class QAOA(VQE):
                                  Internally, four arguments are provided as follows
                                  the index of evaluation, parameters of variational form,
                                  evaluated mean, evaluated standard devation.
+            auto_conversion (bool): an automatic conversion for operator and aux_operators into the type which is
+                                    most suitable for the backend.
+                                    - non-aer statevector_simulator: MatrixOperator
+                                    - aer statevector_simulator: WeightedPauliOperator
+                                    - qasm simulator or real backend: TPBGroupedWeightedPauliOperator
 
         """
         if operator_mode is not None:

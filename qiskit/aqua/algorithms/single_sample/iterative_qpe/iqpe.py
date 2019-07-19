@@ -18,14 +18,14 @@ See https://arxiv.org/abs/quant-ph/0610214
 
 import logging
 import numpy as np
-from copy import deepcopy
 
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.quantum_info import Pauli
 
 from qiskit.aqua import AquaError
 from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
-from qiskit.aqua.operators import WeightedPauliOperator, suzuki_expansion_slice_pauli_list, evolution_instruction
+from qiskit.aqua.operators import (WeightedPauliOperator, suzuki_expansion_slice_pauli_list,
+                                   evolution_instruction, op_converter)
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
 
@@ -96,7 +96,7 @@ class IQPE(QuantumAlgorithm):
         Constructor.
 
         Args:
-            operator (WeightedPauliOperator): the hamiltonian Operator object
+            operator (BaseOperator): the hamiltonian Operator object
             state_in (InitialState): the InitialState pluggable component representing the initial quantum state
             num_time_slices (int): the number of time slices
             num_iterations (int): the number of iterations
@@ -106,7 +106,7 @@ class IQPE(QuantumAlgorithm):
         """
         self.validate(locals())
         super().__init__()
-        self._operator = operator.copy()
+        self._operator = op_converter.to_weighted_pauli_operator(operator)
         self._state_in = state_in
         self._num_time_slices = num_time_slices
         self._num_iterations = num_iterations

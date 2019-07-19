@@ -99,8 +99,11 @@ class VQE(VQAlgorithm):
                                  Internally, four arguments are provided as follows
                                  the index of evaluation, parameters of variational form,
                                  evaluated mean, evaluated standard devation.
-            auto_conversion (bool): an automatic conversion for operator and aux_operators into the mode based on
-                                    the backend.
+            auto_conversion (bool): an automatic conversion for operator and aux_operators into the type which is
+                                    most suitable for the backend.
+                                    - non-aer statevector_simulator: MatrixOperator
+                                    - aer statevector_simulator: WeightedPauliOperator
+                                    - qasm simulator or real backend: TPBGroupedWeightedPauliOperator
         """
         if operator_mode is not None:
             warnings.warn("operator_mode option is deprecated and it will be removed after 0.6. "
