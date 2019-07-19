@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 """
 The Variational Quantum Eigensolver algorithm.
 See https://arxiv.org/abs/1304.3061
@@ -25,7 +22,7 @@ import functools
 import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit
 
-from qiskit.aqua.algorithms.adaptive.vqalgorithm import VQAlgorithm
+from qiskit.aqua.algorithms.adaptive.vq_algorithm import VQAlgorithm
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.utils.backend_utils import is_aer_statevector_backend
 from qiskit.aqua.utils import find_regs_by_name
@@ -51,9 +48,7 @@ class VQE(VQAlgorithm):
                 'operator_mode': {
                     'type': 'string',
                     'default': 'matrix',
-                    'oneOf': [
-                        {'enum': ['matrix', 'paulis', 'grouped_paulis']}
-                    ]
+                    'enum': ['matrix', 'paulis', 'grouped_paulis']
                 },
                 'initial_point': {
                     'type': ['array', 'null'],
@@ -62,9 +57,9 @@ class VQE(VQAlgorithm):
                     },
                     'default': None
                 },
-                'batch_mode': {
-                    'type': 'boolean',
-                    'default': False
+                'max_evals_grouped': {
+                    'type': 'integer',
+                    'default': 1
                 }
             },
             'additionalProperties': False
@@ -85,7 +80,7 @@ class VQE(VQAlgorithm):
     }
 
     def __init__(self, operator, var_form, optimizer, operator_mode='matrix',
-                 initial_point=None, batch_mode=False, aux_operators=None, callback=None):
+                 initial_point=None, max_evals_grouped=1, aux_operators=None, callback=None):
         """Constructor.
 
         Args:
@@ -94,7 +89,7 @@ class VQE(VQAlgorithm):
             var_form (VariationalForm): parametrized variational form.
             optimizer (Optimizer): the classical optimization algorithm.
             initial_point (numpy.ndarray): optimizer initial point.
-            batch_mode (bool): evaluate parameter sets in parallel.
+            max_evals_grouped (int): max number of evaluations performed simultaneously
             aux_operators (list of Operator): Auxiliary operators to be evaluated at each eigenvalue
             callback (Callable): a callback that can access the intermediate data during the optimization.
                                  Internally, four arguments are provided as follows
@@ -106,7 +101,7 @@ class VQE(VQAlgorithm):
                          optimizer=optimizer,
                          cost_fn=self._energy_evaluation,
                          initial_point=initial_point)
-        self._optimizer.set_batch_mode(batch_mode)
+        self._optimizer.set_max_evals_grouped(max_evals_grouped)
         self._callback = callback
         if initial_point is None:
             self._initial_point = var_form.preferred_init_points
@@ -139,7 +134,7 @@ class VQE(VQAlgorithm):
         vqe_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
         operator_mode = vqe_params.get('operator_mode')
         initial_point = vqe_params.get('initial_point')
-        batch_mode = vqe_params.get('batch_mode')
+        max_evals_grouped = vqe_params.get('max_evals_grouped')
 
         # Set up variational form, we need to add computed num qubits
         # Pass all parameters so that Variational Form can create its dependents
@@ -154,7 +149,7 @@ class VQE(VQAlgorithm):
                                         opt_params['name']).init_params(params)
 
         return cls(operator, var_form, optimizer, operator_mode=operator_mode,
-                   initial_point=initial_point, batch_mode=batch_mode,
+                   initial_point=initial_point, max_evals_grouped=max_evals_grouped,
                    aux_operators=algo_input.aux_ops)
 
     @property
@@ -212,8 +207,8 @@ class VQE(VQAlgorithm):
             warning_msg += "since operator_mode is '{}', '{}' backend is used.".format(
                 self._operator_mode, temp_backend_name)
             logger.warning(warning_msg)
-        circuit = self._operator.construct_evaluation_circuit(self._operator_mode,
-                                                              input_circuit, backend, use_simulator_operator_mode)
+        circuit = self._operator.construct_evaluation_circuit(self._operator_mode, input_circuit, backend,
+                                                              use_simulator_operator_mode=use_simulator_operator_mode)
         return circuit
 
     def _eval_aux_ops(self, threshold=1e-12, params=None):
@@ -228,7 +223,7 @@ class VQE(VQAlgorithm):
                 temp_circuit = QuantumCircuit() + wavefn_circuit
                 circuit = operator.construct_evaluation_circuit(self._operator_mode, temp_circuit,
                                                                 self._quantum_instance.backend,
-                                                                self._use_simulator_operator_mode)
+                                                                use_simulator_operator_mode=self._use_simulator_operator_mode)
                 params.append(operator.aer_paulis)
             else:
                 circuit = None

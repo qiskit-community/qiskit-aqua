@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
 """Algorithm functions for running etc."""
 
@@ -23,18 +20,18 @@ import logging
 
 from qiskit.providers import BaseBackend
 from qiskit.transpiler import PassManager
+from qiskit.ignis.mitigation.measurement import CompleteMeasFitter
 
-from .algorithms import QuantumAlgorithm
 from .aqua_error import AquaError
 from ._discover import (_discover_on_demand,
                         local_pluggables,
                         PluggableType,
                         get_pluggable_class)
-from .utils.jsonutils import convert_dict_to_json, convert_json_to_dict
-from .utils import CircuitCache
+from .utils.json_utils import convert_dict_to_json, convert_json_to_dict
 from .parser._inputparser import InputParser
 from .parser import JSONSchema
 from .quantum_instance import QuantumInstance
+from .qiskit_aqua_globals import aqua_globals
 from .utils.backend_utils import (get_backend_from_provider,
                                   get_provider_from_backend,
                                   is_statevector_backend)
@@ -179,6 +176,7 @@ class QiskitAqua(object):
 
         # set provider and name in input file for proper backend schema dictionary build
         if backend is not None:
+            self._parser.backend = backend
             self._parser.add_section_properties(JSONSchema.BACKEND,
                                                 {
                                                     JSONSchema.PROVIDER: get_provider_from_backend(backend),
@@ -206,9 +204,10 @@ class QiskitAqua(object):
         algo_params = copy.deepcopy(self._parser.get_sections())
         self._quantum_algorithm = get_pluggable_class(PluggableType.ALGORITHM,
                                                       algo_name).init_params(algo_params, self._algorithm_input)
+        num_processes = self._parser.get_section_property(JSONSchema.PROBLEM, 'num_processes')
+        aqua_globals.num_processes = num_processes if num_processes is not None else aqua_globals.CPU_COUNT
         random_seed = self._parser.get_section_property(JSONSchema.PROBLEM, 'random_seed')
-        self._quantum_algorithm.random_seed = random_seed
-
+        aqua_globals.random_seed = random_seed
         if self._quantum_instance is not None:
             return
 
@@ -266,19 +265,48 @@ class QiskitAqua(object):
                                 if basis_gates != noise_basis_gates:
                                     logger.warning("Basis gates '{}' used instead of noise model basis gates '{}'.".format(basis_gates, noise_basis_gates))
 
-            backend_cfg['seed_mapper'] = random_seed
+            backend_cfg['seed_transpiler'] = random_seed
             pass_manager = PassManager() if backend_cfg.pop('skip_transpiler', False) else None
             if pass_manager is not None:
                 backend_cfg['pass_manager'] = pass_manager
 
+            optimization_level = self._parser.get_section_property(JSONSchema.PROBLEM, 'circuit_optimization_level')
+            if optimization_level == "default":
+                optimization_level = None
+            backend_cfg['optimization_level'] = optimization_level
+
             backend_cfg['backend'] = backend
-            backend_cfg['seed'] = random_seed
-            backend_cfg['skip_qobj_validation'] = self._parser.get_section_property(JSONSchema.PROBLEM, 'skip_qobj_validation')
-            use_caching = self._parser.get_section_property(JSONSchema.PROBLEM, 'circuit_caching')
-            if use_caching:
-                deepcopy_qobj = self._parser.get_section_property(JSONSchema.PROBLEM, 'skip_qobj_deepcopy')
-                cache_file = self._parser.get_section_property(JSONSchema.PROBLEM, 'circuit_cache_file')
-                backend_cfg['circuit_cache'] = CircuitCache(skip_qobj_deepcopy=deepcopy_qobj, cache_file=cache_file)
+            if random_seed is not None:
+                backend_cfg['seed_simulator'] = random_seed
+            skip_qobj_validation = self._parser.get_section_property(JSONSchema.PROBLEM, 'skip_qobj_validation')
+            if skip_qobj_validation is not None:
+                backend_cfg['skip_qobj_validation'] = skip_qobj_validation
+
+            circuit_caching = self._parser.get_section_property(JSONSchema.PROBLEM, 'circuit_caching')
+            if circuit_caching is not None:
+                backend_cfg['circuit_caching'] = circuit_caching
+
+            skip_qobj_deepcopy = self._parser.get_section_property(JSONSchema.PROBLEM, 'skip_qobj_deepcopy')
+            if skip_qobj_deepcopy is not None:
+                backend_cfg['skip_qobj_deepcopy'] = skip_qobj_deepcopy
+
+            cache_file = self._parser.get_section_property(JSONSchema.PROBLEM, 'circuit_cache_file')
+            if cache_file is not None:
+                backend_cfg['cache_file'] = cache_file
+
+            measurement_error_mitigation = self._parser.get_section_property(JSONSchema.PROBLEM,
+                                                                             'measurement_error_mitigation')
+            if measurement_error_mitigation:
+                backend_cfg['measurement_error_mitigation_cls'] = CompleteMeasFitter
+
+            measurement_error_mitigation_shots = self._parser.get_section_property(JSONSchema.PROBLEM,
+                                                                                   'measurement_error_mitigation_shots')
+            if measurement_error_mitigation:
+                backend_cfg['measurement_error_mitigation_shots'] = measurement_error_mitigation_shots
+
+            measurement_error_mitigation_refresh_period = \
+                self._parser.get_section_property(JSONSchema.PROBLEM, 'measurement_error_mitigation_refresh_period')
+            backend_cfg['cals_matrix_refresh_period'] = measurement_error_mitigation_refresh_period
 
             self._quantum_instance = QuantumInstance(**backend_cfg)
 

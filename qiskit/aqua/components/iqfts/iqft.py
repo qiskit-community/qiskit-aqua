@@ -1,25 +1,25 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 """
-This module contains the definition of a base class for inverse quantum
-fourier transforms.
+This module contains the definition of a base class for inverse quantum fourier transforms.
 """
-from qiskit.aqua import Pluggable
+
 from abc import abstractmethod
+
+from qiskit import QuantumRegister, QuantumCircuit
+
+from qiskit.aqua import Pluggable, AquaError
 
 
 class IQFT(Pluggable):
@@ -45,15 +45,28 @@ class IQFT(Pluggable):
         return cls(**kwargs)
 
     @abstractmethod
-    def construct_circuit(self, mode, qubits=None, circuit=None):
-        """Construct the iqft circuit.
+    def _build_matrix(self):
+        raise NotImplementedError
+
+    @abstractmethod
+    def _build_circuit(self, qubits=None, circuit=None, do_swaps=True):
+        raise NotImplementedError
+
+    def construct_circuit(self, mode='circuit', qubits=None, circuit=None, do_swaps=True):
+        """Construct the circuit.
 
         Args:
-            mode (str): 'vector' or 'circuit'
-            qubits (QuantumRegister or qubits): register or qubits to build the iqft circuit on.
+            mode (str): 'matrix' or 'circuit'
+            qubits (QuantumRegister or qubits): register or qubits to build the circuit on.
             circuit (QuantumCircuit): circuit for construction.
+            do_swaps (bool): include the swaps.
 
         Returns:
-            The iqft circuit.
+            The matrix or circuit depending on the specified mode.
         """
-        raise NotImplementedError()
+        if mode == 'circuit':
+            return self._build_circuit(qubits=qubits, circuit=circuit, do_swaps=do_swaps)
+        elif mode == 'matrix':
+            return self._build_matrix()
+        else:
+            raise AquaError('Unrecognized mode: {}.'.format(mode))

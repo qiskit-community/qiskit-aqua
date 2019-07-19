@@ -1,23 +1,21 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
 from qiskit import QuantumRegister, QuantumCircuit
 import numpy as np
 
+from qiskit.aqua import AquaError
 from qiskit.aqua.components.initial_states import InitialState
 
 
@@ -46,22 +44,7 @@ class Zero(InitialState):
         super().__init__()
         self._num_qubits = num_qubits
 
-    def construct_circuit(self, mode, register=None):
-        """
-        Construct the statevector of desired initial state.
-
-        Args:
-            mode (string): `vector` or `circuit`. The `vector` mode produces the vector.
-                            While the `circuit` constructs the quantum circuit corresponding that
-                            vector.
-            register (QuantumRegister): register for circuit construction.
-
-        Returns:
-            QuantumCircuit or numpy.ndarray: statevector.
-
-        Raises:
-            ValueError: when mode is not 'vector' or 'circuit'.
-        """
+    def construct_circuit(self, mode='circuit', register=None):
         if mode == 'vector':
             return np.array([1.0] + [0.0] * (np.power(2, self._num_qubits) - 1))
         elif mode == 'circuit':
@@ -70,4 +53,4 @@ class Zero(InitialState):
             quantum_circuit = QuantumCircuit(register)
             return quantum_circuit
         else:
-            raise ValueError('Mode should be either "vector" or "circuit"')
+            raise AquaError('Mode should be either "vector" or "circuit"')

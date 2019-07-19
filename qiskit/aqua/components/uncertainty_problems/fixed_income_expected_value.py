@@ -1,25 +1,22 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 """
 The Fixed Income Expected Value.
 """
 
 from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
-from qiskit.aqua.utils.circuit_utils import cry
+from qiskit.aqua.circuits.gates import cry
 import numpy as np
 
 
@@ -29,6 +26,60 @@ class FixedIncomeExpectedValue(UncertaintyProblem):
 
     Evaluates a fixed income asset with uncertain interest rates.
     """
+
+    CONFIGURATION = {
+        'name': 'FixedIncomeExpectedValue',
+        'description': 'Fixed Income Expected Value',
+        'input_schema': {
+            '$schema': 'http://json-schema.org/schema#',
+            'id': 'FIEV_schema',
+            'type': 'object',
+            'properties': {
+                'A': {
+                    'type': 'array',
+                    'default': [[1.0, 0.0], [0.0, 1.0]]
+                },
+                'b': {
+                    'type': 'array',
+                    'items': {
+                        'type': 'number'
+                    },
+                    'default': [0.0, 0.0]
+                },
+                'cash_flow': {
+                    'type': 'array',
+                    'items': {
+                        'type': 'number'
+                    },
+                    'default': [1.0, 2.0]
+                },
+                'c_approx': {
+                    'type': 'number',
+                    'default': 0.125
+                },
+                'i_state': {
+                    'type': ['array', 'null'],
+                    'items': {
+                        'type': 'integer'
+                    },
+                    'default': None
+                },
+                'i_objective': {
+                    'type': ['integer', 'null'],
+                    'default': None
+                }
+            },
+            'additionalProperties': False
+        },
+        'depends': [
+            {
+                'pluggable_type': 'multivariate_distribution',
+                'default': {
+                    'name': 'MultivariateNormalDistribution'
+                }
+            },
+        ],
+    }
 
     def __init__(self, uncertainty_model, A, b, cash_flow, c_approx, i_state=None, i_objective=None):
         """
@@ -41,12 +92,17 @@ class FixedIncomeExpectedValue(UncertaintyProblem):
             cash_flow: cash flow time series
             c_approx: approximation scaling factor
         """
+        super().validate(locals())
+
+        if not isinstance(A, np.ndarray):
+            A = np.asarray(A)
 
         if i_state is None:
             i_state = list(range(uncertainty_model.num_target_qubits))
         if i_objective is None:
             i_objective = uncertainty_model.num_target_qubits
 
+        # TODO: remove dictionary and use direct attributes
         self._params = {
             'i_state': i_state,
             'i_objective': i_objective
@@ -118,18 +174,17 @@ class FixedIncomeExpectedValue(UncertaintyProblem):
     def required_ancillas_controlled(self):
         return self.uncertainty_model.required_ancillas_controlled()
 
-    def build(self, qc, q, q_ancillas=None, params=None):
+    def build(self, qc, q, q_ancillas=None):
 
-        if params is None:
-            params = self._params
+        params = self._params
 
         # get qubits
         q_objective = q[params['i_objective']]
 
         # apply uncertainty model
-        self.uncertainty_model.build(qc, q, q_ancillas, params)
+        self.uncertainty_model.build(qc, q, q_ancillas)
 
         # apply approximate payoff function
         qc.ry(2 * self.offset_angle, q_objective)
         for i in params['i_state']:
-            cry(2 * self.slope_angle[i], q[i], q_objective, qc)
+            qc.cry(2 * self.slope_angle[i], q[i], q_objective)

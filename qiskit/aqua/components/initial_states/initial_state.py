@@ -1,26 +1,25 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 """
 This module contains the definition of a base class for
 initial states. An initial state might be used by a variational
 form or in eoh as a trial state to evolve
 """
 
-from qiskit.aqua import Pluggable
+from qiskit.circuit import QuantumRegister
+
+from qiskit.aqua import Pluggable, AquaError
 from abc import abstractmethod
 
 
@@ -47,7 +46,7 @@ class InitialState(Pluggable):
         return cls(**args)
 
     @abstractmethod
-    def construct_circuit(self, mode, register=None):
+    def construct_circuit(self, mode='circuit', register=None):
         """
         Construct the statevector of desired initial state.
 
@@ -55,13 +54,13 @@ class InitialState(Pluggable):
             mode (string): `vector` or `circuit`. The `vector` mode produces the vector.
                             While the `circuit` constructs the quantum circuit corresponding that
                             vector.
-            register (QuantumRegister): register for circuit construction.
+            register (QuantumRegister): qubits for circuit construction.
 
         Returns:
             QuantumCircuit or numpy.ndarray: statevector.
 
         Raises:
-            ValueError: when mode is not 'vector' or 'circuit'.
+            AquaError: when mode is not 'vector' or 'circuit'.
         """
         raise NotImplementedError()
 

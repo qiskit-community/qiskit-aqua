@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
 """ A utility for caching and reparameterizing circuits, rather than compiling from scratch
 with each iteration. Note that if the circuit is transpiled aggressively such that rotation parameters
@@ -39,9 +36,9 @@ import pickle
 import logging
 
 from qiskit import QuantumRegister
-from qiskit.circuit import CompositeGate
-from qiskit.compiler.run_config import RunConfig
-from qiskit.qobj import Qobj, QobjConfig
+from qiskit.circuit import Qubit
+from qiskit.assembler.run_config import RunConfig
+from qiskit.qobj import Qobj, QasmQobjConfig
 
 from qiskit.aqua.aqua_error import AquaError
 
@@ -59,6 +56,7 @@ class CircuitCache:
         self.misses = 0
         self.qobjs = []
         self.mappings = []
+        self.cache_transpiled_circuits = False
         self.try_reusing_qobjs = True
         self.allowed_misses = allowed_misses
         try:
@@ -100,58 +98,66 @@ class CircuitCache:
             # Unroll circuit in case of composite gates
             raw_gates = []
             for gate in input_circuit.data:
-                if isinstance(gate, CompositeGate): raw_gates += gate.instruction_list()
-                else: raw_gates += [gate]
+                raw_gates += [gate]
 
-            for i, uncompiled_gate in enumerate(raw_gates):
-                if not hasattr(uncompiled_gate, 'params') or len(uncompiled_gate.params) < 1: continue
-                if uncompiled_gate.name == 'snapshot': continue
-                regs = [(reg, qubit) for (reg, qubit) in uncompiled_gate.qargs]
-                qubits = [qubit+qreg_indeces[reg.name] for reg, qubit in regs if isinstance(reg, QuantumRegister)]
+            for i, (uncompiled_gate, regs, _) in enumerate(raw_gates):
+                if not hasattr(uncompiled_gate, 'params') or len(uncompiled_gate.params) < 1:
+                    continue
+                if uncompiled_gate.name == 'snapshot':
+                    continue
+                qubits = [bit.index + qreg_indeces[bit.register.name] for bit in regs if isinstance(bit, Qubit)]
                 gate_type = uncompiled_gate.name
                 type_and_qubits = gate_type + qubits.__str__()
                 op_graph[type_and_qubits] = \
                     op_graph.get(type_and_qubits, []) + [i]
             mapping = {}
             for compiled_gate_index, compiled_gate in enumerate(qobj.experiments[circ_num].instructions):
-                if not hasattr(compiled_gate, 'params') or len(compiled_gate.params) < 1: continue
-                if compiled_gate.name == 'snapshot': continue
+                if not hasattr(compiled_gate, 'params') or len(compiled_gate.params) < 1:
+                    continue
+                if compiled_gate.name == 'snapshot':
+                    continue
                 type_and_qubits = compiled_gate.name + compiled_gate.qubits.__str__()
                 if len(op_graph[type_and_qubits]) > 0:
                     uncompiled_gate_index = op_graph[type_and_qubits].pop(0)
-                    uncompiled_gate = raw_gates[uncompiled_gate_index]
-                    regs = [(reg, qubit) for (reg, qubit) in uncompiled_gate.qargs]
-                    qubits = [qubit + qreg_indeces[reg.name] for reg, qubit in regs if isinstance(reg, QuantumRegister)]
+                    (uncompiled_gate, regs, _) = raw_gates[uncompiled_gate_index]
+                    qubits = [bit.index + qreg_indeces[bit.register.name] for bit in regs if isinstance(bit, Qubit)]
                     if (compiled_gate.name == uncompiled_gate.name) and (compiled_gate.qubits.__str__() ==
                                                                          qubits.__str__()):
                         mapping[compiled_gate_index] = uncompiled_gate_index
-                else: raise Exception("Circuit shape does not match qobj, found extra {} instruction in qobj".format(
-                    type_and_qubits))
+                else:
+                    raise AquaError("Circuit shape does not match qobj, found extra {} instruction in qobj".format(type_and_qubits))
             self.mappings[chunk][circ_num] = mapping
             for type_and_qubits, ops in op_graph.items():
                 if len(ops) > 0:
-                    raise Exception("Circuit shape does not match qobj, found extra {} in circuit".format(type_and_qubits))
+                    raise AquaError("Circuit shape does not match qobj, found extra {} in circuit".format(type_and_qubits))
         if self.cache_file is not None and len(self.cache_file) > 0:
-            cache_handler = open(self.cache_file, 'wb')
-            qobj_dicts = [qob.to_dict() for qob in self.qobjs]
-            pickle.dump({'qobjs':qobj_dicts, 'mappings':self.mappings}, cache_handler, protocol=pickle.HIGHEST_PROTOCOL)
-            cache_handler.close()
-            logger.debug("Circuit cache saved to file: {}".format(self.cache_file))
+            with open(self.cache_file, 'wb') as cache_handler:
+                qobj_dicts = [qob.to_dict() for qob in self.qobjs]
+                pickle.dump({'qobjs': qobj_dicts,
+                             'mappings': self.mappings,
+                             'transpile': self.cache_transpiled_circuits},
+                            cache_handler,
+                            protocol=pickle.HIGHEST_PROTOCOL)
+                logger.debug("Circuit cache saved to file: {}".format(self.cache_file))
 
     def try_loading_cache_from_file(self):
         if len(self.qobjs) == 0 and self.cache_file is not None and len(self.cache_file) > 0:
-            cache_handler = open(self.cache_file, "rb")
-            cache = pickle.load(cache_handler, encoding="ASCII")
-            cache_handler.close()
-            self.qobjs = [Qobj.from_dict(qob) for qob in cache['qobjs']]
-            self.mappings = cache['mappings']
-            logger.debug("Circuit cache loaded from file: {}".format(self.cache_file))
+            with open(self.cache_file, "rb") as cache_handler:
+                try:
+                    cache = pickle.load(cache_handler, encoding="ASCII")
+                except EOFError:
+                    logger.debug("No cache found in file: {}".format(self.cache_file))
+                    return
+                self.qobjs = [Qobj.from_dict(qob) for qob in cache['qobjs']]
+                self.mappings = cache['mappings']
+                self.cache_transpiled_circuits = cache['transpile']
+                logger.debug("Circuit cache loaded from file: {}".format(self.cache_file))
 
     # Note that this function overwrites the previous cached qobj for speed
     def load_qobj_from_cache(self, circuits, chunk, run_config=None):
         self.try_loading_cache_from_file()
 
-        if self.try_reusing_qobjs and self.qobjs is not None and len(self.qobjs) <= chunk:
+        if self.try_reusing_qobjs and self.qobjs is not None and len(self.qobjs) > 0 and len(self.qobjs) <= chunk:
             self.mappings.insert(chunk, self.mappings[0])
             self.qobjs.insert(chunk, copy.deepcopy(self.qobjs[0]))
 
@@ -168,33 +174,36 @@ class CircuitCache:
             # Unroll circuit in case of composite gates
             raw_gates = []
             for gate in input_circuit.data:
-                if isinstance(gate, CompositeGate): raw_gates += gate.instruction_list()
-                else: raw_gates += [gate]
+                raw_gates += [gate]
             self.qobjs[chunk].experiments[circ_num].header.name = input_circuit.name
             for gate_num, compiled_gate in enumerate(self.qobjs[chunk].experiments[circ_num].instructions):
-                if not hasattr(compiled_gate, 'params') or len(compiled_gate.params) < 1: continue
-                if compiled_gate.name == 'snapshot': continue
+                if not hasattr(compiled_gate, 'params') or len(compiled_gate.params) < 1:
+                    continue
+                if compiled_gate.name == 'snapshot':
+                    continue
                 cache_index = self.mappings[chunk][circ_num][gate_num]
-                uncompiled_gate = raw_gates[cache_index]
+                (uncompiled_gate, regs, _) = raw_gates[cache_index]
 
                 # Need the 'getattr' wrapper because measure has no 'params' field and breaks this.
                 if not len(getattr(compiled_gate, 'params', [])) == len(getattr(uncompiled_gate, 'params', [])) or \
-                    not compiled_gate.name == uncompiled_gate.name:
+                        not compiled_gate.name == uncompiled_gate.name:
                     raise AquaError('Gate mismatch at gate {0} ({1}, {2} params) of circuit against gate {3} ({4}, '
                                     '{5} params) of cached qobj'.format(cache_index,
-                                                                 uncompiled_gate.name,
-                                                                 len(uncompiled_gate.params),
-                                                                 gate_num,
-                                                                 compiled_gate.name,
-                                                                 len(compiled_gate.params)))
+                                                                        uncompiled_gate.name,
+                                                                        len(uncompiled_gate.params),
+                                                                        gate_num,
+                                                                        compiled_gate.name,
+                                                                        len(compiled_gate.params)))
                 compiled_gate.params = np.array(uncompiled_gate.params, dtype=float).tolist()
         exec_qobj = copy.copy(self.qobjs[chunk])
-        if self.skip_qobj_deepcopy: exec_qobj.experiments = self.qobjs[chunk].experiments[0:len(circuits)]
-        else: exec_qobj.experiments = copy.deepcopy(self.qobjs[chunk].experiments[0:len(circuits)])
+        if self.skip_qobj_deepcopy:
+            exec_qobj.experiments = self.qobjs[chunk].experiments[0:len(circuits)]
+        else:
+            exec_qobj.experiments = copy.deepcopy(self.qobjs[chunk].experiments[0:len(circuits)])
 
         if run_config is None:
             run_config = RunConfig(shots=1024, max_credits=10, memory=False)
-        exec_qobj.config = QobjConfig(**run_config.to_dict())
+        exec_qobj.config = QasmQobjConfig(**run_config.to_dict())
         exec_qobj.config.memory_slots = max(experiment.config.memory_slots for experiment in exec_qobj.experiments)
         exec_qobj.config.n_qubits = max(experiment.config.n_qubits for experiment in exec_qobj.experiments)
         return exec_qobj

@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
 import copy
 import itertools
@@ -29,11 +26,11 @@ from scipy import linalg as scila
 from qiskit import ClassicalRegister, QuantumCircuit
 from qiskit.quantum_info import Pauli
 from qiskit.qasm import pi
-from qiskit.compiler.run_config import RunConfig
+from qiskit.assembler.run_config import RunConfig
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
 
-from qiskit.aqua import AquaError
+from qiskit.aqua import AquaError, aqua_globals
 from qiskit.aqua.utils import PauliGraph, compile_and_run_circuits, find_regs_by_name
 from qiskit.aqua.utils.backend_utils import is_statevector_backend
 
@@ -557,7 +554,8 @@ class Operator(object):
             raise ValueError('Mode should be one of "matrix", "paulis", "grouped_paulis"')
         return ret
 
-    def construct_evaluation_circuit(self, operator_mode, input_circuit, backend, use_simulator_operator_mode=False):
+    def construct_evaluation_circuit(self, operator_mode, input_circuit, backend, qr=None, cr=None,
+                                     use_simulator_operator_mode=False):
         """
         Construct the circuits for evaluation.
 
@@ -565,12 +563,29 @@ class Operator(object):
             operator_mode (str): representation of operator, including paulis, grouped_paulis and matrix
             input_circuit (QuantumCircuit): the quantum circuit.
             backend (BaseBackend): backend selection for quantum machine.
+            qr (QuantumRegister, optional): the quantum register associated with the input_circuit
+            cr (ClassicalRegister, optional): the classical register associated with the input_circuit
             use_simulator_operator_mode (bool): if aer_provider is used, we can do faster
                            evaluation for pauli mode on statevector simualtion
 
         Returns:
             [QuantumCircuit]: the circuits for evaluation.
+
+        Raises:
+            AquaError: Can not find quantum register with `q` as the name and do not provide
+                       quantum register explicitly
+            AquaError: The provided qr is not in the input_circuit
         """
+
+        if qr is None:
+            qr = find_regs_by_name(input_circuit, 'q')
+            if qr is None:
+                raise AquaError("Either providing the quantum register (qr) explicitly"
+                                "or used `q` as the name in the input circuit.")
+        else:
+            if not input_circuit.has_register(qr):
+                raise AquaError("The provided QuantumRegister (qr) is not in the circuit.")
+
         if is_statevector_backend(backend):
             if operator_mode == 'matrix':
                 circuits = [input_circuit]
@@ -580,7 +595,6 @@ class Operator(object):
                     circuits = [input_circuit]
                 else:
                     n_qubits = self.num_qubits
-                    q = find_regs_by_name(input_circuit, 'q')
                     circuits = [input_circuit]
                     for idx, pauli in enumerate(self._paulis):
                         circuit = QuantumCircuit() + input_circuit
@@ -588,11 +602,11 @@ class Operator(object):
                             continue
                         for qubit_idx in range(n_qubits):
                             if not pauli[1].z[qubit_idx] and pauli[1].x[qubit_idx]:
-                                circuit.u3(np.pi, 0.0, np.pi, q[qubit_idx])  # x
+                                circuit.u3(np.pi, 0.0, np.pi, qr[qubit_idx])  # x
                             elif pauli[1].z[qubit_idx] and not pauli[1].x[qubit_idx]:
-                                circuit.u1(np.pi, q[qubit_idx])  # z
+                                circuit.u1(np.pi, qr[qubit_idx])  # z
                             elif pauli[1].z[qubit_idx] and pauli[1].x[qubit_idx]:
-                                circuit.u3(np.pi, np.pi/2, np.pi/2, q[qubit_idx])  # y
+                                circuit.u3(np.pi, np.pi/2, np.pi/2, qr[qubit_idx])  # y
                         circuits.append(circuit)
         else:
             if operator_mode == 'matrix':
@@ -602,48 +616,49 @@ class Operator(object):
             circuits = []
 
             base_circuit = QuantumCircuit() + input_circuit
-            c = find_regs_by_name(base_circuit, 'c', qreg=False)
-            if c is None:
-                c = ClassicalRegister(n_qubits, name='c')
-            base_circuit.add_register(c)
+
+            if cr is not None:
+                if not base_circuit.has_register(cr):
+                    base_circuit.add_register(cr)
+            else:
+                cr = find_regs_by_name(base_circuit, 'c', qreg=False)
+                if cr is None:
+                    cr = ClassicalRegister(n_qubits, name='c')
+                    base_circuit.add_register(cr)
 
             if operator_mode == "paulis":
                 self._check_representation("paulis")
 
                 for idx, pauli in enumerate(self._paulis):
                     circuit = QuantumCircuit() + base_circuit
-                    q = find_regs_by_name(circuit, 'q')
-                    c = find_regs_by_name(circuit, 'c', qreg=False)
                     for qubit_idx in range(n_qubits):
                         if pauli[1].x[qubit_idx]:
                             if pauli[1].z[qubit_idx]:
                                 # Measure Y
-                                circuit.u1(np.pi/2, q[qubit_idx]).inverse()  # s
-                                circuit.u2(0.0, np.pi, q[qubit_idx])  # h
+                                circuit.u1(-np.pi/2, qr[qubit_idx])  # sdg
+                                circuit.u2(0.0, np.pi, qr[qubit_idx])  # h
                             else:
                                 # Measure X
-                                circuit.u2(0.0, np.pi, q[qubit_idx])  # h
-                    circuit.barrier(q)
-                    circuit.measure(q, c)
+                                circuit.u2(0.0, np.pi, qr[qubit_idx])  # h
+                    circuit.barrier(qr)
+                    circuit.measure(qr, cr)
                     circuits.append(circuit)
             else:
                 self._check_representation("grouped_paulis")
 
                 for idx, tpb_set in enumerate(self._grouped_paulis):
                     circuit = QuantumCircuit() + base_circuit
-                    q = find_regs_by_name(circuit, 'q')
-                    c = find_regs_by_name(circuit, 'c', qreg=False)
                     for qubit_idx in range(n_qubits):
                         if tpb_set[0][1].x[qubit_idx]:
                             if tpb_set[0][1].z[qubit_idx]:
                                 # Measure Y
-                                circuit.u1(np.pi/2, q[qubit_idx]).inverse()  # s
-                                circuit.u2(0.0, np.pi, q[qubit_idx])  # h
+                                circuit.u1(-np.pi/2, qr[qubit_idx])  # sdg
+                                circuit.u2(0.0, np.pi, qr[qubit_idx])  # h
                             else:
                                 # Measure X
-                                circuit.u2(0.0, np.pi, q[qubit_idx])  # h
-                    circuit.barrier(q)
-                    circuit.measure(q, c)
+                                circuit.u2(0.0, np.pi, qr[qubit_idx])  # h
+                    circuit.barrier(qr)
+                    circuit.measure(qr, cr)
                     circuits.append(circuit)
         return circuits
 
@@ -697,15 +712,17 @@ class Operator(object):
                 self._check_representation("paulis")
                 results = parallel_map(Operator._routine_paulis_with_shots,
                                        [(pauli, result.get_counts(circuits[idx]))
-                                        for idx, pauli in enumerate(self._paulis)])
+                                        for idx, pauli in enumerate(self._paulis)],
+                                       num_processes=aqua_globals.num_processes)
                 for result in results:
                     avg += result[0]
                     variance += result[1]
             else:
                 self._check_representation("grouped_paulis")
                 results = parallel_map(Operator._routine_grouped_paulis_with_shots,
-                                        [(tpb_set, result.get_counts(circuits[tpb_idx]))
-                                         for tpb_idx, tpb_set in enumerate(self._grouped_paulis)])
+                                       [(tpb_set, result.get_counts(circuits[tpb_idx]))
+                                        for tpb_idx, tpb_set in enumerate(self._grouped_paulis)],
+                                       num_processes=aqua_globals.num_processes)
                 for result in results:
                     avg += result[0]
                     variance += result[1]
@@ -797,19 +814,12 @@ class Operator(object):
         else:
             if is_statevector_backend(backend):
                 run_config.shots = 1
-                has_shared_circuits = True
-
-                if operator_mode == 'matrix':
-                    has_shared_circuits = False
-            else:
-                has_shared_circuits = False
 
             circuits = self.construct_evaluation_circuit(operator_mode, input_circuit, backend)
             result = compile_and_run_circuits(circuits, backend=backend, backend_config=backend_config,
                                               compile_config=compile_config, run_config=run_config,
                                               qjob_config=qjob_config, noise_config=noise_config,
-                                              show_circuit_summary=self._summarize_circuits,
-                                              has_shared_circuits=has_shared_circuits)
+                                              show_circuit_summary=self._summarize_circuits)
             avg, std_dev = self.evaluate_with_result(operator_mode, circuits, backend, result)
 
         return avg, std_dev
@@ -1038,6 +1048,7 @@ class Operator(object):
         p_z_or_x = np.logical_or(pauli.z, pauli.x)
         for key, value in data.items():
             bitstr = np.asarray(list(key))[::-1].astype(np.bool)
+            # pylint: disable=no-member
             sign = -1.0 if np.logical_xor.reduce(np.logical_and(bitstr, p_z_or_x)) else 1.0
             observable += sign * value
         observable /= num_shots
@@ -1070,6 +1081,7 @@ class Operator(object):
         p2_z_or_x = np.logical_or(pauli_2.z, pauli_2.x)
         for key, value in data.items():
             bitstr = np.asarray(list(key))[::-1].astype(np.bool)
+            # pylint: disable=no-member
             sign_1 = -1.0 if np.logical_xor.reduce(np.logical_and(bitstr, p1_z_or_x)) else 1.0
             sign_2 = -1.0 if np.logical_xor.reduce(np.logical_and(bitstr, p2_z_or_x)) else 1.0
             cov += (sign_1 - avg_1) * (sign_2 - avg_2) * value
@@ -1087,7 +1099,8 @@ class Operator(object):
         sectors, (block spin order) according to the number of particles in the system.
 
         Args:
-            m (int): number of fermionic particles
+            m (list, int): number of particles, if it is a list, the first number is alpha
+                            and the second number if beta.
             threshold (float): threshold for Pauli simplification
 
         Returns:
@@ -1097,9 +1110,17 @@ class Operator(object):
         if self._paulis is None or self._paulis == []:
             return self
 
+        if isinstance(m, list):
+            num_alpha = m[0]
+            num_beta = m[1]
+        else:
+            num_alpha = m // 2
+            num_beta = m // 2
+
         operator_out = Operator(paulis=[])
-        par_1 = 1 if m % 2 == 0 else -1
-        par_2 = 1 if m % 4 == 0 else -1
+
+        par_1 = 1 if (num_alpha + num_beta) % 2 == 0 else -1
+        par_2 = 1 if num_alpha % 2 == 0 else -1
 
         n = self.num_qubits
         last_idx = n - 1
@@ -1288,6 +1309,7 @@ class Operator(object):
         Returns:
             numpy array: The matrix representation corresponding to the specified suzuki expansion
         """
+        # pylint: disable=no-member
         if expansion_order == 1:
             left = reduce(
                 lambda x, y: x @ y,
@@ -1338,8 +1360,16 @@ class Operator(object):
             )
             return side + middle + side
 
-    def evolve(self, state_in, evo_time, evo_mode, num_time_slices, quantum_registers=None,
-               expansion_mode='trotter', expansion_order=1):
+    def evolve(
+            self,
+            state_in=None,
+            evo_time=0,
+            evo_mode=None,
+            num_time_slices=0,
+            quantum_registers=None,
+            expansion_mode='trotter',
+            expansion_order=1
+    ):
         """
         Carry out the eoh evolution for the operator under supplied specifications.
 
@@ -1362,6 +1392,7 @@ class Operator(object):
             or the constructed QuantumCircuit.
 
         """
+        # pylint: disable=no-member
         if num_time_slices < 0 or not isinstance(num_time_slices, int):
             raise ValueError('Number of time slices should be a non-negative integer.')
         if not (expansion_mode == 'trotter' or expansion_mode == 'suzuki'):
@@ -1741,7 +1772,7 @@ class Operator(object):
                 self._paulis[idx] = [self._paulis[idx][0] * scaling_factor, self._paulis[idx][1]]
         elif self._grouped_paulis is not None:
             self._grouped_paulis_to_paulis()
-            self._scale_paulis(scaling_factor)
+            # self._scale_paulis(scaling_factor)
             self._paulis_to_grouped_paulis()
         elif self._matrix is not None:
             self._matrix *= scaling_factor

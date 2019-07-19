@@ -1,26 +1,22 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 """
 The European Call Option Expected Value.
 """
 import numpy as np
 from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
-from qiskit.aqua.utils.circuit_utils import cry, ccry, multi_cry_q
-from qiskit.aqua.components.uncertainty_problems.fixed_value_comparator import FixedValueComparator
+from qiskit.aqua.circuits.fixed_value_comparator import FixedValueComparator
 
 
 class EuropeanCallExpectedValue(UncertaintyProblem):
@@ -48,26 +44,45 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
                     'default': 0.5
                 },
                 'i_state': {
-                    'type': 'array',
+                    'type': ['array', 'null'],
                     'items': {
                         'type': 'integer'
                     },
                     'default': None
                 },
                 'i_compare': {
-                    'type': 'integer',
+                    'type': ['integer', 'null'],
                     'default': None
                 },
                 'i_objective': {
-                    'type': 'integer',
+                    'type': ['integer', 'null'],
                     'default': None
                 }
             },
             'additionalProperties': False
-        }
+        },
+        'depends': [
+            {
+                'pluggable_type': 'univariate_distribution',
+                'default': {
+                    'name': 'NormalDistribution'
+                }
+            },
+        ],
     }
 
     def __init__(self, uncertainty_model, strike_price, c_approx, i_state=None, i_compare=None, i_objective=None):
+        """
+        Constructor.
+
+        Args:
+            uncertainty_model (UnivariateDistribution): uncertainty model for spot price
+            strike_price (float): strike price of the European option
+            c_approx (float): approximation factor for linear payoff
+            i_state (list or array): indices of qubits representing the uncertainty
+            i_compare (int): index of qubit for comparing spot price to strike price (enabling payoff or not)
+            i_objective (int): index of qubit for objective function
+        """
         super().__init__(uncertainty_model.num_target_qubits + 2)
 
         self._uncertainty_model = uncertainty_model
@@ -76,16 +91,13 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
 
         if i_state is None:
             i_state = list(range(uncertainty_model.num_target_qubits))
+        self.i_state = i_state
         if i_compare is None:
             i_compare = uncertainty_model.num_target_qubits
+        self.i_compare = i_compare
         if i_objective is None:
             i_objective = uncertainty_model.num_target_qubits + 1
-
-        self._params = {
-            'i_state': i_state,
-            'i_compare': i_compare,
-            'i_objective': i_objective
-        }
+        self.i_objective = i_objective
 
         super().validate(locals())
 
@@ -95,7 +107,7 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
         self._mapped_strike_price = int(np.round((strike_price - lb)/(ub - lb) * (uncertainty_model.num_values - 1)))
 
         # create comparator
-        self._comparator = FixedValueComparator(uncertainty_model.num_target_qubits + 1, self._mapped_strike_price)
+        self._comparator = FixedValueComparator(uncertainty_model.num_target_qubits, self._mapped_strike_price)
 
         self.offset_angle_zero = np.pi / 4 * (1 - self._c_approx)
         if self._mapped_strike_price < uncertainty_model.num_values - 1:
@@ -115,91 +127,24 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
     def required_ancillas(self):
         num_uncertainty_ancillas = self._uncertainty_model.required_ancillas()
         num_comparator_ancillas = self._comparator.required_ancillas()
-        num_ancillas = num_uncertainty_ancillas + num_comparator_ancillas
+        num_ancillas = int(np.maximum(num_uncertainty_ancillas, num_comparator_ancillas))
         return num_ancillas
 
-    def required_ancillas_controlled(self):
-        num_uncertainty_ancillas = self._uncertainty_model.required_ancillas_controlled()
-        num_comparator_ancillas = self._comparator.required_ancillas_controlled()
-        num_ancillas_controlled = num_uncertainty_ancillas + num_comparator_ancillas
-        return num_ancillas_controlled
-
-    def build(self, qc, q, q_ancillas=None, params=None):
-        if params is None:
-            params = self._params
+    def build(self, qc, q, q_ancillas=None):
 
         # get qubits
-        q_compare = q[params['i_compare']]
-        q_objective = q[params['i_objective']]
+        q_state = [q[i] for i in self.i_state]
+        q_compare = q[self.i_compare]
+        q_objective = q[self.i_objective]
 
         # apply uncertainty model
-        self._uncertainty_model.build(qc, q, q_ancillas, params)
+        self._uncertainty_model.build(qc, q_state, q_ancillas)
 
         # apply comparator to compare qubit
-        self._comparator.build(qc, q, q_ancillas, params)
+        self._comparator.build(qc, q_state + [q_compare], q_ancillas)
 
         # apply approximate payoff function
         qc.ry(2 * self.offset_angle_zero, q_objective)
-        cry(2 * self.offset_angle, q_compare, q_objective, qc)
-        for i in self._params['i_state']:
-            ccry(2 * self.slope_angle * 2 ** i, q_compare, q[i], q_objective, qc)
-
-    def build_inverse(self, qc, q, q_ancillas=None, params=None):
-        if params is None:
-            params = self._params
-
-        # get qubits
-        q_compare = q[params['i_compare']]
-        q_objective = q[params['i_objective']]
-
-        # apply approximate payoff function
-        qc.ry(-2 * self.offset_angle_zero, q_objective)
-        cry(-2 * self.offset_angle, q_compare, q_objective, qc)
-        for i in self._params['i_state']:
-            ccry(-2 * self.slope_angle * 2 ** i, q_compare, q[i], q_objective, qc)
-
-        # apply comparator to compare qubit
-        self._comparator.build_inverse(qc, q, q_ancillas, params)
-
-        # apply uncertainty model
-        self._uncertainty_model.build_inverse(qc, q, q_ancillas, params)
-
-    def build_controlled(self, qc, q, q_control, q_ancillas=None, params=None):
-        if params is None:
-            params = self._params
-
-        # get qubits
-        q_compare = q[params['i_compare']]
-        q_objective = q[params['i_objective']]
-
-        # apply uncertainty model
-        self._uncertainty_model.build_controlled(qc, q, q_control, q_ancillas, params)
-
-        # apply comparator to compare qubit
-        self._comparator.build_controlled(qc, q, q_control, q_ancillas, params)
-
-        # apply approximate payoff function
-        cry(2 * self.offset_angle_zero, q_control, q_objective, qc)
-        ccry(2 * self.offset_angle, q_control, q_compare, q_objective, qc)
-        for i in self._params['i_state']:
-            multi_cry_q(2 * self.slope_angle * 2 ** i, [q_control, q_compare, q[i]], q_objective, q_ancillas, qc)
-
-    def build_controlled_inverse(self, qc, q, q_control, q_ancillas=None, params=None):
-        if params is None:
-            params = self._params
-
-        # get qubits
-        q_compare = q[params['i_compare']]
-        q_objective = q[params['i_objective']]
-
-        # apply approximate payoff function
-        cry(-2 * self.offset_angle_zero, q_control, q_objective, qc)
-        ccry(-2 * self.offset_angle, q_control, q_compare, q_objective, qc)
-        for i in self._params['i_state']:
-            multi_cry_q(-2 * self.slope_angle * 2 ** i, [q_control, q_compare, q[i]], q_objective, q_ancillas, qc)
-
-        # apply comparator to compare qubit
-        self._comparator.build_controlled_inverse(qc, q, q_control, q_ancillas, params)
-
-        # apply uncertainty model
-        self._uncertainty_model.build_controlled_inverse(qc, q, q_control, q_ancillas, params)
+        qc.cry(2 * self.offset_angle, q_compare, q_objective)
+        for i, qi in enumerate(q_state):
+            qc.mcry(2 * self.slope_angle * 2 ** i, [q_compare, qi], q_objective, None)

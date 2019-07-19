@@ -1,34 +1,31 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 """
 The Quantum Phase Estimation Algorithm.
 """
 
 import logging
-import numpy as np
+from copy import deepcopy
 
+import numpy as np
 from qiskit.quantum_info import Pauli
 
 from qiskit.aqua import Operator, AquaError
 from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
-
-from qiskit.aqua.algorithms.single_sample import PhaseEstimationCircuit
+from qiskit.aqua.circuits import PhaseEstimationCircuit
 
 
 logger = logging.getLogger(__name__)
@@ -58,11 +55,9 @@ class QPE(QuantumAlgorithm):
                 PROP_EXPANSION_MODE: {
                     'type': 'string',
                     'default': 'trotter',
-                    'oneOf': [
-                        {'enum': [
-                            'suzuki',
-                            'trotter'
-                        ]}
+                    'enum': [
+                        'suzuki',
+                        'trotter'
                     ]
                 },
                 PROP_EXPANSION_ORDER: {
@@ -116,9 +111,9 @@ class QPE(QuantumAlgorithm):
 
         self._num_ancillae = num_ancillae
         self._ret = {}
-        self._operator = operator
-        self._pauli_list = self._operator.get_flat_pauli_list()
-        self._ret['translation'] = sum([abs(p[0]) for p in self._pauli_list])
+        self._operator = deepcopy(operator)
+
+        self._ret['translation'] = sum([abs(p[0]) for p in self._operator.get_flat_pauli_list()])
         self._ret['stretch'] = 0.5 / self._ret['translation']
 
         # translate the operator
@@ -134,13 +129,15 @@ class QPE(QuantumAlgorithm):
         ])
         translation_op._simplify_paulis()
         self._operator += translation_op
+        self._pauli_list = self._operator.get_flat_pauli_list()
 
         # stretch the operator
         for p in self._pauli_list:
             p[0] = p[0] * self._ret['stretch']
 
         self._phase_estimation_circuit = PhaseEstimationCircuit(
-            self._operator, state_in, iqft, num_time_slices=num_time_slices, num_ancillae=num_ancillae,
+            operator=self._operator, state_in=state_in, iqft=iqft,
+            num_time_slices=num_time_slices, num_ancillae=num_ancillae,
             expansion_mode=expansion_mode, expansion_order=expansion_order,
             shallow_circuit_concat=shallow_circuit_concat, pauli_list=self._pauli_list
         )
@@ -181,18 +178,22 @@ class QPE(QuantumAlgorithm):
                    expansion_mode=expansion_mode,
                    expansion_order=expansion_order)
 
-    def construct_circuit(self):
-        """Construct circuit.
+    def construct_circuit(self, measurement=False):
+        """
+        Construct circuit.
+
+        Args:
+            measurement (bool): Boolean flag to indicate if measurement should be included in the circuit.
 
         Returns:
             QuantumCircuit: quantum circuit.
         """
-        qc = self._phase_estimation_circuit.construct_circuit()
+        qc = self._phase_estimation_circuit.construct_circuit(measurement=measurement)
         return qc
 
     def _compute_energy(self):
-        qc = self.construct_circuit()
         if self._quantum_instance.is_statevector:
+            qc = self.construct_circuit(measurement=False)
             result = self._quantum_instance.execute(qc)
             complete_state_vec = result.get_statevector(qc)
             ancilla_density_mat = get_subsystem_density_matrix(
@@ -204,11 +205,7 @@ class QPE(QuantumAlgorithm):
             max_amplitude_idx = np.where(ancilla_density_mat_diag == max_amplitude)[0][0]
             top_measurement_label = np.binary_repr(max_amplitude_idx, self._num_ancillae)[::-1]
         else:
-            from qiskit import ClassicalRegister
-            c_ancilla = ClassicalRegister(self._num_ancillae, name='ca')
-            qc.add_register(c_ancilla)
-            qc.barrier(self._phase_estimation_circuit.ancillary_register)
-            qc.measure(self._phase_estimation_circuit.ancillary_register, c_ancilla)
+            qc = self.construct_circuit(measurement=True)
             result = self._quantum_instance.execute(qc)
             ancilla_counts = result.get_counts(qc)
             top_measurement_label = sorted([(ancilla_counts[k], k) for k in ancilla_counts])[::-1][0][-1][::-1]
