@@ -187,6 +187,7 @@ class FermionicOperator(object):
         Args:
             n (int): number of modes
         """
+
         def parity_set(j, n):
             """Computes the parity set of the j-th orbital in n modes.
 
@@ -474,7 +475,6 @@ class FermionicOperator(object):
         new_fer_op = FermionicOperator(h1=h1, h2=h2, ph_trans_shift=energy_shift)
         new_fer_op._convert_to_block_spins()
         return new_fer_op, energy_shift
-
 
     def fermion_mode_elimination(self, fermion_mode_array):
         """Eliminate modes.
