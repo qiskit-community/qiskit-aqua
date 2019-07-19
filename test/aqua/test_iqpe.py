@@ -26,7 +26,7 @@ from qiskit.aqua import QuantumInstance
 from qiskit.aqua.utils import decimal_to_binary
 from qiskit.aqua.algorithms import IQPE
 from qiskit.aqua.algorithms import ExactEigensolver
-from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator
+from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator, op_converter
 from qiskit.aqua.components.initial_states import Custom
 
 
@@ -36,7 +36,7 @@ Z = np.array([[1, 0], [0, -1]])
 _I = np.array([[1, 0], [0, 1]])
 h1 = X + Y + Z + _I
 qubit_op_simple = MatrixOperator(matrix=h1)
-qubit_op_simple = qubit_op_simple.to_weighted_pauli_operator()
+qubit_op_simple = op_converter.to_weighted_pauli_operator(qubit_op_simple)
 
 
 pauli_dict = {

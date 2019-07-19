@@ -47,7 +47,7 @@ class TestEnd2End(QiskitChemistryTestCase):
         # ['SPSA_P', 'SPSA', qiskit.BasicAer.get_backend('qasm_simulator'), 'paulis', 1024],
         # ['SPSA_GP', 'SPSA', qiskit.BasicAer.get_backend('qasm_simulator'), 'grouped_paulis', 1024]
     ])
-    def test_end2end_h2(self, name, optimizer, backend, mode, shots):
+    def test_end2end_h2(self, name, optimizer, backend, shots):
 
         if optimizer == 'COBYLA':
             optimizer = COBYLA()

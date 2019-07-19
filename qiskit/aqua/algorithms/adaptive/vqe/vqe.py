@@ -26,7 +26,7 @@ from qiskit import ClassicalRegister, QuantumCircuit
 from qiskit.aqua.algorithms.adaptive.vq_algorithm import VQAlgorithm
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.operators import (TPBGroupedWeightedPauliOperator, WeightedPauliOperator,
-                                   MatrixOperator, TaperedWeightedPauliOperator)
+                                   MatrixOperator, op_converter)
 from qiskit.aqua.utils.backend_utils import is_aer_statevector_backend, is_statevector_backend
 from qiskit.aqua.utils import find_regs_by_name
 
@@ -192,23 +192,29 @@ class VQE(VQAlgorithm):
         return ret
 
     def _config_the_best_mode(self, operator, backend):
+
+        if not isinstance(operator, (WeightedPauliOperator, MatrixOperator, TPBGroupedWeightedPauliOperator)):
+            logger.info("Unrecognized operator type, skip auto conversion.")
+            return operator
+
         ret_op = operator
         if not is_statevector_backend(backend):  # assume qasm, should use grouped paulis.
-            if isinstance(operator, (WeightedPauliOperator, MatrixOperator, TaperedWeightedPauliOperator)):
+            if isinstance(operator, (WeightedPauliOperator, MatrixOperator)):
                 logger.info("When running with Qasm simulator, grouped pauli can save number of measurements. "
                             "We convert the operator into grouped ones.")
-                ret_op = operator.to_grouped_weighted_pauli_operator(TPBGroupedWeightedPauliOperator.sorted_grouping)
+                ret_op = op_converter.to_tpb_grouped_weighted_pauli_operator(
+                    operator, TPBGroupedWeightedPauliOperator.sorted_grouping)
         else:
             if not is_aer_statevector_backend(backend):
                 if not isinstance(operator, MatrixOperator):
                     logger.info("When running with non-Aer statevector simulator, represent operator as a matrix could "
                                 "achieve the better performance. We convert the operator to matrix.")
-                    ret_op = operator.to_matrix_operator()
+                    ret_op = op_converter.to_matrix_operator(operator)
             else:
                 if not isinstance(operator, WeightedPauliOperator):
                     logger.info("When running with Aer statevector simulator, represent operator as weighted paulis could "
                                 "achieve the better performance. We convert the operator to weighted paulis.")
-                    ret_op = operator.to_weighted_pauli_operator()
+                    ret_op = op_converter.to_weighted_pauli_operator(operator)
         return ret_op
 
     def construct_circuit(self, parameter, backend=None, use_simulator_operator_mode=False,
@@ -236,9 +242,9 @@ class VQE(VQAlgorithm):
                 raise AquaError("Either backend or is_statevector need to be provided.")
 
         wave_function = self._var_form.construct_circuit(parameter)
-        circuits = self._operator.construct_evaluation_circuit(use_simulator_operator_mode=use_simulator_operator_mode,
-                                                               wave_function=wave_function, is_statevector=is_statevector,
-                                                               circuit_name_prefix=circuit_name_prefix)
+        circuits = self._operator.construct_evaluation_circuit(
+            use_simulator_operator_mode=use_simulator_operator_mode, wave_function=wave_function,
+            is_statevector=is_statevector, circuit_name_prefix=circuit_name_prefix)
         return circuits
 
     def _eval_aux_ops(self, threshold=1e-12, params=None):
@@ -251,10 +257,9 @@ class VQE(VQAlgorithm):
         for idx, operator in enumerate(self._aux_operators):
             if not operator.is_empty():
                 temp_circuit = QuantumCircuit() + wavefn_circuit
-                circuit = operator.construct_evaluation_circuit(wave_function=temp_circuit,
-                                                                is_statevector=self._quantum_instance.is_statevector,
-                                                                use_simulator_operator_mode=self._use_simulator_operator_mode,
-                                                                circuit_name_prefix=str(idx))
+                circuit = operator.construct_evaluation_circuit(
+                    wave_function=temp_circuit, is_statevector=self._quantum_instance.is_statevector,
+                    use_simulator_operator_mode=self._use_simulator_operator_mode, circuit_name_prefix=str(idx))
                 if self._use_simulator_operator_mode:
                     params.append(operator.aer_paulis)
             else:

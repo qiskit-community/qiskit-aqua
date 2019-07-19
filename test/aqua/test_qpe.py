@@ -19,7 +19,7 @@ from parameterized import parameterized
 from qiskit import BasicAer
 
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.operators import MatrixOperator, WeightedPauliOperator
+from qiskit.aqua.operators import MatrixOperator, WeightedPauliOperator, op_converter
 from qiskit.aqua.utils import decimal_to_binary
 from qiskit.aqua.algorithms import ExactEigensolver
 from qiskit.aqua.algorithms import QPE
@@ -34,7 +34,7 @@ Z = np.array([[1, 0], [0, -1]])
 _I = np.array([[1, 0], [0, 1]])
 h1 = X + Y + Z + _I
 qubit_op_simple = MatrixOperator(matrix=h1)
-qubit_op_simple = qubit_op_simple.to_weighted_pauli_operator()
+qubit_op_simple = op_converter.to_weighted_pauli_operator(qubit_op_simple)
 
 pauli_dict = {
     'paulis': [

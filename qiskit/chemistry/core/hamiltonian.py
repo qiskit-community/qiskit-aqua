@@ -22,7 +22,7 @@ from enum import Enum
 import numpy as np
 
 from qiskit.aqua.input import EnergyInput
-from qiskit.aqua.operators import TaperedWeightedPauliOperator
+from qiskit.aqua.operators import Z2Symmetries
 from qiskit.chemistry import ChemistryProblem, QMolecule
 from qiskit.chemistry.fermionic_operator import FermionicOperator
 from .chemistry_operator import ChemistryOperator
@@ -399,7 +399,7 @@ class Hamiltonian(ChemistryOperator):
     def _map_fermionic_operator_to_qubit(fer_op, qubit_mapping, num_particles, two_qubit_reduction):
         qubit_op = fer_op.mapping(map_type=qubit_mapping, threshold=0.00000001)
         if qubit_mapping == 'parity' and two_qubit_reduction:
-            qubit_op = TaperedWeightedPauliOperator.two_qubit_reduction(qubit_op, num_particles)
+            qubit_op = Z2Symmetries.two_qubit_reduction(qubit_op, num_particles)
         return qubit_op
 
     @staticmethod

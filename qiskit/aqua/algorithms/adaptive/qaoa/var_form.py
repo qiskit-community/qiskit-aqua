@@ -16,7 +16,7 @@ import numpy as np
 from functools import reduce
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.quantum_info import Pauli
-from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator
+from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator, op_converter
 
 
 class QAOAVarForm:
@@ -31,8 +31,7 @@ class QAOAVarForm:
             initial_state:
             mixer_operator:
         """
-        if isinstance(cost_operator, MatrixOperator):
-            cost_operator = cost_operator.to_weighted_pauli_operator()
+        cost_operator = op_converter.to_weighted_pauli_operator(cost_operator)
         self._cost_operator = cost_operator
         self._p = p
         self._initial_state = initial_state

@@ -557,6 +557,33 @@ class Operator(object):
 
         return ret_dict
 
+    @staticmethod
+    def from_file(file_name, before_04=False):
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`", DeprecationWarning)
+        return Operator.load_from_file(file_name, before_04)
+
+    def to_file(self, file_name):
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`", DeprecationWarning)
+        self.save_to_file(file_name)
+
+    @staticmethod
+    def from_dict(dictionary, before_04=False):
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`", DeprecationWarning)
+        return Operator.load_from_dict(dictionary, before_04)
+
+    def to_dict(self):
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`", DeprecationWarning)
+        return self.save_to_dict()
+
+
     def print_operators(self, print_format='paulis'):
         """
         Print out the paulis in the selected representation.

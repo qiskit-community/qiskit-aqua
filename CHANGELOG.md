@@ -57,7 +57,10 @@ Changed
 -   The PyEDA dependency was removed; 
     corresponding oracles' underlying logic operations are now handled by SymPy.
 -   Refactor the `Operator` class, each representation has its own class `MatrixOperator`, 
-    `WeightedPauliOperator` and `TPBGroupedPauliOperator` (#593).
+    `WeightedPauliOperator` and `TPBGroupedPauliOperator`. (#593).
+-   The `power` in `evolution_instruction` was applied on the theta on the CRZ gate directly, 
+    the current version repeats the circuits to implement power. (#593)
+     
 
 Fixed
 -------

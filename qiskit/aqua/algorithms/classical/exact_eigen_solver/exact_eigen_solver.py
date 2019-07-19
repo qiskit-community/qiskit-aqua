@@ -20,7 +20,7 @@ from scipy import sparse as scisparse
 
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua import AquaError, Pluggable
-from qiskit.aqua.operators import MatrixOperator
+from qiskit.aqua.operators import MatrixOperator, op_converter
 
 logger = logging.getLogger(__name__)
 
@@ -59,13 +59,12 @@ class ExactEigensolver(QuantumAlgorithm):
         self.validate(locals())
         super().__init__()
 
-        self._operator = operator if isinstance(operator, MatrixOperator) else operator.to_matrix_operator()
+        self._operator = op_converter.to_matrix_operator(operator)
         if aux_operators is None:
             self._aux_operators = []
         else:
             aux_operators = [aux_operators] if not isinstance(aux_operators, list) else aux_operators
-            self._aux_operators = [aux_op if isinstance(aux_op, MatrixOperator) else aux_op.to_matrix_operator()
-                                   for aux_op in aux_operators]
+            self._aux_operators = [op_converter.to_matrix_operator(aux_op) for aux_op in aux_operators]
         self._k = k
         if self._k > self._operator.matrix.shape[0]:
             self._k = self._operator.matrix.shape[0]
@@ -87,7 +86,7 @@ class ExactEigensolver(QuantumAlgorithm):
         return cls(algo_input.qubit_op, k, algo_input.aux_ops)
 
     def _solve(self):
-        if self._operator.matrix.ndim == 2:
+        if self._operator.dia_matrix is None:
             if self._k >= self._operator.matrix.shape[0] - 1:
                 logger.debug("Scipy doesn't support to get all eigenvalues, using numpy instead.")
                 eigval, eigvec = np.linalg.eig(self._operator.matrix.toarray())

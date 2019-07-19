@@ -24,7 +24,7 @@ from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms.single_sample import QPE
 from qiskit.aqua.algorithms.classical import ExactEigensolver
 from qiskit.aqua.components.iqfts import Standard
-from qiskit.aqua.operators import TaperedWeightedPauliOperator
+from qiskit.aqua.operators import Z2Symmetries
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry import FermionicOperator, QiskitChemistryError
 from qiskit.chemistry.aqua_extensions.components.initial_states import HartreeFock
@@ -54,9 +54,8 @@ class TestEnd2EndWithQPE(QiskitChemistryTestCase):
         qubit_mapping = 'parity'
         fer_op = FermionicOperator(
             h1=self.molecule.one_body_integrals, h2=self.molecule.two_body_integrals)
-        self.qubit_op = fer_op.mapping(map_type=qubit_mapping,
-                                       threshold=1e-10)
-        self.qubit_op = TaperedWeightedPauliOperator.two_qubit_reduction(self.qubit_op, 2)
+        self.qubit_op = fer_op.mapping(map_type=qubit_mapping, threshold=1e-10)
+        self.qubit_op = Z2Symmetries.two_qubit_reduction(self.qubit_op, 2)
 
         exact_eigensolver = ExactEigensolver(self.qubit_op, k=1)
         results = exact_eigensolver.run()

@@ -19,7 +19,7 @@ from qiskit.aqua import AquaError
 from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.components.eigs import Eigenvalues
 from qiskit.aqua.circuits import PhaseEstimationCircuit
-from qiskit.aqua.operators import MatrixOperator
+from qiskit.aqua.operators import MatrixOperator, op_converter
 
 
 class EigsQPE(Eigenvalues):
@@ -148,8 +148,7 @@ class EigsQPE(Eigenvalues):
             num_ancillae += 1
             args['num_ancillae'] = num_ancillae
 
-        # TODO: do we need a matrix of a pauli?
-        args['operator'] = MatrixOperator(matrix=matrix).to_weighted_pauli_operator()
+        args['operator'] = op_converter.to_weighted_pauli_operator(MatrixOperator(matrix=matrix))
 
         # Set up iqft, we need to add num qubits to params which is our num_ancillae bits here
         iqft_params = params.get(Pluggable.SECTION_KEY_IQFT)
