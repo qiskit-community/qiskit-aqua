@@ -2083,7 +2083,7 @@ def particle_hole_transformation(n_qubits, num_particles, h1_old_matrix, h2_old_
 
     Args:
         n_qubits (int): number of qubits
-        n_particles (int): number of electrons
+        num_particles (array): number of alpha electrons, number of beta electrons
         h1_old_matrix (numpy.ndarray): rFs terms from Gaussian
         h2_old_matrix (numpy.ndarray): rsgtu terms from Gaussian
 
