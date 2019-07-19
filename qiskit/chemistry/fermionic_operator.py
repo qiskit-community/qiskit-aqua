@@ -157,7 +157,7 @@ class FermionicOperator(object):
         This is implemented by creating an array of tuples, each including two operators.
         The phase between two elements in a tuple is implicitly assumed, and added calculated at the
         appropriate time (see for example _one_body_mapping).
- 
+
         Args:
             n (int): number of modes
         """
