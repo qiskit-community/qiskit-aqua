@@ -2077,6 +2077,7 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
 
     return h1_new, h2_new, id_term
 
+
 def particle_hole_transformation(n_qubits, num_particles, h1_old_matrix, h2_old_matrix):
     """
     This function produces the necessary h1, h2, identity for work with Fermionic Operators script.
@@ -2089,6 +2090,11 @@ def particle_hole_transformation(n_qubits, num_particles, h1_old_matrix, h2_old_
 
     Returns:
         numpy.ndarray, numpy.ndarray, float: h1_prime, h2_prime, identities
+        :param n_qubits: number of qubits
+        :param num_particles: number of electrons
+        :param h1_old_matrix: one body integrals matrix
+        :param h2_old_matrix:  two body integrals matrix
+        :return:
     """
 
     num_alpha = num_particles[0]
