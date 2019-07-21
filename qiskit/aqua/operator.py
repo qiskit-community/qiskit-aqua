@@ -583,7 +583,6 @@ class Operator(object):
                       "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`", DeprecationWarning)
         return self.save_to_dict()
 
-
     def print_operators(self, print_format='paulis'):
         """
         Print out the paulis in the selected representation.

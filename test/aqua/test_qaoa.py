@@ -63,9 +63,9 @@ class TestQAOA(QiskitAquaTestCase):
 
         backend = BasicAer.get_backend('statevector_simulator')
         optimizer = COBYLA()
-        qubitOp, offset = max_cut.get_max_cut_qubitops(w)
+        qubit_op, offset = max_cut.get_max_cut_qubitops(w)
 
-        qaoa = QAOA(qubitOp, optimizer, p, mixer=m)
+        qaoa = QAOA(qubit_op, optimizer, p, mixer=m)
         # TODO: cache only work with optimization_level 0
         quantum_instance = QuantumInstance(backend, optimization_level=0)
 

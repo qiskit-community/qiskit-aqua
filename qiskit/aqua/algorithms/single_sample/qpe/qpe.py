@@ -113,7 +113,6 @@ class QPE(QuantumAlgorithm):
         self._num_ancillae = num_ancillae
         self._ret = {}
 
-
         self._ret['translation'] = sum([abs(p[0]) for p in self._operator.reorder_paulis()])
         self._ret['stretch'] = 0.5 / self._ret['translation']
 

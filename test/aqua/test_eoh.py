@@ -17,8 +17,10 @@ import unittest
 import numpy as np
 from qiskit.transpiler import PassManager
 from qiskit import BasicAer
+
 from test.aqua.common import QiskitAquaTestCase
-from qiskit.aqua import Operator, QuantumInstance
+from qiskit.aqua.operators import MatrixOperator, op_converter
+from qiskit.aqua import QuantumInstance
 from qiskit.aqua.components.initial_states import Custom
 from qiskit.aqua.algorithms import EOH
 
@@ -31,21 +33,21 @@ class TestEOH(QiskitAquaTestCase):
 
         temp = np.random.random((2 ** SIZE, 2 ** SIZE))
         h1 = temp + temp.T
-        qubit_op = Operator(matrix=h1)
+        qubit_op = MatrixOperator(matrix=h1)
 
         temp = np.random.random((2 ** SIZE, 2 ** SIZE))
         h1 = temp + temp.T
-        evo_op = Operator(matrix=h1)
+        evo_op = MatrixOperator(matrix=h1)
 
         state_in = Custom(SIZE, state='random')
 
         evo_time = 1
         num_time_slices = 100
 
-        eoh = EOH(qubit_op, state_in, evo_op, 'paulis', evo_time, num_time_slices)
+        eoh = EOH(qubit_op, state_in, evo_op, evo_time=evo_time, num_time_slices=num_time_slices)
 
         backend = BasicAer.get_backend('statevector_simulator')
-        quantum_instance = QuantumInstance(backend, shots=1, max_credits=10, pass_manager=PassManager())
+        quantum_instance = QuantumInstance(backend, shots=1)
         # self.log.debug('state_out:\n\n')
 
         ret = eoh.run(quantum_instance)

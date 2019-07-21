@@ -132,7 +132,6 @@ class UCCSD(VariationalForm):
         self.validate(locals())
         super().__init__()
 
-
         if cliffords is not None and cliffords != [] and \
                 sq_list is not None and sq_list != [] and \
                 tapering_values is not None and tapering_values != [] and \

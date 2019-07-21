@@ -108,7 +108,7 @@ class TestCaching(QiskitAquaTestCase):
         init_state = Zero(num_qubits)
         var_form = RY(num_qubits, 3, initial_state=init_state)
         optimizer = L_BFGS_B()
-        algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'matrix', max_evals_grouped=max_evals_grouped)
+        algo = VQE(self.algo_input.qubit_op, var_form, optimizer, max_evals_grouped=max_evals_grouped)
         quantum_instance_caching = QuantumInstance(backend,
                                                    circuit_caching=True,
                                                    skip_qobj_deepcopy=True,
@@ -128,7 +128,7 @@ class TestCaching(QiskitAquaTestCase):
         init_state = Zero(num_qubits)
         var_form = RY(num_qubits, 3, initial_state=init_state)
         optimizer = L_BFGS_B()
-        algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'matrix')
+        algo = VQE(self.algo_input.qubit_op, var_form, optimizer)
 
         with tempfile.NamedTemporaryFile(suffix='.inp', delete=True) as cache_tmp_file:
             cache_tmp_file_name = cache_tmp_file.name
