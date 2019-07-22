@@ -167,8 +167,8 @@ class EOH(QuantumAlgorithm):
     def _run(self):
         qc = self.construct_circuit()
         qc_with_op = self._operator.construct_evaluation_circuit(
-            wave_function=qc, is_statevector=self._quantum_instance.is_statevector)
+            wave_function=qc, statevector_mode=self._quantum_instance.is_statevector)
         result = self._quantum_instance.execute(qc_with_op)
         self._ret['avg'], self._ret['std_dev'] = self._operator.evaluate_with_result(
-             result=result, is_statevector=self._quantum_instance.is_statevector )
+             result=result, statevector_mode=self._quantum_instance.is_statevector)
         return self._ret

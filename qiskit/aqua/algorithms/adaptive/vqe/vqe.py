@@ -247,7 +247,7 @@ class VQE(VQAlgorithm):
         wave_function = self._var_form.construct_circuit(parameter)
         circuits = self._operator.construct_evaluation_circuit(
             use_simulator_operator_mode=use_simulator_operator_mode, wave_function=wave_function,
-            is_statevector=is_statevector, circuit_name_prefix=circuit_name_prefix)
+            statevector_mode=is_statevector, circuit_name_prefix=circuit_name_prefix)
         return circuits
 
     def _eval_aux_ops(self, threshold=1e-12, params=None):
@@ -380,7 +380,7 @@ class VQE(VQAlgorithm):
 
         for idx in range(len(parameter_sets)):
             mean, std = self._operator.evaluate_with_result(
-                result=result, is_statevector=self._quantum_instance.is_statevector,
+                result=result, statevector_mode=self._quantum_instance.is_statevector,
                 use_simulator_operator_mode=self._use_simulator_operator_mode, circuit_name_prefix=str(idx))
             mean_energy.append(np.real(mean))
             std_energy.append(np.real(std))
