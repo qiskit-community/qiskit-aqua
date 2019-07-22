@@ -52,7 +52,7 @@ class QAOAVarForm:
             )
         else:
             if not isinstance(mixer_operator, WeightedPauliOperator):
-                raise TypeError('The mixer should be a qiskit.aqua.Operator '
+                raise TypeError('The mixer should be a qiskit.aqua.WeightedPauliOperator '
                                 + 'object, found {} instead'.format(type(mixer_operator)))
             self._mixer_operator = mixer_operator
 

@@ -221,7 +221,7 @@ class VQE(VQAlgorithm):
         return ret_op
 
     def construct_circuit(self, parameter, backend=None, use_simulator_operator_mode=False,
-                          is_statevector=None, circuit_name_prefix=''):
+                          statevector_mode=None, circuit_name_prefix=''):
         """Generate the circuits.
 
         Args:
@@ -229,7 +229,7 @@ class VQE(VQAlgorithm):
             backend (qiskit.BaseBackend, optional): backend object.
             use_simulator_operator_mode (bool, optional): is backend from AerProvider, if True and mode is paulis,
                            single circuit is generated.
-            is_statevector (bool, optional): indicate which type of simulator are going to use.
+            statevector_mode (bool, optional): indicate which type of simulator are going to use.
             circuit_name_prefix (str, optional): a prefix of circuit name
 
         Returns:
@@ -238,16 +238,16 @@ class VQE(VQAlgorithm):
 
         if backend is not None:
             warnings.warn("backend option is deprecated and it will be removed after 0.6, "
-                          "Use `is_statevector` instead", DeprecationWarning)
-            is_statevector = is_statevector_backend(backend)
+                          "Use `statevector_mode` instead", DeprecationWarning)
+            statevector_mode = is_statevector_backend(backend)
         else:
-            if is_statevector is None:
-                raise AquaError("Either backend or is_statevector need to be provided.")
+            if statevector_mode is None:
+                raise AquaError("Either backend or statevector_mode need to be provided.")
 
         wave_function = self._var_form.construct_circuit(parameter)
         circuits = self._operator.construct_evaluation_circuit(
             use_simulator_operator_mode=use_simulator_operator_mode, wave_function=wave_function,
-            statevector_mode=is_statevector, circuit_name_prefix=circuit_name_prefix)
+            statevector_mode=statevector_mode, circuit_name_prefix=circuit_name_prefix)
         return circuits
 
     def _eval_aux_ops(self, threshold=1e-12, params=None):
@@ -285,7 +285,7 @@ class VQE(VQAlgorithm):
                     mean, std = 0.0, 0.0
                 else:
                     mean, std = operator.evaluate_with_result(
-                        result=result, is_statevector=self._quantum_instance.is_statevector,
+                        result=result, statevector_mode=self._quantum_instance.is_statevector,
                         use_simulator_operator_mode=self._use_simulator_operator_mode,
                         circuit_name_prefix=str(idx))
 
@@ -363,7 +363,7 @@ class VQE(VQAlgorithm):
 
         for idx in range(len(parameter_sets)):
             parameter = parameter_sets[idx]
-            circuit = self.construct_circuit(parameter, is_statevector=self._quantum_instance.is_statevector,
+            circuit = self.construct_circuit(parameter, statevector_mode=self._quantum_instance.is_statevector,
                                              use_simulator_operator_mode=self._use_simulator_operator_mode,
                                              circuit_name_prefix=str(idx))
             circuits.append(circuit)
