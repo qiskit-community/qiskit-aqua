@@ -170,5 +170,5 @@ class EOH(QuantumAlgorithm):
             wave_function=qc, is_statevector=self._quantum_instance.is_statevector)
         result = self._quantum_instance.execute(qc_with_op)
         self._ret['avg'], self._ret['std_dev'] = self._operator.evaluate_with_result(
-             result=result, is_statevector=self._quantum_instance.is_statevector )
+             result=result, is_statevector=self._quantum_instance.is_statevector)
         return self._ret
