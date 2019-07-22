@@ -1904,9 +1904,30 @@ class Operator(object):
                 self._paulis[idx] = [self._paulis[idx][0] * scaling_factor, self._paulis[idx][1]]
         elif self._grouped_paulis is not None:
             self._grouped_paulis_to_paulis()
-            # self._scale_paulis(scaling_factor)
+            self.scaling_coeff(scaling_factor)
             self._paulis_to_grouped_paulis()
         elif self._matrix is not None:
             self._matrix *= scaling_factor
             if self._dia_matrix is not None:
                 self._dia_matrix *= scaling_factor
+
+    def to_matrix_operator(self):
+        from qiskit.aqua.operators import MatrixOperator
+        ret = self.copy()
+        ret.to_matrix()
+        return MatrixOperator(matrix=ret._matrix)
+
+    def to_weighted_pauli_operator(self):
+        from qiskit.aqua.operators import WeightedPauliOperator
+        ret = self.copy()
+        ret.to_paulis()
+        return WeightedPauliOperator(paulis=ret._paulis)
+
+    def to_tpb_grouped_weighted_pauli_operator(self):
+        from qiskit.aqua.operators import WeightedPauliOperator, TPBGroupedWeightedPauliOperator, op_converter
+        ret = self.to_weighted_pauli_operator()
+        if self.coloring:
+            ret = TPBGroupedWeightedPauliOperator.sorted_grouping(ret)
+        else:
+            ret = TPBGroupedWeightedPauliOperator.unsorted_grouping(ret)
+        return ret
