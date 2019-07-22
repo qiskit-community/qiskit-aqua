@@ -82,7 +82,7 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
     adag_enum = []
 
     for ind in range(n_qubits):
-        if ind < n_occupied:
+        if ind in n_occupied:
             a_enum.append(-(ind + 1))
             adag_enum.append(ind + 1)
         else:
@@ -2078,19 +2078,23 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
     return h1_new, h2_new, id_term
 
 
-def particle_hole_transformation(n_qubits, n_occupied, h1_old_matrix, h2_old_matrix):
+def particle_hole_transformation(n_qubits, num_particles, h1_old_matrix, h2_old_matrix):
     """
     This function produces the necessary h1, h2, identity for work with Fermionic Operators script.
 
     Args:
         n_qubits (int): number of qubits
-        n_occupied (int): number of electrons
-        h1_old_matrix (numpy.ndarray): rFs terms from Gaussian
-        h2_old_matrix (numpy.ndarray): rsgtu terms from Gaussian
+        num_particles (list): number of alphas, number of betas
+        h1_old_matrix (array): one body integrals matrix
+        h2_old_matrix (array): two body integral matrix
 
     Returns:
-        numpy.ndarray, numpy.ndarray, float: h1_prime, h2_prime, identities
+        new one body integrals matrix, two body integrals matrix, identity coefficient terms
     """
+
+    num_alpha = num_particles[0]
+    num_beta = num_particles[1]
+
     h1_new_sum = np.zeros([n_qubits, n_qubits])
     h2_new_sum = np.zeros([n_qubits, n_qubits, n_qubits, n_qubits])
 
@@ -2099,13 +2103,22 @@ def particle_hole_transformation(n_qubits, n_occupied, h1_old_matrix, h2_old_mat
 
     h1_old_matrix = h1_old_matrix.copy()
 
+    # put labels of occupied orbitals in the list in interleaved spin convention
+    n_occupied = []
+    for a in range(num_alpha):
+        n_occupied.append(2*a)
+    for b in range(num_beta):
+        n_occupied.append(2*b + 1)
+
     for r in range(n_qubits):
         for s in range(n_qubits):
-            for i in range(n_occupied):
+            for i in n_occupied:
 
                 h1_old_matrix[r][s] += h2_old_matrix[r][i][s][i].copy() - h2_old_matrix[r][i][i][s].copy()
 
     identities_new_sum = 0
+
+    n_el = num_alpha + num_beta
 
     for i in range(n_qubits):
         for j in range(n_qubits):
