@@ -11,10 +11,6 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""
-The Variational Quantum Eigensolver algorithm.
-See https://arxiv.org/abs/1304.3061
-"""
 
 import logging
 import functools
@@ -261,7 +257,7 @@ class VQE(VQAlgorithm):
             if not operator.is_empty():
                 temp_circuit = QuantumCircuit() + wavefn_circuit
                 circuit = operator.construct_evaluation_circuit(
-                    wave_function=temp_circuit, is_statevector=self._quantum_instance.is_statevector,
+                    wave_function=temp_circuit, statevector_mode=self._quantum_instance.is_statevector,
                     use_simulator_operator_mode=self._use_simulator_operator_mode, circuit_name_prefix=str(idx))
                 if self._use_simulator_operator_mode:
                     params.append(operator.aer_paulis)
@@ -330,7 +326,6 @@ class VQE(VQAlgorithm):
                                       var_form=self.var_form,
                                       cost_fn=self._energy_evaluation,
                                       optimizer=self.optimizer)
-
         if self._ret['num_optimizer_evals'] is not None and self._eval_count >= self._ret['num_optimizer_evals']:
             self._eval_count = self._ret['num_optimizer_evals']
         self._eval_time = self._ret['eval_time']
@@ -409,7 +404,16 @@ class VQE(VQAlgorithm):
             ret = self._quantum_instance.execute(qc)
             self._ret['min_vector'] = ret.get_statevector(qc)
         else:
-            self._ret['min_vector'] = None
+            c = ClassicalRegister(qc.width(), name='c')
+            q = find_regs_by_name(qc, 'q')
+            qc.add_register(c)
+            qc.barrier(q)
+            qc.measure(q, c)
+            tmp_cache = self._quantum_instance.circuit_cache
+            self._quantum_instance._circuit_cache = None
+            ret = self._quantum_instance.execute(qc)
+            self._quantum_instance._circuit_cache = tmp_cache
+            self._ret['min_vector'] = ret.get_counts(qc)
         return self._ret['min_vector']
 
     @property
