@@ -1128,6 +1128,10 @@ class QSVE(CircuitFactory):
                 The number of qubits to use in phase estimation.
                 Equivalently, the number of bits of precision to read out singular values.
         """
+        # Make sure the matrix is of the correct type
+        if not isinstance(matrix, np.ndarray):
+            raise TypeError("Input matrix must be of type numpy.ndarray.")
+
         # Get the number of rows and columns in the matrix
         nrows, ncols = matrix.shape
 
@@ -1139,6 +1143,10 @@ class QSVE(CircuitFactory):
         # Make sure the number of columns is supported
         if ncols & (ncols - 1) != 0:
             raise ValueError("Number of columns in matrix must be a power of two.")
+
+        # Make sure the matrix is Hermitian
+        if not np.allclose(matrix.conj().T, matrix):
+            raise ValueError("Input matrix must be Hermitian.")
 
         # Store these as attributes
         self._matrix_nrows = nrows
@@ -1299,7 +1307,7 @@ class QSVE(CircuitFactory):
                                                  |             | W^dagger  |    |    | W |
             COL (m qubits)  ---------------------|-------------|           |----O----|   |--------
                                                  |                              |
-            PKB (1 qubit)   |-> -----------------X------------------------------X-----------------
+            PKB (1 qubit)   |-> ----------------[X]----------------------------[X]----------------
 
         where @ is a control symbol and O is an "anti-control" symbol (i.e., controlled on the |0> state).
 
@@ -1351,8 +1359,8 @@ class QSVE(CircuitFactory):
 
         if len(row_register) != len(col_register):
             raise ValueError(
-                "Only square matrices are currently supported. \
-                This means the row_register and col_register must have the same number of qubits."
+                "Only square matrices are currently supported." +
+                "This means the row_register and col_register must have the same number of qubits."
             )
 
         if len(row_register) != self._num_qubits_for_row:
@@ -1366,8 +1374,8 @@ class QSVE(CircuitFactory):
             pkb = pkb_register
         else:
             raise ValueError(
-                "The argument pbk_register must be of type qiskit.QuantumRegister \
-                or qiskit.circuit.quantumregister.Qubit"
+                "The argument pbk_register must be of type qiskit.QuantumRegister" +
+                "or qiskit.circuit.quantumregister.Qubit"
             )
 
 
@@ -1480,6 +1488,9 @@ def test_row_norm_tree():
                        [1, 1, 1, 0],
                        [0, 1, 1, 0]], dtype=np.float64)
 
+    # Make it Hermitian
+    matrix += matrix.conj().T
+
     # Create the QSVE object
     qsve = QSVE(matrix)
 
@@ -1496,6 +1507,9 @@ def test_row_norm_tree_random():
     for _ in range(100):
         # Get a random matrix
         matrix = np.random.randn(8, 8)
+
+        # Make it Hermitian
+        matrix += matrix.conj().T
 
         # Create the QSVE object
         qsve = QSVE(matrix)
@@ -1515,6 +1529,9 @@ def test_row_norm_tree_prep_circuit():
                        [0, 1, 0, 1],
                        [1, 1, 1, 1],
                        [0, 1, 0, 0]], dtype=np.float64)
+
+    # Make it Hermitian
+    matrix += matrix.conj().T
 
     # Create the QSVE object
     qsve = QSVE(matrix)
