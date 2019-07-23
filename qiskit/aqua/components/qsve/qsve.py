@@ -1197,7 +1197,7 @@ class QSVE(CircuitFactory):
 
     @property
     def row_norm_tree(self):
-        return self._row_norm_tree
+        return self._make_row_norm_tree()
 
     def matrix_norm(self):
         """Returns the Froebenius norm of the matrix."""
@@ -1284,14 +1284,88 @@ class QSVE(CircuitFactory):
         # Set the shifted flag to True
         self._shifted = True
 
-    def build(self, circuit, qpe_register, row_register, col_register, pkb_register):
-        """Adds the gates for one Controlled-W unitary.
+    @staticmethod
+    def _controlled_reflection_circuit(circuit, ctrl_qubit, register):
+        """Adds the gates for a controlled reflection about the |0> state to the input circuit.
+        This circuit does the reflection I - 2|0><0| where I is the identity gate.
+
+
+        This circuit has the following structure:
+
+                    qubit       ------------@------------
+                                            |
+                                ------------O------------
+                                            |
+                                ------------O------------
+                    register                |
+                                ------------O------------
+                                            |
+                                ----[X]----[Z]----[X]----
+
+        where @ represents a control on |1> and O represents a control on |0>.
+
+        Note: This can also be done with an ancilla qubit using phase kickback. The circuit above avoids the need
+        for an ancilla qubit.
+
+        Note: In the circuit construction, the identity HXH = Z is utilized to use a multi-controlled NOT gate instead
+        of a multi-controlled Z gate.
+
+        Args:
+            circuit : qiskit.QuantumCircuit
+                The QuantumCircuit object to add gates to.
+                This circuit must contain both the ctrl_qubit and the register.
+
+            ctrl_qubit : qiskit.QuantumRegister.qubit
+                The qubit to control the reflection on. This qubit must be in the input circuit.
+
+            register : qiskit.QuantumRegister
+                The register to perform the reflection on.
+
+        Returns:
+            None
+
+        Modifies:
+            Input circuit. Adds gates to this circuit to perform the controlled reflection.
+        """
+        # Input argument checks
+        if type(circuit) != QuantumCircuit:
+            raise TypeError(
+                "Argument circuit must be of type qiskit.QuantumCircuit."
+            )
+
+        if ctrl_qubit not in circuit.qubits:
+            raise ValueError(
+                "Argument ctrl_qubit must be in circuit.qubits."
+            )
+
+        if register not in circuit.qregs:
+            raise ValueError(
+                "Argument register must be in circuit.qregs."
+            )
+
+        # Add NOT gates on all qubits in the reflection register (for anti-controls)
+        circuit.x(register)
+
+        # Add a Hadamard on the last qubit in the reflection register for phase kickback
+        circuit.h(register[-1])
+
+        # Add the multi-controlled NOT (Tofolli) gate
+        mct(circuit, [ctrl_qubit] + register[:-1], register[-1], None, mode="noancilla")
+
+        # Add a Hadamard on the last qubit in the reflection register for phase kickback
+        circuit.h(register[-1])
+
+        # Add NOT gates on all qubits in the reflection registers (for anti-controls)
+        circuit.x(register)
+
+    def build(self, circuit, qpe_qubit, row_register, col_register):
+        """Adds the gates for one Controlled-W unitary to the input circuit.
 
         The input circuit must have at least four registers corresponding to the input arguments
 
         At a high-level, this circuit has the following structure:
 
-                    QPE (p qubits)  -------@--------
+                    QPE (q qubit)   -------@--------
                                            \
                     ROW (n qubits)  ----|      |----
                                         |      |
@@ -1301,26 +1375,25 @@ class QSVE(CircuitFactory):
 
         At a lower level, the controlled-W circuit is implemented as follows:
 
-            QPE (p qubits)  ---------------------@------------------------------@-----------------
+            QPE (1 qubit)   ---------------------@------------------------------@-----------------
                                                  |                              |
-            ROW (n qubits)  ----| V^dagger |-----O----| V |----|           |----|----|   |--------
-                                                 |             | W^dagger  |    |    | W |
-            COL (m qubits)  ---------------------|-------------|           |----O----|   |--------
-                                                 |                              |
-            PKB (1 qubit)   |-> ----------------[X]----------------------------[X]----------------
+            ROW (n qubits)  ----| V^dagger |----[R]----| V |---|           |----|----|   |--------
+                                                               | W^dagger  |    |    | W |
+            COL (m qubits)  -----------------------------------|           |---[R]---|   |--------
 
         where @ is a control symbol and O is an "anti-control" symbol (i.e., controlled on the |0> state).
+        The gate R is a reflection about the |0> state.
 
         TODO: Add "mathematical section" explaining what V and W are.
 
         Args:
             circuit : qiskit.QuantumCircuit
                 The QuantumCircuit object that gates will be added to.
-                This QuantumCircuit must have at least four registers, enumerated below.
+                This QuantumCircuit must have at least three registers, enumerated below.
                 Any gates already in the circuit are un-modified. The gates to implement Controlled-W are added after
                 these gates.
 
-            qpe_register : qiskit.QuantumRegister
+            qpe_qubit : qiskit.QuantumRegister
                 Quantum register used for precision in phase estimation. In the diagrams above, this is labeled QPE.
                 The number of qubits in this register (p) is chosen by the user.
 
@@ -1332,27 +1405,22 @@ class QSVE(CircuitFactory):
                 Quantum register used to load/store columns of the matrix. In the diagrams above, this is labeled COL.
                 The number of qubits in this register (n) must be n = log2(number of matrix cols).
 
-            pkb_register : Union[qiskit.QuantumRegister, qiskit.QuantumRegister.Qubit]
-                Quantum register or qubit used for phase kickback (PKB). In the diagrams above, this is labeled PKB.
-                If pbk_register is a register, it must have one qubit. Otherwise, it must be a single qubit.
-
         Returns:
             None
 
         Modifies:
-            The input circuit.
-            Adds gates to this circuit to implement the controlled-W unitary.
+            The input circuit. Adds gates to this circuit to implement the controlled-W unitary.
         """
         # =====================
         # Check input arguments
         # =====================
 
         if type(circuit) != QuantumCircuit:
-            raise ValueError(
+            raise TypeError(
                 "The argument circuit must be of type qiskit.QuantumCircuit."
             )
 
-        if len(circuit.qregs) < 4:
+        if len(circuit.qregs) < 3:
             raise ValueError(
                 "The input circuit does not have enough quantum registers."
             )
@@ -1368,16 +1436,57 @@ class QSVE(CircuitFactory):
                 "Invalid number of qubits for row_register. This number should be {}".format(self._num_qubits_for_row)
             )
 
-        if type(pkb_register) == QuantumRegister:
-            pkb = pkb_register[0]
-        elif type(pkb_register) == circuit.quantumregister.Qubit:
-            pkb = pkb_register
-        else:
+        if qpe_qubit not in circuit.qubits:
             raise ValueError(
-                "The argument pbk_register must be of type qiskit.QuantumRegister" +
-                "or qiskit.circuit.quantumregister.Qubit"
+                "Argument qpe_qubit must be in circuit.qubits."
             )
 
+        for register in (row_register, col_register):
+            if register not in circuit.qregs:
+                raise ValueError(
+                    "The input circuit has no register {}.".format(register)
+                )
+
+        # =======================================================================================
+        # Store a copy of the circuit with all gates removed for the controlled row loading gates
+        # =======================================================================================
+
+        ctrl_row_load_circuit = deepcopy(circuit)
+        ctrl_row_load_circuit.data = []
+
+        # =================
+        # Build the circuit
+        # =================
+
+        # Get the row norm circuit
+        row_norm_circuit = self.row_norm_tree.preparation_circuit(row_register)
+
+        # Add the inverse row norm circuit. This corresponds to V^dagger in the doc string circuit diagram.
+        circuit += row_norm_circuit.inverse()
+
+        # Add the controlled reflection on the row register. This corresponds to
+        # the first C(R) in the doc string circuit diagram.
+        self._controlled_reflection_circuit(circuit, qpe_qubit, row_register)
+
+        # Add the row norm circuit. This corresponds to V in the doc string diagram.
+        circuit += row_norm_circuit
+
+        # Get the controlled row loading operations. This corresponds to W in the doc string circuit diagram.
+        for ii in range(len(col_register)):
+            row_tree = self.get_tree(ii)
+            ctrl_row_load_circuit += row_tree.preparation_circuit(
+                row_register, control_register=col_register, control_key=ii
+            )
+
+        # Add W^\dagger to the circuit
+        circuit += ctrl_row_load_circuit.inverse()
+
+        # Add the controlled reflection on the column register. This corresponds to
+        # the second C(R) in the doc string circuit diagram.
+        self._controlled_reflection_circuit(circuit, qpe_qubit, col_register)
+
+        # Add W to the circuit
+        circuit += ctrl_row_load_circuit
 
 # ===================
 # Unit tests for QSVE
@@ -1868,9 +1977,9 @@ def test_prep_with_ctrl_three_qubit_state_five_controls():
 
 if __name__ == "__main__":
     # Flags for testing
-    TEST_QSVE = True
-    TEST_BINARY_TREE = True
-    TEST_TREE_CTRL = True
+    TEST_QSVE = False
+    TEST_BINARY_TREE = False
+    TEST_TREE_CTRL = False
 
     import time
 
@@ -1938,3 +2047,24 @@ if __name__ == "__main__":
     runtime = time.time() - start
 
     print("Testing took %0.3f minutes." %(runtime / 60))
+
+    matrix = np.random.rand(2, 2)
+    matrix += matrix.conj().T
+
+    qsve = QSVE(matrix, nprecision_bits=3)
+
+    print(qsve.matrix)
+
+    print()
+
+    print(qsve.row_norm_tree)
+
+    qsve.shift_matrix()
+
+    print()
+
+    print(qsve.matrix)
+
+    print()
+
+    print(qsve.row_norm_tree)
