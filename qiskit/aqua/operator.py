@@ -97,8 +97,9 @@ class Operator(object):
                     lhs._paulis[idx][0] = operation(lhs._paulis[idx][0], pauli[0])
                 else:
                     lhs._paulis_table[pauli_label] = len(lhs._paulis)
-                    pauli[0] = operation(0.0, pauli[0])
-                    lhs._paulis.append(pauli)
+                    new_pauli = copy.deepcopy(pauli)
+                    new_pauli = operation(0.0, pauli[0])
+                    lhs._paulis.append(new_pauli)
         elif lhs._grouped_paulis is not None and rhs._grouped_paulis is not None:
             lhs._grouped_paulis_to_paulis()
             rhs._grouped_paulis_to_paulis()
@@ -375,6 +376,7 @@ class Operator(object):
     @property
     def matrix(self):
         """Getter of matrix; if matrix is diagonal, diagonal matrix is returned instead."""
+        self._to_dia_matrix(mode='matrix')
         return self._dia_matrix if self._dia_matrix is not None else self._matrix
 
     def enable_summarize_circuits(self):
