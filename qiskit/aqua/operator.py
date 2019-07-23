@@ -360,7 +360,7 @@ class Operator(object):
         elif mode == 'grouped_paulis' and self._grouped_paulis is not None:
             self._grouped_paulis_to_paulis()
             self._to_dia_matrix(mode='paulis')
-
+            self._paulis_to_grouped_paulis()
         else:
             self._dia_matrix = None
 
@@ -377,7 +377,6 @@ class Operator(object):
     @property
     def matrix(self):
         """Getter of matrix; if matrix is diagonal, diagonal matrix is returned instead."""
-        self._to_dia_matrix(mode='matrix')
         return self._dia_matrix if self._dia_matrix is not None else self._matrix
 
     def enable_summarize_circuits(self):
