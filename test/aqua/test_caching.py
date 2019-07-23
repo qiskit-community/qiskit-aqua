@@ -101,7 +101,7 @@ class TestCaching(QiskitAquaTestCase):
         [4],
         [1]
     ])
-    def test_vqe_caching_direct(self, max_evals_grouped=1):
+    def test_vqe_caching_direct(self, max_evals_grouped):
         self._build_refrence_result(backends=['statevector_simulator'])
         backend = BasicAer.get_backend('statevector_simulator')
         num_qubits = self.algo_input.qubit_op.num_qubits
@@ -122,12 +122,11 @@ class TestCaching(QiskitAquaTestCase):
         self.assertLess(speedup, speedup_min)
 
     def test_saving_and_loading_e2e(self):
-        self._build_refrence_result(backends=['statevector_simulator'])
         backend = BasicAer.get_backend('statevector_simulator')
         num_qubits = self.algo_input.qubit_op.num_qubits
         init_state = Zero(num_qubits)
-        var_form = RY(num_qubits, 3, initial_state=init_state)
-        optimizer = L_BFGS_B()
+        var_form = RY(num_qubits, 1, initial_state=init_state)
+        optimizer = L_BFGS_B(maxiter=10)
         algo = VQE(self.algo_input.qubit_op, var_form, optimizer)
 
         with tempfile.NamedTemporaryFile(suffix='.inp', delete=True) as cache_tmp_file:

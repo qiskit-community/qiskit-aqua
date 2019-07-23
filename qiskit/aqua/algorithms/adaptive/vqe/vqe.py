@@ -407,15 +407,9 @@ class VQE(VQAlgorithm):
         qc = self.get_optimal_circuit()
         if self._quantum_instance.is_statevector:
             ret = self._quantum_instance.execute(qc)
-            self._ret['min_vector'] = ret.get_statevector(qc, decimals=16)
+            self._ret['min_vector'] = ret.get_statevector(qc)
         else:
-            c = ClassicalRegister(qc.width(), name='c')
-            q = find_regs_by_name(qc, 'q')
-            qc.add_register(c)
-            qc.barrier(q)
-            qc.measure(q, c)
-            ret = self._quantum_instance.execute(qc)
-            self._ret['min_vector'] = ret.get_counts(qc)
+            self._ret['min_vector'] = None
         return self._ret['min_vector']
 
     @property

@@ -46,7 +46,9 @@ Added
 -   Chemistry: Merged qiskit-chemistry to this repo. The old chemistry changelog is at 
     [OLD_CHEMISTRY_CHANGELOG.md](OLD_CHEMISTRY_CHANGELOG.md)
 -   Add `evolution_instruction` function to get registerless instruction of time evolution. 
--   Add `op_converter` module to unified the place in charge of converting different types of operators.   
+-   Add `op_converter` module to unified the place in charge of converting different types of operators.
+-   Add `Z2Symmetries` class to encapsulate the Z2 symmetries info and has helper methods for tapering an
+    Operator.       
 
 Changed
 -------
