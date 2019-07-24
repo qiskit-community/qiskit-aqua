@@ -39,7 +39,6 @@ from copy import deepcopy
 
 import numpy as np
 
-from qiskit.aqua.utils import CircuitFactory
 from qiskit.aqua.circuits.gates.multi_control_toffoli_gate import mct
 from qiskit.aqua.circuits.gates.multi_control_rotation_gates import mcry
 from qiskit import QuantumRegister, QuantumCircuit, execute, BasicAer
@@ -1114,7 +1113,7 @@ def test_prep_circuit_negative_amplitudes_large():
 # QSVE Class
 # ==========
 
-class QSVE(CircuitFactory):
+class QSVE:
     """Quantum Singular Value Estimation (QSVE) class."""
 
     def __init__(self, matrix, nprecision_bits=3):
@@ -1155,12 +1154,10 @@ class QSVE(CircuitFactory):
         # Store the number of qubits needed for the matrix rows and cols
         self._num_qubits_for_row = int(np.log2(ncols))
         self._num_qubits_for_col = int(np.log2(nrows))
+        self._num_qubits_for_qpe = int(nprecision_bits)
 
         # Get the number of qubits needed for the circuit
         nqubits = int(np.log2(nrows * ncols) + nprecision_bits)
-
-        # Initialize the base class
-        CircuitFactory.__init__(self, nqubits)
 
         # Store a copy of the matrix
         self._matrix = deepcopy(matrix)
@@ -1284,6 +1281,63 @@ class QSVE(CircuitFactory):
         # Set the shifted flag to True
         self._shifted = True
 
+    # @staticmethod
+    # def _add_not_gates_for_control_key(circuit, register, control_key):
+    #     """Adds NOT gates to the circuit on the appropriate qubits in the register for the input key.
+    #
+    #     Examples:
+    #         (1) If register consists of 3 qubits and control_key = 2:
+    #
+    #         We first represent the control_key in binary with 3 bits.
+    #
+    #                 control_key = "010"
+    #
+    #         We then add not gates on the qubits where there is a 1 in the control_key.
+    #
+    #                 qubit 1 -----------
+    #                 qubit 2 ----[X]----
+    #                 qubit 3 -----------
+    #
+    #         (2) If the register contains 4 qubits and control_key = 3 = "0011",
+    #         then this method will add the following circuit:
+    #
+    #                 qubit 1 -----------
+    #                 qubit 2 -----------
+    #                 qubit 3 ----[X]----
+    #                 qubit 4 ----[X]----
+    #
+    #     Returns:
+    #         None
+    #
+    #     Modifies:
+    #         circuit. Adds gates to this circuit as described above.
+    #     """
+    #     # Input argument checks
+    #     if type(circuit) != QuantumCircuit:
+    #         raise TypeError(
+    #             "Argument circuit must be of type qiskit.QuantumCircuit."
+    #         )
+    #
+    #     if register not in circuit.qregs:
+    #         raise ValueError(
+    #             "Argument register must be in circuit.qregs."
+    #         )
+    #
+    #     if 0 < control_key > len(register):
+    #         raise ValueError(
+    #             "Invalid control_key. This argument must satisfy 0 <= control_key < len(register)."
+    #         )
+    #
+    #     # Get the binary representation of the control key
+    #     key = np.binary_repr(control_key, len(register))
+    #
+    #     assert len(key) == len(register)
+    #
+    #     # Add NOT gates where appropriate
+    #     for (ii, char) in enumerate(key):
+    #         if char == "1":
+    #             circuit.x(register[ii])
+
     @staticmethod
     def _controlled_reflection_circuit(circuit, ctrl_qubit, register):
         """Adds the gates for a controlled reflection about the |0> state to the input circuit.
@@ -1358,7 +1412,7 @@ class QSVE(CircuitFactory):
         # Add NOT gates on all qubits in the reflection registers (for anti-controls)
         circuit.x(register)
 
-    def build(self, circuit, qpe_qubit, row_register, col_register):
+    def controlled_unitary(self, circuit, qpe_qubit, row_register, col_register):
         """Adds the gates for one Controlled-W unitary to the input circuit.
 
         The input circuit must have at least four registers corresponding to the input arguments
@@ -1471,14 +1525,19 @@ class QSVE(CircuitFactory):
         # Add the row norm circuit. This corresponds to V in the doc string diagram.
         circuit += row_norm_circuit
 
+        # DEBUG
+        circuit.barrier()
+
         # Get the controlled row loading operations. This corresponds to W in the doc string circuit diagram.
-        for ii in range(len(col_register)):
+        for ii in range(self.matrix_ncols):
             row_tree = self.get_tree(ii)
+
+            # Add the controlled row loading circuit
             ctrl_row_load_circuit += row_tree.preparation_circuit(
                 row_register, control_register=col_register, control_key=ii
             )
 
-        # Add W^\dagger to the circuit
+        # Add W^dagger to the circuit
         circuit += ctrl_row_load_circuit.inverse()
 
         # Add the controlled reflection on the column register. This corresponds to
@@ -1487,6 +1546,68 @@ class QSVE(CircuitFactory):
 
         # Add W to the circuit
         circuit += ctrl_row_load_circuit
+
+        # DEBUG
+        circuit.barrier()
+
+    def phase_estimation(self, circuit, qpe_register, row_register, col_register):
+        """Adds the phase estimation subroutine to the input circuit.
+
+        Args:
+            circuit : qiskit.QuantumCircuit
+                The QuantumCircuit object that gates will be added to.
+                This QuantumCircuit must have at least three registers, enumerated below.
+                Any gates already in the circuit are un-modified. The gates to implement QPE are added after
+                these gates.
+
+            qpe_register : qiskit.QuantumRegister
+                Quantum register used for precision in phase estimation.
+                The number of qubits in this register (p) is chosen by the user.
+
+            row_register : qiskit.QuantumRegister
+                Quantum register used to load/store rows of the matrix.
+                The number of qubits in this register (m) must be m = log2(number of matrix rows).
+
+            col_register : qiskit.QuantumRegister
+                Quantum register used to load/store columns of the matrix.
+                The number of qubits in this register (n) must be n = log2(number of matrix cols).
+
+
+        See help(QSVE.controlled_unitary) for further details on these registers.
+
+        Returns:
+            None
+
+        Modifies:
+            circuit
+        """
+        # Do the round of Hadamards on the precision register
+        circuit.h(qpe_register)
+
+        # DEBUG
+        circuit.barrier()
+
+        # Do the controlled unitary operators
+        for (p, qpe_qubit) in enumerate(qpe_register):
+            for _ in range(2**p):
+                self.controlled_unitary(circuit, qpe_qubit, row_register, col_register)
+
+        # Do the QFT on the precision register
+
+    def create_circuit(self):
+        """Returns a quantum circuit implementing the QSVE algorithm (without cosine)."""
+        # Create the quantum registers
+        qpe_register = QuantumRegister(self._num_qubits_for_qpe)
+        row_register = QuantumRegister(self._num_qubits_for_row)
+        col_register = QuantumRegister(self._num_qubits_for_col)
+
+        # Create the quantum circuit
+        circuit = QuantumCircuit(qpe_register, row_register, col_register)
+
+        # Do phase estimation
+        self.phase_estimation(circuit, qpe_register, row_register, col_register)
+
+        return circuit
 
 # ===================
 # Unit tests for QSVE
@@ -2046,9 +2167,9 @@ if __name__ == "__main__":
 
     runtime = time.time() - start
 
-    print("Testing took %0.3f minutes." %(runtime / 60))
+    print("Testing took %0.3f minutes." % (runtime / 60))
 
-    matrix = np.random.rand(2, 2)
+    matrix = np.random.randn(4, 4)
     matrix += matrix.conj().T
 
     qsve = QSVE(matrix, nprecision_bits=3)
@@ -2068,3 +2189,15 @@ if __name__ == "__main__":
     print()
 
     print(qsve.row_norm_tree)
+
+    circ = qsve.create_circuit()
+
+    # print(circ)
+
+    print("Depth = ", circ.depth())
+    print("# gates =", sum(circ.count_ops().values()))
+    print(circ.count_ops())
+
+    # native = circ.decompose()
+    # print(native.count_ops())
+    # print(native)
