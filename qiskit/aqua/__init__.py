@@ -31,9 +31,7 @@ from .utils.backend_utils import (get_aer_backend,
                                   get_backend_from_provider,
                                   get_local_providers,
                                   register_ibmq_and_get_known_providers,
-                                  get_provider_from_backend,
-                                  enable_ibmq_account,
-                                  disable_ibmq_account)
+                                  get_provider_from_backend)
 from .pluggable import Pluggable
 from .quantum_instance import QuantumInstance
 from .operator import Operator
@@ -64,8 +62,6 @@ __all__ = ['__version__',
            'get_local_providers',
            'register_ibmq_and_get_known_providers',
            'get_provider_from_backend',
-           'enable_ibmq_account',
-           'disable_ibmq_account',
            'local_pluggables_types',
            'local_pluggables',
            'get_pluggable_class',
