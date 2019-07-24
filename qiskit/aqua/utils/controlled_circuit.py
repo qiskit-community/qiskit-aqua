@@ -41,6 +41,7 @@ def apply_cu3(circuit, theta, phi, lam, c, t, use_basis_gates=True):
     else:
         circuit.cu3(theta, phi, lam, c, t)
 
+
 def apply_ccx(circuit, a, b, c, use_basis_gates=True):
     if use_basis_gates:
         circuit.u2(0, np.pi, c)
