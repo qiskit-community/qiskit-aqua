@@ -96,7 +96,7 @@ class QAOA(VQE):
 
         """
         self.validate(locals())
-        var_form = QAOAVarForm(operator, p, initial_state=initial_state, mixer_operator=mixer)
+        var_form = QAOAVarForm(operator.copy(), p, initial_state=initial_state, mixer_operator=mixer)
         super().__init__(operator, var_form, optimizer,
                          operator_mode=operator_mode, initial_point=initial_point,
                          max_evals_grouped=max_evals_grouped, aux_operators=aux_operators, callback=callback)
