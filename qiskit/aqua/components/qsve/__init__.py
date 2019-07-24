@@ -12,6 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+from .binary_tree import BinaryTree
 from .qsve import QSVE
 
-__all__ = ['QSVE']
+__all__ = ["BinaryTree", "QSVE"]
