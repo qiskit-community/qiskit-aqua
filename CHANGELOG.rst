@@ -18,6 +18,14 @@ The format is based on `Keep a Changelog`_.
 `UNRELEASED`_
 =============
 
+`0.5.4`_ - 2019-07-24
+=====================
+
+Fixed
+-----
+
+- Fix the bug about manipulating the right operand and rebuild diagonal matrix every time. (#622)
+
 `0.5.3`_ - 2019-07-16
 =====================
 
@@ -277,7 +285,8 @@ Changed
 - Updated qiskit minimum version in setup.py.
 - Fixed links in readme.me.
 
-.. _UNRELEASED: https://github.com/Qiskit/qiskit-aqua/compare/0.5.3...HEAD
+.. _UNRELEASED: https://github.com/Qiskit/qiskit-aqua/compare/0.5.4...HEAD
+.. _0.5.4: https://github.com/Qiskit/qiskit-aqua/compare/0.5.3...0.5.4
 .. _0.5.3: https://github.com/Qiskit/qiskit-aqua/compare/0.5.2...0.5.3
 .. _0.5.2: https://github.com/Qiskit/qiskit-aqua/compare/0.5.1...0.5.2
 .. _0.5.1: https://github.com/Qiskit/qiskit-aqua/compare/0.5.0...0.5.1
