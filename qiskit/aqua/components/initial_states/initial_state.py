@@ -65,7 +65,7 @@ class InitialState(Pluggable):
         raise NotImplementedError()
 
     @abstractmethod
-    def instruction(self):
+    def to_instruction(self):
         """
         Construct the instruction of desired initial state.
 

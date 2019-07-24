@@ -128,13 +128,13 @@ class Custom(InitialState):
                 else:
                     raise AquaError('Unexpected register type {}.'.format(type(register)))
 
-                circuit.append(self.instruction(), register)
+                circuit.append(self.to_instruction(), register)
                 self._circuit = circuit
             return self._circuit.copy()
         else:
             raise AquaError('Mode should be either "vector" or "circuit"')
 
-    def instruction(self):
+    def to_instruction(self):
         qr = QuantumRegister(self._num_qubits, name='q')
         circuit = QuantumCircuit(qr)
         if self._circuit is None:

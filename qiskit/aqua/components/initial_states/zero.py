@@ -52,12 +52,12 @@ class Zero(InitialState):
             if register is None:
                 register = QuantumRegister(self._num_qubits, name='q')
             circuit = QuantumCircuit(register)
-            circuit.append(self.instruction(), register)
+            circuit.append(self.to_instruction(), register)
             return circuit
         else:
             raise AquaError('Mode should be either "vector" or "circuit"')
 
-    def instruction(self):
+    def to_instruction(self):
         register = QuantumRegister(self._num_qubits, name='q')
         circuit = QuantumCircuit(register, name=self._name)
         circuit.reset(register)

@@ -58,12 +58,12 @@ class VarFormBased:
             if register is None:
                 register = QuantumRegister(self._var_form.num_qubits, name='q')
             circuit = QuantumCircuit(register, name=self._name)
-            circuit.append(self.instruction(), register)
+            circuit.append(self.to_instruction(), register)
             return circuit
         else:
             raise AquaError('Mode should be either "vector" or "circuit"')
 
-    def instruction(self):
+    def to_instruction(self):
         """
         Construct the statevector of desired initial state.
 

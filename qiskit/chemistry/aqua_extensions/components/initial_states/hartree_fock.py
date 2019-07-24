@@ -179,9 +179,7 @@ class HartreeFock(InitialState):
             if register is None:
                 register = QuantumRegister(self._num_qubits, name='q')
             quantum_circuit = QuantumCircuit(register)
-            for qubit_idx, bit in enumerate(self._bitstr[::-1]):
-                if bit:
-                    quantum_circuit.u3(np.pi, 0.0, np.pi, register[qubit_idx])
+            quantum_circuit.append(self.to_instruction(), register)
             return quantum_circuit
         else:
             raise ValueError('Mode should be either "vector" or "circuit"')
@@ -193,7 +191,7 @@ class HartreeFock(InitialState):
             self._build_bitstr()
         return self._bitstr
 
-    def instruction(self):
+    def to_instruction(self):
         """
         Construct the circuit to prepare the state from |0>.
 
