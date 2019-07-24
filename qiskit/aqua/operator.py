@@ -102,8 +102,9 @@ class Operator(object):
                     lhs._paulis[idx][0] = operation(lhs._paulis[idx][0], pauli[0])
                 else:
                     lhs._paulis_table[pauli_label] = len(lhs._paulis)
-                    pauli[0] = operation(0.0, pauli[0])
-                    lhs._paulis.append(pauli)
+                    new_pauli = copy.deepcopy(pauli)
+                    new_pauli[0] = operation(0.0, pauli[0])
+                    lhs._paulis.append(new_pauli)
         elif lhs._grouped_paulis is not None and rhs._grouped_paulis is not None:
             lhs._grouped_paulis_to_paulis()
             rhs._grouped_paulis_to_paulis()
@@ -111,6 +112,7 @@ class Operator(object):
             lhs._paulis_to_grouped_paulis()
         elif lhs._matrix is not None and rhs._matrix is not None:
             lhs._matrix = operation(lhs._matrix, rhs._matrix)
+            lhs._to_dia_matrix(mode='matrix')
         else:
             raise TypeError("the representations of two Operators should be the same. ({}, {})".format(
                 lhs.representations, rhs.representations))
@@ -373,7 +375,7 @@ class Operator(object):
         elif mode == 'grouped_paulis' and self._grouped_paulis is not None:
             self._grouped_paulis_to_paulis()
             self._to_dia_matrix(mode='paulis')
-
+            self._paulis_to_grouped_paulis()
         else:
             self._dia_matrix = None
 
