@@ -114,6 +114,7 @@ class HartreeFock(InitialState):
                              "actual {}".format(self._num_qubits, num_qubits))
 
         self._bitstr = None
+        self._name = self.__class__.__name__
 
     def _build_bitstr(self):
 
@@ -191,3 +192,19 @@ class HartreeFock(InitialState):
         if self._bitstr is None:
             self._build_bitstr()
         return self._bitstr
+
+    def instruction(self):
+        """
+        Construct the circuit to prepare the state from |0>.
+
+        Returns:
+            Instruction
+        """
+        if self._bitstr is None:
+            self._build_bitstr()
+        register = QuantumRegister(self._num_qubits, name='q')
+        quantum_circuit = QuantumCircuit(register, name=self._name)
+        for qubit_idx, bit in enumerate(self._bitstr[::-1]):
+            if bit:
+                quantum_circuit.u3(np.pi, 0.0, np.pi, register[qubit_idx])
+        return quantum_circuit.to_instruction()

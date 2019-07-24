@@ -15,6 +15,7 @@
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 
+from qiskit.aqua import AquaError
 from qiskit.aqua.components.variational_forms import VariationalForm
 
 
@@ -98,6 +99,7 @@ class SwapRZ(VariationalForm):
         # for repeated block
         self._num_parameters += (len(self._entangled_qubits) + len(self._entangler_map)) * depth
         self._bounds = [(-np.pi, np.pi)] * self._num_parameters
+        self._name = self.__class__.__name__
 
     def construct_circuit(self, parameters, q=None):
         """
@@ -109,19 +111,33 @@ class SwapRZ(VariationalForm):
 
         Returns:
             QuantumCircuit: a quantum circuit with given `parameters`
-
-        Raises:
-            ValueError: the number of parameters is incorrect.
         """
-        if len(parameters) != self._num_parameters:
-            raise ValueError('The number of parameters has to be {}'.format(self._num_parameters))
-
         if q is None:
             q = QuantumRegister(self._num_qubits, name='q')
+        circuit = QuantumCircuit(q)
+        circuit.append(self.to_instruction(parameters), q)
+        return circuit
+
+    def to_instruction(self, parameters):
+        """
+        Construct the variational form, given its parameters.
+
+        Args:
+            parameters (numpy.ndarray): circuit parameters
+
+        Returns:
+            QuantumCircuit: a quantum circuit with given `parameters`
+
+        Raises:
+            AquaError: the number of parameters is incorrect.
+        """
+        if len(parameters) != self._num_parameters:
+            raise AquaError('The number of parameters has to be {}'.format(self._num_parameters))
+
+        q = QuantumRegister(self._num_qubits, name='q')
+        circuit = QuantumCircuit(q, name=self._name)
         if self._initial_state is not None:
-            circuit = self._initial_state.construct_circuit('circuit', q)
-        else:
-            circuit = QuantumCircuit(q)
+            circuit.append(self._initial_state, q)
 
         param_idx = 0
         for qubit in range(self._num_qubits):
@@ -155,4 +171,4 @@ class SwapRZ(VariationalForm):
                 param_idx += 1
         circuit.barrier(q)
 
-        return circuit
+        return circuit.to_instruction()

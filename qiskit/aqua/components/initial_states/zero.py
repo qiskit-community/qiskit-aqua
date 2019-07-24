@@ -43,6 +43,7 @@ class Zero(InitialState):
         """
         super().__init__()
         self._num_qubits = num_qubits
+        self._name = self.__class__.__name__
 
     def construct_circuit(self, mode='circuit', register=None):
         if mode == 'vector':
@@ -50,7 +51,14 @@ class Zero(InitialState):
         elif mode == 'circuit':
             if register is None:
                 register = QuantumRegister(self._num_qubits, name='q')
-            quantum_circuit = QuantumCircuit(register)
-            return quantum_circuit
+            circuit = QuantumCircuit(register)
+            circuit.append(self.instruction(), register)
+            return circuit
         else:
             raise AquaError('Mode should be either "vector" or "circuit"')
+
+    def instruction(self):
+        register = QuantumRegister(self._num_qubits, name='q')
+        circuit = QuantumCircuit(register, name=self._name)
+        circuit.reset(register)
+        return circuit.to_instruction()

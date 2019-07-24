@@ -176,6 +176,7 @@ class UCCSD(VariationalForm):
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
         self._logging_construct_circuit = True
+        self._name = self.__class__.__name__
 
     def _build_hopping_operators(self):
         from .uccsd import UCCSD
@@ -247,16 +248,36 @@ class UCCSD(VariationalForm):
         Raises:
             ValueError: the number of parameters is incorrect.
         """
-        from .uccsd import UCCSD
         if len(parameters) != self._num_parameters:
             raise ValueError('The number of parameters has to be {}'.format(self._num_parameters))
 
         if q is None:
             q = QuantumRegister(self._num_qubits, name='q')
+        circuit = QuantumCircuit(q)
+        circuit.append(self.to_instruction(parameters), q)
+        return circuit
+
+    def to_instruction(self, parameters):
+        """
+        Construct the variational form, given its parameters.
+
+        Args:
+            parameters (numpy.ndarray): circuit parameters
+
+        Returns:
+            QuantumCircuit: a quantum circuit with given `parameters`
+
+        Raises:
+            ValueError: the number of parameters is incorrect.
+        """
+        from .uccsd import UCCSD
+        if len(parameters) != self._num_parameters:
+            raise ValueError('The number of parameters has to be {}'.format(self._num_parameters))
+
+        q = QuantumRegister(self._num_qubits, name='q')
+        circuit = QuantumCircuit(q, name=self._name)
         if self._initial_state is not None:
-            circuit = self._initial_state.construct_circuit('circuit', q)
-        else:
-            circuit = QuantumCircuit(q)
+            circuit.append(self._initial_state, q)
 
         if logger.isEnabledFor(logging.DEBUG) and self._logging_construct_circuit:
             logger.debug("Evolving hopping operators:")
@@ -275,7 +296,7 @@ class UCCSD(VariationalForm):
             else:
                 circuit += qc
 
-        return circuit
+        return circuit.to_instruction()
 
     @staticmethod
     def _construct_circuit_for_one_excited_operator(qubit_op_and_param, qr, num_time_slices):

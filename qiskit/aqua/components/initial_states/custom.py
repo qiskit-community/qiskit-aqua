@@ -128,17 +128,25 @@ class Custom(InitialState):
                 else:
                     raise AquaError('Unexpected register type {}.'.format(type(register)))
 
-                if self._state is None or self._state == 'random':
-                    svc = StateVectorCircuit(self._state_vector)
-                    svc.construct_circuit(circuit=circuit, register=register)
-                elif self._state == 'uniform':
-                    for i in range(self._num_qubits):
-                        circuit.u2(0.0, np.pi, register[i])
-                elif self._state == 'zero':
-                    pass
-                else:
-                    AquaError('Unexpected state mode {}.'.format(self._state))
+                circuit.append(self.instruction(), register)
                 self._circuit = circuit
             return self._circuit.copy()
         else:
             raise AquaError('Mode should be either "vector" or "circuit"')
+
+    def instruction(self):
+        qr = QuantumRegister(self._num_qubits, name='q')
+        circuit = QuantumCircuit(qr)
+        if self._circuit is None:
+            if self._state is None or self._state == 'random':
+                svc = StateVectorCircuit(self._state_vector)
+                svc.construct_circuit(circuit=circuit, register=qr)
+            elif self._state == 'uniform':
+                for i in range(self._num_qubits):
+                    circuit.u2(0.0, np.pi, qr[i])
+            elif self._state == 'zero':
+                pass
+            else:
+                AquaError('Unexpected state mode {}.'.format(self._state))
+            self._circuit = circuit
+        return self._circuit.to_instruction()

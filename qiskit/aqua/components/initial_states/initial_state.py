@@ -64,6 +64,16 @@ class InitialState(Pluggable):
         """
         raise NotImplementedError()
 
+    @abstractmethod
+    def instruction(self):
+        """
+        Construct the instruction of desired initial state.
+
+        Returns:
+            InstructionSet
+        """
+        raise NotImplementedError()
+
     @property
     def bitstr(self):
         return None

@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+from qiskit import QuantumCircuit, QuantumRegister
+
 from qiskit.aqua import AquaError
 
 
@@ -32,6 +34,7 @@ class VarFormBased:
             raise RuntimeError('Incompatible parameters provided.')
         self._var_form = var_form
         self._var_form_params = params
+        self._name = self.__class__.__name__
 
     def construct_circuit(self, mode='circuit', register=None):
         """
@@ -52,6 +55,19 @@ class VarFormBased:
         if mode == 'vector':
             raise RuntimeError('Initial state based on variational form does not support vector mode.')
         elif mode == 'circuit':
-            return self._var_form.construct_circuit(self._var_form_params, q=register)
+            if register is None:
+                register = QuantumRegister(self._var_form.num_qubits, name='q')
+            circuit = QuantumCircuit(register, name=self._name)
+            circuit.append(self.instruction(), register)
+            return circuit
         else:
             raise AquaError('Mode should be either "vector" or "circuit"')
+
+    def instruction(self):
+        """
+        Construct the statevector of desired initial state.
+
+        Returns:
+            QuantumCircuit or numpy.ndarray: statevector.
+        """
+        return self._var_form.to_instruction(self._var_form_params)

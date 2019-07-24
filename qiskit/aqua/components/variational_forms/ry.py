@@ -15,6 +15,7 @@
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 
+from qiskit.aqua import AquaError
 from qiskit.aqua.components.variational_forms import VariationalForm
 
 
@@ -122,6 +123,7 @@ class RY(VariationalForm):
             self._num_parameters += len(self._entangler_map) * depth
 
         self._bounds = [(-np.pi, np.pi)] * self._num_parameters
+        self._name = self.__class__.__name__ + self._entanglement_gate.upper()
 
     def construct_circuit(self, parameters, q=None):
         """
@@ -137,15 +139,33 @@ class RY(VariationalForm):
         Raises:
             ValueError: the number of parameters is incorrect.
         """
-        if len(parameters) != self._num_parameters:
-            raise ValueError('The number of parameters has to be {}'.format(self._num_parameters))
-
         if q is None:
             q = QuantumRegister(self._num_qubits, name='q')
+        circuit = QuantumCircuit(q)
+        circuit.append(self.to_instruction(parameters), q)
+        return circuit
+
+    def to_instruction(self, parameters):
+        """
+        Construct the variational form, given its parameters.
+
+        Args:
+            parameters (numpy.ndarray): circuit parameters.
+
+        Returns:
+            InstructionSet: a quantum instruction with given `parameters`
+
+        Raises:
+            AquaError: the number of parameters is incorrect.
+        """
+        if len(parameters) != self._num_parameters:
+            raise AquaError('The number of parameters has to be {}'.format(self._num_parameters))
+
+        q = QuantumRegister(self._num_qubits, name='q')
+        circuit = QuantumCircuit(q, name=self._name)
+
         if self._initial_state is not None:
-            circuit = self._initial_state.construct_circuit('circuit', q)
-        else:
-            circuit = QuantumCircuit(q)
+            circuit.append(self._initial_state, q)
 
         param_idx = 0
         for qubit in range(self._num_qubits):
@@ -175,8 +195,7 @@ class RY(VariationalForm):
                 else:
                     circuit.cx(q[src], q[targ])
 
-            # Skip the final RY layer if it is specified and we reached the
-            # last block
+            # Skip the final RY layer if it is specified and we reached the last block
             if not self._skip_final_ry or block != self._depth - 1:
                 circuit.barrier(q)
                 for qubit in self._entangled_qubits:
@@ -184,4 +203,4 @@ class RY(VariationalForm):
                     param_idx += 1
         circuit.barrier(q)
 
-        return circuit
+        return circuit.to_instruction()

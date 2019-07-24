@@ -68,6 +68,18 @@ class VariationalForm(Pluggable):
         """
         raise NotImplementedError()
 
+    @abstractmethod
+    def to_instruction(self, parameters):
+        """Construct the variational form instruction, given its parameters.
+
+        Args:
+            parameters (numpy.ndarray[float]): circuit parameters.
+
+        Returns:
+            A quantum instruction.
+        """
+        raise NotImplementedError()
+
     @property
     def num_parameters(self):
         """Number of parameters of the variational form.
