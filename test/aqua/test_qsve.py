@@ -202,4 +202,16 @@ class TestQSVE(QiskitAquaTestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    # unittest.main()
+
+    matrix = np.random.rand(2, 2)
+    matrix += matrix.conj().T
+
+    qsve = QSVE(matrix)
+
+    qreg = QuantumRegister(6)
+    circ = QuantumCircuit(qreg)
+
+    qsve._qft(circ, qreg, final_swaps=False)
+
+    print(circ)

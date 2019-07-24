@@ -420,6 +420,54 @@ class QSVE:
         # # DEBUG
         # circuit.barrier()
 
+    @staticmethod
+    def _qft(circuit, register, final_swaps=False):
+        """Adds the gates for a quantum Fourier Transform (QFT) to the input circuit in the specified register.
+
+        Args:
+            circuit : qiskit.QuantumCircuit
+                Circuit to add gates to.
+
+            register : qiskit.QuantumRegister
+                Register in the circuit where the QFT is performed.
+
+        Returns:
+            None
+
+        Modifies:
+            circuit. Adds the gates for the QFT.
+        """
+        # Error checking on input arguments
+        if type(circuit) != QuantumCircuit:
+            raise TypeError(
+                "Argument circuit must be of type qiskit.QuantumCircuit."
+            )
+
+        if register not in circuit.qregs:
+            raise ValueError(
+                "Argument register must be a valid qiskit.QuantumRegister in circuit.qregs."
+            )
+
+        # Get the number of qubits in the register
+        nqubits = len(register)
+
+        # Add the gates
+        for targ in range(nqubits - 1, -1, -1):
+            print("targ =", targ)
+            # Add the Hadamard gate
+            circuit.h(register[targ])
+
+            # Add the controlled Rz gates
+            for ctrl in range(targ - 1, -1, -1):
+                angle = - 2 * np.pi * 2**(ctrl - targ)
+                circuit.cu1(angle, register[ctrl], register[targ])
+
+        if final_swaps:
+            for qubit in range(nqubits // 2):
+                ctrl = qubit
+                targ = nqubits - ctrl - 1
+                circuit.swap(register[ctrl], register[targ])
+
     def phase_estimation(self, circuit, qpe_register, row_register, col_register):
         """Adds the phase estimation subroutine to the input circuit.
 
@@ -462,7 +510,11 @@ class QSVE:
             for _ in range(2**p):
                 self.controlled_unitary(circuit, qpe_qubit, row_register, col_register)
 
+        # DEBUG
+        circuit.barrier()
+
         # TODO: Do the QFT on the precision register
+        self._qft(circuit, qpe_register)
 
     def create_circuit(self):
         """Returns a quantum circuit implementing the QSVE algorithm (without cosine)."""
@@ -474,27 +526,27 @@ class QSVE:
         # Create the quantum circuit
         circuit = QuantumCircuit(qpe_register, row_register, col_register)
 
+        # TODO: Do the optional state preparation
+
         # Do phase estimation
         self.phase_estimation(circuit, qpe_register, row_register, col_register)
 
         return circuit
 
-# ===================
-# Unit tests for QSVE
-# ===================
-
 
 if __name__ == "__main__":
-    matrix = np.random.randn(2, 2)
+    matrix = np.random.randn(4, 4)
     matrix += matrix.conj().T
 
-    qsve = QSVE(matrix, nprecision_bits=2)
+    qsve = QSVE(matrix, nprecision_bits=3)
 
     print(qsve.matrix)
 
     print()
 
     print(qsve.row_norm_tree)
+    print(qsve.get_tree(0))
+    print(qsve.get_tree(1))
 
     circ = qsve.create_circuit()
 
@@ -507,15 +559,29 @@ if __name__ == "__main__":
     print("# qubits =", len(circ.qubits))
     print(circ.count_ops())
 
-    circ = transpile(circ, optimization_level=2)
+    trans = transpile(circ, optimization_level=2)
 
     print("\n\nTranspiled circuit stats:\n")
+
+    print("Depth = ", trans.depth())
+    print("# gates =", sum(trans.count_ops().values()))
+    print("# qubits =", len(trans.qubits))
+    print(trans.count_ops())
+
+    print("\n\nDecomposed circuit stats:\n")
+
+    dec = circ.decompose()
+
+    print("Depth = ", dec.depth())
+    print("# gates =", sum(dec.count_ops().values()))
+    print("# qubits =", len(dec.qubits))
+    print(dec.count_ops())
+
+    print("\n\nTranspiled decomposed circuit stats:\n")
+
+    circ = transpile(dec, optimization_level=2)
 
     print("Depth = ", circ.depth())
     print("# gates =", sum(circ.count_ops().values()))
     print("# qubits =", len(circ.qubits))
     print(circ.count_ops())
-
-    # native = circ.decompose()
-    # print(native.count_ops())
-    # print(native)
