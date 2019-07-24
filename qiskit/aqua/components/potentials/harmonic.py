@@ -52,7 +52,7 @@ class Harmonic(Potential):
         self._tau = tau
 
     #@abstractmethod
-    def construct_circuit(self, mode, reverse = False, shift = False, register=None):
+    def construct_circuit(self, mode, q=None):
         """
         Construct a circuit to apply a harmonic potential on the statevector.
 
@@ -66,36 +66,9 @@ class Harmonic(Potential):
         if mode=='matrix':
 
             circ = np.zeros((self._N,self._N), dtype='complex64')
-            if not reverse:
-                for i in range(self._N):
-                    circ[i,i]=-1.j * 0.5 * self._c * (self._x0 + i*self._delta)**2 * self._tau
 
-            else:
-                for i in range(self._N):
-                    bin_i = np.fromstring(np.binary_repr(i,width=self._num_qubits), dtype='S1').astype(int)
-                    for k in range(int(self._num_qubits/2)):
-                        i1 = bin_i[k]
-                        i2 = bin_i[self._num_qubits-1-k]
-                        bin_i[self._num_qubits-1-k]=i1
-                        bin_i[k]=i2
-                    j = 0
-                    for k in range(self._num_qubits):
-                        ki = int(bin_i[self._num_qubits-1-k])
-                        j+= 2**k * ki
-
-                    circ[j,j]=-1.j * 0.5 * self._c * (self._x0 + i*self._delta)**2 * self._tau
-
-
-
-            if shift:
-
-                Id = np.identity(int(self._N / 2))
-                Null = np.zeros((int(self._N / 2), int(self._N / 2)))
-                A = np.concatenate((Null, Id), axis=1)
-                B = np.concatenate((Id, Null), axis=1)
-                X = np.concatenate((A, B), axis=0)
-
-                circ = np.matmul(X, np.matmul(circ, X))
+            for i in range(self._N):
+                circ[i,i]=-1.j * 0.5 * self._c * (self._x0 + i*self._delta)**2 * self._tau
 
             return lng.expm(circ)
 
@@ -105,17 +78,10 @@ class Harmonic(Potential):
             #if ordering == 'normal':
             gamma = 0.5 * self._c *self._tau
 
-            q = QuantumRegister(self._num_qubits, name='q')
+            #q = QuantumRegister(self._num_qubits, name='q')
             circ = QuantumCircuit(q)
 
-            if reverse:
-                for i in range(int(self._num_qubits / 2)):
-                    circ.swap(q[i], q[self._num_qubits - 1 - i])
-
-            if shift:
-                circ.x(q[self._num_qubits-1])
-
-            #global phase
+            #   global phase
             circ.u1(-1 * gamma * self._x0**2, q[0])
             circ.x(q[0])
             circ.u1(-1 * gamma * self._x0**2, q[0])
@@ -132,13 +98,6 @@ class Harmonic(Potential):
                         circ.u1(-1 * gamma * self._delta**2 * 2**(i+j), q[i])
                     else:
                         circ.cu1(-1 * gamma * self._delta**2 * 2**i * 2**j, q[i], q[j])
-
-            if shift:
-                circ.x(q[self._num_qubits-1])
-
-            if reverse:
-                for i in range(int(self._num_qubits / 2)):
-                    circ.swap(q[i], q[self._num_qubits - 1 - i])
 
 
             return circ
