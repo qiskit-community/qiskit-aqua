@@ -397,7 +397,7 @@ class BinaryTree:
         # Do the initial pattern of X gates on control register (if provided) to get controls & anti-controls correct
         if control_register_qubits:
             for (ii, bit) in enumerate(control_key):
-                if bit == "1":
+                if bit == "0":
                     circ.x(control_register[ii])
 
         # =========================================
@@ -500,7 +500,7 @@ class BinaryTree:
         # Do the final pattern of X gates on the control qubits to get controls & anti-controls correct
         if control_register_qubits:
             for (ii, bit) in enumerate(control_key):
-                if bit == "1":
+                if bit == "0":
                     circ.x(control_register[ii])
 
         return circ

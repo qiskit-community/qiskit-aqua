@@ -38,7 +38,7 @@ import numpy as np
 
 from qiskit.aqua.circuits.gates.multi_control_toffoli_gate import mct
 from qiskit.aqua.components.qsve import BinaryTree
-from qiskit import QuantumRegister, QuantumCircuit, execute, BasicAer, transpile
+from qiskit import QuantumRegister, QuantumCircuit, ClassicalRegister, execute, BasicAer, transpile
 
 
 class QSVE:
@@ -395,8 +395,8 @@ class QSVE:
         # Add the row norm circuit. This corresponds to V in the doc string diagram.
         circuit += row_norm_circuit
 
-        # # DEBUG
-        # circuit.barrier()
+        # DEBUG
+        circuit.barrier()
 
         # Get the controlled row loading operations. This corresponds to W in the doc string circuit diagram.
         for ii in range(self.matrix_ncols):
@@ -417,8 +417,8 @@ class QSVE:
         # Add W to the circuit
         circuit += ctrl_row_load_circuit
 
-        # # DEBUG
-        # circuit.barrier()
+        # DEBUG
+        circuit.barrier()
 
     @staticmethod
     def _qft(circuit, register, final_swaps=False):
@@ -453,7 +453,6 @@ class QSVE:
 
         # Add the gates
         for targ in range(nqubits - 1, -1, -1):
-            print("targ =", targ)
             # Add the Hadamard gate
             circuit.h(register[targ])
 
@@ -502,8 +501,8 @@ class QSVE:
         # Do the round of Hadamards on the precision register
         circuit.h(qpe_register)
 
-        # # DEBUG
-        # circuit.barrier()
+        # DEBUG
+        circuit.barrier()
 
         # Do the controlled unitary operators
         for (p, qpe_qubit) in enumerate(qpe_register):
@@ -516,7 +515,7 @@ class QSVE:
         # TODO: Do the QFT on the precision register
         self._qft(circuit, qpe_register)
 
-    def create_circuit(self):
+    def create_circuit(self, terminal_measurements=False):
         """Returns a quantum circuit implementing the QSVE algorithm (without cosine)."""
         # Create the quantum registers
         qpe_register = QuantumRegister(self._num_qubits_for_qpe)
@@ -526,32 +525,23 @@ class QSVE:
         # Create the quantum circuit
         circuit = QuantumCircuit(qpe_register, row_register, col_register)
 
-        # TODO: Do the optional state preparation
+        # Load the row norms of the matrix in the row register
+        circuit += self.row_norm_tree.preparation_circuit(row_register)
+
+        # TODO: Do the optional state preparation in the column register
 
         # Do phase estimation
         self.phase_estimation(circuit, qpe_register, row_register, col_register)
 
+        if terminal_measurements:
+            creg = ClassicalRegister(self._num_qubits_for_qpe)
+            circuit.add_register(creg)
+            circuit.measure(qpe_register, creg)
+
         return circuit
 
 
-if __name__ == "__main__":
-    matrix = np.random.randn(4, 4)
-    matrix += matrix.conj().T
-
-    qsve = QSVE(matrix, nprecision_bits=3)
-
-    print(qsve.matrix)
-
-    print()
-
-    print(qsve.row_norm_tree)
-    print(qsve.get_tree(0))
-    print(qsve.get_tree(1))
-
-    circ = qsve.create_circuit()
-
-    # print(circ)
-
+def stats(circ):
     print("\n\nBase circuit stats:\n")
 
     print("Depth = ", circ.depth())
@@ -585,3 +575,63 @@ if __name__ == "__main__":
     print("# gates =", sum(circ.count_ops().values()))
     print("# qubits =", len(circ.qubits))
     print(circ.count_ops())
+
+
+def binary_fraction_to_values(bits):
+    val = 0.0
+    for (ii, bit) in enumerate(bits):
+        if bit == "1":
+            val += 2**(-ii - 1)
+    return val
+
+
+if __name__ == "__main__":
+    # Get a matrix
+    # np.random.seed(1123)
+    matrix = np.random.randn(2, 2)
+    matrix += matrix.conj().T
+    # matrix = np.identity(2)
+
+    # sigma0 = 2
+    # sigma1 = 1
+    #
+    # matrix = np.array([[sigma0, 0],
+    #                    [0, sigma1]], dtype=np.float32)
+    # matrix /= np.linalg.norm(matrix, ord="fro")
+
+    print("Hermitian matrix:")
+    print(matrix)
+
+    # Do the classical SVD
+    _, sigmas, _ = np.linalg.svd(matrix)
+    print("\nClassically found singular values:")
+    print(sigmas)
+    print("\nClassically found theta values:")
+    thetas = np.arccos(sigmas / np.linalg.norm(matrix, ord="fro")) / np.pi
+    print(thetas)
+
+    # Get the quantum circuit for QSVE
+    qsve = QSVE(matrix, nprecision_bits=2)
+    circuit = qsve.create_circuit(terminal_measurements=True)
+
+    print("\nQSVE Circuit:")
+    print(circuit)
+
+    # Run the quantum circuit for QSVE
+    sim = BasicAer.get_backend("qasm_simulator")
+    job = execute(circuit, sim, shots=1000)
+
+    # Get the output bit strings from QSVE
+    res = job.result()
+    counts = res.get_counts()
+    print("\nCounts =", counts)
+    thetas_binary = np.array(list(counts.keys()))
+
+    print("\nSampled bit strings from QSVE:")
+    print(thetas_binary)
+
+    # Convert from the binary strings to theta values
+    computed = [binary_fraction_to_values(bits) for bits in thetas_binary]
+
+    print("\nQuantumly found theta values")
+    print(computed)
