@@ -83,8 +83,8 @@ class QSVE:
         self._num_qubits_for_col = int(np.log2(nrows))
         self._num_qubits_for_qpe = int(nprecision_bits)
 
-        # Get the number of qubits needed for the circuit
-        nqubits = int(np.log2(nrows * ncols) + nprecision_bits)
+        # Store the number of precision bits
+        self._nprecision_bits = nprecision_bits
 
         # Store a copy of the matrix
         self._matrix = deepcopy(matrix)
@@ -114,6 +114,11 @@ class QSVE:
     def matrix_ncols(self):
         """The number of columns in the matrix."""
         return self._matrix_ncols
+
+    @property
+    def nprecision_bits(self):
+        """Returns the number of precision bits, i.e., the number of qubits used in the phase estimation register."""
+        return self._nprecision_bits
 
     def get_tree(self, index):
         """Returns the BinaryTree representing a matrix row."""
@@ -404,7 +409,7 @@ class QSVE:
 
             # Add the controlled row loading circuit
             ctrl_row_load_circuit += row_tree.preparation_circuit(
-                row_register, control_register=col_register, control_key=ii
+                col_register, control_register=row_register, control_key=ii
             )
 
         # Add W^dagger to the circuit
@@ -515,8 +520,18 @@ class QSVE:
         # TODO: Do the QFT on the precision register
         self._qft(circuit, qpe_register)
 
-    def create_circuit(self, terminal_measurements=False):
-        """Returns a quantum circuit implementing the QSVE algorithm (without cosine)."""
+    def create_circuit(self, terminal_measurements=False, logical_barriers=False):
+        """Returns a quantum circuit implementing the QSVE algorithm (without cosine).
+
+
+        Args:
+            terminal_measurements : bool (default: False)
+                If True, measurements are added to the phase register, else nothing happens.
+
+            logical_barriers : bool (default: False)
+                If True, barriers are inserted in the circuit between logical components (subroutines).
+
+        """
         # Create the quantum registers
         qpe_register = QuantumRegister(self._num_qubits_for_qpe)
         row_register = QuantumRegister(self._num_qubits_for_row)
@@ -528,10 +543,22 @@ class QSVE:
         # Load the row norms of the matrix in the row register
         circuit += self.row_norm_tree.preparation_circuit(row_register)
 
+        # Add a barrier, if desired
+        if logical_barriers:
+            circuit.barrier()
+
         # TODO: Do the optional state preparation in the column register
+
+        # Add a barrier, if desired
+        if logical_barriers:
+            circuit.barrier()
 
         # Do phase estimation
         self.phase_estimation(circuit, qpe_register, row_register, col_register)
+
+        # Add a barrier, if desired
+        if logical_barriers:
+            circuit.barrier()
 
         if terminal_measurements:
             creg = ClassicalRegister(self._num_qubits_for_qpe)
@@ -539,6 +566,48 @@ class QSVE:
             circuit.measure(qpe_register, creg)
 
         return circuit
+
+    @staticmethod
+    def binary_decimal_to_float(binary_decimal, big_endian=False):
+        """Returns a floating point value from an input binary decimal represented as a string.
+
+        Args:
+            binary_decimal : str
+                String representing a binary decimal.
+
+            big_endian : bool
+                If True, the most significant bit is first, else last.
+
+                Examples:
+                    "01" with big_endian == True is 0.01 = 0.25 (1/4).
+                    "01" with big_endian == False is 0.10 = 0.50 (1/2).
+
+        Returns: float
+            Floating point value represented by the binary string.
+        """
+        if not big_endian:
+            binary_decimal = reversed(binary_decimal)
+
+        val = 0.0
+        for (ii, bit) in enumerate(binary_decimal):
+            if bit == "1":
+                val += 2 ** (-ii - 1)
+        return val
+
+    @staticmethod
+    def convert_measured(theta):
+        if 1.0 > theta < 0.0:
+            raise ValueError("Argument theta must satisfy 0 <= theta <= 1, but theta = {}.".format(theta))
+        if 0.0 <= theta <= 0.5:
+            return theta
+        else:
+            return theta - 1.0
+
+    def max_error(self):
+        """Returns the maximum possible error on sigma / ||A||_F given the input number of precision bits."""
+        nbits = self._nprecision_bits
+        cosines = np.array([np.cos(np.pi * k / 2**nbits) for k in range(2**(nbits - 1))])
+        return max(abs(np.diff(cosines))) / 2
 
 
 def stats(circ):
@@ -577,27 +646,14 @@ def stats(circ):
     print(circ.count_ops())
 
 
-def binary_fraction_to_values(bits):
-    val = 0.0
-    for (ii, bit) in enumerate(bits):
-        if bit == "1":
-            val += 2**(-ii - 1)
-    return val
-
-
 if __name__ == "__main__":
     # Get a matrix
-    # np.random.seed(1123)
-    matrix = np.random.randn(2, 2)
-    matrix += matrix.conj().T
-    # matrix = np.identity(2)
+    # matrix = np.array([[5, 1], [1, 3]])
+    # np.random.seed(112358)
+    # matrix = np.random.randn(2, 2)
+    # matrix += matrix.conj().T
 
-    # sigma0 = 2
-    # sigma1 = 1
-    #
-    # matrix = np.array([[sigma0, 0],
-    #                    [0, sigma1]], dtype=np.float32)
-    # matrix /= np.linalg.norm(matrix, ord="fro")
+    matrix = np.array([[np.cos(1 * np.pi / 8), 0], [0, np.sin(1 * np.pi / 8)]])
 
     print("Hermitian matrix:")
     print(matrix)
@@ -605,13 +661,10 @@ if __name__ == "__main__":
     # Do the classical SVD
     _, sigmas, _ = np.linalg.svd(matrix)
     print("\nClassically found singular values:")
-    print(sigmas)
-    print("\nClassically found theta values:")
-    thetas = np.arccos(sigmas / np.linalg.norm(matrix, ord="fro")) / np.pi
-    print(thetas)
+    print(sigmas / np.linalg.norm(matrix, "fro"))
 
     # Get the quantum circuit for QSVE
-    qsve = QSVE(matrix, nprecision_bits=2)
+    qsve = QSVE(matrix, nprecision_bits=3)
     circuit = qsve.create_circuit(terminal_measurements=True)
 
     print("\nQSVE Circuit:")
@@ -619,7 +672,7 @@ if __name__ == "__main__":
 
     # Run the quantum circuit for QSVE
     sim = BasicAer.get_backend("qasm_simulator")
-    job = execute(circuit, sim, shots=1000)
+    job = execute(circuit, sim, shots=10000)
 
     # Get the output bit strings from QSVE
     res = job.result()
@@ -627,11 +680,40 @@ if __name__ == "__main__":
     print("\nCounts =", counts)
     thetas_binary = np.array(list(counts.keys()))
 
-    print("\nSampled bit strings from QSVE:")
-    print(thetas_binary)
+    # print("\nSampled bit strings from QSVE:")
+    # print(thetas_binary)
+    #
+    # # Convert from the binary strings to theta values
+    # computed = [qsve.convert_measured(qsve.binary_decimal_to_float(bits)) for bits in thetas_binary]
+    #
+    # print("\nQuantumly found theta values")
+    # print(computed)
+    #
+    # # Convert from theta values to singular values
+    # print("\nQuantumly found singular values")
+    # qsigmas = [qsve.matrix_norm() * np.cos(np.pi * theta) for theta in computed if theta > 0]
+    # print(sorted(set(qsigmas)))
+
+    # Get the top three measured bit strings
+    import operator
+    sort = sorted(counts.items(), key=operator.itemgetter(1), reverse=True)
+    print()
+    print(sort)
+
+    top = [x[0] for x in sort[:8]]
+
+    print("\nTop sampled bit strings from QSVE:")
+    print(top)
 
     # Convert from the binary strings to theta values
-    computed = [binary_fraction_to_values(bits) for bits in thetas_binary]
+    computed = [qsve.convert_measured(qsve.binary_decimal_to_float(bits)) for bits in top]
 
-    print("\nQuantumly found theta values")
+    print("\nTop quantumly found theta values")
     print(computed)
+
+    # Convert from theta values to singular values
+    print("\nTop quantumly found singular values")
+    qsigmas = [np.cos(np.pi * theta) for theta in computed if theta > 0]
+    print(qsigmas)
+
+    print("\nMaximum theoretic error:", qsve.max_error())

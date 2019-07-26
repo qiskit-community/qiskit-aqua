@@ -200,18 +200,147 @@ class TestQSVE(QiskitAquaTestCase):
 
         self.assertTrue(np.allclose(state, two_norms))
 
+    def test_singular_values_from_theta_values_for_two_by_two_identity_matrix(self):
+        """Tests the correct theta values (in the range [0, 1] are measured for the identity matrix.
+
+        These theta values are 0.25 and 0.75, or 0.01 and 0.11 as binary decimals, respectively.
+
+        The identity matrix A = [[1, 0], [0, 1]] has singular value 1 and Froebenius norm sqrt(2). It follows that
+
+                                    sigma / ||A||_F = 1 / sqrt(2)
+
+        Since                       cos(pi * theta) = sigma / ||A||_F,
+
+        we must have                cos(pi * theta) = 1 / sqrt(2),
+
+        which means that theta = - 0.25 or theta = 0.25. After mapping from the interval [-1/2, 1/2] to the interval
+        [0, 1] by the mapping
+
+                                    theta ----> theta           (if 0 <= theta <= 1 / 2)
+                                    theta ----> theta + 1       (if -1 / 2 <= theta < 0)
+
+        (which is what we measure in QSVE), the possible outcomes are thus 0.25 and 0.75. These correspond to binary
+        decimals 0.01 and 0.10, respectively.
+
+        This test does QSVE on the identity matrix using 2, 3, 4, 5, and 6 precision qubits for QPE.
+        """
+        # Define the identity matrix
+        matrix = np.identity(2)
+
+        for nprecision_bits in [2, 3, 4, 5, 6]:
+            # Create the QSVE instance
+            qsve = QSVE(matrix, nprecision_bits=nprecision_bits)
+
+            # Get the circuit to perform QSVE with terminal measurements on the QPE register
+            circuit = qsve.create_circuit(terminal_measurements=True)
+
+            # Run the quantum circuit for QSVE
+            sim = BasicAer.get_backend("qasm_simulator")
+            job = execute(circuit, sim, shots=10000)
+
+            # Get the output bit strings from QSVE
+            res = job.result()
+            counts = res.get_counts()
+            thetas_binary = np.array(list(counts.keys()))
+
+            # Make sure there are only two measured values
+            self.assertEqual(len(thetas_binary), 2)
+
+            # Convert the measured angles to floating point values
+            thetas = [qsve.binary_decimal_to_float(binary_decimal) for binary_decimal in thetas_binary]
+            thetas = [qsve.convert_measured(theta) for theta in thetas]
+
+            # Make sure the theta values are correct
+            self.assertEqual(len(thetas), 2)
+            self.assertIn(0.25, thetas)
+            self.assertIn(-0.25, thetas)
+
+    def test_two_by_two_pi_over_eight(self):
+        """Tests computing the singular values of the matrix
+
+                    A = [[cos(pi / 8), 0],
+                         [0, sin(pi / 8)]]
+
+        The QSVE algorithm should be able to compute the singular values exactly with three qubits (or more).
+        """
+        # Define the matrix
+        matrix = np.array([[np.cos(np.pi / 8), 0], [0, np.sin(np.pi / 8)]])
+
+        # Do the classical SVD. (Note: We could just access the singular values from the diagonal matrix elements.)
+        _, sigmas, _ = np.linalg.svd(matrix)
+
+        # Get the quantum circuit for QSVE
+        for nprecision_bits in range(3, 7):
+            qsve = QSVE(matrix, nprecision_bits=nprecision_bits)
+            circuit = qsve.create_circuit(terminal_measurements=True)
+
+            # Run the quantum circuit for QSVE
+            sim = BasicAer.get_backend("qasm_simulator")
+            job = execute(circuit, sim, shots=10000)
+
+            # Get the output bit strings from QSVE
+            res = job.result()
+            counts = res.get_counts()
+            thetas_binary = np.array(list(counts.keys()))
+
+            # Convert from the binary strings to theta values
+            computed = [qsve.convert_measured(qsve.binary_decimal_to_float(bits)) for bits in thetas_binary]
+
+            # Convert from theta values to singular values
+            qsigmas = [np.cos(np.pi * theta) for theta in computed if theta > 0]
+
+            # Sort the sigma values for comparison
+            sigmas = list(sorted(sigmas))
+            qsigmas = list(sorted(qsigmas))
+
+            # Make sure the quantum solution is close to the classical solution
+            self.assertTrue(np.allclose(sigmas, qsigmas))
+
+    def test_two_by_two_three_pi_over_eight(self):
+        """Tests computing the singular values of the matrix
+
+                    A = [[cos(3 * pi / 8), 0],
+                         [0, sin(3 * pi / 8)]]
+
+        The QSVE algorithm should be able to compute the singular values exactly with three qubits (or more).
+        """
+        # Define the matrix
+        matrix = np.array([[np.cos(3 * np.pi / 8), 0], [0, np.sin(3 * np.pi / 8)]])
+
+        # Do the classical SVD. (Note: We could just access the singular values from the diagonal matrix elements.)
+        _, sigmas, _ = np.linalg.svd(matrix)
+
+        # Get the quantum circuit for QSVE
+        for nprecision_bits in range(3, 7):
+            qsve = QSVE(matrix, nprecision_bits=nprecision_bits)
+            circuit = qsve.create_circuit(terminal_measurements=True)
+
+            # Run the quantum circuit for QSVE
+            sim = BasicAer.get_backend("qasm_simulator")
+            job = execute(circuit, sim, shots=10000)
+
+            # Get the output bit strings from QSVE
+            res = job.result()
+            counts = res.get_counts()
+            thetas_binary = np.array(list(counts.keys()))
+
+            # Convert from the binary strings to theta values
+            computed = [qsve.convert_measured(qsve.binary_decimal_to_float(bits)) for bits in thetas_binary]
+
+            # Convert from theta values to singular values
+            qsigmas = [np.cos(np.pi * theta) for theta in computed if theta > 0]
+
+            # Sort the sigma values for comparison
+            sigmas = list(sorted(sigmas))
+            qsigmas = list(sorted(qsigmas))
+
+            print("nprecision_bits =", nprecision_bits)
+            print("qsigmas =", qsigmas)
+            print("sigmas =", sigmas)
+
+            # Make sure the quantum solution is close to the classical solution
+            self.assertTrue(np.allclose(sigmas, qsigmas))
+
 
 if __name__ == "__main__":
-    # unittest.main()
-
-    matrix = np.random.rand(2, 2)
-    matrix += matrix.conj().T
-
-    qsve = QSVE(matrix)
-
-    qreg = QuantumRegister(6)
-    circ = QuantumCircuit(qreg)
-
-    qsve._qft(circ, qreg, final_swaps=False)
-
-    print(circ)
+    unittest.main()
