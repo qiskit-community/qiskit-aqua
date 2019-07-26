@@ -541,22 +541,23 @@ class TestBinaryTree(QiskitAquaTestCase):
         register = QuantumRegister(1)
         control_register = QuantumRegister(1)
 
-        # Do controlled state preparation (control_key = 0). This should *not* create the state in "register."
+        # Do controlled state preparation (control_key = 0). This should create the state in "register."
         circ = tree.preparation_circuit(register, control_register, control_key=0)
 
         # Get the final state of the circuit
         state = self.final_state(circ)
 
-        # Make sure it's the |0> state (i.e., nothing has happened)
-        self.assertTrue( np.allclose(state[:len(vec)], zero))
+        # Make sure we get the correct state
+        self.assertTrue(np.allclose(state[:len(vec)], vec / np.linalg.norm(vec, ord=2)))
 
-        # Do anti-controlled state preparation (control_key="1"). This should create the state in "register."
+        # Do controlled state preparation (control_key=1). This should not create the state in "register."
         circ = tree.preparation_circuit(register, control_register, control_key=1)
 
         # Get the final state of the circuit
         state = self.final_state(circ)
 
-        self.assertTrue(np.allclose(state[:len(vec)], vec / np.linalg.norm(vec, ord=2)))
+        # Make sure it's the |0> state (i.e., nothing has happened)
+        self.assertTrue(np.allclose(state[:len(vec)], zero))
 
     def test_prep_with_ctrl_string_keys(self):
         """Does the above test with string control keys."""
@@ -575,22 +576,22 @@ class TestBinaryTree(QiskitAquaTestCase):
         # Register to control on
         control_register = QuantumRegister(1)
 
-        # Do controlled state preparation (control_key = 0). This should *not* create the state in "register."
+        # Do controlled state preparation (control_key = 0). This should create the state in "register."
         circ = tree.preparation_circuit(register, control_register, control_key="0")
 
         # Get the final state of the circuit
         state = self.final_state(circ)
 
         # Make sure it's the |0> state (i.e., nothing has happened)
-        self.assertTrue(np.allclose(state[:len(vec)], zero))
+        self.assertTrue(np.allclose(state[:len(vec)], vec / np.linalg.norm(vec, ord=2)))
 
-        # Do anti-controlled state preparation (control_key="1"). This should create the state in "register."
+        # Do anti-controlled state preparation (control_key="1"). This should not create the state in "register."
         circ = tree.preparation_circuit(register, control_register, control_key="1")
 
         # Get the final state of the circuit
         state = self.final_state(circ)
 
-        self.assertTrue(np.allclose(state[:len(vec)], vec / np.linalg.norm(vec, ord=2)))
+        self.assertTrue(np.allclose(state[:len(vec)], zero))
 
     def test_prep_with_ctrl_twoq_control_all_keys(self):
         """Tests a one qubit state is created when the correct key is provided, else nothing happens in the circuit."""
@@ -617,7 +618,7 @@ class TestBinaryTree(QiskitAquaTestCase):
             state = self.final_state(circ)
 
             # Make sure the state is the input vector if the correct control key is given, otherwise the |0> state.
-            if control_key == 3:
+            if control_key == 0:
                 self.assertTrue(np.allclose(state[:len(vec)], vec / np.linalg.norm(vec, ord=2)))
             else:
                 self.assertTrue(np.allclose(state[:len(vec)], zero))
@@ -649,7 +650,7 @@ class TestBinaryTree(QiskitAquaTestCase):
             state = self.final_state(circ)
 
             # Make sure the state is the input vector if the correct control key is given, otherwise the |0> state.
-            if control_key == "11":
+            if control_key == "00":
                 self.assertTrue(np.allclose(state[:len(vec)], vec / np.linalg.norm(vec, ord=2)))
             else:
                 self.assertTrue(np.allclose(state[:len(vec)], zero))
@@ -681,7 +682,7 @@ class TestBinaryTree(QiskitAquaTestCase):
             state = self.final_state(circ)
 
             # Make sure the state is the input vector if the correct control key is given, otherwise the |0> state.
-            if control_key == 1:
+            if control_key == 0:
                 self.assertTrue(np.allclose(state[:len(vec)], vec / np.linalg.norm(vec, ord=2)))
             else:
                 self.assertTrue(np.allclose(state[:len(vec)], zero))
@@ -713,7 +714,7 @@ class TestBinaryTree(QiskitAquaTestCase):
             state = np.real(self.final_state(circ))
 
             # Make sure the state is the input vector if the correct control key is given, otherwise the |0> state.
-            if control_key == 3:
+            if control_key == 0:
                 self.assertTrue(np.allclose(state[:len(vec)], vec / np.linalg.norm(vec, ord=2)))
             else:
                 self.assertTrue(np.allclose(state[:len(vec)], zero))
@@ -746,7 +747,7 @@ class TestBinaryTree(QiskitAquaTestCase):
             state = np.real(self.final_state(circ))
 
             # Make sure the state is the input vector if the correct control key is given, otherwise the |0> state.
-            if control_key == 7:
+            if control_key == 0:
                 self.assertTrue(np.allclose(state[:len(vec)], vec / np.linalg.norm(vec, ord=2)))
             else:
                 self.assertTrue(np.allclose(state[:len(vec)], zero))
@@ -779,7 +780,7 @@ class TestBinaryTree(QiskitAquaTestCase):
             state = np.real(self.final_state(circ))
 
             # Make sure the state is the input vector if the correct control key is given, otherwise the |0> state.
-            if control_key == 15:
+            if control_key == 0:
                 self.assertTrue(np.allclose(state[:len(vec)], vec / np.linalg.norm(vec, ord=2)))
             else:
                 self.assertTrue(np.allclose(state[:len(vec)], zero))
@@ -813,7 +814,7 @@ class TestBinaryTree(QiskitAquaTestCase):
             state = np.real(self.final_state(circ))
 
             # Make sure the state is the input vector if the correct control key is given, otherwise the |0> state.
-            if control_key == 31:
+            if control_key == 0:
                 self.assertTrue(np.allclose(state[:len(vec)], vec / np.linalg.norm(vec, ord=2)))
             else:
                 self.assertTrue(np.allclose(state[:len(vec)], zero))
