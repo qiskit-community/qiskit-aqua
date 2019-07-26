@@ -257,7 +257,6 @@ def stabilizers(fer_op):
         a = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
         stab = np.asarray(stab)
         for i in range(np.size(stab)):
-            # TODO: double check
             a = a * edge_operator_aij(edge_list, stab[i], stab[(i + 1) % np.size(stab)]) * 1j
         stabilizer_ops.append(a)
 
