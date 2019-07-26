@@ -18,6 +18,14 @@ The format is based on `Keep a Changelog`_.
 `UNRELEASED`_
 =============
 
+`0.5.5`_ - 2019-07-26
+=====================
+
+Fixed
+-----
+
+- A bug with `docplex.get_qubitops`'s incorrect translation
+
 `0.5.4`_ - 2019-07-24
 =====================
 
@@ -285,7 +293,8 @@ Changed
 - Updated qiskit minimum version in setup.py.
 - Fixed links in readme.me.
 
-.. _UNRELEASED: https://github.com/Qiskit/qiskit-aqua/compare/0.5.4...HEAD
+.. _UNRELEASED: https://github.com/Qiskit/qiskit-aqua/compare/0.5.5...HEAD
+.. _0.5.5: https://github.com/Qiskit/qiskit-aqua/compare/0.5.4...0.5.5
 .. _0.5.4: https://github.com/Qiskit/qiskit-aqua/compare/0.5.3...0.5.4
 .. _0.5.3: https://github.com/Qiskit/qiskit-aqua/compare/0.5.2...0.5.3
 .. _0.5.2: https://github.com/Qiskit/qiskit-aqua/compare/0.5.1...0.5.2
