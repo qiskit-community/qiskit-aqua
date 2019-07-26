@@ -15,7 +15,7 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 > -   **Fixed**: for any bug fixes.
 > -   **Security**: in case of vulnerabilities.
 
-[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.5.4...HEAD)
+[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.5.5...HEAD)
 ========================================================================
 
 Added
@@ -69,6 +69,14 @@ Removed
 
 -   General multi-controlled rotation gate `mcu3` is removed and replaced by 
     multi-controlled rotation gates `mcrx`, `mcry`, and `mcrz` 
+
+[0.5.5](https://github.com/Qiskit/qiskit-aqua/compare/0.5.4...0.5.5) - 2019-07-26
+=================================================================================
+
+Fixed
+-----
+
+-   A bug with `docplex.get_qubitops`'s incorrect translation
 
 [0.5.4](https://github.com/Qiskit/qiskit-aqua/compare/0.5.3...0.5.4) - 2019-07-24
 =================================================================================
