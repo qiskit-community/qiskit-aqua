@@ -139,7 +139,8 @@ class UCCSD(VariationalForm):
             warnings.warn("symmetries, cliffords, sq_list, tapering_values options is deprecated "
                           "and it will be removed after 0.6, Please encapsulate all tapering info "
                           "into the Z2Symmetries class.", DeprecationWarning)
-            self._z2_symmetries = Z2Symmetries(symmetries, cliffords, sq_list, tapering_values)
+            sq_paulis = [x.paulis[1][1] for x in cliffords]
+            self._z2_symmetries = Z2Symmetries(symmetries, sq_paulis, sq_list, tapering_values)
         else:
             self._z2_symmetries = Z2Symmetries([], [], [], []) if z2_symmetries is None else z2_symmetries
 
