@@ -334,10 +334,6 @@ class TestQSVE(QiskitAquaTestCase):
             sigmas = list(sorted(sigmas))
             qsigmas = list(sorted(qsigmas))
 
-            print("nprecision_bits =", nprecision_bits)
-            print("qsigmas =", qsigmas)
-            print("sigmas =", sigmas)
-
             # Make sure the quantum solution is close to the classical solution
             self.assertTrue(np.allclose(sigmas, qsigmas))
 

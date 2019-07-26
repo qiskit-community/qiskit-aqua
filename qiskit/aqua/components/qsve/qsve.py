@@ -43,14 +43,18 @@ from qiskit import QuantumRegister, QuantumCircuit, ClassicalRegister, execute, 
 
 class QSVE:
     """Quantum Singular Value Estimation (QSVE) class."""
-    def __init__(self, matrix, nprecision_bits=3):
+    def __init__(self, matrix, singular_vector=None, nprecision_bits=3):
         """Initializes a QSVE object.
 
         Args:
             matrix : numpy.ndarray
                 The matrix to perform singular value estimation on.
 
-            nprecision_bits : int
+            singular_vector : Union[numpy.ndarray, qiskit.QuantumCircuit]
+                The singular vector to prepare in the "column register," which can be input as a vector (numpy array)
+                or a quantum circuit which prepares the vector.
+
+            nprecision_bits : int (default value = 3)
                 The number of qubits to use in phase estimation.
                 Equivalently, the number of bits of precision to read out singular values.
         """
@@ -82,6 +86,9 @@ class QSVE:
         self._num_qubits_for_row = int(np.log2(ncols))
         self._num_qubits_for_col = int(np.log2(nrows))
         self._num_qubits_for_qpe = int(nprecision_bits)
+
+        # Store the singular vector
+        self._singular_vector = singular_vector
 
         # Store the number of precision bits
         self._nprecision_bits = nprecision_bits
@@ -520,6 +527,31 @@ class QSVE:
         # TODO: Do the QFT on the precision register
         self._qft(circuit, qpe_register)
 
+    def prepare_singular_vector(self, circuit, register):
+        """Prepares the singular vector on the input register.
+
+        Args:
+            circuit : qiskit.QuantumCircuit
+                Circuit to prepare the singular vector in.
+
+            register : qiskit.QuantumRegister
+                Specific register within the circuit to prepare the singular vector in.
+        """
+        if self._singular_vector is None:
+            return
+
+        if type(self._singular_vector) == np.ndarray:
+            tree = BinaryTree(self._singular_vector)
+            circuit += tree.preparation_circuit(register)
+
+        elif type(self._singular_vector) == QuantumCircuit:
+            circuit += self._singular_vector
+
+        else:
+            raise ValueError(
+                "Singular vector must be input as a numpy.ndarray or a quantum circuit preparing the desired vector."
+            )
+
     def create_circuit(self, terminal_measurements=False, logical_barriers=False):
         """Returns a quantum circuit implementing the QSVE algorithm (without cosine).
 
@@ -548,6 +580,7 @@ class QSVE:
             circuit.barrier()
 
         # TODO: Do the optional state preparation in the column register
+        self.prepare_singular_vector(circuit, col_register)
 
         # Add a barrier, if desired
         if logical_barriers:
