@@ -39,6 +39,7 @@ class TestCaching(QiskitAquaTestCase):
 
     def _build_refrence_result(self, backends):
         res = {}
+        os.environ.pop('QISKIT_AQUA_CIRCUIT_CACHE', None)
         for backend in backends:
             params_no_caching = {
                 'algorithm': {'name': 'VQE',
@@ -57,6 +58,7 @@ class TestCaching(QiskitAquaTestCase):
                 params_no_caching['optimizer'] = {'name': 'SPSA', 'max_trials': 15}
             qiskit_aqua = QiskitAqua(params_no_caching, self.algo_input)
             res[backend] = qiskit_aqua.run()
+        os.environ['QISKIT_AQUA_CIRCUIT_CACHE'] = True
         self.reference_vqe_result = res
 
     @parameterized.expand([
