@@ -98,7 +98,7 @@ class EOH(QuantumAlgorithm):
         super().__init__()
         if operator_mode is not None:
             warnings.warn("operator_mode option is deprecated and it will be removed after 0.6. "
-                          "Now the operator has its own mode, no need extra info to tell the VQE.", DeprecationWarning)
+                          "Now the operator has its own mode, no need extra info to tell the EOH.", DeprecationWarning)
         self._operator = op_converter.to_weighted_pauli_operator(operator)
         self._initial_state = initial_state
         self._evo_operator = op_converter.to_weighted_pauli_operator(evo_operator)

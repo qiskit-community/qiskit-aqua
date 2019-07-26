@@ -102,13 +102,9 @@ class QAOA(VQE):
                                     - qasm simulator or real backend: TPBGroupedWeightedPauliOperator
 
         """
-        if operator_mode is not None:
-            warnings.warn("operator_mode option is deprecated and it will be removed after 0.6. "
-                          "Now the operator has its own mode, no need extra info to tell the VQE.", DeprecationWarning)
-
         self.validate(locals())
         var_form = QAOAVarForm(operator.copy(), p, initial_state=initial_state, mixer_operator=mixer)
-        super().__init__(operator, var_form, optimizer, initial_point=initial_point,
+        super().__init__(operator, var_form, optimizer, initial_point=initial_point, operator_mode=operator_mode,
                          max_evals_grouped=max_evals_grouped, aux_operators=aux_operators, callback=callback,
                          auto_conversion=auto_conversion)
 

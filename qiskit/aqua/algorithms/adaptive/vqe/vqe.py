@@ -20,7 +20,7 @@ import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit
 
 from qiskit.aqua.algorithms.adaptive.vq_algorithm import VQAlgorithm
-from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
+from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class, Operator
 from qiskit.aqua.operators import (TPBGroupedWeightedPauliOperator, WeightedPauliOperator,
                                    MatrixOperator, op_converter)
 from qiskit.aqua.utils.backend_utils import is_aer_statevector_backend, is_statevector_backend
@@ -113,12 +113,21 @@ class VQE(VQAlgorithm):
         self._callback = callback
         if initial_point is None:
             self._initial_point = var_form.preferred_init_points
+        if isinstance(operator, Operator):
+            warnings.warn("operator should be type of BaseOperator, Operator type is deprecated and "
+                          "it will be removed after 0.6.", DeprecationWarning)
+            operator = op_converter.to_weighted_pauli_operator(operator)
         self._operator = operator
         self._eval_count = 0
-        if aux_operators is None:
-            self._aux_operators = []
-        else:
-            self._aux_operators = [aux_operators] if not isinstance(aux_operators, list) else aux_operators
+        self._aux_operators = []
+        if aux_operators is not None:
+            aux_operators = [aux_operators] if not isinstance(aux_operators, list) else aux_operators
+            for aux_op in aux_operators:
+                if isinstance(aux_op, Operator):
+                    warnings.warn("aux operator should be type of BaseOperator, Operator type is deprecated and "
+                                  "it will be removed after 0.6.", DeprecationWarning)
+                    aux_op = op_converter.to_weighted_pauli_operator(aux_op)
+                self._aux_operators.append(aux_op)
         self._auto_conversion = auto_conversion
         logger.info(self.print_settings())
 
