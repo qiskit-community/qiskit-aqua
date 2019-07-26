@@ -15,7 +15,7 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 > -   **Fixed**: for any bug fixes.
 > -   **Security**: in case of vulnerabilities.
 
-[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.5.2...HEAD)
+[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.5.4...HEAD)
 ========================================================================
 
 Added
@@ -63,7 +63,6 @@ Changed
 -   The `power` in `evolution_instruction` was applied on the theta on the CRZ gate directly, 
     the current version repeats the circuits to implement power. (#593)
      
-
 Fixed
 -------
 
@@ -81,9 +80,17 @@ Removed
 
 Deprecated
 ----------
+
 -   The `Operator` class is deprecated, in favor of using `MatrixOperator`, 
     `WeightedPauliOperator` and `TPBGroupedPauliOperator`
 
+[0.5.4](https://github.com/Qiskit/qiskit-aqua/compare/0.5.3...0.5.4) - 2019-07-24
+=================================================================================
+
+Fixed
+-----
+
+-   Fix the bug about manipulating the right operand and rebuild diagonal matrix every time. (#622)
  
 [0.5.3](https://github.com/Qiskit/qiskit-aqua/compare/0.5.2...0.5.3) - 2019-07-16
 =================================================================================
