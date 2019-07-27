@@ -15,7 +15,7 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 > -   **Fixed**: for any bug fixes.
 > -   **Security**: in case of vulnerabilities.
 
-[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.5.4...HEAD)
+[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.5.5...HEAD)
 ========================================================================
 
 Added
@@ -69,7 +69,6 @@ Fixed
 -   A bug where `TruthTableOracle` would build incorrect circuits for truth tables with only a single `1` value. 
 -   A bug caused by `PyEDA`'s indeterminism.
 -   A bug with `QPE/IQPE`'s translation and stretch computation.
--   A bug with `docplex.get_qubitops`'s incorrect translation
 -   Chemistry: Bravyi-Kitaev mapping fixed when num qubits was not a power of 2
 
 Removed
@@ -83,6 +82,14 @@ Deprecated
 
 -   The `Operator` class is deprecated, in favor of using `MatrixOperator`, 
     `WeightedPauliOperator` and `TPBGroupedPauliOperator`
+
+[0.5.5](https://github.com/Qiskit/qiskit-aqua/compare/0.5.4...0.5.5) - 2019-07-26
+=================================================================================
+
+Fixed
+-----
+
+-   A bug with `docplex.get_qubitops`'s incorrect translation
 
 [0.5.4](https://github.com/Qiskit/qiskit-aqua/compare/0.5.3...0.5.4) - 2019-07-24
 =================================================================================
