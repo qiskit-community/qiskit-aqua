@@ -523,6 +523,51 @@ class TestBinaryTree(QiskitAquaTestCase):
         # so we discard the additional (zero) amplitudes when comparing to the input vector
         self.assertTrue( np.allclose(state[:len(vec)], vec / np.linalg.norm(vec, ord=2)))
 
+    def test_prep_circuit_random_vector(self):
+        """Tests that a random vector is correctly prepared."""
+        # Input vector
+        np.random.seed(8675309)
+        vec = np.random.randn(4)
+
+        # Make a tree from the vector
+        tree = BinaryTree(vec)
+
+        # Get a quantum register
+        qreg = QuantumRegister(2)
+
+        # Do the state preparation circuit
+        circ = tree.preparation_circuit(qreg)
+
+        # Swap the qubits to get normal ordering
+        circ.swap(qreg[0], qreg[1])
+        state = np.real(self.final_state(circ))
+
+        # Make sure the prepared state is close to the input vector
+        self.assertTrue(np.allclose(state, vec / np.linalg.norm(vec, ord=2)))
+
+    def test_prep_circuit_random_vector2(self):
+        """Tests that a random vector is correctly prepared."""
+        # Input vector
+        np.random.seed(112358)
+        vec = np.random.randn(16)
+
+        # Make a tree from the vector
+        tree = BinaryTree(vec)
+
+        # Get a quantum register
+        qreg = QuantumRegister(4)
+
+        # Do the state preparation circuit
+        circ = tree.preparation_circuit(qreg)
+
+        # Swap the qubits to get normal ordering
+        circ.swap(qreg[0], qreg[3])
+        circ.swap(qreg[1], qreg[2])
+        state = np.real(self.final_state(circ))
+
+        # Make sure the prepared state is close to the input vector
+        self.assertTrue(np.allclose(state, vec / np.linalg.norm(vec, ord=2)))
+
     def test_prep_circuit_with_control(self):
         """Basic test for the state preparation circuit with a control register.
 
@@ -818,6 +863,24 @@ class TestBinaryTree(QiskitAquaTestCase):
                 self.assertTrue(np.allclose(state[:len(vec)], vec / np.linalg.norm(vec, ord=2)))
             else:
                 self.assertTrue(np.allclose(state[:len(vec)], zero))
+
+    def test_num_gates_zero_vector(self):
+        """Tests that zero gates are used to prepare |0> for multiple qubit numbers."""
+        # Loop over different qubit numbers
+        for n in range(2, 6):
+            # Get the |0> state
+            vec = np.zeros(2**n)
+            vec[0] = 1
+
+            # Get the BinaryTree
+            tree = BinaryTree(vec)
+
+            # Get the preparation circuit
+            reg = QuantumRegister(n)
+            circ = tree.preparation_circuit(reg)
+
+            # Make sure there are no gates
+            self.assertEqual(len(circ.data), 0)
 
 
 if __name__ == "__main__":
