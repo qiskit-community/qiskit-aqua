@@ -524,7 +524,7 @@ class QSVE:
         # DEBUG
         circuit.barrier()
 
-        # TODO: Do the QFT on the precision register
+        # Add the QFT on the precision register
         self._qft(circuit, qpe_register)
 
     def prepare_singular_vector(self, circuit, register):
@@ -552,39 +552,55 @@ class QSVE:
                 "Singular vector must be input as a numpy.ndarray or a quantum circuit preparing the desired vector."
             )
 
-    def create_circuit(self, terminal_measurements=False, logical_barriers=False):
+    def create_circuit(
+        self, initial_loads=True, terminal_measurements=False, return_registers=False, logical_barriers=False
+    ):
         """Returns a quantum circuit implementing the QSVE algorithm (without cosine).
 
 
         Args:
+            initial_loads : bool
+                If True, the row norms and singular vector (if provided) are prepared at the start of the circuit.
+                Normally, this is always True. Setting to False is useful for getting the inverse circuit WITHOUT
+                the initial loading subroutines, which is needed for linear systems and recommendation systems.
+
             terminal_measurements : bool (default: False)
                 If True, measurements are added to the phase register, else nothing happens.
 
+            return_registers : bool (default: False)
+                If True, registers are returned along with the circuit.
+                Note: Registers can be accessed from the circuit -- this method is for convenience.
+
+                The order of the returned registers is:
+                    (1) QPE Register: Qubits used for precision in QPE.
+                    (2) ROW Register: Qubits used for loading row norms of the matrix.
+                    (3) COL Register: Qubits used for loading rows of the matrix.
+
             logical_barriers : bool (default: False)
                 If True, barriers are inserted in the circuit between logical components (subroutines).
-
         """
         # Create the quantum registers
-        qpe_register = QuantumRegister(self._num_qubits_for_qpe)
-        row_register = QuantumRegister(self._num_qubits_for_row)
-        col_register = QuantumRegister(self._num_qubits_for_col)
+        qpe_register = QuantumRegister(self._num_qubits_for_qpe, name="qpe")
+        row_register = QuantumRegister(self._num_qubits_for_row, name="row")
+        col_register = QuantumRegister(self._num_qubits_for_col, name="col")
 
         # Create the quantum circuit
         circuit = QuantumCircuit(qpe_register, row_register, col_register)
 
-        # Load the row norms of the matrix in the row register
-        circuit += self.row_norm_tree.preparation_circuit(row_register)
+        if initial_loads:
+            # Load the row norms of the matrix in the row register
+            circuit += self.row_norm_tree.preparation_circuit(row_register)
 
-        # Add a barrier, if desired
-        if logical_barriers:
-            circuit.barrier()
+            # Add a barrier, if desired
+            if logical_barriers:
+                circuit.barrier()
 
-        # TODO: Do the optional state preparation in the column register
-        self.prepare_singular_vector(circuit, col_register)
+            # Add the optional state preparation in the column register
+            self.prepare_singular_vector(circuit, col_register)
 
-        # Add a barrier, if desired
-        if logical_barriers:
-            circuit.barrier()
+            # Add a barrier, if desired
+            if logical_barriers:
+                circuit.barrier()
 
         # Do phase estimation
         self.phase_estimation(circuit, qpe_register, row_register, col_register)
@@ -598,6 +614,8 @@ class QSVE:
             circuit.add_register(creg)
             circuit.measure(qpe_register, creg)
 
+        if return_registers:
+            return circuit, qpe_register, row_register, col_register
         return circuit
 
     @staticmethod
@@ -639,6 +657,8 @@ class QSVE:
     def max_error(self):
         """Returns the maximum possible error on sigma / ||A||_F given the input number of precision bits."""
         nbits = self._nprecision_bits
+        if nbits == 1:
+            return 0.5
         cosines = np.array([np.cos(np.pi * k / 2**nbits) for k in range(2**(nbits - 1))])
         return max(abs(np.diff(cosines))) / 2
 
@@ -683,10 +703,17 @@ if __name__ == "__main__":
     # Get a matrix
     # matrix = np.array([[5, 1], [1, 3]])
     # np.random.seed(112358)
-    # matrix = np.random.randn(2, 2)
+    # matrix = np.random.randn(4, 4)
     # matrix += matrix.conj().T
 
-    matrix = np.array([[np.cos(1 * np.pi / 8), 0], [0, np.sin(1 * np.pi / 8)]])
+    # matrix = np.array([
+    #     [np.cos(1 * np.pi / 8), 0, 0, 0],
+    #     [0, np.sin(1 * np.pi / 8), 0, 0],
+    #     [0, 0, np.cos(1 * np.pi / 8), 0],
+    #     [0, 0, 0, np.sin(1 * np.pi / 8)]
+    # ], dtype=np.float32) / np.sqrt(2)
+
+    matrix = np.array([[3, 0], [0, 4]])
 
     print("Hermitian matrix:")
     print(matrix)
@@ -697,11 +724,11 @@ if __name__ == "__main__":
     print(sigmas / np.linalg.norm(matrix, "fro"))
 
     # Get the quantum circuit for QSVE
-    qsve = QSVE(matrix, nprecision_bits=3)
+    qsve = QSVE(matrix, nprecision_bits=8)
     circuit = qsve.create_circuit(terminal_measurements=True)
 
-    print("\nQSVE Circuit:")
-    print(circuit)
+    # print("\nQSVE Circuit:")
+    # print(circuit)
 
     # Run the quantum circuit for QSVE
     sim = BasicAer.get_backend("qasm_simulator")
@@ -733,7 +760,7 @@ if __name__ == "__main__":
     print()
     print(sort)
 
-    top = [x[0] for x in sort[:8]]
+    top = [x[0] for x in sort[:len(sort) // 2]]
 
     print("\nTop sampled bit strings from QSVE:")
     print(top)
