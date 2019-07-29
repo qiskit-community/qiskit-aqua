@@ -47,8 +47,9 @@ class BinaryTree:
                 "Please append zero entries to the row."
             )
 
-        # Store the input matrix_row
+        # Store the input vector
         self._values = list(vector)
+        self._vector = np.array(self._values)
         self._nvals = len(self._values)
 
         # ===========================================================
@@ -251,7 +252,7 @@ class BinaryTree:
         newvals[index] = value
         self.__init__(newvals)
 
-    def preparation_circuit(self, register, control_register=None, control_key=None):
+    def preparation_circuit(self, register, control_register=None, control_key=None, use_ancillas=False):
         """Returns a circuit that encodes the leaf values (input values to the BinaryTree)in a quantum state.
 
         For example, if the vector [0.4, 0.4, 0.8, 0.2] is input to BinaryTree, then this method returns a circuit
@@ -313,6 +314,9 @@ class BinaryTree:
                         reg         |  ----|     |----
                                     |  ----|_____|----
 
+            use_ancillas : bool (default value = False)
+                Flag to determine whether or not to use ancillas for multi-controlled gates.
+                Using ancillas can reduce the number of gates.
         """
         # =========================
         # Checks on input arguments
@@ -373,6 +377,18 @@ class BinaryTree:
         # Get the base quantum circuit
         circ = QuantumCircuit(register)
 
+        # =================================================================
+        # Special case: Computational basis vector with no control register
+        # =================================================================
+
+        if not control_register and self._is_basis_vector(self._vector):
+            self._prepare_basis_vector(circ, register, self._vector)
+            return circ
+
+        # ======================================================
+        # Add control registers and ancilla registers, if needed
+        # ======================================================
+
         # Add the control register if provided
         # Note: the technique for adding controls for every gate will be adding the control_register_qubits to
         # a list of controlled qubits. If empty, nothing changes. If non-empty, we get the correct controls.
@@ -383,12 +399,23 @@ class BinaryTree:
             control_register_qubits = []
 
         # Add ancilla qubits, if necessary, to do multi-controlled Y rotations
-        if len(register) > 3:
+        if use_ancillas and len(register) > 3:
             # TODO: Figure out exactly how many ancillae are needed.
             # TODO: Take into account the length of control_register_qubits above
-            num_ancillae = max(len(register) - 3, 3)
+            if control_register:
+                num_ancillae = max(len(register) - 1, 3)
+            else:
+                num_ancillae = max(len(register) + len(control_register) - 1, 3)
             ancilla_register = QuantumRegister(num_ancillae)
             circ.add_register(ancilla_register)
+
+        # ================================================================
+        # Special case: Computational basis vector with a control register
+        # ================================================================
+
+        if control_register and self._is_basis_vector(self._vector):
+            self._prepare_basis_vector_control(circ, register, control_register, control_key, self._vector)
+            return circ
 
         # ============================
         # Add the gates to the circuit
@@ -415,12 +442,18 @@ class BinaryTree:
                 parent = self._tree[level][index]
                 left_child = self.left_child_value(level, index)
 
-                # If the angle is zero, the gate is identity.
+                # Avoid empty nodes
                 if np.isclose(parent, 0.0):
                     continue
-                else:
-                    theta = 2 * np.arccos(np.sqrt(left_child / parent))
 
+                # If the right child is zero, the gate is identity ==> do nothing.
+                if np.isclose(self.right_child_value(level, index), 0.0):
+                    continue
+
+                # Compute the angle
+                theta = 2 * np.arccos(np.sqrt(left_child / parent))
+
+                # Initialize flag to perform a CNOT. The CNOT is used if both amplitudes are negative.
                 mct_flag = False
 
                 # If we're on the last row, shift the angle to take sign information into account
@@ -450,7 +483,7 @@ class BinaryTree:
                 # Do the Multi-Controlled-Y (MCRY) rotation
                 # =========================================
 
-                # Do X gates for anti-controls
+                # Do X gates for anti-controls on the state preparation register
                 if level > 0:
                     for (ii, bit) in enumerate(bitstring):
                         if bit == "0":
@@ -466,29 +499,36 @@ class BinaryTree:
                     all_control_qubits = control_register_qubits + register[:level]
 
                 # For three qubits or less, no ancilla are needed to do the MCRY
-                if len(register) <= 3:
+                if len(register) <= 3 or not use_ancillas:
+                    # Do the CNOT for the special case of both amplitudes negative
                     if mct_flag:
                         if len(all_control_qubits) > 0:
                             mct(circ, all_control_qubits, register[level], None, mode="noancilla")
                         else:
                             circ.x(register[level])
+
+                    # Do the Y-rotation
                     if len(all_control_qubits) > 0:
                         mcry(circ, theta, all_control_qubits, register[level], None, mode="noancilla")
                     else:
                         circ.ry(theta, register[level])
+
                 # For more than three qubits, ancilla are needed
                 else:
+                    # Do the CNOT for the special case of both amplitudes negative
                     if mct_flag:
                         if len(all_control_qubits) > 0:
                             mct(circ, all_control_qubits, register[level], ancilla_register)
                         else:
                             circ.x(register[level])
+
+                    # Do the Y-rotation
                     if len(all_control_qubits) > 0:
                         mcry(circ, theta, all_control_qubits, register[level], ancilla_register)
                     else:
                         circ.ry(theta, register[level])
 
-                # Do X gates for anti-controls
+                # Do X gates for anti-controls on the state preparation register
                 if level > 0:
                     for (ii, bit) in enumerate(bitstring):
                         if bit == "0":
@@ -504,6 +544,49 @@ class BinaryTree:
                     circ.x(control_register[ii])
 
         return circ
+
+    @staticmethod
+    def _is_basis_vector(vector):
+        """Returns True if the vector is proportional to a computational basis vector."""
+        return len(vector.nonzero()[0]) == 1
+
+    @staticmethod
+    def _prepare_basis_vector(circuit, register, vector):
+        """Prepares a computational basis vector from the |0> state."""
+        # Determine which element is nonzero
+        elt = vector.nonzero()[0][0]
+
+        # Convert the index to a binary string
+        bitstring = np.binary_repr(elt, len(register))
+
+        # Add NOT gates in the right places
+        for (ii, bit) in enumerate(bitstring):
+            if bit == "1":
+                circuit.x(register[ii])
+
+    @staticmethod
+    def _prepare_basis_vector_control(circuit, register, control_register, control_key, vector):
+        """Prepares a computational basis vector from the |0> state controlled on a control register."""
+        # Determine which element is nonzero
+        elt = vector.nonzero()[0][0]
+
+        # Convert the index to a binary string
+        bitstring = np.binary_repr(elt, len(register))
+
+        # Do the initial pattern of X gates on control register to get controls & anti-controls correct
+        for (ii, bit) in enumerate(control_key):
+            if bit == "0":
+                circuit.x(control_register[ii])
+
+        # Add NOT gates in the right places
+        for (ii, bit) in enumerate(bitstring):
+            if bit == "1":
+                mct(circuit, control_register, register[ii], None, mode="noancilla")
+
+        # Do the final pattern of X gates on control register to get controls & anti-controls correct
+        for (ii, bit) in enumerate(control_key):
+            if bit == "0":
+                circuit.x(control_register[ii])
 
     def __str__(self):
         """Returns a string representation of the tree."""

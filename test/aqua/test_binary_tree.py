@@ -274,7 +274,7 @@ class TestBinaryTree(QiskitAquaTestCase):
         circuit = tree.preparation_circuit(qreg)
 
         # Add a swaps to make the ordering of the qubits match the input vector
-        # Note: This is because the last bit is the most significant in qiskit, not the first.
+        # Note: This is because the last bit is the most significant, not the first.
         circuit.swap(qreg[0], qreg[1])
 
         # Check that the circuit produces the correct state
@@ -881,6 +881,50 @@ class TestBinaryTree(QiskitAquaTestCase):
 
             # Make sure there are no gates
             self.assertEqual(len(circ.data), 0)
+
+    def test_depth_for_basis_vectors(self):
+        """Tests that the circuit depth is one for computational basis vectors."""
+        for ii in range(8):
+            vec = np.zeros(8)
+            vec[ii] = 1
+            tree = BinaryTree(vec)
+            qreg = QuantumRegister(3)
+            circ = tree.preparation_circuit(qreg)
+            circ.swap(qreg[0], qreg[2])
+            state = np.real(self.final_state(circ))
+            self.assertTrue(np.allclose(state, vec))
+            self.assertTrue(circ.depth() <= 2)
+
+    def test_prep_ctrl_for_basis_vectors(self):
+        """Tests that controlled preparation for basis vectors is correct."""
+        for ii in range(8):
+            vec = np.zeros(8)
+            vec[ii] = 1
+            tree = BinaryTree(vec)
+            qreg = QuantumRegister(3)
+            creg = QuantumRegister(1)
+            circ = tree.preparation_circuit(qreg, creg, control_key=0)
+            circ.swap(qreg[0], qreg[2])
+            state = np.real(self.final_state(circ))
+            self.assertTrue(np.allclose(state[:len(vec)], vec))
+
+    def test_prep_ctrl_random_twoq(self):
+        """Tests preparing a random vector on two qubits, controlled on another register."""
+        for _ in range(100):
+            vec = np.random.randn(4)
+            tree = BinaryTree(vec)
+
+            register = QuantumRegister(2)
+            ctrl_reg = QuantumRegister(2)
+            ctrl_key = 0
+
+            circ = tree.preparation_circuit(register, ctrl_reg, ctrl_key)
+
+            circ.swap(register[0], register[1])
+
+            state = np.real(TestBinaryTree.final_state(circ))
+
+            assert np.allclose(state[:len(vec)], vec / np.linalg.norm(vec, ord=2))
 
 
 if __name__ == "__main__":
