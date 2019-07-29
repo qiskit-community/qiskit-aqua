@@ -13,6 +13,7 @@
 # that they have been altered from the originals.
 
 import unittest
+import os
 
 import numpy as np
 from parameterized import parameterized
@@ -58,6 +59,7 @@ class TestQAOA(QiskitAquaTestCase):
         [w2, p2, m2, s2],
     ])
     def test_qaoa(self, w, p, m, solutions):
+        os.environ.pop('QISKIT_AQUA_CIRCUIT_CACHE', None)
         self.log.debug('Testing {}-step QAOA with MaxCut on graph\n{}'.format(p, w))
         np.random.seed(0)
 
@@ -66,7 +68,6 @@ class TestQAOA(QiskitAquaTestCase):
         qubit_op, offset = max_cut.get_max_cut_qubitops(w)
 
         qaoa = QAOA(qubit_op, optimizer, p, mixer=m)
-        # TODO: cache fails for QAOA
         quantum_instance = QuantumInstance(backend, circuit_caching=False)
 
         result = qaoa.run(quantum_instance)
