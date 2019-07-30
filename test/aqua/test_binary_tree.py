@@ -910,7 +910,7 @@ class TestBinaryTree(QiskitAquaTestCase):
 
     def test_prep_ctrl_random_twoq(self):
         """Tests preparing a random vector on two qubits, controlled on another register."""
-        for _ in range(100):
+        for _ in range(50):
             vec = np.random.randn(4)
             tree = BinaryTree(vec)
 
@@ -925,6 +925,64 @@ class TestBinaryTree(QiskitAquaTestCase):
             state = np.real(TestBinaryTree.final_state(circ))
 
             assert np.allclose(state[:len(vec)], vec / np.linalg.norm(vec, ord=2))
+
+    def test_prep_ctrl_random_threeq(self):
+        """Tests preparing a random vector on three qubits, controlled on another register."""
+        for _ in range(50):
+            vec = np.random.randn(8)
+            tree = BinaryTree(vec)
+
+            register = QuantumRegister(3)
+            ctrl_reg = QuantumRegister(2)
+            ctrl_key = 0
+
+            circ = tree.preparation_circuit(register, ctrl_reg, ctrl_key)
+
+            circ.swap(register[0], register[2])
+
+            state = np.real(TestBinaryTree.final_state(circ))
+
+            assert np.allclose(state[:len(vec)], vec / np.linalg.norm(vec, ord=2))
+
+    def test_prep_ctrl_initial_state(self):
+        """Creates a state other than all |0> for the control register and tests controlled state preparation."""
+        # Get a vector and BinaryTree
+        vec = np.array([0, 1])
+        tree = BinaryTree(vec)
+
+        # Registers and a circuit
+        reg = QuantumRegister(1)
+        ctrl_reg = QuantumRegister(2)
+        circ = QuantumCircuit(reg, ctrl_reg)
+
+        # Do a NOT on the first qubit. This makes the control_key = 2 = "10" for preparation to happen.
+        circ.x(ctrl_reg[0])
+
+        # Add the state preparation circuit
+        circ += tree.preparation_circuit(reg, ctrl_reg, control_key=2)
+
+        # Swap to get normal ordering of amplitudes
+        circ.swap(reg[0], ctrl_reg[1])
+
+        # Make sure the correct state is prepared
+        # The correct state of the circuit should be |110> = [0, 0, 0, 0, 0, 0, 1, 0].
+        correct = np.array([0, 0, 0, 0, 0, 0, 1, 0])
+        state = np.real(self.final_state(circ))
+        self.assertTrue(np.allclose(state, correct))
+
+    def test_prepare_all_zeros(self):
+        """Tests that the preparation circuit is empty for a vector of all zero elements.
+
+        TODO: What should the behavior be? Throw error? Or return an empty circuit?
+        """
+        vec = [0, 0]
+        tree = BinaryTree(vec)
+
+        reg = QuantumRegister(1)
+
+        circ = tree.preparation_circuit(reg)
+
+        self.assertEqual(len(circ), 0)
 
 
 if __name__ == "__main__":
