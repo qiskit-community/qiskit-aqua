@@ -186,11 +186,12 @@ class TestQSVE(QiskitAquaTestCase):
         # This vector is the state the prep circuit should make.
         two_norms = np.array([np.linalg.norm(row, ord=2) for row in matrix]) / np.linalg.norm(matrix, "fro")
 
-        # Get a register to prepare the row norm state in
+        # Get a register and circuit to prepare the row norm state in
         register = QuantumRegister(2)
+        circ = QuantumCircuit(register)
 
         # Get the state preparation circuit
-        circ = qsve.row_norm_tree.preparation_circuit(register)
+        qsve.row_norm_tree.preparation_circuit(circ, register)
 
         # Add a swap gate to get the amplitudes in a sensible order
         circ.swap(register[0], register[1])

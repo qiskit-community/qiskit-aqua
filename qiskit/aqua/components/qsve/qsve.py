@@ -474,9 +474,12 @@ class QSVE:
                     "The input circuit has no register {}.".format(register)
                 )
 
-        # =======================================================================================
-        # Store a copy of the circuit with all gates removed for the controlled row loading gates
-        # =======================================================================================
+        # ==============================================================================================
+        # Store a copies of the circuit for (controlled) row loading. This makes it easy to get inverses
+        # ==============================================================================================
+
+        row_load_circuit = deepcopy(circuit)
+        row_load_circuit.data = []
 
         ctrl_row_load_circuit = deepcopy(circuit)
         ctrl_row_load_circuit.data = []
@@ -486,10 +489,10 @@ class QSVE:
         # =================
 
         # Get the row norm circuit
-        row_norm_circuit = self.row_norm_tree.preparation_circuit(row_register)
+        self.row_norm_tree.preparation_circuit(row_load_circuit, row_register)
 
         # Add the inverse row norm circuit. This corresponds to V^dagger in the doc string circuit diagram.
-        circuit += row_norm_circuit.inverse()
+        circuit += row_load_circuit.inverse()
         #
         # # DEBUG
         # circuit.barrier()
@@ -506,7 +509,7 @@ class QSVE:
         # print(circuit)
 
         # Add the row norm circuit. This corresponds to V in the doc string diagram.
-        circuit += row_norm_circuit
+        circuit += row_load_circuit
 
         # # DEBUG
         # circuit.barrier()
@@ -528,8 +531,8 @@ class QSVE:
             # ))
 
             # Add the controlled row loading circuit
-            ctrl_row_load_circuit += row_tree.preparation_circuit(
-                col_register, control_register=row_register, control_key=ii
+            row_tree.preparation_circuit(
+                ctrl_row_load_circuit, col_register, control_register=row_register, control_key=ii
             )
 
         #     print("Current total row loading circuit:")
@@ -661,7 +664,7 @@ class QSVE:
         # Add the QFT on the precision register
         self._qft(circuit, qpe_register)
 
-    def prepare_singular_vector(self, singular_vector, circuit, qubits):
+    def prepare_singular_vector(self, singular_vector, circuit, *registers):
         """Prepares the singular vector on the input register.
 
         Args:
@@ -672,31 +675,38 @@ class QSVE:
             circuit : qiskit.QuantumCircuit
                 Circuit to prepare the singular vector in.
 
-            qubits : Union[qiskit.QuantumRegister, list<qubits>]
-                Specific register within the circuit to prepare the singular vector in.
-                Note: For QSVE, the eigenvalues of the unitary W "span" the ROW and COL registers. To accomodate this,
-                qubits can also be a list of qubits.
+            registers : qiskit.QuantumRegister
+                Register(s) to prepare the singular vector in.
         """
         if singular_vector is None:
             return
 
-        if type(singular_vector) == np.ndarray:
+        if isinstance(singular_vector, (np.ndarray, list)):
             tree = BinaryTree(singular_vector)
-            circuit += tree.preparation_circuit(qubits)
+            tree.preparation_circuit(circuit, *registers)
 
         elif type(singular_vector) == QuantumCircuit:
             circuit += singular_vector
 
         else:
             raise ValueError(
-                "Singular vector must be input as a numpy.ndarray or a quantum circuit preparing the desired vector."
+                "Singular vector must be input as a numpy.ndarray, list," +
+                "or a quantum circuit preparing the desired vector."
             )
 
     def create_circuit(
-        self, singular_vector=None, initial_loads=True, terminal_measurements=False,
-            return_registers=False, logical_barriers=False
+            self,
+            singular_vector=None,
+            initial_loads=True,
+            terminal_measurements=False,
+            return_registers=False,
+            logical_barriers=False
     ):
-        """Returns a quantum circuit implementing the QSVE algorithm (without cosine).
+        """Returns a quantum circuit implementing the QSVE algorithm.
+
+        Note: The output of this circuit is not the singular values but angles theta related to the singular values
+        sigma by
+                                        cos(theta * pi) = sigma / ||A||_F
 
 
         Args:
@@ -734,7 +744,7 @@ class QSVE:
 
         if initial_loads:
             # Load the row norms of the matrix in the row register
-            circuit += self.row_norm_tree.preparation_circuit(row_register)
+            self.row_norm_tree.preparation_circuit(circuit, row_register)
 
             # Add a barrier, if desired
             if logical_barriers:
@@ -742,8 +752,7 @@ class QSVE:
 
             # Add the optional state preparation in the column register
             if singular_vector is not None:
-                raise NotImplementedError("Gimmie a minute.")
-            # self.prepare_singular_vector(singular_vector, circuit, row_register[:] + col_register[:])
+                self.prepare_singular_vector(singular_vector, circuit, row_register[:] + col_register[:])
 
             # Add a barrier, if desired
             if logical_barriers:
