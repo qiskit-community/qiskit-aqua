@@ -42,12 +42,7 @@ class MaximumLikelihood:
         @param ae An instance of AmplitudeEstimation
         """
         self.ae = ae
-
-        # Find number of shots
-        if "counts" in self.ae._ret.keys():  # qasm_simulator
-            self._shots = sum(self.ae._ret['counts'].values())
-        else:  # statevector_simulator
-            self._shots = 1
+        self._shots = None
 
     def loglik_wrapper(self, theta):
         """
@@ -81,6 +76,15 @@ class MaximumLikelihood:
         # the maximum of the log-likelihood function: the two bubbles next to
         # the QAE estimate
         M = 2**self.ae._m
+
+        # Find number of shots
+        if self.ae._quantum_instance.is_statevector:
+            self._shots = 1
+        else:  # qasm_simulator
+            try:
+                self._shots = sum(self.ae._ret['counts'].values())
+            except KeyError:
+                print("Call the `run` method of AmplitudeEstimation first!")
 
         # y is pretty much an integer, but to map 1.9999 to 2 we must first
         # use round and then int conversion
@@ -139,6 +143,8 @@ class MaximumLikelihood:
                      data will be contained in the CI
         @return The confidence interval
         """
+        if self._shots is None:
+            raise AquaError("Call the method `mle` first!")
 
         if kind == "fisher":
             # Compute the predicted standard deviation
