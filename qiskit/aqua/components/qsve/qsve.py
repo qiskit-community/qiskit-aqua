@@ -43,16 +43,12 @@ from qiskit import QuantumRegister, QuantumCircuit, ClassicalRegister, execute, 
 
 class QSVE:
     """Quantum Singular Value Estimation (QSVE) class."""
-    def __init__(self, matrix, nprecision_bits=3):
+    def __init__(self, matrix):
         """Initializes a QSVE object.
 
         Args:
             matrix : numpy.ndarray
                 The matrix to perform singular value estimation on.
-
-            nprecision_bits : int (default value = 3)
-                The number of qubits to use in phase estimation.
-                Equivalently, the number of bits of precision to read out singular values.
         """
         # Make sure the matrix is of the correct type
         if not isinstance(matrix, np.ndarray):
@@ -84,10 +80,6 @@ class QSVE:
         # Store the number of qubits needed for the matrix rows and cols
         self._num_qubits_for_row = int(np.log2(ncols))
         self._num_qubits_for_col = int(np.log2(nrows))
-        self._num_qubits_for_qpe = int(nprecision_bits)
-
-        # Store the number of precision bits
-        self._nprecision_bits = nprecision_bits
 
         # Store a copy of the matrix
         self._matrix = deepcopy(matrix)
@@ -296,7 +288,7 @@ class QSVE:
         """Returns the singular vectors of the matrix for QSVE found classically.
 
         Return type:
-
+            numpy.ndarray
         """
         vecs, _, _ = np.linalg.svd(self._matrix)
         return vecs
@@ -360,6 +352,15 @@ class QSVE:
             raise TypeError(
                 "Argument circuit must be of type qiskit.QuantumCircuit."
             )
+
+        if isinstance(ctrl_qubit, QuantumRegister):
+            if len(ctrl_qubit) > 1:
+                raise ValueError(
+                    "There is more than one qubit in the argument ctrl_qubit." +
+                    "Either pass a single qubit (e.g., register[0]) or a register of only one qubit."
+                )
+            elif len(ctrl_qubit) == 1:
+                ctrl_qubit = ctrl_qubit[0]
 
         if ctrl_qubit not in circuit.qubits:
             raise ValueError(
@@ -654,7 +655,6 @@ class QSVE:
 
         # Do the controlled unitary operators
         for (p, qpe_qubit) in enumerate(qpe_register):
-            print("I'm on qubit {} in QPE, and I'm doing {} controlled-W's.".format(p, 2**p))
             for _ in range(2**p):
                 self.controlled_unitary(circuit, qpe_qubit, row_register, col_register)
 
@@ -696,6 +696,7 @@ class QSVE:
 
     def create_circuit(
             self,
+            nprecision_bits=3,
             singular_vector=None,
             initial_loads=True,
             terminal_measurements=False,
@@ -710,6 +711,10 @@ class QSVE:
 
 
         Args:
+            nprecision_bits : int (default value = 3)
+                The number of qubits to use in phase estimation.
+                Equivalently, the number of bits of precision to read out singular values.
+
             singular_vector : Union[numpy.ndarray, qiskit.QuantumCircuit]
                 The singular vector to prepare in the "column register," which can be input as a vector (numpy array)
                 or a quantum circuit which prepares the vector.
@@ -735,7 +740,7 @@ class QSVE:
                 If True, barriers are inserted in the circuit between logical components (subroutines).
         """
         # Create the quantum registers
-        qpe_register = QuantumRegister(self._num_qubits_for_qpe, name="qpe")
+        qpe_register = QuantumRegister(nprecision_bits, name="qpe")
         row_register = QuantumRegister(self._num_qubits_for_row, name="row")
         col_register = QuantumRegister(self._num_qubits_for_col, name="col")
 
@@ -743,16 +748,16 @@ class QSVE:
         circuit = QuantumCircuit(qpe_register, row_register, col_register)
 
         if initial_loads:
+            # Add the optional state preparation in the column register
+            if singular_vector is not None:
+                self.prepare_singular_vector(singular_vector, circuit, row_register, col_register)
+
             # Load the row norms of the matrix in the row register
             self.row_norm_tree.preparation_circuit(circuit, row_register)
 
             # Add a barrier, if desired
             if logical_barriers:
                 circuit.barrier()
-
-            # Add the optional state preparation in the column register
-            if singular_vector is not None:
-                self.prepare_singular_vector(singular_vector, circuit, row_register[:] + col_register[:])
 
             # Add a barrier, if desired
             if logical_barriers:
@@ -766,7 +771,7 @@ class QSVE:
             circuit.barrier()
 
         if terminal_measurements:
-            creg = ClassicalRegister(self._num_qubits_for_qpe)
+            creg = ClassicalRegister(nprecision_bits)
             circuit.add_register(creg)
             circuit.measure(qpe_register, creg)
 

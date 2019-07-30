@@ -204,9 +204,6 @@ class TestQSVE(QiskitAquaTestCase):
     def test_controlled_unitary(self):
         pass
 
-    def test_controlled_reflection(self):
-        pass
-
     def test_qft(self):
         pass
 
@@ -237,12 +234,12 @@ class TestQSVE(QiskitAquaTestCase):
         # Define the identity matrix
         matrix = np.identity(2)
 
-        for nprecision_bits in [2, 3, 4, 5, 6]:
-            # Create the QSVE instance
-            qsve = QSVE(matrix, nprecision_bits=nprecision_bits)
+        # Create the QSVE instance
+        qsve = QSVE(matrix)
 
+        for nprecision_bits in [2, 3, 4, 5, 6]:
             # Get the circuit to perform QSVE with terminal measurements on the QPE register
-            circuit = qsve.create_circuit(terminal_measurements=True)
+            circuit = qsve.create_circuit(nprecision_bits=nprecision_bits, terminal_measurements=True)
 
             # Run the quantum circuit for QSVE
             sim = BasicAer.get_backend("qasm_simulator")
@@ -279,10 +276,11 @@ class TestQSVE(QiskitAquaTestCase):
         # Do the classical SVD. (Note: We could just access the singular values from the diagonal matrix elements.)
         _, sigmas, _ = np.linalg.svd(matrix)
 
+        qsve = QSVE(matrix)
+
         # Get the quantum circuit for QSVE
         for nprecision_bits in range(3, 7):
-            qsve = QSVE(matrix, nprecision_bits=nprecision_bits)
-            circuit = qsve.create_circuit(terminal_measurements=True)
+            circuit = qsve.create_circuit(nprecision_bits=nprecision_bits, terminal_measurements=True)
 
             # Run the quantum circuit for QSVE
             sim = BasicAer.get_backend("qasm_simulator")
@@ -322,8 +320,8 @@ class TestQSVE(QiskitAquaTestCase):
 
         # Get the quantum circuit for QSVE
         for nprecision_bits in range(3, 7):
-            qsve = QSVE(matrix, nprecision_bits=nprecision_bits)
-            circuit = qsve.create_circuit(terminal_measurements=True)
+            qsve = QSVE(matrix)
+            circuit = qsve.create_circuit(nprecision_bits=nprecision_bits, terminal_measurements=True)
 
             # Run the quantum circuit for QSVE
             sim = BasicAer.get_backend("qasm_simulator")
@@ -428,17 +426,93 @@ class TestQSVE(QiskitAquaTestCase):
 
                 self.assertTrue(np.allclose(unitary.conj().T @ unitary, np.identity(dim**2)))
 
+    def test_prepare_singular_vector(self):
+        """Tests preparing a singular vector in two registers."""
+        matrix = np.identity(2)
+
+        qsve = QSVE(matrix)
+
+        # Only use the real eigenvectors
+        evecs = qsve.unitary_evecs()
+
+        for vec in [evecs[0], evecs[1]]:
+            row = QuantumRegister(1)
+            col = QuantumRegister(1)
+            circ = QuantumCircuit(row, col)
+
+            qsve.prepare_singular_vector(np.real(vec), circ, row, col)
+            circ.swap(row[0], col[0])
+
+            state = self.final_state(circ)
+
+            self.assertTrue(np.allclose(state, np.real(vec)))
+
+    def test_controlled_reflection(self):
+        """Basic test for controlled reflection circuit."""
+        regA = QuantumRegister(1)
+        regB = QuantumRegister(2)
+        circ = QuantumCircuit(regA, regB)
+
+        circ.x(regA)
+
+        init_state = np.real(self.final_state(circ))
+
+        QSVE._controlled_reflection_circuit(circ, regA[0], regB)
+
+        final_state = np.real(self.final_state(circ))
+
+        self.assertTrue(np.allclose(init_state, -final_state))
+
+    def test_controlled_reflection2(self):
+        """Basic test for controlled reflection circuit."""
+        regA = QuantumRegister(1)
+        regB = QuantumRegister(2)
+        circ = QuantumCircuit(regA, regB)
+
+        init_state = np.real(self.final_state(circ))
+
+        QSVE._controlled_reflection_circuit(circ, regA, regB)
+
+        final_state = np.real(self.final_state(circ))
+
+        self.assertTrue(np.allclose(init_state, final_state))
+
+    def test_controlled_reflection3(self):
+        """Basic test for controlled reflection circuit."""
+        regA = QuantumRegister(2)
+        regB = QuantumRegister(5)
+        circ = QuantumCircuit(regA, regB)
+
+        circ.x(regA[0])
+        circ.x(regB[0])
+
+        init_state = np.real(self.final_state(circ))
+
+        QSVE._controlled_reflection_circuit(circ, regA[0], regB)
+
+        final_state = np.real(self.final_state(circ))
+
+        self.assertTrue(np.allclose(init_state, final_state))
+
+    def test_controlled_reflection4(self):
+        """Basic test for controlled reflection circuit."""
+        regA = QuantumRegister(2)
+        regB = QuantumRegister(5)
+        circ = QuantumCircuit(regA, regB)
+
+        circ.x(regA[0])
+
+        init_state = np.real(self.final_state(circ))
+
+        QSVE._controlled_reflection_circuit(circ, regA[0], regB)
+
+        final_state = np.real(self.final_state(circ))
+
+        self.assertTrue(np.allclose(init_state, -final_state))
+
 
 if __name__ == "__main__":
     unittest.main()
-
-    matrix = np.identity(2)
-
-    qsve = QSVE(matrix, nprecision_bits=2)
-
-    circuit = qsve.create_circuit()
-
-    print(circuit)
 
     # # Define the matrix
     # matrix = np.array([[np.cos(2 * np.pi / 8), 0, 0, 0],
