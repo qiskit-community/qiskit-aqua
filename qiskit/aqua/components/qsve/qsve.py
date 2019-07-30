@@ -43,16 +43,12 @@ from qiskit import QuantumRegister, QuantumCircuit, ClassicalRegister, execute, 
 
 class QSVE:
     """Quantum Singular Value Estimation (QSVE) class."""
-    def __init__(self, matrix, singular_vector=None, nprecision_bits=3):
+    def __init__(self, matrix, nprecision_bits=3):
         """Initializes a QSVE object.
 
         Args:
             matrix : numpy.ndarray
                 The matrix to perform singular value estimation on.
-
-            singular_vector : Union[numpy.ndarray, qiskit.QuantumCircuit]
-                The singular vector to prepare in the "column register," which can be input as a vector (numpy array)
-                or a quantum circuit which prepares the vector.
 
             nprecision_bits : int (default value = 3)
                 The number of qubits to use in phase estimation.
@@ -61,6 +57,9 @@ class QSVE:
         # Make sure the matrix is of the correct type
         if not isinstance(matrix, np.ndarray):
             raise TypeError("Input matrix must be of type numpy.ndarray.")
+
+        if len(matrix.shape) != 2:
+            raise ValueError("Input matrix must be two-dimensional.")
 
         # Get the number of rows and columns in the matrix
         nrows, ncols = matrix.shape
@@ -86,9 +85,6 @@ class QSVE:
         self._num_qubits_for_row = int(np.log2(ncols))
         self._num_qubits_for_col = int(np.log2(nrows))
         self._num_qubits_for_qpe = int(nprecision_bits)
-
-        # Store the singular vector
-        self._singular_vector = singular_vector
 
         # Store the number of precision bits
         self._nprecision_bits = nprecision_bits
@@ -144,6 +140,17 @@ class QSVE:
             value += tree.root
         return np.sqrt(value)
 
+    def _row_norm_vector(self):
+        """Returns a vector of the row norms of the input matrix."""
+        # Initialize an empty list for the vector of row norms
+        row_norm_vector = []
+
+        # Append all the row norms
+        for tree in self._trees:
+            row_norm_vector.append(np.sqrt(tree.root))
+
+        return np.array(row_norm_vector)
+
     def _make_row_norm_tree(self):
         """Creates the BinaryTree of row norms.
 
@@ -173,15 +180,8 @@ class QSVE:
         Return type:
             BinaryTree
         """
-        # Initialize an empty list for the vector of row norms
-        row_norm_vector = []
-
-        # Append all the row norms
-        for tree in self._trees:
-            row_norm_vector.append(np.sqrt(tree.root))
-
         # Return the BinaryTree made from the row norm vector
-        return BinaryTree(row_norm_vector)
+        return BinaryTree(self._row_norm_vector())
 
     def shift_matrix(self):
         """Shifts the matrix diagonal by the Froebenius norm to make all eigenvalues positive. That is,
@@ -219,6 +219,98 @@ class QSVE:
 
         # Set the shifted flag to True
         self._shifted = True
+
+    def row_isometry(self):
+        """Returns the row isometry (U) used to build the unitary for QPE.
+
+        Return type:
+            numpy.ndarray
+        """
+        # Dimension of the input matrix A
+        dim = self._matrix_nrows
+
+        # Dimension of the U isometry
+        umat = np.zeros((dim**2, dim))
+
+        # Fill out the columns of U
+        for col in range(dim):
+            basis = np.zeros(dim)
+            basis[col] = 1
+            umat[:, col] = np.kron(basis, self._matrix[col, :]) / np.linalg.norm(self._matrix[col, :], ord=2)
+
+        return umat
+
+    def norm_isometry(self):
+        """Returns the norm isometry (V) used to build the unitary for QPE.
+
+        Return type:
+            numpy.ndarray
+        """
+        # Dimension of the input matrix A
+        dim = self._matrix_nrows
+
+        # Dimension of the V isometry
+        vmat = np.zeros((dim**2, dim))
+
+        # Get the vector of row norms
+        norms = self._row_norm_vector()
+
+        # Fill out the columns of U
+        for col in range(dim):
+            basis = np.zeros(dim)
+            basis[col] = 1
+            vmat[:, col] = np.kron(norms, basis)
+
+        return vmat / self.matrix_norm()
+
+    def unitary(self):
+        """Returns a classical (matrix) representation of the unitary W(A).
+
+        This unitary is used in phase estimation to compute (approximate) singular values.
+
+        Return type:
+            numpy.ndarray
+        """
+        # Get the row isometry and reflection
+        umat = self.row_isometry()
+        uref = 2 * umat @ umat.conj().T - np.identity(self._matrix_nrows**2)
+
+        # Get the norm isometry
+        vmat = self.norm_isometry()
+        vref = 2 * vmat @ vmat.conj().T - np.identity(self._matrix_nrows**2)
+
+        return uref @ vref
+
+    def unitary_evecs(self):
+        """Returns the eigenvectors of the unitary W = (2U U^dagger - I)(2V V^dagger -I) used for phase estimation.
+
+        This is useful for providing an initial state for phase estimation.
+
+        Return type:
+            numpy.ndarray
+        """
+        _, evecs = np.linalg.eig(self.unitary())
+        return evecs
+
+    def singular_vectors_classical(self):
+        """Returns the singular vectors of the matrix for QSVE found classically.
+
+        Return type:
+
+        """
+        vecs, _, _ = np.linalg.svd(self._matrix)
+        return vecs
+
+    def singular_values_classical(self, normalized=True):
+        """Returns the singular values of the matrix for QSVE found classically.
+
+        Return type:
+            numpy.ndarray
+        """
+        _, sigmas, _ = np.linalg.svd(self._matrix)
+        if normalized:
+            return sigmas / self.matrix_norm()
+        return sigmas
 
     @staticmethod
     def _controlled_reflection_circuit(circuit, ctrl_qubit, register):
@@ -297,30 +389,29 @@ class QSVE:
     def controlled_unitary(self, circuit, qpe_qubit, row_register, col_register):
         """Adds the gates for one Controlled-W unitary to the input circuit.
 
-        The input circuit must have at least four registers corresponding to the input arguments
+        The input circuit must have at least three registers corresponding to the input arguments (more below).
 
         At a high-level, this circuit has the following structure:
 
                     QPE (q qubit)   -------@--------
                                            \
                     ROW (n qubits)  ----|      |----
-                                        |      |
-                    COL (m qubits)  ----|  W   |----
-                                        |      |
-                    PKB (1 qubit)   ----|______|----
+                                        |  W   |
+                    COL (m qubits)  ----|      |----
+
 
         At a lower level, the controlled-W circuit is implemented as follows:
 
             QPE (1 qubit)   ---------------------@------------------------------@-----------------
                                                  |                              |
             ROW (n qubits)  ----| V^dagger |----[R]----| V |---|           |----|----|   |--------
-                                                               | W^dagger  |    |    | W |
+                                                               | U^dagger  |    |    | U |
             COL (m qubits)  -----------------------------------|           |---[R]---|   |--------
 
         where @ is a control symbol and O is an "anti-control" symbol (i.e., controlled on the |0> state).
         The gate R is a reflection about the |0> state.
 
-        TODO: Add "mathematical section" explaining what V and W are.
+        TODO: Add "mathematical section" explaining what V and U are.
 
         Args:
             circuit : qiskit.QuantumCircuit
@@ -399,35 +490,77 @@ class QSVE:
 
         # Add the inverse row norm circuit. This corresponds to V^dagger in the doc string circuit diagram.
         circuit += row_norm_circuit.inverse()
+        #
+        # # DEBUG
+        # circuit.barrier()
+        # print("In controlled-W, just added the inverse row norm circuit, shown below:")
+        # print(circuit)
 
         # Add the controlled reflection on the row register. This corresponds to
         # the first C(R) in the doc string circuit diagram.
         self._controlled_reflection_circuit(circuit, qpe_qubit, row_register)
 
+        # # DEBUG
+        # circuit.barrier()
+        # print("In controlled-W, just added the controlled reflection, shown below:")
+        # print(circuit)
+
         # Add the row norm circuit. This corresponds to V in the doc string diagram.
         circuit += row_norm_circuit
 
-        # DEBUG
-        circuit.barrier()
+        # # DEBUG
+        # circuit.barrier()
+        # print("In controlled-W, just added the row norm circuit, shown below:")
+        # print(circuit)
+        # print("Now adding all the controlled row vector loads...")
 
         # Get the controlled row loading operations. This corresponds to W in the doc string circuit diagram.
         for ii in range(self.matrix_ncols):
             row_tree = self.get_tree(ii)
+
+            # print("In controlled-U: row =", ii)
+            #
+            # print("Current row vector:")
+            # print(row_tree._vector)
+            # print("Circuit:")
+            # print(row_tree.preparation_circuit(
+            #     col_register, control_register=row_register, control_key=ii
+            # ))
 
             # Add the controlled row loading circuit
             ctrl_row_load_circuit += row_tree.preparation_circuit(
                 col_register, control_register=row_register, control_key=ii
             )
 
+        #     print("Current total row loading circuit:")
+        #     print(ctrl_row_load_circuit)
+        #
+        # print("The total row loading circuit has been built. Now adding the inverse")
+
         # Add W^dagger to the circuit
         circuit += ctrl_row_load_circuit.inverse()
+
+        # # DEBUG
+        # circuit.barrier()
+        # print("Added inverse control row loading to total circuit, shown below:")
+        # print(circuit)
 
         # Add the controlled reflection on the column register. This corresponds to
         # the second C(R) in the doc string circuit diagram.
         self._controlled_reflection_circuit(circuit, qpe_qubit, col_register)
 
+        # # DEBUG
+        # circuit.barrier()
+        # print("Added second controlled reflection, shown below:")
+        # print(circuit)
+
         # Add W to the circuit
         circuit += ctrl_row_load_circuit
+
+        # # DEBUG
+        # circuit.barrier()
+        # print("Added control row loading to total circuit, shown below:")
+        # print(circuit)
 
         # DEBUG
         circuit.barrier()
@@ -518,6 +651,7 @@ class QSVE:
 
         # Do the controlled unitary operators
         for (p, qpe_qubit) in enumerate(qpe_register):
+            print("I'm on qubit {} in QPE, and I'm doing {} controlled-W's.".format(p, 2**p))
             for _ in range(2**p):
                 self.controlled_unitary(circuit, qpe_qubit, row_register, col_register)
 
@@ -527,25 +661,31 @@ class QSVE:
         # Add the QFT on the precision register
         self._qft(circuit, qpe_register)
 
-    def prepare_singular_vector(self, circuit, register):
+    def prepare_singular_vector(self, singular_vector, circuit, qubits):
         """Prepares the singular vector on the input register.
 
         Args:
+            singular_vector : Union[numpy.ndarray, qiskit.QuantumCircuit]
+                The singular vector to prepare in the "column register," which can be input as a vector (numpy array)
+                or a quantum circuit which prepares the vector.
+
             circuit : qiskit.QuantumCircuit
                 Circuit to prepare the singular vector in.
 
-            register : qiskit.QuantumRegister
+            qubits : Union[qiskit.QuantumRegister, list<qubits>]
                 Specific register within the circuit to prepare the singular vector in.
+                Note: For QSVE, the eigenvalues of the unitary W "span" the ROW and COL registers. To accomodate this,
+                qubits can also be a list of qubits.
         """
-        if self._singular_vector is None:
+        if singular_vector is None:
             return
 
-        if type(self._singular_vector) == np.ndarray:
-            tree = BinaryTree(self._singular_vector)
-            circuit += tree.preparation_circuit(register)
+        if type(singular_vector) == np.ndarray:
+            tree = BinaryTree(singular_vector)
+            circuit += tree.preparation_circuit(qubits)
 
-        elif type(self._singular_vector) == QuantumCircuit:
-            circuit += self._singular_vector
+        elif type(singular_vector) == QuantumCircuit:
+            circuit += singular_vector
 
         else:
             raise ValueError(
@@ -553,12 +693,17 @@ class QSVE:
             )
 
     def create_circuit(
-        self, initial_loads=True, terminal_measurements=False, return_registers=False, logical_barriers=False
+        self, singular_vector=None, initial_loads=True, terminal_measurements=False,
+            return_registers=False, logical_barriers=False
     ):
         """Returns a quantum circuit implementing the QSVE algorithm (without cosine).
 
 
         Args:
+            singular_vector : Union[numpy.ndarray, qiskit.QuantumCircuit]
+                The singular vector to prepare in the "column register," which can be input as a vector (numpy array)
+                or a quantum circuit which prepares the vector.
+
             initial_loads : bool
                 If True, the row norms and singular vector (if provided) are prepared at the start of the circuit.
                 Normally, this is always True. Setting to False is useful for getting the inverse circuit WITHOUT
@@ -596,7 +741,9 @@ class QSVE:
                 circuit.barrier()
 
             # Add the optional state preparation in the column register
-            self.prepare_singular_vector(circuit, col_register)
+            if singular_vector is not None:
+                raise NotImplementedError("Gimmie a minute.")
+            # self.prepare_singular_vector(singular_vector, circuit, row_register[:] + col_register[:])
 
             # Add a barrier, if desired
             if logical_barriers:
@@ -706,74 +853,86 @@ if __name__ == "__main__":
     # matrix = np.random.randn(4, 4)
     # matrix += matrix.conj().T
 
-    # matrix = np.array([
-    #     [np.cos(1 * np.pi / 8), 0, 0, 0],
-    #     [0, np.sin(1 * np.pi / 8), 0, 0],
-    #     [0, 0, np.cos(1 * np.pi / 8), 0],
-    #     [0, 0, 0, np.sin(1 * np.pi / 8)]
-    # ], dtype=np.float32) / np.sqrt(2)
+    matrix = np.array([
+        [np.cos(1 * np.pi / 8), 0, 0, 0],
+        [0, np.sin(1 * np.pi / 8), 0, 0],
+        [0, 0, np.cos(1 * np.pi / 8), 0],
+        [0, 0, 0, np.sin(1 * np.pi / 8)]
+    ], dtype=np.float32) / np.sqrt(2)
 
-    matrix = np.array([[3, 0], [0, 4]])
+    matrix = np.identity(2)
 
     print("Hermitian matrix:")
     print(matrix)
 
     # Do the classical SVD
     _, sigmas, _ = np.linalg.svd(matrix)
-    print("\nClassically found singular values:")
+    print("\nClassically found singular values (scaled):")
     print(sigmas / np.linalg.norm(matrix, "fro"))
 
     # Get the quantum circuit for QSVE
-    qsve = QSVE(matrix, nprecision_bits=8)
+    qsve = QSVE(matrix, nprecision_bits=2)
+    qpe = QuantumRegister(1)
+    row = QuantumRegister(1)
+    col = QuantumRegister(1)
+
+    cw = QuantumCircuit(qpe, col, row)
+
+    qsve.controlled_unitary(cw, qpe[0], row, col)
+
+    print("\n\nFinal circuit for controlled-W")
+    print(cw)
+
     circuit = qsve.create_circuit(terminal_measurements=True)
 
-    # print("\nQSVE Circuit:")
-    # print(circuit)
+    print("\nQSVE Circuit:")
+    print(circuit)
+    print(circuit.count_ops())
 
-    # Run the quantum circuit for QSVE
-    sim = BasicAer.get_backend("qasm_simulator")
-    job = execute(circuit, sim, shots=10000)
-
-    # Get the output bit strings from QSVE
-    res = job.result()
-    counts = res.get_counts()
-    print("\nCounts =", counts)
-    thetas_binary = np.array(list(counts.keys()))
-
-    # print("\nSampled bit strings from QSVE:")
-    # print(thetas_binary)
+    # # Run the quantum circuit for QSVE
+    # sim = BasicAer.get_backend("qasm_simulator")
+    # job = execute(circuit, sim, shots=10000)
+    #
+    # # Get the output bit strings from QSVE
+    # res = job.result()
+    # counts = res.get_counts()
+    # print("\nCounts =", counts)
+    # thetas_binary = np.array(list(counts.keys()))
+    #
+    # # print("\nSampled bit strings from QSVE:")
+    # # print(thetas_binary)
+    # # #
+    # # # # Convert from the binary strings to theta values
+    # # # computed = [qsve.convert_measured(qsve.binary_decimal_to_float(bits)) for bits in thetas_binary]
+    # # #
+    # # # print("\nQuantumly found theta values")
+    # # # print(computed)
+    # # #
+    # # # # Convert from theta values to singular values
+    # # # print("\nQuantumly found singular values")
+    # # # qsigmas = [qsve.matrix_norm() * np.cos(np.pi * theta) for theta in computed if theta > 0]
+    # # # print(sorted(set(qsigmas)))
+    # #
+    # # Get the top three measured bit strings
+    # import operator
+    # sort = sorted(counts.items(), key=operator.itemgetter(1), reverse=True)
+    # print()
+    # print(sort)
+    #
+    # top = [x[0] for x in sort[:len(sort) // 2]]
+    #
+    # print("\nTop sampled bit strings from QSVE:")
+    # print(top)
     #
     # # Convert from the binary strings to theta values
-    # computed = [qsve.convert_measured(qsve.binary_decimal_to_float(bits)) for bits in thetas_binary]
+    # computed = [qsve.convert_measured(qsve.binary_decimal_to_float(bits)) for bits in top]
     #
-    # print("\nQuantumly found theta values")
+    # print("\nTop quantumly found theta values")
     # print(computed)
     #
     # # Convert from theta values to singular values
-    # print("\nQuantumly found singular values")
-    # qsigmas = [qsve.matrix_norm() * np.cos(np.pi * theta) for theta in computed if theta > 0]
-    # print(sorted(set(qsigmas)))
-
-    # Get the top three measured bit strings
-    import operator
-    sort = sorted(counts.items(), key=operator.itemgetter(1), reverse=True)
-    print()
-    print(sort)
-
-    top = [x[0] for x in sort[:len(sort) // 2]]
-
-    print("\nTop sampled bit strings from QSVE:")
-    print(top)
-
-    # Convert from the binary strings to theta values
-    computed = [qsve.convert_measured(qsve.binary_decimal_to_float(bits)) for bits in top]
-
-    print("\nTop quantumly found theta values")
-    print(computed)
-
-    # Convert from theta values to singular values
-    print("\nTop quantumly found singular values")
-    qsigmas = [np.cos(np.pi * theta) for theta in computed if theta > 0]
-    print(qsigmas)
-
-    print("\nMaximum theoretic error:", qsve.max_error())
+    # print("\nTop quantumly found singular values")
+    # qsigmas = [np.cos(np.pi * theta) for theta in computed]
+    # print(qsigmas)
+    #
+    # print("\nMaximum theoretic error:", qsve.max_error())

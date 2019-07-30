@@ -200,6 +200,15 @@ class TestQSVE(QiskitAquaTestCase):
 
         self.assertTrue(np.allclose(state, two_norms))
 
+    def test_controlled_unitary(self):
+        pass
+
+    def test_controlled_reflection(self):
+        pass
+
+    def test_qft(self):
+        pass
+
     def test_singular_values_from_theta_values_for_two_by_two_identity_matrix(self):
         """Tests the correct theta values (in the range [0, 1] are measured for the identity matrix.
 
@@ -214,7 +223,7 @@ class TestQSVE(QiskitAquaTestCase):
         we must have                cos(pi * theta) = 1 / sqrt(2),
 
         which means that theta = - 0.25 or theta = 0.25. After mapping from the interval [-1/2, 1/2] to the interval
-        [0, 1] by the mapping
+        [0, 1] via
 
                                     theta ----> theta           (if 0 <= theta <= 1 / 2)
                                     theta ----> theta + 1       (if -1 / 2 <= theta < 0)
@@ -255,7 +264,7 @@ class TestQSVE(QiskitAquaTestCase):
             self.assertIn(0.25, thetas)
             self.assertIn(-0.25, thetas)
 
-    def test_two_by_two_pi_over_eight(self):
+    def test_singular_values_two_by_two_pi_over_eight(self):
         """Tests computing the singular values of the matrix
 
                     A = [[cos(pi / 8), 0],
@@ -296,7 +305,7 @@ class TestQSVE(QiskitAquaTestCase):
             # Make sure the quantum solution is close to the classical solution
             self.assertTrue(np.allclose(sigmas, qsigmas))
 
-    def test_two_by_two_three_pi_over_eight(self):
+    def test_singular_values_two_by_two_three_pi_over_eight(self):
         """Tests computing the singular values of the matrix
 
                     A = [[cos(3 * pi / 8), 0],
@@ -337,6 +346,158 @@ class TestQSVE(QiskitAquaTestCase):
             # Make sure the quantum solution is close to the classical solution
             self.assertTrue(np.allclose(sigmas, qsigmas))
 
+    def test_row_isometry_two_by_two(self):
+        """Tests that the row isometry is indeed an isometry for random two by two matrices."""
+        iden = np.identity(2)
+        for _ in range(100):
+            # Get a Hermitian matrix
+            matrix = np.random.randn(2, 2)
+            matrix += matrix.conj().T
+
+            # Create the QSVE object and get the row isometry
+            qsve = QSVE(matrix)
+            umat = qsve.row_isometry()
+            vmat = qsve.norm_isometry()
+
+            # Make sure U^dagger U = I
+            self.assertTrue(np.allclose(umat.conj().T @ umat, iden))
+            self.assertTrue(np.allclose(vmat.conj().T @ vmat, iden))
+
+            # Make sure U^dagger V = V^dagger U = A / ||A||_F
+            self.assertTrue(np.allclose(umat.conj().T @ vmat, matrix / np.linalg.norm(matrix, ord="fro")))
+            self.assertTrue(np.allclose(vmat.conj().T @ umat, matrix / np.linalg.norm(matrix, ord="fro")))
+
+    def test_isometries_four_by_four(self):
+        """Tests that the row (norm) isometry is indeed an isometry for random four by four matrices."""
+        iden = np.identity(4)
+        for _ in range(100):
+            # Get a Hermitian matrix
+            matrix = np.random.randn(4, 4)
+            matrix += matrix.conj().T
+
+            # Get a QSVE object and compute the row ismoetry
+            qsve = QSVE(matrix)
+            umat = qsve.row_isometry()
+            vmat = qsve.norm_isometry()
+
+            # Make sure U^dagger U = I = V^dagger V
+            self.assertTrue(np.allclose(umat.conj().T @ umat, iden))
+            self.assertTrue(np.allclose(vmat.conj().T @ vmat, iden))
+
+            # Make sure U^dagger V = V^dagger U = A / ||A||_F
+            self.assertTrue(np.allclose(umat.conj().T @ vmat, matrix / np.linalg.norm(matrix, ord="fro")))
+            self.assertTrue(np.allclose(vmat.conj().T @ umat, matrix / np.linalg.norm(matrix, ord="fro")))
+
+            # Make sure rank(U U^dagger) = 4
+            self.assertEqual(np.linalg.matrix_rank(umat @ umat.conj().T), len(matrix))
+
+    def test_isometries_large_matrix(self):
+        """Tests that the row isometry is indeed an isometry for random 16 x 16 matrices."""
+        iden = np.identity(16)
+        for _ in range(100):
+            # Get a random Hermitian matrix
+            matrix = np.random.randn(16, 16)
+            matrix += matrix.conj().T
+
+            # Get the row isometry
+            qsve = QSVE(matrix)
+            umat = qsve.row_isometry()
+            vmat = qsve.norm_isometry()
+
+            # Make sure U^dagger U = I
+            self.assertTrue(np.allclose(umat.conj().T @ umat, iden))
+            self.assertTrue(np.allclose(vmat.conj().T @ vmat, iden))
+
+            # Make sure U^dagger V = V^dagger U = A / ||A||_F
+            self.assertTrue(np.allclose(umat.conj().T @ vmat, matrix / np.linalg.norm(matrix, ord="fro")))
+            self.assertTrue(np.allclose(vmat.conj().T @ umat, matrix / np.linalg.norm(matrix, ord="fro")))
+
+            # Make sure rank(U U^dagger) = 256
+            self.assertEqual(np.linalg.matrix_rank(vmat @ vmat.conj().T), len(matrix))
+
+    def test_unitary(self):
+        """Tests for the unitary used for QPE."""
+        for dim in [2, 4]:
+            for _ in range(50):
+                matrix = np.random.randn(dim, dim)
+                matrix += matrix.conj().T
+
+                qsve = QSVE(matrix)
+                unitary = qsve.unitary()
+
+                self.assertTrue(np.allclose(unitary.conj().T @ unitary, np.identity(dim**2)))
+
 
 if __name__ == "__main__":
     unittest.main()
+
+    matrix = np.identity(2)
+
+    qsve = QSVE(matrix, nprecision_bits=2)
+
+    circuit = qsve.create_circuit()
+
+    print(circuit)
+
+    # # Define the matrix
+    # matrix = np.array([[np.cos(2 * np.pi / 8), 0, 0, 0],
+    #                    [0, np.sin(2 * np.pi / 8), 0, 0],
+    #                    [0, 0, np.cos(2 * np.pi / 8), 0],
+    #                    [0, 0, 0, np.sin(2 * np.pi / 8)]]) / np.sqrt(2)
+    #
+    # # Do the classical SVD. (Note: We could just access the singular values from the diagonal matrix elements.)
+    # _, sigmas, _ = np.linalg.svd(matrix)
+    #
+    # qsve = QSVE(matrix, nprecision_bits=5)
+    # circuit = qsve.create_circuit(terminal_measurements=True)
+    #
+    # # Run the quantum circuit for QSVE
+    # sim = BasicAer.get_backend("qasm_simulator")
+    # job = execute(circuit, sim, shots=50000)
+    #
+    # # Get the output bit strings from QSVE
+    # res = job.result()
+    # counts = res.get_counts()
+    # thetas_binary = np.array(list(counts.keys()))
+    #
+    # # print("Sampled thetas:", thetas_binary)
+    # #
+    # # # Convert from the binary strings to theta values
+    # # computed = [qsve.convert_measured(qsve.binary_decimal_to_float(bits)) for bits in thetas_binary]
+    # #
+    # # # Convert from theta values to singular values
+    # # qsigmas = [np.cos(np.pi * theta) for theta in computed]
+    # #
+    # # # Sort the sigma values for comparison
+    # # sigmas = list(sorted(sigmas))
+    # # qsigmas = list(sorted(qsigmas))
+    # #
+    # # print("sigmas:", sigmas)
+    # # print("qsigmas", qsigmas)
+    #
+    # # Get the top measured bit strings
+    # import operator
+    # sort = sorted(counts.items(), key=operator.itemgetter(1), reverse=True)
+    # print()
+    # print(sort)
+    #
+    # top = [x[0] for x in sort[:len(sort) // 2]]
+    #
+    # print("\nTop sampled bit strings from QSVE:")
+    # print(top)
+    #
+    # # Convert from the binary strings to theta values
+    # computed = [qsve.convert_measured(qsve.binary_decimal_to_float(bits)) for bits in top]
+    #
+    # print("\nTop quantumly found theta values")
+    # print(computed)
+    #
+    # # Convert from theta values to singular values
+    # print("\nTop quantumly found singular values")
+    # qsigmas = [np.cos(np.pi * theta) for theta in computed]
+    # print(qsigmas)
+    #
+    # print("Acutal sigmas")
+    # print(sigmas / np.linalg.norm(matrix, "fro"))
+    #
+    # print("\nMaximum theoretic error:", qsve.max_error())
