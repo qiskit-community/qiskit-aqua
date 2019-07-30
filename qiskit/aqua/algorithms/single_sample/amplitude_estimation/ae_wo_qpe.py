@@ -222,14 +222,22 @@ class AmplitudeEstimationWithoutQPE(QuantumAlgorithm):
         # the outer LR confidence interval
         above_thres = thetas[values >= thres]
         ci_outer = [np.min(above_thres), np.max(above_thres)]
+        mapped_ci_outer = [self.a_factory.value_to_estimation(bound) for bound in ci_outer]
 
         # the inner LR confidence interval:
         # [largest value below mle and above thres, smallest value above mle and above thres]
         larger_than_mle = above_thres[above_thres > self._ret['theta']]
         smaller_than_mle = above_thres[above_thres < self._ret['theta']]
         ci_inner = [np.max(smaller_than_mle), np.min(larger_than_mle)]
+        mapped_ci_inner = [self.a_factory.value_to_estimation(bound) for bound in ci_inner]
 
-        return ci_outer, ci_inner
+        return mapped_ci_outer, mapped_ci_inner
+
+    def compute_fisher_ci(self, alpha=0.05):
+        normal_quantile = norm.ppf(1 - alpha / 2)
+        ci = self._ret['estimation'] + normal_quantile / np.sqrt(self._ret['fisher_information']) * np.array([-1, 1])
+        mapped_ci = [self.a_factory.value_to_estimation(bound) for bound in ci]
+        return mapped_ci
 
     def _compute_fisher_information(self):
         # the fisher information is infinite, since:
