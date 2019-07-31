@@ -1,11 +1,10 @@
 import numpy as np
 
 from qiskit import BasicAer
-from qiskit.aqua.algorithms import IterativeAmplitudeEstimation
+from qiskit.aqua.algorithms import AmplitudeEstimationWithoutQPE
 from qiskit.aqua.algorithms import AmplitudeEstimation
 from qiskit.aqua.algorithms.single_sample.amplitude_estimation.q_factory import QFactory
 from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
-from qiskit.aqua.circuits.gates import cry
 
 # the probability to be recovered
 probability = 0.3
@@ -64,19 +63,17 @@ bernoulli_q_factory = BernoulliQFactory(bernoulli_a_factory)
 
 # set number of evaluation qubits
 m = 3
-
+np.random.seed(11723)
 # construct amplitude estimation
 # here, we override the standard construction of Q since we know a more efficient way
 # (exploiting the fact that A and Q are just Y-rotations)
-ae = IterativeAmplitudeEstimation(m, bernoulli_a_factory, i_objective=0, q_factory=bernoulli_q_factory)
+ae = AmplitudeEstimationWithoutQPE(m, bernoulli_a_factory, i_objective=0, q_factory=bernoulli_q_factory)
 #ae = AmplitudeEstimation(m, bernoulli_a_factory, i_objective=0, q_factory=bernoulli_q_factory)
 
 
-result = ae.run(quantum_instance=BasicAer.get_backend('qasm_simulator'))
+shots = 10
+result = ae.run(quantum_instance=BasicAer.get_backend('qasm_simulator'), shots=shots)
 #result = ae.run(quantum_instance=BasicAer.get_backend('statevector_simulator'))
-ci = ae.ci(0.05, kind="fisher")
-
-print(ci)
 
 for key, value in result.items():
     print(key, value)
