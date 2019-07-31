@@ -68,6 +68,7 @@ class TestQAOA(QiskitAquaTestCase):
         qubit_op, offset = max_cut.get_max_cut_qubitops(w)
 
         qaoa = QAOA(qubit_op, optimizer, p, mixer=m)
+        # TODO: cache fails for QAOA since we construct the evolution circuit via instruction
         quantum_instance = QuantumInstance(backend, circuit_caching=False)
 
         result = qaoa.run(quantum_instance)
