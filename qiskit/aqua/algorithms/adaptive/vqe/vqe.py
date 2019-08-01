@@ -300,6 +300,9 @@ class VQE(VQAlgorithm):
         return self._ret
 
     def _run_extrapolated_points(self):
+        qi = self._quantum_instance
+        if qi._compile_config['optimization_level'] > 1:
+            logger.warning('Optimization level of {} may interfere with extrapolation results'.format(qi._compile_config['optimization_level']))
         re = self.richardson_extrapolator  # type: RichardsonExtrapolator
         vfs = [ExtrapolatedVF(self.var_form, pm) for pm in re.pass_managers]
         vqes = [VQE(
