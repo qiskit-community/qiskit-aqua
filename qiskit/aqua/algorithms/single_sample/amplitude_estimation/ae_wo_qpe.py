@@ -317,18 +317,29 @@ class AmplitudeEstimationWithoutQPE(QuantumAlgorithm):
 
         return mapped_ci_outer, mapped_ci_inner
 
-    def compute_fisher_ci(self, alpha=0.05):
+    def compute_fisher_ci(self, alpha=0.05, observed=False):
         """
         Compute the alpha confidence interval based on the Fisher information
 
         Args:
             alpha (float): The level of the confidence interval (< 0.5)
+            observed (bool): If True, use observed Fisher information
 
         Returns:
             The alpha confidence interval based on the Fisher information
         """
+        # Get the (observed) Fisher information
+        fisher_information = None
+        try:
+            fisher_information = self._ret["fisher_information"]
+        except KeyError:
+            raise AssertionError("Call run() first!")
+
+        if observed:
+            fisher_information = self._compute_fisher_information(observed=True)
+
         normal_quantile = norm.ppf(1 - alpha / 2)
-        ci = self._ret['estimation'] + normal_quantile / np.sqrt(self._ret['fisher_information']) * np.array([-1, 1])
+        ci = self._ret['estimation'] + normal_quantile / np.sqrt(fisher_information) * np.array([-1, 1])
         mapped_ci = [self.a_factory.value_to_estimation(bound) for bound in ci]
         return mapped_ci
 
