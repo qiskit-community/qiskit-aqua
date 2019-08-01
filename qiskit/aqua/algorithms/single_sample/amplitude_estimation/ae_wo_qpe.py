@@ -272,6 +272,16 @@ class AmplitudeEstimationWithoutQPE(QuantumAlgorithm):
 
         return est_theta
 
+    def _save_min(self, array, default=0):
+        if len(array) == 0:
+            return default
+        return np.min(array)
+
+    def _save_max(self, array, default=(np.pi / 2)):
+        if len(array) == 0:
+            return default
+        return np.max(array)
+
     def compute_lr_ci(self, alpha=0.05, nevals=10000):
         """
         Compute the likelihood-ratio confidence interval.
@@ -286,34 +296,40 @@ class AmplitudeEstimationWithoutQPE(QuantumAlgorithm):
         """
 
         def loglikelihood(theta, one_counts, all_counts):
-            L = 0
+            logL = 0
             for i, k in enumerate(self._evaluation_schedule):
-                L += np.log(np.sin((2 * k + 1) * theta) ** 2) * one_counts[i]
-                L += np.log(np.cos((2 * k + 1) * theta) ** 2) * (all_counts[i] - one_counts[i])
-            return L
+                logL += np.log(np.sin((2 * k + 1) * theta) ** 2) * one_counts[i]
+                logL += np.log(np.cos((2 * k + 1) * theta) ** 2) * (all_counts[i] - one_counts[i])
+            return logL
 
         one_counts, all_counts = self._get_hits(self._ret['counts'])
 
         thetas = np.linspace(np.pi / nevals / 2, np.pi / 2, nevals)
         values = np.zeros(len(thetas))
         for i, t in enumerate(thetas):
-            values[i] = self._loglikelihood(t, one_counts, all_counts)
+            values[i] = loglikelihood(t, one_counts, all_counts)
 
         loglik_mle = loglikelihood(self._ret['theta'], one_counts, all_counts)
-        chi2_quantile = 1 - chi2.ppf(1 - alpha)
+        chi2_quantile = chi2.ppf(1 - alpha, df=1)
         thres = loglik_mle - chi2_quantile / 2
 
         # the outer LR confidence interval
         above_thres = thetas[values >= thres]
-        ci_outer = [np.min(above_thres), np.max(above_thres)]
-        mapped_ci_outer = [self.a_factory.value_to_estimation(bound) for bound in ci_outer]
+
+        # it might happen that the `above_thres` array is empty,
+        # to still provide a valid result use save_min/max which
+        # then yield [0, pi/2]
+        ci_outer = [self._save_min(above_thres, default=0),
+                    self._save_max(above_thres, default=(np.pi / 2))]
+        mapped_ci_outer = [self.a_factory.value_to_estimation(np.sin(bound)**2) for bound in ci_outer]
 
         # the inner LR confidence interval:
         # [largest value below mle and above thres, smallest value above mle and above thres]
         larger_than_mle = above_thres[above_thres > self._ret['theta']]
         smaller_than_mle = above_thres[above_thres < self._ret['theta']]
-        ci_inner = [np.max(smaller_than_mle), np.min(larger_than_mle)]
-        mapped_ci_inner = [self.a_factory.value_to_estimation(bound) for bound in ci_inner]
+        ci_inner = [self._save_max(smaller_than_mle, default=0),
+                    self._save_min(larger_than_mle, default=(np.pi / 2))]
+        mapped_ci_inner = [self.a_factory.value_to_estimation(np.sin(bound)**2) for bound in ci_inner]
 
         return mapped_ci_outer, mapped_ci_inner
 
