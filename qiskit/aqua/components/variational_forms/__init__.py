@@ -16,8 +16,10 @@ from .variational_form import VariationalForm
 from .ry import RY
 from .ryrz import RYRZ
 from .swaprz import SwapRZ
+from .extrapolated_variational_form import ExtrapolatedVF
 
 __all__ = ['VariationalForm',
            'RY',
            'RYRZ',
-           'SwapRZ']
+           'SwapRZ',
+           'ExtrapolatedVF']
