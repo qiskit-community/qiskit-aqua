@@ -26,6 +26,8 @@ from qiskit.aqua.algorithms.adaptive.vq_algorithm import VQAlgorithm
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.utils.backend_utils import is_aer_statevector_backend
 from qiskit.aqua.utils import find_regs_by_name
+from qiskit.aqua.components.extrapolation_pass_managers import RichardsonExtrapolator
+from qiskit.aqua.components.variational_forms import ExtrapolatedVF
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +82,8 @@ class VQE(VQAlgorithm):
     }
 
     def __init__(self, operator, var_form, optimizer, operator_mode='matrix',
-                 initial_point=None, max_evals_grouped=1, aux_operators=None, callback=None):
+                 initial_point=None, max_evals_grouped=1, aux_operators=None, callback=None,
+                 richardson_extrapolator=None):
         """Constructor.
 
         Args:
@@ -100,7 +103,8 @@ class VQE(VQAlgorithm):
         super().__init__(var_form=var_form,
                          optimizer=optimizer,
                          cost_fn=self._energy_evaluation,
-                         initial_point=initial_point)
+                         initial_point=initial_point,
+                         richardson_extrapolator=richardson_extrapolator)
         self._optimizer.set_max_evals_grouped(max_evals_grouped)
         self._callback = callback
         if initial_point is None:
@@ -273,6 +277,9 @@ class VQE(VQAlgorithm):
 
         self._quantum_instance.circuit_summary = True
 
+        if self.richardson_extrapolator is not None:
+            return self._run_extrapolated_points()
+
         self._eval_count = 0
         self._ret = self.find_minimum(initial_point=self.initial_point,
                                       var_form=self.var_form,
@@ -290,6 +297,28 @@ class VQE(VQAlgorithm):
         self._ret['eigvals'] = np.asarray([self.get_optimal_cost()])
         self._ret['eigvecs'] = np.asarray([self.get_optimal_vector()])
         self._eval_aux_ops()
+        return self._ret
+
+    def _run_extrapolated_points(self):
+        re = self.richardson_extrapolator  # type: RichardsonExtrapolator
+        vfs = [ExtrapolatedVF(self.var_form, pm) for pm in re.pass_managers]
+        vqes = [VQE(
+            self._operator, vf, self._optimizer, operator_mode=self._operator_mode,
+            initial_point=self._initial_point, max_evals_grouped=self._max_evals_grouped,
+            aux_operators=self._aux_operators, callback=self._callback, richardson_extrapolator=None
+        ) for vf in vfs]
+        results = [vqe.run(self.quantum_instance) for vqe in vqes]
+        energies = [res['energy'] for res in results]
+        extrapolated_energy = re.extrapolate(energies)
+
+        self._extrapolated_vqes = vqes
+        self._extrapolated_results = results
+
+        self._ret = {}
+        self._ret['energy'] = extrapolated_energy
+        self._ret['eigvals'] = [extrapolated_energy]
+        self._ret['eigvecs'] = None
+        # self._eval_aux_ops()
         return self._ret
 
     # This is the objective function to be passed to the optimizer that is uses for evaluation

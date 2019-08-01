@@ -28,6 +28,7 @@ from abc import abstractmethod
 
 from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms import QuantumAlgorithm
+from qiskit.aqua.components.extrapolation_pass_managers import RichardsonExtrapolator
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +42,8 @@ class VQAlgorithm(QuantumAlgorithm):
                  var_form=None,
                  optimizer=None,
                  cost_fn=None,
-                 initial_point=None):
+                 initial_point=None,
+                 richardson_extrapolator=None):
         super().__init__()
         if var_form is None:
             raise AquaError('Missing variational form.')
@@ -50,6 +52,11 @@ class VQAlgorithm(QuantumAlgorithm):
         if optimizer is None:
             raise AquaError('Missing optimizer.')
         self._optimizer = optimizer
+
+        if richardson_extrapolator is not None:
+            if not isinstance(richardson_extrapolator, RichardsonExtrapolator):
+                raise AquaError('Invalid Richardson extrapolator provided.')
+        self._richardson_extrapolator = richardson_extrapolator
 
         self._cost_fn = cost_fn
         self._initial_point = initial_point
@@ -156,6 +163,10 @@ class VQAlgorithm(QuantumAlgorithm):
     @property
     def initial_point(self):
         return self._initial_point
+
+    @property
+    def richardson_extrapolator(self):
+        return self._richardson_extrapolator
 
     @initial_point.setter
     def initial_point(self, new_value):
