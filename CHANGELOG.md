@@ -45,10 +45,11 @@ Added
     and PSI4 outputs were already added to debug log)
 -   Chemistry: Merged qiskit-chemistry to this repo. The old chemistry changelog is at 
     [OLD_CHEMISTRY_CHANGELOG.md](OLD_CHEMISTRY_CHANGELOG.md)
--   Add `evolution_instruction` function to get registerless instruction of time evolution. 
--   Add `op_converter` module to unified the place in charge of converting different types of operators.
+-   Add `MatrixOperator`, `WeightedPauliOperator` and `TPBGroupedPauliOperator` class. (#593)
+-   Add `evolution_instruction` function to get registerless instruction of time evolution. (#593)
+-   Add `op_converter` module to unified the place in charge of converting different types of operators. (#593)
 -   Add `Z2Symmetries` class to encapsulate the Z2 symmetries info and has helper methods for tapering an
-    Operator.       
+    Operator. (#593).
 
 Changed
 -------
@@ -59,9 +60,9 @@ Changed
 -   The PyEDA dependency was removed; 
     corresponding oracles' underlying logic operations are now handled by SymPy.
 -   Refactor the `Operator` class, each representation has its own class `MatrixOperator`, 
-    `WeightedPauliOperator` and `TPBGroupedPauliOperator`. (#593).
+    `WeightedPauliOperator` and `TPBGroupedPauliOperator`. (#593)
 -   The `power` in `evolution_instruction` was applied on the theta on the CRZ gate directly, 
-    the current version repeats the circuits to implement power. (#593)
+    the new version repeats the circuits to implement power. (#593)
      
 Fixed
 -------
@@ -81,7 +82,7 @@ Deprecated
 ----------
 
 -   The `Operator` class is deprecated, in favor of using `MatrixOperator`, 
-    `WeightedPauliOperator` and `TPBGroupedPauliOperator`
+    `WeightedPauliOperator` and `TPBGroupedPauliOperator`. (#593)
 
 [0.5.5](https://github.com/Qiskit/qiskit-aqua/compare/0.5.4...0.5.5) - 2019-07-26
 =================================================================================
