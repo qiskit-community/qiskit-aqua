@@ -52,7 +52,7 @@ class TestHHL(QiskitAquaTestCase):
                 'name': 'EigsQPE',
                 'negative_evals': False,
                 'num_ancillae': 3,
-                'num_time_slices': 8
+                'num_time_slices': 1
             },
             'reciprocal': {
                 'name': 'Lookup',
@@ -305,7 +305,7 @@ class TestHHL(QiskitAquaTestCase):
 
         nonherm_params = self.params
         nonherm_params['eigs']['num_ancillae'] = 6
-        nonherm_params['eigs']['num_time_slices'] = 8
+        nonherm_params['eigs']['num_time_slices'] = 1
         nonherm_params['eigs']['negative_evals'] = True
         nonherm_params['reciprocal']['negative_evals'] = True
 

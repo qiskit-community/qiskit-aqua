@@ -26,7 +26,7 @@ import numpy as np
 import numpy.random as rand
 from qiskit.quantum_info import Pauli
 
-from qiskit.aqua import Operator
+from qiskit.aqua.operators import WeightedPauliOperator
 
 logger = logging.getLogger(__name__)
 
@@ -90,7 +90,7 @@ def get_stable_set_qubitops(w):
         zp = np.zeros(num_nodes, dtype=np.bool)
         zp[i] = True
         pauli_list.append([degree - 1/2, Pauli(zp, xp)])
-    return Operator(paulis=pauli_list), shift - num_nodes/2
+    return WeightedPauliOperator(paulis=pauli_list), shift - num_nodes/2
 
 
 def parse_gset_format(filename):

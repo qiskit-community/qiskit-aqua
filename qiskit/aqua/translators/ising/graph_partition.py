@@ -23,7 +23,7 @@ import numpy as np
 import numpy.random as rand
 
 from qiskit.quantum_info import Pauli
-from qiskit.aqua import Operator
+from qiskit.aqua.operators import WeightedPauliOperator
 
 logger = logging.getLogger(__name__)
 
@@ -109,7 +109,7 @@ def get_graph_partition_qubitops(weight_matrix):
                 pauli_list.append([1, Pauli(zp, xp)])
             else:
                 shift += 1
-    return Operator(paulis=pauli_list), shift
+    return WeightedPauliOperator(paulis=pauli_list), shift
 
 
 def parse_gset_format(filename):
