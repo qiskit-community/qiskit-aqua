@@ -21,7 +21,8 @@ from qiskit.quantum_info import Pauli
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
 
-from qiskit.aqua import Operator, aqua_globals
+from qiskit.aqua import aqua_globals
+from qiskit.aqua.operators import WeightedPauliOperator
 from .qiskit_chemistry_error import QiskitChemistryError
 from .bksf import bksf_mapping
 from .particle_hole import particle_hole_transformation
@@ -51,7 +52,7 @@ class FermionicOperator(object):
         """Constructor.
 
         This class requires the integrals stored in the 'chemist' notation
-            h2(i,j,k,l) --> adag_i adag_k a_m a_j
+            h2(i,j,k,l) --> adag_i adag_k a_l a_j
         There is another popular notation is the 'physicist' notation
             h2(i,j,k,l) --> adag_i adag_j a_k a_l
         If you are using the 'physicist' notation, you need to convert it to
@@ -322,7 +323,7 @@ class FermionicOperator(object):
             threshold (float): threshold for Pauli simplification
 
         Returns:
-            Operator: create an Operator object in Paulis form.
+            WeightedPauliOperator: create an Operator object in Paulis form.
 
         Raises:
             QiskitChemistryError: if the `map_type` can not be recognized.
@@ -352,7 +353,7 @@ class FermionicOperator(object):
         ############    BUILDING THE MAPPED HAMILTONIAN     ################
         ####################################################################
         """
-        pauli_list = Operator(paulis=[])
+        pauli_list = WeightedPauliOperator(paulis=[])
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug("Mapping one-body terms to Qubit Hamiltonian:")
             TextProgressBar(output_handler=sys.stderr)
@@ -377,7 +378,7 @@ class FermionicOperator(object):
 
         if self._ph_trans_shift is not None:
             pauli_term = [self._ph_trans_shift, Pauli.from_label('I' * self._modes)]
-            pauli_list += Operator(paulis=[pauli_term])
+            pauli_list += WeightedPauliOperator(paulis=[pauli_term])
 
         return pauli_list
 
@@ -391,7 +392,7 @@ class FermionicOperator(object):
             threshold: (float): threshold to remove a pauli
 
         Returns:
-            Operator: Operator for those paulis
+            WeightedPauliOperator: Operator for those paulis
         """
         h1_ij, a_i, a_j = h1_ij_aij
         pauli_list = []
@@ -402,7 +403,7 @@ class FermionicOperator(object):
                 pauli_term = [coeff, pauli_prod[0]]
                 if np.absolute(pauli_term[0]) > threshold:
                     pauli_list.append(pauli_term)
-        return Operator(paulis=pauli_list)
+        return WeightedPauliOperator(paulis=pauli_list)
 
     @staticmethod
     def _two_body_mapping(h2_ijkm_a_ijkm, threshold):
@@ -417,7 +418,7 @@ class FermionicOperator(object):
             threshold: (float): threshold to remove a pauli
 
         Returns:
-            Operator: Operator for those paulis
+            WeightedPauliOperator: Operator for those paulis
         """
         h2_ijkm, a_i, a_j, a_k, a_m = h2_ijkm_a_ijkm
         pauli_list = []
@@ -434,7 +435,7 @@ class FermionicOperator(object):
                         pauli_term = [h2_ijkm / 16 * phase1 * phase2, pauli_prod_3[0]]
                         if np.absolute(pauli_term[0]) > threshold:
                             pauli_list.append(pauli_term)
-        return Operator(paulis=pauli_list)
+        return WeightedPauliOperator(paulis=pauli_list)
 
     def _convert_to_interleaved_spins(self):
         """Converting the spin order.

@@ -76,7 +76,6 @@ class TestClique(QiskitAquaTestCase):
     def test_clique_vqe(self):
         algorithm_cfg = {
             'name': 'VQE',
-            'operator_mode': 'matrix',
             'max_evals_grouped': 2
         }
 

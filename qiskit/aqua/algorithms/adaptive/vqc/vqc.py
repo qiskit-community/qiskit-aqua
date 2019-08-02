@@ -621,7 +621,7 @@ class VQC(VQAlgorithm):
         return self._class_to_label
 
     def load_model(self, file_path):
-        model_npz = np.load(file_path)
+        model_npz = np.load(file_path, allow_pickle=True)
         self._ret['opt_params'] = model_npz['opt_params']
 
     def save_model(self, file_path):
