@@ -16,7 +16,7 @@ import numpy as np
 from functools import reduce
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.quantum_info import Pauli
-from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator, op_converter
+from qiskit.aqua.operators import WeightedPauliOperator, op_converter
 
 
 class QAOAVarForm:
@@ -57,7 +57,7 @@ class QAOAVarForm:
             )
         else:
             if not isinstance(mixer_operator, WeightedPauliOperator):
-                raise TypeError('The mixer should be a qiskit.aqua.WeightedPauliOperator '
+                raise TypeError('The mixer should be a qiskit.aqua.operators.WeightedPauliOperator '
                                 + 'object, found {} instead'.format(type(mixer_operator)))
             self._mixer_operator = mixer_operator
 

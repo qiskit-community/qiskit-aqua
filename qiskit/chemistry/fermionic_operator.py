@@ -52,7 +52,7 @@ class FermionicOperator(object):
         """Constructor.
 
         This class requires the integrals stored in the 'chemist' notation
-            h2(i,j,k,l) --> adag_i adag_k a_m a_j
+            h2(i,j,k,l) --> adag_i adag_k a_l a_j
         There is another popular notation is the 'physicist' notation
             h2(i,j,k,l) --> adag_i adag_j a_k a_l
         If you are using the 'physicist' notation, you need to convert it to
