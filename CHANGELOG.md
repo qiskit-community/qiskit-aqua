@@ -55,7 +55,7 @@ Changed
 -   The PyEDA dependency was removed; 
     corresponding oracles' underlying logic operations are now handled by SymPy.
 -   CircuitCache is OFF by default, and it can be set via environment variable now 
-    `QISKIT_AQUA_CIRCUIT_CACHE`.
+    `QISKIT_AQUA_CIRCUIT_CACHE`. (#630)
 
 Fixed
 -------
@@ -64,7 +64,7 @@ Fixed
 -   A bug caused by `PyEDA`'s indeterminism.
 -   A bug with `QPE/IQPE`'s translation and stretch computation.
 -   Chemistry: Bravyi-Kitaev mapping fixed when num qubits was not a power of 2
--   Setup `initial_layout` in `QuantumInstance` via a list.
+-   Setup `initial_layout` in `QuantumInstance` via a list. (#630)
 
 Removed
 -------
