@@ -17,9 +17,10 @@ import unittest
 import numpy as np
 
 from test.aqua.common import QiskitAquaTestCase
-from qiskit.aqua import Operator, run_algorithm
+from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.algorithms import ExactEigensolver
+from qiskit.aqua.operators import WeightedPauliOperator
 
 
 class TestExactEigensolver(QiskitAquaTestCase):
@@ -35,7 +36,7 @@ class TestExactEigensolver(QiskitAquaTestCase):
                        {"coeff": {"imag": 0.0, "real": 0.18093119978423156}, "label": "XX"}
                        ]
         }
-        qubit_op = Operator.load_from_dict(pauli_dict)
+        qubit_op = WeightedPauliOperator.from_dict(pauli_dict)
         self.algo_input = EnergyInput(qubit_op)
 
     def test_ee_via_run_algorithm(self):

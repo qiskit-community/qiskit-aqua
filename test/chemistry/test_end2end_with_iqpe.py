@@ -17,11 +17,12 @@ import unittest
 from parameterized import parameterized
 import numpy as np
 import qiskit
-from qiskit.transpiler import PassManager
+
 from qiskit.aqua.utils import decimal_to_binary
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms.single_sample import IQPE
 from qiskit.aqua.algorithms.classical import ExactEigensolver
+from qiskit.aqua.operators import Z2Symmetries
 from test.chemistry.common import QiskitChemistryTestCase
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry import FermionicOperator, QiskitChemistryError
@@ -51,7 +52,8 @@ class TestIQPE(QiskitChemistryTestCase):
         self.molecule = driver.run()
         qubit_mapping = 'parity'
         fer_op = FermionicOperator(h1=self.molecule.one_body_integrals, h2=self.molecule.two_body_integrals)
-        self.qubit_op = fer_op.mapping(map_type=qubit_mapping, threshold=1e-10).two_qubit_reduced_operator(2)
+        self.qubit_op = fer_op.mapping(map_type=qubit_mapping, threshold=1e-10)
+        self.qubit_op = Z2Symmetries.two_qubit_reduction(self.qubit_op, 2)
 
         exact_eigensolver = ExactEigensolver(self.qubit_op, k=1)
         results = exact_eigensolver.run()
@@ -62,15 +64,15 @@ class TestIQPE(QiskitChemistryTestCase):
         two_qubit_reduction = True
         num_orbitals = self.qubit_op.num_qubits + (2 if two_qubit_reduction else 0)
 
-        num_time_slices = 50
-        num_iterations = 12
+        num_time_slices = 1
+        num_iterations = 6
         state_in = HartreeFock(self.qubit_op.num_qubits, num_orbitals,
                                num_particles, qubit_mapping, two_qubit_reduction)
         iqpe = IQPE(self.qubit_op, state_in, num_time_slices, num_iterations,
                     expansion_mode='suzuki', expansion_order=2,
                     shallow_circuit_concat=True)
         backend = qiskit.BasicAer.get_backend('qasm_simulator')
-        quantum_instance = QuantumInstance(backend, shots=100, pass_manager=PassManager())
+        quantum_instance = QuantumInstance(backend, shots=100)
 
         result = iqpe.run(quantum_instance)
 

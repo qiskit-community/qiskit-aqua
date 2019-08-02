@@ -20,6 +20,7 @@ from scipy import sparse as scisparse
 
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua import AquaError, Pluggable
+from qiskit.aqua.operators import MatrixOperator, op_converter
 
 logger = logging.getLogger(__name__)
 
@@ -51,19 +52,20 @@ class ExactEigensolver(QuantumAlgorithm):
         """Constructor.
 
         Args:
-            operator: Operator instance
-            k: How many eigenvalues are to be computed
-            aux_operators: Auxiliary operators to be evaluated at each eigenvalue
+            operator (MatrixOperator): instance
+            k (int): How many eigenvalues are to be computed
+            aux_operators (list[MatrixOperator]): Auxiliary operators to be evaluated at each eigenvalue
         """
         self.validate(locals())
         super().__init__()
-        self._operator = operator
+
+        self._operator = op_converter.to_matrix_operator(operator)
         if aux_operators is None:
             self._aux_operators = []
         else:
-            self._aux_operators = [aux_operators] if not isinstance(aux_operators, list) else aux_operators
+            aux_operators = [aux_operators] if not isinstance(aux_operators, list) else aux_operators
+            self._aux_operators = [op_converter.to_matrix_operator(aux_op) for aux_op in aux_operators]
         self._k = k
-        self._operator.to_matrix()
         if self._k > self._operator.matrix.shape[0]:
             self._k = self._operator.matrix.shape[0]
             logger.debug("WARNING: Asked for {} eigenvalues but max possible is {}.".format(k, self._k))
@@ -84,7 +86,7 @@ class ExactEigensolver(QuantumAlgorithm):
         return cls(algo_input.qubit_op, k, algo_input.aux_ops)
 
     def _solve(self):
-        if self._operator.matrix.ndim == 2:
+        if self._operator.dia_matrix is None:
             if self._k >= self._operator.matrix.shape[0] - 1:
                 logger.debug("Scipy doesn't support to get all eigenvalues, using numpy instead.")
                 eigval, eigvec = np.linalg.eig(self._operator.matrix.toarray())
@@ -125,10 +127,9 @@ class ExactEigensolver(QuantumAlgorithm):
     def _eval_aux_operators(self, wavefn, threshold=1e-12):
         values = []
         for operator in self._aux_operators:
-            operator.to_matrix()
             value = 0.0
             if not operator.is_empty():
-                value, _ = operator.eval('matrix', wavefn, None)
+                value, _ = operator.evaluate_with_statevector(wavefn)
                 value = value.real if abs(value.real) > threshold else 0.0
             values.append((value, 0))
         return np.asarray(values)

@@ -13,6 +13,7 @@
 # that they have been altered from the originals.
 
 import unittest
+import os
 
 import numpy as np
 from parameterized import parameterized
@@ -22,7 +23,8 @@ from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua.translators.ising import max_cut
 from qiskit.aqua.components.optimizers import COBYLA
 from qiskit.aqua.algorithms import QAOA
-from qiskit.aqua import Operator, QuantumInstance
+from qiskit.aqua import QuantumInstance
+from qiskit.aqua.operators import WeightedPauliOperator
 
 w1 = np.array([
     [0, 1, 0, 1],
@@ -31,11 +33,11 @@ w1 = np.array([
     [1, 0, 1, 0]
 ])
 p1 = 1
-m1 = Operator().load_from_dict({'paulis': [{'label': 'IIIX', 'coeff': {'real': 1}},
-                                           {'label': 'IIXI', 'coeff': {'real': 1}},
-                                           {'label': 'IXII', 'coeff': {'real': 1}},
-                                           {'label': 'XIII', 'coeff': {'real': 1}}]
-                                })
+m1 = WeightedPauliOperator.from_dict({'paulis': [{'label': 'IIIX', 'coeff': {'real': 1}},
+                                                 {'label': 'IIXI', 'coeff': {'real': 1}},
+                                                 {'label': 'IXII', 'coeff': {'real': 1}},
+                                                 {'label': 'XIII', 'coeff': {'real': 1}}]
+                                      })
 s1 = {'0101', '1010'}
 
 
@@ -57,16 +59,17 @@ class TestQAOA(QiskitAquaTestCase):
         [w2, p2, m2, s2],
     ])
     def test_qaoa(self, w, p, m, solutions):
+        os.environ.pop('QISKIT_AQUA_CIRCUIT_CACHE', None)
         self.log.debug('Testing {}-step QAOA with MaxCut on graph\n{}'.format(p, w))
         np.random.seed(0)
 
         backend = BasicAer.get_backend('statevector_simulator')
         optimizer = COBYLA()
-        qubitOp, offset = max_cut.get_max_cut_qubitops(w)
+        qubit_op, offset = max_cut.get_max_cut_qubitops(w)
 
-        qaoa = QAOA(qubitOp, optimizer, p, operator_mode='matrix', mixer=m)
-        # TODO: cache only work with optimization_level 0
-        quantum_instance = QuantumInstance(backend, optimization_level=0)
+        qaoa = QAOA(qubit_op, optimizer, p, mixer=m)
+        # TODO: cache fails for QAOA since we construct the evolution circuit via instruction
+        quantum_instance = QuantumInstance(backend, circuit_caching=False)
 
         result = qaoa.run(quantum_instance)
         x = max_cut.sample_most_likely(result['eigvecs'][0])
