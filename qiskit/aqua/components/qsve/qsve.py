@@ -845,7 +845,9 @@ class QSVE:
         :param singular_vector:
         :param shots:
         :param ntop:
-        :return:
+
+        Returns : list
+            List of `ntop` normalized singular values (floats) estimated by the quantum circuit.
         """
         # Get the ordered counts
         counts = self.run_and_return_counts(nprecision_bits, singular_vector, shots, ordered=True)
@@ -864,6 +866,20 @@ class QSVE:
 
         return qsigmas
 
+    def has_value_close_to_singular_values(self, sigmas, tolerance):
+        """Returns True if at least one value in the list sigmas is close to a (normalized) singular value.
+
+        Args:
+            sigmas : list<float>
+                List of floating point values.
+        """
+        correct = self.singular_values_classical()
+        for sigma in sigmas:
+            for val in correct:
+                if abs(sigma - val) < tolerance:
+                    return True
+        return False
+
     def expected_raw_outcome(self, nbits, shots, init_state):
         evals = np.linalg.eig(self.unitary())
 
@@ -879,6 +895,11 @@ class QSVE:
 
         # TODO: Sample from the distribution
 
+    @staticmethod
+    def possible_estimated_singular_values(nprecision_bits):
+        step = -2**(-nprecision_bits)
+        measured = np.arange(0.5, 0.0 + step, step)
+        return np.array([np.cos(np.pi * theta) for theta in measured])
 
     @staticmethod
     def unitary_eval_to_angle(evalue):

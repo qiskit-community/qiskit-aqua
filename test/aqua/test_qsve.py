@@ -13,6 +13,7 @@
 # that they have been altered from the originals.
 
 # Imports
+import operator
 from copy import deepcopy
 import numpy as np
 import unittest
@@ -20,6 +21,7 @@ import unittest
 from common import QiskitAquaTestCase
 from qiskit.aqua.components.qsve import BinaryTree, QSVE
 from qiskit import QuantumRegister, QuantumCircuit, execute, BasicAer
+from qiskit.aqua.components.initial_states import Custom
 
 
 class TestQSVE(QiskitAquaTestCase):
@@ -27,15 +29,27 @@ class TestQSVE(QiskitAquaTestCase):
     @staticmethod
     def final_state(circuit):
         """Returns the final state of the circuit as a numpy.ndarray."""
+        return TestQSVE.unitary_of(circuit)[:, 0]
+
+    @staticmethod
+    def unitary_of(circuit):
+        """Returns the unitary of a circuit.
+
+        Args:
+            circuit : qiskit.QuantumCircuit
+                Circuit to get the unitary of.
+
+        Returns: numpy.ndarray
+            Unitary matrix of the circuit
+        """
         # Get the unitary simulator backend
         sim = BasicAer.get_backend("unitary_simulator")
 
         # Execute the circuit
         job = execute(circuit, sim)
 
-        # Get the final state
-        unitary = np.array(job.result().results[0].data.unitary)
-        return unitary[:, 0]
+        # Return the unitary
+        return np.array(job.result().results[0].data.unitary)
 
     def test_create_qsve(self):
         """Basic test for instantiating a QSVE object."""
@@ -201,12 +215,6 @@ class TestQSVE(QiskitAquaTestCase):
 
         self.assertTrue(np.allclose(state, two_norms))
 
-    def test_controlled_unitary(self):
-        pass
-
-    def test_qft(self):
-        pass
-
     def test_singular_values_from_theta_values_for_two_by_two_identity_matrix(self):
         """Tests the correct theta values (in the range [0, 1] are measured for the identity matrix.
 
@@ -254,7 +262,7 @@ class TestQSVE(QiskitAquaTestCase):
             self.assertEqual(len(thetas_binary), 2)
 
             # Convert the measured angles to floating point values
-            thetas = [qsve.binary_decimal_to_float(binary_decimal) for binary_decimal in thetas_binary]
+            thetas = [qsve.binary_decimal_to_float(binary_decimal, big_endian=False) for binary_decimal in thetas_binary]
             thetas = [qsve.convert_measured(theta) for theta in thetas]
 
             # Make sure the theta values are correct
@@ -280,8 +288,9 @@ class TestQSVE(QiskitAquaTestCase):
 
         # Get the quantum circuit for QSVE
         for nprecision_bits in range(3, 7):
-            circuit = qsve.create_circuit(nprecision_bits=nprecision_bits, terminal_measurements=True)
-
+            circuit = qsve.create_circuit(
+                nprecision_bits=nprecision_bits, singular_vector=[1, 1, 1, 1], terminal_measurements=True
+            )
             # Run the quantum circuit for QSVE
             sim = BasicAer.get_backend("qasm_simulator")
             job = execute(circuit, sim, shots=10000)
@@ -321,7 +330,9 @@ class TestQSVE(QiskitAquaTestCase):
         # Get the quantum circuit for QSVE
         for nprecision_bits in range(3, 7):
             qsve = QSVE(matrix)
-            circuit = qsve.create_circuit(nprecision_bits=nprecision_bits, terminal_measurements=True)
+            circuit = qsve.create_circuit(
+                nprecision_bits=nprecision_bits, singular_vector=[1, 1, 1, 1], terminal_measurements=True
+            )
 
             # Run the quantum circuit for QSVE
             sim = BasicAer.get_backend("qasm_simulator")
@@ -344,6 +355,92 @@ class TestQSVE(QiskitAquaTestCase):
 
             # Make sure the quantum solution is close to the classical solution
             self.assertTrue(np.allclose(sigmas, qsigmas))
+
+    def test_singular_values_two_by_two_three_pi_over_eight_singular_vector(self):
+        """Tests computing the singular values of the matrix
+
+                    A = [[cos(3 * pi / 8), 0],
+                         [0, sin(3 * pi / 8)]]
+
+        with an input singular vector. Checks that only one singular value is present in the measurement outcome.
+        """
+        # Define the matrix
+        matrix = np.array([[np.cos(3 * np.pi / 8), 0], [0, np.sin(3 * np.pi / 8)]])
+
+        # Do the classical SVD. (Note: We could just access the singular values from the diagonal matrix elements.)
+        _, sigmas, _ = np.linalg.svd(matrix)
+
+        # Get the quantum circuit for QSVE
+        for nprecision_bits in range(3, 7):
+            qsve = QSVE(matrix)
+            circuit = qsve.create_circuit(
+                nprecision_bits=nprecision_bits, singular_vector=[1, 0, 0, 0], terminal_measurements=True
+            )
+
+            # Run the quantum circuit for QSVE
+            sim = BasicAer.get_backend("qasm_simulator")
+            job = execute(circuit, sim, shots=10000)
+
+            # Get the output bit strings from QSVE
+            res = job.result()
+            counts = res.get_counts()
+            thetas_binary = np.array(list(counts.keys()))
+
+            # Convert from the binary strings to theta values
+            computed = [qsve.convert_measured(qsve.binary_decimal_to_float(bits)) for bits in thetas_binary]
+
+            # Convert from theta values to singular values
+            qsigmas = [np.cos(np.pi * theta) for theta in computed if theta > 0]
+
+            # Sort the sigma values for comparison
+            sigmas = list(sorted(sigmas))
+            qsigmas = list(sorted(qsigmas))
+
+            # Make sure the quantum solution is close to the classical solution
+            self.assertTrue(np.allclose(sigmas[0], qsigmas))
+
+    def test_singular_values_two_by_two_three_pi_over_eight_singular_vector2(self):
+        """Tests computing the singular values of the matrix
+
+                    A = [[cos(3 * pi / 8), 0],
+                         [0, sin(3 * pi / 8)]]
+
+        with an input singular vector. Checks that only one singular value is present in the measurement outcome.
+        """
+        # Define the matrix
+        matrix = np.array([[np.cos(3 * np.pi / 8), 0], [0, np.sin(3 * np.pi / 8)]])
+
+        # Do the classical SVD. (Note: We could just access the singular values from the diagonal matrix elements.)
+        _, sigmas, _ = np.linalg.svd(matrix)
+
+        # Get the quantum circuit for QSVE
+        for nprecision_bits in range(3, 7):
+            qsve = QSVE(matrix)
+            circuit = qsve.create_circuit(
+                nprecision_bits=nprecision_bits, singular_vector=[0, 1, 0, 0], terminal_measurements=True
+            )
+
+            # Run the quantum circuit for QSVE
+            sim = BasicAer.get_backend("qasm_simulator")
+            job = execute(circuit, sim, shots=10000)
+
+            # Get the output bit strings from QSVE
+            res = job.result()
+            counts = res.get_counts()
+            thetas_binary = np.array(list(counts.keys()))
+
+            # Convert from the binary strings to theta values
+            computed = [qsve.convert_measured(qsve.binary_decimal_to_float(bits)) for bits in thetas_binary]
+
+            # Convert from theta values to singular values
+            qsigmas = [np.cos(np.pi * theta) for theta in computed if theta > 0]
+
+            # Sort the sigma values for comparison
+            sigmas = list(sorted(sigmas))
+            qsigmas = list(sorted(qsigmas))
+
+            # Make sure the quantum solution is close to the classical solution
+            self.assertTrue(np.allclose(sigmas[1], qsigmas))
 
     def test_row_isometry_two_by_two(self):
         """Tests that the row isometry is indeed an isometry for random two by two matrices."""
@@ -374,7 +471,7 @@ class TestQSVE(QiskitAquaTestCase):
             matrix = np.random.randn(4, 4)
             matrix += matrix.conj().T
 
-            # Get a QSVE object and compute the row ismoetry
+            # Get a QSVE object and compute the row isometry
             qsve = QSVE(matrix)
             umat = qsve.row_isometry()
             vmat = qsve.norm_isometry()
@@ -426,6 +523,71 @@ class TestQSVE(QiskitAquaTestCase):
 
                 self.assertTrue(np.allclose(unitary.conj().T @ unitary, np.identity(dim**2)))
 
+    def test_unitary_conjugate_evals(self):
+        """Tests that for each eigenvalue lambda of the unitary, lambda* is also an eigenvalue, as required."""
+        for _ in range(100):
+            matrix = np.random.randn(2, 2)
+            matrix += matrix.conj().T
+            qsve = QSVE(matrix)
+
+            umat = qsve.unitary()
+
+            evals, _ = np.linalg.eig(umat)
+
+            for eval in evals:
+                self.assertIn(np.conjugate(eval), evals)
+
+    def test_unitary_evals_matrix_singular_values_identity_2by2(self):
+        """Tests that the eigenvalues of the unitary are the matrix singular values."""
+        # Dimension of system
+        dim = 2
+
+        # Define the matrix and QSVE object
+        matrix = np.identity(dim)
+        qsve = QSVE(matrix)
+
+        # Get the (normalized) singular values of the matrix
+        sigmas = qsve.singular_values_classical(normalized=True)
+
+        # Get the eigenvalues of the QSVE unitary
+        evals, _ = np.linalg.eig(qsve.unitary())
+
+        # Make sure there are the correct number of eigenvalues
+        self.assertEqual(len(evals), dim**2)
+
+        qsigmas = []
+
+        for eval in evals:
+            qsigma = qsve.unitary_eval_to_singular_value(eval)
+            if qsigma not in qsigmas:
+                qsigmas.append(qsigma)
+
+        self.assertTrue(np.allclose(qsigmas, sigmas))
+
+    def test_unitary_evals_to_matrix_singular_vals(self):
+        """Tests QSVE.unitary() by ensuring the eigenvalues of the unitary relate to the singular values of the
+        input matrix in the expected way.
+        """
+        for _ in range(100):
+            matrix = np.random.randn(2, 2)
+            matrix += matrix.conj().T
+            qsve = QSVE(matrix)
+
+            sigmas = qsve.singular_values_classical(normalized=True)
+
+            umat = qsve.unitary()
+            evals, _ = np.linalg.eig(umat)
+
+            qsigmas = []
+
+            for eval in evals:
+                qsigma = qsve.unitary_eval_to_singular_value(eval)
+                qsigma = round(qsigma, 4)
+                if qsigma not in qsigmas:
+                    qsigmas.append(qsigma)
+
+            self.assertTrue(np.allclose(sorted(qsigmas), sorted(sigmas), atol=1e-3))
+
     def test_prepare_singular_vector(self):
         """Tests preparing a singular vector in two registers."""
         matrix = np.identity(2)
@@ -440,7 +602,7 @@ class TestQSVE(QiskitAquaTestCase):
             col = QuantumRegister(1)
             circ = QuantumCircuit(row, col)
 
-            qsve.prepare_singular_vector(np.real(vec), circ, row, col)
+            qsve._prepare_singular_vector(np.real(vec), circ, row, col)
             circ.swap(row[0], col[0])
 
             state = self.final_state(circ)
@@ -510,69 +672,336 @@ class TestQSVE(QiskitAquaTestCase):
 
         self.assertTrue(np.allclose(init_state, -final_state))
 
+    def test_controlled_unitary(self):
+        """Tests that the controlled unitary in a circuit agrees with the (classical) matrix representation."""
+        pass
+
+    def test_qft_dagger(self):
+        """Visual test for the inverse QFT circuit."""
+        n = 5
+        qsve = QSVE(np.identity(4))
+        qreg = QuantumRegister(n)
+        circ = QuantumCircuit(qreg)
+        qsve._qft(circ, qreg)
+
+        print(circ)
+
+    def test_singular_values_identity4(self):
+        """Tests QSVE gets close to the correct singular values for the 4 x 4 identity matrix."""
+        qsve = QSVE(np.identity(4))
+
+        sigma = max(qsve.singular_values_classical())
+
+        for n in range(3, 8):
+
+            qsigma = qsve.top_singular_values(
+                nprecision_bits=n,
+                singular_vector=None,
+                shots=50000,
+                ntop=1
+            )
+
+            self.assertTrue(abs(sigma - qsigma[0]) < qsve.max_error(n))
+
+    def test_singular_values_identity8(self):
+        """Tests QSVE gets close to the correct singular values for the 8 x 8 identity matrix."""
+        qsve = QSVE(np.identity(8))
+
+        sigma = max(qsve.singular_values_classical())
+
+        for n in range(3, 7):
+            qsigma = qsve.top_singular_values(
+                nprecision_bits=n,
+                singular_vector=None,
+                shots=50000,
+                ntop=3
+            )
+
+            self.assertTrue(abs(sigma - qsigma[0]) < qsve.max_error(n))
+
+    def test_singular_values_random2x2(self):
+        """Tests computing the singular values for random 2 x 2 matrices."""
+
+        for _ in range(50):
+            matrix = np.random.randn(2, 2)
+            matrix += matrix.conj().T
+            qsve = QSVE(matrix)
+
+            print("Matrix:")
+            print(matrix)
+
+            sigmas = qsve.singular_values_classical()
+
+            n = 6
+
+            qsigmas = qsve.top_singular_values(
+                nprecision_bits=n,
+                singular_vector=None,
+                shots=50000,
+                ntop=4
+            )
+
+            print("Sigmas:", sigmas)
+            print("QSigmas:", qsigmas)
+
+            print("Max theory error:", qsve.max_error(n))
+
+            self.assertTrue(qsve.has_value_close_to_singular_values(qsigmas, qsve.max_error(n)))
+            print("Success!\n\n")
+
+    def test_possible_measured_singular_values(self):
+        """Tests correctness for possible measured singular values."""
+        for nbits in range(1, 10):
+            vals = QSVE.possible_estimated_singular_values(nbits)
+            self.assertEqual(len(vals), 2**(nbits - 1) + 1)
+
+
+def parse_identity_classical(dim):
+    # Define the matrix and QSVE object
+    matrix = np.identity(dim)
+    qsve = QSVE(matrix)
+
+    # Get the (normalized) singular values of the matrix
+    sigmas = qsve.singular_values_classical(normalized=True)
+
+    # Get the eigenvalues of the QSVE unitary
+    evals, _ = np.linalg.eig(qsve.unitary())
+
+    # Make sure there are the correct number of eigenvalues
+    print("Unitary W has {} eigenvalues.\n".format(len(evals)))
+
+    qsigmas = []
+
+    numones = 0
+
+    for evalue in evals:
+        # assert np.isclose(np.arccos(np.real(eval)), np.arcsin(np.imag(eval)))
+        theta = np.arccos(round(np.real(evalue), 5)) / 2 / np.pi
+        qsigma = np.cos(theta * np.pi)
+        if np.isclose(qsigma, 1.0):
+            numones += 1
+        if qsigma not in qsigmas:
+            qsigmas.append(np.cos(theta * np.pi))
+
+        print("Eigenvalue \t\t{}\t\t\t has modulus \t{}\t and maps to singular value \t\t{}.".format(evalue,
+                                                                                                     round(abs(evalue)),
+                                                                                                     qsigma))
+
+    print("\n\nEigenvalue 1 has multiplicity", numones)
+
+    sigmas = sorted(list(set(sigmas)))
+    qsigmas = sorted(list(set(qsigmas)))
+
+    print("\nSigmas:")
+    print(sigmas)
+
+    print("\nQSigams:")
+    print(qsigmas)
+
+    assert np.allclose(qsigmas[:-1], sigmas, atol=1e-4)
+
+
+def inspect_controlled_unitary_for_identity_in_circuit(swap=False):
+    np.set_printoptions(precision=1)
+
+    # Define the matrix and QSVE instance
+    matrix = np.identity(2)
+    qsve = QSVE(matrix)
+
+    print("Matrix:")
+    print("=======")
+    print(matrix)
+
+    # Get registers and a circuit
+    ctrl = QuantumRegister(1, name="ctrl")
+    row = QuantumRegister(1, name="row")
+    col = QuantumRegister(1, name="col")
+    circ = QuantumCircuit(ctrl, row, col)
+
+    # Add the controlled unitary circuit
+    qsve.controlled_unitary(circ, ctrl[0], row, col)
+
+    # Swap the qubits for normal ordering
+    if swap:
+        circ.swap(row[0], col[0])
+        circ.swap(ctrl[0], col[0])
+
+    # See it
+    print("\nCircuit:")
+    print("========")
+    print(circ)
+
+    # Get the unitary of the circuit
+    # Get the unitary simulator backend
+    sim = BasicAer.get_backend("unitary_simulator")
+
+    # Execute the circuit
+    job = execute(circ, sim)
+
+    # Get the final state
+    unitary = np.array(job.result().results[0].data.unitary)
+
+    # unitary = partial_trace(unitary, [0])
+
+    print("\nUnitary of circuit:")
+    print("===================")
+    print(np.real(unitary))
+
+    print("\nActual unitary:")
+    print("===============")
+    print(np.round(qsve.unitary()))
+
+    print("\nControlled unitary:")
+    print("===================")
+    pi0 = np.array([[1, 0], [0, 0]])
+    pi1 = np.array([[0, 0], [0, 1]])
+    ctrl_unitary = np.kron(pi0, np.identity(4)) + np.kron(pi1, qsve.unitary())
+    print(np.round(ctrl_unitary))
+
+
+def sample_top():
+    # Define the matrix
+    matrix = np.array([[np.cos(3 * np.pi / 8), 0, 0, 0],
+                       [0, np.sin(3 * np.pi / 8), 0, 0],
+                       [0, 0, np.cos(3 * np.pi / 8), 0],
+                       [0, 0, 0, np.sin(3 * np.pi / 8)]]) / np.sqrt(2)
+
+    print("Matrix:")
+    print(matrix)
+
+    # Do the classical SVD
+    _, sigmas, _ = np.linalg.svd(matrix)
+
+    qsve = QSVE(matrix)
+
+    n = 8
+    circuit = qsve.create_circuit(nprecision_bits=n, singular_vector=None, terminal_measurements=True)
+
+    # Run the quantum circuit for QSVE
+    sim = BasicAer.get_backend("qasm_simulator")
+    job = execute(circuit, sim, shots=50000)
+
+    # Get the output bit strings from QSVE
+    res = job.result()
+    counts = res.get_counts()
+
+    # Get the top measured bit strings
+    sort = sorted(counts.items(), key=operator.itemgetter(1), reverse=True)
+    print()
+    print(sort)
+
+    top = [x[0] for x in sort[:len(sort) // 2]]
+
+    print("\nTop sampled bit strings from QSVE:")
+    print(top)
+
+    # Convert from the binary strings to theta values
+    computed = [qsve.convert_measured(qsve.binary_decimal_to_float(bits, big_endian=False)) for bits in top]
+
+    print("\nTop quantumly found theta values")
+    print(computed)
+
+    # Convert from theta values to singular values
+    print("\nTop quantumly found singular values")
+    qsigmas = [np.cos(np.pi * theta) for theta in computed]
+    print(qsigmas)
+
+    print("Classically found sigmas")
+    print(sigmas / np.linalg.norm(matrix, "fro"))
+
+    print("\nMaximum theoretic error:", qsve.max_error(n))
+
+
+def inspect_ctrl_row_norm_unitary(dim=2):
+    matrix = np.identity(dim)
+    qsve = QSVE(matrix)
+    ctrl = QuantumRegister(1)
+    row = QuantumRegister(dim // 2)
+    col = QuantumRegister(dim // 2)
+    circ = QuantumCircuit(ctrl, row, col)
+
+    qsve.controlled_row_norm_reflection(circ, ctrl[0], row)
+
+    print(circ)
+
+    circuit_unitary = TestQSVE.unitary_of(circ)
+
+    pi0 = np.array([[1, 0], [0, 0]])
+    pi1 = np.array([[0, 0], [0, 1]])
+    row_norm_unitary = 2 * qsve.norm_isometry() @ qsve.norm_isometry().conj().T - np.identity(dim**2)
+
+    print("\n\nRow norm unitary:")
+    print("=================")
+    print(np.round(row_norm_unitary))
+
+    ctrl_unitary = np.kron(pi0, np.identity(dim**2)) + np.kron(pi1, row_norm_unitary)
+
+    print("\n\nUnitary of circuit:")
+    print("===================")
+    print(np.round(np.real(circuit_unitary)))
+
+    print("\n\nExact unitary:")
+    print("==============")
+    print(np.round(ctrl_unitary))
+
+
+def test_qsigmas_identity4():
+    # np.random.seed(112358)
+    matrix = np.array([[1, 0, 0, 0],
+                       [0, 1, 0, 0],
+                       [0, 0, 1, 0],
+                       [0, 0, 0, 1]])
+
+    # matrix = np.random.randn(4, 4)
+    # matrix += matrix.conj().T
+
+    print("Matrix:")
+    print(matrix)
+
+    qsve = QSVE(matrix)
+
+    circuit = qsve.create_circuit(nprecision_bits=4, singular_vector=None, terminal_measurements=True)
+
+    # Run the quantum circuit for QSVE
+    sim = BasicAer.get_backend("qasm_simulator")
+    job = execute(circuit, sim, shots=50000)
+
+    # Get the output bit strings from QSVE
+    res = job.result()
+    counts = res.get_counts()
+    sort = sorted(counts.items(), key=operator.itemgetter(1), reverse=True)
+    print()
+    print(sort)
+
+    top = [x[0] for x in sort[:len(sort) // 2]]
+
+    print("\nTop sampled bit strings from QSVE:")
+    print(top)
+
+    # Convert from the binary strings to theta values
+    computed = [qsve.convert_measured(qsve.binary_decimal_to_float(bits, big_endian=False)) for bits in top]
+
+    print("\nTop quantumly found theta values")
+    print(computed)
+
+    # Convert from theta values to singular values
+    print("\nTop quantumly found singular values")
+    qsigmas = [np.cos(np.pi * theta) for theta in computed]
+    print(qsigmas)
+
+    print("\nClassically found singular values:")
+    print(qsve.singular_values_classical(normalized=True))
+
 
 if __name__ == "__main__":
     unittest.main()
 
-    # # Define the matrix
-    # matrix = np.array([[np.cos(2 * np.pi / 8), 0, 0, 0],
-    #                    [0, np.sin(2 * np.pi / 8), 0, 0],
-    #                    [0, 0, np.cos(2 * np.pi / 8), 0],
-    #                    [0, 0, 0, np.sin(2 * np.pi / 8)]]) / np.sqrt(2)
-    #
-    # # Do the classical SVD. (Note: We could just access the singular values from the diagonal matrix elements.)
-    # _, sigmas, _ = np.linalg.svd(matrix)
-    #
-    # qsve = QSVE(matrix, nprecision_bits=5)
-    # circuit = qsve.create_circuit(terminal_measurements=True)
-    #
-    # # Run the quantum circuit for QSVE
-    # sim = BasicAer.get_backend("qasm_simulator")
-    # job = execute(circuit, sim, shots=50000)
-    #
-    # # Get the output bit strings from QSVE
-    # res = job.result()
-    # counts = res.get_counts()
-    # thetas_binary = np.array(list(counts.keys()))
-    #
-    # # print("Sampled thetas:", thetas_binary)
-    # #
-    # # # Convert from the binary strings to theta values
-    # # computed = [qsve.convert_measured(qsve.binary_decimal_to_float(bits)) for bits in thetas_binary]
-    # #
-    # # # Convert from theta values to singular values
-    # # qsigmas = [np.cos(np.pi * theta) for theta in computed]
-    # #
-    # # # Sort the sigma values for comparison
-    # # sigmas = list(sorted(sigmas))
-    # # qsigmas = list(sorted(qsigmas))
-    # #
-    # # print("sigmas:", sigmas)
-    # # print("qsigmas", qsigmas)
-    #
-    # # Get the top measured bit strings
-    # import operator
-    # sort = sorted(counts.items(), key=operator.itemgetter(1), reverse=True)
-    # print()
-    # print(sort)
-    #
-    # top = [x[0] for x in sort[:len(sort) // 2]]
-    #
-    # print("\nTop sampled bit strings from QSVE:")
-    # print(top)
-    #
-    # # Convert from the binary strings to theta values
-    # computed = [qsve.convert_measured(qsve.binary_decimal_to_float(bits)) for bits in top]
-    #
-    # print("\nTop quantumly found theta values")
-    # print(computed)
-    #
-    # # Convert from theta values to singular values
-    # print("\nTop quantumly found singular values")
-    # qsigmas = [np.cos(np.pi * theta) for theta in computed]
-    # print(qsigmas)
-    #
-    # print("Acutal sigmas")
-    # print(sigmas / np.linalg.norm(matrix, "fro"))
-    #
-    # print("\nMaximum theoretic error:", qsve.max_error())
+    # inspect_ctrl_row_norm_unitary()
+
+    # parse_identity_classical(8)
+
+    # inspect_controlled_unitary_for_identity_in_circuit()
+
+    # sample_top()
+
+    # test_qsigmas_identity4()
