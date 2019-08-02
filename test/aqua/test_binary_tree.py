@@ -211,88 +211,88 @@ class TestBinaryTree(QiskitAquaTestCase):
         self.assertIsNone(tree.right_child_value(2, 2))
         self.assertIsNone(tree.right_child_value(2, 3))
 
-    # def test_prep_circuit_one_qubit(self):
-    #     """Tests for correctness in preparation circuit on a single qubit."""
-    #     # Two element vector
-    #     vec = [1.0, 0.0]
-    #
-    #     # Make a BinaryTree
-    #     tree = BinaryTree(vec)
-    #
-    #     # Get a circuit and register to prepare the vector in
-    #     qreg = QuantumRegister(1)
-    #     circ = QuantumCircuit(qreg)
-    #
-    #     # Get the state preparation circuit
-    #     tree.preparation_circuit(circ, qreg)
-    #
-    #     # Get the final state
-    #     state = list(np.real(self.final_state(circ)))
-    #
-    #     self.assertTrue(np.array_equal(state, vec))
-    #
-    # def test_prep_circuit_one_qubit2(self):
-    #     """Tests for correctness in preparation circuit on a single qubit."""
-    #     # Two element vector
-    #     vec = [0.0, 1.0]
-    #
-    #     # Make a BinaryTree
-    #     tree = BinaryTree(vec)
-    #
-    #     # Get a circuit and register to prepare the vector in
-    #     qreg = QuantumRegister(1)
-    #     circ = QuantumCircuit(qreg)
-    #
-    #     # Get the state preparation circuit
-    #     tree.preparation_circuit(circ, qreg)
-    #
-    #     # Get the final state
-    #     state = list(np.real(self.final_state(circ)))
-    #
-    #     self.assertTrue(np.array_equal(state, vec))
-    #
-    # def test_prep_circuit_one_qubit3(self):
-    #     """Tests for correctness in preparation circuit on a single qubit."""
-    #     # Two element vector
-    #     vec = [0.6, 0.8]
-    #
-    #     # Make a BinaryTree
-    #     tree = BinaryTree(vec)
-    #
-    #     # Get a circuit and register to prepare the vector in
-    #     qreg = QuantumRegister(1)
-    #     circ = QuantumCircuit(qreg)
-    #
-    #     # Get the state preparation circuit
-    #     tree.preparation_circuit(circ, qreg)
-    #
-    #     # Get the final state
-    #     state = list(np.real(TestBinaryTree.final_state(circ)))
-    #
-    #     self.assertTrue(np.array_equal(state, vec))
-    #
-    # def test_prep_circuit_example_in_paper(self):
-    #     """Tests the state preparation circuit produces the correct state
-    #     for the example given in the quantum recommendations system paper.
-    #     """
-    #     # The same vector used in the paper
-    #     vec = [0.4, 0.4, 0.8, 0.2]
-    #
-    #     # Construct the tree from the vector
-    #     tree = BinaryTree(vec)
-    #
-    #     # Construct the state preparation circuit
-    #     qreg = QuantumRegister(2)
-    #     circ = QuantumCircuit(qreg)
-    #     tree.preparation_circuit(circ, qreg)
-    #
-    #     # Add a swaps to make the ordering of the qubits match the input vector
-    #     # Note: This is because the last bit is the most significant, not the first.
-    #     circ.swap(qreg[0], qreg[1])
-    #
-    #     # Check that the circuit produces the correct state
-    #     state = list(np.real(self.final_state(circ)))
-    #     self.assertTrue(np.allclose(state, vec))
+    def test_prep_circuit_one_qubit(self):
+        """Tests for correctness in preparation circuit on a single qubit."""
+        # Two element vector
+        vec = [1.0, 0.0]
+
+        # Make a BinaryTree
+        tree = BinaryTree(vec)
+
+        # Get a circuit and register to prepare the vector in
+        qreg = QuantumRegister(1)
+        circ = QuantumCircuit(qreg)
+
+        # Get the state preparation circuit
+        tree.preparation_circuit(circ, qreg)
+
+        # Get the final state
+        state = list(np.real(self.final_state(circ)))
+
+        self.assertTrue(np.array_equal(state, vec))
+
+    def test_prep_circuit_one_qubit2(self):
+        """Tests for correctness in preparation circuit on a single qubit."""
+        # Two element vector
+        vec = [0.0, 1.0]
+
+        # Make a BinaryTree
+        tree = BinaryTree(vec)
+
+        # Get a circuit and register to prepare the vector in
+        qreg = QuantumRegister(1)
+        circ = QuantumCircuit(qreg)
+
+        # Get the state preparation circuit
+        tree.preparation_circuit(circ, qreg)
+
+        # Get the final state
+        state = list(np.real(self.final_state(circ)))
+
+        self.assertTrue(np.array_equal(state, vec))
+
+    def test_prep_circuit_one_qubit3(self):
+        """Tests for correctness in preparation circuit on a single qubit."""
+        # Two element vector
+        vec = [0.6, 0.8]
+
+        # Make a BinaryTree
+        tree = BinaryTree(vec)
+
+        # Get a circuit and register to prepare the vector in
+        qreg = QuantumRegister(1)
+        circ = QuantumCircuit(qreg)
+
+        # Get the state preparation circuit
+        tree.preparation_circuit(circ, qreg)
+
+        # Get the final state
+        state = list(np.real(self.final_state(circ)))
+
+        self.assertTrue(np.array_equal(state, vec))
+
+    def test_prep_circuit_example_in_paper(self):
+        """Tests the state preparation circuit produces the correct state
+        for the example given in the quantum recommendations system paper.
+        """
+        # The same vector used in the paper
+        vec = [0.4, 0.4, 0.8, 0.2]
+
+        # Construct the tree from the vector
+        tree = BinaryTree(vec)
+
+        # Construct the state preparation circuit
+        qreg = QuantumRegister(2)
+        circ = QuantumCircuit(qreg)
+        tree.preparation_circuit(circ, qreg)
+
+        # Add a swaps to make the ordering of the qubits match the input vector
+        # Note: This is because the last bit is the most significant, not the first.
+        circ.swap(qreg[0], qreg[1])
+
+        # Check that the circuit produces the correct state
+        state = list(np.real(self.final_state(circ)))
+        self.assertTrue(np.allclose(state, vec))
 
     def test_prep_circuit_three_qubits(self):
         """Tests the state preparation circuit produces the correct state on three qubits."""
