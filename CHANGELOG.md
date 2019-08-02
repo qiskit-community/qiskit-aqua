@@ -63,7 +63,9 @@ Changed
     `WeightedPauliOperator` and `TPBGroupedPauliOperator`. (#593)
 -   The `power` in `evolution_instruction` was applied on the theta on the CRZ gate directly, 
     the new version repeats the circuits to implement power. (#593)
-     
+-   CircuitCache is OFF by default, and it can be set via environment variable now 
+    `QISKIT_AQUA_CIRCUIT_CACHE`. (#630)
+
 Fixed
 -------
 
@@ -71,6 +73,7 @@ Fixed
 -   A bug caused by `PyEDA`'s indeterminism.
 -   A bug with `QPE/IQPE`'s translation and stretch computation.
 -   Chemistry: Bravyi-Kitaev mapping fixed when num qubits was not a power of 2
+-   Setup `initial_layout` in `QuantumInstance` via a list. (#630)
 
 Removed
 -------
