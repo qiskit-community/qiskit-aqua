@@ -307,7 +307,7 @@ class VQE(VQAlgorithm):
         vfs = [ExtrapolatedVF(self.var_form, pm) for pm in re.pass_managers]
         vqes = [VQE(
             self._operator, vf, self._optimizer, operator_mode=self._operator_mode,
-            initial_point=self._initial_point, max_evals_grouped=self._max_evals_grouped,
+            initial_point=self._initial_point, max_evals_grouped=self._optimizer._max_evals_grouped,
             aux_operators=self._aux_operators, callback=self._callback, richardson_extrapolator=None
         ) for vf in vfs]
         results = [vqe.run(self.quantum_instance) for vqe in vqes]
