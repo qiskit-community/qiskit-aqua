@@ -13,7 +13,7 @@ class TranspilationPassesTest(unittest.TestCase):
 
     def test_redundant_cnot_insertion(self):
         circ = ReferenceCircuits.bell()
-        pm = PassManager(passes=RedundantCNOT(1))
+        pm = PassManager(passes=RedundantCNOT(3))
         result = transpile([circ], pass_manager=pm)
 
         qr = QuantumRegister(2, name='qr')
@@ -28,7 +28,7 @@ class TranspilationPassesTest(unittest.TestCase):
         self.assertEqual(result, qc)
 
     def test_redundant_cnot_insertion_reversed(self):
-        pm = PassManager(passes=RedundantCNOT(1))
+        pm = PassManager(passes=RedundantCNOT(3))
         qr = QuantumRegister(2, name='qr')
         cr = ClassicalRegister(2, name='qc')
 

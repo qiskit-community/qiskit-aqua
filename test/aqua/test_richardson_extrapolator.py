@@ -9,8 +9,8 @@ class RichardsonExtrapolatorTest(unittest.TestCase):
 
     def setUp(self):
         self.extrapolator = lambda x, y, val: interpolate.interp1d(x, y, fill_value='extrapolate')(val)
-        self.order_parameters = [0, 1, 2, 3]
-        self.extrapolated_value = -1
+        self.order_parameters = [1, 3, 5, 7]
+        self.extrapolated_value = 0
         self.pass_mans = [PassManager(RedundantCNOT(i)) for i in self.order_parameters]
 
         self.richardson_extrapolator = RichardsonExtrapolator(
@@ -26,10 +26,10 @@ class RichardsonExtrapolatorTest(unittest.TestCase):
         result = self.richardson_extrapolator.extrapolate(energies)
 
         self.assertAlmostEqual(
-            -1.0,
+            2.0,
             result,
             places=5,
-            msg='Found interpolated value {}, expected {}'.format(result, -1.0)
+            msg='Found interpolated value {}, expected {}'.format(result, 2.0)
         )
 
 

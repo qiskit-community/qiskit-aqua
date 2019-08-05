@@ -17,7 +17,7 @@ class VariationalWrapperTest(unittest.TestCase):
 
     def test_basic_2(self):
         self.vf = RY(num_qubits=2)
-        pm = PassManager(passes=[RedundantCNOT(redundant_pairs=1)])
+        pm = PassManager(passes=[RedundantCNOT(num_cnots=3)])
         wrapped_vf = ExtrapolatedVF(
             variational_form=self.vf,
             pass_manager=pm
@@ -32,7 +32,7 @@ class VariationalWrapperTest(unittest.TestCase):
 
     def test_basic_3(self):
         self.vf = RY(num_qubits=3)
-        pm = PassManager(passes=[RedundantCNOT(redundant_pairs=1)])
+        pm = PassManager(passes=[RedundantCNOT(num_cnots=3)])
         wrapped_vf = ExtrapolatedVF(
             variational_form=self.vf,
             pass_manager=pm

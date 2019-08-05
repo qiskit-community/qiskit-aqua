@@ -6,7 +6,11 @@ from qiskit.dagcircuit import DAGCircuit
 
 class RedundantCNOT(TransformationPass):
 
-    def __init__(self, redundant_pairs):
+    def __init__(self, num_cnots):
+        if num_cnots % 2 != 1 or num_cnots < 0:
+            raise ValueError('Number of CNOTs is invalid: Must be odd, positive integer')
+        redundant_pairs = (num_cnots-1)//2
+
         self.redundant_pairs = redundant_pairs
         if type(self.redundant_pairs) is not int or self.redundant_pairs < 0:
             raise ValueError('Invalid number of redundant pairs given.')
