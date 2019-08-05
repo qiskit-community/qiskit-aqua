@@ -21,15 +21,15 @@ import numpy as np
 
 from qiskit.aqua import AquaError
 from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
-from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.circuits import PhaseEstimationCircuit
 from qiskit.aqua.components.iqfts import Standard
-from .q_factory import QFactory
+
+from .ae_base import AmplitudeEstimationBase
 
 logger = logging.getLogger(__name__)
 
 
-class AmplitudeEstimation(QuantumAlgorithm):
+class AmplitudeEstimation(AmplitudeEstimationBase):
     """
     The Amplitude Estimation algorithm.
     """
@@ -67,7 +67,7 @@ class AmplitudeEstimation(QuantumAlgorithm):
         ],
     }
 
-    def __init__(self, num_eval_qubits, a_factory, i_objective=None, q_factory=None, iqft=None):
+    def __init__(self, num_eval_qubits, a_factory=None, i_objective=None, q_factory=None, iqft=None):
         """
         Constructor.
 
@@ -78,16 +78,7 @@ class AmplitudeEstimation(QuantumAlgorithm):
             iqft (IQFT): the Inverse Quantum Fourier Transform pluggable component, defaults to using a standard iqft when None
         """
         self.validate(locals())
-        super().__init__()
-
-        # get/construct A/Q operator
-        self.a_factory = a_factory
-        if q_factory is None:
-            if i_objective is None:
-                i_objective = self.a_factory.num_target_qubits - 1
-            self.q_factory = QFactory(a_factory, i_objective)
-        else:
-            self.q_factory = q_factory
+        super().__init__(a_factory, q_factory, i_objective)
 
         # get parameters
         self._m = num_eval_qubits
@@ -173,6 +164,10 @@ class AmplitudeEstimation(QuantumAlgorithm):
         return a_probabilities, y_probabilities
 
     def _run(self):
+        # check if A/Q operators have been set and set Q operator if
+        # it hasn't been set manually
+        self.check_factories()
+
         if self._quantum_instance.is_statevector:
             self.construct_circuit(measurement=False)
             # run circuit on statevector simlator
