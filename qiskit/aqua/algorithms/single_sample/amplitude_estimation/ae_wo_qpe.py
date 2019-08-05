@@ -25,12 +25,12 @@ from qiskit.aqua import AquaError
 from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.algorithms import QuantumAlgorithm
 
-from .q_factory import QFactory
+from .ae_base import AmplitudeEstimationBase
 
 logger = logging.getLogger(__name__)
 
 
-class AmplitudeEstimationWithoutQPE(QuantumAlgorithm):
+class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
     """
     The Amplitude Estimation without QPE algorithm.
     """
@@ -73,19 +73,7 @@ class AmplitudeEstimationWithoutQPE(QuantumAlgorithm):
             q_factory (CircuitFactory): the CircuitFactory subclass object representing an amplitude estimation sample (based on a_factory)
         """
         self.validate(locals())
-        super().__init__()
-
-        # get/construct A/Q operator
-        self.a_factory = a_factory
-        if q_factory is None:
-            if i_objective is None:
-                i_objective = self.a_factory.num_target_qubits - 1
-            self.q_factory = QFactory(a_factory, i_objective)
-        else:
-            if i_objective is None:
-                raise AquaError('i_objective must be set for custom q_factory')
-            self.q_factory = q_factory
-        self.i_objective = i_objective
+        super().__init__(a_factory, q_factory, i_objective)
 
         # get parameters
         self._log_max_evals = log_max_evals
@@ -226,7 +214,7 @@ class AmplitudeEstimationWithoutQPE(QuantumAlgorithm):
                 elif res.fun < loglikelihood(best_theta):
                     best_theta = res.x
 
-            return best_theta
+            return best_theta[0]  # return the value, not a 1d numpy.array
 
     def _run_mle_counts(self):
         """
@@ -407,7 +395,7 @@ class AmplitudeEstimationWithoutQPE(QuantumAlgorithm):
                 d_logL += (2 * mk + 1) * (hk / tan + (Nk - hk) * tan)
 
             d_logL /= np.sqrt(a * (1 - a))
-            fisher_information = d_logL**2
+            fisher_information = d_logL**2 / len(all_hits)
 
         else:
             fisher_information = 1 / (a * (1 - a)) * sum(Nk * (2 * mk + 1)**2 for Nk, mk in zip(all_hits, evaluation_schedule))
@@ -415,6 +403,8 @@ class AmplitudeEstimationWithoutQPE(QuantumAlgorithm):
         return fisher_information
 
     def _run(self):
+        self.check_factories()
+
         if self._quantum_instance.is_statevector:
 
             # run circuit on statevector simlator
