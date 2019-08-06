@@ -17,7 +17,8 @@ import operator
 from copy import deepcopy
 import numpy as np
 import unittest
-from test.aqua.common import QiskitAquaTestCase
+# TODO: Change back to this before PR: from test.aqua.common import QiskitAquaTestCase
+from common import QiskitAquaTestCase
 from qiskit.aqua.components.qsve import QSVE
 from qiskit import QuantumRegister, QuantumCircuit, execute, BasicAer
 
@@ -680,7 +681,7 @@ class TestQSVE(QiskitAquaTestCase):
         qsve = QSVE(np.identity(4))
         qreg = QuantumRegister(n)
         circ = QuantumCircuit(qreg)
-        qsve._qft(circ, qreg)
+        qsve._iqft(circ, qreg)
 
         print(circ)
 
@@ -814,6 +815,13 @@ class TestQSVE(QiskitAquaTestCase):
         for nbits in range(1, 10):
             vals = QSVE.possible_estimated_singular_values(nbits)
             self.assertEqual(len(vals), 2**(nbits - 1) + 1)
+
+    def test_binary_decimal_to_float(self):
+        """Tests conversion of a string binary decimal to a float."""
+        for n in range(10):
+            binary_decimal = "1" + "0" * n
+            self.assertEqual(QSVE.binary_decimal_to_float(binary_decimal, big_endian=True), 0.5)
+            self.assertEqual(QSVE.binary_decimal_to_float(binary_decimal, big_endian=False), 2**(-n - 1))
 
 
 if __name__ == "__main__":

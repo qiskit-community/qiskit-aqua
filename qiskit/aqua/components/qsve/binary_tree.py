@@ -24,6 +24,10 @@ from qiskit.aqua.circuits.gates.multi_control_rotation_gates import mcry
 from qiskit import QuantumRegister, QuantumCircuit
 
 
+class VectorError(Exception):
+    pass
+
+
 class BinaryTree:
     """Binary tree data structure used for loading an input vector onto a quantum state."""
     def __init__(self, vector):
@@ -42,8 +46,8 @@ class BinaryTree:
         # Make sure the matrix row has length that's a power of two
         # TODO: Give the option to pad the vector and do this automatically
         if self._nvals & (self._nvals - 1) != 0:
-            raise ValueError(
-                "Matrix row must have a number of elements that is a power of two. " +
+            raise VectorError(
+                "Vector must have a number of elements that is a power of two. " +
                 "Please append zero entries to the row."
             )
 
@@ -248,7 +252,7 @@ class BinaryTree:
     def update_entry(self, index, value):
         """Updates an entry in the leaf and propagates changes up through the tree."""
         # TODO: Do this more efficiently.
-        newvals = self._values
+        newvals = deepcopy(self._values)
         newvals[index] = value
         self.__init__(newvals)
 
