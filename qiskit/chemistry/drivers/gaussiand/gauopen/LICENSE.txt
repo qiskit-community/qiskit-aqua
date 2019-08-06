@@ -1,0 +1,319 @@
+                  Gaussian Interface Code
+                 Open-Source Public License
+                    Version 1.0
+
+
+  1. Definitions
+
+1.1. "CONTRIBUTOR"
+
+    means each individual or legal entity that creates, contributes to
+    the creation of, or owns Covered Software.
+
+1.2. "CONTRIBUTION"
+
+    means Covered Software of a particular CONTRIBUTOR.
+
+1.3. "CONTRIBUTOR VERSION"
+
+    means the combination of the CONTRIBUTIONS of others (if any) used
+    by a CONTRIBUTOR and that particular CONTRIBUTOR's Contribution.
+
+1.4. "COVERED SOFTWARE"
+
+    means Source Code Form to which the initial CONTRIBUTOR has attached
+    the notice in Exhibit A, the Executable Form of such Source Code
+    Form, and Modifications of such Source Code Form, in each case
+    including portions thereof.
+
+1.5. "EXECUTABLE FORM"
+
+    means any form of the work other than Source Code Form.
+
+1.6. "LARGER WORK"
+
+    means a work that combines COVERED SOFTWARE with other material, in
+    a separate file or files, that is not COVERED SOFTWARE.
+
+1.7. "LICENSE"
+
+    means this document.
+
+1.8. "LICENSABLE"
+
+    means having the right to grant, to the maximum extent possible,
+    whether at the time of the initial grant or subsequently, any and
+    all of the rights conveyed by this LICENSE.
+
+1.9. "MODIFICATIONS"
+
+    means any of the following:
+
+     1. any file in Source Code Form that results from an addition to,
+        deletion from, or modification of the contents of Covered
+        Software; or
+
+     2. any new file in Source Code Form that contains any COVERED SOFTWARE.
+
+1.10. "PATENT CLAIMS" of a CONTRIBUTOR
+
+    means any patent claim(s), including without limitation, method,
+    process, and apparatus claims, in any patent LICENSABLE by such
+    CONTRIBUTOR that would be infringed, but for the grant of the
+    LICENSE, by the making, using, selling, offering for sale, having
+    made, import, or transfer of either its CONTRIBUTIONS or its
+    CONTRIBUTOR VERSION.
+
+1.11. "SOURCE CODE FORM"
+
+    means the form of the work preferred for making modifications.
+
+1.12. "YOU" (OR "YOUR")
+
+    means an individual or a legal entity exercising rights under this
+    LICENSE. For legal entities, "YOU" includes any entity that
+    controls, is controlled by, or is under common control with YOU. For
+    purposes of this definition, "control" means (a) the power, direct
+    or indirect, to cause the direction or management of such entity,
+    whether by contract or otherwise, or (b) ownership of more than
+    fifty percent (50%) of the outstanding shares or beneficial
+    ownership of such entity.
+
+
+2. License Grants and Conditions
+
+
+2.1. Grants
+
+Each CONTRIBUTOR hereby grants YOU a world-wide, royalty-free, non-exclusive license:
+
+ 1. under intellectual property rights (other than patent or trademark)
+    LICENSABLE by such CONTRIBUTOR to use, reproduce, make available,
+    modify, display, perform, distribute, and otherwise exploit its
+    CONTRIBUTIONS, either on an unmodified basis, with MODIFICATIONS, or
+    as part of a LARGER WORK; and
+
+ 2. under PATENT CLAIMS of such CONTRIBUTOR to make, use, sell, offer
+    for sale, have made, import, and otherwise transfer either its
+    CONTRIBUTIONS or its CONTRIBUTOR VERSION.
+
+
+2.2. Effective Date
+
+The licenses granted in Section 2.1 with respect to any CONTRIBUTION
+become effective for each CONTRIBUTION on the date the CONTRIBUTOR
+first distributes such CONTRIBUTION.
+
+
+2.3. Limitations on Grant Scope
+
+The licenses granted in this Section 2 are the only rights granted
+under this LICENSE. No additional rights or licenses will be implied
+from the distribution or licensing of COVERED SOFTWARE under this
+LICENSE.  Notwithstanding Section 2.1(1) above, no patent license is
+granted by a CONTRIBUTOR:
+
+ 1. for any code that a CONTRIBUTOR has removed from COVERED SOFTWARE; or
+
+ 2. for infringements caused by: (i) YOUR and any other third party's
+    modifications of COVERED SOFTWARE, or (ii) the combination of its
+    CONTRIBUTIONS with other software (except as part of its
+    CONTRIBUTOR Version); or
+
+ 3. under PATENT CLAIMS infringed by COVERED SOFTWARE in the absence of
+    its CONTRIBUTIONS.
+
+This LICENSE does not grant any rights in the trademarks, service
+marks, or logos of Gaussian, Inc. or any CONTRIBUTOR (except as may be
+necessary to comply with the notice requirements in Section 3.4).
+
+
+2.4. Representation
+
+Each CONTRIBUTOR represents that the CONTRIBUTOR believes its
+CONTRIBUTIONS are its original creation(s) or it has sufficient rights
+to grant the rights to its CONTRIBUTIONS conveyed by this LICENSE.
+
+
+2.5. Fair Use
+
+This License is not intended to limit any rights YOU have under
+applicable copyright doctrines of fair use, fair dealing, or other
+equivalents.
+
+
+2.6. Conditions
+
+Sections 3.1, 3.2, 3.3, and 3.4 are conditions of the licenses granted
+in Section 2.1.
+
+
+3. Responsibilities
+
+
+3.1. Distribution of Source Form
+
+All distribution of COVERED SOFTWARE in SOURCE CODE FORM, including
+any MODIFICATIONS that YOU create or to which YOU contribute, must be
+under the terms of this License. YOU must inform recipients that the
+SOURCE CODE FORM of the COVERED SOFTWARE is governed by the terms of
+this License, and how they can obtain a copy of this License. YOU may
+not attempt to alter or restrict the recipients' rights in the SOURCE
+CODE FORM.
+
+
+3.2. Distribution of EXECUTABLE FORM
+
+If YOU distribute COVERED SOFTWARE in EXECUTABLE FORM, including any
+MODIFICATIONS that YOU create or to which YOU contribute, then:
+
+ 1. such COVERED SOFTWARE must also be made available in Source Code
+    Form, as described in Section 3.1, and YOU must inform recipients
+    of the EXECUTABLE FORM how they can obtain a copy of such Source
+    Code Form by reasonable means in a timely manner, at a charge no
+    more than the cost of distribution to the recipient; and
+
+ 2. YOU may distribute such EXECUTABLE FORM under the terms of this
+    License, or sublicense it under different terms, provided that the
+    license for the EXECUTABLE FORM does not attempt to limit or alter
+    the recipients' rights in the SOURCE CODE FORM, including any
+    MODIFICATIONS that YOU create or to which YOU contribute, under
+    this License.
+
+
+3.3. Notices
+
+YOU may not remove or alter the substance of any license notices
+(including copyright notices, patent notices, disclaimers of warranty,
+or limitations of liability) contained within the SOURCE CODE FORM of
+the COVERED SOFTWARE, except that YOU may alter any license notices to
+the extent required to remedy known factual inaccuracies.
+
+
+3.4. Application of Additional Terms
+
+YOU may choose to offer, and to charge a fee for, warranty, support,
+indemnity or liability obligations to one or more recipients of
+COVERED SOFTWARE. However, YOU may do so only on YOUR own behalf, and
+not on behalf of any CONTRIBUTOR. YOU must make it absolutely clear
+that any such warranty, support, indemnity, or liability obligation is
+offered by YOU alone, and YOU hereby agree to indemnify every
+CONTRIBUTOR for any liability incurred by such CONTRIBUTOR as a result
+of warranty, support, indemnity or liability terms YOU offer. YOU may
+include additional disclaimers of warranty and limitations of
+liability specific to any jurisdiction.
+
+
+4. Inability to Comply Due to Statute or Regulation
+
+If it is impossible for YOU to comply with any of the terms of this
+License with respect to some or all of the COVERED SOFTWARE due to
+statute, judicial order, or regulation then YOU must: (a) comply with
+the terms of this License to the maximum extent possible; and (b)
+describe the limitations and the code they affect. Such description
+must be placed in a text file included with all distributions of the
+COVERED SOFTWARE under this License. Except to the extent prohibited
+by statute or regulation, such description must be sufficiently
+detailed for a recipient of ordinary skill to be able to understand
+it.
+
+
+5. Termination
+
+5.1. The rights granted under this License will terminate
+automatically if YOU fail to comply with any of its terms. However, if
+YOU become compliant, then the rights granted under this License from
+a particular CONTRIBUTOR are reinstated (a) provisionally, unless and
+until such CONTRIBUTOR explicitly and finally terminates YOUR grants,
+and (b) on an ongoing basis, if such CONTRIBUTOR fails to notify YOU
+of the non-compliance by some reasonable means prior to 60 days after
+YOU have come back into compliance. Moreover, YOUR grants from a
+particular CONTRIBUTOR are reinstated on an ongoing basis if such
+CONTRIBUTOR notifies YOU of the non-compliance by some reasonable
+means, this is the first time YOU have received notice of
+non-compliance with this License from such CONTRIBUTOR, and YOU become
+compliant prior to 30 days after YOUR receipt of the notice.
+
+5.2. If YOU initiate litigation against any entity by asserting a
+patent infringement claim (excluding declaratory judgment actions,
+counter-claims, and cross-claims) alleging that a CONTRIBUTOR VERSION
+directly or indirectly infringes any patent, then the rights granted
+to YOU by any and all CONTRIBUTORs for the COVERED SOFTWARE under
+Section 2.1 of this License shall terminate.
+
+5.3. In the event of termination under Sections 5.1 or 5.2 above, all
+end user license agreements (excluding distributors and resellers)
+which have been validly granted by YOU or YOUR distributors under this
+License prior to termination shall survive termination.
+
+
+6. Disclaimer of Warranty
+
+COVERED SOFTWARE is provided under this License on an "as is" basis,
+without warranty of any kind, either expressed, implied, or statutory,
+including, without limitation, warranties that the COVERED SOFTWARE is
+free of defects, merchantable, fit for a particular purpose or
+non-infringing. The entire risk as to the quality and performance of
+the COVERED SOFTWARE is with YOU. Should any COVERED SOFTWARE prove
+defective in any respect, YOU (not any CONTRIBUTOR) assume the cost of
+any necessary servicing, repair, or correction. This disclaimer of
+warranty constitutes an essential part of this License. No use of any
+COVERED SOFTWARE is authorized under this License except under this
+disclaimer.
+
+7. Limitation of Liability
+
+Under no circumstances and under no legal theory, whether tort
+(including negligence), contract, or otherwise, shall any CONTRIBUTOR,
+or anyone who distributes COVERED SOFTWARE as permitted above, be
+liable to YOU for any direct, indirect, special, incidental, or
+consequential damages of any character including, without limitation,
+damages for lost profits, loss of goodwill, work stoppage, computer
+failure or malfunction, or any and all other commercial damages or
+losses, even if such party shall have been informed of the possibility
+of such damages.  This limitation of liability shall not apply to
+liability for death or personal injury resulting from such party's
+negligence to the extent applicable law prohibits such
+limitation. Some jurisdictions do not allow the exclusion or
+limitation of incidental or consequential damages, so this exclusion
+and limitation may not apply to YOU.
+
+8. Litigation
+
+Any litigation relating to this License may be brought only in the
+courts of a jurisdiction where the defendant maintains its principal
+place of business and such litigation shall be governed by laws of
+that jurisdiction, without reference to its conflict-of-law
+provisions.  Nothing in this Section shall prevent a party's ability
+to bring cross-claims or counter-claims.
+
+
+9. Miscellaneous
+
+This License represents the complete agreement concerning the subject
+matter hereof. If any provision of this License is held to be
+unenforceable, such provision shall be reformed only to the extent
+necessary to make it enforceable. Any law or regulation which provides
+that the language of a contract shall be construed against the drafter
+shall not be used to construe this License against a CONTRIBUTOR.
+
+
+10. Versions of the License
+
+This is the sole applicable version of this License.  It is a
+modification of the Mozilla Public License version 2.0, but the
+Mozilla Foundation is not responsible for this version of the license
+and no modifications made to the Mozilla Public License apply to this
+contract.
+
+Exhibit A - SOURCE CODE FORM License Notice
+
+    This source code is subject to the terms of the Gaussian Interface
+    Code Public License, v. 1.0.  A copy of this license should have
+    been distributed with this file, but is also available on the
+    Gaussian website, http://gaussian.com/public-licensev1.0
+
+If it is not possible or desirable to put the notice in a particular
+file, then YOU may include the notice in a location (such as a LICENSE
+file in a relevant directory) where a recipient would be likely to
+look for such a notice.

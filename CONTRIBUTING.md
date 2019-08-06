@@ -207,6 +207,29 @@ Aer, Qiskit IBMQ Provider, and Qiskit Aqua. All the other dependencies
 will be installed automatically. This process may have to be repeated
 often as the `master` branch of Aqua is updated frequently.
 
+To run chemistry experiments using Qiskit Chemistry, it is recommended
+that you to install a classical computation chemistry software program
+interfaced by Qiskit Chemistry. Several such programs are supported, and
+while logic to interface these programs is supplied by Qiskit Chemistry
+via the above pip installation, the dependent programs themselves need
+to be installed separately becausea they are not part of the Qiskit
+Chemistry installation bundle. Qiskit Chemistry comes with prebuilt
+support to interface the following computational chemistry software
+programs:
+
+1.  \[Gaussian 16&trade;\](<http://gaussian.com/gaussian16/>), a
+    commercial chemistry program
+2.  \[PSI4\](<http://www.psicode.org/>), a chemistry program that
+    exposes a Python interface allowing for accessing internal objects
+3.  \[PySCF\](<https://github.com/sunqm/pyscf>), an open-source Python
+    chemistry program
+4.  \[PyQuante\](<https://github.com/rpmuller/pyquante2>), a pure
+    cross-platform open-source Python chemistry program
+
+Please refer to the \[Qiskit Chemistry drivers installation
+instructions\](<https://qiskit.org/documentation/aqua/aqua_chemistry_drivers.html>)
+for details on how to integrate these drivers into Qiskit Chemistry.
+
 ### Style guide
 
 Please submit clean code and please make effort to follow existing

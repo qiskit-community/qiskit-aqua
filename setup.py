@@ -39,6 +39,9 @@ requirements = [
     "fastdtw",
     "quandl",
     "setuptools>=40.1.0",
+    "h5py",
+    "networkx>=2.2",
+    "pyscf; sys_platform != 'win32'",
 ]
 
 if not hasattr(setuptools, 'find_namespace_packages') or not inspect.ismethod(setuptools.find_namespace_packages):

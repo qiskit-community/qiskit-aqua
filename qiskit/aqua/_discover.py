@@ -99,7 +99,7 @@ def _get_pluggables_types_dictionary():
 
 _NAMES_TO_EXCLUDE = [os.path.basename(__file__)]
 
-_FOLDERS_TO_EXCLUDE = ['__pycache__']
+_FOLDERS_TO_EXCLUDE = ['__pycache__', 'gauopen']
 
 RegisteredPluggable = namedtuple(
     'RegisteredPluggable', ['name', 'cls', 'configuration'])
@@ -117,7 +117,9 @@ def refresh_pluggables():
     _REGISTERED_PLUGGABLES = {}
     global _DISCOVERED
     _DISCOVERED = True
-    _discover_local_pluggables()
+    directory = os.path.dirname(__file__)
+    _discover_local_pluggables(directory)
+    _discover_local_pluggables(os.path.abspath(os.path.join(directory, '..', 'chemistry')), 'qiskit.chemistry')
     _discover_entry_point_pluggables()
     if logger.isEnabledFor(logging.DEBUG):
         for ptype in local_pluggables_types():
@@ -131,7 +133,9 @@ def _discover_on_demand():
     global _DISCOVERED
     if not _DISCOVERED:
         _DISCOVERED = True
-        _discover_local_pluggables()
+        directory = os.path.dirname(__file__)
+        _discover_local_pluggables(directory)
+        _discover_local_pluggables(os.path.abspath(os.path.join(directory, '..', 'chemistry')), 'qiskit.chemistry')
         _discover_entry_point_pluggables()
         if logger.isEnabledFor(logging.DEBUG):
             for ptype in local_pluggables_types():
