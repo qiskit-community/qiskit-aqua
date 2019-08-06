@@ -16,20 +16,20 @@ from qiskit.aqua.circuits.gates import cry
 import numpy as np
 
 
-class LinearYRotation(CircuitFactory):
+class LinearRotation(CircuitFactory):
     """
-    Linearly-controlled Y rotation.
+    Linearly-controlled X, Y or Z rotation.
     For a register of state qubits |x> and a target qubit |0> this operator acts as:
 
         |x>|0> --> |x>( cos(slope * x + offset)|0> + sin(slope * x + offset)|1> )
 
     """
 
-    def __init__(self, slope, offset, num_state_qubits, i_state=None, i_target=None):
+    def __init__(self, slope, offset, num_state_qubits, basis = 'Y', i_state=None, i_target=None):
         """
         Constructor.
 
-        Construct linear Y rotation circuit factory
+        Construct linear rotation circuit factory
         Args:
             slope (float): slope of the controlled rotation
             offset (float): offset of the controlled rotation
@@ -44,6 +44,10 @@ class LinearYRotation(CircuitFactory):
         self.num_control_qubits = num_state_qubits
         self.slope = slope
         self.offset = offset
+        self.basis = basis
+
+        if self.basis not in ['X', 'Y', 'Z']:
+            raise ValueError('Basis must be X, Y or Z')
 
         self.i_state = None
         if i_state is not None:
@@ -65,8 +69,18 @@ class LinearYRotation(CircuitFactory):
 
         # apply linear rotation
         if not np.isclose(self.offset / 4 / np.pi % 1, 0):
-            qc.ry(self.offset, q[i_target])
+            if self.basis == 'X':
+                qc.rx(self.offset, q[i_target])
+            elif self.basis == 'Y':
+                qc.ry(self.offset, q[i_target])
+            elif self.basis == 'Z':
+                qc.rz(self.offset, q[i_target])
         for i, j in enumerate(i_state):
             theta = self.slope * pow(2, i)
             if not np.isclose(theta / 4 / np.pi % 1, 0):
-                qc.cry(self.slope * pow(2, i), q[j], q[i_target])
+                if self.basis == 'X':
+                    qc.crx(self.slope * pow(2, i), q[j], q[i_target])
+                elif self.basis == 'Y':
+                    qc.cry(self.slope * pow(2, i), q[j], q[i_target])
+                elif self.basis == 'Z':
+                    qc.crz(self.slope * pow(2, i), q[j], q[i_target])

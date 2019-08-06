@@ -17,8 +17,8 @@ from .phase_estimation_circuit import PhaseEstimationCircuit
 from .statevector_circuit import StateVectorCircuit
 from .fourier_transform_circuits import FourierTransformCircuits
 from .fixed_value_comparator import FixedValueComparator
-from .linear_y_rotation import LinearYRotation
-from .piecewise_linear_y_rotation import PiecewiseLinearYRotation
+from .linear_rotation import LinearRotation
+from .piecewise_linear_rotation import PiecewiseLinearRotation
 from .weighted_sum_operator import WeightedSumOperator
 
 __all__ = [
@@ -29,7 +29,7 @@ __all__ = [
     'StateVectorCircuit',
     'FourierTransformCircuits',
     'FixedValueComparator',
-    'LinearYRotation',
-    'PiecewiseLinearYRotation',
+    'LinearRotation',
+    'PiecewiseLinearRotation',
     'WeightedSumOperator'
 ]

@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 import numpy as np
-from qiskit.aqua.circuits.piecewise_linear_y_rotation import PiecewiseLinearYRotation as PwlRy
+from qiskit.aqua.circuits.piecewise_linear_rotation import PiecewiseLinearRotation as PwlRy
 from qiskit.aqua.utils import CircuitFactory
 
 
