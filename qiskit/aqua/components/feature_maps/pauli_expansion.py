@@ -18,13 +18,14 @@ feature map. Several types of commonly used approaches.
 
 import itertools
 import logging
+import warnings
 
 import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.quantum_info import Pauli
 from qiskit.qasm import pi
 
-from qiskit.aqua import Operator
+from qiskit.aqua.operators import evolution_instruction
 from qiskit.aqua.components.feature_maps import FeatureMap, self_product
 
 logger = logging.getLogger(__name__)
@@ -132,7 +133,7 @@ class PauliExpansion(FeatureMap):
         where_non_i = np.where(np.asarray(list(pauli[::-1])) != 'I')[0]
         return x[where_non_i]
 
-    def construct_circuit(self, x, qr=None, inverse=False):
+    def construct_circuit(self, x, qr=None, inverse=None):
         """
         Construct the second order expansion based on given data.
 
@@ -145,6 +146,11 @@ class PauliExpansion(FeatureMap):
         Returns:
             QuantumCircuit: a quantum circuit transform data x.
         """
+
+        if inverse is not None:
+            warnings.warn("inverse option is deprecated and it will be removed after 0.6, "
+                          "Since terra supports to inverse the circuit by calling qc.inverses()", DeprecationWarning)
+
         if not isinstance(x, np.ndarray):
             raise TypeError("x must be numpy array.")
         if x.ndim != 1:
@@ -162,9 +168,11 @@ class PauliExpansion(FeatureMap):
             for pauli in self._pauli_strings:
                 coeff = self._data_map_func(self._extract_data_for_rotation(pauli, x))
                 p = Pauli.from_label(pauli)
-                qc += Operator.construct_evolution_circuit([[coeff, p]], 1, 1, qr)
 
-        if inverse:
+                inst = evolution_instruction([[coeff, p]], 1, 1)
+                qc.append(inst, qr)
+
+        if inverse is not None and inverse:
             qc = qc.inverse()
 
         return qc

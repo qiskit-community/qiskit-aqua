@@ -6,13 +6,12 @@
 
 Qiskit is made up elements that work together to enable quantum computing. This element is **Aqua**.
 Aqua provides a library of cross-domain algorithms upon which domain-specific applications can be
-built. [Qiskit Chemistry](https://github.com/Qiskit/qiskit-chemistry) has
+built. Qiskit Chemistry has
 been created to utilize Aqua for quantum chemistry computations. Aqua is also showcased for other
 domains, such as Optimization, Artificial Intelligence, and
 Finance, with both code and notebook examples available in the
-[qiskit/aqua](https://github.com/Qiskit/qiskit-tutorials/tree/master/qiskit/aqua)
-and [community/aqua](https://github.com/Qiskit/qiskit-tutorials/tree/master/community/aqua)
-folders of the [qiskit-tutorials GitHub Repository](https://github.com/Qiskit/qiskit-tutorials).
+[qiskit-tutorials](https://github.com/Qiskit/qiskit-tutorials) and
+[qiskit-tutorials-community](https://github.com/Qiskit/qiskit-tutorials-sommunity) GitHub Repositories.
 
 Aqua was designed to be extensible, and uses a pluggable framework where algorithms and support objects used
 by algorithms—such as optimizers, variational forms, and oracles—are derived from a defined base class for the type and
@@ -213,7 +212,7 @@ Graphical User Interface (GUI) includes capabilities for automatic code generati
 ## Contribution Guidelines
 
 If you'd like to contribute to Qiskit, please take a look at our
-[contribution guidelines](./CONTRIBUTING.md). This project adheres to Qiskit's [code of conduct](./CODE_OF_CONDUCT.md). By participating, you are expected to uphold to this code.
+[contribution guidelines](./CONTRIBUTING.md). This project adheres to Qiskit's [code of conduct](./CODE_OF_CONDUCT.md). By participating, you are expected to uphold to this code. Please also follow the [style guidelines](./CONTRIBUTING.md/#Style-guide).
 
 We use [GitHub issues](https://github.com/Qiskit/qiskit-aqua/issues) for tracking requests and bugs. Please
 [join the Qiskit Slack community](https://join.slack.com/t/qiskit/shared_invite/enQtNDc2NjUzMjE4Mzc0LTMwZmE0YTM4ZThiNGJmODkzN2Y2NTNlMDIwYWNjYzA2ZmM1YTRlZGQ3OGM0NjcwMjZkZGE0MTA4MGQ1ZTVmYzk)

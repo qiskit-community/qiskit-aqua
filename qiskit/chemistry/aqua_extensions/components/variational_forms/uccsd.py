@@ -19,13 +19,15 @@ For more information, see https://arxiv.org/abs/1805.04340
 
 import logging
 import sys
+import warnings
 
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
 
-from qiskit.aqua import Operator, aqua_globals
+from qiskit.aqua import aqua_globals
+from qiskit.aqua.operators import WeightedPauliOperator, Z2Symmetries
 from qiskit.aqua.components.variational_forms import VariationalForm
 from qiskit.chemistry.fermionic_operator import FermionicOperator
 
@@ -105,7 +107,7 @@ class UCCSD(VariationalForm):
                  active_occupied=None, active_unoccupied=None, initial_state=None,
                  qubit_mapping='parity', two_qubit_reduction=True, num_time_slices=1,
                  cliffords=None, sq_list=None, tapering_values=None, symmetries=None,
-                 shallow_circuit_concat=True):
+                 shallow_circuit_concat=True, z2_symmetries=None):
         """Constructor.
 
         Args:
@@ -119,7 +121,7 @@ class UCCSD(VariationalForm):
             qubit_mapping (str): qubit mapping type.
             two_qubit_reduction (bool): two qubit reduction is applied or not.
             num_time_slices (int): parameters for dynamics.
-            cliffords ([Operator]): list of unitary Clifford transformation
+            cliffords ([WeightedPauliOperator]): list of unitary Clifford transformation
             sq_list ([int]): position of the single-qubit operators that anticommute
                             with the cliffords
             tapering_values ([int]): array of +/- 1 used to select the subspace. Length
@@ -129,21 +131,22 @@ class UCCSD(VariationalForm):
         """
         self.validate(locals())
         super().__init__()
-        self._cliffords = cliffords
-        self._sq_list = sq_list
-        self._tapering_values = tapering_values
-        self._symmetries = symmetries
 
-        if self._cliffords is not None and self._cliffords != [] and \
-                self._sq_list is not None and self._sq_list != [] and \
-                self._tapering_values is not None and self._tapering_values != [] and \
-                self._symmetries is not None and self._symmetries != []:
-            self._qubit_tapering = True
+        if cliffords is not None and cliffords != [] and \
+                sq_list is not None and sq_list != [] and \
+                tapering_values is not None and tapering_values != [] and \
+                symmetries is not None and symmetries != []:
+            warnings.warn("symmetries, cliffords, sq_list, tapering_values options is deprecated "
+                          "and it will be removed after 0.6, Please encapsulate all tapering info "
+                          "into the Z2Symmetries class.", DeprecationWarning)
+            sq_paulis = [x.paulis[1][1] for x in cliffords]
+            self._z2_symmetries = Z2Symmetries(symmetries, sq_paulis, sq_list, tapering_values)
         else:
-            self._qubit_tapering = False
+            self._z2_symmetries = Z2Symmetries([], [], [], []) if z2_symmetries is None else z2_symmetries
 
         self._num_qubits = num_orbitals if not two_qubit_reduction else num_orbitals - 2
-        self._num_qubits = self._num_qubits if not self._qubit_tapering else self._num_qubits - len(sq_list)
+        self._num_qubits = self._num_qubits if self._z2_symmetries.is_empty() \
+            else self._num_qubits - len(self._z2_symmetries.sq_list)
         if self._num_qubits != num_qubits:
             raise ValueError('Computed num qubits {} does not match actual {}'
                              .format(self._num_qubits, num_qubits))
@@ -184,9 +187,8 @@ class UCCSD(VariationalForm):
             TextProgressBar(sys.stderr)
 
         results = parallel_map(UCCSD._build_hopping_operator, self._single_excitations + self._double_excitations,
-                               task_args=(self._num_orbitals, self._num_particles,
-                                          self._qubit_mapping, self._two_qubit_reduction, self._qubit_tapering,
-                                          self._symmetries, self._cliffords, self._sq_list, self._tapering_values),
+                               task_args=(self._num_orbitals, self._num_particles, self._qubit_mapping,
+                                          self._two_qubit_reduction, self._z2_symmetries),
                                num_processes=aqua_globals.num_processes)
         hopping_ops = [qubit_op for qubit_op in results if qubit_op is not None]
         num_parameters = len(hopping_ops) * self._depth
@@ -194,13 +196,7 @@ class UCCSD(VariationalForm):
 
     @staticmethod
     def _build_hopping_operator(index, num_orbitals, num_particles, qubit_mapping,
-                                two_qubit_reduction, qubit_tapering, symmetries,
-                                cliffords, sq_list, tapering_values):
-
-        def check_commutativity(op_1, op_2):
-            com = op_1 * op_2 - op_2 * op_1
-            com.zeros_coeff_elimination()
-            return True if com.is_empty() else False
+                                two_qubit_reduction, z2_symmetries):
 
         h1 = np.zeros((num_orbitals, num_orbitals))
         h2 = np.zeros((num_orbitals, num_orbitals, num_orbitals, num_orbitals))
@@ -215,18 +211,17 @@ class UCCSD(VariationalForm):
 
         dummpy_fer_op = FermionicOperator(h1=h1, h2=h2)
         qubit_op = dummpy_fer_op.mapping(qubit_mapping)
-        qubit_op = qubit_op.two_qubit_reduced_operator(num_particles) \
-            if two_qubit_reduction else qubit_op
+        if two_qubit_reduction:
+            qubit_op = Z2Symmetries.two_qubit_reduction(qubit_op, num_particles)
 
-        if qubit_tapering:
+        if not z2_symmetries.is_empty():
             symm_commuting = True
-            for symmetry in symmetries:
-                symmetry_op = Operator(paulis=[[1.0, symmetry]])
-                symm_commuting = check_commutativity(symmetry_op, qubit_op)
+            for symmetry in z2_symmetries.symmetries:
+                symmetry_op = WeightedPauliOperator(paulis=[[1.0, symmetry]])
+                symm_commuting = qubit_op.commute_with(symmetry_op)
                 if not symm_commuting:
                     break
-            qubit_op = Operator.qubit_tapering(qubit_op, cliffords,
-                                               sq_list, tapering_values) if symm_commuting else None
+            qubit_op = z2_symmetries.taper(qubit_op) if symm_commuting else None
 
         if qubit_op is None:
             logger.debug('Excitation ({}) is skipped since it is not commuted '
@@ -280,7 +275,7 @@ class UCCSD(VariationalForm):
     @staticmethod
     def _construct_circuit_for_one_excited_operator(qubit_op_and_param, qr, num_time_slices):
         qubit_op, param = qubit_op_and_param
-        qc = qubit_op.evolve(None, param * -1j, 'circuit', num_time_slices, qr)
+        qc = qubit_op.evolve(state_in=None, evo_time=param * -1j, num_time_slices=num_time_slices, quantum_registers=qr)
         return qc
 
     @property

@@ -16,13 +16,27 @@ import numpy as np
 from functools import reduce
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.quantum_info import Pauli
-from qiskit.aqua import Operator
+from qiskit.aqua.operators import WeightedPauliOperator, op_converter
 
 
 class QAOAVarForm:
     """Global X phases and parameterized problem hamiltonian."""
 
     def __init__(self, cost_operator, p, initial_state=None, mixer_operator=None):
+        """
+        Constructor, following the QAOA paper https://arxiv.org/abs/1411.4028
+
+        Args:
+            cost_operator (WeightedPauliOperator): The operator representing the cost of the optimization problem,
+                                                   denoted as U(B, gamma) in the original paper.
+            p (int): The integer parameter p, which determines the depth of the circuit,
+                     as specified in the original paper.
+            initial_state (InitialState, optional): An optional initial state to use.
+            mixer_operator (WeightedPauliOperator, optional): An optional custom mixer operator to use instead of
+                                                              the global X-rotations, denoted as U(B, beta)
+                                                              in the original paper.
+        """
+        cost_operator = op_converter.to_weighted_pauli_operator(cost_operator)
         self._cost_operator = cost_operator
         self._p = p
         self._initial_state = initial_state
@@ -37,13 +51,13 @@ class QAOAVarForm:
             self._mixer_operator = reduce(
                 lambda x, y: x + y,
                 [
-                    Operator([[1, Pauli(v, ws[i, :])]])
+                    WeightedPauliOperator([[1.0, Pauli(v, ws[i, :])]])
                     for i in range(self._cost_operator.num_qubits)
                 ]
             )
         else:
-            if not type(mixer_operator) == Operator:
-                raise TypeError('The mixer should be a qiskit.aqua.Operator '
+            if not isinstance(mixer_operator, WeightedPauliOperator):
+                raise TypeError('The mixer should be a qiskit.aqua.operators.WeightedPauliOperator '
                                 + 'object, found {} instead'.format(type(mixer_operator)))
             self._mixer_operator = mixer_operator
 
@@ -66,10 +80,10 @@ class QAOAVarForm:
         for idx in range(self._p):
             beta, gamma = angles[idx], angles[idx + self._p]
             circuit += self._cost_operator.evolve(
-                evo_time=gamma, evo_mode='circuit', num_time_slices=1, quantum_registers=q
+                evo_time=gamma, num_time_slices=1, quantum_registers=q
             )
             circuit += self._mixer_operator.evolve(
-                evo_time=beta, evo_mode='circuit', num_time_slices=1, quantum_registers=q
+                evo_time=beta, num_time_slices=1, quantum_registers=q
             )
         return circuit
 
