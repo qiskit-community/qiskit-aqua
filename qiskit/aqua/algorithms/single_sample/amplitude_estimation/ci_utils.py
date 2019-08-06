@@ -162,7 +162,7 @@ def fisher_information(p, m):
         return (f.logd(x, p, m))**2 * f.v(x, p, m)
 
     M = 2**m
-    grid = np.sin(np.pi * np.arange(M) / M)**2
+    grid = np.sin(np.pi * np.arange(M / 2 + 1) / M)**2
     FI = np.sum([integrand(x) for x in grid])
 
     return FI
