@@ -19,10 +19,6 @@ from .fourier_transform_circuits import FourierTransformCircuits
 from .fixed_value_comparator import FixedValueComparator
 from .linear_y_rotation import LinearYRotation
 from .piecewise_linear_y_rotation import PiecewiseLinearYRotation
-from .linear_z_rotation import LinearZRotation
-from .piecewise_linear_z_rotation import PiecewiseLinearZRotation
-from .linear_rotation import LinearRotation
-from .piecewise_linear_rotation import PiecewiseLinearRotation
 from .weighted_sum_operator import WeightedSumOperator
 
 __all__ = [
@@ -35,7 +31,5 @@ __all__ = [
     'FixedValueComparator',
     'LinearYRotation',
     'PiecewiseLinearYRotation',
-    'LinearRotation',
-    'PiecewiseLinearRotation',
     'WeightedSumOperator'
 ]

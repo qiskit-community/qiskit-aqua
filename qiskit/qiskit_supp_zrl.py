@@ -1,7 +1,5 @@
 from qiskit import Aer, execute, QuantumCircuit
-from qiskit.aqua.algorithms import ExactEigensolver
 import numpy as np
-from qiskit.aqua.operator import Operator
 
 def to_unitary(self):
     job = execute(self, Aer.get_backend('unitary_simulator'))
@@ -17,9 +15,3 @@ def to_probabilities(self):
 QuantumCircuit.to_unitary = to_unitary
 QuantumCircuit.to_statevector = to_statevector
 QuantumCircuit.to_probabilities = to_probabilities
-
-def diagonalize(self, k):
-    exact_eigensolver = ExactEigensolver(self, k=k)
-    return(exact_eigensolver.run())
-
-Operator.diagonalize = diagonalize
