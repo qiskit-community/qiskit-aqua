@@ -771,7 +771,7 @@ class Operator(object):
                     circuits.append(circuit)
         return circuits
 
-    def evaluate_with_result(self, operator_mode, circuits, backend, result, use_simulator_operator_mode=False):
+    def evaluate_with_result(self, operator_mode, circuits, backend, result, use_simulator_operator_mode=False, parallel_evaluate=True):
         """
         Use the executed result with operator to get the evaluated value.
 
@@ -782,6 +782,8 @@ class Operator(object):
             result (qiskit.Result): the result from the backend.
             use_simulator_operator_mode (bool): if aer_provider is used, we can do faster
                            evaluation for pauli mode on statevector simualtion
+            parallel_evaluate (bool, optional): indicate whether the expectation value of pauli strings
+                            are calculated in parallel or in serial
         Returns:
             float: the mean value
             float: the standard deviation
@@ -823,19 +825,29 @@ class Operator(object):
             num_shots = sum(list(result.get_counts(circuits[0]).values()))
             if operator_mode == "paulis":
                 self._check_representation("paulis")
-                results = parallel_map(Operator._routine_paulis_with_shots,
-                                       [(pauli, result.get_counts(circuits[idx]))
-                                        for idx, pauli in enumerate(self._paulis)],
-                                       num_processes=aqua_globals.num_processes)
+                if parallel_evaluate:
+                    results = parallel_map(Operator._routine_paulis_with_shots,
+                                           [(pauli, result.get_counts(circuits[idx]))
+                                            for idx, pauli in enumerate(self._paulis)],
+                                           num_processes=aqua_globals.num_processes)
+                else:
+                    results = map(Operator._routine_paulis_with_shots,
+                                           [(pauli, result.get_counts(circuits[idx]))
+                                            for idx, pauli in enumerate(self._paulis)])
                 for result in results:
                     avg += result[0]
                     variance += result[1]
             else:
                 self._check_representation("grouped_paulis")
-                results = parallel_map(Operator._routine_grouped_paulis_with_shots,
-                                       [(tpb_set, result.get_counts(circuits[tpb_idx]))
-                                        for tpb_idx, tpb_set in enumerate(self._grouped_paulis)],
-                                       num_processes=aqua_globals.num_processes)
+                if parallel_evaluate:
+                    results = parallel_map(Operator._routine_grouped_paulis_with_shots,
+                                           [(tpb_set, result.get_counts(circuits[tpb_idx]))
+                                            for tpb_idx, tpb_set in enumerate(self._grouped_paulis)],
+                                           num_processes=aqua_globals.num_processes)
+                else:
+                    results = map(Operator._routine_grouped_paulis_with_shots,
+                                           [(tpb_set, result.get_counts(circuits[tpb_idx]))
+                                            for tpb_idx, tpb_set in enumerate(self._grouped_paulis)])
                 for result in results:
                     avg += result[0]
                     variance += result[1]

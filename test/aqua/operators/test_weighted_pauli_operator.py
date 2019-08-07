@@ -433,6 +433,19 @@ class TestWeightedPauliOperator(QiskitAquaTestCase):
         self.assertGreaterEqual(reference[0].real, actual_value[0].real - 3 * actual_value[1].real)
         self.assertLessEqual(reference[0].real, actual_value[0].real + 3 * actual_value[1].real)
 
+    def test_evaluate_qasm_mode_serial(self):
+        wave_function = self.var_form.construct_circuit(np.array(np.random.randn(self.var_form.num_parameters)))
+
+        circuits = self.qubit_op.construct_evaluation_circuit(wave_function=wave_function, statevector_mode=True)
+        reference = self.qubit_op.evaluate_with_result(result=self.quantum_instance_statevector.execute(circuits),
+                                                       statevector_mode=True, parallel_evaluate=False)
+        circuits = self.qubit_op.construct_evaluation_circuit(wave_function=wave_function, statevector_mode=False)
+        result = self.quantum_instance_qasm.execute(circuits)
+        actual_value = self.qubit_op.evaluate_with_result(result=result, statevector_mode=False, parallel_evaluate=False)
+
+        self.assertGreaterEqual(reference[0].real, actual_value[0].real - 3 * actual_value[1].real)
+        self.assertLessEqual(reference[0].real, actual_value[0].real + 3 * actual_value[1].real)
+
     def test_evaluate_statevector_mode(self):
         wave_function = self.var_form.construct_circuit(np.array(np.random.randn(self.var_form.num_parameters)))
         wave_fn_statevector = self.quantum_instance_statevector.execute(wave_function).get_statevector(wave_function)
