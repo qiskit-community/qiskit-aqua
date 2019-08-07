@@ -201,14 +201,14 @@ class VQE(VQAlgorithm):
     def _config_the_best_mode(self, operator, backend):
 
         if not isinstance(operator, (WeightedPauliOperator, MatrixOperator, TPBGroupedWeightedPauliOperator)):
-            logger.info("Unrecognized operator type, skip auto conversion.")
+            logger.debug("Unrecognized operator type, skip auto conversion.")
             return operator
 
         ret_op = operator
         if not is_statevector_backend(backend):  # assume qasm, should use grouped paulis.
             if isinstance(operator, (WeightedPauliOperator, MatrixOperator)):
-                logger.info("When running with Qasm simulator, grouped pauli can save number of measurements. "
-                            "We convert the operator into grouped ones.")
+                logger.debug("When running with Qasm simulator, grouped pauli can save number of measurements. "
+                             "We convert the operator into grouped ones.")
                 ret_op = op_converter.to_tpb_grouped_weighted_pauli_operator(
                     operator, TPBGroupedWeightedPauliOperator.sorted_grouping)
         else:
