@@ -24,7 +24,6 @@ from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.operators import (TPBGroupedWeightedPauliOperator, WeightedPauliOperator,
                                    MatrixOperator, op_converter)
 from qiskit.aqua.utils.backend_utils import is_aer_statevector_backend, is_statevector_backend
-from qiskit.aqua.utils import find_regs_by_name
 
 logger = logging.getLogger(__name__)
 
@@ -406,6 +405,8 @@ class VQE(VQAlgorithm):
         return self._var_form.construct_circuit(self._ret['opt_params'])
 
     def get_optimal_vector(self):
+        from qiskit.aqua.utils.run_circuits import find_regs_by_name
+
         if 'opt_params' not in self._ret:
             raise AquaError("Cannot find optimal vector before running the algorithm to find optimal params.")
         qc = self.get_optimal_circuit()

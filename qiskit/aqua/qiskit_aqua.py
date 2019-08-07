@@ -18,7 +18,6 @@ import copy
 import json
 import logging
 
-from qiskit.providers import BaseBackend
 from qiskit.transpiler import PassManager
 from qiskit.ignis.mitigation.measurement import CompleteMeasFitter
 
@@ -154,6 +153,8 @@ class QiskitAqua(object):
         return self._parser
 
     def _build_algorithm_from_dict(self, quantum_instance):
+        from qiskit.providers import BaseBackend
+
         _discover_on_demand()
         self._parser = InputParser(self._params)
         self._parser.parse()
