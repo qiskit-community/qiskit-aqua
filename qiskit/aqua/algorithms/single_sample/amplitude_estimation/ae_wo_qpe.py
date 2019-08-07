@@ -411,7 +411,7 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
         if kind in ['observed_fisher', 'observed_information', 'oi']:
             return self._fisher_ci(alpha, observed=True)
 
-        raise NotImplementedError(f'CI `{kind}` is not implemented.')
+        raise NotImplementedError('CI `{}` is not implemented.'.format(kind))
 
     def _run(self):
         self.check_factories()
