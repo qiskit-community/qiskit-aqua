@@ -21,9 +21,43 @@ from qiskit.aqua import (local_pluggables_types,
                          PluggableType)
 from qiskit.aqua.input import AlgorithmInput
 import inspect
+import os
+import subprocess
+
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class TestConfigurationIntegrity(QiskitAquaTestCase):
+
+    @staticmethod
+    def _minimal_ext_cmd(cmd):
+        # construct minimal environment
+        env = {}
+        for k in ['SYSTEMROOT', 'PATH']:
+            v = os.environ.get(k)
+            if v is not None:
+                env[k] = v
+        # LANGUAGE is used on win32
+        env['LANGUAGE'] = 'C'
+        env['LANG'] = 'C'
+        env['LC_ALL'] = 'C'
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE, env=env,
+                                cwd=os.path.join(ROOT_DIR))
+        stdout, stderr = proc.communicate()
+        if proc.returncode > 0:
+            raise OSError('Command {} exited with code {}: {}'.format(
+                cmd, proc.returncode, stderr.strip().decode('ascii')))
+        return stdout
+
+    def test_load_aqua(self):
+        try:
+            out = TestConfigurationIntegrity._minimal_ext_cmd(['python', os.path.join(ROOT_DIR, 'load_aqua.py')])
+            out = out.strip().decode('ascii')
+            if out:
+                self.fail('One or more qiskit imports are interfering with Aqua loading: {}'.format(out))
+        except OSError as ex:
+            self.fail(str(ex))
 
     def test_pluggable_inputs(self):
         algorithm_problems = set()
