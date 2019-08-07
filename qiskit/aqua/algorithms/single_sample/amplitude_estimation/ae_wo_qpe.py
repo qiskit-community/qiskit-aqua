@@ -23,7 +23,6 @@ from scipy.stats import norm, chi2
 from qiskit import ClassicalRegister, QuantumRegister, QuantumCircuit
 from qiskit.aqua import AquaError
 from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
-from qiskit.aqua.algorithms import QuantumAlgorithm
 
 from .ae_base import AmplitudeEstimationBase
 
@@ -187,34 +186,30 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
             MLE for a statevector simulation
         """
         probs = self._evaluate_statevectors(self._ret['statevectors'])
-        # TODO: replace by more efficient and numerically stable implementation
 
-        method = "inits"
+        search_range = [0, np.pi / 2]
+        init = np.mean(search_range)
+        best_theta = None
 
-        if method == "inits":
-            search_range = [0, np.pi / 2]
-            init = np.mean(search_range)
-            best_theta = None
+        for it in range(len(self._evaluation_schedule)):
+            def loglikelihood(theta):
+                logL = 0
+                for i, k in enumerate(self._evaluation_schedule[:it + 1]):
+                    logL = np.log(np.sin((2 * k + 1) * theta) ** 2) * probs[i] \
+                        + np.log(np.cos((2 * k + 1) * theta) ** 2) * (1 - probs[i])
+                return -logL
 
-            for it in range(len(self._evaluation_schedule)):
-                def loglikelihood(theta):
-                    logL = 0
-                    for i, k in enumerate(self._evaluation_schedule[:it + 1]):
-                        logL = np.log(np.sin((2 * k + 1) * theta) ** 2) * probs[i] \
-                            + np.log(np.cos((2 * k + 1) * theta) ** 2) * (1 - probs[i])
-                    return -logL
+            # find the current optimum, this is our new initial point
+            res = minimize(loglikelihood, init, bounds=[search_range], method="SLSQP")
+            init = res.x
 
-                # find the current optimum, this is our new initial point
-                res = minimize(loglikelihood, init, bounds=[search_range], method="SLSQP")
-                init = res.x
+            # keep track of the best theta estimate
+            if best_theta is None:
+                best_theta = res.x
+            elif res.fun < loglikelihood(best_theta):
+                best_theta = res.x
 
-                # keep track of the best theta estimate
-                if best_theta is None:
-                    best_theta = res.x
-                elif res.fun < loglikelihood(best_theta):
-                    best_theta = res.x
-
-            return best_theta[0]  # return the value, not a 1d numpy.array
+        return best_theta[0]  # return the value, not a 1d numpy.array
 
     def _run_mle_counts(self):
         """
@@ -270,7 +265,7 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
             return default
         return np.max(array)
 
-    def compute_lr_ci(self, alpha=0.05, nevals=10000):
+    def _likelihood_ratio_ci(self, alpha=0.05, nevals=10000):
         """
         Compute the likelihood-ratio confidence interval.
 
@@ -321,7 +316,7 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
 
         return mapped_ci_outer, mapped_ci_inner
 
-    def compute_fisher_ci(self, alpha=0.05, observed=False):
+    def _fisher_ci(self, alpha=0.05, observed=False):
         """
         Compute the alpha confidence interval based on the Fisher information
 
@@ -401,6 +396,22 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
             fisher_information = 1 / (a * (1 - a)) * sum(Nk * (2 * mk + 1)**2 for Nk, mk in zip(all_hits, evaluation_schedule))
 
         return fisher_information
+
+    def confidence_interval(self, alpha, kind='fisher'):
+        # check if AE did run already
+        if 'mle' not in self._ret.keys():
+            raise AquaError('Call run() first!')
+
+        if kind in ['likelihood_ratio', 'lr']:
+            return self._likelihood_ratio_ci(alpha)
+
+        if kind in ['fisher', 'fi']:
+            return self._fisher_ci(alpha, observed=False)
+
+        if kind in ['observed_fisher', 'observed_information', 'oi']:
+            return self._fisher_ci(alpha, observed=True)
+
+        raise NotImplementedError(f'CI `{kind}` is not implemented.')
 
     def _run(self):
         self.check_factories()
