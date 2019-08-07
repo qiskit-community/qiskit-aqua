@@ -46,10 +46,7 @@ class BinaryTree:
         # Make sure the matrix row has length that's a power of two
         # TODO: Give the option to pad the vector and do this automatically
         if self._nvals & (self._nvals - 1) != 0:
-            raise VectorError(
-                "Vector must have a number of elements that is a power of two. " +
-                "Please append zero entries to the row."
-            )
+            raise VectorError("Vector must have a number of elements that is a power of two.")
 
         # Store the input vector
         self._values = list(vector)

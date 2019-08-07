@@ -12,24 +12,27 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Module for Quantum Singular Value Estimation (QSVE).
+"""Module for Quantum Singular Value Estimation (QSVE), and algorithm for
+estimating the singular values of a Hermitian matrix.
 
 QSVE is used as a subroutine in quantum recommendation systems [1],
 where it was first introduced, and in linear systems solvers [2].
 
-QSVE performs quantum phase estimation with the unitary W defined as
+QSVE performs quantum phase estimation with a unitary whose eigenvalues
+of which are related to the singular values of A.
 
-W =
+For more details and a tutorial, see
 
-
+https://github.com/Qiskit/qiskit-tutorials/tree/master/qiskit/aqua
 
 References:
 
-[1] Kerenedis and Prakash, Quantum Recommendation Systems.
+    [1] I. Kerenidis and A. Prakash, “Quantum Recommendation Systems,”
+        arXiv:1603.08675 [quant-ph], Mar. 2016.
 
-[2] , , and Prakash, Quantum algorithm for dense linear systems of equations.
-
-
+    [2] L. Wossnig, Z. Zhao, and A. Prakash, “A quantum linear system
+        algorithm for dense matrices,” Phys. Rev. Lett., vol. 120, no. 5,
+        p. 050502, Jan. 2018.
 """
 
 # Imports
@@ -505,9 +508,7 @@ class QSVE:
             COL (m qubits)  -----------------------------------|           |---[R]---|   |--------
 
         where @ is a control symbol and O is an "anti-control" symbol (i.e., controlled on the |0> state).
-        The gate R is a reflection about the |0> state.
-
-        TODO: Add "mathematical section" explaining what V and U are.
+        The gate R is a reflection about the |0> state, and U, V are isometries. (See [1] for full details.)
 
         Args:
             circuit : qiskit.QuantumCircuit
@@ -533,6 +534,10 @@ class QSVE:
 
         Modifies:
             The input circuit. Adds gates to this circuit to implement the controlled-W unitary.
+
+        References:
+            [1] I. Kerenidis and A. Prakash, “Quantum Recommendation Systems,”
+                arXiv:1603.08675 [quant-ph], Mar. 2016.
         """
         # =====================
         # Check input arguments
@@ -766,7 +771,7 @@ class QSVE:
 
             return_registers : bool (default: False)
                 If True, registers are returned along with the circuit.
-                Note: Registers can be accessed from the circuit -- this method is for convenience.
+                Note: Registers can be accessed from the circuit -- this option is for convenience.
 
                 The order of the returned registers is:
                     (1) QPE Register: Qubits used for precision in QPE.
@@ -775,6 +780,12 @@ class QSVE:
 
             logical_barriers : bool (default: False)
                 If True, barriers are inserted in the circuit between logical components (subroutines).
+
+        Returns : qiskit.QuantumCircuit
+            The quantum circuit with gates implementing the QSVE algorithm.
+
+            If return_registers==True, then the registers in the above circuit are returned as well.
+            Note that these registers can be accessed from the circuit itself. This option is for convenience.
         """
         # Create the quantum registers
         qpe_register = QuantumRegister(nprecision_bits, name="qpe")
@@ -789,12 +800,12 @@ class QSVE:
             if singular_vector is not None:
                 self._prepare_singular_vector(singular_vector, circuit, row_register, col_register)
 
+                # Add a barrier, if desired
+                if logical_barriers:
+                    circuit.barrier()
+
             # Load the row norms of the matrix in the row register
             self.row_norm_tree.preparation_circuit(circuit, row_register)
-
-            # Add a barrier, if desired
-            if logical_barriers:
-                circuit.barrier()
 
             # Add a barrier, if desired
             if logical_barriers:
