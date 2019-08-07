@@ -30,6 +30,7 @@ from qiskit.aqua.utils.backend_utils import (is_statevector_backend,
                                              has_ibmq,
                                              get_backend_from_provider,
                                              get_backends_from_provider,
+                                             get_provider_from_backend,
                                              is_local_backend,
                                              is_aer_provider,
                                              is_aer_statevector_backend)
@@ -47,6 +48,7 @@ class JSONSchema(object):
 
     def __init__(self, schema_input):
         """Create JSONSchema object."""
+        self._backend = None
         self._schema = None
         self._original_schema = None
         self.aqua_jsonschema = None
@@ -61,6 +63,15 @@ class JSONSchema(object):
         validator = jsonschema.Draft4Validator(self._schema)
         self._schema = JSONSchema._resolve_schema_references(validator.schema, validator.resolver)
         self.commit_changes()
+
+    @property
+    def backend(self):
+        """Getter of backend."""
+        return self._backend
+
+    @backend.setter
+    def backend(self, new_value):
+        self._backend = new_value
 
     @property
     def schema(self):
@@ -89,9 +100,7 @@ class JSONSchema(object):
             for problem in problems:
                 problems_dict[problem] = None
 
-        problems_enum = {'enum': list(problems_dict.keys())}
-        self._schema['properties'][JSONSchema.PROBLEM]['properties'][JSONSchema.NAME]['oneOf'] = [
-            problems_enum]
+        self._schema['properties'][JSONSchema.PROBLEM]['properties'][JSONSchema.NAME]['enum'] = list(problems_dict.keys())
 
     def copy_section_from_aqua_schema(self, section_name):
         """
@@ -276,6 +285,9 @@ class JSONSchema(object):
             if 'boolean' in types:
                 return [True, False]
 
+        if 'enum' in prop:
+            return prop['enum']
+
         if 'oneOf' not in prop:
             return None
 
@@ -324,23 +336,38 @@ class JSONSchema(object):
             return
 
         # Updates defaults provider/backend
-        default_provider_name = None
-        default_backend_name = None
-        orig_backend_properties = self._original_schema.get('properties', {}).get(JSONSchema.BACKEND, {}).get('properties')
-        if orig_backend_properties is not None:
-            default_provider_name = orig_backend_properties.get(JSONSchema.PROVIDER, {}).get('default')
-            default_backend_name = orig_backend_properties.get(JSONSchema.NAME, {}).get('default')
+        provider_name = default_provider_name = None
+        backend_name = default_backend_name = None
+        backend = None
+        if self.backend is not None:
+            backend = self.backend
+            provider_name = default_provider_name = get_provider_from_backend(backend)
+            backend_name = default_backend_name = backend.name()
+        else:
+            orig_backend_properties = self._original_schema.get('properties', {}).get(JSONSchema.BACKEND, {}).get('properties')
+            if orig_backend_properties is not None:
+                default_provider_name = orig_backend_properties.get(JSONSchema.PROVIDER, {}).get('default')
+                default_backend_name = orig_backend_properties.get(JSONSchema.NAME, {}).get('default')
 
-        providers = get_local_providers()
-        if default_provider_name is None or default_provider_name not in providers:
-            # use first provider available
-            providers_items = providers.items()
-            provider_tuple = next(iter(providers_items)) if len(providers_items) > 0 else ('', [])
-            default_provider_name = provider_tuple[0]
+            providers = get_local_providers()
+            if default_provider_name is None or default_provider_name not in providers:
+                # use first provider available
+                providers_items = providers.items()
+                provider_tuple = next(iter(providers_items)) if len(providers_items) > 0 else ('', [])
+                default_provider_name = provider_tuple[0]
 
-        if default_backend_name is None or default_backend_name not in providers.get(default_provider_name, []):
-            # use first backend available in provider
-            default_backend_name = providers.get(default_provider_name)[0] if len(providers.get(default_provider_name, [])) > 0 else ''
+            if default_backend_name is None or default_backend_name not in providers.get(default_provider_name, []):
+                # use first backend available in provider
+                default_backend_name = providers.get(default_provider_name)[0] if len(providers.get(default_provider_name, [])) > 0 else ''
+
+            provider_name = input_parser.get_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER, default_provider_name)
+            backend_names = get_backends_from_provider(provider_name)
+            backend_name = input_parser.get_section_property(JSONSchema.BACKEND, JSONSchema.NAME, default_backend_name)
+            if backend_name not in backend_names:
+                # use first backend available in provider
+                backend_name = backend_names[0] if len(backend_names) > 0 else ''
+
+            backend = get_backend_from_provider(provider_name, backend_name)
 
         self._schema['properties'][JSONSchema.BACKEND] = {
             'type': 'object',
@@ -357,14 +384,7 @@ class JSONSchema(object):
             'required': [JSONSchema.PROVIDER, JSONSchema.NAME],
             'additionalProperties': False,
         }
-        provider_name = input_parser.get_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER, default_provider_name)
-        backend_names = get_backends_from_provider(provider_name)
-        backend_name = input_parser.get_section_property(JSONSchema.BACKEND, JSONSchema.NAME, default_backend_name)
-        if backend_name not in backend_names:
-            # use first backend available in provider
-            backend_name = backend_names[0] if len(backend_names) > 0 else ''
 
-        backend = get_backend_from_provider(provider_name, backend_name)
         config = backend.configuration()
 
         # Include shots in schema only if not a statevector backend.
@@ -423,11 +443,7 @@ class JSONSchema(object):
                 self._schema['properties'][JSONSchema.BACKEND]['properties']['coupling_map_from_device'] = {
                     'type': ['string', 'null'],
                     'default': None,
-                    'oneOf': [
-                        {
-                            'enum': coupling_map_devices
-                        }
-                    ],
+                    'enum': coupling_map_devices,
                 }
 
         # noise model that can be setup for Aer simulator so as to model noise of an actual device.
@@ -436,11 +452,7 @@ class JSONSchema(object):
             self._schema['properties'][JSONSchema.BACKEND]['properties']['noise_model'] = {
                 'type': ['string', 'null'],
                 'default': None,
-                'oneOf': [
-                    {
-                        'enum': noise_model_devices
-                    }
-                ],
+                'enum': noise_model_devices,
             }
 
         # If a noise model is supplied then the basis gates is set as per the noise model
@@ -554,7 +566,7 @@ class JSONSchema(object):
         try:
             if pluggable_type is not None and pluggable_name is not None:
                 config = get_pluggable_configuration(pluggable_type, pluggable_name)
-        except:
+        except Exception:
             pass
 
         input_schema = config.get('input_schema', {})
@@ -690,7 +702,7 @@ class JSONSchema(object):
                 v = json.loads(json.dumps(v))
 
             return v
-        except:
+        except Exception:
             return value
 
     @staticmethod
@@ -733,7 +745,7 @@ class JSONSchema(object):
                     return int(value), True
                 else:
                     return float(value), True
-            except:
+            except Exception:
                 value = 0
 
         return value, False

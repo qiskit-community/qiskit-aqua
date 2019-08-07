@@ -46,9 +46,7 @@ class PauliZExpansion(PauliExpansion):
                 'entanglement': {
                     'type': 'string',
                     'default': 'full',
-                    'oneOf': [
-                        {'enum': ['full', 'linear']}
-                    ]
+                    'enum': ['full', 'linear']
                 },
                 'z_order': {
                     'type': 'integer',

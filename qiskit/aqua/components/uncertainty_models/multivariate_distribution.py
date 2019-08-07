@@ -44,6 +44,7 @@ class MultivariateDistribution(UncertaintyModel, ABC):
             high (array or list): highest value per dimension
         """
 
+        self._values = 0
         # derive dimension from qubit assignment
         self._dimension = len(num_qubits)
         self._num_qubits = num_qubits

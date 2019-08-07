@@ -20,6 +20,7 @@ import logging
 from qiskit.circuit import Gate
 from qiskit.circuit import QuantumCircuit
 from qiskit.circuit import QuantumRegister
+from qiskit.circuit import Qubit
 
 from qiskit.aqua import AquaError
 
@@ -80,12 +81,12 @@ def mcmt(self,
 
     Args:
         self (QuantumCircuit): The QuantumCircuit object to apply the mcmt gate on.
-        q_controls (QuantumRegister | list(tuple(QuantumRegister, int))): The list of control qubits
-        q_ancillae (QuantumRegister | list(tuple(QuantumRegister, int))): The list of ancillary qubits
+        q_controls (QuantumRegister | list of Qubit): The list of control qubits
+        q_ancillae (QuantumRegister | list of Qubit): The list of ancillary qubits
         single_control_gate_fun (Gate): The single control gate function (e.g QuantumCircuit.cz or QuantumCircuit.ch)
-        q_targets (QuantumRegister | list(tuple(QuantumRegister, int))): A list of qubits or a QuantumRegister
+        q_targets (QuantumRegister | list of Qubit): A list of qubits or a QuantumRegister
             to which the gate function should be applied.
-        mode (string): The implementation mode to use (at the moment, only the basic mode is supported)
+        mode (str): The implementation mode to use (at the moment, only the basic mode is supported)
 
     """
     # check controls

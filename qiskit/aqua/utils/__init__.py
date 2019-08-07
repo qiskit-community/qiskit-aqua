@@ -13,7 +13,6 @@
 # that they have been altered from the originals.
 
 from .tensor_product import tensorproduct
-from .pauli_graph import PauliGraph
 from .json_utils import convert_dict_to_json, convert_json_to_dict
 from .random_matrix_generator import (random_unitary, random_h2_body,
                                       random_h1_body, random_hermitian,
@@ -31,11 +30,10 @@ from .run_circuits import compile_and_run_circuits, compile_circuits, run_qobj, 
 from .circuit_cache import CircuitCache
 from .backend_utils import has_ibmq, has_aer
 from .measurement_error_mitigation import (get_measured_qubits_from_qobj,
-                                           add_measurement_error_mitigation_to_qobj)
+                                           build_measurement_error_mitigation_qobj)
 
 __all__ = [
     'tensorproduct',
-    'PauliGraph',
     'convert_dict_to_json',
     'convert_json_to_dict',
     'random_unitary',
@@ -64,5 +62,5 @@ __all__ = [
     'has_ibmq',
     'has_aer',
     'get_measured_qubits_from_qobj',
-    'add_measurement_error_mitigation_to_qobj'
+    'build_measurement_error_mitigation_qobj'
 ]

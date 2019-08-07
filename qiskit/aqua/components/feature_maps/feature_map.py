@@ -35,6 +35,8 @@ class FeatureMap(Pluggable):
     @abstractmethod
     def __init__(self):
         super().__init__()
+        self._num_qubits = 0
+        self._feature_dimension = 0
 
     @classmethod
     def init_params(cls, params):

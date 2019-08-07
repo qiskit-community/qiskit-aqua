@@ -28,7 +28,7 @@ import numpy as np
 import numpy.random as rand
 from qiskit.quantum_info import Pauli
 
-from qiskit.aqua import Operator
+from qiskit.aqua.operators import WeightedPauliOperator
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +93,7 @@ def parse_tsplib_format(filename):
 
     """
     name = ''
-    coord = None
+    coord = []
     with open(filename) as infile:
         coord_section = False
         for line in infile:
@@ -131,7 +131,7 @@ def get_tsp_qubitops(ins, penalty=1e5):
         penalty (float) : Penalty coefficient for the constraints
 
     Returns:
-        operator.Operator, float: operator for the Hamiltonian and a
+        WeightedPauliOperator, float: operator for the Hamiltonian and a
         constant shift for the obj function.
 
     """
@@ -204,7 +204,7 @@ def get_tsp_qubitops(ins, penalty=1e5):
                 zp[i * num_nodes + q] = True
                 pauli_list.append([penalty / 2, Pauli(zp, zero)])
     shift += 2 * penalty * num_nodes
-    return Operator(paulis=pauli_list), shift
+    return WeightedPauliOperator(paulis=pauli_list), shift
 
 
 def tsp_value(z, w):

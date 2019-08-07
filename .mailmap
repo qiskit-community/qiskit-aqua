@@ -1,0 +1,45 @@
+# Entries in this file are made for two reasons:
+# 1) to merge multiple git commit authors that correspond to a single author
+# 2) to change the canonical name and/or email address of an author.
+#
+# Format is:
+#     Canonical Name <Canonical@email> commit name <commit@email>
+#     \--------------+---------------/ \----------+-------------/
+#                 replace                       find
+# See also: 'git shortlog --help' and 'git check-mailmap --help'.
+#
+# If you don't like the way your name is cited by qiskit, please feel free to
+# open a pull request against this file to set your preferred naming.
+#
+# Note that each qiskit element uses its own mailmap so it may be necessary to
+# propagate changes in other repos for consistency.
+
+Abdón Rodríguez Davila <a@abdonrd.com> <a@abdonrd.com>
+Ali Javadi-Abhari <ali.javadi@ibm.com> <ajavadia@users.noreply.github.com>
+Ali Javadi-Abhari <ali.javadi@ibm.com> <ajavadia@princeton.edu>
+Albert Frisch <albert.frisch@de.ibm.com>
+Albert Frisch <albert.frisch@de.ibm.com> <alfr@de.ibm.com>
+Alejandro Pozas-iKerstjens <apozas@users.noreply.github.com> <apozas@users.noreply.github.com>
+Anna Phan <9410731+attp@users.noreply.github.com> <annaphan@au.ibm.com>
+Christian Claus <cclauss@bluewin.ch>
+Antonio Mezzacapo <30698465+antoniomezzacapo@users.noreply.github.com> <amezzac@us.ibm.com>
+Donny Greenberg <dongreenberg2@gmail.com>
+Donny Greenberg <dongreenberg2@gmail.com> <donny@ibm.com>
+Ikko Hamamura <ikkoham@users.noreply.github.com>
+Isabel Haide <isabel.haide@ibm.com>
+Jan Müggenburg <jan.mueggenburg@ibm.com>
+Jan Müggenburg <jan.mueggenburg@ibm.com> <jan@oc6058543760.ibm.com>
+Jay M. Gambetta <jay.gambetta@us.ibm.com>
+Juan Cruz-Benito <juan.cruz@ibm.com>
+Julien Gacon <jul@zurich.ibm.com>
+Karel Dumon <dumonkarel@gmail.com>
+Marco Pistoia <pistoia@us.ibm.com> <mpistoia@gmail.com>
+Peng Liu <34400304+liupibm@users.noreply.github.com>
+Shaohan Hu <shaohan.hu@ibm.com>
+Shaohan Hu <shaohan.hu@ibm.com> <Shaohan.Hu@ibm.com>
+Stefan Woerner <41292468+stefan-woerner@users.noreply.github.com> <stefan@swoerner.de>
+Stefan Woerner <41292468+stefan-woerner@users.noreply.github.com> <41292468+stefan-woerner@users.noreply.github.com>
+Stephen Wood <40241007+woodsp-ibm@users.noreply.github.com>
+Stephen Wood <40241007+woodsp-ibm@users.noreply.github.com> <woodsp@us.ibm.com>
+Vivek Krishnan <krishnan.vivek@gmail.com>
+Yael Ben-Haim <yaelbh@il.ibm.com>

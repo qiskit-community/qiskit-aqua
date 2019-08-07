@@ -34,7 +34,8 @@ class SimpleCPLEX:
             else:
                 self._model = Cplex()
         except NameError:
-            raise NameError('CPLEX is not installed. See https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/ilog.odms.studio.help/Optimization_Studio/topics/COS_home.html')
+            raise NameError('CPLEX is not installed. '
+                            'See https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/ilog.odms.studio.help/Optimization_Studio/topics/COS_home.html')
 
         self._init_lin()
         # to avoid a variable with index 0

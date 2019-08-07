@@ -56,9 +56,9 @@ class UnivariatePiecewiseLinearObjective(CircuitFactory):
         # drop breakpoints and corresponding values below min_state_value or above max_state_value
         for i in reversed(range(len(breakpoints))):
             if breakpoints[i] <= (self.min_state_value - 1e-6) or breakpoints[i] >= (self.max_state_value + 1e-6):
-                del(breakpoints[i])
-                del(slopes[i])
-                del(offsets[i])
+                breakpoints = np.delete(breakpoints, i)
+                slopes = np.delete(slopes, i)
+                offsets = np.delete(offsets, i)
 
         # make sure the minimal value is included in the breakpoints
         min_value_included = False
@@ -102,6 +102,10 @@ class UnivariatePiecewiseLinearObjective(CircuitFactory):
             mapped_breakpoint = (breakpoints[i] - lb) / (ub - lb) * (2**num_state_qubits - 1)
             if mapped_breakpoint <= 2**num_state_qubits - 1:
                 self._mapped_breakpoints += [mapped_breakpoint]
+
+                # factor (ub - lb) / (2^n - 1) is for the scaling of x to [l,u]
+                # note that the +l for mapping to [l,u] is already included in
+                # the offsets given as parameters
                 self._mapped_slopes += [slopes[i] * (ub - lb) / (2**num_state_qubits - 1)]
                 self._mapped_offsets += [offsets[i]]
         self._mapped_breakpoints = np.array(self._mapped_breakpoints)
@@ -159,4 +163,3 @@ class UnivariatePiecewiseLinearObjective(CircuitFactory):
 
         # apply piecewise linear rotation
         self._pwl_ry.build(qc, q_state + [q_objective], q_ancillas)
-

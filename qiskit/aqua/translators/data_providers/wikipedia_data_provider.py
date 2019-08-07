@@ -41,26 +41,20 @@ class WikipediaDataProvider(BaseDataProvider):
                 "stockmarket": {
                     "type":
                     "string",
-                    "default":
-                    StockMarket.NASDAQ.value,
-                    "oneOf": [{
-                        "enum": [
-                            StockMarket.NASDAQ.value,
-                            StockMarket.NYSE.value,
-                        ]
-                    }]
+                    "default": StockMarket.NASDAQ.value,
+                    "enum": [
+                        StockMarket.NASDAQ.value,
+                        StockMarket.NYSE.value,
+                    ]
                 },
                 "datatype": {
                     "type":
                     "string",
-                    "default":
-                    DataType.DAILYADJUSTED.value,
-                    "oneOf": [{
-                        "enum": [
-                            DataType.DAILYADJUSTED.value,
-                            DataType.DAILY.value,
-                        ]
-                    }]
+                    "default": DataType.DAILYADJUSTED.value,
+                    "enum": [
+                        DataType.DAILYADJUSTED.value,
+                        DataType.DAILY.value,
+                    ]
                 },
             },
         }
@@ -79,7 +73,7 @@ class WikipediaDataProvider(BaseDataProvider):
             tickers (str or list): tickers
             stockmarket (StockMarket): NASDAQ, NYSE
         """
-        #if not isinstance(atoms, list) and not isinstance(atoms, str):
+        # if not isinstance(atoms, list) and not isinstance(atoms, str):
         #    raise QiskitFinanceError("Invalid atom input for Wikipedia Driver '{}'".format(atoms))
         super().__init__()
 
@@ -136,7 +130,7 @@ class WikipediaDataProvider(BaseDataProvider):
 
         params = section
         kwargs = {}
-        #for k, v in params.items():
+        # for k, v in params.items():
         #    if k == ExchangeDataDriver. ...: v = UnitsType(v)
         #    kwargs[k] = v
         logger.debug('init_from_input: {}'.format(kwargs))
@@ -145,7 +139,8 @@ class WikipediaDataProvider(BaseDataProvider):
     def run(self):
         """ Loads data, thus enabling get_similarity_matrix and get_covariance_matrix methods in the base class. """
         self.check_provider_valid()
-        if self._token: quandl.ApiConfig.api_key = self._token
+        if self._token:
+            quandl.ApiConfig.api_key = self._token
         quandl.ApiConfig.api_version = '2015-04-09'
         self._data = []
         for (cnt, s) in enumerate(self._tickers):

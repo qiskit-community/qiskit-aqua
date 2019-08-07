@@ -35,12 +35,13 @@ requirements = [
     "scikit-learn>=0.20.0",
     "cvxopt",
     "dlx",
-    "pyeda; sys_platform != 'win32'",
     "docplex",
     "fastdtw",
     "quandl",
     "setuptools>=40.1.0",
-    "torch; sys_platform != 'win32'"
+    "h5py",
+    "networkx>=2.2",
+    "pyscf; sys_platform != 'win32'",
 ]
 
 if not hasattr(setuptools, 'find_namespace_packages') or not inspect.ismethod(setuptools.find_namespace_packages):
@@ -79,4 +80,7 @@ setuptools.setup(
     install_requires=requirements,
     include_package_data=True,
     python_requires=">=3.5",
+    extras_require={
+        'torch': ["torch; sys_platform != 'win32'"],
+    }
 )

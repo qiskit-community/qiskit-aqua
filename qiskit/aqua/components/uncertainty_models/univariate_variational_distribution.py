@@ -70,7 +70,6 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
         probabilities = list(np.zeros(2**num_qubits))
         super().__init__(num_qubits, probabilities, low, high)
 
-
     @classmethod
     def init_params(cls, params):
         """
