@@ -3,8 +3,7 @@ from parameterized import parameterized
 import numpy as np
 
 from qiskit import BasicAer
-from qiskit.aqua.algorithms import AmplitudeEstimationWithoutQPE
-from qiskit.aqua.algorithms import AmplitudeEstimation, MaximumLikelihood
+from qiskit.aqua.algorithms import AmplitudeEstimation
 from qiskit.aqua.algorithms.single_sample.amplitude_estimation.q_factory import QFactory
 from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
 
@@ -81,9 +80,6 @@ class TestAE(QiskitAquaTestCase):
         ae = AmplitudeEstimation(m, a_factory, i_objective=0, q_factory=q_factory)
         result = ae.run(quantum_instance=BasicAer.get_backend('statevector_simulator'))
 
-        ml = MaximumLikelihood(ae)
-        result['mle'] = ml.mle()
-
         self.assertAlmostEqual(result['estimation'], expect, places=5,
                                msg="AE estimate failed")
         self.assertAlmostEqual(result['mle'], p, places=5,
@@ -105,9 +101,6 @@ class TestAE(QiskitAquaTestCase):
 
         ae = AmplitudeEstimation(m, a_factory, i_objective=0, q_factory=q_factory)
         result = ae.run(quantum_instance=BasicAer.get_backend('statevector_simulator'))
-
-        ml = MaximumLikelihood(ae)
-        result['mle'] = ml.mle()
 
         self.assertAlmostEqual(result['estimation'], p, places=5,
                                msg="AE estimate failed")
