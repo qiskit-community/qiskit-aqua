@@ -16,9 +16,7 @@ from .grover.grover import Grover
 from .iterative_qpe.iqpe import IQPE
 from .qpe.qpe import QPE
 from .amplitude_estimation.ae import AmplitudeEstimation
-from .amplitude_estimation.ml import MaximumLikelihood
 from .amplitude_estimation.ae_wo_qpe import AmplitudeEstimationWithoutQPE
-from .iterative_amplitude_estimation.iae import IterativeAmplitudeEstimation
 from .simon.simon import Simon
 from .deutsch_jozsa.dj import DeutschJozsa
 from .bernstein_vazirani.bv import BernsteinVazirani
@@ -31,9 +29,7 @@ __all__ = [
     'IQPE',
     'QPE',
     'AmplitudeEstimation',
-    'MaximumLikelihood',
     'AmplitudeEstimationWithoutQPE',
-    'IterativeAmplitudeEstimation',
     'Simon',
     'DeutschJozsa',
     'BernsteinVazirani',
