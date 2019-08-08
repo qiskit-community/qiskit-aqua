@@ -12,17 +12,17 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 from qiskit.aqua.utils import CircuitFactory
-from qiskit.aqua.circuits.gates import mcry
+from qiskit.aqua.circuits.gates import cry, mcrx, mcry, mcrz
 from sympy.ntheory.multinomial import multinomial_coefficients
 from itertools import product
 import numpy as np
 
 
-class PolynomialState(CircuitFactory):
+class PolynomialRotation(CircuitFactory):
     """
-    Polynomial state preparation.
+    Polynomial rotation.
     For a polynomial p(x), a basis state |i> and a target qubit |0> this operator acts as:
-        |i>|0> --> |i>( cos(scale * p(i))|0> + sin(scale * p(i))|1> )
+        |i>|0> --> |i>( cos(p(i))|0> + sin(p(i))|1> )
     
     Let n be the number of qubits representing the state, d the degree of p(x) and q_i the qubits, 
     where q_0 is the least significant qubit. Then for
@@ -32,29 +32,25 @@ class PolynomialState(CircuitFactory):
     The expression above is used to obtain the list of controls and rotation angles for the circuit.
     """
 
-    def __init__(self, px, num_state_qubits, eps=1): 
+    def __init__(self, px, num_state_qubits, basis='Y'):
         """
         Constructor.
         Prepare an approximation to a state with amplitudes specified by a polynomial.
         Args:
             px (list): coefficients of the polynomial, px[i] is the coefficient of x^i
-            num_target_qubits (int): number of qubits representing the state
-            eps (float): accuracy of the approximation. The default is to rescale p(x) by 1.
+            num_state_qubits (int): number of qubits representing the state
+            basis (str): type of Pauli rotation ('X', 'Y', 'Z')
         """
         super().__init__(num_state_qubits+1)
 
-        if eps <= 0:
-            raise ValueError('The accuracy should be positive.')
-
         # Store parameters
         self.num_state_qubits = num_state_qubits
-        self.scale = np.sqrt(eps/2)
-        self.px = self.scale*px
+        self.px = px
         self.degree = len(px) - 1
+        self.basis = basis
 
-    @property
-    def get_scale(self):
-        return self.scale
+        if self.basis not in ['X', 'Y', 'Z']:
+            raise ValueError('Basis must be X, Y or Z')
 
     def required_ancillas(self):
         return max(1, self.degree - 1) 
@@ -122,7 +118,13 @@ class PolynomialState(CircuitFactory):
         cdict = self._get_controls() 
         cdict = self._get_thetas(cdict) 
 
-        qc.ry(2*self.px[0], q_target)
+        if self.basis=='X':
+            qc.rx(2*self.px[0], q_target)
+        elif self.basis=='Y':
+            qc.ry(2*self.px[0], q_target)
+        elif self.basis=='Z':
+            qc.rz(2*self.px[0], q_target)
+            
         for c in cdict:
             q_controls = []
             if reverse == 1:
@@ -135,9 +137,17 @@ class PolynomialState(CircuitFactory):
                         q_controls.append(q[i])
             # Apply controlled y-rotation
             if len(q_controls) > 1:
-                qc.mcry(2*cdict[c], q_controls, q_target, q_ancillas)
+                if self.basis=='X':
+                    qc.mcrx(2*cdict[c], q_controls, q_target, q_ancillas)
+                elif self.basis=='Y':
+                    qc.mcry(2*cdict[c], q_controls, q_target, q_ancillas)
+                elif self.basis=='Z':
+                    qc.mcrz(2*cdict[c], q_controls, q_target, q_ancillas)
+                
             elif len(q_controls) == 1:
-                qc.cu3(2*cdict[c], 0, 0, q_controls[0], q_target)
-                    
-                            
-                    
+                if self.basis=='X':
+                    qc.u3(2*cdict[c], -np.pi/2, np.pi/2, q_controls[0], q_target)
+                elif self.basis=='Y':
+                    qc.cry(2*cdict[c], q_controls[0], q_target)
+                elif self.basis=='Z':
+                    qc.crz(2*cdict[c], q_controls[0], q_target)
