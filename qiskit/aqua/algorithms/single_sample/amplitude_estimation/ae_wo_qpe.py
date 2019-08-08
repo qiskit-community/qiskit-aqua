@@ -142,7 +142,6 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
         return self._circuits
 
     def _evaluate_statevectors(self, state_vectors):
-
         probabilities = []
         for sv in state_vectors:
             p_k = 0
@@ -156,7 +155,17 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
         return probabilities
 
     def _get_hits(self, counts):
+        """
+        Get the good and total counts
 
+        Args:
+            counts (list or array): a list of counts dictionaries, each list
+                entry holds the data for one experiment with some powers of Q
+
+        Returns:
+            a pair of two lists,
+            ([1-counts per experiment], [shots per experiment])
+        """
         one_hits = []  # h_k: how often 1 has been measured, for a power Q^(m_k)
         all_hits = []  # N_k: how often has been measured at a power Q^(m_k)
         for c in counts:
@@ -165,9 +174,170 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
 
         return one_hits, all_hits
 
+    def _safe_min(self, array, default=0):
+        """
+        Return default if array is empty, otherwise numpy.max(array)
+        """
+        if len(array) == 0:
+            return default
+        return np.min(array)
+
+    def _safe_max(self, array, default=(np.pi / 2)):
+        """
+        Return default if array is empty, otherwise numpy.max(array)
+        """
+        if len(array) == 0:
+            return default
+        return np.max(array)
+
+    def _compute_fisher_information(self, a=None, num_sum_terms=None, observed=False):
+        """
+        Compute the Fisher information.
+
+        Args:
+            observed (bool): If True, compute the observed Fisher information,
+                otherwise the theoretical one
+
+        Returns:
+            The computed Fisher information, or np.inf if statevector
+            simulation was used.
+        """
+        # the fisher information is infinite, since:
+        # 1) statevector simulation should return the exact value
+        # 2) statevector probabilities correspond to "infinite" shots
+        if self._quantum_instance.is_statevector:
+            return np.inf
+
+        # Set the value a. Use `est_a` if provided.
+        if a is None:
+            try:
+                a = self._ret['estimation']
+            except KeyError:
+                raise KeyError("Call run() first!")
+
+        # Corresponding angle to the value a.
+        theta_a = np.arcsin(np.sqrt(a))
+
+        # Get the number of hits (Nk) and one-hits (hk)
+        one_hits, all_hits = self._get_hits(self._ret['counts'])
+
+        # Include all sum terms or just up to a certain term?
+        evaluation_schedule = self._evaluation_schedule
+        if num_sum_terms is not None:
+            evaluation_schedule = evaluation_schedule[:num_sum_terms]
+            # not necessary since zip goes as far as shortest list:
+            # all_hits = all_hits[:num_sum_terms]
+            # one_hits = one_hits[:num_sum_terms]
+
+        # Compute the Fisher information
+        fisher_information = None
+        if observed:
+            d_logL = 0
+            for Nk, hk, mk in zip(all_hits, one_hits, evaluation_schedule):
+                tan = np.tan((2 * mk + 1) * theta_a)
+                d_logL += (2 * mk + 1) * (hk / tan + (Nk - hk) * tan)
+
+            d_logL /= np.sqrt(a * (1 - a))
+            fisher_information = d_logL**2 / len(all_hits)
+
+        else:
+            fisher_information = 1 / (a * (1 - a)) * sum(Nk * (2 * mk + 1)**2 for Nk, mk in zip(all_hits, evaluation_schedule))
+
+        return fisher_information
+
+    def _fisher_ci(self, alpha=0.05, observed=False):
+        """
+        Compute the alpha confidence interval based on the Fisher information
+
+        Args:
+            alpha (float): The level of the confidence interval (< 0.5)
+            observed (bool): If True, use observed Fisher information
+
+        Returns:
+            The alpha confidence interval based on the Fisher information
+        """
+        # Get the (observed) Fisher information
+        fisher_information = None
+        try:
+            fisher_information = self._ret["fisher_information"]
+        except KeyError:
+            raise AssertionError("Call run() first!")
+
+        if observed:
+            fisher_information = self._compute_fisher_information(observed=True)
+
+        normal_quantile = norm.ppf(1 - alpha / 2)
+        ci = self._ret['estimation'] + normal_quantile / np.sqrt(fisher_information) * np.array([-1, 1])
+        mapped_ci = [self.a_factory.value_to_estimation(bound) for bound in ci]
+        return mapped_ci
+
+    def _likelihood_ratio_ci(self, alpha=0.05, nevals=10000):
+        """
+        Compute the likelihood-ratio confidence interval.
+
+        Args:
+            alpha (float): the level of the confidence interval (< 0.5)
+            nevals (int): the number of evaluations to find the
+                intersection with the loglikelihood function
+
+        Returns:
+            The alpha-likelihood-ratio confidence interval.
+        """
+
+        def loglikelihood(theta, one_counts, all_counts):
+            logL = 0
+            for i, k in enumerate(self._evaluation_schedule):
+                logL += np.log(np.sin((2 * k + 1) * theta) ** 2) * one_counts[i]
+                logL += np.log(np.cos((2 * k + 1) * theta) ** 2) * (all_counts[i] - one_counts[i])
+            return logL
+
+        one_counts, all_counts = self._get_hits(self._ret['counts'])
+
+        thetas = np.linspace(np.pi / nevals / 2, np.pi / 2, nevals)
+        values = np.zeros(len(thetas))
+        for i, t in enumerate(thetas):
+            values[i] = loglikelihood(t, one_counts, all_counts)
+
+        loglik_mle = loglikelihood(self._ret['theta'], one_counts, all_counts)
+        chi2_quantile = chi2.ppf(1 - alpha, df=1)
+        thres = loglik_mle - chi2_quantile / 2
+
+        # the (outer) LR confidence interval
+        above_thres = thetas[values >= thres]
+
+        # it might happen that the `above_thres` array is empty,
+        # to still provide a valid result use safe_min/max which
+        # then yield [0, pi/2]
+        ci = [self._safe_min(above_thres, default=0),
+              self._safe_max(above_thres, default=(np.pi / 2))]
+        mapped_ci = [self.a_factory.value_to_estimation(np.sin(bound)**2) for bound in ci]
+
+        return mapped_ci
+
+    def confidence_interval(self, alpha, kind='fisher'):
+        """
+        Proxy calling the correct method to compute the confidence interval,
+        according to the value of `kind`
+        """
+
+        # check if AE did run already
+        if 'estimation' not in self._ret.keys():
+            raise AquaError('Call run() first!')
+
+        if kind in ['likelihood_ratio', 'lr']:
+            return self._likelihood_ratio_ci(alpha)
+
+        if kind in ['fisher', 'fi']:
+            return self._fisher_ci(alpha, observed=False)
+
+        if kind in ['observed_fisher', 'observed_information', 'oi']:
+            return self._fisher_ci(alpha, observed=True)
+
+        raise NotImplementedError('CI `{}` is not implemented.'.format(kind))
+
     def _run_mle(self):
         """
-        Proxy to call the suitable MLE for statevector or qasm simulator.
+        Proxy to call the suitable MLE for statevector or qasm simulator
         """
         if self._quantum_instance.is_statevector:
             return self._run_mle_statevector()
@@ -176,14 +346,17 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
 
     def _run_mle_statevector(self):
         """
-        Find the MLE if statevector simulation is used.
-        Instead of shrinking the interval using the Fisher information,
-        which we cannot do here, use the theta estimate of the previous
-        iteration as the initial guess of the next one.
-        With several iterations this should converge reliably to the maximum.
+        Find the MLE if statevector simulation is used
 
         Returns:
             MLE for a statevector simulation
+
+        Note:
+            Shrinking the interval using the Fisher information, as done
+            for the qasm simulator, is not possible here. Instead, use the
+            theta estimate of the previous iteration as the initial guess of
+            the next one. With several iterations this should converge reliably
+            to the maximum.
         """
         probs = self._evaluate_statevectors(self._ret['statevectors'])
 
@@ -253,165 +426,7 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
             search_range[0] = np.maximum(0 + eps, est_theta - confidence_level * est_error_theta)
             search_range[1] = np.minimum(np.pi / 2 - eps, est_theta + confidence_level * est_error_theta)
 
-        return est_theta
-
-    def _save_min(self, array, default=0):
-        if len(array) == 0:
-            return default
-        return np.min(array)
-
-    def _save_max(self, array, default=(np.pi / 2)):
-        if len(array) == 0:
-            return default
-        return np.max(array)
-
-    def _likelihood_ratio_ci(self, alpha=0.05, nevals=10000):
-        """
-        Compute the likelihood-ratio confidence interval.
-
-        Args:
-            alpha (float): the level of the confidence interval (< 0.5)
-            nevals (int): the number of evaluations to find the
-                intersection with the loglikelihood function
-
-        Returns:
-            The alpha-likelihood-ratio confidence interval.
-        """
-
-        def loglikelihood(theta, one_counts, all_counts):
-            logL = 0
-            for i, k in enumerate(self._evaluation_schedule):
-                logL += np.log(np.sin((2 * k + 1) * theta) ** 2) * one_counts[i]
-                logL += np.log(np.cos((2 * k + 1) * theta) ** 2) * (all_counts[i] - one_counts[i])
-            return logL
-
-        one_counts, all_counts = self._get_hits(self._ret['counts'])
-
-        thetas = np.linspace(np.pi / nevals / 2, np.pi / 2, nevals)
-        values = np.zeros(len(thetas))
-        for i, t in enumerate(thetas):
-            values[i] = loglikelihood(t, one_counts, all_counts)
-
-        loglik_mle = loglikelihood(self._ret['theta'], one_counts, all_counts)
-        chi2_quantile = chi2.ppf(1 - alpha, df=1)
-        thres = loglik_mle - chi2_quantile / 2
-
-        # the outer LR confidence interval
-        above_thres = thetas[values >= thres]
-
-        # it might happen that the `above_thres` array is empty,
-        # to still provide a valid result use save_min/max which
-        # then yield [0, pi/2]
-        ci_outer = [self._save_min(above_thres, default=0),
-                    self._save_max(above_thres, default=(np.pi / 2))]
-        mapped_ci_outer = [self.a_factory.value_to_estimation(np.sin(bound)**2) for bound in ci_outer]
-
-        # the inner LR confidence interval:
-        # [largest value below mle and above thres, smallest value above mle and above thres]
-        larger_than_mle = above_thres[above_thres > self._ret['theta']]
-        smaller_than_mle = above_thres[above_thres < self._ret['theta']]
-        ci_inner = [self._save_max(smaller_than_mle, default=0),
-                    self._save_min(larger_than_mle, default=(np.pi / 2))]
-        mapped_ci_inner = [self.a_factory.value_to_estimation(np.sin(bound)**2) for bound in ci_inner]
-
-        return mapped_ci_outer, mapped_ci_inner
-
-    def _fisher_ci(self, alpha=0.05, observed=False):
-        """
-        Compute the alpha confidence interval based on the Fisher information
-
-        Args:
-            alpha (float): The level of the confidence interval (< 0.5)
-            observed (bool): If True, use observed Fisher information
-
-        Returns:
-            The alpha confidence interval based on the Fisher information
-        """
-        # Get the (observed) Fisher information
-        fisher_information = None
-        try:
-            fisher_information = self._ret["fisher_information"]
-        except KeyError:
-            raise AssertionError("Call run() first!")
-
-        if observed:
-            fisher_information = self._compute_fisher_information(observed=True)
-
-        normal_quantile = norm.ppf(1 - alpha / 2)
-        ci = self._ret['estimation'] + normal_quantile / np.sqrt(fisher_information) * np.array([-1, 1])
-        mapped_ci = [self.a_factory.value_to_estimation(bound) for bound in ci]
-        return mapped_ci
-
-    def _compute_fisher_information(self, a=None, num_sum_terms=None, observed=False):
-        """
-        Compute the Fisher information.
-
-        Args:
-            observed (bool): If True, compute the observed Fisher information,
-                otherwise the theoretical one
-
-        Returns:
-            The computed Fisher information, or np.inf if statevector
-            simulation was used.
-        """
-        # the fisher information is infinite, since:
-        # 1) statevector simulation should return the exact value
-        # 2) statevector probabilities correspond to "infinite" shots
-        if self._quantum_instance.is_statevector:
-            return np.inf
-
-        # Set the value a. Use `est_a` if provided.
-        if a is None:
-            try:
-                a = self._ret['estimation']
-            except KeyError:
-                raise KeyError("Call run() first!")
-
-        # Corresponding angle to the value a.
-        theta_a = np.arcsin(np.sqrt(a))
-
-        # Get the number of hits (Nk) and one-hits (hk)
-        one_hits, all_hits = self._get_hits(self._ret['counts'])
-
-        # Include all sum terms or just up to a certain term?
-        evaluation_schedule = self._evaluation_schedule
-        if num_sum_terms is not None:
-            evaluation_schedule = evaluation_schedule[:num_sum_terms]
-            # not necessary since zip goes as far as shortest list:
-            # all_hits = all_hits[:num_sum_terms]
-            # one_hits = one_hits[:num_sum_terms]
-
-        # Compute the Fisher information
-        fisher_information = None
-        if observed:
-            d_logL = 0
-            for Nk, hk, mk in zip(all_hits, one_hits, evaluation_schedule):
-                tan = np.tan((2 * mk + 1) * theta_a)
-                d_logL += (2 * mk + 1) * (hk / tan + (Nk - hk) * tan)
-
-            d_logL /= np.sqrt(a * (1 - a))
-            fisher_information = d_logL**2 / len(all_hits)
-
-        else:
-            fisher_information = 1 / (a * (1 - a)) * sum(Nk * (2 * mk + 1)**2 for Nk, mk in zip(all_hits, evaluation_schedule))
-
-        return fisher_information
-
-    def confidence_interval(self, alpha, kind='fisher'):
-        # check if AE did run already
-        if 'mle' not in self._ret.keys():
-            raise AquaError('Call run() first!')
-
-        if kind in ['likelihood_ratio', 'lr']:
-            return self._likelihood_ratio_ci(alpha)
-
-        if kind in ['fisher', 'fi']:
-            return self._fisher_ci(alpha, observed=False)
-
-        if kind in ['observed_fisher', 'observed_information', 'oi']:
-            return self._fisher_ci(alpha, observed=True)
-
-        raise NotImplementedError('CI `{}` is not implemented.'.format(kind))
+        return est_theta[0]  # return the value, not a 1d numpy.array
 
     def _run(self):
         self.check_factories()
@@ -440,7 +455,7 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
         self._ret['mapped_value'] = self.a_factory.value_to_estimation(self._ret['estimation'])
         self._ret['fisher_information'] = self._compute_fisher_information()
 
-        confidence_interval = self.compute_fisher_ci(alpha=0.05)
+        confidence_interval = self._fisher_ci(alpha=0.05)
         self._ret['95%_confidence_interval'] = confidence_interval
 
         return self._ret
