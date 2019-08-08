@@ -50,7 +50,8 @@ class TestConfigurationIntegrity(QiskitAquaTestCase):
                 cmd, proc.returncode, stderr.strip().decode('ascii')))
         return stdout
 
-    def test_load_aqua(self):
+    # TODO: disable this test for now, run locally because devs may have a hard time finding the cause
+    def disable_test_load_aqua(self):
         try:
             out = TestConfigurationIntegrity._minimal_ext_cmd(['python', os.path.join(ROOT_DIR, 'load_aqua.py')])
             out = out.strip().decode('ascii')
