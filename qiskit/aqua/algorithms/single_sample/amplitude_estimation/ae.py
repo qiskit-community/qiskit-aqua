@@ -131,7 +131,7 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
         self.check_factories()  # ensure that A/Q factories are set
 
         num_ancillas = self.q_factory.required_ancillas_controlled()
-        num_qubits = self.a_factory.num_target_qubits + self._m + self._num_ancillas
+        num_qubits = self.a_factory.num_target_qubits + self._m + num_ancillas
 
         return num_qubits
 
