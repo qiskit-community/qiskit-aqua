@@ -87,9 +87,6 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
         self._m = num_eval_qubits
         self._M = 2 ** num_eval_qubits
 
-        # determine number of ancillas
-        self._num_ancillas = self.q_factory.required_ancillas_controlled()
-        self._num_qubits = self.a_factory.num_target_qubits + self._m + self._num_ancillas
 
         if iqft is None:
             iqft = Standard(self._m)
@@ -128,6 +125,15 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
             PluggableType.IQFT, iqft_params['name']).init_params(params)
 
         return cls(num_eval_qubits, uncertainty_problem, q_factory=None, iqft=iqft)
+
+    @property
+    def _num_qubits(self):
+        self.check_factories()  # ensure that A/Q factories are set
+
+        num_ancillas = self.q_factory.required_ancillas_controlled()
+        num_qubits = self.a_factory.num_target_qubits + self._m + self._num_ancillas
+
+        return num_qubits
 
     def construct_circuit(self, measurement=False):
         """
