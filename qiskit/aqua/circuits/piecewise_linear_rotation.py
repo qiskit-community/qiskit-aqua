@@ -32,7 +32,7 @@ class PiecewiseLinearRotation(CircuitFactory):
     where we implicitly assume x_{J+1} = 2^n.
     """
 
-    def __init__(self, breakpoints, slopes, offsets, num_state_qubits, basis = 'Y', i_state=None, i_target=None):
+    def __init__(self, breakpoints, slopes, offsets, num_state_qubits, basis='Y', i_state=None, i_target=None):
         """
         Constructor.
 
@@ -43,6 +43,7 @@ class PiecewiseLinearRotation(CircuitFactory):
             slopes (array or list): slopes for different segments of piecewise-linear function
             offsets (array or list): offsets for different segments of piecewise-linear function
             num_state_qubits (int): number of qubits representing the state
+            basis (str): type of Pauli rotation ('X', 'Y', 'Z')
             i_state (array or list): indices of qubits representing the state, set to range(num_state_qubits) if None
             i_target (int): index of target qubit, set to num_state_qubits if None
         """

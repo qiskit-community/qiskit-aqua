@@ -25,7 +25,7 @@ class LinearRotation(CircuitFactory):
 
     """
 
-    def __init__(self, slope, offset, num_state_qubits, basis = 'Y', i_state=None, i_target=None):
+    def __init__(self, slope, offset, num_state_qubits, basis='Y', i_state=None, i_target=None):
         """
         Constructor.
 
@@ -34,6 +34,7 @@ class LinearRotation(CircuitFactory):
             slope (float): slope of the controlled rotation
             offset (float): offset of the controlled rotation
             num_state_qubits (int): number of qubits representing the state
+            basis (str): type of Pauli rotation ('X', 'Y', 'Z')
             i_state (array or list): indices of the state qubits (least significant to most significant)
             i_target (int): index of target qubit
         """
