@@ -82,7 +82,7 @@ class HartreeFock(InitialState):
         self.validate(locals())
         super().__init__()
         self._sq_list = sq_list
-        self._qubit_tapering = False if self._sq_list is None else True
+        self._qubit_tapering = False if self._sq_list is None or self._sq_list == [] else True
         self._qubit_mapping = qubit_mapping.lower()
         self._two_qubit_reduction = two_qubit_reduction
         if self._qubit_mapping != 'parity':
