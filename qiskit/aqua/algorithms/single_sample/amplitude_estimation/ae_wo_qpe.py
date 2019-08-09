@@ -78,10 +78,6 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
         self._log_max_evals = log_max_evals
         self._evaluation_schedule = [2**j for j in range(log_max_evals)]
 
-        # determine number of ancillas
-        self._num_ancillas = self.q_factory.required_ancillas()
-        self._num_qubits = self.a_factory.num_target_qubits + self._num_ancillas
-
         self._circuits = []
         self._ret = {}
 
@@ -108,6 +104,15 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
             uncertainty_problem_params['name']).init_params(params)
 
         return cls(log_max_evals, uncertainty_problem, q_factory=None)
+
+    @property
+    def _num_qubits(self):
+        self.check_factories()  # ensure that A/Q factories are set
+
+        num_ancillas = self.q_factory.required_ancillas_controlled()
+        num_qubits = self.a_factory.num_target_qubits + num_ancillas
+
+        return num_qubits
 
     def construct_circuits(self, measurement=False):
         """
