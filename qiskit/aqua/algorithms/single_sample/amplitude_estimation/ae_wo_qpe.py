@@ -71,6 +71,7 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
             a_factory (CircuitFactory): the CircuitFactory subclass object representing the problem unitary
             i_objective (int): index of qubit representing the objective in the uncertainty problem
             q_factory (CircuitFactory): the CircuitFactory subclass object representing an amplitude estimation sample (based on a_factory)
+            likelihood_evals (int): The number of gridpoints for the maximum search of the likelihood function
         """
         self.validate(locals())
         super().__init__(a_factory, q_factory, i_objective)
@@ -177,7 +178,7 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
 
         return probabilities
 
-    def _get_hits(self, discretization_factor=100):
+    def _get_hits(self):
         """
         Get the good and total counts
 
@@ -194,8 +195,8 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
         try:
             if self.quantum_instance.is_statevector:
                 probabilities = self._evaluate_statevectors(self._ret['statevectors'])
-                one_hits = np.round([discretization_factor * pr for pr in probabilities])
-                all_hits = discretization_factor * np.ones_like(one_hits)
+                one_hits = probabilities
+                all_hits = np.ones_like(one_hits)
 
             else:
                 for c in self._ret['counts']:
