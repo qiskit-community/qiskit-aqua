@@ -87,7 +87,6 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
         self._m = num_eval_qubits
         self._M = 2 ** num_eval_qubits
 
-
         if iqft is None:
             iqft = Standard(self._m)
 
