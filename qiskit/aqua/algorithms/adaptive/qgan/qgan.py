@@ -395,22 +395,22 @@ class QGAN(QuantumAlgorithm):
                 ret_g = self._generator.train(self._quantum_instance, shots=self._batch_size)
                 g_loss_min = ret_g['loss']
 
-            self._d_loss.append(d_loss_min)
-            self._g_loss.append(g_loss_min)
+            self._d_loss.append(np.around(float(d_loss_min), 4))
+            self._g_loss.append(np.around(g_loss_min, 4))
 
             rel_entr = self.get_rel_entr()
-            self._rel_entr.append(rel_entr)
+            self._rel_entr.append(np.around(rel_entr, 4))
             self._ret['params_d'] = ret_d['params']
             self._ret['params_g'] = ret_g['params']
-            self._ret['loss_d'] = np.around(d_loss_min, 4)
+            self._ret['loss_d'] = np.around(float(d_loss_min), 4)
             self._ret['loss_g'] = np.around(g_loss_min, 4)
             self._ret['rel_entr'] = np.around(rel_entr, 4)
 
             if self._snapshot_dir is not None:
-                self._store_params(e, np.around(d_loss_min.detach().numpy(), 4),
+                self._store_params(e, np.around(d_loss_min, 4),
                                    np.around(g_loss_min, 4), np.around(rel_entr, 4))
             logger.debug('Epoch {}/{}...'.format(e + 1, self._num_epochs))
-            logger.debug('Loss Discriminator: {}'.format(np.around(d_loss_min, 4)))
+            logger.debug('Loss Discriminator: {}'.format(np.around(float(d_loss_min), 4)))
             logger.debug('Loss Generator: {}'.format(np.around(g_loss_min, 4)))
             logger.debug('Relative Entropy: {}'.format(np.around(rel_entr, 4)))
 
