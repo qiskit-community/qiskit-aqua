@@ -17,7 +17,6 @@ import logging
 
 from qiskit.circuit import QuantumRegister, QuantumCircuit, Qubit
 from qiskit import execute as q_execute
-from qiskit import BasicAer
 
 from qiskit.aqua import AquaError, aqua_globals
 from qiskit.aqua.components.initial_states import InitialState
@@ -102,6 +101,8 @@ class Custom(InitialState):
                 self._state = None
 
     def construct_circuit(self, mode='circuit', register=None):
+        from qiskit import BasicAer
+
         if mode == 'vector':
             if self._state_vector is None:
                 if self._circuit is not None:

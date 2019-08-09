@@ -13,7 +13,7 @@
 # that they have been altered from the originals.
 
 import numpy as np
-from qiskit import compiler, BasicAer
+from qiskit import compiler
 from qiskit.circuit import QuantumCircuit
 from qiskit.transpiler.passes import Unroller
 from qiskit.transpiler import PassManager
@@ -76,6 +76,7 @@ def get_controlled_circuit(circuit, ctl_qubit, tgt_circuit=None, use_basis_gates
     Return:
         a QuantumCircuit object with the base circuit being controlled by ctl_qubit
     """
+    from qiskit import BasicAer
     if tgt_circuit is not None:
         qc = tgt_circuit
     else:
