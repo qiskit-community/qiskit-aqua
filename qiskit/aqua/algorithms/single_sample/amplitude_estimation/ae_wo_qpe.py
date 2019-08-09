@@ -124,20 +124,32 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
         Returns:
             a list with the QuantumCircuit objects for the algorithm
         """
-
+        print("A:", self.a_factory)
+        print("Q:", self.q_factory)
         # construct first part of circuit
-        q = QuantumRegister(self.a_factory.num_target_qubits)
+        q = QuantumRegister(self.a_factory.num_target_qubits, 'q')
+
+        qc_a = QuantumCircuit(q, name='qc_a')
+
+        # get number of ancillas
+        num_ancillas = np.maximum(self.a_factory.required_ancillas(),
+                                  self.q_factory.required_ancillas())
+
+        if num_ancillas > 0:
+            q_aux = QuantumRegister(num_ancillas, 'aux')
+            qc_a.add_register(q_aux)
+
+        # add classical register if needed
         if measurement:
             c = ClassicalRegister(1)
-            qc_a = QuantumCircuit(q, c, name='qc_a')
-        else:
-            qc_a = QuantumCircuit(q, name='qc_a')
-        self.a_factory.build(qc_a, q)
+            qc_a.add_register(c)
+
+        self.a_factory.build(qc_a, q, q_aux)
 
         self._circuits = []
         for k in self._evaluation_schedule:
             qc_k = qc_a.copy(name='qc_a_q_%s' % k)
-            self.q_factory.build_power(qc_k, q, k)
+            self.q_factory.build_power(qc_k, q, k, q_aux)
 
             if measurement:
                 qc_k.measure(q[self.i_objective], c[0])
