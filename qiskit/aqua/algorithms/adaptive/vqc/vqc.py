@@ -19,11 +19,9 @@ import numpy as np
 from sklearn.utils import shuffle
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class, AquaError
-from qiskit.aqua.components.feature_maps import FeatureMap
 from qiskit.aqua.utils import get_feature_dimension
 from qiskit.aqua.utils import map_label_to_class_name
 from qiskit.aqua.utils import split_dataset_to_data_and_labels
-from qiskit.aqua.utils import find_regs_by_name
 from qiskit.aqua.algorithms.adaptive.vq_algorithm import VQAlgorithm
 
 logger = logging.getLogger(__name__)
@@ -582,6 +580,8 @@ class VQC(VQAlgorithm):
         return self._var_form.construct_circuit(self._ret['opt_params'])
 
     def get_optimal_vector(self):
+        from qiskit.aqua.utils.run_circuits import find_regs_by_name
+
         if 'opt_params' not in self._ret:
             raise AquaError("Cannot find optimal vector before running the algorithm to find optimal params.")
         qc = self.get_optimal_circuit()
