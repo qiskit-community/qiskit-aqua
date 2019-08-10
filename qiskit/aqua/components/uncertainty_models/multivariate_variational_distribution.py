@@ -108,8 +108,8 @@ class MultivariateVariationalDistribution(MultivariateDistribution):
         return cls(num_qubits, var_form, params, low, high)
 
     def build(self, qc, q, q_ancillas=None):
-        circuit_var_form = self._var_form.construct_circuit(self.params, q)
-        qc.extend(circuit_var_form)
+        circuit_var_form = self._var_form.construct_circuit(self.params)
+        qc.append(circuit_var_form.to_instruction(), q)
 
     def set_probabilities(self, quantum_instance):
         """
