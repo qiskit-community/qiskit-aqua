@@ -203,7 +203,7 @@ class TestEuropeanCallOption(QiskitAquaTestCase):
     @parameterized.expand([
         ['statevector', AmplitudeEstimation(3), {'estimation': 0.45868536404797905, 'mle': 0.1633160}],
         ['qasm', AmplitudeEstimation(4), {'estimation': 0.45868536404797905, 'mle': 0.23479973342434832}],
-        'statevector', AmplitudeEstimationWithoutQPE(5), {'estimation': 0.16330976193204114}],
+        ['statevector', AmplitudeEstimationWithoutQPE(5), {'estimation': 0.16330976193204114}],
         ['qasm', AmplitudeEstimationWithoutQPE(3), {'estimation': 0.1027255930905642}],
     ])
     def test_expected_value(self, simulator, ae, expect):

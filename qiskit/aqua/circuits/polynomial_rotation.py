@@ -118,11 +118,11 @@ class PolynomialRotation(CircuitFactory):
         cdict = self._get_controls() 
         cdict = self._get_thetas(cdict) 
 
-        if self.basis=='X':
+        if self.basis == 'X':
             qc.rx(2*self.px[0], q_target)
-        elif self.basis=='Y':
+        elif self.basis == 'Y':
             qc.ry(2*self.px[0], q_target)
-        elif self.basis=='Z':
+        elif self.basis == 'Z':
             qc.rz(2*self.px[0], q_target)
             
         for c in cdict:
@@ -137,17 +137,17 @@ class PolynomialRotation(CircuitFactory):
                         q_controls.append(q[i])
             # Apply controlled y-rotation
             if len(q_controls) > 1:
-                if self.basis=='X':
+                if self.basis == 'X':
                     qc.mcrx(2*cdict[c], q_controls, q_target, q_ancillas)
-                elif self.basis=='Y':
+                elif self.basis == 'Y':
                     qc.mcry(2*cdict[c], q_controls, q_target, q_ancillas)
-                elif self.basis=='Z':
+                elif self.basis == 'Z':
                     qc.mcrz(2*cdict[c], q_controls, q_target, q_ancillas)
                 
             elif len(q_controls) == 1:
-                if self.basis=='X':
+                if self.basis == 'X':
                     qc.u3(2*cdict[c], -np.pi/2, np.pi/2, q_controls[0], q_target)
-                elif self.basis=='Y':
+                elif self.basis == 'Y':
                     qc.cry(2*cdict[c], q_controls[0], q_target)
-                elif self.basis=='Z':
+                elif self.basis == 'Z':
                     qc.crz(2*cdict[c], q_controls[0], q_target)
