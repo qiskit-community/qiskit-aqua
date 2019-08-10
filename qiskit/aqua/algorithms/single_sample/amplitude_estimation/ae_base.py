@@ -53,7 +53,7 @@ class AmplitudeEstimationBase(QuantumAlgorithm):
 
     @q_factory.setter
     def q_factory(self, q_factory):
-        self._q_factory, self.i_objective = q_factory
+        self._q_factory = q_factory
 
     def check_factories(self):
         """

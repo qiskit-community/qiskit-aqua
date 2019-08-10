@@ -17,7 +17,7 @@ The Amplitude Estimation Algorithm.
 
 import logging
 import numpy as np
-from scipy.optimize import minimize
+from scipy.optimize import brute
 from scipy.stats import norm, chi2
 
 from qiskit import ClassicalRegister, QuantumRegister, QuantumCircuit
@@ -61,7 +61,8 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
         ],
     }
 
-    def __init__(self, log_max_evals, a_factory, i_objective=None, q_factory=None):
+    def __init__(self, log_max_evals, a_factory=None, i_objective=None,
+                 q_factory=None, likelihood_evals=None):
         """
         Constructor.
 
@@ -70,6 +71,7 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
             a_factory (CircuitFactory): the CircuitFactory subclass object representing the problem unitary
             i_objective (int): index of qubit representing the objective in the uncertainty problem
             q_factory (CircuitFactory): the CircuitFactory subclass object representing an amplitude estimation sample (based on a_factory)
+            likelihood_evals (int): The number of gridpoints for the maximum search of the likelihood function
         """
         self.validate(locals())
         super().__init__(a_factory, q_factory, i_objective)
@@ -78,9 +80,11 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
         self._log_max_evals = log_max_evals
         self._evaluation_schedule = [2**j for j in range(log_max_evals)]
 
-        # determine number of ancillas
-        self._num_ancillas = self.q_factory.required_ancillas()
-        self._num_qubits = self.a_factory.num_target_qubits + self._num_ancillas
+        self._likelihood_evals = likelihood_evals
+        # default number of evaluations is max(10^5, 10^5 * 2^(log_max_evals - 5))
+        if likelihood_evals is None:
+            default = 10000
+            self._likelihood_evals = default * np.maximum(1, pow(2, log_max_evals - 5))
 
         self._circuits = []
         self._ret = {}
@@ -109,6 +113,15 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
 
         return cls(log_max_evals, uncertainty_problem, q_factory=None)
 
+    @property
+    def _num_qubits(self):
+        self.check_factories()  # ensure that A/Q factories are set
+
+        num_ancillas = self.q_factory.required_ancillas_controlled()
+        num_qubits = self.a_factory.num_target_qubits + num_ancillas
+
+        return num_qubits
+
     def construct_circuits(self, measurement=False):
         """
         Construct the Amplitude Estimation w/o QPE quantum circuits.
@@ -119,20 +132,31 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
         Returns:
             a list with the QuantumCircuit objects for the algorithm
         """
-
         # construct first part of circuit
-        q = QuantumRegister(self.a_factory.num_target_qubits)
+        q = QuantumRegister(self.a_factory.num_target_qubits, 'q')
+
+        qc_a = QuantumCircuit(q, name='qc_a')
+
+        # get number of ancillas
+        num_ancillas = np.maximum(self.a_factory.required_ancillas(),
+                                  self.q_factory.required_ancillas())
+
+        q_aux = None
+        if num_ancillas > 0:
+            q_aux = QuantumRegister(num_ancillas, 'aux')
+            qc_a.add_register(q_aux)
+
+        # add classical register if needed
         if measurement:
             c = ClassicalRegister(1)
-            qc_a = QuantumCircuit(q, c, name='qc_a')
-        else:
-            qc_a = QuantumCircuit(q, name='qc_a')
-        self.a_factory.build(qc_a, q)
+            qc_a.add_register(c)
+
+        self.a_factory.build(qc_a, q, q_aux)
 
         self._circuits = []
         for k in self._evaluation_schedule:
             qc_k = qc_a.copy(name='qc_a_q_%s' % k)
-            self.q_factory.build_power(qc_k, q, k)
+            self.q_factory.build_power(qc_k, q, k, q_aux)
 
             if measurement:
                 qc_k.measure(q[self.i_objective], c[0])
@@ -154,7 +178,7 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
 
         return probabilities
 
-    def _get_hits(self, counts):
+    def _get_hits(self):
         """
         Get the good and total counts
 
@@ -168,9 +192,18 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
         """
         one_hits = []  # h_k: how often 1 has been measured, for a power Q^(m_k)
         all_hits = []  # N_k: how often has been measured at a power Q^(m_k)
-        for c in counts:
-            one_hits += [c.get('1', 0)]  # return 0 if no key '1' found
-            all_hits += [sum(c.values())]
+        try:
+            if self.quantum_instance.is_statevector:
+                probabilities = self._evaluate_statevectors(self._ret['statevectors'])
+                one_hits = probabilities
+                all_hits = np.ones_like(one_hits)
+
+            else:
+                for c in self._ret['counts']:
+                    one_hits += [c.get('1', 0)]  # return 0 if no key '1' found
+                    all_hits += [sum(c.values())]
+        except KeyError:
+            raise AquaError('Call run() first!')
 
         return one_hits, all_hits
 
@@ -202,12 +235,6 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
             The computed Fisher information, or np.inf if statevector
             simulation was used.
         """
-        # the fisher information is infinite, since:
-        # 1) statevector simulation should return the exact value
-        # 2) statevector probabilities correspond to "infinite" shots
-        if self._quantum_instance.is_statevector:
-            return np.inf
-
         # Set the value a. Use `est_a` if provided.
         if a is None:
             try:
@@ -219,7 +246,7 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
         theta_a = np.arcsin(np.sqrt(a))
 
         # Get the number of hits (Nk) and one-hits (hk)
-        one_hits, all_hits = self._get_hits(self._ret['counts'])
+        one_hits, all_hits = self._get_hits()
 
         # Include all sum terms or just up to a certain term?
         evaluation_schedule = self._evaluation_schedule
@@ -263,6 +290,11 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
         except KeyError:
             raise AssertionError("Call run() first!")
 
+        # statevector corresponds to an infinite number of shots,
+        # hence the width of the confidence interval is 0
+        if self.quantum_instance.is_statevector:
+            return self._ret['estimation']
+
         if observed:
             fisher_information = self._compute_fisher_information(observed=True)
 
@@ -291,7 +323,7 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
                 logL += np.log(np.cos((2 * k + 1) * theta) ** 2) * (all_counts[i] - one_counts[i])
             return logL
 
-        one_counts, all_counts = self._get_hits(self._ret['counts'])
+        one_counts, all_counts = self._get_hits()
 
         thetas = np.linspace(np.pi / nevals / 2, np.pi / 2, nevals)
         values = np.zeros(len(thetas))
@@ -335,98 +367,31 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
 
         raise NotImplementedError('CI `{}` is not implemented.'.format(kind))
 
-    def _run_mle(self):
+    def _compute_mle_safe(self):
         """
-        Proxy to call the suitable MLE for statevector or qasm simulator
+        Compute the MLE via a grid-search. This is a stable approach if
+        sufficient gridpoints are used (usually > 10'000).
         """
-        if self._quantum_instance.is_statevector:
-            return self._run_mle_statevector()
+        one_hits, all_hits = self._get_hits()
 
-        return self._run_mle_counts()
-
-    def _run_mle_statevector(self):
-        """
-        Find the MLE if statevector simulation is used
-
-        Returns:
-            MLE for a statevector simulation
-
-        Note:
-            Shrinking the interval using the Fisher information, as done
-            for the qasm simulator, is not possible here. Instead, use the
-            theta estimate of the previous iteration as the initial guess of
-            the next one. With several iterations this should converge reliably
-            to the maximum.
-        """
-        probs = self._evaluate_statevectors(self._ret['statevectors'])
-
-        search_range = [0, np.pi / 2]
-        init = np.mean(search_range)
-        best_theta = None
-
-        for it in range(len(self._evaluation_schedule)):
-            def loglikelihood(theta):
-                logL = 0
-                for i, k in enumerate(self._evaluation_schedule[:it + 1]):
-                    logL = np.log(np.sin((2 * k + 1) * theta) ** 2) * probs[i] \
-                        + np.log(np.cos((2 * k + 1) * theta) ** 2) * (1 - probs[i])
-                return -logL
-
-            # find the current optimum, this is our new initial point
-            res = minimize(loglikelihood, init, bounds=[search_range], method="SLSQP")
-            init = res.x
-
-            # keep track of the best theta estimate
-            if best_theta is None:
-                best_theta = res.x
-            elif res.fun < loglikelihood(best_theta):
-                best_theta = res.x
-
-        return best_theta[0]  # return the value, not a 1d numpy.array
-
-    def _run_mle_counts(self):
-        """
-        Compute the MLE for a shot-based simulation.
-
-        Returns:
-            The MLE for a shot-based simulation.
-        """
-        # the number of times 1 has been measured and the total number
-        # of measurements
-        one_hits, all_hits = self._get_hits(self._ret['counts'])
-
-        # empirical factor of how large the search range will be
-        confidence_level = 5
-
-        # initial search range
+        # search range
         eps = 1e-15  # to avoid division by 0
         search_range = [0 + eps, np.pi / 2 - eps]
 
-        est_theta = None
+        def loglikelihood(theta):
+            # logL contains the first `it` terms of the full loglikelihood
+            logL = 0
+            for i, k in enumerate(self._evaluation_schedule):
+                logL += np.log(np.sin((2 * k + 1) * theta) ** 2) * one_hits[i]
+                logL += np.log(np.cos((2 * k + 1) * theta) ** 2) * (all_hits[i] - one_hits[i])
+            return -logL
 
-        for it in range(len(self._evaluation_schedule)):
-            def loglikelihood(theta):
-                # logL contains the first `it` terms of the full loglikelihood
-                logL = 0
-                for i, k in enumerate(self._evaluation_schedule[:it + 1]):
-                    logL += np.log(np.sin((2 * k + 1) * theta) ** 2) * one_hits[i]
-                    logL += np.log(np.cos((2 * k + 1) * theta) ** 2) * (all_hits[i] - one_hits[i])
-                return -logL
+        est_theta = brute(loglikelihood, [search_range], Ns=self._likelihood_evals)[0]
+        return est_theta
 
-            # crudely find the optimum
-            est_theta = minimize(loglikelihood, np.mean(search_range), bounds=[search_range]).x
-            est_a = np.sin(est_theta)**2
-
-            # estimate the error of the est_theta
-            fisher_information = self._compute_fisher_information(est_a, it + 1)
-            est_error_a = 1 / np.sqrt(fisher_information)
-            est_error_theta = est_error_a / (2 * np.sqrt(est_error_a) * np.sqrt(1 - est_error_a**2))
-
-            # update the range
-            search_range[0] = np.maximum(0 + eps, est_theta - confidence_level * est_error_theta)
-            search_range[1] = np.minimum(np.pi / 2 - eps, est_theta + confidence_level * est_error_theta)
-
-        return est_theta[0]  # return the value, not a 1d numpy.array
+    def _run_mle(self):
+        # TODO implement a **reliable**, fast method to find the maximum of the likelihood function
+        return self._compute_mle_safe()
 
     def _run(self):
         self.check_factories()
@@ -451,8 +416,8 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
 
         # run maximum likelihood estimation and construct results
         self._ret['theta'] = self._run_mle()
-        self._ret['estimation'] = np.sin(self._ret['theta'])**2
-        self._ret['mapped_value'] = self.a_factory.value_to_estimation(self._ret['estimation'])
+        self._ret['value'] = np.sin(self._ret['theta'])**2
+        self._ret['estimation'] = self.a_factory.value_to_estimation(self._ret['value'])
         self._ret['fisher_information'] = self._compute_fisher_information()
 
         confidence_interval = self._fisher_ci(alpha=0.05)
