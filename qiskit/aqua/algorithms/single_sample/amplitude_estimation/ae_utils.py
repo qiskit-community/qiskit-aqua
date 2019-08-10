@@ -1,4 +1,7 @@
+import logging
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 
 def bisect_max(f, a, b, steps=50, minwidth=1e-12, retval=False):
@@ -35,7 +38,7 @@ def bisect_max(f, a, b, steps=50, minwidth=1e-12, retval=False):
         it += 1
 
     if it == steps:
-        print("-- Warning, bisect_max didn't converge after {} steps".format(steps))
+        logger.warning("-- Warning, bisect_max didn't converge after {} steps".format(steps))
 
     if retval:
         return m, fm
