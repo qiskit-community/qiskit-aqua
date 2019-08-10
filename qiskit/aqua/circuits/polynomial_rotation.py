@@ -41,7 +41,7 @@ class PolynomialRotation(CircuitFactory):
             num_state_qubits (int): number of qubits representing the state
             basis (str): type of Pauli rotation ('X', 'Y', 'Z')
         """
-        super().__init__(num_state_qubits+1)
+        super().__init__(num_state_qubits + 1)
 
         # Store parameters
         self.num_state_qubits = num_state_qubits
@@ -53,10 +53,10 @@ class PolynomialRotation(CircuitFactory):
             raise ValueError('Basis must be X, Y or Z')
 
     def required_ancillas(self):
-        return max(1, self.degree - 1) 
+        return max(1, self.degree - 1)
 
     def required_ancillas_controlled(self):
-        return max(1, self.degree) 
+        return max(1, self.degree)
 
     def _get_controls(self):
         """
@@ -64,7 +64,7 @@ class PolynomialRotation(CircuitFactory):
         """
         t = [0] * (self.num_state_qubits - 1) + [1]
         cdict = {tuple(t): 0}
-        clist = list(product([0,1], repeat=self.num_state_qubits))
+        clist = list(product([0, 1], repeat=self.num_state_qubits))
         index = 0
         while index < len(clist):
             tsum = 0
@@ -74,18 +74,18 @@ class PolynomialRotation(CircuitFactory):
             if tsum > self.degree:
                 clist.remove(i)
             else:
-                index = index+1
-        clist.remove(tuple([0]*self.num_state_qubits))
+                index = index + 1
+        clist.remove(tuple([0] * self.num_state_qubits))
         # For now set all angles to 0
         for i in clist:
             cdict[i] = 0
         return cdict
-    
+
     def _get_thetas(self, cdict):
         """
         Compute the coefficient of each monomial. This will be the argument for the controlled y-rotation.
         """
-        for j in range(1,len(self.px)):
+        for j in range(1, len(self.px)):
             # List of multinomial coefficients
             mlist = multinomial_coefficients(self.num_state_qubits, j)
             # Add angles
@@ -96,12 +96,12 @@ class PolynomialRotation(CircuitFactory):
                 for k in range(0, len(m)):
                     if m[k] > 0:
                         temp_t.append(1)
-                        powers *= 2**(k*m[k])
+                        powers *= 2 ** (k * m[k])
                     else:
                         temp_t.append(0)
                 temp_t = tuple(temp_t)
                 # Add angle
-                cdict[temp_t] += self.px[j]*mlist[m]*powers
+                cdict[temp_t] += self.px[j] * mlist[m] * powers
         return cdict
 
     def build(self, qc, q, q_target, q_ancillas=None, reverse=0):
@@ -115,39 +115,39 @@ class PolynomialRotation(CircuitFactory):
         """
 
         # Dictionary of controls for the rotation gates as a tuple and their respective angles
-        cdict = self._get_controls() 
-        cdict = self._get_thetas(cdict) 
+        cdict = self._get_controls()
+        cdict = self._get_thetas(cdict)
 
         if self.basis == 'X':
-            qc.rx(2*self.px[0], q_target)
+            qc.rx(2 * self.px[0], q_target)
         elif self.basis == 'Y':
-            qc.ry(2*self.px[0], q_target)
+            qc.ry(2 * self.px[0], q_target)
         elif self.basis == 'Z':
-            qc.rz(2*self.px[0], q_target)
-            
+            qc.rz(2 * self.px[0], q_target)
+
         for c in cdict:
             q_controls = []
             if reverse == 1:
-                for i in range(0,len(c)):
-                    if c[i]>0:
-                        q_controls.append(q[q.size-i-1])
+                for i in range(0, len(c)):
+                    if c[i] > 0:
+                        q_controls.append(q[q.size - i - 1])
             else:
-                for i in range(0,len(c)):
-                    if c[i]>0:
+                for i in range(0, len(c)):
+                    if c[i] > 0:
                         q_controls.append(q[i])
             # Apply controlled y-rotation
             if len(q_controls) > 1:
                 if self.basis == 'X':
-                    qc.mcrx(2*cdict[c], q_controls, q_target, q_ancillas)
+                    qc.mcrx(2 * cdict[c], q_controls, q_target, q_ancillas)
                 elif self.basis == 'Y':
-                    qc.mcry(2*cdict[c], q_controls, q_target, q_ancillas)
+                    qc.mcry(2 * cdict[c], q_controls, q_target, q_ancillas)
                 elif self.basis == 'Z':
-                    qc.mcrz(2*cdict[c], q_controls, q_target, q_ancillas)
-                
+                    qc.mcrz(2 * cdict[c], q_controls, q_target, q_ancillas)
+
             elif len(q_controls) == 1:
                 if self.basis == 'X':
-                    qc.u3(2*cdict[c], -np.pi/2, np.pi/2, q_controls[0], q_target)
+                    qc.u3(2 * cdict[c], -np.pi / 2, np.pi / 2, q_controls[0], q_target)
                 elif self.basis == 'Y':
-                    qc.cry(2*cdict[c], q_controls[0], q_target)
+                    qc.cry(2 * cdict[c], q_controls[0], q_target)
                 elif self.basis == 'Z':
-                    qc.crz(2*cdict[c], q_controls[0], q_target)
+                    qc.crz(2 * cdict[c], q_controls[0], q_target)

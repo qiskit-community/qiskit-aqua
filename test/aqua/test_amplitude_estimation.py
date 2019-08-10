@@ -88,6 +88,7 @@ class TestBernoulli(QiskitAquaTestCase):
         def qasm(shots=100):
             return QuantumInstance(backend=BasicAer.get_backend('qasm_simulator'), shots=shots,
                                    circuit_caching=False, seed_simulator=2, seed_transpiler=2)
+
         self._qasm = qasm
 
     @parameterized.expand([
@@ -209,15 +210,15 @@ class TestEuropeanCallOption(QiskitAquaTestCase):
     def test_expected_value(self, simulator, ae, expect):
 
         # set A factory for amplitude estimation
-        ae.a_factory= self.european_call
+        ae.a_factory = self.european_call
 
         # run simulation
-        result= ae.run(self._qasm if simulator == 'qasm' else self._statevector)
+        result = ae.run(self._qasm if simulator == 'qasm' else self._statevector)
 
         # compare to precomputed solution
         for key, value in expect.items():
             self.assertAlmostEqual(result[key], value, places=4,
-                                   msg = "estimate `{}` failed".format(key))
+                                   msg="estimate `{}` failed".format(key))
 
     @parameterized.expand([
         ['statevector', AmplitudeEstimation(3), {'estimation': 0.8535534, 'mle': 0.8097974047170567}],
@@ -227,24 +228,24 @@ class TestEuropeanCallOption(QiskitAquaTestCase):
     ])
     def test_delta(self, simulator, ae, expect):
         # set A factory for amplitude estimation
-        ae.a_factory=self.european_call_delta
+        ae.a_factory = self.european_call_delta
 
         # run simulation
-        result=ae.run(self._qasm if simulator == 'qasm' else self._statevector)
+        result = ae.run(self._qasm if simulator == 'qasm' else self._statevector)
 
         # compare to precomputed solution
         for key, value in expect.items():
-            self.assertAlmostEqual(result[key], value, places = 4,
-                                   msg = "estimate `{}` failed".format(key))
+            self.assertAlmostEqual(result[key], value, places=4,
+                                   msg="estimate `{}` failed".format(key))
 
 
 class TestFixedIncomeAssets(QiskitAquaTestCase):
     def setUp(self):
         super().setUp()
 
-        self._statevector=QuantumInstance(backend = BasicAer.get_backend('statevector_simulator'),
-                                            circuit_caching = False, seed_simulator = 2, seed_transpiler = 2)
-        self._qasm=QuantumInstance(backend = BasicAer.get_backend('qasm_simulator'), shots = 100,
+        self._statevector = QuantumInstance(backend=BasicAer.get_backend('statevector_simulator'),
+                                            circuit_caching=False, seed_simulator=2, seed_transpiler=2)
+        self._qasm = QuantumInstance(backend=BasicAer.get_backend('qasm_simulator'), shots=100,
                                      circuit_caching=False, seed_simulator=2, seed_transpiler=2)
 
     @parameterized.expand([
@@ -254,7 +255,6 @@ class TestFixedIncomeAssets(QiskitAquaTestCase):
         ['qasm', AmplitudeEstimationWithoutQPE(5), {'estimation': 2.317921060790118}]
     ])
     def test_expected_value(self, simulator, ae, expect):
-
         # can be used in case a principal component analysis has been done to derive the uncertainty model, ignored in this example.
         A = np.eye(2)
         b = np.zeros(2)

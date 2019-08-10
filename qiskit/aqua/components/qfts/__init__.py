@@ -17,4 +17,4 @@ from .standard import Standard
 from .approximate import Approximate
 #from .swap import Swap
 
-__all__ = ['Standard', 'Approximate', 'QFT']#, 'Swap']
+__all__ = ['Standard', 'Approximate', 'QFT']
