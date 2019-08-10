@@ -16,7 +16,7 @@ notifications:
 
 cache: pip
 os: linux
-dist: trusty
+dist: xenial
 
 language: python
 python: "3.6"
@@ -57,8 +57,6 @@ before_install:
   # Download github Terra
   - wget https://codeload.github.com/Qiskit/qiskit-terra/zip/$DEPENDENCY_BRANCH -O /tmp/qiskit-terra.zip
   - unzip /tmp/qiskit-terra.zip -d /tmp/
-  # Install Qiskit Terra requirements.
-  - pip install -U -r /tmp/qiskit-terra-$DEPENDENCY_BRANCH/requirements-dev.txt --progress-bar off
   # Install local Qiskit Terra
   - pip install -e /tmp/qiskit-terra-$DEPENDENCY_BRANCH --progress-bar off
   # Download github Ignis
