@@ -70,18 +70,13 @@ class QSVE:
         # Get the number of rows and columns in the matrix
         nrows, ncols = matrix.shape
 
-        # Make sure the matrix is square
-        # TODO: Pad matrix to automatically make it square
-        if nrows != ncols:
-            raise MatrixError("Input matrix must be square.")
+        # Make sure the number of rows is supported
+        if nrows & (nrows - 1) != 0:
+            raise MatrixError("Number of rows in matrix must be a power of two.")
 
         # Make sure the number of columns is supported
         if ncols & (ncols - 1) != 0:
-            raise MatrixError("Number of rows (and columns) in matrix must be a power of two.")
-
-        # Make sure the matrix is Hermitian
-        if not np.allclose(matrix.conj().T, matrix):
-            raise MatrixError("Input matrix must be Hermitian.")
+            raise MatrixError("Number of columns in matrix must be a power of two.")
 
         # Store these as attributes
         self._matrix_nrows = nrows
@@ -691,7 +686,7 @@ class QSVE:
         # Add the inverse QFT on the precision register
         self._iqft(circuit, qpe_register)
 
-    def _prepare_singular_vector(self, singular_vector, circuit, row_register, col_register):
+    def _prepare_singular_vector(self, singular_vector, circuit, *registers):
         """Prepares the singular vector on the input register.
 
         Args:
@@ -708,17 +703,21 @@ class QSVE:
         if singular_vector is None:
             return
 
+        all_qubits = []
+        for reg in registers:
+            all_qubits += reg[:]
+
         if isinstance(singular_vector, (np.ndarray, list)):
             # If all vector elements are real, we can use the binary tree to load the vector
             if all(np.isreal(singular_vector)):
                 tree = BinaryTree(singular_vector)
-                tree.preparation_circuit(circuit, row_register, col_register)
+                tree.preparation_circuit(circuit, *registers)
             # If some vector elements are complex, use custom state preparation
             else:
                 state = Custom(
-                    num_qubits=self._num_qubits_for_row + self._num_qubits_for_col, state_vector=singular_vector
+                    num_qubits=len(all_qubits), state_vector=singular_vector
                 )
-                circuit += state.construct_circuit(register=row_register[:] + col_register[:])
+                circuit += state.construct_circuit(register=all_qubits)
 
         elif type(singular_vector) == QuantumCircuit:
             if len(singular_vector.qregs) != 2:
@@ -739,11 +738,13 @@ class QSVE:
     def create_circuit(
             self,
             nprecision_bits=3,
-            singular_vector=None,
-            initial_loads=True,
+            init_state_row_and_col=None,
+            load_row_norms=False,
+            init_state_col=None,
             terminal_measurements=False,
             return_registers=False,
-            logical_barriers=False
+            logical_barriers=False,
+            **kwargs
     ):
         """Returns a quantum circuit implementing the QSVE algorithm.
 
@@ -757,14 +758,17 @@ class QSVE:
                 The number of qubits to use in phase estimation.
                 Equivalently, the number of bits of precision to read out singular values.
 
-            singular_vector : Union[numpy.ndarray, qiskit.QuantumCircuit]
-                The singular vector to prepare in the "column register," which can be input as a vector (numpy array)
-                or a quantum circuit which prepares the vector.
+            init_state_row_and_col : Union[numpy.ndarray, qiskit.QuantumCircuit]
+                A vector to prepare across the row and column registers.
+                This can be input as a vector (numpy array) or a quantum circuit which prepares the vector.
 
-            initial_loads : bool
-                If True, the row norms and singular vector (if provided) are prepared at the start of the circuit.
-                Normally, this is always True. Setting to False is useful for getting the inverse circuit WITHOUT
-                the initial loading subroutines, which is needed for linear systems and recommendation systems.
+            load_row_norms : bool
+                If True, the row norm vector is prepared in the row register.
+                This is useful for applications of QSVE, namely linear systems and recommendation systems.
+
+            init_state_col : Union[numpy.ndarray, qiskit.QuantumCircuit]
+                A vector to prepare in the column register.
+                This is useful for applications of QSVE, namely linear systems and recommendation systems.
 
             terminal_measurements : bool (default: False)
                 If True, measurements are added to the phase register at the end of the circuit, else nothing happens.
@@ -787,25 +791,37 @@ class QSVE:
             If return_registers==True, then the registers in the above circuit are returned as well.
             Note that these registers can be accessed from the circuit itself. This option is for convenience.
         """
+        # Parse the register names from keyword arguments, if provided
+        qpe_register_name = kwargs["qpe_name"] if "qpe_name" in kwargs.keys() else "qpe"
+        row_register_name = kwargs["row_name"] if "row_name" in kwargs.keys() else "row"
+        col_register_name = kwargs["col_name"] if "col_name" in kwargs.keys() else "col"
+
         # Create the quantum registers
-        qpe_register = QuantumRegister(nprecision_bits, name="qpe")
-        row_register = QuantumRegister(self._num_qubits_for_row, name="row")
-        col_register = QuantumRegister(self._num_qubits_for_col, name="col")
+        qpe_register = QuantumRegister(nprecision_bits, name=qpe_register_name)
+        row_register = QuantumRegister(self._num_qubits_for_row, name=row_register_name)
+        col_register = QuantumRegister(self._num_qubits_for_col, name=col_register_name)
 
         # Create the quantum circuit
         circuit = QuantumCircuit(qpe_register, row_register, col_register)
 
-        if initial_loads:
-            # Add the optional state preparation in the column register
-            if singular_vector is not None:
-                self._prepare_singular_vector(singular_vector, circuit, row_register, col_register)
+        # Add the optional state preparation in the column register
+        if init_state_row_and_col is not None:
+            self._prepare_singular_vector(init_state_row_and_col, circuit, row_register, col_register)
 
-                # Add a barrier, if desired
-                if logical_barriers:
-                    circuit.barrier()
+            # Add a barrier, if desired
+            if logical_barriers:
+                circuit.barrier()
 
-            # Load the row norms of the matrix in the row register
+        # Load the row norms of the matrix in the column register
+        if load_row_norms:
             self.row_norm_tree.preparation_circuit(circuit, row_register)
+
+            # Add a barrier, if desired
+            if logical_barriers:
+                circuit.barrier()
+
+        if init_state_col is not None:
+            self._prepare_singular_vector(init_state_col, circuit, col_register)
 
             # Add a barrier, if desired
             if logical_barriers:
@@ -830,7 +846,7 @@ class QSVE:
     def run_and_return_counts(
             self,
             nprecision_bits=3,
-            singular_vector=None,
+            init_state_row_and_col=None,
             shots=10000,
             ordered=True
     ):
@@ -840,7 +856,7 @@ class QSVE:
             nprecision_bits : int
                 Number of qubits to use for QPE.
 
-            singular_vector : Union[list, numpy.ndarray, None]
+            init_state_row_and_col : Union[list, numpy.ndarray, None]
                 Initial state to start the row and column register in for phase estimation.
 
             shots : int
@@ -853,7 +869,11 @@ class QSVE:
             List of tuples of the form [(bitstring1, counts1), (bitsring2, counts2), ...]
         """
         # Create the circuit with terminal measurements
-        circuit = self.create_circuit(nprecision_bits, singular_vector, terminal_measurements=True)
+        circuit = self.create_circuit(
+            nprecision_bits,
+            init_state_row_and_col=init_state_row_and_col,
+            terminal_measurements=True
+        )
 
         # Get a simulator
         sim = BasicAer.get_backend("qasm_simulator")
@@ -869,7 +889,7 @@ class QSVE:
     def top_singular_values(
             self,
             nprecision_bits=3,
-            singular_vector=None,
+            init_state_row_and_col=None,
             shots=10000,
             ntop=1
     ):
@@ -879,7 +899,7 @@ class QSVE:
             nprecision_bits : int
                 Number of precision qubits to use in QPE.
 
-            singular_vector : Union[list, numpy.ndarray, None]
+            init_state_row_and_col : Union[list, numpy.ndarray, None]
                 Initial state to start the row and column register in for phase estimation.
 
             shots : int
@@ -892,7 +912,12 @@ class QSVE:
             List of `ntop` normalized singular values (floats) estimated by the quantum circuit.
         """
         # Get the ordered counts
-        counts = self.run_and_return_counts(nprecision_bits, singular_vector, shots, ordered=True)
+        counts = self.run_and_return_counts(
+            nprecision_bits,
+            init_state_row_and_col=init_state_row_and_col,
+            shots=shots,
+            ordered=True
+        )
 
         # Get the top counts
         top = [count[0] for count in counts[:ntop]]
@@ -1088,3 +1113,16 @@ def stats(circ):
     print("# gates =", sum(circ.count_ops().values()))
     print("# qubits =", len(circ.qubits))
     print(circ.count_ops())
+
+
+if __name__ == "__main__":
+    matrix = np.identity(2)
+    qsve = QSVE(matrix)
+
+    circ = qsve.create_circuit(nprecision_bits=1, logical_barriers=True, load_row_norms=True, init_state_col=[0, 1])
+
+    circuit = qsve.create_circuit(nprecision_bits=1, logical_barriers=True, init_state_row_and_col=[0, 1, 1, 0])
+
+    qsigmas = qsve.top_singular_values()
+
+    print(qsigmas)
