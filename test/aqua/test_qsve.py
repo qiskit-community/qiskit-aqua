@@ -288,7 +288,7 @@ class TestQSVE(QiskitAquaTestCase):
         # Get the quantum circuit for QSVE
         for nprecision_bits in range(3, 7):
             circuit = qsve.create_circuit(
-                nprecision_bits=nprecision_bits, singular_vector=[1, 1, 1, 1], terminal_measurements=True
+                nprecision_bits=nprecision_bits, init_state_row_and_col=[1, 1, 1, 1], terminal_measurements=True
             )
             # Run the quantum circuit for QSVE
             sim = BasicAer.get_backend("qasm_simulator")
@@ -330,7 +330,7 @@ class TestQSVE(QiskitAquaTestCase):
         for nprecision_bits in range(3, 7):
             qsve = QSVE(matrix)
             circuit = qsve.create_circuit(
-                nprecision_bits=nprecision_bits, singular_vector=[1, 1, 1, 1], terminal_measurements=True
+                nprecision_bits=nprecision_bits, init_state_row_and_col=[1, 1, 1, 1], terminal_measurements=True
             )
 
             # Run the quantum circuit for QSVE
@@ -373,7 +373,7 @@ class TestQSVE(QiskitAquaTestCase):
         for nprecision_bits in range(3, 7):
             qsve = QSVE(matrix)
             circuit = qsve.create_circuit(
-                nprecision_bits=nprecision_bits, singular_vector=[1, 0, 0, 0], terminal_measurements=True
+                nprecision_bits=nprecision_bits, init_state_row_and_col=[1, 0, 0, 0], terminal_measurements=True
             )
 
             # Run the quantum circuit for QSVE
@@ -416,7 +416,7 @@ class TestQSVE(QiskitAquaTestCase):
         for nprecision_bits in range(3, 7):
             qsve = QSVE(matrix)
             circuit = qsve.create_circuit(
-                nprecision_bits=nprecision_bits, singular_vector=[0, 1, 0, 0], terminal_measurements=True
+                nprecision_bits=nprecision_bits, init_state_row_and_col=[0, 1, 0, 0], terminal_measurements=True
             )
 
             # Run the quantum circuit for QSVE
@@ -695,7 +695,7 @@ class TestQSVE(QiskitAquaTestCase):
 
             qsigma = qsve.top_singular_values(
                 nprecision_bits=n,
-                singular_vector=None,
+                init_state_row_and_col=None,
                 shots=50000,
                 ntop=1
             )
@@ -711,7 +711,7 @@ class TestQSVE(QiskitAquaTestCase):
         for n in range(3, 7):
             qsigma = qsve.top_singular_values(
                 nprecision_bits=n,
-                singular_vector=None,
+                init_state_row_and_col=None,
                 shots=50000,
                 ntop=3
             )
@@ -732,25 +732,21 @@ class TestQSVE(QiskitAquaTestCase):
             sigmas = qsve.singular_values_classical()
 
             n = 6
-
             qsigmas = qsve.top_singular_values(
                 nprecision_bits=n,
-                singular_vector=None,
+                init_state_row_and_col=None,
                 shots=50000,
                 ntop=4
             )
 
             print("Sigmas:", sigmas)
             print("QSigmas:", qsigmas)
-
             print("Max theory error:", qsve.max_error(n))
-
             self.assertTrue(qsve.has_value_close_to_singular_values(qsigmas, qsve.max_error(n)))
             print("Success!\n\n")
 
     def test_singular_values_random4x4(self):
         """Tests computing the singular values for random 4 x 4 matrices."""
-
         for _ in range(10):
             matrix = np.random.randn(4, 4)
             matrix += matrix.conj().T
@@ -764,22 +760,19 @@ class TestQSVE(QiskitAquaTestCase):
             print("Sigmas:", sigmas)
 
             n = 6
-
             qsigmas = qsve.top_singular_values(
                 nprecision_bits=n,
-                singular_vector=None,
+                init_state_row_and_col=None,
                 shots=50000,
                 ntop=4
             )
 
             print("QSigmas:", qsigmas)
-
             print("Max theory error:", qsve.max_error(n))
-
             self.assertTrue(qsve.has_value_close_to_singular_values(qsigmas, qsve.max_error(n)))
             print("Success!\n\n")
 
-    # Note: This test takes a while (approx. an hour) to run
+    # Note: This test takes a while (around an hour) to run
     # def test_singular_values_random8x8(self):
     #     """Tests computing the singular values for random 8 x 8 matrices."""
     #     for _ in range(10):
@@ -822,6 +815,22 @@ class TestQSVE(QiskitAquaTestCase):
             binary_decimal = "1" + "0" * n
             self.assertEqual(QSVE.binary_decimal_to_float(binary_decimal, big_endian=True), 0.5)
             self.assertEqual(QSVE.binary_decimal_to_float(binary_decimal, big_endian=False), 2**(-n - 1))
+
+    def test_non_square(self):
+        """Tests QSVE on a simple non-square matrix."""
+        matrix = np.array([[1, 0, 0, 0],
+                           [0, 1, 0, 0]], dtype=np.float64)
+        qsve = QSVE(matrix)
+        qsigmas = qsve.top_singular_values(nprecision_bits=2, ntop=2)
+        self.assertTrue(qsve.has_value_close_to_singular_values(qsigmas, qsve.max_error(2)))
+
+    def test_non_square_random(self):
+        """Tests QSVE on a non-square random matrix."""
+        for _ in range(10):
+            matrix = np.random.randn(2, 4)
+            qsve = QSVE(matrix)
+            qsigmas = qsve.top_singular_values(nprecision_bits=4, ntop=-1)
+            self.assertTrue(qsve.has_value_close_to_singular_values(qsigmas, qsve.max_error(4)))
 
 
 if __name__ == "__main__":

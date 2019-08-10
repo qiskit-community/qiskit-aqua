@@ -83,8 +83,8 @@ class QSVE:
         self._matrix_ncols = ncols
 
         # Store the number of qubits needed for the matrix rows and cols
-        self._num_qubits_for_row = int(np.log2(ncols))
-        self._num_qubits_for_col = int(np.log2(nrows))
+        self._num_qubits_for_row = int(np.log2(nrows))
+        self._num_qubits_for_col = int(np.log2(ncols))
 
         # Store a copy of the matrix
         self._matrix = deepcopy(matrix)
@@ -308,7 +308,7 @@ class QSVE:
         Return type:
             numpy.ndarray
         """
-        _, sigmas, _ = np.linalg.svd(self._matrix)
+        sigmas = np.linalg.svd(self._matrix, compute_uv=False)
         if normalized:
             return sigmas / self.matrix_norm()
         return sigmas
@@ -462,7 +462,7 @@ class QSVE:
         ctrl_row_load_circuit.data = []
 
         # Get the controlled row loading operations. This corresponds to W in the doc string circuit diagram.
-        for ii in range(self.matrix_ncols):
+        for ii in range(self.matrix_nrows):
             row_tree = self.get_tree(ii)
 
             # Add the controlled row loading circuit
@@ -546,12 +546,6 @@ class QSVE:
         if len(circuit.qregs) < 3:
             raise ValueError(
                 "The input circuit does not have enough quantum registers."
-            )
-
-        if len(row_register) != len(col_register):
-            raise ValueError(
-                "Only square matrices are currently supported." +
-                "This means the row_register and col_register must have the same number of qubits."
             )
 
         if len(row_register) != self._num_qubits_for_row:
@@ -1077,52 +1071,3 @@ class QSVE:
             else:
                 binary += "0"
         return binary
-
-
-def stats(circ):
-    print("\n\nBase circuit stats:\n")
-
-    print("Depth = ", circ.depth())
-    print("# gates =", sum(circ.count_ops().values()))
-    print("# qubits =", len(circ.qubits))
-    print(circ.count_ops())
-
-    trans = transpile(circ, optimization_level=2)
-
-    print("\n\nTranspiled circuit stats:\n")
-
-    print("Depth = ", trans.depth())
-    print("# gates =", sum(trans.count_ops().values()))
-    print("# qubits =", len(trans.qubits))
-    print(trans.count_ops())
-
-    print("\n\nDecomposed circuit stats:\n")
-
-    dec = circ.decompose()
-
-    print("Depth = ", dec.depth())
-    print("# gates =", sum(dec.count_ops().values()))
-    print("# qubits =", len(dec.qubits))
-    print(dec.count_ops())
-
-    print("\n\nTranspiled decomposed circuit stats:\n")
-
-    circ = transpile(dec, optimization_level=2)
-
-    print("Depth = ", circ.depth())
-    print("# gates =", sum(circ.count_ops().values()))
-    print("# qubits =", len(circ.qubits))
-    print(circ.count_ops())
-
-
-if __name__ == "__main__":
-    matrix = np.identity(2)
-    qsve = QSVE(matrix)
-
-    circ = qsve.create_circuit(nprecision_bits=1, logical_barriers=True, load_row_norms=True, init_state_col=[0, 1])
-
-    circuit = qsve.create_circuit(nprecision_bits=1, logical_barriers=True, init_state_row_and_col=[0, 1, 1, 0])
-
-    qsigmas = qsve.top_singular_values()
-
-    print(qsigmas)
