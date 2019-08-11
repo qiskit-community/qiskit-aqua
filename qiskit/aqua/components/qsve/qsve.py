@@ -1060,14 +1060,17 @@ class QSVE:
         Return type:
             str
         """
-        if 1 <= decimal < 0:
+        if decimal < 0 or decimal >= 1:
             raise ValueError("Argument decimal should satisfy 0 <= decimal < 1.")
 
         binary = ""
-        for ii in range(1, nbits + 1):
-            if decimal * 2 ** ii >= 1:
-                binary += "1"
-                decimal = (decimal * 10) % 1
-            else:
+        while len(binary) < nbits:
+            jj = 1
+            while decimal * (2**jj) < 1 and len(binary) < nbits:
                 binary += "0"
+                jj += 1
+            if len(binary) == nbits:
+                return binary
+            binary += "1"
+            decimal = (decimal * 2**jj) % 1
         return binary

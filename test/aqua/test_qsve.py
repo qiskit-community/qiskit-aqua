@@ -832,6 +832,14 @@ class TestQSVE(QiskitAquaTestCase):
             qsigmas = qsve.top_singular_values(nprecision_bits=4, ntop=-1)
             self.assertTrue(qsve.has_value_close_to_singular_values(qsigmas, qsve.max_error(4)))
 
+    def test_binary_decimal_to_float_conversion(self):
+        """Tests converting binary decimals (e.g., 0.10 = 0.5 or 0.01 = 0.25) to floats, and vice versa."""
+        for num in np.linspace(0, 0.99, 25):
+            print("Status: num =", num)
+            self.assertAlmostEquals(
+                QSVE.binary_decimal_to_float(QSVE.to_binary_decimal(num, nbits=30), big_endian=True), num
+            )
+
 
 if __name__ == "__main__":
     unittest.main()
