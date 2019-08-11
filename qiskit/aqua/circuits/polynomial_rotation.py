@@ -23,12 +23,12 @@ class PolynomialRotation(CircuitFactory):
     Polynomial rotation.
     For a polynomial p(x), a basis state |i> and a target qubit |0> this operator acts as:
         |i>|0> --> |i>( cos(p(i))|0> + sin(p(i))|1> )
-    
-    Let n be the number of qubits representing the state, d the degree of p(x) and q_i the qubits, 
+
+    Let n be the number of qubits representing the state, d the degree of p(x) and q_i the qubits,
     where q_0 is the least significant qubit. Then for
-        x = \sum_{i=0}^{n-1} 2^{i}*q_i,
+        x = sum_{i=0}^{n-1} 2^{i}*q_i,
     we can write
-        p(x) = \sum_{j=0}^{j=d} px[j]*(q_0 + 2*q_1 + ... + 2^{n-1}*q_n-1)^{j}.
+        p(x) = sum_{j=0}^{j=d} px[j]*(q_0 + 2*q_1 + ... + 2^{n-1}*q_n-1)^{j}.
     The expression above is used to obtain the list of controls and rotation angles for the circuit.
     """
 

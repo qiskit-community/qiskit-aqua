@@ -242,8 +242,8 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
             except KeyError:
                 raise KeyError("Call run() first!")
 
-        # Corresponding angle to the value a.
-        theta_a = np.arcsin(np.sqrt(a))
+        # Corresponding angle to the value a (only use real part of 'a')
+        theta_a = np.arcsin(np.sqrt(np.real(a)))
 
         # Get the number of hits (Nk) and one-hits (hk)
         one_hits, all_hits = self._get_hits()
