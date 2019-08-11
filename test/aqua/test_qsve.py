@@ -835,8 +835,7 @@ class TestQSVE(QiskitAquaTestCase):
     def test_binary_decimal_to_float_conversion(self):
         """Tests converting binary decimals (e.g., 0.10 = 0.5 or 0.01 = 0.25) to floats, and vice versa."""
         for num in np.linspace(0, 0.99, 25):
-            print("Status: num =", num)
-            self.assertAlmostEquals(
+            self.assertAlmostEqual(
                 QSVE.binary_decimal_to_float(QSVE.to_binary_decimal(num, nbits=30), big_endian=True), num
             )
 
