@@ -11,8 +11,7 @@
 # Imports
 import numpy as np
 import unittest
-# TODO: Change back to this before PR: from test.aqua.common import QiskitAquaTestCase
-from common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua.algorithms.single_sample.recommendation_systems import QuantumRecommendation
 from qiskit.aqua import QuantumInstance
 from qiskit import BasicAer

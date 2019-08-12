@@ -17,8 +17,7 @@ import operator
 from copy import deepcopy
 import numpy as np
 import unittest
-# TODO: Change back to this before PR: from test.aqua.common import QiskitAquaTestCase
-from common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua.components.qsve import QSVE
 from qiskit import QuantumRegister, QuantumCircuit, execute, BasicAer
 
