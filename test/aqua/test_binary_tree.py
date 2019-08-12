@@ -316,7 +316,8 @@ class TestBinaryTree(QiskitAquaTestCase):
         self.assertTrue(np.allclose(state, vec / np.linalg.norm(vec, ord=2)))
 
     def test_prep_circuit_medium(self):
-        """Tests the state preparation circuit produces the correct state for a moderate number of qubits."""
+        """Tests the state preparation circuit produces the correct state
+         for a moderate number of qubits."""
         # Input vector
         vec = np.ones(16)
 
@@ -353,8 +354,9 @@ class TestBinaryTree(QiskitAquaTestCase):
         # Note: No swaps are necessary here since all amplitudes are equal.
         state = np.real(self.final_state(circ))
 
-        # Note: The output state has an additional ancilla needed to do the multi-controlled-Y rotations,
-        # so we discard the additional (zero) amplitudes when comparing to the input vector
+        # Note: The output state has an additional ancilla needed
+        # to do the multi-controlled-Y rotations, so we discard the
+        # additional (zero) amplitudes when comparing to the input vector
         self.assertTrue(np.allclose(state[:len(vec)], vec / np.linalg.norm(vec, ord=2)))
 
     def test_prep_circuit_large2(self):
@@ -377,8 +379,9 @@ class TestBinaryTree(QiskitAquaTestCase):
         # Check that the circuit produces the correct state
         state = np.real(self.final_state(circ))
 
-        # Note: The output state has an additional ancilla needed to do the multi-controlled-Y rotations,
-        # so we discard the additional (zero) amplitudes when comparing to the input vector
+        # Note: The output state has an additional ancilla needed
+        # to do the multi-controlled-Y rotations, so we discard the
+        # additional (zero) amplitudes when comparing to the input vector
         self.assertTrue(np.allclose(state[:len(vec)], vec / np.linalg.norm(vec, ord=2)))
 
     def test_prepare_negative_amplitudes(self):
@@ -513,7 +516,8 @@ class TestBinaryTree(QiskitAquaTestCase):
     def test_prepare_negative_amplitudes_four_qubits(self):
         """Tests state preparation for a vector on three qubits with negative amplitudes."""
         # Input vector
-        vec = np.array([-1, -2, 3, -4, -5, 6, -7, 8, 9, 10, 11, -12, -13, -14, 15, -16], dtype=np.float64)
+        vec = np.array([-1, -2, 3, -4, -5, 6, -7, 8,
+                        9, 10, 11, -12, -13, -14, 15, -16], dtype=np.float64)
 
         # Get the BinaryTree
         tree = BinaryTree(vec)
@@ -550,8 +554,9 @@ class TestBinaryTree(QiskitAquaTestCase):
         # Note: No swaps are necessary here since all amplitudes are equal.
         state = np.real(self.final_state(circ))
 
-        # Note: The output state has an additional ancilla needed to do the multi-controlled-Y rotations,
-        # so we discard the additional (zero) amplitudes when comparing to the input vector
+        # Note: The output state has an additional ancilla needed
+        # to do the multi-controlled-Y rotations, so we discard the
+        # additional (zero) amplitudes when comparing to the input vector
         self.assertTrue(np.allclose(state[:len(vec)], vec / np.linalg.norm(vec, ord=2)))
 
     def test_prep_circuit_random_vector(self):
@@ -604,7 +609,8 @@ class TestBinaryTree(QiskitAquaTestCase):
     def test_prep_circuit_with_control(self):
         """Basic test for the state preparation circuit with a control register.
 
-        This test makes sure the state is created when the control key is correct and *not* created otherwise.
+        This test makes sure the state is created
+        when the control key is correct and *not* created otherwise.
         """
         # Input vector
         vec = np.ones(2, dtype=np.float64)
@@ -620,8 +626,12 @@ class TestBinaryTree(QiskitAquaTestCase):
         control_register = QuantumRegister(1)
         circ = QuantumCircuit(register, control_register)
 
-        # Do controlled state preparation (control_key = 0). This should create the state in "register."
-        tree.preparation_circuit(circ, register, control_register=control_register, control_key=0)
+        # Do controlled state preparation (control_key = 0).
+        # This should create the state in "register."
+        tree.preparation_circuit(circ,
+                                 register,
+                                 control_register=control_register,
+                                 control_key=0)
 
         # Get the final state of the circuit
         state = self.final_state(circ)
@@ -634,7 +644,10 @@ class TestBinaryTree(QiskitAquaTestCase):
         register = QuantumRegister(1)
         control_register = QuantumRegister(1)
         circ = QuantumCircuit(register, control_register)
-        tree.preparation_circuit(circ, register, control_register=control_register, control_key=1)
+        tree.preparation_circuit(circ,
+                                 register,
+                                 control_register=control_register,
+                                 control_key=1)
 
         # Get the final state of the circuit
         state = self.final_state(circ)
@@ -663,19 +676,26 @@ class TestBinaryTree(QiskitAquaTestCase):
         circ = QuantumCircuit(register, control_register)
 
         # Do controlled state preparation (control_key = 0). This should create the state in "register."
-        tree.preparation_circuit(circ, register, control_register=control_register, control_key="0")
+        tree.preparation_circuit(circ,
+                                 register,
+                                 control_register=control_register,
+                                 control_key="0")
 
         # Get the final state of the circuit
         state = self.final_state(circ)
 
         # Make sure it's the |0> state (i.e., nothing has happened)
-        self.assertTrue(np.allclose(state[:len(vec)], vec / np.linalg.norm(vec, ord=2)))
+        self.assertTrue(np.allclose(state[:len(vec)],
+                                    vec / np.linalg.norm(vec, ord=2)))
 
         # Do anti-controlled state preparation (control_key="1"). This should not create the state in "register."
         register = QuantumRegister(1)
         control_register = QuantumRegister(1)
         circ = QuantumCircuit(register, control_register)
-        tree.preparation_circuit(circ, register, control_register=control_register, control_key="1")
+        tree.preparation_circuit(circ,
+                                 register,
+                                 control_register=control_register,
+                                 control_key="1")
 
         # Get the final state of the circuit
         state = self.final_state(circ)
@@ -683,7 +703,8 @@ class TestBinaryTree(QiskitAquaTestCase):
         self.assertTrue(np.allclose(state[:len(vec)], zero))
 
     def test_prep_with_ctrl_twoq_control_all_keys(self):
-        """Tests a one qubit state is created when the correct key is provided, else nothing happens in the circuit."""
+        """Tests a one qubit state is created when the
+        correct key is provided, else nothing happens in the circuit."""
         # Input vector
         vec = np.array([1, 1], dtype=np.float64)
 
@@ -700,14 +721,18 @@ class TestBinaryTree(QiskitAquaTestCase):
             circ = QuantumCircuit(register, control_register)
 
             # Build the circuit
-            tree.preparation_circuit(circ, register, control_register=control_register, control_key=control_key)
+            tree.preparation_circuit(circ,
+                                     register,
+                                     control_register=control_register,
+                                     control_key=control_key)
 
             # Get the final state of the circuit
             state = self.final_state(circ)
 
             # Make sure the state is the input vector if the correct control key is given, otherwise the |0> state.
             if control_key == 0:
-                self.assertTrue(np.allclose(state[:len(vec)], vec / np.linalg.norm(vec, ord=2)))
+                self.assertTrue(np.allclose(state[:len(vec)],
+                                            vec / np.linalg.norm(vec, ord=2)))
             else:
                 self.assertTrue(np.allclose(state[:len(vec)], zero))
 
@@ -734,14 +759,18 @@ class TestBinaryTree(QiskitAquaTestCase):
             circ = QuantumCircuit(register, control_register)
 
             # Build the circuit
-            tree.preparation_circuit(circ, register, control_register=control_register, control_key=control_key)
+            tree.preparation_circuit(circ,
+                                     register,
+                                     control_register=control_register,
+                                     control_key=control_key)
 
             # Get the final state of the circuit
             state = self.final_state(circ)
 
             # Make sure the state is the input vector if the correct control key is given, otherwise the |0> state.
             if control_key == "00":
-                self.assertTrue(np.allclose(state[:len(vec)], vec / np.linalg.norm(vec, ord=2)))
+                self.assertTrue(np.allclose(state[:len(vec)],
+                                            vec / np.linalg.norm(vec, ord=2)))
             else:
                 self.assertTrue(np.allclose(state[:len(vec)], zero))
 
@@ -769,14 +798,18 @@ class TestBinaryTree(QiskitAquaTestCase):
             circ = QuantumCircuit(register, control_register)
 
             # Build the circuit
-            tree.preparation_circuit(circ, register, control_register=control_register, control_key=control_key)
+            tree.preparation_circuit(circ,
+                                     register,
+                                     control_register=control_register,
+                                     control_key=control_key)
 
             # Get the final state of the circuit
             state = self.final_state(circ)
 
             # Make sure the state is the input vector if the correct control key is given, otherwise the |0> state.
             if control_key == 0:
-                self.assertTrue(np.allclose(state[:len(vec)], vec / np.linalg.norm(vec, ord=2)))
+                self.assertTrue(np.allclose(state[:len(vec)],
+                                            vec / np.linalg.norm(vec, ord=2)))
             else:
                 self.assertTrue(np.allclose(state[:len(vec)], zero))
 
@@ -804,14 +837,18 @@ class TestBinaryTree(QiskitAquaTestCase):
             circ = QuantumCircuit(register, control_register)
 
             # Build the circuit
-            tree.preparation_circuit(circ, register, control_register=control_register, control_key=control_key)
+            tree.preparation_circuit(circ,
+                                     register,
+                                     control_register=control_register,
+                                     control_key=control_key)
 
             # Get the final state of the circuit
             state = np.real(self.final_state(circ))
 
             # Make sure the state is the input vector if the correct control key is given, otherwise the |0> state.
             if control_key == 0:
-                self.assertTrue(np.allclose(state[:len(vec)], vec / np.linalg.norm(vec, ord=2)))
+                self.assertTrue(np.allclose(state[:len(vec)],
+                                            vec / np.linalg.norm(vec, ord=2)))
             else:
                 self.assertTrue(np.allclose(state[:len(vec)], zero))
 
@@ -838,7 +875,11 @@ class TestBinaryTree(QiskitAquaTestCase):
 
         for control_key in range(8):
             # Build the circuit
-            tree.preparation_circuit(circ, regA, regB, control_register=control_register, control_key=control_key)
+            tree.preparation_circuit(circ,
+                                     regA,
+                                     regB,
+                                     control_register=control_register,
+                                     control_key=control_key)
 
             # Swap the qubits to compare with vector
             circ.swap(regA[0], regB[0])
@@ -846,7 +887,8 @@ class TestBinaryTree(QiskitAquaTestCase):
             # Get the final state of the circuit
             state = np.real(self.final_state(circ))
 
-            # Make sure the state is the input vector if the correct control key is given, otherwise the |0> state.
+            # Make sure the state is the input vector
+            # if the correct control key is given, otherwise the |0> state.
             if control_key == 0:
                 self.assertTrue(np.allclose(state[:len(vec)], vec / np.linalg.norm(vec, ord=2)))
             else:
@@ -877,7 +919,10 @@ class TestBinaryTree(QiskitAquaTestCase):
 
         for control_key in range(16):
             # Build the circuit
-            tree.preparation_circuit(circ, register, control_register=control_register, control_key=control_key)
+            tree.preparation_circuit(circ,
+                                     register,
+                                     control_register=control_register,
+                                     control_key=control_key)
 
             # Swap the qubits to compare with vector
             circ.swap(register[0], register[2])
@@ -885,7 +930,8 @@ class TestBinaryTree(QiskitAquaTestCase):
             # Get the final state of the circuit
             state = np.real(self.final_state(circ))
 
-            # Make sure the state is the input vector if the correct control key is given, otherwise the |0> state.
+            # Make sure the state is the input vector
+            # if the correct control key is given, otherwise the |0> state.
             if control_key == 0:
                 self.assertTrue(np.allclose(state[:len(vec)], vec / np.linalg.norm(vec, ord=2)))
             else:
@@ -917,7 +963,10 @@ class TestBinaryTree(QiskitAquaTestCase):
 
         for control_key in range(32):
             # Build the circuit
-            tree.preparation_circuit(circ, register, control_register=control_register, control_key=control_key)
+            tree.preparation_circuit(circ,
+                                     register,
+                                     control_register=control_register,
+                                     control_key=control_key)
 
             # Swap the qubits to compare with vector
             circ.swap(register[0], register[2])
@@ -925,7 +974,8 @@ class TestBinaryTree(QiskitAquaTestCase):
             # Get the final state of the circuit
             state = np.real(self.final_state(circ))
 
-            # Make sure the state is the input vector if the correct control key is given, otherwise the |0> state.
+            # Make sure the state is the input vector
+            # if the correct control key is given, otherwise the |0> state.
             if control_key == 0:
                 self.assertTrue(np.allclose(state[:len(vec)], vec / np.linalg.norm(vec, ord=2)))
             else:
@@ -992,7 +1042,10 @@ class TestBinaryTree(QiskitAquaTestCase):
             circ = QuantumCircuit(register, ctrl_reg)
             ctrl_key = 0
 
-            tree.preparation_circuit(circ, register, control_register=ctrl_reg, control_key=ctrl_key)
+            tree.preparation_circuit(circ,
+                                     register,
+                                     control_register=ctrl_reg,
+                                     control_key=ctrl_key)
 
             circ.swap(register[0], register[1])
 
@@ -1011,13 +1064,16 @@ class TestBinaryTree(QiskitAquaTestCase):
             circ = QuantumCircuit(register, ctrl_reg)
             ctrl_key = 0
 
-            tree.preparation_circuit(circ, register, control_register=ctrl_reg, control_key=ctrl_key)
+            tree.preparation_circuit(circ, register,
+                                     control_register=ctrl_reg,
+                                     control_key=ctrl_key)
 
             circ.swap(register[0], register[2])
 
             state = np.real(TestBinaryTree.final_state(circ))
 
-            self.assertTrue(np.allclose(state[:len(vec)], vec / np.linalg.norm(vec, ord=2)))
+            self.assertTrue(np.allclose(state[:len(vec)],
+                                        vec / np.linalg.norm(vec, ord=2)))
 
     def test_prep_ctrl_initial_state(self):
         """Creates a state other than all |0> for the control register and tests controlled state preparation."""

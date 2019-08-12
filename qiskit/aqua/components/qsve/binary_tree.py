@@ -614,10 +614,12 @@ class BinaryTree:
         arr = np.empty(shape, dtype=object)
 
         # Returns the step (distance between elements) in the xth row of the array
-        step = lambda x: 2**(x + 1)
+        def step(x):
+            return 2**(x + 1)
 
         # Returns the skip (horizontal offset) in the xth row of the array
-        skip = lambda x: 2**x - 1
+        def skip(x):
+            return 2**x - 1
 
         # Loop through the tree and store the values as formatted strings
         for ii in range(len(self._tree) - 1):
@@ -635,17 +637,15 @@ class BinaryTree:
                 # Put the string in the array
                 arr[ii][col_index] = string
 
-        # Replace None objects with string separators.
-        # Note: To format correctly, the number of spaces must be the same as
-        # the number of chars in each value, which is by default 4.
-        arr[arr == None] = "    "
-
         # Format the array as a string
         string = ""
         for row in arr:
             rowstring = ""
             for elt in row:
-                rowstring += elt
+                if elt is None:
+                    rowstring += "    "
+                else:
+                    rowstring += elt
             rowstring += "\n"
             string += rowstring
         return string

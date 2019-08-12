@@ -38,16 +38,18 @@ References:
 # Imports
 from copy import deepcopy
 import operator
-import numpy as np
 import warnings
+
+import numpy as np
 
 from qiskit.aqua.circuits.gates.multi_control_toffoli_gate import mct
 from qiskit.aqua.components.qsve import BinaryTree
-from qiskit import QuantumRegister, QuantumCircuit, ClassicalRegister, execute, BasicAer, transpile
+from qiskit import QuantumRegister, QuantumCircuit, ClassicalRegister, execute, BasicAer
 from qiskit.aqua.components.initial_states import Custom
 
 
 class MatrixError(Exception):
+    """Error for matrix input to QSVE class."""
     pass
 
 
@@ -115,17 +117,13 @@ class QSVE:
         """The number of columns in the matrix."""
         return self._matrix_ncols
 
-    @property
-    def nprecision_bits(self):
-        """Returns the number of precision bits, i.e., the number of qubits used in the phase estimation register."""
-        return self._nprecision_bits
-
     def get_tree(self, index):
         """Returns the BinaryTree representing a matrix row."""
         return self._trees[index]
 
     @property
     def row_norm_tree(self):
+        """Returns the row norm tree of the matrix."""
         return self._make_row_norm_tree()
 
     def matrix_norm(self):
@@ -171,11 +169,8 @@ class QSVE:
                                                     2.00
                                             1.00            1.00
 
-        Returns:
+        Returns: BinaryTree
             The "row norm tree" described above.
-
-        Return type:
-            BinaryTree
         """
         # Return the BinaryTree made from the row norm vector
         return BinaryTree(self._row_norm_vector())
@@ -213,10 +208,10 @@ class QSVE:
             value = self._matrix[diag][diag]
 
             # Update the matrix
-            self._matrix[diag][diag] = value + norm
+            self._matrix[diag][diag] = value + fraction * norm
 
             # Update the BinaryTree
-            tree.update_entry(diag, value + norm)
+            tree.update_entry(diag, value + fraction * norm)
 
         # Set the shifted flag to True
         self._shifted = True
@@ -538,7 +533,7 @@ class QSVE:
         # Check input arguments
         # =====================
 
-        if type(circuit) != QuantumCircuit:
+        if not isinstance(circuit, QuantumCircuit):
             raise TypeError(
                 "The argument circuit must be of type qiskit.QuantumCircuit."
             )
@@ -583,7 +578,8 @@ class QSVE:
 
     @staticmethod
     def _iqft(circuit, register, final_swaps=False):
-        """Adds gates for the inverse quantum Fourier Transform (IQFT) to the input circuit in the specified register.
+        """Adds gates for the inverse quantum Fourier Transform (IQFT)
+        to the input circuit in the specified register.
 
         Args:
             circuit : qiskit.QuantumCircuit
@@ -591,6 +587,9 @@ class QSVE:
 
             register : qiskit.QuantumRegister
                 Register in the circuit where the QFT is performed.
+
+            final_swaps : bool
+                Determines whether to include swaps after the "main" IQFT gates.
 
         Returns:
             None
@@ -778,6 +777,12 @@ class QSVE:
 
             logical_barriers : bool (default: False)
                 If True, barriers are inserted in the circuit between logical components (subroutines).
+
+            kwargs
+                Keyword arguments for register names. Acceptable kwargs:
+                    (1) qpe_name -- name of QPE register.
+                    (2) row_name -- name of ROW register.
+                    (3) col_name -- name of COL register.
 
         Returns : qiskit.QuantumCircuit
             The quantum circuit with gates implementing the QSVE algorithm.
