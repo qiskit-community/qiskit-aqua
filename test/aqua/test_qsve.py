@@ -13,7 +13,6 @@
 # that they have been altered from the originals.
 
 # Imports
-import operator
 from copy import deepcopy
 import numpy as np
 import unittest
@@ -218,7 +217,8 @@ class TestQSVE(QiskitAquaTestCase):
 
         These theta values are 0.25 and 0.75, or 0.01 and 0.11 as binary decimals, respectively.
 
-        The identity matrix A = [[1, 0], [0, 1]] has singular value 1 and Froebenius norm sqrt(2). It follows that
+        The identity matrix A = [[1, 0], [0, 1]] has singular value 1 and Froebenius norm sqrt(2).
+        It follows that
 
                                     sigma / ||A||_F = 1 / sqrt(2)
 
@@ -226,14 +226,14 @@ class TestQSVE(QiskitAquaTestCase):
 
         we must have                cos(pi * theta) = 1 / sqrt(2),
 
-        which means that theta = - 0.25 or theta = 0.25. After mapping from the interval [-1/2, 1/2] to the interval
-        [0, 1] via
+        which means that theta = - 0.25 or theta = 0.25.
+        After mapping from the interval [-1/2, 1/2] to the interval [0, 1] via
 
                                     theta ----> theta           (if 0 <= theta <= 1 / 2)
                                     theta ----> theta + 1       (if -1 / 2 <= theta < 0)
 
-        (which is what we measure in QSVE), the possible outcomes are thus 0.25 and 0.75. These correspond to binary
-        decimals 0.01 and 0.10, respectively.
+        (which is what we measure in QSVE), the possible outcomes are thus 0.25 and 0.75.
+        These correspond to binary decimals 0.01 and 0.10, respectively.
 
         This test does QSVE on the identity matrix using 2, 3, 4, 5, and 6 precision qubits for QPE.
         """
@@ -260,7 +260,8 @@ class TestQSVE(QiskitAquaTestCase):
             self.assertEqual(len(thetas_binary), 2)
 
             # Convert the measured angles to floating point values
-            thetas = [qsve.binary_decimal_to_float(binary_decimal, big_endian=False) for binary_decimal in thetas_binary]
+            thetas = [qsve.binary_decimal_to_float(binary_decimal, big_endian=False)
+                      for binary_decimal in thetas_binary]
             thetas = [qsve.convert_measured(theta) for theta in thetas]
 
             # Make sure the theta values are correct
@@ -274,7 +275,8 @@ class TestQSVE(QiskitAquaTestCase):
                     A = [[cos(pi / 8), 0],
                          [0, sin(pi / 8)]]
 
-        The QSVE algorithm should be able to compute the singular values exactly with three qubits (or more).
+        The QSVE algorithm should be able to compute the singular values
+        exactly with three qubits (or more).
         """
         # Define the matrix
         matrix = np.array([[np.cos(np.pi / 8), 0], [0, np.sin(np.pi / 8)]])
@@ -287,7 +289,9 @@ class TestQSVE(QiskitAquaTestCase):
         # Get the quantum circuit for QSVE
         for nprecision_bits in range(3, 7):
             circuit = qsve.create_circuit(
-                nprecision_bits=nprecision_bits, init_state_row_and_col=[1, 1, 1, 1], terminal_measurements=True
+                nprecision_bits=nprecision_bits,
+                init_state_row_and_col=[1, 1, 1, 1],
+                terminal_measurements=True
             )
             # Run the quantum circuit for QSVE
             sim = BasicAer.get_backend("qasm_simulator")
@@ -299,7 +303,8 @@ class TestQSVE(QiskitAquaTestCase):
             thetas_binary = np.array(list(counts.keys()))
 
             # Convert from the binary strings to theta values
-            computed = [qsve.convert_measured(qsve.binary_decimal_to_float(bits)) for bits in thetas_binary]
+            computed = [qsve.convert_measured(qsve.binary_decimal_to_float(bits))
+                        for bits in thetas_binary]
 
             # Convert from theta values to singular values
             qsigmas = [np.cos(np.pi * theta) for theta in computed if theta > 0]
@@ -322,14 +327,17 @@ class TestQSVE(QiskitAquaTestCase):
         # Define the matrix
         matrix = np.array([[np.cos(3 * np.pi / 8), 0], [0, np.sin(3 * np.pi / 8)]])
 
-        # Do the classical SVD. (Note: We could just access the singular values from the diagonal matrix elements.)
+        # Do the classical SVD.
+        # (Note: We could just access the singular values from the diagonal matrix elements.)
         _, sigmas, _ = np.linalg.svd(matrix)
 
         # Get the quantum circuit for QSVE
         for nprecision_bits in range(3, 7):
             qsve = QSVE(matrix)
             circuit = qsve.create_circuit(
-                nprecision_bits=nprecision_bits, init_state_row_and_col=[1, 1, 1, 1], terminal_measurements=True
+                nprecision_bits=nprecision_bits,
+                init_state_row_and_col=[1, 1, 1, 1],
+                terminal_measurements=True
             )
 
             # Run the quantum circuit for QSVE
@@ -342,7 +350,8 @@ class TestQSVE(QiskitAquaTestCase):
             thetas_binary = np.array(list(counts.keys()))
 
             # Convert from the binary strings to theta values
-            computed = [qsve.convert_measured(qsve.binary_decimal_to_float(bits)) for bits in thetas_binary]
+            computed = [qsve.convert_measured(qsve.binary_decimal_to_float(bits))
+                        for bits in thetas_binary]
 
             # Convert from theta values to singular values
             qsigmas = [np.cos(np.pi * theta) for theta in computed if theta > 0]
@@ -360,19 +369,23 @@ class TestQSVE(QiskitAquaTestCase):
                     A = [[cos(3 * pi / 8), 0],
                          [0, sin(3 * pi / 8)]]
 
-        with an input singular vector. Checks that only one singular value is present in the measurement outcome.
+        with an input singular vector.
+        Checks that only one singular value is present in the measurement outcome.
         """
         # Define the matrix
         matrix = np.array([[np.cos(3 * np.pi / 8), 0], [0, np.sin(3 * np.pi / 8)]])
 
-        # Do the classical SVD. (Note: We could just access the singular values from the diagonal matrix elements.)
+        # Do the classical SVD.
+        # (Note: We could just access the singular values from the diagonal matrix elements.)
         _, sigmas, _ = np.linalg.svd(matrix)
 
         # Get the quantum circuit for QSVE
         for nprecision_bits in range(3, 7):
             qsve = QSVE(matrix)
             circuit = qsve.create_circuit(
-                nprecision_bits=nprecision_bits, init_state_row_and_col=[1, 0, 0, 0], terminal_measurements=True
+                nprecision_bits=nprecision_bits,
+                init_state_row_and_col=[1, 0, 0, 0],
+                terminal_measurements=True
             )
 
             # Run the quantum circuit for QSVE
@@ -385,7 +398,8 @@ class TestQSVE(QiskitAquaTestCase):
             thetas_binary = np.array(list(counts.keys()))
 
             # Convert from the binary strings to theta values
-            computed = [qsve.convert_measured(qsve.binary_decimal_to_float(bits)) for bits in thetas_binary]
+            computed = [qsve.convert_measured(qsve.binary_decimal_to_float(bits))
+                        for bits in thetas_binary]
 
             # Convert from theta values to singular values
             qsigmas = [np.cos(np.pi * theta) for theta in computed if theta > 0]
@@ -403,19 +417,23 @@ class TestQSVE(QiskitAquaTestCase):
                     A = [[cos(3 * pi / 8), 0],
                          [0, sin(3 * pi / 8)]]
 
-        with an input singular vector. Checks that only one singular value is present in the measurement outcome.
+        with an input singular vector.
+        Checks that only one singular value is present in the measurement outcome.
         """
         # Define the matrix
         matrix = np.array([[np.cos(3 * np.pi / 8), 0], [0, np.sin(3 * np.pi / 8)]])
 
-        # Do the classical SVD. (Note: We could just access the singular values from the diagonal matrix elements.)
+        # Do the classical SVD.
+        # (Note: We could just access the singular values from the diagonal matrix elements.)
         _, sigmas, _ = np.linalg.svd(matrix)
 
         # Get the quantum circuit for QSVE
         for nprecision_bits in range(3, 7):
             qsve = QSVE(matrix)
             circuit = qsve.create_circuit(
-                nprecision_bits=nprecision_bits, init_state_row_and_col=[0, 1, 0, 0], terminal_measurements=True
+                nprecision_bits=nprecision_bits,
+                init_state_row_and_col=[0, 1, 0, 0],
+                terminal_measurements=True
             )
 
             # Run the quantum circuit for QSVE
@@ -428,7 +446,8 @@ class TestQSVE(QiskitAquaTestCase):
             thetas_binary = np.array(list(counts.keys()))
 
             # Convert from the binary strings to theta values
-            computed = [qsve.convert_measured(qsve.binary_decimal_to_float(bits)) for bits in thetas_binary]
+            computed = [qsve.convert_measured(qsve.binary_decimal_to_float(bits))
+                        for bits in thetas_binary]
 
             # Convert from theta values to singular values
             qsigmas = [np.cos(np.pi * theta) for theta in computed if theta > 0]
@@ -458,11 +477,14 @@ class TestQSVE(QiskitAquaTestCase):
             self.assertTrue(np.allclose(vmat.conj().T @ vmat, iden))
 
             # Make sure U^dagger V = V^dagger U = A / ||A||_F
-            self.assertTrue(np.allclose(umat.conj().T @ vmat, matrix / np.linalg.norm(matrix, ord="fro")))
-            self.assertTrue(np.allclose(vmat.conj().T @ umat, matrix / np.linalg.norm(matrix, ord="fro")))
+            self.assertTrue(np.allclose(umat.conj().T @ vmat,
+                                        matrix / np.linalg.norm(matrix, ord="fro")))
+            self.assertTrue(np.allclose(vmat.conj().T @ umat,
+                                        matrix / np.linalg.norm(matrix, ord="fro")))
 
     def test_isometries_four_by_four(self):
-        """Tests that the row (norm) isometry is indeed an isometry for random four by four matrices."""
+        """Tests that the row (norm) isometry is indeed an isometry
+         for random four by four matrices."""
         iden = np.identity(4)
         for _ in range(100):
             # Get a Hermitian matrix
@@ -479,14 +501,17 @@ class TestQSVE(QiskitAquaTestCase):
             self.assertTrue(np.allclose(vmat.conj().T @ vmat, iden))
 
             # Make sure U^dagger V = V^dagger U = A / ||A||_F
-            self.assertTrue(np.allclose(umat.conj().T @ vmat, matrix / np.linalg.norm(matrix, ord="fro")))
-            self.assertTrue(np.allclose(vmat.conj().T @ umat, matrix / np.linalg.norm(matrix, ord="fro")))
+            self.assertTrue(np.allclose(umat.conj().T @ vmat,
+                                        matrix / np.linalg.norm(matrix, ord="fro")))
+            self.assertTrue(np.allclose(vmat.conj().T @ umat,
+                                        matrix / np.linalg.norm(matrix, ord="fro")))
 
             # Make sure rank(U U^dagger) = 4
             self.assertEqual(np.linalg.matrix_rank(umat @ umat.conj().T), len(matrix))
 
     def test_isometries_large_matrix(self):
-        """Tests that the row isometry is indeed an isometry for random 16 x 16 matrices."""
+        """Tests that the row isometry is indeed an isometry
+        for random 16 x 16 matrices."""
         iden = np.identity(16)
         for _ in range(100):
             # Get a random Hermitian matrix
@@ -503,8 +528,10 @@ class TestQSVE(QiskitAquaTestCase):
             self.assertTrue(np.allclose(vmat.conj().T @ vmat, iden))
 
             # Make sure U^dagger V = V^dagger U = A / ||A||_F
-            self.assertTrue(np.allclose(umat.conj().T @ vmat, matrix / np.linalg.norm(matrix, ord="fro")))
-            self.assertTrue(np.allclose(vmat.conj().T @ umat, matrix / np.linalg.norm(matrix, ord="fro")))
+            self.assertTrue(np.allclose(umat.conj().T @ vmat,
+                                        matrix / np.linalg.norm(matrix, ord="fro")))
+            self.assertTrue(np.allclose(vmat.conj().T @ umat,
+                                        matrix / np.linalg.norm(matrix, ord="fro")))
 
             # Make sure rank(U U^dagger) = 256
             self.assertEqual(np.linalg.matrix_rank(vmat @ vmat.conj().T), len(matrix))
@@ -722,13 +749,7 @@ class TestQSVE(QiskitAquaTestCase):
 
         for _ in range(10):
             matrix = np.random.randn(2, 2)
-            matrix += matrix.conj().T
             qsve = QSVE(matrix)
-
-            print("Matrix:")
-            print(matrix)
-
-            sigmas = qsve.singular_values_classical()
 
             n = 6
             qsigmas = qsve.top_singular_values(
@@ -738,40 +759,26 @@ class TestQSVE(QiskitAquaTestCase):
                 ntop=4
             )
 
-            print("Sigmas:", sigmas)
-            print("QSigmas:", qsigmas)
-            print("Max theory error:", qsve.max_error(n))
             self.assertTrue(qsve.has_value_close_to_singular_values(qsigmas, qsve.max_error(n)))
-            print("Success!\n\n")
 
-    def test_singular_values_random4x4(self):
-        """Tests computing the singular values for random 4 x 4 matrices."""
-        for _ in range(10):
-            matrix = np.random.randn(4, 4)
-            matrix += matrix.conj().T
-            qsve = QSVE(matrix)
+    # Note: This test is commented out because it takes a while (~40 minutes) to run
+    # def test_singular_values_random4x4(self):
+    #     """Tests computing the singular values for random 4 x 4 matrices."""
+    #     for _ in range(10):
+    #         matrix = np.random.randn(4, 4)
+    #         qsve = QSVE(matrix)
+    #
+    #         n = 6
+    #         qsigmas = qsve.top_singular_values(
+    #             nprecision_bits=n,
+    #             init_state_row_and_col=None,
+    #             shots=50000,
+    #             ntop=4
+    #         )
+    #
+    #         self.assertTrue(qsve.has_value_close_to_singular_values(qsigmas, qsve.max_error(n)))
 
-            print("Matrix:")
-            print(matrix)
-
-            sigmas = qsve.singular_values_classical()
-
-            print("Sigmas:", sigmas)
-
-            n = 6
-            qsigmas = qsve.top_singular_values(
-                nprecision_bits=n,
-                init_state_row_and_col=None,
-                shots=50000,
-                ntop=4
-            )
-
-            print("QSigmas:", qsigmas)
-            print("Max theory error:", qsve.max_error(n))
-            self.assertTrue(qsve.has_value_close_to_singular_values(qsigmas, qsve.max_error(n)))
-            print("Success!\n\n")
-
-    # Note: This test takes a while (around an hour) to run
+    # Note: This test takes a while (>= an hour) to run
     # def test_singular_values_random8x8(self):
     #     """Tests computing the singular values for random 8 x 8 matrices."""
     #     for _ in range(10):
