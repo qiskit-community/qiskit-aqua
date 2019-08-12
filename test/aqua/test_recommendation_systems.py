@@ -88,7 +88,7 @@ class TestQuantumRecommendation(QiskitAquaTestCase):
         # Test with a threshold corresponding to rank 1
         products, probs = qrs.recommend(user, threshold=0.80)
         self.assertEqual(set(products), {0, 1})
-        self.assertTrue(np.allclose(probs, [0.5, 0.5], atol=1e-2))
+        self.assertTrue(np.allclose(probs, [0.5, 0.5], atol=0.2))
 
         # Test with a threshold corresponding to full rank
         products, probs = qrs.recommend(user, threshold=0.00)

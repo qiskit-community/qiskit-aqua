@@ -16,7 +16,8 @@
 import numpy as np
 import unittest
 from itertools import permutations
-from test.aqua.common import QiskitAquaTestCase
+# from test.aqua.common import QiskitAquaTestCase
+from common import QiskitAquaTestCase
 from qiskit.aqua.components.qsve import BinaryTree
 from qiskit import QuantumRegister, QuantumCircuit, execute, BasicAer
 
