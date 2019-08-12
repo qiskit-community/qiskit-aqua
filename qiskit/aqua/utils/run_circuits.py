@@ -21,11 +21,10 @@ import uuid
 
 import numpy as np
 from qiskit import compiler
-from qiskit.assembler import assemble_circuits
 from qiskit.providers import BaseBackend, JobStatus, JobError
 from qiskit.providers.jobstatus import JOB_FINAL_STATES
 from qiskit.providers.basicaer import BasicAerJob
-from qiskit.qobj import QobjHeader, QasmQobj
+from qiskit.qobj import QasmQobj
 from qiskit.aqua.aqua_error import AquaError
 from qiskit.aqua.utils import summarize_circuits
 from qiskit.aqua.utils.backend_utils import (is_aer_provider,
@@ -120,9 +119,7 @@ def _compile_wrapper(circuits, backend, backend_config, compile_config, run_conf
     transpiled_circuits = compiler.transpile(circuits, backend, **backend_config, **compile_config)
     if not isinstance(transpiled_circuits, list):
         transpiled_circuits = [transpiled_circuits]
-
-    qobj = assemble_circuits(transpiled_circuits, qobj_id=str(uuid.uuid4()), qobj_header=QobjHeader(),
-                             run_config=run_config)
+    qobj = compiler.assemble(transpiled_circuits, **run_config.to_dict())
     return qobj, transpiled_circuits
 
 
@@ -460,15 +457,8 @@ def run_on_backend(backend, qobj, backend_options=None, noise_config=None, skip_
             backend._set_options(qobj_config=qobj.config, **backend_options)
             job = BasicAerJob(backend, job_id, backend._run_job, qobj)
             job._future = job._executor.submit(job._fn, job._job_id, job._qobj)
-        elif is_ibmq_provider(backend):
-            # TODO: IBMQJob performs validation during the constructor. the following lines does not
-            # skip validation but run as is.
-            # pylint: disable=no-name-in-module, import-error
-            from qiskit.providers.ibmq.job import IBMQJob
-            job = IBMQJob(backend, None, backend._api, qobj=qobj)
-            job._future = job._executor.submit(job._submit_callback)
         else:
-            logger.info("Can't skip qobj validation for the third-party provider.")
+            logger.info("Can't skip qobj validation for the {} provider.".format(backend.provider().__class__.__name__))
             job = backend.run(qobj, **backend_options, **noise_config)
         return job
     else:

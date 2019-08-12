@@ -19,6 +19,7 @@ import logging
 import json
 from operator import iadd as op_iadd, isub as op_isub
 import sys
+import warnings
 
 import numpy as np
 from scipy import sparse as scisparse
@@ -31,7 +32,7 @@ from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
 
 from qiskit.aqua import AquaError, aqua_globals
-from qiskit.aqua.utils import PauliGraph, compile_and_run_circuits, find_regs_by_name
+from qiskit.aqua.operators import PauliGraph
 from qiskit.aqua.utils.backend_utils import is_statevector_backend
 
 logger = logging.getLogger(__name__)
@@ -55,6 +56,10 @@ class Operator(object):
             matrix (numpy.ndarray or scipy.sparse.csr_matrix) : a 2-D sparse matrix represents operator (using CSR format internally)
             coloring (bool): method to group paulis.
         """
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
         self._paulis = paulis
         self._coloring = coloring
         self._grouped_paulis = grouped_paulis
@@ -97,8 +102,9 @@ class Operator(object):
                     lhs._paulis[idx][0] = operation(lhs._paulis[idx][0], pauli[0])
                 else:
                     lhs._paulis_table[pauli_label] = len(lhs._paulis)
-                    pauli[0] = operation(0.0, pauli[0])
-                    lhs._paulis.append(pauli)
+                    new_pauli = copy.deepcopy(pauli)
+                    new_pauli[0] = operation(0.0, pauli[0])
+                    lhs._paulis.append(new_pauli)
         elif lhs._grouped_paulis is not None and rhs._grouped_paulis is not None:
             lhs._grouped_paulis_to_paulis()
             rhs._grouped_paulis_to_paulis()
@@ -106,6 +112,7 @@ class Operator(object):
             lhs._paulis_to_grouped_paulis()
         elif lhs._matrix is not None and rhs._matrix is not None:
             lhs._matrix = operation(lhs._matrix, rhs._matrix)
+            lhs._to_dia_matrix(mode='matrix')
         else:
             raise TypeError("the representations of two Operators should be the same. ({}, {})".format(
                 lhs.representations, rhs.representations))
@@ -187,6 +194,10 @@ class Operator(object):
 
     def copy(self):
         """Get a copy of self."""
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
         return copy.deepcopy(self)
 
     def chop(self, threshold=1e-15):
@@ -200,6 +211,11 @@ class Operator(object):
         Args:
             threshold (float): threshold chops the paulis
         """
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
+
         def chop_real_imag(coeff, threshold):
             temp_real = coeff.real if np.absolute(coeff.real) >= threshold else 0.0
             temp_imag = coeff.imag if np.absolute(coeff.imag) >= threshold else 0.0
@@ -245,6 +261,10 @@ class Operator(object):
 
         Usually used in construction.
         """
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
         if self._paulis is not None:
             new_paulis = []
             new_paulis_table = {}
@@ -304,15 +324,27 @@ class Operator(object):
     @property
     def coloring(self):
         """Getter of method of grouping paulis"""
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
         return self._coloring
 
     @coloring.setter
     def coloring(self, new_coloring):
         """Setter of method of grouping paulis"""
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
         self._coloring = new_coloring
 
     @property
     def aer_paulis(self):
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
         if getattr(self, '_aer_paulis', None) is None:
             self.to_paulis()
             aer_paulis = []
@@ -331,6 +363,10 @@ class Operator(object):
         Args:
             mode (str): "matrix", "paulis" or "grouped_paulis".
         """
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
         if mode not in ['matrix', 'paulis', 'grouped_paulis']:
             raise ValueError(
                 'Mode should be one of "matrix", "paulis", "grouped_paulis"')
@@ -358,23 +394,35 @@ class Operator(object):
         elif mode == 'grouped_paulis' and self._grouped_paulis is not None:
             self._grouped_paulis_to_paulis()
             self._to_dia_matrix(mode='paulis')
-
+            self._paulis_to_grouped_paulis()
         else:
             self._dia_matrix = None
 
     @property
     def paulis(self):
         """Getter of Pauli list."""
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
         return self._paulis
 
     @property
     def grouped_paulis(self):
         """Getter of grouped Pauli list."""
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
         return self._grouped_paulis
 
     @property
     def matrix(self):
         """Getter of matrix; if matrix is diagonal, diagonal matrix is returned instead."""
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
         return self._dia_matrix if self._dia_matrix is not None else self._matrix
 
     def enable_summarize_circuits(self):
@@ -391,6 +439,10 @@ class Operator(object):
         Returns:
             list: available representations ([str])
         """
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
         ret = []
         if self._paulis is not None:
             ret.append("paulis")
@@ -409,6 +461,10 @@ class Operator(object):
             int: number of qubits
 
         """
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
         if self._paulis is not None:
             if self._paulis != []:
                 return len(self._paulis[0][1])
@@ -431,6 +487,9 @@ class Operator(object):
         Returns:
             Operator class: the loaded operator.
         """
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the `WeightedPauliOperator` class to load the operator",
+                      DeprecationWarning)
         with open(file_name, 'r') as file:
             return Operator.load_from_dict(json.load(file), before_04=before_04)
 
@@ -442,6 +501,10 @@ class Operator(object):
             file_name (str): path to the file
 
         """
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
         with open(file_name, 'w') as f:
             json.dump(self.save_to_dict(), f)
 
@@ -468,6 +531,10 @@ class Operator(object):
         Returns:
             Operator: the loaded operator.
         """
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
         if 'paulis' not in dictionary:
             raise AquaError('Dictionary missing "paulis" key')
 
@@ -500,6 +567,10 @@ class Operator(object):
         Returns:
             dict: a dictionary contains an operator with pauli representation.
         """
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
         self._check_representation("paulis")
         ret_dict = {"paulis": []}
         for pauli in self._paulis:
@@ -515,6 +586,36 @@ class Operator(object):
 
         return ret_dict
 
+    @staticmethod
+    def from_file(file_name, before_04=False):
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
+        return Operator.load_from_file(file_name, before_04)
+
+    def to_file(self, file_name):
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
+        self.save_to_file(file_name)
+
+    @staticmethod
+    def from_dict(dictionary, before_04=False):
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
+        return Operator.load_from_dict(dictionary, before_04)
+
+    def to_dict(self):
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
+        return self.save_to_dict()
+
     def print_operators(self, print_format='paulis'):
         """
         Print out the paulis in the selected representation.
@@ -528,6 +629,10 @@ class Operator(object):
         Raises:
             ValueError: if `print_format` is not supported.
         """
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
         ret = ""
         if print_format == 'paulis':
             self._check_representation("paulis")
@@ -576,7 +681,12 @@ class Operator(object):
                        quantum register explicitly
             AquaError: The provided qr is not in the input_circuit
         """
+        from qiskit.aqua.utils.run_circuits import find_regs_by_name
 
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
         if qr is None:
             qr = find_regs_by_name(input_circuit, 'q')
             if qr is None:
@@ -677,6 +787,10 @@ class Operator(object):
             float: the mean value
             float: the standard deviation
         """
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
         avg, std_dev, variance = 0.0, 0.0, 0.0
         if is_statevector_backend(backend):
             if operator_mode == "matrix":
@@ -798,6 +912,12 @@ class Operator(object):
         Returns:
             float, float: mean and standard deviation of avg
         """
+        from qiskit.aqua.utils.run_circuits import compile_and_run_circuits
+
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
         backend_config = backend_config or {}
         compile_config = compile_config or {}
         if run_config is not None:
@@ -825,12 +945,24 @@ class Operator(object):
         return avg, std_dev
 
     def to_paulis(self):
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
         self._check_representation('paulis')
 
     def to_grouped_paulis(self):
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
         self._check_representation('grouped_paulis')
 
     def to_matrix(self):
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
         self._check_representation('matrix')
 
     def convert(self, input_format, output_format, force=False):
@@ -849,6 +981,11 @@ class Operator(object):
         Raises:
             ValueError: if the unsupported output_format is specified.
         """
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
+
         input_format = input_format.lower()
         output_format = output_format.lower()
 
@@ -1107,6 +1244,11 @@ class Operator(object):
             Operator: a new operator whose qubit number is reduced by 2.
 
         """
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
+
         if self._paulis is None or self._paulis == []:
             return self
 
@@ -1155,6 +1297,11 @@ class Operator(object):
         Returns:
             list: The list of pauli terms
         """
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
+
         if self._paulis is not None:
             return [] + self._paulis
         else:
@@ -1186,6 +1333,11 @@ class Operator(object):
         Returns:
             QuantumCircuit: The Qiskit QuantumCircuit corresponding to specified evolution.
         """
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
+
         if state_registers is None:
             raise ValueError('Quantum state registers are required.')
 
@@ -1392,6 +1544,11 @@ class Operator(object):
             or the constructed QuantumCircuit.
 
         """
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
+
         # pylint: disable=no-member
         if num_time_slices < 0 or not isinstance(num_time_slices, int):
             raise ValueError('Number of time slices should be a non-negative integer.')
@@ -1461,6 +1618,11 @@ class Operator(object):
         Returns:
             bool: is empty?
         """
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
+
         if self._matrix is None and self._dia_matrix is None \
                 and (self._paulis == [] or self._paulis is None) \
                 and (self._grouped_paulis == [] or self._grouped_paulis is None):
@@ -1526,6 +1688,10 @@ class Operator(object):
         Returns:
             numpy.ndarray : matrix_in in Echelon row form
         """
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
 
         size = matrix_in.shape
 
@@ -1565,6 +1731,9 @@ class Operator(object):
         Returns:
             [numpy.ndarray]: the list of kernel vectors
         """
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`", DeprecationWarning)
 
         size = matrix_in.shape
         kernel = []
@@ -1588,6 +1757,9 @@ class Operator(object):
             [Operators]: the list of Clifford unitaries to block diagonalize Operator
             [int]: the list of support of the single-qubit Pauli objects used to build the clifford operators
         """
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`", DeprecationWarning)
 
         Pauli_symmetries = []
         sq_paulis = []
@@ -1700,6 +1872,9 @@ class Operator(object):
         Returns:
             Operator : the tapered operator, or empty operator if the `operator` is empty.
         """
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`", DeprecationWarning)
 
         if len(cliffords) == 0 or len(sq_list) == 0 or len(tapering_values) == 0:
             logger.warning("Cliffords, single qubit list and tapering values cannot be empty.\n"
@@ -1747,6 +1922,10 @@ class Operator(object):
         The difference from `_simplify_paulis` method is that, this method will not remove duplicated
         paulis.
         """
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`", DeprecationWarning)
+
         if self._paulis is not None:
             new_paulis = [pauli for pauli in self._paulis if pauli[0] != 0]
             self._paulis = new_paulis
@@ -1767,14 +1946,40 @@ class Operator(object):
         Args:
             scaling_factor (float): the sacling factor
         """
+        warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
+                      "Use the class for each representation instead, including `MatrixOperator`, "
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`", DeprecationWarning)
+
         if self._paulis is not None:
             for idx in range(len(self._paulis)):
                 self._paulis[idx] = [self._paulis[idx][0] * scaling_factor, self._paulis[idx][1]]
         elif self._grouped_paulis is not None:
             self._grouped_paulis_to_paulis()
-            # self._scale_paulis(scaling_factor)
+            self.scaling_coeff(scaling_factor)
             self._paulis_to_grouped_paulis()
         elif self._matrix is not None:
             self._matrix *= scaling_factor
             if self._dia_matrix is not None:
                 self._dia_matrix *= scaling_factor
+
+    def to_matrix_operator(self):
+        from qiskit.aqua.operators import MatrixOperator
+        ret = self.copy()
+        ret.to_matrix()
+        return MatrixOperator(matrix=ret._matrix)
+
+    def to_weighted_pauli_operator(self):
+        from qiskit.aqua.operators import WeightedPauliOperator
+        ret = self.copy()
+        ret.to_paulis()
+        return WeightedPauliOperator(paulis=ret._paulis)
+
+    def to_tpb_grouped_weighted_pauli_operator(self):
+        from qiskit.aqua.operators import TPBGroupedWeightedPauliOperator
+
+        ret = self.to_weighted_pauli_operator()
+        if self.coloring:
+            ret = TPBGroupedWeightedPauliOperator.sorted_grouping(ret)
+        else:
+            ret = TPBGroupedWeightedPauliOperator.unsorted_grouping(ret)
+        return ret

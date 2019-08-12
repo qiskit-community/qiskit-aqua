@@ -18,6 +18,7 @@ import numpy as np
 from parameterized import parameterized
 
 from test.chemistry.common import QiskitChemistryTestCase
+from qiskit.aqua.operators import op_converter
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
@@ -89,10 +90,10 @@ class TestInitialStateHartreeFock(QiskitChemistryTestCase):
                            orbital_reduction=[])
 
         qubit_op, _ = core.run(qmolecule)
-
+        qubit_op = op_converter.to_matrix_operator(qubit_op)
         hf = HartreeFock(qubit_op.num_qubits, core.molecule_info['num_orbitals'], core.molecule_info['num_particles'], mapping.value, False)
         qc = hf.construct_circuit('vector')
-        hf_energy = qubit_op.eval('matrix', qc, None)[0].real + core._nuclear_repulsion_energy
+        hf_energy = qubit_op.evaluate_with_statevector(qc)[0].real + core._nuclear_repulsion_energy
 
         self.assertAlmostEqual(qmolecule.hf_energy, hf_energy, places=8)
 

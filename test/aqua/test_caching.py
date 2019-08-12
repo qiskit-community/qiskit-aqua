@@ -8,13 +8,14 @@ import pickle
 
 from qiskit import BasicAer
 from test.aqua.common import QiskitAquaTestCase
-from qiskit.aqua import Operator, QuantumInstance, QiskitAqua
+from qiskit.aqua import QuantumInstance, QiskitAqua
 from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.components.variational_forms import RY, RYRZ
 from qiskit.aqua.components.optimizers import L_BFGS_B
 from qiskit.aqua.components.initial_states import Zero
 from qiskit.aqua.algorithms.adaptive import VQE
 from qiskit.aqua.utils import CircuitCache
+from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.qobj import Qobj
 
 
@@ -31,15 +32,18 @@ class TestCaching(QiskitAquaTestCase):
                        {"coeff": {"imag": 0.0, "real": 0.18093119978423156}, "label": "XX"}
                        ]
         }
-        qubit_op = Operator.load_from_dict(pauli_dict)
+        qubit_op = WeightedPauliOperator.from_dict(pauli_dict)
         self.algo_input = EnergyInput(qubit_op)
+
+        # TODO: only work with optimization_level 0 now
+        self.optimization_level = 0
 
     def _build_refrence_result(self, backends):
         res = {}
+        os.environ.pop('QISKIT_AQUA_CIRCUIT_CACHE', None)
         for backend in backends:
             params_no_caching = {
-                'algorithm': {'name': 'VQE',
-                              'operator_mode': 'matrix' if backend == 'statevector_simulator' else 'paulis'},
+                'algorithm': {'name': 'VQE'},
                 'problem': {'name': 'energy',
                             'random_seed': 50,
                             'circuit_caching': False,
@@ -54,6 +58,7 @@ class TestCaching(QiskitAquaTestCase):
                 params_no_caching['optimizer'] = {'name': 'SPSA', 'max_trials': 15}
             qiskit_aqua = QiskitAqua(params_no_caching, self.algo_input)
             res[backend] = qiskit_aqua.run()
+        os.environ['QISKIT_AQUA_CIRCUIT_CACHE'] = '1'
         self.reference_vqe_result = res
 
     @parameterized.expand([
@@ -66,9 +71,10 @@ class TestCaching(QiskitAquaTestCase):
         self._build_refrence_result(backends=[backend])
         skip_validation = True
         params_caching = {
-            'algorithm': {'name': 'VQE', 'operator_mode': 'matrix' if backend == 'statevector_simulator' else 'paulis'},
+            'algorithm': {'name': 'VQE'},
             'problem': {'name': 'energy',
                         'random_seed': 50,
+                        'circuit_optimization_level': self.optimization_level,
                         'circuit_caching': caching,
                         'skip_qobj_deepcopy': skip_qobj_deepcopy,
                         'skip_qobj_validation': skip_validation,
@@ -97,18 +103,19 @@ class TestCaching(QiskitAquaTestCase):
         [4],
         [1]
     ])
-    def test_vqe_caching_direct(self, max_evals_grouped=1):
+    def test_vqe_caching_direct(self, max_evals_grouped):
         self._build_refrence_result(backends=['statevector_simulator'])
         backend = BasicAer.get_backend('statevector_simulator')
         num_qubits = self.algo_input.qubit_op.num_qubits
         init_state = Zero(num_qubits)
         var_form = RY(num_qubits, 3, initial_state=init_state)
         optimizer = L_BFGS_B()
-        algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'matrix', max_evals_grouped=max_evals_grouped)
+        algo = VQE(self.algo_input.qubit_op, var_form, optimizer, max_evals_grouped=max_evals_grouped)
         quantum_instance_caching = QuantumInstance(backend,
                                                    circuit_caching=True,
                                                    skip_qobj_deepcopy=True,
-                                                   skip_qobj_validation=True)
+                                                   skip_qobj_validation=True,
+                                                   optimization_level=self.optimization_level)
         result_caching = algo.run(quantum_instance_caching)
         self.assertLessEqual(quantum_instance_caching.circuit_cache.misses, 0)
         self.assertAlmostEqual(self.reference_vqe_result['statevector_simulator']['energy'], result_caching['energy'])
@@ -117,13 +124,12 @@ class TestCaching(QiskitAquaTestCase):
         self.assertLess(speedup, speedup_min)
 
     def test_saving_and_loading_e2e(self):
-        self._build_refrence_result(backends=['statevector_simulator'])
         backend = BasicAer.get_backend('statevector_simulator')
         num_qubits = self.algo_input.qubit_op.num_qubits
         init_state = Zero(num_qubits)
-        var_form = RY(num_qubits, 3, initial_state=init_state)
-        optimizer = L_BFGS_B()
-        algo = VQE(self.algo_input.qubit_op, var_form, optimizer, 'matrix')
+        var_form = RY(num_qubits, 1, initial_state=init_state)
+        optimizer = L_BFGS_B(maxiter=10)
+        algo = VQE(self.algo_input.qubit_op, var_form, optimizer)
 
         with tempfile.NamedTemporaryFile(suffix='.inp', delete=True) as cache_tmp_file:
             cache_tmp_file_name = cache_tmp_file.name
@@ -131,7 +137,8 @@ class TestCaching(QiskitAquaTestCase):
                                                        circuit_caching=True,
                                                        cache_file=cache_tmp_file_name,
                                                        skip_qobj_deepcopy=True,
-                                                       skip_qobj_validation=True)
+                                                       skip_qobj_validation=True,
+                                                       optimization_level=self.optimization_level)
             algo.run(quantum_instance_caching)
             self.assertLessEqual(quantum_instance_caching.circuit_cache.misses, 0)
 
@@ -155,7 +162,8 @@ class TestCaching(QiskitAquaTestCase):
                                                 circuit_caching=True,
                                                 cache_file=cache_tmp_file_name,
                                                 skip_qobj_deepcopy=True,
-                                                skip_qobj_validation=True)
+                                                skip_qobj_validation=True,
+                                                optimization_level=self.optimization_level)
 
             _ = quantum_instance0.execute([circ0])
             with open(cache_tmp_file_name, "rb") as cache_handler:
@@ -170,7 +178,8 @@ class TestCaching(QiskitAquaTestCase):
                                                 circuit_caching=True,
                                                 cache_file=cache_tmp_file_name,
                                                 skip_qobj_deepcopy=True,
-                                                skip_qobj_validation=True)
+                                                skip_qobj_validation=True,
+                                                optimization_level=self.optimization_level)
 
             params1 = np.random.random(var_form.num_parameters)
             circ1 = var_form.construct_circuit(params1)

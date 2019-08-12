@@ -21,7 +21,7 @@
                 },
                 "circuit_caching": {
                     "type": "boolean",
-                    "default": true
+                    "default": false
                 },
                 "circuit_optimization_level": {
                     "type": ["integer", "string"],
@@ -30,7 +30,7 @@
                 },
                 "skip_qobj_deepcopy": {
                     "type": "boolean",
-                    "default": true
+                    "default": false
                 },
                 "circuit_cache_file": {
                     "type": ["string", "null"],

@@ -15,15 +15,12 @@
 import copy
 import logging
 import time
+import os
 
-from qiskit import __version__ as terra_version
 from qiskit.assembler.run_config import RunConfig
-from qiskit.transpiler import Layout, CouplingMap
 
 from .aqua_error import AquaError
-from .utils import (run_qobj, compile_circuits, CircuitCache,
-                    get_measured_qubits_from_qobj,
-                    build_measurement_error_mitigation_qobj)
+from .utils import CircuitCache
 from .utils.backend_utils import (is_ibmq_provider,
                                   is_statevector_backend,
                                   is_simulator_backend,
@@ -61,7 +58,7 @@ class QuantumInstance:
                  # job
                  timeout=None, wait=5,
                  # others
-                 circuit_caching=True, cache_file=None, skip_qobj_deepcopy=True,
+                 circuit_caching=False, cache_file=None, skip_qobj_deepcopy=False,
                  skip_qobj_validation=True,
                  measurement_error_mitigation_cls=None, cals_matrix_refresh_period=30,
                  measurement_error_mitigation_shots=None,
@@ -125,16 +122,12 @@ class QuantumInstance:
         # setup backend config
         basis_gates = basis_gates or backend.configuration().basis_gates
         coupling_map = coupling_map or getattr(backend.configuration(), 'coupling_map', None)
-        if coupling_map is not None and not isinstance(coupling_map, CouplingMap):
-            coupling_map = CouplingMap(coupling_map)
         self._backend_config = {
             'basis_gates': basis_gates,
             'coupling_map': coupling_map
         }
 
         # setup compile config
-        if initial_layout is not None and not isinstance(initial_layout, Layout):
-            initial_layout = Layout(initial_layout)
         self._compile_config = {
             'pass_manager': pass_manager,
             'initial_layout': initial_layout,
@@ -186,8 +179,18 @@ class QuantumInstance:
                         "and re-build it after that.".format(self._cals_matrix_refresh_period))
 
         # setup others
-        self._circuit_cache = CircuitCache(skip_qobj_deepcopy=skip_qobj_deepcopy,
-                                           cache_file=cache_file) if circuit_caching else None
+        # TODO: allow an external way to overwrite the setting circuit cache temporally
+        if os.environ.get('QISKIT_AQUA_CIRCUIT_CACHE', False):
+            skip_qobj_deepcopy = True
+            self._circuit_cache = CircuitCache(skip_qobj_deepcopy=skip_qobj_deepcopy,
+                                               cache_file=cache_file)
+        else:
+            if circuit_caching:
+                self._circuit_cache = CircuitCache(skip_qobj_deepcopy=skip_qobj_deepcopy,
+                                                   cache_file=cache_file)
+            else:
+                self._circuit_cache = None
+
         if is_ibmq_provider(self._backend):
             if skip_qobj_validation:
                 logger.warning("The skip Qobj validation does not work for IBMQ provider. Disable it.")
@@ -203,6 +206,8 @@ class QuantumInstance:
         Returns:
             str: the info of the object.
         """
+        from qiskit import __version__ as terra_version
+
         info = "\nQiskit Terra version: {}\n".format(terra_version)
         info += "Backend: '{} ({})', with following setting:\n{}\n{}\n{}\n{}\n{}\n{}".format(
             self.backend_name, self._backend.provider(), self._backend_config, self._compile_config,
@@ -221,6 +226,12 @@ class QuantumInstance:
         Returns:
             Result: Result object
         """
+        from .utils.run_circuits import (run_qobj,
+                                         compile_circuits)
+
+        from .utils.measurement_error_mitigation import (get_measured_qubits_from_qobj,
+                                                         build_measurement_error_mitigation_qobj)
+
         qobj = compile_circuits(circuits, self._backend, self._backend_config, self._compile_config, self._run_config,
                                 show_circuit_summary=self._circuit_summary, circuit_cache=self._circuit_cache,
                                 **kwargs)

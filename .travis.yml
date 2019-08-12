@@ -16,7 +16,7 @@ notifications:
 
 cache: pip
 os: linux
-dist: trusty
+dist: xenial
 
 language: python
 python: "3.6"
@@ -28,14 +28,16 @@ env:
 
 matrix:
   include:
-  - name: "Test Chemistry"
+  - name: "Lint and Style check and Test Chemistry"
     env: TEST_DIR=chemistry
   - name: "Test Aqua 1"
     env: TEST_DIR=aqua TEST_PARAMS="-end 27"
   - name: "Test Aqua 2"
-    env: TEST_DIR=aqua TEST_PARAMS="-start 27 -end 46"
+    env: TEST_DIR=aqua TEST_PARAMS="-start 27 -end 39"
   - name: "Test Aqua 3"
-    env: TEST_DIR=aqua TEST_PARAMS="-start 46"  
+    env: TEST_DIR=aqua TEST_PARAMS="-start 39 -end 51"
+  - name: "Test Aqua 4"
+    env: TEST_DIR=aqua TEST_PARAMS="-start 51"
         
 before_install:
   - |
@@ -55,8 +57,6 @@ before_install:
   # Download github Terra
   - wget https://codeload.github.com/Qiskit/qiskit-terra/zip/$DEPENDENCY_BRANCH -O /tmp/qiskit-terra.zip
   - unzip /tmp/qiskit-terra.zip -d /tmp/
-  # Install Qiskit Terra requirements.
-  - pip install -U -r /tmp/qiskit-terra-$DEPENDENCY_BRANCH/requirements-dev.txt --progress-bar off
   # Install local Qiskit Terra
   - pip install -e /tmp/qiskit-terra-$DEPENDENCY_BRANCH --progress-bar off
   # Download github Ignis

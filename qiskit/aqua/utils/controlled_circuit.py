@@ -13,8 +13,8 @@
 # that they have been altered from the originals.
 
 import numpy as np
-from qiskit import compiler, BasicAer
-from qiskit.circuit import QuantumCircuit, Qubit
+from qiskit import compiler
+from qiskit.circuit import QuantumCircuit
 from qiskit.transpiler.passes import Unroller
 from qiskit.transpiler import PassManager
 
@@ -32,6 +32,7 @@ def apply_cu1(circuit, lam, c, t, use_basis_gates=True):
 
 def apply_cu3(circuit, theta, phi, lam, c, t, use_basis_gates=True):
     if use_basis_gates:
+        circuit.u1((lam + phi) / 2, c)
         circuit.u1((lam - phi) / 2, t)
         circuit.cx(c, t)
         circuit.u3(-theta / 2, 0, -(phi + lam) / 2, t)
@@ -39,11 +40,6 @@ def apply_cu3(circuit, theta, phi, lam, c, t, use_basis_gates=True):
         circuit.u3(theta / 2, phi, 0, t)
     else:
         circuit.cu3(theta, phi, lam, c, t)
-
-    # the u3 gate below is added to account for qiskit terra's cu3
-    # TODO: here or only in if=True clause?
-    if not np.isclose(float(phi + lam), 0.0):
-        circuit.u3(0, 0, (phi + lam) / 2, c)
 
 
 def apply_ccx(circuit, a, b, c, use_basis_gates=True):
@@ -80,6 +76,7 @@ def get_controlled_circuit(circuit, ctl_qubit, tgt_circuit=None, use_basis_gates
     Return:
         a QuantumCircuit object with the base circuit being controlled by ctl_qubit
     """
+    from qiskit import BasicAer
     if tgt_circuit is not None:
         qc = tgt_circuit
     else:

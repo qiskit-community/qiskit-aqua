@@ -15,7 +15,7 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 > -   **Fixed**: for any bug fixes.
 > -   **Security**: in case of vulnerabilities.
 
-[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.5.2...HEAD)
+[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.5.5...HEAD)
 ========================================================================
 
 Added
@@ -45,6 +45,11 @@ Added
     and PSI4 outputs were already added to debug log)
 -   Chemistry: Merged qiskit-chemistry to this repo. The old chemistry changelog is at 
     [OLD_CHEMISTRY_CHANGELOG.md](OLD_CHEMISTRY_CHANGELOG.md)
+-   Add `MatrixOperator`, `WeightedPauliOperator` and `TPBGroupedPauliOperator` class. (#593)
+-   Add `evolution_instruction` function to get registerless instruction of time evolution. (#593)
+-   Add `op_converter` module to unified the place in charge of converting different types of operators. (#593)
+-   Add `Z2Symmetries` class to encapsulate the Z2 symmetries info and has helper methods for tapering an
+    Operator. (#593).
 
 Changed
 -------
@@ -54,6 +59,12 @@ Changed
 -   Prevent `QPE/IQPE` from modifying input `Operator`s.
 -   The PyEDA dependency was removed; 
     corresponding oracles' underlying logic operations are now handled by SymPy.
+-   Refactor the `Operator` class, each representation has its own class `MatrixOperator`, 
+    `WeightedPauliOperator` and `TPBGroupedPauliOperator`. (#593)
+-   The `power` in `evolution_instruction` was applied on the theta on the CRZ gate directly, 
+    the new version repeats the circuits to implement power. (#593)
+-   CircuitCache is OFF by default, and it can be set via environment variable now 
+    `QISKIT_AQUA_CIRCUIT_CACHE`. (#630)
 
 Fixed
 -------
@@ -61,15 +72,44 @@ Fixed
 -   A bug where `TruthTableOracle` would build incorrect circuits for truth tables with only a single `1` value. 
 -   A bug caused by `PyEDA`'s indeterminism.
 -   A bug with `QPE/IQPE`'s translation and stretch computation.
--   A bug with `docplex.get_qubitops`'s incorrect translation
 -   Chemistry: Bravyi-Kitaev mapping fixed when num qubits was not a power of 2
+-   Setup `initial_layout` in `QuantumInstance` via a list. (#630)
 
 Removed
 -------
 
 -   General multi-controlled rotation gate `mcu3` is removed and replaced by 
     multi-controlled rotation gates `mcrx`, `mcry`, and `mcrz` 
+
+Deprecated
+----------
+
+-   The `Operator` class is deprecated, in favor of using `MatrixOperator`, 
+    `WeightedPauliOperator` and `TPBGroupedPauliOperator`. (#593)
+
+[0.5.5](https://github.com/Qiskit/qiskit-aqua/compare/0.5.4...0.5.5) - 2019-07-26
+=================================================================================
+
+Fixed
+-----
+
+-   A bug with `docplex.get_qubitops`'s incorrect translation
+
+[0.5.4](https://github.com/Qiskit/qiskit-aqua/compare/0.5.3...0.5.4) - 2019-07-24
+=================================================================================
+
+Fixed
+-----
+
+-   Fix the bug about manipulating the right operand and rebuild diagonal matrix every time. (#622)
  
+[0.5.3](https://github.com/Qiskit/qiskit-aqua/compare/0.5.2...0.5.3) - 2019-07-16
+=================================================================================
+
+Fixed
+-----
+
+-   Since the syntax inverse() on a gate does not invert a gate now, the bug introduced wrong post rotation for Pauli Y.
 
 [0.5.2](https://github.com/Qiskit/qiskit-aqua/compare/0.5.1...0.5.2) - 2019-06-27
 =================================================================================

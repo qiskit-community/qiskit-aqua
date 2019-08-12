@@ -16,6 +16,7 @@ import unittest
 import copy
 import itertools
 import os
+import warnings
 
 from qiskit import BasicAer
 import numpy as np
@@ -32,6 +33,7 @@ class TestOperator(QiskitAquaTestCase):
     """Operator tests."""
 
     def setUp(self):
+        warnings.filterwarnings("ignore", category=DeprecationWarning)
         super().setUp()
         np.random.seed(0)
         aqua_globals.random_seed = 0
