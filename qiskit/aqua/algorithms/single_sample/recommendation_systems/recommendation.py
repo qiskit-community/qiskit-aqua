@@ -21,7 +21,7 @@ from qiskit import QuantumRegister, ClassicalRegister, execute, BasicAer
 from qiskit.aqua.circuits.gates.multi_control_toffoli_gate import mct
 
 
-class UserError(Exception):
+class UserVectorError(Exception):
     pass
 
 
@@ -166,9 +166,7 @@ class QuantumRecommendation:
             user : numpy.ndarray
                 Mathematically, a vector whose length is equal to the number of columns in the preference matrix.
                 In the context of recommendation systems, this is a vector of "ratings" for "products,"
-                where each vector elements corresponds to a rating for product 0, 1, ..., N.
-
-                Examples:
+                where each vector elements corresponds to a rating for product 0, 1, ..., N. Examples:
                     user = numpy.array([1, 0, 0, 0])
                         The user likes the first product, and we have no information about the other products.
 
@@ -180,9 +178,7 @@ class QuantumRecommendation:
                 Note: Singular values are assumed to be normalized (via sigma / ||P||_F) to lie in the interval [0, 1).
 
                 This is related to the low rank approximation in the preference matrix P. The larger the threshold,
-                the lower the assumed rank of P.
-
-                Examples:
+                the lower the assumed rank of P. Examples:
                     threshold = 0.
                         All singular values are kept. This means we have "complete knowledge" about the user, and
                         recommendations are made solely based off their preferences. (No quantum circuit is needed.)
@@ -308,7 +304,35 @@ class QuantumRecommendation:
         return products
 
     def classical_recommendation(self, user, rank, quantum_format=True):
-        """Returns a recommendation for a specified user via classical singular value decomposition."""
+        """Returns a recommendation for a specified user via classical singular value decomposition.
+
+        Args:
+            user : numpy.ndarray
+                A vector whose length is equal to the number of columns in the preference matrix.
+                See help(QuantumRecommendation.create_circuit) for more context.
+
+            rank : int in the range (0, minimum dimension of preference matrix)
+                Specifies how many singular values (ordered in decreasing order) to keep in the recommendation.
+
+            quantum_format : bool
+                Specifies format of returned value(s).
+
+                If False, a vector of product recommendations is returned.
+                    For example, vector = [1, 0, 0, 1] means the first and last products are recommended.
+
+                If True, two arguments are returned in the order:
+                    (1) list<int>
+                        List of integers specifying products to recommend.
+                    (2) list<float>
+                        List of floats specifying the probabilities to recommend products.
+
+                    For example:
+                        products = [0, 2], probabilities = [0.36, 0.64] means
+                        product 0 is recommended with probability 0.36, product 2 is recommend with probability 0.64.
+
+        Returns : Union[numpy.ndarray, tuple(list<int>, list<float>)
+            See `quantum_format` above for more information.
+        """
         # Make sure the user and rank are ok
         self._validate_user(user)
         self._validate_rank(rank)
@@ -352,16 +376,16 @@ class QuantumRecommendation:
         """
         # Make sure the user is of the correct type
         if not isinstance(user, (list, tuple, np.ndarray)):
-            raise UserError("Invalid type for user. Accepted types are list, tuple, and numpy.ndarray.")
+            raise UserVectorError("Invalid type for user. Accepted types are list, tuple, and numpy.ndarray.")
 
         # Make sure the user vector has the correct length
         if len(user) != self.num_products:
-            raise UserError(f"User vector should have length {self.num_products} but has length {len(user)}")
+            raise UserVectorError(f"User vector should have length {self.num_products} but has length {len(user)}")
 
         # Make sure at least one element of the user vector is nonzero
         all_zeros = np.zeros_like(user)
         if np.allclose(user, all_zeros):
-            raise UserError(
+            raise UserVectorError(
                 "User vector is all zero and thus contains no information. "
                 "At least one element of the user vector must be nonzero."
             )
@@ -431,7 +455,7 @@ class QuantumRecommendation:
         Returns : str
             Binary string (base 2) representation of the rank with the given length.
         """
-        return np.binary_repr(rank, length)
+        pass
 
     def _threshold_to_control_string(self, threshold):
         """Returns a control string for the threshold circuit which keeps all values strictly above the threshold."""

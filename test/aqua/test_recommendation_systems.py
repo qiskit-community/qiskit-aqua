@@ -24,7 +24,7 @@ class TestQuantumRecommendation(QiskitAquaTestCase):
         qrs = QuantumRecommendation(preference_matrix=pref, nprecision_bits=4)
         possible_sigmas = qrs._qsve.possible_estimated_singular_values(4)[:-1]
 
-        # Correct values determined analytically by doing evaluating cos(pi * theta).
+        # Correct values determined analytically by evaluating cos(pi * theta).
         # For example, for the first string "1000", theta = 1/2, so cos(pi / 2) = 0, as desired.
         correct_strings = ["1000", "0111", "0110", "0101", "0100", "0011", "0010", "0001", "0000"]
 
@@ -77,7 +77,7 @@ class TestQuantumRecommendation(QiskitAquaTestCase):
         self.assertTrue(np.allclose(list(sorted(probs)), [0.36, 0.64], atol=1e-2))
 
     def test4by4rank1(self):
-        """Tests rank 1 recommendation system with four users and four products using different threshold values."""
+        """Tests rank 1 preference matrix with four users and four products using different threshold values."""
         pref = np.array([[1, 1, 0, 0],
                          [1, 1, 0, 0],
                          [1, 1, 0, 0],
@@ -94,6 +94,25 @@ class TestQuantumRecommendation(QiskitAquaTestCase):
         products, probs = qrs.recommend(user, threshold=0.00)
         self.assertEqual(products, [0])
         self.assertTrue(np.allclose(probs, [1], atol=1e-2))
+
+    def test4by4rank2(self):
+        """Tests a rank 2 preference matrix with four users and four products."""
+        pref = np.array([[1, 1, 0, 0],
+                         [0, 1, 1, 0],
+                         [0, 1, 1, 0],
+                         [1, 1, 0, 0]])
+        qrs = QuantumRecommendation(preference_matrix=pref, nprecision_bits=3)
+        user = np.array([1, 0, 0, 0])
+
+        # Recommend with a threshold of zero (keep all singular values)
+        prods, probs = qrs.recommend(user, threshold=0)
+        self.assertEqual(prods, [0])
+        self.assertEqual(probs, [1.0])
+
+        # Recommend with a higher threshold to keep less singular values
+        prods, _ = qrs.recommend(user, threshold=0.9)
+        cprods, _ = qrs.classical_recommendation(user, rank=1)
+        self.assertEqual(set(prods), set(cprods))
 
 
 if __name__ == "__main__":
