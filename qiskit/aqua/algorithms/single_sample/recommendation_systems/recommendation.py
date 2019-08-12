@@ -17,9 +17,9 @@ from copy import deepcopy
 import numpy as np
 
 from qiskit.aqua.components.qsve import QSVE
-from qiskit import QuantumRegister, ClassicalRegister, execute, BasicAer
+from qiskit import QuantumRegister, ClassicalRegister
 from qiskit.aqua.circuits.gates.multi_control_toffoli_gate import mct
-from qiskit.aqua import QuantumInstance, QuantumAlgorithm
+from qiskit.aqua import QuantumAlgorithm
 
 
 class UserVectorError(Exception):
@@ -252,6 +252,7 @@ class QuantumRecommendation(QuantumAlgorithm):
         self._threshold(circuit, qpe_register, ctrl_string, measure_flag_qubit=True)
 
         # Add the inverse QSVE circuit
+        # pylint: disable=E1101
         circuit += self._qsve.create_circuit(
             nprecision_bits=self._precision,
             logical_barriers=logical_barriers,
