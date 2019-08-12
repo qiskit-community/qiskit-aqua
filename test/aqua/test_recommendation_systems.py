@@ -114,6 +114,28 @@ class TestQuantumRecommendation(QiskitAquaTestCase):
         cprods, _ = qrs.classical_recommendation(user, rank=1)
         self.assertEqual(set(prods), set(cprods))
 
+    def test4by4rank2_high_precision(self):
+        """Tests that the output probability distributions for classical/quantum are close with 5 precision qubits."""
+        pref = np.array([[1, 1, 0, 0],
+                         [1, 1, 0, 0],
+                         [1, 0, 0, 1],
+                         [1, 0, 0, 1]])
+        qrs = QuantumRecommendation(preference_matrix=pref, nprecision_bits=5)
+        user = np.array([1, 0, 0, 0])
+
+        # Recommend with a threshold of zero (keep all singular values)
+        prods, probs = qrs.recommend(user, threshold=0)
+        self.assertEqual(prods, [0])
+        self.assertEqual(probs, [1.0])
+
+        # Recommend with a higher threshold to keep less singular values
+        prods, probs = qrs.recommend(user, threshold=0.9)
+        probs = list(sorted(probs))
+        cprods, cprobs = qrs.classical_recommendation(user, rank=1)
+        cprobs = list(sorted(cprobs))
+        self.assertEqual(set(prods), set(cprods))
+        self.assertTrue(np.allclose(probs, cprobs, atol=0.1))
+
 
 if __name__ == "__main__":
     unittest.main()
