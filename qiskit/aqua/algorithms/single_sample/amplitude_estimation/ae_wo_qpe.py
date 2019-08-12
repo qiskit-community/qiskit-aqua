@@ -238,7 +238,7 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
         # Set the value a. Use `est_a` if provided.
         if a is None:
             try:
-                a = self._ret['estimation']
+                a = self._ret['value']
             except KeyError:
                 raise KeyError("Call run() first!")
 
@@ -286,7 +286,7 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
         # Get the (observed) Fisher information
         fisher_information = None
         try:
-            fisher_information = self._ret["fisher_information"]
+            fisher_information = self._ret['fisher_information']
         except KeyError:
             raise AssertionError("Call run() first!")
 
@@ -299,7 +299,7 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
             fisher_information = self._compute_fisher_information(observed=True)
 
         normal_quantile = norm.ppf(1 - alpha / 2)
-        ci = self._ret['estimation'] + normal_quantile / np.sqrt(fisher_information) * np.array([-1, 1])
+        ci = np.real(self._ret['value']) + normal_quantile / np.sqrt(fisher_information) * np.array([-1, 1])
         mapped_ci = [self.a_factory.value_to_estimation(bound) for bound in ci]
         return mapped_ci
 
