@@ -14,14 +14,20 @@ import unittest
 # TODO: Change back to this before PR: from test.aqua.common import QiskitAquaTestCase
 from common import QiskitAquaTestCase
 from qiskit.aqua.algorithms.single_sample.recommendation_systems import QuantumRecommendation
+from qiskit.aqua import QuantumInstance
+from qiskit import BasicAer
 
 
 class TestQuantumRecommendation(QiskitAquaTestCase):
     """Unit tests for QuantumRecommendation."""
+
+    quantum_instance = QuantumInstance(backend=BasicAer.get_backend("qasm_simulator"), shots=10000)
+
     def test_threshold_to_control_string_four_bits(self):
         """Tests converting a threshold singular value to a control string for the thresholding circuit."""
         pref = np.identity(2)
-        qrs = QuantumRecommendation(preference_matrix=pref, nprecision_bits=4)
+        user = np.array([1, 0])
+        qrs = QuantumRecommendation(preference_matrix=pref, user_vector=user, threshold=0.0, nprecision_bits=4)
         possible_sigmas = qrs._qsve.possible_estimated_singular_values(4)[:-1]
 
         # Correct values determined analytically by evaluating cos(pi * theta).
@@ -38,41 +44,46 @@ class TestQuantumRecommendation(QiskitAquaTestCase):
         """
         for n in range(1, 10):
             pref = np.identity(2)
-            qrs = QuantumRecommendation(preference_matrix=pref, nprecision_bits=n)
+            user = np.array([1, 0])
+            qrs = QuantumRecommendation(preference_matrix=pref, user_vector=user, threshold=0.0, nprecision_bits=n)
             self.assertEqual(qrs._threshold_to_control_string(0), "1" + "0" * (n - 1))
             self.assertEqual(qrs._threshold_to_control_string(1), "0" * n)
 
     def test_identity2by2_binary(self):
         """Tests that recommendations for an identity preference matrix with binary ratings are correct."""
-        # Make a preference matrix and recommendation system
+        # Define a preference matrix
         pref = np.array([[1, 0],
                          [0, 1]])
-        qrs = QuantumRecommendation(pref, nprecision_bits=3)
 
         # Test the quantum recommendations for user [1, 0]
         user = np.array([1, 0])
-        products, probabilities = qrs.recommend(user, threshold=0.0)
-        self.assertEqual(products, [0])
-        self.assertAlmostEqual(probabilities, [1.0])
+        qrs = QuantumRecommendation(pref, user_vector=user, threshold=0.0, nprecision_bits=3)
+        result = qrs.run(self.quantum_instance)
+        prods = result["products"]
+        probs = result["probabilities"]
+        self.assertEqual(prods, [0])
+        self.assertAlmostEqual(probs, [1.0])
 
         # Test the quantum recommendations for user [0, 1]
         user = np.array([0, 1])
-        products, probabilities = qrs.recommend(user, threshold=0.0)
-        self.assertEqual(products, [1])
-        self.assertAlmostEqual(probabilities, [1.0])
+        qrs = QuantumRecommendation(pref, user_vector=user, threshold=0.0, nprecision_bits=3)
+        result = qrs.run(self.quantum_instance)
+        prods = result["products"]
+        probs = result["probabilities"]
+        self.assertEqual(prods, [1])
+        self.assertAlmostEqual(probs, [1.0])
 
     def test_identity2by2_float(self):
         """Tests that recommendations for an identity preference matrix with floating point ratings are correct."""
         # Make a preference matrix and recommendation system
         pref = np.array([[1, 0],
                          [0, 1]])
-        qrs = QuantumRecommendation(pref, nprecision_bits=3)
-
-        # Test the quantum recommendations for a user
         user = np.array([0.6, 0.8])
+        qrs = QuantumRecommendation(pref, user_vector=user, threshold=0.0, nprecision_bits=3)
 
-        # Test with a threshold of 0 (full rank matrix)
-        prods, probs = qrs.recommend(user, threshold=0.0)
+        result = qrs.run(self.quantum_instance)
+        prods = result["products"]
+        probs = result["probabilities"]
         self.assertEqual(set(prods), {0, 1})
         self.assertTrue(np.allclose(list(sorted(probs)), [0.36, 0.64], atol=1e-2))
 
@@ -82,17 +93,22 @@ class TestQuantumRecommendation(QiskitAquaTestCase):
                          [1, 1, 0, 0],
                          [1, 1, 0, 0],
                          [1, 1, 0, 0]])
-        qrs = QuantumRecommendation(preference_matrix=pref, nprecision_bits=3)
         user = np.array([1, 0, 0, 0])
-
         # Test with a threshold corresponding to rank 1
-        products, probs = qrs.recommend(user, threshold=0.80)
-        self.assertEqual(set(products), {0, 1})
+        qrs = QuantumRecommendation(preference_matrix=pref, user_vector=user, threshold=0.80, nprecision_bits=3)
+
+        result = qrs.run(self.quantum_instance)
+        prods = result["products"]
+        probs = result["probabilities"]
+        self.assertEqual(set(prods), {0, 1})
         self.assertTrue(np.allclose(probs, [0.5, 0.5], atol=0.2))
 
         # Test with a threshold corresponding to full rank
-        products, probs = qrs.recommend(user, threshold=0.00)
-        self.assertEqual(products, [0])
+        qrs = QuantumRecommendation(preference_matrix=pref, user_vector=user, threshold=0.00, nprecision_bits=3)
+        result = qrs.run(self.quantum_instance)
+        prods = result["products"]
+        probs = result["probabilities"]
+        self.assertEqual(prods, [0])
         self.assertTrue(np.allclose(probs, [1], atol=1e-2))
 
     def test4by4rank2(self):
@@ -101,16 +117,20 @@ class TestQuantumRecommendation(QiskitAquaTestCase):
                          [0, 1, 1, 0],
                          [0, 1, 1, 0],
                          [1, 1, 0, 0]])
-        qrs = QuantumRecommendation(preference_matrix=pref, nprecision_bits=3)
         user = np.array([1, 0, 0, 0])
 
         # Recommend with a threshold of zero (keep all singular values)
-        prods, probs = qrs.recommend(user, threshold=0)
+        qrs = QuantumRecommendation(preference_matrix=pref, user_vector=user, threshold=0.0, nprecision_bits=3)
+        result = qrs.run(self.quantum_instance)
+        prods = result["products"]
+        probs = result["probabilities"]
         self.assertEqual(prods, [0])
         self.assertEqual(probs, [1.0])
 
         # Recommend with a higher threshold to keep less singular values
-        prods, _ = qrs.recommend(user, threshold=0.9)
+        qrs = QuantumRecommendation(preference_matrix=pref, user_vector=user, threshold=0.9, nprecision_bits=3)
+        result = qrs.run(self.quantum_instance)
+        prods = result["products"]
         cprods, _ = qrs.classical_recommendation(user, rank=1)
         self.assertEqual(set(prods), set(cprods))
 
@@ -120,16 +140,21 @@ class TestQuantumRecommendation(QiskitAquaTestCase):
                          [1, 1, 0, 0],
                          [1, 0, 0, 1],
                          [1, 0, 0, 1]])
-        qrs = QuantumRecommendation(preference_matrix=pref, nprecision_bits=5)
         user = np.array([1, 0, 0, 0])
 
         # Recommend with a threshold of zero (keep all singular values)
-        prods, probs = qrs.recommend(user, threshold=0)
+        qrs = QuantumRecommendation(preference_matrix=pref, user_vector=user, threshold=0.0, nprecision_bits=5)
+        result = qrs.run(self.quantum_instance)
+        prods = result["products"]
+        probs = result["probabilities"]
         self.assertEqual(prods, [0])
         self.assertEqual(probs, [1.0])
 
         # Recommend with a higher threshold to keep less singular values
-        prods, probs = qrs.recommend(user, threshold=0.9)
+        qrs = QuantumRecommendation(preference_matrix=pref, user_vector=user, threshold=0.9, nprecision_bits=5)
+        result = qrs.run(self.quantum_instance)
+        prods = result["products"]
+        probs = result["probabilities"]
         probs = list(sorted(probs))
         cprods, cprobs = qrs.classical_recommendation(user, rank=1)
         cprobs = list(sorted(cprobs))

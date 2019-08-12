@@ -19,6 +19,7 @@ import numpy as np
 from qiskit.aqua.components.qsve import QSVE
 from qiskit import QuantumRegister, ClassicalRegister, execute, BasicAer
 from qiskit.aqua.circuits.gates.multi_control_toffoli_gate import mct
+from qiskit.aqua import QuantumInstance, QuantumAlgorithm
 
 
 class UserVectorError(Exception):
@@ -33,20 +34,39 @@ class RankError(Exception):
     pass
 
 
-class QuantumRecommendation:
+class QuantumRecommendation(QuantumAlgorithm):
     """Class for a quantum recommendation system."""
-    def __init__(self, preference_matrix, nprecision_bits=3):
+
+    CONFIGURATION = {
+        'name': 'QuantumRecommendation',
+        'description': 'Quantum Recommendation Systems algorithm',
+        'input_schema': {
+            '$schema': 'http://json-schema.org/schema#',
+            'id': 'qrs_schema',
+            'type': 'object',
+        }
+    }
+
+    def __init__(self, preference_matrix, user_vector, threshold, nprecision_bits=3):
         """Initializes a QuantumRecommendation.
 
         Args:
-            preference_matrix
+            preference_matrix : numpy.ndarray
+
+            user_vector : numpy.ndarray
+
+            threshold : float
 
             nprecision_bits : int
                 Number of precision qubits to use in QPE.
         """
+        super().__init__()
         self._matrix = deepcopy(preference_matrix)
+        self._user = deepcopy(user_vector)
+        self._threshold_value = threshold
         self._precision = nprecision_bits
         self._qsve = QSVE(preference_matrix)
+        self._ret = {}
 
     @property
     def matrix(self):
@@ -72,9 +92,9 @@ class QuantumRecommendation:
                 A register (in the input circuit) to threshold on. For recommendation systems, this will always be
                 the "singular value register."
 
-            minimum_value : float
-                A floating point value in the range [0, 1]. All singular values above minimum_value will be kept for
-                the recommendation, and values below will be discarded.
+            ctrl_string : str
+                A binary string which determines the number of qubits controlled on in the singular value register.
+                See circuit below.
 
         The thresholding circuit adds a register of three ancilla qubits to the circuit and has the following structure:
 
@@ -153,13 +173,13 @@ class QuantumRecommendation:
             circuit.add_register(creg)
             circuit.measure(ancilla[2], creg[0])
 
-    def create_circuit(self,
-                       user,
-                       threshold,
-                       measurements=True,
-                       return_registers=False,
-                       logical_barriers=False,
-                       swaps=True):
+    def construct_circuit(self,
+                          user,
+                          threshold,
+                          measurements=True,
+                          return_registers=False,
+                          logical_barriers=False,
+                          swaps=True):
         """Returns the quantum circuit to recommend product(s) to a user.
 
         Args:
@@ -259,20 +279,24 @@ class QuantumRecommendation:
             return circuit, qpe_register, user_register, product_register
         return circuit
 
-    def run_and_return_counts(self, user, threshold, shots=10000):
+    def run_and_return_counts(self, user, threshold):
         """Runs the quantum circuit recommending products for the given user and returns the raw counts."""
-        circuit = self.create_circuit(user, threshold, measurements=True, logical_barriers=False)
+        # TODO: Potential bug, since _threshold circuit will have a measurement in it. Maybe raise error in this case?
+        if self._quantum_instance.is_statevector:
+            circuit = self.construct_circuit(user, threshold, measurements=False, logical_barriers=False)
+            self._ret["circuit"] = circuit
+            result = self._quantum_instance.execute(circuit)
+            return result.get_statevector(circuit)
+        else:
+            circuit = self.construct_circuit(user, threshold, measurements=True, logical_barriers=False)
+            self._ret["circuit"] = circuit
+            result = self._quantum_instance.execute(circuit)
+            return result.get_counts(circuit)
 
-        job = execute(circuit, BasicAer.get_backend("qasm_simulator"), shots=shots)
-
-        results = job.result()
-
-        return results.get_counts()
-
-    def recommend(self, user, threshold, shots=10000, with_probabilities=True, products_as_ints=True):
+    def recommend(self, user, threshold, with_probabilities=True, products_as_ints=True):
         """Returns a recommendation for a specified user."""
         # Run the quantum recommendation and get the counts
-        counts = self.run_and_return_counts(user, threshold, shots)
+        counts = self.run_and_return_counts(user, threshold)
 
         # Remove all outcomes with flag qubit measured as zero (assuming the flag qubit is measured)
         post_selected = []
@@ -289,7 +313,7 @@ class QuantumRecommendation:
         # Get the number of post-selected measurements for normalization
         new_shots = sum([x[1] for x in post_selected])
 
-        # Convert the bit string outcomes to ints
+        # Format the output
         products = []
         probs = []
         for (product, count) in post_selected:
@@ -302,6 +326,16 @@ class QuantumRecommendation:
         if with_probabilities:
             return products, probs
         return products
+
+    def _run(self, **kwargs):
+        """Executes the quantum circuit and returns the output dictionary."""
+        # Store the user vector and threshold value to return in the output dictionary
+        self._ret["input"] = {"user_vector": self._user, "threshold_value": self._threshold_value}
+
+        products, probabilities = self.recommend(self._user, self._threshold_value)
+        self._ret["products"] = products
+        self._ret["probabilities"] = probabilities
+        return self._ret
 
     def classical_recommendation(self, user, rank, quantum_format=True):
         """Returns a recommendation for a specified user via classical singular value decomposition.
@@ -455,7 +489,7 @@ class QuantumRecommendation:
         Returns : str
             Binary string (base 2) representation of the rank with the given length.
         """
-        pass
+        raise NotImplementedError("This function is not yet implemented.")
 
     def _threshold_to_control_string(self, threshold):
         """Returns a control string for the threshold circuit which keeps all values strictly above the threshold."""
@@ -471,7 +505,3 @@ class QuantumRecommendation:
 
     def __str__(self):
         return "Quantum Recommendation System with {} users and {} products.".format(self.num_users, self.num_products)
-
-
-if __name__ == "__main__":
-    pass
