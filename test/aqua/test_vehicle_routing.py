@@ -51,7 +51,7 @@ class TestVehicleRouting(QiskitAquaTestCase):
             costB, binaryB = pauliB
             # Note that the construction is a bit iffy, i.e., can be a small bit off even when the random seed is fixed,
             # even when the ordering is the same. Obviously, when the ordering changes, the test will become invalid.
-            np.testing.assert_approx_equal(costA, costB, 2)
+            np.testing.assert_approx_equal(np.real(costA), costB, 2)
             self.assertEqual(binaryA, binaryB)
 
     def test_simple2(self):
