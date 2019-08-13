@@ -11,9 +11,6 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""
-This module contains the definition of a base class for inverse quantum fourier transforms.
-"""
 
 import logging
 import numpy as np
@@ -23,14 +20,19 @@ logger = logging.getLogger(__name__)
 
 def bisect_max(f, a, b, steps=50, minwidth=1e-12, retval=False):
     """
-    @brief Find the maximum of f in the interval [a, b] using bisection
-    @param f The function
-    @param a The lower limit of the interval
-    @param b The upper limit of the interval
-    @param steps The maximum number of steps in the bisection
-    @param minwidth If the current interval is smaller than minwidth stop
-                    the search
-    @return The maximum of f in [a,b] according to this algorithm
+    Find the maximum of the real-valued function f in the interval [a, b]
+    using bisection
+
+    Args:
+        f (callable): the function to find the maximum of
+        a (float): the lower limit of the interval
+        b (float): the upper limit of the interval
+        steps (int): the maximum number of steps in the bisection
+        minwidth (float): if the current interval is smaller than minwidth stop
+            the search
+
+    Returns:
+        The maximum of f in [a,b] according to this algorithm.
     """
     it = 0
     m = (a + b) / 2
@@ -59,172 +61,176 @@ def bisect_max(f, a, b, steps=50, minwidth=1e-12, retval=False):
 
     if retval:
         return m, fm
+
     return m
 
 
-class Dist:
+def circ_dist(x, p):
     """
-    @brief Circumferential distance and derivative function,
-            Dist(x, p) = min_{z in [-1, 0, 1]} (|z + p - x|)
+    Circumferential distance and derivative function,
+            d(x, p) = min_{z in [-1, 0, 1]} (|z + p - x|)
+
+    Args:
+        x (float): first angle
+        p (float): second angle
+
+    Returns:
+        float: d(x, p)
     """
+    t = p - x
+    # Since x and p \in [0,1] it suffices to check not all integers
+    # but only -1, 0 and 1
+    z = np.array([-1, 0, 1])
 
-    def __init__(self):
-        pass
+    if hasattr(t, "__len__"):
+        d = np.empty_like(t)
+        for idx, ti in enumerate(t):
+            d[idx] = np.min(np.abs(z + ti))
+        return d
 
-    @staticmethod
-    def v(x, p):
-        """
-        Return the value of the function Dist
-        """
-        t = p - x
-        # Since x and p \in [0,1] it suffices to check not all integers
-        # but only -1, 0 and 1
-        z = np.array([-1, 0, 1])
-
-        if hasattr(t, "__len__"):
-            d = np.empty_like(t)
-            for idx, ti in enumerate(t):
-                d[idx] = np.min(np.abs(z + ti))
-            return d
-
-        return np.min(np.abs(z + t))
-
-    @staticmethod
-    def d(x, p):
-        """
-        Return the derivative of the function Dist
-        """
-        t = p - x
-        if t < -0.5 or (0 < t and t < 0.5):
-            return -1
-        if t > 0.5 or (-0.5 < t and t < 0):
-            return 1
-        return 0
+    return np.min(np.abs(z + t))
 
 
-class Omega:
+def derivative_circ_dist(x, p):
     """
-    @brief Mapping from QAE value to QAE angle and derivative,
-            Omega(a) = arcsin(sqrt(a)) / pi
+    Derivative of circumferential distance and derivative function, w.r.t. p
+            d/dp d(x, p) = d/dp min_{z in [-1, 0, 1]} (|z + p - x|)
+
+    Args:
+        x (float): first angle
+        p (float): second angle
+
+    Returns:
+        float: d/dp d(x, p)
     """
-
-    def __init__(self):
-        pass
-
-    @staticmethod
-    def v(a):
-        """
-        Return the value of Omega(a)
-        """
-        return np.arcsin(np.sqrt(a)) / np.pi
-
-    @staticmethod
-    def d(a):
-        """
-        Return the value of Derivative(a)
-        """
-        return 1 / (2 * np.pi * np.sqrt((1 - a) * a))
+    t = p - x
+    if t < -0.5 or (0 < t and t < 0.5):
+        return -1
+    if t > 0.5 or (-0.5 < t and t < 0):
+        return 1
+    return 0
 
 
-class Alpha:
+def omega(a):
     """
-    @brief Implementation of pi * d(w(x), w(p)) and derivative w.r.t. p
+    Transform from the value a to the corresponding angle omega.
+
+    Args:
+        a (float): A value in [0,1]
+
+    Returns:
+        float: arcsin(sqrt(a)) / pi
     """
-
-    def __init__(self):
-        pass
-
-    @staticmethod
-    def v(x, p):
-        return np.pi * Dist.v(Omega.v(x), Omega.v(p))
-
-    @staticmethod
-    def d(x, p):
-        return np.pi * Dist.d(Omega.v(x), Omega.v(p)) * Omega.d(p)
+    return np.arcsin(np.sqrt(a)) / np.pi
 
 
-class Beta:
+def derivative_omega(a):
     """
-    @brief Implementation of pi * d(1 - w(x), w(p)) and derivative w.r.t. p
+    Compute the derivative of omega.
     """
-
-    def __init__(self):
-        pass
-
-    @staticmethod
-    def v(x, p):
-        return np.pi * Dist.v(1 - Omega.v(x), Omega.v(p))
-
-    @staticmethod
-    def d(x, p):
-        return np.pi * Dist.d(1 - Omega.v(x), Omega.v(p)) * Omega.d(p)
+    return 1 / (2 * np.pi * np.sqrt((1 - a) * a))
 
 
-class PdfA:
+def alpha(x, p):
     """
-    @brief Implementation of QAE PDF f(x, p) and derivative
+    Helper function for `pdf_a`, alpha = pi * d(omega(x), omega(p)),
     """
+    return np.pi * circ_dist(omega(x), omega(p))
 
-    def __init__(self):
-        pass
 
-    @staticmethod
-    def numerator(x, p, m):
-        M = 2**m
-        return np.sin(M * Alpha.v(x, p))**2 * np.sin(Beta.v(x, p))**2 + np.sin(M * Beta.v(x, p))**2 * np.sin(Alpha.v(x, p))**2
+def derivative_alpha(x, p):
+    """
+    Compute the derivative of alpha.
+    """
+    return np.pi * derivative_circ_dist(omega(x), omega(p)) * derivative_omega(p)
 
-    @staticmethod
-    def single_angle(x, p, m, PiDelta):
-        M = 2**m
 
-        d = PiDelta.v(x, p)
-        res = np.sin(M * d)**2 / (M * np.sin(d))**2 if d != 0 else 1
+def beta(x, p):
+    """
+    Helper function for `pdf_a`, beta = pi * d(1 - omega(x), omega(p)),
+    """
+    return np.pi * circ_dist(1 - omega(x), omega(p))
 
-        return res
 
-    @staticmethod
-    def v(x, p, m):
-        """
-        Return the value of f, i.e. the probability of getting the
-        estimate  x (in [0, 1]) if p (in [0, 1]) is the true value,
-        given that we use m qubits
-        """
-        # We'll use list comprehension, so the input should be a list
-        scalar = False
-        if not hasattr(x, "__len__"):
-            scalar = True
-            x = np.asarray([x])
+def derivative_beta(x, p):
+    """
+    Compute the derivative of beta.
+    """
+    return np.pi * derivative_circ_dist(1 - omega(x), omega(p)) * derivative_omega(p)
 
-        # Compute the probabilities: Add up both angles that produce the given
-        # value, except for the angles 0 and 0.5, which map to the unique a-values,
-        # 0 and 1, respectively
-        pr = np.array([PdfA.single_angle(xi, p, m, Alpha) + PdfA.single_angle(xi, p, m, Beta)
-                       if (xi not in [0, 1]) else PdfA.single_angle(xi, p, m, Alpha)
-                       for xi in x
-                       ]).flatten()
 
-        # If is was a scalar return scalar otherwise the array
-        return (pr[0] if scalar else pr)
+def pdf_a_single_angle(x, p, m, pi_delta):
+    """
+    Helper function for `pdf_a`.
+    """
+    M = 2**m
 
-    @staticmethod
-    def logd(x, p, m):
-        """
-        Return the log of the derivative of f
-        """
-        M = 2**m
+    d = pi_delta(x, p)
+    res = np.sin(M * d)**2 / (M * np.sin(d))**2 if d != 0 else 1
 
-        if x not in [0, 1]:
-            def num_p1(A, B):
-                return 2 * M * np.sin(M * A.v(x, p)) * np.cos(M * A.v(x, p)) * A.d(x, p) * np.sin(B.v(x, p))**2 \
-                    + 2 * np.sin(M * A.v(x, p))**2 * np.sin(B.v(x, p)) * np.cos(B.v(x, p)) * B.d(x, p)
+    return res
 
-            def num_p2(A, B):
-                return 2 * np.cos(A.v(x, p)) * A.d(x, p) * np.sin(B.v(x, p))
 
-            def den_p2(A, B):
-                return np.sin(A.v(x, p)) * np.sin(B.v(x, p))
+def pdf_a(x, p, m):
+    """
+    Return the PDF of a, i.e. the probability of getting the estimate x
+    (in [0, 1]) if p (in [0, 1]) is the true value, given that we use m qubits.
 
-            return (num_p1(Alpha, Beta) + num_p1(Beta, Alpha)) / PdfA.numerator(x, p, m) \
-                - (num_p2(Alpha, Beta) + num_p2(Beta, Alpha)) / den_p2(Alpha, Beta)
+    Args:
+        x (float): the grid point
+        p (float): the true value
+        m (float): the number of evaluation qubits
 
-        return 2 * Alpha.d(x, p) * (M / np.tan(M * Alpha.v(x, p)) - 1 / np.tan(Alpha.v(x, p)))
+    Returns:
+        float: PDF(x|p)
+    """
+    # We'll use list comprehension, so the input should be a list
+    scalar = False
+    if not hasattr(x, "__len__"):
+        scalar = True
+        x = np.asarray([x])
+
+    # Compute the probabilities: Add up both angles that produce the given
+    # value, except for the angles 0 and 0.5, which map to the unique a-values,
+    # 0 and 1, respectively
+    pr = np.array([pdf_a_single_angle(xi, p, m, alpha) + pdf_a_single_angle(xi, p, m, beta)
+                   if (xi not in [0, 1]) else pdf_a_single_angle(xi, p, m, alpha)
+                   for xi in x
+                   ]).flatten()
+
+    # If is was a scalar return scalar otherwise the array
+    return (pr[0] if scalar else pr)
+
+
+def derivative_log_pdf_a(x, p, m):
+    """
+    Return the derivative of the logarithm of the PDF of a.
+
+    Args:
+        x (float): the grid point
+        p (float): the true value
+        m (float): the number of evaluation qubits
+
+    Returns:
+        float: d/dp log(PDF(x|p))
+    """
+    M = 2**m
+
+    if x not in [0, 1]:
+        num_p1 = 0
+        for A, dA, B, dB in zip([alpha, beta], [derivative_alpha, derivative_beta], [beta, alpha], [derivative_beta, derivative_alpha]):
+            num_p1 += 2 * M * np.sin(M * A(x, p)) * np.cos(M * A(x, p)) * dA(x, p) * np.sin(B(x, p))**2 \
+                + 2 * np.sin(M * A(x, p))**2 * np.sin(B(x, p)) * np.cos(B(x, p)) * dB(x, p)
+
+        den_p1 = np.sin(M * alpha(x, p))**2 * np.sin(beta(x, p))**2 + \
+            np.sin(M * beta(x, p))**2 * np.sin(alpha(x, p))**2
+
+        num_p2 = 0
+        for A, dA, B in zip([alpha, beta], [derivative_alpha, derivative_beta], [beta, alpha]):
+            num_p2 += 2 * np.cos(A(x, p)) * dA(x, p) * np.sin(B(x, p))
+
+        den_p2 = np.sin(alpha(x, p)) * np.sin(beta(x, p))
+
+        return num_p1 / den_p1 - num_p2 / den_p2
+
+    return 2 * derivative_alpha(x, p) * (M / np.tan(M * alpha(x, p)) - 1 / np.tan(alpha(x, p)))

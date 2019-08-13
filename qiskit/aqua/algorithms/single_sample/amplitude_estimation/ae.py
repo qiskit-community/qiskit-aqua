@@ -27,7 +27,7 @@ from qiskit.aqua.circuits import PhaseEstimationCircuit
 from qiskit.aqua.components.iqfts import Standard
 
 from .ae_base import AmplitudeEstimationBase
-from .ae_utils import PdfA, bisect_max
+from .ae_utils import pdf_a, derivative_log_pdf_a, bisect_max
 
 logger = logging.getLogger(__name__)
 
@@ -180,10 +180,10 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
             pi = np.asarray(self._ret['probabilities'])
 
             # Calculate the observed Fisher information
-            fisher_information = sum(p * PdfA.logd(a, mlv, m)**2 for p, a in zip(pi, ai))
+            fisher_information = sum(p * derivative_log_pdf_a(a, mlv, m)**2 for p, a in zip(pi, ai))
         else:
             def integrand(x):
-                return (PdfA.logd(x, mlv, m))**2 * PdfA.v(x, mlv, m)
+                return (derivative_log_pdf_a(x, mlv, m))**2 * pdf_a(x, mlv, m)
 
             M = 2**m
             grid = np.sin(np.pi * np.arange(M / 2 + 1) / M)**2
@@ -218,7 +218,7 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
         shots = self._ret['shots']
 
         def loglikelihood(a):
-            return np.sum(shots * pi * np.log(PdfA.v(ai, a, m)))
+            return np.sum(shots * pi * np.log(pdf_a(ai, a, m)))
 
         # The threshold above which the likelihoods are in the
         # confidence interval
@@ -256,6 +256,10 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
         if 'mle' not in self._ret.keys():
             raise AquaError('Call run() first!')
 
+        # if statevector simulator the estimate is exact
+        if self._quantum_instance.is_statevector:
+            return 2 * [self._ret['estimation']]
+
         if kind in ['likelihood_ratio', 'lr']:
             return self._likelihood_ratio_ci(alpha)
 
@@ -284,7 +288,7 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
         shots = self._ret['shots']
 
         def loglikelihood(a):
-            return np.sum(shots * pi * np.log(PdfA.v(ai, a, m)))
+            return np.sum(shots * pi * np.log(pdf_a(ai, a, m)))
 
         # y is pretty much an integer, but to map 1.9999 to 2 we must first
         # use round and then int conversion
@@ -343,7 +347,8 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
             a_probabilities, y_probabilities = self._evaluate_statevector_results(
                 state_probabilities)
 
-            # store number of shots: convention is 1 shot for statevector
+            # store number of shots: convention is 1 shot for statevector,
+            # needed so that MLE works!
             self._ret['shots'] = 1
         else:
             # run circuit on QASM simulator
