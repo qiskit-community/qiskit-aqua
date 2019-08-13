@@ -33,7 +33,6 @@ from qiskit.tools.events import TextProgressBar
 
 from qiskit.aqua import AquaError, aqua_globals
 from qiskit.aqua.operators import PauliGraph
-from qiskit.aqua.utils import compile_and_run_circuits, find_regs_by_name
 from qiskit.aqua.utils.backend_utils import is_statevector_backend
 
 logger = logging.getLogger(__name__)
@@ -682,6 +681,8 @@ class Operator(object):
                        quantum register explicitly
             AquaError: The provided qr is not in the input_circuit
         """
+        from qiskit.aqua.utils.run_circuits import find_regs_by_name
+
         warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
                       "Use the class for each representation instead, including `MatrixOperator`, "
                       "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
@@ -911,6 +912,8 @@ class Operator(object):
         Returns:
             float, float: mean and standard deviation of avg
         """
+        from qiskit.aqua.utils.run_circuits import compile_and_run_circuits
+
         warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
                       "Use the class for each representation instead, including `MatrixOperator`, "
                       "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
@@ -1972,7 +1975,8 @@ class Operator(object):
         return WeightedPauliOperator(paulis=ret._paulis)
 
     def to_tpb_grouped_weighted_pauli_operator(self):
-        from qiskit.aqua.operators import WeightedPauliOperator, TPBGroupedWeightedPauliOperator, op_converter
+        from qiskit.aqua.operators import TPBGroupedWeightedPauliOperator
+
         ret = self.to_weighted_pauli_operator()
         if self.coloring:
             ret = TPBGroupedWeightedPauliOperator.sorted_grouping(ret)

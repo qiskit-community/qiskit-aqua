@@ -120,8 +120,8 @@ class PiecewiseLinearRotation(CircuitFactory):
             if i == 0 and self.contains_zero_breakpoint:
 
                 # apply rotation
-                lin_r = LinR(self.mapped_slopes[i], self.mapped_offsets[i], self.num_state_qubits, basis = self.basis,
-                        i_state=i_state, i_target=i_target)
+                lin_r = LinR(self.mapped_slopes[i], self.mapped_offsets[i], self.num_state_qubits, basis=self.basis,
+                             i_state=i_state, i_target=i_target)
                 lin_r.build(qc, q)
 
             elif self.contains_zero_breakpoint:
