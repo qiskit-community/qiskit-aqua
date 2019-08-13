@@ -75,8 +75,8 @@ def get_max_cut_qubitops(weight_matrix):
         weight_matrix (numpy.ndarray) : adjacency matrix.
 
     Returns:
-        operator.Operator, float: operator for the Hamiltonian and a
-        constant shift for the obj function.
+        WeightedPauliOperator: operator for the Hamiltonian
+        float: a constant shift for the obj function.
 
     """
     num_nodes = weight_matrix.shape[0]

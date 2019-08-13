@@ -72,7 +72,7 @@ def get_vertex_cover_qubitops(weight_matrix):
         weight_matrix (numpy.ndarray) : adjacency matrix.
 
     Returns:
-        operator.Operator, float: operator for the Hamiltonian and a
+        WeightedPauliOperator, float: operator for the Hamiltonian and a
         constant shift for the obj function.
 
     Goals:
