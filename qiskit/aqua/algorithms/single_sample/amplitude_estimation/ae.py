@@ -258,7 +258,7 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
 
         # if statevector simulator the estimate is exact
         if self._quantum_instance.is_statevector:
-            return 2 * [self._ret['estimate']]
+            return 2 * [self._ret['estimation']]
 
         if kind in ['likelihood_ratio', 'lr']:
             return self._likelihood_ratio_ci(alpha)
