@@ -290,11 +290,6 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
         except KeyError:
             raise AssertionError("Call run() first!")
 
-        # statevector corresponds to an infinite number of shots,
-        # hence the width of the confidence interval is 0
-        if self.quantum_instance.is_statevector:
-            return self._ret['estimation']
-
         if observed:
             fisher_information = self._compute_fisher_information(observed=True)
 
@@ -351,10 +346,13 @@ class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
         Proxy calling the correct method to compute the confidence interval,
         according to the value of `kind`
         """
-
         # check if AE did run already
         if 'estimation' not in self._ret.keys():
             raise AquaError('Call run() first!')
+
+        # if statevector simulator the estimate is exact
+        if self._quantum_instance.is_statevector:
+            return 2 * [self._ret['estimate']]
 
         if kind in ['likelihood_ratio', 'lr']:
             return self._likelihood_ratio_ci(alpha)
