@@ -100,7 +100,7 @@ class EigsQPE(Eigenvalues):
         """Constructor.
 
         Args:
-            operator (Operator): the hamiltonian Operator object
+            operator (BaseOperator): the hamiltonian Operator object
             iqft (IQFT): the Inverse Quantum Fourier Transform pluggable component
             num_time_slices (int, optional): the number of time slices
             num_ancillae (int, optional): the number of ancillary qubits to use for the measurement
@@ -112,7 +112,7 @@ class EigsQPE(Eigenvalues):
         """
         super().__init__()
         super().validate(locals())
-        self._operator = operator
+        self._operator = op_converter.to_weighted_pauli_operator(operator)
         self._iqft = iqft
         self._num_ancillae = num_ancillae
         self._num_time_slices = num_time_slices
@@ -148,7 +148,7 @@ class EigsQPE(Eigenvalues):
             num_ancillae += 1
             args['num_ancillae'] = num_ancillae
 
-        args['operator'] = op_converter.to_weighted_pauli_operator(MatrixOperator(matrix=matrix))
+        args['operator'] = MatrixOperator(matrix=matrix)
 
         # Set up iqft, we need to add num qubits to params which is our num_ancillae bits here
         iqft_params = params.get(Pluggable.SECTION_KEY_IQFT)
@@ -204,7 +204,7 @@ class EigsQPE(Eigenvalues):
         """ Construct the eigenvalues estimation using the PhaseEstimationCircuit
 
         Args:
-            mode (str): consctruction mode, 'matrix' not supported
+            mode (str): construction mode, 'matrix' not supported
             register (QuantumRegister): the register to use for the quantum state
 
         Returns:
