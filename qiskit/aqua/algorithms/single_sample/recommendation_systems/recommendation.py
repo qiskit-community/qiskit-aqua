@@ -44,7 +44,8 @@ class QuantumRecommendation(QuantumAlgorithm):
             '$schema': 'http://json-schema.org/schema#',
             'id': 'qrs_schema',
             'type': 'object',
-        }
+        },
+        'problems': ["recommend"]
     }
 
     def __init__(self, preference_matrix, user_vector, threshold, nprecision_bits=3):

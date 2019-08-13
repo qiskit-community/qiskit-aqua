@@ -416,6 +416,8 @@ class TestBinaryTree(QiskitAquaTestCase):
 
         # Make sure the final state of the circuit is the same as the input vector
         state = np.real(self.final_state(circ))
+        print("State:", state)
+        print("Vector:", vec)
         self.assertTrue(np.allclose(state, vec))
 
     def test_prepare_negative_amplitudes3(self):
@@ -433,6 +435,8 @@ class TestBinaryTree(QiskitAquaTestCase):
 
         # Make sure the final state of the circuit is the same as the input vector
         state = np.real(self.final_state(circ))
+        print("State:", state)
+        print("Vector:", vec)
         self.assertTrue(np.allclose(state, vec))
 
     def test_prepare_negative_amplitudes_two_qubits(self):
@@ -1118,4 +1122,6 @@ class TestBinaryTree(QiskitAquaTestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    # unittest.main()
+    test = TestBinaryTree()
+    test.test_prepare_negative_amplitudes3()
