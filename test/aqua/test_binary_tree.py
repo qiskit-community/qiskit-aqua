@@ -1120,6 +1120,4 @@ class TestBinaryTree(QiskitAquaTestCase):
 
 
 if __name__ == "__main__":
-    # unittest.main()
-    test = TestBinaryTree()
-    test.test_prepare_negative_amplitudes3()
+    unittest.main()
