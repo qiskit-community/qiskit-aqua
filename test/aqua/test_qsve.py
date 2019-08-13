@@ -728,21 +728,22 @@ class TestQSVE(QiskitAquaTestCase):
 
             self.assertTrue(abs(sigma - qsigma[0]) < qsve.max_error(n))
 
-    def test_singular_values_identity8(self):
-        """Tests QSVE gets close to the correct singular values for the 8 x 8 identity matrix."""
-        qsve = QSVE(np.identity(8))
-
-        sigma = max(qsve.singular_values_classical())
-
-        for n in range(3, 7):
-            qsigma = qsve.top_singular_values(
-                nprecision_bits=n,
-                init_state_row_and_col=None,
-                shots=50000,
-                ntop=3
-            )
-
-            self.assertTrue(abs(sigma - qsigma[0]) < qsve.max_error(n))
+    # Note: This test is commented out because it takes a while (>= 10 minutes) to run
+    # def test_singular_values_identity8(self):
+    #     """Tests QSVE gets close to the correct singular values for the 8 x 8 identity matrix."""
+    #     qsve = QSVE(np.identity(8))
+    #
+    #     sigma = max(qsve.singular_values_classical())
+    #
+    #     for n in range(3, 7):
+    #         qsigma = qsve.top_singular_values(
+    #             nprecision_bits=n,
+    #             init_state_row_and_col=None,
+    #             shots=50000,
+    #             ntop=3
+    #         )
+    #
+    #         self.assertTrue(abs(sigma - qsigma[0]) < qsve.max_error(n))
 
     def test_singular_values_random2x2(self):
         """Tests computing the singular values for random 2 x 2 matrices."""
