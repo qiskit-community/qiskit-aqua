@@ -26,7 +26,7 @@ from qiskit.aqua.components.uncertainty_problems import EuropeanCallDelta, Fixed
 from qiskit.aqua.components.uncertainty_problems import UnivariatePiecewiseLinearObjective as PwlObjective
 from qiskit.aqua.components.uncertainty_problems import UnivariateProblem, MultivariateProblem, UncertaintyProblem
 from qiskit.aqua.circuits import WeightedSumOperator
-from qiskit.aqua.algorithms import AmplitudeEstimation, AmplitudeEstimationWithoutQPE
+from qiskit.aqua.algorithms import AmplitudeEstimation, MaximumLikelihoodAmplitudeEstimation
 from qiskit.aqua.algorithms.single_sample.amplitude_estimation.q_factory import QFactory
 
 
@@ -96,10 +96,10 @@ class TestBernoulli(QiskitAquaTestCase):
         [0.4, AmplitudeEstimation(4), {'estimation': 0.30866, 'mle': 0.4}],
         [0.82, AmplitudeEstimation(5), {'estimation': 0.85355, 'mle': 0.82}],
         [0.49, AmplitudeEstimation(3), {'estimation': 0.5, 'mle': 0.49}],
-        [0.2, AmplitudeEstimationWithoutQPE(2), {'estimation': 0.2}],
-        [0.4, AmplitudeEstimationWithoutQPE(4), {'estimation': 0.4}],
-        [0.82, AmplitudeEstimationWithoutQPE(5), {'estimation': 0.82}],
-        [0.49, AmplitudeEstimationWithoutQPE(3), {'estimation': 0.49}]
+        [0.2, MaximumLikelihoodAmplitudeEstimation(2), {'estimation': 0.2}],
+        [0.4, MaximumLikelihoodAmplitudeEstimation(4), {'estimation': 0.4}],
+        [0.82, MaximumLikelihoodAmplitudeEstimation(5), {'estimation': 0.82}],
+        [0.49, MaximumLikelihoodAmplitudeEstimation(3), {'estimation': 0.49}]
     ])
     def test_statevector(self, p, ae, expect):
         # construct factories for A and Q
@@ -116,9 +116,9 @@ class TestBernoulli(QiskitAquaTestCase):
         [0.2, 100, AmplitudeEstimation(4), {'estimation': 0.14644, 'mle': 0.193888}],
         [0.0, 1000, AmplitudeEstimation(2), {'estimation': 0.0, 'mle': 0.0}],
         [0.8, 10, AmplitudeEstimation(7), {'estimation': 0.79784, 'mle': 0.801612}],
-        [0.2, 100, AmplitudeEstimationWithoutQPE(4), {'estimation': 0.199606}],
-        [0.4, 1000, AmplitudeEstimationWithoutQPE(6), {'estimation': 0.399488}],
-        [0.8, 10, AmplitudeEstimationWithoutQPE(7), {'estimation': 0.800926}]
+        [0.2, 100, MaximumLikelihoodAmplitudeEstimation(4), {'estimation': 0.199606}],
+        [0.4, 1000, MaximumLikelihoodAmplitudeEstimation(6), {'estimation': 0.399488}],
+        [0.8, 10, MaximumLikelihoodAmplitudeEstimation(7), {'estimation': 0.800926}]
     ])
     def test_qasm(self, p, shots, ae, expect):
         # construct factories for A and Q
@@ -204,8 +204,8 @@ class TestEuropeanCallOption(QiskitAquaTestCase):
     @parameterized.expand([
         ['statevector', AmplitudeEstimation(3), {'estimation': 0.45868536404797905, 'mle': 0.1633160}],
         ['qasm', AmplitudeEstimation(4), {'estimation': 0.45868536404797905, 'mle': 0.23479973342434832}],
-        ['statevector', AmplitudeEstimationWithoutQPE(5), {'estimation': 0.16330976193204114}],
-        ['qasm', AmplitudeEstimationWithoutQPE(3), {'estimation': 0.1027255930905642}],
+        ['statevector', MaximumLikelihoodAmplitudeEstimation(5), {'estimation': 0.16330976193204114}],
+        ['qasm', MaximumLikelihoodAmplitudeEstimation(3), {'estimation': 0.1027255930905642}],
     ])
     def test_expected_value(self, simulator, ae, expect):
 
@@ -223,8 +223,8 @@ class TestEuropeanCallOption(QiskitAquaTestCase):
     @parameterized.expand([
         ['statevector', AmplitudeEstimation(3), {'estimation': 0.8535534, 'mle': 0.8097974047170567}],
         ['qasm', AmplitudeEstimation(4), {'estimation': 0.8535534, 'mle': 0.8143597808556013}],
-        ['statevector', AmplitudeEstimationWithoutQPE(5), {'estimation': 0.8097582003326866}],
-        ['qasm', AmplitudeEstimationWithoutQPE(6), {'estimation': 0.8096123776923358}],
+        ['statevector', MaximumLikelihoodAmplitudeEstimation(5), {'estimation': 0.8097582003326866}],
+        ['qasm', MaximumLikelihoodAmplitudeEstimation(6), {'estimation': 0.8096123776923358}],
     ])
     def test_delta(self, simulator, ae, expect):
         # set A factory for amplitude estimation
@@ -251,8 +251,8 @@ class TestFixedIncomeAssets(QiskitAquaTestCase):
     @parameterized.expand([
         ['statevector', AmplitudeEstimation(5), {'estimation': 2.4600, 'mle': 2.3402315559106843}],
         ['qasm', AmplitudeEstimation(5), {'estimation': 2.4600, 'mle': 2.3632087675061726}],
-        ['statevector', AmplitudeEstimationWithoutQPE(5), {'estimation': 2.340361798381051}],
-        ['qasm', AmplitudeEstimationWithoutQPE(5), {'estimation': 2.317921060790118}]
+        ['statevector', MaximumLikelihoodAmplitudeEstimation(5), {'estimation': 2.340361798381051}],
+        ['qasm', MaximumLikelihoodAmplitudeEstimation(5), {'estimation': 2.317921060790118}]
     ])
     def test_expected_value(self, simulator, ae, expect):
         # can be used in case a principal component analysis has been done to derive the uncertainty model, ignored in this example.
