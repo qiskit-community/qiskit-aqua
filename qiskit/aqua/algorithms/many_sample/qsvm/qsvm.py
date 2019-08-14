@@ -168,7 +168,7 @@ class QSVM(QuantumAlgorithm):
             v_b = results.get_statevector(int(j))
             # |<0|Psi^daggar(y) x Psi(x)|0>|^2, take the amplitude
             tmp = np.vdot(v_a, v_b)
-            kernel_value = np.vdot(tmp, tmp).real
+            kernel_value = np.vdot(tmp, tmp).real  # pylint: disable=no-member
         else:
             result = results.get_counts(idx)
             kernel_value = result.get(measurement_basis, 0) / sum(result.values())

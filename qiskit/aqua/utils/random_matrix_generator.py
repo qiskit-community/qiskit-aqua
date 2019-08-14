@@ -38,7 +38,7 @@ def random_h1_body(N):
         raise ValueError('The number of spin-orbitals must be even but {}'.format(N))
     h1 = np.ones((N // 2, N // 2)) - 2 * np.random.random((N // 2, N // 2))
     h1 = np.triu(tensorproduct(Pup, h1) + tensorproduct(Pdown, h1))
-    h1 = (h1 + h1.T) / 2.0
+    h1 = (h1 + h1.T) / 2.0  # pylint: disable=no-member
     return h1
 
 
