@@ -13,17 +13,14 @@
 # that they have been altered from the originals.
 from qiskit.aqua.utils import CircuitFactory
 from qiskit.aqua.circuits.fixed_value_comparator import FixedValueComparator as Comparator
-from qiskit.aqua.circuits.linear_y_rotation import LinearYRotation as LinRY
+from qiskit.aqua.circuits.linear_rotation import LinearRotation as LinR
 import numpy as np
 
 
-class PiecewiseLinearYRotation(CircuitFactory):
+class PiecewiseLinearRotation(CircuitFactory):
     """
-    Piecewise-linearly-controlled Y rotation.
-    For a piecewise linear (not necessarily continuous) function f(x), a state qubit register |x> and a target qubit |0>, this operator acts as
-
-        |x>|0> --> |x> ( cos( f(x) )|0> + sin( f(x) )|1> )
-
+    Piecewise-linearly-controlled rotation.
+    For a piecewise linear (not necessarily continuous) function f(x).
     The function f(x) is defined through breakpoints, slopes and offsets as follows.
     Suppose the breakpoints { x_0, ..., x_J } are a subset of [0,  2^n-1], where n is the number of state qubits.
     Further on, denote the corresponding slopes and offsets by a_j, b_j respectively.
@@ -35,7 +32,7 @@ class PiecewiseLinearYRotation(CircuitFactory):
     where we implicitly assume x_{J+1} = 2^n.
     """
 
-    def __init__(self, breakpoints, slopes, offsets, num_state_qubits, i_state=None, i_target=None):
+    def __init__(self, breakpoints, slopes, offsets, num_state_qubits, basis='Y', i_state=None, i_target=None):
         """
         Constructor.
 
@@ -46,6 +43,7 @@ class PiecewiseLinearYRotation(CircuitFactory):
             slopes (array or list): slopes for different segments of piecewise-linear function
             offsets (array or list): offsets for different segments of piecewise-linear function
             num_state_qubits (int): number of qubits representing the state
+            basis (str): type of Pauli rotation ('X', 'Y', 'Z')
             i_state (array or list): indices of qubits representing the state, set to range(num_state_qubits) if None
             i_target (int): index of target qubit, set to num_state_qubits if None
         """
@@ -57,6 +55,7 @@ class PiecewiseLinearYRotation(CircuitFactory):
         self.breakpoints = breakpoints
         self.slopes = slopes
         self.offsets = offsets
+        self.basis = basis
 
         # map slopes and offsets
         self.mapped_slopes = np.zeros(len(breakpoints))
@@ -121,8 +120,9 @@ class PiecewiseLinearYRotation(CircuitFactory):
             if i == 0 and self.contains_zero_breakpoint:
 
                 # apply rotation
-                lin_ry = LinRY(self.mapped_slopes[i], self.mapped_offsets[i], self.num_state_qubits, i_state=i_state, i_target=i_target)
-                lin_ry.build(qc, q)
+                lin_r = LinR(self.mapped_slopes[i], self.mapped_offsets[i], self.num_state_qubits, basis=self.basis,
+                             i_state=i_state, i_target=i_target)
+                lin_r.build(qc, q)
 
             elif self.contains_zero_breakpoint:
 
@@ -134,8 +134,9 @@ class PiecewiseLinearYRotation(CircuitFactory):
                 comp.build(qc, q_, q_ancillas_)
 
                 # apply controlled rotation
-                lin_ry = LinRY(self.mapped_slopes[i], self.mapped_offsets[i], self.num_state_qubits, i_state=i_state, i_target=i_target)
-                lin_ry.build_controlled(qc, q, q_ancillas[i - 1], use_basis_gates=False)
+                lin_r = LinR(self.mapped_slopes[i], self.mapped_offsets[i], self.num_state_qubits, basis=self.basis,
+                             i_state=i_state, i_target=i_target)
+                lin_r.build_controlled(qc, q, q_ancillas[i - 1], use_basis_gates=False)
 
                 # uncompute comparator
                 comp.build_inverse(qc, q_, q_ancillas_)
@@ -150,8 +151,9 @@ class PiecewiseLinearYRotation(CircuitFactory):
                 comp.build(qc, q_, q_ancillas_)
 
                 # apply controlled rotation
-                lin_ry = LinRY(self.mapped_slopes[i], self.mapped_offsets[i], self.num_state_qubits, i_state=i_state, i_target=i_target)
-                lin_ry.build_controlled(qc, q, q_ancillas[i], use_basis_gates=False)
+                lin_r = LinR(self.mapped_slopes[i], self.mapped_offsets[i], self.num_state_qubits, basis=self.basis,
+                             i_state=i_state, i_target=i_target)
+                lin_r.build_controlled(qc, q, q_ancillas[i], use_basis_gates=False)
 
                 # uncompute comparator
                 comp.build_inverse(qc, q_, q_ancillas_)
