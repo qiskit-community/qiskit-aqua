@@ -145,7 +145,15 @@ class QEquationOfMotion:
         return excitation_energies_gap, eom_matrices
 
     def build_hopping_operators(self, excitations_list):
+        """Building all hopping operators defined in excitation list.
 
+        Args:
+            excitations_list (list): single excitations list + double excitation list
+
+        Returns:
+            dict: all hopping operators based on excitations_list, key is the string of single/double excitation;
+                  value is corresponding operator.
+        """
         size = len(excitations_list)
 
         # get all to-be-processed index
@@ -184,7 +192,21 @@ class QEquationOfMotion:
         return hopping_operators, type_of_commutativities
 
     def build_all_commutators(self, excitations_list, hopping_operators, type_of_commutativities):
+        """Building all commutators for Q, W, M, V matrices.
 
+        Args:
+            excitations_list (list): single excitations list + double excitation list
+            hopping_operators (dict): all hopping operators based on excitations_list,
+                                      key is the string of single/double excitation; value is corresponding operator.
+            type_of_commutativities: if tapering is used, it records the commutativities of hopping operators with the
+                                     Z2 symmetries found in the original operator.
+        Returns:
+            dict: key: a string of matrix indices; value: the commutators for Q matrix
+            dict: key: a string of matrix indices; value: the commutators for W matrix
+            dict: key: a string of matrix indices; value: the commutators for M matrix
+            dict: key: a string of matrix indices; value: the commutators for V matrix
+            int: number of entries in the matrix
+        """
         size = len(excitations_list)
         m_commutators = np.empty((size, size), dtype=object)
         v_commutators = np.empty((size, size), dtype=object)
@@ -246,17 +268,16 @@ class QEquationOfMotion:
     def build_eom_matrices(self, excitations_list, q_commutators, w_commutators,
                            m_commutators, v_commutators, available_entry,
                            wave_fn, quantum_instance=None):
-        """
-        Compute M, V, Q and W matrices.
+        """Compute M, V, Q and W matrices.
 
         Args:
             excitations_list (list): single excitations list + double excitation list
+            q_commutators (dict): key: a string of matrix indices; value: the commutators for Q matrix
+            w_commutators (dict): key: a string of matrix indices; value: the commutators for W matrix
+            m_commutators (dict): key: a string of matrix indices; value: the commutators for M matrix
+            v_commutators (dict): key: a string of matrix indices; value: the commutators for V matrix
+            available_entry (int): number of entries in the matrix
             wave_fn (QuantumCircuit or numpy.ndarray): the circuit generated wave function for the ground state energy
-            q_commutators (dict):
-            w_commutators (dict):
-            m_commutators (dict):
-            v_commutators (dict):
-            available_entry (int):
             quantum_instance (QuantumInstance): a quantum instance with configured settings
 
         Returns:
@@ -266,10 +287,10 @@ class QEquationOfMotion:
             numpy.ndarray: W matrix
 
         Raises:
-            ValueError: wrong setting for wave_fn and quantum_instance
+            AquaError: wrong setting for wave_fn and quantum_instance
         """
         if isinstance(wave_fn, QuantumCircuit) and quantum_instance is None:
-            raise ValueError("quantum_instance is required when wavn_fn is a QuantumCircuit.")
+            raise AquaError("quantum_instance is required when wavn_fn is a QuantumCircuit.")
 
         size = len(excitations_list)
         logger.info('EoM matrix size is {}x{}.'.format(size, size))
@@ -374,14 +395,13 @@ class QEquationOfMotion:
 
     @staticmethod
     def compute_excitation_energies(m_mat, v_mat, q_mat, w_mat):
-        """
-        Diagonalizing M, V, Q, W matrices for excitation energies.
+        """Diagonalizing M, V, Q, W matrices for excitation energies.
 
         Args:
-            m_mat (numpy.ndarray): M
-            v_mat (numpy.ndarray): V
-            q_mat (numpy.ndarray): Q
-            w_mat (numpy.ndarray): W
+            m_mat (numpy.ndarray): M matrices
+            v_mat (numpy.ndarray): V matrices
+            q_mat (numpy.ndarray): Q matrices
+            w_mat (numpy.ndarray): W matrices
 
         Returns:
             numpy.ndarray: 1-D vector stores all energy gap to reference state
