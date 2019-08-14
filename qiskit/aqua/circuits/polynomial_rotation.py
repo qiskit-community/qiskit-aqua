@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2018, 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -11,6 +11,9 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+"""
+Polynomially controlled Pauli-rotations
+"""
 from qiskit.aqua.utils import CircuitFactory
 from qiskit.aqua.circuits.gates import cry, mcrx, mcry, mcrz
 from sympy.ntheory.multinomial import multinomial_coefficients

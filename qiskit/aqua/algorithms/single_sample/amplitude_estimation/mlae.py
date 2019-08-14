@@ -35,11 +35,11 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationBase):
     """
 
     CONFIGURATION = {
-        'name': 'AmplitudeEstimationWithoutQPE',
-        'description': 'Amplitude Estimation Without QPE Algorithm',
+        'name': 'MaximumLikelihoodAmplitudeEstimation',
+        'description': 'Maximum Likelihood Amplitude Estimation',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
-            'id': 'AmplitudeEstimationWithoutQPE_schema',
+            'id': 'MaximumLikelihoodAmplitudeEstimation_schema',
             'type': 'object',
             'properties': {
                 'log_max_evals': {
