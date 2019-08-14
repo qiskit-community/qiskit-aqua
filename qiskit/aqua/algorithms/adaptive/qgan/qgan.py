@@ -349,7 +349,7 @@ class QGAN(QuantumAlgorithm):
         temp = np.zeros(len(self._grid_elements))
         for j, sample in enumerate(samples_gen):
             for i, element in enumerate(self._grid_elements):
-                if all(sample == element):
+                if sample == element:
                     temp[i] += prob_gen[j]
         prob_gen = temp
         prob_gen = [1e-8 if x == 0 else x for x in prob_gen]
