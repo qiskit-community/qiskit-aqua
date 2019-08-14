@@ -106,7 +106,8 @@ class QEomVQE(VQE):
                  num_orbitals=4, num_particles=2, qubit_mapping='parity',
                  two_qubit_reduction=True, is_eom_matrix_symmetric=True,
                  active_occupied=None, active_unoccupied=None,
-                 se_list=None, de_list=None):
+                 se_list=None, de_list=None, z2_symmetries=None,
+                 untapered_op=None):
         """
         Args:
             operator (BaseOperator): qubit operator
@@ -136,6 +137,9 @@ class QEomVQE(VQE):
             is_eom_matrix_symmetric (bool): is EoM matrix symmetric
             se_list ([list]): single excitation list, overwrite the setting in active space
             de_list ([list]): double excitation list, overwrite the setting in active space
+            z2_symmetries (Z2Symmetries): represent the Z2 symmetries
+            untapered_op (BaseOperator): if the operator is tapered, we need untapered operator
+                                         during building element of EoM matrix
         """
         self.validate(locals())
         super().__init__(operator.copy(), var_form, optimizer, initial_point=initial_point,
@@ -144,7 +148,8 @@ class QEomVQE(VQE):
 
         self.qeom = QEquationOfMotion(operator, num_orbitals, num_particles,
                                       qubit_mapping, two_qubit_reduction, active_occupied, active_unoccupied,
-                                      is_eom_matrix_symmetric, se_list, de_list)
+                                      is_eom_matrix_symmetric, se_list, de_list,
+                                      z2_symmetries, untapered_op)
 
     @classmethod
     def init_params(cls, params, algo_input):
@@ -193,8 +198,8 @@ class QEomVQE(VQE):
         opt_params = self._ret['opt_params']
         logger.info("opt params:\n{}".format(opt_params))
         wave_fn = self._var_form.construct_circuit(opt_params)
-        excitation_energies_gap, eom_matrices = self.qeom.calculate_excited_states(wave_fn,
-                                                                                   quantum_instance=self._quantum_instance)
+        excitation_energies_gap, eom_matrices = self.qeom.calculate_excited_states(
+            wave_fn, quantum_instance=self._quantum_instance)
         excitation_energies = excitation_energies_gap + self._ret['energy']
         all_energies = np.concatenate(([self._ret['energy']], excitation_energies))
         self._ret['energy_gap'] = excitation_energies_gap

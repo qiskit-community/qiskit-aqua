@@ -14,6 +14,7 @@
 
 import logging
 import copy
+import itertools
 import sys
 
 import numpy as np
@@ -21,7 +22,7 @@ from scipy import linalg
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
-from qiskit.aqua import aqua_globals
+from qiskit.aqua import AquaError, aqua_globals
 from qiskit.aqua.operators import (WeightedPauliOperator, Z2Symmetries, TPBGroupedWeightedPauliOperator,
                                    op_converter, commutator)
 
@@ -36,7 +37,8 @@ class QEquationOfMotion:
     def __init__(self, operator, num_orbitals, num_particles,
                  qubit_mapping=None, two_qubit_reduction=False,
                  active_occupied=None, active_unoccupied=None,
-                 is_eom_matrix_symmetric=True, se_list=None, de_list=None):
+                 is_eom_matrix_symmetric=True, se_list=None, de_list=None,
+                 z2_symmetries=None, untapered_op=None):
         """Constructor.
 
         Args:
@@ -53,6 +55,9 @@ class QEquationOfMotion:
             is_eom_matrix_symmetric (bool): is EoM matrix symmetric
             se_list ([list]): single excitation list, overwrite the setting in active space
             de_list ([list]): double excitation list, overwrite the setting in active space
+            z2_symmetries (Z2Symmetries): represent the Z2 symmetries
+            untapered_op (WeightedPauliOperator): if the operator is tapered, we need untapered operator
+                                                  to build element of EoM matrix
         """
         self._operator = operator
         self._num_orbitals = num_orbitals
@@ -76,6 +81,9 @@ class QEquationOfMotion:
         else:
             self._de_list = de_list
             logger.info("Use user-specified double excitation list: {}".format(self._de_list))
+
+        self._z2_symmetries = z2_symmetries if z2_symmetries is not None else Z2Symmetries([], [], [])
+        self._untapered_op = untapered_op if untapered_op is not None else operator
 
         self._is_eom_matrix_symmetric = is_eom_matrix_symmetric
 
@@ -113,14 +121,15 @@ class QEquationOfMotion:
         # this is required to assure paulis mode is there regardless how you compute VQE
         # it might be slow if you calculate vqe through matrix mode and then convert it back to paulis
         self._operator = op_converter.to_weighted_pauli_operator(self._operator)
+        self._untapered_op = op_converter.to_weighted_pauli_operator(self._untapered_op)
 
         excitations_list = self._de_list + self._se_list if excitations_list is None else excitations_list
 
         # build all hopping operators
-        hopping_operators = self.build_hopping_operators(excitations_list)
+        hopping_operators, type_of_commutativities = self.build_hopping_operators(excitations_list)
         # build all commutators
         q_commutators, w_commutators, m_commutators, v_commutators, available_entry = self.build_all_commutators(
-            excitations_list, hopping_operators)
+            excitations_list, hopping_operators, type_of_commutativities)
         # build qeom matrices (the step involves quantum)
         m_mat, v_mat, q_mat, w_mat, m_mat_std, v_mat_std, q_mat_std, w_mat_std = \
             self.build_eom_matrices(excitations_list, q_commutators, w_commutators,
@@ -149,6 +158,7 @@ class QEquationOfMotion:
 
         # build all hopping operators
         hopping_operators = {}
+        type_of_commutativities = {}
         to_be_executed_list = []
         for idx in range(len(mus)):
             mu = mus[idx]
@@ -158,20 +168,22 @@ class QEquationOfMotion:
                 if key not in hopping_operators:
                     to_be_executed_list.append(excitations)
                     hopping_operators[key] = None
+                    type_of_commutativities[key] = None
 
         result = parallel_map(QEquationOfMotion._build_single_hopping_operator,
                               to_be_executed_list,
                               task_args=(self._num_particles, self._num_orbitals, self._qubit_mapping,
-                                         self._two_qubit_reduction),
+                                         self._two_qubit_reduction, self._z2_symmetries),
                               num_processes=aqua_globals.num_processes)
 
         for excitations, res in zip(to_be_executed_list, result):
             key = '_'.join([str(x) for x in excitations])
-            hopping_operators[key] = res
+            hopping_operators[key] = res[0]
+            type_of_commutativities[key] = res[1]
 
-        return hopping_operators
+        return hopping_operators, type_of_commutativities
 
-    def build_all_commutators(self, excitations_list, hopping_operators):
+    def build_all_commutators(self, excitations_list, hopping_operators, type_of_commutativities):
 
         size = len(excitations_list)
         m_commutators = np.empty((size, size), dtype=object)
@@ -203,7 +215,7 @@ class QEquationOfMotion:
                 TextProgressBar(sys.stderr)
             results = parallel_map(QEquationOfMotion._build_commutator_rountine,
                                    to_be_computed_list,
-                                   task_args=(self._operator,))
+                                   task_args=(self._untapered_op, self._z2_symmetries))
             for result in results:
                 mu, nu, q_mat_op, w_mat_op, m_mat_op, v_mat_op = result
                 q_commutators[mu][nu] = op_converter.to_tpb_grouped_weighted_pauli_operator(q_mat_op, TPBGroupedWeightedPauliOperator.sorted_grouping) if q_mat_op is not None else q_commutators[mu][nu]
@@ -211,9 +223,23 @@ class QEquationOfMotion:
                 m_commutators[mu][nu] = op_converter.to_tpb_grouped_weighted_pauli_operator(m_mat_op, TPBGroupedWeightedPauliOperator.sorted_grouping) if m_mat_op is not None else m_commutators[mu][nu]
                 v_commutators[mu][nu] = op_converter.to_tpb_grouped_weighted_pauli_operator(v_mat_op, TPBGroupedWeightedPauliOperator.sorted_grouping) if v_mat_op is not None else v_commutators[mu][nu]
 
-        available_hopping_ops = hopping_operators
-        _build_one_sector(available_hopping_ops)
-        available_entry = len(available_hopping_ops) * len(available_hopping_ops)
+        available_entry = 0
+        if not self._z2_symmetries.is_empty():
+            for targeted_tapering_values in itertools.product([1, -1], repeat=len(self._z2_symmetries.symmetries)):
+                logger.info("In sector: ({})".format(','.join([str(x) for x in targeted_tapering_values])))
+                # remove the excited operators which are not suitable for the sector
+                available_hopping_ops = {}
+                targeted_sector = (np.asarray(targeted_tapering_values) == 1)
+                for key, value in type_of_commutativities.items():
+                    value = np.asarray(value)
+                    if np.all(value == targeted_sector):
+                        available_hopping_ops[key] = hopping_operators[key]
+                _build_one_sector(available_hopping_ops)
+                available_entry += len(available_hopping_ops) * len(available_hopping_ops)
+        else:
+            available_hopping_ops = hopping_operators
+            _build_one_sector(available_hopping_ops)
+            available_entry = len(available_hopping_ops) * len(available_hopping_ops)
 
         return q_commutators, w_commutators, m_commutators, v_commutators, available_entry
 
@@ -381,7 +407,7 @@ class QEquationOfMotion:
 
     @staticmethod
     def _build_single_hopping_operator(index, num_particles, num_orbitals, qubit_mapping,
-                                       two_qubit_reduction):
+                                       two_qubit_reduction, z2_symmetries):
 
         h1 = np.zeros((num_orbitals, num_orbitals), dtype=complex)
         h2 = np.zeros((num_orbitals, num_orbitals, num_orbitals, num_orbitals), dtype=complex)
@@ -396,10 +422,26 @@ class QEquationOfMotion:
         if two_qubit_reduction:
             qubit_op = Z2Symmetries.two_qubit_reduction(qubit_op, num_particles)
 
-        return qubit_op
+        commutativities = []
+        if not z2_symmetries.is_empty():
+            for symmetry in z2_symmetries.symmetries:
+                symmetry_op = WeightedPauliOperator(paulis=[[1.0, symmetry]])
+                commuting = qubit_op.commute_with(symmetry_op)
+                anticommuting = qubit_op.anticommute_with(symmetry_op)
+
+                if commuting != anticommuting:  # only one of them is True
+                    if commuting:
+                        commutativities.append(True)
+                    elif anticommuting:
+                        commutativities.append(False)
+                else:
+                    raise AquaError("Symmetry {} is nor commute neither anti-commute "
+                                    "to exciting operator.".format(symmetry.to_label()))
+
+        return qubit_op, commutativities
 
     @staticmethod
-    def _build_commutator_rountine(params, operator):
+    def _build_commutator_rountine(params, operator, z2_symmetries):
         mu, nu, left_op, right_op_1, right_op_2 = params
         if left_op is None:
             q_mat_op = None
@@ -430,5 +472,15 @@ class QEquationOfMotion:
                 else:
                     m_mat_op = None
                     v_mat_op = None
+
+                if not z2_symmetries.is_empty():
+                    if q_mat_op is not None and not q_mat_op.is_empty():
+                        q_mat_op = z2_symmetries.taper(q_mat_op)
+                    if w_mat_op is not None and not w_mat_op.is_empty():
+                        w_mat_op = z2_symmetries.taper(w_mat_op)
+                    if m_mat_op is not None and not m_mat_op.is_empty():
+                        m_mat_op = z2_symmetries.taper(m_mat_op)
+                    if v_mat_op is not None and not v_mat_op.is_empty():
+                        v_mat_op = z2_symmetries.taper(v_mat_op)
 
         return mu, nu, q_mat_op, w_mat_op, m_mat_op, v_mat_op
