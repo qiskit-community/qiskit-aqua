@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 class QEomVQE(VQE):
 
     CONFIGURATION = {
-        'name': 'Q_EOM_VQE',
+        'name': 'QEomVQE',
         'description': 'Q_EOM with VQE Algorithm to find the reference state',
         'input_schema': {
             '$schema': 'http://json-schema.org/schema#',
@@ -77,15 +77,11 @@ class QEomVQE(VQE):
                 'max_evals_grouped': {
                     'type': 'integer',
                     'default': 1
-                },
-                'is_eom_matrix_symmetric': {
-                    'type': 'boolean',
-                    'default': True
                 }
             },
             'additionalProperties': False
         },
-        'problems': ['energy', 'excited_states'],
+        'problems': ['excited_states'],
         'depends': [
             {'pluggable_type': 'optimizer',
              'default': {
@@ -165,15 +161,15 @@ class QEomVQE(VQE):
 
         operator = algo_input.qubit_op
 
-        eom_vqe_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
-        initial_point = eom_vqe_params.get('initial_point')
-        max_evals_grouped = eom_vqe_params.get('max_evals_grouped')
-        num_orbitals = eom_vqe_params.get('num_orbitals')
-        num_particles = eom_vqe_params.get('num_particles')
-        qubit_mapping = eom_vqe_params.get('qubit_mapping')
-        two_qubit_reduction = eom_vqe_params.get('two_qubit_reduction')
-        active_occupied = eom_vqe_params.get('active_occupied')
-        active_unoccupied = eom_vqe_params.get('active_unoccupied')
+        q_eom_vqe_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
+        initial_point = q_eom_vqe_params.get('initial_point')
+        max_evals_grouped = q_eom_vqe_params.get('max_evals_grouped')
+        num_orbitals = q_eom_vqe_params.get('num_orbitals')
+        num_particles = q_eom_vqe_params.get('num_particles')
+        qubit_mapping = q_eom_vqe_params.get('qubit_mapping')
+        two_qubit_reduction = q_eom_vqe_params.get('two_qubit_reduction')
+        active_occupied = q_eom_vqe_params.get('active_occupied')
+        active_unoccupied = q_eom_vqe_params.get('active_unoccupied')
 
         # Set up variational form, we need to add computed num qubits, and initial state to params
         var_form_params = params.get(Pluggable.SECTION_KEY_VAR_FORM)

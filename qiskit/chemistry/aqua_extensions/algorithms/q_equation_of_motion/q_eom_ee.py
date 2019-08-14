@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 class QEomEE(ExactEigensolver):
 
     CONFIGURATION = {
-        'name': 'Q_EOM_EE',
+        'name': 'QEomEE',
         'description': 'Q_EOM with ExactEigensolver Algorithm to find the reference state',
         'classical': True,
         'input_schema': {
@@ -66,15 +66,11 @@ class QEomEE(ExactEigensolver):
                 'active_unoccupied': {
                     'type': ['array', 'null'],
                     'default': None
-                },
-                'is_eom_matrix_symmetric': {
-                    'type': 'boolean',
-                    'default': True
                 }
             },
             'additionalProperties': False
         },
-        'problems': ['energy', 'excited_states']
+        'problems': ['excited_states']
     }
 
     def __init__(self, operator, aux_operators=None,
@@ -100,7 +96,7 @@ class QEomEE(ExactEigensolver):
             de_list ([list]): double excitation list, overwrite the setting in active space
             z2_symmetries (Z2Symmetries): represent the Z2 symmetries
             untapered_op (BaseOperator): if the operator is tapered, we need untapered operator
-                                     to build element of EoM matrix
+                                         to build element of EoM matrix
         """
         self.validate(locals())
         super().__init__(operator, 1, aux_operators)
@@ -124,13 +120,13 @@ class QEomEE(ExactEigensolver):
 
         operator = algo_input.qubit_op
 
-        eom_vqe_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
-        num_orbitals = eom_vqe_params.get('num_orbitals')
-        num_particles = eom_vqe_params.get('num_particles')
-        qubit_mapping = eom_vqe_params.get('qubit_mapping')
-        two_qubit_reduction = eom_vqe_params.get('two_qubit_reduction')
-        active_occupied = eom_vqe_params.get('active_occupied')
-        active_unoccupied = eom_vqe_params.get('active_unoccupied')
+        q_eom_ee_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
+        num_orbitals = q_eom_ee_params.get('num_orbitals')
+        num_particles = q_eom_ee_params.get('num_particles')
+        qubit_mapping = q_eom_ee_params.get('qubit_mapping')
+        two_qubit_reduction = q_eom_ee_params.get('two_qubit_reduction')
+        active_occupied = q_eom_ee_params.get('active_occupied')
+        active_unoccupied = q_eom_ee_params.get('active_unoccupied')
 
         return cls(operator, aux_operators=algo_input.aux_ops, num_orbitals=num_orbitals,
                    num_particles=num_particles,

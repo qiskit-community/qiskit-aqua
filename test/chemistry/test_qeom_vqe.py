@@ -23,7 +23,7 @@ from qiskit.aqua.components.variational_forms import RY
 from qiskit.aqua.components.optimizers import COBYLA, SPSA
 from qiskit.aqua.algorithms import ExactEigensolver
 from qiskit.aqua.operators import Z2Symmetries
-from qiskit.chemistry.aqua_extensions.algortihms import QEomVQE
+from qiskit.chemistry.aqua_extensions.algorithms import QEomVQE
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
 from qiskit.chemistry.aqua_extensions.components.variational_forms import UCCSD

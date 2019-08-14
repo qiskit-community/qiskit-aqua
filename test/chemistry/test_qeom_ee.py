@@ -21,7 +21,7 @@ from qiskit.aqua.algorithms import ExactEigensolver
 from qiskit.aqua.operators import Z2Symmetries
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
-from qiskit.chemistry.aqua_extensions.algortihms import QEomEE
+from qiskit.chemistry.aqua_extensions.algorithms import QEomEE
 
 
 class TestEomEE(QiskitAquaTestCase):
