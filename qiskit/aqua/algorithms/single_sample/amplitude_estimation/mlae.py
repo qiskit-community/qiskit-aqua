@@ -29,7 +29,7 @@ from .ae_base import AmplitudeEstimationBase
 logger = logging.getLogger(__name__)
 
 
-class AmplitudeEstimationWithoutQPE(AmplitudeEstimationBase):
+class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationBase):
     """
     The Amplitude Estimation without QPE algorithm.
     """
