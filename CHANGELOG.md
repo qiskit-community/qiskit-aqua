@@ -50,7 +50,9 @@ Added
 -   Add `op_converter` module to unified the place in charge of converting different types of operators. (#593)
 -   Add `Z2Symmetries` class to encapsulate the Z2 symmetries info and has helper methods for tapering an
     Operator. (#593).
-
+-   Add `q_equation_of_motion` to study excited state of a molecule, and add two algorithms to prepare the reference 
+    state. (#647)
+     
 Changed
 -------
 
