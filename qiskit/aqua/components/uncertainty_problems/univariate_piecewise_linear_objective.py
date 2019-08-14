@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 import numpy as np
-from qiskit.aqua.circuits.piecewise_linear_y_rotation import PiecewiseLinearYRotation as PwlRy
+from qiskit.aqua.circuits.piecewise_linear_rotation import PiecewiseLinearRotation as PwlRot
 from qiskit.aqua.utils import CircuitFactory
 
 
@@ -125,7 +125,7 @@ class UnivariatePiecewiseLinearObjective(CircuitFactory):
             self._offset_angles = 2 * self._offset_angles
 
             # create piecewise linear Y rotation
-            self._pwl_ry = PwlRy(
+            self._pwl_ry = PwlRot(
                 self._mapped_breakpoints,
                 self._slope_angles,
                 self._offset_angles,
