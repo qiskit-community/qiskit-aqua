@@ -389,6 +389,7 @@ class QEquationOfMotion:
         logger.debug('Diagonalizing qeom matrices for excited states...')
         a_mat = np.bmat([[m_mat, q_mat], [q_mat.T.conj(), m_mat.T.conj()]])
         b_mat = np.bmat([[v_mat, w_mat], [-w_mat.T.conj(), -v_mat.T.conj()]])
+        # pylint: disable=too-many-function-args
         res = linalg.eig(a_mat, b_mat)
         # convert nan value into 0
         res[0][np.where(np.isnan(res[0]))] = 0.0
