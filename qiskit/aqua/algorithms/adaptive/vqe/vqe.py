@@ -285,7 +285,7 @@ class VQE(VQAlgorithm):
                                       var_form=self.var_form,
                                       cost_fn=self._energy_evaluation,
                                       optimizer=self.optimizer)
-
+        self._extrapolated_points = None
         if self._ret['num_optimizer_evals'] is not None and self._eval_count >= self._ret['num_optimizer_evals']:
             self._eval_count = self._ret['num_optimizer_evals']
         self._eval_time = self._ret['eval_time']
@@ -301,8 +301,9 @@ class VQE(VQAlgorithm):
 
     def _run_extrapolated_points(self):
         qi = self._quantum_instance
-        if qi._compile_config['optimization_level'] > 1:
-            logger.warning('Optimization level of {} may interfere with extrapolation results'.format(qi._compile_config['optimization_level']))
+        if qi._compile_config['optimization_level'] is not None:
+            if qi._compile_config['optimization_level'] > 1:
+                logger.warning('Optimization level of {} may interfere with extrapolation results'.format(qi._compile_config['optimization_level']))
         re = self.richardson_extrapolator  # type: RichardsonExtrapolator
         vfs = [ExtrapolatedVF(self.var_form, pm) for pm in re.pass_managers]
         vqes = [VQE(
@@ -314,6 +315,7 @@ class VQE(VQAlgorithm):
         energies = [res['energy'] for res in results]
         extrapolated_energy = re.extrapolate(energies)
 
+        self._energies = energies
         self._extrapolated_vqes = vqes
         self._extrapolated_results = results
 
