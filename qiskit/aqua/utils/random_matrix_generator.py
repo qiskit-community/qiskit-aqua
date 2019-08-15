@@ -1,7 +1,22 @@
-#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# This code is part of Qiskit.
+#
+# (C) Copyright IBM 2018, 2019.
+#
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
+#
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
+
 
 import numpy as np
 import scipy
+import scipy.sparse
+import scipy.stats
 
 from qiskit.aqua.utils import tensorproduct
 
@@ -23,7 +38,7 @@ def random_h1_body(N):
         raise ValueError('The number of spin-orbitals must be even but {}'.format(N))
     h1 = np.ones((N // 2, N // 2)) - 2 * np.random.random((N // 2, N // 2))
     h1 = np.triu(tensorproduct(Pup, h1) + tensorproduct(Pdown, h1))
-    h1 = (h1 + h1.T) / 2.0
+    h1 = (h1 + h1.T) / 2.0  # pylint: disable=no-member
     return h1
 
 
@@ -189,7 +204,8 @@ def limit_paulis(mat, n=5, sparsity=None):
     Returns:
         scipy.sparse.csr_matrix
     """
-    from qiskit.aqua import Operator
+    from qiskit.aqua.operators import MatrixOperator
+    from qiskit.aqua.operators.op_converter import to_weighted_pauli_operator
     # Bringing matrix into form 2**Nx2**N
     _l = mat.shape[0]
     if np.log2(_l) % 1 != 0:
@@ -200,9 +216,8 @@ def limit_paulis(mat, n=5, sparsity=None):
         mat = m
 
     # Getting Pauli matrices
-    op = Operator(matrix=mat)
-    op._check_representation("paulis")
-    op._simplify_paulis()
+    op = MatrixOperator(matrix=mat)
+    op = to_weighted_pauli_operator(op)
     paulis = sorted(op.paulis, key=lambda x: abs(x[0]), reverse=True)
     g = 2**op.num_qubits
     mat = scipy.sparse.csr_matrix(([], ([], [])), shape=(g, g),

@@ -126,7 +126,7 @@ class HartreeFock(InitialState):
             new_bitstr = bitstr.copy()
 
             t = np.triu(np.ones((self._num_orbitals, self._num_orbitals)))
-            new_bitstr = t.dot(new_bitstr.astype(np.int)) % 2
+            new_bitstr = t.dot(new_bitstr.astype(np.int)) % 2  # pylint: disable=no-member
 
             bitstr = np.append(new_bitstr[1:half_orbitals], new_bitstr[half_orbitals + 1:]) \
                 if self._two_qubit_reduction else new_bitstr
