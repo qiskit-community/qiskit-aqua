@@ -419,7 +419,7 @@ class QSVE:
         row_load_circuit.data = []
 
         # Get the row norm circuit
-        self.row_norm_tree.preparation_circuit(row_load_circuit, *registers)
+        self.row_norm_tree.construct_circuit(row_load_circuit, *registers)
 
         # Add the inverse row norm circuit. This corresponds to V^dagger in the doc string circuit diagram.
         circuit += row_load_circuit.inverse()
@@ -461,7 +461,7 @@ class QSVE:
             row_tree = self.get_tree(ii)
 
             # Add the controlled row loading circuit
-            row_tree.preparation_circuit(
+            row_tree.construct_circuit(
                 ctrl_row_load_circuit, registers[1], control_register=registers[0], control_key=ii
             )
 
@@ -704,7 +704,7 @@ class QSVE:
             # If all vector elements are real, we can use the binary tree to load the vector
             if all(np.isreal(singular_vector)):
                 tree = BinaryTree(singular_vector)
-                tree.preparation_circuit(circuit, *registers)
+                tree.construct_circuit(circuit, *registers)
             # If some vector elements are complex, use custom state preparation
             else:
                 state = Custom(
@@ -813,7 +813,7 @@ class QSVE:
 
         # Load the row norms of the matrix in the column register
         if load_row_norms:
-            self.row_norm_tree.preparation_circuit(circuit, row_register)
+            self.row_norm_tree.construct_circuit(circuit, row_register)
 
             # Add a barrier, if desired
             if logical_barriers:

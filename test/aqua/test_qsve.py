@@ -202,7 +202,7 @@ class TestQSVE(QiskitAquaTestCase):
         circ = QuantumCircuit(register)
 
         # Get the state preparation circuit
-        qsve.row_norm_tree.preparation_circuit(circ, register)
+        qsve.row_norm_tree.construct_circuit(circ, register)
 
         # Add a swap gate to get the amplitudes in a sensible order
         circ.swap(register[0], register[1])
