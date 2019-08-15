@@ -134,7 +134,7 @@ class TestQuantumRecommendation(QiskitAquaTestCase):
         qrs = QuantumRecommendation(preference_matrix=pref, user_vector=user, threshold=0.9, nprecision_bits=3)
         result = qrs.run(self.quantum_instance)
         prods = result["products"]
-        cprods, _ = qrs.classical_recommendation(user, rank=1)
+        cprods, _ = qrs.classical_recommendation(pref, user, rank=1)
         self.assertEqual(set(prods), set(cprods))
 
     def test4by4rank2_high_precision(self):
@@ -159,7 +159,7 @@ class TestQuantumRecommendation(QiskitAquaTestCase):
         prods = result["products"]
         probs = result["probabilities"]
         probs = list(sorted(probs))
-        cprods, cprobs = qrs.classical_recommendation(user, rank=1)
+        cprods, cprobs = qrs.classical_recommendation(pref, user, rank=1)
         cprobs = list(sorted(cprobs))
         self.assertEqual(set(prods), set(cprods))
         self.assertTrue(np.allclose(probs, cprobs, atol=0.1))

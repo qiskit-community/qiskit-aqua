@@ -12,7 +12,9 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Module containing the definition of a BinaryTree."""
+"""Module containing the definition of a BinaryTree,
+used for loading (sparse) real-valued vectors onto quantum states.
+"""
 
 # Imports
 from copy import deepcopy
@@ -21,7 +23,7 @@ import numpy as np
 
 from qiskit.aqua.circuits.gates.multi_control_toffoli_gate import mct
 from qiskit.aqua.circuits.gates.multi_control_rotation_gates import mcry
-from qiskit import QuantumRegister, QuantumCircuit
+from qiskit import QuantumRegister
 
 
 class VectorError(Exception):
@@ -46,6 +48,10 @@ class BinaryTree:
         # Make sure the matrix row has length that's a power of two
         if self._nvals & (self._nvals - 1) != 0:
             raise VectorError("Vector must have a number of elements that is a power of two.")
+
+        # Make sure at least one vector element is nonzero
+        if np.allclose(vector, np.zeros_like(vector)):
+            raise VectorError("Vector elements are all zero. This cannot be prepared as a quantum state.")
 
         # Store the input vector
         self._values = list(vector)
@@ -154,12 +160,12 @@ class BinaryTree:
     def parent_value(self, level, index):
         """Returns the value of the parent of a specified node.
 
-            Args:
-                level : int
-                    The node's level in the tree.
+        Args:
+            level : int
+                The node's level in the tree.
 
-                index : int
-                    The node's index within a level.
+            index : int
+                The node's index within a level.
 
         Return type: float.
         """
@@ -193,14 +199,14 @@ class BinaryTree:
     def right_child_index(self, level, index):
         """Returns the index of the right child of a specified parent node.
 
-            Args:
-                level : int
-                    The parent node's level in the tree.
+        Args:
+            level : int
+                The parent node's level in the tree.
 
-                index : int
-                    The parent node's index within the level.
+            index : int
+                The parent node's index within the level.
 
-            Return type: tuple<int, int>.
+        Return type: tuple<int, int>.
             """
         if level == self.number_levels - 1:
             return None

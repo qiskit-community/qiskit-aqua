@@ -419,23 +419,22 @@ class TestBinaryTree(QiskitAquaTestCase):
         state = np.real(self.final_state(circ))
         self.assertTrue(np.allclose(state, vec))
 
-    # Note: This test passes locally but fails non-deterministically on Travis
-    # def test_prepare_negative_amplitudes3(self):
-    #     """Tests preparing a vector with negative amplitudes on a single qubit."""
-    #     # Input vector
-    #     vec = [-0.6, -0.8]
-    #
-    #     # Get a BinaryTree
-    #     tree = BinaryTree(vec)
-    #
-    #     # Get the state preparation circuit
-    #     qreg = QuantumRegister(1)
-    #     circ = QuantumCircuit(qreg)
-    #     tree.construct_circuit(circ, qreg)
-    #
-    #     # Make sure the final state of the circuit is the same as the input vector
-    #     state = np.real(self.final_state(circ))
-    #     self.assertTrue(np.allclose(state, vec))
+    def test_prepare_negative_amplitudes3(self):
+        """Tests preparing a vector with negative amplitudes on a single qubit."""
+        # Input vector
+        vec = [-0.6, -0.8]
+
+        # Get a BinaryTree
+        tree = BinaryTree(vec)
+
+        # Get the state preparation circuit
+        qreg = QuantumRegister(1)
+        circ = QuantumCircuit(qreg)
+        tree.construct_circuit(circ, qreg)
+
+        # Make sure the final state of the circuit is the same as the input vector
+        state = np.real(self.final_state(circ))
+        self.assertTrue(np.allclose(state, vec))
 
     def test_prepare_negative_amplitudes_two_qubits(self):
         """Tests preparing a vector with negative amplitudes for the example from
@@ -1102,21 +1101,6 @@ class TestBinaryTree(QiskitAquaTestCase):
         correct = np.array([0, 0, 0, 0, 0, 0, 1, 0])
         state = np.real(self.final_state(circ))
         self.assertTrue(np.allclose(state, correct))
-
-    def test_prepare_all_zeros(self):
-        """Tests that the preparation circuit is empty for a vector of all zero elements.
-
-        TODO: What should the behavior be? Throw error? Or return an empty circuit?
-        """
-        vec = [0, 0]
-        tree = BinaryTree(vec)
-
-        reg = QuantumRegister(1)
-        circ = QuantumCircuit(reg)
-
-        tree.construct_circuit(circ, reg)
-
-        self.assertEqual(len(circ), 0)
 
 
 if __name__ == "__main__":

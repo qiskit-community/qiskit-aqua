@@ -20,6 +20,7 @@ from qiskit.aqua.components.qsve import QSVE
 from qiskit import QuantumRegister, ClassicalRegister
 from qiskit.aqua.circuits.gates.multi_control_toffoli_gate import mct
 from qiskit.aqua import QuantumAlgorithm
+from qiskit.aqua.utils.decimal_to_binary import decimal_to_binary
 
 
 class UserVectorError(Exception):
@@ -284,6 +285,7 @@ class QuantumRecommendation(QuantumAlgorithm):
     def run_and_return_counts(self, user, threshold):
         """Runs the quantum circuit recommending products for the given user and returns the raw counts."""
         # TODO: Potential bug, since _threshold circuit will have a measurement in it. Maybe raise error in this case?
+        #  Use statevector with subsystem option, get subsystem density matrix
         if self._quantum_instance.is_statevector:
             circuit = self.construct_circuit(user, threshold, measurements=False, logical_barriers=False)
             self._ret["circuit"] = circuit
@@ -339,10 +341,15 @@ class QuantumRecommendation(QuantumAlgorithm):
         self._ret["probabilities"] = probabilities
         return self._ret
 
-    def classical_recommendation(self, user, rank, quantum_format=True):
+    @staticmethod
+    def classical_recommendation(preference_matrix, user, rank, quantum_format=True):
         """Returns a recommendation for a specified user via classical singular value decomposition.
 
         Args:
+            preference_matrix : numpy.ndarray
+                A matrix whose rows represent "user vectors" and columns represent products.
+                Mathematically, a real-valued matrix with floating point entries.
+
             user : numpy.ndarray
                 A vector whose length is equal to the number of columns in the preference matrix.
                 See help(QuantumRecommendation.create_circuit) for more context.
@@ -369,12 +376,8 @@ class QuantumRecommendation(QuantumAlgorithm):
         Returns : Union[numpy.ndarray, tuple(list<int>, list<float>)
             See `quantum_format` above for more information.
         """
-        # Make sure the user and rank are ok
-        self._validate_user(user)
-        self._validate_rank(rank)
-
         # Do the classical SVD
-        _, _, vmat = np.linalg.svd(self.matrix, full_matrices=True)
+        _, _, vmat = np.linalg.svd(preference_matrix, full_matrices=True)
 
         # Do the projection
         recommendation = np.zeros_like(user, dtype=np.float64)
@@ -445,17 +448,7 @@ class QuantumRecommendation(QuantumAlgorithm):
         Return type:
             str
         """
-        if 1 <= decimal < 0:
-            raise ValueError("Argument decimal should satisfy 0 <= decimal < 1.")
-
-        binary = ""
-        for ii in range(1, nbits + 1):
-            if decimal * 2 ** ii >= 1:
-                binary += "1"
-                decimal = (decimal * 10) % 1
-            else:
-                binary += "0"
-        return binary
+        return decimal_to_binary(decimal, max_num_digits=nbits)
 
     @staticmethod
     def _binary_string_to_int(bitstring, big_endian=True):
