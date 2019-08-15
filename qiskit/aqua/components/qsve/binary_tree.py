@@ -251,7 +251,7 @@ class BinaryTree:
         newvals[index] = value
         self.__init__(newvals)
 
-    def construct_circuit(self, circuit, *registers, control_register=None, control_key=None, use_ancillas=False):
+    def construct_circuit(self, circuit, *registers, control_register=None, control_key=None):
         """Adds operations to the circuit that prepares the input vector as a quantum state from the all zero state.
 
         Note: This method modifies the input circuit in place, and returns None.
@@ -321,10 +321,6 @@ class BinaryTree:
                                     |  ----|     |----
                         reg         |  ----|     |----
                                     |  ----|_____|----
-
-            use_ancillas : bool (default value = False)
-                Flag to determine whether or not to use ancillas for multi-controlled gates.
-                Using ancillas can reduce the number of gates.
         """
         # =========================
         # Checks on input arguments
@@ -413,17 +409,6 @@ class BinaryTree:
             control_register_qubits = control_register[:]
         else:
             control_register_qubits = []
-
-        # Add ancilla qubits, if necessary, to do multi-controlled Y rotations
-        if use_ancillas and len(all_qubits) > 3:
-            # TODO: Figure out exactly how many ancillae are needed.
-            # TODO: Take into account the length of control_register_qubits above
-            if control_register:
-                num_ancillae = max(len(all_qubits) - 1, 3)
-            else:
-                num_ancillae = max(len(all_qubits) + len(control_register) - 1, 3)
-            ancilla_register = QuantumRegister(num_ancillae)
-            circuit.add_register(ancilla_register)
 
         # ================================================================
         # Special case: Computational basis vector with a control register
@@ -517,35 +502,18 @@ class BinaryTree:
                 else:
                     all_control_qubits = control_register_qubits + all_qubits[:level]
 
-                # For three qubits or less, no ancilla are needed to do the MCRY
-                if len(all_qubits) <= 3 or not use_ancillas:
-                    # Do the CNOT for the special case of both amplitudes negative
-                    if mct_flag:
-                        if len(all_control_qubits) > 0:
-                            mct(circuit, all_control_qubits, all_qubits[level], None, mode="noancilla")
-                        else:
-                            circuit.x(all_qubits[level])
-
-                    # Do the Y-rotation
+                # Do the CNOT for the special case of both amplitudes negative
+                if mct_flag:
                     if len(all_control_qubits) > 0:
-                        mcry(circuit, theta, all_control_qubits, all_qubits[level], None, mode="noancilla")
+                        mct(circuit, all_control_qubits, all_qubits[level], None, mode="noancilla")
                     else:
-                        circuit.ry(theta, all_qubits[level])
+                        circuit.x(all_qubits[level])
 
-                # For more than three qubits, ancilla are needed
+                # Do the Y-rotation
+                if len(all_control_qubits) > 0:
+                    mcry(circuit, theta, all_control_qubits, all_qubits[level], None, mode="noancilla")
                 else:
-                    # Do the CNOT for the special case of both amplitudes negative
-                    if mct_flag:
-                        if len(all_control_qubits) > 0:
-                            mct(circuit, all_control_qubits, all_qubits[level], ancilla_register)
-                        else:
-                            circuit.x(all_qubits[level])
-
-                    # Do the Y-rotation
-                    if len(all_control_qubits) > 0:
-                        mcry(circuit, theta, all_control_qubits, all_qubits[level], ancilla_register)
-                    else:
-                        circuit.ry(theta, all_qubits[level])
+                    circuit.ry(theta, all_qubits[level])
 
                 # Do X gates for anti-controls on the state preparation register
                 if level > 0:

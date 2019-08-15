@@ -16,11 +16,9 @@
 import numpy as np
 import unittest
 from itertools import permutations
-# from test.aqua.common import QiskitAquaTestCase
-from common import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua.components.qsve import BinaryTree
 from qiskit import QuantumRegister, QuantumCircuit, execute, BasicAer
-from qiskit.quantum_info import state_fidelity
 
 
 class TestBinaryTree(QiskitAquaTestCase):
@@ -401,8 +399,6 @@ class TestBinaryTree(QiskitAquaTestCase):
 
         # Make sure the final state of the circuit is the same as the input vector
         state = np.real(self.final_state(circ))
-        print(circ)
-        print(state)
         self.assertTrue(np.allclose(state, vec))
 
     # Note: This test passes locally but fails non-deterministically on Travis
@@ -421,7 +417,6 @@ class TestBinaryTree(QiskitAquaTestCase):
 
         # Make sure the final state of the circuit is the same as the input vector
         state = np.real(self.final_state(circ))
-        print(circ)
         self.assertTrue(np.allclose(state, vec))
 
     # Note: This test passes locally but fails non-deterministically on Travis
