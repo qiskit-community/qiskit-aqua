@@ -12,9 +12,10 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Test Logical Expression Oracle """
+
 import itertools
 import unittest
-
 from parameterized import parameterized
 from qiskit import execute as q_execute
 from qiskit import QuantumCircuit, ClassicalRegister

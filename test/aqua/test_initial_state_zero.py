@@ -12,10 +12,10 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Test Initial State Zero """
+
 import unittest
-
 import numpy as np
-
 from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua.components.initial_states import Zero
 

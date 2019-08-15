@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" TestDeutsch Jozsa """
+
 import unittest
 import itertools
 from parameterized import parameterized

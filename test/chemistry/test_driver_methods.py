@@ -12,29 +12,28 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Test Driver Methods """
+
+from test.chemistry.common import QiskitChemistryTestCase
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
 from qiskit.aqua.algorithms.classical import ExactEigensolver
-from test.chemistry.common import QiskitChemistryTestCase
 
 
 class TestDriverMethods(QiskitChemistryTestCase):
     """Common driver tests. For H2 @ 0.735, sto3g"""
 
-    def setup(self):
+    def setUp(self):
         super().setUp()
-
-    LIH = 'LI 0 0 0; H 0 0 1.6'
-    OH = 'O 0 0 0; H 0 0 0.9697'
-
-    ref_energies = {
-        'lih': -7.882,
-        'oh': -74.387
-    }
-
-    ref_dipoles = {
-        'lih': 1.818,
-        'oh': 0.4615
-    }
+        self.lih = 'LI 0 0 0; H 0 0 1.6'
+        self.o_h = 'O 0 0 0; H 0 0 0.9697'
+        self.ref_energies = {
+            'lih': -7.882,
+            'oh': -74.387
+        }
+        self.ref_dipoles = {
+            'lih': 1.818,
+            'oh': 0.4615
+        }
 
     @staticmethod
     def _run_driver(driver, transformation=TransformationType.FULL,
@@ -50,10 +49,8 @@ class TestDriverMethods(QiskitChemistryTestCase):
 
         qubit_op, aux_ops = core.run(qmolecule)
 
-        ee = ExactEigensolver(qubit_op, aux_operators=aux_ops, k=1)
-        lines, result = core.process_algorithm_result(ee.run())
-        # print(*lines, sep='\n')
-
+        exact_eigensolver = ExactEigensolver(qubit_op, aux_operators=aux_ops, k=1)
+        _, result = core.process_algorithm_result(exact_eigensolver.run())
         return result
 
     def _assert_energy(self, result, mol):

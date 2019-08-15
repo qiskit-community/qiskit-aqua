@@ -12,14 +12,15 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Test EOH """
+
 import unittest
 
 import numpy as np
-from qiskit.transpiler import PassManager
 from qiskit import BasicAer
 
 from test.aqua.common import QiskitAquaTestCase
-from qiskit.aqua.operators import MatrixOperator, op_converter
+from qiskit.aqua.operators import MatrixOperator
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.components.initial_states import Custom
 from qiskit.aqua.algorithms import EOH

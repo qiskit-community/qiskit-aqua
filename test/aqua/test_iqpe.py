@@ -12,14 +12,12 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Test IQPE """
+
 import unittest
 
 import numpy as np
 from parameterized import parameterized
-from scipy.linalg import expm
-from scipy import sparse
-from qiskit.transpiler import PassManager
-
 from test.aqua.common import QiskitAquaTestCase
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance

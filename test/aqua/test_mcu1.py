@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Test MCU1 """
+
 import unittest
 from itertools import combinations, chain
 import numpy as np

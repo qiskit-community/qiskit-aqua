@@ -12,11 +12,13 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Test Driver PySCF """
+
 import unittest
 from test.chemistry.common import QiskitChemistryTestCase
-from qiskit.chemistry import QiskitChemistryError
-from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from test.chemistry.test_driver import TestDriver
+from qiskit.chemistry.drivers import PySCFDriver, UnitsType
+from qiskit.chemistry import QiskitChemistryError
 
 
 class TestDriverPySCF(QiskitChemistryTestCase, TestDriver):

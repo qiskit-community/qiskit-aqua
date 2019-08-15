@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Test Custom Circuit Oracle """
+
 import unittest
 from qiskit import BasicAer, QuantumCircuit, QuantumRegister
 from qiskit.aqua import QuantumInstance

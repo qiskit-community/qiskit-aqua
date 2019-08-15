@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Test MCT """
+
 import unittest
 import itertools
 import numpy as np

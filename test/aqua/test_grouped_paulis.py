@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Test Grouped Paulis """
+
 import unittest
 
 from qiskit.quantum_info import pauli_group
@@ -21,7 +23,7 @@ from qiskit.aqua import Operator
 
 
 class TestGroupedPaulis(QiskitAquaTestCase):
-    """GroupedPaulki tests."""
+    """Grouped Pauli tests."""
 
     def test_grouped_paulis(self):
         n = 3  # number of qubits

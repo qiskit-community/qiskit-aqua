@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Test Docplex """
+
 from math import fsum, isclose
 
 import networkx as nx

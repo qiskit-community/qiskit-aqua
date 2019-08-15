@@ -15,6 +15,7 @@
 
 lint:
 	pylint -rn --errors-only --enable=invalid-file-header --ignore=gauopen qiskit/aqua qiskit/chemistry test
+	pylint -rn test/chemistry
 
 style:
 	pycodestyle --max-line-length=210 --exclude=gauopen qiskit/aqua qiskit/chemistry test

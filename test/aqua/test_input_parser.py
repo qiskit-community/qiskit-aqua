@@ -12,14 +12,11 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
-InputParser test.
-"""
+""" Test InputParser """
 
 import unittest
 import os
 import json
-
 from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua import AquaError
 from qiskit.aqua import run_algorithm
