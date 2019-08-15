@@ -44,7 +44,6 @@ class BinaryTree:
         self._nvals = len(vector)
 
         # Make sure the matrix row has length that's a power of two
-        # TODO: Give the option to pad the vector and do this automatically
         if self._nvals & (self._nvals - 1) != 0:
             raise VectorError("Vector must have a number of elements that is a power of two.")
 
@@ -155,15 +154,15 @@ class BinaryTree:
     def parent_value(self, level, index):
         """Returns the value of the parent of a specified node.
 
-                Args:
-                    level : int
-                        The node's level in the tree.
+            Args:
+                level : int
+                    The node's level in the tree.
 
-                    index : int
-                        The node's index within a level.
+                index : int
+                    The node's index within a level.
 
-                Return type: float.
-                """
+        Return type: float.
+        """
         # Check if root node
         if level == 0:
             return None
@@ -248,16 +247,17 @@ class BinaryTree:
 
     def update_entry(self, index, value):
         """Updates an entry in the leaf and propagates changes up through the tree."""
-        # TODO: Do this more efficiently.
         newvals = deepcopy(self._values)
         newvals[index] = value
         self.__init__(newvals)
 
-    def preparation_circuit(self, circuit, *registers, control_register=None, control_key=None, use_ancillas=False):
-        """Adds operations to the circuit that prepares the input vector as a quantum state.
+    def construct_circuit(self, circuit, *registers, control_register=None, control_key=None, use_ancillas=False):
+        """Adds operations to the circuit that prepares the input vector as a quantum state from the all zero state.
 
-        For example, if the vector [0.4, 0.4, 0.8, 0.2] is input to BinaryTree, then this method returns a circuit
-        which prepares the state
+        Note: This method modifies the input circuit in place, and returns None.
+
+        For example, if the vector [0.4, 0.4, 0.8, 0.2] is input to BinaryTree, then this method adds gates to the
+        circuit to prepare, from the ground state |00>, the state
 
         0.4|00> + 0.4|01> + 0.8|10> + 0.2|11>.
 
@@ -268,7 +268,7 @@ class BinaryTree:
                  |0> ---------------[Ry(theta2)]---[Ry(theta3)]------
 
 
-        Here, the @ symbol represents a control and the O symbol represents an "anti-control" (controlled on |1> state).
+        Here, the @ symbol represents a control and the O symbol represents an "anti-control" (controlled on |0> state).
 
         All gates can optionally be controlled on another control_register. See arguments below.
 
@@ -300,7 +300,7 @@ class BinaryTree:
 
                 An example circuit for control_key = 1 is shown schematically below:
 
-                        preparation_circuit(reg, ctrl_reg, 1) -->
+                        construct_circuit(reg, ctrl_reg, 1) -->
 
                                     |  -------@-------
                         ctrl_reg    |         |
@@ -312,7 +312,7 @@ class BinaryTree:
 
                 An example for control_key = 2 is shown schematically below:
 
-                        preparation_circuit(reg, ctrl_reg, 2) -->
+                        construct_circuit(reg, ctrl_reg, 2) -->
 
                                     |  -------O-------
                         ctrl_reg    |         |
