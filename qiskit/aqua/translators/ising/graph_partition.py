@@ -69,21 +69,22 @@ def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None, seed=None):
 def get_graph_partition_qubitops(weight_matrix):
     r"""Generate Hamiltonian for the graph partitioning
 
+    Notes:
+        Goals:
+            1 separate the vertices into two set of the same size
+            2 make sure the number of edges between the two set is minimized.
+        Hamiltonian:
+            H = H_A + H_B
+            H_A = sum\_{(i,j)\in E}{(1-ZiZj)/2}
+            H_B = (sum_{i}{Zi})^2 = sum_{i}{Zi^2}+sum_{i!=j}{ZiZj}
+            H_A is for achieving goal 2 and H_B is for achieving goal 1.
+
     Args:
         weight_matrix (numpy.ndarray) : adjacency matrix.
 
     Returns:
-        operator.Operator, float: operator for the Hamiltonian and a
-        constant shift for the obj function.
-
-    Goals:
-        1 separate the vertices into two set of the same size
-        2 make sure the number of edges between the two set is minimized.
-    Hamiltonian:
-    H = H_A + H_B
-    H_A = sum\_{(i,j)\in E}{(1-ZiZj)/2}
-    H_B = (sum_{i}{Zi})^2 = sum_{i}{Zi^2}+sum_{i!=j}{ZiZj}
-    H_A is for achieving goal 2 and H_B is for achieving goal 1.
+        WeightedPauliOperator: operator for the Hamiltonian
+        float: a constant shift for the obj function.
     """
     num_nodes = len(weight_matrix)
     pauli_list = []

@@ -68,7 +68,7 @@ def get_stable_set_qubitops(w):
         w (numpy.ndarray) : adjacency matrix.
 
     Returns:
-        operator.Operator, float: operator for the Hamiltonian and a
+        WeightedPauliOperatorOperator, float: operator for the Hamiltonian and a
         constant shift for the obj function.
 
     """

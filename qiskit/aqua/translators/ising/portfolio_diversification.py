@@ -27,7 +27,7 @@ def get_portfoliodiversification_qubitops(rho, n, q):
         q (integer) : the number of clusters of assets to output.
 
     Returns:
-        operator.Operator: operator for the Hamiltonian.
+        WeightedPauliOperator: operator for the Hamiltonian
     """
 
     # N = (n + 1) * n  # number of qubits
