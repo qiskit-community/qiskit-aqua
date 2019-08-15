@@ -46,6 +46,11 @@ def to_weighted_pauli_operator(operator):
             one of supported operator type
     Returns:
         WeightedPauliOperator: the converted weighted pauli operator
+
+    Warnings:
+        Converting time from a MatrixOperator to a Pauli-type Operator grows exponentially.
+        If you are converting a system with large number of qubits, it will take time.
+        You can turn on DEBUG logging to check the progress.
     """
     if operator.__class__ == WeightedPauliOperator:
         return operator
@@ -55,9 +60,11 @@ def to_weighted_pauli_operator(operator):
     elif operator.__class__ == MatrixOperator:
         if operator.is_empty():
             return WeightedPauliOperator(paulis=[])
-        logger.warning("Converting time from a MatrixOperator to a Pauli-type Operator grows exponentially. "
-                       "If you are converting a system with large number of qubits, it will take time. "
-                       "You can turn on DEBUG logging to check the progress.")
+        if operator.num_qubits > 10:
+            logger.warning("Converting time from a MatrixOperator to a Pauli-type Operator grows exponentially. "
+                           "If you are converting a system with large number of qubits, it will take time. "
+                           "And now you are converting a {}-qubit Hamiltonian. "
+                           "You can turn on DEBUG logging to check the progress.".format(operator.num_qubits))
         num_qubits = operator.num_qubits
         coeff = 2 ** (-num_qubits)
 
@@ -106,8 +113,8 @@ def to_matrix_operator(operator):
             hamiltonian += weight * pauli.to_spmatrix()
         return MatrixOperator(matrix=hamiltonian, z2_symmetries=operator.z2_symmetries, name=operator.name)
     elif operator.__class__ == TPBGroupedWeightedPauliOperator:
-        # destroy the grouping but keep z2 symmetries info
-        return WeightedPauliOperator(paulis=operator.paulis, z2_symmetries=operator.z2_symmetries, name=operator.name)
+        op = WeightedPauliOperator(paulis=operator.paulis, z2_symmetries=operator.z2_symmetries, name=operator.name)
+        return to_matrix_operator(op)
     elif operator.__class__ == MatrixOperator:
         return operator
     elif operator.__class__ == Operator:

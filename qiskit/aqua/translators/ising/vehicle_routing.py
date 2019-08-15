@@ -102,7 +102,7 @@ def get_vehiclerouting_cost(instance, n, K, x_sol):
 
 
 def get_vehiclerouting_qubitops(instance, n, K):
-    """Converts an instnance of a vehicle routing problem into a list of Paulis.
+    """Converts an instance of a vehicle routing problem into a list of Paulis.
 
     Args:
         instance (numpy.ndarray) : a customers-to-customers distance matrix.
@@ -110,8 +110,8 @@ def get_vehiclerouting_qubitops(instance, n, K):
         K (integer) : the number of vehicles available.
 
     Returns:
-        operator.Operator: operator for the Hamiltonian.
-        """
+        WeightedPauliOperator: operator for the Hamiltonian.
+    """
 
     N = (n - 1) * n
     (Q, g, c) = get_vehiclerouting_matrices(instance, n, K)
