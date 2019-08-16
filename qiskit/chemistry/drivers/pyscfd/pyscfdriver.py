@@ -156,9 +156,9 @@ class PySCFDriver(BaseDriver):
             spec = importlib.util.find_spec('pyscf')
             if spec is not None:
                 return
-        except Exception as e:
-            logger.debug('PySCF check error {}'.format(str(e)))
-            raise QiskitChemistryError(err_msg) from e
+        except Exception as ex:  # pylint: disable=broad-except
+            logger.debug('PySCF check error {}'.format(str(ex)))
+            raise QiskitChemistryError(err_msg) from ex
 
         raise QiskitChemistryError(err_msg)
 

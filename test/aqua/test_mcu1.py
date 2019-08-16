@@ -12,54 +12,58 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-import unittest
-from itertools import combinations, chain
-import numpy as np
-from math import pi
-from parameterized import parameterized
+""" Test MCU1 """
 
+import unittest
+from test.aqua.common import QiskitAquaTestCase
+from itertools import combinations, chain
+from math import pi
+import numpy as np
+from parameterized import parameterized
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit import execute
 from qiskit import BasicAer
 
-from test.aqua.common import QiskitAquaTestCase
-
-nums_controls = [[i + 1] for i in range(6)]
+NUM_CONTROLS = [[i + 1] for i in range(6)]
 
 
 class TestMCU1(QiskitAquaTestCase):
+    """ Test MCU1 """
     @parameterized.expand(
-        nums_controls
+        NUM_CONTROLS
     )
     def test_mcu1(self, num_controls):
+        """ mcu1 test """
         c = QuantumRegister(num_controls, name='c')
-        o = QuantumRegister(1, name='o')
-        allsubsets = list(chain(*[combinations(range(num_controls), ni) for ni in range(num_controls + 1)]))
+        q_o = QuantumRegister(1, name='o')
+        allsubsets = list(chain(*[combinations(range(num_controls), ni)
+                                  for ni in range(num_controls + 1)]))
         for subset in allsubsets:
             control_int = 0
             lam = np.random.random(1)[0] * pi
-            qc = QuantumCircuit(o, c)
+            qc = QuantumCircuit(q_o, c)
             for idx in subset:
                 control_int += 2**idx
                 qc.x(c[idx])
-            qc.h(o[0])
+            qc.h(q_o[0])
             qc.mcu1(
                 lam,
                 [c[i] for i in range(num_controls)],
-                o[0]
+                q_o[0]
             )
-            qc.h(o[0])
+            qc.h(q_o[0])
             for idx in subset:
                 qc.x(c[idx])
 
-            mat_mcu = execute(qc, BasicAer.get_backend('unitary_simulator')).result().get_unitary(qc)
+            mat_mcu = execute(qc,
+                              BasicAer.get_backend('unitary_simulator')).result().get_unitary(qc)
 
             dim = 2**(num_controls+1)
             pos = dim - 2*(control_int+1)
             mat_groundtruth = np.eye(dim, dtype=complex)
-            d = np.exp(1.j*lam)
-            mat_groundtruth[pos:pos+2, pos:pos+2] = [[(1+d)/2, (1-d)/2],
-                                                     [(1-d)/2, (1+d)/2]]
+            dim = np.exp(1.j*lam)
+            mat_groundtruth[pos:pos+2, pos:pos+2] = [[(1+dim)/2, (1-dim)/2],
+                                                     [(1-dim)/2, (1+dim)/2]]
             self.assertTrue(np.allclose(mat_mcu, mat_groundtruth))
 
 
