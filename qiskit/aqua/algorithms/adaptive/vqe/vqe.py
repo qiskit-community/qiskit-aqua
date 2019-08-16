@@ -24,7 +24,6 @@ from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.operators import (TPBGroupedWeightedPauliOperator, WeightedPauliOperator,
                                    MatrixOperator, op_converter)
 from qiskit.aqua.utils.backend_utils import is_aer_statevector_backend, is_statevector_backend
-from qiskit.aqua.utils import find_regs_by_name
 from qiskit.aqua.components.extrapolation_pass_managers import RichardsonExtrapolator
 from qiskit.aqua.components.variational_forms import ExtrapolatedVF
 
@@ -365,7 +364,7 @@ class VQE(VQAlgorithm):
         re = self.richardson_extrapolator  # type: RichardsonExtrapolator
         vfs = [ExtrapolatedVF(self.var_form, pm) for pm in re.pass_managers]
         vqes = [VQE(
-            self._operator, vf, self._optimizer, operator_mode=self._operator_mode,
+            self._operator, vf, self._optimizer,
             initial_point=self._initial_point, max_evals_grouped=self._optimizer._max_evals_grouped,
             aux_operators=self._aux_operators, callback=self._callback, richardson_extrapolator=None
         ) for vf in vfs]
