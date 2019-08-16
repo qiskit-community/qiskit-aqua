@@ -337,6 +337,7 @@ class VQE(VQAlgorithm):
         extrapolated_aux_values = [re.extrapolate(points) for points in operator_expectation_values]
         extrapolated_aux_stds = [re.extrapolate(points) for points in operator_expectation_stds]
 
+        self._eval_count = sum([vqe._eval_count for vqe in vqes])
 
         self._ret = {}
         self._ret['energy'] = extrapolated_energy
@@ -346,6 +347,11 @@ class VQE(VQAlgorithm):
         # TODO: Choosing the 0th VQE assumes that the extrapolation is ordered from 'best' to
         #  'worst' in terms of expected performance this should be dealt with more robustly somehow
         self._ret['aux_ops'] = zip(extrapolated_aux_values, extrapolated_aux_stds)
+        self._ret['eval_count'] = sum([
+            vqe._ret['num_optimizer_evals'] if vqe._ret['num_optimizer_evals'] is not None else 0
+            for vqe in vqes
+            ])
+        self._ret['eval_time'] = sum([vqe._ret['eval_time'] for vqe in vqes])
         return self._ret
 
     # This is the objective function to be passed to the optimizer that is uses for evaluation
