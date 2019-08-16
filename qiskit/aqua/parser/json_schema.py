@@ -422,8 +422,8 @@ class JSONSchema(object):
                         noise_model_devices.append('qiskit.IBMQ:' + backend_name)
                     if check_coupling_map and ibmq_backend.configuration().coupling_map:
                         coupling_map_devices.append('qiskit.IBMQ:' + backend_name)
-        except Exception as e:
-            logger.debug("Failed to load IBMQ backends. Error {}".format(str(e)))
+        except Exception as ex:  # pylint: disable=broad-except
+            logger.debug("Failed to load IBMQ backends. Error {}".format(str(ex)))
 
         # Includes 'coupling map' and 'coupling_map_from_device' in schema only if a simulator backend.
         # Actual devices have a coupling map based on the physical configuration of the device.

@@ -12,12 +12,14 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Test Driver Gaussian """
+
 import unittest
 
 from test.chemistry.common import QiskitChemistryTestCase
-from qiskit.chemistry import QiskitChemistryError
-from qiskit.chemistry.drivers import GaussianDriver
 from test.chemistry.test_driver import TestDriver
+from qiskit.chemistry.drivers import GaussianDriver
+from qiskit.chemistry import QiskitChemistryError
 
 
 class TestDriverGaussian(QiskitChemistryTestCase, TestDriver):
@@ -27,15 +29,15 @@ class TestDriverGaussian(QiskitChemistryTestCase, TestDriver):
         super().setUp()
         try:
             driver = GaussianDriver([
-                    '# rhf/sto-3g scf(conventional) geom=nocrowd',
-                    '',
-                    'h2 molecule',
-                    '',
-                    '0 1',
-                    'H   0.0  0.0    0.0',
-                    'H   0.0  0.0    0.735',
-                    ''
-                    ])
+                '# rhf/sto-3g scf(conventional) geom=nocrowd',
+                '',
+                'h2 molecule',
+                '',
+                '0 1',
+                'H   0.0  0.0    0.0',
+                'H   0.0  0.0    0.735',
+                ''
+                ])
         except QiskitChemistryError:
             self.skipTest('GAUSSIAN driver does not appear to be installed')
         self.qmolecule = driver.run()
