@@ -15,18 +15,20 @@
 """ Test Amplitude Estimation """
 
 import unittest
-
+from test.aqua.common import QiskitAquaTestCase
 import numpy as np
 from parameterized import parameterized
 from qiskit import QuantumRegister, QuantumCircuit, BasicAer, execute
-
-from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.components.uncertainty_models import LogNormalDistribution, MultivariateNormalDistribution
+from qiskit.aqua.components.uncertainty_models import (LogNormalDistribution,
+                                                       MultivariateNormalDistribution)
 from qiskit.aqua.components.uncertainty_models import GaussianConditionalIndependenceModel as GCI
 from qiskit.aqua.components.uncertainty_problems import EuropeanCallDelta, FixedIncomeExpectedValue
-from qiskit.aqua.components.uncertainty_problems import UnivariatePiecewiseLinearObjective as PwlObjective
-from qiskit.aqua.components.uncertainty_problems import UnivariateProblem, MultivariateProblem, UncertaintyProblem
+from qiskit.aqua.components.uncertainty_problems import \
+                        UnivariatePiecewiseLinearObjective as PwlObjective
+from qiskit.aqua.components.uncertainty_problems import (UnivariateProblem,
+                                                         MultivariateProblem,
+                                                         UncertaintyProblem)
 from qiskit.aqua.circuits import WeightedSumOperator
 from qiskit.aqua.algorithms import AmplitudeEstimation, MaximumLikelihoodAmplitudeEstimation
 from qiskit.aqua.algorithms.single_sample.amplitude_estimation.q_factory import QFactory
@@ -56,8 +58,10 @@ class BernoulliAFactory(UncertaintyProblem):
 class BernoulliQFactory(QFactory):
     """
     Circuit Factory representing the operator Q.
-    This implementation exploits the fact that powers of Q can be implemented efficiently by just multiplying the angle.
-    (amplitude estimation only requires controlled powers of Q, thus, only this method is overridden.)
+    This implementation exploits the fact that powers of Q
+    can be implemented efficiently by just multiplying the angle.
+    (amplitude estimation only requires controlled powers of Q,
+    thus, only this method is overridden.)
     """
 
     def __init__(self, bernoulli_expected_value):
@@ -69,23 +73,27 @@ class BernoulliQFactory(QFactory):
         # Q is a rotation of angle 2*theta_p around the Y-axis
         qc.ry(2 * theta_p, q[i_state])
 
-    def build_power(self, qc, q, power, q_ancillas=None, use_basis_gates=True):
+    def build_power(self, qc, q, power, q_ancillas=None):
         i_state = self.a_factory.i_state
         theta_p = self.a_factory._theta_p
         qc.ry(2 * power * theta_p, q[i_state])
 
-    def build_controlled_power(self, qc, q, q_control, power, q_ancillas=None, use_basis_gates=True):
+    def build_controlled_power(self, qc, q, q_control, power,
+                               q_ancillas=None, use_basis_gates=True):
         i_state = self.a_factory.i_state
         theta_p = self.a_factory._theta_p
         qc.cry(2 * power * theta_p, q_control, q[i_state])
 
 
 class TestBernoulli(QiskitAquaTestCase):
+    """ Test Bernoulli """
     def setUp(self):
         super().setUp()
 
         self._statevector = QuantumInstance(backend=BasicAer.get_backend('statevector_simulator'),
-                                            circuit_caching=False, seed_simulator=2, seed_transpiler=2)
+                                            circuit_caching=False,
+                                            seed_simulator=2,
+                                            seed_transpiler=2)
 
         def qasm(shots=100):
             return QuantumInstance(backend=BasicAer.get_backend('qasm_simulator'), shots=shots,
@@ -103,12 +111,13 @@ class TestBernoulli(QiskitAquaTestCase):
         [0.82, MaximumLikelihoodAmplitudeEstimation(5), {'estimation': 0.82}],
         [0.49, MaximumLikelihoodAmplitudeEstimation(3), {'estimation': 0.49}]
     ])
-    def test_statevector(self, p, ae, expect):
+    def test_statevector(self, prob, a_e, expect):
+        """ statevector test """
         # construct factories for A and Q
-        ae.a_factory = BernoulliAFactory(p)
-        ae.q_factory = BernoulliQFactory(ae.a_factory)
+        a_e.a_factory = BernoulliAFactory(prob)
+        a_e.q_factory = BernoulliQFactory(a_e.a_factory)
 
-        result = ae.run(self._statevector)
+        result = a_e.run(self._statevector)
 
         for key, value in expect.items():
             self.assertAlmostEqual(value, result[key], places=3,
@@ -122,12 +131,13 @@ class TestBernoulli(QiskitAquaTestCase):
         [0.4, 1000, MaximumLikelihoodAmplitudeEstimation(6), {'estimation': 0.399488}],
         [0.8, 10, MaximumLikelihoodAmplitudeEstimation(7), {'estimation': 0.800926}]
     ])
-    def test_qasm(self, p, shots, ae, expect):
+    def test_qasm(self, prob, shots, a_e, expect):
+        """ qasm test """
         # construct factories for A and Q
-        ae.a_factory = BernoulliAFactory(p)
-        ae.q_factory = BernoulliQFactory(ae.a_factory)
+        a_e.a_factory = BernoulliAFactory(prob)
+        a_e.q_factory = BernoulliQFactory(a_e.a_factory)
 
-        result = ae.run(self._qasm(shots))
+        result = a_e.run(self._qasm(shots))
 
         for key, value in expect.items():
             self.assertAlmostEqual(value, result[key], places=3,
@@ -135,7 +145,7 @@ class TestBernoulli(QiskitAquaTestCase):
 
 
 class TestEuropeanCallOption(QiskitAquaTestCase):
-
+    """ Test European Call Option """
     def setUp(self):
         super().setUp()
 
@@ -143,24 +153,26 @@ class TestEuropeanCallOption(QiskitAquaTestCase):
         num_uncertainty_qubits = 3
 
         # parameters for considered random distribution
-        S = 2.0  # initial spot price
+        s_p = 2.0  # initial spot price
         vol = 0.4  # volatility of 40%
         r = 0.05  # annual interest rate of 4%
-        T = 40 / 365  # 40 days to maturity
+        t_m = 40 / 365  # 40 days to maturity
 
         # resulting parameters for log-normal distribution
-        mu = ((r - 0.5 * vol ** 2) * T + np.log(S))
-        sigma = vol * np.sqrt(T)
-        mean = np.exp(mu + sigma ** 2 / 2)
-        variance = (np.exp(sigma ** 2) - 1) * np.exp(2 * mu + sigma ** 2)
+        m_u = ((r - 0.5 * vol ** 2) * t_m + np.log(s_p))
+        sigma = vol * np.sqrt(t_m)
+        mean = np.exp(m_u + sigma ** 2 / 2)
+        variance = (np.exp(sigma ** 2) - 1) * np.exp(2 * m_u + sigma ** 2)
         stddev = np.sqrt(variance)
 
-        # lowest and highest value considered for the spot price; in between, an equidistant discretization is considered.
+        # lowest and highest value considered for the spot price;
+        # in between, an equidistant discretization is considered.
         low = np.maximum(0, mean - 3 * stddev)
         high = mean + 3 * stddev
 
         # construct circuit factory for uncertainty model
-        uncertainty_model = LogNormalDistribution(num_uncertainty_qubits, mu=mu, sigma=sigma, low=low, high=high)
+        uncertainty_model = LogNormalDistribution(num_uncertainty_qubits,
+                                                  mu=m_u, sigma=sigma, low=low, high=high)
 
         # set the strike price (should be within the low and the high value of the uncertainty)
         strike_price = 1.896
@@ -199,23 +211,29 @@ class TestEuropeanCallOption(QiskitAquaTestCase):
         )
 
         self._statevector = QuantumInstance(backend=BasicAer.get_backend('statevector_simulator'),
-                                            circuit_caching=False, seed_simulator=2, seed_transpiler=2)
+                                            circuit_caching=False,
+                                            seed_simulator=2,
+                                            seed_transpiler=2)
         self._qasm = QuantumInstance(backend=BasicAer.get_backend('qasm_simulator'), shots=100,
                                      circuit_caching=False, seed_simulator=2, seed_transpiler=2)
 
     @parameterized.expand([
-        ['statevector', AmplitudeEstimation(3), {'estimation': 0.45868536404797905, 'mle': 0.1633160}],
-        ['qasm', AmplitudeEstimation(4), {'estimation': 0.45868536404797905, 'mle': 0.23479973342434832}],
-        ['statevector', MaximumLikelihoodAmplitudeEstimation(5), {'estimation': 0.16330976193204114}],
-        ['qasm', MaximumLikelihoodAmplitudeEstimation(3), {'estimation': 0.1027255930905642}],
+        ['statevector', AmplitudeEstimation(3),
+         {'estimation': 0.45868536404797905, 'mle': 0.1633160}],
+        ['qasm', AmplitudeEstimation(4),
+         {'estimation': 0.45868536404797905, 'mle': 0.23479973342434832}],
+        ['statevector', MaximumLikelihoodAmplitudeEstimation(5),
+         {'estimation': 0.16330976193204114}],
+        ['qasm', MaximumLikelihoodAmplitudeEstimation(3),
+         {'estimation': 0.1027255930905642}],
     ])
-    def test_expected_value(self, simulator, ae, expect):
-
+    def test_expected_value(self, simulator, a_e, expect):
+        """ expected value test """
         # set A factory for amplitude estimation
-        ae.a_factory = self.european_call
+        a_e.a_factory = self.european_call
 
         # run simulation
-        result = ae.run(self._qasm if simulator == 'qasm' else self._statevector)
+        result = a_e.run(self._qasm if simulator == 'qasm' else self._statevector)
 
         # compare to precomputed solution
         for key, value in expect.items():
@@ -223,17 +241,22 @@ class TestEuropeanCallOption(QiskitAquaTestCase):
                                    msg="estimate `{}` failed".format(key))
 
     @parameterized.expand([
-        ['statevector', AmplitudeEstimation(3), {'estimation': 0.8535534, 'mle': 0.8097974047170567}],
-        ['qasm', AmplitudeEstimation(4), {'estimation': 0.8535534, 'mle': 0.8143597808556013}],
-        ['statevector', MaximumLikelihoodAmplitudeEstimation(5), {'estimation': 0.8097582003326866}],
-        ['qasm', MaximumLikelihoodAmplitudeEstimation(6), {'estimation': 0.8096123776923358}],
+        ['statevector', AmplitudeEstimation(3),
+         {'estimation': 0.8535534, 'mle': 0.8097974047170567}],
+        ['qasm', AmplitudeEstimation(4),
+         {'estimation': 0.8535534, 'mle': 0.8143597808556013}],
+        ['statevector', MaximumLikelihoodAmplitudeEstimation(5),
+         {'estimation': 0.8097582003326866}],
+        ['qasm', MaximumLikelihoodAmplitudeEstimation(6),
+         {'estimation': 0.8096123776923358}],
     ])
-    def test_delta(self, simulator, ae, expect):
+    def test_delta(self, simulator, a_e, expect):
+        """ delta test """
         # set A factory for amplitude estimation
-        ae.a_factory = self.european_call_delta
+        a_e.a_factory = self.european_call_delta
 
         # run simulation
-        result = ae.run(self._qasm if simulator == 'qasm' else self._statevector)
+        result = a_e.run(self._qasm if simulator == 'qasm' else self._statevector)
 
         # compare to precomputed solution
         for key, value in expect.items():
@@ -242,49 +265,62 @@ class TestEuropeanCallOption(QiskitAquaTestCase):
 
 
 class TestFixedIncomeAssets(QiskitAquaTestCase):
+    """ Test Fixed Income Assets """
     def setUp(self):
         super().setUp()
 
         self._statevector = QuantumInstance(backend=BasicAer.get_backend('statevector_simulator'),
-                                            circuit_caching=False, seed_simulator=2, seed_transpiler=2)
-        self._qasm = QuantumInstance(backend=BasicAer.get_backend('qasm_simulator'), shots=100,
-                                     circuit_caching=False, seed_simulator=2, seed_transpiler=2)
+                                            circuit_caching=False,
+                                            seed_simulator=2,
+                                            seed_transpiler=2)
+        self._qasm = QuantumInstance(backend=BasicAer.get_backend('qasm_simulator'),
+                                     shots=100,
+                                     circuit_caching=False,
+                                     seed_simulator=2,
+                                     seed_transpiler=2)
 
     @parameterized.expand([
-        ['statevector', AmplitudeEstimation(5), {'estimation': 2.4600, 'mle': 2.3402315559106843}],
-        ['qasm', AmplitudeEstimation(5), {'estimation': 2.4600, 'mle': 2.3632087675061726}],
-        ['statevector', MaximumLikelihoodAmplitudeEstimation(5), {'estimation': 2.340361798381051}],
-        ['qasm', MaximumLikelihoodAmplitudeEstimation(5), {'estimation': 2.317921060790118}]
+        ['statevector', AmplitudeEstimation(5),
+         {'estimation': 2.4600, 'mle': 2.3402315559106843}],
+        ['qasm', AmplitudeEstimation(5),
+         {'estimation': 2.4600, 'mle': 2.3632087675061726}],
+        ['statevector', MaximumLikelihoodAmplitudeEstimation(5),
+         {'estimation': 2.340361798381051}],
+        ['qasm', MaximumLikelihoodAmplitudeEstimation(5),
+         {'estimation': 2.317921060790118}]
     ])
-    def test_expected_value(self, simulator, ae, expect):
-        # can be used in case a principal component analysis has been done to derive the uncertainty model, ignored in this example.
-        A = np.eye(2)
+    def test_expected_value(self, simulator, a_e, expect):
+        """ expected value test """
+        # can be used in case a principal component analysis
+        # has been done to derive the uncertainty model, ignored in this example.
+        a_n = np.eye(2)
         b = np.zeros(2)
 
-        # specify the number of qubits that are used to represent the different dimenions of the uncertainty model
+        # specify the number of qubits that are used to represent
+        # the different dimenions of the uncertainty model
         num_qubits = [2, 2]
 
         # specify the lower and upper bounds for the different dimension
         low = [0, 0]
         high = [0.12, 0.24]
-        mu = [0.12, 0.24]
+        m_u = [0.12, 0.24]
         sigma = 0.01 * np.eye(2)
 
         # construct corresponding distribution
-        u = MultivariateNormalDistribution(num_qubits, low, high, mu, sigma)
+        mund = MultivariateNormalDistribution(num_qubits, low, high, m_u, sigma)
 
         # specify cash flow
-        cf = [1.0, 2.0]
+        c_f = [1.0, 2.0]
 
         # specify approximation factor
         c_approx = 0.125
 
         # get fixed income circuit appfactory
-        fixed_income = FixedIncomeExpectedValue(u, A, b, cf, c_approx)
-        ae.a_factory = fixed_income
+        fixed_income = FixedIncomeExpectedValue(mund, a_n, b, c_f, c_approx)
+        a_e.a_factory = fixed_income
 
         # run simulation
-        result = ae.run(self._qasm if simulator == 'qasm' else self._statevector)
+        result = a_e.run(self._qasm if simulator == 'qasm' else self._statevector)
 
         # compare to precomputed solution
         for key, value in expect.items():
@@ -293,12 +329,12 @@ class TestFixedIncomeAssets(QiskitAquaTestCase):
 
 
 class TestCreditRiskAnalysis(QiskitAquaTestCase):
-
+    """ Test Credit Risk Analysis """
     @parameterized.expand([
         'statevector_simulator'
     ])
     def test_conditional_value_at_risk(self, simulator):
-
+        """ conditional value at risk test """
         # define backend to be used
         backend = BasicAer.get_backend(simulator)
 
@@ -309,7 +345,7 @@ class TestCreditRiskAnalysis(QiskitAquaTestCase):
         p_zeros = [0.15, 0.25]
         rhos = [0.1, 0.05]
         lgd = [1, 2]
-        K = len(p_zeros)
+        k_l = len(p_zeros)
         # alpha = 0.05
 
         # set var value
@@ -320,7 +356,7 @@ class TestCreditRiskAnalysis(QiskitAquaTestCase):
         # n_s = WeightedSumOperator.get_required_sum_qubits(lgd)
 
         # create circuit factory (add Z qubits with weight/loss 0)
-        agg = WeightedSumOperator(n_z + K, [0] * n_z + lgd)
+        agg = WeightedSumOperator(n_z + k_l, [0] * n_z + lgd)
 
         # define linear objective
         breakpoints = [0, var]
@@ -331,12 +367,13 @@ class TestCreditRiskAnalysis(QiskitAquaTestCase):
         c_approx = 0.25
 
         # construct circuit factory for uncertainty model (Gaussian Conditional Independence model)
-        u = GCI(n_z, z_max, p_zeros, rhos)
+        gci = GCI(n_z, z_max, p_zeros, rhos)
 
         cvar_objective = PwlObjective(
             agg.num_sum_qubits,
             0,
-            2 ** agg.num_sum_qubits - 1,  # max value that can be reached by the qubit register (will not always be reached)
+            2 ** agg.num_sum_qubits - 1,  # max value that can be reached by the qubit register
+                                          # (will not always be reached)
             breakpoints,
             slopes,
             offsets,
@@ -345,7 +382,7 @@ class TestCreditRiskAnalysis(QiskitAquaTestCase):
             c_approx
         )
 
-        multivariate_cvar = MultivariateProblem(u, agg, cvar_objective)
+        multivariate_cvar = MultivariateProblem(gci, agg, cvar_objective)
 
         num_qubits = multivariate_cvar.num_target_qubits
         num_ancillas = multivariate_cvar.required_ancillas()
@@ -360,11 +397,13 @@ class TestCreditRiskAnalysis(QiskitAquaTestCase):
 
         # evaluate resulting statevector
         value = 0
-        for i, a in enumerate(job.result().get_statevector()):
-            b = ('{0:0%sb}' % multivariate_cvar.num_target_qubits).format(i)[-multivariate_cvar.num_target_qubits:]
-            am = np.round(np.real(a), decimals=4)
-            if np.abs(am) > 1e-6 and b[0] == '1':
-                value += am ** 2
+        for i, a_i in enumerate(job.result().get_statevector()):
+            b = ('{0:0%sb}' %
+                 multivariate_cvar.num_target_qubits).\
+                 format(i)[-multivariate_cvar.num_target_qubits:]
+            a_m = np.round(np.real(a_i), decimals=4)
+            if np.abs(a_m) > 1e-6 and b[0] == '1':
+                value += a_m ** 2
 
         # normalize and add VaR to estimate
         value = multivariate_cvar.value_to_estimation(value)

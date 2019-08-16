@@ -15,10 +15,8 @@
 """ Test Exact Eigen solver """
 
 import unittest
-
-import numpy as np
-
 from test.aqua.common import QiskitAquaTestCase
+import numpy as np
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.algorithms import ExactEigensolver
@@ -26,7 +24,7 @@ from qiskit.aqua.operators import WeightedPauliOperator
 
 
 class TestExactEigensolver(QiskitAquaTestCase):
-
+    """ Test Exact Eigen solver """
     def setUp(self):
         super().setUp()
         np.random.seed(50)
@@ -42,6 +40,7 @@ class TestExactEigensolver(QiskitAquaTestCase):
         self.algo_input = EnergyInput(qubit_op)
 
     def test_ee_via_run_algorithm(self):
+        """ ee via run algorithm test """
         params = {
             'algorithm': {'name': 'ExactEigensolver'}
         }
@@ -51,6 +50,7 @@ class TestExactEigensolver(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(result['eigvals'], [-1.85727503 + 0j])
 
     def test_ee_via_run_algorithm_k4(self):
+        """ ee via run algorithm k4 test """
         params = {
             'algorithm': {'name': 'ExactEigensolver', 'k': 4}
         }
@@ -58,9 +58,11 @@ class TestExactEigensolver(QiskitAquaTestCase):
         self.assertAlmostEqual(result['energy'], -1.85727503)
         self.assertEqual(len(result['eigvals']), 4)
         self.assertEqual(len(result['eigvecs']), 4)
-        np.testing.assert_array_almost_equal(result['energies'], [-1.85727503, -1.24458455, -0.88272215, -0.22491125])
+        np.testing.assert_array_almost_equal(result['energies'],
+                                             [-1.85727503, -1.24458455, -0.88272215, -0.22491125])
 
     def test_ee_direct(self):
+        """ ee direct test """
         algo = ExactEigensolver(self.algo_input.qubit_op, k=1, aux_operators=[])
         result = algo.run()
         self.assertAlmostEqual(result['energy'], -1.85727503)
@@ -68,12 +70,14 @@ class TestExactEigensolver(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(result['eigvals'], [-1.85727503 + 0j])
 
     def test_ee_direct_k4(self):
+        """ ee direct k4 test """
         algo = ExactEigensolver(self.algo_input.qubit_op, k=4, aux_operators=[])
         result = algo.run()
         self.assertAlmostEqual(result['energy'], -1.85727503)
         self.assertEqual(len(result['eigvals']), 4)
         self.assertEqual(len(result['eigvecs']), 4)
-        np.testing.assert_array_almost_equal(result['energies'], [-1.85727503, -1.24458455, -0.88272215, -0.22491125])
+        np.testing.assert_array_almost_equal(result['energies'],
+                                             [-1.85727503, -1.24458455, -0.88272215, -0.22491125])
 
 
 if __name__ == '__main__':

@@ -15,11 +15,9 @@
 """ Test EOH """
 
 import unittest
-
+from test.aqua.common import QiskitAquaTestCase
 import numpy as np
 from qiskit import BasicAer
-
-from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua.operators import MatrixOperator
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.components.initial_states import Custom
@@ -30,17 +28,18 @@ class TestEOH(QiskitAquaTestCase):
     """Evolution tests."""
 
     def test_eoh(self):
-        SIZE = 2
+        """ EOH test """
+        size = 2
 
-        temp = np.random.random((2 ** SIZE, 2 ** SIZE))
-        h1 = temp + temp.T
-        qubit_op = MatrixOperator(matrix=h1)
+        temp = np.random.random((2 ** size, 2 ** size))
+        h_1 = temp + temp.T
+        qubit_op = MatrixOperator(matrix=h_1)
 
-        temp = np.random.random((2 ** SIZE, 2 ** SIZE))
-        h1 = temp + temp.T
-        evo_op = MatrixOperator(matrix=h1)
+        temp = np.random.random((2 ** size, 2 ** size))
+        h_1 = temp + temp.T
+        evo_op = MatrixOperator(matrix=h_1)
 
-        state_in = Custom(SIZE, state='random')
+        state_in = Custom(size, state='random')
 
         evo_time = 1
         num_time_slices = 100
@@ -52,7 +51,7 @@ class TestEOH(QiskitAquaTestCase):
         # self.log.debug('state_out:\n\n')
 
         ret = eoh.run(quantum_instance)
-        self.log.debug('Evaluation result: {}'.format(ret))
+        self.log.debug('Evaluation result: %s', ret)
 
 
 if __name__ == '__main__':

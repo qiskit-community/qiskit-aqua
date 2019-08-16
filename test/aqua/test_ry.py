@@ -15,11 +15,9 @@
 """ Test RYCRX """
 
 import unittest
-
+from test.aqua.common import QiskitAquaTestCase
 import numpy as np
 from parameterized import parameterized
-
-from test.aqua.common import QiskitAquaTestCase
 from qiskit import BasicAer
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import EnergyInput
@@ -27,6 +25,7 @@ from qiskit.aqua.operators import WeightedPauliOperator
 
 
 class TestRYCRX(QiskitAquaTestCase):
+    """ Test RYCRX """
 
     def setUp(self):
         super().setUp()
@@ -48,6 +47,7 @@ class TestRYCRX(QiskitAquaTestCase):
         [4, 5]
     ])
     def test_vqe_var_forms(self, depth, places):
+        """ VQE Var Forms test """
         backend = BasicAer.get_backend('statevector_simulator')
         params = {
             'algorithm': {'name': 'VQE'},

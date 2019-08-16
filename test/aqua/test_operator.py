@@ -19,14 +19,12 @@ import copy
 import itertools
 import os
 import warnings
-
-from qiskit import BasicAer
+from test.aqua.common import QiskitAquaTestCase
 import numpy as np
+from qiskit import BasicAer
 from qiskit.quantum_info import Pauli
 from qiskit.assembler import RunConfig
 from qiskit.transpiler import PassManager
-
-from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua import Operator, aqua_globals
 from qiskit.aqua.components.variational_forms import RYRZ
 
@@ -43,20 +41,25 @@ class TestOperator(QiskitAquaTestCase):
         self.num_qubits = 3
         m_size = np.power(2, self.num_qubits)
         matrix = np.random.rand(m_size, m_size)
-        self.qubitOp = Operator(matrix=matrix)
+        self.qubit_op = Operator(matrix=matrix)
 
     def test_real_eval(self):
+        """ real eval test """
         depth = 1
-        var_form = RYRZ(self.qubitOp.num_qubits, depth)
+        var_form = RYRZ(self.qubit_op.num_qubits, depth)
         circuit = var_form.construct_circuit(np.array(np.random.randn(var_form.num_parameters)))
         run_config_ref = RunConfig(shots=1)
         run_config = RunConfig(shots=10000)
-        reference = self.qubitOp.eval('matrix', circuit, BasicAer.get_backend('statevector_simulator'),
-                                      run_config=run_config_ref)[0]
+        reference = self.qubit_op.eval('matrix',
+                                       circuit,
+                                       BasicAer.get_backend('statevector_simulator'),
+                                       run_config=run_config_ref)[0]
         reference = reference.real
         backend = BasicAer.get_backend('qasm_simulator')
-        paulis_mode = self.qubitOp.eval('paulis', circuit, backend, run_config=run_config)
-        grouped_paulis_mode = self.qubitOp.eval('grouped_paulis', circuit, backend, run_config=run_config)
+        paulis_mode = self.qubit_op.eval('paulis', circuit, backend, run_config=run_config)
+        grouped_paulis_mode = self.qubit_op.eval('grouped_paulis',
+                                                 circuit, backend,
+                                                 run_config=run_config)
 
         paulis_mode_p_3sigma = paulis_mode[0] + 3 * paulis_mode[1]
         paulis_mode_m_3sigma = paulis_mode[0] - 3 * paulis_mode[1]
@@ -70,10 +73,13 @@ class TestOperator(QiskitAquaTestCase):
 
         run_config = RunConfig(shots=10000)
         compile_config = {'pass_manager': PassManager()}
-        paulis_mode = self.qubitOp.eval('paulis', circuit, backend,
-                                        run_config=run_config, compile_config=compile_config)
-        grouped_paulis_mode = self.qubitOp.eval('grouped_paulis', circuit, backend,
-                                                run_config=run_config, compile_config=compile_config)
+        paulis_mode = self.qubit_op.eval('paulis', circuit, backend,
+                                         run_config=run_config,
+                                         compile_config=compile_config)
+        grouped_paulis_mode = self.qubit_op.eval('grouped_paulis',
+                                                 circuit, backend,
+                                                 run_config=run_config,
+                                                 compile_config=compile_config)
 
         paulis_mode_p_3sigma = paulis_mode[0] + 3 * paulis_mode[1]
         paulis_mode_m_3sigma = paulis_mode[0] - 3 * paulis_mode[1]
@@ -82,27 +88,37 @@ class TestOperator(QiskitAquaTestCase):
         grouped_paulis_mode_m_3sigma = grouped_paulis_mode[0] - 3 * grouped_paulis_mode[1]
         self.assertLessEqual(reference, paulis_mode_p_3sigma.real, "Without any pass manager")
         self.assertGreaterEqual(reference, paulis_mode_m_3sigma.real, "Without any pass manager")
-        self.assertLessEqual(reference, grouped_paulis_mode_p_3sigma.real, "Without any pass manager")
-        self.assertGreaterEqual(reference, grouped_paulis_mode_m_3sigma.real, "Without any pass manager")
+        self.assertLessEqual(reference,
+                             grouped_paulis_mode_p_3sigma.real,
+                             "Without any pass manager")
+        self.assertGreaterEqual(reference,
+                                grouped_paulis_mode_m_3sigma.real,
+                                "Without any pass manager")
 
     def test_exact_eval(self):
+        """ exact eval test """
         depth = 1
-        var_form = RYRZ(self.qubitOp.num_qubits, depth)
+        var_form = RYRZ(self.qubit_op.num_qubits, depth)
         circuit = var_form.construct_circuit(np.array(np.random.randn(var_form.num_parameters)))
 
         run_config = RunConfig(shots=1)
         backend = BasicAer.get_backend('statevector_simulator')
-        matrix_mode = self.qubitOp.eval('matrix', circuit, backend, run_config=run_config)[0]
-        non_matrix_mode = self.qubitOp.eval('paulis', circuit, backend, run_config=run_config)[0]
+        matrix_mode = self.qubit_op.eval('matrix', circuit, backend, run_config=run_config)[0]
+        non_matrix_mode = self.qubit_op.eval('paulis', circuit, backend, run_config=run_config)[0]
         diff = abs(matrix_mode - non_matrix_mode)
         self.assertLess(diff, 0.01, "Values: ({} vs {})".format(matrix_mode, non_matrix_mode))
 
         run_config = RunConfig(shots=1)
         compile_config = {'pass_manager': PassManager()}
-        non_matrix_mode = self.qubitOp.eval('paulis', circuit, backend,
-                                            run_config=run_config, compile_config=compile_config)[0]
+        non_matrix_mode = self.qubit_op.eval('paulis',
+                                             circuit, backend,
+                                             run_config=run_config,
+                                             compile_config=compile_config)[0]
         diff = abs(matrix_mode - non_matrix_mode)
-        self.assertLess(diff, 0.01, "Without any pass manager, Values: ({} vs {})".format(matrix_mode, non_matrix_mode))
+        self.assertLess(diff,
+                        0.01,
+                        "Without any pass manager, Values: ({} vs {})".format(matrix_mode,
+                                                                              non_matrix_mode))
 
     def test_create_from_paulis_0(self):
         """Test with single paulis."""
@@ -180,9 +196,7 @@ class TestOperator(QiskitAquaTestCase):
         self.assertEqual(0.75, op_a.paulis[0][0])
 
     def test_addition_matrix(self):
-        """
-            test addition in the matrix mode
-        """
+        """ test addition in the matrix mode """
         pauli_a = 'IX'
         pauli_b = 'ZY'
         coeff_a = 0.5
@@ -212,9 +226,7 @@ class TestOperator(QiskitAquaTestCase):
         self.assertEqual(0.75, op_a.paulis[0][0])
 
     def test_subtraction_matrix(self):
-        """
-            test subtraction in the matrix mode
-        """
+        """ test subtraction in the matrix mode """
         pauli_a = 'IX'
         pauli_b = 'ZY'
         coeff_a = 0.5
@@ -244,9 +256,7 @@ class TestOperator(QiskitAquaTestCase):
         self.assertEqual(0.25, op_a.paulis[0][0])
 
     def test_addition_paulis_noninplace(self):
-        """
-            test addition
-        """
+        """ test addition """
         pauli_a = 'IXYZ'
         pauli_b = 'ZYIX'
         coeff_a = 0.5
@@ -270,9 +280,7 @@ class TestOperator(QiskitAquaTestCase):
         self.assertEqual(0.75, new_op.paulis[0][0])
 
     def test_subtraction_noninplace(self):
-        """
-            test subtraction
-        """
+        """ test subtraction """
         pauli_a = 'IXYZ'
         pauli_b = 'ZYIX'
         coeff_a = 0.5
@@ -298,9 +306,7 @@ class TestOperator(QiskitAquaTestCase):
         self.assertEqual(0.25, new_op.paulis[0][0])
 
     def test_subtraction_inplace(self):
-        """
-            test addition
-        """
+        """ test subtraction in place """
         pauli_a = 'IXYZ'
         pauli_b = 'ZYIX'
         coeff_a = 0.5
@@ -322,9 +328,7 @@ class TestOperator(QiskitAquaTestCase):
         self.assertEqual(0.25, op_a.paulis[0][0])
 
     def test_scaling_coeff(self):
-        """
-            test scale
-        """
+        """ test scale """
         pauli_a = 'IXYZ'
         pauli_b = 'ZYIX'
         coeff_a = 0.5
@@ -343,9 +347,7 @@ class TestOperator(QiskitAquaTestCase):
         self.assertEqual(0.35, op_a.paulis[0][0])
 
     def test_str(self):
-        """
-            test str
-        """
+        """ test str """
         pauli_a = 'IXYZ'
         pauli_b = 'ZYIX'
         coeff_a = 0.5
@@ -359,9 +361,7 @@ class TestOperator(QiskitAquaTestCase):
         self.assertEqual("Representation: paulis, qubits: 4, size: 2", str(op_a))
 
     def test_zero_coeff(self):
-        """
-            test addition
-        """
+        """ test zero coeff """
         pauli_a = 'IXYZ'
         pauli_b = 'IXYZ'
         coeff_a = 0.5
@@ -389,6 +389,7 @@ class TestOperator(QiskitAquaTestCase):
             self.assertEqual(6-(i+1), len(op.paulis))
 
     def test_zero_elimination(self):
+        """ zero elimination test """
         pauli_a = 'IXYZ'
         coeff_a = 0.0
         pauli_term_a = [coeff_a, Pauli.from_label(pauli_a)]
@@ -399,9 +400,7 @@ class TestOperator(QiskitAquaTestCase):
         self.assertEqual(0, len(op_a.paulis), "{}".format(op_a.print_operators()))
 
     def test_dia_matrix(self):
-        """
-            test conversion to dia_matrix
-        """
+        """ test conversion to dia_matrix """
         num_qubits = 4
         pauli_term = []
         for pauli_label in itertools.product('IZ', repeat=num_qubits):
@@ -428,7 +427,7 @@ class TestOperator(QiskitAquaTestCase):
         self.assertEqual(op.matrix.ndim, 2)
 
     def test_equal_operator(self):
-
+        """ equal oparator test """
         paulis = ['IXYZ', 'XXZY', 'IIZZ', 'XXYY', 'ZZXX', 'YYYY']
         coeffs = [0.2, 0.6, 0.8, -0.2, -0.6, -0.8]
         op1 = Operator(paulis=[])
@@ -463,7 +462,7 @@ class TestOperator(QiskitAquaTestCase):
         self.assertNotEqual(op3, op4)
 
     def test_negation_operator(self):
-
+        """ negation operator test """
         paulis = ['IXYZ', 'XXZY', 'IIZZ', 'XXYY', 'ZZXX', 'YYYY']
         coeffs = [0.2, 0.6, 0.8, -0.2, -0.6, -0.8]
         op1 = Operator(paulis=[])
@@ -485,7 +484,7 @@ class TestOperator(QiskitAquaTestCase):
         self.assertEqual(op1, op2)
 
     def test_chop_real_only(self):
-
+        """ chop reala only test """
         paulis = ['IXYZ', 'XXZY', 'IIZZ', 'XXYY', 'ZZXX', 'YYYY']
         coeffs = [0.2, 0.6, 0.8, -0.2, -0.6, -0.8]
         op = Operator(paulis=[])
@@ -527,7 +526,7 @@ class TestOperator(QiskitAquaTestCase):
         self.assertEqual(op3, gt_op3)
 
     def test_chop_complex_only_1(self):
-
+        """ chop complex only 1 test """
         paulis = ['IXYZ', 'XXZY', 'IIZZ', 'XXYY', 'ZZXX', 'YYYY']
         coeffs = [0.2 + -1j * 0.2, 0.6 + -1j * 0.6, 0.8 + -1j * 0.8,
                   -0.2 + -1j * 0.2, -0.6 - -1j * 0.6, -0.8 - -1j * 0.8]
@@ -570,7 +569,7 @@ class TestOperator(QiskitAquaTestCase):
         self.assertEqual(op3, gt_op3)
 
     def test_chop_complex_only_2(self):
-
+        """ chop complex only 2 test """
         paulis = ['IXYZ', 'XXZY', 'IIZZ', 'XXYY', 'ZZXX', 'YYYY']
         coeffs = [0.2 + -1j * 0.8, 0.6 + -1j * 0.6, 0.8 + -1j * 0.2,
                   -0.2 + -1j * 0.8, -0.6 - -1j * 0.6, -0.8 - -1j * 0.2]
@@ -592,31 +591,30 @@ class TestOperator(QiskitAquaTestCase):
         self.assertEqual(len(op3.paulis), 0, "\n{}".format(op3.print_operators()))
 
     def test_representations(self):
-
-        self.assertEqual(len(self.qubitOp.representations), 1)
-        self.assertEqual(self.qubitOp.representations, ['matrix'])
-        self.qubitOp.to_paulis()
-        self.assertEqual(len(self.qubitOp.representations), 1)
-        self.assertEqual(self.qubitOp.representations, ['paulis'])
-        self.qubitOp.to_grouped_paulis()
-        self.assertEqual(len(self.qubitOp.representations), 1)
-        self.assertEqual(self.qubitOp.representations, ['grouped_paulis'])
+        """ representation test """
+        self.assertEqual(len(self.qubit_op.representations), 1)
+        self.assertEqual(self.qubit_op.representations, ['matrix'])
+        self.qubit_op.to_paulis()
+        self.assertEqual(len(self.qubit_op.representations), 1)
+        self.assertEqual(self.qubit_op.representations, ['paulis'])
+        self.qubit_op.to_grouped_paulis()
+        self.assertEqual(len(self.qubit_op.representations), 1)
+        self.assertEqual(self.qubit_op.representations, ['grouped_paulis'])
 
     def test_num_qubits(self):
-
+        """ num qubits test """
         op = Operator(paulis=[])
         self.assertEqual(op.num_qubits, 0)
-        self.assertEqual(self.qubitOp.num_qubits, self.num_qubits)
+        self.assertEqual(self.qubit_op.num_qubits, self.num_qubits)
 
     def test_is_empty(self):
+        """ is empty test """
         op = Operator(paulis=[])
         self.assertTrue(op.is_empty())
-        self.assertFalse(self.qubitOp.is_empty())
+        self.assertFalse(self.qubit_op.is_empty())
 
     def test_submit_multiple_circuits(self):
-        """
-            test with single paulis
-        """
+        """ submit multiple circuits test """
         num_qubits = 4
         pauli_term = []
         for pauli_label in itertools.product('IXYZ', repeat=num_qubits):
@@ -635,6 +633,7 @@ class TestOperator(QiskitAquaTestCase):
         self.assertAlmostEqual(matrix_mode, non_matrix_mode, 6)
 
     def test_load_from_file(self):
+        """ load from file test """
         paulis = ['IXYZ', 'XXZY', 'IIZZ', 'XXYY', 'ZZXX', 'YYYY']
         coeffs = [0.2 + -1j * 0.8, 0.6 + -1j * 0.6, 0.8 + -1j * 0.2,
                   -0.2 + -1j * 0.8, -0.6 - -1j * 0.6, -0.8 - -1j * 0.2]
@@ -652,9 +651,7 @@ class TestOperator(QiskitAquaTestCase):
         os.remove('temp_op.json')
 
     def test_group_paulis_1(self):
-        """
-            Test with color grouping approach
-        """
+        """ group paulis 1 test """
         num_qubits = 4
         pauli_term = []
         for pauli_label in itertools.product('IXYZ', repeat=num_qubits):
@@ -665,19 +662,17 @@ class TestOperator(QiskitAquaTestCase):
         op.to_grouped_paulis()
         flattened_grouped_paulis = [pauli for group in op.grouped_paulis for pauli in group[1:]]
 
-        for gp in flattened_grouped_paulis:
+        for g_p in flattened_grouped_paulis:
             passed = False
-            for p in paulis:
-                if p[1] == gp[1]:
-                    passed = p[0] == gp[0]
+            for pauli in paulis:
+                if pauli[1] == g_p[1]:
+                    passed = pauli[0] == g_p[0]
                     break
-            self.assertTrue(passed, "non-existed paulis in grouped_paulis: {}".format(gp[1].to_label()))
+            self.assertTrue(passed,
+                            "non-existed paulis in grouped_paulis: {}".format(g_p[1].to_label()))
 
     def test_group_paulis_2(self):
-        """
-            Test with normal grouping approach
-        """
-
+        """ group paulis 2 test """
         num_qubits = 4
         pauli_term = []
         for pauli_label in itertools.product('IXYZ', repeat=num_qubits):
@@ -689,13 +684,14 @@ class TestOperator(QiskitAquaTestCase):
         op.to_grouped_paulis()
         flattened_grouped_paulis = [pauli for group in op.grouped_paulis for pauli in group[1:]]
 
-        for gp in flattened_grouped_paulis:
+        for g_p in flattened_grouped_paulis:
             passed = False
-            for p in paulis:
-                if p[1] == gp[1]:
-                    passed = p[0] == gp[0]
+            for pauli in paulis:
+                if pauli[1] == g_p[1]:
+                    passed = pauli[0] == g_p[0]
                     break
-            self.assertTrue(passed, "non-existed paulis in grouped_paulis: {}".format(gp[1].to_label()))
+            self.assertTrue(passed,
+                            "non-existed paulis in grouped_paulis: {}".format(g_p[1].to_label()))
 
 
 if __name__ == '__main__':

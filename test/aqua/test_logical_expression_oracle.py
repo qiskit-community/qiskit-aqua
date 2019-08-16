@@ -16,15 +16,14 @@
 
 import itertools
 import unittest
+from test.aqua.common import QiskitAquaTestCase
 from parameterized import parameterized
 from qiskit import execute as q_execute
 from qiskit import QuantumCircuit, ClassicalRegister
 from qiskit import BasicAer
-
 from qiskit.aqua.components.oracles import LogicalExpressionOracle
-from test.aqua.common import QiskitAquaTestCase
 
-dimacs_tests = [
+DIMAC_TESTS = [
     [
         'p cnf 2 4 \n 1 2 0 \n 1 -2 0 \n -1 2 0 \n -1 -2 0',
         []
@@ -56,34 +55,37 @@ dimacs_tests = [
     ]
 ]
 
-mct_modes = ['basic', 'basic-dirty-ancilla', 'advanced', 'noancilla']
-optimizations = [True, False]
+MCT_MODES = ['basic', 'basic-dirty-ancilla', 'advanced', 'noancilla']
+OPTIMIZATIONS = [True, False]
 
 
 class TestLogicalExpressionOracle(QiskitAquaTestCase):
-
+    """ Test Logical Expression Oracle """
     @parameterized.expand(
-        [x[0] + list(x[1:]) for x in list(itertools.product(dimacs_tests, mct_modes, optimizations))]
+        [x[0] + list(x[1:]) for x in list(itertools.product(DIMAC_TESTS, MCT_MODES, OPTIMIZATIONS))]
     )
     def test_logic_expr_oracle(self, dimacs_str, sols, mct_mode, optimization):
+        """ Logic Expr oracle test """
         num_shots = 1024
         leo = LogicalExpressionOracle(dimacs_str, optimization=optimization, mct_mode=mct_mode)
         leo_circuit = leo.circuit
         m = ClassicalRegister(1, name='m')
         for assignment in itertools.product([True, False], repeat=len(leo.variable_register)):
             qc = QuantumCircuit(m, leo.variable_register)
-            for idx, tf in enumerate(assignment):
-                if tf:
+            for idx, t_f in enumerate(assignment):
+                if t_f:
                     qc.x(leo.variable_register[idx])
             qc += leo_circuit
             qc.barrier(leo.output_register)
             qc.measure(leo.output_register, m)
             # print(qc.draw(line_length=10000))
-            counts = q_execute(qc, BasicAer.get_backend('qasm_simulator'), shots=num_shots).result().get_counts(qc)
+            counts = q_execute(qc,
+                               BasicAer.get_backend('qasm_simulator'),
+                               shots=num_shots).result().get_counts(qc)
             if assignment in sols:
-                assert(counts['1'] == num_shots)
+                self.assertEqual(counts['1'], num_shots)
             else:
-                assert(counts['0'] == num_shots)
+                self.assertEqual(counts['0'], num_shots)
 
 
 if __name__ == '__main__':

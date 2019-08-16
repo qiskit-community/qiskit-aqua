@@ -14,9 +14,8 @@
 
 """ Test Cplex Ising """
 
-import numpy as np
-
 from test.aqua.common import QiskitAquaTestCase
+import numpy as np
 from qiskit.aqua import run_algorithm, AquaError
 from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.translators.ising import max_cut
@@ -34,6 +33,7 @@ class TestCplexIsing(QiskitAquaTestCase):
         self.algo_input = EnergyInput(self.qubit_op)
 
     def test_cplex_ising_via_run_algorithm(self):
+        """ CPlex ising via run algorithm test """
         try:
             params = {
                 'problem': {'name': 'ising'},
@@ -46,10 +46,11 @@ class TestCplexIsing(QiskitAquaTestCase):
             np.testing.assert_array_equal(
                 max_cut.get_graph_solution(x), [1, 0, 1, 1])
             self.assertEqual(max_cut.max_cut_value(x, self.w), 24)
-        except AquaError as e:
-            self.skipTest(str(e))
+        except AquaError as ex:
+            self.skipTest(str(ex))
 
     def test_cplex_ising_direct(self):
+        """ cplex ising direct test """
         try:
             algo = CPLEX_Ising(self.algo_input.qubit_op, display=0)
             result = algo.run()
@@ -59,5 +60,5 @@ class TestCplexIsing(QiskitAquaTestCase):
             np.testing.assert_array_equal(
                 max_cut.get_graph_solution(x), [1, 0, 1, 1])
             self.assertEqual(max_cut.max_cut_value(x, self.w), 24)
-        except AquaError as e:
-            self.skipTest(str(e))
+        except AquaError as ex:
+            self.skipTest(str(ex))

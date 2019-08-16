@@ -12,28 +12,30 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" TestDeutsch Jozsa """
+""" Test Deutsch Jozsa """
 
 import unittest
 import itertools
+from test.aqua.common import QiskitAquaTestCase
 from parameterized import parameterized
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.components.oracles import TruthTableOracle
 from qiskit.aqua.algorithms import DeutschJozsa
-from test.aqua.common import QiskitAquaTestCase
 
-bitmaps = ['0000', '0101', '1111', '11110000']
-mct_modes = ['basic', 'basic-dirty-ancilla', 'advanced', 'noancilla']
-optimizations = [True, False]
-simulators = ['statevector_simulator', 'qasm_simulator']
+BITMAPS = ['0000', '0101', '1111', '11110000']
+MCT_MODES = ['basic', 'basic-dirty-ancilla', 'advanced', 'noancilla']
+OPTIMIZATIONS = [True, False]
+SIMULATORS = ['statevector_simulator', 'qasm_simulator']
 
 
 class TestDeutschJozsa(QiskitAquaTestCase):
+    """ Test Deutsch Jozsa """
     @parameterized.expand(
-        itertools.product(bitmaps, mct_modes, optimizations, simulators)
+        itertools.product(BITMAPS, MCT_MODES, OPTIMIZATIONS, SIMULATORS)
     )
     def test_deutsch_jozsa(self, dj_input, mct_mode, optimization, simulator):
+        """ Deutsch Jozsa test """
         backend = BasicAer.get_backend(simulator)
         oracle = TruthTableOracle(dj_input, optimization=optimization, mct_mode=mct_mode)
         algorithm = DeutschJozsa(oracle)

@@ -15,11 +15,9 @@
 """ Test VQE to IQPE """
 
 import unittest
-
+from test.aqua.common import QiskitAquaTestCase
 import numpy as np
 from qiskit import BasicAer
-
-from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.utils import decimal_to_binary
@@ -32,7 +30,7 @@ from qiskit.aqua.algorithms import IQPE
 
 
 class TestVQE2IQPE(QiskitAquaTestCase):
-
+    """ Test VQE to IQPE """
     def setUp(self):
         super().setUp()
         self.random_seed = 0
@@ -49,6 +47,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         self.algo_input = EnergyInput(qubit_op)
 
     def test_vqe_2_iqpe(self):
+        """ vqe to iqpe test """
         backend = BasicAer.get_backend('qasm_simulator')
         num_qbits = self.algo_input.qubit_op.num_qubits
         var_form = RYRZ(num_qbits, 3)
@@ -58,9 +57,9 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         quantum_instance = QuantumInstance(backend)
         result = algo.run(quantum_instance)
 
-        self.log.debug('VQE result: {}.'.format(result))
+        self.log.debug('VQE result: %s.', result)
 
-        self.ref_eigenval = -1.85727503
+        ref_eigenval = -1.85727503
 
         num_time_slices = 1
         num_iterations = 6
@@ -73,22 +72,21 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         )
         result = iqpe.run(quantum_instance)
 
-        self.log.debug('top result str label:         {}'.format(result['top_measurement_label']))
-        self.log.debug('top result in decimal:        {}'.format(result['top_measurement_decimal']))
-        self.log.debug('stretch:                      {}'.format(result['stretch']))
-        self.log.debug('translation:                  {}'.format(result['translation']))
-        self.log.debug('final eigenvalue from QPE:    {}'.format(result['energy']))
-        self.log.debug('reference eigenvalue:         {}'.format(self.ref_eigenval))
-        self.log.debug('ref eigenvalue (transformed): {}'.format(
-            (self.ref_eigenval + result['translation']) * result['stretch'])
-        )
-        self.log.debug('reference binary str label:   {}'.format(decimal_to_binary(
-            (self.ref_eigenval + result['translation']) * result['stretch'],
+        self.log.debug('top result str label:         %s', result['top_measurement_label'])
+        self.log.debug('top result in decimal:        %s', result['top_measurement_decimal'])
+        self.log.debug('stretch:                      %s', result['stretch'])
+        self.log.debug('translation:                  %s', result['translation'])
+        self.log.debug('final eigenvalue from QPE:    %s', result['energy'])
+        self.log.debug('reference eigenvalue:         %s', ref_eigenval)
+        self.log.debug('ref eigenvalue (transformed): %s',
+                       (ref_eigenval + result['translation']) * result['stretch'])
+        self.log.debug('reference binary str label:   %s', decimal_to_binary(
+            (ref_eigenval + result['translation']) * result['stretch'],
             max_num_digits=num_iterations + 3,
             fractional_part_only=True
-        )))
+        ))
 
-        np.testing.assert_approx_equal(result['energy'], self.ref_eigenval, significant=2)
+        np.testing.assert_approx_equal(result['energy'], ref_eigenval, significant=2)
 
 
 if __name__ == '__main__':

@@ -27,6 +27,7 @@ from qiskit.aqua.circuits import WeightedSumOperator
 
 
 class TestWeightedSumOperator(QiskitAquaTestCase):
+    """ weighted sum operator test """
 
     @parameterized.expand([
         # n, weights, x, sum
@@ -41,8 +42,8 @@ class TestWeightedSumOperator(QiskitAquaTestCase):
         [3, [1, 2, 3], [0, 1, 1], 5],
         [3, [1, 2, 3], [1, 1, 1], 6]
     ])
-    def test_weighted_sum_operator(self, num_state_qubits, weights, input, result):
-
+    def test_weighted_sum_operator(self, num_state_qubits, weights, input_x, result):
+        """ weighted sum operator test """
         # initialize weighted sum operator factory
         sum_op = WeightedSumOperator(num_state_qubits, weights)
 
@@ -56,7 +57,7 @@ class TestWeightedSumOperator(QiskitAquaTestCase):
             qc = QuantumCircuit(q)
 
         # set initial state
-        for i, x in enumerate(input):
+        for i, x in enumerate(input_x):
             if x == 1:
                 qc.x(q[i])
 
@@ -68,8 +69,8 @@ class TestWeightedSumOperator(QiskitAquaTestCase):
 
         num_results = 0
         value = None
-        for i, a in enumerate(job.result().get_statevector()):
-            if np.abs(a)**2 >= 1e-6:
+        for i, s_a in enumerate(job.result().get_statevector()):
+            if np.abs(s_a)**2 >= 1e-6:
                 num_results += 1
                 b_value = '{0:b}'.format(i).rjust(qc.width(), '0')
                 b_sum = b_value[(-len(q)):(-num_state_qubits)]

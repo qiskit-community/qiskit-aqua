@@ -27,7 +27,7 @@ def _load_aqua():
     try:
         import qiskit
         qiskit.aqua.__version__
-    except Exception as ex:
+    except Exception as ex:  # pylint: disable=broad-except
         return _exception_to_string(ex)
 
     return None

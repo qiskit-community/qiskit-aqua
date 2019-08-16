@@ -14,11 +14,9 @@
 
 """ Test Partition """
 
-import numpy as np
-
 from test.aqua.common import QiskitAquaTestCase
+import numpy as np
 from qiskit import BasicAer
-
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.translators.ising import partition
@@ -32,10 +30,11 @@ class TestSetPacking(QiskitAquaTestCase):
         super().setUp()
         input_file = self._get_resource_path('sample.partition')
         number_list = partition.read_numbers_from_file(input_file)
-        qubitOp, offset = partition.get_partition_qubitops(number_list)
-        self.algo_input = EnergyInput(qubitOp)
+        qubit_op, _ = partition.get_partition_qubitops(number_list)
+        self.algo_input = EnergyInput(qubit_op)
 
     def test_partition(self):
+        """ Partition test """
         params = {
             'problem': {'name': 'ising'},
             'algorithm': {'name': 'ExactEigensolver'}
@@ -46,12 +45,14 @@ class TestSetPacking(QiskitAquaTestCase):
         np.testing.assert_array_equal(x, [0, 1, 0])
 
     def test_partition_direct(self):
+        """ Partition Direct test """
         algo = ExactEigensolver(self.algo_input.qubit_op, k=1, aux_operators=[])
         result = algo.run()
         x = partition.sample_most_likely(result['eigvecs'][0])
         np.testing.assert_array_equal(x, [0, 1, 0])
 
     def test_partition_vqe(self):
+        """ Partition VQE test """
         algorithm_cfg = {
             'name': 'VQE',
             'operator_mode': 'grouped_paulis',

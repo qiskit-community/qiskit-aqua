@@ -15,27 +15,25 @@
 """ Test Docplex """
 
 from math import fsum, isclose
-
+from test.aqua.common import QiskitAquaTestCase
 import networkx as nx
 import numpy as np
 from docplex.mp.model import Model
 from qiskit.quantum_info import Pauli
-
-from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms import ExactEigensolver
 from qiskit.aqua.translators.ising import tsp, docplex
 from qiskit.aqua.operators import WeightedPauliOperator
 
 # Reference operators and offsets for maxcut and tsp.
-qubit_op_maxcut = WeightedPauliOperator(
+QUBIT_OP_MAXCUT = WeightedPauliOperator(
     paulis=[[0.5, Pauli(z=[True, True, False, False], x=[False, False, False, False])],
             [0.5, Pauli(z=[True, False, True, False], x=[False, False, False, False])],
             [0.5, Pauli(z=[False, True, True, False], x=[False, False, False, False])],
             [0.5, Pauli(z=[True, False, False, True], x=[False, False, False, False])],
             [0.5, Pauli(z=[False, False, True, True], x=[False, False, False, False])]])
-offset_maxcut = -2.5
-qubit_op_tsp = WeightedPauliOperator(
+OFFSET_MAXCUT = -2.5
+QUBIT_OP_TSP = WeightedPauliOperator(
     paulis=[[-100057.0, Pauli(z=[True, False, False, False, False, False, False, False, False],
                               x=[False, False, False, False, False, False, False, False, False])],
             [-100071.0, Pauli(z=[False, False, False, False, True, False, False, False, False],
@@ -126,7 +124,7 @@ qubit_op_tsp = WeightedPauliOperator(
                             x=[False, False, False, False, False, False, False, False, False])],
             [50000.0, Pauli(z=[False, False, False, False, False, False, False, True, True],
                             x=[False, False, False, False, False, False, False, False, False])]])
-offset_tsp = 600297.0
+OFFSET_TSP = 600297.0
 
 
 class TestDocplex(QiskitAquaTestCase):
@@ -137,6 +135,7 @@ class TestDocplex(QiskitAquaTestCase):
         np.random.seed(100)
 
     def test_validation(self):
+        """ Validation Test """
         num_var = 3
         # validate an object type of the input.
         with self.assertRaises(AquaError):
@@ -160,6 +159,7 @@ class TestDocplex(QiskitAquaTestCase):
             docplex.get_qubitops(mdl)
 
     def test_auto_define_penalty(self):
+        """ Auto defina Penalty test """
         # check _auto_define_penalty() for positive coefficients.
         positive_coefficients = np.random.rand(10, 10)
         for i in range(10):
@@ -205,67 +205,73 @@ class TestDocplex(QiskitAquaTestCase):
         self.assertEqual(actual, expected)
 
     def test_docplex_maxcut(self):
+        """ Docplex maxcut test """
         # Generating a graph of 4 nodes
         n = 4
-        G = nx.Graph()
-        G.add_nodes_from(np.arange(0, n, 1))
+        graph = nx.Graph()
+        graph.add_nodes_from(np.arange(0, n, 1))
         elist = [(0, 1, 1.0), (0, 2, 1.0), (0, 3, 1.0), (1, 2, 1.0), (2, 3, 1.0)]
-        G.add_weighted_edges_from(elist)
+        graph.add_weighted_edges_from(elist)
         # Computing the weight matrix from the random graph
         w = np.zeros([n, n])
         for i in range(n):
             for j in range(n):
-                temp = G.get_edge_data(i, j, default=0)
+                temp = graph.get_edge_data(i, j, default=0)
                 if temp != 0:
                     w[i, j] = temp['weight']
 
         # Create an Ising Hamiltonian with docplex.
         mdl = Model(name='max_cut')
         mdl.node_vars = mdl.binary_var_list(list(range(4)), name='node')
-        maxcut_func = mdl.sum(w[i, j] * mdl.node_vars[i] * (1 - mdl.node_vars[j]) for i in range(n) for j in range(n))
+        maxcut_func = mdl.sum(w[i, j] * mdl.node_vars[i] * (1 - mdl.node_vars[j])
+                              for i in range(n) for j in range(n))
         mdl.maximize(maxcut_func)
         qubit_op, offset = docplex.get_qubitops(mdl)
 
-        ee = ExactEigensolver(qubit_op, k=1)
-        result = ee.run()
+        e_e = ExactEigensolver(qubit_op, k=1)
+        result = e_e.run()
 
-        ee_expected = ExactEigensolver(qubit_op_maxcut, k=1)
+        ee_expected = ExactEigensolver(QUBIT_OP_MAXCUT, k=1)
         expected_result = ee_expected.run()
 
         # Compare objective
-        self.assertEqual(result['energy'] + offset, expected_result['energy'] + offset_maxcut)
+        self.assertEqual(result['energy'] + offset, expected_result['energy'] + OFFSET_MAXCUT)
 
     def test_docplex_tsp(self):
+        """ Docplex tsp test """
         # Generating a graph of 3 nodes
         n = 3
         ins = tsp.random_tsp(n)
-        G = nx.Graph()
-        G.add_nodes_from(np.arange(0, n, 1))
+        graph = nx.Graph()
+        graph.add_nodes_from(np.arange(0, n, 1))
         num_node = ins.dim
 
         # Create an Ising Hamiltonian with docplex.
         mdl = Model(name='tsp')
-        x = {(i, p): mdl.binary_var(name='x_{0}_{1}'.format(i, p)) for i in range(num_node) for p in range(num_node)}
+        x = {(i, p): mdl.binary_var(name='x_{0}_{1}'.format(i, p))
+             for i in range(num_node) for p in range(num_node)}
         tsp_func = mdl.sum(
-            ins.w[i, j] * x[(i, p)] * x[(j, (p + 1) % num_node)] for i in range(num_node) for j in range(num_node) for p
+            ins.w[i, j] * x[(i, p)] * x[(j, (p + 1) % num_node)]
+            for i in range(num_node) for j in range(num_node) for p
             in range(num_node))
         mdl.minimize(tsp_func)
         for i in range(num_node):
             mdl.add_constraint(mdl.sum(x[(i, p)] for p in range(num_node)) == 1)
-        for p in range(num_node):
-            mdl.add_constraint(mdl.sum(x[(i, p)] for i in range(num_node)) == 1)
+        for p_i in range(num_node):
+            mdl.add_constraint(mdl.sum(x[(i, p_i)] for i in range(num_node)) == 1)
         qubit_op, offset = docplex.get_qubitops(mdl)
 
-        ee = ExactEigensolver(qubit_op, k=1)
-        result = ee.run()
+        e_e = ExactEigensolver(qubit_op, k=1)
+        result = e_e.run()
 
-        ee_expected = ExactEigensolver(qubit_op_tsp, k=1)
+        ee_expected = ExactEigensolver(QUBIT_OP_TSP, k=1)
         expected_result = ee_expected.run()
 
         # Compare objective
-        self.assertEqual(result['energy'] + offset, expected_result['energy'] + offset_tsp)
+        self.assertEqual(result['energy'] + offset, expected_result['energy'] + OFFSET_TSP)
 
     def test_docplex_integer_constraints(self):
+        """ Docplex Integer Constraints test """
         # Create an Ising Homiltonian with docplex
         mdl = Model(name='integer_constraints')
         x = {i: mdl.binary_var(name='x_{0}'.format(i)) for i in range(1, 5)}
@@ -274,8 +280,8 @@ class TestDocplex(QiskitAquaTestCase):
         mdl.add_constraint(mdl.sum(i * x[i] for i in range(1, 5)) == 3)
         qubit_op, offset = docplex.get_qubitops(mdl)
 
-        ee = ExactEigensolver(qubit_op, k=1)
-        result = ee.run()
+        e_e = ExactEigensolver(qubit_op, k=1)
+        result = e_e.run()
 
         expected_result = -2
 
@@ -283,6 +289,7 @@ class TestDocplex(QiskitAquaTestCase):
         self.assertEqual(result['energy'] + offset, expected_result)
 
     def test_docplex_constant_and_quadratic_terms_in_object_function(self):
+        """ Docplex Constant and Quadratic terms in Object function test """
         # Create an Ising Homiltonian with docplex
         laplacian = np.array([[-3., 1., 1., 1.],
                               [1., -2., 1., -0.],
@@ -294,14 +301,15 @@ class TestDocplex(QiskitAquaTestCase):
         bias = [0] * 4
         x = {i: mdl.binary_var(name='x_{0}'.format(i)) for i in range(n)}
         couplers_func = mdl.sum(
-            2 * laplacian[i, j] * (2 * x[i] - 1) * (2 * x[j] - 1) for i in range(n - 1) for j in range(i, n))
+            2 * laplacian[i, j] * (2 * x[i] - 1) * (2 * x[j] - 1)
+            for i in range(n - 1) for j in range(i, n))
         bias_func = mdl.sum(float(bias[i]) * x[i] for i in range(n))
         ising_func = couplers_func + bias_func
         mdl.minimize(ising_func)
         qubit_op, offset = docplex.get_qubitops(mdl)
 
-        ee = ExactEigensolver(qubit_op, k=1)
-        result = ee.run()
+        e_e = ExactEigensolver(qubit_op, k=1)
+        result = e_e.run()
 
         expected_result = -22
 

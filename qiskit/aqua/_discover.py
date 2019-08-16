@@ -151,8 +151,8 @@ def _discover_entry_point_pluggables():
         # first calls require and log any errors returned due to dependencies mismatches
         try:
             entry_point.require()
-        except Exception as e:
-            logger.warning("Entry point '{}' requirements issue: {}".format(entry_point, str(e)))
+        except Exception as ex:  # pylint: disable=broad-except
+            logger.warning("Entry point '{}' requirements issue: {}".format(entry_point, str(ex)))
 
         # now  call resolve and try to load entry point
         try:
@@ -169,10 +169,10 @@ def _discover_entry_point_pluggables():
             if not _registered:
                 # print("Unknown entry point pluggable '{}' class '{}'".format(entry_point, ep))
                 logger.debug("Unknown entry point pluggable '{}' class '{}'".format(entry_point, ep))
-        except Exception as e:
+        except Exception as ex:  # pylint: disable=broad-except
             # Ignore entry point that could not be initialized.
             # print("Failed to load entry point '{}' error {}".format(entry_point, str(e)))
-            logger.debug("Failed to load entry point '{}' error {}".format(entry_point, str(e)))
+            logger.debug("Failed to load entry point '{}' error {}".format(entry_point, str(ex)))
 
 
 def _discover_local_pluggables(directory=os.path.dirname(__file__),
@@ -207,15 +207,15 @@ def _discover_local_pluggables(directory=os.path.dirname(__file__),
                                     _register_pluggable(pluggable_type, cls)
                                     importlib.import_module(fullname)
                                     break
-                    except Exception as e:
+                    except Exception as ex:  # pylint: disable=broad-except
                         # Ignore pluggables that could not be initialized.
-                        # print('Failed to load pluggable {} error {}'.format(fullname, str(e)))
-                        logger.debug('Failed to load pluggable {} error {}'.format(fullname, str(e)))
+                        # print('Failed to load pluggable {} error {}'.format(fullname, str(ex)))
+                        logger.debug('Failed to load pluggable {} error {}'.format(fullname, str(ex)))
 
-            except Exception as e:
+            except Exception as ex:  # pylint: disable=broad-except
                 # Ignore pluggables that could not be initialized.
-                # print('Failed to load {} error {}'.format(fullname, str(e)))
-                logger.debug('Failed to load {} error {}'.format(fullname, str(e)))
+                # print('Failed to load {} error {}'.format(fullname, str(ex)))
+                logger.debug('Failed to load {} error {}'.format(fullname, str(ex)))
 
     for item in sorted(os.listdir(directory)):
         fullpath = os.path.join(directory, item)
@@ -285,9 +285,9 @@ def _register_pluggable(pluggable_type, cls):
         try:
             # pylint: disable=not-callable
             check_pluggable_valid()
-        except Exception as e:
-            logger.debug(str(e))
-            raise AquaError('Could not register class {}. Name {} is not valid'.format(cls, pluggable_name)) from e
+        except Exception as ex:  # pylint: disable=broad-except
+            logger.debug(str(ex))
+            raise AquaError('Could not register class {}. Name {} is not valid'.format(cls, pluggable_name)) from ex
 
     if pluggable_name in _REGISTERED_PLUGGABLES[pluggable_type]:
         raise AquaError('Could not register class {}. Name {} {} '

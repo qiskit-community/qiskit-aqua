@@ -14,11 +14,9 @@
 
 """ Text Vertex Cover """
 
-import numpy as np
-
 from test.aqua.common import QiskitAquaTestCase
+import numpy as np
 from qiskit import BasicAer
-
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.translators.ising import vertex_cover
@@ -36,17 +34,17 @@ class TestVertexCover(QiskitAquaTestCase):
         self.qubit_op, self.offset = vertex_cover.get_vertex_cover_qubitops(self.w)
         self.algo_input = EnergyInput(self.qubit_op)
 
-    def brute_force(self):
+    def _brute_force(self):
         # brute-force way
-        def bitfield(n, L):
-            result = np.binary_repr(n, L)
+        def bitfield(n, length):
+            result = np.binary_repr(n, length)
             return [int(digit) for digit in result]  # [2:] to chop off the "0b" part
 
-        L = self.num_nodes
-        max = 2**L
+        nodes = self.num_nodes
+        maximum = 2**nodes
         minimal_v = np.inf
-        for i in range(max):
-            cur = bitfield(i, L)
+        for i in range(maximum):
+            cur = bitfield(i, nodes)
 
             cur_v = vertex_cover.check_full_edge_coverage(np.array(cur), self.w)
             if cur_v:
@@ -57,6 +55,7 @@ class TestVertexCover(QiskitAquaTestCase):
         return minimal_v
 
     def test_vertex_cover(self):
+        """ Vertex cover test """
         params = {
             'problem': {'name': 'ising'},
             'algorithm': {'name': 'ExactEigensolver'}
@@ -66,19 +65,21 @@ class TestVertexCover(QiskitAquaTestCase):
         x = vertex_cover.sample_most_likely(len(self.w), result['eigvecs'][0])
         sol = vertex_cover.get_graph_solution(x)
         np.testing.assert_array_equal(sol, [0, 1, 1])
-        oracle = self.brute_force()
+        oracle = self._brute_force()
         self.assertEqual(np.count_nonzero(sol), oracle)
 
     def test_vertex_cover_direct(self):
+        """ Vertex Cover Direct test """
         algo = ExactEigensolver(self.algo_input.qubit_op, k=1, aux_operators=[])
         result = algo.run()
         x = vertex_cover.sample_most_likely(len(self.w), result['eigvecs'][0])
         sol = vertex_cover.get_graph_solution(x)
         np.testing.assert_array_equal(sol, [0, 1, 1])
-        oracle = self.brute_force()
+        oracle = self._brute_force()
         self.assertEqual(np.count_nonzero(sol), oracle)
 
     def test_vertex_cover_vqe(self):
+        """ Vertex Cover VQE test """
         algorithm_cfg = {
             'name': 'VQE',
             'operator_mode': 'grouped_paulis',
@@ -105,5 +106,5 @@ class TestVertexCover(QiskitAquaTestCase):
         result = run_algorithm(params, self.algo_input, backend=backend)
         x = vertex_cover.sample_most_likely(len(self.w), result['eigvecs'][0])
         sol = vertex_cover.get_graph_solution(x)
-        oracle = self.brute_force()
+        oracle = self._brute_force()
         self.assertEqual(np.count_nonzero(sol), oracle)

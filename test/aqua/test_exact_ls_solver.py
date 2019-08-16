@@ -15,17 +15,15 @@
 """ Test Exact LS solver """
 
 import unittest
-
-import numpy as np
-
 from test.aqua.common import QiskitAquaTestCase
+import numpy as np
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import LinearSystemInput
 from qiskit.aqua.algorithms import ExactLSsolver
 
 
 class TestExactLSsolver(QiskitAquaTestCase):
-
+    """ Test Exact LS solver """
     def setUp(self):
         super().setUp()
         self.algo_input = LinearSystemInput()
@@ -33,6 +31,7 @@ class TestExactLSsolver(QiskitAquaTestCase):
         self.algo_input.vector = [1, 2]
 
     def test_els_via_run_algorithm_full_dict(self):
+        """ ELS Via Run Algorithm Full Dict test """
         params = {
             'algorithm': {
                 'name': 'ExactLSsolver'
@@ -51,6 +50,7 @@ class TestExactLSsolver(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(result['eigvals'], [3, -1])
 
     def test_els_via_run_algorithm(self):
+        """ ELS Via Run Algorithm test """
         params = {
             'algorithm': {
                 'name': 'ExactLSsolver'
@@ -64,6 +64,7 @@ class TestExactLSsolver(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(result['eigvals'], [3, -1])
 
     def test_els_direct(self):
+        """ ELS Direct test """
         algo = ExactLSsolver(self.algo_input.matrix, self.algo_input.vector)
         result = algo.run()
         np.testing.assert_array_almost_equal(result['solution'], [1, 0])

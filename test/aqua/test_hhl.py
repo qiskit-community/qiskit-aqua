@@ -15,11 +15,10 @@
 """ Test HHL """
 
 import unittest
-
+from test.aqua.common import QiskitAquaTestCase
 import numpy as np
 from numpy.random import random
 from parameterized import parameterized
-from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import LinearSystemInput
 from qiskit.aqua.utils import random_matrix_generator as rmg
@@ -70,6 +69,7 @@ class TestHHL(QiskitAquaTestCase):
 
     @parameterized.expand([[[0, 1]], [[1, 0]], [[1, 0.1]], [[1, 1]], [[1, 10]]])
     def test_hhl_diagonal(self, vector):
+        """ hhl diagonal test """
         self.log.debug('Testing HHL simple test in mode Lookup with statevector simulator')
 
         matrix = [[1, 0], [0, 1]]
@@ -93,13 +93,14 @@ class TestHHL(QiskitAquaTestCase):
         fidelity = state_fidelity(ref_normed, hhl_normed)
         np.testing.assert_approx_equal(fidelity, 1, significant=5)
 
-        self.log.debug('HHL solution vector:       {}'.format(hhl_solution))
-        self.log.debug('algebraic solution vector: {}'.format(ref_solution))
-        self.log.debug('fidelity HHL to algebraic: {}'.format(fidelity))
-        self.log.debug('probability of result:     {}'.format(hhl_result["probability_result"]))
+        self.log.debug('HHL solution vector:       %s', hhl_solution)
+        self.log.debug('algebraic solution vector: %s', ref_solution)
+        self.log.debug('fidelity HHL to algebraic: %s', fidelity)
+        self.log.debug('probability of result:     %s', hhl_result["probability_result"])
 
     @parameterized.expand([[[-1, 0]], [[0, -1]], [[-1, -1]]])
     def test_hhl_diagonal_negative(self, vector):
+        """ hhl diagonal negative test """
         self.log.debug('Testing HHL simple test in mode Lookup with statevector simulator')
 
         neg_params = self.params
@@ -127,13 +128,14 @@ class TestHHL(QiskitAquaTestCase):
         fidelity = state_fidelity(ref_normed, hhl_normed)
         np.testing.assert_approx_equal(fidelity, 1, significant=5)
 
-        self.log.debug('HHL solution vector:       {}'.format(hhl_solution))
-        self.log.debug('algebraic solution vector: {}'.format(ref_normed))
-        self.log.debug('fidelity HHL to algebraic: {}'.format(fidelity))
-        self.log.debug('probability of result:     {}'.format(hhl_result["probability_result"]))
+        self.log.debug('HHL solution vector:       %s', hhl_solution)
+        self.log.debug('algebraic solution vector: %s', ref_normed)
+        self.log.debug('fidelity HHL to algebraic: %s', fidelity)
+        self.log.debug('probability of result:     %s', hhl_result["probability_result"])
 
     @parameterized.expand([[[0, 1]], [[1, 0.1]], [[1, 1]]])
     def test_hhl_diagonal_longdivison(self, vector):
+        """ hhl diagonal long division test """
         self.log.debug('Testing HHL simple test in mode LongDivision and statevector simulator')
 
         ld_params = self.params
@@ -160,13 +162,14 @@ class TestHHL(QiskitAquaTestCase):
         fidelity = state_fidelity(ref_normed, hhl_normed)
         np.testing.assert_approx_equal(fidelity, 1, significant=5)
 
-        self.log.debug('HHL solution vector:       {}'.format(hhl_solution))
-        self.log.debug('algebraic solution vector: {}'.format(ref_normed))
-        self.log.debug('fidelity HHL to algebraic: {}'.format(fidelity))
-        self.log.debug('probability of result:     {}'.format(hhl_result["probability_result"]))
+        self.log.debug('HHL solution vector:       %s', hhl_solution)
+        self.log.debug('algebraic solution vector: %s', ref_normed)
+        self.log.debug('fidelity HHL to algebraic: %s', fidelity)
+        self.log.debug('probability of result:     %s', hhl_result["probability_result"])
 
     @parameterized.expand([[[0, 1]], [[1, 0]], [[1, 0.1]], [[1, 1]], [[1, 10]]])
     def test_hhl_diagonal_qasm(self, vector):
+        """ hhl diagonal qasm test """
         self.log.debug('Testing HHL simple test with qasm simulator')
 
         qasm_params = self.params
@@ -194,13 +197,14 @@ class TestHHL(QiskitAquaTestCase):
         fidelity = state_fidelity(ref_normed, hhl_normed)
         np.testing.assert_approx_equal(fidelity, 1, significant=1)
 
-        self.log.debug('HHL solution vector:       {}'.format(hhl_solution))
-        self.log.debug('algebraic solution vector: {}'.format(ref_normed))
-        self.log.debug('fidelity HHL to algebraic: {}'.format(fidelity))
-        self.log.debug('probability of result:     {}'.format(hhl_result["probability_result"]))
+        self.log.debug('HHL solution vector:       %s', hhl_solution)
+        self.log.debug('algebraic solution vector: %s', ref_normed)
+        self.log.debug('fidelity HHL to algebraic: %s', fidelity)
+        self.log.debug('probability of result:     %s', hhl_result["probability_result"])
 
     @parameterized.expand([[3, 4], [5, 5]])
     def test_hhl_diagonal_other_dim(self, n, num_ancillary):
+        """ hhl diagonal other dim test """
         self.log.debug('Testing HHL with matrix dimension other than 2**n')
 
         dim_params = self.params
@@ -229,12 +233,13 @@ class TestHHL(QiskitAquaTestCase):
         fidelity = state_fidelity(ref_normed, hhl_normed)
         np.testing.assert_approx_equal(fidelity, 1, significant=1)
 
-        self.log.debug('HHL solution vector:       {}'.format(hhl_solution))
-        self.log.debug('algebraic solution vector: {}'.format(ref_solution))
-        self.log.debug('fidelity HHL to algebraic: {}'.format(fidelity))
-        self.log.debug('probability of result:     {}'.format(hhl_result["probability_result"]))
+        self.log.debug('HHL solution vector:       %s', hhl_solution)
+        self.log.debug('algebraic solution vector: %s', ref_solution)
+        self.log.debug('fidelity HHL to algebraic: %s', fidelity)
+        self.log.debug('probability of result:     %s', hhl_result["probability_result"])
 
     def test_hhl_negative_eigs(self):
+        """ hhl negative eigs test """
         self.log.debug('Testing HHL with matrix with negative eigenvalues')
 
         neg_params = self.params
@@ -264,12 +269,13 @@ class TestHHL(QiskitAquaTestCase):
         fidelity = state_fidelity(ref_normed, hhl_normed)
         np.testing.assert_approx_equal(fidelity, 1, significant=3)
 
-        self.log.debug('HHL solution vector:       {}'.format(hhl_solution))
-        self.log.debug('algebraic solution vector: {}'.format(ref_normed))
-        self.log.debug('fidelity HHL to algebraic: {}'.format(fidelity))
-        self.log.debug('probability of result:     {}'.format(hhl_result["probability_result"]))
+        self.log.debug('HHL solution vector:       %s', hhl_solution)
+        self.log.debug('algebraic solution vector: %s', ref_normed)
+        self.log.debug('fidelity HHL to algebraic: %s', fidelity)
+        self.log.debug('probability of result:     %s', hhl_result["probability_result"])
 
     def test_hhl_random_hermitian(self):
+        """ hhl random hermitian test """
         self.log.debug('Testing HHL with random hermitian matrix')
 
         hermitian_params = self.params
@@ -297,12 +303,13 @@ class TestHHL(QiskitAquaTestCase):
         fidelity = state_fidelity(ref_normed, hhl_normed)
         np.testing.assert_approx_equal(fidelity, 1, significant=2)
 
-        self.log.debug('HHL solution vector:       {}'.format(hhl_solution))
-        self.log.debug('algebraic solution vector: {}'.format(ref_normed))
-        self.log.debug('fidelity HHL to algebraic: {}'.format(fidelity))
-        self.log.debug('probability of result:     {}'.format(hhl_result["probability_result"]))
+        self.log.debug('HHL solution vector:       %s', hhl_solution)
+        self.log.debug('algebraic solution vector: %s', ref_normed)
+        self.log.debug('fidelity HHL to algebraic: %s', fidelity)
+        self.log.debug('probability of result:     %s', hhl_result["probability_result"])
 
     def test_hhl_non_hermitian(self):
+        """ hhl non hermitian test """
         self.log.debug('Testing HHL with simple non-hermitian matrix')
 
         nonherm_params = self.params
@@ -330,10 +337,10 @@ class TestHHL(QiskitAquaTestCase):
         fidelity = state_fidelity(ref_normed, hhl_normed)
         self.assertGreater(fidelity, 0.8)
 
-        self.log.debug('HHL solution vector:       {}'.format(hhl_solution))
-        self.log.debug('algebraic solution vector: {}'.format(ref_solution))
-        self.log.debug('fidelity HHL to algebraic: {}'.format(fidelity))
-        self.log.debug('probability of result:     {}'.format(hhl_result["probability_result"]))
+        self.log.debug('HHL solution vector:       %s', hhl_solution)
+        self.log.debug('algebraic solution vector: %s', ref_solution)
+        self.log.debug('fidelity HHL to algebraic: %s', fidelity)
+        self.log.debug('probability of result:     %s', hhl_result["probability_result"])
 
 
 if __name__ == '__main__':

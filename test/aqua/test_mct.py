@@ -16,41 +16,45 @@
 
 import unittest
 import itertools
+from test.aqua.common import QiskitAquaTestCase
 import numpy as np
-
 from parameterized import parameterized
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit import execute
 from qiskit.quantum_info import state_fidelity
-
 from qiskit import BasicAer
-from test.aqua.common import QiskitAquaTestCase
 
-nums_controls = [i + 1 for i in range(6)]
-clean_ancilla_modes = ['basic']
-dirty_ancilla_modes = ['basic-dirty-ancilla', 'advanced', 'noancilla']
+
+NUM_CONTROLS = [i + 1 for i in range(6)]
+CLEAN_ANCILLA_MODES = ['basic']
+DIRTY_ANCILLA_MODES = ['basic-dirty-ancilla', 'advanced', 'noancilla']
 
 
 class TestMCT(QiskitAquaTestCase):
+    """ Test MCT """
     @parameterized.expand(
-        itertools.product(nums_controls, clean_ancilla_modes)
+        itertools.product(NUM_CONTROLS, CLEAN_ANCILLA_MODES)
     )
     def test_mct_with_clean_ancillae(self, num_controls, mode):
+        """ MCT with Clean Ancillae test """
         c = QuantumRegister(num_controls, name='c')
-        o = QuantumRegister(1, name='o')
-        qc = QuantumCircuit(o, c)
+        q_o = QuantumRegister(1, name='o')
+        qc = QuantumCircuit(q_o, c)
         num_ancillae = 0 if num_controls <= 2 else num_controls - 2
+        q_a = None
         if num_ancillae > 0:
-            a = QuantumRegister(num_ancillae, name='a')
-            qc.add_register(a)
+            q_a = QuantumRegister(num_ancillae, name='a')
+            qc.add_register(q_a)
         qc.h(c)
         qc.mct(
             [c[i] for i in range(num_controls)],
-            o[0],
-            [a[i] for i in range(num_ancillae)],
+            q_o[0],
+            [q_a[i] for i in range(num_ancillae)],
             mode=mode
         )
-        vec_mct = execute(qc, BasicAer.get_backend('statevector_simulator')).result().get_statevector(qc)
+        vec_mct = execute(qc,
+                          BasicAer.get_backend(
+                              'statevector_simulator')).result().get_statevector(qc)
 
         mat = np.eye(2 ** (num_controls + 1))
         mat[-2:, -2:] = [[0, 1], [1, 0]]
@@ -59,20 +63,19 @@ class TestMCT(QiskitAquaTestCase):
 
         vec_groundtruth = mat @ np.kron(np.kron(
             np.array([1] + [0] * (2 ** num_ancillae - 1)),
-            [1 / 2 ** (num_controls / 2)] * 2 ** num_controls),
-            [1, 0]
-        )
+            [1 / 2 ** (num_controls / 2)] * 2 ** num_controls), [1, 0])
 
-        f = state_fidelity(vec_mct, vec_groundtruth)
-        self.assertAlmostEqual(f, 1)
+        s_f = state_fidelity(vec_mct, vec_groundtruth)
+        self.assertAlmostEqual(s_f, 1)
 
     @parameterized.expand(
-        itertools.product(nums_controls, dirty_ancilla_modes)
+        itertools.product(NUM_CONTROLS, DIRTY_ANCILLA_MODES)
     )
     def test_mct_with_dirty_ancillae(self, num_controls, mode):
+        """ MCT qith Dirty Ancillae test """
         c = QuantumRegister(num_controls, name='c')
-        o = QuantumRegister(1, name='o')
-        qc = QuantumCircuit(o, c)
+        q_o = QuantumRegister(1, name='o')
+        qc = QuantumCircuit(q_o, c)
         if mode == 'basic-dirty-ancilla':
             if num_controls <= 2:
                 num_ancillae = 0
@@ -85,14 +88,15 @@ class TestMCT(QiskitAquaTestCase):
                 num_ancillae = 0
             else:
                 num_ancillae = 1
+        q_a = None
         if num_ancillae > 0:
-            a = QuantumRegister(num_ancillae, name='a')
-            qc.add_register(a)
+            q_a = QuantumRegister(num_ancillae, name='a')
+            qc.add_register(q_a)
 
         qc.mct(
             [c[i] for i in range(num_controls)],
-            o[0],
-            [a[i] for i in range(num_ancillae)],
+            q_o[0],
+            [q_a[i] for i in range(num_ancillae)],
             mode=mode
         )
 

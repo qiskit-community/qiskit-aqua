@@ -15,19 +15,15 @@
 """ Test Fixed Value Comparator """
 
 import unittest
-
 from test.aqua.common import QiskitAquaTestCase
-
 from parameterized import parameterized
-
 import numpy as np
-
 from qiskit import QuantumRegister, QuantumCircuit, BasicAer, execute
 from qiskit.aqua.circuits import FixedValueComparator as Comparator
 
 
 class TestFixedValueComparator(QiskitAquaTestCase):
-
+    """ Text Fixed Value Comparator """
     @parameterized.expand([
         # n, value, geq
         [1, 0, True],
@@ -42,7 +38,7 @@ class TestFixedValueComparator(QiskitAquaTestCase):
         [4, 6, False]
     ])
     def test_fixed_value_comparator(self, num_state_qubits, value, geq):
-
+        """ fixed value comparator test """
         # initialize weighted sum operator factory
         comp = Comparator(num_state_qubits, value, geq)
 
@@ -64,9 +60,9 @@ class TestFixedValueComparator(QiskitAquaTestCase):
         # run simulation
         job = execute(qc, BasicAer.get_backend('statevector_simulator'), shots=1)
 
-        for i, a in enumerate(job.result().get_statevector()):
+        for i, s_a in enumerate(job.result().get_statevector()):
 
-            prob = np.abs(a)**2
+            prob = np.abs(s_a)**2
             if prob > 1e-6:
                 # equal superposition
                 self.assertEqual(True, np.isclose(1.0, prob * 2.0**num_state_qubits))
