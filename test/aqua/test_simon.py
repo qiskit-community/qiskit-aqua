@@ -12,46 +12,49 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Test Simon """
+
+import unittest
 import math
 import itertools
+from test.aqua.common import QiskitAquaTestCase
 import numpy as np
-import unittest
 from parameterized import parameterized
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.components.oracles import TruthTableOracle
 from qiskit.aqua.algorithms import Simon
 from qiskit import BasicAer
-from test.aqua.common import QiskitAquaTestCase
 
-bitmaps = [
+BITMAPS = [
     ['00011110', '01100110', '10101010'],
     ['10010110', '01010101', '10000010'],
     ['01101001', '10011001', '01100110'],
 ]
-mct_modes = ['basic', 'basic-dirty-ancilla', 'advanced', 'noancilla']
-optimizations = [True, False]
-simulators = ['statevector_simulator', 'qasm_simulator']
+MCT_MODES = ['basic', 'basic-dirty-ancilla', 'advanced', 'noancilla']
+OPTIMIZATIONS = [True, False]
+SIMULATORS = ['statevector_simulator', 'qasm_simulator']
 
 
 class TestSimon(QiskitAquaTestCase):
-
+    """ Test Simon """
     @parameterized.expand(
-        itertools.product(bitmaps, mct_modes, optimizations, simulators)
+        itertools.product(BITMAPS, MCT_MODES, OPTIMIZATIONS, SIMULATORS)
     )
     def test_simon(self, simon_input, mct_mode, optimization, simulator):
+        """ Simon test """
         # find the two keys that have matching values
         nbits = int(math.log(len(simon_input[0]), 2))
         vals = list(zip(*simon_input))[::-1]
 
         def find_pair():
-            for i in range(len(vals)):
+            for i, val in enumerate(vals):
                 for j in range(i + 1, len(vals)):
-                    if vals[i] == vals[j]:
+                    if val == vals[j]:
                         return i, j
             return 0, 0
 
-        k1, k2 = find_pair()
-        hidden = np.binary_repr(k1 ^ k2, nbits)
+        k_1, k_2 = find_pair()
+        hidden = np.binary_repr(k_1 ^ k_2, nbits)
 
         backend = BasicAer.get_backend(simulator)
         oracle = TruthTableOracle(simon_input, optimization=optimization, mct_mode=mct_mode)

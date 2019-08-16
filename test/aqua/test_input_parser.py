@@ -12,14 +12,11 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
-InputParser test.
-"""
+""" Test InputParser """
 
 import unittest
 import os
 import json
-
 from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua import AquaError
 from qiskit.aqua import run_algorithm
@@ -36,48 +33,53 @@ class TestInputParser(QiskitAquaTestCase):
         self.parser.parse()
 
     def test_save(self):
+        """ save test """
         save_path = self._get_resource_path('output.txt')
         self.parser.save_to_file(save_path)
 
-        p = InputParser(save_path)
-        p.parse()
+        parse = InputParser(save_path)
+        parse.parse()
         os.remove(save_path)
         dict1 = json.loads(json.dumps(self.parser.get_sections()))
-        dict2 = json.loads(json.dumps(p.get_sections()))
+        dict2 = json.loads(json.dumps(parse.get_sections()))
         self.assertEqual(dict1, dict2)
 
     def test_load_from_dict(self):
+        """ load from dict test """
         json_dict = self.parser.get_sections()
 
-        p = InputParser(json_dict)
-        p.parse()
+        parse = InputParser(json_dict)
+        parse.parse()
         dict1 = json.loads(json.dumps(self.parser.get_sections()))
-        dict2 = json.loads(json.dumps(p.get_sections()))
+        dict2 = json.loads(json.dumps(parse.get_sections()))
         self.assertEqual(dict1, dict2)
 
     def test_is_modified(self):
+        """ is modified test """
         json_dict = self.parser.get_sections()
 
-        p = InputParser(json_dict)
-        p.parse()
-        p.set_section_property('optimizer', 'maxfun', 1002)
-        self.assertTrue(p.is_modified())
-        self.assertEqual(p.get_section_property('optimizer', 'maxfun'), 1002)
+        parse = InputParser(json_dict)
+        parse.parse()
+        parse.set_section_property('optimizer', 'maxfun', 1002)
+        self.assertTrue(parse.is_modified())
+        self.assertEqual(parse.get_section_property('optimizer', 'maxfun'), 1002)
 
     def test_validate(self):
+        """ validate test """
         json_dict = self.parser.get_sections()
 
-        p = InputParser(json_dict)
-        p.parse()
+        parse = InputParser(json_dict)
+        parse.parse()
         try:
-            p.validate_merge_defaults()
-        except Exception as e:
-            self.fail(str(e))
+            parse.validate_merge_defaults()
+        except Exception as ex:  # pylint: disable=broad-except
+            self.fail(str(ex))
 
         with self.assertRaises(AquaError):
-            p.set_section_property('backend', 'max_credits', -1)
+            parse.set_section_property('backend', 'max_credits', -1)
 
     def test_run_algorithm(self):
+        """ run algorithm test """
         filepath = self._get_resource_path('ExactEigensolver.json')
         params = None
         with open(filepath) as json_file:
@@ -86,8 +88,8 @@ class TestInputParser(QiskitAquaTestCase):
         dict_ret = None
         try:
             dict_ret = run_algorithm(params, None, False)
-        except Exception as e:
-            self.fail(str(e))
+        except Exception as ex:  # pylint: disable=broad-except
+            self.fail(str(ex))
 
         self.assertIsInstance(dict_ret, dict)
 

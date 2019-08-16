@@ -106,9 +106,9 @@ class ExchangeDataProvider(BaseDataProvider):
             spec = importlib.util.find_spec('quandl')
             if spec is not None:
                 return
-        except Exception as e:
-            logger.debug('quandl check error {}'.format(str(e)))
-            raise QiskitFinanceError(err_msg) from e
+        except Exception as ex:  # pylint: disable=broad-except
+            logger.debug('quandl check error {}'.format(str(ex)))
+            raise QiskitFinanceError(err_msg) from ex
 
         raise QiskitFinanceError(err_msg)
 
@@ -147,9 +147,10 @@ class ExchangeDataProvider(BaseDataProvider):
                 d = quandl.get(self._stockmarket + "/" + s,
                                start_date=self._start,
                                end_date=self._end)
-            except Exception as e:  # The exception will be AuthenticationError, if the token is wrong
+            # The exception will be AuthenticationError, if the token is wrong
+            except Exception as ex:  # pylint: disable=broad-except
                 raise QiskitFinanceError(
-                    "Cannot retrieve Exchange Data data.") from e
+                    "Cannot retrieve Exchange Data data.") from ex
             try:
                 self._data.append(d["Adj. Close"])
             except KeyError as e:
