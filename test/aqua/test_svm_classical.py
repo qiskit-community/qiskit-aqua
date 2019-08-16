@@ -11,21 +11,25 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-import numpy as np
 
+""" Test SVM Classical """
+
+from test.aqua.common import QiskitAquaTestCase
+import numpy as np
 from qiskit.aqua import aqua_globals
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import ClassificationInput
-from test.aqua.common import QiskitAquaTestCase
 
 
 class TestSVMClassical(QiskitAquaTestCase):
+    """ Test SVM Classical """
     def setUp(self):
         super().setUp()
         aqua_globals.random_seed = 10598
         pass
 
     def test_classical_binary(self):
+        """ classical binary test """
         training_input = {'A': np.asarray([[0.6560706, 0.17605998],
                                            [0.25776033, 0.47628296],
                                            [0.79687342, 0.26933706],
@@ -107,6 +111,7 @@ class TestSVMClassical(QiskitAquaTestCase):
                           'B', 'B', 'B', 'B', 'B', 'B', 'B', 'B', 'B', 'B'])
 
     def test_classical_multiclass_one_against_all(self):
+        """ classical multiclass one against all test """
         training_input = {'A': np.asarray([[0.6560706, 0.17605998],
                                            [0.25776033, 0.47628296],
                                            [0.79687342, 0.26933706],
@@ -215,10 +220,12 @@ class TestSVMClassical(QiskitAquaTestCase):
         result = run_algorithm(params, algo_input)
         self.assertEqual(result['testing_accuracy'], 1.0)
         self.assertEqual(result['predicted_classes'],
-                         ['A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'B', 'B', 'B', 'B', 'B', 'B', 'B', 'B', 'B',
+                         ['A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'B',
+                          'B', 'B', 'B', 'B', 'B', 'B', 'B', 'B',
                           'B', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C'])
 
     def test_classical_multiclass_all_pairs(self):
+        """ classical multiclass all pairs test """
         training_input = {'A': np.asarray([[0.6560706, 0.17605998],
                                            [0.25776033, 0.47628296],
                                            [0.79687342, 0.26933706],
@@ -333,6 +340,7 @@ class TestSVMClassical(QiskitAquaTestCase):
                           'B', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C'])
 
     def test_classical_multiclass_error_correcting_code(self):
+        """ classical multiclass error correcting code test """
         training_input = {'A': np.asarray([[0.6560706, 0.17605998],
                                            [0.25776033, 0.47628296],
                                            [0.79687342, 0.26933706],

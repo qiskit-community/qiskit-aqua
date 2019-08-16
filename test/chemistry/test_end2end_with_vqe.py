@@ -12,20 +12,22 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Test End to End with VQE """
+
 import unittest
+from test.chemistry.common import QiskitChemistryTestCase
 from parameterized import parameterized
 import qiskit
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms.adaptive import VQE
 from qiskit.aqua.components.variational_forms import RYRZ
 from qiskit.aqua.components.optimizers import COBYLA, SPSA
-from test.chemistry.common import QiskitChemistryTestCase
 from qiskit.chemistry.drivers import HDF5Driver
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
 
 
 class TestEnd2End(QiskitChemistryTestCase):
-    """End2End tests."""
+    """End2End VQE tests."""
 
     def setUp(self):
         super().setUp()
@@ -48,7 +50,8 @@ class TestEnd2End(QiskitChemistryTestCase):
         # ['SPSA_GP', 'SPSA', qiskit.BasicAer.get_backend('qasm_simulator'), 'grouped_paulis', 1024]
     ])
     def test_end2end_h2(self, name, optimizer, backend, shots):
-
+        """ end to end h2 """
+        del name  # unused
         if optimizer == 'COBYLA':
             optimizer = COBYLA()
             optimizer.set_options(maxiter=1000)

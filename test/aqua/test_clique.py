@@ -12,11 +12,11 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-import numpy as np
+""" Test Clique """
 
 from test.aqua.common import QiskitAquaTestCase
+import numpy as np
 from qiskit import BasicAer
-
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.translators.ising import clique
@@ -28,31 +28,32 @@ class TestClique(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
-        self.K = 5  # K means the size of the clique
+        self.k = 5  # K means the size of the clique
         np.random.seed(100)
         self.num_nodes = 5
         self.w = clique.random_graph(self.num_nodes, edge_prob=0.8, weight_range=10)
-        self.qubit_op, self.offset = clique.get_clique_qubitops(self.w, self.K)
+        self.qubit_op, self.offset = clique.get_clique_qubitops(self.w, self.k)
         self.algo_input = EnergyInput(self.qubit_op)
 
-    def brute_force(self):
+    def _brute_force(self):
         # brute-force way: try every possible assignment!
-        def bitfield(n, L):
-            result = np.binary_repr(n, L)
+        def bitfield(n, length):
+            result = np.binary_repr(n, length)
             return [int(digit) for digit in result]
 
-        L = self.num_nodes  # length of the bitstring that represents the assignment
-        max = 2**L
+        nodes = self.num_nodes  # length of the bitstring that represents the assignment
+        maximum = 2**nodes
         has_sol = False
-        for i in range(max):
-            cur = bitfield(i, L)
-            cur_v = clique.satisfy_or_not(np.array(cur), self.w, self.K)
+        for i in range(maximum):
+            cur = bitfield(i, nodes)
+            cur_v = clique.satisfy_or_not(np.array(cur), self.w, self.k)
             if cur_v:
                 has_sol = True
                 break
         return has_sol
 
     def test_clique(self):
+        """ Clique test """
         params = {
             'problem': {'name': 'ising'},
             'algorithm': {'name': 'ExactEigensolver'}
@@ -61,19 +62,21 @@ class TestClique(QiskitAquaTestCase):
         x = clique.sample_most_likely(len(self.w), result['eigvecs'][0])
         ising_sol = clique.get_graph_solution(x)
         np.testing.assert_array_equal(ising_sol, [1, 1, 1, 1, 1])
-        oracle = self.brute_force()
-        self.assertEqual(clique.satisfy_or_not(ising_sol, self.w, self.K), oracle)
+        oracle = self._brute_force()
+        self.assertEqual(clique.satisfy_or_not(ising_sol, self.w, self.k), oracle)
 
     def test_clique_direct(self):
+        """ Clique Direct test """
         algo = ExactEigensolver(self.algo_input.qubit_op, k=1, aux_operators=[])
         result = algo.run()
         x = clique.sample_most_likely(len(self.w), result['eigvecs'][0])
         ising_sol = clique.get_graph_solution(x)
         np.testing.assert_array_equal(ising_sol, [1, 1, 1, 1, 1])
-        oracle = self.brute_force()
-        self.assertEqual(clique.satisfy_or_not(ising_sol, self.w, self.K), oracle)
+        oracle = self._brute_force()
+        self.assertEqual(clique.satisfy_or_not(ising_sol, self.w, self.k), oracle)
 
     def test_clique_vqe(self):
+        """ VQE Clique test """
         algorithm_cfg = {
             'name': 'VQE',
             'max_evals_grouped': 2
@@ -100,5 +103,5 @@ class TestClique(QiskitAquaTestCase):
         x = clique.sample_most_likely(len(self.w), result['eigvecs'][0])
         ising_sol = clique.get_graph_solution(x)
         np.testing.assert_array_equal(ising_sol, [1, 1, 1, 1, 1])
-        oracle = self.brute_force()
-        self.assertEqual(clique.satisfy_or_not(ising_sol, self.w, self.K), oracle)
+        oracle = self._brute_force()
+        self.assertEqual(clique.satisfy_or_not(ising_sol, self.w, self.k), oracle)

@@ -12,17 +12,18 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-import unittest
+""" Test BKSF Mapping """
 
+import unittest
+from test.chemistry.common import QiskitChemistryTestCase
 import numpy as np
 from qiskit.quantum_info import Pauli
-
-from test.chemistry.common import QiskitChemistryTestCase
 from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.chemistry.bksf import edge_operator_aij, edge_operator_bi
 
 
 class TestBKSFMapping(QiskitChemistryTestCase):
+    """ BKSF Mapping tests """
 
     def test_bksf_edge_op_bi(self):
         """Test bksf mapping, edge operator bi"""

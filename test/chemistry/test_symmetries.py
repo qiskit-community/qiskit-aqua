@@ -12,15 +12,10 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
-Test of Symmetry UCCSD processing.
-"""
-
-import itertools
-
-from qiskit import BasicAer
+""" Test of Symmetry UCCSD processing """
 
 from test.chemistry.common import QiskitChemistryTestCase
+from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import Z2Symmetries
 from qiskit.aqua.algorithms.adaptive import VQE
@@ -57,20 +52,25 @@ class TestSymmetries(QiskitChemistryTestCase):
         self.reference_energy = -7.882096489442
 
     def test_symmetries(self):
+        """ symmetries test """
         labels = [symm.to_label() for symm in self.z2_symmetries.symmetries]
         self.assertSequenceEqual(labels, ['ZIZIZIZI', 'ZZIIZZII'])
 
     def test_sq_paulis(self):
+        """ sq paulis test """
         labels = [sq.to_label() for sq in self.z2_symmetries.sq_paulis]
         self.assertSequenceEqual(labels, ['IIIIIIXI', 'IIIIIXII'])
 
     def test_cliffords(self):
+        """ clifford test """
         self.assertEqual(2, len(self.z2_symmetries.cliffords))
 
     def test_sq_list(self):
+        """ sq list test """
         self.assertSequenceEqual(self.z2_symmetries.sq_list, [1, 2])
 
     def test_tapered_op(self):
+        """ tapered op test """
         tapered_ops = self.z2_symmetries.taper(self.qubit_op)
         smallest_idx = 0  # Prior knowledge of which tapered_op has ground state
         the_tapered_op = tapered_ops[smallest_idx]
@@ -101,6 +101,6 @@ class TestSymmetries(QiskitChemistryTestCase):
 
         algo_result = algo.run(quantum_instance)
 
-        lines, result = self.core.process_algorithm_result(algo_result)
+        _, result = self.core.process_algorithm_result(algo_result)
 
         self.assertAlmostEqual(result['energy'], self.reference_energy, places=6)
