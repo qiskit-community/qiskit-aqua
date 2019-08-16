@@ -12,16 +12,18 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Test Data Providers """
+
 import datetime
-import numpy as np
+from test.aqua.common import QiskitAquaTestCase
 import warnings
+import numpy as np
 from qiskit.aqua.translators.data_providers import (RandomDataProvider,
                                                     QiskitFinanceError,
                                                     WikipediaDataProvider,
                                                     StockMarket,
                                                     DataOnDemandProvider,
                                                     ExchangeDataProvider)
-from test.aqua.common import QiskitAquaTestCase
 
 
 # This can be run as python -m unittest test.test_data_providers.TestDataProviders
@@ -38,16 +40,18 @@ class TestDataProviders(QiskitAquaTestCase):
         warnings.filterwarnings(action="ignore", message="unclosed", category=ResourceWarning)
 
     def test_wrong_use(self):
+        """ wrong use test """
         rnd = RandomDataProvider(seed=1)
         # Now, the .run() method is expected, which does the actual data loading
-        # (and can take seconds or minutes, depending on the data volumes, hence not ok in the constructor)
+        # (and can take seconds or minutes,
+        # depending on the data volumes, hence not ok in the constructor)
         self.assertRaises(QiskitFinanceError, rnd.get_covariance_matrix)
         self.assertRaises(QiskitFinanceError, rnd.get_similarity_matrix)
-        from qiskit.aqua.translators.data_providers.wikipedia_data_provider import StockMarket
+        from qiskit.aqua.translators.data_providers.wikipedia_data_provider import StockMarket as SM
         wiki = WikipediaDataProvider(
             token="",
             tickers=["GOOG", "AAPL"],
-            stockmarket=StockMarket.NASDAQ,
+            stockmarket=SM.NASDAQ,
             start=datetime.datetime(2016, 1, 1),
             end=datetime.datetime(2016, 1, 30)
         )
@@ -56,16 +60,17 @@ class TestDataProviders(QiskitAquaTestCase):
         self.assertRaises(QiskitFinanceError, wiki.get_similarity_matrix)
 
     def test_random(self):
+        """ random test """
         # from qiskit.aqua.translators.data_providers.random_data_provider import StockMarket
         rnd = RandomDataProvider(seed=1)
         rnd.run()
         similarity = np.array([[1.00000000e+00, 6.2284804e-04], [6.2284804e-04, 1.00000000e+00]])
-        covariance = np.array([[1.75870991, -0.32842528],
-                              [-0.32842528, 2.31429182]])
+        covariance = np.array([[1.75870991, -0.32842528], [-0.32842528, 2.31429182]])
         np.testing.assert_array_almost_equal(rnd.get_covariance_matrix(), covariance, decimal=3)
         np.testing.assert_array_almost_equal(rnd.get_similarity_matrix(), similarity, decimal=3)
 
     def test_wikipedia(self):
+        """ wikipedia test """
         wiki = WikipediaDataProvider(
             token="",
             tickers=["GOOG", "AAPL"],
@@ -84,19 +89,24 @@ class TestDataProviders(QiskitAquaTestCase):
                 [269.60118129, 25.42252332],
                 [25.42252332, 7.86304499]
             ])
-            np.testing.assert_array_almost_equal(wiki.get_covariance_matrix(), covariance, decimal=3)
-            np.testing.assert_array_almost_equal(wiki.get_similarity_matrix(), similarity, decimal=3)
+            np.testing.assert_array_almost_equal(wiki.get_covariance_matrix(),
+                                                 covariance, decimal=3)
+            np.testing.assert_array_almost_equal(wiki.get_similarity_matrix(),
+                                                 similarity, decimal=3)
         except QiskitFinanceError:
             self.skipTest("Test of WikipediaDataProvider skipped due to the per-day usage limits.")
-            # The trouble for automating testing is that after 50 tries from one IP address within a day
+            # The trouble for automating testing is that after 50 tries
+            # from one IP address within a day
             # Quandl complains about the free usage tier limits:
             # quandl.errors.quandl_error.LimitExceededError: (Status 429) (Quandl Error QELx01)
             # You have exceeded the anonymous user limit of 50 calls per day. To make more calls
-            # today, please register for a free Quandl account and then include your API key with your requests.
+            # today, please register for a free Quandl account and then include your API
+            # key with your requests.
             # This gets "dressed" as QiskitFinanceError.
             # This also introduces a couple of seconds of a delay.
 
     def test_nasdaq(self):
+        """ nasdaq test """
         nasdaq = DataOnDemandProvider(
             token="REPLACE-ME",
             tickers=["GOOG", "AAPL"],
@@ -111,6 +121,7 @@ class TestDataProviders(QiskitAquaTestCase):
             self.skipTest("Test of DataOnDemandProvider skipped due to the lack of a token.")
 
     def test_exchangedata(self):
+        """ exchange data test """
         lse = ExchangeDataProvider(
             token="REPLACE-ME",
             tickers=["AIBGl", "AVSTl"],

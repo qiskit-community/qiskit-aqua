@@ -107,9 +107,9 @@ class WikipediaDataProvider(BaseDataProvider):
             spec = importlib.util.find_spec('quandl')
             if spec is not None:
                 return
-        except Exception as e:
-            logger.debug('quandl check error {}'.format(str(e)))
-            raise QiskitFinanceError(err_msg) from e
+        except Exception as ex:  # pylint: disable=broad-except
+            logger.debug('quandl check error {}'.format(str(ex)))
+            raise QiskitFinanceError(err_msg) from ex
 
         raise QiskitFinanceError(err_msg)
 
@@ -148,14 +148,15 @@ class WikipediaDataProvider(BaseDataProvider):
                 d = quandl.get("WIKI/" + s,
                                start_date=self._start,
                                end_date=self._end)
-            except NotFoundError as e:
+            except NotFoundError as ex:
                 raise QiskitFinanceError(
                     "Cannot retrieve Wikipedia data due to an invalid token."
-                ) from e
-            except Exception as e:  # The exception will be urllib3 NewConnectionError, but it can get dressed by quandl
+                ) from ex
+            # The exception will be urllib3 NewConnectionError, but it can get dressed by quandl
+            except Exception as ex:  # pylint: disable=broad-except
                 raise QiskitFinanceError(
-                    "Cannot retrieve Wikipedia data.") from e
+                    "Cannot retrieve Wikipedia data.") from ex
             try:
                 self._data.append(d["Adj. Close"])
-            except KeyError as e:
-                raise QiskitFinanceError("Cannot parse quandl output.") from e
+            except KeyError as ex:
+                raise QiskitFinanceError("Cannot parse quandl output.") from ex

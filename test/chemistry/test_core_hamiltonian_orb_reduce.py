@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Test Core Hamiltonian Orb Reduce """
+
 import unittest
 
 from test.chemistry.common import QiskitChemistryTestCase
@@ -41,7 +43,9 @@ class TestCoreHamiltonianOrbReduce(QiskitChemistryTestCase):
         self.assertAlmostEqual(core._energy_shift, energy_shift)
         self.assertAlmostEqual(core._ph_energy_shift, ph_energy_shift)
 
-    def _validate_info(self, core, num_particles=[2, 2], num_orbitals=12, actual_two_qubit_reduction=False):
+    def _validate_info(self, core, num_particles=None,
+                       num_orbitals=12, actual_two_qubit_reduction=False):
+        num_particles = num_particles if num_particles is not None else [2, 2]
         self.assertEqual(core.molecule_info, {'num_particles': num_particles,
                                               'num_orbitals': num_orbitals,
                                               'two_qubit_reduction': actual_two_qubit_reduction})
@@ -53,69 +57,77 @@ class TestCoreHamiltonianOrbReduce(QiskitChemistryTestCase):
         self.assertEqual(len(qubit_op.to_dict()['paulis']), num_paulis)
 
     def test_output(self):
+        """ output test """
         core = Hamiltonian(transformation=TransformationType.FULL,
                            qubit_mapping=QubitMappingType.JORDAN_WIGNER,
                            two_qubit_reduction=False,
                            freeze_core=False,
                            orbital_reduction=[])
-        qubit_op, aux_ops = core.run(self.qmolecule)
+        qubit_op, _ = core.run(self.qmolecule)
         self._validate_vars(core)
         self._validate_info(core)
         self._validate_input_object(qubit_op)
 
     def test_parity(self):
+        """ parity test """
         core = Hamiltonian(transformation=TransformationType.FULL,
                            qubit_mapping=QubitMappingType.PARITY,
                            two_qubit_reduction=True,
                            freeze_core=False,
                            orbital_reduction=[])
-        qubit_op, aux_ops = core.run(self.qmolecule)
+        qubit_op, _ = core.run(self.qmolecule)
         self._validate_vars(core)
         self._validate_info(core, actual_two_qubit_reduction=True)
         self._validate_input_object(qubit_op, num_qubits=10)
 
     def test_freeze_core(self):
+        """ freeze core test """
         core = Hamiltonian(transformation=TransformationType.FULL,
                            qubit_mapping=QubitMappingType.PARITY,
                            two_qubit_reduction=False,
                            freeze_core=True,
                            orbital_reduction=[])
-        qubit_op, aux_ops = core.run(self.qmolecule)
+        qubit_op, _ = core.run(self.qmolecule)
         self._validate_vars(core, energy_shift=-7.7962196)
         self._validate_info(core, num_particles=[1, 1], num_orbitals=10)
         self._validate_input_object(qubit_op, num_qubits=10, num_paulis=276)
 
     def test_freeze_core_orb_reduction(self):
+        """ freeze core orb reduction test """
         core = Hamiltonian(transformation=TransformationType.FULL,
                            qubit_mapping=QubitMappingType.PARITY,
                            two_qubit_reduction=False,
                            freeze_core=True,
                            orbital_reduction=[-3, -2])
-        qubit_op, aux_ops = core.run(self.qmolecule)
+        qubit_op, _ = core.run(self.qmolecule)
         self._validate_vars(core, energy_shift=-7.7962196)
         self._validate_info(core, num_particles=[1, 1], num_orbitals=6)
         self._validate_input_object(qubit_op, num_qubits=6, num_paulis=118)
 
     def test_freeze_core_all_reduction(self):
+        """ freeze core all reduction test """
         core = Hamiltonian(transformation=TransformationType.FULL,
                            qubit_mapping=QubitMappingType.PARITY,
                            two_qubit_reduction=True,
                            freeze_core=True,
                            orbital_reduction=[-3, -2])
-        qubit_op, aux_ops = core.run(self.qmolecule)
+        qubit_op, _ = core.run(self.qmolecule)
         self._validate_vars(core, energy_shift=-7.7962196)
-        self._validate_info(core, num_particles=[1, 1], num_orbitals=6, actual_two_qubit_reduction=True)
+        self._validate_info(core, num_particles=[1, 1], num_orbitals=6,
+                            actual_two_qubit_reduction=True)
         self._validate_input_object(qubit_op, num_qubits=4, num_paulis=100)
 
     def test_freeze_core_all_reduction_ph(self):
+        """ freeze core all reduction ph test """
         core = Hamiltonian(transformation=TransformationType.PH,
                            qubit_mapping=QubitMappingType.PARITY,
                            two_qubit_reduction=True,
                            freeze_core=True,
                            orbital_reduction=[-2, -1])
-        qubit_op, aux_ops = core.run(self.qmolecule)
+        qubit_op, _ = core.run(self.qmolecule)
         self._validate_vars(core, energy_shift=-7.7962196, ph_energy_shift=-1.05785247)
-        self._validate_info(core, num_particles=[1, 1], num_orbitals=6, actual_two_qubit_reduction=True)
+        self._validate_info(core, num_particles=[1, 1], num_orbitals=6,
+                            actual_two_qubit_reduction=True)
         self._validate_input_object(qubit_op, num_qubits=4, num_paulis=52)
 
 

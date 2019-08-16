@@ -12,16 +12,15 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-import unittest
+""" Test Lookup Rotation """
 
-from parameterized import parameterized
-from qiskit import QuantumRegister, QuantumCircuit
+import unittest
 from test.aqua.common import QiskitAquaTestCase
-from qiskit.aqua.components.reciprocals.lookup_rotation import LookupRotation
-from qiskit import execute
-from qiskit import BasicAer
 import numpy as np
-from qiskit.quantum_info import state_fidelity, basis_state
+from parameterized import parameterized
+from qiskit import (QuantumRegister, QuantumCircuit, execute, BasicAer)
+from qiskit.aqua.components.reciprocals.lookup_rotation import LookupRotation
+from qiskit.quantum_info import (state_fidelity, basis_state)
 
 
 class TestLookupRotation(QiskitAquaTestCase):
@@ -29,6 +28,7 @@ class TestLookupRotation(QiskitAquaTestCase):
 
     @parameterized.expand([[3, 1/2], [5, 1/4], [7, 1/8], [9, 1/16], [11, 1/32]])
     def test_lookup_rotation(self, reg_size, ref_rot):
+        """ lookup rotation test """
         self.log.debug('Testing Lookup Rotation with positive eigenvalues')
 
         ref_sv_ampl = ref_rot**2
@@ -38,20 +38,21 @@ class TestLookupRotation(QiskitAquaTestCase):
         ref_sv[int(ref_dim/2)+1] = ref_sv_ampl+0j
         ref_sv[1] = np.sqrt(1-ref_sv_ampl**2)+0j
         state = basis_state('1', reg_size)
-        a = QuantumRegister(reg_size, name='a')
-        init_circuit = QuantumCircuit(a)
-        init_circuit.initialize(state, a)
+        q_a = QuantumRegister(reg_size, name='a')
+        init_circuit = QuantumCircuit(q_a)
+        init_circuit.initialize(state, q_a)
         lrot = LookupRotation(negative_evals=False)
-        lrot_circuit = init_circuit + lrot.construct_circuit('', a)
-        lrot_sv = sim_statevec(lrot_circuit)
+        lrot_circuit = init_circuit + lrot.construct_circuit('', q_a)
+        lrot_sv = _sim_statevec(lrot_circuit)
         fidelity = state_fidelity(lrot_sv, ref_sv)
         np.testing.assert_approx_equal(fidelity, 1, significant=5)
 
-        self.log.debug('Lookup rotation register size: {}'.format(reg_size))
-        self.log.debug('Lookup rotation fidelity:      {}'.format(fidelity))
+        self.log.debug('Lookup rotation register size: %s', reg_size)
+        self.log.debug('Lookup rotation fidelity:      %s', fidelity)
 
     @parameterized.expand([[3, 0], [5, 1/4], [7, 1/8], [9, 1/16], [11, 1/32]])
     def test_lookup_rotation_neg(self, reg_size, ref_rot):
+        """ lookup rotation neg test """
         self.log.debug('Testing Lookup Rotation with support for negative '
                        'eigenvalues')
 
@@ -62,20 +63,20 @@ class TestLookupRotation(QiskitAquaTestCase):
         ref_sv[int(ref_dim/2)+1] = -ref_sv_ampl+0j
         ref_sv[1] = -np.sqrt(1-ref_sv_ampl**2)+0j
         state = basis_state('1', reg_size)
-        a = QuantumRegister(reg_size, name='a')
-        init_circuit = QuantumCircuit(a)
-        init_circuit.initialize(state, a)
+        q_a = QuantumRegister(reg_size, name='a')
+        init_circuit = QuantumCircuit(q_a)
+        init_circuit.initialize(state, q_a)
         lrot = LookupRotation(negative_evals=True)
-        lrot_circuit = init_circuit + lrot.construct_circuit('', a)
-        lrot_sv = sim_statevec(lrot_circuit)
+        lrot_circuit = init_circuit + lrot.construct_circuit('', q_a)
+        lrot_sv = _sim_statevec(lrot_circuit)
         fidelity = state_fidelity(lrot_sv, ref_sv)
         np.testing.assert_approx_equal(fidelity, 1, significant=5)
 
-        self.log.debug('Lookup rotation register size: {}'.format(reg_size))
-        self.log.debug('Lookup rotation fidelity:      {}'.format(fidelity))
+        self.log.debug('Lookup rotation register size: %s', reg_size)
+        self.log.debug('Lookup rotation fidelity:      %s', fidelity)
 
 
-def sim_statevec(qc):
+def _sim_statevec(qc):
     backend = BasicAer.get_backend('statevector_simulator')
     job = execute(qc, backend)
     result = job.result()
