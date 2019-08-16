@@ -26,7 +26,7 @@ def _exception_to_string(excp):
 def _load_aqua():
     try:
         import qiskit
-        qiskit.aqua.__version__
+        qiskit.aqua.__version__  # pylint: disable=pointless-statement
     except Exception as ex:  # pylint: disable=broad-except
         return _exception_to_string(ex)
 
@@ -34,6 +34,6 @@ def _load_aqua():
 
 
 if __name__ == '__main__':
-    out = _load_aqua()
-    if out:
-        print(out)
+    OUT = _load_aqua()
+    if OUT:
+        print(OUT)
