@@ -21,9 +21,9 @@ from collections import OrderedDict
 
 import numpy as np
 import numpy.random as rand
-
 from qiskit.quantum_info import Pauli
-from qiskit.aqua import Operator
+
+from qiskit.aqua.operators import WeightedPauliOperator
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +72,7 @@ def get_vertex_cover_qubitops(weight_matrix):
         weight_matrix (numpy.ndarray) : adjacency matrix.
 
     Returns:
-        operator.Operator, float: operator for the Hamiltonian and a
+        WeightedPauliOperator, float: operator for the Hamiltonian and a
         constant shift for the obj function.
 
     Goals:
@@ -119,7 +119,7 @@ def get_vertex_cover_qubitops(weight_matrix):
         vp[i] = 1
         pauli_list.append([0.5, Pauli(vp, wp)])
         shift += 0.5
-    return Operator(paulis=pauli_list), shift
+    return WeightedPauliOperator(paulis=pauli_list), shift
 
 
 def parse_gset_format(filename):

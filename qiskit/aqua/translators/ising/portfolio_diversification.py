@@ -14,7 +14,8 @@
 
 import numpy as np
 from qiskit.quantum_info import Pauli
-from qiskit.aqua import Operator
+
+from qiskit.aqua.operators import WeightedPauliOperator
 
 
 def get_portfoliodiversification_qubitops(rho, n, q):
@@ -26,7 +27,7 @@ def get_portfoliodiversification_qubitops(rho, n, q):
         q (integer) : the number of clusters of assets to output.
 
     Returns:
-        operator.Operator: operator for the Hamiltonian.
+        WeightedPauliOperator: operator for the Hamiltonian
     """
 
     # N = (n + 1) * n  # number of qubits
@@ -119,7 +120,7 @@ def get_portfoliodiversification_qubitops(rho, n, q):
                 pauli_list.append((2 * Qz[i, j], Pauli(vp, wp)))
 
     pauli_list.append((cz, Pauli(np.zeros(N), np.zeros(N))))
-    return Operator(paulis=pauli_list)
+    return WeightedPauliOperator(paulis=pauli_list)
 
 
 def get_portfoliodiversification_solution(rho, n, q, result):

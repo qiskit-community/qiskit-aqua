@@ -23,7 +23,7 @@ import numpy as np
 import numpy.random as rand
 
 from qiskit.quantum_info import Pauli
-from qiskit.aqua import Operator
+from qiskit.aqua.operators import WeightedPauliOperator
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +74,7 @@ def get_clique_qubitops(weight_matrix, K):
         weight_matrix (numpy.ndarray) : adjacency matrix.
 
     Returns:
-        operator.Operator, float: operator for the Hamiltonian and a
+        WeightedPauliOperator, float: operator for the Hamiltonian and a
         constant shift for the obj function.
 
     Goals:
@@ -147,7 +147,7 @@ def get_clique_qubitops(weight_matrix, K):
 
                 shift += -0.25
 
-    return Operator(paulis=pauli_list), shift
+    return WeightedPauliOperator(paulis=pauli_list), shift
 
 
 def parse_gset_format(filename):

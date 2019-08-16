@@ -82,7 +82,7 @@ class HartreeFock(InitialState):
         self.validate(locals())
         super().__init__()
         self._sq_list = sq_list
-        self._qubit_tapering = False if self._sq_list is None else True
+        self._qubit_tapering = False if self._sq_list is None or self._sq_list == [] else True
         self._qubit_mapping = qubit_mapping.lower()
         self._two_qubit_reduction = two_qubit_reduction
         if self._qubit_mapping != 'parity':
@@ -126,7 +126,7 @@ class HartreeFock(InitialState):
             new_bitstr = bitstr.copy()
 
             t = np.triu(np.ones((self._num_orbitals, self._num_orbitals)))
-            new_bitstr = t.dot(new_bitstr.astype(np.int)) % 2
+            new_bitstr = t.dot(new_bitstr.astype(np.int)) % 2  # pylint: disable=no-member
 
             bitstr = np.append(new_bitstr[1:half_orbitals], new_bitstr[half_orbitals + 1:]) \
                 if self._two_qubit_reduction else new_bitstr

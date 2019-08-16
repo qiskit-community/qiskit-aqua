@@ -15,9 +15,10 @@
 import copy
 import unittest
 import numpy as np
-from qiskit.aqua.utils import random_unitary
 
 from test.chemistry.common import QiskitChemistryTestCase
+from qiskit.aqua.utils import random_unitary
+from qiskit.aqua.operators import op_converter
 from qiskit.chemistry import FermionicOperator, QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 
@@ -129,8 +130,9 @@ class TestFermionicOperator(QiskitChemistryTestCase):
                                    h2=molecule.two_body_integrals)
         jw_op = fer_op.mapping('jordan_wigner')
         bksf_op = fer_op.mapping('bksf')
-        jw_op.to_matrix()
-        bksf_op.to_matrix()
+
+        jw_op = op_converter.to_matrix_operator(jw_op)
+        bksf_op = op_converter.to_matrix_operator(bksf_op)
         jw_eigs = np.linalg.eigvals(jw_op.matrix.toarray())
         bksf_eigs = np.linalg.eigvals(bksf_op.matrix.toarray())
 

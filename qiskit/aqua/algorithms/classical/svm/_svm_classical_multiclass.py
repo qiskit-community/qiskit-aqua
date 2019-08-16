@@ -63,7 +63,7 @@ class _SVM_Classical_Multiclass(_SVM_Classical_ABC):
         return self._ret
 
     def load_model(self, file_path):
-        model_npz = np.load(file_path)
+        model_npz = np.load(file_path, allow_pickle=True)
         for i in range(len(self.multiclass_classifier.estimators)):
             self.multiclass_classifier.estimators.ret['svm']['alphas'] = model_npz['alphas_{}'.format(i)]
             self.multiclass_classifier.estimators.ret['svm']['bias'] = model_npz['bias_{}'.format(i)]

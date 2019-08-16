@@ -18,7 +18,8 @@
 
 import numpy as np
 from qiskit.quantum_info import Pauli
-from qiskit.aqua import Operator
+
+from qiskit.aqua.operators import WeightedPauliOperator
 
 
 def get_vehiclerouting_matrices(instance, n, K):
@@ -101,7 +102,7 @@ def get_vehiclerouting_cost(instance, n, K, x_sol):
 
 
 def get_vehiclerouting_qubitops(instance, n, K):
-    """Converts an instnance of a vehicle routing problem into a list of Paulis.
+    """Converts an instance of a vehicle routing problem into a list of Paulis.
 
     Args:
         instance (numpy.ndarray) : a customers-to-customers distance matrix.
@@ -109,8 +110,8 @@ def get_vehiclerouting_qubitops(instance, n, K):
         K (integer) : the number of vehicles available.
 
     Returns:
-        operator.Operator: operator for the Hamiltonian.
-        """
+        WeightedPauliOperator: operator for the Hamiltonian.
+    """
 
     N = (n - 1) * n
     (Q, g, c) = get_vehiclerouting_matrices(instance, n, K)
@@ -143,7 +144,7 @@ def get_vehiclerouting_qubitops(instance, n, K):
                 pauli_list.append((2 * Qz[i, j], Pauli(vp, wp)))
 
     pauli_list.append((cz, Pauli(np.zeros(N), np.zeros(N))))
-    return Operator(paulis=pauli_list)
+    return WeightedPauliOperator(paulis=pauli_list)
 
 
 def get_vehiclerouting_solution(instance, n, K, result):
