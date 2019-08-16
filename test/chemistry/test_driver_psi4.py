@@ -12,12 +12,14 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Test Driver PSI4 """
+
 import unittest
 
 from test.chemistry.common import QiskitChemistryTestCase
-from qiskit.chemistry import QiskitChemistryError
-from qiskit.chemistry.drivers import PSI4Driver
 from test.chemistry.test_driver import TestDriver
+from qiskit.chemistry.drivers import PSI4Driver
+from qiskit.chemistry import QiskitChemistryError
 
 
 class TestDriverPSI4(QiskitChemistryTestCase, TestDriver):

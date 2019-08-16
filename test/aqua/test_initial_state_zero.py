@@ -12,37 +12,41 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Test Initial State Zero """
+
 import unittest
-
-import numpy as np
-
 from test.aqua.common import QiskitAquaTestCase
+import numpy as np
 from qiskit.aqua.components.initial_states import Zero
 
 
 class TestInitialStateZero(QiskitAquaTestCase):
-
+    """ Test Initial State Zero """
     def test_qubits_2_vector(self):
-        self.zero = Zero(2)
-        cct = self.zero.construct_circuit('vector')
+        """ Qubits 2 vector test """
+        zero = Zero(2)
+        cct = zero.construct_circuit('vector')
         np.testing.assert_array_equal(cct, [1.0, 0.0, 0.0, 0.0])
 
     def test_qubits_5_vector(self):
-        self.zero = Zero(5)
-        cct = self.zero.construct_circuit('vector')
+        """ Qubits 5 vector test """
+        zero = Zero(5)
+        cct = zero.construct_circuit('vector')
         np.testing.assert_array_equal(cct, [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
     def test_qubits_2_circuit(self):
-        self.zero = Zero(2)
-        cct = self.zero.construct_circuit('circuit')
+        """ Qubits 2 Circuit test """
+        zero = Zero(2)
+        cct = zero.construct_circuit('circuit')
         self.assertEqual(cct.qasm(), 'OPENQASM 2.0;\ninclude "qelib1.inc";\nqreg q[2];\n')
 
     def test_qubits_5_circuit(self):
-        self.zero = Zero(5)
-        cct = self.zero.construct_circuit('circuit')
+        """ Qubits 5 circuit test """
+        zero = Zero(5)
+        cct = zero.construct_circuit('circuit')
         self.assertEqual(cct.qasm(), 'OPENQASM 2.0;\ninclude "qelib1.inc";\nqreg q[5];\n')
 
 

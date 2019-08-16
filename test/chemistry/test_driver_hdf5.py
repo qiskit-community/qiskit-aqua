@@ -12,10 +12,12 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Test Driver HDF5 """
+
 import unittest
 from test.chemistry.common import QiskitChemistryTestCase
-from qiskit.chemistry.drivers import HDF5Driver
 from test.chemistry.test_driver import TestDriver
+from qiskit.chemistry.drivers import HDF5Driver
 
 
 class TestDriverHDF5(QiskitChemistryTestCase, TestDriver):
