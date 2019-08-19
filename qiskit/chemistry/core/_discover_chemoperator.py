@@ -21,11 +21,11 @@ import pkgutil
 import importlib
 import inspect
 from collections import namedtuple
-from .chemistry_operator import ChemistryOperator
-from qiskit.chemistry import QiskitChemistryError
-import logging
 import copy
+import logging
 import pkg_resources
+from qiskit.chemistry import QiskitChemistryError
+from .chemistry_operator import ChemistryOperator
 
 logger = logging.getLogger(__name__)
 
@@ -35,84 +35,108 @@ _NAMES_TO_EXCLUDE = [os.path.basename(__file__)]
 
 _FOLDERS_TO_EXCLUDE = ['__pycache__']
 
-RegisteredChemOp = namedtuple(
-    'RegisteredChemOp', ['name', 'cls', 'configuration'])
 
-_REGISTERED_CHEMISTRY_OPERATORS = {}
+class RegistryChemOps:
+    """Contains Registered Chemistry Operator."""
 
-_DISCOVERED = False
+    REGISTERED_CHEM_OP = namedtuple(
+        'REGISTERED_CHEM_OP', ['name', 'cls', 'configuration'])
+
+    def __init__(self) -> None:
+        self._discovered = False
+        self._registry = {}
+
+    @property
+    def discovered(self):
+        """ Returns discovered flag """
+        return self._discovered
+
+    def set_discovered(self):
+        """ Set registry as discovered """
+        self._discovered = True
+
+    @property
+    def registry(self):
+        """ Return registry dictionary """
+        return self._registry
+
+    def reset(self):
+        """ reset registry data """
+        self._discovered = False
+        self._registry = {}
+
+
+# Registry Global Instance
+_REGISTRY_CHEM_OPS = RegistryChemOps()
 
 
 def refresh_operators():
     """
     Attempts to rediscover all operator modules
     """
-    global _REGISTERED_CHEMISTRY_OPERATORS
-    _REGISTERED_CHEMISTRY_OPERATORS = {}
-    global _DISCOVERED
-    _DISCOVERED = True
-    _discover_local_chemistry_operators()
-    _discover_entry_point_chemistry_operators()
+    _REGISTRY_CHEM_OPS.reset()
+    _REGISTRY_CHEM_OPS.set_discovered()
+    _discover_local_chem_ops()
+    _discover_entry_pt_chem_ops()
     if logger.isEnabledFor(logging.DEBUG):
-        logger.debug("Found: chemistry operators {} ".format(
-            local_chemistry_operators()))
+        logger.debug("Found: chemistry operators %s ", local_chemistry_operators())
 
 
 def _discover_on_demand():
     """
     Attempts to discover operator modules, if not already discovered
     """
-    global _DISCOVERED
-    if not _DISCOVERED:
-        _DISCOVERED = True
-        global _REGISTERED_CHEMISTRY_OPERATORS
-        _REGISTERED_CHEMISTRY_OPERATORS = {}
-        _discover_local_chemistry_operators()
-        _discover_entry_point_chemistry_operators()
+    if not _REGISTRY_CHEM_OPS.discovered:
+        _REGISTRY_CHEM_OPS.reset()
+        _REGISTRY_CHEM_OPS.set_discovered()
+        _discover_local_chem_ops()
+        _discover_entry_pt_chem_ops()
         if logger.isEnabledFor(logging.DEBUG):
-            logger.debug("Found: chemistry operators {} ".format(
-                local_chemistry_operators()))
+            logger.debug("Found: chemistry operators %s ", local_chemistry_operators())
 
 
-def _discover_entry_point_chemistry_operators():
+def _discover_entry_pt_chem_ops():
     """
     Discovers the chemistry operators modules defined by entry_points in setup
-    and attempts to register them. Chem.Operator modules should subclass ChemistryOperator Base class.
+    and attempts to register them. Chem.Operator modules should subclass
+    ChemistryOperator Base class.
     """
     for entry_point in pkg_resources.iter_entry_points(OPERATORS_ENTRY_POINT):
         # first calls require and log any errors returned due to dependencies mismatches
         try:
             entry_point.require()
         except Exception as ex:  # pylint: disable=broad-except
-            logger.warning("Entry point '{}' requirements issue: {}".format(entry_point, str(ex)))
+            logger.warning("Entry point '%s' requirements issue: %s", entry_point, str(ex))
 
         # now  call resolve and try to load entry point
         try:
-            ep = entry_point.resolve()
+            e_p = entry_point.resolve()
             _registered = False
-            if not inspect.isabstract(ep) and issubclass(ep, ChemistryOperator):
-                register_chemistry_operator(ep)
+            if not inspect.isabstract(e_p) and issubclass(e_p, ChemistryOperator):
+                register_chemistry_operator(e_p)
                 _registered = True
-                # print("Registered entry point chemistry operator '{}' class '{}'".format(entry_point, ep))
-                logger.debug("Registered entry point chemistry operator '{}' class '{}'".format(entry_point, ep))
+                logger.debug(
+                    "Registered entry point chemistry operator '%s' class '%s'", entry_point, e_p)
                 break
 
             if not _registered:
-                # print("Unknown entry point chemistry operator '{}' class '{}'".format(entry_point, ep))
-                logger.debug("Unknown entry point chemistry operator '{}' class '{}'".format(entry_point, ep))
+                logger.debug(
+                    "Unknown entry point chemistry operator '%s' class '%s'", entry_point, e_p)
         except Exception as ex:  # pylint: disable=broad-except
             # Ignore entry point that could not be initialized.
             # print("Failed to load entry point '{}' error {}".format(entry_point, str(e)))
-            logger.debug("Failed to load entry point '{}' error {}".format(entry_point, str(ex)))
+            logger.debug("Failed to load entry point '%s' error %s", entry_point, str(ex))
 
 
-def _discover_local_chemistry_operators(directory=os.path.dirname(__file__),
-                                        parentname=os.path.splitext(__name__)[0],
-                                        names_to_exclude=_NAMES_TO_EXCLUDE,
-                                        folders_to_exclude=_FOLDERS_TO_EXCLUDE):
+def _discover_local_chem_ops(directory=os.path.dirname(__file__),
+                             parentname=os.path.splitext(__name__)[0],
+                             names_to_exclude=None,
+                             folders_to_exclude=None):
     """
-    Discovers the chemistry operators modules on the directory and subdirectories of the current module
-    and attempts to register them. Chem.Operator modules should subclass ChemistryOperator Base class.
+    Discovers the chemistry operators modules on the directory and
+    subdirectories of the current module
+    and attempts to register them. Chem.Operator modules should subclass
+    ChemistryOperator Base class.
     Args:
         directory (str, optional): Directory to search for input modules. Defaults
             to the directory of this module.
@@ -120,6 +144,9 @@ def _discover_local_chemistry_operators(directory=os.path.dirname(__file__),
         names_to_exclude (str, optional): File names to exclude. Defaults to _NAMES_TO_EXCLUDE
         folders_to_exclude (str, optional): Folders to exclude. Defaults to _FOLDERS_TO_EXCLUDE
     """
+    names_to_exclude = names_to_exclude if names_to_exclude is not None else _NAMES_TO_EXCLUDE
+    folders_to_exclude = folders_to_exclude \
+        if folders_to_exclude is not None else _FOLDERS_TO_EXCLUDE
     for _, name, ispackage in pkgutil.iter_modules([directory]):
         if ispackage:
             continue
@@ -141,17 +168,16 @@ def _discover_local_chemistry_operators(directory=os.path.dirname(__file__),
                             importlib.import_module(fullname)
                     except Exception as ex:  # pylint: disable=broad-except
                         # Ignore operator that could not be initialized.
-                        logger.debug(
-                            'Failed to load {} error {}'.format(fullname, str(ex)))
+                        logger.debug('Failed to load %s error %s', fullname, str(ex))
             except Exception as ex:  # pylint: disable=broad-except
                 # Ignore operator that could not be initialized.
-                logger.debug(
-                    'Failed to load {} error {}'.format(fullname, str(ex)))
+                logger.debug('Failed to load %s error %s', fullname, str(ex))
 
     for item in os.listdir(directory):
         fullpath = os.path.join(directory, item)
         if item not in folders_to_exclude and not item.endswith('dSYM') and os.path.isdir(fullpath):
-            _discover_local_chemistry_operators(fullpath, parentname + '.' + item, names_to_exclude, folders_to_exclude)
+            _discover_local_chem_ops(fullpath, parentname + '.' + item,
+                                     names_to_exclude, folders_to_exclude)
 
 
 def register_chemistry_operator(cls):
@@ -166,14 +192,15 @@ def register_chemistry_operator(cls):
     """
     _discover_on_demand()
     if not issubclass(cls, ChemistryOperator):
-        raise QiskitChemistryError('Could not register class {} is not subclass of ChemistryOperator'.format(cls))
+        raise QiskitChemistryError(
+            'Could not register class {} is not subclass of ChemistryOperator'.format(cls))
 
     return _register_chemistry_operator(cls)
 
 
 def _register_chemistry_operator(cls):
     # Verify that the pluggable is not already registered
-    if cls in [input.cls for input in _REGISTERED_CHEMISTRY_OPERATORS.values()]:
+    if cls in [input.cls for input in _REGISTRY_CHEM_OPS.registry.values()]:
         raise QiskitChemistryError('Could not register class {} is already registered'.format(cls))
 
     # Verify that it has a minimal valid configuration.
@@ -182,12 +209,15 @@ def _register_chemistry_operator(cls):
     except (LookupError, TypeError):
         raise QiskitChemistryError('Could not register chemistry operator: invalid configuration')
 
-    if chemistry_operator_name in _REGISTERED_CHEMISTRY_OPERATORS:
-        raise QiskitChemistryError('Could not register class {}. Name {} {} is already registered'.format(cls,
-                                                                                                          chemistry_operator_name, _REGISTERED_CHEMISTRY_OPERATORS[chemistry_operator_name].cls))
+    if chemistry_operator_name in _REGISTRY_CHEM_OPS.registry:
+        raise QiskitChemistryError(
+            'Could not register class {}. Name {} {} is already registered'.format(
+                cls,
+                chemistry_operator_name,
+                _REGISTRY_CHEM_OPS.registry[chemistry_operator_name].cls))
 
     # Append the pluggable to the `registered_classes` dict.
-    _REGISTERED_CHEMISTRY_OPERATORS[chemistry_operator_name] = RegisteredChemOp(
+    _REGISTRY_CHEM_OPS.registry[chemistry_operator_name] = RegistryChemOps.REGISTERED_CHEM_OP(
         chemistry_operator_name, cls, copy.deepcopy(cls.CONFIGURATION))
     return chemistry_operator_name
 
@@ -202,11 +232,11 @@ def deregister_chemistry_operator(chemistry_operator_name):
     """
     _discover_on_demand()
 
-    if chemistry_operator_name not in _REGISTERED_CHEMISTRY_OPERATORS:
+    if chemistry_operator_name not in _REGISTRY_CHEM_OPS.registry:
         raise QiskitChemistryError(
             'Could not deregister {} not registered'.format(chemistry_operator_name))
 
-    _REGISTERED_CHEMISTRY_OPERATORS.pop(chemistry_operator_name)
+    _REGISTRY_CHEM_OPS.registry.pop(chemistry_operator_name)
 
 
 def get_chemistry_operator_class(chemistry_operator_name):
@@ -221,14 +251,14 @@ def get_chemistry_operator_class(chemistry_operator_name):
     """
     _discover_on_demand()
 
-    if chemistry_operator_name not in _REGISTERED_CHEMISTRY_OPERATORS:
+    if chemistry_operator_name not in _REGISTRY_CHEM_OPS.registry:
         raise QiskitChemistryError(
             '{} not registered'.format(chemistry_operator_name))
 
-    return _REGISTERED_CHEMISTRY_OPERATORS[chemistry_operator_name].cls
+    return _REGISTRY_CHEM_OPS.registry[chemistry_operator_name].cls
 
 
-def get_chemistry_operator_configuration(chemistry_operator_name):
+def get_chem_operator_config(chemistry_operator_name):
     """
     Accesses chemistry operator configuration
     Args:
@@ -240,10 +270,10 @@ def get_chemistry_operator_configuration(chemistry_operator_name):
     """
     _discover_on_demand()
 
-    if chemistry_operator_name not in _REGISTERED_CHEMISTRY_OPERATORS:
+    if chemistry_operator_name not in _REGISTRY_CHEM_OPS.registry:
         raise QiskitChemistryError('{} not registered'.format(chemistry_operator_name))
 
-    return copy.deepcopy(_REGISTERED_CHEMISTRY_OPERATORS[chemistry_operator_name].configuration)
+    return copy.deepcopy(_REGISTRY_CHEM_OPS.registry[chemistry_operator_name].configuration)
 
 
 def local_chemistry_operators():
@@ -253,4 +283,4 @@ def local_chemistry_operators():
         names: chemistry operator names
     """
     _discover_on_demand()
-    return [input.name for input in _REGISTERED_CHEMISTRY_OPERATORS.values()]
+    return [input.name for input in _REGISTRY_CHEM_OPS.registry.values()]
