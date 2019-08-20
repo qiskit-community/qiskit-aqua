@@ -19,6 +19,7 @@ from itertools import permutations
 from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua.components.qsve import BinaryTree
 from qiskit import QuantumRegister, QuantumCircuit, execute, BasicAer
+from qiskit.quantum_info import state_fidelity
 
 
 class TestBinaryTree(QiskitAquaTestCase):
@@ -399,7 +400,8 @@ class TestBinaryTree(QiskitAquaTestCase):
 
         # Make sure the final state of the circuit is the same as the input vector
         state = np.real(self.final_state(circ))
-        self.assertTrue(np.allclose(state, vec))
+        vec /= np.linalg.norm(vec, ord=2)
+        self.assertAlmostEqual(state_fidelity(state, vec), 1.0)
 
     # Note: This test passes locally but fails non-deterministically on Travis
     def test_prepare_negative_amplitudes2(self):
@@ -417,7 +419,8 @@ class TestBinaryTree(QiskitAquaTestCase):
 
         # Make sure the final state of the circuit is the same as the input vector
         state = np.real(self.final_state(circ))
-        self.assertTrue(np.allclose(state, vec))
+        vec /= np.linalg.norm(vec, ord=2)
+        self.assertAlmostEqual(state_fidelity(state, vec), 1.0)
 
     def test_prepare_negative_amplitudes3(self):
         """Tests preparing a vector with negative amplitudes on a single qubit."""
@@ -434,7 +437,9 @@ class TestBinaryTree(QiskitAquaTestCase):
 
         # Make sure the final state of the circuit is the same as the input vector
         state = np.real(self.final_state(circ))
-        self.assertTrue(np.allclose(state, vec))
+        print(state)
+        vec /= np.linalg.norm(vec, ord=2)
+        self.assertAlmostEqual(state_fidelity(state, vec), 1.0)
 
     def test_prepare_negative_amplitudes_two_qubits(self):
         """Tests preparing a vector with negative amplitudes for the example from
@@ -459,7 +464,8 @@ class TestBinaryTree(QiskitAquaTestCase):
 
         # Make sure the final state of the circuit is the same as the input vector
         state = np.real(self.final_state(circ))
-        self.assertTrue(np.allclose(state, vec))
+        vec /= np.linalg.norm(vec, ord=2)
+        self.assertAlmostEqual(state_fidelity(state, vec), 1.0)
 
     def test_prepare_negative_amplitudes_two_qubits2(self):
         """Tests preparing a vector with negative amplitudes on a single qubit."""
@@ -489,7 +495,8 @@ class TestBinaryTree(QiskitAquaTestCase):
 
             # Make sure the final state is the same as the input vector
             state = np.real(self.final_state(circ))
-            self.assertTrue(np.allclose(state, vec / np.linalg.norm(vec, ord=2)))
+            vec /= np.linalg.norm(vec, ord=2)
+            self.assertAlmostEqual(state_fidelity(state, vec), 1.0)
 
     def test_prepare_negative_amplitudes_three_qubits(self):
         """Tests state preparation for a vector on three qubits with negative amplitudes."""
@@ -512,7 +519,8 @@ class TestBinaryTree(QiskitAquaTestCase):
 
         # Make sure the final state is equal to the input vector
         state = np.real(self.final_state(circ))
-        self.assertTrue(np.allclose(state, vec / np.linalg.norm(vec, ord=2)))
+        vec /= np.linalg.norm(vec, ord=2)
+        self.assertAlmostEqual(state_fidelity(state, vec), 1.0)
 
     def test_prepare_negative_amplitudes_four_qubits(self):
         """Tests state preparation for a vector on three qubits with negative amplitudes."""
