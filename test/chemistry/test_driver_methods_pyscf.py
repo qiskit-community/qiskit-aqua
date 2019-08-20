@@ -12,44 +12,51 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from qiskit.chemistry import QiskitChemistryError
+""" Test Driver Methods PySCF """
+
+from test.chemistry.test_driver_methods import TestDriverMethods
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType, HFMethodType
 from qiskit.chemistry.core import TransformationType, QubitMappingType
-from test.chemistry.test_driver_methods import TestDriverMethods
+from qiskit.chemistry import QiskitChemistryError
 
 
 class TestDriverMethodsPySCF(TestDriverMethods):
+    """ Driver Methods PySCF tests """
 
     def setUp(self):
-        super().setup()
+        super().setUp()
         try:
-            PySCFDriver(atom=self.LIH)
+            PySCFDriver(atom=self.lih)
         except QiskitChemistryError:
             self.skipTest('PySCF driver does not appear to be installed')
 
     def test_lih_rhf(self):
-        driver = PySCFDriver(atom=self.LIH, unit=UnitsType.ANGSTROM,
+        """ lih rhf test """
+        driver = PySCFDriver(atom=self.lih, unit=UnitsType.ANGSTROM,
                              charge=0, spin=0, basis='sto-3g',
                              hf_method=HFMethodType.RHF)
         result = self._run_driver(driver)
         self._assert_energy_and_dipole(result, 'lih')
 
     def test_lih_rohf(self):
-        driver = PySCFDriver(atom=self.LIH, unit=UnitsType.ANGSTROM,
+        """ lih rohf test """
+        driver = PySCFDriver(atom=self.lih, unit=UnitsType.ANGSTROM,
                              charge=0, spin=0, basis='sto-3g',
                              hf_method=HFMethodType.ROHF)
         result = self._run_driver(driver)
         self._assert_energy_and_dipole(result, 'lih')
 
     def test_lih_uhf(self):
-        driver = PySCFDriver(atom=self.LIH, unit=UnitsType.ANGSTROM,
+        """ lih uhf test """
+        driver = PySCFDriver(atom=self.lih, unit=UnitsType.ANGSTROM,
                              charge=0, spin=0, basis='sto-3g',
                              hf_method=HFMethodType.UHF)
         result = self._run_driver(driver)
         self._assert_energy_and_dipole(result, 'lih')
 
     def test_lih_rhf_parity(self):
-        driver = PySCFDriver(atom=self.LIH, unit=UnitsType.ANGSTROM,
+        """ lih rhf parity test """
+        driver = PySCFDriver(atom=self.lih, unit=UnitsType.ANGSTROM,
                              charge=0, spin=0, basis='sto-3g',
                              hf_method=HFMethodType.RHF)
         result = self._run_driver(driver, transformation=TransformationType.FULL,
@@ -57,7 +64,8 @@ class TestDriverMethodsPySCF(TestDriverMethods):
         self._assert_energy_and_dipole(result, 'lih')
 
     def test_lih_rhf_parity_2q(self):
-        driver = PySCFDriver(atom=self.LIH, unit=UnitsType.ANGSTROM,
+        """ lih rhf parity 2q test """
+        driver = PySCFDriver(atom=self.lih, unit=UnitsType.ANGSTROM,
                              charge=0, spin=0, basis='sto-3g',
                              hf_method=HFMethodType.RHF)
         result = self._run_driver(driver, transformation=TransformationType.FULL,
@@ -65,7 +73,8 @@ class TestDriverMethodsPySCF(TestDriverMethods):
         self._assert_energy_and_dipole(result, 'lih')
 
     def test_lih_rhf_bk(self):
-        driver = PySCFDriver(atom=self.LIH, unit=UnitsType.ANGSTROM,
+        """ lih rhf bk test """
+        driver = PySCFDriver(atom=self.lih, unit=UnitsType.ANGSTROM,
                              charge=0, spin=0, basis='sto-3g',
                              hf_method=HFMethodType.RHF)
         result = self._run_driver(driver, transformation=TransformationType.FULL,
@@ -73,21 +82,24 @@ class TestDriverMethodsPySCF(TestDriverMethods):
         self._assert_energy_and_dipole(result, 'lih')
 
     def test_oh_rohf(self):
-        driver = PySCFDriver(atom=self.OH, unit=UnitsType.ANGSTROM,
+        """ oh rohf test """
+        driver = PySCFDriver(atom=self.o_h, unit=UnitsType.ANGSTROM,
                              charge=0, spin=1, basis='sto-3g',
                              hf_method=HFMethodType.ROHF)
         result = self._run_driver(driver)
         self._assert_energy_and_dipole(result, 'oh')
 
     def test_oh_uhf(self):
-        driver = PySCFDriver(atom=self.OH, unit=UnitsType.ANGSTROM,
+        """ oh uhf test """
+        driver = PySCFDriver(atom=self.o_h, unit=UnitsType.ANGSTROM,
                              charge=0, spin=1, basis='sto-3g',
                              hf_method=HFMethodType.UHF)
         result = self._run_driver(driver)
         self._assert_energy_and_dipole(result, 'oh')
 
     def test_oh_rohf_parity(self):
-        driver = PySCFDriver(atom=self.OH, unit=UnitsType.ANGSTROM,
+        """ oh rohf parity test """
+        driver = PySCFDriver(atom=self.o_h, unit=UnitsType.ANGSTROM,
                              charge=0, spin=1, basis='sto-3g',
                              hf_method=HFMethodType.ROHF)
         result = self._run_driver(driver, transformation=TransformationType.FULL,
@@ -95,7 +107,8 @@ class TestDriverMethodsPySCF(TestDriverMethods):
         self._assert_energy_and_dipole(result, 'oh')
 
     def test_oh_rohf_parity_2q(self):
-        driver = PySCFDriver(atom=self.OH, unit=UnitsType.ANGSTROM,
+        """ oh rohf parity 2q test """
+        driver = PySCFDriver(atom=self.o_h, unit=UnitsType.ANGSTROM,
                              charge=0, spin=1, basis='sto-3g',
                              hf_method=HFMethodType.ROHF)
         result = self._run_driver(driver, transformation=TransformationType.FULL,
@@ -103,7 +116,8 @@ class TestDriverMethodsPySCF(TestDriverMethods):
         self._assert_energy_and_dipole(result, 'oh')
 
     def test_oh_uhf_parity(self):
-        driver = PySCFDriver(atom=self.OH, unit=UnitsType.ANGSTROM,
+        """ oh uhf pairy test """
+        driver = PySCFDriver(atom=self.o_h, unit=UnitsType.ANGSTROM,
                              charge=0, spin=1, basis='sto-3g',
                              hf_method=HFMethodType.UHF)
         result = self._run_driver(driver, transformation=TransformationType.FULL,
@@ -111,7 +125,8 @@ class TestDriverMethodsPySCF(TestDriverMethods):
         self._assert_energy_and_dipole(result, 'oh')
 
     def test_oh_uhf_parity_2q(self):
-        driver = PySCFDriver(atom=self.OH, unit=UnitsType.ANGSTROM,
+        """ oh uhf parity 2q test """
+        driver = PySCFDriver(atom=self.o_h, unit=UnitsType.ANGSTROM,
                              charge=0, spin=1, basis='sto-3g',
                              hf_method=HFMethodType.UHF)
         result = self._run_driver(driver, transformation=TransformationType.FULL,
@@ -119,7 +134,8 @@ class TestDriverMethodsPySCF(TestDriverMethods):
         self._assert_energy_and_dipole(result, 'oh')
 
     def test_oh_rohf_bk(self):
-        driver = PySCFDriver(atom=self.OH, unit=UnitsType.ANGSTROM,
+        """ oh rohf bk test """
+        driver = PySCFDriver(atom=self.o_h, unit=UnitsType.ANGSTROM,
                              charge=0, spin=1, basis='sto-3g',
                              hf_method=HFMethodType.ROHF)
         result = self._run_driver(driver, transformation=TransformationType.FULL,
@@ -127,7 +143,8 @@ class TestDriverMethodsPySCF(TestDriverMethods):
         self._assert_energy_and_dipole(result, 'oh')
 
     def test_oh_uhf_bk(self):
-        driver = PySCFDriver(atom=self.OH, unit=UnitsType.ANGSTROM,
+        """ oh uhf bk test """
+        driver = PySCFDriver(atom=self.o_h, unit=UnitsType.ANGSTROM,
                              charge=0, spin=1, basis='sto-3g',
                              hf_method=HFMethodType.UHF)
         result = self._run_driver(driver, transformation=TransformationType.FULL,

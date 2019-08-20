@@ -144,9 +144,9 @@ class PyQuanteDriver(BaseDriver):
             spec = importlib.util.find_spec('pyquante2')
             if spec is not None:
                 return
-        except Exception as e:
-            logger.debug('PyQuante2 check error {}'.format(str(e)))
-            raise QiskitChemistryError(err_msg) from e
+        except Exception as ex:  # pylint: disable=broad-except
+            logger.debug('PyQuante2 check error {}'.format(str(ex)))
+            raise QiskitChemistryError(err_msg) from ex
 
         raise QiskitChemistryError(err_msg)
 

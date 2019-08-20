@@ -12,36 +12,42 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Test Custom Circuit Oracle """
+
 import unittest
+from test.aqua.common import QiskitAquaTestCase
 from qiskit import BasicAer, QuantumCircuit, QuantumRegister
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.components.oracles import CustomCircuitOracle
 from qiskit.aqua.algorithms import DeutschJozsa
-from test.aqua.common import QiskitAquaTestCase
 
 
 class TestCustomCircuitOracle(QiskitAquaTestCase):
-
+    """ Test Custom Circuit Oracle """
     def test_using_dj_with_constant_func(self):
-        qv = QuantumRegister(2, name='v')
-        qo = QuantumRegister(1, name='o')
-        circuit = QuantumCircuit(qv, qo)
-        circuit.x(qo[0])
+        """ using dj with constant func test """
+        q_v = QuantumRegister(2, name='v')
+        q_o = QuantumRegister(1, name='o')
+        circuit = QuantumCircuit(q_v, q_o)
+        circuit.x(q_o[0])
 
-        oracle = CustomCircuitOracle(variable_register=qv, output_register=qo, circuit=circuit)
+        oracle = CustomCircuitOracle(variable_register=q_v, output_register=q_o, circuit=circuit)
         algorithm = DeutschJozsa(oracle)
-        result = algorithm.run(quantum_instance=QuantumInstance(BasicAer.get_backend('qasm_simulator')))
+        result = algorithm.run(
+            quantum_instance=QuantumInstance(BasicAer.get_backend('qasm_simulator')))
         self.assertTrue(result['result'] == 'constant')
 
     def test_using_dj_with_balanced_func(self):
-        qv = QuantumRegister(2, name='v')
-        qo = QuantumRegister(1, name='o')
-        circuit = QuantumCircuit(qv, qo)
-        circuit.cx(qv[0], qo[0])
+        """ using dj with balanced func test """
+        q_v = QuantumRegister(2, name='v')
+        q_o = QuantumRegister(1, name='o')
+        circuit = QuantumCircuit(q_v, q_o)
+        circuit.cx(q_v[0], q_o[0])
 
-        oracle = CustomCircuitOracle(variable_register=qv, output_register=qo, circuit=circuit)
+        oracle = CustomCircuitOracle(variable_register=q_v, output_register=q_o, circuit=circuit)
         algorithm = DeutschJozsa(oracle)
-        result = algorithm.run(quantum_instance=QuantumInstance(BasicAer.get_backend('qasm_simulator')))
+        result = algorithm.run(
+            quantum_instance=QuantumInstance(BasicAer.get_backend('qasm_simulator')))
         self.assertTrue(result['result'] == 'balanced')
 
 

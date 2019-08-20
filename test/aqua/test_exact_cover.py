@@ -12,10 +12,11 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-import numpy as np
-import json
+""" Test Exact Cover """
 
+import json
 from test.aqua.common import QiskitAquaTestCase
+import numpy as np
 from qiskit import BasicAer
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import EnergyInput
@@ -29,23 +30,23 @@ class TestExactCover(QiskitAquaTestCase):
     def setUp(self):
         super().setUp()
         input_file = self._get_resource_path('sample.exactcover')
-        with open(input_file) as f:
-            self.list_of_subsets = json.load(f)
-            qubitOp, offset = exact_cover.get_exact_cover_qubitops(self.list_of_subsets)
-            self.algo_input = EnergyInput(qubitOp)
+        with open(input_file) as file:
+            self.list_of_subsets = json.load(file)
+            qubit_op, _ = exact_cover.get_exact_cover_qubitops(self.list_of_subsets)
+            self.algo_input = EnergyInput(qubit_op)
 
-    def brute_force(self):
+    def _brute_force(self):
         # brute-force way: try every possible assignment!
         has_sol = False
 
-        def bitfield(n, L):
-            result = np.binary_repr(n, L)
+        def bitfield(n, length):
+            result = np.binary_repr(n, length)
             return [int(digit) for digit in result]  # [2:] to chop off the "0b" part
 
-        L = len(self.list_of_subsets)
-        max = 2**L
-        for i in range(max):
-            cur = bitfield(i, L)
+        subsets = len(self.list_of_subsets)
+        maximum = 2**subsets
+        for i in range(maximum):
+            cur = bitfield(i, subsets)
             cur_v = exact_cover.check_solution_satisfiability(cur, self.list_of_subsets)
             if cur_v:
                 has_sol = True
@@ -53,6 +54,7 @@ class TestExactCover(QiskitAquaTestCase):
         return has_sol
 
     def test_exact_cover(self):
+        """ Exact Cover test """
         params = {
             'problem': {'name': 'ising'},
             'algorithm': {'name': 'ExactEigensolver'}
@@ -61,19 +63,23 @@ class TestExactCover(QiskitAquaTestCase):
         x = exact_cover.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
         ising_sol = exact_cover.get_solution(x)
         np.testing.assert_array_equal(ising_sol, [0, 1, 1, 0])
-        oracle = self.brute_force()
-        self.assertEqual(exact_cover.check_solution_satisfiability(ising_sol, self.list_of_subsets), oracle)
+        oracle = self._brute_force()
+        self.assertEqual(exact_cover.check_solution_satisfiability(ising_sol, self.list_of_subsets),
+                         oracle)
 
     def test_exact_cover_direct(self):
+        """ Exact Cover Direct test """
         algo = ExactEigensolver(self.algo_input.qubit_op, k=1, aux_operators=[])
         result = algo.run()
         x = exact_cover.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
         ising_sol = exact_cover.get_solution(x)
         np.testing.assert_array_equal(ising_sol, [0, 1, 1, 0])
-        oracle = self.brute_force()
-        self.assertEqual(exact_cover.check_solution_satisfiability(ising_sol, self.list_of_subsets), oracle)
+        oracle = self._brute_force()
+        self.assertEqual(exact_cover.check_solution_satisfiability(ising_sol, self.list_of_subsets),
+                         oracle)
 
     def test_exact_cover_vqe(self):
+        """ Exact Cover VQE test """
         algorithm_cfg = {
             'name': 'VQE',
             'operator_mode': 'matrix',
@@ -99,5 +105,6 @@ class TestExactCover(QiskitAquaTestCase):
         result = run_algorithm(params, self.algo_input, backend=backend)
         x = exact_cover.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
         ising_sol = exact_cover.get_solution(x)
-        oracle = self.brute_force()
-        self.assertEqual(exact_cover.check_solution_satisfiability(ising_sol, self.list_of_subsets), oracle)
+        oracle = self._brute_force()
+        self.assertEqual(exact_cover.check_solution_satisfiability(ising_sol, self.list_of_subsets),
+                         oracle)
