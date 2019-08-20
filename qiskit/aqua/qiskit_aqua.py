@@ -156,15 +156,6 @@ class QiskitAqua(object):
         from qiskit.providers import BaseBackend
 
         _discover_on_demand()
-        self._parser = InputParser(self._params)
-        self._parser.parse()
-        # before merging defaults attempts to find a provider for the backend in case no
-        # provider was passed
-        if quantum_instance is None and self._parser.get_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER) is None:
-            backend_name = self._parser.get_section_property(JSONSchema.BACKEND, JSONSchema.NAME)
-            if backend_name is not None:
-                self._parser.set_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER,
-                                                  get_provider_from_backend(backend_name))
 
         # check quantum_instance parameter
         backend = None
@@ -175,9 +166,19 @@ class QiskitAqua(object):
         elif quantum_instance is not None:
             raise AquaError('Invalid QuantumInstance or BaseBackend parameter {}.'.format(quantum_instance))
 
+        self._parser = InputParser(self._params)
+        self._parser.backend = backend
+        self._parser.parse()
+        # before merging defaults attempts to find a provider for the backend in case no
+        # provider was passed
+        if quantum_instance is None and self._parser.get_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER) is None:
+            backend_name = self._parser.get_section_property(JSONSchema.BACKEND, JSONSchema.NAME)
+            if backend_name is not None:
+                self._parser.set_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER,
+                                                  get_provider_from_backend(backend_name))
+
         # set provider and name in input file for proper backend schema dictionary build
         if backend is not None:
-            self._parser.backend = backend
             self._parser.add_section_properties(JSONSchema.BACKEND,
                                                 {
                                                     JSONSchema.PROVIDER: get_provider_from_backend(backend),
