@@ -12,11 +12,15 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""Unit tests for Quantum Singular Value Estimation."""
+
 # Imports
 from copy import deepcopy
-import numpy as np
 import unittest
 from test.aqua.common import QiskitAquaTestCase
+
+import numpy as np
+
 from qiskit.aqua.components.qsve import QSVE
 from qiskit import QuantumRegister, QuantumCircuit, execute, BasicAer
 
@@ -25,7 +29,15 @@ class TestQSVE(QiskitAquaTestCase):
     """Unit tests for QSVE class."""
     @staticmethod
     def final_state(circuit):
-        """Returns the final state of the circuit as a numpy.ndarray."""
+        """Returns the final state of the circuit as a numpy.ndarray.
+
+        Args:
+            circuit : qiskit.QuantumCircuit
+                Circuit to get the final state of.
+
+        Returns : numpy.ndarray
+            Final state of the circuit.
+        """
         return TestQSVE.unitary_of(circuit)[:, 0]
 
     @staticmethod
@@ -195,7 +207,9 @@ class TestQSVE(QiskitAquaTestCase):
 
         # Calculate the correct two-norms for each row of the matrix.
         # This vector is the state the prep circuit should make.
-        two_norms = np.array([np.linalg.norm(row, ord=2) for row in matrix]) / np.linalg.norm(matrix, "fro")
+        two_norms = np.array(
+            [np.linalg.norm(row, ord=2) for row in matrix]
+        ) / np.linalg.norm(matrix, "fro")
 
         # Get a register and circuit to prepare the row norm state in
         register = QuantumRegister(2)
@@ -245,7 +259,8 @@ class TestQSVE(QiskitAquaTestCase):
 
         for nprecision_bits in [2, 3, 4, 5, 6]:
             # Get the circuit to perform QSVE with terminal measurements on the QPE register
-            circuit = qsve.create_circuit(nprecision_bits=nprecision_bits, terminal_measurements=True)
+            circuit = qsve.create_circuit(nprecision_bits=nprecision_bits,
+                                          terminal_measurements=True)
 
             # Run the quantum circuit for QSVE
             sim = BasicAer.get_backend("qasm_simulator")
@@ -281,7 +296,9 @@ class TestQSVE(QiskitAquaTestCase):
         # Define the matrix
         matrix = np.array([[np.cos(np.pi / 8), 0], [0, np.sin(np.pi / 8)]])
 
-        # Do the classical SVD. (Note: We could just access the singular values from the diagonal matrix elements.)
+        # Do the classical SVD.
+        # (Note: We could just access the singular values
+        # from the diagonal matrix elements.)
         _, sigmas, _ = np.linalg.svd(matrix)
 
         qsve = QSVE(matrix)
@@ -322,7 +339,8 @@ class TestQSVE(QiskitAquaTestCase):
                     A = [[cos(3 * pi / 8), 0],
                          [0, sin(3 * pi / 8)]]
 
-        The QSVE algorithm should be able to compute the singular values exactly with three qubits (or more).
+        The QSVE algorithm should be able to compute the singular values
+         exactly with three qubits (or more).
         """
         # Define the matrix
         matrix = np.array([[np.cos(3 * np.pi / 8), 0], [0, np.sin(3 * np.pi / 8)]])
@@ -549,7 +567,9 @@ class TestQSVE(QiskitAquaTestCase):
                 self.assertTrue(np.allclose(unitary.conj().T @ unitary, np.identity(dim**2)))
 
     def test_unitary_conjugate_evals(self):
-        """Tests that for each eigenvalue lambda of the unitary, lambda* is also an eigenvalue, as required."""
+        """Tests that for each eigenvalue lambda of the unitary,
+        lambda* is also an eigenvalue, as required.
+        """
         for _ in range(100):
             matrix = np.random.randn(2, 2)
             matrix += matrix.conj().T
@@ -559,8 +579,8 @@ class TestQSVE(QiskitAquaTestCase):
 
             evals, _ = np.linalg.eig(umat)
 
-            for eval in evals:
-                self.assertIn(np.conjugate(eval), evals)
+            for evalue in evals:
+                self.assertIn(np.conjugate(evalue), evals)
 
     def test_unitary_evals_matrix_singular_values_identity_2by2(self):
         """Tests that the eigenvalues of the unitary are the matrix singular values."""
@@ -582,16 +602,16 @@ class TestQSVE(QiskitAquaTestCase):
 
         qsigmas = []
 
-        for eval in evals:
-            qsigma = qsve.unitary_eval_to_singular_value(eval)
+        for evalue in evals:
+            qsigma = qsve.unitary_eval_to_singular_value(evalue)
             if qsigma not in qsigmas:
                 qsigmas.append(qsigma)
 
         self.assertTrue(np.allclose(qsigmas, sigmas))
 
     def test_unitary_evals_to_matrix_singular_vals(self):
-        """Tests QSVE.unitary() by ensuring the eigenvalues of the unitary relate to the singular values of the
-        input matrix in the expected way.
+        """Tests QSVE.unitary() by ensuring the eigenvalues of the unitary
+        relate to the singular values of the input matrix in the expected way.
         """
         for _ in range(100):
             matrix = np.random.randn(2, 2)
@@ -605,8 +625,8 @@ class TestQSVE(QiskitAquaTestCase):
 
             qsigmas = []
 
-            for eval in evals:
-                qsigma = qsve.unitary_eval_to_singular_value(eval)
+            for evalue in evals:
+                qsigma = qsve.unitary_eval_to_singular_value(evalue)
                 qsigma = round(qsigma, 4)
                 if qsigma not in qsigmas:
                     qsigmas.append(qsigma)
@@ -636,15 +656,15 @@ class TestQSVE(QiskitAquaTestCase):
 
     def test_controlled_reflection(self):
         """Basic test for controlled reflection circuit."""
-        regA = QuantumRegister(1)
-        regB = QuantumRegister(2)
-        circ = QuantumCircuit(regA, regB)
+        rega = QuantumRegister(1)
+        regb = QuantumRegister(2)
+        circ = QuantumCircuit(rega, regb)
 
-        circ.x(regA)
+        circ.x(rega)
 
         init_state = np.real(self.final_state(circ))
 
-        QSVE._controlled_reflection_circuit(circ, regA[0], regB)
+        QSVE._controlled_reflection_circuit(circ, rega[0], regb)
 
         final_state = np.real(self.final_state(circ))
 
@@ -652,13 +672,13 @@ class TestQSVE(QiskitAquaTestCase):
 
     def test_controlled_reflection2(self):
         """Basic test for controlled reflection circuit."""
-        regA = QuantumRegister(1)
-        regB = QuantumRegister(2)
-        circ = QuantumCircuit(regA, regB)
+        rega = QuantumRegister(1)
+        regb = QuantumRegister(2)
+        circ = QuantumCircuit(rega, regb)
 
         init_state = np.real(self.final_state(circ))
 
-        QSVE._controlled_reflection_circuit(circ, regA, regB)
+        QSVE._controlled_reflection_circuit(circ, rega, regb)
 
         final_state = np.real(self.final_state(circ))
 
@@ -666,16 +686,16 @@ class TestQSVE(QiskitAquaTestCase):
 
     def test_controlled_reflection3(self):
         """Basic test for controlled reflection circuit."""
-        regA = QuantumRegister(2)
-        regB = QuantumRegister(5)
-        circ = QuantumCircuit(regA, regB)
+        rega = QuantumRegister(2)
+        regb = QuantumRegister(5)
+        circ = QuantumCircuit(rega, regb)
 
-        circ.x(regA[0])
-        circ.x(regB[0])
+        circ.x(rega[0])
+        circ.x(regb[0])
 
         init_state = np.real(self.final_state(circ))
 
-        QSVE._controlled_reflection_circuit(circ, regA[0], regB)
+        QSVE._controlled_reflection_circuit(circ, rega[0], regb)
 
         final_state = np.real(self.final_state(circ))
 
@@ -683,23 +703,19 @@ class TestQSVE(QiskitAquaTestCase):
 
     def test_controlled_reflection4(self):
         """Basic test for controlled reflection circuit."""
-        regA = QuantumRegister(2)
-        regB = QuantumRegister(5)
-        circ = QuantumCircuit(regA, regB)
+        rega = QuantumRegister(2)
+        regb = QuantumRegister(5)
+        circ = QuantumCircuit(rega, regb)
 
-        circ.x(regA[0])
+        circ.x(rega[0])
 
         init_state = np.real(self.final_state(circ))
 
-        QSVE._controlled_reflection_circuit(circ, regA[0], regB)
+        QSVE._controlled_reflection_circuit(circ, rega[0], regb)
 
         final_state = np.real(self.final_state(circ))
 
         self.assertTrue(np.allclose(init_state, -final_state))
-
-    def test_controlled_unitary(self):
-        """Tests that the controlled unitary in a circuit agrees with the (classical) matrix representation."""
-        pass
 
     def test_qft_dagger(self):
         """Visual test for the inverse QFT circuit."""
@@ -820,8 +836,12 @@ class TestQSVE(QiskitAquaTestCase):
         """Tests conversion of a string binary decimal to a float."""
         for n in range(10):
             binary_decimal = "1" + "0" * n
-            self.assertEqual(QSVE.binary_decimal_to_float(binary_decimal, big_endian=True), 0.5)
-            self.assertEqual(QSVE.binary_decimal_to_float(binary_decimal, big_endian=False), 2**(-n - 1))
+            self.assertEqual(
+                QSVE.binary_decimal_to_float(binary_decimal, big_endian=True),
+                0.5)
+            self.assertEqual(
+                QSVE.binary_decimal_to_float(binary_decimal, big_endian=False),
+                2**(-n - 1))
 
     def test_non_square(self):
         """Tests QSVE on a simple non-square matrix."""
@@ -840,10 +860,14 @@ class TestQSVE(QiskitAquaTestCase):
             self.assertTrue(qsve.has_value_close_to_singular_values(qsigmas, qsve.max_error(4)))
 
     def test_binary_decimal_to_float_conversion(self):
-        """Tests converting binary decimals (e.g., 0.10 = 0.5 or 0.01 = 0.25) to floats, and vice versa."""
+        """Tests converting binary decimals (e.g., 0.10 = 0.5 or 0.01 = 0.25)
+         to floats, and vice versa.
+         """
         for num in np.linspace(0, 0.99, 25):
             self.assertAlmostEqual(
-                QSVE.binary_decimal_to_float(QSVE.to_binary_decimal(num, nbits=30), big_endian=True), num
+                QSVE.binary_decimal_to_float(
+                    QSVE.to_binary_decimal(num, nbits=30), big_endian=True),
+                num
             )
 
 
