@@ -12,6 +12,10 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+# pylint: disable=missing-type-doc
+# pylint: disable=missing-return-doc
+# pylint: disable=missing-return-type-doc
+
 """Unit tests for Quantum Singular Value Estimation."""
 
 # Imports
