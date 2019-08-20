@@ -12,9 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
-Test of UCCSD and HartreeFock Aqua extensions.
-"""
+""" Test of UCCSD and HartreeFock Aqua extensions """
 
 from test.chemistry.common import QiskitChemistryTestCase
 from qiskit.chemistry import QiskitChemistry
@@ -29,7 +27,9 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         super().setUp()
         self.config = {'driver': {'name': 'HDF5'},
                        'hdf5': {'hdf5_input': self._get_resource_path('test_driver_hdf5.hdf5')},
-                       'operator': {'name': 'hamiltonian', 'qubit_mapping': 'parity', 'two_qubit_reduction': True},
+                       'operator': {'name': 'hamiltonian',
+                                    'qubit_mapping': 'parity',
+                                    'two_qubit_reduction': True},
                        'algorithm': {'name': 'VQE', 'operator_mode': 'matrix'},
                        'optimizer': {'name': 'SLSQP', 'maxiter': 100},
                        'variational_form': {'name': 'UCCSD'},
@@ -39,6 +39,7 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         pass
 
     def test_uccsd_hf(self):
+        """ uccsd hf test """
         # set_qiskit_chemistry_logging(logging.DEBUG)
         solver = QiskitChemistry()
         result = solver.run(self.config)

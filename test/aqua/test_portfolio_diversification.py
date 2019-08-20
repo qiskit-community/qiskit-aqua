@@ -12,35 +12,38 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-import math
+""" Test Portfolio Optimization """
 
+import math
+from test.aqua.common import QiskitAquaTestCase
 import numpy as np
 from qiskit.quantum_info import Pauli
-
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import EnergyInput
-from qiskit.aqua.translators.ising.portfolio_diversification import (get_portfoliodiversification_solution,
-                                                                     get_portfoliodiversification_qubitops,
-                                                                     get_portfoliodiversification_value)
-from test.aqua.common import QiskitAquaTestCase
+from qiskit.aqua.translators.ising.portfolio_diversification import \
+    (get_portfoliodiversification_solution,
+     get_portfoliodiversification_qubitops,
+     get_portfoliodiversification_value)
 
 
 class ClassicalOptimizer:
+    """ Classical Optimizer """
     def __init__(self, rho, n, q):
 
         self.rho = rho
         self.n = n  # number of inner variables
         self.q = q  # number of required selection
 
-    def compute_allowed_combinations(self):
-        f = math.factorial
-        return int(f(self.n) / f(self.q) / f(self.n - self.q))
+    def _compute_allowed_combinations(self):
+        fac = math.factorial
+        return int(fac(self.n) / fac(self.q) / fac(self.n - self.q))
 
     def cplex_solution(self):
+        """ cplex solution """
         try:
             import cplex
-        except ImportError as e:
-            print(e)
+        except ImportError as ex:
+            print(str(ex))
 
         # refactoring
         rho = self.rho
@@ -52,19 +55,21 @@ class ClassicalOptimizer:
         my_lb = [0 for x in range(0, n ** 2 + n)]
         my_ctype = "".join(['I' for x in range(0, n ** 2 + n)])
 
-        my_rhs = [q] + [1 for x in range(0, n)] + [0 for x in range(0, n)] + [0.1 for x in range(0, n ** 2)]
-        my_sense = "".join(['E' for x in range(0, 1+n)]) + "".join(['E' for x in range(0, n)]) + "".join(
-            ['L' for x in range(0, n ** 2)])
+        my_rhs = [q] + [1 for x in range(0, n)] + \
+                 [0 for x in range(0, n)] + [0.1 for x in range(0, n ** 2)]
+        my_sense = "".join(['E' for x in range(0, 1+n)]) + \
+                   "".join(['E' for x in range(0, n)]) + \
+                   "".join(['L' for x in range(0, n ** 2)])
 
         try:
             my_prob = cplex.Cplex()
-            self.populate_by_row(my_prob, my_obj, my_ub, my_lb, my_ctype, my_sense, my_rhs)
+            self._populate_by_row(my_prob, my_obj, my_ub, my_lb, my_ctype, my_sense, my_rhs)
 
             my_prob.solve()
 
-        except Exception as exc:
-            print(exc)
-            return
+        except Exception as ex:  # pylint: disable=broad-except
+            print(str(ex))
+            return None, None
 
         x = my_prob.solution.get_values()
         x = np.array(x)
@@ -72,7 +77,7 @@ class ClassicalOptimizer:
 
         return x, cost
 
-    def populate_by_row(self, prob, my_obj, my_ub, my_lb, my_ctype, my_sense, my_rhs):
+    def _populate_by_row(self, prob, my_obj, my_ub, my_lb, my_ctype, my_sense, my_rhs):
 
         n = self.n
 
@@ -89,20 +94,20 @@ class ClassicalOptimizer:
         coef = [1 for x in range(0, n)]
         rows.append([col, coef])
 
-        for ii in range(0, n):
-            col = [x for x in range(0+n*ii, n+n*ii)]
+        for i_i in range(0, n):
+            col = [x for x in range(0+n*i_i, n+n*i_i)]
             coef = [1 for x in range(0, n)]
 
             rows.append([col, coef])
 
-        for ii in range(0, n):
-            col = [ii * n + ii, n ** 2 + ii]
+        for i_i in range(0, n):
+            col = [i_i * n + i_i, n ** 2 + i_i]
             coef = [1, -1]
             rows.append([col, coef])
 
-        for ii in range(0, n):
-            for jj in range(0, n):
-                col = [ii*n + jj, n ** 2 + jj]
+        for i_i in range(0, n):
+            for j_j in range(0, n):
+                col = [i_i*n + j_j, n ** 2 + j_j]
                 coef = [1, -1]
 
                 rows.append([col, coef])
@@ -129,6 +134,7 @@ class TestPortfolioDiversification(QiskitAquaTestCase):
         self.algo_input = EnergyInput(self.qubit_op)
 
     def test_simple1(self):
+        """ simple1 test """
         # Compares the output in terms of Paulis.
         paulis = [
             (-249.5, Pauli(
@@ -188,29 +194,37 @@ class TestPortfolioDiversification(QiskitAquaTestCase):
                 x=[False, False, False, False, False, False]
             ))
         ]
-        for pauliA, pauliB in zip(self.qubit_op._paulis, paulis):
-            costA, binaryA = pauliA
-            costB, binaryB = pauliB
+        for pauli_a, pauli_b in zip(self.qubit_op._paulis, paulis):
+            cost_a, binary_a = pauli_a
+            cost_b, binary_b = pauli_b
             # Note that the construction is a bit iffy, e.g., I can get:
             # Items are not equal to 7 significant digits:
             # ACTUAL: -250.5
             # DESIRED: -249.5
-            # even when the ordering is the same. Obviously, when the ordering changes, the test will become invalid.
-            np.testing.assert_approx_equal(np.real(costA), costB, 2)
-            self.assertEqual(binaryA, binaryB)
+            # even when the ordering is the same. Obviously, when the ordering changes,
+            # the test will become invalid.
+            np.testing.assert_approx_equal(np.real(cost_a), cost_b, 2)
+            self.assertEqual(binary_a, binary_b)
 
     def test_simple2(self):
-        # Computes the cost using the exact eigensolver and compares it against pre-determined value.
+        """ simple2 test """
+        # Computes the cost using the exact eigensolver
+        # and compares it against pre-determined value.
         params = {
             'problem': {'name': 'ising'},
             'algorithm': {'name': 'ExactEigensolver'}
         }
         result = run_algorithm(params, self.algo_input)
-        quantum_solution = get_portfoliodiversification_solution(self.instance, self.n, self.q, result)
-        ground_level = get_portfoliodiversification_value(self.instance, self.n, self.q, quantum_solution)
+        quantum_solution = get_portfoliodiversification_solution(self.instance,
+                                                                 self.n,
+                                                                 self.q, result)
+        ground_level = get_portfoliodiversification_value(self.instance,
+                                                          self.n, self.q,
+                                                          quantum_solution)
         np.testing.assert_approx_equal(ground_level, 1.8)
 
     def test_portfolio_diversification(self):
+        """ portfolio diversification test """
         # Something of an integration test
         # Solve the problem in a classical fashion via CPLEX and compare the solution
         # Note that CPLEX uses a completely different integer linear programming formulation.
@@ -218,7 +232,7 @@ class TestPortfolioDiversification(QiskitAquaTestCase):
         try:
             classical_optimizer = ClassicalOptimizer(self.instance, self.n, self.q)
             x, classical_cost = classical_optimizer.cplex_solution()
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             # This test should not focus on the availability of CPLEX, so we just eat the exception.
             self.skipTest("CPLEX may be missing.")
         # Solve the problem using the exact eigensolver
@@ -227,8 +241,12 @@ class TestPortfolioDiversification(QiskitAquaTestCase):
             'algorithm': {'name': 'ExactEigensolver'}
         }
         result = run_algorithm(params, self.algo_input)
-        quantum_solution = get_portfoliodiversification_solution(self.instance, self.n, self.q, result)
-        ground_level = get_portfoliodiversification_value(self.instance, self.n, self.q, quantum_solution)
+        quantum_solution = get_portfoliodiversification_solution(self.instance,
+                                                                 self.n,
+                                                                 self.q, result)
+        ground_level = get_portfoliodiversification_value(self.instance,
+                                                          self.n,
+                                                          self.q, quantum_solution)
         if x:
             np.testing.assert_approx_equal(ground_level, classical_cost)
             np.testing.assert_array_almost_equal(quantum_solution, x, 5)
