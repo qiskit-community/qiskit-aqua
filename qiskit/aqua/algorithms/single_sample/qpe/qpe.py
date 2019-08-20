@@ -24,10 +24,10 @@ from qiskit.aqua import AquaError
 from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.operators import op_converter
 from qiskit.aqua.utils import get_subsystem_density_matrix
+from qiskit.aqua.utils import get_subsystems_counts
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.circuits import PhaseEstimationCircuit
 from qiskit.aqua.operators import WeightedPauliOperator
-
 
 logger = logging.getLogger(__name__)
 
@@ -89,17 +89,14 @@ class QPE(QuantumAlgorithm):
         ],
     }
 
-    def __init__(
-            self, operator, state_in, iqft, num_time_slices=1, num_ancillae=1,
-            expansion_mode='trotter', expansion_order=1,
-            shallow_circuit_concat=False
-    ):
+    def __init__(self, operator, iqft, state_in = None, state_in_circuit_factory=None, num_time_slices=1, num_ancillae=1, expansion_mode='trotter', expansion_order=1, shallow_circuit_concat=False):
         """
         Constructor.
 
         Args:
             operator (BaseOperator): the hamiltonian Operator object
             state_in (InitialState): the InitialState pluggable component representing the initial quantum state
+        state_in_circuit_factory: a Circuit Factory class that could potentially use auxillary qubits
             iqft (IQFT): the Inverse Quantum Fourier Transform pluggable component
             num_time_slices (int): the number of time slices
             num_ancillae (int): the number of ancillary qubits to use for the measurement
@@ -107,6 +104,8 @@ class QPE(QuantumAlgorithm):
             expansion_order (int): the suzuki expansion order
             shallow_circuit_concat (bool): indicate whether to use shallow (cheap) mode for circuit concatenation
         """
+        if (state_in_circuit_factory is None and state_in is None) or (state_in_circuit_factory is not None and state_in is not None):
+            raise(AquaError("QPE error: either state_in or state_in_circuit_factory should be supplied and not both."))
         self.validate(locals())
         super().__init__()
         self._operator = op_converter.to_weighted_pauli_operator(operator)
@@ -136,12 +135,18 @@ class QPE(QuantumAlgorithm):
             p[0] = p[0] * self._ret['stretch']
 
         self._phase_estimation_circuit = PhaseEstimationCircuit(
-            operator=self._operator, state_in=state_in, iqft=iqft,
+            operator=self._operator, state_in=state_in,
+            state_in_circuit_factory=state_in_circuit_factory, iqft=iqft,
             num_time_slices=num_time_slices, num_ancillae=num_ancillae,
             expansion_mode=expansion_mode, expansion_order=expansion_order,
             shallow_circuit_concat=shallow_circuit_concat, pauli_list=self._pauli_list
         )
         self._binary_fractions = [1 / 2 ** p for p in range(1, num_ancillae + 1)]
+        
+        if state_in_circuit_factory is not None:
+            self._num_auxiliary = state_in_circuit_factory.required_ancillas()
+        else:
+            self._num_auxiliary = 0
 
     @classmethod
     def init_params(cls, params, algo_input):
@@ -192,30 +197,53 @@ class QPE(QuantumAlgorithm):
         return qc
 
     def _compute_energy(self):
+
         if self._quantum_instance.is_statevector:
             qc = self.construct_circuit(measurement=False)
             result = self._quantum_instance.execute(qc)
             complete_state_vec = result.get_statevector(qc)
+            trace_start = self._num_ancillae
+            trace_end = self._num_ancillae + self._operator.num_qubits + self._num_auxiliary
             ancilla_density_mat = get_subsystem_density_matrix(
                 complete_state_vec,
-                range(self._num_ancillae, self._num_ancillae + self._operator.num_qubits)
+                range(trace_start, trace_end)
             )
             ancilla_density_mat_diag = np.diag(ancilla_density_mat)
+            ancilla_counts = np.abs(ancilla_density_mat_diag)
             max_amplitude = max(ancilla_density_mat_diag.min(), ancilla_density_mat_diag.max(), key=abs)
             max_amplitude_idx = np.where(ancilla_density_mat_diag == max_amplitude)[0][0]
             top_measurement_label = np.binary_repr(max_amplitude_idx, self._num_ancillae)[::-1]
+
+            if self._num_auxiliary > 0:
+                trace_start = 0
+                trace_end = self._num_ancillae + self._operator.num_qubits
+                aux_density_mat = get_subsystem_density_matrix(
+                    complete_state_vec,
+                    range(trace_start, trace_end)
+                )
+                aux_density_mat_diag = np.diag(aux_density_mat)
+                aux_counts = np.abs(aux_density_mat_diag)
         else:
             qc = self.construct_circuit(measurement=True)
             result = self._quantum_instance.execute(qc)
-            ancilla_counts = result.get_counts(qc)
+            all_counts  = result.get_counts(qc)
+            if self._num_auxiliary > 0:
+                aux_counts, ancilla_counts = get_subsystems_counts(all_counts)
+            else:
+                ancilla_counts = all_counts
+            
             top_measurement_label = sorted([(ancilla_counts[k], k) for k in ancilla_counts])[::-1][0][-1][::-1]
+            
+        if self._num_auxiliary > 0:
+            self._ret['aux_counts'] = aux_counts
+        self._ret['ancilla_counts'] = ancilla_counts
 
         top_measurement_decimal = sum(
             [t[0] * t[1] for t in zip(self._binary_fractions, [int(n) for n in top_measurement_label])]
         )
-
         self._ret['top_measurement_label'] = top_measurement_label
         self._ret['top_measurement_decimal'] = top_measurement_decimal
+        
         self._ret['eigvals'] = [top_measurement_decimal / self._ret['stretch'] - self._ret['translation']]
         self._ret['energy'] = self._ret['eigvals'][0]
 

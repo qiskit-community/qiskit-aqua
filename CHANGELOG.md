@@ -54,6 +54,7 @@ Added
 -   Maximum Likelihood Amplitude Estimation (MLAE): Implemented new algorithm for amplitude estimation based on 
     maximum likelihood estimation, which reduces number of required qubits and circuit depth.
 -   Added (piecewise) linearly and polynomially controlled Pauli-rotation circuits.  
+-   Added Handling of state_in_circuit_factory properly, including allowing auxillary register to be measured. Allow QPE to return useful count information.
 
 Changed
 -------

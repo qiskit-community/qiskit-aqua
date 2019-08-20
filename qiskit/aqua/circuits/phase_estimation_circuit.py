@@ -133,9 +133,11 @@ class PhaseEstimationCircuit:
 
                 if num_aux_qubits > 0:
                     aux = QuantumRegister(num_aux_qubits, name='aux')
+                    self._auxiliary_register = aux
                     qc.add_register(aux)
             else:
                 aux = auxiliary_register
+                self._auxiliary_register = aux
                 qc.add_register(aux)
 
             # initialize state_in
@@ -198,6 +200,12 @@ class PhaseEstimationCircuit:
                 qc.add_register(c_ancilla)
                 # qc.barrier(a)
                 qc.measure(a, c_ancilla)
+
+                if self._auxiliary_register is not None:
+                    c_aux = ClassicalRegister(self._auxiliary_register.size, name='caux')
+                    qc.add_register(c_aux)
+                    # qc.barrier(self._auxiliary_register)
+                    qc.measure(self._auxiliary_register, c_aux)
 
             self._circuit = qc
         return self._circuit
