@@ -68,7 +68,7 @@ before_install:
       # Install local Qiskit Ignis
       pip install -e /tmp/qiskit-ignis-$DEPENDENCY_BRANCH --progress-bar off
     fi
-    if [ "$BUILD_AER" != "false" && "$DEPENDENCY_BRANCH" == "master"]; then
+    if [ "$BUILD_AER" != "false" && "$DEPENDENCY_BRANCH" == "master" ]; then
       # Download github Qiskit Aer
       wget https://codeload.github.com/Qiskit/qiskit-aer/zip/$DEPENDENCY_BRANCH -O /tmp/qiskit-aer.zip
       unzip /tmp/qiskit-aer.zip -d /tmp/
