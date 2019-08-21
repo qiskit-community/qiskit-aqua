@@ -73,15 +73,13 @@ class QEomEE(ExactEigensolver):
         'problems': ['excited_states']
     }
 
-    def __init__(self, operator, aux_operators=None,
-                 num_orbitals=4, num_particles=2, qubit_mapping='parity',
+    def __init__(self, operator, num_orbitals, num_particles, qubit_mapping='parity',
                  two_qubit_reduction=True, active_occupied=None, active_unoccupied=None,
                  is_eom_matrix_symmetric=True, se_list=None, de_list=None,
-                 z2_symmetries=None, untapered_op=None):
+                 z2_symmetries=None, untapered_op=None, aux_operators=None):
         """
         Args:
             operator (BaseOperator): qubit operator
-            aux_operators ([BaseOperator]): Auxiliary operators to be evaluated at each eigenvalue
             num_orbitals (int):  total number of spin orbitals
             num_particles (list, int): number of particles, if it is a list, the first number is alpha and the second
                                         number if beta.
@@ -97,6 +95,7 @@ class QEomEE(ExactEigensolver):
             z2_symmetries (Z2Symmetries): represent the Z2 symmetries
             untapered_op (BaseOperator): if the operator is tapered, we need untapered operator
                                          to build element of EoM matrix
+            aux_operators ([BaseOperator]): Auxiliary operators to be evaluated at each eigenvalue
         """
         self.validate(locals())
         super().__init__(operator, 1, aux_operators)

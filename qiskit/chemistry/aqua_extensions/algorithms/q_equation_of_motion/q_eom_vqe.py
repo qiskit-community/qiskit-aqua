@@ -96,22 +96,23 @@ class QEomVQE(VQE):
         ],
     }
 
-    def __init__(self, operator, var_form, optimizer,
-                 initial_point=None, max_evals_grouped=1, aux_operators=None, callback=None,
-                 auto_conversion=True,
-                 num_orbitals=4, num_particles=2, qubit_mapping='parity',
+    def __init__(self, operator, var_form, optimizer, num_orbitals, num_particles,
+                 initial_point=None, max_evals_grouped=1, callback=None,
+                 auto_conversion=True, qubit_mapping='parity',
                  two_qubit_reduction=True, is_eom_matrix_symmetric=True,
                  active_occupied=None, active_unoccupied=None,
                  se_list=None, de_list=None, z2_symmetries=None,
-                 untapered_op=None):
+                 untapered_op=None, aux_operators=None):
         """
         Args:
             operator (BaseOperator): qubit operator
             var_form (VariationalForm): parametrized variational form.
             optimizer (Optimizer): the classical optimization algorithm.
+            num_orbitals (int):  total number of spin orbitals
+            num_particles (list, int): number of particles, if it is a list, the first number is
+                                       alpha and the second number if beta.
             initial_point (numpy.ndarray): optimizer initial point, 1-D vector
             max_evals_grouped (int): max number of evaluations performed simultaneously
-            aux_operators (list[BaseOperator]): Auxiliary operators to be evaluated at each eigenvalue
             callback (Callable): a callback that can access the intermediate data during the optimization.
                                  Internally, four arguments are provided as follows
                                  the index of evaluation, parameters of variational form,
@@ -121,21 +122,19 @@ class QEomVQE(VQE):
                                     - non-aer statevector_simulator: MatrixOperator
                                     - aer statevector_simulator: WeightedPauliOperator
                                     - qasm simulator or real backend: TPBGroupedWeightedPauliOperator
-            num_orbitals (int):  total number of spin orbitals
-            num_particles (list, int): number of particles, if it is a list, the first number is alpha and the second
-                                        number if beta.
             qubit_mapping (str): qubit mapping type
             two_qubit_reduction (bool): two qubit reduction is applied or not
+            is_eom_matrix_symmetric (bool): is EoM matrix symmetric
             active_occupied (list): list of occupied orbitals to include, indices are
                                     0 to n where n is num particles // 2
             active_unoccupied (list): list of unoccupied orbitals to include, indices are
                                     0 to m where m is (num_orbitals - num particles) // 2
-            is_eom_matrix_symmetric (bool): is EoM matrix symmetric
             se_list ([list]): single excitation list, overwrite the setting in active space
             de_list ([list]): double excitation list, overwrite the setting in active space
             z2_symmetries (Z2Symmetries): represent the Z2 symmetries
             untapered_op (BaseOperator): if the operator is tapered, we need untapered operator
                                          during building element of EoM matrix
+            aux_operators (list[BaseOperator]): Auxiliary operators to be evaluated at each eigenvalue
         """
         self.validate(locals())
         super().__init__(operator.copy(), var_form, optimizer, initial_point=initial_point,
