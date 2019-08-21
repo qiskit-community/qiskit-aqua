@@ -12,12 +12,14 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Test of Eom VQE."""
+
 import unittest
 
+from test.aqua.common import QiskitAquaTestCase
 import numpy as np
 from qiskit import BasicAer
 
-from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.components.variational_forms import RY
 from qiskit.aqua.components.optimizers import COBYLA, SPSA
@@ -31,8 +33,9 @@ from qiskit.chemistry.aqua_extensions.components.initial_states import HartreeFo
 
 
 class TestEomVQE(QiskitAquaTestCase):
-
+    """Test Eom VQE."""
     def setUp(self):
+        """Setup."""
         super().setUp()
         atom = 'H .0 .0 .7414; H .0 .0 .0'
         pyscf_driver = PySCFDriver(atom=atom,
@@ -43,12 +46,13 @@ class TestEomVQE(QiskitAquaTestCase):
                            two_qubit_reduction=True,
                            freeze_core=False,
                            orbital_reduction=[])
-        qubit_op, aux_ops = core.run(self.molecule)
-        ee = ExactEigensolver(qubit_op, k=2 ** qubit_op.num_qubits)
-        result = ee.run()
+        qubit_op, _ = core.run(self.molecule)
+        exact_eigensolver = ExactEigensolver(qubit_op, k=2 ** qubit_op.num_qubits)
+        result = exact_eigensolver.run()
         self.reference = result['eigvals'].real
 
     def test_h2_two_qubits_statevector(self):
+        """Test H2 with parity mapping and statevector backend."""
         two_qubit_reduction = True
         qubit_mapping = 'parity'
         core = Hamiltonian(transformation=TransformationType.FULL,
@@ -56,22 +60,23 @@ class TestEomVQE(QiskitAquaTestCase):
                            two_qubit_reduction=two_qubit_reduction,
                            freeze_core=False,
                            orbital_reduction=[])
-        qubit_op, aux_ops = core.run(self.molecule)
+        qubit_op, _ = core.run(self.molecule)
 
         num_orbitals = core.molecule_info['num_orbitals']
         num_particles = core.molecule_info['num_particles']
 
         initial_state = HartreeFock(qubit_op.num_qubits, num_orbitals=num_orbitals,
-                                    num_particles=num_particles,
-                                    qubit_mapping=qubit_mapping, two_qubit_reduction=two_qubit_reduction)
+                                    num_particles=num_particles, qubit_mapping=qubit_mapping,
+                                    two_qubit_reduction=two_qubit_reduction)
         var_form = UCCSD(num_qubits=qubit_op.num_qubits, depth=1, num_orbitals=num_orbitals,
                          num_particles=num_particles,
                          initial_state=initial_state,
                          qubit_mapping=qubit_mapping, two_qubit_reduction=two_qubit_reduction)
         optimizer = COBYLA(maxiter=1000)
 
-        eom_vqe = QEomVQE(qubit_op, var_form, optimizer, num_orbitals=num_orbitals, num_particles=num_particles,
-                          qubit_mapping=qubit_mapping, two_qubit_reduction=two_qubit_reduction)
+        eom_vqe = QEomVQE(qubit_op, var_form, optimizer, num_orbitals=num_orbitals,
+                          num_particles=num_particles, qubit_mapping=qubit_mapping,
+                          two_qubit_reduction=two_qubit_reduction)
 
         backend = BasicAer.get_backend('statevector_simulator')
         quantum_instance = QuantumInstance(backend)
@@ -79,6 +84,7 @@ class TestEomVQE(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(self.reference, result['energies'], decimal=5)
 
     def test_h2_one_qubit_statevector(self):
+        """Test H2 with tapering and statevector backend."""
         two_qubit_reduction = True
         qubit_mapping = 'parity'
         core = Hamiltonian(transformation=TransformationType.FULL,
@@ -86,7 +92,7 @@ class TestEomVQE(QiskitAquaTestCase):
                            two_qubit_reduction=two_qubit_reduction,
                            freeze_core=False,
                            orbital_reduction=[])
-        qubit_op, aux_ops = core.run(self.molecule)
+        qubit_op, _ = core.run(self.molecule)
 
         num_orbitals = core.molecule_info['num_orbitals']
         num_particles = core.molecule_info['num_particles']
@@ -97,18 +103,18 @@ class TestEomVQE(QiskitAquaTestCase):
         tapered_op = z2_symmetries.taper(qubit_op)[1]
 
         initial_state = HartreeFock(tapered_op.num_qubits, num_orbitals=num_orbitals,
-                                    num_particles=num_particles,
-                                    qubit_mapping=qubit_mapping, two_qubit_reduction=two_qubit_reduction,
+                                    num_particles=num_particles, qubit_mapping=qubit_mapping,
+                                    two_qubit_reduction=two_qubit_reduction,
                                     sq_list=tapered_op.z2_symmetries.sq_list)
         var_form = UCCSD(num_qubits=tapered_op.num_qubits, depth=1, num_orbitals=num_orbitals,
-                         num_particles=num_particles,
-                         initial_state=initial_state,
+                         num_particles=num_particles, initial_state=initial_state,
                          qubit_mapping=qubit_mapping, two_qubit_reduction=two_qubit_reduction,
                          z2_symmetries=tapered_op.z2_symmetries)
         optimizer = SPSA(max_trials=50)
 
-        eom_vqe = QEomVQE(tapered_op, var_form, optimizer, num_orbitals=num_orbitals, num_particles=num_particles,
-                          qubit_mapping=qubit_mapping, two_qubit_reduction=two_qubit_reduction,
+        eom_vqe = QEomVQE(tapered_op, var_form, optimizer, num_orbitals=num_orbitals,
+                          num_particles=num_particles, qubit_mapping=qubit_mapping,
+                          two_qubit_reduction=two_qubit_reduction,
                           z2_symmetries=tapered_op.z2_symmetries, untapered_op=qubit_op)
 
         backend = BasicAer.get_backend('statevector_simulator')
@@ -117,6 +123,7 @@ class TestEomVQE(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(self.reference, result['energies'], decimal=5)
 
     def test_h2_one_qubit_qasm(self):
+        """Test H2 with tapering and qasm backend"""
         two_qubit_reduction = True
         qubit_mapping = 'parity'
         core = Hamiltonian(transformation=TransformationType.FULL,
@@ -124,7 +131,7 @@ class TestEomVQE(QiskitAquaTestCase):
                            two_qubit_reduction=two_qubit_reduction,
                            freeze_core=False,
                            orbital_reduction=[])
-        qubit_op, aux_ops = core.run(self.molecule)
+        qubit_op, _ = core.run(self.molecule)
 
         num_orbitals = core.molecule_info['num_orbitals']
         num_particles = core.molecule_info['num_particles']
@@ -137,8 +144,9 @@ class TestEomVQE(QiskitAquaTestCase):
         var_form = RY(tapered_op.num_qubits, depth=1)
         optimizer = SPSA(max_trials=50)
 
-        eom_vqe = QEomVQE(tapered_op, var_form, optimizer, num_orbitals=num_orbitals, num_particles=num_particles,
-                          qubit_mapping=qubit_mapping, two_qubit_reduction=two_qubit_reduction,
+        eom_vqe = QEomVQE(tapered_op, var_form, optimizer, num_orbitals=num_orbitals,
+                          num_particles=num_particles, qubit_mapping=qubit_mapping,
+                          two_qubit_reduction=two_qubit_reduction,
                           z2_symmetries=tapered_op.z2_symmetries, untapered_op=qubit_op)
 
         backend = BasicAer.get_backend('qasm_simulator')
