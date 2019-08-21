@@ -16,7 +16,7 @@ notifications:
 
 cache: pip
 os: linux
-dist: trusty
+dist: xenial
 
 language: python
 python:
