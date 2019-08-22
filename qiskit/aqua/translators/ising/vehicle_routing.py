@@ -16,11 +16,10 @@
 # and provides some related routines (extracting a solution,
 # checking its objective function value).
 
-from collections import OrderedDict
-
 import numpy as np
 from qiskit.quantum_info import Pauli
-from qiskit.aqua import Operator
+
+from qiskit.aqua.operators import WeightedPauliOperator
 
 
 def get_vehiclerouting_matrices(instance, n, K):
@@ -40,7 +39,7 @@ def get_vehiclerouting_matrices(instance, n, K):
         c (float) : the constant offset.
         """
 
-    N = (n - 1) * n
+    # N = (n - 1) * n
     A = np.max(instance) * 100  # A parameter of cost function
 
     # Determine the weights w
@@ -75,8 +74,8 @@ def get_vehiclerouting_matrices(instance, n, K):
     Q = A * (np.kron(Id_n, Im_n_1) + np.dot(v.T, v))
 
     # g defines the contribution from the individual variables
-    g = w - 2 * A * (np.kron(Iv_n_1,Iv_n) + vn.T) - \
-            2 * A * K * (np.kron(neg_Iv_n_1, Iv_n) + v[0].T)
+    g = w - 2 * A * (np.kron(Iv_n_1, Iv_n) + vn.T) - \
+        2 * A * K * (np.kron(neg_Iv_n_1, Iv_n) + v[0].T)
 
     # c is the constant offset
     c = 2 * A * (n - 1) + 2 * A * (K**2)
@@ -97,14 +96,13 @@ def get_vehiclerouting_cost(instance, n, K, x_sol):
         cost (float): objective function value.
         """
     (Q, g, c) = get_vehiclerouting_matrices(instance, n, K)
-    fun = lambda x: np.dot(np.around(x), np.dot(Q, np.around(x))) + np.dot(
-        g, np.around(x)) + c
+    def fun(x): return np.dot(np.around(x), np.dot(Q, np.around(x))) + np.dot(g, np.around(x)) + c
     cost = fun(x_sol)
     return cost
 
 
 def get_vehiclerouting_qubitops(instance, n, K):
-    """Converts an instnance of a vehicle routing problem into a list of Paulis.
+    """Converts an instance of a vehicle routing problem into a list of Paulis.
 
     Args:
         instance (numpy.ndarray) : a customers-to-customers distance matrix.
@@ -112,8 +110,8 @@ def get_vehiclerouting_qubitops(instance, n, K):
         K (integer) : the number of vehicles available.
 
     Returns:
-        operator.Operator: operator for the Hamiltonian.
-        """
+        WeightedPauliOperator: operator for the Hamiltonian.
+    """
 
     N = (n - 1) * n
     (Q, g, c) = get_vehiclerouting_matrices(instance, n, K)
@@ -146,11 +144,11 @@ def get_vehiclerouting_qubitops(instance, n, K):
                 pauli_list.append((2 * Qz[i, j], Pauli(vp, wp)))
 
     pauli_list.append((cz, Pauli(np.zeros(N), np.zeros(N))))
-    return Operator(paulis=pauli_list)
+    return WeightedPauliOperator(paulis=pauli_list)
 
 
 def get_vehiclerouting_solution(instance, n, K, result):
-    """Tries to obtain a feasible solution (in vector form) of an instnance 
+    """Tries to obtain a feasible solution (in vector form) of an instance
         of vehicle routing from the results dictionary.
 
     Args:

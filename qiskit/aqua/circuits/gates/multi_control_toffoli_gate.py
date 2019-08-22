@@ -19,19 +19,25 @@ Multiple-Control Toffoli Gate.
 import logging
 from math import pi, ceil
 
-from qiskit import QuantumCircuit, QuantumRegister
+from qiskit.circuit import QuantumCircuit, QuantumRegister, Qubit
 
 from qiskit.aqua import AquaError
-from qiskit.aqua.utils.circuit_utils import is_qubit
+from .relative_phase_toffoli import rccx
 
 logger = logging.getLogger(__name__)
 
 
-def _ccx_v_chain(qc, control_qubits, target_qubit, ancillary_qubits, dirty_ancilla=False):
+def _mct_v_chain(qc, control_qubits, target_qubit, ancillary_qubits, dirty_ancilla=False):
     """
-    Create new MCT circuit by chaining ccx gates into a V shape.
+    Create new MCT circuit by chaining Toffoli gates into a V shape.
 
     The dirty_ancilla mode is from https://arxiv.org/abs/quant-ph/9503016 Lemma 7.2
+
+    All intermediate Toffoli gates are implemented up to a relative phase,
+    see https://arxiv.org/abs/1508.03273
+
+    An additional saving of 4 CNOTs is achieved
+    by using the Toffoli implementation from Section IV.B of https://arxiv.org/abs/1508.03273
     """
 
     if len(ancillary_qubits) < len(control_qubits) - 2:
@@ -39,40 +45,62 @@ def _ccx_v_chain(qc, control_qubits, target_qubit, ancillary_qubits, dirty_ancil
 
     if dirty_ancilla:
         anci_idx = len(control_qubits) - 3
-        qc.ccx(control_qubits[len(control_qubits) - 1], ancillary_qubits[anci_idx], target_qubit)
+
+        qc.u2(0, pi, target_qubit)
+        qc.cx(target_qubit, ancillary_qubits[anci_idx])
+        qc.u1(-pi/4, ancillary_qubits[anci_idx])
+        qc.cx(control_qubits[len(control_qubits) - 1], ancillary_qubits[anci_idx])
+        qc.u1(pi/4, ancillary_qubits[anci_idx])
+        qc.cx(target_qubit, ancillary_qubits[anci_idx])
+        qc.u1(-pi/4, ancillary_qubits[anci_idx])
+        qc.cx(control_qubits[len(control_qubits) - 1], ancillary_qubits[anci_idx])
+        qc.u1(pi/4, ancillary_qubits[anci_idx])
+
         for idx in reversed(range(2, len(control_qubits) - 1)):
-            qc.ccx(control_qubits[idx], ancillary_qubits[anci_idx - 1], ancillary_qubits[anci_idx])
+            qc.rccx(control_qubits[idx], ancillary_qubits[anci_idx - 1], ancillary_qubits[anci_idx])
             anci_idx -= 1
 
     anci_idx = 0
-    qc.ccx(control_qubits[0], control_qubits[1], ancillary_qubits[anci_idx])
+    qc.rccx(control_qubits[0], control_qubits[1], ancillary_qubits[anci_idx])
     for idx in range(2, len(control_qubits) - 1):
-        qc.ccx(control_qubits[idx], ancillary_qubits[anci_idx], ancillary_qubits[anci_idx + 1])
+        qc.rccx(control_qubits[idx], ancillary_qubits[anci_idx], ancillary_qubits[anci_idx + 1])
         anci_idx += 1
-    qc.ccx(control_qubits[len(control_qubits) - 1], ancillary_qubits[anci_idx], target_qubit)
+
+    if dirty_ancilla:
+        qc.u1(-pi/4, ancillary_qubits[anci_idx])
+        qc.cx(control_qubits[len(control_qubits) - 1], ancillary_qubits[anci_idx])
+        qc.u1(pi/4, ancillary_qubits[anci_idx])
+        qc.cx(target_qubit, ancillary_qubits[anci_idx])
+        qc.u1(-pi/4, ancillary_qubits[anci_idx])
+        qc.cx(control_qubits[len(control_qubits) - 1], ancillary_qubits[anci_idx])
+        qc.u1(pi/4, ancillary_qubits[anci_idx])
+        qc.cx(target_qubit, ancillary_qubits[anci_idx])
+        qc.u2(0, pi, target_qubit)
+    else:
+        qc.ccx(control_qubits[len(control_qubits) - 1], ancillary_qubits[anci_idx], target_qubit)
+
     for idx in reversed(range(2, len(control_qubits) - 1)):
-        qc.ccx(control_qubits[idx], ancillary_qubits[anci_idx - 1], ancillary_qubits[anci_idx])
+        qc.rccx(control_qubits[idx], ancillary_qubits[anci_idx - 1], ancillary_qubits[anci_idx])
         anci_idx -= 1
-    qc.ccx(control_qubits[0], control_qubits[1], ancillary_qubits[anci_idx])
+    qc.rccx(control_qubits[0], control_qubits[1], ancillary_qubits[anci_idx])
 
     if dirty_ancilla:
         anci_idx = 0
         for idx in range(2, len(control_qubits) - 1):
-            qc.ccx(control_qubits[idx], ancillary_qubits[anci_idx], ancillary_qubits[anci_idx + 1])
+            qc.rccx(control_qubits[idx], ancillary_qubits[anci_idx], ancillary_qubits[anci_idx + 1])
             anci_idx += 1
 
 
 def _cccx(qc, qrs, angle=pi / 4):
     """
-        a 3-qubit controlled-NOT.
-        An implementation based on Page 17 of Barenco et al.
-        Parameters:
-            qrs:
-                list of quantum registers. The last qubit is the target, the rest are controls
+    A 3-qubit controlled-NOT.
 
-            angle:
-                default pi/4 when x is not gate
-                set to pi/8 for square root of not
+    Implementation based on Page 17 of Barenco et al.
+
+    Args:
+        qrs: list of quantum registers. The last qubit is the target, the rest are controls
+
+        angle: default pi/4 when x is the NOT gate, set to pi/8 for square root of NOT
     """
     assert len(qrs) == 4, "There must be exactly 4 qubits of quantum registers for cccx"
 
@@ -132,11 +160,12 @@ def _cccx(qc, qrs, angle=pi / 4):
 
 def _ccccx(qc, qrs):
     """
-       a 4-qubit controlled-NOT.
-        An implementation based on Page 21 (Lemma 7.5) of Barenco et al.
-        Parameters:
-            qrs:
-                list of quantum registers. The last qubit is the target, the rest are controls
+    a 4-qubit controlled-NOT.
+
+    An implementation based on Page 21 (Lemma 7.5) of Barenco et al.
+
+    Args:
+        qrs: list of quantum registers. The last qubit is the target, the rest are controls
     """
     assert len(qrs) == 5, "There must be exactly 5 qubits for ccccx"
 
@@ -160,18 +189,15 @@ def _ccccx(qc, qrs):
 
 def _multicx(qc, qrs, qancilla=None):
     """
-        construct a circuit for multi-qubit controlled not
-        Parameters:
-            qc:
-                quantum circuit
-            qrs:
-                list of quantum registers of at least length 1
-            qancilla:
-                a quantum register. can be None if len(qrs) <= 5
+    Construct a circuit for multi-qubit controlled not
 
-        Returns:
-            qc:
-                a circuit appended with multi-qubit cnot
+    Args:
+        qc: quantum circuit
+        qrs: list of quantum registers of at least length 1
+        qancilla: a quantum register. can be None if len(qrs) <= 5
+
+    Returns:
+        qc: a circuit appended with multi-qubit cnot
     """
     if len(qrs) <= 0:
         pass
@@ -202,17 +228,14 @@ def _multicx_recursion(qc, qrs, qancilla=None):
 
 def _multicx_noancilla(qc, qrs):
     """
-        construct a circuit for multi-qubit controlled not without ancillary
-        qubits
-        Parameters:
-            qc:
-                quantum circuit
-            qrs:
-                list of quantum registers of at least length 1
+    Construct a circuit for multi-qubit controlled not without ancillary qubits
 
-        Returns:
-            qc:
-                a circuit appended with multi-qubit cnot
+    Args:
+        qc: quantum circuit
+        qrs: list of quantum registers of at least length 1
+
+    Returns:
+        qc: a circuit appended with multi-qubit cnot
     """
     if len(qrs) <= 0:
         pass
@@ -232,11 +255,13 @@ def _multicx_noancilla(qc, qrs):
 def mct(self, q_controls, q_target, q_ancilla, mode='basic'):
     """
     Apply Multiple-Control Toffoli operation
+
     Args:
-        q_controls: The list of control qubits
-        q_target: The target qubit
-        q_ancilla: The list of ancillary qubits
-        mode (string): The implementation mode to use
+        self (QuantumCircuit): The QuantumCircuit object to apply the mct gate on.
+        q_controls (QuantumRegister | list of Qubit): The list of control qubits
+        q_target (Qubit): The target qubit
+        q_ancilla (QuantumRegister | list of Qubit): The list of ancillary qubits
+        mode (str): The implementation mode to use
     """
 
     if len(q_controls) == 1:  # cx
@@ -253,7 +278,7 @@ def mct(self, q_controls, q_target, q_ancilla, mode='basic'):
             raise AquaError('MCT needs a list of qubits or a quantum register for controls.')
 
         # check target
-        if is_qubit(q_target):
+        if isinstance(q_target, Qubit):
             target_qubit = q_target
         else:
             raise AquaError('MCT needs a single qubit as target.')
@@ -274,9 +299,9 @@ def mct(self, q_controls, q_target, q_ancilla, mode='basic'):
         self._check_dups(all_qubits)
 
         if mode == 'basic':
-            _ccx_v_chain(self, control_qubits, target_qubit, ancillary_qubits, dirty_ancilla=False)
+            _mct_v_chain(self, control_qubits, target_qubit, ancillary_qubits, dirty_ancilla=False)
         elif mode == 'basic-dirty-ancilla':
-            _ccx_v_chain(self, control_qubits, target_qubit, ancillary_qubits, dirty_ancilla=True)
+            _mct_v_chain(self, control_qubits, target_qubit, ancillary_qubits, dirty_ancilla=True)
         elif mode == 'advanced':
             _multicx(self, [*control_qubits, target_qubit], ancillary_qubits[0] if ancillary_qubits else None)
         elif mode == 'noancilla':
@@ -285,10 +310,4 @@ def mct(self, q_controls, q_target, q_ancilla, mode='basic'):
             raise AquaError('Unrecognized mode for building MCT circuit: {}.'.format(mode))
 
 
-def cnx(self, *args, **kwargs):
-    logger.warning("The gate name 'cnx' will be deprecated. Please use 'mct' (Multiple-Control Toffoli) instead.")
-    return mct(self, *args, **kwargs)
-
-
 QuantumCircuit.mct = mct
-QuantumCircuit.cnx = cnx

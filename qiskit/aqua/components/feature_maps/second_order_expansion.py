@@ -46,9 +46,7 @@ class SecondOrderExpansion(PauliZExpansion):
                 'entanglement': {
                     'type': 'string',
                     'default': 'full',
-                    'oneOf': [
-                        {'enum': ['full', 'linear']}
-                    ]
+                    'enum': ['full', 'linear']
                 }
             },
             'additionalProperties': False

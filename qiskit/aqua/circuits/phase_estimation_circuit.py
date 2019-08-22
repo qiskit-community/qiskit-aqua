@@ -19,7 +19,8 @@ import numpy as np
 
 from qiskit import QuantumRegister, QuantumCircuit, ClassicalRegister
 
-from qiskit.aqua import Operator, AquaError
+from qiskit.aqua import AquaError
+from qiskit.aqua.operators import WeightedPauliOperator, suzuki_expansion_slice_pauli_list, evolution_instruction
 
 
 class PhaseEstimationCircuit:
@@ -33,7 +34,7 @@ class PhaseEstimationCircuit:
             num_ancillae=1,
             expansion_mode='trotter',
             expansion_order=1,
-            evo_time=2*np.pi,
+            evo_time=2 * np.pi,
             state_in_circuit_factory=None,
             unitary_circuit_factory=None,
             shallow_circuit_concat=False,
@@ -43,7 +44,7 @@ class PhaseEstimationCircuit:
         Constructor.
 
         Args:
-            operator (Operator): the hamiltonian Operator object
+            operator (WeightedPauliOperator): the hamiltonian Operator object
             state_in (InitialState): the InitialState pluggable component representing the initial quantum state
             iqft (IQFT): the Inverse Quantum Fourier Transform pluggable component
             num_time_slices (int): the number of time slices
@@ -66,7 +67,7 @@ class PhaseEstimationCircuit:
 
         self._operator = operator
         if operator is not None:
-            self._pauli_list = operator.get_flat_pauli_list() if pauli_list is None else pauli_list
+            self._pauli_list = operator.reorder_paulis() if pauli_list is None else pauli_list
         self._unitary_circuit_factory = unitary_circuit_factory
         self._state_in = state_in
         self._state_in_circuit_factory = state_in_circuit_factory
@@ -163,7 +164,7 @@ class PhaseEstimationCircuit:
                     if self._expansion_mode == 'trotter':
                         slice_pauli_list = self._pauli_list
                     elif self._expansion_mode == 'suzuki':
-                        slice_pauli_list = Operator._suzuki_expansion_slice_pauli_list(
+                        slice_pauli_list = suzuki_expansion_slice_pauli_list(
                             self._pauli_list,
                             1,
                             self._expansion_order
@@ -171,17 +172,21 @@ class PhaseEstimationCircuit:
                     else:
                         raise ValueError('Unrecognized expansion mode {}.'.format(self._expansion_mode))
                 for i in range(self._num_ancillae):
-                    qc_evolutions = Operator.construct_evolution_circuit(
+
+                    qc_evolutions_inst = evolution_instruction(
                         slice_pauli_list, -self._evo_time,
-                        self._num_time_slices, q, a, ctl_idx=i,
-                        shallow_slicing=self._shallow_circuit_concat
-                    )
+                        self._num_time_slices, controlled=True, power=(2 ** i),
+                        shallow_slicing=self._shallow_circuit_concat)
                     if self._shallow_circuit_concat:
-                        qc.data += qc_evolutions.data
+                        qc_evolutions = QuantumCircuit(q, a)
+                        qc_evolutions.append(qc_evolutions_inst, qargs=[x for x in q] + [a[i]])
+                        qc.data += qc_evolutions.decompose().data
                     else:
-                        qc += qc_evolutions
+                        qc.append(qc_evolutions_inst, qargs=[x for x in q] + [a[i]])
+                        qc = qc.decompose()
                     # global phase shift for the ancilla due to the identity pauli term
                     qc.u1(self._evo_time * self._ancilla_phase_coef * (2 ** i), a[i])
+
             elif self._unitary_circuit_factory is not None:
                 for i in range(self._num_ancillae):
                     self._unitary_circuit_factory.build_controlled_power(qc, q, a[i], 2 ** i, aux)
@@ -196,7 +201,6 @@ class PhaseEstimationCircuit:
                 qc.measure(a, c_ancilla)
 
             self._circuit = qc
-
         return self._circuit
 
     @property

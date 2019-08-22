@@ -107,7 +107,7 @@ class VQAlgorithm(QuantumAlgorithm):
                 initial_point = self.random.uniform(low, high)
 
         start = time.time()
-        if not optimizer.is_gradient_supported: # ignore the passed gradient function
+        if not optimizer.is_gradient_supported:  # ignore the passed gradient function
             gradient_fn = None
 
         logger.info('Starting optimizer.\nbounds={}\ninitial point={}'.format(bounds, initial_point))

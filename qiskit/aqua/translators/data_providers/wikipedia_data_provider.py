@@ -41,26 +41,20 @@ class WikipediaDataProvider(BaseDataProvider):
                 "stockmarket": {
                     "type":
                     "string",
-                    "default":
-                    StockMarket.NASDAQ.value,
-                    "oneOf": [{
-                        "enum": [
-                            StockMarket.NASDAQ.value,
-                            StockMarket.NYSE.value,
-                        ]
-                    }]
+                    "default": StockMarket.NASDAQ.value,
+                    "enum": [
+                        StockMarket.NASDAQ.value,
+                        StockMarket.NYSE.value,
+                    ]
                 },
                 "datatype": {
                     "type":
                     "string",
-                    "default":
-                    DataType.DAILYADJUSTED.value,
-                    "oneOf": [{
-                        "enum": [
-                            DataType.DAILYADJUSTED.value,
-                            DataType.DAILY.value,
-                        ]
-                    }]
+                    "default": DataType.DAILYADJUSTED.value,
+                    "enum": [
+                        DataType.DAILYADJUSTED.value,
+                        DataType.DAILY.value,
+                    ]
                 },
             },
         }
@@ -79,7 +73,7 @@ class WikipediaDataProvider(BaseDataProvider):
             tickers (str or list): tickers
             stockmarket (StockMarket): NASDAQ, NYSE
         """
-        #if not isinstance(atoms, list) and not isinstance(atoms, str):
+        # if not isinstance(atoms, list) and not isinstance(atoms, str):
         #    raise QiskitFinanceError("Invalid atom input for Wikipedia Driver '{}'".format(atoms))
         super().__init__()
 
@@ -113,9 +107,9 @@ class WikipediaDataProvider(BaseDataProvider):
             spec = importlib.util.find_spec('quandl')
             if spec is not None:
                 return
-        except Exception as e:
-            logger.debug('quandl check error {}'.format(str(e)))
-            raise QiskitFinanceError(err_msg) from e
+        except Exception as ex:  # pylint: disable=broad-except
+            logger.debug('quandl check error {}'.format(str(ex)))
+            raise QiskitFinanceError(err_msg) from ex
 
         raise QiskitFinanceError(err_msg)
 
@@ -136,7 +130,7 @@ class WikipediaDataProvider(BaseDataProvider):
 
         params = section
         kwargs = {}
-        #for k, v in params.items():
+        # for k, v in params.items():
         #    if k == ExchangeDataDriver. ...: v = UnitsType(v)
         #    kwargs[k] = v
         logger.debug('init_from_input: {}'.format(kwargs))
@@ -145,7 +139,8 @@ class WikipediaDataProvider(BaseDataProvider):
     def run(self):
         """ Loads data, thus enabling get_similarity_matrix and get_covariance_matrix methods in the base class. """
         self.check_provider_valid()
-        if self._token: quandl.ApiConfig.api_key = self._token
+        if self._token:
+            quandl.ApiConfig.api_key = self._token
         quandl.ApiConfig.api_version = '2015-04-09'
         self._data = []
         for (cnt, s) in enumerate(self._tickers):
@@ -153,14 +148,15 @@ class WikipediaDataProvider(BaseDataProvider):
                 d = quandl.get("WIKI/" + s,
                                start_date=self._start,
                                end_date=self._end)
-            except NotFoundError as e:
+            except NotFoundError as ex:
                 raise QiskitFinanceError(
                     "Cannot retrieve Wikipedia data due to an invalid token."
-                ) from e
-            except Exception as e:  # The exception will be urllib3 NewConnectionError, but it can get dressed by quandl
+                ) from ex
+            # The exception will be urllib3 NewConnectionError, but it can get dressed by quandl
+            except Exception as ex:  # pylint: disable=broad-except
                 raise QiskitFinanceError(
-                    "Cannot retrieve Wikipedia data.") from e
+                    "Cannot retrieve Wikipedia data.") from ex
             try:
                 self._data.append(d["Adj. Close"])
-            except KeyError as e:
-                raise QiskitFinanceError("Cannot parse quandl output.") from e
+            except KeyError as ex:
+                raise QiskitFinanceError("Cannot parse quandl output.") from ex

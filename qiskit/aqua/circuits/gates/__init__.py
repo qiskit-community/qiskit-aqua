@@ -13,21 +13,23 @@
 # that they have been altered from the originals.
 
 from .multi_control_u1_gate import mcu1
-from .multi_control_u3_gate import mcu3
+from .multi_control_rotation_gates import mcrx, mcry, mcrz
 from .multi_control_toffoli_gate import mct
 from .multi_control_multi_target_gate import mcmt
 from .boolean_logical_gates import logical_and, logical_or
-from .controlled_hadamard_gate import ch
-from .controlled_ry_gates import cry, mcry
+from .controlled_ry_gate import cry
+from .relative_phase_toffoli import rccx, rcccx
 
 __all__ = [
     'mcu1',
-    'mcu3',
+    'mcrx',
+    'mcry',
+    'mcrz',
     'mct',
     'mcmt',
     'logical_and',
     'logical_or',
-    'ch',
     'cry',
-    'mcry',
+    'rccx',
+    'rcccx'
 ]

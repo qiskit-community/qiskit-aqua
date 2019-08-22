@@ -16,4 +16,3 @@
 from .qgan import QGAN
 
 __all__ = ['QGAN']
-

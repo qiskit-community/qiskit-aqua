@@ -16,18 +16,16 @@ This module contains the definition of a base class for
 feature map. Several types of commonly used approaches.
 """
 
-from collections import OrderedDict
-import copy
 import itertools
 import logging
+import warnings
 
 import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.quantum_info import Pauli
 from qiskit.qasm import pi
-from sympy.core.numbers import NaN, Float
 
-from qiskit.aqua import Operator
+from qiskit.aqua.operators import evolution_instruction
 from qiskit.aqua.components.feature_maps import FeatureMap, self_product
 
 logger = logging.getLogger(__name__)
@@ -59,9 +57,7 @@ class PauliExpansion(FeatureMap):
                 'entanglement': {
                     'type': 'string',
                     'default': 'full',
-                    'oneOf': [
-                        {'enum': ['full', 'linear']}
-                    ]
+                    'enum': ['full', 'linear']
                 },
                 'paulis': {
                     'type': ['array'],
@@ -103,10 +99,6 @@ class PauliExpansion(FeatureMap):
         self._pauli_strings = self._build_subset_paulis_string(paulis)
         self._data_map_func = data_map_func
 
-        self._magic_num = np.nan
-        self._param_pos = OrderedDict()
-        self._circuit_template = self._build_circuit_template()
-
     def _build_subset_paulis_string(self, paulis):
         # fill out the paulis to the number of qubits
         temp_paulis = []
@@ -137,50 +129,28 @@ class PauliExpansion(FeatureMap):
         logger.info("Pauli terms include: {}".format(final_paulis))
         return final_paulis
 
-    def _build_circuit_template(self):
-        x = np.asarray([self._magic_num] * self._num_qubits)
-        qr = QuantumRegister(self._num_qubits, name='q')
-        qc = self.construct_circuit(x, qr)
-
-        for index in range(len(qc.data)):
-            gate_param = qc.data[index][0].params
-            param_sub_pos = []
-            for x in range(len(gate_param)):
-                if isinstance(gate_param[x], NaN):
-                    param_sub_pos.append(x)
-            if param_sub_pos != []:
-                self._param_pos[index] = param_sub_pos
-        return qc
-
     def _extract_data_for_rotation(self, pauli, x):
         where_non_i = np.where(np.asarray(list(pauli[::-1])) != 'I')[0]
         return x[where_non_i]
 
-    def _construct_circuit_with_template(self, x):
-        coeffs = [self._data_map_func(self._extract_data_for_rotation(pauli, x))
-                  for pauli in self._pauli_strings] * self._depth
-        qc = copy.deepcopy(self._circuit_template)
-        data_idx = 0
-        for key, value in self._param_pos.items():
-            new_param = coeffs[data_idx]
-            for pos in value:
-                qc.data[key].params[pos] = Float(2. * new_param)  # rotation angle is 2x
-            data_idx += 1
-        return qc
-
-    def construct_circuit(self, x, qr=None, inverse=False):
+    def construct_circuit(self, x, qr=None, inverse=None):
         """
         Construct the second order expansion based on given data.
 
         Args:
             x (numpy.ndarray): 1-D to-be-transformed data.
-            qr (QauntumRegister): the QuantumRegister object for the circuit, if None,
+            qr (QauntumRegister, optional): the QuantumRegister object for the circuit, if None,
                                   generate new registers with name q.
-            inverse (bool): whether or not inverse the circuit
+            inverse (bool, optional): whether or not inverse the circuit
 
         Returns:
             QuantumCircuit: a quantum circuit transform data x.
         """
+
+        if inverse is not None:
+            warnings.warn("inverse option is deprecated and it will be removed after 0.6, "
+                          "Since terra supports to inverse the circuit by calling qc.inverses()", DeprecationWarning)
+
         if not isinstance(x, np.ndarray):
             raise TypeError("x must be numpy array.")
         if x.ndim != 1:
@@ -189,18 +159,20 @@ class PauliExpansion(FeatureMap):
             raise ValueError("number of qubits and data dimension must be the same.")
 
         if qr is None:
-            qc = self._construct_circuit_with_template(x)
-        else:
-            qc = QuantumCircuit(qr)
-            for _ in range(self._depth):
-                for i in range(self._num_qubits):
-                    qc.u2(0, pi, qr[i])
-                for pauli in self._pauli_strings:
-                    coeff = self._data_map_func(self._extract_data_for_rotation(pauli, x))
-                    p = Pauli.from_label(pauli)
-                    qc += Operator.construct_evolution_circuit([[coeff, p]], 1, 1, qr)
+            qr = QuantumRegister(self._num_qubits, name='q')
 
-        if inverse:
+        qc = QuantumCircuit(qr)
+        for _ in range(self._depth):
+            for i in range(self._num_qubits):
+                qc.u2(0, pi, qr[i])
+            for pauli in self._pauli_strings:
+                coeff = self._data_map_func(self._extract_data_for_rotation(pauli, x))
+                p = Pauli.from_label(pauli)
+
+                inst = evolution_instruction([[coeff, p]], 1, 1)
+                qc.append(inst, qr)
+                qc = qc.decompose()
+        if inverse is not None and inverse:
             qc = qc.inverse()
 
         return qc

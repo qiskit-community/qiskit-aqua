@@ -16,9 +16,12 @@ The Quantum Dynamics algorithm.
 """
 
 import logging
+import warnings
 
 from qiskit import QuantumRegister
+
 from qiskit.aqua.algorithms import QuantumAlgorithm
+from qiskit.aqua.operators import op_converter
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 
 logger = logging.getLogger(__name__)
@@ -44,14 +47,13 @@ class EOH(QuantumAlgorithm):
             'type': 'object',
             'properties': {
                 PROP_OPERATOR_MODE: {
-                    'type': 'string',
-                    'default': 'paulis',
-                    'oneOf': [
-                        {'enum': [
-                            'paulis',
-                            'grouped_paulis',
-                            'matrix'
-                        ]}
+                    'type': ['string', 'null'],
+                    'default': None,
+                    'enum': [
+                        'paulis',
+                        'grouped_paulis',
+                        'matrix',
+                        None
                     ]
                 },
                 PROP_EVO_TIME: {
@@ -67,11 +69,9 @@ class EOH(QuantumAlgorithm):
                 PROP_EXPANSION_MODE: {
                     'type': 'string',
                     'default': 'trotter',
-                    'oneOf': [
-                        {'enum': [
-                            'trotter',
-                            'suzuki'
-                        ]}
+                    'enum': [
+                        'trotter',
+                        'suzuki'
                     ]
                 },
                 PROP_EXPANSION_ORDER: {
@@ -92,14 +92,16 @@ class EOH(QuantumAlgorithm):
         ],
     }
 
-    def __init__(self, operator, initial_state, evo_operator, operator_mode='paulis', evo_time=1, num_time_slices=1,
+    def __init__(self, operator, initial_state, evo_operator, operator_mode=None, evo_time=1, num_time_slices=1,
                  expansion_mode='trotter', expansion_order=1):
         self.validate(locals())
         super().__init__()
-        self._operator = operator
-        self._operator_mode = operator_mode
+        if operator_mode is not None:
+            warnings.warn("operator_mode option is deprecated and it will be removed after 0.6. "
+                          "Now the operator has its own mode, no need extra info to tell the EOH.", DeprecationWarning)
+        self._operator = op_converter.to_weighted_pauli_operator(operator)
         self._initial_state = initial_state
-        self._evo_operator = evo_operator
+        self._evo_operator = op_converter.to_weighted_pauli_operator(evo_operator)
         self._evo_time = evo_time
         self._num_time_slices = num_time_slices
         self._expansion_mode = expansion_mode
@@ -127,7 +129,6 @@ class EOH(QuantumAlgorithm):
             raise AquaError("EnergyInput, invalid aux op.")
 
         dynamics_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
-        operator_mode = dynamics_params.get(EOH.PROP_OPERATOR_MODE)
         evo_time = dynamics_params.get(EOH.PROP_EVO_TIME)
         num_time_slices = dynamics_params.get(EOH.PROP_NUM_TIME_SLICES)
         expansion_mode = dynamics_params.get(EOH.PROP_EXPANSION_MODE)
@@ -139,8 +140,8 @@ class EOH(QuantumAlgorithm):
         initial_state = get_pluggable_class(PluggableType.INITIAL_STATE,
                                             initial_state_params['name']).init_params(params)
 
-        return cls(operator, initial_state, evo_operator, operator_mode, evo_time, num_time_slices,
-                   expansion_mode=expansion_mode,
+        return cls(operator, initial_state, evo_operator, evo_time=evo_time,
+                   num_time_slices=num_time_slices, expansion_mode=expansion_mode,
                    expansion_order=expansion_order)
 
     def construct_circuit(self):
@@ -155,7 +156,6 @@ class EOH(QuantumAlgorithm):
 
         qc += self._evo_operator.evolve(
             evo_time=self._evo_time,
-            evo_mode='circuit',
             num_time_slices=self._num_time_slices,
             quantum_registers=quantum_registers,
             expansion_mode=self._expansion_mode,
@@ -167,10 +167,8 @@ class EOH(QuantumAlgorithm):
     def _run(self):
         qc = self.construct_circuit()
         qc_with_op = self._operator.construct_evaluation_circuit(
-            self._operator_mode, qc, self._quantum_instance.backend
-        )
+            wave_function=qc, statevector_mode=self._quantum_instance.is_statevector)
         result = self._quantum_instance.execute(qc_with_op)
         self._ret['avg'], self._ret['std_dev'] = self._operator.evaluate_with_result(
-            self._operator_mode, qc_with_op, self._quantum_instance.backend, result
-        )
+             result=result, statevector_mode=self._quantum_instance.is_statevector)
         return self._ret

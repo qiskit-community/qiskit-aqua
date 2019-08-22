@@ -42,28 +42,22 @@ class DataOnDemandProvider(BaseDataProvider):
                 "stockmarket": {
                     "type":
                     "string",
-                    "default":
-                    StockMarket.NASDAQ.value,
-                    "oneOf": [{
-                        "enum": [
-                            StockMarket.NASDAQ.value,
-                            StockMarket.NYSE.value,
-                        ]
-                    }]
+                    "default": StockMarket.NASDAQ.value,
+                    "enum": [
+                        StockMarket.NASDAQ.value,
+                        StockMarket.NYSE.value,
+                    ]
                 },
                 "datatype": {
                     "type":
                     "string",
-                    "default":
-                    DataType.DAILYADJUSTED.value,
-                    "oneOf": [{
-                        "enum": [
-                            DataType.DAILYADJUSTED.value,
-                            DataType.DAILY.value,
-                            DataType.BID.value,
-                            DataType.ASK.value,
-                        ]
-                    }]
+                    "default": DataType.DAILYADJUSTED.value,
+                    "enum": [
+                        DataType.DAILYADJUSTED.value,
+                        DataType.DAILY.value,
+                        DataType.BID.value,
+                        DataType.ASK.value,
+                    ]
                 },
             },
         }
@@ -114,7 +108,7 @@ class DataOnDemandProvider(BaseDataProvider):
         self._end = end
         self._verify = verify
 
-        #self.validate(locals())
+        # self.validate(locals())
 
     @staticmethod
     def check_provider_valid():
@@ -137,7 +131,7 @@ class DataOnDemandProvider(BaseDataProvider):
 
         params = section
         kwargs = {}
-        #for k, v in params.items():
+        # for k, v in params.items():
         #    if k == ExchangeDataDriver. ...: v = UnitsType(v)
         #    kwargs[k] = v
         logger.debug('init_from_input: {}'.format(kwargs))
@@ -179,7 +173,7 @@ class DataOnDemandProvider(BaseDataProvider):
                 for q in quotes:
                     priceEvolution.append(q["ask_price"])
                 self._data.append(priceEvolution)
-            except Exception as e:
+            except Exception as ex:  # pylint: disable=broad-except
                 raise QiskitFinanceError(
-                    'Accessing NASDAQ Data on Demand failed.') from e
+                    'Accessing NASDAQ Data on Demand failed.') from ex
             http.clear()

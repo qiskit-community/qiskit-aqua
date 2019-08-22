@@ -22,8 +22,10 @@ import numpy as np
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.quantum_info import Pauli
 
-from qiskit.aqua import Operator, AquaError
+from qiskit.aqua import AquaError
 from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
+from qiskit.aqua.operators import (WeightedPauliOperator, suzuki_expansion_slice_pauli_list,
+                                   evolution_instruction, op_converter)
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
 
@@ -59,11 +61,9 @@ class IQPE(QuantumAlgorithm):
                 PROP_EXPANSION_MODE: {
                     'type': 'string',
                     'default': 'suzuki',
-                    'oneOf': [
-                        {'enum': [
-                            'suzuki',
-                            'trotter'
-                        ]}
+                    'enum': [
+                        'suzuki',
+                        'trotter'
                     ]
                 },
                 PROP_EXPANSION_ORDER: {
@@ -96,7 +96,7 @@ class IQPE(QuantumAlgorithm):
         Constructor.
 
         Args:
-            operator (Operator): the hamiltonian Operator object
+            operator (BaseOperator): the hamiltonian Operator object
             state_in (InitialState): the InitialState pluggable component representing the initial quantum state
             num_time_slices (int): the number of time slices
             num_iterations (int): the number of iterations
@@ -106,7 +106,7 @@ class IQPE(QuantumAlgorithm):
         """
         self.validate(locals())
         super().__init__()
-        self._operator = operator
+        self._operator = op_converter.to_weighted_pauli_operator(operator)
         self._state_in = state_in
         self._num_time_slices = num_time_slices
         self._num_iterations = num_iterations
@@ -150,13 +150,12 @@ class IQPE(QuantumAlgorithm):
                    expansion_order=expansion_order)
 
     def _setup(self):
-        self._pauli_list = self._operator.get_flat_pauli_list()
-        self._ret['translation'] = sum([abs(p[0]) for p in self._pauli_list])
+        self._ret['translation'] = sum([abs(p[0]) for p in self._operator.reorder_paulis()])
         self._ret['stretch'] = 0.5 / self._ret['translation']
 
         # translate the operator
-        self._operator._simplify_paulis()
-        translation_op = Operator([
+        self._operator.simplify()
+        translation_op = WeightedPauliOperator([
             [
                 self._ret['translation'],
                 Pauli(
@@ -165,8 +164,10 @@ class IQPE(QuantumAlgorithm):
                 )
             ]
         ])
-        translation_op._simplify_paulis()
+        translation_op.simplify()
         self._operator += translation_op
+
+        self._pauli_list = self._operator.reorder_paulis()
 
         # stretch the operator
         for p in self._pauli_list:
@@ -178,7 +179,7 @@ class IQPE(QuantumAlgorithm):
             if self._expansion_mode == 'trotter':
                 slice_pauli_list = self._pauli_list
             else:
-                slice_pauli_list = Operator._suzuki_expansion_slice_pauli_list(self._pauli_list, 1, self._expansion_order)
+                slice_pauli_list = suzuki_expansion_slice_pauli_list(self._pauli_list, 1, self._expansion_order)
         self._slice_pauli_list = slice_pauli_list
 
     def construct_circuit(self, k=None, omega=0, measurement=False):
@@ -205,14 +206,15 @@ class IQPE(QuantumAlgorithm):
         qc.add_register(a)
         qc.u2(0, np.pi, a[0])
         # controlled-U
-        qc_evolutions = Operator.construct_evolution_circuit(
-            self._slice_pauli_list, -2 * np.pi, self._num_time_slices, q, a, unitary_power=2 ** (k - 1),
-            shallow_slicing=self._shallow_circuit_concat
-        )
+        qc_evolutions_inst = evolution_instruction(self._slice_pauli_list, -2 * np.pi, self._num_time_slices,
+                                                   controlled=True, power=2 ** (k - 1),
+                                                   shallow_slicing=self._shallow_circuit_concat)
         if self._shallow_circuit_concat:
+            qc_evolutions = QuantumCircuit(q, a)
+            qc_evolutions.append(qc_evolutions_inst, [x for x in q] + [a[0]])
             qc.data += qc_evolutions.data
         else:
-            qc += qc_evolutions
+            qc.append(qc_evolutions_inst, [x for x in q] + [a[0]])
         # global phase due to identity pauli
         qc.u1(2 * np.pi * self._ancilla_phase_coef * (2 ** (k - 1)), a[0])
         # rz on a[0]
@@ -267,7 +269,7 @@ class IQPE(QuantumAlgorithm):
     def _compute_energy(self):
         # check for identify paulis to get its coef for applying global phase shift on ancilla later
         num_identities = 0
-        self._pauli_list = self._operator.get_flat_pauli_list()
+        self._pauli_list = self._operator.reorder_paulis()
         for p in self._pauli_list:
             if np.all(np.logical_not(p[1].z)) and np.all(np.logical_not(p[1].x)):
                 num_identities += 1

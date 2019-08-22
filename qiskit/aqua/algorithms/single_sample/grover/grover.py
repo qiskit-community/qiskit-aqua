@@ -66,15 +66,11 @@ class Grover(QuantumAlgorithm):
                 PROP_MCT_MODE: {
                     'type': 'string',
                     'default': 'basic',
-                    'oneOf': [
-                        {
-                            'enum': [
-                                'basic',
-                                'basic-dirty-ancilla',
-                                'advanced',
-                                'noancilla',
-                            ]
-                        }
+                    'enum': [
+                        'basic',
+                        'basic-dirty-ancilla',
+                        'advanced',
+                        'noancilla',
                     ]
                 },
             },

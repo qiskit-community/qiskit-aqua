@@ -62,9 +62,9 @@ class QiskitAquaGlobals(object):
         # TODO: change Terra CPU_COUNT until issue gets resolved: https://github.com/Qiskit/qiskit-terra/issues/1963
         try:
             qiskit.tools.parallel.CPU_COUNT = self.num_processes
-        except Exception as e:
+        except Exception as ex:  # pylint: disable=broad-except
             logger.warning("Failed to set qiskit.tools.parallel.CPU_COUNT to value: '{}': Error: '{}'".
-                           format(self.num_processes, str(e)))
+                           format(self.num_processes, str(ex)))
 
     @property
     def random(self):

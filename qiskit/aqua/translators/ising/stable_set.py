@@ -26,7 +26,7 @@ import numpy as np
 import numpy.random as rand
 from qiskit.quantum_info import Pauli
 
-from qiskit.aqua import Operator
+from qiskit.aqua.operators import WeightedPauliOperator
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +68,7 @@ def get_stable_set_qubitops(w):
         w (numpy.ndarray) : adjacency matrix.
 
     Returns:
-        operator.Operator, float: operator for the Hamiltonian and a
+        WeightedPauliOperatorOperator, float: operator for the Hamiltonian and a
         constant shift for the obj function.
 
     """
@@ -90,7 +90,7 @@ def get_stable_set_qubitops(w):
         zp = np.zeros(num_nodes, dtype=np.bool)
         zp[i] = True
         pauli_list.append([degree - 1/2, Pauli(zp, xp)])
-    return Operator(paulis=pauli_list), shift - num_nodes/2
+    return WeightedPauliOperator(paulis=pauli_list), shift - num_nodes/2
 
 
 def parse_gset_format(filename):
@@ -123,6 +123,7 @@ def parse_gset_format(filename):
     w += w.T
     return w
 
+
 def stable_set_value(x, w):
     """Compute the value of a stable set, and its feasibility.
 
@@ -145,6 +146,7 @@ def stable_set_value(x, w):
                 break
     return len(x) - np.sum(x), feasible
 
+
 def get_graph_solution(x):
     """Get graph solution from binary string.
 
@@ -155,6 +157,7 @@ def get_graph_solution(x):
         numpy.ndarray: graph solution as binary numpy array.
     """
     return 1 - x
+
 
 def sample_most_likely(state_vector):
     """Compute the most likely binary string from state vector.

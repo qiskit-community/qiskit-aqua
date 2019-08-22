@@ -1,7 +1,22 @@
-#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# This code is part of Qiskit.
+#
+# (C) Copyright IBM 2018, 2019.
+#
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
+#
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
+
 
 import numpy as np
 import scipy
+import scipy.sparse
+import scipy.stats
 
 from qiskit.aqua.utils import tensorproduct
 
@@ -23,7 +38,7 @@ def random_h1_body(N):
         raise ValueError('The number of spin-orbitals must be even but {}'.format(N))
     h1 = np.ones((N // 2, N // 2)) - 2 * np.random.random((N // 2, N // 2))
     h1 = np.triu(tensorproduct(Pup, h1) + tensorproduct(Pdown, h1))
-    h1 = (h1 + h1.T) / 2.0
+    h1 = (h1 + h1.T) / 2.0  # pylint: disable=no-member
     return h1
 
 
@@ -65,7 +80,7 @@ def random_h2_body(N, M):
             max_nonzero_elements += 4 * 3 * 8 * scipy.special.comb(N//2, 3)
         if N / 2 >= 4:
             max_nonzero_elements += 4 * scipy.special.factorial(N//2) / scipy.special.factorial(N//2-4)
-        #print('Max number of non-zero elements for {} spin-orbitals is: {}'.format(N, max_nonzero_elements))
+        # print('Max number of non-zero elements for {} spin-orbitals is: {}'.format(N, max_nonzero_elements))
 
     if M > max_nonzero_elements:
         assert 0, 'Too many non-zero elements required, given the molecular symmetries. \n\
@@ -189,20 +204,20 @@ def limit_paulis(mat, n=5, sparsity=None):
     Returns:
         scipy.sparse.csr_matrix
     """
-    from qiskit.aqua import Operator
+    from qiskit.aqua.operators import MatrixOperator
+    from qiskit.aqua.operators.op_converter import to_weighted_pauli_operator
     # Bringing matrix into form 2**Nx2**N
-    l = mat.shape[0]
-    if np.log2(l) % 1 != 0:
-        k = int(2**np.ceil(np.log2(l)))
+    _l = mat.shape[0]
+    if np.log2(_l) % 1 != 0:
+        k = int(2**np.ceil(np.log2(_l)))
         m = np.zeros([k, k], dtype=np.complex128)
-        m[:l, :l] = mat
-        m[l:, l:] = np.identity(k-l)
+        m[:_l, :_l] = mat
+        m[_l:, _l:] = np.identity(k-_l)
         mat = m
 
     # Getting Pauli matrices
-    op = Operator(matrix=mat)
-    op._check_representation("paulis")
-    op._simplify_paulis()
+    op = MatrixOperator(matrix=mat)
+    op = to_weighted_pauli_operator(op)
     paulis = sorted(op.paulis, key=lambda x: abs(x[0]), reverse=True)
     g = 2**op.num_qubits
     mat = scipy.sparse.csr_matrix(([], ([], [])), shape=(g, g),
@@ -214,12 +229,12 @@ def limit_paulis(mat, n=5, sparsity=None):
             mat += pa[0]*pa[1].to_spmatrix()
     else:
         idx = 0
-        while mat[:l, :l].nnz/l**2 < sparsity:
+        while mat[:_l, :_l].nnz/_l**2 < sparsity:
             mat += paulis[idx][0]*paulis[idx][1].to_spmatrix()
             idx += 1
         n = idx
     mat = mat.toarray()
-    return mat[:l, :l]
+    return mat[:_l, :_l]
 
 
 def random_hermitian(N, eigs=None, K=None, eigrange=[0, 1], sparsity=None,

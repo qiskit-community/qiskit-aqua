@@ -14,10 +14,12 @@
 
 import numpy as np
 from qiskit import QuantumRegister
-from qiskit.aqua import Operator, AquaError
+
+from qiskit.aqua import AquaError
 from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.components.eigs import Eigenvalues
 from qiskit.aqua.circuits import PhaseEstimationCircuit
+from qiskit.aqua.operators import MatrixOperator, op_converter
 
 
 class EigsQPE(Eigenvalues):
@@ -45,11 +47,9 @@ class EigsQPE(Eigenvalues):
                 'expansion_mode': {
                     'type': 'string',
                     'default': 'trotter',
-                    'oneOf': [
-                        {'enum': [
-                            'suzuki',
-                            'trotter'
-                        ]}
+                    'enum': [
+                        'suzuki',
+                        'trotter'
                     ]
                 },
                 'expansion_order': {
@@ -100,7 +100,7 @@ class EigsQPE(Eigenvalues):
         """Constructor.
 
         Args:
-            operator (Operator): the hamiltonian Operator object
+            operator (BaseOperator): the hamiltonian Operator object
             iqft (IQFT): the Inverse Quantum Fourier Transform pluggable component
             num_time_slices (int, optional): the number of time slices
             num_ancillae (int, optional): the number of ancillary qubits to use for the measurement
@@ -112,7 +112,7 @@ class EigsQPE(Eigenvalues):
         """
         super().__init__()
         super().validate(locals())
-        self._operator = operator
+        self._operator = op_converter.to_weighted_pauli_operator(operator)
         self._iqft = iqft
         self._num_ancillae = num_ancillae
         self._num_time_slices = num_time_slices
@@ -148,7 +148,7 @@ class EigsQPE(Eigenvalues):
             num_ancillae += 1
             args['num_ancillae'] = num_ancillae
 
-        args['operator'] = Operator(matrix=matrix)
+        args['operator'] = MatrixOperator(matrix=matrix)
 
         # Set up iqft, we need to add num qubits to params which is our num_ancillae bits here
         iqft_params = params.get(Pluggable.SECTION_KEY_IQFT)
@@ -178,9 +178,7 @@ class EigsQPE(Eigenvalues):
 
     def _init_constants(self):
         # estimate evolution time
-        self._operator._check_representation('paulis')
-        paulis = self._operator.paulis
-        if self._evo_time == None:
+        if self._evo_time is None:
             lmax = sum([abs(p[0]) for p in self._operator.paulis])
             if not self._negative_evals:
                 self._evo_time = (1-2**-self._num_ancillae)*2*np.pi/lmax
@@ -206,7 +204,7 @@ class EigsQPE(Eigenvalues):
         """ Construct the eigenvalues estimation using the PhaseEstimationCircuit
 
         Args:
-            mode (str): consctruction mode, 'matrix' not supported
+            mode (str): construction mode, 'matrix' not supported
             register (QuantumRegister): the register to use for the quantum state
 
         Returns:
