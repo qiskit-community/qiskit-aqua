@@ -171,7 +171,7 @@ class PauliExpansion(FeatureMap):
 
                 inst = evolution_instruction([[coeff, p]], 1, 1)
                 qc.append(inst, qr)
-
+                qc = qc.decompose()
         if inverse is not None and inverse:
             qc = qc.inverse()
 
