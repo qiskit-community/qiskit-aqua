@@ -19,7 +19,6 @@ import logging
 import numpy as np
 
 from qiskit import QuantumRegister, QuantumCircuit
-
 from qiskit.aqua.components.reciprocals import Reciprocal
 from qiskit.aqua.circuits.gates import mct
 
@@ -115,6 +114,7 @@ class LookupRotation(Reciprocal):
         vec = statevector[half:half + 2 ** num_q]
         return vec
 
+    @staticmethod
     def _classic_approx(k, n, m, negative_evals=False):
         """Approximate arcsin(1/x) for controlled-rotation.
 
@@ -383,13 +383,13 @@ class LookupRotation(Reciprocal):
 
                     # rotation is happening here
                     # 1. rotate by half angle
-                    qc.mcu3(theta / 2, 0, 0, [self._workq[0], self._msq[0]],
-                            self._anc[0])
+                    qc.mcry(theta / 2, [self._workq[0], self._msq[0]],
+                            self._anc[0], None, mode='noancilla')
                     # 2. mct gate to reverse rotation direction
                     self._set_bit_pattern(subpattern, self._anc[0], offset)
                     # 3. rotate by inverse of halfangle to uncompute / complete
-                    qc.mcu3(-theta / 2, 0, 0, [self._workq[0], self._msq[0]],
-                            self._anc[0])
+                    qc.mcry(-theta / 2, [self._workq[0], self._msq[0]],
+                            self._anc[0], None, mode='noancilla')
                     # 4. mct gate to uncompute first mct gate
                     self._set_bit_pattern(subpattern, self._anc[0], offset)
                 # uncompute m-bit pattern

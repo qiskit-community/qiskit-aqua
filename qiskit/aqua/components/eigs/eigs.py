@@ -15,7 +15,7 @@
 This module contains the definition of a base class for eigenvalue estimators.
 """
 from qiskit.aqua import Pluggable
-from qiskit import QuantumCircuit
+from qiskit import QuantumCircuit, QuantumRegister
 from abc import abstractmethod
 
 
@@ -28,7 +28,7 @@ class Eigenvalues(Pluggable):
     Args:
         params (dict): configuration dictionary
     """
-    
+
     @abstractmethod
     def __init__(self):
         super().__init__()
@@ -38,7 +38,7 @@ class Eigenvalues(Pluggable):
         eigs_params = params.get(Pluggable.SECTION_KEY_EIGS)
         args = {k: v for k, v in eigs_params.items() if k != 'name'}
         return cls(**args)
-    
+
     @abstractmethod
     def get_register_sizes(self):
         raise NotImplementedError()
@@ -65,7 +65,7 @@ class Eigenvalues(Pluggable):
         """Construct the inverse eigenvalue estimation quantum circuit.
 
         Args:
-            mode (str): consctruction mode, 'matrix' not supported
+            mode (str): construction mode, 'matrix' not supported
             circuit (QuantumCircuit): the quantum circuit to invert
 
         Returns:

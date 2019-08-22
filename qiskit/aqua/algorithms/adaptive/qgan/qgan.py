@@ -24,6 +24,7 @@ from qiskit.aqua import AquaError, aqua_globals
 from qiskit.aqua import Pluggable, get_pluggable_class, PluggableType
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.components.neural_networks.quantum_generator import QuantumGenerator
+from qiskit.aqua.components.neural_networks.numpy_discriminator import NumpyDiscriminator
 
 
 logger = logging.getLogger(__name__)
@@ -48,7 +49,8 @@ class QGAN(QuantumAlgorithm):
                 },
                 'batch_size': {
                     'type': 'integer',
-                    'default': 500
+                    'default': 500,
+                    'minimum': 1
                 },
                 'num_epochs': {
                     'type': 'integer',
@@ -80,7 +82,7 @@ class QGAN(QuantumAlgorithm):
             {
                 'pluggable_type': 'discriminative_network',
                 'default': {
-                    'name': 'ClassicalDiscriminator'
+                    'name': 'NumpyDiscriminator'
                 }
             },
         ],
@@ -250,15 +252,21 @@ class QGAN(QuantumAlgorithm):
     def discriminator(self):
         return self._discriminator
 
-    def set_discriminator(self):
+    def set_discriminator(self, discriminator=None):
         """
         Initialize discriminator.
+
+        Args:
+            discriminator:
 
         Returns:
 
         """
-        from qiskit.aqua.components.neural_networks.classical_discriminator import ClassicalDiscriminator
-        self._discriminator = ClassicalDiscriminator(len(self._num_qubits))
+
+        if discriminator is None:
+            self._discriminator = NumpyDiscriminator(len(self._num_qubits))
+        else:
+            self._discriminator = discriminator
         self._discriminator.set_seed(self._random_seed)
         return
 
@@ -337,7 +345,7 @@ class QGAN(QuantumAlgorithm):
         return
 
     def get_rel_entr(self):
-        samples_gen, prob_gen = self._generator.get_output(self._quantum_instance, shots=1000)
+        samples_gen, prob_gen = self._generator.get_output(self._quantum_instance)
         temp = np.zeros(len(self._grid_elements))
         for j, sample in enumerate(samples_gen):
             for i, element in enumerate(self._grid_elements):
@@ -379,34 +387,32 @@ class QGAN(QuantumAlgorithm):
 
                 # 1. Train Discriminator
                 ret_d = self._discriminator.train([real_batch, generated_batch],
-                                                  [np.ones(len(real_batch))/len(real_batch), generated_prob],
-                                                  penalty=True)
-                d_loss_min = ret_d['loss'].detach().numpy()
+                                                  [np.ones(len(real_batch))/len(real_batch), generated_prob])
+                d_loss_min = ret_d['loss']
 
                 # 2. Train Generator
                 self._generator.set_discriminator(self._discriminator)
                 ret_g = self._generator.train(self._quantum_instance, shots=self._batch_size)
                 g_loss_min = ret_g['loss']
 
-            self._d_loss.append(d_loss_min)
-            self._g_loss.append(g_loss_min)
+            self._d_loss.append(np.around(float(d_loss_min), 4))
+            self._g_loss.append(np.around(g_loss_min, 4))
 
             rel_entr = self.get_rel_entr()
-            self._rel_entr.append(rel_entr)
+            self._rel_entr.append(np.around(rel_entr, 4))
             self._ret['params_d'] = ret_d['params']
             self._ret['params_g'] = ret_g['params']
-            self._ret['loss_d'] = np.around(d_loss_min, 4)
+            self._ret['loss_d'] = np.around(float(d_loss_min), 4)
             self._ret['loss_g'] = np.around(g_loss_min, 4)
             self._ret['rel_entr'] = np.around(rel_entr, 4)
 
             if self._snapshot_dir is not None:
-                self._store_params(e, np.around(d_loss_min.detach().numpy(), 4),
+                self._store_params(e, np.around(d_loss_min, 4),
                                    np.around(g_loss_min, 4), np.around(rel_entr, 4))
-                    
             logger.debug('Epoch {}/{}...'.format(e + 1, self._num_epochs))
-            logger.debug('Loss Discriminator: ', np.around(d_loss_min, 4))
-            logger.debug('Loss Generator: ', np.around(g_loss_min, 4))
-            logger.debug('Relative Entropy: ', np.around(rel_entr, 4))
+            logger.debug('Loss Discriminator: {}'.format(np.around(float(d_loss_min), 4)))
+            logger.debug('Loss Generator: {}'.format(np.around(g_loss_min, 4)))
+            logger.debug('Relative Entropy: {}'.format(np.around(rel_entr, 4)))
 
             if self._tol_rel_ent is not None:
                 if rel_entr <= self._tol_rel_ent:
@@ -422,9 +428,6 @@ class QGAN(QuantumAlgorithm):
             raise AquaError(
                 'Chosen backend not supported - Set backend either to statevector_simulator, qasm_simulator'
                 ' or actual quantum hardware')
-
-        # The number of shots must be the batch size
-        self._quantum_instance.set_config(shots=self._batch_size)
         self.train()
 
         return self._ret

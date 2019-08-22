@@ -25,7 +25,7 @@ import numpy as np
 import numpy.random as rand
 
 from qiskit.quantum_info import Pauli
-from qiskit.aqua import Operator
+from qiskit.aqua.operators import WeightedPauliOperator
 
 logger = logging.getLogger(__name__)
 
@@ -75,8 +75,8 @@ def get_max_cut_qubitops(weight_matrix):
         weight_matrix (numpy.ndarray) : adjacency matrix.
 
     Returns:
-        operator.Operator, float: operator for the Hamiltonian and a
-        constant shift for the obj function.
+        WeightedPauliOperator: operator for the Hamiltonian
+        float: a constant shift for the obj function.
 
     """
     num_nodes = weight_matrix.shape[0]
@@ -91,7 +91,7 @@ def get_max_cut_qubitops(weight_matrix):
                 zp[j] = True
                 pauli_list.append([0.5 * weight_matrix[i, j], Pauli(zp, xp)])
                 shift -= 0.5 * weight_matrix[i, j]
-    return Operator(paulis=pauli_list), shift
+    return WeightedPauliOperator(paulis=pauli_list), shift
 
 
 def parse_gset_format(filename):

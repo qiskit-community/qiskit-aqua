@@ -16,9 +16,9 @@ import logging
 from collections import OrderedDict
 
 import numpy as np
-
 from qiskit.quantum_info import Pauli
-from qiskit.aqua import Operator
+
+from qiskit.aqua.operators import WeightedPauliOperator
 
 logger = logging.getLogger(__name__)
 
@@ -43,26 +43,28 @@ def random_number_list(n, weight_range=100, savefile=None):
 
 
 def get_set_packing_qubitops(list_of_subsets):
-    """Construct the Hamiltonian for the set packing
+    """Construct the Hamiltonian for the set packing.
+
+    Notes:
+        find the maximal number of subsets which are disjoint pairwise.
+
+        Hamiltonian:
+        H = A Ha + B Hb
+        Ha = sum_{Si and Sj overlaps}{XiXj}
+        Hb = -sum_{i}{Xi}
+
+        Ha is to ensure the disjoint condition, while Hb is to achieve the maximal number.
+        Ha is hard constraint that must be satisified. Therefore A >> B.
+        In the following, we set A=10 and B = 1
+
+        where Xi = (Zi + 1)/2
+
     Args:
         list_of_subsets: list of lists (i.e., subsets)
 
     Returns:
-        operator.Operator, float: operator for the Hamiltonian and a
-        constant shift for the obj function.
-
-    find the maximal number of subsets which are disjoint pairwise.
-
-    Hamiltonian:
-    H = A Ha + B Hb
-    Ha = sum_{Si and Sj overlaps}{XiXj}
-    Hb = -sum_{i}{Xi}
-
-    Ha is to ensure the disjoint condition, while Hb is to achieve the maximal number.
-    Ha is hard constraint that must be satisified. Therefore A >> B.
-    In the following, we set A=10 and B = 1
-
-    Note Xi = (Zi + 1)/2
+        WeightedPauliOperatorOperator: operator for the Hamiltonian
+        float: a constant shift for the obj function.
     """
     shift = 0
     pauli_list = []
@@ -94,7 +96,7 @@ def get_set_packing_qubitops(list_of_subsets):
         pauli_list.append([-0.5, Pauli(vp, wp)])
         shift += -0.5
 
-    return Operator(paulis=pauli_list), shift
+    return WeightedPauliOperator(paulis=pauli_list), shift
 
 
 def read_numbers_from_file(filename):

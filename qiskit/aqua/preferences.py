@@ -12,86 +12,70 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""Qiskit Aqua preferences"""
+
 import os
 import json
+import copy
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Preferences(object):
 
     _FILENAME = '.qiskit_aqua'
-    _VERSION = '1.0'
-    _SELECTED_KEY = 'selected_ibmq_credentials_url'
+    _VERSION = '2.0'
 
     def __init__(self):
         """Create Preferences object."""
         self._preferences = {
             'version': Preferences._VERSION
         }
-        self._credentials_preferences = None
+        self._ibmq_credentials_preferences = None
 
         home = os.path.expanduser("~")
         self._filepath = os.path.join(home, Preferences._FILENAME)
         try:
-            with open(self.filepath) as json_pref:
+            with open(self._filepath) as json_pref:
                 self._preferences = json.load(json_pref)
                 # remove old no more valid entries
                 if 'packages' in self._preferences:
                     del self._preferences['packages']
                 if 'logging_config' in self._preferences:
                     del self._preferences['logging_config']
-        except:
+                if 'selected_ibmq_credentials_url' in self._preferences:
+                    del self._preferences['selected_ibmq_credentials_url']
+        except Exception:
             pass
 
-    @property
-    def filepath(self):
-        return self._filepath
+        self._old_preferences = copy.deepcopy(self._preferences)
 
     def save(self):
-        if self._credentials_preferences is not None:
-            self.credentials_preferences.save()
-            selected_credentials = self.credentials_preferences.selected_credentials
-            selected_credentials_url = selected_credentials.url if selected_credentials is not None else None
+        """Saves Preferences"""
+        if self._ibmq_credentials_preferences is not None:
+            self._ibmq_credentials_preferences.save(self._preferences)
+            if self._preferences != self._old_preferences:
+                with open(self._filepath, 'w') as fp:
+                    json.dump(self._preferences, fp, sort_keys=True, indent=4)
 
-            if selected_credentials_url != self._preferences.get(Preferences._SELECTED_KEY):
-                pref_changed = False
-                selected_credentials = self.credentials_preferences.selected_credentials
-                if selected_credentials_url is not None:
-                    pref_changed = True
-                    self._preferences[Preferences._SELECTED_KEY] = selected_credentials_url
-                else:
-                    if Preferences._SELECTED_KEY in self._preferences:
-                        pref_changed = True
-                        del self._preferences[Preferences._SELECTED_KEY]
-
-                if pref_changed:
-                    with open(self.filepath, 'w') as fp:
-                        json.dump(self._preferences, fp, sort_keys=True, indent=4)
+                self._old_preferences = copy.deepcopy(self._preferences)
 
     def get_version(self):
+        """Return Preferences version"""
         if 'version' in self._preferences:
             return self._preferences['version']
 
         return None
 
     @property
-    def credentials_preferences(self):
-        """Return credentials preferences"""
-        if self._credentials_preferences is None:
-            from ._credentials_preferences import CredentialsPreferences
-            self._credentials_preferences = CredentialsPreferences()
-            if Preferences._SELECTED_KEY in self._preferences:
-                self._credentials_preferences.select_credentials(self._preferences[Preferences._SELECTED_KEY])
+    def ibmq_credentials_preferences(self):
+        """Return IBMQ Credentials Preferences"""
+        if self._ibmq_credentials_preferences is None:
+            try:
+                from ._ibmq_credentials_preferences import IBMQCredentialsPreferences
+                self._ibmq_credentials_preferences = IBMQCredentialsPreferences(self._preferences)
+            except Exception as ex:
+                logger.debug("IBMQCredentialsPreferences not created: '{}'".format(str(ex)))
 
-        return self._credentials_preferences
-
-    def get_token(self, default_value=None):
-        return self.credentials_preferences.get_token(default_value)
-
-    def get_url(self, default_value=None):
-        return self.credentials_preferences.get_url(default_value)
-
-    def get_proxies(self, default_value=None):
-        return self.credentials_preferences.get_proxies(default_value)
-
-    def get_proxy_urls(self, default_value=None):
-        return self.credentials_preferences.get_proxy_urls(default_value)
+        return self._ibmq_credentials_preferences

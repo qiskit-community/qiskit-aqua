@@ -64,7 +64,7 @@ class CPLEX_Ising(QuantumAlgorithm):
         self.validate(locals())
         super().__init__()
         self._ins = IsingInstance()
-        self._ins.parse(operator.save_to_dict()['paulis'])
+        self._ins.parse(operator.to_dict()['paulis'])
         self._timelimit = timelimit
         self._thread = thread
         self._display = display
@@ -89,9 +89,9 @@ class CPLEX_Ising(QuantumAlgorithm):
                 spec = importlib.util.find_spec('cplex.exceptions')
                 if spec is not None:
                     return
-        except Exception as e:
-            logger.debug('{} {}'.format(err_msg, str(e)))
-            raise AquaError(err_msg) from e
+        except Exception as ex:  # pylint: disable=broad-except
+            logger.debug('{} {}'.format(err_msg, str(ex)))
+            raise AquaError(err_msg) from ex
 
         raise AquaError(err_msg)
 

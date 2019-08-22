@@ -64,51 +64,44 @@ class QSVM(QuantumAlgorithm):
 
     BATCH_SIZE = 1000
 
-    def __init__(self, feature_map, training_dataset, test_dataset=None, datapoints=None,
+    def __init__(self, feature_map, training_dataset=None, test_dataset=None, datapoints=None,
                  multiclass_extension=None):
         """Constructor.
 
         Args:
             feature_map (FeatureMap): feature map module, used to transform data
-            training_dataset (dict): training dataset.
-            test_dataset (Optional[dict]): testing dataset.
-            datapoints (Optional[numpy.ndarray]): prediction dataset.
-            multiclass_extension (Optional[MultiExtension]): if number of classes > 2 then
+            training_dataset (dict, optional): training dataset.
+            test_dataset (dict, optional): testing dataset.
+            datapoints (numpy.ndarray, optional): prediction dataset.
+            multiclass_extension (MultiExtension, optional): if number of classes > 2 then
                 a multiclass scheme is needed.
 
         Raises:
-            ValueError: if training_dataset is None
             AquaError: use binary classifer for classes > 3
         """
         super().__init__()
-        if training_dataset is None:
-            raise ValueError('Training dataset must be provided')
+        # check the validity of provided arguments if possible
+        if training_dataset is not None:
+            is_multiclass = get_num_classes(training_dataset) > 2
+            if is_multiclass:
+                if multiclass_extension is None:
+                    raise AquaError('Dataset has more than two classes. '
+                                    'A multiclass extension must be provided.')
+            else:
+                if multiclass_extension is not None:
+                    logger.warning("Dataset has just two classes. "
+                                   "Supplied multiclass extension will be ignored")
 
-        is_multiclass = get_num_classes(training_dataset) > 2
-        if is_multiclass:
-            if multiclass_extension is None:
-                raise AquaError('Dataset has more than two classes. '
-                                'A multiclass extension must be provided.')
-        else:
-            if multiclass_extension is not None:
-                logger.warning("Dataset has just two classes. "
-                               "Supplied multiclass extension will be ignored")
+        self.training_dataset = None
+        self.test_dataset = None
+        self.datapoints = None
+        self.class_to_label = None
+        self.label_to_class = None
+        self.num_classes = None
 
-        self.training_dataset, self.class_to_label = split_dataset_to_data_and_labels(
-            training_dataset)
-        if test_dataset is not None:
-            self.test_dataset = split_dataset_to_data_and_labels(test_dataset,
-                                                                 self.class_to_label)
-        else:
-            self.test_dataset = None
-
-        self.label_to_class = {label: class_name for class_name, label
-                               in self.class_to_label.items()}
-        self.num_classes = len(list(self.class_to_label.keys()))
-
-        if datapoints is not None and not isinstance(datapoints, np.ndarray):
-            datapoints = np.asarray(datapoints)
-        self.datapoints = datapoints
+        self.setup_training_data(training_dataset)
+        self.setup_test_data(test_dataset)
+        self.setup_datapoint(datapoints)
 
         self.feature_map = feature_map
         self.num_qubits = self.feature_map.num_qubits
@@ -144,28 +137,38 @@ class QSVM(QuantumAlgorithm):
                    algo_input.datapoints, multiclass_extension)
 
     @staticmethod
-    def _construct_circuit(x, num_qubits, feature_map, measurement):
+    def _construct_circuit(x, feature_map, measurement, is_statevector_sim=False):
+        """
+        If `is_statevector_sim` is True, we only build the circuits for Psi(x1)|0> rather than
+        Psi(x2)^dagger Psi(x1)|0>.
+        """
         x1, x2 = x
         if x1.shape[0] != x2.shape[0]:
             raise ValueError("x1 and x2 must be the same dimension.")
 
-        q = QuantumRegister(num_qubits, 'q')
-        c = ClassicalRegister(num_qubits, 'c')
+        q = QuantumRegister(feature_map.num_qubits, 'q')
+        c = ClassicalRegister(feature_map.num_qubits, 'c')
         qc = QuantumCircuit(q, c)
+
         # write input state from sample distribution
         qc += feature_map.construct_circuit(x1, q)
-        qc += feature_map.construct_circuit(x2, q, inverse=True)
-        if measurement:
-            qc.barrier(q)
-            qc.measure(q, c)
+        if not is_statevector_sim:
+            qc += feature_map.construct_circuit(x2, q).inverse()
+            if measurement:
+                qc.barrier(q)
+                qc.measure(q, c)
         return qc
 
     @staticmethod
     def _compute_overlap(idx, results, is_statevector_sim, measurement_basis):
         if is_statevector_sim:
-            temp = results.get_statevector(idx)[0]
-            #  |<0|Psi^daggar(y) x Psi(x)|0>|^2,
-            kernel_value = np.dot(temp.T.conj(), temp).real
+            i, j = idx
+            # TODO: qiskit-terra did not support np.int64 to lookup result
+            v_a = results.get_statevector(int(i))
+            v_b = results.get_statevector(int(j))
+            # |<0|Psi^daggar(y) x Psi(x)|0>|^2, take the amplitude
+            tmp = np.vdot(v_a, v_b)
+            kernel_value = np.vdot(tmp, tmp).real  # pylint: disable=no-member
         else:
             result = results.get_counts(idx)
             kernel_value = result.get(measurement_basis, 0) / sum(result.values())
@@ -182,24 +185,29 @@ class QSVM(QuantumAlgorithm):
             x2 (numpy.ndarray): data points, 1-D array, dimension is D
             measurement (bool): add measurement gates at the end
         """
-        return QSVM._construct_circuit((x1, x2), self.num_qubits,
-                                       self.feature_map, measurement)
+        return QSVM._construct_circuit((x1, x2), self.feature_map, measurement)
 
-    def construct_kernel_matrix(self, x1_vec, x2_vec=None, quantum_instance=None):
+    @staticmethod
+    def get_kernel_matrix(quantum_instance, feature_map, x1_vec, x2_vec=None):
         """
         Construct kernel matrix, if x2_vec is None, self-innerproduct is conducted.
 
+        Notes:
+            When using `statevector_simulator`, we only build the circuits for Psi(x1)|0> rather than
+            Psi(x2)^dagger Psi(x1)|0>, and then we perform the inner product classically.
+            That is, for `statevector_simulator`, the total number of circuits will be O(N) rather than
+            O(N^2) for `qasm_simulator`.
+
         Args:
+            quantum_instance (QuantumInstance): quantum backend with all settings
+            feature_map (FeatureMap): a feature map that maps data to feature space
             x1_vec (numpy.ndarray): data points, 2-D array, N1xD, where N1 is the number of data,
                                     D is the feature dimension
             x2_vec (numpy.ndarray): data points, 2-D array, N2xD, where N2 is the number of data,
                                     D is the feature dimension
-            quantum_instance (QuantumInstance): quantum backend with all setting
         Returns:
             numpy.ndarray: 2-D matrix, N1xN2
         """
-        self._quantum_instance = self._quantum_instance \
-            if quantum_instance is None else quantum_instance
         from .qsvm import QSVM
 
         if x2_vec is None:
@@ -208,9 +216,10 @@ class QSVM(QuantumAlgorithm):
         else:
             is_symmetric = False
 
-        is_statevector_sim = self.quantum_instance.is_statevector
+        is_statevector_sim = quantum_instance.is_statevector
+
         measurement = not is_statevector_sim
-        measurement_basis = '0' * self.num_qubits
+        measurement_basis = '0' * feature_map.num_qubits
         mat = np.ones((x1_vec.shape[0], x2_vec.shape[0]))
 
         # get all indices
@@ -221,43 +230,104 @@ class QSVM(QuantumAlgorithm):
             mus = np.asarray(mus.flat)
             nus = np.asarray(nus.flat)
 
-        for idx in range(0, len(mus), QSVM.BATCH_SIZE):
-            to_be_computed_list = []
-            to_be_computed_index = []
-            for sub_idx in range(idx, min(idx + QSVM.BATCH_SIZE, len(mus))):
-                i = mus[sub_idx]
-                j = nus[sub_idx]
-                x1 = x1_vec[i]
-                x2 = x2_vec[j]
-                if not np.all(x1 == x2):
-                    to_be_computed_list.append((x1, x2))
-                    to_be_computed_index.append((i, j))
+        if is_statevector_sim:
+            if is_symmetric:
+                to_be_computed_data = x1_vec
+            else:
+                to_be_computed_data = np.concatenate((x1_vec, x2_vec))
+
+            #  the second x is redundant
+            to_be_computed_data_pair = [(x, x) for x in to_be_computed_data]
 
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug("Building circuits:")
                 TextProgressBar(sys.stderr)
             circuits = parallel_map(QSVM._construct_circuit,
-                                    to_be_computed_list,
-                                    task_args=(self.num_qubits, self.feature_map,
-                                               measurement),
+                                    to_be_computed_data_pair,
+                                    task_args=(feature_map, measurement, is_statevector_sim),
                                     num_processes=aqua_globals.num_processes)
 
-            results = self.quantum_instance.execute(circuits)
+            results = quantum_instance.execute(circuits)
 
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug("Calculating overlap:")
                 TextProgressBar(sys.stderr)
-            matrix_elements = parallel_map(QSVM._compute_overlap, range(len(circuits)),
+
+            offset = 0 if is_symmetric else len(x1_vec)
+            matrix_elements = parallel_map(QSVM._compute_overlap, list(zip(mus, nus + offset)),
                                            task_args=(results, is_statevector_sim, measurement_basis),
                                            num_processes=aqua_globals.num_processes)
 
-            for idx in range(len(to_be_computed_index)):
-                i, j = to_be_computed_index[idx]
-                mat[i, j] = matrix_elements[idx]
+            for i, j, value in zip(mus, nus, matrix_elements):
+                mat[i, j] = value
                 if is_symmetric:
                     mat[j, i] = mat[i, j]
+        else:
+            for idx in range(0, len(mus), QSVM.BATCH_SIZE):
+                to_be_computed_data_pair = []
+                to_be_computed_index = []
+                for sub_idx in range(idx, min(idx + QSVM.BATCH_SIZE, len(mus))):
+                    i = mus[sub_idx]
+                    j = nus[sub_idx]
+                    x1 = x1_vec[i]
+                    x2 = x2_vec[j]
+                    if not np.all(x1 == x2):
+                        to_be_computed_data_pair.append((x1, x2))
+                        to_be_computed_index.append((i, j))
+
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug("Building circuits:")
+                    TextProgressBar(sys.stderr)
+                circuits = parallel_map(QSVM._construct_circuit,
+                                        to_be_computed_data_pair,
+                                        task_args=(feature_map, measurement),
+                                        num_processes=aqua_globals.num_processes)
+
+                results = quantum_instance.execute(circuits)
+
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug("Calculating overlap:")
+                    TextProgressBar(sys.stderr)
+                matrix_elements = parallel_map(QSVM._compute_overlap, range(len(circuits)),
+                                               task_args=(results, is_statevector_sim, measurement_basis),
+                                               num_processes=aqua_globals.num_processes)
+
+                for (i, j), value in zip(to_be_computed_index, matrix_elements):
+                    mat[i, j] = value
+                    if is_symmetric:
+                        mat[j, i] = mat[i, j]
 
         return mat
+
+    def construct_kernel_matrix(self, x1_vec, x2_vec=None, quantum_instance=None):
+        """
+        Construct kernel matrix, if x2_vec is None, self-innerproduct is conducted.
+
+        Notes:
+            When using `statevector_simulator`, we only build the circuits for Psi(x1)|0> rather than
+            Psi(x2)^dagger Psi(x1)|0>, and then we perform the inner product classically.
+            That is, for `statevector_simulator`, the total number of circuits will be O(N) rather than
+            O(N^2) for `qasm_simulator`.
+
+        Args:
+            x1_vec (numpy.ndarray): data points, 2-D array, N1xD, where N1 is the number of data,
+                                    D is the feature dimension
+            x2_vec (numpy.ndarray): data points, 2-D array, N2xD, where N2 is the number of data,
+                                    D is the feature dimension
+            quantum_instance (QuantumInstance): quantum backend with all settings
+
+        Returns:
+            numpy.ndarray: 2-D matrix, N1xN2
+
+        Raises:
+            AquaError: Quantum instance is not present.
+        """
+        self._quantum_instance = self._quantum_instance \
+            if quantum_instance is None else quantum_instance
+        if self._quantum_instance is None:
+            raise AquaError("Either setup quantum instance or provide it in the parameter.")
+
+        return QSVM.get_kernel_matrix(self._quantum_instance, self.feature_map, x1_vec, x2_vec)
 
     def train(self, data, labels, quantum_instance=None):
         """
@@ -268,9 +338,14 @@ class QSVM(QuantumAlgorithm):
                                   D is the feature dimension.
             labels (numpy.ndarray): Nx1 array, where N is the number of data
             quantum_instance (QuantumInstance): quantum backend with all setting
+
+        Raises:
+            AquaError: Quantum instance is not present.
         """
         self._quantum_instance = self._quantum_instance \
             if quantum_instance is None else quantum_instance
+        if self._quantum_instance is None:
+            raise AquaError("Either setup quantum instance or provide it in the parameter.")
         self.instance.train(data, labels)
 
     def test(self, data, labels, quantum_instance=None):
@@ -282,11 +357,18 @@ class QSVM(QuantumAlgorithm):
                                   D is the feature dimension.
             labels (numpy.ndarray): Nx1 array, where N is the number of data
             quantum_instance (QuantumInstance): quantum backend with all setting
+
         Returns:
             float: accuracy
+
+        Raises:
+            AquaError: Quantum instance is not present.
         """
+
         self._quantum_instance = self._quantum_instance \
             if quantum_instance is None else quantum_instance
+        if self._quantum_instance is None:
+            raise AquaError("Either setup quantum instance or provide it in the parameter.")
         return self.instance.test(data, labels)
 
     def predict(self, data, quantum_instance=None):
@@ -297,11 +379,17 @@ class QSVM(QuantumAlgorithm):
             data (numpy.ndarray): NxD array, where N is the number of data,
                                   D is the feature dimension.
             quantum_instance (QuantumInstance): quantum backend with all setting
+
         Returns:
             numpy.ndarray: predicted labels, Nx1 array
+
+        Raises:
+            AquaError: Quantum instance is not present.
         """
         self._quantum_instance = self._quantum_instance \
             if quantum_instance is None else quantum_instance
+        if self._quantum_instance is None:
+            raise AquaError("Either setup quantum instance or provide it in the parameter.")
         return self.instance.predict(data)
 
     def _run(self):
@@ -330,3 +418,40 @@ class QSVM(QuantumAlgorithm):
             file_path (str): a path to save the model.
         """
         self.instance.save_model(file_path)
+
+    def setup_training_data(self, training_dataset):
+        """Setup training data, if the data were there, they would be overwritten.
+
+        Args:
+            training_dataset (dict): training dataset.
+        """
+        if training_dataset is not None:
+            self.training_dataset, self.class_to_label = split_dataset_to_data_and_labels(training_dataset)
+            self.label_to_class = {label: class_name for class_name, label
+                                   in self.class_to_label.items()}
+            self.num_classes = len(list(self.class_to_label.keys()))
+
+    def setup_test_data(self, test_dataset):
+        """Setup test data, if the data were there, they would be overwritten.
+
+        Args:
+            test_dataset (dict): test dataset.
+        """
+        if test_dataset is not None:
+            if self.class_to_label is None:
+                logger.warning("The mapping from the class name to the label is missed, "
+                               "regenerate it but it might be mismatched to previous mapping.")
+                self.test_dataset, self.class_to_label = split_dataset_to_data_and_labels(test_dataset)
+            else:
+                self.test_dataset = split_dataset_to_data_and_labels(test_dataset, self.class_to_label)
+
+    def setup_datapoint(self, datapoints):
+        """Setup data points, if the data were there, they would be overwritten.
+
+        Args:
+            datapoints (numpy.ndarray): prediction dataset.
+        """
+        if datapoints is not None:
+            if not isinstance(datapoints, np.ndarray):
+                datapoints = np.asarray(datapoints)
+            self.datapoints = datapoints

@@ -17,11 +17,10 @@
 from collections import OrderedDict
 
 import numpy as np
+from sklearn.datasets import make_spd_matrix
 from qiskit.quantum_info import Pauli
 
-from qiskit.aqua import Operator
-
-from sklearn.datasets import make_spd_matrix
+from qiskit.aqua.operators import WeightedPauliOperator
 
 
 def random_model(n, seed=None):
@@ -56,7 +55,7 @@ def get_portfolio_qubitops(mu, sigma, q, budget, penalty):
     E = np.matmul(np.asmatrix(e).T, np.asmatrix(e))
 
     # map problem to Ising model
-    offset = - np.dot(mu, e)/2 + penalty*budget**2 - budget*n*penalty + n**2*penalty/4 + q/4*np.dot(e, np.dot(sigma, e))
+    offset = -1*np.dot(mu, e)/2 + penalty*budget**2 - budget*n*penalty + n**2*penalty/4 + q/4*np.dot(e, np.dot(sigma, e))
     mu_z = mu/2 + budget*penalty*e - n*penalty/2*e - q/2*np.dot(sigma, e)
     sigma_z = penalty/4*E + q/4*sigma
 
@@ -81,7 +80,7 @@ def get_portfolio_qubitops(mu, sigma, q, budget, penalty):
                 pauli_list.append([2*sigma_z[i_, j_], Pauli(zp, xp)])
         offset += sigma_z[i_, i_]
 
-    return Operator(paulis=pauli_list), offset
+    return WeightedPauliOperator(paulis=pauli_list), offset
 
 
 def portfolio_value(x, mu, sigma, q, budget, penalty):

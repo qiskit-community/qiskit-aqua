@@ -21,11 +21,16 @@
                 },
                 "circuit_caching": {
                     "type": "boolean",
-                    "default": true
+                    "default": false
+                },
+                "circuit_optimization_level": {
+                    "type": ["integer", "string"],
+                    "enum": [0, 1, 2, 3, "default"],
+                    "default": "default"
                 },
                 "skip_qobj_deepcopy": {
                     "type": "boolean",
-                    "default": true
+                    "default": false
                 },
                 "circuit_cache_file": {
                     "type": ["string", "null"],
@@ -38,6 +43,14 @@
                 "measurement_error_mitigation": {
                     "type": "boolean",
                     "default": false
+                },
+                "measurement_error_mitigation_shots": {
+                    "type": ["integer", "null"],
+                    "default": null
+                },
+                "measurement_error_mitigation_refresh_period": {
+                    "type": "integer",
+                    "default": 30
                 }
             },
             "required": ["name"],

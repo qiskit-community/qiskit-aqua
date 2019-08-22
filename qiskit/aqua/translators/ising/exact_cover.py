@@ -19,7 +19,7 @@ from collections import OrderedDict
 import numpy as np
 
 from qiskit.quantum_info import Pauli
-from qiskit.aqua import Operator
+from qiskit.aqua.operators import WeightedPauliOperator
 
 logger = logging.getLogger(__name__)
 
@@ -44,23 +44,20 @@ def random_number_list(n, weight_range=100, savefile=None):
 
 
 def get_exact_cover_qubitops(list_of_subsets):
-    """Construct the Hamiltonian for the exact solver problem
+    """Construct the Hamiltonian for the exact solver problem.
 
+    Notes:
+        Assumption: the union of the subsets contains all the elements to cover.
+        The Hamiltonian is:
+           sum_{each element e}{(1-sum_{every subset_i that contains e}{Xi})^2},
+           where Xi (Xi=1 or 0) means whether should include the subset i.
 
     Args:
         list_of_subsets: list of lists (i.e., subsets)
 
     Returns:
-        operator.Operator, float: operator for the Hamiltonian and a
-        constant shift for the obj function.
-
-    Assumption:
-        the union of the subsets contains all the elements to cover
-
-    The Hamiltonian is:
-       sum_{each element e}{(1-sum_{every subset_i that contains e}{Xi})^2},
-       where Xi (Xi=1 or 0) means whether should include the subset i.
-
+        WeightedPauliOperator: operator for the Hamiltonian
+        float: a constant shift for the obj function.
     """
     n = len(list_of_subsets)
 
@@ -96,7 +93,7 @@ def get_exact_cover_qubitops(list_of_subsets):
             vp[i] = 1
             pauli_list.append([-Y, Pauli(vp, wp)])
 
-    return Operator(paulis=pauli_list), shift
+    return WeightedPauliOperator(paulis=pauli_list), shift
 
 
 def read_numbers_from_file(filename):

@@ -30,6 +30,7 @@ from qiskit.aqua.utils.backend_utils import (is_statevector_backend,
                                              has_ibmq,
                                              get_backend_from_provider,
                                              get_backends_from_provider,
+                                             get_provider_from_backend,
                                              is_local_backend,
                                              is_aer_provider,
                                              is_aer_statevector_backend)
@@ -47,6 +48,7 @@ class JSONSchema(object):
 
     def __init__(self, schema_input):
         """Create JSONSchema object."""
+        self._backend = None
         self._schema = None
         self._original_schema = None
         self.aqua_jsonschema = None
@@ -61,6 +63,15 @@ class JSONSchema(object):
         validator = jsonschema.Draft4Validator(self._schema)
         self._schema = JSONSchema._resolve_schema_references(validator.schema, validator.resolver)
         self.commit_changes()
+
+    @property
+    def backend(self):
+        """Getter of backend."""
+        return self._backend
+
+    @backend.setter
+    def backend(self, new_value):
+        self._backend = new_value
 
     @property
     def schema(self):
@@ -89,9 +100,7 @@ class JSONSchema(object):
             for problem in problems:
                 problems_dict[problem] = None
 
-        problems_enum = {'enum': list(problems_dict.keys())}
-        self._schema['properties'][JSONSchema.PROBLEM]['properties'][JSONSchema.NAME]['oneOf'] = [
-            problems_enum]
+        self._schema['properties'][JSONSchema.PROBLEM]['properties'][JSONSchema.NAME]['enum'] = list(problems_dict.keys())
 
     def copy_section_from_aqua_schema(self, section_name):
         """
@@ -114,23 +123,27 @@ class JSONSchema(object):
             section_name (string): schema section
 
         Returns:
-            Returns schema tyoe array
+            Returns schema type list
         """
         section_name = JSONSchema.format_section_name(section_name)
         if 'properties' not in self._schema:
-            return []
+            raise AquaError("Schema missing 'properties' section.")
 
         if section_name not in self._schema['properties']:
             return []
 
         if 'type' not in self._schema['properties'][section_name]:
-            return []
+            raise AquaError("Schema property section '{}' missing type.".format(section_name))
 
-        types = self._schema['properties'][section_name]['type']
-        if isinstance(types, list):
-            return types
+        schema_type = self._schema['properties'][section_name]['type']
+        if isinstance(schema_type, list):
+            return schema_type
 
-        return [types]
+        schema_type = str(schema_type).strip()
+        if schema_type == '':
+            raise AquaError("Schema property section '{}' empty type.".format(section_name))
+
+        return [schema_type]
 
     def get_property_types(self, section_name, property_name):
         """
@@ -145,26 +158,30 @@ class JSONSchema(object):
         section_name = JSONSchema.format_section_name(section_name)
         property_name = JSONSchema.format_property_name(property_name)
         if 'properties' not in self._schema:
-            return []
+            raise AquaError("Schema missing 'properties' section.")
 
         if section_name not in self._schema['properties']:
-            return []
+            raise AquaError("Schema properties missing section '{}'.".format(section_name))
 
         if 'properties' not in self._schema['properties'][section_name]:
-            return []
+            raise AquaError("Schema properties missing section '{}' properties.".format(section_name))
 
         if property_name not in self._schema['properties'][section_name]['properties']:
-            return []
+            raise AquaError("Schema properties section '{}' missing '{}' property.".format(section_name, property_name))
 
-        prop = self._schema['properties'][section_name]['properties'][property_name]
-        if 'type' in prop:
-            types = prop['type']
-            if isinstance(types, list):
-                return types
+        schema_property = self._schema['properties'][section_name]['properties'][property_name]
+        if 'type' not in schema_property:
+            raise AquaError("Schema properties section '{}' missing '{}' property type.".format(section_name, property_name))
 
-            return [types]
+        schema_type = schema_property['type']
+        if isinstance(schema_type, list):
+            return schema_type
 
-        return []
+        schema_type = str(schema_type).strip()
+        if schema_type == '':
+            raise AquaError("Schema properties section '{}' empty '{}' property type.".format(section_name, property_name))
+
+        return [schema_type]
 
     def get_default_sections(self):
         """
@@ -199,22 +216,20 @@ class JSONSchema(object):
         if section_name not in self._schema['properties']:
             return None
 
-        types = [self._schema['properties'][section_name]['type']] if 'type' in self._schema['properties'][section_name] else []
-
+        schema_types = self.get_section_types(section_name)
         if 'default' in self._schema['properties'][section_name]:
-            return JSONSchema.get_value(self._schema['properties'][section_name]['default'], types)
+            return JSONSchema.get_value(self._schema['properties'][section_name]['default'], schema_types)
 
-        if 'object' not in types:
-            return JSONSchema.get_value(None, types)
+        if 'object' not in schema_types:
+            return JSONSchema.get_value(None, schema_types)
 
         if 'properties' not in self._schema['properties'][section_name]:
             return None
 
         properties = OrderedDict()
         for property_name, values in self._schema['properties'][section_name]['properties'].items():
-            types = [values['type']] if 'type' in values else []
             default_value = values['default'] if 'default' in values else None
-            properties[property_name] = JSONSchema.get_value(default_value, types)
+            properties[property_name] = JSONSchema.get_value(default_value, self.get_property_types(section_name, property_name))
 
         return properties
 
@@ -234,10 +249,8 @@ class JSONSchema(object):
         if section_name not in self._schema['properties']:
             return True
 
-        if 'additionalProperties' not in self._schema['properties'][section_name]:
-            return True
-
-        return JSONSchema.get_value(self._schema['properties'][section_name]['additionalProperties'])
+        additionalProperties = str(self._schema['properties'][section_name].get('additionalProperties', 'true')).strip().lower()
+        return (additionalProperties == 'true')
 
     def get_property_default_values(self, section_name, property_name):
         """
@@ -271,6 +284,9 @@ class JSONSchema(object):
 
             if 'boolean' in types:
                 return [True, False]
+
+        if 'enum' in prop:
+            return prop['enum']
 
         if 'oneOf' not in prop:
             return None
@@ -306,9 +322,9 @@ class JSONSchema(object):
         if property_name not in self._schema['properties'][section_name]['properties']:
             return None
 
-        prop = self._schema['properties'][section_name]['properties'][property_name]
-        if 'default' in prop:
-            return JSONSchema.get_value(prop['default'])
+        schema_property = self._schema['properties'][section_name]['properties'][property_name]
+        if 'default' in schema_property:
+            return JSONSchema.get_value(schema_property['default'], self.get_property_types(section_name, property_name))
 
         return None
 
@@ -320,23 +336,38 @@ class JSONSchema(object):
             return
 
         # Updates defaults provider/backend
-        default_provider_name = None
-        default_backend_name = None
-        orig_backend_properties = self._original_schema.get('properties', {}).get(JSONSchema.BACKEND, {}).get('properties')
-        if orig_backend_properties is not None:
-            default_provider_name = orig_backend_properties.get(JSONSchema.PROVIDER, {}).get('default')
-            default_backend_name = orig_backend_properties.get(JSONSchema.NAME, {}).get('default')
+        provider_name = default_provider_name = None
+        backend_name = default_backend_name = None
+        backend = None
+        if self.backend is not None:
+            backend = self.backend
+            provider_name = default_provider_name = get_provider_from_backend(backend)
+            backend_name = default_backend_name = backend.name()
+        else:
+            orig_backend_properties = self._original_schema.get('properties', {}).get(JSONSchema.BACKEND, {}).get('properties')
+            if orig_backend_properties is not None:
+                default_provider_name = orig_backend_properties.get(JSONSchema.PROVIDER, {}).get('default')
+                default_backend_name = orig_backend_properties.get(JSONSchema.NAME, {}).get('default')
 
-        providers = get_local_providers()
-        if default_provider_name is None or default_provider_name not in providers:
-            # use first provider available
-            providers_items = providers.items()
-            provider_tuple = next(iter(providers_items)) if len(providers_items) > 0 else ('', [])
-            default_provider_name = provider_tuple[0]
+            providers = get_local_providers()
+            if default_provider_name is None or default_provider_name not in providers:
+                # use first provider available
+                providers_items = providers.items()
+                provider_tuple = next(iter(providers_items)) if len(providers_items) > 0 else ('', [])
+                default_provider_name = provider_tuple[0]
 
-        if default_backend_name is None or default_backend_name not in providers.get(default_provider_name, []):
-            # use first backend available in provider
-            default_backend_name = providers.get(default_provider_name)[0] if len(providers.get(default_provider_name, [])) > 0 else ''
+            if default_backend_name is None or default_backend_name not in providers.get(default_provider_name, []):
+                # use first backend available in provider
+                default_backend_name = providers.get(default_provider_name)[0] if len(providers.get(default_provider_name, [])) > 0 else ''
+
+            provider_name = input_parser.get_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER, default_provider_name)
+            backend_names = get_backends_from_provider(provider_name)
+            backend_name = input_parser.get_section_property(JSONSchema.BACKEND, JSONSchema.NAME, default_backend_name)
+            if backend_name not in backend_names:
+                # use first backend available in provider
+                backend_name = backend_names[0] if len(backend_names) > 0 else ''
+
+            backend = get_backend_from_provider(provider_name, backend_name)
 
         self._schema['properties'][JSONSchema.BACKEND] = {
             'type': 'object',
@@ -353,14 +384,7 @@ class JSONSchema(object):
             'required': [JSONSchema.PROVIDER, JSONSchema.NAME],
             'additionalProperties': False,
         }
-        provider_name = input_parser.get_section_property(JSONSchema.BACKEND, JSONSchema.PROVIDER, default_provider_name)
-        backend_names = get_backends_from_provider(provider_name)
-        backend_name = input_parser.get_section_property(JSONSchema.BACKEND, JSONSchema.NAME, default_backend_name)
-        if backend_name not in backend_names:
-            # use first backend available in provider
-            backend_name = backend_names[0] if len(backend_names) > 0 else ''
 
-        backend = get_backend_from_provider(provider_name, backend_name)
         config = backend.configuration()
 
         # Include shots in schema only if not a statevector backend.
@@ -398,8 +422,8 @@ class JSONSchema(object):
                         noise_model_devices.append('qiskit.IBMQ:' + backend_name)
                     if check_coupling_map and ibmq_backend.configuration().coupling_map:
                         coupling_map_devices.append('qiskit.IBMQ:' + backend_name)
-        except Exception as e:
-            logger.debug("Failed to load IBMQ backends. Error {}".format(str(e)))
+        except Exception as ex:  # pylint: disable=broad-except
+            logger.debug("Failed to load IBMQ backends. Error {}".format(str(ex)))
 
         # Includes 'coupling map' and 'coupling_map_from_device' in schema only if a simulator backend.
         # Actual devices have a coupling map based on the physical configuration of the device.
@@ -419,11 +443,7 @@ class JSONSchema(object):
                 self._schema['properties'][JSONSchema.BACKEND]['properties']['coupling_map_from_device'] = {
                     'type': ['string', 'null'],
                     'default': None,
-                    'oneOf': [
-                        {
-                            'enum': coupling_map_devices
-                        }
-                    ],
+                    'enum': coupling_map_devices,
                 }
 
         # noise model that can be setup for Aer simulator so as to model noise of an actual device.
@@ -432,11 +452,7 @@ class JSONSchema(object):
             self._schema['properties'][JSONSchema.BACKEND]['properties']['noise_model'] = {
                 'type': ['string', 'null'],
                 'default': None,
-                'oneOf': [
-                    {
-                        'enum': noise_model_devices
-                    }
-                ],
+                'enum': noise_model_devices,
             }
 
         # If a noise model is supplied then the basis gates is set as per the noise model
@@ -550,7 +566,7 @@ class JSONSchema(object):
         try:
             if pluggable_type is not None and pluggable_name is not None:
                 config = get_pluggable_configuration(pluggable_type, pluggable_name)
-        except:
+        except Exception:
             pass
 
         input_schema = config.get('input_schema', {})
@@ -585,18 +601,18 @@ class JSONSchema(object):
             Returns converted value if valid
         """
         section_name = JSONSchema.format_section_name(section_name)
-        types = self.get_section_types(section_name)
-        value = JSONSchema.get_value(value, types)
-        if len(types) > 0:
+        schema_types = self.get_section_types(section_name)
+        value = JSONSchema.get_value(value, schema_types)
+        if len(schema_types) > 0:
             validator = jsonschema.Draft4Validator(self._schema)
             valid = False
-            for type in types:
-                valid = validator.is_type(value, type)
+            for schema_type in schema_types:
+                valid = validator.is_type(value, schema_type)
                 if valid:
                     break
 
             if not valid:
-                raise AquaError("{}: Value '{}' is not of types: '{}'".format(section_name, value, types))
+                raise AquaError("{}: Value '{}' is not of types: '{}'".format(section_name, value, schema_types))
 
         return value
 
@@ -614,19 +630,18 @@ class JSONSchema(object):
         """
         section_name = JSONSchema.format_section_name(section_name)
         property_name = JSONSchema.format_property_name(property_name)
-        types = self.get_property_types(section_name, property_name)
-        value = JSONSchema.get_value(value, types)
-        if len(types) > 0:
+        schema_types = self.get_property_types(section_name, property_name)
+        value = JSONSchema.get_value(value, schema_types)
+        if len(schema_types) > 0:
             validator = jsonschema.Draft4Validator(self._schema)
             valid = False
-            for type in types:
-                valid = validator.is_type(value, type)
+            for schema_type in schema_types:
+                valid = validator.is_type(value, schema_type)
                 if valid:
                     break
 
             if not valid:
-                raise AquaError("{}.{} Value '{}' is not of types: '{}'".format(
-                    section_name, property_name, value, types))
+                raise AquaError("{}.{} Value '{}' is not of types: '{}'".format(section_name, property_name, value, schema_types))
 
         return value
 
@@ -674,53 +689,7 @@ class JSONSchema(object):
         return []
 
     @staticmethod
-    def get_value(value, types=None):
-        """
-        Returns a converted value based on schema types
-        Args:
-            value (obj): value
-            type (array): schema types
-
-        Returns:
-            Returns converted value
-        """
-        types = types if types is not None else []
-        if value is None or (isinstance(value, str) and len(value.strip()) == 0):
-            # return propet values based on type
-            if value is None:
-                if 'null' in types:
-                    return None
-                if 'string' in types:
-                    return ''
-            else:
-                if 'string' in types:
-                    return value
-                if 'null' in types:
-                    return None
-
-            if 'integer' in types or 'number' in types:
-                return 0
-            if 'object' in types:
-                return {}
-            if 'array' in types:
-                return []
-            if 'boolean' in types:
-                return False
-
-            return value
-
-        if 'number' in types or 'integer' in types:
-            try:
-                if 'integer' in types:
-                    return int(value)
-                else:
-                    return float(value)
-            except ValueError:
-                return 0
-
-        if 'string' in types:
-            return str(value)
-
+    def _evaluate_value(value):
         try:
             str_value = str(value).strip().replace('\n', '').replace('\r', '')
             if str_value.lower() == 'true':
@@ -733,8 +702,88 @@ class JSONSchema(object):
                 v = json.loads(json.dumps(v))
 
             return v
-        except:
+        except Exception:
             return value
+
+    @staticmethod
+    def _get_value_for_type(value, schema_type):
+        if value is None or (isinstance(value, str) and len(value.strip()) == 0):
+            if schema_type == 'null':
+                return None, True
+            if schema_type == 'string':
+                return '', True
+            if schema_type == 'array':
+                return [], True
+            if schema_type == 'object':
+                return {}, True
+            if schema_type == 'boolean':
+                return False, True
+            if schema_type in ['integer', 'number']:
+                return 0, True
+
+            return value, False
+        elif schema_type == 'null':
+            return None, False
+
+        if schema_type == 'string':
+            return str(value), True
+
+        if schema_type in ['array', 'object', 'boolean']:
+            value = JSONSchema._evaluate_value(value)
+            if schema_type == 'array' and isinstance(value, list):
+                return value, True
+            if schema_type == 'object' and isinstance(value, dict):
+                return value, True
+            if schema_type == 'boolean'and isinstance(value, bool):
+                return value, True
+
+            return value, False
+
+        if schema_type in ['integer', 'number']:
+            try:
+                if schema_type == 'integer':
+                    return int(value), True
+                else:
+                    return float(value), True
+            except Exception:
+                value = 0
+
+        return value, False
+
+    @staticmethod
+    def get_value(value, types=None):
+        """
+        Returns a converted value based on schema types
+        Args:
+            value (obj): value
+            type (array): schema types
+
+        Returns:
+            Returns a valid value in the type list, or the first converted value, valid or not
+        """
+        types = types if types is not None else []
+        values_for_type = OrderedDict()
+        for schema_type in types:
+            values_for_type[schema_type] = JSONSchema._get_value_for_type(value, schema_type)
+
+        # first check for a valid schema type null
+        value_for_type = values_for_type.get('null')
+        if value_for_type is not None and value_for_type[1]:
+            return value_for_type[0]
+
+        new_value = None
+        new_value_set = False
+        for value_for_type in values_for_type.values():
+            if value_for_type[1]:
+                return value_for_type[0]
+            elif not new_value_set:
+                new_value = value_for_type[0]
+                new_value_set = True
+
+        if new_value_set:
+            return new_value
+
+        return JSONSchema._evaluate_value(value)
 
     @staticmethod
     def format_section_name(section_name):

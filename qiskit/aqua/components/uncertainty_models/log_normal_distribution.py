@@ -72,5 +72,5 @@ class LogNormalDistribution(UnivariateDistribution):
         """
         self.validate(locals())
         probabilities, _ = UnivariateDistribution.\
-        pdf_to_probabilities(lambda x: lognorm.pdf(x, s=sigma, scale=np.exp(mu)), low, high, 2 ** num_target_qubits)
+            pdf_to_probabilities(lambda x: lognorm.pdf(x, s=sigma, scale=np.exp(mu)), low, high, 2 ** num_target_qubits)
         super().__init__(num_target_qubits, probabilities, low, high)

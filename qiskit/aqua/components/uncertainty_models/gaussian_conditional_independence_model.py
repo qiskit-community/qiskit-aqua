@@ -16,7 +16,7 @@ import numpy as np
 from qiskit.aqua.components.uncertainty_models import MultivariateDistribution
 from qiskit.aqua.components.uncertainty_models import NormalDistribution
 from scipy.stats.distributions import norm
-from qiskit.aqua.circuits.linear_y_rotation import LinearYRotation
+from qiskit.aqua.circuits.linear_rotation import LinearRotation
 
 
 class GaussianConditionalIndependenceModel(MultivariateDistribution):
@@ -105,9 +105,9 @@ class GaussianConditionalIndependenceModel(MultivariateDistribution):
             self.i_ps = range(n_normal, n_normal + self.K)
 
         # get normal (inverse) CDF and pdf
-        F = lambda x: norm.cdf(x)
-        F_inv = lambda q: norm.ppf(q)
-        f = lambda x: norm.pdf(x)
+        def F(x): return norm.cdf(x)
+        def F_inv(x): return norm.ppf(x)
+        def f(x): return norm.pdf(x)
 
         # set low/high values
         low = [-normal_max_value] + [0]*self.K
@@ -139,7 +139,7 @@ class GaussianConditionalIndependenceModel(MultivariateDistribution):
             self._offsets[k] = offset
             self._slopes[k] = slope
 
-            lry = LinearYRotation(slope, offset, n_normal, i_state=self.i_normal, i_target=self.i_ps[k])
+            lry = LinearRotation(slope, offset, n_normal, i_state=self.i_normal, i_target=self.i_ps[k])
             self._rotations += [lry]
 
     def build(self, qc, q, q_ancillas=None, params=None):
@@ -147,13 +147,3 @@ class GaussianConditionalIndependenceModel(MultivariateDistribution):
         self._normal.build(qc, q, q_ancillas)
         for lry in self._rotations:
             lry.build(qc, q, q_ancillas)
-
-
-
-
-
-
-
-
-
-
