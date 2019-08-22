@@ -23,7 +23,7 @@ python: "3.6"
 
 env:
   global:
-    - DEPENDENCY_BRANCH=$(if [ "$TRAVIS_BRANCH" = "stable" ]; then echo "stable"; else echo "master"; fi)
+    - DEPENDENCY_BRANCH=$(if [[ "$TRAVIS_BRANCH" == stable* ]]; then echo "stable"; else echo "master"; fi)
     - INIT_FILE="$TRAVIS_BUILD_DIR/qiskit/__init__.py"
 
 matrix:
@@ -46,7 +46,7 @@ before_install:
       echo "File '$INIT_FILE' found. It should not exist, since this repo extends qiskit namespace.";
       travis_terminate 1;
     fi
-    if [ "$BUILD_AER" != "false" ]; then
+    if [ "$BUILD_AER" != "false" && "$DEPENDENCY_BRANCH" == "master" ]; then
       # install Qiskit Aer build dependencies
       sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
       sudo apt-get -y update
@@ -54,18 +54,21 @@ before_install:
       sudo apt-get -y install libopenblas-dev
     fi
   - pip install --upgrade pip setuptools wheel
-  # Download github Terra
-  - wget https://codeload.github.com/Qiskit/qiskit-terra/zip/$DEPENDENCY_BRANCH -O /tmp/qiskit-terra.zip
-  - unzip /tmp/qiskit-terra.zip -d /tmp/
-  # Install local Qiskit Terra
-  - pip install -e /tmp/qiskit-terra-$DEPENDENCY_BRANCH --progress-bar off
-  # Download github Ignis
-  - wget https://codeload.github.com/Qiskit/qiskit-ignis/zip/$DEPENDENCY_BRANCH -O /tmp/qiskit-ignis.zip
-  - unzip /tmp/qiskit-ignis.zip -d /tmp/
-  # Install local Qiskit Ignis
-  - pip install -e /tmp/qiskit-ignis-$DEPENDENCY_BRANCH --progress-bar off
   - |
-    if [ "$BUILD_AER" != "false" ]; then
+    # Download dependencies from master
+    if [ "$DEPENDENCY_BRANCH" == "master" ]; then
+      # Download github Terra
+      wget https://codeload.github.com/Qiskit/qiskit-terra/zip/$DEPENDENCY_BRANCH -O /tmp/qiskit-terra.zip
+      unzip /tmp/qiskit-terra.zip -d /tmp/
+      # Install local Qiskit Terra
+      pip install -e /tmp/qiskit-terra-$DEPENDENCY_BRANCH --progress-bar off
+      # Download github Ignis
+      wget https://codeload.github.com/Qiskit/qiskit-ignis/zip/$DEPENDENCY_BRANCH -O /tmp/qiskit-ignis.zip
+      unzip /tmp/qiskit-ignis.zip -d /tmp/
+      # Install local Qiskit Ignis
+      pip install -e /tmp/qiskit-ignis-$DEPENDENCY_BRANCH --progress-bar off
+    fi
+    if [ "$BUILD_AER" != "false" && "$DEPENDENCY_BRANCH" == "master" ]; then
       # Download github Qiskit Aer
       wget https://codeload.github.com/Qiskit/qiskit-aer/zip/$DEPENDENCY_BRANCH -O /tmp/qiskit-aer.zip
       unzip /tmp/qiskit-aer.zip -d /tmp/
