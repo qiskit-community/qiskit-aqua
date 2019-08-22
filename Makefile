@@ -14,7 +14,8 @@
 .PHONY: lint style test
 
 lint:
-	pylint -rn --errors-only --enable=invalid-file-header --ignore=gauopen qiskit/aqua qiskit/chemistry test
+	pylint -rn --errors-only --enable=invalid-file-header --ignore=gauopen qiskit/aqua qiskit/chemistry
+	pylint -rn test
 
 style:
 	pycodestyle --max-line-length=210 --exclude=gauopen qiskit/aqua qiskit/chemistry test

@@ -12,7 +12,12 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Test Configuration Integrity """
+
 import unittest
+import inspect
+import os
+import subprocess
 from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua import (local_pluggables_types,
                          local_pluggables,
@@ -20,15 +25,12 @@ from qiskit.aqua import (local_pluggables_types,
                          get_pluggable_configuration,
                          PluggableType)
 from qiskit.aqua.input import AlgorithmInput
-import inspect
-import os
-import subprocess
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class TestConfigurationIntegrity(QiskitAquaTestCase):
-
+    """ Test Configuration Integrity """
     @staticmethod
     def _minimal_ext_cmd(cmd):
         # construct minimal environment
@@ -50,17 +52,22 @@ class TestConfigurationIntegrity(QiskitAquaTestCase):
                 cmd, proc.returncode, stderr.strip().decode('ascii')))
         return stdout
 
-    # TODO: disable this test for now, run locally because devs may have a hard time finding the cause
+    # TODO: disable this test for now, run locally
+    # because devs may have a hard time finding the cause
     def disable_test_load_aqua(self):
+        """ load aqua test """
         try:
-            out = TestConfigurationIntegrity._minimal_ext_cmd(['python', os.path.join(ROOT_DIR, 'load_aqua.py')])
+            out = TestConfigurationIntegrity._minimal_ext_cmd(
+                ['python', os.path.join(ROOT_DIR, 'load_aqua.py')])
             out = out.strip().decode('ascii')
             if out:
-                self.fail('One or more qiskit imports are interfering with Aqua loading: {}'.format(out))
+                self.fail(
+                    'One or more qiskit imports are interfering with Aqua loading: {}'.format(out))
         except OSError as ex:
             self.fail(str(ex))
 
     def test_pluggable_inputs(self):
+        """ pluggable inputs test """
         algorithm_problems = set()
         for pluggable_name in local_pluggables(PluggableType.ALGORITHM):
             configuration = get_pluggable_configuration(PluggableType.ALGORITHM, pluggable_name)
@@ -80,17 +87,20 @@ class TestConfigurationIntegrity(QiskitAquaTestCase):
                     if problem_name not in algorithm_problems:
                         missing_problems.append(problem_name)
 
-            if len(missing_problems) > 0:
-                err_msgs.append("{}: No algorithm declares the problems {}.".format(cls, missing_problems))
+            if missing_problems:
+                err_msgs.append(
+                    "{}: No algorithm declares the problems {}.".format(cls, missing_problems))
 
         invalid_problems = list(set(AlgorithmInput._PROBLEM_SET).difference(all_problems))
-        if len(invalid_problems) > 0:
-            err_msgs.append("Base Class AlgorithmInput contains problems {} that don't belong to any Input class.".format(invalid_problems))
+        if invalid_problems:
+            err_msgs.append("Base Class AlgorithmInput contains problems "
+                            "{} that don't belong to any Input class.".format(invalid_problems))
 
-        if len(err_msgs) > 0:
+        if err_msgs:
             self.fail('\n'.join(err_msgs))
 
     def test_pluggable_configuration(self):
+        """ pluggable configuration tests """
         err_msgs = []
         for pluggable_type in local_pluggables_types():
             for pluggable_name in local_pluggables(pluggable_type):
@@ -101,14 +111,15 @@ class TestConfigurationIntegrity(QiskitAquaTestCase):
                     continue
 
                 if pluggable_type in [PluggableType.ALGORITHM, PluggableType.INPUT]:
-                    if len(configuration.get('problems', [])) == 0:
+                    if not configuration.get('problems', []):
                         err_msgs.append("{} missing or empty 'problems' section.".format(cls))
 
                 schema_found = False
                 for configuration_name, configuration_value in configuration.items():
                     if configuration_name in ['problems', 'depends']:
                         if not isinstance(configuration_value, list):
-                            err_msgs.append("{} configuration section:'{}' isn't a list.".format(cls, configuration_name))
+                            err_msgs.append("{} configuration section:'{}' isn't a list.".format(
+                                cls, configuration_name))
                             continue
 
                         if configuration_name == 'depends':
@@ -119,7 +130,9 @@ class TestConfigurationIntegrity(QiskitAquaTestCase):
                     if configuration_name == 'input_schema':
                         schema_found = True
                         if not isinstance(configuration_value, dict):
-                            err_msgs.append("{} configuration section:'{}' isn't a dictionary.".format(cls, configuration_name))
+                            err_msgs.append(
+                                "{} configuration section:'{}' isn't a dictionary.".format(
+                                    cls, configuration_name))
                             continue
 
                         err_msgs.extend(self._validate_schema(cls, configuration_value))
@@ -128,7 +141,7 @@ class TestConfigurationIntegrity(QiskitAquaTestCase):
                 if not schema_found:
                     err_msgs.append("{} configuration missing schema.".format(cls))
 
-        if len(err_msgs) > 0:
+        if err_msgs:
             self.fail('\n'.join(err_msgs))
 
     def _validate_schema(self, cls, schema):
@@ -140,7 +153,8 @@ class TestConfigurationIntegrity(QiskitAquaTestCase):
         err_msgs = []
         for prop_name, value in properties.items():
             if not isinstance(properties, dict):
-                err_msgs.append("{} configuration schema '{}/{}' isn't a dictionary.".format(cls, 'properties', prop_name))
+                err_msgs.append("{} configuration schema '{}/{}' isn't a dictionary.".format(
+                    cls, 'properties', prop_name))
                 continue
 
             parameter = parameters.get(prop_name)
@@ -150,13 +164,18 @@ class TestConfigurationIntegrity(QiskitAquaTestCase):
 
             if 'default' in value:
                 default_value = value['default']
-                if parameter.default != inspect.Parameter.empty and parameter.default != default_value:
-                    err_msgs.append("{} __init__ param '{}' default value '{}' different from default value '{}' "
-                                    "found on its configuration schema.".format(cls, prop_name, parameter.default, default_value))
+                if parameter.default != inspect.Parameter.empty and \
+                   parameter.default != default_value:
+                    err_msgs.append(
+                        "{} __init__ param '{}' default value '{}' "
+                        "different from default value '{}' "
+                        "found on its configuration schema.".format(
+                            cls, prop_name, parameter.default, default_value))
             else:
                 if parameter.default != inspect.Parameter.empty:
                     err_msgs.append("{} __init__ param '{}' default value '{}' missing "
-                                    "in its configuration schema.".format(cls, prop_name, parameter.default))
+                                    "in its configuration schema.".format(
+                                        cls, prop_name, parameter.default))
 
         return err_msgs
 
@@ -164,17 +183,20 @@ class TestConfigurationIntegrity(QiskitAquaTestCase):
         err_msgs = []
         for dependency in dependencies:
             if not isinstance(dependency, dict):
-                err_msgs.append("{} configuration section:'{}' item isn't a dictionary.".format(cls, 'depends'))
+                err_msgs.append("{} configuration section:'{}' item isn't a dictionary.".format(
+                    cls, 'depends'))
                 continue
 
             dependency_pluggable_type = dependency.get('pluggable_type')
             if not isinstance(dependency_pluggable_type, str):
-                err_msgs.append("{} configuration section:'{}' item:'{}' isn't a string.".format(cls, 'depends', 'pluggable_type'))
+                err_msgs.append("{} configuration section:'{}' item:'{}' isn't a string.".format(
+                    cls, 'depends', 'pluggable_type'))
                 continue
 
             if not any(x for x in PluggableType if x.value == dependency_pluggable_type):
                 err_msgs.append("{} configuration section:'{}' item:'{}/{}' "
-                                "doesn't exist.".format(cls, 'depends', 'pluggable_type', dependency_pluggable_type))
+                                "doesn't exist.".format(
+                                    cls, 'depends', 'pluggable_type', dependency_pluggable_type))
                 continue
 
             defaults = dependency.get('default')
@@ -183,14 +205,16 @@ class TestConfigurationIntegrity(QiskitAquaTestCase):
 
             default_name = defaults.get('name')
             if default_name not in local_pluggables(dependency_pluggable_type):
-                print(default_name, dependency_pluggable_type, local_pluggables(dependency_pluggable_type))
                 err_msgs.append("{} configuration section:'{}' item:'{}/{}/{}/{}' "
-                                "not found.".format(cls, 'depends', dependency_pluggable_type, 'default', 'name', default_name))
+                                "not found.".format(
+                                    cls, 'depends', dependency_pluggable_type,
+                                    'default', 'name', default_name))
                 continue
 
             del defaults['name']
-            if len(defaults) > 0:
-                err_msgs.extend(self._validate_defaults_against_schema(dependency_pluggable_type, default_name, defaults))
+            if defaults:
+                err_msgs.extend(self._validate_defaults_against_schema(dependency_pluggable_type,
+                                                                       default_name, defaults))
 
         return err_msgs
 
@@ -206,14 +230,16 @@ class TestConfigurationIntegrity(QiskitAquaTestCase):
 
         properties = schema.get('properties')
         if not isinstance(properties, dict):
-            return ["{} configuration schema '{}' missing or isn't a dictionary.".format(cls, 'properties')]
+            return ["{} configuration schema '{}' missing or isn't a dictionary.".format(
+                cls, 'properties')]
 
         err_msgs = []
-        for default_property_name, default_property_value in defaults.items():
+        for default_property_name, _ in defaults.items():
             prop = properties.get(default_property_name)
             if not isinstance(prop, dict):
                 err_msgs.append("{} configuration schema '{}/{}' "
-                                "missing or isn't a dictionary.".format(cls, 'properties', default_property_name))
+                                "missing or isn't a dictionary.".format(
+                                    cls, 'properties', default_property_name))
         return err_msgs
 
 

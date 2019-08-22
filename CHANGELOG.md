@@ -50,6 +50,12 @@ Added
 -   Add `op_converter` module to unified the place in charge of converting different types of operators. (#593)
 -   Add `Z2Symmetries` class to encapsulate the Z2 symmetries info and has helper methods for tapering an
     Operator. (#593).
+-   Amplitude Estimation: added maximum likelihood postprocessing and confidence interval computation.
+-   Maximum Likelihood Amplitude Estimation (MLAE): Implemented new algorithm for amplitude estimation based on 
+    maximum likelihood estimation, which reduces number of required qubits and circuit depth.
+-   Added (piecewise) linearly and polynomially controlled Pauli-rotation circuits.  
+-   Add `q_equation_of_motion` to study excited state of a molecule, and add two algorithms to prepare the reference 
+    state. (#655)     
 
 Changed
 -------

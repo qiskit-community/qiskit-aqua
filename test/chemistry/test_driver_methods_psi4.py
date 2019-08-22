@@ -12,12 +12,15 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from qiskit.chemistry import QiskitChemistryError
-from qiskit.chemistry.drivers import PSI4Driver
+""" Test Driver Methods PSI4 """
+
 from test.chemistry.test_driver_methods import TestDriverMethods
+from qiskit.chemistry.drivers import PSI4Driver
+from qiskit.chemistry import QiskitChemistryError
 
 
 class TestDriverMethodsPSI4(TestDriverMethods):
+    """ Driver Methods PSI4 tests """
 
     psi4_lih_config = '''
 molecule mol {{
@@ -48,33 +51,38 @@ set {{
 '''
 
     def setUp(self):
-        super().setup()
+        super().setUp()
         try:
             PSI4Driver(config=self.psi4_lih_config.format('rhf'))
         except QiskitChemistryError:
             self.skipTest('PSI4 driver does not appear to be installed')
 
     def test_lih_rhf(self):
+        """ lih rhf test """
         driver = PSI4Driver(config=self.psi4_lih_config.format('rhf'))
         result = self._run_driver(driver)
         self._assert_energy_and_dipole(result, 'lih')
 
     def test_lih_rohf(self):
+        """ lih rohf test """
         driver = PSI4Driver(config=self.psi4_lih_config.format('rohf'))
         result = self._run_driver(driver)
         self._assert_energy_and_dipole(result, 'lih')
 
     def test_lih_uhf(self):
+        """ lih uhf test """
         driver = PSI4Driver(config=self.psi4_lih_config.format('uhf'))
         result = self._run_driver(driver)
         self._assert_energy_and_dipole(result, 'lih')
 
     def test_oh_rohf(self):
+        """ oh rohf test """
         driver = PSI4Driver(config=self.psi4_oh_config.format('rohf'))
         result = self._run_driver(driver)
         self._assert_energy_and_dipole(result, 'oh')
 
     def test_oh_uhf(self):
+        """ oh uhf test """
         driver = PSI4Driver(config=self.psi4_oh_config.format('uhf'))
         result = self._run_driver(driver)
         self._assert_energy_and_dipole(result, 'oh')

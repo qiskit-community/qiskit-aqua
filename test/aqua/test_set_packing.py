@@ -12,10 +12,11 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-import numpy as np
-import json
+""" Test Set Packing """
 
+import json
 from test.aqua.common import QiskitAquaTestCase
+import numpy as np
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.translators.ising import set_packing
@@ -28,22 +29,22 @@ class TestSetPacking(QiskitAquaTestCase):
     def setUp(self):
         super().setUp()
         input_file = self._get_resource_path('sample.setpacking')
-        with open(input_file) as f:
-            self.list_of_subsets = json.load(f)
-            qubitOp, offset = set_packing.get_set_packing_qubitops(self.list_of_subsets)
-            self.algo_input = EnergyInput(qubitOp)
+        with open(input_file) as file:
+            self.list_of_subsets = json.load(file)
+            qubit_op, _ = set_packing.get_set_packing_qubitops(self.list_of_subsets)
+            self.algo_input = EnergyInput(qubit_op)
 
-    def brute_force(self):
+    def _brute_force(self):
         # brute-force way: try every possible assignment!
-        def bitfield(n, L):
-            result = np.binary_repr(n, L)
+        def bitfield(n, length):
+            result = np.binary_repr(n, length)
             return [int(digit) for digit in result]  # [2:] to chop off the "0b" part
 
-        L = len(self.list_of_subsets)
-        max = 2**L
+        subsets = len(self.list_of_subsets)
+        maximum = 2**subsets
         max_v = -np.inf
-        for i in range(max):
-            cur = bitfield(i, L)
+        for i in range(maximum):
+            cur = bitfield(i, subsets)
             cur_v = set_packing.check_disjoint(cur, self.list_of_subsets)
             if cur_v:
                 if np.count_nonzero(cur) > max_v:
@@ -51,6 +52,7 @@ class TestSetPacking(QiskitAquaTestCase):
         return max_v
 
     def test_set_packing(self):
+        """ set packing test """
         params = {
             'problem': {'name': 'ising'},
             'algorithm': {'name': 'ExactEigensolver'}
@@ -59,23 +61,25 @@ class TestSetPacking(QiskitAquaTestCase):
         x = set_packing.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
         ising_sol = set_packing.get_solution(x)
         np.testing.assert_array_equal(ising_sol, [0, 1, 1])
-        oracle = self.brute_force()
+        oracle = self._brute_force()
         self.assertEqual(np.count_nonzero(ising_sol), oracle)
 
     def test_set_packing_direct(self):
+        """ set packing direct test """
         algo = ExactEigensolver(self.algo_input.qubit_op, k=1, aux_operators=[])
         result = algo.run()
         x = set_packing.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
         ising_sol = set_packing.get_solution(x)
         np.testing.assert_array_equal(ising_sol, [0, 1, 1])
-        oracle = self.brute_force()
+        oracle = self._brute_force()
         self.assertEqual(np.count_nonzero(ising_sol), oracle)
 
     def test_set_packing_vqe(self):
+        """ set packing vqe test """
         try:
             from qiskit import Aer
-        except Exception as e:
-            self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(e)))
+        except Exception as ex:  # pylint: disable=broad-except
+            self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(ex)))
             return
 
         algorithm_cfg = {
@@ -105,5 +109,5 @@ class TestSetPacking(QiskitAquaTestCase):
         result = run_algorithm(params, self.algo_input, backend=backend)
         x = set_packing.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
         ising_sol = set_packing.get_solution(x)
-        oracle = self.brute_force()
+        oracle = self._brute_force()
         self.assertEqual(np.count_nonzero(ising_sol), oracle)
