@@ -12,15 +12,20 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""
+The Variational Quantum Eigensolver algorithm.
+
+See https://arxiv.org/abs/1304.3061
+"""
+
 import logging
 import functools
-import warnings
 
 import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit
 
 from qiskit.aqua.algorithms.adaptive.vq_algorithm import VQAlgorithm
-from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class, Operator
+from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.operators import (TPBGroupedWeightedPauliOperator, WeightedPauliOperator,
                                    MatrixOperator, op_converter)
 from qiskit.aqua.utils.backend_utils import is_aer_statevector_backend, is_statevector_backend
@@ -43,11 +48,6 @@ class VQE(VQAlgorithm):
             'id': 'vqe_schema',
             'type': 'object',
             'properties': {
-                'operator_mode': {
-                    'type': ['string', 'null'],
-                    'default': None,
-                    'enum': ['matrix', 'paulis', 'grouped_paulis', None]
-                },
                 'initial_point': {
                     'type': ['array', 'null'],
                     "items": {
@@ -77,7 +77,7 @@ class VQE(VQAlgorithm):
         ],
     }
 
-    def __init__(self, operator, var_form, optimizer, operator_mode=None,
+    def __init__(self, operator, var_form, optimizer,
                  initial_point=None, max_evals_grouped=1, aux_operators=None, callback=None,
                  auto_conversion=True):
         """Constructor.
@@ -100,9 +100,6 @@ class VQE(VQAlgorithm):
                                     - aer statevector_simulator: WeightedPauliOperator
                                     - qasm simulator or real backend: TPBGroupedWeightedPauliOperator
         """
-        if operator_mode is not None:
-            warnings.warn("operator_mode option is deprecated and it will be removed after 0.6. "
-                          "Now the operator has its own mode, no need extra info to tell the VQE.", DeprecationWarning)
         self.validate(locals())
         super().__init__(var_form=var_form,
                          optimizer=optimizer,
@@ -112,20 +109,12 @@ class VQE(VQAlgorithm):
         self._callback = callback
         if initial_point is None:
             self._initial_point = var_form.preferred_init_points
-        if isinstance(operator, Operator):
-            warnings.warn("operator should be type of BaseOperator, Operator type is deprecated and "
-                          "it will be removed after 0.6.", DeprecationWarning)
-            operator = op_converter.to_weighted_pauli_operator(operator)
         self._operator = operator
         self._eval_count = 0
         self._aux_operators = []
         if aux_operators is not None:
             aux_operators = [aux_operators] if not isinstance(aux_operators, list) else aux_operators
             for aux_op in aux_operators:
-                if isinstance(aux_op, Operator):
-                    warnings.warn("aux operator should be type of BaseOperator, Operator type is deprecated and "
-                                  "it will be removed after 0.6.", DeprecationWarning)
-                    aux_op = op_converter.to_weighted_pauli_operator(aux_op)
                 self._aux_operators.append(aux_op)
         self._auto_conversion = auto_conversion
         logger.info(self.print_settings())
@@ -224,34 +213,25 @@ class VQE(VQAlgorithm):
                     ret_op = op_converter.to_weighted_pauli_operator(operator)
         return ret_op
 
-    def construct_circuit(self, parameter, backend=None, use_simulator_operator_mode=False,
-                          statevector_mode=None, circuit_name_prefix=''):
+    def construct_circuit(self, parameter, statevector_mode=False,
+                          use_simulator_operator_mode=False, circuit_name_prefix=''):
         """Generate the circuits.
 
         Args:
             parameter (numpy.ndarray): parameters for variational form.
-            backend (qiskit.BaseBackend, optional): backend object.
+            statevector_mode (bool, optional): indicate which type of simulator are going to use.
             use_simulator_operator_mode (bool, optional): is backend from AerProvider, if True and mode is paulis,
                            single circuit is generated.
-            statevector_mode (bool, optional): indicate which type of simulator are going to use.
             circuit_name_prefix (str, optional): a prefix of circuit name
 
         Returns:
             [QuantumCircuit]: the generated circuits with Hamiltonian.
         """
-
-        if backend is not None:
-            warnings.warn("backend option is deprecated and it will be removed after 0.6, "
-                          "Use `statevector_mode` instead", DeprecationWarning)
-            statevector_mode = is_statevector_backend(backend)
-        else:
-            if statevector_mode is None:
-                raise AquaError("Either backend or statevector_mode need to be provided.")
-
         wave_function = self._var_form.construct_circuit(parameter)
         circuits = self._operator.construct_evaluation_circuit(
-            use_simulator_operator_mode=use_simulator_operator_mode, wave_function=wave_function,
-            statevector_mode=statevector_mode, circuit_name_prefix=circuit_name_prefix)
+            wave_function, statevector_mode,
+            use_simulator_operator_mode=use_simulator_operator_mode,
+            circuit_name_prefix=circuit_name_prefix)
         return circuits
 
     def _eval_aux_ops(self, threshold=1e-12, params=None):

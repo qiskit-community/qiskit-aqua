@@ -18,7 +18,6 @@ feature map. Several types of commonly used approaches.
 
 import itertools
 import logging
-import warnings
 
 import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister
@@ -133,7 +132,7 @@ class PauliExpansion(FeatureMap):
         where_non_i = np.where(np.asarray(list(pauli[::-1])) != 'I')[0]
         return x[where_non_i]
 
-    def construct_circuit(self, x, qr=None, inverse=None):
+    def construct_circuit(self, x, qr=None):
         """
         Construct the second order expansion based on given data.
 
@@ -146,11 +145,6 @@ class PauliExpansion(FeatureMap):
         Returns:
             QuantumCircuit: a quantum circuit transform data x.
         """
-
-        if inverse is not None:
-            warnings.warn("inverse option is deprecated and it will be removed after 0.6, "
-                          "Since terra supports to inverse the circuit by calling qc.inverses()", DeprecationWarning)
-
         if not isinstance(x, np.ndarray):
             raise TypeError("x must be numpy array.")
         if x.ndim != 1:
@@ -172,7 +166,4 @@ class PauliExpansion(FeatureMap):
                 inst = evolution_instruction([[coeff, p]], 1, 1)
                 qc.append(inst, qr)
                 qc = qc.decompose()
-        if inverse is not None and inverse:
-            qc = qc.inverse()
-
         return qc

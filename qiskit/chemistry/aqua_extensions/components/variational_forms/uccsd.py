@@ -19,7 +19,6 @@ For more information, see https://arxiv.org/abs/1805.04340
 
 import logging
 import sys
-import warnings
 
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
@@ -106,43 +105,29 @@ class UCCSD(VariationalForm):
     def __init__(self, num_qubits, depth, num_orbitals, num_particles,
                  active_occupied=None, active_unoccupied=None, initial_state=None,
                  qubit_mapping='parity', two_qubit_reduction=True, num_time_slices=1,
-                 cliffords=None, sq_list=None, tapering_values=None, symmetries=None,
                  shallow_circuit_concat=True, z2_symmetries=None):
         """Constructor.
 
         Args:
             num_orbitals (int): number of spin orbitals
             depth (int): number of replica of basic module
-            num_particles (list, int): number of particles, if it is a list, the first number is alpha
-                                        and the second number if beta.
+            num_particles (list, int): number of particles, if it is a list, the first number
+                                       is alpha and the second number if beta.
             active_occupied (list): list of occupied orbitals to consider as active space
             active_unoccupied (list): list of unoccupied orbitals to consider as active space
             initial_state (InitialState): An initial state object.
             qubit_mapping (str): qubit mapping type.
             two_qubit_reduction (bool): two qubit reduction is applied or not.
             num_time_slices (int): parameters for dynamics.
-            cliffords ([WeightedPauliOperator]): list of unitary Clifford transformation
-            sq_list ([int]): position of the single-qubit operators that anticommute
-                            with the cliffords
-            tapering_values ([int]): array of +/- 1 used to select the subspace. Length
-                                    has to be equal to the length of cliffords and sq_list
-            symmetries ([Pauli]): represent the Z2 symmetries
-            shallow_circuit_concat (bool): indicate whether to use shallow (cheap) mode for circuit concatenation
+            z2_symmetries (Z2Symmetries): represent the Z2 symmetries, including symmetries,
+                                          sq_paulis, sq_list, tapering_values, and cliffords
+            shallow_circuit_concat (bool): indicate whether to use shallow (cheap) mode for
+                                           circuit concatenation
         """
         self.validate(locals())
         super().__init__()
 
-        if cliffords is not None and cliffords != [] and \
-                sq_list is not None and sq_list != [] and \
-                tapering_values is not None and tapering_values != [] and \
-                symmetries is not None and symmetries != []:
-            warnings.warn("symmetries, cliffords, sq_list, tapering_values options is deprecated "
-                          "and it will be removed after 0.6, Please encapsulate all tapering info "
-                          "into the Z2Symmetries class.", DeprecationWarning)
-            sq_paulis = [x.paulis[1][1] for x in cliffords]
-            self._z2_symmetries = Z2Symmetries(symmetries, sq_paulis, sq_list, tapering_values)
-        else:
-            self._z2_symmetries = Z2Symmetries([], [], [], []) if z2_symmetries is None else z2_symmetries
+        self._z2_symmetries = Z2Symmetries([], [], [], []) if z2_symmetries is None else z2_symmetries
 
         self._num_qubits = num_orbitals if not two_qubit_reduction else num_orbitals - 2
         self._num_qubits = self._num_qubits if self._z2_symmetries.is_empty() \
