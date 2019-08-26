@@ -12,17 +12,20 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from qiskit.chemistry.drivers import BaseDriver, UnitsType, HFMethodType
-from qiskit.chemistry import QiskitChemistryError
-from qiskit.chemistry.drivers.pyscfd.integrals import compute_integrals
+""" PYSCF Driver """
+
 import importlib
 from enum import Enum
 import logging
+from qiskit.chemistry.drivers import BaseDriver, UnitsType, HFMethodType
+from qiskit.chemistry import QiskitChemistryError
+from qiskit.chemistry.drivers.pyscfd.integrals import compute_integrals
 
 logger = logging.getLogger(__name__)
 
 
 class InitialGuess(Enum):
+    """ Iniial Guess Enum """
     MINAO = 'minao'
     HCORE = '1e'
     ONE_E = '1e'
@@ -124,6 +127,8 @@ class PySCFDriver(BaseDriver):
             max_cycle (int): Max convergence cycles see PySCF docs and pyscf/scf/hf.py
             init_guess (InitialGuess): See PySCF pyscf/scf/hf.py init_guess_by_minao/1e/atom methods
             max_memory (int): maximum memory
+        Raises:
+            QiskitChemistryError: Invalid Input
         """
         if not isinstance(atom, list) and not isinstance(atom, str):
             raise QiskitChemistryError("Invalid atom input for PYSCF Driver '{}'".format(atom))
@@ -157,7 +162,7 @@ class PySCFDriver(BaseDriver):
             if spec is not None:
                 return
         except Exception as ex:  # pylint: disable=broad-except
-            logger.debug('PySCF check error {}'.format(str(ex)))
+            logger.debug('PySCF check error %s', str(ex))
             raise QiskitChemistryError(err_msg) from ex
 
         raise QiskitChemistryError(err_msg)
@@ -172,6 +177,8 @@ class PySCFDriver(BaseDriver):
 
         Returns:
             Driver: Driver object
+        Raises:
+            QiskitChemistryError: Invalid or missing section
         """
         if section is None or not isinstance(section, dict):
             raise QiskitChemistryError('Invalid or missing section {}'.format(section))
@@ -188,7 +195,7 @@ class PySCFDriver(BaseDriver):
 
             kwargs[k] = v
 
-        logger.debug('init_from_input: {}'.format(kwargs))
+        logger.debug('init_from_input: %s', kwargs)
         return cls(**kwargs)
 
     def run(self):

@@ -12,20 +12,22 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from qiskit.chemistry.drivers import BaseDriver
+""" PSI4 Driver """
+
 import tempfile
 import os
 import subprocess
 import logging
-from qiskit.chemistry import QMolecule, QiskitChemistryError
 import sys
 from shutil import which
+from qiskit.chemistry.drivers import BaseDriver
+from qiskit.chemistry import QMolecule, QiskitChemistryError
 
 logger = logging.getLogger(__name__)
 
 PSI4 = 'psi4'
 
-psi4 = which(PSI4)
+PSI4_APP = which(PSI4)
 
 
 class PSI4Driver(BaseDriver):
@@ -48,6 +50,8 @@ class PSI4Driver(BaseDriver):
         Initializer
         Args:
             config (str or list): driver configuration
+        Raises:
+            QiskitChemistryError: Invalid Input
         """
         if not isinstance(config, list) and not isinstance(config, str):
             raise QiskitChemistryError("Invalid input for PSI4 Driver '{}'".format(config))
@@ -60,7 +64,7 @@ class PSI4Driver(BaseDriver):
 
     @staticmethod
     def check_driver_valid():
-        if psi4 is None:
+        if PSI4_APP is None:
             raise QiskitChemistryError("Could not locate {}".format(PSI4))
 
     @classmethod
@@ -69,16 +73,18 @@ class PSI4Driver(BaseDriver):
         Initialize via section dictionary.
 
         Args:
-            params (dict): section dictionary
+            section (dict): section dictionary
 
         Returns:
             Driver: Driver object
+        Raises:
+            QiskitChemistryError: Invalid or missing section
         """
         if not isinstance(section, str):
             raise QiskitChemistryError('Invalid or missing section {}'.format(section))
 
         kwargs = {'config': section}
-        logger.debug('init_from_input: {}'.format(kwargs))
+        logger.debug('init_from_input: %s', kwargs)
         return cls(**kwargs)
 
     def run(self):
@@ -97,21 +103,21 @@ class PSI4Driver(BaseDriver):
         input_text += 'from qmolecule import QMolecule\n'
         input_text += '_q_molecule = QMolecule("{0}")\n'.format(molecule.filename)
 
-        with open(template_file, 'r') as f:
-            input_text += f.read()
+        with open(template_file, 'r') as file:
+            input_text += file.read()
 
-        fd, input_file = tempfile.mkstemp(suffix='.inp')
-        os.close(fd)
+        file, input_file = tempfile.mkstemp(suffix='.inp')
+        os.close(file)
         with open(input_file, 'w') as stream:
             stream.write(input_text)
 
-        fd, output_file = tempfile.mkstemp(suffix='.out')
-        os.close(fd)
+        file, output_file = tempfile.mkstemp(suffix='.out')
+        os.close(file)
         try:
             PSI4Driver._run_psi4(input_file, output_file)
             if logger.isEnabledFor(logging.DEBUG):
-                with open(output_file, 'r') as f:
-                    logger.debug('PSI4 output file:\n{}'.format(f.read()))
+                with open(output_file, 'r') as file:
+                    logger.debug('PSI4 output file:\n%s', file.read())
         finally:
             run_directory = os.getcwd()
             for local_file in os.listdir(run_directory):
@@ -119,17 +125,17 @@ class PSI4Driver(BaseDriver):
                     os.remove(run_directory + '/' + local_file)
             try:
                 os.remove('timer.dat')
-            except Exception:
+            except Exception:  # pylint: disable=broad-except
                 pass
 
             try:
                 os.remove(input_file)
-            except Exception:
+            except Exception:  # pylint: disable=broad-except
                 pass
 
             try:
                 os.remove(output_file)
-            except Exception:
+            except Exception:  # pylint: disable=broad-except
                 pass
 
         _q_molecule = QMolecule(molecule.filename)
@@ -148,7 +154,7 @@ class PSI4Driver(BaseDriver):
         try:
             process = subprocess.Popen([PSI4, input_file, output_file],
                                        stdout=subprocess.PIPE, universal_newlines=True)
-            stdout, stderr = process.communicate()
+            stdout, _ = process.communicate()
             process.wait()
         except Exception:
             if process is not None:
@@ -160,7 +166,8 @@ class PSI4Driver(BaseDriver):
             errmsg = ""
             if stdout is not None:
                 lines = stdout.splitlines()
-                for i in range(len(lines)):
+                for i, _ in enumerate(lines):
                     logger.error(lines[i])
                     errmsg += lines[i] + "\n"
-            raise QiskitChemistryError('{} process return code {}\n{}'.format(PSI4, process.returncode, errmsg))
+            raise QiskitChemistryError('{} process return code {}\n{}'.format(
+                PSI4, process.returncode, errmsg))

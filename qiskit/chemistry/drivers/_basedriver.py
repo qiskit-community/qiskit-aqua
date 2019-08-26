@@ -21,19 +21,21 @@ Doing so requires that the required driver interface is implemented.
 
 from abc import ABC, abstractmethod
 import copy
-from qiskit.aqua.parser import JSONSchema
 from enum import Enum
 import logging
+from qiskit.aqua.parser import JSONSchema
 
 logger = logging.getLogger(__name__)
 
 
 class UnitsType(Enum):
+    """ Units Type Enum """
     ANGSTROM = 'Angstrom'
     BOHR = 'Bohr'
 
 
 class HFMethodType(Enum):
+    """ HFMethodType Enum """
     RHF = 'rhf'
     ROHF = 'rohf'
     UHF = 'uhf'
@@ -67,7 +69,7 @@ class BaseDriver(ABC):
         Initialize via section dictionary.
 
         Args:
-            params (dict): section dictionary
+            section (dict): section dictionary
 
         Returns:
             Driver: Driver object
@@ -80,27 +82,31 @@ class BaseDriver(ABC):
         pass
 
     def validate(self, args_dict):
+        """ validate driver input """
         schema_dict = self.CONFIGURATION.get('input_schema', None)
         if schema_dict is None:
             return
 
-        jsonSchema = JSONSchema(schema_dict)
-        schema_property_names = jsonSchema.get_default_section_names()
+        json_schema = JSONSchema(schema_dict)
+        schema_property_names = json_schema.get_default_section_names()
         json_dict = {}
         for property_name in schema_property_names:
             if property_name in args_dict:
                 json_dict[property_name] = args_dict[property_name]
 
-        jsonSchema.validate(json_dict)
+        json_schema.validate(json_dict)
 
     @property
     def work_path(self):
+        """ retuirns work path """
         return self._work_path
 
     @work_path.setter
     def work_path(self, new_work_path):
+        """ sets work path """
         self._work_path = new_work_path
 
     @abstractmethod
     def run(self):
+        """ runs driver """
         pass

@@ -12,17 +12,20 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from qiskit.chemistry.drivers import BaseDriver, UnitsType, HFMethodType
-from qiskit.chemistry import QiskitChemistryError
-from qiskit.chemistry.drivers.pyquanted.integrals import compute_integrals
+""" PyQuante Driver """
+
 import importlib
 from enum import Enum
 import logging
+from qiskit.chemistry.drivers import BaseDriver, UnitsType, HFMethodType
+from qiskit.chemistry import QiskitChemistryError
+from qiskit.chemistry.drivers.pyquanted.integrals import compute_integrals
 
 logger = logging.getLogger(__name__)
 
 
 class BasisType(Enum):
+    """ Basis Type """
     BSTO3G = 'sto3g'
     B631G = '6-31g'
     B631GSS = '6-31g**'
@@ -52,7 +55,7 @@ class PyQuanteDriver(BaseDriver):
                     "enum": [
                         UnitsType.ANGSTROM.value,
                         UnitsType.BOHR.value,
-                     ]
+                    ]
                 },
                 "charge": {
                     "type": "integer",
@@ -66,9 +69,9 @@ class PyQuanteDriver(BaseDriver):
                     "type": "string",
                     "default": BasisType.BSTO3G.value,
                     "enum": [
-                         BasisType.BSTO3G.value,
-                         BasisType.B631G.value,
-                         BasisType.B631GSS.value,
+                        BasisType.BSTO3G.value,
+                        BasisType.B631G.value,
+                        BasisType.B631GSS.value,
                     ]
                 },
                 "hf_method": {
@@ -114,6 +117,8 @@ class PyQuanteDriver(BaseDriver):
             hf_method (HFMethodType): Hartree-Fock Method type
             tol (float): Convergence tolerance see pyquante2.scf hamiltonians and iterators
             maxiters (int): Convergence max iterations see pyquante2.scf hamiltonians and iterators
+        Raises:
+            QiskitChemistryError: Invalid Input
         """
         if not isinstance(atoms, list) and not isinstance(atoms, str):
             raise QiskitChemistryError("Invalid atom input for PYQUANTE Driver '{}'".format(atoms))
@@ -145,7 +150,7 @@ class PyQuanteDriver(BaseDriver):
             if spec is not None:
                 return
         except Exception as ex:  # pylint: disable=broad-except
-            logger.debug('PyQuante2 check error {}'.format(str(ex)))
+            logger.debug('PyQuante2 check error %s', str(ex))
             raise QiskitChemistryError(err_msg) from ex
 
         raise QiskitChemistryError(err_msg)
@@ -160,6 +165,8 @@ class PyQuanteDriver(BaseDriver):
 
         Returns:
             Driver: Driver object
+        Raises:
+            QiskitChemistryError: Invalid sections
         """
         if section is None or not isinstance(section, dict):
             raise QiskitChemistryError('Invalid or missing section {}'.format(section))
@@ -176,7 +183,7 @@ class PyQuanteDriver(BaseDriver):
 
             kwargs[k] = v
 
-        logger.debug('init_from_input: {}'.format(kwargs))
+        logger.debug('init_from_input: %s', kwargs)
         return cls(**kwargs)
 
     def run(self):

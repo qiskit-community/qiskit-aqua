@@ -118,7 +118,7 @@ class ExchangeDataProvider(BaseDataProvider):
         Initialize via section dictionary.
 
         Args:
-            params (dict): section dictionary
+            section (dict): section dictionary
 
         Returns:
             DataProvider object

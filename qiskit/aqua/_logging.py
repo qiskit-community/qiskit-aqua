@@ -13,12 +13,12 @@
 # that they have been altered from the originals.
 """Utilities for logging."""
 
+import os
 import copy
 import logging
 from logging.config import dictConfig
 from collections import OrderedDict
 import pkg_resources
-import os
 
 _ALGO_LOGGING_CONFIG = {
     'version': 1,
@@ -60,25 +60,27 @@ def build_logging_config(level, filepath=None):
     Args:
         level (number): logging level
         filepath (str): file to receive logging data
+    Returns:
+        Dict: New configuration dictionary
     """
-    dict = copy.deepcopy(_ALGO_LOGGING_CONFIG)
+    dict_conf = copy.deepcopy(_ALGO_LOGGING_CONFIG)
     if filepath is not None:
         filepath = os.path.expanduser(filepath)
-        dict['handlers']['f'] = {
+        dict_conf['handlers']['f'] = {
             'class': 'logging.FileHandler',
             'formatter': 'f',
             'filename': filepath,
             'mode': 'w'
         }
 
-    handlers = list(dict['handlers'].keys())
+    handlers = list(dict_conf['handlers'].keys())
     for name in _get_logging_names():
-        dict['loggers'][name] = {
+        dict_conf['loggers'][name] = {
             'handlers': handlers,
             'propagate': False,
             'level': level
         }
-    return dict
+    return dict_conf
 
 
 def get_logging_level():
@@ -102,7 +104,7 @@ def get_qiskit_aqua_logging():
     Returns the current Aqua logging level
 
     Returns:
-        logging level
+        int: logging level
     """
     return get_logging_level()
 

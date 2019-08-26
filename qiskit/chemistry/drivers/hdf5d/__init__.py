@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" HDF5 packages """
+
 from .hdf5driver import HDF5Driver
 
 __all__ = ['HDF5Driver']

@@ -119,7 +119,7 @@ class TestCoreHamiltonian(QiskitChemistryTestCase):
 
     def test_particle_hole(self):
         """ particle hole test """
-        core = Hamiltonian(transformation=TransformationType.PH,
+        core = Hamiltonian(transformation=TransformationType.P_H,
                            qubit_mapping=QubitMappingType.JORDAN_WIGNER,
                            two_qubit_reduction=False,
                            freeze_core=False,

@@ -12,10 +12,12 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from qiskit.chemistry.drivers import BaseDriver
-import logging
-from qiskit.chemistry import QMolecule, QiskitChemistryError
+""" HDF5 Driver """
+
 import os
+import logging
+from qiskit.chemistry.drivers import BaseDriver
+from qiskit.chemistry import QMolecule, QiskitChemistryError
 
 logger = logging.getLogger(__name__)
 
@@ -58,16 +60,18 @@ class HDF5Driver(BaseDriver):
         Initialize via section dictionary.
 
         Args:
-            params (dict): section dictionary
+            section (dict): section dictionary
 
         Returns:
             Driver: Driver object
+        Raises:
+            QiskitChemistryError: Invalid or missing section
         """
         if section is None or not isinstance(section, dict):
             raise QiskitChemistryError('Invalid or missing section {}'.format(section))
 
         kwargs = section
-        logger.debug('init_from_input: {}'.format(kwargs))
+        logger.debug('init_from_input: %s', kwargs)
         return cls(**kwargs)
 
     def run(self):
