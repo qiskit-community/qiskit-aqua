@@ -15,11 +15,14 @@
 """ Text Vertex Cover """
 
 from test.aqua.common import QiskitAquaTestCase
+
 import numpy as np
 from qiskit import BasicAer
-from qiskit.aqua import run_algorithm
+
+from qiskit.aqua import run_algorithm, aqua_globals
 from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.translators.ising import vertex_cover
+from qiskit.aqua.translators.ising.common import random_graph, sample_most_likely
 from qiskit.aqua.algorithms import ExactEigensolver
 
 
@@ -28,9 +31,10 @@ class TestVertexCover(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
-        np.random.seed(100)
+        self.seed = 100
+        aqua_globals.random_seed = self.seed
         self.num_nodes = 3
-        self.w = vertex_cover.random_graph(self.num_nodes, edge_prob=0.8, weight_range=10)
+        self.w = random_graph(self.num_nodes, edge_prob=0.8, weight_range=10)
         self.qubit_op, self.offset = vertex_cover.get_vertex_cover_qubitops(self.w)
         self.algo_input = EnergyInput(self.qubit_op)
 
@@ -62,7 +66,7 @@ class TestVertexCover(QiskitAquaTestCase):
         }
         result = run_algorithm(params, self.algo_input)
 
-        x = vertex_cover.sample_most_likely(len(self.w), result['eigvecs'][0])
+        x = sample_most_likely(result['eigvecs'][0])
         sol = vertex_cover.get_graph_solution(x)
         np.testing.assert_array_equal(sol, [0, 1, 1])
         oracle = self._brute_force()
@@ -72,7 +76,7 @@ class TestVertexCover(QiskitAquaTestCase):
         """ Vertex Cover Direct test """
         algo = ExactEigensolver(self.algo_input.qubit_op, k=1, aux_operators=[])
         result = algo.run()
-        x = vertex_cover.sample_most_likely(len(self.w), result['eigvecs'][0])
+        x = sample_most_likely(result['eigvecs'][0])
         sol = vertex_cover.get_graph_solution(x)
         np.testing.assert_array_equal(sol, [0, 1, 1])
         oracle = self._brute_force()
@@ -97,14 +101,14 @@ class TestVertexCover(QiskitAquaTestCase):
         }
 
         params = {
-            'problem': {'name': 'ising', 'random_seed': 100},
+            'problem': {'name': 'ising', 'random_seed': self.seed},
             'algorithm': algorithm_cfg,
             'optimizer': optimizer_cfg,
             'variational_form': var_form_cfg
         }
         backend = BasicAer.get_backend('qasm_simulator')
         result = run_algorithm(params, self.algo_input, backend=backend)
-        x = vertex_cover.sample_most_likely(len(self.w), result['eigvecs'][0])
+        x = sample_most_likely(result['eigvecs'][0])
         sol = vertex_cover.get_graph_solution(x)
         oracle = self._brute_force()
         self.assertEqual(np.count_nonzero(sol), oracle)

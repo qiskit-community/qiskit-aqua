@@ -16,10 +16,12 @@
 
 import unittest
 from test.aqua.common import QiskitAquaTestCase
+
 import numpy as np
 from qiskit import BasicAer
+
 from qiskit.aqua.operators import MatrixOperator
-from qiskit.aqua import QuantumInstance
+from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.components.initial_states import Custom
 from qiskit.aqua.algorithms import EOH
 
@@ -30,12 +32,13 @@ class TestEOH(QiskitAquaTestCase):
     def test_eoh(self):
         """ EOH test """
         size = 2
+        aqua_globals.random_seed = 0
 
-        temp = np.random.random((2 ** size, 2 ** size))
+        temp = aqua_globals.random.random_sample((2 ** size, 2 ** size))
         h_1 = temp + temp.T
         qubit_op = MatrixOperator(matrix=h_1)
 
-        temp = np.random.random((2 ** size, 2 ** size))
+        temp = aqua_globals.random.random_sample((2 ** size, 2 ** size))
         h_1 = temp + temp.T
         evo_op = MatrixOperator(matrix=h_1)
 

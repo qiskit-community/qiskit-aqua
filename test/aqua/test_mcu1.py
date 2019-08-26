@@ -18,11 +18,13 @@ import unittest
 from test.aqua.common import QiskitAquaTestCase
 from itertools import combinations, chain
 from math import pi
+
 import numpy as np
 from parameterized import parameterized
-from qiskit import QuantumCircuit, QuantumRegister
-from qiskit import execute
-from qiskit import BasicAer
+
+from qiskit import QuantumCircuit, QuantumRegister, execute, BasicAer
+
+from qiskit.aqua import aqua_globals
 
 NUM_CONTROLS = [[i + 1] for i in range(6)]
 
@@ -38,9 +40,10 @@ class TestMCU1(QiskitAquaTestCase):
         q_o = QuantumRegister(1, name='o')
         allsubsets = list(chain(*[combinations(range(num_controls), ni)
                                   for ni in range(num_controls + 1)]))
+        aqua_globals.random_seed = 10598
         for subset in allsubsets:
             control_int = 0
-            lam = np.random.random(1)[0] * pi
+            lam = aqua_globals.random.random_sample(1)[0] * pi
             qc = QuantumCircuit(q_o, c)
             for idx in subset:
                 control_int += 2**idx

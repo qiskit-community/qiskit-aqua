@@ -12,9 +12,11 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-# Converts vehicle routing instnces into a list of Paulis,
-# and provides some related routines (extracting a solution,
-# checking its objective function value).
+"""
+Converts vehicle routing instances into a list of Paulis,
+and provides some related routines (extracting a solution,
+checking its objective function value).
+"""
 
 import numpy as np
 from qiskit.quantum_info import Pauli
@@ -159,7 +161,10 @@ def get_vehiclerouting_solution(instance, n, K, result):
 
     Returns:
         x_sol (numpy.ndarray): a solution, i.e., a path, in its binary representation.
-        """
+
+    #TODO: support statevector simulation, results should be a statevector or counts foramt, not
+           a result from algorithm run
+    """
 
     v = result['eigvecs'][0]
     N = (n - 1) * n

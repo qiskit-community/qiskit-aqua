@@ -22,12 +22,13 @@ Note that the weights are symmetric, i.e., w[j, i] = x always holds.
 """
 
 import logging
-from collections import OrderedDict, namedtuple
+import warnings
+from collections import namedtuple
 
 import numpy as np
-import numpy.random as rand
 from qiskit.quantum_info import Pauli
 
+from qiskit.aqua import aqua_globals
 from qiskit.aqua.operators import WeightedPauliOperator
 
 logger = logging.getLogger(__name__)
@@ -65,8 +66,9 @@ def random_tsp(n, low=0, high=100, savefile=None, seed=None, name='tmp'):
     """
     assert n > 0
     if seed:
-        rand.seed(seed)
-    coord = rand.uniform(low, high, (n, 2))
+        aqua_globals.random_seed = seed
+
+    coord = aqua_globals.random.uniform(low, high, (n, 2))
     ins = calc_distance(coord, name)
     if savefile:
         with open(savefile, 'w') as outfile:
@@ -265,26 +267,10 @@ def get_tsp_solution(x):
                 z.append(i)
     return z
 
-
 def sample_most_likely(state_vector):
-    """Compute the most likely binary string from state vector.
-
-    Args:
-        state_vector (numpy.ndarray or dict): state vector or counts.
-
-    Returns:
-        numpy.ndarray: binary string as numpy.ndarray of ints.
-    """
-    if isinstance(state_vector, dict) or isinstance(state_vector, OrderedDict):
-        # get the binary string with the largest count
-        binary_string = sorted(state_vector.items(), key=lambda kv: kv[1])[-1][0]
-        x = np.asarray([int(y) for y in reversed(list(binary_string))])
-        return x
-    else:
-        n = int(np.log2(state_vector.shape[0]))
-        k = np.argmax(np.abs(state_vector))
-        x = np.zeros(n)
-        for i in range(n):
-            x[i] = k % 2
-            k >>= 1
-        return x
+    from .common import sample_most_likely as redirect_func
+    warnings.warn("sample_most_likely function has been moved to "
+                  "qiskit.aqua.translators.ising.common, "
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return redirect_func(state_vector=state_vector)

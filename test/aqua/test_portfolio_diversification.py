@@ -16,9 +16,11 @@
 
 import math
 from test.aqua.common import QiskitAquaTestCase
+
 import numpy as np
 from qiskit.quantum_info import Pauli
-from qiskit.aqua import run_algorithm
+
+from qiskit.aqua import run_algorithm, aqua_globals
 from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.translators.ising.portfolio_diversification import \
     (get_portfoliodiversification_solution,
@@ -123,7 +125,7 @@ class TestPortfolioDiversification(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
-        np.random.seed(100)
+        aqua_globals.random_seed = 100
         self.n = 2
         self.q = 1
         self.instance = np.ones((self.n, self.n))
@@ -247,6 +249,6 @@ class TestPortfolioDiversification(QiskitAquaTestCase):
         ground_level = get_portfoliodiversification_value(self.instance,
                                                           self.n,
                                                           self.q, quantum_solution)
-        if x:
+        if x is not None:
             np.testing.assert_approx_equal(ground_level, classical_cost)
             np.testing.assert_array_almost_equal(quantum_solution, x, 5)
