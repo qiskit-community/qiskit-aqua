@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Extension Algorithms packages """
+
 from .q_equation_of_motion.q_eom_vqe import QEomVQE
 from .q_equation_of_motion.q_eom_ee import QEomEE
 

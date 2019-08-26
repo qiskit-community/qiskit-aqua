@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" QEomVQE algorithm """
+
 import logging
 
 import numpy as np
@@ -25,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 class QEomVQE(VQE):
-
+    """ QEomVQE algorithm """
     CONFIGURATION = {
         'name': 'QEomVQE',
         'description': 'Q_EOM with VQE Algorithm to find the reference state',
@@ -109,19 +111,22 @@ class QEomVQE(VQE):
             var_form (VariationalForm): parametrized variational form.
             optimizer (Optimizer): the classical optimization algorithm.
             num_orbitals (int):  total number of spin orbitals
-            num_particles (list, int): number of particles, if it is a list, the first number is
-                                       alpha and the second number if beta.
+            num_particles (Union(list, int)): number of particles, if it is a list,
+                                        the first number is
+                                        alpha and the second number if beta.
             initial_point (numpy.ndarray): optimizer initial point, 1-D vector
             max_evals_grouped (int): max number of evaluations performed simultaneously
-            callback (Callable): a callback that can access the intermediate data during the optimization.
+            callback (Callable): a callback that can access the intermediate data during
+                                 the optimization.
                                  Internally, four arguments are provided as follows
                                  the index of evaluation, parameters of variational form,
                                  evaluated mean, evaluated standard deviation.
-            auto_conversion (bool): an automatic conversion for operator and aux_operators into the type which is
-                                    most suitable for the backend.
+            auto_conversion (bool): an automatic conversion for operator and aux_operators into
+                                    the type which is most suitable for the backend.
                                     - non-aer statevector_simulator: MatrixOperator
                                     - aer statevector_simulator: WeightedPauliOperator
-                                    - qasm simulator or real backend: TPBGroupedWeightedPauliOperator
+                                    - qasm simulator or real backend:
+                                        TPBGroupedWeightedPauliOperator
             qubit_mapping (str): qubit mapping type
             two_qubit_reduction (bool): two qubit reduction is applied or not
             is_eom_matrix_symmetric (bool): is EoM matrix symmetric
@@ -129,12 +134,13 @@ class QEomVQE(VQE):
                                     0 to n where n is num particles // 2
             active_unoccupied (list): list of unoccupied orbitals to include, indices are
                                     0 to m where m is (num_orbitals - num particles) // 2
-            se_list ([list]): single excitation list, overwrite the setting in active space
-            de_list ([list]): double excitation list, overwrite the setting in active space
+            se_list (list[list]): single excitation list, overwrite the setting in active space
+            de_list (list[list]): double excitation list, overwrite the setting in active space
             z2_symmetries (Z2Symmetries): represent the Z2 symmetries
             untapered_op (BaseOperator): if the operator is tapered, we need untapered operator
                                          during building element of EoM matrix
-            aux_operators (list[BaseOperator]): Auxiliary operators to be evaluated at each eigenvalue
+            aux_operators (list[BaseOperator]): Auxiliary operators to be
+                                                evaluated at each eigenvalue
         """
         self.validate(locals())
         super().__init__(operator.copy(), var_form, optimizer, initial_point=initial_point,
@@ -142,7 +148,8 @@ class QEomVQE(VQE):
                          callback=callback, auto_conversion=auto_conversion)
 
         self.qeom = QEquationOfMotion(operator, num_orbitals, num_particles,
-                                      qubit_mapping, two_qubit_reduction, active_occupied, active_unoccupied,
+                                      qubit_mapping, two_qubit_reduction, active_occupied,
+                                      active_unoccupied,
                                       is_eom_matrix_symmetric, se_list, de_list,
                                       z2_symmetries, untapered_op)
 
@@ -154,6 +161,10 @@ class QEomVQE(VQE):
         Args:
             params (dict): parameters dictionary
             algo_input (EnergyInput): EnergyInput instance
+        Returns:
+            QEomVQE: Newly created instance
+        Raises:
+             AquaError: EnergyInput instance is required
         """
         if algo_input is None:
             raise AquaError("EnergyInput instance is required.")
@@ -183,7 +194,8 @@ class QEomVQE(VQE):
 
         return cls(operator, var_form, optimizer,
                    initial_point=initial_point, max_evals_grouped=max_evals_grouped,
-                   aux_operators=algo_input.aux_ops, num_orbitals=num_orbitals, num_particles=num_particles,
+                   aux_operators=algo_input.aux_ops, num_orbitals=num_orbitals,
+                   num_particles=num_particles,
                    qubit_mapping=qubit_mapping, two_qubit_reduction=two_qubit_reduction,
                    active_occupied=active_occupied, active_unoccupied=active_unoccupied)
 
@@ -191,7 +203,7 @@ class QEomVQE(VQE):
         super()._run()
         self._quantum_instance.circuit_summary = True
         opt_params = self._ret['opt_params']
-        logger.info("opt params:\n{}".format(opt_params))
+        logger.info("opt params:\n%s", opt_params)
         wave_fn = self._var_form.construct_circuit(opt_params)
         excitation_energies_gap, eom_matrices = self.qeom.calculate_excited_states(
             wave_fn, quantum_instance=self._quantum_instance)

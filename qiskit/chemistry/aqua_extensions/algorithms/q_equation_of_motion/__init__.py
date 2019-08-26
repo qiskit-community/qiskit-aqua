@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" q_equation_of_motion package """
+
 from .q_equation_of_motion import QEquationOfMotion
 
 __all__ = ['QEquationOfMotion']
