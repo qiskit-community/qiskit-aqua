@@ -63,8 +63,8 @@ class TestQAOA(QiskitAquaTestCase):
     ])
     def test_qaoa(self, w, prob, m, solutions):
         """ QAOA test """
-        self.seed = 0
-        aqua_globals.random_seed = self.seed
+        seed = 0
+        aqua_globals.random_seed = seed
         os.environ.pop('QISKIT_AQUA_CIRCUIT_CACHE', None)
         self.log.debug('Testing %s-step QAOA with MaxCut on graph\n%s', prob, w)
 
@@ -75,7 +75,7 @@ class TestQAOA(QiskitAquaTestCase):
         qaoa = QAOA(qubit_op, optimizer, prob, mixer=m)
         # TODO: cache fails for QAOA since we construct the evolution circuit via instruction
         quantum_instance = QuantumInstance(backend, circuit_caching=False,
-                                           seed_simulator=self.seed, seed_transpiler=self.seed)
+                                           seed_simulator=seed, seed_transpiler=seed)
 
         result = qaoa.run(quantum_instance)
         x = sample_most_likely(result['eigvecs'][0])

@@ -17,7 +17,6 @@
 import unittest
 from test.aqua.common import QiskitAquaTestCase
 
-import numpy as np
 from parameterized import parameterized
 from qiskit import BasicAer
 

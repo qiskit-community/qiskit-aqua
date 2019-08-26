@@ -17,7 +17,6 @@
 import unittest
 from test.aqua.common import QiskitAquaTestCase
 
-import numpy as np
 from qiskit import BasicAer
 
 from qiskit.aqua.operators import MatrixOperator

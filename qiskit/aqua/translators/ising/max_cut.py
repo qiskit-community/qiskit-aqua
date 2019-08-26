@@ -90,7 +90,7 @@ def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None, seed=None):
                   "the method here will be removed after Aqua 0.7+",
                   DeprecationWarning)
     return redirect_func(n=n, weight_range=weight_range, edge_prob=edge_prob,
-                        savefile=savefile, seed=seed)
+                         savefile=savefile, seed=seed)
 
 
 def parse_gset_format(filename):

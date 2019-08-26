@@ -267,6 +267,7 @@ def get_tsp_solution(x):
                 z.append(i)
     return z
 
+
 def sample_most_likely(state_vector):
     from .common import sample_most_likely as redirect_func
     warnings.warn("sample_most_likely function has been moved to "

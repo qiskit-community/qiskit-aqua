@@ -109,7 +109,6 @@ def check_disjoint(sol, list_of_subsets):
     return True
 
 
-
 def random_number_list(n, weight_range=100, savefile=None):
     from .common import random_number_list as redirect_func
     warnings.warn("random_number_list function has been moved to "
