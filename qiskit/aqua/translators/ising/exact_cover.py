@@ -23,7 +23,7 @@ from qiskit.aqua.operators import WeightedPauliOperator
 logger = logging.getLogger(__name__)
 
 
-def get_exact_cover_qubitops(list_of_subsets):
+def get_qubit_op(list_of_subsets):
     """Construct the Hamiltonian for the exact solver problem.
 
     Notes:
@@ -144,3 +144,10 @@ def sample_most_likely(n=None, state_vector=None):
                   "the method here will be removed after Aqua 0.7+",
                   DeprecationWarning)
     return redirect_func(state_vector=state_vector)
+
+
+def get_exact_cover_qubitops(list_of_subsets):
+    warnings.warn("get_exact_cover_qubitops function has been changed to get_qubit_op"
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return get_qubit_op(list_of_subsets)

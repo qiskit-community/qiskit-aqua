@@ -70,7 +70,7 @@ class TestQAOA(QiskitAquaTestCase):
 
         backend = BasicAer.get_backend('statevector_simulator')
         optimizer = COBYLA()
-        qubit_op, offset = max_cut.get_max_cut_qubitops(w)
+        qubit_op, offset = max_cut.get_qubit_op(w)
 
         qaoa = QAOA(qubit_op, optimizer, prob, mixer=m)
         # TODO: cache fails for QAOA since we construct the evolution circuit via instruction

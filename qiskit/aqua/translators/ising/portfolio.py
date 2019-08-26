@@ -49,7 +49,7 @@ def random_model(n, seed=None):
     return mu, sigma
 
 
-def get_portfolio_qubitops(mu, sigma, q, budget, penalty):
+def get_qubit_op(mu, sigma, q, budget, penalty):
 
     # get problem dimension
     n = len(mu)
@@ -103,3 +103,10 @@ def sample_most_likely(state_vector):
                   "the method here will be removed after Aqua 0.7+",
                   DeprecationWarning)
     return redirect_func(state_vector=state_vector)
+
+
+def get_portfolio_qubitops(mu, sigma, q, budget, penalty):
+    warnings.warn("get_portfolio_qubitops function has been changed to get_qubit_op"
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return get_qubit_op(mu, sigma, q, budget, penalty)

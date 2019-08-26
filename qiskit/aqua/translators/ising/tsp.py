@@ -125,7 +125,7 @@ def parse_tsplib_format(filename):
     return calc_distance(coord, name)
 
 
-def get_tsp_qubitops(ins, penalty=1e5):
+def get_qubit_op(ins, penalty=1e5):
     """Generate Hamiltonian for TSP of a graph.
 
     Args:
@@ -275,3 +275,10 @@ def sample_most_likely(state_vector):
                   "the method here will be removed after Aqua 0.7+",
                   DeprecationWarning)
     return redirect_func(state_vector=state_vector)
+
+
+def get_tsp_qubitops(ins, penalty=1e5):
+    warnings.warn("get_tsp_qubitops function has been changed to get_qubit_op"
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return get_qubit_op(ins, penalty)

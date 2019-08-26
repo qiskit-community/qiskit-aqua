@@ -35,7 +35,7 @@ class TestVertexCover(QiskitAquaTestCase):
         aqua_globals.random_seed = self.seed
         self.num_nodes = 3
         self.w = random_graph(self.num_nodes, edge_prob=0.8, weight_range=10)
-        self.qubit_op, self.offset = vertex_cover.get_vertex_cover_qubitops(self.w)
+        self.qubit_op, self.offset = vertex_cover.get_qubit_op(self.w)
         self.algo_input = EnergyInput(self.qubit_op)
 
     def _brute_force(self):

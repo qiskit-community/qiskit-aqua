@@ -35,7 +35,7 @@ class TestExactCover(QiskitAquaTestCase):
         input_file = self._get_resource_path('sample.exactcover')
         with open(input_file) as file:
             self.list_of_subsets = json.load(file)
-            qubit_op, _ = exact_cover.get_exact_cover_qubitops(self.list_of_subsets)
+            qubit_op, _ = exact_cover.get_qubit_op(self.list_of_subsets)
             self.algo_input = EnergyInput(qubit_op)
 
     def _brute_force(self):

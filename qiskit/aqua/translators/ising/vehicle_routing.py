@@ -18,6 +18,8 @@ and provides some related routines (extracting a solution,
 checking its objective function value).
 """
 
+import warnings
+
 import numpy as np
 from qiskit.quantum_info import Pauli
 
@@ -103,7 +105,7 @@ def get_vehiclerouting_cost(instance, n, K, x_sol):
     return cost
 
 
-def get_vehiclerouting_qubitops(instance, n, K):
+def get_qubit_op(instance, n, K):
     """Converts an instance of a vehicle routing problem into a list of Paulis.
 
     Args:
@@ -185,3 +187,10 @@ def get_vehiclerouting_solution(instance, n, K, result):
     x_sol = np.flip(x_sol, axis=0)
 
     return x_sol
+
+
+def get_vehiclerouting_qubitops(instance, n, K):
+    warnings.warn("get_vehiclerouting_qubitops function has been changed to get_qubit_op"
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return get_qubit_op(instance, n, K)

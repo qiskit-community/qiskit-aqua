@@ -32,7 +32,7 @@ class TestGraphPartition(QiskitAquaTestCase):
         aqua_globals.random_seed = 100
         self.num_nodes = 4
         self.w = random_graph(self.num_nodes, edge_prob=0.8, weight_range=10)
-        self.qubit_op, self.offset = graph_partition.get_graph_partition_qubitops(self.w)
+        self.qubit_op, self.offset = graph_partition.get_qubit_op(self.w)
         self.algo_input = EnergyInput(self.qubit_op)
 
     def _brute_force(self):

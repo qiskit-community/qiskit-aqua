@@ -70,7 +70,7 @@ from qiskit.aqua.operators import WeightedPauliOperator
 logger = logging.getLogger(__name__)
 
 
-def get_qubitops(mdl, auto_penalty=True, default_penalty=1e5):
+def get_qubit_op(mdl, auto_penalty=True, default_penalty=1e5):
     """ Generate Ising Hamiltonian from a model of DOcplex.
 
     Args:
@@ -273,3 +273,10 @@ def sample_most_likely(state_vector):
                   "the method here will be removed after Aqua 0.7+",
                   DeprecationWarning)
     return redirect_func(state_vector=state_vector)
+
+
+def get_qubitops(mdl, auto_penalty=True, default_penalty=1e5):
+    warnings.warn("get_qubitops function has been changed to get_qubit_op"
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return get_qubit_op(mdl, auto_penalty, default_penalty)

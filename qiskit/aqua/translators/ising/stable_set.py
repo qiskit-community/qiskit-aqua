@@ -31,7 +31,7 @@ from qiskit.aqua.operators import WeightedPauliOperator
 logger = logging.getLogger(__name__)
 
 
-def get_stable_set_qubitops(w):
+def get_qubit_op(w):
     """Generate Hamiltonian for the maximum stable set in a graph.
 
     Args:
@@ -124,3 +124,10 @@ def sample_most_likely(state_vector):
                   "the method here will be removed after Aqua 0.7+",
                   DeprecationWarning)
     return redirect_func(state_vector=state_vector)
+
+
+def get_stable_set_qubitops(w):
+    warnings.warn("get_stable_set_qubitops function has been changed to get_qubit_op"
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return get_qubit_op(w)

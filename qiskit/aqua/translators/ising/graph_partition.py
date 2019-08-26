@@ -28,7 +28,7 @@ from qiskit.aqua.operators import WeightedPauliOperator
 logger = logging.getLogger(__name__)
 
 
-def get_graph_partition_qubitops(weight_matrix):
+def get_qubit_op(weight_matrix):
     r"""Generate Hamiltonian for the graph partitioning
 
     Notes:
@@ -137,3 +137,10 @@ def get_gset_result(x):
                   "the method here will be removed after Aqua 0.7+",
                   DeprecationWarning)
     return redirect_func(x)
+
+
+def get_graph_partition_qubitops(weight_matrix):
+    warnings.warn("get_graph_partition_qubitops function has been changed to get_qubit_op"
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return get_qubit_op(weight_matrix)

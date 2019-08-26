@@ -28,7 +28,7 @@ from qiskit.aqua.operators import WeightedPauliOperator
 logger = logging.getLogger(__name__)
 
 
-def get_partition_qubitops(values):
+def get_qubit_op(values):
     """Construct the Hamiltonian for a given Partition instance.
 
     Given a list of numbers for the Number Partitioning problem, we
@@ -95,3 +95,10 @@ def sample_most_likely(state_vector):
                   "the method here will be removed after Aqua 0.7+",
                   DeprecationWarning)
     return redirect_func(state_vector=state_vector)
+
+
+def get_partition_qubitops(values):
+    warnings.warn("get_partition_qubitops function has been changed to get_qubit_op"
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return get_qubit_op(values)

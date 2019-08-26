@@ -31,7 +31,7 @@ class TestSetPacking(QiskitAquaTestCase):
         super().setUp()
         input_file = self._get_resource_path('sample.partition')
         number_list = read_numbers_from_file(input_file)
-        qubit_op, _ = partition.get_partition_qubitops(number_list)
+        qubit_op, _ = partition.get_qubit_op(number_list)
         self.algo_input = EnergyInput(qubit_op)
 
     def test_partition(self):

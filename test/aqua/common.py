@@ -37,10 +37,10 @@ class QiskitAquaTestCase(unittest.TestCase):
 
     def setUp(self):
         os.environ['QISKIT_AQUA_CIRCUIT_CACHE'] = '1'
-        self._started_at = time.thread_time()
+        self._started_at = time.time()
 
     def tearDown(self):
-        elapsed = time.thread_time() - self._started_at
+        elapsed = time.time() - self._started_at
         if elapsed > 5.0:
             print('({:.2f}s)'.format(round(elapsed, 2)), flush=True)
 
