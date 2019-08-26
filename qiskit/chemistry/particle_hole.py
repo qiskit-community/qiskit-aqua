@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Particle Hole """
+
 import numpy as np
 
 
@@ -57,7 +59,8 @@ def last_two_indices_swap(array_ind_two_body_term):
     return swapped_indices
 
 
-def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_mapping, h1_old, h2_old,
+def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order,
+                           array_mapping, h1_old, h2_old,
                            h1_new, h2_new):
     """
     Given an operator and the rFs and rsgtu from Gaussian it produces new
@@ -76,7 +79,7 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
         h2_new (numpy.ndarray): e.g. numpy.zeros([n_qubits, n_qubits, n_qubits, n_qubits])
 
     Returns:
-        numpy.ndarray, numpy.ndarray, float: h1_new, h2_new, id_term
+        Tuple(numpy.ndarray, numpy.ndarray, float): h1_new, h2_new, id_term
     """
     a_enum = []
     adag_enum = []
@@ -91,7 +94,7 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
 
     array_to_sort = []
 
-    for ind in range(len(array_to_normal_order)):
+    for ind, _ in enumerate(array_to_normal_order):
         if array_mapping[ind] == "adag":
             array_to_sort.append(adag_enum[array_to_normal_order[ind]])
         elif array_mapping[ind] == "a":
@@ -114,10 +117,10 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
             mapping_no_term.append("adag")
             ind_no_term.append(adag_enum.index(ind))
 
-    ii = 0
-    jj = 1
-    kk = 2
-    ll = 3
+    i_i = 0
+    j_j = 1
+    k_k = 2
+    l_l = 3
 
     id_term = 0.
 
@@ -126,55 +129,49 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
             if mapping_no_term == ['adag', 'a']:
                 temp_sign_h1 = float(1 * sign_no_term)
 
-                ind_old_h1 = [ind_ini_term[ii], ind_ini_term[jj]]
-                ind_new_h1 = [ind_no_term[ii], ind_no_term[jj]]
+                ind_old_h1 = [ind_ini_term[i_i], ind_ini_term[j_j]]
+                ind_new_h1 = [ind_no_term[i_i], ind_no_term[j_j]]
 
                 h1_new[ind_new_h1[0]][ind_new_h1[1]] \
-                    += float(
-                    temp_sign_h1 * h1_old[ind_old_h1[0]][ind_old_h1[1]])
+                    += float(temp_sign_h1 * h1_old[ind_old_h1[0]][ind_old_h1[1]])
 
             elif mapping_no_term == ['a', 'adag']:
                 temp_sign_h1 = float(-1 * sign_no_term)
 
-                ind_old_h1 = [ind_ini_term[ii], ind_ini_term[jj]]
-                ind_new_h1 = [ind_no_term[jj], ind_no_term[ii]]
+                ind_old_h1 = [ind_ini_term[i_i], ind_ini_term[j_j]]
+                ind_new_h1 = [ind_no_term[j_j], ind_no_term[i_i]]
 
                 h1_new[ind_new_h1[0]][ind_new_h1[1]] \
-                    += float(
-                    temp_sign_h1 * h1_old[ind_old_h1[0]][ind_old_h1[1]])
+                    += float(temp_sign_h1 * h1_old[ind_old_h1[0]][ind_old_h1[1]])
 
-                id_term += float(
-                    sign_no_term * h1_old[ind_old_h1[0]][
-                        ind_old_h1[1]])
+                id_term += float(sign_no_term * h1_old[ind_old_h1[0]][ind_old_h1[1]])
 
         else:
             if mapping_no_term == ['adag', 'a']:
                 temp_sign_h1 = float(1 * sign_no_term)
 
-                ind_old_h1 = [ind_ini_term[ii], ind_ini_term[jj]]
-                ind_new_h1 = [ind_no_term[ii], ind_no_term[jj]]
+                ind_old_h1 = [ind_ini_term[i_i], ind_ini_term[j_j]]
+                ind_new_h1 = [ind_no_term[i_i], ind_no_term[j_j]]
 
                 h1_new[ind_new_h1[0]][ind_new_h1[1]] \
-                    += float(
-                    temp_sign_h1 * h1_old[ind_old_h1[0]][ind_old_h1[1]])
+                    += float(temp_sign_h1 * h1_old[ind_old_h1[0]][ind_old_h1[1]])
 
             elif mapping_no_term == ['a', 'adag']:
                 temp_sign_h1 = float(-1 * sign_no_term)
 
-                ind_old_h1 = [ind_ini_term[ii], ind_ini_term[jj]]
-                ind_new_h1 = [ind_no_term[jj], ind_no_term[ii]]
+                ind_old_h1 = [ind_ini_term[i_i], ind_ini_term[j_j]]
+                ind_new_h1 = [ind_no_term[j_j], ind_no_term[i_i]]
 
                 h1_new[ind_new_h1[0]][ind_new_h1[1]] \
-                    += float(
-                    temp_sign_h1 * h1_old[ind_old_h1[0]][ind_old_h1[1]])
+                    += float(temp_sign_h1 * h1_old[ind_old_h1[0]][ind_old_h1[1]])
 
     elif len(array_to_normal_order) == 4:
         if len(set(ind_no_term)) == 4:
             if mapping_no_term == ['adag', 'adag', 'a', 'a']:
                 temp_sign_h2 = 1 * sign_no_term
 
-                ind_new_h2 = [ind_no_term[ii], ind_no_term[jj],
-                              ind_no_term[kk], ind_no_term[ll]]
+                ind_new_h2 = [ind_no_term[i_i], ind_no_term[j_j],
+                              ind_no_term[k_k], ind_no_term[l_l]]
                 ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                               ind_ini_term[2], ind_ini_term[3]]
                 ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -182,14 +179,13 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                 h2_new[ind_new_h2[0]][ind_new_h2[1]][
                     ind_new_h2[2]][ind_new_h2[3]] \
                     += 0.5 * temp_sign_h2 * \
-                    h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                    ind_old_h2[2]][ind_old_h2[3]]
+                    h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
             elif mapping_no_term == ['adag', 'a', 'adag', 'a']:
                 temp_sign_h2 = -1 * sign_no_term
 
-                ind_new_h2 = [ind_no_term[ii], ind_no_term[kk],
-                              ind_no_term[jj], ind_no_term[ll]]
+                ind_new_h2 = [ind_no_term[i_i], ind_no_term[k_k],
+                              ind_no_term[j_j], ind_no_term[l_l]]
                 ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                               ind_ini_term[2], ind_ini_term[3]]
                 ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -197,14 +193,13 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                 h2_new[ind_new_h2[0]][ind_new_h2[1]][
                     ind_new_h2[2]][ind_new_h2[3]] \
                     += 0.5 * temp_sign_h2 * \
-                    h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                    ind_old_h2[2]][ind_old_h2[3]]
+                    h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
             elif mapping_no_term == ['adag', 'a', 'a', 'adag']:
                 temp_sign_h2 = 1 * sign_no_term
 
-                ind_new_h2 = [ind_no_term[ii], ind_no_term[ll],
-                              ind_no_term[jj], ind_no_term[kk]]
+                ind_new_h2 = [ind_no_term[i_i], ind_no_term[l_l],
+                              ind_no_term[j_j], ind_no_term[k_k]]
                 ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                               ind_ini_term[2], ind_ini_term[3]]
                 ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -212,14 +207,13 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                 h2_new[ind_new_h2[0]][ind_new_h2[1]][
                     ind_new_h2[2]][ind_new_h2[3]] \
                     += 0.5 * temp_sign_h2 * \
-                    h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                    ind_old_h2[2]][ind_old_h2[3]]
+                    h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
             elif mapping_no_term == ['a', 'adag', 'adag', 'a']:
                 temp_sign_h2 = 1 * sign_no_term
 
-                ind_new_h2 = [ind_no_term[jj], ind_no_term[kk],
-                              ind_no_term[ii], ind_no_term[ll]]
+                ind_new_h2 = [ind_no_term[j_j], ind_no_term[k_k],
+                              ind_no_term[i_i], ind_no_term[l_l]]
                 ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                               ind_ini_term[2], ind_ini_term[3]]
                 ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -227,14 +221,13 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                 h2_new[ind_new_h2[0]][ind_new_h2[1]][
                     ind_new_h2[2]][ind_new_h2[3]] \
                     += 0.5 * temp_sign_h2 * \
-                    h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                    ind_old_h2[2]][ind_old_h2[3]]
+                    h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
             elif mapping_no_term == ['a', 'adag', 'a', 'adag']:
                 temp_sign_h2 = -1 * sign_no_term
 
-                ind_new_h2 = [ind_no_term[jj], ind_no_term[ll],
-                              ind_no_term[ii], ind_no_term[kk]]
+                ind_new_h2 = [ind_no_term[j_j], ind_no_term[l_l],
+                              ind_no_term[i_i], ind_no_term[k_k]]
                 ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                               ind_ini_term[2], ind_ini_term[3]]
                 ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -242,14 +235,13 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                 h2_new[ind_new_h2[0]][ind_new_h2[1]][
                     ind_new_h2[2]][ind_new_h2[3]] \
                     += 0.5 * temp_sign_h2 * \
-                    h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                    ind_old_h2[2]][ind_old_h2[3]]
+                    h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
             elif mapping_no_term == ['a', 'a', 'adag', 'adag']:
                 temp_sign_h2 = 1 * sign_no_term
 
-                ind_new_h2 = [ind_no_term[kk], ind_no_term[ll],
-                              ind_no_term[ii], ind_no_term[jj]]
+                ind_new_h2 = [ind_no_term[k_k], ind_no_term[l_l],
+                              ind_no_term[i_i], ind_no_term[j_j]]
                 ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                               ind_ini_term[2], ind_ini_term[3]]
                 ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -257,8 +249,7 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                 h2_new[ind_new_h2[0]][ind_new_h2[1]][
                     ind_new_h2[2]][ind_new_h2[3]] \
                     += 0.5 * temp_sign_h2 * \
-                    h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                    ind_old_h2[2]][ind_old_h2[3]]
+                    h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
             else:
                 print('ERROR 1')
@@ -271,10 +262,10 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[ii],
-                                  ind_no_term[kk],
-                                  ind_no_term[ll]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[i_i],
+                                  ind_no_term[k_k],
+                                  ind_no_term[l_l]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -282,17 +273,16 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['adag', 'a', 'adag', 'a']:
 
                     temp_sign_h2 = -1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[kk],
-                                  ind_no_term[ii],
-                                  ind_no_term[ll]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[k_k],
+                                  ind_no_term[i_i],
+                                  ind_no_term[l_l]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -300,17 +290,16 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['adag', 'a', 'a', 'adag']:
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[ll],
-                                  ind_no_term[ii],
-                                  ind_no_term[kk]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[l_l],
+                                  ind_no_term[i_i],
+                                  ind_no_term[k_k]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -318,71 +307,66 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'adag', 'adag', 'a']:
 
                     temp_sign_h2 = 1 * sign_no_term
                     temp_sign_h1 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[kk],
-                                  ind_no_term[ii],
-                                  ind_no_term[ll]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[k_k],
+                                  ind_no_term[i_i],
+                                  ind_no_term[l_l]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
 
-                    ind_old_h1 = [ind_no_term[kk],
-                                  ind_no_term[ll]]
+                    ind_old_h1 = [ind_no_term[k_k],
+                                  ind_no_term[l_l]]
 
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     h1_new[ind_old_h1[0]][ind_old_h1[1]] \
                         += 0.5 * temp_sign_h1 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'adag', 'a', 'adag']:
 
                     temp_sign_h2 = -1 * sign_no_term
                     temp_sign_h1 = -1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[ll],
-                                  ind_no_term[ii],
-                                  ind_no_term[kk]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[l_l],
+                                  ind_no_term[i_i],
+                                  ind_no_term[k_k]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
 
-                    ind_old_h1 = [ind_no_term[ll],
-                                  ind_no_term[kk]]
+                    ind_old_h1 = [ind_no_term[l_l],
+                                  ind_no_term[k_k]]
 
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     h1_new[ind_old_h1[0]][ind_old_h1[1]] \
                         += 0.5 * temp_sign_h1 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'a', 'adag', 'adag']:
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[kk],
-                                  ind_no_term[ll],
-                                  ind_no_term[ii],
-                                  ind_no_term[ii]]
+                    ind_new_h2 = [ind_no_term[k_k],
+                                  ind_no_term[l_l],
+                                  ind_no_term[i_i],
+                                  ind_no_term[i_i]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -390,8 +374,7 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 else:
                     print('ERROR 2')
@@ -402,10 +385,10 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[jj],
-                                  ind_no_term[ii],
-                                  ind_no_term[ll]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[j_j],
+                                  ind_no_term[i_i],
+                                  ind_no_term[l_l]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -413,17 +396,16 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['adag', 'a', 'adag', 'a']:
 
                     temp_sign_h2 = -1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[ii],
-                                  ind_no_term[jj],
-                                  ind_no_term[ll]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[i_i],
+                                  ind_no_term[j_j],
+                                  ind_no_term[l_l]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -431,17 +413,16 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['adag', 'a', 'a', 'adag']:
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[ll],
-                                  ind_no_term[jj],
-                                  ind_no_term[ii]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[l_l],
+                                  ind_no_term[j_j],
+                                  ind_no_term[i_i]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -449,44 +430,41 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'adag', 'adag', 'a']:
 
                     temp_sign_h2 = 1 * sign_no_term
                     temp_sign_h1 = -1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[jj],
-                                  ind_no_term[ii],
-                                  ind_no_term[ii],
-                                  ind_no_term[ll]]
+                    ind_new_h2 = [ind_no_term[j_j],
+                                  ind_no_term[i_i],
+                                  ind_no_term[i_i],
+                                  ind_no_term[l_l]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
 
-                    ind_old_h1 = [ind_no_term[jj],
-                                  ind_no_term[ll]]
+                    ind_old_h1 = [ind_no_term[j_j],
+                                  ind_no_term[l_l]]
 
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     h1_new[ind_old_h1[0]][ind_old_h1[1]] \
                         += 0.5 * temp_sign_h1 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'adag', 'a', 'adag']:
 
                     temp_sign_h2 = -1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[jj],
-                                  ind_no_term[ll],
-                                  ind_no_term[ii],
-                                  ind_no_term[ii]]
+                    ind_new_h2 = [ind_no_term[j_j],
+                                  ind_no_term[l_l],
+                                  ind_no_term[i_i],
+                                  ind_no_term[i_i]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -494,35 +472,32 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'a', 'adag', 'adag']:
 
                     temp_sign_h2 = 1 * sign_no_term
                     temp_sign_h1 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[ll],
-                                  ind_no_term[ii],
-                                  ind_no_term[jj]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[l_l],
+                                  ind_no_term[i_i],
+                                  ind_no_term[j_j]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
 
-                    ind_old_h1 = [ind_no_term[ll],
-                                  ind_no_term[jj]]
+                    ind_old_h1 = [ind_no_term[l_l],
+                                  ind_no_term[j_j]]
 
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     h1_new[ind_old_h1[0]][ind_old_h1[1]] \
                         += 0.5 * temp_sign_h1 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 else:
                     print('ERROR 3')
@@ -533,10 +508,10 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[jj],
-                                  ind_no_term[kk],
-                                  ind_no_term[ii]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[j_j],
+                                  ind_no_term[k_k],
+                                  ind_no_term[i_i]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -544,17 +519,16 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['adag', 'a', 'adag', 'a']:
 
                     temp_sign_h2 = -1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[kk],
-                                  ind_no_term[jj],
-                                  ind_no_term[ii]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[k_k],
+                                  ind_no_term[j_j],
+                                  ind_no_term[i_i]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -562,17 +536,16 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['adag', 'a', 'a', 'adag']:
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[ii],
-                                  ind_no_term[jj],
-                                  ind_no_term[kk]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[i_i],
+                                  ind_no_term[j_j],
+                                  ind_no_term[k_k]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -580,17 +553,16 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'adag', 'adag', 'a']:
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[jj],
-                                  ind_no_term[kk],
-                                  ind_no_term[ii],
-                                  ind_no_term[ii]]
+                    ind_new_h2 = [ind_no_term[j_j],
+                                  ind_no_term[k_k],
+                                  ind_no_term[i_i],
+                                  ind_no_term[i_i]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -598,62 +570,57 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'adag', 'a', 'adag']:
 
                     temp_sign_h2 = -1 * sign_no_term
                     temp_sign_h1 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[jj],
-                                  ind_no_term[ii],
-                                  ind_no_term[ii],
-                                  ind_no_term[kk]]
+                    ind_new_h2 = [ind_no_term[j_j],
+                                  ind_no_term[i_i],
+                                  ind_no_term[i_i],
+                                  ind_no_term[k_k]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
 
-                    ind_old_h1 = [ind_no_term[jj],
-                                  ind_no_term[kk]]
+                    ind_old_h1 = [ind_no_term[j_j],
+                                  ind_no_term[k_k]]
 
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     h1_new[ind_old_h1[0]][ind_old_h1[1]] \
                         += 0.5 * temp_sign_h1 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'a', 'adag', 'adag']:
 
                     temp_sign_h2 = 1 * sign_no_term
                     temp_sign_h1 = -1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[kk],
-                                  ind_no_term[ii],
-                                  ind_no_term[ii],
-                                  ind_no_term[jj]]
+                    ind_new_h2 = [ind_no_term[k_k],
+                                  ind_no_term[i_i],
+                                  ind_no_term[i_i],
+                                  ind_no_term[j_j]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
 
-                    ind_old_h1 = [ind_no_term[kk],
-                                  ind_no_term[jj]]
+                    ind_old_h1 = [ind_no_term[k_k],
+                                  ind_no_term[j_j]]
 
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     h1_new[ind_old_h1[0]][ind_old_h1[1]] \
                         += 0.5 * temp_sign_h1 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
                 else:
                     print('ERROR 4')
 
@@ -663,10 +630,10 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[jj],
-                                  ind_no_term[jj],
-                                  ind_no_term[ll]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[j_j],
+                                  ind_no_term[j_j],
+                                  ind_no_term[l_l]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -674,44 +641,41 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['adag', 'a', 'adag', 'a']:
 
                     temp_sign_h2 = -1 * sign_no_term
                     temp_sign_h1 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[jj],
-                                  ind_no_term[jj],
-                                  ind_no_term[ll]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[j_j],
+                                  ind_no_term[j_j],
+                                  ind_no_term[l_l]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
 
-                    ind_old_h1 = [ind_no_term[ii],
-                                  ind_no_term[ll]]
+                    ind_old_h1 = [ind_no_term[i_i],
+                                  ind_no_term[l_l]]
 
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     h1_new[ind_old_h1[0]][ind_old_h1[1]] \
                         += 0.5 * temp_sign_h1 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['adag', 'a', 'a', 'adag']:
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[ll],
-                                  ind_no_term[jj],
-                                  ind_no_term[jj]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[l_l],
+                                  ind_no_term[j_j],
+                                  ind_no_term[j_j]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -719,17 +683,16 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'adag', 'adag', 'a']:
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[jj],
-                                  ind_no_term[jj],
-                                  ind_no_term[ii],
-                                  ind_no_term[ll]]
+                    ind_new_h2 = [ind_no_term[j_j],
+                                  ind_no_term[j_j],
+                                  ind_no_term[i_i],
+                                  ind_no_term[l_l]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -737,17 +700,16 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'adag', 'a', 'adag']:
 
                     temp_sign_h2 = -1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[jj],
-                                  ind_no_term[ll],
-                                  ind_no_term[ii],
-                                  ind_no_term[jj]]
+                    ind_new_h2 = [ind_no_term[j_j],
+                                  ind_no_term[l_l],
+                                  ind_no_term[i_i],
+                                  ind_no_term[j_j]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -755,35 +717,32 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'a', 'adag', 'adag']:
 
                     temp_sign_h2 = 1 * sign_no_term
                     temp_sign_h1 = -1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[jj],
-                                  ind_no_term[ll],
-                                  ind_no_term[ii],
-                                  ind_no_term[jj]]
+                    ind_new_h2 = [ind_no_term[j_j],
+                                  ind_no_term[l_l],
+                                  ind_no_term[i_i],
+                                  ind_no_term[j_j]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
 
-                    ind_old_h1 = [ind_no_term[ll],
-                                  ind_no_term[ii]]
+                    ind_old_h1 = [ind_no_term[l_l],
+                                  ind_no_term[i_i]]
 
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     h1_new[ind_old_h1[0]][ind_old_h1[1]] \
                         += 0.5 * temp_sign_h1 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 else:
                     print('ERROR 5')
@@ -794,10 +753,10 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[jj],
-                                  ind_no_term[kk],
-                                  ind_no_term[jj]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[j_j],
+                                  ind_no_term[k_k],
+                                  ind_no_term[j_j]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -805,17 +764,16 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['adag', 'a', 'adag', 'a']:
 
                     temp_sign_h2 = -1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[kk],
-                                  ind_no_term[jj],
-                                  ind_no_term[jj]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[k_k],
+                                  ind_no_term[j_j],
+                                  ind_no_term[j_j]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -823,44 +781,41 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['adag', 'a', 'a', 'adag']:
 
                     temp_sign_h2 = 1 * sign_no_term
                     temp_sign_h1 = -1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[jj],
-                                  ind_no_term[jj],
-                                  ind_no_term[kk]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[j_j],
+                                  ind_no_term[j_j],
+                                  ind_no_term[k_k]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
 
-                    ind_old_h1 = [ind_no_term[ii],
-                                  ind_no_term[kk]]
+                    ind_old_h1 = [ind_no_term[i_i],
+                                  ind_no_term[k_k]]
 
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     h1_new[ind_old_h1[0]][ind_old_h1[1]] \
                         += 0.5 * temp_sign_h1 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'adag', 'adag', 'a']:
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[jj],
-                                  ind_no_term[kk],
-                                  ind_no_term[ii],
-                                  ind_no_term[jj]]
+                    ind_new_h2 = [ind_no_term[j_j],
+                                  ind_no_term[k_k],
+                                  ind_no_term[i_i],
+                                  ind_no_term[j_j]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -868,17 +823,16 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'adag', 'a', 'adag']:
 
                     temp_sign_h2 = -1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[jj],
-                                  ind_no_term[jj],
-                                  ind_no_term[ii],
-                                  ind_no_term[kk]]
+                    ind_new_h2 = [ind_no_term[j_j],
+                                  ind_no_term[j_j],
+                                  ind_no_term[i_i],
+                                  ind_no_term[k_k]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -886,35 +840,32 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'a', 'adag', 'adag']:
 
                     temp_sign_h2 = 1 * sign_no_term
                     temp_sign_h1 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[kk],
-                                  ind_no_term[jj],
-                                  ind_no_term[ii],
-                                  ind_no_term[jj]]
+                    ind_new_h2 = [ind_no_term[k_k],
+                                  ind_no_term[j_j],
+                                  ind_no_term[i_i],
+                                  ind_no_term[j_j]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
 
-                    ind_old_h1 = [ind_no_term[kk],
-                                  ind_no_term[ii]]
+                    ind_old_h1 = [ind_no_term[k_k],
+                                  ind_no_term[i_i]]
 
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     h1_new[ind_old_h1[0]][ind_old_h1[1]] \
                         += 0.5 * temp_sign_h1 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 else:
                     print('ERROR 6')
@@ -925,10 +876,10 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[jj],
-                                  ind_no_term[kk],
-                                  ind_no_term[kk]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[j_j],
+                                  ind_no_term[k_k],
+                                  ind_no_term[k_k]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -936,17 +887,16 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['adag', 'a', 'adag', 'a']:
 
                     temp_sign_h2 = -1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[kk],
-                                  ind_no_term[jj],
-                                  ind_no_term[kk]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[k_k],
+                                  ind_no_term[j_j],
+                                  ind_no_term[k_k]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -954,44 +904,41 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['adag', 'a', 'a', 'adag']:
 
                     temp_sign_h2 = 1 * sign_no_term
                     temp_sign_h1 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[kk],
-                                  ind_no_term[jj],
-                                  ind_no_term[kk]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[k_k],
+                                  ind_no_term[j_j],
+                                  ind_no_term[k_k]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
 
-                    ind_old_h1 = [ind_no_term[ii],
-                                  ind_no_term[jj]]
+                    ind_old_h1 = [ind_no_term[i_i],
+                                  ind_no_term[j_j]]
 
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     h1_new[ind_old_h1[0]][ind_old_h1[1]] \
                         += 0.5 * temp_sign_h1 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'adag', 'adag', 'a']:
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[jj],
-                                  ind_no_term[kk],
-                                  ind_no_term[ii],
-                                  ind_no_term[kk]]
+                    ind_new_h2 = [ind_no_term[j_j],
+                                  ind_no_term[k_k],
+                                  ind_no_term[i_i],
+                                  ind_no_term[k_k]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -999,44 +946,41 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'adag', 'a', 'adag']:
 
                     temp_sign_h2 = -1 * sign_no_term
                     temp_sign_h1 = -1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[jj],
-                                  ind_no_term[kk],
-                                  ind_no_term[ii],
-                                  ind_no_term[kk]]
+                    ind_new_h2 = [ind_no_term[j_j],
+                                  ind_no_term[k_k],
+                                  ind_no_term[i_i],
+                                  ind_no_term[k_k]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
 
-                    ind_old_h1 = [ind_no_term[jj],
-                                  ind_no_term[ii]]
+                    ind_old_h1 = [ind_no_term[j_j],
+                                  ind_no_term[i_i]]
 
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     h1_new[ind_old_h1[0]][ind_old_h1[1]] \
                         += 0.5 * temp_sign_h1 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'a', 'adag', 'adag']:
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[kk],
-                                  ind_no_term[kk],
-                                  ind_no_term[ii],
-                                  ind_no_term[jj]]
+                    ind_new_h2 = [ind_no_term[k_k],
+                                  ind_no_term[k_k],
+                                  ind_no_term[i_i],
+                                  ind_no_term[j_j]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -1044,8 +988,7 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 else:
                     print('ERROR 7')
@@ -1062,10 +1005,10 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[ii],
-                                  ind_no_term[kk],
-                                  ind_no_term[kk]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[i_i],
+                                  ind_no_term[k_k],
+                                  ind_no_term[k_k]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -1073,17 +1016,16 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['adag', 'a', 'adag', 'a']:
 
                     temp_sign_h2 = -1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[kk],
-                                  ind_no_term[ii],
-                                  ind_no_term[kk]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[k_k],
+                                  ind_no_term[i_i],
+                                  ind_no_term[k_k]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -1091,62 +1033,57 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['adag', 'a', 'a', 'adag']:
 
                     temp_sign_h2 = -1 * sign_no_term
                     temp_sign_h1 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[kk],
-                                  ind_no_term[kk],
-                                  ind_no_term[ii]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[k_k],
+                                  ind_no_term[k_k],
+                                  ind_no_term[i_i]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
 
-                    ind_old_h1 = [ind_no_term[ii],
-                                  ind_no_term[ii]]
+                    ind_old_h1 = [ind_no_term[i_i],
+                                  ind_no_term[i_i]]
 
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     h1_new[ind_old_h1[0]][ind_old_h1[1]] \
                         += 0.5 * temp_sign_h1 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'adag', 'adag', 'a']:
 
                     temp_sign_h2 = 1 * sign_no_term
                     temp_sign_h1 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[kk],
-                                  ind_no_term[ii],
-                                  ind_no_term[kk]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[k_k],
+                                  ind_no_term[i_i],
+                                  ind_no_term[k_k]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
 
-                    ind_old_h1 = [ind_no_term[kk],
-                                  ind_no_term[kk]]
+                    ind_old_h1 = [ind_no_term[k_k],
+                                  ind_no_term[k_k]]
 
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     h1_new[ind_old_h1[0]][ind_old_h1[1]] \
                         += 0.5 * temp_sign_h1 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'adag', 'a', 'adag']:
 
@@ -1154,34 +1091,31 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     temp_sign_h1_1 = -1 * sign_no_term
                     temp_sign_h1_2 = -1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[kk],
-                                  ind_no_term[ii],
-                                  ind_no_term[kk]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[k_k],
+                                  ind_no_term[i_i],
+                                  ind_no_term[k_k]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
 
-                    coordinates_for_old_h1_term_1 = [ind_no_term[ii],
-                                                     ind_no_term[ii]]
-                    ind_old_h1_2 = [ind_no_term[kk],
-                                    ind_no_term[kk]]
+                    coordinates_for_old_h1_term_1 = [ind_no_term[i_i],
+                                                     ind_no_term[i_i]]
+                    ind_old_h1_2 = [ind_no_term[k_k],
+                                    ind_no_term[k_k]]
 
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     h1_new[coordinates_for_old_h1_term_1[0]][coordinates_for_old_h1_term_1[1]] \
                         += 0.5 * temp_sign_h1_1 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     h1_new[ind_old_h1_2[0]][ind_old_h1_2[1]] \
                         += 0.5 * temp_sign_h1_2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     id_term += 0.5 * sign_no_term * \
                         h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
@@ -1190,10 +1124,10 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[kk],
-                                  ind_no_term[kk],
-                                  ind_no_term[ii],
-                                  ind_no_term[ii]]
+                    ind_new_h2 = [ind_no_term[k_k],
+                                  ind_no_term[k_k],
+                                  ind_no_term[i_i],
+                                  ind_no_term[i_i]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -1201,8 +1135,7 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
                 else:
                     print('ERROR')
 
@@ -1213,10 +1146,10 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[jj],
-                                  ind_no_term[ii],
-                                  ind_no_term[jj]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[j_j],
+                                  ind_no_term[i_i],
+                                  ind_no_term[j_j]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -1224,17 +1157,16 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['adag', 'a', 'adag', 'a']:
 
                     temp_sign_h2 = -1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[ii],
-                                  ind_no_term[jj],
-                                  ind_no_term[jj]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[i_i],
+                                  ind_no_term[j_j],
+                                  ind_no_term[j_j]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -1242,71 +1174,66 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['adag', 'a', 'a', 'adag']:
 
                     temp_sign_h2 = 1 * sign_no_term
                     temp_sign_h1 = -1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[jj],
-                                  ind_no_term[jj],
-                                  ind_no_term[ii]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[j_j],
+                                  ind_no_term[j_j],
+                                  ind_no_term[i_i]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
 
-                    ind_old_h1 = [ind_no_term[ii],
-                                  ind_no_term[ii]]
+                    ind_old_h1 = [ind_no_term[i_i],
+                                  ind_no_term[i_i]]
 
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     h1_new[ind_old_h1[0]][ind_old_h1[1]] \
                         += 0.5 * temp_sign_h1 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'adag', 'adag', 'a']:
 
                     temp_sign_h2 = 1 * sign_no_term
                     temp_sign_h1 = -1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[jj],
-                                  ind_no_term[ii],
-                                  ind_no_term[ii],
-                                  ind_no_term[jj]]
+                    ind_new_h2 = [ind_no_term[j_j],
+                                  ind_no_term[i_i],
+                                  ind_no_term[i_i],
+                                  ind_no_term[j_j]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
 
-                    ind_old_h1 = [ind_no_term[jj],
-                                  ind_no_term[jj]]
+                    ind_old_h1 = [ind_no_term[j_j],
+                                  ind_no_term[j_j]]
 
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     h1_new[ind_old_h1[0]][ind_old_h1[1]] \
                         += 0.5 * temp_sign_h1 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'adag', 'a', 'adag']:
 
                     temp_sign_h2 = -1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[jj],
-                                  ind_no_term[jj],
-                                  ind_no_term[ii],
-                                  ind_no_term[ii]]
+                    ind_new_h2 = [ind_no_term[j_j],
+                                  ind_no_term[j_j],
+                                  ind_no_term[i_i],
+                                  ind_no_term[i_i]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -1314,8 +1241,7 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'a', 'adag', 'adag']:
 
@@ -1323,34 +1249,31 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     temp_sign_h1_1 = 1 * sign_no_term
                     temp_sign_h1_2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[jj],
-                                  ind_no_term[ii],
-                                  ind_no_term[jj]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[j_j],
+                                  ind_no_term[i_i],
+                                  ind_no_term[j_j]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
 
-                    coordinates_for_old_h1_term_1 = [ind_no_term[ii],
-                                                     ind_no_term[ii]]
-                    ind_old_h1_2 = [ind_no_term[jj],
-                                    ind_no_term[jj]]
+                    coordinates_for_old_h1_term_1 = [ind_no_term[i_i],
+                                                     ind_no_term[i_i]]
+                    ind_old_h1_2 = [ind_no_term[j_j],
+                                    ind_no_term[j_j]]
 
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     h1_new[coordinates_for_old_h1_term_1[0]][coordinates_for_old_h1_term_1[1]] \
                         += 0.5 * temp_sign_h1_1 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     h1_new[ind_old_h1_2[0]][ind_old_h1_2[1]] \
                         += 0.5 * temp_sign_h1_2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     id_term += - 0.5 * sign_no_term * \
                         h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
@@ -1365,10 +1288,10 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[jj],
-                                  ind_no_term[jj],
-                                  ind_no_term[ii]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[j_j],
+                                  ind_no_term[j_j],
+                                  ind_no_term[i_i]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -1376,44 +1299,41 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['adag', 'a', 'adag', 'a']:
 
                     temp_sign_h2 = -1 * sign_no_term
                     temp_sign_h1 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[jj],
-                                  ind_no_term[jj],
-                                  ind_no_term[ii]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[j_j],
+                                  ind_no_term[j_j],
+                                  ind_no_term[i_i]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
 
-                    ind_old_h1 = [ind_no_term[ii],
-                                  ind_no_term[ii]]
+                    ind_old_h1 = [ind_no_term[i_i],
+                                  ind_no_term[i_i]]
 
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     h1_new[ind_old_h1[0]][ind_old_h1[1]] \
                         += 0.5 * temp_sign_h1 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['adag', 'a', 'a', 'adag']:
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[ii],
-                                  ind_no_term[jj],
-                                  ind_no_term[jj]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[i_i],
+                                  ind_no_term[j_j],
+                                  ind_no_term[j_j]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -1421,17 +1341,16 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'adag', 'adag', 'a']:
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[jj],
-                                  ind_no_term[jj],
-                                  ind_no_term[ii],
-                                  ind_no_term[ii]]
+                    ind_new_h2 = [ind_no_term[j_j],
+                                  ind_no_term[j_j],
+                                  ind_no_term[i_i],
+                                  ind_no_term[i_i]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -1439,35 +1358,32 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'adag', 'a', 'adag']:
 
                     temp_sign_h2 = -1 * sign_no_term
                     temp_sign_h1 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[jj],
-                                  ind_no_term[ii],
-                                  ind_no_term[ii],
-                                  ind_no_term[jj]]
+                    ind_new_h2 = [ind_no_term[j_j],
+                                  ind_no_term[i_i],
+                                  ind_no_term[i_i],
+                                  ind_no_term[j_j]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
 
-                    ind_old_h1 = [ind_no_term[jj],
-                                  ind_no_term[jj]]
+                    ind_old_h1 = [ind_no_term[j_j],
+                                  ind_no_term[j_j]]
 
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     h1_new[ind_old_h1[0]][ind_old_h1[1]] \
                         += 0.5 * temp_sign_h1 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'a', 'adag', 'adag']:
 
@@ -1475,34 +1391,31 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     temp_sign_h1_1 = -1 * sign_no_term
                     temp_sign_h1_2 = -1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[jj],
-                                  ind_no_term[ii],
-                                  ind_no_term[ii],
-                                  ind_no_term[jj]]
+                    ind_new_h2 = [ind_no_term[j_j],
+                                  ind_no_term[i_i],
+                                  ind_no_term[i_i],
+                                  ind_no_term[j_j]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
 
-                    coordinates_for_old_h1_term_1 = [ind_no_term[ii],
-                                                     ind_no_term[ii]]
-                    ind_old_h1_2 = [ind_no_term[jj],
-                                    ind_no_term[jj]]
+                    coordinates_for_old_h1_term_1 = [ind_no_term[i_i],
+                                                     ind_no_term[i_i]]
+                    ind_old_h1_2 = [ind_no_term[j_j],
+                                    ind_no_term[j_j]]
 
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     h1_new[coordinates_for_old_h1_term_1[0]][coordinates_for_old_h1_term_1[1]] \
                         += 0.5 * temp_sign_h1_1 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     h1_new[ind_old_h1_2[0]][ind_old_h1_2[1]] \
                         += 0.5 * temp_sign_h1_2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     id_term += 0.5 * sign_no_term * \
                         h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
@@ -1515,10 +1428,10 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                 if mapping_no_term == ['adag', 'adag', 'a', 'a']:
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[ii],
-                                  ind_no_term[ii],
-                                  ind_no_term[ll]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[i_i],
+                                  ind_no_term[i_i],
+                                  ind_no_term[l_l]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -1526,44 +1439,41 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['adag', 'a', 'adag', 'a']:
 
                     temp_sign_h2 = -1 * sign_no_term
                     temp_sign_h1_1 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[ii],
-                                  ind_no_term[ii],
-                                  ind_no_term[ll]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[i_i],
+                                  ind_no_term[i_i],
+                                  ind_no_term[l_l]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
 
-                    coordinates_for_old_h1_term_1 = [ind_no_term[ii],
-                                                     ind_no_term[ll]]
+                    coordinates_for_old_h1_term_1 = [ind_no_term[i_i],
+                                                     ind_no_term[l_l]]
 
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     h1_new[coordinates_for_old_h1_term_1[0]][coordinates_for_old_h1_term_1[1]] \
                         += 0.5 * temp_sign_h1_1 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['adag', 'a', 'a', 'adag']:
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[ll],
-                                  ind_no_term[ii],
-                                  ind_no_term[ii]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[l_l],
+                                  ind_no_term[i_i],
+                                  ind_no_term[i_i]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -1571,17 +1481,16 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'adag', 'adag', 'a']:
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[ii],
-                                  ind_no_term[ii],
-                                  ind_no_term[ll]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[i_i],
+                                  ind_no_term[i_i],
+                                  ind_no_term[l_l]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -1589,44 +1498,41 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'adag', 'a', 'adag']:
 
                     temp_sign_h2 = -1 * sign_no_term
                     temp_sign_h1_1 = -1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[ll],
-                                  ind_no_term[ii],
-                                  ind_no_term[ii]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[l_l],
+                                  ind_no_term[i_i],
+                                  ind_no_term[i_i]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
 
-                    coordinates_for_old_h1_term_1 = [ind_no_term[ll],
-                                                     ind_no_term[ii]]
+                    coordinates_for_old_h1_term_1 = [ind_no_term[l_l],
+                                                     ind_no_term[i_i]]
 
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     h1_new[coordinates_for_old_h1_term_1[0]][coordinates_for_old_h1_term_1[1]] \
                         += 0.5 * temp_sign_h1_1 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'a', 'adag', 'adag']:
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[ll],
-                                  ind_no_term[ii],
-                                  ind_no_term[ii]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[l_l],
+                                  ind_no_term[i_i],
+                                  ind_no_term[i_i]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -1634,8 +1540,7 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 else:
                     print('ERROR')
@@ -1647,10 +1552,10 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[ii],
-                                  ind_no_term[ii],
-                                  ind_no_term[kk]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[i_i],
+                                  ind_no_term[i_i],
+                                  ind_no_term[k_k]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -1658,44 +1563,41 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['adag', 'a', 'adag', 'a']:
 
                     temp_sign_h2 = -1 * sign_no_term
                     temp_sign_h1 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[ii],
-                                  ind_no_term[ii],
-                                  ind_no_term[kk]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[i_i],
+                                  ind_no_term[i_i],
+                                  ind_no_term[k_k]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
 
-                    ind_old_h1 = [ind_no_term[ii],
-                                  ind_no_term[kk]]
+                    ind_old_h1 = [ind_no_term[i_i],
+                                  ind_no_term[k_k]]
 
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     h1_new[ind_old_h1[0]][ind_old_h1[1]] \
                         += 0.5 * temp_sign_h1 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['adag', 'a', 'a', 'adag']:
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[kk],
-                                  ind_no_term[ii],
-                                  ind_no_term[ii]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[k_k],
+                                  ind_no_term[i_i],
+                                  ind_no_term[i_i]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -1703,17 +1605,16 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'adag', 'adag', 'a']:
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[ii],
-                                  ind_no_term[ii],
-                                  ind_no_term[kk]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[i_i],
+                                  ind_no_term[i_i],
+                                  ind_no_term[k_k]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -1721,44 +1622,41 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'adag', 'a', 'adag']:
 
                     temp_sign_h2 = -1 * sign_no_term
                     temp_sign_h1 = -1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[kk],
-                                  ind_no_term[ii],
-                                  ind_no_term[ii]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[k_k],
+                                  ind_no_term[i_i],
+                                  ind_no_term[i_i]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
 
-                    ind_old_h1 = [ind_no_term[kk],
-                                  ind_no_term[ii]]
+                    ind_old_h1 = [ind_no_term[k_k],
+                                  ind_no_term[i_i]]
 
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     h1_new[ind_old_h1[0]][ind_old_h1[1]] \
                         += 0.5 * temp_sign_h1 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'a', 'adag', 'adag']:
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[kk],
-                                  ind_no_term[ii],
-                                  ind_no_term[ii]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[k_k],
+                                  ind_no_term[i_i],
+                                  ind_no_term[i_i]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -1766,8 +1664,7 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 else:
                     print('ERROR')
@@ -1779,10 +1676,10 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[jj],
-                                  ind_no_term[ii],
-                                  ind_no_term[ii]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[j_j],
+                                  ind_no_term[i_i],
+                                  ind_no_term[i_i]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -1790,17 +1687,16 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['adag', 'a', 'adag', 'a']:
 
                     temp_sign_h2 = -1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[ii],
-                                  ind_no_term[jj],
-                                  ind_no_term[ii]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[i_i],
+                                  ind_no_term[j_j],
+                                  ind_no_term[i_i]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -1808,71 +1704,66 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['adag', 'a', 'a', 'adag']:
 
                     temp_sign_h2 = 1 * sign_no_term
                     temp_sign_h1 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[ii],
-                                  ind_no_term[jj],
-                                  ind_no_term[ii]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[i_i],
+                                  ind_no_term[j_j],
+                                  ind_no_term[i_i]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
 
-                    ind_old_h1 = [ind_no_term[ii],
-                                  ind_no_term[jj]]
+                    ind_old_h1 = [ind_no_term[i_i],
+                                  ind_no_term[j_j]]
 
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     h1_new[ind_old_h1[0]][ind_old_h1[1]] \
                         += 0.5 * temp_sign_h1 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'adag', 'adag', 'a']:
 
                     temp_sign_h2 = -1 * sign_no_term
                     temp_sign_h1 = -1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[jj],
-                                  ind_no_term[ii],
-                                  ind_no_term[ii],
-                                  ind_no_term[ii]]
+                    ind_new_h2 = [ind_no_term[j_j],
+                                  ind_no_term[i_i],
+                                  ind_no_term[i_i],
+                                  ind_no_term[i_i]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
 
-                    ind_old_h1 = [ind_no_term[jj],
-                                  ind_no_term[ii]]
+                    ind_old_h1 = [ind_no_term[j_j],
+                                  ind_no_term[i_i]]
 
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     h1_new[ind_old_h1[0]][ind_old_h1[1]] \
                         += 0.5 * temp_sign_h1 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'adag', 'a', 'adag']:
 
                     temp_sign_h2 = -1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[jj],
-                                  ind_no_term[ii],
-                                  ind_no_term[ii],
-                                  ind_no_term[ii]]
+                    ind_new_h2 = [ind_no_term[j_j],
+                                  ind_no_term[i_i],
+                                  ind_no_term[i_i],
+                                  ind_no_term[i_i]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -1880,17 +1771,16 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'a', 'adag', 'adag']:
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[ii],
-                                  ind_no_term[ii],
-                                  ind_no_term[jj]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[i_i],
+                                  ind_no_term[i_i],
+                                  ind_no_term[j_j]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -1898,8 +1788,7 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
                 else:
                     print('ERROR')
 
@@ -1910,10 +1799,10 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[jj],
-                                  ind_no_term[jj],
-                                  ind_no_term[jj]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[j_j],
+                                  ind_no_term[j_j],
+                                  ind_no_term[j_j]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -1921,44 +1810,41 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['adag', 'a', 'adag', 'a']:
 
                     temp_sign_h2 = -1 * sign_no_term
                     temp_sign_h1 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[jj],
-                                  ind_no_term[jj],
-                                  ind_no_term[jj]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[j_j],
+                                  ind_no_term[j_j],
+                                  ind_no_term[j_j]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
 
-                    ind_old_h1 = [ind_no_term[ii],
-                                  ind_no_term[jj]]
+                    ind_old_h1 = [ind_no_term[i_i],
+                                  ind_no_term[j_j]]
 
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     h1_new[ind_old_h1[0]][ind_old_h1[1]] \
                         += 0.5 * temp_sign_h1 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['adag', 'a', 'a', 'adag']:
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[ii],
-                                  ind_no_term[jj],
-                                  ind_no_term[jj],
-                                  ind_no_term[jj]]
+                    ind_new_h2 = [ind_no_term[i_i],
+                                  ind_no_term[j_j],
+                                  ind_no_term[j_j],
+                                  ind_no_term[j_j]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -1966,17 +1852,16 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'adag', 'adag', 'a']:
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[jj],
-                                  ind_no_term[jj],
-                                  ind_no_term[ii],
-                                  ind_no_term[jj]]
+                    ind_new_h2 = [ind_no_term[j_j],
+                                  ind_no_term[j_j],
+                                  ind_no_term[i_i],
+                                  ind_no_term[j_j]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -1984,44 +1869,41 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'adag', 'a', 'adag']:
 
                     temp_sign_h2 = -1 * sign_no_term
                     temp_sign_h1 = -1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[jj],
-                                  ind_no_term[jj],
-                                  ind_no_term[ii],
-                                  ind_no_term[jj]]
+                    ind_new_h2 = [ind_no_term[j_j],
+                                  ind_no_term[j_j],
+                                  ind_no_term[i_i],
+                                  ind_no_term[j_j]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
 
-                    ind_old_h1 = [ind_no_term[jj],
-                                  ind_no_term[ii]]
+                    ind_old_h1 = [ind_no_term[j_j],
+                                  ind_no_term[i_i]]
 
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                     h1_new[ind_old_h1[0]][ind_old_h1[1]] \
                         += 0.5 * temp_sign_h1 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 elif mapping_no_term == ['a', 'a', 'adag', 'adag']:
 
                     temp_sign_h2 = 1 * sign_no_term
 
-                    ind_new_h2 = [ind_no_term[jj],
-                                  ind_no_term[jj],
-                                  ind_no_term[ii],
-                                  ind_no_term[jj]]
+                    ind_new_h2 = [ind_no_term[j_j],
+                                  ind_no_term[j_j],
+                                  ind_no_term[i_i],
+                                  ind_no_term[j_j]]
                     ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                                   ind_ini_term[2], ind_ini_term[3]]
                     ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -2029,8 +1911,7 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                     h2_new[ind_new_h2[0]][ind_new_h2[1]][
                         ind_new_h2[2]][ind_new_h2[3]] \
                         += 0.5 * temp_sign_h2 * \
-                        h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                        ind_old_h2[2]][ind_old_h2[3]]
+                        h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
                 else:
                     print('ERROR')
@@ -2044,8 +1925,8 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
 
                 temp_sign_h2 = 1 * sign_no_term
 
-                ind_new_h2 = [ind_no_term[ii], ind_no_term[ii],
-                              ind_no_term[ii], ind_no_term[ii]]
+                ind_new_h2 = [ind_no_term[i_i], ind_no_term[i_i],
+                              ind_no_term[i_i], ind_no_term[i_i]]
                 ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                               ind_ini_term[2], ind_ini_term[3]]
                 ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -2053,15 +1934,14 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                 h2_new[ind_new_h2[0]][ind_new_h2[1]][
                     ind_new_h2[2]][ind_new_h2[3]] \
                     += 0.5 * temp_sign_h2 * \
-                    h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                    ind_old_h2[2]][ind_old_h2[3]]
+                    h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
             elif mapping_no_term == ['a', 'a', 'adag', 'adag']:
 
                 temp_sign_h2 = 1 * sign_no_term
 
-                ind_new_h2 = [ind_no_term[ii], ind_no_term[ii],
-                              ind_no_term[ii], ind_no_term[ii]]
+                ind_new_h2 = [ind_no_term[i_i], ind_no_term[i_i],
+                              ind_no_term[i_i], ind_no_term[i_i]]
                 ind_old_h2 = [ind_ini_term[0], ind_ini_term[1],
                               ind_ini_term[2], ind_ini_term[3]]
                 ind_old_h2 = last_two_indices_swap(ind_old_h2)
@@ -2069,8 +1949,7 @@ def normal_order_integrals(n_qubits, n_occupied, array_to_normal_order, array_ma
                 h2_new[ind_new_h2[0]][ind_new_h2[1]][
                     ind_new_h2[2]][ind_new_h2[3]] \
                     += 0.5 * temp_sign_h2 * \
-                    h2_old[ind_old_h2[0]][ind_old_h2[1]][
-                    ind_old_h2[2]][ind_old_h2[3]]
+                    h2_old[ind_old_h2[0]][ind_old_h2[1]][ind_old_h2[2]][ind_old_h2[3]]
 
             else:
                 print('ERROR')
@@ -2089,7 +1968,7 @@ def particle_hole_transformation(n_qubits, num_particles, h1_old_matrix, h2_old_
         h2_old_matrix (array): two body integral matrix
 
     Returns:
-        new one body integrals matrix, two body integrals matrix, identity coefficient terms
+        tuple: new one body integrals matrix, two body integrals matrix, identity coefficient terms
     """
 
     num_alpha = num_particles[0]
@@ -2105,20 +1984,21 @@ def particle_hole_transformation(n_qubits, num_particles, h1_old_matrix, h2_old_
 
     # put labels of occupied orbitals in the list in interleaved spin convention
     n_occupied = []
-    for a in range(num_alpha):
-        n_occupied.append(2*a)
+    for a_i in range(num_alpha):
+        n_occupied.append(2*a_i)
     for b in range(num_beta):
         n_occupied.append(2*b + 1)
 
     for r in range(n_qubits):
-        for s in range(n_qubits):
+        for s_i in range(n_qubits):
             for i in n_occupied:
 
-                h1_old_matrix[r][s] += h2_old_matrix[r][i][s][i].copy() - h2_old_matrix[r][i][i][s].copy()
+                h1_old_matrix[r][s_i] += h2_old_matrix[r][i][s_i][i].copy() - \
+                    h2_old_matrix[r][i][i][s_i].copy()
 
     identities_new_sum = 0
 
-    n_el = num_alpha + num_beta
+    # n_el = num_alpha + num_beta
 
     for i in range(n_qubits):
         for j in range(n_qubits):
@@ -2130,7 +2010,8 @@ def particle_hole_transformation(n_qubits, num_particles, h1_old_matrix, h2_old_
             h2_new_matrix = np.zeros([n_qubits, n_qubits, n_qubits, n_qubits])
 
             h1_new_matrix, h2_new_matrix, identities = normal_order_integrals(
-                n_qubits, n_occupied, indices_1, array_mapping_1, h1_old_matrix, h2_old_matrix, h1_new_matrix, h2_new_matrix)
+                n_qubits, n_occupied, indices_1, array_mapping_1, h1_old_matrix,
+                h2_old_matrix, h1_new_matrix, h2_new_matrix)
 
             h1_new_sum += h1_new_matrix
             h2_new_sum += h2_new_matrix
@@ -2139,9 +2020,9 @@ def particle_hole_transformation(n_qubits, num_particles, h1_old_matrix, h2_old_
     for i in range(n_qubits):
         for j in range(n_qubits):
             for k in range(n_qubits):
-                for l in range(n_qubits):
+                for l_i in range(n_qubits):
 
-                    array_to_be_ordered = [i, j, k, l]
+                    array_to_be_ordered = [i, j, k, l_i]
 
                     array_mapping_2 = ['adag', 'adag', 'a', 'a']
 
@@ -2149,7 +2030,8 @@ def particle_hole_transformation(n_qubits, num_particles, h1_old_matrix, h2_old_
                     h2_new_matrix = np.zeros([n_qubits, n_qubits, n_qubits, n_qubits])
 
                     h1_new_matrix, h2_new_matrix, identities = normal_order_integrals(
-                        n_qubits, n_occupied, array_to_be_ordered, array_mapping_2, h1_old_matrix, h2_old_matrix, h1_new_matrix, h2_new_matrix)
+                        n_qubits, n_occupied, array_to_be_ordered, array_mapping_2,
+                        h1_old_matrix, h2_old_matrix, h1_new_matrix, h2_new_matrix)
 
                     h1_new_sum += h1_new_matrix
                     h2_new_sum += h2_new_matrix

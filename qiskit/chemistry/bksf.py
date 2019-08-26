@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" BKSF methods """
+
 import copy
 import itertools
 
@@ -21,30 +23,30 @@ from qiskit.quantum_info import Pauli
 from qiskit.aqua.operators import WeightedPauliOperator
 
 
-def _one_body(edge_list, p, q, h1_pq):
+def _one_body(edge_list, p_i, q_i, h1_pq):
     """
     Map the term a^\\dagger_p a_q + a^\\dagger_q a_p to qubit operator.
     Args:
         edge_list (numpy.ndarray): 2xE matrix, each indicates (from, to) pair
-        p (int): index of the one body term
-        q (int): index of the one body term
+        p_i (int): index of the one body term
+        q_i (int): index of the one body term
         h1_pq (complex): coeffient of the one body term at (p, q)
 
     Return:
         WeightedPauliOperator: mapped qubit operator
     """
     # Handle off-diagonal terms.
-    if p != q:
-        a, b = sorted([p, q])
-        b_a = edge_operator_bi(edge_list, a)
-        b_b = edge_operator_bi(edge_list, b)
-        a_ab = edge_operator_aij(edge_list, a, b)
+    if p_i != q_i:
+        a_i, b_i = sorted([p_i, q_i])
+        b_a = edge_operator_bi(edge_list, a_i)
+        b_b = edge_operator_bi(edge_list, b_i)
+        a_ab = edge_operator_aij(edge_list, a_i, b_i)
         qubit_op = a_ab * b_b + b_a * a_ab
         final_coeff = -1j * 0.5
 
     # Handle diagonal terms.
     else:
-        b_p = edge_operator_bi(edge_list, p)
+        b_p = edge_operator_bi(edge_list, p_i)
         v = np.zeros(edge_list.shape[1])
         w = np.zeros(edge_list.shape[1])
         id_pauli = Pauli(v, w)
@@ -58,16 +60,16 @@ def _one_body(edge_list, p, q, h1_pq):
     return qubit_op
 
 
-def _two_body(edge_list, p, q, r, s, h2_pqrs):
+def _two_body(edge_list, p_i, q, r, s_i, h2_pqrs):
     """
     Map the term a^\\dagger_p a^\\dagger_q a_r a_s + h.c. to qubit operator.
 
     Args:
         edge_list (numpy.ndarray): 2xE matrix, each indicates (from, to) pair
-        p (int): index of the two body term
+        p_i (int): index of the two body term
         q (int): index of the two body term
         r (int): index of the two body term
-        s (int): index of the two body term
+        s_i (int): index of the two body term
         h2_pqrs (complex): coeffient of the two body term at (p, q, r, s)
 
     Returns:
@@ -78,15 +80,15 @@ def _two_body(edge_list, p, q, r, s, h2_pqrs):
     id_op = WeightedPauliOperator(paulis=[[1, Pauli(v, v)]])
     final_coeff = 1.0
 
-    if len(set([p, q, r, s])) == 4:
-        b_p = edge_operator_bi(edge_list, p)
+    if len(set([p_i, q, r, s_i])) == 4:
+        b_p = edge_operator_bi(edge_list, p_i)
         b_q = edge_operator_bi(edge_list, q)
         b_r = edge_operator_bi(edge_list, r)
-        b_s = edge_operator_bi(edge_list, s)
-        a_pq = edge_operator_aij(edge_list, p, q)
-        a_rs = edge_operator_aij(edge_list, r, s)
-        a_pq = -a_pq if q < p else a_pq
-        a_rs = -a_rs if s < r else a_rs
+        b_s = edge_operator_bi(edge_list, s_i)
+        a_pq = edge_operator_aij(edge_list, p_i, q)
+        a_rs = edge_operator_aij(edge_list, r, s_i)
+        a_pq = -a_pq if q < p_i else a_pq
+        a_rs = -a_rs if s_i < r else a_rs
 
         qubit_op = (a_pq * a_rs) * (-id_op - b_p * b_q + b_p * b_r +
                                     b_p * b_s + b_q * b_r + b_q * b_s -
@@ -94,42 +96,42 @@ def _two_body(edge_list, p, q, r, s, h2_pqrs):
         final_coeff = 0.125
 
     # Handle case of three unique indices.
-    elif len(set([p, q, r, s])) == 3:
-        b_p = edge_operator_bi(edge_list, p)
+    elif len(set([p_i, q, r, s_i])) == 3:
+        b_p = edge_operator_bi(edge_list, p_i)
         b_q = edge_operator_bi(edge_list, q)
-        if p == r:
-            b_s = edge_operator_bi(edge_list, s)
-            a_qs = edge_operator_aij(edge_list, q, s)
-            a_qs = -a_qs if s < q else a_qs
+        if p_i == r:
+            b_s = edge_operator_bi(edge_list, s_i)
+            a_qs = edge_operator_aij(edge_list, q, s_i)
+            a_qs = -a_qs if s_i < q else a_qs
             qubit_op = (a_qs * b_s + b_q * a_qs) * (id_op - b_p)
             final_coeff = 1j * 0.25
-        elif p == s:
+        elif p_i == s_i:
             b_r = edge_operator_bi(edge_list, r)
             a_qr = edge_operator_aij(edge_list, q, r)
             a_qr = -a_qr if r < q else a_qr
             qubit_op = (a_qr * b_r + b_q * a_qr) * (id_op - b_p)
             final_coeff = 1j * -0.25
         elif q == r:
-            b_s = edge_operator_bi(edge_list, s)
-            a_ps = edge_operator_aij(edge_list, p, s)
-            a_ps = -a_ps if s < p else a_ps
+            b_s = edge_operator_bi(edge_list, s_i)
+            a_ps = edge_operator_aij(edge_list, p_i, s_i)
+            a_ps = -a_ps if s_i < p_i else a_ps
             qubit_op = (a_ps * b_s + b_p * a_ps) * (id_op - b_q)
             final_coeff = 1j * -0.25
-        elif q == s:
+        elif q == s_i:
             b_r = edge_operator_bi(edge_list, r)
-            a_pr = edge_operator_aij(edge_list, p, r)
-            a_pr = -a_pr if r < p else a_pr
+            a_pr = edge_operator_aij(edge_list, p_i, r)
+            a_pr = -a_pr if r < p_i else a_pr
             qubit_op = (a_pr * b_r + b_p * a_pr) * (id_op - b_q)
             final_coeff = 1j * 0.25
         else:
             pass
 
     # Handle case of two unique indices.
-    elif len(set([p, q, r, s])) == 2:
-        b_p = edge_operator_bi(edge_list, p)
+    elif len(set([p_i, q, r, s_i])) == 2:
+        b_p = edge_operator_bi(edge_list, p_i)
         b_q = edge_operator_bi(edge_list, q)
         qubit_op = (id_op - b_p) * (id_op - b_q)
-        if p == s:
+        if p_i == s_i:
             final_coeff = 0.25
         else:
             final_coeff = -0.25
@@ -152,49 +154,49 @@ def bravyi_kitaev_fast_edge_list(fer_op):
         numpy.ndarray: edge_list, a 2xE matrix, where E is total number of edge
                         and each pair denotes (from, to)
     """
-    h1 = fer_op.h1
-    h2 = fer_op.h2
+    h_1 = fer_op.h1
+    h_2 = fer_op.h2
     modes = fer_op.modes
     edge_matrix = np.zeros((modes, modes), dtype=np.bool)
 
-    for p, q in itertools.product(range(modes), repeat=2):
+    for p_i, q in itertools.product(range(modes), repeat=2):
 
-        if h1[p, q] != 0.0 and p >= q:
-            edge_matrix[p, q] = True
+        if h_1[p_i, q] != 0.0 and p_i >= q:
+            edge_matrix[p_i, q] = True
 
-        for r, s in itertools.product(range(modes), repeat=2):
-            if h2[p, q, r, s] == 0.0:  # skip zero terms
+        for r, s_i in itertools.product(range(modes), repeat=2):
+            if h_2[p_i, q, r, s_i] == 0.0:  # skip zero terms
                 continue
 
             # Identify and skip one of the complex conjugates.
-            if [p, q, r, s] != [s, r, q, p]:
-                if len(set([p, q, r, s])) == 4:
-                    if min(r, s) < min(p, q):
+            if [p_i, q, r, s_i] != [s_i, r, q, p_i]:
+                if len(set([p_i, q, r, s_i])) == 4:
+                    if min(r, s_i) < min(p_i, q):
                         continue
-                elif p != r and q < p:
+                elif p_i != r and q < p_i:
                     continue
 
             # Handle case of four unique indices.
-            if len(set([p, q, r, s])) == 4:
-                if p >= q:
-                    edge_matrix[p, q] = True
-                    a, b = sorted([r, s])
-                    edge_matrix[b, a] = True
+            if len(set([p_i, q, r, s_i])) == 4:
+                if p_i >= q:
+                    edge_matrix[p_i, q] = True
+                    a_i, b = sorted([r, s_i])
+                    edge_matrix[b, a_i] = True
 
             # Handle case of three unique indices.
-            elif len(set([p, q, r, s])) == 3:
+            elif len(set([p_i, q, r, s_i])) == 3:
                 # Identify equal tensor factors.
-                if p == r:
-                    a, b = sorted([q, s])
-                elif p == s:
-                    a, b = sorted([q, r])
+                if p_i == r:
+                    a_i, b = sorted([q, s_i])
+                elif p_i == s_i:
+                    a_i, b = sorted([q, r])
                 elif q == r:
-                    a, b = sorted([p, s])
-                elif q == s:
-                    a, b = sorted([p, r])
+                    a_i, b = sorted([p_i, s_i])
+                elif q == s_i:
+                    a_i, b = sorted([p_i, r])
                 else:
                     continue
-                edge_matrix[b, a] = True
+                edge_matrix[b, a_i] = True
 
     edge_list = np.asarray(np.nonzero(np.triu(edge_matrix.T) ^ np.diag(np.diag(edge_matrix.T))))
     return edge_list
@@ -228,37 +230,37 @@ def edge_operator_aij(edge_list, i, j):
     w[position_ij] = 1
 
     for edge_index in range(qubit_position_i.shape[1]):
-        ii, jj = qubit_position_i[:, edge_index]
-        ii = 1 if ii == 0 else 0  # int(not(ii))
-        if edge_list[ii][jj] < j:
-            v[jj] = 1
+        i_i, j_j = qubit_position_i[:, edge_index]
+        i_i = 1 if i_i == 0 else 0  # int(not(i_i))
+        if edge_list[i_i][j_j] < j:
+            v[j_j] = 1
 
     qubit_position_j = np.asarray(np.where(edge_list == j))
     for edge_index in range(qubit_position_j.shape[1]):
-        ii, jj = qubit_position_j[:, edge_index]
-        ii = 1 if ii == 0 else 0  # int(not(ii))
-        if edge_list[ii][jj] < i:
-            v[jj] = 1
+        i_i, j_j = qubit_position_j[:, edge_index]
+        i_i = 1 if i_i == 0 else 0  # int(not(i_i))
+        if edge_list[i_i][j_j] < i:
+            v[j_j] = 1
 
     qubit_op = WeightedPauliOperator(paulis=[[1.0, Pauli(v, w)]])
     return qubit_op
 
 
 def stabilizers(fer_op):
-
+    """ stabilizers """
     edge_list = bravyi_kitaev_fast_edge_list(fer_op)
     num_qubits = edge_list.shape[1]
 
-    g = networkx.Graph()
-    g.add_edges_from(tuple(edge_list.transpose()))
-    stabs = np.asarray(networkx.cycle_basis(g))
+    graph = networkx.Graph()
+    graph.add_edges_from(tuple(edge_list.transpose()))
+    stabs = np.asarray(networkx.cycle_basis(graph))
     stabilizer_ops = []
     for stab in stabs:
-        a = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
+        a_op = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
         stab = np.asarray(stab)
         for i in range(np.size(stab)):
-            a = a * edge_operator_aij(edge_list, stab[i], stab[(i + 1) % np.size(stab)]) * 1j
-        stabilizer_ops.append(a)
+            a_op = a_op * edge_operator_aij(edge_list, stab[i], stab[(i + 1) % np.size(stab)]) * 1j
+        stabilizer_ops.append(a_op)
 
     return stabilizer_ops
 
@@ -325,36 +327,36 @@ def bksf_mapping(fer_op):
     qubit_op = WeightedPauliOperator(paulis=[])
     edge_list = bravyi_kitaev_fast_edge_list(fer_op)
     # Loop through all indices.
-    for p in range(modes):
+    for p_i in range(modes):
         for q in range(modes):
             # Handle one-body terms.
-            h1_pq = fer_op.h1[p, q]
+            h1_pq = fer_op.h1[p_i, q]
 
-            if h1_pq != 0.0 and p >= q:
-                qubit_op += _one_body(edge_list, p, q, h1_pq)
+            if h1_pq != 0.0 and p_i >= q:
+                qubit_op += _one_body(edge_list, p_i, q, h1_pq)
 
             # Keep looping for the two-body terms.
             for r in range(modes):
-                for s in range(modes):
-                    h2_pqrs = fer_op.h2[p, q, r, s]
+                for s_i in range(modes):
+                    h2_pqrs = fer_op.h2[p_i, q, r, s_i]
 
                     # Skip zero terms.
-                    if (h2_pqrs == 0.0) or (p == q) or (r == s):
+                    if (h2_pqrs == 0.0) or (p_i == q) or (r == s_i):
                         continue
 
                     # Identify and skip one of the complex conjugates.
-                    if [p, q, r, s] != [s, r, q, p]:
-                        if len(set([p, q, r, s])) == 4:
-                            if min(r, s) < min(p, q):
+                    if [p_i, q, r, s_i] != [s_i, r, q, p_i]:
+                        if len(set([p_i, q, r, s_i])) == 4:
+                            if min(r, s_i) < min(p_i, q):
                                 continue
                         # Handle case of 3 unique indices
-                        elif len(set([p, q, r, s])) == 3:
-                            qubit_op += _two_body(edge_list, p, q, r, s, 0.5 * h2_pqrs)
+                        elif len(set([p_i, q, r, s_i])) == 3:
+                            qubit_op += _two_body(edge_list, p_i, q, r, s_i, 0.5 * h2_pqrs)
                             continue
-                        elif p != r and q < p:
+                        elif p_i != r and q < p_i:
                             continue
 
-                    qubit_op += _two_body(edge_list, p, q, r, s, h2_pqrs)
+                    qubit_op += _two_body(edge_list, p_i, q, r, s_i, h2_pqrs)
 
     qubit_op.simplify()
     return qubit_op
@@ -373,17 +375,17 @@ def vacuum_operator(fer_op):
     num_qubits = edge_list.shape[1]
     vac_operator = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
 
-    g = networkx.Graph()
-    g.add_edges_from(tuple(edge_list.transpose()))
-    stabs = np.asarray(networkx.cycle_basis(g))
+    graph = networkx.Graph()
+    graph.add_edges_from(tuple(edge_list.transpose()))
+    stabs = np.asarray(networkx.cycle_basis(graph))
     for stab in stabs:
-        a = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
+        a_op = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
         stab = np.asarray(stab)
         for i in range(np.size(stab)):
-            a = a * edge_operator_aij(edge_list, stab[i], stab[(i + 1) % np.size(stab)]) * 1j
-            # a.scaling_coeff(1j)
-        a += WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
-        vac_operator = vac_operator * a * np.sqrt(2)
+            a_op = a_op * edge_operator_aij(edge_list, stab[i], stab[(i + 1) % np.size(stab)]) * 1j
+            # a_op.scaling_coeff(1j)
+        a_op += WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
+        vac_operator = vac_operator * a_op * np.sqrt(2)
         # vac_operator.scaling_coeff()
 
     return vac_operator
@@ -407,7 +409,8 @@ def number_operator(fer_op, mode_number=None):
     if mode_number is None:
         for i in range(modes):
             num_operator -= edge_operator_bi(edge_list, i)
-        num_operator += WeightedPauliOperator(paulis=[[1.0 * modes, Pauli.from_label('I' * num_qubits)]])
+        num_operator += \
+            WeightedPauliOperator(paulis=[[1.0 * modes, Pauli.from_label('I' * num_qubits)]])
     else:
         num_operator += (WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
                          - edge_operator_bi(edge_list, mode_number))
