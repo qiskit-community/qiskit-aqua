@@ -81,7 +81,7 @@ class TestEomVQE(QiskitAquaTestCase):
         backend = BasicAer.get_backend('statevector_simulator')
         quantum_instance = QuantumInstance(backend)
         result = eom_vqe.run(quantum_instance)
-        np.testing.assert_array_almost_equal(self.reference, result['energies'], decimal=5)
+        np.testing.assert_array_almost_equal(self.reference, result['energies'], decimal=4)
 
     def test_h2_one_qubit_statevector(self):
         """Test H2 with tapering and statevector backend."""
