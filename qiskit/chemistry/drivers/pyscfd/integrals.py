@@ -228,7 +228,7 @@ def _calculate_integrals(mol, hf_method='rhf', conv_tol=1e-9, max_cycle=50, init
     _q_.mo_coeff = mo_coeff
     _q_.mo_coeff_b = mo_coeff_b
     _q_.orbital_energies = orbs_energy
-    _q_.orbital_energies_B = orbs_energy_b
+    _q_.orbital_energies_b = orbs_energy_b
     # Molecule geometry
     _q_.molecular_charge = mol.charge
     _q_.multiplicity = mol.spin + 1
@@ -249,24 +249,24 @@ def _calculate_integrals(mol, hf_method='rhf', conv_tol=1e-9, max_cycle=50, init
     _q_.overlap = m_f.get_ovlp()
     _q_.eri = eri
     _q_.mo_onee_ints = mohij
-    _q_.mo_onee_ints_B = mohij_b
+    _q_.mo_onee_ints_b = mohij_b
     _q_.mo_eri_ints = mohijkl
-    _q_.mo_eri_ints_BB = mohijkl_bb
-    _q_.mo_eri_ints_BA = mohijkl_ba
+    _q_.mo_eri_ints_bb = mohijkl_bb
+    _q_.mo_eri_ints_ba = mohijkl_ba
     # dipole integrals AO and MO
     _q_.x_dip_ints = x_dip_ints
     _q_.y_dip_ints = y_dip_ints
     _q_.z_dip_ints = z_dip_ints
     _q_.x_dip_mo_ints = QMolecule.oneeints2mo(x_dip_ints, mo_coeff)
-    _q_.x_dip_mo_ints_B = None
+    _q_.x_dip_mo_ints_b = None
     _q_.y_dip_mo_ints = QMolecule.oneeints2mo(y_dip_ints, mo_coeff)
-    _q_.y_dip_mo_ints_B = None
+    _q_.y_dip_mo_ints_b = None
     _q_.z_dip_mo_ints = QMolecule.oneeints2mo(z_dip_ints, mo_coeff)
-    _q_.z_dip_mo_ints_B = None
+    _q_.z_dip_mo_ints_b = None
     if mo_coeff_b is not None:
-        _q_.x_dip_mo_ints_B = QMolecule.oneeints2mo(x_dip_ints, mo_coeff_b)
-        _q_.y_dip_mo_ints_B = QMolecule.oneeints2mo(y_dip_ints, mo_coeff_b)
-        _q_.z_dip_mo_ints_B = QMolecule.oneeints2mo(z_dip_ints, mo_coeff_b)
+        _q_.x_dip_mo_ints_b = QMolecule.oneeints2mo(x_dip_ints, mo_coeff_b)
+        _q_.y_dip_mo_ints_b = QMolecule.oneeints2mo(y_dip_ints, mo_coeff_b)
+        _q_.z_dip_mo_ints_b = QMolecule.oneeints2mo(z_dip_ints, mo_coeff_b)
     # dipole moment
     _q_.nuclear_dipole_moment = nucl_dip
     _q_.reverse_dipole_sign = True

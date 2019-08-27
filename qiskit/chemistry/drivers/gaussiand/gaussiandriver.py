@@ -235,11 +235,11 @@ class GaussianDriver(BaseDriver):
             moc_b = None
         _q_.num_orbitals = moc.shape[0]
         _q_.mo_coeff = moc
-        _q_.mo_coeff_B = moc_b
+        _q_.mo_coeff_b = moc_b
         orbs_energy = self._get_matrix(mel, 'ALPHA ORBITAL ENERGIES')
         _q_.orbital_energies = orbs_energy
         orbs_energy_b = self._get_matrix(mel, 'BETA ORBITAL ENERGIES')
-        _q_.orbital_energies_B = orbs_energy_b if moc_b is not None else None
+        _q_.orbital_energies_b = orbs_energy_b if moc_b is not None else None
         # Molecule geometry
         _q_.molecular_charge = mel.icharg
         _q_.multiplicity = mel.multip
@@ -321,10 +321,10 @@ class GaussianDriver(BaseDriver):
         _q_.eri = eri
 
         _q_.mo_onee_ints = mohij
-        _q_.mo_onee_ints_B = mohij_b
+        _q_.mo_onee_ints_b = mohij_b
         _q_.mo_eri_ints = mohijkl
-        _q_.mo_eri_ints_BB = mohijkl_bb
-        _q_.mo_eri_ints_BA = mohijkl_ba
+        _q_.mo_eri_ints_bb = mohijkl_bb
+        _q_.mo_eri_ints_ba = mohijkl_ba
 
         # dipole moment
         dipints = self._get_matrix(mel, 'DIPOLE INTEGRALS')
@@ -333,15 +333,15 @@ class GaussianDriver(BaseDriver):
         _q_.y_dip_ints = dipints[1]
         _q_.z_dip_ints = dipints[2]
         _q_.x_dip_mo_ints = QMolecule.oneeints2mo(dipints[0], moc)
-        _q_.x_dip_mo_ints_B = None
+        _q_.x_dip_mo_ints_b = None
         _q_.y_dip_mo_ints = QMolecule.oneeints2mo(dipints[1], moc)
-        _q_.y_dip_mo_ints_B = None
+        _q_.y_dip_mo_ints_b = None
         _q_.z_dip_mo_ints = QMolecule.oneeints2mo(dipints[2], moc)
-        _q_.z_dip_mo_ints_B = None
+        _q_.z_dip_mo_ints_b = None
         if moc_b is not None:
-            _q_.x_dip_mo_ints_B = QMolecule.oneeints2mo(dipints[0], moc_b)
-            _q_.y_dip_mo_ints_B = QMolecule.oneeints2mo(dipints[1], moc_b)
-            _q_.z_dip_mo_ints_B = QMolecule.oneeints2mo(dipints[2], moc_b)
+            _q_.x_dip_mo_ints_b = QMolecule.oneeints2mo(dipints[0], moc_b)
+            _q_.y_dip_mo_ints_b = QMolecule.oneeints2mo(dipints[1], moc_b)
+            _q_.z_dip_mo_ints_b = QMolecule.oneeints2mo(dipints[2], moc_b)
 
         nucl_dip = np.einsum('i,ix->x', syms, xyz)
         nucl_dip = np.round(nucl_dip, decimals=8)

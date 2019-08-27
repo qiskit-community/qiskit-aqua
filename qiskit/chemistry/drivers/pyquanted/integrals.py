@@ -130,9 +130,9 @@ def _calculate_integrals(molecule, basis='sto3g', hf_method='rhf', tol=1e-8, max
     _q_.num_alpha = molecule.nup()
     _q_.num_beta = molecule.ndown()
     _q_.mo_coeff = orbs
-    _q_.mo_coeff_B = orbs_b
+    _q_.mo_coeff_b = orbs_b
     _q_.orbital_energies = orbs_energy
-    _q_.orbital_energies_B = orbs_energy_b
+    _q_.orbital_energies_b = orbs_energy_b
     # Molecule geometry
     _q_.molecular_charge = molecule.charge
     _q_.multiplicity = molecule.multiplicity
@@ -153,10 +153,10 @@ def _calculate_integrals(molecule, basis='sto3g', hf_method='rhf', tol=1e-8, max
     _q_.overlap = integrals.S
     _q_.eri = eri
     _q_.mo_onee_ints = mohij
-    _q_.mo_onee_ints_B = mohij_b
+    _q_.mo_onee_ints_b = mohij_b
     _q_.mo_eri_ints = mohijkl
-    _q_.mo_eri_ints_BB = mohijkl_bb
-    _q_.mo_eri_ints_BA = mohijkl_ba
+    _q_.mo_eri_ints_bb = mohijkl_bb
+    _q_.mo_eri_ints_ba = mohijkl_ba
 
     return _q_
 

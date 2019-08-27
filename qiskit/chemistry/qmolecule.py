@@ -40,10 +40,10 @@ class QMolecule:
         # Originally support was limited to closed shell, when open shell was
         # added, and new integrals to allow different Beta orbitals needed,
         # these have been added as new similarly named fields but with suffices
-        # such as _B, _BB and _BA. So mo_coeff (with no suffix) is the original
+        # such as _b, _bb and _ba. So mo_coeff (with no suffix) is the original
         # and is for alpha molecular coefficients, the added one for beta is
-        # name mo_coeff_b, i.e. same name but with _B suffix. To keep backward
-        # compatibility the original fields were not renamed with an _A suffix
+        # name mo_coeff_b, i.e. same name but with _b suffix. To keep backward
+        # compatibility the original fields were not renamed with an _a suffix
         # but rather its implicit in the lack thereof given another field of
         # the same name but with an explicit suffix.
 
@@ -106,28 +106,28 @@ class QMolecule:
 
     @property
     def two_body_integrals(self):
-        """ returns two body integrals """
+        """ returns two body intergrals """
         return QMolecule.twoe_to_spin(self.mo_eri_ints, self.mo_eri_ints_bb, self.mo_eri_ints_ba)
 
     def has_dipole_integrals(self):
-        """ checks if it has dipole integrals """
+        """ check if has dipole intergrals """
         return self.x_dip_mo_ints is not None and \
             self.y_dip_mo_ints is not None and \
             self.z_dip_mo_ints is not None
 
     @property
     def x_dipole_integrals(self):
-        """ return x dipole integrals """
+        """ returns x_dipole_integrals """
         return QMolecule.onee_to_spin(self.x_dip_mo_ints, self.x_dip_mo_ints_b)
 
     @property
     def y_dipole_integrals(self):
-        """ return y dipole integrals """
+        """ returns y_dipole_integrals """
         return QMolecule.onee_to_spin(self.y_dip_mo_ints, self.y_dip_mo_ints_b)
 
     @property
     def z_dipole_integrals(self):
-        """ return z dipole integrals """
+        """ returns z_dipole_integrals """
         return QMolecule.onee_to_spin(self.z_dip_mo_ints, self.z_dip_mo_ints_b)
 
     def Z(self, natom):  # pylint: disable=invalid-name
@@ -141,18 +141,18 @@ class QMolecule:
         """ returns core orbitals """
         count = 0
         for i in range(self.num_atoms):
-            z_i = self.Z(i)
-            if z_i > 2:
+            z = self.Z(i)
+            if z > 2:
                 count += 1
-            if z_i > 10:
+            if z > 10:
                 count += 4
-            if z_i > 18:
+            if z > 18:
                 count += 4
-            if z_i > 36:
+            if z > 36:
                 count += 9
-            if z_i > 54:
+            if z > 54:
                 count += 9
-            if z_i > 86:
+            if z > 86:
                 count += 16
         return list(range(count))
 
@@ -341,7 +341,7 @@ class QMolecule:
             create_dataset(g_dipole, "reverse_dipole_sign", self.reverse_dipole_sign)
 
     def remove_file(self, file_name=None):
-        """ remove qmoleule file """
+        """ remove file """
         try:
             file = self._filename if file_name is None else file_name
             os.remove(file)
@@ -373,6 +373,7 @@ class QMolecule:
         Args:
             ints (numpy.ndarray): N^2 two electron integrals in AO basis
             moc (numpy.ndarray): Molecular orbital coefficients
+
         Returns:
             numpy.ndarray: integrals in MO basis
         """
@@ -500,19 +501,18 @@ class QMolecule:
         return moh2_qubit
 
     symbols = [
+        # pylint: disable=bad-whitespace,line-too-long
         '_',
-        'H', 'He',
-        'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne',
-        'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar',
-        'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As',
-        'Se', 'Br', 'Kr',
-        'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb',
-        'Te', 'I', 'Xe',
+        'H',  'He',
+        'Li', 'Be', 'B',  'C',  'N',  'O',  'F',  'Ne',
+        'Na', 'Mg', 'Al', 'Si', 'P',  'S',  'Cl', 'Ar',
+        'K',  'Ca', 'Sc', 'Ti', 'V',  'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr',
+        'Rb', 'Sr', 'Y',  'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb', 'Te', 'I', 'Xe',
         'Cs', 'Ba',
         'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu',
-        'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn',
+        'Hf', 'Ta', 'W',  'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn',
         'Fr', 'Ra',
-        'Ac', 'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr',
+        'Ac', 'Th', 'Pa', 'U',  'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr',
         'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds', 'Rg', 'Cn', 'Nh', 'Fl', 'Mc', 'Lv', 'Ts', 'Og']
 
     BOHR = 0.52917721092  # No of Angstroms in Bohr (from 2010 CODATA)
@@ -527,7 +527,7 @@ class QMolecule:
             numpy.set_printoptions(precision=8, suppress=True)
 
             # Originating driver name & config if set
-            if self.origin_driver_name and self.origin_driver_name != "?":
+            if self.origin_driver_name > 0 and self.origin_driver_name != "?":
                 logger.info("Originating driver name: %s", self.origin_driver_name)
                 logger.info("Originating driver version: %s", self.origin_driver_version)
                 logger.info("Originating driver config:\n%s", self.origin_driver_config[:-1])

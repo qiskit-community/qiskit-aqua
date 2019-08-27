@@ -18,9 +18,9 @@ _q_molecule.num_orbitals             = _q_hf_wavefn.nmo()
 _q_molecule.num_alpha                = _q_hf_wavefn.nalpha()
 _q_molecule.num_beta                 = _q_hf_wavefn.nbeta()
 _q_molecule.mo_coeff                 = numpy.asarray(_q_hf_wavefn.Ca())
-_q_molecule.mo_coeff_B               = numpy.asarray(_q_hf_wavefn.Cb()) if _has_B else None
+_q_molecule.mo_coeff_b               = numpy.asarray(_q_hf_wavefn.Cb()) if _has_B else None
 _q_molecule.orbital_energies         = numpy.asarray(_q_hf_wavefn.epsilon_a())
-_q_molecule.orbital_energies_B       = numpy.asarray(_q_hf_wavefn.epsilon_b()) if _has_B else None
+_q_molecule.orbital_energies_b       = numpy.asarray(_q_hf_wavefn.epsilon_b()) if _has_B else None
 # Molecule geometry
 _q_molecule.molecular_charge = _q_mol.molecular_charge()
 _q_molecule.multiplicity     = _q_mol.multiplicity()
@@ -46,23 +46,23 @@ _q_molecule.eri = numpy.asarray(_q_mints.ao_eri())
 _q_h1.transform(_q_hf_wavefn.Ca())
 _q_mohij = numpy.asarray(_q_h1)
 _q_molecule.mo_onee_ints = _q_mohij
-_q_molecule.mo_onee_ints_B = None
+_q_molecule.mo_onee_ints_b = None
 if _has_B:
     _q_h1b.transform(_q_hf_wavefn.Cb())
-    _q_molecule.mo_onee_ints_B = numpy.asarray(_q_h1b)
+    _q_molecule.mo_onee_ints_b = numpy.asarray(_q_h1b)
 #
 _q_mohijkl = numpy.asarray(_q_mints.mo_eri(_q_hf_wavefn.Ca(), _q_hf_wavefn.Ca(),
                                            _q_hf_wavefn.Ca(), _q_hf_wavefn.Ca()))
 _q_molecule.mo_eri_ints = _q_mohijkl
-_q_molecule.mo_eri_ints_BB = None
-_q_molecule.mo_eri_ints_BA = None
+_q_molecule.mo_eri_ints_bb = None
+_q_molecule.mo_eri_ints_ba = None
 if _has_B:
     _q_mohijkl_BB = numpy.asarray(_q_mints.mo_eri(_q_hf_wavefn.Cb(), _q_hf_wavefn.Cb(),
                                                   _q_hf_wavefn.Cb(), _q_hf_wavefn.Cb()))
-    _q_molecule.mo_eri_ints_BB = _q_mohijkl_BB
+    _q_molecule.mo_eri_ints_bb = _q_mohijkl_BB
     _q_mohijkl_BA = numpy.asarray(_q_mints.mo_eri(_q_hf_wavefn.Cb(), _q_hf_wavefn.Cb(),
                                                   _q_hf_wavefn.Ca(), _q_hf_wavefn.Ca()))
-    _q_molecule.mo_eri_ints_BA = _q_mohijkl_BA
+    _q_molecule.mo_eri_ints_ba = _q_mohijkl_BA
 
 # dipole integrals
 _q_dipole = _q_mints.ao_dipole()
@@ -74,18 +74,18 @@ _q_dipole = _q_mints.ao_dipole()
 for _n in range(len(_q_dipole)):
     _q_dipole[_n].transform(_q_hf_wavefn.Ca())
 _q_molecule.x_dip_mo_ints = numpy.asarray(_q_dipole[0])
-_q_molecule.x_dip_mo_ints_B = None
+_q_molecule.x_dip_mo_ints_b = None
 _q_molecule.y_dip_mo_ints = numpy.asarray(_q_dipole[1])
-_q_molecule.y_dip_mo_ints_B = None
+_q_molecule.y_dip_mo_ints_b = None
 _q_molecule.z_dip_mo_ints = numpy.asarray(_q_dipole[2])
-_q_molecule.z_dip_mo_ints_B = None
+_q_molecule.z_dip_mo_ints_b = None
 if _has_B:
     _q_dipole = _q_mints.ao_dipole()
     for _n in range(len(_q_dipole)):
         _q_dipole[_n].transform(_q_hf_wavefn.Cb())
-    _q_molecule.x_dip_mo_ints_B = numpy.asarray(_q_dipole[0])
-    _q_molecule.y_dip_mo_ints_B = numpy.asarray(_q_dipole[1])
-    _q_molecule.z_dip_mo_ints_B = numpy.asarray(_q_dipole[2])
+    _q_molecule.x_dip_mo_ints_b = numpy.asarray(_q_dipole[0])
+    _q_molecule.y_dip_mo_ints_b = numpy.asarray(_q_dipole[1])
+    _q_molecule.z_dip_mo_ints_b = numpy.asarray(_q_dipole[2])
 
 _q_nd = _q_mol.nuclear_dipole()
 _q_molecule.nuclear_dipole_moment = numpy.array([_q_nd[0], _q_nd[1], _q_nd[2]])
