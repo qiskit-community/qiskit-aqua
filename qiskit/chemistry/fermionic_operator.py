@@ -622,20 +622,20 @@ class FermionicOperator:
         h_1 = np.zeros((num_modes, num_modes))
         h_2 = np.zeros((num_modes, num_modes, num_modes, num_modes))
 
-        for p_i, q_i in itertools.product(range(num_modes_2), repeat=2):
-            if p_i != q_i:
-                h_2[p_i, p_i + num_modes_2, q_i, q_i + num_modes_2] += 1.0
-                h_2[p_i + num_modes_2, p_i, q_i, q_i + num_modes_2] += 1.0
-                h_2[p_i, p_i + num_modes_2, q_i + num_modes_2, q_i] += 1.0
-                h_2[p_i + num_modes_2, p_i, q_i + num_modes_2, q_i] += 1.0
+        for p, q in itertools.product(range(num_modes_2), repeat=2):  # pylint: disable=invalid-name
+            if p != q:
+                h_2[p, p + num_modes_2, q, q + num_modes_2] += 1.0
+                h_2[p + num_modes_2, p, q, q + num_modes_2] += 1.0
+                h_2[p, p + num_modes_2, q + num_modes_2, q] += 1.0
+                h_2[p + num_modes_2, p, q + num_modes_2, q] += 1.0
             else:
-                h_2[p_i, p_i + num_modes_2, p_i, p_i + num_modes_2] -= 1.0
-                h_2[p_i + num_modes_2, p_i, p_i + num_modes_2, p_i] -= 1.0
-                h_2[p_i, p_i, p_i + num_modes_2, p_i + num_modes_2] -= 1.0
-                h_2[p_i + num_modes_2, p_i + num_modes_2, p_i, p_i] -= 1.0
+                h_2[p, p + num_modes_2, p, p + num_modes_2] -= 1.0
+                h_2[p + num_modes_2, p, p + num_modes_2, p] -= 1.0
+                h_2[p, p, p + num_modes_2, p + num_modes_2] -= 1.0
+                h_2[p + num_modes_2, p + num_modes_2, p, p] -= 1.0
 
-                h_1[p_i, p_i] += 1.0
-                h_1[p_i + num_modes_2, p_i + num_modes_2] += 1.0
+                h_1[p, p] += 1.0
+                h_1[p + num_modes_2, p + num_modes_2] += 1.0
 
         h_1 *= 0.25
         h_2 *= 0.25
@@ -652,20 +652,20 @@ class FermionicOperator:
         h_1 = np.zeros((num_modes, num_modes))
         h_2 = np.zeros((num_modes, num_modes, num_modes, num_modes))
 
-        for p_i, q_i in itertools.product(range(num_modes_2), repeat=2):
-            if p_i != q_i:
-                h_2[p_i, p_i + num_modes_2, q_i, q_i + num_modes_2] -= 1.0
-                h_2[p_i + num_modes_2, p_i, q_i, q_i + num_modes_2] += 1.0
-                h_2[p_i, p_i + num_modes_2, q_i + num_modes_2, q_i] += 1.0
-                h_2[p_i + num_modes_2, p_i, q_i + num_modes_2, q_i] -= 1.0
+        for p, q in itertools.product(range(num_modes_2), repeat=2):  # pylint: disable=invalid-name
+            if p != q:
+                h_2[p, p + num_modes_2, q, q + num_modes_2] -= 1.0
+                h_2[p + num_modes_2, p, q, q + num_modes_2] += 1.0
+                h_2[p, p + num_modes_2, q + num_modes_2, q] += 1.0
+                h_2[p + num_modes_2, p, q + num_modes_2, q] -= 1.0
             else:
-                h_2[p_i, p_i + num_modes_2, p_i, p_i + num_modes_2] += 1.0
-                h_2[p_i + num_modes_2, p_i, p_i + num_modes_2, p_i] += 1.0
-                h_2[p_i, p_i, p_i + num_modes_2, p_i + num_modes_2] -= 1.0
-                h_2[p_i + num_modes_2, p_i + num_modes_2, p_i, p_i] -= 1.0
+                h_2[p, p + num_modes_2, p, p + num_modes_2] += 1.0
+                h_2[p + num_modes_2, p, p + num_modes_2, p] += 1.0
+                h_2[p, p, p + num_modes_2, p + num_modes_2] -= 1.0
+                h_2[p + num_modes_2, p + num_modes_2, p, p] -= 1.0
 
-                h_1[p_i, p_i] += 1.0
-                h_1[p_i + num_modes_2, p_i + num_modes_2] += 1.0
+                h_1[p, p] += 1.0
+                h_1[p + num_modes_2, p + num_modes_2] += 1.0
 
         h_1 *= 0.25
         h_2 *= 0.25
@@ -682,19 +682,19 @@ class FermionicOperator:
         h_1 = np.zeros((num_modes, num_modes))
         h_2 = np.zeros((num_modes, num_modes, num_modes, num_modes))
 
-        for p_i, q_i in itertools.product(range(num_modes_2), repeat=2):
-            if p_i != q_i:
-                h_2[p_i, p_i, q_i, q_i] += 1.0
-                h_2[p_i + num_modes_2, p_i + num_modes_2, q_i, q_i] -= 1.0
-                h_2[p_i, p_i, q_i + num_modes_2, q_i + num_modes_2] -= 1.0
-                h_2[p_i + num_modes_2, p_i + num_modes_2,
-                    q_i + num_modes_2, q_i + num_modes_2] += 1.0
+        for p, q in itertools.product(range(num_modes_2), repeat=2):  # pylint: disable=invalid-name
+            if p != q:
+                h_2[p, p, q, q] += 1.0
+                h_2[p + num_modes_2, p + num_modes_2, q, q] -= 1.0
+                h_2[p, p, q + num_modes_2, q + num_modes_2] -= 1.0
+                h_2[p + num_modes_2, p + num_modes_2,
+                    q + num_modes_2, q + num_modes_2] += 1.0
             else:
-                h_2[p_i, p_i + num_modes_2, p_i + num_modes_2, p_i] += 1.0
-                h_2[p_i + num_modes_2, p_i, p_i, p_i + num_modes_2] += 1.0
+                h_2[p, p + num_modes_2, p + num_modes_2, p] += 1.0
+                h_2[p + num_modes_2, p, p, p + num_modes_2] += 1.0
 
-                h_1[p_i, p_i] += 1.0
-                h_1[p_i + num_modes_2, p_i + num_modes_2] += 1.0
+                h_1[p, p] += 1.0
+                h_1[p + num_modes_2, p + num_modes_2] += 1.0
 
         h_1 *= 0.25
         h_2 *= 0.25

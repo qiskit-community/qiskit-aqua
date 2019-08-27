@@ -418,17 +418,17 @@ class QMolecule:
 
         # One electron terms
         moh1_qubit = numpy.zeros([nspin_orbs, nspin_orbs])
-        for p_i in range(nspin_orbs):
-            for q_i in range(nspin_orbs):
-                spinp = int(p_i/norbs)
-                spinq = int(q_i/norbs)
+        for p in range(nspin_orbs):  # pylint: disable=invalid-name
+            for q in range(nspin_orbs):
+                spinp = int(p/norbs)
+                spinq = int(q/norbs)
                 if spinp % 2 != spinq % 2:
                     continue
                 ints = mohij if spinp == 0 else mohij_b
-                orbp = int(p_i % norbs)
-                orbq = int(q_i % norbs)
+                orbp = int(p % norbs)
+                orbq = int(q % norbs)
                 if abs(ints[orbp, orbq]) > threshold:
-                    moh1_qubit[p_i, q_i] = ints[orbp, orbq]
+                    moh1_qubit[p, q] = ints[orbp, orbq]
 
         return moh1_qubit
 
@@ -475,14 +475,14 @@ class QMolecule:
 
         # Two electron terms
         moh2_qubit = numpy.zeros([nspin_orbs, nspin_orbs, nspin_orbs, nspin_orbs])
-        for p_i in range(nspin_orbs):
-            for q_i in range(nspin_orbs):
-                for r_i in range(nspin_orbs):
-                    for s_i in range(nspin_orbs):
-                        spinp = int(p_i/norbs)
-                        spinq = int(q_i/norbs)
-                        spinr = int(r_i/norbs)
-                        spins = int(s_i/norbs)
+        for p in range(nspin_orbs):  # pylint: disable=invalid-name
+            for q in range(nspin_orbs):
+                for r in range(nspin_orbs):
+                    for s in range(nspin_orbs):  # pylint: disable=invalid-name
+                        spinp = int(p/norbs)
+                        spinq = int(q/norbs)
+                        spinr = int(r/norbs)
+                        spins = int(s/norbs)
                         if spinp != spins:
                             continue
                         if spinq != spinr:
@@ -491,12 +491,12 @@ class QMolecule:
                             ints = ints_aa if spinq == 0 else ints_ba
                         else:
                             ints = ints_ab if spinq == 0 else ints_bb
-                        orbp = int(p_i % norbs)
-                        orbq = int(q_i % norbs)
-                        orbr = int(r_i % norbs)
-                        orbs = int(s_i % norbs)
+                        orbp = int(p % norbs)
+                        orbq = int(q % norbs)
+                        orbr = int(r % norbs)
+                        orbs = int(s % norbs)
                         if abs(ints[orbp, orbq, orbr, orbs]) > threshold:
-                            moh2_qubit[p_i, q_i, r_i, s_i] = -0.5*ints[orbp, orbq, orbr, orbs]
+                            moh2_qubit[p, q, r, s] = -0.5*ints[orbp, orbq, orbr, orbs]
 
         return moh2_qubit
 

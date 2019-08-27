@@ -244,7 +244,7 @@ def _calculate_integrals(mol, hf_method='rhf', conv_tol=1e-9, max_cycle=50, init
         _q_.atom_xyz[n_i][2] = xyz[2]
     # 1 and 2 electron integrals AO and MO
     _q_.hcore = hij
-    _q_.hcore_B = None
+    _q_.hcore_b = None
     _q_.kinetic = mol.intor_symmetric('int1e_kin')
     _q_.overlap = m_f.get_ovlp()
     _q_.eri = eri

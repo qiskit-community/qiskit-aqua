@@ -1990,11 +1990,11 @@ def particle_hole_transformation(n_qubits, num_particles, h1_old_matrix, h2_old_
         n_occupied.append(2*b + 1)
 
     for r in range(n_qubits):
-        for s_i in range(n_qubits):
+        for s in range(n_qubits):  # pylint: disable=invalid-name
             for i in n_occupied:
 
-                h1_old_matrix[r][s_i] += h2_old_matrix[r][i][s_i][i].copy() - \
-                    h2_old_matrix[r][i][i][s_i].copy()
+                h1_old_matrix[r][s] += h2_old_matrix[r][i][s][i].copy() - \
+                    h2_old_matrix[r][i][i][s].copy()
 
     identities_new_sum = 0
 

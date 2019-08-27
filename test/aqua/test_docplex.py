@@ -257,8 +257,8 @@ class TestDocplex(QiskitAquaTestCase):
         mdl.minimize(tsp_func)
         for i in range(num_node):
             mdl.add_constraint(mdl.sum(x[(i, p)] for p in range(num_node)) == 1)
-        for p_i in range(num_node):
-            mdl.add_constraint(mdl.sum(x[(i, p_i)] for i in range(num_node)) == 1)
+        for j in range(num_node):
+            mdl.add_constraint(mdl.sum(x[(i, j)] for i in range(num_node)) == 1)
         qubit_op, offset = docplex.get_qubitops(mdl)
 
         e_e = ExactEigensolver(qubit_op, k=1)

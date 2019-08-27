@@ -148,7 +148,7 @@ def _calculate_integrals(molecule, basis='sto3g', hf_method='rhf', tol=1e-8, max
         _q_.atom_xyz[n_i][2] = atuple[3]
     # 1 and 2 electron integrals
     _q_.hcore = hij
-    _q_.hcore_B = None
+    _q_.hcore_b = None
     _q_.kinetic = integrals.T
     _q_.overlap = integrals.S
     _q_.eri = eri
@@ -203,8 +203,7 @@ def _check_molecule_format(val):
                 zmat.append(z)
             xyz = z2xyz(zmat)
             new_val = ""
-            for i, _ in enumerate(xyz):
-                atm = xyz[i]
+            for atm in xyz:
                 if atm[0].upper() == 'X':
                     continue
                 if new_val:

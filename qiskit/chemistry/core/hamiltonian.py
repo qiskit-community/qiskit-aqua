@@ -342,11 +342,11 @@ class Hamiltonian(ChemistryOperator):
                 aux_ops = algo_result['aux_ops'][0]
                 num_particles = aux_ops[0][0]
                 s_squared = aux_ops[1][0]
-                s_i = (-1.0 + np.sqrt(1 + 4 * s_squared)) / 2
+                s_q = (-1.0 + np.sqrt(1 + 4 * s_squared)) / 2
                 m = aux_ops[2][0]
                 lines.append(
                     '  Measured:: Num particles: {:.3f}, S: {:.3f}, M: {:.5f}'.format(
-                        num_particles, s_i, m))
+                        num_particles, s_q, m))
             result['energy'] = self._nuclear_repulsion_energy + egse
             result['nuclear_repulsion_energy'] = self._nuclear_repulsion_energy
         if self._hf_energy is not None:
@@ -379,11 +379,11 @@ class Hamiltonian(ChemistryOperator):
                         aux_ops = algo_result['aux_ops'][i]
                         num_particles = aux_ops[0][0]
                         s_squared = aux_ops[1][0]
-                        s_i = (-1.0 + np.sqrt(1 + 4 * s_squared)) / 2
+                        s_q = (-1.0 + np.sqrt(1 + 4 * s_squared)) / 2
                         m = aux_ops[2][0]
                         lines.append(
                             '  {:>3}: {: 16.12f}, {: 16.12f},     {:5.3f},   {:5.3f},  {:8.5f}'.
-                            format(i, exste[i], algo_result['energies'][i], num_particles, s_i, m))
+                            format(i, exste[i], algo_result['energies'][i], num_particles, s_q, m))
         else:
             result['energies'] = [result['energy']]
 

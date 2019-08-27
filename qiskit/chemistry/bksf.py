@@ -23,21 +23,21 @@ from qiskit.quantum_info import Pauli
 from qiskit.aqua.operators import WeightedPauliOperator
 
 
-def _one_body(edge_list, p_i, q_i, h1_pq):
+def _one_body(edge_list, p, q, h1_pq):  # pylint: disable=invalid-name
     """
     Map the term a^\\dagger_p a_q + a^\\dagger_q a_p to qubit operator.
     Args:
         edge_list (numpy.ndarray): 2xE matrix, each indicates (from, to) pair
-        p_i (int): index of the one body term
-        q_i (int): index of the one body term
+        p (int): index of the one body term
+        q (int): index of the one body term
         h1_pq (complex): coeffient of the one body term at (p, q)
 
     Return:
         WeightedPauliOperator: mapped qubit operator
     """
     # Handle off-diagonal terms.
-    if p_i != q_i:
-        a_i, b_i = sorted([p_i, q_i])
+    if p != q:
+        a_i, b_i = sorted([p, q])
         b_a = edge_operator_bi(edge_list, a_i)
         b_b = edge_operator_bi(edge_list, b_i)
         a_ab = edge_operator_aij(edge_list, a_i, b_i)
@@ -46,7 +46,7 @@ def _one_body(edge_list, p_i, q_i, h1_pq):
 
     # Handle diagonal terms.
     else:
-        b_p = edge_operator_bi(edge_list, p_i)
+        b_p = edge_operator_bi(edge_list, p)
         v = np.zeros(edge_list.shape[1])
         w = np.zeros(edge_list.shape[1])
         id_pauli = Pauli(v, w)
@@ -60,16 +60,16 @@ def _one_body(edge_list, p_i, q_i, h1_pq):
     return qubit_op
 
 
-def _two_body(edge_list, p_i, q, r, s_i, h2_pqrs):
+def _two_body(edge_list, p, q, r, s, h2_pqrs):  # pylint: disable=invalid-name
     """
     Map the term a^\\dagger_p a^\\dagger_q a_r a_s + h.c. to qubit operator.
 
     Args:
         edge_list (numpy.ndarray): 2xE matrix, each indicates (from, to) pair
-        p_i (int): index of the two body term
+        p (int): index of the two body term
         q (int): index of the two body term
         r (int): index of the two body term
-        s_i (int): index of the two body term
+        s (int): index of the two body term
         h2_pqrs (complex): coeffient of the two body term at (p, q, r, s)
 
     Returns:
@@ -80,15 +80,15 @@ def _two_body(edge_list, p_i, q, r, s_i, h2_pqrs):
     id_op = WeightedPauliOperator(paulis=[[1, Pauli(v, v)]])
     final_coeff = 1.0
 
-    if len(set([p_i, q, r, s_i])) == 4:
-        b_p = edge_operator_bi(edge_list, p_i)
+    if len(set([p, q, r, s])) == 4:
+        b_p = edge_operator_bi(edge_list, p)
         b_q = edge_operator_bi(edge_list, q)
         b_r = edge_operator_bi(edge_list, r)
-        b_s = edge_operator_bi(edge_list, s_i)
-        a_pq = edge_operator_aij(edge_list, p_i, q)
-        a_rs = edge_operator_aij(edge_list, r, s_i)
-        a_pq = -a_pq if q < p_i else a_pq
-        a_rs = -a_rs if s_i < r else a_rs
+        b_s = edge_operator_bi(edge_list, s)
+        a_pq = edge_operator_aij(edge_list, p, q)
+        a_rs = edge_operator_aij(edge_list, r, s)
+        a_pq = -a_pq if q < p else a_pq
+        a_rs = -a_rs if s < r else a_rs
 
         qubit_op = (a_pq * a_rs) * (-id_op - b_p * b_q + b_p * b_r +
                                     b_p * b_s + b_q * b_r + b_q * b_s -
@@ -96,42 +96,42 @@ def _two_body(edge_list, p_i, q, r, s_i, h2_pqrs):
         final_coeff = 0.125
 
     # Handle case of three unique indices.
-    elif len(set([p_i, q, r, s_i])) == 3:
-        b_p = edge_operator_bi(edge_list, p_i)
+    elif len(set([p, q, r, s])) == 3:
+        b_p = edge_operator_bi(edge_list, p)
         b_q = edge_operator_bi(edge_list, q)
-        if p_i == r:
-            b_s = edge_operator_bi(edge_list, s_i)
-            a_qs = edge_operator_aij(edge_list, q, s_i)
-            a_qs = -a_qs if s_i < q else a_qs
+        if p == r:
+            b_s = edge_operator_bi(edge_list, s)
+            a_qs = edge_operator_aij(edge_list, q, s)
+            a_qs = -a_qs if s < q else a_qs
             qubit_op = (a_qs * b_s + b_q * a_qs) * (id_op - b_p)
             final_coeff = 1j * 0.25
-        elif p_i == s_i:
+        elif p == s:
             b_r = edge_operator_bi(edge_list, r)
             a_qr = edge_operator_aij(edge_list, q, r)
             a_qr = -a_qr if r < q else a_qr
             qubit_op = (a_qr * b_r + b_q * a_qr) * (id_op - b_p)
             final_coeff = 1j * -0.25
         elif q == r:
-            b_s = edge_operator_bi(edge_list, s_i)
-            a_ps = edge_operator_aij(edge_list, p_i, s_i)
-            a_ps = -a_ps if s_i < p_i else a_ps
+            b_s = edge_operator_bi(edge_list, s)
+            a_ps = edge_operator_aij(edge_list, p, s)
+            a_ps = -a_ps if s < p else a_ps
             qubit_op = (a_ps * b_s + b_p * a_ps) * (id_op - b_q)
             final_coeff = 1j * -0.25
-        elif q == s_i:
+        elif q == s:
             b_r = edge_operator_bi(edge_list, r)
-            a_pr = edge_operator_aij(edge_list, p_i, r)
-            a_pr = -a_pr if r < p_i else a_pr
+            a_pr = edge_operator_aij(edge_list, p, r)
+            a_pr = -a_pr if r < p else a_pr
             qubit_op = (a_pr * b_r + b_p * a_pr) * (id_op - b_q)
             final_coeff = 1j * 0.25
         else:
             pass
 
     # Handle case of two unique indices.
-    elif len(set([p_i, q, r, s_i])) == 2:
-        b_p = edge_operator_bi(edge_list, p_i)
+    elif len(set([p, q, r, s])) == 2:
+        b_p = edge_operator_bi(edge_list, p)
         b_q = edge_operator_bi(edge_list, q)
         qubit_op = (id_op - b_p) * (id_op - b_q)
-        if p_i == s_i:
+        if p == s:
             final_coeff = 0.25
         else:
             final_coeff = -0.25
@@ -159,41 +159,41 @@ def bravyi_kitaev_fast_edge_list(fer_op):
     modes = fer_op.modes
     edge_matrix = np.zeros((modes, modes), dtype=np.bool)
 
-    for p_i, q in itertools.product(range(modes), repeat=2):
+    for p, q in itertools.product(range(modes), repeat=2):  # pylint: disable=invalid-name
 
-        if h_1[p_i, q] != 0.0 and p_i >= q:
-            edge_matrix[p_i, q] = True
+        if h_1[p, q] != 0.0 and p >= q:
+            edge_matrix[p, q] = True
 
-        for r, s_i in itertools.product(range(modes), repeat=2):
-            if h_2[p_i, q, r, s_i] == 0.0:  # skip zero terms
+        for r, s in itertools.product(range(modes), repeat=2):  # pylint: disable=invalid-name
+            if h_2[p, q, r, s] == 0.0:  # skip zero terms
                 continue
 
             # Identify and skip one of the complex conjugates.
-            if [p_i, q, r, s_i] != [s_i, r, q, p_i]:
-                if len(set([p_i, q, r, s_i])) == 4:
-                    if min(r, s_i) < min(p_i, q):
+            if [p, q, r, s] != [s, r, q, p]:
+                if len(set([p, q, r, s])) == 4:
+                    if min(r, s) < min(p, q):
                         continue
-                elif p_i != r and q < p_i:
+                elif p != r and q < p:
                     continue
 
             # Handle case of four unique indices.
-            if len(set([p_i, q, r, s_i])) == 4:
-                if p_i >= q:
-                    edge_matrix[p_i, q] = True
-                    a_i, b = sorted([r, s_i])
+            if len(set([p, q, r, s])) == 4:
+                if p >= q:
+                    edge_matrix[p, q] = True
+                    a_i, b = sorted([r, s])
                     edge_matrix[b, a_i] = True
 
             # Handle case of three unique indices.
-            elif len(set([p_i, q, r, s_i])) == 3:
+            elif len(set([p, q, r, s])) == 3:
                 # Identify equal tensor factors.
-                if p_i == r:
-                    a_i, b = sorted([q, s_i])
-                elif p_i == s_i:
+                if p == r:
+                    a_i, b = sorted([q, s])
+                elif p == s:
                     a_i, b = sorted([q, r])
                 elif q == r:
-                    a_i, b = sorted([p_i, s_i])
-                elif q == s_i:
-                    a_i, b = sorted([p_i, r])
+                    a_i, b = sorted([p, s])
+                elif q == s:
+                    a_i, b = sorted([p, r])
                 else:
                     continue
                 edge_matrix[b, a_i] = True
@@ -327,36 +327,36 @@ def bksf_mapping(fer_op):
     qubit_op = WeightedPauliOperator(paulis=[])
     edge_list = bravyi_kitaev_fast_edge_list(fer_op)
     # Loop through all indices.
-    for p_i in range(modes):
+    for p in range(modes):  # pylint: disable=invalid-name
         for q in range(modes):
             # Handle one-body terms.
-            h1_pq = fer_op.h1[p_i, q]
+            h1_pq = fer_op.h1[p, q]
 
-            if h1_pq != 0.0 and p_i >= q:
-                qubit_op += _one_body(edge_list, p_i, q, h1_pq)
+            if h1_pq != 0.0 and p >= q:
+                qubit_op += _one_body(edge_list, p, q, h1_pq)
 
             # Keep looping for the two-body terms.
             for r in range(modes):
-                for s_i in range(modes):
-                    h2_pqrs = fer_op.h2[p_i, q, r, s_i]
+                for s in range(modes):  # pylint: disable=invalid-name
+                    h2_pqrs = fer_op.h2[p, q, r, s]
 
                     # Skip zero terms.
-                    if (h2_pqrs == 0.0) or (p_i == q) or (r == s_i):
+                    if (h2_pqrs == 0.0) or (p == q) or (r == s):
                         continue
 
                     # Identify and skip one of the complex conjugates.
-                    if [p_i, q, r, s_i] != [s_i, r, q, p_i]:
-                        if len(set([p_i, q, r, s_i])) == 4:
-                            if min(r, s_i) < min(p_i, q):
+                    if [p, q, r, s] != [s, r, q, p]:
+                        if len(set([p, q, r, s])) == 4:
+                            if min(r, s) < min(p, q):
                                 continue
                         # Handle case of 3 unique indices
-                        elif len(set([p_i, q, r, s_i])) == 3:
-                            qubit_op += _two_body(edge_list, p_i, q, r, s_i, 0.5 * h2_pqrs)
+                        elif len(set([p, q, r, s])) == 3:
+                            qubit_op += _two_body(edge_list, p, q, r, s, 0.5 * h2_pqrs)
                             continue
-                        elif p_i != r and q < p_i:
+                        elif p != r and q < p:
                             continue
 
-                    qubit_op += _two_body(edge_list, p_i, q, r, s_i, h2_pqrs)
+                    qubit_op += _two_body(edge_list, p, q, r, s, h2_pqrs)
 
     qubit_op.simplify()
     return qubit_op

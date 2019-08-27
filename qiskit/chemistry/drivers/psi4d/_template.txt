@@ -39,7 +39,7 @@ _q_h1.add(_q_mints.ao_potential())
 _q_h1.name = "Core-Hamiltonian"
 _q_h1b = _q_h1.clone() if _has_B else None
 _q_molecule.hcore = numpy.asarray(_q_h1.clone())
-_q_molecule.hcore_B = None
+_q_molecule.hcore_b = None
 _q_molecule.kinetic = numpy.asarray(_q_mints.ao_kinetic())
 _q_molecule.overlap = numpy.asarray(_q_mints.ao_overlap())
 _q_molecule.eri = numpy.asarray(_q_mints.ao_eri())
