@@ -37,7 +37,7 @@ class PSI4Driver(BaseDriver):
         "name": "PSI4",
         "description": "PSI4 Driver",
         "input_schema": {
-            "$schema": "http://json-schema.org/schema#",
+            "$schema": "http://json-schema.org/draft-07/schema#",
             "id": "psi4_schema",
             "type": "string",
             "default": "molecule h2 {\n  0 1\n  H  0.0 0.0 0.0\n  H  0.0 0.0 0.735\n}\n\n"

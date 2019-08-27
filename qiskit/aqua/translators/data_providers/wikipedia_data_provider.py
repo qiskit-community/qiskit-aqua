@@ -34,7 +34,7 @@ class WikipediaDataProvider(BaseDataProvider):
         "name": "WIKI",
         "description": "Wikipedia Data Provider",
         "input_schema": {
-            "$schema": "http://json-schema.org/schema#",
+            "$schema": "http://json-schema.org/draft-07/schema#",
             "id": "edi_schema",
             "type": "object",
             "properties": {

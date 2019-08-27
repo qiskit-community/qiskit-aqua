@@ -39,7 +39,7 @@ class PySCFDriver(BaseDriver):
         "name": "PYSCF",
         "description": "PYSCF Driver",
         "input_schema": {
-            "$schema": "http://json-schema.org/schema#",
+            "$schema": "http://json-schema.org/draft-07/schema#",
             "id": "pyscf_schema",
             "type": "object",
             "properties": {

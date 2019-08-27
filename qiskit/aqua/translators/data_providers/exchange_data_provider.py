@@ -32,7 +32,7 @@ class ExchangeDataProvider(BaseDataProvider):
         "name": "EDI",
         "description": "Exchange Data International Data Provider",
         "input_schema": {
-            "$schema": "http://json-schema.org/schema#",
+            "$schema": "http://json-schema.org/draft-07/schema#",
             "id": "edi_schema",
             "type": "object",
             "properties": {

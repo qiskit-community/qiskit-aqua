@@ -51,7 +51,7 @@ class Shor(QuantumAlgorithm):
         'name': 'Shor',
         'description': "The Shor's Factoring Algorithm",
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'shor_schema',
             'type': 'object',
             'properties': {

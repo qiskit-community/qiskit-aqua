@@ -33,7 +33,7 @@ class Simon(QuantumAlgorithm):
         'name': 'Simon',
         'description': 'Simon',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'simon_schema',
             'type': 'object',
             'properties': {

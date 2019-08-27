@@ -34,7 +34,7 @@ class CPLEX_Ising(QuantumAlgorithm):
         'description': 'CPLEX backend for Ising Hamiltonian',
         'classical': True,
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'CPLEX_schema',
             'type': 'object',
             'properties': {

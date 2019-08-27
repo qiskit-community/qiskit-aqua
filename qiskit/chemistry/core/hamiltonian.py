@@ -60,7 +60,7 @@ class Hamiltonian(ChemistryOperator):
         'name': 'hamiltonian',
         'description': 'Hamiltonian chemistry operator',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'hamiltonian_schema',
             'type': 'object',
             'properties': {

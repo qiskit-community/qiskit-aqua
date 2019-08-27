@@ -31,7 +31,7 @@ class HDF5Driver(BaseDriver):
         "name": "HDF5",
         "description": "HDF5 Driver",
         "input_schema": {
-            "$schema": "http://json-schema.org/schema#",
+            "$schema": "http://json-schema.org/draft-07/schema#",
             "id": "hdf5_schema",
             "type": "object",
             "properties": {

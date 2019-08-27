@@ -31,7 +31,7 @@ class FixedIncomeExpectedValue(UncertaintyProblem):
         'name': 'FixedIncomeExpectedValue',
         'description': 'Fixed Income Expected Value',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'FIEV_schema',
             'type': 'object',
             'properties': {

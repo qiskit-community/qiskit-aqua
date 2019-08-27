@@ -34,7 +34,7 @@ class QAOA(VQE):
         'name': 'QAOA.Variational',
         'description': 'Quantum Approximate Optimization Algorithm',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'qaoa_schema',
             'type': 'object',
             'properties': {

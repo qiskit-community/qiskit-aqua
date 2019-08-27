@@ -35,7 +35,7 @@ class BernsteinVazirani(QuantumAlgorithm):
         'name': 'BernsteinVazirani',
         'description': 'Bernstein Vazirani',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'bv_schema',
             'type': 'object',
             'properties': {

@@ -32,7 +32,7 @@ class QEomVQE(VQE):
         'name': 'QEomVQE',
         'description': 'Q_EOM with VQE Algorithm to find the reference state',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'qeom_vqe_schema',
             'type': 'object',
             'properties': {

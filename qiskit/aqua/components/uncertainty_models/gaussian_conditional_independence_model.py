@@ -30,7 +30,7 @@ class GaussianConditionalIndependenceModel(MultivariateDistribution):
         'name': 'GaussianConditionalIndependenceModel',
         'description': 'Gaussian Conditional Independence Model',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'GaussianConditionalIndependenceModel_schema',
             'type': 'object',
             'properties': {

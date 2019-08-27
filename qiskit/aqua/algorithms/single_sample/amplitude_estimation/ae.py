@@ -41,7 +41,7 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
         'name': 'AmplitudeEstimation',
         'description': 'Amplitude Estimation Algorithm',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'AmplitudeEstimation_schema',
             'type': 'object',
             'properties': {

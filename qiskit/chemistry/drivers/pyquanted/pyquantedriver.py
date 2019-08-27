@@ -41,7 +41,7 @@ class PyQuanteDriver(BaseDriver):
         "name": "PYQUANTE",
         "description": "PyQuante Driver",
         "input_schema": {
-            "$schema": "http://json-schema.org/schema#",
+            "$schema": "http://json-schema.org/draft-07/schema#",
             "id": "pyquante_schema",
             "type": "object",
             "properties": {

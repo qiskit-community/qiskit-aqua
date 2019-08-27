@@ -38,7 +38,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationBase):
         'name': 'MaximumLikelihoodAmplitudeEstimation',
         'description': 'Maximum Likelihood Amplitude Estimation',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'MaximumLikelihoodAmplitudeEstimation_schema',
             'type': 'object',
             'properties': {

@@ -39,7 +39,7 @@ class LookupRotation(Reciprocal):
         'name': 'Lookup',
         'description': 'approximate inversion for HHL based on table lookup',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'reciprocal_lookup_schema',
             'type': 'object',
             'properties': {

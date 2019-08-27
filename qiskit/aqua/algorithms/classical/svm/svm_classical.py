@@ -36,7 +36,7 @@ class SVM_Classical(QuantumAlgorithm):
         'description': 'SVM_Classical Algorithm',
         'classical': True,
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'SVM_Classical_schema',
             'type': 'object',
             'properties': {

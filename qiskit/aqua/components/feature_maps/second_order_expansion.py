@@ -30,7 +30,7 @@ class SecondOrderExpansion(PauliZExpansion):
         'name': 'SecondOrderExpansion',
         'description': 'Second order expansion for feature map',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'Second_Order_Expansion_schema',
             'type': 'object',
             'properties': {

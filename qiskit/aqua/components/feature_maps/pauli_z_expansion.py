@@ -30,7 +30,7 @@ class PauliZExpansion(PauliExpansion):
         'name': 'PauliZExpansion',
         'description': 'Pauli Z expansion for feature map (any order)',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'Pauli_Z_Expansion_schema',
             'type': 'object',
             'properties': {

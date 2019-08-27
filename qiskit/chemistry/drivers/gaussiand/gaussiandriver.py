@@ -47,7 +47,7 @@ class GaussianDriver(BaseDriver):
         "name": "GAUSSIAN",
         "description": "Gaussian 16 Driver",
         "input_schema": {
-            "$schema": "http://json-schema.org/schema#",
+            "$schema": "http://json-schema.org/draft-07/schema#",
             "id": "gaussian_schema",
             "type": "string",
             "default":

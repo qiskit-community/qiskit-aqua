@@ -35,7 +35,7 @@ class DataOnDemandProvider(BaseDataProvider):
         "name": "DOD",
         "description": "NASDAQ Data on Demand Driver",
         "input_schema": {
-            "$schema": "http://json-schema.org/schema#",
+            "$schema": "http://json-schema.org/draft-07/schema#",
             "id": "dod_schema",
             "type": "object",
             "properties": {
