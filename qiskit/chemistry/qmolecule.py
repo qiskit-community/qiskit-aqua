@@ -529,7 +529,7 @@ class QMolecule:
             numpy.set_printoptions(precision=8, suppress=True)
 
             # Originating driver name & config if set
-            if self.origin_driver_name > 0 and self.origin_driver_name != "?":
+            if self.origin_driver_name and self.origin_driver_name != "?":
                 logger.info("Originating driver name: %s", self.origin_driver_name)
                 logger.info("Originating driver version: %s", self.origin_driver_version)
                 logger.info("Originating driver config:\n%s", self.origin_driver_config[:-1])
