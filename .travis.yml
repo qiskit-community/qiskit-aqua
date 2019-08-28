@@ -90,7 +90,6 @@ before_install:
       cd $TRAVIS_BUILD_DIR
     fi
   # install Aqua and dev requirements
-  - sudo apt-get -y install python3-enchant
   - pip install -e $TRAVIS_BUILD_DIR --progress-bar off
   - pip install -U -r requirements-dev.txt --progress-bar off
   - |
@@ -106,7 +105,7 @@ script:
   - |
     if [ "$TEST_DIR" == "chemistry" ];
       # Chemistry: remove OpenBLAS warning message when compiled without USE_OPENMP=1 in PySCF
-      then make style && make lint && make spell && export OPENBLAS_NUM_THREADS=1 && python -m unittest discover -v test/$TEST_DIR
+      then make style && make lint && export OPENBLAS_NUM_THREADS=1 && python -m unittest discover -v test/$TEST_DIR
       else python test/custom_tests.py -dir $TEST_DIR $TEST_PARAMS
     fi
         
