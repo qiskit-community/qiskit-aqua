@@ -90,7 +90,7 @@ before_install:
       cd $TRAVIS_BUILD_DIR
     fi
   # install Aqua and dev requirements
-  c
+  - sudo apt-get -y install python-enchant
   - pip install -e $TRAVIS_BUILD_DIR --progress-bar off
   - pip install -U -r requirements-dev.txt --progress-bar off
   - |
