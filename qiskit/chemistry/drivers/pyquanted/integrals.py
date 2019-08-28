@@ -72,7 +72,7 @@ def _calculate_integrals(molecule, basis='sto3g', hf_method='rhf', tol=1e-8, max
     Returns:
         QMolecule: QMolecule populated with driver integrals etc
     Raises:
-        QiskitChemistryError: Invalid hf methos type
+        QiskitChemistryError: Invalid hf methods type
     """
     bfs = basisset(molecule, basis)
     integrals = onee_integrals(bfs, molecule)
