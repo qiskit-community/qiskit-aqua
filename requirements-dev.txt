@@ -5,4 +5,4 @@ torch; sys_platform != 'win32'
 pycodestyle
 pylint>=2.3,<2.4
 pylintfileheader>=0.0.2
-pyenchant
+pyenchant; sys_platform != 'linux'
