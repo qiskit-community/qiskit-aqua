@@ -896,7 +896,7 @@ class Operator(object):
         1. If `input_circuit` is a numpy.ndarray, it will directly perform inner product with the operator.
         2. If `backend` is a statevector simulator, use quantum backend to get statevector \
            and then evaluate with the operator.
-        3. Other cases: it use with quanutm backend (simulator or real quantum machine), \
+        3. Other cases: it use with quantum backend (simulator or real quantum machine), \
            to obtain the mean and standard deviation of measured results.
 
         Args:
@@ -1944,7 +1944,7 @@ class Operator(object):
         Note that: the behavior of scaling in paulis (grouped_paulis) might be different from matrix
 
         Args:
-            scaling_factor (float): the sacling factor
+            scaling_factor (float): the scaling factor
         """
         warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
                       "Use the class for each representation instead, including `MatrixOperator`, "

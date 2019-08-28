@@ -396,7 +396,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationBase):
 
         if self._quantum_instance.is_statevector:
 
-            # run circuit on statevector simlator
+            # run circuit on statevector simulator
             self.construct_circuits(measurement=False)
             ret = self._quantum_instance.execute(self._circuits)
 

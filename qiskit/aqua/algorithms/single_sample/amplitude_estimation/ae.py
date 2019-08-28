@@ -334,7 +334,7 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
 
         if self._quantum_instance.is_statevector:
             self.construct_circuit(measurement=False)
-            # run circuit on statevector simlator
+            # run circuit on statevector simulator
             ret = self._quantum_instance.execute(self._circuit)
             state_vector = np.asarray([ret.get_statevector(self._circuit)])
             self._ret['statevector'] = state_vector

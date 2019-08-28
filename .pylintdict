@@ -35,7 +35,6 @@ csr
 pauli's
 imag
 cr
-quanutm
 qasm
 aer
 tpb
@@ -46,7 +45,6 @@ unitaries
 clifford
 cliffords
 anticommute
-sacling
 fullname
 parentname
 cls
@@ -68,8 +66,6 @@ visualisation
 cnt
 xc
 yc
-certifi
-cerfificate
 dataondemand
 nasdaq
 ij
@@ -161,7 +157,6 @@ classifer
 innerproduct
 eval
 baseoperator
-devation
 probs
 reqd
 minibatches
@@ -194,7 +189,6 @@ nk
 hk
 ae
 loglikelihood
-simlator
 statevectors
 mle
 gridpoints
@@ -222,7 +216,6 @@ aerjob
 qreg
 tempoary
 autorecovery
-wraper
 deepcopy
 getattr
 reparameterizing
@@ -350,7 +343,6 @@ setia
 einsum
 ikmj
 ijkm
-unitry
 wavefunctions
 barkoutsos
 xyz
@@ -431,13 +423,10 @@ slsqp
 spsa
 anc
 hardcoded
-homiltonian
 rosen
 circ
 qith
-berstein
 appfactory
 iadd
 isub
 devs
-qubites

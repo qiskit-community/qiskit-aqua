@@ -118,7 +118,7 @@ class FermionicOperator:
 
     def _h1_transform(self, unitary_matrix):
         """
-        Transform h1 based on unitry matrix, and overwrite original property.
+        Transform h1 based on unitary matrix, and overwrite original property.
 
         Args:
             unitary_matrix (numpy.ndarray): A 2-D unitary matrix for h1 transformation.

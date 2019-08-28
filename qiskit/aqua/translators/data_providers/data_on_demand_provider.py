@@ -78,9 +78,9 @@ class DataOnDemandProvider(BaseDataProvider):
             stockmarket (StockMarket): NYSE or NASDAQ
             start (datetime): first data point
             end (datetime): last data point precedes this date
-            verify (None or str or boolean): if verify is None, certifi certificates will be used (default);
+            verify (None or str or boolean): if verify is None, certify certificates will be used (default);
                 if this is False, no certificates will be checked; if this is a string, it should be pointing
-                to a cerfificate for the HTTPS connection to NASDAQ (dataondemand.nasdaq.com), either in the
+                to a certificate for the HTTPS connection to NASDAQ (dataondemand.nasdaq.com), either in the
                 form of a CA_BUNDLE file or a directory wherein to look.
         """
         # if not isinstance(atoms, list) and not isinstance(atoms, str):
@@ -157,11 +157,11 @@ class DataOnDemandProvider(BaseDataProvider):
                 if self._verify is None:
                     response = http.request(
                         'POST', encoded
-                    )  # this runs certifi verification, as per the set-up of the urllib3
+                    )  # this runs certificate verification, as per the set-up of the urllib3
                 else:
                     response = http.request(
                         'POST', encoded, verify=self._verify
-                    )  # this disables certifi verification (False) or forces the certificate path (str)
+                    )  # this disables certificate verification (False) or forces the certificate path (str)
                 if response.status != 200:
                     msg = "Accessing NASDAQ Data on Demand with parameters {} encoded into ".format(
                         values)

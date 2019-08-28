@@ -272,7 +272,7 @@ class TestDocplex(QiskitAquaTestCase):
 
     def test_docplex_integer_constraints(self):
         """ Docplex Integer Constraints test """
-        # Create an Ising Homiltonian with docplex
+        # Create an Ising Hamiltonian with docplex
         mdl = Model(name='integer_constraints')
         x = {i: mdl.binary_var(name='x_{0}'.format(i)) for i in range(1, 5)}
         max_vars_func = mdl.sum(x[i] for i in range(1, 5))
@@ -290,7 +290,7 @@ class TestDocplex(QiskitAquaTestCase):
 
     def test_docplex_constant_and_quadratic_terms_in_object_function(self):
         """ Docplex Constant and Quadratic terms in Object function test """
-        # Create an Ising Homiltonian with docplex
+        # Create an Ising Hamiltonian with docplex
         laplacian = np.array([[-3., 1., 1., 1.],
                               [1., -2., 1., -0.],
                               [1., 1., -3., 1.],
