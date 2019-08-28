@@ -548,34 +548,34 @@ class FermionicOperator:
         energy_shift = 0.0
         if np.count_nonzero(self._h2) > 0:
             # First simplify h2 and renormalize original h1
-            for i_i, j_i, l_i, k_i in itertools.product(range(n_modes_old), repeat=4):
+            for __i, __j, __l, __k in itertools.product(range(n_modes_old), repeat=4):
                 # Untouched terms
-                h2_ijlk = self._h2[i_i, j_i, l_i, k_i]
+                h2_ijlk = self._h2[__i, __j, __l, __k]
                 if h2_ijlk == 0.0:
                     continue
-                if (i_i in mode_set_diff and j_i in mode_set_diff and
-                        l_i in mode_set_diff and k_i in mode_set_diff):
-                    h2_new[i_i - np.where(fermion_mode_array < i_i)[0].size,
-                           j_i - np.where(fermion_mode_array < j_i)[0].size,
-                           l_i - np.where(fermion_mode_array < l_i)[0].size,
-                           k_i - np.where(fermion_mode_array < k_i)[0].size] = h2_ijlk
+                if (__i in mode_set_diff and __j in mode_set_diff and
+                        __l in mode_set_diff and __k in mode_set_diff):
+                    h2_new[__i - np.where(fermion_mode_array < __i)[0].size,
+                           __j - np.where(fermion_mode_array < __j)[0].size,
+                           __l - np.where(fermion_mode_array < __l)[0].size,
+                           __k - np.where(fermion_mode_array < __k)[0].size] = h2_ijlk
                 else:
-                    if i_i in fermion_mode_array:
-                        if l_i not in fermion_mode_array:
-                            if i_i == k_i and j_i not in fermion_mode_array:
-                                h_1[l_i, j_i] -= h2_ijlk
-                            elif i_i == j_i and k_i not in fermion_mode_array:
-                                h_1[l_i, k_i] += h2_ijlk
-                        elif i_i != l_i:
-                            if j_i in fermion_mode_array and i_i == k_i and l_i == j_i:
+                    if __i in fermion_mode_array:
+                        if __l not in fermion_mode_array:
+                            if __i == __k and __j not in fermion_mode_array:
+                                h_1[__l, __j] -= h2_ijlk
+                            elif __i == __j and __k not in fermion_mode_array:
+                                h_1[__l, __k] += h2_ijlk
+                        elif __i != __l:
+                            if __j in fermion_mode_array and __i == __k and __l == __j:
                                 energy_shift -= h2_ijlk
-                            elif l_i in fermion_mode_array and i_i == j_i and l_i == k_i:
+                            elif __l in fermion_mode_array and __i == __j and __l == __k:
                                 energy_shift += h2_ijlk
-                    elif i_i not in fermion_mode_array and l_i in fermion_mode_array:
-                        if l_i == k_i and j_i not in fermion_mode_array:
-                            h_1[i_i, j_i] += h2_ijlk
-                        elif l_i == j_i and k_i not in fermion_mode_array:
-                            h_1[i_i, k_i] -= h2_ijlk
+                    elif __i not in fermion_mode_array and __l in fermion_mode_array:
+                        if __l == __k and __j not in fermion_mode_array:
+                            h_1[__i, __j] += h2_ijlk
+                        elif __l == __j and __k not in fermion_mode_array:
+                            h_1[__i, __k] -= h2_ijlk
 
         # now simplify h1
         energy_shift += np.sum(np.diagonal(h_1)[fermion_mode_array])
