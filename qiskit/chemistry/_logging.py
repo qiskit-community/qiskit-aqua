@@ -68,7 +68,7 @@ def build_logging_config(level, filepath=None):
         level (number): logging level
         filepath (str): file to receive logging data
     Returns:
-        Dict: New configuration dictionary
+        dict: New configuration dictionary
     """
     dict_conf = copy.deepcopy(_QISKIT_CHEMISTRY_LOGGING_CONFIG)
     if filepath is not None:

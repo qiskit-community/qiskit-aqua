@@ -44,7 +44,7 @@ def run_experiment(params, output=None, backend=None):
                         settings to be used in place of backend name
 
     Returns:
-        Dict: Result dictionary containing result of chemistry computation
+        dict: Result dictionary containing result of chemistry computation
     """
     qiskit_chemistry = QiskitChemistry()
     return qiskit_chemistry.run(params, output, backend)
@@ -59,7 +59,7 @@ def run_driver_to_json(params, jsonfile='algorithm.json'):
         jsonfile (filename):  Name of file that will contain the Aqua JSON input data
 
     Returns:
-        Dict: Result dictionary containing the jsonfile name
+        dict: Result dictionary containing the jsonfile name
     """
     qiskit_chemistry = QiskitChemistry()
     qiskit_chemistry.run_driver(params)
@@ -120,7 +120,7 @@ class QiskitChemistry:
                 to be used in place of backend name
 
         Returns:
-            Dict: result dictionary
+            dict: result dictionary
         Raises:
             QiskitChemistryError: Missing Input, QiskitAqua object not created,
                 result should be dictionary
