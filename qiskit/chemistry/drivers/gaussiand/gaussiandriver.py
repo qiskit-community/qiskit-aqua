@@ -51,8 +51,8 @@ class GaussianDriver(BaseDriver):
             "id": "gaussian_schema",
             "type": "string",
             "default":
-                "# rhf/sto-3g scf(conventional)\n\nh2 "
-                "molecule\n\n0 1\nH   0.0  0.0    0.0\nH   0.0  0.0    0.735\n\n"
+                "# rhf/sto-3g scf(conventional)\n\n"
+                "h2 molecule\n\n0 1\nH   0.0  0.0    0.0\nH   0.0  0.0    0.735\n\n"
         }
     }
 
