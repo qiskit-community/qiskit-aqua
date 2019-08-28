@@ -38,7 +38,15 @@ matrix:
     env: TEST_DIR=aqua TEST_PARAMS="-start 39 -end 51"
   - name: "Test Aqua 4"
     env: TEST_DIR=aqua TEST_PARAMS="-start 51"
-        
+  - if: tag IS present
+    python: "3.6"
+    env:
+      - TWINE_USERNAME=qiskit
+    install: pip install -U twine
+    script:
+      - python3 setup.py sdist bdist_wheel
+      - twine upload dist/qiskit*
+
 before_install:
   - |
     if [ -f $INIT_FILE ]; then
