@@ -30,7 +30,7 @@ def _one_body(edge_list, p, q, h1_pq):  # pylint: disable=invalid-name
         edge_list (numpy.ndarray): 2xE matrix, each indicates (from, to) pair
         p (int): index of the one body term
         q (int): index of the one body term
-        h1_pq (complex): coeffient of the one body term at (p, q)
+        h1_pq (complex): coefficient of the one body term at (p, q)
 
     Return:
         WeightedPauliOperator: mapped qubit operator
@@ -70,7 +70,7 @@ def _two_body(edge_list, p, q, r, s, h2_pqrs):  # pylint: disable=invalid-name
         q (int): index of the two body term
         r (int): index of the two body term
         s (int): index of the two body term
-        h2_pqrs (complex): coeffient of the two body term at (p, q, r, s)
+        h2_pqrs (complex): coefficient of the two body term at (p, q, r, s)
 
     Returns:
         WeightedPauliOperator: mapped qubit operator
@@ -314,7 +314,7 @@ def bksf_mapping(fer_op):
     of the electronic Hamiltonian are provided in (arXiv 1712.00446).
 
     Args:
-        fer_op (FermionicOperator): the fermionic operator in the second quanitzed form
+        fer_op (FermionicOperator): the fermionic operator in the second quantized form
 
     Returns:
         WeightedPauliOperator: mapped qubit operator
@@ -366,7 +366,7 @@ def vacuum_operator(fer_op):
     """Use the stabilizers to find the vacuum state in bravyi_kitaev_fast.
 
     Args:
-        fer_op (FermionicOperator): the fermionic operator in the second quanitzed form
+        fer_op (FermionicOperator): the fermionic operator in the second quantized form
 
     Returns:
         WeightedPauliOperator: the qubit operator
@@ -395,7 +395,7 @@ def number_operator(fer_op, mode_number=None):
     """Find the qubit operator for the number operator in bravyi_kitaev_fast representation.
 
     Args:
-        fer_op (FermionicOperator): the fermionic operator in the second quanitzed form
+        fer_op (FermionicOperator): the fermionic operator in the second quantized form
         mode_number (int): index, it corresponds to the mode for which number operator is required.
 
     Returns:
@@ -423,7 +423,7 @@ def generate_fermions(fer_op, i, j):
     """The qubit operator for generating fermions in bravyi_kitaev_fast representation.
 
     Args:
-        fer_op (FermionicOperator): the fermionic operator in the second quanitzed form
+        fer_op (FermionicOperator): the fermionic operator in the second quantized form
         i (int): index of fermions
         j (int): index of fermions
 

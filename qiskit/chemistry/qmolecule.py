@@ -106,11 +106,11 @@ class QMolecule:
 
     @property
     def two_body_integrals(self):
-        """ returns two body intergrals """
+        """ returns two body integrals """
         return QMolecule.twoe_to_spin(self.mo_eri_ints, self.mo_eri_ints_bb, self.mo_eri_ints_ba)
 
     def has_dipole_integrals(self):
-        """ check if has dipole intergrals """
+        """ check if has dipole integrals """
         return self.x_dip_mo_ints is not None and \
             self.y_dip_mo_ints is not None and \
             self.z_dip_mo_ints is not None

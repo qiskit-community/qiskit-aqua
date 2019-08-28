@@ -132,7 +132,7 @@ class UCCSD(VariationalForm):
                                     mode for circuit concatenation
             z2_symmetries (Z2Symmetries): Z2Symmetries
          Raises:
-             ValueError: Computed quibites do not match actual value
+             ValueError: Computed qubites do not match actual value
         """
         self.validate(locals())
         super().__init__()

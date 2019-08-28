@@ -321,7 +321,7 @@ class InputParser(BaseParser):
         return auto_substitutions
 
     def check_if_substitution_key(self, section_name, property_names):
-        """ return property names that need to be substituded """
+        """ return property names that need to be substituted """
         result = [(property_name, False) for property_name in property_names]
         if not self.is_substitution_allowed():
             return result
@@ -502,7 +502,7 @@ class InputParser(BaseParser):
                     break
 
         if operator_name is None:
-            # just remove fromm schema if none solves the problem
+            # just remove from schema if none solves the problem
             if InputParser.OPERATOR in self.json_schema.schema['properties']:
                 del self.json_schema.schema['properties'][InputParser.OPERATOR]
 

@@ -180,7 +180,7 @@ class TestEuropeanCallOption(QiskitAquaTestCase):
         # set the approximation scaling for the payoff function
         c_approx = 0.1
 
-        # setup piecewise linear objective fcuntion
+        # setup piecewise linear objective function
         breakpoints = [uncertainty_model.low, strike_price]
         slopes = [0, 1]
         offsets = [0, 0]
@@ -297,7 +297,7 @@ class TestFixedIncomeAssets(QiskitAquaTestCase):
         b = np.zeros(2)
 
         # specify the number of qubits that are used to represent
-        # the different dimenions of the uncertainty model
+        # the different dimensions of the uncertainty model
         num_qubits = [2, 2]
 
         # specify the lower and upper bounds for the different dimension

@@ -427,7 +427,7 @@ class TestOperator(QiskitAquaTestCase):
         self.assertEqual(op.matrix.ndim, 2)
 
     def test_equal_operator(self):
-        """ equal oparator test """
+        """ equal operator test """
         paulis = ['IXYZ', 'XXZY', 'IIZZ', 'XXYY', 'ZZXX', 'YYYY']
         coeffs = [0.2, 0.6, 0.8, -0.2, -0.6, -0.8]
         op1 = Operator(paulis=[])

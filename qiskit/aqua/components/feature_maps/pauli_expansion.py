@@ -82,9 +82,9 @@ class PauliExpansion(FeatureMap):
                                         [source, target], or None for full entanglement.
                                         Note that the order is the list is the order of
                                         applying the two-qubit gate.
-            entanglement (str): ['full', 'linear'], generate the qubit connectivitiy by predefined
+            entanglement (str): ['full', 'linear'], generate the qubit connectivity by predefined
                                 topology
-            paulis (str): a comma-seperated string for to-be-used paulis
+            paulis (str): a comma-separated string for to-be-used paulis
             data_map_func (Callable): a mapping function for data x
         """
         self.validate(locals())

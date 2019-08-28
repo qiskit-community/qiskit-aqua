@@ -104,7 +104,7 @@ _FOLDERS_TO_EXCLUDE = ['__pycache__', 'gauopen']
 
 
 class DiscoverRegistry:
-    """Contains Disctovered Classes Info."""
+    """Contains Discovered Classes Info."""
 
     REGISTERED_INFO = namedtuple(
         'REGISTERED_INFO', ['name', 'cls', 'configuration'])
@@ -450,7 +450,7 @@ def local_pluggables(pluggable_type):
     Returns:
         names: pluggable names
     Raises:
-        AquaError: if the tyoe is not registered
+        AquaError: if the type is not registered
     """
     _discover_on_demand()
 

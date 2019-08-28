@@ -11,7 +11,7 @@
 # that they have been altered from the originals.
 
 
-.PHONY: lint style test
+.PHONY: lint style test spell
 
 lint:
 	pylint -rn --errors-only --enable=invalid-file-header qiskit/aqua
@@ -23,3 +23,6 @@ style:
 
 test:
 	python -m unittest discover -v test
+
+spell:
+	pylint -rn --disable=all --enable=spelling --spelling-dict=en_US --spelling-private-dict-file=.pylintdict --ignore=gauopen qiskit/aqua qiskit/chemistry test

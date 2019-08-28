@@ -294,7 +294,7 @@ class LookupRotation(Reciprocal):
         """Construct the Lookup Rotation circuit.
 
         Args:
-            mode (str): consctruction mode, 'matrix' not supported
+            mode (str): construction mode, 'matrix' not supported
             inreg (QuantumRegister): input register, typically output register of Eigenvalues
 
         Returns:

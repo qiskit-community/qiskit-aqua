@@ -81,7 +81,7 @@ class RandomDataProvider(BaseDataProvider):
             msg += " as a stock market. Please use Stockmarket.RANDOM."
             raise QiskitFinanceError(msg)
 
-        # This is to aid serialisation; string is ok to serialise
+        # This is to aid serialization; string is ok to serialize
         self._stockmarket = str(stockmarket.value)
 
         self._start = start

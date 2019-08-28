@@ -69,7 +69,7 @@ class PauliZExpansion(PauliExpansion):
                                         [source, target], or None for full entanglement.
                                         Note that the order is the list is the order of
                                         applying the two-qubit gate.
-            entanglement (str): ['full', 'linear'], generate the qubit connectivitiy by predefined
+            entanglement (str): ['full', 'linear'], generate the qubit connectivity by predefined
                                 topology
             data_map_func (Callable): a mapping function for data x
         """

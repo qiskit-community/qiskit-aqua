@@ -159,7 +159,7 @@ class TestDocplex(QiskitAquaTestCase):
             docplex.get_qubitops(mdl)
 
     def test_auto_define_penalty(self):
-        """ Auto defina Penalty test """
+        """ Auto define Penalty test """
         # check _auto_define_penalty() for positive coefficients.
         positive_coefficients = np.random.rand(10, 10)
         for i in range(10):

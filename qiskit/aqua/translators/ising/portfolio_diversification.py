@@ -19,7 +19,7 @@ from qiskit.aqua.operators import WeightedPauliOperator
 
 
 def get_portfoliodiversification_qubitops(rho, n, q):
-    """Converts an instnance of portfolio optimization into a list of Paulis.
+    """Converts an instance of portfolio optimization into a list of Paulis.
 
     Args:
         rho (numpy.ndarray) : an asset-to-asset similarity matrix, such as the covariance matrix.
@@ -124,7 +124,7 @@ def get_portfoliodiversification_qubitops(rho, n, q):
 
 
 def get_portfoliodiversification_solution(rho, n, q, result):
-    """Tries to obtain a feasible solution (in vector form) of an instnance of portfolio diversification from the results dictionary.
+    """Tries to obtain a feasible solution (in vector form) of an instance of portfolio diversification from the results dictionary.
 
     Args:
         rho (numpy.ndarray) : an asset-to-asset similarity matrix, such as the covariance matrix.
@@ -159,7 +159,7 @@ def get_portfoliodiversification_solution(rho, n, q, result):
 
 
 def get_portfoliodiversification_value(rho, n, q, x_state):
-    """Evaluates an objective function of an instnance of portfolio diversification and its solution (in vector form).
+    """Evaluates an objective function of an instance of portfolio diversification and its solution (in vector form).
 
     Args:
         rho (numpy.ndarray) : an asset-to-asset similarity matrix, such as the covariance matrix.

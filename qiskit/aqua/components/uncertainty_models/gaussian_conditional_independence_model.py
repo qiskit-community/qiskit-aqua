@@ -23,7 +23,7 @@ class GaussianConditionalIndependenceModel(MultivariateDistribution):
     """
     The Gaussian Conditional Independence Model for Credit Risk
     Reference: https://arxiv.org/abs/1412.1183
-    Dependency between individual risk variabels and latent variable is approximated linearly.
+    Dependency between individual risk variables and latent variable is approximated linearly.
     """
 
     CONFIGURATION = {

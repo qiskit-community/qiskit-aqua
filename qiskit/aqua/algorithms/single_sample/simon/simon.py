@@ -116,7 +116,7 @@ class Simon(QuantumAlgorithm):
         # reverse measurement bitstrings and remove all zero entry
         linear = [(k[::-1], v) for k, v in measurements.items()
                   if k != "0" * len(self._oracle.variable_register)]
-        # sort bitstrings by their probailities
+        # sort bitstrings by their probabilities
         linear.sort(key=lambda x: x[1], reverse=True)
 
         # construct matrix

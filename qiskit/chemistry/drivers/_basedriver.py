@@ -98,7 +98,7 @@ class BaseDriver(ABC):
 
     @property
     def work_path(self):
-        """ retuirns work path """
+        """ returns work path """
         return self._work_path
 
     @work_path.setter

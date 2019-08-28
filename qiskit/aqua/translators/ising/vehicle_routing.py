@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-# Converts vehicle routing instnces into a list of Paulis,
+# Converts vehicle routing instances into a list of Paulis,
 # and provides some related routines (extracting a solution,
 # checking its objective function value).
 
@@ -84,7 +84,7 @@ def get_vehiclerouting_matrices(instance, n, K):
 
 
 def get_vehiclerouting_cost(instance, n, K, x_sol):
-    """Computes the cost of a solution to an instnance of a vehicle routing problem.
+    """Computes the cost of a solution to an instance of a vehicle routing problem.
 
     Args:
         instance (numpy.ndarray) : a customers-to-customers distance matrix.

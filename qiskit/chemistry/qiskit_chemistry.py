@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Qiskit Cmemistry Main Entry points """
+""" Qiskit Chemistry Main Entry points """
 
 import json
 import os
@@ -123,7 +123,7 @@ class QiskitChemistry:
             Dict: result dictionary
         Raises:
             QiskitChemistryError: Missing Input, QiskitAqua object not created,
-                result should be ditctionary
+                result should be dictionary
         """
         if params is None:
             raise QiskitChemistryError("Missing input.")

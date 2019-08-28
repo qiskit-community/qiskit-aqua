@@ -49,7 +49,7 @@ def execute_algorithm(algorithm, backend=None, **kwargs):
         backend (BaseBackend or QuantumInstance): The backend i.e. quantum simulator or real device
         upon which the algorithm is to be run.
         kwargs: optional arguments that can be used when supplying a Basebackend which will be passed
-        to the set_config of thq QuantumInstance that is used to hold the backend.
+        to the set_config of the QuantumInstance that is used to hold the backend.
 
     Returns:
         Result dictionary containing result of algorithm computation
@@ -69,7 +69,7 @@ def run_algorithm(params, algo_input=None, json_output=False, backend=None):
         params (dict): Dictionary of params for algo and dependent objects
         algo_input (AlgorithmInput): Main input data for algorithm. Optional, an algo may run entirely from params
         json_output (bool): False for regular python dictionary return, True for json conversion
-        backend (BaseBackend or QuantumInstance): the experiemental settings to be used in place of backend name
+        backend (BaseBackend or QuantumInstance): the experimental settings to be used in place of backend name
 
     Returns:
         Result dictionary containing result of algorithm computation
@@ -107,7 +107,7 @@ class QiskitAqua(object):
         Args:
             params (dict): Dictionary of params for algo and dependent objects
             algo_input (AlgorithmInput): Main input data for algorithm. Optional, an algo may run entirely from params
-            quantum_instance (QuantumInstance or BaseBackend): the experiemental settings to be used in place of backend name
+            quantum_instance (QuantumInstance or BaseBackend): the experimental settings to be used in place of backend name
         """
         self._params = params
         self._algorithm_input = algo_input
@@ -134,7 +134,7 @@ class QiskitAqua(object):
 
     @property
     def quantum_algorithm(self):
-        """Return Qusntum Algorithm."""
+        """Return Quantum Algorithm."""
         return self._quantum_algorithm
 
     @property
