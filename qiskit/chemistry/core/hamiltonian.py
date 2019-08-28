@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 class TransformationType(Enum):
     """ Transformation Type enum """
     FULL = 'full'
-    P_H = 'particle_hole'
+    PARTICLE_HOLE = 'particle_hole'
 
 
 class QubitMappingType(Enum):
@@ -69,7 +69,7 @@ class Hamiltonian(ChemistryOperator):
                     'default': TransformationType.FULL.value,
                     'enum': [
                         TransformationType.FULL.value,
-                        TransformationType.P_H.value,
+                        TransformationType.PARTICLE_HOLE.value,
                     ]
                 },
                 KEY_QUBIT_MAPPING: {
@@ -246,7 +246,7 @@ class Hamiltonian(ChemistryOperator):
             Hamiltonian._try_reduce_fermionic_operator(fer_op, freeze_list, remove_list)
         if did_shift:
             logger.info("Frozen orbital energy shift: %s", self._energy_shift)
-        if self._transformation == TransformationType.P_H.value:
+        if self._transformation == TransformationType.PARTICLE_HOLE.value:
             fer_op, ph_shift = fer_op.particle_hole_transformation(new_nel)
             self._ph_energy_shift = -ph_shift
             logger.info("Particle hole energy shift: %s", self._ph_energy_shift)
@@ -281,7 +281,7 @@ class Hamiltonian(ChemistryOperator):
                 if did_shift_:
                     logger.info("Frozen orbital %s dipole shift: %s", axis, shift)
                 ph_shift_ = 0.0
-                if self._transformation == TransformationType.P_H.value:
+                if self._transformation == TransformationType.PARTICLE_HOLE.value:
                     fer_op_, ph_shift_ = fer_op_.particle_hole_transformation(new_nel)
                     ph_shift_ = -ph_shift_
                     logger.info("Particle hole %s dipole shift: %s", axis, ph_shift_)

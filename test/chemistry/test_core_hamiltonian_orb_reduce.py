@@ -119,7 +119,7 @@ class TestCoreHamiltonianOrbReduce(QiskitChemistryTestCase):
 
     def test_freeze_core_all_reduction_ph(self):
         """ freeze core all reduction ph test """
-        core = Hamiltonian(transformation=TransformationType.P_H,
+        core = Hamiltonian(transformation=TransformationType.PARTICLE_HOLE,
                            qubit_mapping=QubitMappingType.PARITY,
                            two_qubit_reduction=True,
                            freeze_core=True,
