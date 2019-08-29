@@ -16,13 +16,14 @@
 
 import unittest
 from test.aqua.common import QiskitAquaTestCase
+
 import numpy as np
-from numpy.random import random
 from parameterized import parameterized
-from qiskit.aqua import run_algorithm
+from qiskit.quantum_info import state_fidelity
+
+from qiskit.aqua import run_algorithm, aqua_globals
 from qiskit.aqua.input import LinearSystemInput
 from qiskit.aqua.utils import random_matrix_generator as rmg
-from qiskit.quantum_info import state_fidelity
 
 
 class TestHHL(QiskitAquaTestCase):
@@ -30,19 +31,21 @@ class TestHHL(QiskitAquaTestCase):
 
     def setUp(self):
         super(TestHHL, self).setUp()
+        self.random_seed = 0
+        aqua_globals.random_seed = self.random_seed
         self.els_params = {
             'algorithm': {
                 'name': 'ExactLSsolver'
             },
             'problem': {
                 'name': 'linear_system',
-                'random_seed': 0
+                'random_seed': self.random_seed
             }
         }
         self.params = {
             'problem': {
                 'name': 'linear_system',
-                'random_seed': 0
+                'random_seed': self.random_seed
             },
             'algorithm': {
                 'name': 'HHL'
@@ -212,9 +215,8 @@ class TestHHL(QiskitAquaTestCase):
         dim_params['eigs']['negative_evals'] = True
         dim_params['reciprocal']['negative_evals'] = True
 
-        np.random.seed(0)
         matrix = rmg.random_diag(n, eigrange=[0, 1])
-        vector = random(n)
+        vector = aqua_globals.random.random_sample(n)
 
         algo_input = LinearSystemInput()
         algo_input.matrix = matrix
@@ -248,9 +250,8 @@ class TestHHL(QiskitAquaTestCase):
         neg_params['reciprocal']['negative_evals'] = True
 
         n = 2
-        np.random.seed(0)
         matrix = rmg.random_diag(n, eigrange=[-1, 1])
-        vector = random(n)
+        vector = aqua_globals.random.random_sample(n)
 
         algo_input = LinearSystemInput()
         algo_input.matrix = matrix
@@ -282,9 +283,8 @@ class TestHHL(QiskitAquaTestCase):
         hermitian_params['eigs']['num_ancillae'] = 4
 
         n = 2
-        np.random.seed(0)
         matrix = rmg.random_hermitian(n, eigrange=[0, 1])
-        vector = random(n)
+        vector = aqua_globals.random.random_sample(n)
 
         algo_input = LinearSystemInput()
         algo_input.matrix = matrix

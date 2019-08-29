@@ -14,24 +14,28 @@
 
 """ Automatically generate Ising Hamiltonians from general models of optimization problems.
 This program converts general models of optimization problems into Ising Hamiltonian.
-To write models of optimization problems, DOcplex (Python library for optimization problems) is used in the program.
+To write models of optimization problems, DOcplex (Python library for optimization problems)
+is used in the program.
 (https://cdn.rawgit.com/IBMDecisionOptimization/docplex-doc/master/docs/index.html)
 
 It supports models that consist of the following elements now.
 - Binary variables.
 - Linear or quadratic object function.
 - Equality constraints.
-  * Symbols in constrains have to be equal (==). Inequality constrains (e.g. x+y <= 5) are not allowed.
+  * Symbols in constrains have to be equal (==). Inequality constrains (e.g. x+y <= 5) are
+    not allowed.
 
 
 The following is an example of use.
 ---
 # Create an instance of a model and variables with DOcplex.
 mdl = Model(name='tsp')
-x = {(i,p): mdl.binary_var(name='x_{0}_{1}'.format(i,p)) for i in range(num_node) for p in range(num_node)}
+x = {(i,p): mdl.binary_var(name='x_{0}_{1}'.format(i,p)) for i in range(num_node)
+            for p in range(num_node)}
 
 # Object function
-tsp_func = mdl.sum(ins.w[i,j] * x[(i,p)] * x[(j,(p+1)%num_node)] for i in range(num_node) for j in range(num_node) for p in range(num_node))
+tsp_func = mdl.sum(ins.w[i,j] * x[(i,p)] * x[(j,(p+1)%num_node)] for i in range(num_node)
+                        for j in range(num_node) for p in range(num_node))
 mdl.minimize(tsp_func)
 
 # Constrains
@@ -52,8 +56,8 @@ print('tsp objective:', result['energy'] + offset)
 """
 
 import logging
-from collections import OrderedDict
 from math import fsum
+import warnings
 
 import numpy as np
 from docplex.mp.constants import ComparisonType
@@ -66,12 +70,13 @@ from qiskit.aqua.operators import WeightedPauliOperator
 logger = logging.getLogger(__name__)
 
 
-def get_qubitops(mdl, auto_penalty=True, default_penalty=1e5):
+def get_qubit_op(mdl, auto_penalty=True, default_penalty=1e5):
     """ Generate Ising Hamiltonian from a model of DOcplex.
 
     Args:
         mdl (docplex.mp.model.Model): A model of DOcplex for a optimization problem.
-        auto_penalty (bool): If true, the penalty coefficient is automatically defined by "_auto_define_penalty()".
+        auto_penalty (bool): If true, the penalty coefficient is automatically defined
+                             by "_auto_define_penalty()".
         default_penalty (float): The default value of the penalty coefficient for the constraints.
             This value is used if "auto_penalty" is False.
 
@@ -213,8 +218,8 @@ def _validate_input_model(mdl):
     # raise an error if the type of the variable is not a binary type.
     for var in mdl.iter_variables():
         if not var.is_binary():
-            logger.warning(
-                'The type of Variable {} is {}. It must be a binary variable. '.format(var, var.vartype.short_name))
+            logger.warning('The type of Variable {} is {}. It must be a binary variable. '
+                           .format(var, var.vartype.short_name))
             valid = False
 
     # raise an error if the constraint type is not an equality constraint.
@@ -246,8 +251,9 @@ def _auto_define_penalty(mdl, default_penalty=1e5):
         terms.append(constraint.right_expr.get_constant())
         terms.extend(term[1] for term in constraint.left_expr.iter_terms())
     if any(isinstance(term, float) and not term.is_integer() for term in terms):
-        logger.warning('Using %f for the penalty coefficient because a float coefficient exists in constraints. \n'
-                       'The value could be too small. If so, set the penalty coefficient manually.', default_penalty)
+        logger.warning('Using %f for the penalty coefficient because a float coefficient exists '
+                       'in constraints. \nThe value could be too small. '
+                       'If so, set the penalty coefficient manually.', default_penalty)
         return default_penalty
 
     # (upper bound - lower bound) can be calculate as the sum of absolute value of coefficients
@@ -262,24 +268,15 @@ def _auto_define_penalty(mdl, default_penalty=1e5):
 
 
 def sample_most_likely(state_vector):
-    """Compute the most likely binary string from state vector.
+    from .common import sample_most_likely as redirect_func
+    warnings.warn("sample_most_likely function has been moved to qiskit.aqua.ising.common, "
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return redirect_func(state_vector=state_vector)
 
-    Args:
-        state_vector (numpy.ndarray or dict): state vector or counts.
 
-    Returns:
-        numpy.ndarray: binary string as numpy.ndarray of ints.
-    """
-    if isinstance(state_vector, dict) or isinstance(state_vector, OrderedDict):
-        # get the binary string with the largest count
-        binary_string = sorted(state_vector.items(), key=lambda kv: kv[1])[-1][0]
-        x = np.asarray([int(y) for y in reversed(list(binary_string))])
-        return x
-    else:
-        n = int(np.log2(state_vector.shape[0]))
-        k = np.argmax(np.abs(state_vector))
-        x = np.zeros(n)
-        for i in range(n):
-            x[i] = k % 2
-            k >>= 1
-        return x
+def get_qubitops(mdl, auto_penalty=True, default_penalty=1e5):
+    warnings.warn("get_qubitops function has been changed to get_qubit_op"
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return get_qubit_op(mdl, auto_penalty, default_penalty)

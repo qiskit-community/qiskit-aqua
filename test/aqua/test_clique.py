@@ -15,11 +15,14 @@
 """ Test Clique """
 
 from test.aqua.common import QiskitAquaTestCase
+
 import numpy as np
 from qiskit import BasicAer
-from qiskit.aqua import run_algorithm
+
+from qiskit.aqua import run_algorithm, aqua_globals
 from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.translators.ising import clique
+from qiskit.aqua.translators.ising.common import random_graph, sample_most_likely
 from qiskit.aqua.algorithms import ExactEigensolver
 
 
@@ -29,10 +32,11 @@ class TestClique(QiskitAquaTestCase):
     def setUp(self):
         super().setUp()
         self.k = 5  # K means the size of the clique
-        np.random.seed(100)
+        self.seed = 100
+        aqua_globals.random_seed = self.seed
         self.num_nodes = 5
-        self.w = clique.random_graph(self.num_nodes, edge_prob=0.8, weight_range=10)
-        self.qubit_op, self.offset = clique.get_clique_qubitops(self.w, self.k)
+        self.w = random_graph(self.num_nodes, edge_prob=0.8, weight_range=10)
+        self.qubit_op, self.offset = clique.get_qubit_op(self.w, self.k)
         self.algo_input = EnergyInput(self.qubit_op)
 
     def _brute_force(self):
@@ -69,7 +73,7 @@ class TestClique(QiskitAquaTestCase):
         """ Clique Direct test """
         algo = ExactEigensolver(self.algo_input.qubit_op, k=1, aux_operators=[])
         result = algo.run()
-        x = clique.sample_most_likely(len(self.w), result['eigvecs'][0])
+        x = sample_most_likely(result['eigvecs'][0])
         ising_sol = clique.get_graph_solution(x)
         np.testing.assert_array_equal(ising_sol, [1, 1, 1, 1, 1])
         oracle = self._brute_force()
@@ -100,7 +104,7 @@ class TestClique(QiskitAquaTestCase):
         }
         backend = BasicAer.get_backend('statevector_simulator')
         result = run_algorithm(params, self.algo_input, backend=backend)
-        x = clique.sample_most_likely(len(self.w), result['eigvecs'][0])
+        x = sample_most_likely(result['eigvecs'][0])
         ising_sol = clique.get_graph_solution(x)
         np.testing.assert_array_equal(ising_sol, [1, 1, 1, 1, 1])
         oracle = self._brute_force()

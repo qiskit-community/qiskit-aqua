@@ -12,13 +12,15 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+import warnings
+
 import numpy as np
 from qiskit.quantum_info import Pauli
 
 from qiskit.aqua.operators import WeightedPauliOperator
 
 
-def get_portfoliodiversification_qubitops(rho, n, q):
+def get_qubit_op(rho, n, q):
     """Converts an instnance of portfolio optimization into a list of Paulis.
 
     Args:
@@ -236,3 +238,10 @@ def get_portfoliodiversification_value(rho, n, q, x_state):
     def fun(x): return np.dot(np.around(x), np.dot(Q, np.around(x))) + np.dot(g, np.around(x)) + c
 
     return fun(x_state)
+
+
+def get_portfoliodiversification_qubitops(rho, n, q):
+    warnings.warn("get_portfoliodiversification_qubitops function has been changed to get_qubit_op"
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return get_qubit_op(rho, n, q)

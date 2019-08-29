@@ -15,11 +15,14 @@
 """ Test Vehicle Routing """
 
 from test.aqua.common import QiskitAquaTestCase
+
 import numpy as np
-from qiskit.aqua import run_algorithm
-from qiskit.aqua.input import EnergyInput
-from qiskit.aqua.translators.ising.vehicle_routing import get_vehiclerouting_qubitops
 from qiskit.quantum_info import Pauli
+
+from qiskit.aqua import run_algorithm, aqua_globals
+from qiskit.aqua.input import EnergyInput
+from qiskit.aqua.translators.ising.vehicle_routing import get_qubit_op
+
 
 # To run only this test, issue:
 # python -m unittest test.test_vrp.TestVehicleRouting
@@ -30,14 +33,13 @@ class TestVehicleRouting(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
-        np.random.seed(100)
+        aqua_globals.random_seed = 100
         self.n = 2
         self.k = 1
         self.instance = np.zeros((self.n, self.n))
         self.instance[0, 1] = 0.8
         self.instance[1, 0] = 0.8
-        self.qubit_op = get_vehiclerouting_qubitops(self.instance, self.n,
-                                                    self.k)
+        self.qubit_op = get_qubit_op(self.instance, self.n, self.k)
         self.algo_input = EnergyInput(self.qubit_op)
 
     def test_simple1(self):
