@@ -31,7 +31,7 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
         'name': 'EuropeanCallExpectedValue',
         'description': 'European Call Expected Value',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'ECEV_schema',
             'type': 'object',
             'properties': {

@@ -63,7 +63,7 @@ def random_h2_body(N, M):
     """
     Generate a random two body integrals.
     Args:
-        N (int) : number of spin-orbitals (dimentsion of h2)
+        N (int) : number of spin-orbitals (dimension of h2)
         M (int) : number of non-zero entries
     Returns:
         np.ndarray: a numpy 4-D tensor with np.complex data type.
@@ -144,7 +144,7 @@ def random_h2_body(N, M):
 
 def random_diag(N, eigs=None, K=None, eigrange=[0, 1]):
     """
-    Generate random diagonal matix with given properties
+    Generate random diagonal matrix with given properties
     Args:
         N (int): size of matrix
         eigs (list, tuple, np.ndarray): list of N eigenvalues. Overrides K,
@@ -241,7 +241,7 @@ def limit_paulis(mat, n=5, sparsity=None):
 def random_hermitian(N, eigs=None, K=None, eigrange=[0, 1], sparsity=None,
                      trunc=None):
     """
-    Generate random hermitian (sparse) matix with given properties. Sparsity is
+    Generate random hermitian (sparse) matrix with given properties. Sparsity is
     achieved by truncating Pauli matrices. Sparsity settings alternate the
     eigenvalues due to truncation.
     Args:

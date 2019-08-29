@@ -42,7 +42,7 @@ class EOH(QuantumAlgorithm):
         'name': 'EOH',
         'description': 'Evolution of Hamiltonian for Quantum Systems',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'EOH_schema',
             'type': 'object',
             'properties': {

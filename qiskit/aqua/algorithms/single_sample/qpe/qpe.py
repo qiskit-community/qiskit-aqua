@@ -44,7 +44,7 @@ class QPE(QuantumAlgorithm):
         'name': 'QPE',
         'description': 'Quantum Phase Estimation for Quantum Systems',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'qpe_schema',
             'type': 'object',
             'properties': {

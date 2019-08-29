@@ -161,7 +161,7 @@ class TestDocplex(QiskitAquaTestCase):
             docplex.get_qubit_op(mdl)
 
     def test_auto_define_penalty(self):
-        """ Auto defina Penalty test """
+        """ Auto define Penalty test """
         # check _auto_define_penalty() for positive coefficients.
         positive_coefficients = aqua_globals.random.rand(10, 10)
         for i in range(10):
@@ -259,9 +259,9 @@ class TestDocplex(QiskitAquaTestCase):
         mdl.minimize(tsp_func)
         for i in range(num_node):
             mdl.add_constraint(mdl.sum(x[(i, p)] for p in range(num_node)) == 1)
-        for p_i in range(num_node):
-            mdl.add_constraint(mdl.sum(x[(i, p_i)] for i in range(num_node)) == 1)
-        qubit_op, offset = docplex.get_qubit_op(mdl)
+        for j in range(num_node):
+            mdl.add_constraint(mdl.sum(x[(i, j)] for i in range(num_node)) == 1)
+        qubit_op, offset = docplex.get_qubitops(mdl)
 
         e_e = ExactEigensolver(qubit_op, k=1)
         result = e_e.run()
@@ -274,7 +274,7 @@ class TestDocplex(QiskitAquaTestCase):
 
     def test_docplex_integer_constraints(self):
         """ Docplex Integer Constraints test """
-        # Create an Ising Homiltonian with docplex
+        # Create an Ising Hamiltonian with docplex
         mdl = Model(name='integer_constraints')
         x = {i: mdl.binary_var(name='x_{0}'.format(i)) for i in range(1, 5)}
         max_vars_func = mdl.sum(x[i] for i in range(1, 5))
@@ -292,7 +292,7 @@ class TestDocplex(QiskitAquaTestCase):
 
     def test_docplex_constant_and_quadratic_terms_in_object_function(self):
         """ Docplex Constant and Quadratic terms in Object function test """
-        # Create an Ising Homiltonian with docplex
+        # Create an Ising Hamiltonian with docplex
         laplacian = np.array([[-3., 1., 1., 1.],
                               [1., -2., 1., -0.],
                               [1., 1., -3., 1.],

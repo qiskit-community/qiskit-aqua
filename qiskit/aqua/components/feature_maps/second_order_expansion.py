@@ -30,7 +30,7 @@ class SecondOrderExpansion(PauliZExpansion):
         'name': 'SecondOrderExpansion',
         'description': 'Second order expansion for feature map',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'Second_Order_Expansion_schema',
             'type': 'object',
             'properties': {
@@ -64,7 +64,7 @@ class SecondOrderExpansion(PauliZExpansion):
                                         [source, target], or None for full entanglement.
                                         Note that the order is the list is the order of
                                         applying the two-qubit gate.
-            entanglement (str): ['full', 'linear'], generate the qubit connectivitiy by predefined
+            entanglement (str): ['full', 'linear'], generate the qubit connectivity by predefined
                                 topology
             data_map_func (Callable): a mapping function for data x
         """

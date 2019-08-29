@@ -157,7 +157,7 @@ class TruthTableOracle(Oracle):
         'name': 'TruthTableOracle',
         'description': 'Truth Table Oracle',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'truth_table_oracle_schema',
             'type': 'object',
             'properties': {

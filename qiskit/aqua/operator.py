@@ -77,7 +77,7 @@ class Operator(object):
     def _extend_or_combine(self, rhs, mode, operation=op_iadd):
         """
         Add two operators either extend (in-place) or combine (copy) them.
-        The addition performs optimized combiniation of two operators.
+        The addition performs optimized combination of two operators.
         If `rhs` has identical basis, the coefficient are combined rather than
         appended.
 
@@ -290,7 +290,7 @@ class Operator(object):
         Overload * operation. Only support two Operators have the same representation mode.
 
         Returns:
-            Operator: the multipled Operator.
+            Operator: the multiplied Operator.
 
         Raises:
             TypeError, if two Operators do not have the same representations.
@@ -357,7 +357,7 @@ class Operator(object):
 
     def _to_dia_matrix(self, mode):
         """
-        Convert the reprenetations into diagonal matrix if possible and then store it back.
+        Convert the representations into diagonal matrix if possible and then store it back.
         For paulis, if all paulis are Z or I (identity), convert to dia_matrix.
 
         Args:
@@ -671,7 +671,7 @@ class Operator(object):
             qr (QuantumRegister, optional): the quantum register associated with the input_circuit
             cr (ClassicalRegister, optional): the classical register associated with the input_circuit
             use_simulator_operator_mode (bool): if aer_provider is used, we can do faster
-                           evaluation for pauli mode on statevector simualtion
+                           evaluation for pauli mode on statevector simulation
 
         Returns:
             [QuantumCircuit]: the circuits for evaluation.
@@ -782,7 +782,7 @@ class Operator(object):
             backend (str): backend selection for quantum machine.
             result (qiskit.Result): the result from the backend.
             use_simulator_operator_mode (bool): if aer_provider is used, we can do faster
-                           evaluation for pauli mode on statevector simualtion
+                           evaluation for pauli mode on statevector simulation
         Returns:
             float: the mean value
             float: the standard deviation
@@ -896,7 +896,7 @@ class Operator(object):
         1. If `input_circuit` is a numpy.ndarray, it will directly perform inner product with the operator.
         2. If `backend` is a statevector simulator, use quantum backend to get statevector \
            and then evaluate with the operator.
-        3. Other cases: it use with quanutm backend (simulator or real quantum machine), \
+        3. Other cases: it use with quantum backend (simulator or real quantum machine), \
            to obtain the mean and standard deviation of measured results.
 
         Args:
@@ -1753,7 +1753,7 @@ class Operator(object):
 
         Returns:
             [Pauli]: the list of Pauli objects representing the Z2 symmetries
-            [Pauli]: the list of single - qubit Pauli objects to construct the Cliffors operators
+            [Pauli]: the list of single - qubit Pauli objects to construct the Clifford operators
             [Operators]: the list of Clifford unitaries to block diagonalize Operator
             [int]: the list of support of the single-qubit Pauli objects used to build the clifford operators
         """
@@ -1917,7 +1917,7 @@ class Operator(object):
 
     def zeros_coeff_elimination(self):
         """
-        Elinminate paulis or grouped paulis whose coefficients are zeros.
+        Eliminate paulis or grouped paulis whose coefficients are zeros.
 
         The difference from `_simplify_paulis` method is that, this method will not remove duplicated
         paulis.
@@ -1944,7 +1944,7 @@ class Operator(object):
         Note that: the behavior of scaling in paulis (grouped_paulis) might be different from matrix
 
         Args:
-            scaling_factor (float): the sacling factor
+            scaling_factor (float): the scaling factor
         """
         warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
                       "Use the class for each representation instead, including `MatrixOperator`, "

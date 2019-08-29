@@ -34,7 +34,7 @@ class WikipediaDataProvider(BaseDataProvider):
         "name": "WIKI",
         "description": "Wikipedia Data Provider",
         "input_schema": {
-            "$schema": "http://json-schema.org/schema#",
+            "$schema": "http://json-schema.org/draft-07/schema#",
             "id": "edi_schema",
             "type": "object",
             "properties": {
@@ -89,7 +89,7 @@ class WikipediaDataProvider(BaseDataProvider):
             msg += " as a stock market."
             raise QiskitFinanceError(msg)
 
-        # This is to aid serialisation; string is ok to serialise
+        # This is to aid serialization; string is ok to serialize
         self._stockmarket = str(stockmarket.value)
 
         self._token = token

@@ -139,7 +139,7 @@ class VQC(VQAlgorithm):
         'name': 'VQC',
         'description': 'Variational Quantum Classifier',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'vqc_schema',
             'type': 'object',
             'properties': {
@@ -403,7 +403,7 @@ class VQC(VQAlgorithm):
             data (numpy.ndarray): NxD array, N is number of data and D is dimension
             labels (numpy.ndarray): Nx1 array, N is number of data
             quantum_instance (QuantumInstance): quantum backend with all setting
-            minibatch_size (int): the size of each minibatched accuracy evalutation
+            minibatch_size (int): the size of each minibatched accuracy evaluation
         """
         self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
         minibatch_size = minibatch_size if minibatch_size > 0 else self._minibatch_size
@@ -490,7 +490,7 @@ class VQC(VQAlgorithm):
             data (numpy.ndarray): NxD array, N is number of data and D is data dimension
             labels (numpy.ndarray): Nx1 array, N is number of data
             quantum_instance (QuantumInstance): quantum backend with all setting
-            minibatch_size (int): the size of each minibatched accuracy evalutation
+            minibatch_size (int): the size of each minibatched accuracy evaluation
             params (list): list of parameters to populate in the variational form
         Returns:
             float: classification accuracy
@@ -527,7 +527,7 @@ class VQC(VQAlgorithm):
         Args:
             data (numpy.ndarray): NxD array, N is number of data, D is data dimension
             quantum_instance (QuantumInstance): quantum backend with all setting
-            minibatch_size (int): the size of each minibatched accuracy evalutation
+            minibatch_size (int): the size of each minibatched accuracy evaluation
             params (list): list of parameters to populate in the variational form
         Returns:
             list: for each data point, generates the predicted probability for each class

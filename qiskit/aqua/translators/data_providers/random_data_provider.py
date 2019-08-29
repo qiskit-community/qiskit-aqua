@@ -32,7 +32,7 @@ class RandomDataProvider(BaseDataProvider):
         "name": "RND",
         "description": "Pseudo-Random Data Provider",
         "input_schema": {
-            "$schema": "http://json-schema.org/schema#",
+            "$schema": "http://json-schema.org/draft-07/schema#",
             "id": "rnd_schema",
             "type": "object",
             "properties": {
@@ -81,7 +81,7 @@ class RandomDataProvider(BaseDataProvider):
             msg += " as a stock market. Please use Stockmarket.RANDOM."
             raise QiskitFinanceError(msg)
 
-        # This is to aid serialisation; string is ok to serialise
+        # This is to aid serialization; string is ok to serialize
         self._stockmarket = str(stockmarket.value)
 
         self._start = start

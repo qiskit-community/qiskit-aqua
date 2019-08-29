@@ -39,7 +39,7 @@ class QGAN(QuantumAlgorithm):
         'name': 'QGAN',
         'description': 'Quantum Generative Adversarial Network',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'Qgan_schema',
             'type': 'object',
             'properties': {

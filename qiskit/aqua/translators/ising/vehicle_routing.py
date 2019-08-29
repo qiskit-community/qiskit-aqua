@@ -88,7 +88,7 @@ def get_vehiclerouting_matrices(instance, n, K):
 
 
 def get_vehiclerouting_cost(instance, n, K, x_sol):
-    """Computes the cost of a solution to an instnance of a vehicle routing problem.
+    """Computes the cost of a solution to an instance of a vehicle routing problem.
 
     Args:
         instance (numpy.ndarray) : a customers-to-customers distance matrix.
@@ -164,7 +164,7 @@ def get_vehiclerouting_solution(instance, n, K, result):
     Returns:
         x_sol (numpy.ndarray): a solution, i.e., a path, in its binary representation.
 
-    #TODO: support statevector simulation, results should be a statevector or counts foramt, not
+    #TODO: support statevector simulation, results should be a statevector or counts format, not
            a result from algorithm run
     """
 

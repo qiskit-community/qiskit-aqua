@@ -31,7 +31,7 @@ class ExactLSsolver(QuantumAlgorithm):
         'description': 'ExactLSsolver Algorithm',
         'classical': True,
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'ExactLSsolver_schema',
             'type': 'object',
             'properties': {
