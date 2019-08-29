@@ -123,7 +123,7 @@ class TestDriver(ABC):
                                                [[0.6646, 0.0], [0.0, 0.6986]]]], decimal=4)
 
     def test_driver_dipole_integrals(self):
-        """ driver diple intergrals test """
+        """ driver dipole integrals test """
         self.log.debug('QMolecule has dipole integrals {}'.format(
                         self.qmolecule.has_dipole_integrals()))
         if self.qmolecule.has_dipole_integrals():

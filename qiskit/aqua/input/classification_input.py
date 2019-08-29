@@ -23,7 +23,7 @@ class ClassificationInput(AlgorithmInput):
         'name': 'ClassificationInput',
         'description': 'SVM input',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'classification_input_schema',
             'type': 'object',
             'properties': {

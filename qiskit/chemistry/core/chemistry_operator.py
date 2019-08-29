@@ -31,9 +31,6 @@ class ChemistryOperator(ABC):
         This method should initialize the module and its configuration, and
         use an exception if a component of the module is
         available.
-
-        Args:
-            configuration (dict): configuration dictionary
     """
 
     CONFIGURATION = None
@@ -48,6 +45,7 @@ class ChemistryOperator(ABC):
 
     @property
     def configuration(self):
+        """ returns configuration """
         return self._configuration
 
     @staticmethod
@@ -56,18 +54,19 @@ class ChemistryOperator(ABC):
         pass
 
     def validate(self, args_dict):
+        """ schema input validation """
         schema_dict = self.CONFIGURATION.get('input_schema', None)
         if schema_dict is None:
             return
 
-        jsonSchema = JSONSchema(schema_dict)
-        schema_property_names = jsonSchema.get_default_section_names()
+        json_schema = JSONSchema(schema_dict)
+        schema_property_names = json_schema.get_default_section_names()
         json_dict = {}
         for property_name in schema_property_names:
             if property_name in args_dict:
                 json_dict[property_name] = args_dict[property_name]
 
-        jsonSchema.validate(json_dict)
+        json_schema.validate(json_dict)
 
     @classmethod
     def init_params(cls, params):
@@ -78,10 +77,10 @@ class ChemistryOperator(ABC):
             params (dict): parameters dictionary
 
         Returns:
-            Chemistry Operator: Chemistry Operator object
+            ChemistryOperator: Chemistry Operator object
         """
         kwargs = {k: v for k, v in params.items() if k != 'name'}
-        logger.debug('init_params: {}'.format(kwargs))
+        logger.debug('init_params: %s', kwargs)
         return cls(**kwargs)
 
     @abstractmethod
@@ -91,7 +90,7 @@ class ChemistryOperator(ABC):
         that can be given to a QuantumAlgorithm
 
         Args:
-            qmolecule: QMolecule from a chemistry driver
+            qmolecule (QMolecule): from a chemistry driver
 
         Returns:
             Tuple: (qubit_op, aux_ops)
@@ -108,7 +107,7 @@ class ChemistryOperator(ABC):
             algo_result (dict): Result from algorithm
 
         Returns:
-            Final computation result
+            Tuple: (lines, result) Final computation result
         """
         lines, result = self._process_algorithm_result(algo_result)
         result['algorithm_retvals'] = algo_result
@@ -120,6 +119,7 @@ class ChemistryOperator(ABC):
 
     @property
     def molecule_info(self):
+        """ returns molecule info """
         return self._molecule_info
 
     def _add_molecule_info(self, key, value):

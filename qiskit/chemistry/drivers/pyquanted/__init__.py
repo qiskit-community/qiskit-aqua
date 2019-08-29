@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" PyQuante packages """
+
 from .pyquantedriver import PyQuanteDriver, BasisType
 
 __all__ = ['PyQuanteDriver',

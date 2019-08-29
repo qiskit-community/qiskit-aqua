@@ -148,7 +148,7 @@ class WeightedPauliOperator(BaseOperator):
     def _add_or_sub(self, other, operation, copy=True):
         """
         Add two operators either extend (in-place) or combine (copy) them.
-        The addition performs optimized combiniation of two operators.
+        The addition performs optimized combination of two operators.
         If `other` has identical basis, the coefficient are combined rather than
         appended.
 
@@ -188,7 +188,7 @@ class WeightedPauliOperator(BaseOperator):
 
         Args:
             other (WeightedPauliOperator): to-be-combined operator
-            copy (bool): working on a copy or self, if True, the results are written back to self.
+            copy (bool): working on a copy or self, if False, the results are written back to self.
 
         Returns:
             WeightedPauliOperator
@@ -201,7 +201,7 @@ class WeightedPauliOperator(BaseOperator):
 
         Args:
             other (WeightedPauliOperator): to-be-combined operator
-            copy (bool): working on a copy or self, if True, the results are written back to self.
+            copy (bool): working on a copy or self, if False, the results are written back to self.
 
         Returns:
             WeightedPauliOperator
@@ -596,7 +596,7 @@ class WeightedPauliOperator(BaseOperator):
             qr (QuantumRegister, optional): the quantum register associated with the input_circuit
             cr (ClassicalRegister, optional): the classical register associated with the input_circuit
             use_simulator_operator_mode (bool, optional): if aer_provider is used, we can do faster
-                                                evaluation for pauli mode on statevector simualtion
+                                                evaluation for pauli mode on statevector simulation
             circuit_name_prefix (str, optional): a prefix of circuit name
 
         Returns:
@@ -732,7 +732,7 @@ class WeightedPauliOperator(BaseOperator):
             backend (BaseBackend, optional): backend for quantum machine.
             statevector_mode (bool, optional): indicate which type of simulator are used.
             use_simulator_operator_mode (bool): if aer_provider is used, we can do faster
-                           evaluation for pauli mode on statevector simualtion
+                           evaluation for pauli mode on statevector simulation
             circuit_name_prefix (str): a prefix of circuit name
 
         Returns:
@@ -897,7 +897,7 @@ class WeightedPauliOperator(BaseOperator):
         instruction = evolution_instruction(slice_pauli_list, evo_time, num_time_slices)
 
         qc.append(instruction, quantum_registers)
-        return qc
+        return qc.decompose()
 
     def evolve_instruction(self, evo_time=0, num_time_slices=1,
                            expansion_mode='trotter', expansion_order=1):
@@ -995,7 +995,7 @@ class Z2Symmetries:
 
         Args:
             symmetries ([Pauli]): the list of Pauli objects representing the Z_2 symmetries
-            sq_paulis ([Pauli]): the list of single - qubit Pauli objects to construct the Cliffors operators
+            sq_paulis ([Pauli]): the list of single - qubit Pauli objects to construct the Clifford operators
             sq_list ([int]): the list of support of the single-qubit Pauli objects used to build the clifford operators
             tapering_values ([int], optional): values determines the sector.
         """

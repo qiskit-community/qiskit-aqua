@@ -23,7 +23,7 @@ class Approximate(IQFT):
         'name': 'APPROXIMATE',
         'description': 'Approximate inverse QFT',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'aiqft_schema',
             'type': 'object',
             'properties': {

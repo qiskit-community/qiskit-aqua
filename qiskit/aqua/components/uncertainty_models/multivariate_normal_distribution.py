@@ -29,7 +29,7 @@ class MultivariateNormalDistribution(MultivariateDistribution):
         'name': 'MultivariateNormalDistribution',
         'description': 'Multivariate Normal Distribution',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'MultivariateNormalDistribution_schema',
             'type': 'object',
             'properties': {

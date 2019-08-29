@@ -15,8 +15,11 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 > -   **Fixed**: for any bug fixes.
 > -   **Security**: in case of vulnerabilities.
 
-[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.5.5...HEAD)
+[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.0...HEAD)
 ========================================================================
+
+[0.6.0](https://github.com/Qiskit/qiskit-aqua/compare/0.5.5...0.6.0) - 2019-08-22
+=================================================================================
 
 Added
 -----
@@ -50,6 +53,12 @@ Added
 -   Add `op_converter` module to unified the place in charge of converting different types of operators. (#593)
 -   Add `Z2Symmetries` class to encapsulate the Z2 symmetries info and has helper methods for tapering an
     Operator. (#593).
+-   Amplitude Estimation: added maximum likelihood postprocessing and confidence interval computation.
+-   Maximum Likelihood Amplitude Estimation (MLAE): Implemented new algorithm for amplitude estimation based on 
+    maximum likelihood estimation, which reduces number of required qubits and circuit depth.
+-   Added (piecewise) linearly and polynomially controlled Pauli-rotation circuits.  
+-   Add `q_equation_of_motion` to study excited state of a molecule, and add two algorithms to prepare the reference 
+    state. (#655)     
 
 Changed
 -------

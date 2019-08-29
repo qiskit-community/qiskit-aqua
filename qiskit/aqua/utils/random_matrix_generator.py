@@ -18,7 +18,8 @@ import scipy
 import scipy.sparse
 import scipy.stats
 
-from qiskit.aqua.utils import tensorproduct
+from qiskit.aqua import aqua_globals
+from qiskit.aqua.utils.tensor_product import tensorproduct
 
 
 def random_h1_body(N):
@@ -36,7 +37,7 @@ def random_h1_body(N):
 
     if N % 2 != 0:
         raise ValueError('The number of spin-orbitals must be even but {}'.format(N))
-    h1 = np.ones((N // 2, N // 2)) - 2 * np.random.random((N // 2, N // 2))
+    h1 = np.ones((N // 2, N // 2)) - 2 * aqua_globals.random.random_sample((N // 2, N // 2))
     h1 = np.triu(tensorproduct(Pup, h1) + tensorproduct(Pdown, h1))
     h1 = (h1 + h1.T) / 2.0  # pylint: disable=no-member
     return h1
@@ -62,7 +63,7 @@ def random_h2_body(N, M):
     """
     Generate a random two body integrals.
     Args:
-        N (int) : number of spin-orbitals (dimentsion of h2)
+        N (int) : number of spin-orbitals (dimension of h2)
         M (int) : number of non-zero entries
     Returns:
         np.ndarray: a numpy 4-D tensor with np.complex data type.
@@ -88,10 +89,10 @@ def random_h2_body(N, M):
 
     element_count = 0
     while element_count < M:
-        r_i = np.random.randint(N // 2, size=(4))
+        r_i = aqua_globals.random.randint(N // 2, size=(4))
         i, j, l, m = r_i[0], r_i[1], r_i[2], r_i[3]
         if i != l and j != m and h2[i, j, l, m] == 0:
-            h2[i, j, l, m] = 1 - 2 * np.random.random(1)
+            h2[i, j, l, m] = 1 - 2 * aqua_globals.random.random(1)
             element_count += 4
             # In the chemists notation H2BodyS(i,j,l,m) refers to
             # a^dag_i a^dag_l a_m a_j
@@ -143,7 +144,7 @@ def random_h2_body(N, M):
 
 def random_diag(N, eigs=None, K=None, eigrange=[0, 1]):
     """
-    Generate random diagonal matix with given properties
+    Generate random diagonal matrix with given properties
     Args:
         N (int): size of matrix
         eigs (list, tuple, np.ndarray): list of N eigenvalues. Overrides K,
@@ -168,18 +169,18 @@ def random_diag(N, eigs=None, K=None, eigrange=[0, 1]):
                     sgn = 1
                 elif len(K) == 3:
                     k, lmin, sgn = K
-                eigs = np.random.random(N)
+                eigs = aqua_globals.random.random_sample(N)
                 a = (k-1)*lmin/(max(eigs)-min(eigs))
                 b = lmin*(max(eigs)-k*min(eigs))/(max(eigs)-min(eigs))
                 eigs = a*eigs+b
                 if sgn == -1:
-                    sgs = np.random.random(N)-0.5
+                    sgs = aqua_globals.random.random_sample(N)-0.5
                     while min(sgs) > 0 or max(sgs) < 0:
-                        sgs = np.random.random(N)-0.5
+                        sgs = aqua_globals.random.random_sample(N)-0.5
                     eigs = eigs*(sgs/abs(sgs))
             elif isinstance(eigrange, (tuple, list, np.ndarray)) \
                     and len(eigrange) == 2:
-                eigs = np.random.random(N) * \
+                eigs = aqua_globals.random.random_sample(N) * \
                        (eigrange[1]-eigrange[0])+eigrange[0]
             else:
                 raise ValueError("Wrong input data: either 'eigs', 'K' or"
@@ -240,7 +241,7 @@ def limit_paulis(mat, n=5, sparsity=None):
 def random_hermitian(N, eigs=None, K=None, eigrange=[0, 1], sparsity=None,
                      trunc=None):
     """
-    Generate random hermitian (sparse) matix with given properties. Sparsity is
+    Generate random hermitian (sparse) matrix with given properties. Sparsity is
     achieved by truncating Pauli matrices. Sparsity settings alternate the
     eigenvalues due to truncation.
     Args:

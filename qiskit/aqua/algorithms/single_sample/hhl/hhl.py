@@ -44,7 +44,7 @@ class HHL(QuantumAlgorithm):
         'description': 'The HHL Algorithm for Solving Linear Systems of '
                        'equations',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'hhl_schema',
             'type': 'object',
             'properties': {

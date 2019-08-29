@@ -27,7 +27,7 @@ class MultivariateVariationalDistribution(MultivariateDistribution):
         'name': 'MultivariateVariationalDistribution',
         'description': 'Multivariate Variational Distribution',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'MultivariateVariationalDistribution_schema',
             'type': 'object',
             'properties': {

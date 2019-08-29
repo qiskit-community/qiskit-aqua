@@ -588,7 +588,7 @@ class BaseParser(ABC):
         self._update_dependencies(section_name, pluggable_dependencies)
 
     def _update_dependencies(self, section_name, pluggable_dependencies):
-        # update sections with dependencies recursevely
+        # update sections with dependencies recursively
         for pluggable_type_dict in pluggable_dependencies:
             pluggable_type = pluggable_type_dict.get('pluggable_type')
             if pluggable_type is None:

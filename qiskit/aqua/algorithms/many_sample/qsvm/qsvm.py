@@ -43,7 +43,7 @@ class QSVM(QuantumAlgorithm):
         'name': 'QSVM',
         'description': 'QSVM Algorithm',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'QSVM_schema',
             'type': 'object',
             'properties': {

@@ -24,7 +24,7 @@ class Standard(Approximate):
         'name': 'STANDARD',
         'description': 'QFT',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'std_qft_schema',
             'type': 'object',
             'properties': {

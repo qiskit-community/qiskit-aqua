@@ -41,7 +41,7 @@ class PauliExpansion(FeatureMap):
         'name': 'PauliExpansion',
         'description': 'Pauli expansion for feature map (any order)',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'Pauli_Expansion_schema',
             'type': 'object',
             'properties': {
@@ -82,9 +82,9 @@ class PauliExpansion(FeatureMap):
                                         [source, target], or None for full entanglement.
                                         Note that the order is the list is the order of
                                         applying the two-qubit gate.
-            entanglement (str): ['full', 'linear'], generate the qubit connectivitiy by predefined
+            entanglement (str): ['full', 'linear'], generate the qubit connectivity by predefined
                                 topology
-            paulis (str): a comma-seperated string for to-be-used paulis
+            paulis (str): a comma-separated string for to-be-used paulis
             data_map_func (Callable): a mapping function for data x
         """
         self.validate(locals())
@@ -171,7 +171,7 @@ class PauliExpansion(FeatureMap):
 
                 inst = evolution_instruction([[coeff, p]], 1, 1)
                 qc.append(inst, qr)
-
+                qc = qc.decompose()
         if inverse is not None and inverse:
             qc = qc.inverse()
 

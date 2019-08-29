@@ -50,7 +50,7 @@ class Grover(QuantumAlgorithm):
         'name': 'Grover',
         'description': "Grover's Search Algorithm",
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'grover_schema',
             'type': 'object',
             'properties': {

@@ -28,7 +28,7 @@ class BernoulliDistribution(UnivariateDistribution):
         'name': 'BernoulliDistribution',
         'description': 'Bernoulli Distribution',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'BernoulliDistribution_schema',
             'type': 'object',
             'properties': {

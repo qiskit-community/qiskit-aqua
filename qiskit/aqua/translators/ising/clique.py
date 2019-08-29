@@ -12,61 +12,23 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-# Convert graph partitioning instances into Pauli list
-# Deal with Gset format. See https://web.stanford.edu/~yyye/yyye/Gset/
-
+"""
+Convert clique instances into Pauli list
+Deal with Gset format. See https://web.stanford.edu/~yyye/yyye/Gset/
+"""
 
 import logging
-from collections import OrderedDict
+import warnings
 
 import numpy as np
-import numpy.random as rand
-
 from qiskit.quantum_info import Pauli
+
 from qiskit.aqua.operators import WeightedPauliOperator
 
 logger = logging.getLogger(__name__)
 
 
-def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None, seed=None):
-    """Generate random Erdos-Renyi graph.
-
-    Args:
-        n (int): number of nodes.
-        weight_range (int): weights will be smaller than this value,
-            in absolute value.
-        edge_prob (float): probability of edge appearing.
-        savefile (str or None): name of file where to save graph.
-        seed (int or None): random seed - if None, will not initialize.
-
-    Returns:
-        numpy.ndarray: adjacency matrix (with weights).
-
-    """
-    assert(weight_range >= 0)
-    if seed:
-        rand.seed(seed)
-    w = np.zeros((n, n))
-    m = 0
-    for i in range(n):
-        for j in range(i+1, n):
-            if rand.rand() <= edge_prob:
-                w[i, j] = rand.randint(1, weight_range)
-                if rand.rand() >= 0.5:
-                    w[i, j] *= -1
-                m += 1
-    w += w.T
-    if savefile:
-        with open(savefile, 'w') as outfile:
-            outfile.write('{} {}\n'.format(n, m))
-            for i in range(n):
-                for j in range(i+1, n):
-                    if w[i, j] != 0:
-                        outfile.write('{} {} {}\n'.format(i + 1, j + 1, w[i, j]))
-    return w
-
-
-def get_clique_qubitops(weight_matrix, K):
+def get_qubit_op(weight_matrix, K):
     r"""
     Generate Hamiltonian for the clique
 
@@ -150,37 +112,6 @@ def get_clique_qubitops(weight_matrix, K):
     return WeightedPauliOperator(paulis=pauli_list), shift
 
 
-def parse_gset_format(filename):
-    """Read graph in Gset format from file.
-
-    Args:
-        filename (str): name of the file.
-
-    Returns:
-        numpy.ndarray: adjacency matrix as a 2D numpy array.
-    """
-    n = -1
-    with open(filename) as infile:
-        header = True
-        m = -1
-        count = 0
-        for line in infile:
-            v = map(lambda e: int(e), line.split())
-            if header:
-                n, m = v
-                w = np.zeros((n, n))
-                header = False
-            else:
-                s, t, x = v
-                s -= 1  # adjust 1-index
-                t -= 1  # ditto
-                w[s, t] = t
-                count += 1
-        assert m == count
-    w += w.T
-    return w
-
-
 def satisfy_or_not(x, w, K):
     """Compute the value of a cut.
 
@@ -209,41 +140,48 @@ def get_graph_solution(x):
     return 1 - x
 
 
-def sample_most_likely(n, state_vector):
-    """Compute the most likely binary string from state vector.
+def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None, seed=None):
+    from .common import random_graph as redirect_func
+    warnings.warn("random_graph function has been moved to "
+                  "qiskit.aqua.translators.ising.common, "
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return redirect_func(n=n, weight_range=weight_range, edge_prob=edge_prob,
+                         savefile=savefile, seed=seed)
 
-    Args:
-        n (int): number of  qubits.
-        state_vector (numpy.ndarray or dict): state vector or counts.
 
-    Returns:
-        numpy.ndarray: binary string as numpy.ndarray of ints.
-    """
-    if isinstance(state_vector, dict) or isinstance(state_vector, OrderedDict):
-        temp_vec = np.zeros(2**n)
-        total = 0
-        for i in range(2**n):
-            state = np.binary_repr(i, n)
-            count = state_vector.get(state, 0)
-            temp_vec[i] = count
-            total += count
-        state_vector = temp_vec / float(total)
+def parse_gset_format(filename):
+    from .common import parse_gset_format as redirect_func
+    warnings.warn("parse_gset_format function has been moved to "
+                  "qiskit.aqua.translators.ising.common, "
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return redirect_func(filename)
 
-    k = np.argmax(state_vector)
-    x = np.zeros(n)
-    for i in range(n):
-        x[i] = k % 2
-        k >>= 1
-    return x
+
+def sample_most_likely(n=None, state_vector=None):
+    from .common import sample_most_likely as redirect_func
+    if n is not None:
+        warnings.warn("n argument is not need and it will be removed after Aqua 0.7+",
+                      DeprecationWarning)
+    warnings.warn("sample_most_likely function has been moved to "
+                  "qiskit.aqua.translators.ising.common, "
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return redirect_func(state_vector=state_vector)
 
 
 def get_gset_result(x):
-    """Get graph solution in Gset format from binary string.
+    from .common import get_gset_result as redirect_func
+    warnings.warn("get_gset_result function has been moved to "
+                  "qiskit.aqua.translators.ising.common, "
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return redirect_func(x)
 
-    Args:
-        x (numpy.ndarray) : binary string as numpy array.
 
-    Returns:
-        Dict[int, int]: graph solution in Gset format.
-    """
-    return {i + 1: 1 - x[i] for i in range(len(x))}
+def get_clique_qubitops(weight_matrix, K):
+    warnings.warn("get_clique_qubitops function has been changed to get_qubit_op"
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return get_qubit_op(weight_matrix, K)
