@@ -16,10 +16,11 @@
 
 import unittest
 from test.aqua.common import QiskitAquaTestCase
-import numpy as np
+
 from parameterized import parameterized
 from qiskit import BasicAer
-from qiskit.aqua import run_algorithm
+
+from qiskit.aqua import run_algorithm, aqua_globals
 from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.operators import WeightedPauliOperator
 
@@ -29,7 +30,8 @@ class TestRYCRX(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
-        np.random.seed(50)
+        self.seed = 50
+        aqua_globals.random_seed = self.seed
         pauli_dict = {
             'paulis': [{"coeff": {"imag": 0.0, "real": -1.052373245772859}, "label": "II"},
                        {"coeff": {"imag": 0.0, "real": 0.39793742484318045}, "label": "IZ"},
@@ -56,7 +58,7 @@ class TestRYCRX(QiskitAquaTestCase):
                                  'entanglement': 'sca',
                                  'entanglement_gate': 'crx',
                                  'skip_final_ry': True},
-            'backend': {'shots': 1}
+            'backend': {'shots': 1, 'seed_simulator': self.seed, 'seed_transpiler': self.seed}
         }
         result = run_algorithm(params, self.algo_input, backend=backend)
         self.assertAlmostEqual(result['energy'], -1.85727503, places=places)

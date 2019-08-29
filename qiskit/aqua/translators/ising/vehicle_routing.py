@@ -12,9 +12,13 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-# Converts vehicle routing instnces into a list of Paulis,
-# and provides some related routines (extracting a solution,
-# checking its objective function value).
+"""
+Converts vehicle routing instances into a list of Paulis,
+and provides some related routines (extracting a solution,
+checking its objective function value).
+"""
+
+import warnings
 
 import numpy as np
 from qiskit.quantum_info import Pauli
@@ -101,7 +105,7 @@ def get_vehiclerouting_cost(instance, n, K, x_sol):
     return cost
 
 
-def get_vehiclerouting_qubitops(instance, n, K):
+def get_qubit_op(instance, n, K):
     """Converts an instance of a vehicle routing problem into a list of Paulis.
 
     Args:
@@ -159,7 +163,10 @@ def get_vehiclerouting_solution(instance, n, K, result):
 
     Returns:
         x_sol (numpy.ndarray): a solution, i.e., a path, in its binary representation.
-        """
+
+    #TODO: support statevector simulation, results should be a statevector or counts foramt, not
+           a result from algorithm run
+    """
 
     v = result['eigvecs'][0]
     N = (n - 1) * n
@@ -180,3 +187,10 @@ def get_vehiclerouting_solution(instance, n, K, result):
     x_sol = np.flip(x_sol, axis=0)
 
     return x_sol
+
+
+def get_vehiclerouting_qubitops(instance, n, K):
+    warnings.warn("get_vehiclerouting_qubitops function has been changed to get_qubit_op"
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return get_qubit_op(instance, n, K)
