@@ -73,7 +73,7 @@ class TestEomVQE(QiskitAquaTestCase):
                          num_particles=num_particles,
                          initial_state=initial_state,
                          qubit_mapping=qubit_mapping, two_qubit_reduction=two_qubit_reduction)
-        optimizer = COBYLA(maxiter=1000)
+        optimizer = COBYLA(maxiter=1000, tol=1e-8)
 
         eom_vqe = QEomVQE(qubit_op, var_form, optimizer, num_orbitals=num_orbitals,
                           num_particles=num_particles, qubit_mapping=qubit_mapping,
@@ -82,7 +82,7 @@ class TestEomVQE(QiskitAquaTestCase):
         backend = BasicAer.get_backend('statevector_simulator')
         quantum_instance = QuantumInstance(backend)
         result = eom_vqe.run(quantum_instance)
-        np.testing.assert_array_almost_equal(self.reference, result['energies'], decimal=5)
+        np.testing.assert_array_almost_equal(self.reference, result['energies'], decimal=4)
 
     def test_h2_one_qubit_statevector(self):
         """Test H2 with tapering and statevector backend."""

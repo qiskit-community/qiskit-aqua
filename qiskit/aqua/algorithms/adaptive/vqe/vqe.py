@@ -44,7 +44,7 @@ class VQE(VQAlgorithm):
         'name': 'VQE',
         'description': 'VQE Algorithm',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'vqe_schema',
             'type': 'object',
             'properties': {
@@ -93,7 +93,7 @@ class VQE(VQAlgorithm):
             callback (Callable): a callback that can access the intermediate data during the optimization.
                                  Internally, four arguments are provided as follows
                                  the index of evaluation, parameters of variational form,
-                                 evaluated mean, evaluated standard devation.
+                                 evaluated mean, evaluated standard deviation.
             auto_conversion (bool): an automatic conversion for operator and aux_operators into the type which is
                                     most suitable for the backend.
                                     - non-aer statevector_simulator: MatrixOperator

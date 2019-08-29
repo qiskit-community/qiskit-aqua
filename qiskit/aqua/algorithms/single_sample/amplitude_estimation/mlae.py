@@ -38,7 +38,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationBase):
         'name': 'MaximumLikelihoodAmplitudeEstimation',
         'description': 'Maximum Likelihood Amplitude Estimation',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'MaximumLikelihoodAmplitudeEstimation_schema',
             'type': 'object',
             'properties': {
@@ -396,7 +396,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationBase):
 
         if self._quantum_instance.is_statevector:
 
-            # run circuit on statevector simlator
+            # run circuit on statevector simulator
             self.construct_circuits(measurement=False)
             ret = self._quantum_instance.execute(self._circuits)
 

@@ -33,7 +33,7 @@ class ExactEigensolver(QuantumAlgorithm):
         'description': 'ExactEigensolver Algorithm',
         'classical': True,
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'ExactEigensolver_schema',
             'type': 'object',
             'properties': {

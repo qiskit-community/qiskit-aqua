@@ -178,7 +178,7 @@ class InputParser(BaseParser):
                     break
 
         if input_name is None:
-            # just remove fromm schema if none solves the problem
+            # just remove from schema if none solves the problem
             if PluggableType.INPUT.value in self.json_schema.schema['properties']:
                 del self.json_schema.schema['properties'][PluggableType.INPUT.value]
             return
@@ -189,7 +189,7 @@ class InputParser(BaseParser):
         config = {}
         try:
             config = get_pluggable_configuration(PluggableType.INPUT, input_name)
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             pass
 
         input_schema = config['input_schema'] if 'input_schema' in config else {}

@@ -28,7 +28,7 @@ class NormalDistribution(UnivariateDistribution):
         'name': 'NormalDistribution',
         'description': 'Normal Distribution',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'NormalDistribution_schema',
             'type': 'object',
             'properties': {

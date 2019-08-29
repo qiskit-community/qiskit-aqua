@@ -12,18 +12,20 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from qiskit.aqua.parser import BaseParser
-import json
-from collections import OrderedDict
+""" Input Parser """
+
 import logging
-import os
-import copy
-from qiskit.aqua import local_pluggables_types, PluggableType
 import pprint
 import ast
+import os
+import copy
+import json
+from collections import OrderedDict
+from qiskit.aqua.parser import BaseParser
+from qiskit.aqua import local_pluggables_types, PluggableType
 from qiskit.chemistry import QiskitChemistryError, ChemistryProblem
 from qiskit.aqua.parser import JSONSchema
-from qiskit.chemistry.core import local_chemistry_operators, get_chemistry_operator_configuration
+from qiskit.chemistry.core import local_chemistry_operators, get_chem_operator_config
 from qiskit.chemistry.drivers import local_drivers, get_driver_configuration
 
 logger = logging.getLogger(__name__)
@@ -48,7 +50,7 @@ class InputParser(BaseParser):
     HDF5_OUTPUT = 'hdf5_output'
     _DRIVER_NAMES = None
 
-    def __init__(self, input=None):
+    def __init__(self, input_value=None):
         """Create Parser object."""
         json_schema = JSONSchema(os.path.join(os.path.dirname(__file__), 'input_schema.json'))
 
@@ -56,26 +58,29 @@ class InputParser(BaseParser):
         json_schema.copy_section_from_aqua_schema(PluggableType.ALGORITHM.value)
         json_schema.copy_section_from_aqua_schema(JSONSchema.BACKEND)
         json_schema.copy_section_from_aqua_schema(JSONSchema.PROBLEM)
-        json_schema.schema['properties'][JSONSchema.PROBLEM]['properties'][InputParser.AUTO_SUBSTITUTIONS] = {
-            "type": "boolean",
-            "default": "true"
-        }
+        json_schema.schema['properties'][JSONSchema.PROBLEM]['properties'][
+            InputParser.AUTO_SUBSTITUTIONS] = {
+                "type": "boolean",
+                "default": "true"
+            }
         super().__init__(json_schema)
 
         # limit Chemistry problems to only valid for chemistry
         chemistry_problems = [problem for problem in
-                              self.json_schema.get_property_default_values(JSONSchema.PROBLEM, JSONSchema.NAME)
+                              self.json_schema.get_property_default_values(JSONSchema.PROBLEM,
+                                                                           JSONSchema.NAME)
                               if any(problem == item.value for item in ChemistryProblem)]
-        self.json_schema.schema['properties'][JSONSchema.PROBLEM]['properties'][JSONSchema.NAME]['enum'] = chemistry_problems
+        self.json_schema.schema['properties'][JSONSchema.PROBLEM]['properties'][
+            JSONSchema.NAME]['enum'] = chemistry_problems
         self.json_schema.commit_changes()
         # ---
 
         self._inputdict = None
-        if input is not None:
-            if isinstance(input, dict):
-                self._inputdict = input
-            elif isinstance(input, str):
-                self._filename = input
+        if input_value is not None:
+            if isinstance(input_value, dict):
+                self._inputdict = input_value
+            elif isinstance(input_value, str):
+                self._filename = input_value
             else:
                 raise QiskitChemistryError("Invalid parser input type.")
 
@@ -104,8 +109,8 @@ class InputParser(BaseParser):
             section = None
             self._sections = OrderedDict()
             contents = ''
-            with open(self._filename, 'rt', encoding="utf8", errors='ignore') as f:
-                for line in f:
+            with open(self._filename, 'rt', encoding="utf8", errors='ignore') as file:
+                for line in file:
                     contents += line
                     section = self._process_line(section, line)
 
@@ -120,7 +125,8 @@ class InputParser(BaseParser):
                     types = []
                     if section_name.lower() in driver_configs:
                         config = driver_configs[section_name.lower()]
-                        input_schema = copy.deepcopy(config['input_schema']) if 'input_schema' in config else {'type': 'string'}
+                        input_schema = copy.deepcopy(config['input_schema']) \
+                            if 'input_schema' in config else {'type': 'string'}
                         if 'type' not in input_schema:
                             input_schema['type'] = 'string'
 
@@ -131,28 +137,31 @@ class InputParser(BaseParser):
                     if 'string' in types:
                         json_dict[section_name] = section['data'] if 'data' in section else ''
                     else:
-                        json_dict[section_name] = section['properties'] if 'properties' in section else OrderedDict()
+                        json_dict[section_name] = section['properties'] \
+                            if 'properties' in section else OrderedDict()
 
                 self._sections = json_dict
             else:
                 contents = contents.strip().replace('\n', '').replace('\r', '')
-                if len(contents) > 0:
+                if contents:
                     # check if input file was dictionary
                     try:
                         v = ast.literal_eval(contents)
                         if isinstance(v, dict):
                             self._inputdict = json.loads(json.dumps(v))
                             self._load_parser_from_dict()
-                    except Exception:
+                    except Exception:  # pylint: disable=broad-except
                         pass
         else:
             self._load_parser_from_dict()
 
         # check for old enable_substitutions name
-        old_enable_substitutions = self.get_section_property(JSONSchema.PROBLEM, InputParser._OLD_ENABLE_SUBSTITUTIONS)
+        old_enable_substitutions = self.get_section_property(JSONSchema.PROBLEM,
+                                                             InputParser._OLD_ENABLE_SUBSTITUTIONS)
         if old_enable_substitutions is not None:
             self.delete_section_property(JSONSchema.PROBLEM, InputParser._OLD_ENABLE_SUBSTITUTIONS)
-            self.set_section_property(JSONSchema.PROBLEM, InputParser.AUTO_SUBSTITUTIONS, old_enable_substitutions)
+            self.set_section_property(JSONSchema.PROBLEM,
+                                      InputParser.AUTO_SUBSTITUTIONS, old_enable_substitutions)
 
         self.json_schema.update_backend_schema(self)
         self.json_schema.update_pluggable_schemas(self)
@@ -205,9 +214,9 @@ class InputParser(BaseParser):
             if new_properties is not None:
                 if self.section_is_text(section_name):
                     text = self.get_section_text(section_name)
-                    if (text is None or len(text) == 0) and \
+                    if not text and \
                             isinstance(new_properties, str) and \
-                            len(new_properties) > 0 and \
+                            new_properties and \
                             text != new_properties:
                         self.set_section_data(section_name, new_properties)
                 else:
@@ -226,7 +235,7 @@ class InputParser(BaseParser):
             raise QiskitChemistryError('Missing file path')
 
         file_name = file_name.strip()
-        if len(file_name) == 0:
+        if not file_name:
             raise QiskitChemistryError('Missing file path')
 
         prev_filename = self.get_filename()
@@ -238,22 +247,23 @@ class InputParser(BaseParser):
                 InputParser._from_relative_to_abs_paths(sections, prev_filename)
 
         contents = ''
-        lastIndex = len(sections) - 1
+        last_index = len(sections) - 1
         for i, (section_name, section) in enumerate(sections.items()):
             contents += '{}{}'.format(InputParser._START_SECTION, section_name)
             if self.section_is_text(section_name):
-                value = section if isinstance(section, str) else json.dumps(section, sort_keys=True, indent=4)
+                value = section if isinstance(section, str) \
+                    else json.dumps(section, sort_keys=True, indent=4)
                 contents += '\n{}'.format(value)
             else:
                 for k, v in section.items():
                     contents += '\n   {}{}{}'.format(k, InputParser._PROPVALUE_SEPARATOR, str(v))
 
             contents += '\n{}'.format(InputParser._END_SECTION)
-            if i < lastIndex:
+            if i < last_index:
                 contents += '\n\n'
 
-        with open(file_name, 'w') as f:
-            print(contents, file=f)
+        with open(file_name, 'w') as file:
+            print(contents, file=file)
 
     def delete_section(self, section_name):
         """
@@ -294,27 +304,34 @@ class InputParser(BaseParser):
                             self.delete_section_property(InputParser.OPERATOR, p_name)
             elif value is not None:
                 value = str(value).lower().strip()
-                if len(value) > 0 and self.section_is_driver(value):
+                if value and self.section_is_driver(value):
                     self._update_driver_input_schemas()
                     self._update_driver_sections()
 
     def is_substitution_allowed(self):
-        auto_substitutions = self.get_property_default_value(JSONSchema.PROBLEM, InputParser.AUTO_SUBSTITUTIONS)
-        auto_substitutions = self.get_section_property(JSONSchema.PROBLEM, InputParser.AUTO_SUBSTITUTIONS, auto_substitutions)
+        """ check if substitutions were allowed for this data """
+        auto_substitutions = self.get_property_default_value(JSONSchema.PROBLEM,
+                                                             InputParser.AUTO_SUBSTITUTIONS)
+        auto_substitutions = self.get_section_property(JSONSchema.PROBLEM,
+                                                       InputParser.AUTO_SUBSTITUTIONS,
+                                                       auto_substitutions)
         if auto_substitutions is None:
             auto_substitutions = True
 
         return auto_substitutions
 
     def check_if_substitution_key(self, section_name, property_names):
+        """ return property names that need to be substituted """
         result = [(property_name, False) for property_name in property_names]
         if not self.is_substitution_allowed():
             return result
 
         section_name = JSONSchema.format_section_name(section_name).lower()
-        property_names = [JSONSchema.format_property_name(property_name) for property_name in property_names]
+        property_names = [JSONSchema.format_property_name(property_name)
+                          for property_name in property_names]
         section_property_name = self.get_property_default_value(section_name, JSONSchema.NAME)
-        section_property_name = self.get_section_property(section_name, JSONSchema.NAME, section_property_name)
+        section_property_name = self.get_section_property(section_name,
+                                                          JSONSchema.NAME, section_property_name)
         for key in self._substitutions.keys():
             key_items = key.split('.')
             if len(key_items) == 3 and \
@@ -328,6 +345,7 @@ class InputParser(BaseParser):
         return result
 
     def process_substitutions(self, substitutions=None):
+        """ change property values by their corresponding substitutions """
         if substitutions is not None and not isinstance(substitutions, dict):
             raise QiskitChemistryError(
                 'Invalid substitution parameter: {}'.format(substitutions))
@@ -368,24 +386,25 @@ class InputParser(BaseParser):
         return result
 
     def _process_line(self, section, line):
-        stripLine = line.strip()
-        if len(stripLine) == 0:
+        strip_line = line.strip()
+        if not strip_line:
             if section is not None:
                 section['data'].append(line)
 
             return section
 
-        if stripLine.lower().startswith(InputParser._END_SECTION):
+        if strip_line.lower().startswith(InputParser._END_SECTION):
             if section is not None:
                 self._sections[section[JSONSchema.NAME]] = self._process_section(section)
             return None
 
-        if stripLine.startswith(InputParser._START_SECTION):
+        if strip_line.startswith(InputParser._START_SECTION):
             if section is not None:
-                raise QiskitChemistryError('New section "{0}" starting before the end of previuos section "{1}"'.format(
-                    line, section[JSONSchema.NAME]))
+                raise QiskitChemistryError(
+                    'New section "{0}" starting before the end of previuos section "{1}"'.format(
+                        line, section[JSONSchema.NAME]))
 
-            return OrderedDict([(JSONSchema.NAME, stripLine[1:].lower()), ('data', [])])
+            return OrderedDict([(JSONSchema.NAME, strip_line[1:].lower()), ('data', [])])
 
         if section is None:
             return section
@@ -397,7 +416,7 @@ class InputParser(BaseParser):
     def _process_section(self, section):
         contents = ''
         sep_pos = -len(os.linesep)
-        lastIndex = len(section['data']) - 1
+        last_index = len(section['data']) - 1
         for i, line in enumerate(section['data']):
             key, value = self._get_key_value(line)
             if key is not None and value is not None:
@@ -406,7 +425,7 @@ class InputParser(BaseParser):
 
                 section['properties'][key] = value
 
-            if i == lastIndex:
+            if i == last_index:
                 if len(line) >= len(os.linesep) and line[sep_pos:] == os.linesep:
                     line = line[:sep_pos]
 
@@ -417,10 +436,10 @@ class InputParser(BaseParser):
 
     @staticmethod
     def _get_key_value(line):
-        stripLine = line.strip()
+        strip_line = line.strip()
         pos = -1
         for start_comment in InputParser._START_COMMENTS:
-            pos = stripLine.find(start_comment)
+            pos = strip_line.find(start_comment)
             if pos >= 0:
                 break
 
@@ -428,19 +447,20 @@ class InputParser(BaseParser):
             return (None, None)
 
         if pos > 0:
-            stripLine = stripLine[:pos].strip()
+            strip_line = strip_line[:pos].strip()
 
-        pos = stripLine.find(InputParser._PROPVALUE_SEPARATOR)
+        pos = strip_line.find(InputParser._PROPVALUE_SEPARATOR)
         if pos > 0:
-            key = stripLine[0:pos].strip()
-            value = stripLine[pos + 1:].strip()
+            key = strip_line[0:pos].strip()
+            value = strip_line[pos + 1:].strip()
             return (key, JSONSchema.get_value(value))
 
         return (None, None)
 
     @staticmethod
     def get_operator_problems(input_name):
-        config = get_chemistry_operator_configuration(input_name)
+        """ get problems names related to this operator """
+        config = get_chem_operator_config(input_name)
         if 'problems' in config:
             return config['problems']
 
@@ -452,18 +472,20 @@ class InputParser(BaseParser):
             section_name = JSONSchema.format_section_name(section_name).lower()
             if isinstance(value, dict):
                 self._sections[section_name] = OrderedDict(value)
-            elif isinstance(value, list) or isinstance(value, str):
+            elif isinstance(value, (list, str)):
                 if isinstance(value, list):
                     self._sections[section_name] = '\n'.join(str(e) for e in value)
                 else:
                     self._sections[section_name] = value
             else:
-                raise QiskitChemistryError("Invalid parser input type for section {}".format(section_name))
+                raise QiskitChemistryError(
+                    "Invalid parser input type for section {}".format(section_name))
 
     def _update_operator_input_schema(self):
         # find operator
         default_name = self.get_property_default_value(InputParser.OPERATOR, JSONSchema.NAME)
-        operator_name = self.get_section_property(InputParser.OPERATOR, JSONSchema.NAME, default_name)
+        operator_name = self.get_section_property(InputParser.OPERATOR,
+                                                  JSONSchema.NAME, default_name)
         if operator_name is None:
             # find the first valid input for the problem
             problem_name = self.get_section_property(JSONSchema.PROBLEM, JSONSchema.NAME)
@@ -480,7 +502,7 @@ class InputParser(BaseParser):
                     break
 
         if operator_name is None:
-            # just remove fromm schema if none solves the problem
+            # just remove from schema if none solves the problem
             if InputParser.OPERATOR in self.json_schema.schema['properties']:
                 del self.json_schema.schema['properties'][InputParser.OPERATOR]
 
@@ -491,15 +513,16 @@ class InputParser(BaseParser):
 
         config = {}
         try:
-            config = get_chemistry_operator_configuration(operator_name)
-        except Exception:
+            config = get_chem_operator_config(operator_name)
+        except Exception:  # pylint: disable=broad-except
             pass
 
         input_schema = config['input_schema'] if 'input_schema' in config else {}
         properties = input_schema['properties'] if 'properties' in input_schema else {}
         properties[JSONSchema.NAME] = {'type': 'string'}
         required = input_schema['required'] if 'required' in input_schema else []
-        additionalProperties = input_schema['additionalProperties'] if 'additionalProperties' in input_schema else True
+        additional_properties = input_schema['additionalProperties'] \
+            if 'additionalProperties' in input_schema else True
         if default_name is not None:
             properties[JSONSchema.NAME]['default'] = default_name
             required.append(JSONSchema.NAME)
@@ -509,7 +532,8 @@ class InputParser(BaseParser):
 
         self.json_schema.schema['properties'][InputParser.OPERATOR]['properties'] = properties
         self.json_schema.schema['properties'][InputParser.OPERATOR]['required'] = required
-        self.json_schema.schema['properties'][InputParser.OPERATOR]['additionalProperties'] = additionalProperties
+        self.json_schema.schema['properties'][InputParser.OPERATOR]['additionalProperties'] = \
+            additional_properties
 
     def _update_driver_input_schemas(self):
         # find driver name
@@ -523,7 +547,8 @@ class InputParser(BaseParser):
             name = name.lower()
             if driver_name is not None and driver_name == name:
                 config = get_driver_configuration(name_orig)
-                input_schema = copy.deepcopy(config['input_schema']) if 'input_schema' in config else {'type': 'object'}
+                input_schema = copy.deepcopy(config['input_schema']) \
+                    if 'input_schema' in config else {'type': 'object'}
                 if '$schema' in input_schema:
                     del input_schema['$schema']
                 if 'id' in input_schema:
@@ -553,30 +578,34 @@ class InputParser(BaseParser):
 
         problems = InputParser.get_operator_problems(operator_name)
         if problem_name not in problems:
-            raise QiskitChemistryError("Problem: {} not in the list of problems: {} for operator: {}.".format(problem_name, problems, operator_name))
+            raise QiskitChemistryError(
+                "Problem: {} not in the list of problems: {} for operator: {}.".format(
+                    problem_name, problems, operator_name))
 
     def to_dictionary(self):
-        dict = OrderedDict()
+        """ export data to python dictionary """
+        dictionary = OrderedDict()
         for section_name in self.get_section_names():
             if self.section_is_text(section_name):
-                dict[section_name] = self.get_section_text(section_name).splitlines()
+                dictionary[section_name] = self.get_section_text(section_name).splitlines()
             else:
-                dict[section_name] = self.get_section_properties(section_name)
+                dictionary[section_name] = self.get_section_properties(section_name)
 
-        return dict
+        return dictionary
 
     def export_dictionary(self, file_name):
+        """ export data to python dictionary, saving to file """
         if file_name is None:
             raise QiskitChemistryError('Missing file path')
 
         file_name = file_name.strip()
-        if len(file_name) == 0:
+        if not file_name:
             raise QiskitChemistryError('Missing file path')
 
         value = json.loads(json.dumps(self.to_dictionary()))
         value = pprint.pformat(value, indent=4)
-        with open(file_name, 'w') as f:
-            print(value, file=f)
+        with open(file_name, 'w') as file:
+            print(value, file=file)
 
     @staticmethod
     def _from_relative_to_abs_paths(sections, filename):
@@ -587,12 +616,16 @@ class InputParser(BaseParser):
                     if key == InputParser._HDF5_INPUT:
                         if value is not None and not os.path.isabs(value):
                             value = os.path.abspath(os.path.join(directory, value))
-                            InputParser._set_section_property(sections, section_name, key, value, ['string'])
+                            InputParser._set_section_property(sections,
+                                                              section_name,
+                                                              key, value, ['string'])
 
     def section_is_driver(self, section_name):
+        """ check if this section is a chemistry driver """
         section_name = JSONSchema.format_section_name(section_name).lower()
         InputParser._load_driver_names()
-        driver_names = InputParser._DRIVER_NAMES if isinstance(InputParser._DRIVER_NAMES, list) else []
+        driver_names = InputParser._DRIVER_NAMES \
+            if isinstance(InputParser._DRIVER_NAMES, list) else []
         return section_name in driver_names
 
     def _update_operator_problem(self):
@@ -604,7 +637,8 @@ class InputParser(BaseParser):
             raise QiskitChemistryError("No algorithm 'problem' section found on input.")
 
         operator_name = self.get_section_property(InputParser.OPERATOR, JSONSchema.NAME)
-        if operator_name is not None and problem_name in InputParser.get_operator_problems(operator_name):
+        if operator_name is not None and \
+                problem_name in InputParser.get_operator_problems(operator_name):
             return
 
         for operator_name in local_chemistry_operators():

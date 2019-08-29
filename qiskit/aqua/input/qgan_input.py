@@ -23,7 +23,7 @@ class QGANInput(AlgorithmInput):
         'name': 'QGANInput',
         'description': 'QGAN input',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'qgan_input_schema',
             'type': 'object',
             'properties': {

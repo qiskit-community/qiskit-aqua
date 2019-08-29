@@ -30,7 +30,7 @@ class LongDivision(Reciprocal):
         'name': 'LongDivision',
         'description': 'reciprocal computation with long division and rotation of the ancilla qubit',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'reciprocal_long_division_schema',
             'type': 'object',
             'properties': {
@@ -263,7 +263,7 @@ class LongDivision(Reciprocal):
         """Construct the Long Division Rotation circuit.
 
         Args:
-            mode (str): consctruction mode, 'matrix' not supported
+            mode (str): construction mode, 'matrix' not supported
             inreg (QuantumRegister): input register, typically output register of Eigenvalues
 
         Returns:

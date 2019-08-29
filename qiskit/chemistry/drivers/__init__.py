@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Chemistry drivers packages """
+
 from ._basedriver import BaseDriver, UnitsType, HFMethodType
 from ._discover_driver import (DRIVERS_ENTRY_POINT,
                                refresh_drivers,

@@ -35,7 +35,7 @@ class DeutschJozsa(QuantumAlgorithm):
         'name': 'DeutschJozsa',
         'description': 'Deutsch Jozsa',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'dj_schema',
             'type': 'object',
             'properties': {

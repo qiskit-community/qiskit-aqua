@@ -51,7 +51,7 @@ class Shor(QuantumAlgorithm):
         'name': 'Shor',
         'description': "The Shor's Factoring Algorithm",
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'shor_schema',
             'type': 'object',
             'properties': {
@@ -321,7 +321,7 @@ class Shor(QuantumAlgorithm):
         self._up_qreg = QuantumRegister(2 * self._n, name='up')
         # quantum register where the multiplications are made
         self._down_qreg = QuantumRegister(self._n, name='down')
-        # auxilliary quantum register used in addition and multiplication
+        # auxiliary quantum register used in addition and multiplication
         self._aux_qreg = QuantumRegister(self._n + 2, name='aux')
 
         # Create Quantum Circuit
