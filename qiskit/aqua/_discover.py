@@ -24,8 +24,8 @@ import inspect
 import copy
 from collections import namedtuple
 from enum import Enum
-from qiskit.aqua import AquaError
 import pkg_resources
+from qiskit.aqua import AquaError
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +33,7 @@ PLUGGABLES_ENTRY_POINT = 'qiskit.aqua.pluggables'
 
 
 class PluggableType(Enum):
+    """ Pluggable Types """
     ALGORITHM = 'algorithm'
     OPTIMIZER = 'optimizer'
     VARIATIONAL_FORM = 'variational_form'
@@ -52,7 +53,7 @@ class PluggableType(Enum):
     DISCRIMINATIVE_NETWORK = 'discriminative_network'
 
 
-def _get_pluggables_types_dictionary():
+def _get_pluggables_types_dict():
     """
     Gets all the pluggables types
     Any new pluggable type should be added here
@@ -101,48 +102,75 @@ _NAMES_TO_EXCLUDE = [os.path.basename(__file__)]
 
 _FOLDERS_TO_EXCLUDE = ['__pycache__', 'gauopen']
 
-RegisteredPluggable = namedtuple(
-    'RegisteredPluggable', ['name', 'cls', 'configuration'])
 
-_REGISTERED_PLUGGABLES = {}
+class DiscoverRegistry:
+    """Contains Discovered Classes Info."""
 
-_DISCOVERED = False
+    REGISTERED_INFO = namedtuple(
+        'REGISTERED_INFO', ['name', 'cls', 'configuration'])
+
+    def __init__(self) -> None:
+        self._discovered = False
+        self._registry = {}
+
+    @property
+    def discovered(self):
+        """ Returns discovered flag """
+        return self._discovered
+
+    def set_discovered(self):
+        """ Set registry as discovered """
+        self._discovered = True
+
+    @property
+    def registry(self):
+        """ Return registry dictionary """
+        return self._registry
+
+    def reset(self):
+        """ reset registry data """
+        self._discovered = False
+        self._registry = {}
+
+
+# Registry Global Instance
+_REGISTRY_PLUGGABLE = DiscoverRegistry()
 
 
 def refresh_pluggables():
     """
     Attempts to rediscover all pluggable modules
     """
-    global _REGISTERED_PLUGGABLES
-    _REGISTERED_PLUGGABLES = {}
-    global _DISCOVERED
-    _DISCOVERED = True
+    _REGISTRY_PLUGGABLE.reset()
+    _REGISTRY_PLUGGABLE.set_discovered()
     directory = os.path.dirname(__file__)
     _discover_local_pluggables(directory)
-    _discover_local_pluggables(os.path.abspath(os.path.join(directory, '..', 'chemistry')), 'qiskit.chemistry')
-    _discover_entry_point_pluggables()
+    _discover_local_pluggables(os.path.abspath(os.path.join(directory, '..', 'chemistry')),
+                               'qiskit.chemistry')
+    _discover_entry_pt_pluggables()
     if logger.isEnabledFor(logging.DEBUG):
         for ptype in local_pluggables_types():
-            logger.debug("Found: '{}' has pluggables {} ".format(ptype.value, local_pluggables(ptype)))
+            logger.debug("Found: '%s' has pluggables %s ", ptype.value, local_pluggables(ptype))
 
 
 def _discover_on_demand():
     """
     Attempts to discover pluggable modules, if not already discovered
     """
-    global _DISCOVERED
-    if not _DISCOVERED:
-        _DISCOVERED = True
+    if not _REGISTRY_PLUGGABLE.discovered:
+        _REGISTRY_PLUGGABLE.reset()
+        _REGISTRY_PLUGGABLE.set_discovered()
         directory = os.path.dirname(__file__)
         _discover_local_pluggables(directory)
-        _discover_local_pluggables(os.path.abspath(os.path.join(directory, '..', 'chemistry')), 'qiskit.chemistry')
-        _discover_entry_point_pluggables()
+        _discover_local_pluggables(os.path.abspath(os.path.join(directory, '..', 'chemistry')),
+                                   'qiskit.chemistry')
+        _discover_entry_pt_pluggables()
         if logger.isEnabledFor(logging.DEBUG):
             for ptype in local_pluggables_types():
-                logger.debug("Found: '{}' has pluggables {} ".format(ptype.value, local_pluggables(ptype)))
+                logger.debug("Found: '%s' has pluggables %s ", ptype.value, local_pluggables(ptype))
 
 
-def _discover_entry_point_pluggables():
+def _discover_entry_pt_pluggables():
     """
     Discovers the pluggable modules defined by entry_points in setup
     and attempts to register them. Pluggable modules should subclass Pluggable Base classes.
@@ -152,33 +180,34 @@ def _discover_entry_point_pluggables():
         try:
             entry_point.require()
         except Exception as ex:  # pylint: disable=broad-except
-            logger.warning("Entry point '{}' requirements issue: {}".format(entry_point, str(ex)))
+            logger.warning("Entry point '%s' requirements issue: %s", entry_point, str(ex))
 
         # now  call resolve and try to load entry point
         try:
-            ep = entry_point.resolve()
+            e_p = entry_point.resolve()
             _registered = False
-            for pluggable_type, c in _get_pluggables_types_dictionary().items():
-                if not inspect.isabstract(ep) and issubclass(ep, c):
-                    _register_pluggable(pluggable_type, ep)
+            for pluggable_type, c in _get_pluggables_types_dict().items():
+                if not inspect.isabstract(e_p) and issubclass(e_p, c):
+                    _register_pluggable(pluggable_type, e_p)
                     _registered = True
-                    # print("Registered entry point pluggable type '{}' '{}' class '{}'".format(pluggable_type.value, entry_point, ep))
-                    logger.debug("Registered entry point pluggable type '{}' '{}' class '{}'".format(pluggable_type.value, entry_point, ep))
+                    logger.debug(
+                        "Registered entry point pluggable type '%s' '%s' class '%s'",
+                        pluggable_type.value, entry_point, e_p)
                     break
 
             if not _registered:
-                # print("Unknown entry point pluggable '{}' class '{}'".format(entry_point, ep))
-                logger.debug("Unknown entry point pluggable '{}' class '{}'".format(entry_point, ep))
+                # print("Unknown entry point pluggable '{}' class '{}'".format(entry_point, e_p))
+                logger.debug("Unknown entry point pluggable '%s' class '%s'", entry_point, e_p)
         except Exception as ex:  # pylint: disable=broad-except
             # Ignore entry point that could not be initialized.
             # print("Failed to load entry point '{}' error {}".format(entry_point, str(e)))
-            logger.debug("Failed to load entry point '{}' error {}".format(entry_point, str(ex)))
+            logger.debug("Failed to load entry point '%s' error %s", entry_point, str(ex))
 
 
 def _discover_local_pluggables(directory=os.path.dirname(__file__),
                                parentname=os.path.splitext(__name__)[0],
-                               names_to_exclude=_NAMES_TO_EXCLUDE,
-                               folders_to_exclude=_FOLDERS_TO_EXCLUDE):
+                               names_to_exclude=None,
+                               folders_to_exclude=None):
     """
     Discovers the pluggable modules on the directory and subdirectories of the current module
     and attempts to register them. Pluggable modules should subclass Pluggable Base classes.
@@ -186,7 +215,12 @@ def _discover_local_pluggables(directory=os.path.dirname(__file__),
         directory (str, optional): Directory to search for pluggable. Defaults
             to the directory of this module.
         parentname (str, optional): Module parent name. Defaults to current directory name
+        names_to_exclude (str, optional): File names to exclude. Defaults to _NAMES_TO_EXCLUDE
+        folders_to_exclude (str, optional): Folders to exclude. Defaults to _FOLDERS_TO_EXCLUDE
     """
+    names_to_exclude = names_to_exclude if names_to_exclude is not None else _NAMES_TO_EXCLUDE
+    folders_to_exclude = folders_to_exclude \
+        if folders_to_exclude is not None else _FOLDERS_TO_EXCLUDE
     for _, name, ispackage in pkgutil.iter_modules([directory]):
         if ispackage:
             continue
@@ -202,7 +236,7 @@ def _discover_local_pluggables(directory=os.path.dirname(__file__),
                     # Iterate through the classes defined on the module.
                     try:
                         if cls.__module__ == modspec.name:
-                            for pluggable_type, c in _get_pluggables_types_dictionary().items():
+                            for pluggable_type, c in _get_pluggables_types_dict().items():
                                 if not inspect.isabstract(cls) and issubclass(cls, c):
                                     _register_pluggable(pluggable_type, cls)
                                     importlib.import_module(fullname)
@@ -210,17 +244,18 @@ def _discover_local_pluggables(directory=os.path.dirname(__file__),
                     except Exception as ex:  # pylint: disable=broad-except
                         # Ignore pluggables that could not be initialized.
                         # print('Failed to load pluggable {} error {}'.format(fullname, str(ex)))
-                        logger.debug('Failed to load pluggable {} error {}'.format(fullname, str(ex)))
+                        logger.debug('Failed to load pluggable %s error %s', fullname, str(ex))
 
             except Exception as ex:  # pylint: disable=broad-except
                 # Ignore pluggables that could not be initialized.
                 # print('Failed to load {} error {}'.format(fullname, str(ex)))
-                logger.debug('Failed to load {} error {}'.format(fullname, str(ex)))
+                logger.debug('Failed to load %s error %s', fullname, str(ex))
 
     for item in sorted(os.listdir(directory)):
         fullpath = os.path.join(directory, item)
         if item not in folders_to_exclude and not item.endswith('dSYM') and os.path.isdir(fullpath):
-            _discover_local_pluggables(fullpath, parentname + '.' + item, names_to_exclude, folders_to_exclude)
+            _discover_local_pluggables(fullpath, parentname + '.' + item,
+                                       names_to_exclude, folders_to_exclude)
 
 
 def register_pluggable(cls):
@@ -230,12 +265,14 @@ def register_pluggable(cls):
         cls (object): Pluggable class.
      Returns:
         name: pluggable name
+     Raises:
+         AquaError: Class doesn't derive from known pluggable
     """
     _discover_on_demand()
     pluggable_type = None
-    for type, c in _get_pluggables_types_dictionary().items():
+    for p_type, c in _get_pluggables_types_dict().items():
         if issubclass(cls, c):
-            pluggable_type = type
+            pluggable_type = p_type
             break
 
     if pluggable_type is None:
@@ -245,7 +282,7 @@ def register_pluggable(cls):
     return _register_pluggable(pluggable_type, cls)
 
 
-global_class = None
+GLOBAL_CLASS = None
 
 
 def _register_pluggable(pluggable_type, cls):
@@ -259,16 +296,17 @@ def _register_pluggable(pluggable_type, cls):
     Raises:
         AquaError: if the class is already registered or could not be registered
     """
-    if pluggable_type not in _REGISTERED_PLUGGABLES:
-        _REGISTERED_PLUGGABLES[pluggable_type] = {}
+    if pluggable_type not in _REGISTRY_PLUGGABLE.registry:
+        _REGISTRY_PLUGGABLE.registry[pluggable_type] = {}
 
     # fix pickle problems
-    method = 'from {} import {}\nglobal global_class\nglobal_class = {}'.format(cls.__module__, cls.__qualname__, cls.__qualname__)
-    exec(method)
-    cls = global_class
+    method = 'from {} import {}\nglobal GLOBAL_CLASS\nGLOBAL_CLASS = {}'.format(
+                cls.__module__, cls.__qualname__, cls.__qualname__)
+    exec(method)  # pylint: disable=exec-used
+    cls = GLOBAL_CLASS
 
     # Verify that the pluggable is not already registered.
-    registered_classes = _REGISTERED_PLUGGABLES[pluggable_type]
+    registered_classes = _REGISTRY_PLUGGABLE.registry[pluggable_type]
     if cls in [pluggable.cls for pluggable in registered_classes.values()]:
         raise AquaError(
             'Could not register class {} is already registered'.format(cls))
@@ -287,14 +325,17 @@ def _register_pluggable(pluggable_type, cls):
             check_pluggable_valid()
         except Exception as ex:  # pylint: disable=broad-except
             logger.debug(str(ex))
-            raise AquaError('Could not register class {}. Name {} is not valid'.format(cls, pluggable_name)) from ex
+            raise AquaError('Could not register class {}. Name {} is not valid'.format(
+                cls, pluggable_name)) from ex
 
-    if pluggable_name in _REGISTERED_PLUGGABLES[pluggable_type]:
+    if pluggable_name in _REGISTRY_PLUGGABLE.registry[pluggable_type]:
         raise AquaError('Could not register class {}. Name {} {} '
-                        'is already registered'.format(cls, pluggable_name, _REGISTERED_PLUGGABLES[pluggable_type][pluggable_name].cls))
+                        'is already registered'.format(
+                            cls, pluggable_name,
+                            _REGISTRY_PLUGGABLE.registry[pluggable_type][pluggable_name].cls))
 
     # Append the pluggable to the `registered_classes` dict.
-    _REGISTERED_PLUGGABLES[pluggable_type][pluggable_name] = RegisteredPluggable(
+    _REGISTRY_PLUGGABLE.registry[pluggable_type][pluggable_name] = DiscoverRegistry.REGISTERED_INFO(
         pluggable_name, cls, copy.deepcopy(cls.CONFIGURATION))
     return pluggable_name
 
@@ -310,15 +351,15 @@ def deregister_pluggable(pluggable_type, pluggable_name):
     """
     _discover_on_demand()
 
-    if pluggable_type not in _REGISTERED_PLUGGABLES:
+    if pluggable_type not in _REGISTRY_PLUGGABLE.registry:
         raise AquaError('Could not deregister {} {} not registered'.format(
             pluggable_type, pluggable_name))
 
-    if pluggable_name not in _REGISTERED_PLUGGABLES[pluggable_type]:
+    if pluggable_name not in _REGISTRY_PLUGGABLE.registry[pluggable_type]:
         raise AquaError('Could not deregister {} {} not registered'.format(
             pluggable_type, pluggable_name))
 
-    _REGISTERED_PLUGGABLES[pluggable_type].pop(pluggable_name)
+    _REGISTRY_PLUGGABLE.registry[pluggable_type].pop(pluggable_name)
 
 
 def get_pluggable_class(pluggable_type, pluggable_name):
@@ -343,16 +384,17 @@ def get_pluggable_class(pluggable_type, pluggable_name):
     if not isinstance(pluggable_type, PluggableType):
         raise AquaError('Invalid pluggable type {} {}'.format(pluggable_type, pluggable_name))
 
-    if pluggable_type not in _REGISTERED_PLUGGABLES:
+    if pluggable_type not in _REGISTRY_PLUGGABLE.registry:
         raise AquaError('{} {} not registered'.format(pluggable_type, pluggable_name))
 
-    if len(pluggable_name) == 0:
-        raise AquaError('Unable to get class for pluggable {}: Missing name.'.format(pluggable_type))
+    if not pluggable_name:
+        raise AquaError(
+            'Unable to get class for pluggable {}: Missing name.'.format(pluggable_type))
 
-    if pluggable_name not in _REGISTERED_PLUGGABLES[pluggable_type]:
+    if pluggable_name not in _REGISTRY_PLUGGABLE.registry[pluggable_type]:
         raise AquaError("{} '{}' not registered".format(pluggable_type, pluggable_name))
 
-    return _REGISTERED_PLUGGABLES[pluggable_type][pluggable_name].cls
+    return _REGISTRY_PLUGGABLE.registry[pluggable_type][pluggable_name].cls
 
 
 def get_pluggable_configuration(pluggable_type, pluggable_name):
@@ -377,16 +419,17 @@ def get_pluggable_configuration(pluggable_type, pluggable_name):
     if not isinstance(pluggable_type, PluggableType):
         raise AquaError('Invalid pluggable type {} {}'.format(pluggable_type, pluggable_name))
 
-    if pluggable_type not in _REGISTERED_PLUGGABLES:
+    if pluggable_type not in _REGISTRY_PLUGGABLE.registry:
         raise AquaError('{} {} not registered'.format(pluggable_type, pluggable_name))
 
-    if len(pluggable_name) == 0:
-        raise AquaError('Unable to get configuration for pluggable {}: Missing name.'.format(pluggable_type))
+    if not pluggable_name:
+        raise AquaError(
+            'Unable to get configuration for pluggable {}: Missing name.'.format(pluggable_type))
 
-    if pluggable_name not in _REGISTERED_PLUGGABLES[pluggable_type]:
+    if pluggable_name not in _REGISTRY_PLUGGABLE.registry[pluggable_type]:
         raise AquaError('{} {} not registered'.format(pluggable_type, pluggable_name))
 
-    return copy.deepcopy(_REGISTERED_PLUGGABLES[pluggable_type][pluggable_name].configuration)
+    return copy.deepcopy(_REGISTRY_PLUGGABLE.registry[pluggable_type][pluggable_name].configuration)
 
 
 def local_pluggables_types():
@@ -396,7 +439,7 @@ def local_pluggables_types():
        types: pluggable types
     """
     _discover_on_demand()
-    return list(_REGISTERED_PLUGGABLES.keys())
+    return list(_REGISTRY_PLUGGABLE.registry.keys())
 
 
 def local_pluggables(pluggable_type):
@@ -407,7 +450,7 @@ def local_pluggables(pluggable_type):
     Returns:
         names: pluggable names
     Raises:
-        AquaError: if the tyoe is not registered
+        AquaError: if the type is not registered
     """
     _discover_on_demand()
 
@@ -421,7 +464,7 @@ def local_pluggables(pluggable_type):
         raise AquaError(
             'Invalid pluggable type {}'.format(pluggable_type))
 
-    if pluggable_type not in _REGISTERED_PLUGGABLES:
+    if pluggable_type not in _REGISTRY_PLUGGABLE.registry:
         raise AquaError('{} not registered'.format(pluggable_type))
 
-    return [pluggable.name for pluggable in _REGISTERED_PLUGGABLES[pluggable_type].values()]
+    return [pluggable.name for pluggable in _REGISTRY_PLUGGABLE.registry[pluggable_type].values()]

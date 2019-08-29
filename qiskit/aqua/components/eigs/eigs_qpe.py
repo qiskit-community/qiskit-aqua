@@ -35,7 +35,7 @@ class EigsQPE(Eigenvalues):
         'name': 'EigsQPE',
         'description': 'Quantum Phase Estimation for eigenvalues',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'eigsqpe_schema',
             'type': 'object',
             'properties': {

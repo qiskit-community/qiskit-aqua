@@ -36,7 +36,7 @@ class LogicalExpressionOracle(Oracle):
         'name': 'LogicalExpressionOracle',
         'description': 'Logical Expression Oracle',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'logical_expression_oracle_schema',
             'type': 'object',
             'properties': {

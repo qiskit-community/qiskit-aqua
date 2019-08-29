@@ -26,7 +26,7 @@ class Zero(InitialState):
         'name': 'ZERO',
         'description': 'Zero initial state',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'zero_state_schema',
             'type': 'object',
             'properties': {

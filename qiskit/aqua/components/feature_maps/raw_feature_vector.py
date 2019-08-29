@@ -37,7 +37,7 @@ class RawFeatureVector(FeatureMap):
         'name': 'RawFeatureVector',
         'description': 'Raw feature vector',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'raw_feature_vector_schema',
             'type': 'object',
             'properties': {

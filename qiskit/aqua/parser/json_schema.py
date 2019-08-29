@@ -530,7 +530,7 @@ class JSONSchema(object):
         self._update_dependency_schemas(pluggable_dependencies, input_parser)
 
     def _update_dependency_schemas(self, pluggable_dependencies, input_parser):
-        # update schema with dependencies recursevely
+        # update schema with dependencies recursively
         for pluggable_type_dict in pluggable_dependencies:
             pluggable_type = pluggable_type_dict.get('pluggable_type')
             if pluggable_type is None:
@@ -656,14 +656,14 @@ class JSONSchema(object):
 
     def validate_property(self, sections_json, section_name, property_name):
         """
-        Validates the propery and returns error message
+        Validates the property and returns error message
         Args:
-            sections_json(dict): sesctions
+            sections_json(dict): sections
             section_name (string): section name
             property_name (string): property name
 
         Returns:
-            Returns error meessage or None
+            Returns error message or None
         """
         validator = jsonschema.Draft4Validator(self._schema)
         for error in sorted(validator.iter_errors(sections_json), key=str):

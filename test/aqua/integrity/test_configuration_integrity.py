@@ -159,7 +159,7 @@ class TestConfigurationIntegrity(QiskitAquaTestCase):
 
             parameter = parameters.get(prop_name)
             if parameter is None:
-                # It is not mandatory that all schema parametere be in the constructor
+                # It is not mandatory that all schema parameters be in the constructor
                 continue
 
             if 'default' in value:

@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Gaussian packages """
+
 from .gaussiandriver import GaussianDriver
 
 __all__ = ['GaussianDriver']

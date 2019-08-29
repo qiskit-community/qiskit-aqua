@@ -35,7 +35,7 @@ def get_qubit_op(list_of_subsets):
         Hb = -sum_{i}{Xi}
 
         Ha is to ensure the disjoint condition, while Hb is to achieve the maximal number.
-        Ha is hard constraint that must be satisified. Therefore A >> B.
+        Ha is hard constraint that must be satisfied. Therefore A >> B.
         In the following, we set A=10 and B = 1
 
         where Xi = (Zi + 1)/2

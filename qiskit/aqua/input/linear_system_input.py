@@ -27,7 +27,7 @@ class LinearSystemInput(AlgorithmInput):
         'name': 'LinearSystemInput',
         'description': 'Linear System problem input',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'linear_system_state_schema',
             'type': 'object',
             'properties': {
