@@ -85,7 +85,6 @@ class TestGraphPartition(QiskitAquaTestCase):
         """ Graph Partition VQE test """
         algorithm_cfg = {
             'name': 'VQE',
-            'operator_mode': 'matrix',
             'max_evals_grouped': 2
         }
 
