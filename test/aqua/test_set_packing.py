@@ -16,10 +16,13 @@
 
 import json
 from test.aqua.common import QiskitAquaTestCase
+
 import numpy as np
+
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.translators.ising import set_packing
+from qiskit.aqua.translators.ising.common import sample_most_likely
 from qiskit.aqua.algorithms import ExactEigensolver
 
 
@@ -31,7 +34,7 @@ class TestSetPacking(QiskitAquaTestCase):
         input_file = self._get_resource_path('sample.setpacking')
         with open(input_file) as file:
             self.list_of_subsets = json.load(file)
-            qubit_op, _ = set_packing.get_set_packing_qubitops(self.list_of_subsets)
+            qubit_op, _ = set_packing.get_qubit_op(self.list_of_subsets)
             self.algo_input = EnergyInput(qubit_op)
 
     def _brute_force(self):
@@ -58,7 +61,7 @@ class TestSetPacking(QiskitAquaTestCase):
             'algorithm': {'name': 'ExactEigensolver'}
         }
         result = run_algorithm(params, self.algo_input)
-        x = set_packing.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
+        x = sample_most_likely(result['eigvecs'][0])
         ising_sol = set_packing.get_solution(x)
         np.testing.assert_array_equal(ising_sol, [0, 1, 1])
         oracle = self._brute_force()
@@ -68,7 +71,7 @@ class TestSetPacking(QiskitAquaTestCase):
         """ set packing direct test """
         algo = ExactEigensolver(self.algo_input.qubit_op, k=1, aux_operators=[])
         result = algo.run()
-        x = set_packing.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
+        x = sample_most_likely(result['eigvecs'][0])
         ising_sol = set_packing.get_solution(x)
         np.testing.assert_array_equal(ising_sol, [0, 1, 1])
         oracle = self._brute_force()
@@ -107,7 +110,7 @@ class TestSetPacking(QiskitAquaTestCase):
         }
         backend = Aer.get_backend('qasm_simulator')
         result = run_algorithm(params, self.algo_input, backend=backend)
-        x = set_packing.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
+        x = sample_most_likely(result['eigvecs'][0])
         ising_sol = set_packing.get_solution(x)
         oracle = self._brute_force()
         self.assertEqual(np.count_nonzero(ising_sol), oracle)

@@ -20,7 +20,7 @@ from test.aqua.common import QiskitAquaTestCase
 import numpy as np
 from qiskit import BasicAer
 
-from qiskit.aqua import QuantumInstance
+from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.components.variational_forms import RY
 from qiskit.aqua.components.optimizers import COBYLA, SPSA
 from qiskit.aqua.algorithms import ExactEigensolver
@@ -37,6 +37,7 @@ class TestEomVQE(QiskitAquaTestCase):
     def setUp(self):
         """Setup."""
         super().setUp()
+        aqua_globals.random_seed = 0
         atom = 'H .0 .0 .7414; H .0 .0 .0'
         pyscf_driver = PySCFDriver(atom=atom,
                                    unit=UnitsType.ANGSTROM, charge=0, spin=0, basis='sto3g')
