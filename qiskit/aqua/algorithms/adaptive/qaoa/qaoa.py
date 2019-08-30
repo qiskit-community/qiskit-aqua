@@ -38,11 +38,6 @@ class QAOA(VQE):
             'id': 'qaoa_schema',
             'type': 'object',
             'properties': {
-                'operator_mode': {
-                    'type': ['string', 'null'],
-                    'default': None,
-                    'enum': ['matrix', 'paulis', 'grouped_paulis', None]
-                },
                 'p': {
                     'type': 'integer',
                     'default': 1,
@@ -77,12 +72,11 @@ class QAOA(VQE):
         ],
     }
 
-    def __init__(self, operator, optimizer, p=1, initial_state=None, mixer=None, operator_mode=None,
+    def __init__(self, operator, optimizer, p=1, initial_state=None, mixer=None,
                  initial_point=None, max_evals_grouped=1, aux_operators=None, callback=None, auto_conversion=True):
         """
         Args:
             operator (BaseOperator): Qubit operator
-            operator_mode (str): operator mode, used for eval of operator
             p (int): the integer parameter p as specified in https://arxiv.org/abs/1411.4028
             initial_state (InitialState): the initial state to prepend the QAOA circuit with
             mixer (BaseOperator): the mixer Hamiltonian to evolve with. Allows support
@@ -103,10 +97,11 @@ class QAOA(VQE):
 
         """
         self.validate(locals())
-        var_form = QAOAVarForm(operator.copy(), p, initial_state=initial_state, mixer_operator=mixer)
-        super().__init__(operator, var_form, optimizer, initial_point=initial_point, operator_mode=operator_mode,
-                         max_evals_grouped=max_evals_grouped, aux_operators=aux_operators, callback=callback,
-                         auto_conversion=auto_conversion)
+        var_form = QAOAVarForm(operator.copy(), p, initial_state=initial_state,
+                               mixer_operator=mixer)
+        super().__init__(operator, var_form, optimizer, initial_point=initial_point,
+                         max_evals_grouped=max_evals_grouped, aux_operators=aux_operators,
+                         callback=callback, auto_conversion=auto_conversion)
 
     @classmethod
     def init_params(cls, params, algo_input):
