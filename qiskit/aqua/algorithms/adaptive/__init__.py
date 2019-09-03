@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" adaptive packages """
+
 from .vqe.vqe import VQE
 from .qaoa.qaoa import QAOA
 from .vqc.vqc import VQC

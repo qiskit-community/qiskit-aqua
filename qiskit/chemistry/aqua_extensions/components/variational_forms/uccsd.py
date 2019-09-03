@@ -125,7 +125,7 @@ class UCCSD(VariationalForm):
             shallow_circuit_concat (bool): indicate whether to use shallow (cheap) mode for
                                            circuit concatenation
          Raises:
-             ValueError: Computed qubites do not match actual value
+             ValueError: Computed qubits do not match actual value
         """
         self.validate(locals())
         super().__init__()

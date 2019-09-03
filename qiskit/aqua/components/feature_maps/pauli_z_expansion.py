@@ -71,6 +71,7 @@ class PauliZExpansion(PauliExpansion):
                                         applying the two-qubit gate.
             entanglement (str): ['full', 'linear'], generate the qubit connectivity by predefined
                                 topology
+            z_order (int): z order
             data_map_func (Callable): a mapping function for data x
         """
         self.validate(locals())

@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" circuits packages """
+
 from .boolean_logical_circuits import CNF, DNF, ESOP
 from .phase_estimation_circuit import PhaseEstimationCircuit
 from .statevector_circuit import StateVectorCircuit

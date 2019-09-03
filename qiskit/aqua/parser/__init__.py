@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Parser and schema packages """
+
 from .json_schema import JSONSchema
 from .base_parser import BaseParser
 

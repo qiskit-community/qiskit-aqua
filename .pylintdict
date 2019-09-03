@@ -101,7 +101,6 @@ diagonalize
 diagonalizing
 dict
 diederik
-digonalize
 dimacs
 dimens
 dimensionality
@@ -147,7 +146,6 @@ fileio
 filepath
 fm
 fock
-formated
 formatter
 fortran
 fourier
@@ -187,7 +185,6 @@ imag
 implicants
 indices
 indvar
-iniial
 init
 initializer
 innerproduct
@@ -300,7 +297,6 @@ onwards
 optim
 optimizer's
 optimizers
-pairy
 parametrized
 params
 parentname
@@ -308,7 +304,6 @@ pauli
 pauli's
 paulis
 paulische
-paulisf
 pca
 pdf
 penality
@@ -356,7 +351,6 @@ quantized
 quantumcircuit
 quantumregister
 qubit
-qubites
 qubits
 quine
 qutip
@@ -371,6 +365,7 @@ renyi
 reparameterizing
 reqd
 rescaling
+retval
 rhf
 rhobeg
 rhs
@@ -424,7 +419,6 @@ sys
 tbd
 tdg
 temme
-tempoary
 tensorproduct
 terra
 terra's
@@ -445,7 +439,6 @@ transpiled
 transpiler
 tranter
 trunc
-tthe
 ub
 uccsd
 uhf
@@ -461,7 +454,6 @@ unroller
 unsetting
 unshifting
 untapered
-uppper
 validator
 vals
 variational

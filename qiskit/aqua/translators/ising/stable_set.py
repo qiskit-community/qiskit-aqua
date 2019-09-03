@@ -38,7 +38,7 @@ def get_qubit_op(w):
         w (numpy.ndarray) : adjacency matrix.
 
     Returns:
-        WeightedPauliOperatorOperator, float: operator for the Hamiltonian and a
+        tuple(WeightedPauliOperator, float): operator for the Hamiltonian and a
         constant shift for the obj function.
 
     """
@@ -48,18 +48,18 @@ def get_qubit_op(w):
     for i in range(num_nodes):
         for j in range(i+1, num_nodes):
             if w[i, j] != 0:
-                xp = np.zeros(num_nodes, dtype=np.bool)
-                zp = np.zeros(num_nodes, dtype=np.bool)
-                zp[i] = True
-                zp[j] = True
-                pauli_list.append([1.0, Pauli(zp, xp)])
+                x_p = np.zeros(num_nodes, dtype=np.bool)
+                z_p = np.zeros(num_nodes, dtype=np.bool)
+                z_p[i] = True
+                z_p[j] = True
+                pauli_list.append([1.0, Pauli(z_p, x_p)])
                 shift += 1
     for i in range(num_nodes):
         degree = np.sum(w[i, :])
-        xp = np.zeros(num_nodes, dtype=np.bool)
-        zp = np.zeros(num_nodes, dtype=np.bool)
-        zp[i] = True
-        pauli_list.append([degree - 1/2, Pauli(zp, xp)])
+        x_p = np.zeros(num_nodes, dtype=np.bool)
+        z_p = np.zeros(num_nodes, dtype=np.bool)
+        z_p[i] = True
+        pauli_list.append([degree - 1/2, Pauli(z_p, x_p)])
     return WeightedPauliOperator(paulis=pauli_list), shift - num_nodes/2
 
 
@@ -72,10 +72,10 @@ def stable_set_value(x, w):
         w (numpy.ndarray): adjacency matrix.
 
     Returns:
-        float, bool: size of the stable set, and Boolean indicating
+        tuple(float, bool): size of the stable set, and Boolean indicating
             feasibility.
     """
-    assert(len(x) == w.shape[0])
+    assert len(x) == w.shape[0]
     feasible = True
     num_nodes = w.shape[0]
     for i in range(num_nodes):
@@ -99,6 +99,7 @@ def get_graph_solution(x):
 
 
 def random_graph(n, edge_prob=0.5, savefile=None, seed=None):
+    """ random graph """
     from .common import random_graph as redirect_func
     warnings.warn("random_graph function has been moved to "
                   "qiskit.aqua.translators.ising.common, "
@@ -109,6 +110,7 @@ def random_graph(n, edge_prob=0.5, savefile=None, seed=None):
 
 
 def parse_gset_format(filename):
+    """ parse gset format """
     from .common import parse_gset_format as redirect_func
     warnings.warn("parse_gset_format function has been moved to "
                   "qiskit.aqua.translators.ising.common, "
@@ -118,6 +120,7 @@ def parse_gset_format(filename):
 
 
 def sample_most_likely(state_vector):
+    """ sample most likely """
     from .common import sample_most_likely as redirect_func
     warnings.warn("sample_most_likely function has been moved to "
                   "qiskit.aqua.translators.ising.common, "
@@ -127,6 +130,7 @@ def sample_most_likely(state_vector):
 
 
 def get_stable_set_qubitops(w):
+    """ get stable set qubit ops """
     warnings.warn("get_stable_set_qubitops function has been changed to get_qubit_op"
                   "the method here will be removed after Aqua 0.7+",
                   DeprecationWarning)

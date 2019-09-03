@@ -11,13 +11,15 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
 """
 The Multivariate Log-Normal Distribution.
 """
 
 import numpy as np
 from scipy.stats import multivariate_normal
-from qiskit.aqua.components.uncertainty_models.multivariate_distribution import MultivariateDistribution
+from qiskit.aqua.components.uncertainty_models.multivariate_distribution \
+    import MultivariateDistribution
 
 
 class MultivariateLogNormalDistribution(MultivariateDistribution):
@@ -70,6 +72,7 @@ class MultivariateLogNormalDistribution(MultivariateDistribution):
         }
     }
 
+    # pylint: disable=invalid-name
     def __init__(self, num_qubits, low=None, high=None, mu=None, cov=None):
         """
         Constructor.
@@ -104,19 +107,21 @@ class MultivariateLogNormalDistribution(MultivariateDistribution):
     def _compute_probabilities(self, probs, values, num_qubits, low, high, x=None):
 
         for y in np.linspace(low[0], high[0], 2 ** num_qubits[0]):
-            x_ = y if x is None else np.append(x, y)
+            x__ = y if x is None else np.append(x, y)
             if len(num_qubits) == 1:
                 # map probabilities from normal to log-normal
                 # reference:
                 # https://stats.stackexchange.com/questions/214997/multivariate-log-normal-probabiltiy-density-function-pdf
-                if np.min(x_) > 0.0:
-                    phi_x_ = np.log(x_)
-                    det_J_phi = 1 / np.prod(x_)
-                    prob = multivariate_normal.pdf(phi_x_, mean=self.mu, cov=self.cov) * det_J_phi
+                if np.min(x__) > 0.0:
+                    phi_x_ = np.log(x__)
+                    det_j_phi = 1 / np.prod(x__)
+                    prob = multivariate_normal.pdf(phi_x_, mean=self.mu, cov=self.cov) * det_j_phi
                     probs.append(prob)
                 else:
                     probs.append(0.0)
-                values.append(x_)
+                values.append(x__)
             else:
-                probs, values = self._compute_probabilities(probs, values, num_qubits[1:], low[1:], high[1:], x_)
+                probs, values = self._compute_probabilities(probs,
+                                                            values,
+                                                            num_qubits[1:], low[1:], high[1:], x__)
         return probs, values

@@ -72,11 +72,12 @@ class EOH(QuantumAlgorithm):
         },
         'problems': ['eoh'],
         'depends': [
-            {'pluggable_type': 'initial_state',
-             'default': {
-                     'name': 'ZERO'
-                }
-             },
+            {
+                'pluggable_type': 'initial_state',
+                'default': {
+                    'name': 'ZERO'
+                },
+            },
         ],
     }
 
@@ -98,13 +99,18 @@ class EOH(QuantumAlgorithm):
         """
         Initialize via parameters dictionary and algorithm input instance
         Args:
-            params: parameters dictionary
-            algo_input: EnergyInput instance
+            params (dict): parameters dictionary
+            algo_input (EnergyInput): instance
+        Returns:
+            EOH: and instance of this class
+        Raises:
+            AquaError: invalid input
         """
         if algo_input is None:
             raise AquaError("EnergyInput instance is required.")
 
-        # For getting the extra operator, caller has to do something like: algo_input.add_aux_op(evo_op)
+        # For getting the extra operator, caller has
+        # to do something like: algo_input.add_aux_op(evo_op)
         operator = algo_input.qubit_op
         aux_ops = algo_input.aux_ops
         if aux_ops is None or len(aux_ops) != 1:
@@ -155,5 +161,5 @@ class EOH(QuantumAlgorithm):
             wave_function=qc, statevector_mode=self._quantum_instance.is_statevector)
         result = self._quantum_instance.execute(qc_with_op)
         self._ret['avg'], self._ret['std_dev'] = self._operator.evaluate_with_result(
-             result=result, statevector_mode=self._quantum_instance.is_statevector)
+            result=result, statevector_mode=self._quantum_instance.is_statevector)
         return self._ret

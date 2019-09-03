@@ -11,12 +11,14 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
 """
 The Multivariate Uniform Distribution.
 """
 
 import numpy as np
-from qiskit.aqua.components.uncertainty_models.multivariate_distribution import MultivariateDistribution
+from qiskit.aqua.components.uncertainty_models.multivariate_distribution \
+    import MultivariateDistribution
 
 
 class MultivariateUniformDistribution(MultivariateDistribution):
@@ -63,8 +65,10 @@ class MultivariateUniformDistribution(MultivariateDistribution):
         Multivariate uniform distribution
         Args:
             num_qubits (array or list): list with the number of qubits per dimension
-            low (array or list): list with the lower bounds per dimension, set to 0 for each dimension if None
-            high (array or list): list with the upper bounds per dimension, set to 1 for each dimension if None
+            low (array or list): list with the lower bounds per dimension,
+                                    set to 0 for each dimension if None
+            high (array or list): list with the upper bounds per dimension,
+                                    set to 1 for each dimension if None
         """
         super().validate(locals())
 

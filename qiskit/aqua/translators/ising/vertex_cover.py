@@ -34,7 +34,7 @@ def get_qubit_op(weight_matrix):
         weight_matrix (numpy.ndarray) : adjacency matrix.
 
     Returns:
-        WeightedPauliOperator, float: operator for the Hamiltonian and a
+        tuple(WeightedPauliOperator, float): operator for the Hamiltonian and a
         constant shift for the obj function.
 
     Goals:
@@ -54,32 +54,32 @@ def get_qubit_op(weight_matrix):
     n = len(weight_matrix)
     pauli_list = []
     shift = 0
-    A = 5
+    a__ = 5
 
     for i in range(n):
         for j in range(i):
             if weight_matrix[i, j] != 0:
-                wp = np.zeros(n)
-                vp = np.zeros(n)
-                vp[i] = 1
-                vp[j] = 1
-                pauli_list.append([A*0.25, Pauli(vp, wp)])
+                w_p = np.zeros(n)
+                v_p = np.zeros(n)
+                v_p[i] = 1
+                v_p[j] = 1
+                pauli_list.append([a__*0.25, Pauli(v_p, w_p)])
 
-                vp2 = np.zeros(n)
-                vp2[i] = 1
-                pauli_list.append([-A*0.25, Pauli(vp2, wp)])
+                v_p2 = np.zeros(n)
+                v_p2[i] = 1
+                pauli_list.append([-a__*0.25, Pauli(v_p2, w_p)])
 
-                vp3 = np.zeros(n)
-                vp3[j] = 1
-                pauli_list.append([-A*0.25, Pauli(vp3, wp)])
+                v_p3 = np.zeros(n)
+                v_p3[j] = 1
+                pauli_list.append([-a__*0.25, Pauli(v_p3, w_p)])
 
-                shift += A*0.25
+                shift += a__*0.25
 
     for i in range(n):
-        wp = np.zeros(n)
-        vp = np.zeros(n)
-        vp[i] = 1
-        pauli_list.append([0.5, Pauli(vp, wp)])
+        w_p = np.zeros(n)
+        v_p = np.zeros(n)
+        v_p[i] = 1
+        pauli_list.append([0.5, Pauli(v_p, w_p)])
         shift += 0.5
     return WeightedPauliOperator(paulis=pauli_list), shift
 
@@ -117,6 +117,7 @@ def get_graph_solution(x):
 
 
 def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None, seed=None):
+    """ random graph """
     from .common import random_graph as redirect_func
     warnings.warn("random_graph function has been moved to "
                   "qiskit.aqua.translators.ising.common, "
@@ -127,6 +128,7 @@ def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None, seed=None):
 
 
 def parse_gset_format(filename):
+    """ parse gset format """
     from .common import parse_gset_format as redirect_func
     warnings.warn("parse_gset_format function has been moved to "
                   "qiskit.aqua.translators.ising.common, "
@@ -136,6 +138,7 @@ def parse_gset_format(filename):
 
 
 def sample_most_likely(n=None, state_vector=None):
+    """ sample most likely """
     from .common import sample_most_likely as redirect_func
     if n is not None:
         warnings.warn("n argument is not need and it will be removed after Aqua 0.7+",
@@ -148,6 +151,7 @@ def sample_most_likely(n=None, state_vector=None):
 
 
 def get_gset_result(x):
+    """ get gset result """
     from .common import get_gset_result as redirect_func
     warnings.warn("get_gset_result function has been moved to "
                   "qiskit.aqua.translators.ising.common, "
@@ -157,6 +161,7 @@ def get_gset_result(x):
 
 
 def get_vertex_cover_qubitops(weight_matrix):
+    """ get vertex cover qubit ops """
     warnings.warn("get_vertex_cover_qubitops function has been changed to get_qubit_op"
                   "the method here will be removed after Aqua 0.7+",
                   DeprecationWarning)

@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Data Providers Packages """
+
 from ._base_data_provider import BaseDataProvider, DataType, StockMarket, QiskitFinanceError
 from .data_on_demand_provider import DataOnDemandProvider
 from .exchange_data_provider import ExchangeDataProvider

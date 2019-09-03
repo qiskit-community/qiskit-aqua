@@ -12,11 +12,13 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" SPsi0Factory """
+
 from qiskit.aqua.utils import CircuitFactory
 
 
 class SPsi0Factory(CircuitFactory):
-
+    """ SPsi0Factory """
     def __init__(self, num_target_qubits, i_objective):
         super().__init__(num_target_qubits)
         self.i_objective = i_objective
@@ -33,7 +35,7 @@ class SPsi0Factory(CircuitFactory):
         else:
             return 1
 
-    def build(self, qc, q, q_ancillas=None):
+    def build(self, qc, q, q_ancillas=None, params=None):
         if self.num_target_qubits == 1:
             qc.z(q[0])
         else:

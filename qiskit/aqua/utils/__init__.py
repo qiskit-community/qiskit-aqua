@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Utility packages """
+
 from .tensor_product import tensorproduct
 from .json_utils import convert_dict_to_json, convert_json_to_dict
 from .random_matrix_generator import (random_unitary, random_h2_body,

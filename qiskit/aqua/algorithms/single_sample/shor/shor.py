@@ -30,11 +30,13 @@ from qiskit.aqua import AquaError, Pluggable
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.circuits import FourierTransformCircuits as ftc
-from qiskit.aqua.circuits.gates import mcu1
+from qiskit.aqua.circuits.gates import mcu1  # pylint: disable=unused-import
 from qiskit.aqua.utils import summarize_circuits
 
 
 logger = logging.getLogger(__name__)
+
+# pylint: disable=invalid-name
 
 
 class Shor(QuantumAlgorithm):
@@ -78,9 +80,15 @@ class Shor(QuantumAlgorithm):
         Args:
             N (int): The integer to be factored.
             a (int): A random integer a that satisfies a < N and gcd(a, N) = 1
+         Raises:
+            AquaError: invalid input
         """
         self.validate(locals())
         super().__init__()
+        self._n = None
+        self._up_qreg = None
+        self._down_qreg = None
+        self._aux_qreg = None
 
         # check the input integer
         if N < 1 or N % 2 == 0:
@@ -98,7 +106,7 @@ class Shor(QuantumAlgorithm):
         # check if the input integer is a power
         tf, b, p = is_power(N, return_decomposition=True)
         if tf:
-            logger.info('The input integer is a power: {}={}^{}.'.format(N, b, p))
+            logger.info('The input integer is a power: %s=%s^%s.', N, b, p)
             self._ret['factors'].append(b)
 
     @classmethod
@@ -107,8 +115,12 @@ class Shor(QuantumAlgorithm):
         Initialize via parameters dictionary and algorithm input instance.
 
         Args:
-            params: parameters dictionary
-            algo_input: input instance
+            params (dict): parameters dictionary
+            algo_input (object): input instance
+        Returns:
+            Shor: instance of this class
+        Raises:
+            AquaError: invalid input
         """
 
         if algo_input is not None:
@@ -274,11 +286,11 @@ class Shor(QuantumAlgorithm):
                     g, y, x = egcd(b % a, a)
                     return (g, x - (b // a) * y, y)
 
-            g, x, y = egcd(a, m)
+            g, x, _ = egcd(a, m)
             if g != 1:
                 raise Exception('modular inverse does not exist')
-            else:
-                return x % m
+
+            return x % m
 
         a_inv = modinv(a, self._N)
         ftc.construct_circuit(
@@ -307,9 +319,8 @@ class Shor(QuantumAlgorithm):
         """Construct circuit.
 
         Args:
-            measurement (bool): Boolean flag to indicate if measurement should be included in the circuit.
-
-
+            measurement (bool): Boolean flag to indicate if measurement
+                should be included in the circuit.
         Returns:
             QuantumCircuit: quantum circuit.
         """
@@ -331,7 +342,8 @@ class Shor(QuantumAlgorithm):
         circuit.u2(0, np.pi, self._up_qreg)
         circuit.u3(np.pi, 0, np.pi, self._down_qreg[0])
 
-        # Apply the multiplication gates as showed in the report in order to create the exponentiation
+        # Apply the multiplication gates as showed in
+        # the report in order to create the exponentiation
         for i in range(0, 2 * self._n):
             self._controlled_multiple_mod_N(
                 circuit,
@@ -358,10 +370,11 @@ class Shor(QuantumAlgorithm):
         Apply the continued fractions to find r and the gcd to find the desired factors.
         """
         x_value = int(output_desired, 2)
-        logger.info('In decimal, x_final value for this result is: {0}.'.format(x_value))
+        logger.info('In decimal, x_final value for this result is: %s.', x_value)
 
         if x_value <= 0:
-            self._ret['results'][output_desired] = 'x_value is <= 0, there are no continued fractions.'
+            self._ret['results'][output_desired] = \
+                'x_value is <= 0, there are no continued fractions.'
             return False
 
         logger.debug('Running continued fractions for this case.')
@@ -402,15 +415,16 @@ class Shor(QuantumAlgorithm):
             frac = fractions.Fraction(aux).limit_denominator()
             denominator = frac.denominator
 
-            logger.debug('Approximation number {0} of continued fractions:'.format(i + 1))
-            logger.debug("Numerator:{0} \t\t Denominator: {1}.".format(frac.numerator, frac.denominator))
+            logger.debug('Approximation number %s of continued fractions:', i + 1)
+            logger.debug("Numerator:%s \t\t Denominator: %s.", frac.numerator, frac.denominator)
 
             # Increment i for next iteration
             i = i + 1
 
             if denominator % 2 == 1:
                 if i >= self._N:
-                    self._ret['results'][output_desired] = 'unable to find factors after too many attempts.'
+                    self._ret['results'][output_desired] = \
+                        'unable to find factors after too many attempts.'
                     return False
                 logger.debug('Odd denominator, will try next iteration of continued fractions.')
                 continue
@@ -424,27 +438,33 @@ class Shor(QuantumAlgorithm):
 
             # Check if the value is too big or not
             if math.isinf(exponential) or exponential > 1000000000:
-                self._ret['results'][output_desired] = 'denominator of continued fraction is too big.'
+                self._ret['results'][output_desired] = \
+                    'denominator of continued fraction is too big.'
                 return False
 
-            # If the value is not to big (infinity), then get the right values and do the proper gcd()
+            # If the value is not to big (infinity),
+            # then get the right values and do the proper gcd()
             putting_plus = int(exponential + 1)
             putting_minus = int(exponential - 1)
             one_factor = math.gcd(putting_plus, self._N)
             other_factor = math.gcd(putting_minus, self._N)
 
             # Check if the factors found are trivial factors or are the desired factors
-            if one_factor == 1 or one_factor == self._N or other_factor == 1 or other_factor == self._N:
+            if one_factor == 1 or one_factor == self._N or \
+                    other_factor == 1 or other_factor == self._N:
                 logger.debug('Found just trivial factors, not good enough.')
-                # Check if the number has already been found, use i-1 because i was already incremented
+                # Check if the number has already been found,
+                # use i-1 because i was already incremented
                 if t[i - 1] == 0:
-                    self._ret['results'][output_desired] = 'the continued fractions found exactly x_final/(2^(2n)).'
+                    self._ret['results'][output_desired] = \
+                        'the continued fractions found exactly x_final/(2^(2n)).'
                     return False
                 if i >= self._N:
-                    self._ret['results'][output_desired] = 'unable to find factors after too many attempts.'
+                    self._ret['results'][output_desired] = \
+                        'unable to find factors after too many attempts.'
                     return False
             else:
-                logger.debug('The factors of {0} are {1} and {2}.'.format(self._N, one_factor, other_factor))
+                logger.debug('The factors of %s are %s and %s.', self._N, one_factor, other_factor)
                 logger.debug('Found the desired factors.')
                 self._ret['results'][output_desired] = (one_factor, other_factor)
                 factors = sorted((one_factor, other_factor))
@@ -454,11 +474,12 @@ class Shor(QuantumAlgorithm):
 
     def _run(self):
         if not self._ret['factors']:
-            logger.debug('Running with N={} and a={}.'.format(self._N, self._a))
+            logger.debug('Running with N=%s and a=%s.', self._N, self._a)
 
             if self._quantum_instance.is_statevector:
                 circuit = self.construct_circuit(measurement=False)
-                logger.warning('The statevector_simulator might lead to subsequent computation using too much memory.')
+                logger.warning('The statevector_simulator might lead to '
+                               'subsequent computation using too much memory.')
                 result = self._quantum_instance.execute(circuit)
                 complete_state_vec = result.get_statevector(circuit)
                 # TODO: this uses too much memory
@@ -478,19 +499,18 @@ class Shor(QuantumAlgorithm):
 
             self._ret['results'] = dict()
 
-            # For each simulation result, print proper info to user and try to calculate the factors of N
+            # For each simulation result, print proper info to user
+            # and try to calculate the factors of N
             for output_desired in list(counts.keys()):
                 # Get the x_value from the final state qubits
-                logger.info("------> Analyzing result {0}.".format(output_desired))
+                logger.info("------> Analyzing result %s.", output_desired)
                 self._ret['results'][output_desired] = None
                 success = self._get_factors(output_desired, int(2 * self._n))
                 if success:
-                    logger.info('Found factors {} from measurement {}.'.format(
-                        self._ret['results'][output_desired], output_desired
-                    ))
+                    logger.info('Found factors %s from measurement %s.',
+                                self._ret['results'][output_desired], output_desired)
                 else:
-                    logger.info('Cannot find factors from measurement {} because {}'.format(
-                        output_desired, self._ret['results'][output_desired]
-                    ))
+                    logger.info('Cannot find factors from measurement %s because %s',
+                                output_desired, self._ret['results'][output_desired])
 
         return self._ret

@@ -23,10 +23,14 @@ logger = logging.getLogger(__name__)
 try:
     from cplex import Cplex, SparsePair, SparseTriple
 except ImportError:
-    logger.info('CPLEX is not installed. See https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/ilog.odms.studio.help/Optimization_Studio/topics/COS_home.html')
+    logger.info('CPLEX is not installed. See https://www.ibm.com/support/knowledgecenter/'
+                'SSSA5P_12.8.0/ilog.odms.studio.help/Optimization_Studio/topics/COS_home.html')
+
+# pylint: disable=invalid-name
 
 
 class SimpleCPLEX:
+    """Simple Python Wrapper for CPLEX"""
     def __init__(self, cplex=None):
         try:
             if cplex:
@@ -35,7 +39,9 @@ class SimpleCPLEX:
                 self._model = Cplex()
         except NameError:
             raise NameError('CPLEX is not installed. '
-                            'See https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/ilog.odms.studio.help/Optimization_Studio/topics/COS_home.html')
+                            'See https://www.ibm.com/support/knowledgecenter/'
+                            'SSSA5P_12.8.0/ilog.odms.studio.help/Optimization_Studio/'
+                            'topics/COS_home.html')
 
         self._init_lin()
         # to avoid a variable with index 0
@@ -52,6 +58,7 @@ class SimpleCPLEX:
         }
 
     def register_variables(self, prefix, ranges, var_type, lb=None, ub=None):
+        """ register variables """
         if not ranges:  # None or []
             return self._register_variable(prefix, var_type, lb, ub)
 
@@ -75,50 +82,63 @@ class SimpleCPLEX:
         return index
 
     def model(self):
+        """ returns model """
         return self._model
 
     @property
     def parameters(self):
+        """ returns parameters """
         return self._model.parameters
 
     @property
     def variables(self):
+        """ returns variables """
         return self._model.variables
 
     @property
     def objective(self):
+        """ returns objective """
         return self._model.objective
 
     @property
     def problem_type(self):
+        """ returns problem type """
         return self._model.problem_type
 
     @property
     def solution(self):
+        """ returns solution """
         return self._model.solution
 
     @property
     def version(self):
+        """ returns version """
         return self._model.get_version()
 
     def maximize(self):
+        """ maximize """
         self._model.objective.set_sense(self._model.objective.sense.maximize)
 
     def minimize(self):
+        """ minimize """
         self._model.objective.set_sense(self._model.objective.sense.minimize)
 
     def set_problem_type(self, problem_type):
+        """ set problem type """
         self._model.set_problem_type(problem_type)
 
     def tune_problem(self, options):
+        """ tune problem """
         self._model.set_results_stream(None)
         self._model.parameters.tune_problem(options)
         self._model.set_results_stream(stdout)
 
     def solve(self):
+        """ solve """
         self._model.solve()
 
     def populate(self):
+        """ populate """
         self._model.solve()
         self._model.populate_solution_pool()
 
@@ -132,12 +152,14 @@ class SimpleCPLEX:
         return self._var_id[name]
 
     def get_values(self, lst, idx=None):
+        """ get values """
         if idx:
             return self._model.solution.pool.get_values(idx, lst)
         else:
             return self._model.solution.get_values(lst)
 
     def get_objective_value(self, idx=None):
+        """ get objective value """
         if idx:
             return self._model.solution.pool.get_objective_value(idx)
         else:
@@ -145,6 +167,7 @@ class SimpleCPLEX:
 
     @property
     def num_solutions(self):
+        """ returns num solutions """
         return self._model.solution.pool.get_num()
 
     @staticmethod
@@ -153,7 +176,7 @@ class SimpleCPLEX:
         assert sense in ['E', 'L', 'G', '>=', '=', '==', '<=']
         if sense == '<=':
             sense = 'L'
-        elif sense == '=' or sense == '==':
+        elif sense in ('=', '=='):
             sense = 'E'
         elif sense == '>=':
             sense = 'G'
@@ -171,7 +194,7 @@ class SimpleCPLEX:
         quad = []
         assert isinstance(lst, list)
         for e in lst:
-            assert isinstance(e, int) or isinstance(e, tuple)
+            assert isinstance(e, (int, tuple))
             if isinstance(e, int):
                 if e > 0:
                     linear.append((e, 1))
@@ -195,8 +218,12 @@ class SimpleCPLEX:
         """
         Convert 'x', and '-x' into ('x', 1) and ('x', -1), respectively.
 
-        :type coef: list[(int, float) or int]
-        :rtype: (list[int], list[float])
+        Args:
+            coef (list[(int, float) or int]): coef
+        Returns:
+            tuple: ind, val
+        Raises:
+            RuntimeError: unsupported type
         """
         ind = []
         val = []
@@ -218,10 +245,10 @@ class SimpleCPLEX:
 
     def add_linear_constraint(self, coef, sense, rhs):
         """
-        :type coef: list[(int, float)]
-        :type sense: string
-        :type rhs: float
-        :rtype: None
+        Args:
+            coef (list[(int, float)]): coef
+            sense (str): sense
+            rhs (float): rhs
         """
         if not coef:
             logger.warning('empty linear constraint')
@@ -234,16 +261,15 @@ class SimpleCPLEX:
         c['rhs'].append(rhs)
         c['range_values'].append(0)
         c['names'].append('c' + str(len(self._lin['names'])))
-        # logger.debug('%s %s %s %s', c['names'][-1], c['lin_expr'][-1], c['senses'][-1], c['rhs'][-1])
 
     def add_indicator_constraint(self, indvar, complemented, coef, sense, rhs):
         """
-        :type indvar: int
-        :type complemented: int
-        :type coef: list[(int, float)]
-        :type sense: string
-        :type rhs: float
-        :rtype: None
+        Args:
+            indvar (int): ind var
+            complemented (int): complemented
+            coef (list[(int, float)]): coef
+            sense (str): sense
+            rhs (float): rhs
         """
         ind, val = self._convert_coefficients(coef)
         sense = self._convert_sense(sense)
@@ -271,11 +297,11 @@ class SimpleCPLEX:
 
     def add_quadratic_constraint(self, lin, quad, sense, rhs):
         """
-        :type lin: list[(int, float)]
-        :type quad: list[(int, int, float)]
-        :type sense: string
-        :type rhs: float
-        :rtype: None
+        Args:
+            lin (list[(int, float)]): lin
+            quad (list[(int, int, float)]): quad
+            sense (str): sense
+            rhs (float): rhs
         """
         ind, val = self._convert_coefficients(lin)
         ind1 = [e[0] for e in quad]
@@ -292,8 +318,10 @@ class SimpleCPLEX:
         self._model.quadratic_constraints.add(**c)
 
     def build_model(self):
+        """ build model """
         self._model.linear_constraints.add(**self._lin)
         self._init_lin()
 
     def write(self, filename, filetype=''):
+        """ write """
         self._model.write(filename, filetype)

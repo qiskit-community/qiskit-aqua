@@ -11,12 +11,14 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
 """
 This module contains the definition of a base class for
 feature map. Several types of commonly used approaches.
 """
-from qiskit.aqua import Pluggable
+
 from abc import abstractmethod
+from qiskit.aqua import Pluggable
 from qiskit.aqua.utils import get_entangler_map, validate_entangler_map
 
 
@@ -27,9 +29,6 @@ class FeatureMap(Pluggable):
         This method should initialize the module and its configuration, and
         use an exception if a component of the module is
         available.
-
-        Args:
-            configuration (dict): configuration dictionary
     """
 
     @abstractmethod
@@ -40,6 +39,7 @@ class FeatureMap(Pluggable):
 
     @classmethod
     def init_params(cls, params):
+        """ init params """
         feat_map__params = params.get(Pluggable.SECTION_KEY_FEATURE_MAP)
         args = {k: v for k, v in feat_map__params.items() if k != 'name'}
         return cls(**args)
@@ -61,16 +61,20 @@ class FeatureMap(Pluggable):
 
     @staticmethod
     def get_entangler_map(map_type, num_qubits):
+        """ get entangle map """
         return get_entangler_map(map_type, num_qubits)
 
     @staticmethod
     def validate_entangler_map(entangler_map, num_qubits):
+        """ validate entangler map """
         return validate_entangler_map(entangler_map, num_qubits)
 
     @property
     def feature_dimension(self):
+        """ returns feature dimension """
         return self._feature_dimension
 
     @property
     def num_qubits(self):
+        """ returns number of qubits """
         return self._num_qubits

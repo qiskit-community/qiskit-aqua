@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" portfolio diversification """
+
 import warnings
 
 import numpy as np
@@ -31,7 +33,7 @@ def get_qubit_op(rho, n, q):
     Returns:
         WeightedPauliOperator: operator for the Hamiltonian
     """
-
+    # pylint: disable=invalid-name
     # N = (n + 1) * n  # number of qubits
     N = n**2 + n
 
@@ -125,8 +127,10 @@ def get_qubit_op(rho, n, q):
     return WeightedPauliOperator(paulis=pauli_list)
 
 
-def get_portfoliodiversification_solution(rho, n, q, result):
-    """Tries to obtain a feasible solution (in vector form) of an instance of portfolio diversification from the results dictionary.
+def get_portfoliodiversification_solution(rho, n, q, result):  # pylint: disable=invalid-name
+    """
+    Tries to obtain a feasible solution (in vector form) of an instance of
+    portfolio diversification from the results dictionary.
 
     Args:
         rho (numpy.ndarray) : an asset-to-asset similarity matrix, such as the covariance matrix.
@@ -135,9 +139,10 @@ def get_portfoliodiversification_solution(rho, n, q, result):
         result (dictionary) : a dictionary obtained by QAOA.run or VQE.run containing key 'eigvecs'.
 
     Returns:
-        x_state (numpy.ndarray) : a vector describing the solution.
-        """
-
+        numpy.ndarray: a vector describing the solution.
+    """
+    # pylint: disable=invalid-name
+    del rho, q  # unused
     v = result['eigvecs'][0]
     # N = (n + 1) * n  # number of qubits
     N = n ** 2 + n
@@ -160,8 +165,10 @@ def get_portfoliodiversification_solution(rho, n, q, result):
     return x_state
 
 
-def get_portfoliodiversification_value(rho, n, q, x_state):
-    """Evaluates an objective function of an instance of portfolio diversification and its solution (in vector form).
+def get_portfoliodiversification_value(rho, n, q, x_state):   # pylint: disable=invalid-name
+    """
+    Evaluates an objective function of an instance of portfolio diversification and
+    its solution (in vector form).
 
     Args:
         rho (numpy.ndarray) : an asset-to-asset similarity matrix, such as the covariance matrix.
@@ -172,7 +179,7 @@ def get_portfoliodiversification_value(rho, n, q, x_state):
     Returns:
         float: cost of the solution.
     """
-
+    # pylint: disable=invalid-name
     # N = (n + 1) * n  # number of qubits
     N = n ** 2 + n
 
@@ -235,12 +242,14 @@ def get_portfoliodiversification_value(rho, n, q, x_state):
     c = A * (q ** 2 + n)
 
     # Evaluates the cost distance from a binary representation
-    def fun(x): return np.dot(np.around(x), np.dot(Q, np.around(x))) + np.dot(g, np.around(x)) + c
+    def fun(x):
+        return np.dot(np.around(x), np.dot(Q, np.around(x))) + np.dot(g, np.around(x)) + c
 
     return fun(x_state)
 
 
-def get_portfoliodiversification_qubitops(rho, n, q):
+def get_portfoliodiversification_qubitops(rho, n, q):  # pylint: disable=invalid-name
+    """ get portfolio diversification qubit ops """
     warnings.warn("get_portfoliodiversification_qubitops function has been changed to get_qubit_op"
                   "the method here will be removed after Aqua 0.7+",
                   DeprecationWarning)

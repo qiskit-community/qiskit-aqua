@@ -11,20 +11,33 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
+"""
+Univariate Piecewise Linear Objective Function, applies controlled Y-rotation to target qubit.
+Control qubits represent integer value, and rotation approximates a piecewise
+linear function of the amplitude f:
+    |x>|0> --> |x>( sqrt(1 - f(x))|0> + sqrt(f(x))|1> )
+"""
+
 import numpy as np
 from qiskit.aqua.circuits.piecewise_linear_rotation import PiecewiseLinearRotation as PwlRot
 from qiskit.aqua.utils import CircuitFactory
+
+# pylint: disable=invalid-name
 
 
 class UnivariatePiecewiseLinearObjective(CircuitFactory):
 
     """
     Univariate Piecewise Linear Objective Function, applies controlled Y-rotation to target qubit.
-    Control qubits represent integer value, and rotation approximates a piecewise linear function of the amplitude f:
+    Control qubits represent integer value, and rotation approximates a piecewise
+    linear function of the amplitude f:
         |x>|0> --> |x>( sqrt(1 - f(x))|0> + sqrt(f(x))|1> )
     """
 
-    def __init__(self, num_state_qubits, min_state_value, max_state_value, breakpoints, slopes, offsets, f_min, f_max, c_approx, i_state=None, i_objective=None):
+    def __init__(self, num_state_qubits, min_state_value, max_state_value,
+                 breakpoints, slopes, offsets, f_min, f_max, c_approx,
+                 i_state=None, i_objective=None):
         """
         Constructor.
 
@@ -35,11 +48,15 @@ class UnivariatePiecewiseLinearObjective(CircuitFactory):
             breakpoints (list or array): breakpoints of piecewise linear function
             slopes (list or array): slopes of linear segments
             offsets (list or array): offset of linear segments
-            f_min (float): minimal value of resulting function (required for normalization of amplitude)
-            f_max (float): maximal value of resulting function (required for normalization of amplitude)
-            c_approx: approximating factor (linear segments are approximated by contracting rotation around pi/4, where sin^2() is locally linear)
-            i_state: indices of qubits that represent the state
-            i_objective: index of target qubit to apply the rotation to
+            f_min (float): minimal value of resulting function
+                            (required for normalization of amplitude)
+            f_max (float): maximal value of resulting function
+                            (required for normalization of amplitude)
+            c_approx (float): approximating factor (linear segments are approximated by
+                                             contracting rotation
+                                            around pi/4, where sin^2() is locally linear)
+            i_state (int): indices of qubits that represent the state
+            i_objective (int): index of target qubit to apply the rotation to
         """
         super().__init__(num_state_qubits + 1)
 
@@ -55,7 +72,8 @@ class UnivariatePiecewiseLinearObjective(CircuitFactory):
 
         # drop breakpoints and corresponding values below min_state_value or above max_state_value
         for i in reversed(range(len(breakpoints))):
-            if breakpoints[i] <= (self.min_state_value - 1e-6) or breakpoints[i] >= (self.max_state_value + 1e-6):
+            if breakpoints[i] <= (self.min_state_value - 1e-6) or \
+                    breakpoints[i] >= (self.max_state_value + 1e-6):
                 breakpoints = np.delete(breakpoints, i)
                 slopes = np.delete(slopes, i)
                 offsets = np.delete(offsets, i)
@@ -98,7 +116,7 @@ class UnivariatePiecewiseLinearObjective(CircuitFactory):
         self._mapped_breakpoints = []
         self._mapped_slopes = []
         self._mapped_offsets = []
-        for i in range(len(breakpoints)):
+        for i, _ in enumerate(breakpoints):
             mapped_breakpoint = (breakpoints[i] - lb) / (ub - lb) * (2**num_state_qubits - 1)
             if mapped_breakpoint <= 2**num_state_qubits - 1:
                 self._mapped_breakpoints += [mapped_breakpoint]
@@ -113,12 +131,14 @@ class UnivariatePiecewiseLinearObjective(CircuitFactory):
         self._mapped_offsets = np.array(self._mapped_offsets)
 
         # approximate linear behavior by scaling and contracting around pi/4
-        if len(self._mapped_breakpoints):
+        if len(self._mapped_breakpoints):  # pylint: disable=len-as-condition
             self._slope_angles = np.zeros(len(breakpoints))
             self._offset_angles = np.pi / 4 * (1 - c_approx) * np.ones(len(breakpoints))
             for i in range(len(breakpoints)):
-                self._slope_angles[i] = np.pi * c_approx * self._mapped_slopes[i] / 2 / (f_max - f_min)
-                self._offset_angles[i] += np.pi * c_approx * (self._mapped_offsets[i] - f_min) / 2 / (f_max - f_min)
+                self._slope_angles[i] = \
+                    np.pi * c_approx * self._mapped_slopes[i] / 2 / (f_max - f_min)
+                self._offset_angles[i] += \
+                    np.pi * c_approx * (self._mapped_offsets[i] - f_min) / 2 / (f_max - f_min)
 
             # multiply by 2 since Y-rotation uses theta/2 as angle
             self._slope_angles = 2 * self._slope_angles
@@ -142,7 +162,7 @@ class UnivariatePiecewiseLinearObjective(CircuitFactory):
             self._pwl_ry = None
 
     def value_to_estimation(self, value):
-
+        """ value to estimation """
         if self._c_approx < 1:
             # map normalized value back to estimation
             estimator = value - 1 / 2 + np.pi / 4 * self._c_approx
@@ -154,10 +174,11 @@ class UnivariatePiecewiseLinearObjective(CircuitFactory):
             return value
 
     def required_ancillas(self):
+        """ requires ancillas """
         return self._pwl_ry.required_ancillas()
 
-    def build(self, qc, q, q_ancillas=None):
-
+    def build(self, qc, q, q_ancillas=None, params=None):
+        """ build """
         q_state = [q[i] for i in self.i_state]
         q_objective = q[self.i_objective]
 

@@ -20,9 +20,11 @@ import numpy as np
 
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.aqua.components.reciprocals import Reciprocal
-from qiskit.aqua.circuits.gates import mct
+from qiskit.aqua.circuits.gates import mct  # pylint: disable=unused-import
 
 logger = logging.getLogger(__name__)
+
+# pylint: disable=invalid-name
 
 
 class LookupRotation(Reciprocal):
@@ -128,7 +130,7 @@ class LookupRotation(Reciprocal):
             negative_evals (bool): flag for using first qubit as sign bit
 
         Returns:
-            Dictionary containing values of approximated and binned values.
+            dict: Dictionary containing values of approximated and binned values.
         """
 
         def bin_to_num(binary):
@@ -225,6 +227,8 @@ class LookupRotation(Reciprocal):
             fo_pos (int): position of first-one bit
             last_iteration (bool): switch which is set for numbers where only the
                         last n bits is different from 0 in the binary string
+        Raises:
+            RuntimeError: invalid input
         """
         qc = self._circuit
         ev = [ev_reg[i] for i in range(len(ev_reg))]
@@ -289,7 +293,7 @@ class LookupRotation(Reciprocal):
             if i == '0':
                 qc.x(self._ev[int(c + offset)])
 
-    def construct_circuit(self, mode, inreg):
+    def construct_circuit(self, mode, inreg):  # pylint: disable=arguments-differ
 
         """Construct the Lookup Rotation circuit.
 
@@ -298,7 +302,9 @@ class LookupRotation(Reciprocal):
             inreg (QuantumRegister): input register, typically output register of Eigenvalues
 
         Returns:
-            QuantumCircuit containing the Lookup Rotation circuit.
+            QuantumCircuit: containing the Lookup Rotation circuit.
+         Raises:
+            NotImplementedError: mode not supported
         """
 
         # initialize circuit

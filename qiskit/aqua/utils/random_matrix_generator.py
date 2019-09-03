@@ -12,6 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" random matrix generator """
 
 import numpy as np
 import scipy
@@ -22,7 +23,7 @@ from qiskit.aqua import aqua_globals
 from qiskit.aqua.utils.tensor_product import tensorproduct
 
 
-def random_h1_body(N):
+def random_h1_body(N):  # pylint: disable=invalid-name
     """
     Generate a random one body integrals.
 
@@ -31,35 +32,37 @@ def random_h1_body(N):
 
     Returns:
         np.ndarray: a 2-D matrix with np.complex data type.
+    Raises:
+        ValueError: invalid number of spin orbitals
     """
-    Pup = np.asarray([[1, 0], [0, 0]])
-    Pdown = np.asarray([[0, 0], [0, 1]])
+    pup = np.asarray([[1, 0], [0, 0]])
+    pdown = np.asarray([[0, 0], [0, 1]])
 
     if N % 2 != 0:
         raise ValueError('The number of spin-orbitals must be even but {}'.format(N))
-    h1 = np.ones((N // 2, N // 2)) - 2 * aqua_globals.random.random_sample((N // 2, N // 2))
-    h1 = np.triu(tensorproduct(Pup, h1) + tensorproduct(Pdown, h1))
-    h1 = (h1 + h1.T) / 2.0  # pylint: disable=no-member
-    return h1
+    h_1 = np.ones((N // 2, N // 2)) - 2 * aqua_globals.random.random_sample((N // 2, N // 2))
+    h_1 = np.triu(tensorproduct(pup, h_1) + tensorproduct(pdown, h_1))
+    h_1 = (h_1 + h_1.T) / 2.0  # pylint: disable=no-member
+    return h_1
 
 
-def random_unitary(N):
+def random_unitary(N):  # pylint: disable=invalid-name
     """
     Generate a random unitary matrix with size NxN.
 
     Args:
-        N: the dimension of unitary matrix
+        N (int): the dimension of unitary matrix
     Returns:
         np.ndarray: a 2-D matrix with np.complex data type.
     """
-    X = (np.random.random(size=(N, N))*N + 1j*np.random.random(size=(N, N))*N) / np.sqrt(2)
-    Q, R = np.linalg.qr(X)
-    R = np.diag(np.divide(np.diag(R), abs(np.diag(R))))
-    unitary_matrix = np.dot(Q, R)
+    x = (np.random.random(size=(N, N))*N + 1j*np.random.random(size=(N, N))*N) / np.sqrt(2)
+    q, r = np.linalg.qr(x)
+    r = np.diag(np.divide(np.diag(r), abs(np.diag(r))))
+    unitary_matrix = np.dot(q, r)
     return unitary_matrix
 
 
-def random_h2_body(N, M):
+def random_h2_body(N, M):  # pylint: disable=invalid-name
     """
     Generate a random two body integrals.
     Args:
@@ -67,11 +70,13 @@ def random_h2_body(N, M):
         M (int) : number of non-zero entries
     Returns:
         np.ndarray: a numpy 4-D tensor with np.complex data type.
+    Raises:
+        ValueError: invalid spin orbitals
     """
     if N % 2 == 1:
-        assert 0, "The number of spin orbitals must be even."
+        raise ValueError("The number of spin orbitals must be even.")
 
-    h2 = np.zeros((N//2, N//2, N//2, N//2))
+    h_2 = np.zeros((N//2, N//2, N//2, N//2))
     max_nonzero_elements = 0
 
     if N / 2 != 1:
@@ -80,85 +85,94 @@ def random_h2_body(N, M):
         if N / 2 >= 3:
             max_nonzero_elements += 4 * 3 * 8 * scipy.special.comb(N//2, 3)
         if N / 2 >= 4:
-            max_nonzero_elements += 4 * scipy.special.factorial(N//2) / scipy.special.factorial(N//2-4)
-        # print('Max number of non-zero elements for {} spin-orbitals is: {}'.format(N, max_nonzero_elements))
+            max_nonzero_elements += 4 * scipy.special.factorial(N//2) / \
+                scipy.special.factorial(N//2-4)
+        # print('Max number of non-zero elements for {} '
+        # 'spin-orbitals is: {}'.format(N, max_nonzero_elements))
 
     if M > max_nonzero_elements:
-        assert 0, 'Too many non-zero elements required, given the molecular symmetries. \n\
-                    The maximal number of non-zero elements for {} spin-orbitals is {}'.format(N, max_nonzero_elements)
+        raise ValueError('Too many non-zero elements required, '
+                         'given the molecular symmetries. \n'
+                         'The maximal number of non-zero elements for {} '
+                         'spin-orbitals is {}'.format(N, max_nonzero_elements))
 
+    # pylint: disable=invalid-name
     element_count = 0
     while element_count < M:
         r_i = aqua_globals.random.randint(N // 2, size=(4))
         i, j, l, m = r_i[0], r_i[1], r_i[2], r_i[3]
-        if i != l and j != m and h2[i, j, l, m] == 0:
-            h2[i, j, l, m] = 1 - 2 * aqua_globals.random.random(1)
+        if i != l and j != m and h_2[i, j, l, m] == 0:
+            h_2[i, j, l, m] = 1 - 2 * aqua_globals.random.random(1)
             element_count += 4
-            # In the chemists notation H2BodyS(i,j,l,m) refers to
+            # In the chemists notation h2bodys(i,j,l,m) refers to
             # a^dag_i a^dag_l a_m a_j
-            if h2[l, m, i, j] == 0:
-                h2[l, m, i, j] = h2[i, j, l, m]
+            if h_2[l, m, i, j] == 0:
+                h_2[l, m, i, j] = h_2[i, j, l, m]
                 element_count += 4
-            if h2[j, i, m, l] == 0:
-                h2[j, i, m, l] = h2[i, j, l, m]
+            if h_2[j, i, m, l] == 0:
+                h_2[j, i, m, l] = h_2[i, j, l, m]
                 element_count += 4
-            if h2[m, l, j, i] == 0:
-                h2[m, l, j, i] = h2[i, j, l, m]
+            if h_2[m, l, j, i] == 0:
+                h_2[m, l, j, i] = h_2[i, j, l, m]
                 element_count += 4
             if j != l and i != m:
                 # if these conditions are not satisfied the symmetries
                 # will produce (negligible) terms that annihilate any state
-                if h2[j, i, l, m] == 0:
-                    h2[j, i, l, m] = h2[i, j, l, m]
+                if h_2[j, i, l, m] == 0:
+                    h_2[j, i, l, m] = h_2[i, j, l, m]
                     element_count += 4
-                if h2[m, l, i, j] == 0:
-                    h2[m, l, i, j] = h2[i, j, l, m]
+                if h_2[m, l, i, j] == 0:
+                    h_2[m, l, i, j] = h_2[i, j, l, m]
                     element_count += 4
-                if h2[i, j, m, l] == 0:
-                    h2[i, j, m, l] = h2[i, j, l, m]
+                if h_2[i, j, m, l] == 0:
+                    h_2[i, j, m, l] = h_2[i, j, l, m]
                     element_count += 4
-                if h2[l, m, j, i] == 0:
-                    h2[l, m, j, i] = h2[i, j, l, m]
+                if h_2[l, m, j, i] == 0:
+                    h_2[l, m, j, i] = h_2[i, j, l, m]
                     element_count += 4
 
     # Impose spin degeneracy
-    idx_non_zeros = np.where(h2 != 0)
+    idx_non_zeros = np.where(h_2 != 0)
     a, b, c, d = idx_non_zeros[0], idx_non_zeros[1], idx_non_zeros[2], idx_non_zeros[3]
-    val = h2[idx_non_zeros]
-    Htemp = np.column_stack((a, b, c, d)).astype(int)
+    val = h_2[idx_non_zeros]
+    htemp = np.column_stack((a, b, c, d)).astype(int)
 
-    dim = Htemp.shape
-    H2BodyS = np.zeros((N, N, N, N))
-    H2BodyS[0:N//2, 0:N//2, 0:N//2, 0:N//2] = h2
+    dim = htemp.shape
+    h2bodys = np.zeros((N, N, N, N))
+    h2bodys[0:N//2, 0:N//2, 0:N//2, 0:N//2] = h_2
     for i in range(dim[0]):
-        # recall that in the chemists notation H2BodyS(i,j,l,m) refers to
+        # recall that in the chemists notation h2bodys(i,j,l,m) refers to
         # a^dag_i a^dag_l a_m a_j
-        H2BodyS[Htemp[i, 0] + N//2, Htemp[i, 1] + N//2, Htemp[i, 2] + N//2,
-                Htemp[i, 3] + N//2] = val[i]
-        H2BodyS[Htemp[i, 0] + N//2, Htemp[i, 1] + N//2, Htemp[i, 2],
-                Htemp[i, 3]] = val[i]  # shift i and j to their spin symmetrized
-        H2BodyS[Htemp[i, 0], Htemp[i, 1], Htemp[i, 2] + N//2, Htemp[i, 3] +
+        h2bodys[htemp[i, 0] + N//2, htemp[i, 1] + N//2, htemp[i, 2] + N//2,
+                htemp[i, 3] + N//2] = val[i]
+        h2bodys[htemp[i, 0] + N//2, htemp[i, 1] + N//2, htemp[i, 2],
+                htemp[i, 3]] = val[i]  # shift i and j to their spin symmetrized
+        h2bodys[htemp[i, 0], htemp[i, 1], htemp[i, 2] + N//2, htemp[i, 3] +
                 N//2] = val[i]  # shift l and m to their spin symmetrized
-    return H2BodyS
+    return h2bodys
 
 
-def random_diag(N, eigs=None, K=None, eigrange=[0, 1]):
+def random_diag(N, eigs=None, K=None, eigrange=None):  # pylint: disable=invalid-name
     """
     Generate random diagonal matrix with given properties
     Args:
         N (int): size of matrix
-        eigs (list, tuple, np.ndarray): list of N eigenvalues. Overrides K,
+        eigs (Union(list, tuple, np.ndarray)): list of N eigenvalues. Overrides K,
                                         eigrange.
-        K (float, list, tuple): condition number. Either use only condition
+        K (Union(float, list, tuple()): condition number. Either use only condition
                                 number K or list/tuple of (K, lmin) or (K,
                                 lmin, sgn). Where lmin is the smallest
                                 eigenvalue and sign +/- 1 specifies if
                                 eigenvalues can be negative.
-        eigrange (list, tuple, nd.ndarray): [min, max] list for eigenvalue
+        eigrange (Union(list, tuple, nd.ndarray)): [min, max] list for eigenvalue
                                             range. (default=[0, 1])
     Returns:
         np.ndarray: diagonal matrix
+     Raises:
+        ValueError: invalid input data
     """
+    # pylint: disable=invalid-name
+    eigrange = eigrange if eigrange is not None else [0, 1]
     if not isinstance(eigs, np.ndarray):
         if eigs is None:
             if not isinstance(K, np.ndarray) and K is not None:
@@ -200,23 +214,24 @@ def limit_paulis(mat, n=5, sparsity=None):
     Args:
         mat (np.ndarray): Input matrix
         n (int): number of surviving Pauli matrices (default=5)
-        sparsity (float < 1): sparsity of matrix
+        sparsity (float): sparsity of matrix < 1
 
     Returns:
-        scipy.sparse.csr_matrix
+        scipy.sparse.csr_matrix: matrix
     """
     from qiskit.aqua.operators import MatrixOperator
     from qiskit.aqua.operators.op_converter import to_weighted_pauli_operator
     # Bringing matrix into form 2**Nx2**N
-    _l = mat.shape[0]
-    if np.log2(_l) % 1 != 0:
-        k = int(2**np.ceil(np.log2(_l)))
+    __l = mat.shape[0]
+    if np.log2(__l) % 1 != 0:
+        k = int(2**np.ceil(np.log2(__l)))
         m = np.zeros([k, k], dtype=np.complex128)
-        m[:_l, :_l] = mat
-        m[_l:, _l:] = np.identity(k-_l)
+        m[:__l, :__l] = mat
+        m[__l:, __l:] = np.identity(k-__l)
         mat = m
 
     # Getting Pauli matrices
+    # pylint: disable=invalid-name
     op = MatrixOperator(matrix=mat)
     op = to_weighted_pauli_operator(op)
     paulis = sorted(op.paulis, key=lambda x: abs(x[0]), reverse=True)
@@ -230,15 +245,16 @@ def limit_paulis(mat, n=5, sparsity=None):
             mat += pa[0]*pa[1].to_spmatrix()
     else:
         idx = 0
-        while mat[:_l, :_l].nnz/_l**2 < sparsity:
+        while mat[:__l, :__l].nnz/__l**2 < sparsity:
             mat += paulis[idx][0]*paulis[idx][1].to_spmatrix()
             idx += 1
         n = idx
     mat = mat.toarray()
-    return mat[:_l, :_l]
+    return mat[:__l, :__l]
 
 
-def random_hermitian(N, eigs=None, K=None, eigrange=[0, 1], sparsity=None,
+def random_hermitian(N, eigs=None, K=None,  # pylint: disable=invalid-name
+                     eigrange=None, sparsity=None,
                      trunc=None):
     """
     Generate random hermitian (sparse) matrix with given properties. Sparsity is
@@ -246,20 +262,24 @@ def random_hermitian(N, eigs=None, K=None, eigrange=[0, 1], sparsity=None,
     eigenvalues due to truncation.
     Args:
         N (int): size of matrix
-        eigs (list, tuple, np.ndarray): list of N eigenvalues. Overrides K,
+        eigs (Union(list, tuple, np.ndarray)): list of N eigenvalues. Overrides K,
                                         eigrange
-        K (float, list, tuple): condition number. Either use only condition
+        K (Union(float, list, tuple)): condition number. Either use only condition
                                 number K or list/tuple of (K, lmin) or (K,
                                 lmin, sgn). Where lmin is the smallest
                                 eigenvalue and sign +/- 1 specifies if
                                 eigenvalues can be negative.
-        eigrange (list, tuple, nd.ndarray): [min, max] list for eigenvalue
+        eigrange (Union(list, tuple, nd.ndarray)): [min, max] list for eigenvalue
                                             range. (default=[0, 1])
         trunc (int): limit for number of Pauli matrices.
         sparsity (float): sparsity of matrix. Overrides trunc.
     Returns:
         np.ndarray: hermitian matrix
+    Raises:
+        ValueError: invalid matrix
     """
+    # pylint: disable=invalid-name
+    eigrange = eigrange if eigrange is not None else [0, 1]
     if N == 1:
         raise ValueError('The matrix dimension must be larger than 1')
     u = scipy.stats.unitary_group.rvs(N)
@@ -276,10 +296,10 @@ def limit_entries(mat, n=5, sparsity=None):
     Args:
         mat (np.array): Input Matrix
         n (int): number of surviving entries (default=5)
-        sparsity (float < 1): sparsity of matrix
+        sparsity (float): sparsity of matrix < 1
 
     Returns:
-        scipy.sparse.csr_matrix
+        scipy.sparse.csr_matrix: matrix
     """
     ret = scipy.sparse.coo_matrix(mat)
     entries = list(sorted(zip(ret.row, ret.col, ret.data),
@@ -292,7 +312,8 @@ def limit_entries(mat, n=5, sparsity=None):
         (data, (row.real.astype(int), col.real.astype(int))))
 
 
-def random_non_hermitian(N, M=None, sings=None, K=None, srange=[0, 1],
+def random_non_hermitian(N, M=None, sings=None, K=None,   # pylint: disable=invalid-name
+                         srange=None,
                          sparsity=None, trunc=None):
     """
     Generate random (sparse) matrix with given properties (singular values).
@@ -300,18 +321,23 @@ def random_non_hermitian(N, M=None, sings=None, K=None, srange=[0, 1],
     alternate the singular values due to truncation.
     Args:
         N (int): size of matrix
-        sings (list, tuple, np.ndarray): list of N singular values.
+        M (int): size of matrix
+        sings (Union(list, tuple, np.ndarray)): list of N singular values.
                                          Overrides K, srange.
-        K (float, list, tuple): condition number. Either use only condition
+        K (Union(float, list, tuple)): condition number. Either use only condition
                                 number K or list/tuple of (K, lmin). Where lmin
                                 specifies the smallest singular value.
-        srange (list, tuple, nd.ndarray): [min, max] list for singular value
+        srange (Union(list, tuple, nd.ndarray)): [min, max] list for singular value
                                           range, min >= 0. (default=[0, 1]).
-        trunc (int): limit of Pauli matrices.
         sparsity (float): sparsity of matrix. Overrides trunc.
+        trunc (int): limit of Pauli matrices.
     Returns:
         np.ndarray: random matrix
+     Raises:
+        ValueError: invalid matrix
     """
+    # pylint: disable=invalid-name
+    srange = srange if srange is not None else [0, 1]
     if N == 1:
         raise ValueError('The matrix dimension must be larger than 1')
     if M is None:
