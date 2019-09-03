@@ -14,6 +14,8 @@
 
 """ inverse quantum fourier transforms packages """
 
+# pylint: disable=cyclic-import
+
 from .iqft import IQFT
 from .standard import Standard
 from .approximate import Approximate

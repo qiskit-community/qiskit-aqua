@@ -14,6 +14,8 @@
 
 """ quantum fourier transforms packages """
 
+# pylint: disable=cyclic-import
+
 from .qft import QFT
 from .standard import Standard
 from .approximate import Approximate
