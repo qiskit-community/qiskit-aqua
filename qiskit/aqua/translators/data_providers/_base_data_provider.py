@@ -12,6 +12,11 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""
+This module implements the abstract base class for data_provider modules
+within Qiskit Finance.
+"""
+
 from abc import ABC, abstractmethod
 import logging
 import copy
@@ -27,12 +32,14 @@ logger = logging.getLogger(__name__)
 
 
 class QiskitFinanceError(AquaError):
+    """ Qiskit Finance Error """
     pass
 
 
 # Note: Not all DataProviders support all stock markets.
 # Check the DataProvider before use.
 class StockMarket(Enum):
+    """ Stock Market enum """
     NASDAQ = 'NASDAQ'
     NYSE = 'NYSE'
     LONDON = 'XLON'
@@ -44,6 +51,7 @@ class StockMarket(Enum):
 # Note: Not all DataProviders support all data types.
 # Check the DataProvider before use.
 class DataType(Enum):
+    """ Data Type Enum """
     DAILYADJUSTED = 'Daily (adj)'
     DAILY = 'Daily'
     BID = 'Bid'
@@ -70,7 +78,12 @@ class BaseDataProvider(ABC):
         self.check_driver_valid()
         self._configuration = copy.deepcopy(self.CONFIGURATION)
         self._data = None
-        self._n = 0
+        self._n = 0  # pylint: disable=invalid-name
+        self.period_return_mean = None
+        self.cov = None
+        self.period_return_cov = None
+        self.rho = None
+        self.mean = None
 
     @property
     def configuration(self):
@@ -83,7 +96,7 @@ class BaseDataProvider(ABC):
         Initialize via section dictionary. N.B. Not in use at the moment.
 
         Args:
-            params (dict): section dictionary
+            section (dict): section dictionary
 
         Returns:
             Driver: Driver object
@@ -92,7 +105,7 @@ class BaseDataProvider(ABC):
 
     @staticmethod
     def check_driver_valid():
-        """Checks if driver is ready for use. Throws an exception if not"""
+        """Checks if driver is ready for use. Throws an ex_ception if not"""
         pass
 
     def validate(self, args_dict):
@@ -102,14 +115,14 @@ class BaseDataProvider(ABC):
         if schema_dict is None:
             return
 
-        jsonSchema = JSONSchema(schema_dict)
-        schema_property_names = jsonSchema.get_default_section_names()
+        json_schema = JSONSchema(schema_dict)
+        schema_property_names = json_schema.get_default_section_names()
         json_dict = {}
         for property_name in schema_property_names:
             if property_name in args_dict:
                 json_dict[property_name] = args_dict[property_name]
 
-        jsonSchema.validate(json_dict)
+        json_schema.validate(json_dict)
 
     @abstractmethod
     def run(self):
@@ -121,7 +134,9 @@ class BaseDataProvider(ABC):
         """ Returns a vector containing the mean value of each asset.
 
         Returns:
-            mean (numpy.ndarray) : a per-asset mean vector.
+            numpy.ndarray: a per-asset mean vector.
+        Raises:
+            QiskitFinanceError: no data loaded
         """
         try:
             if not self._data:
@@ -137,10 +152,13 @@ class BaseDataProvider(ABC):
 
     # it does not have to be overridden in non-abstract derived classes.
     def get_period_return_mean_vector(self):
-        """ Returns a vector containing the mean value of each asset.
+        """
+        Returns a vector containing the mean value of each asset.
 
-    Returns:
-        mean (numpy.ndarray) : a per-asset mean vector.
+        Returns:
+            numpy.ndarray: a per-asset mean vector.
+        Raises:
+            QiskitFinanceError: no data loaded
         """
         try:
             if not self._data:
@@ -159,10 +177,13 @@ class BaseDataProvider(ABC):
 
     # it does not have to be overridden in non-abstract derived classes.
     def get_covariance_matrix(self):
-        """ Returns the covariance matrix.
+        """
+        Returns the covariance matrix.
 
         Returns:
-            rho (numpy.ndarray) : an asset-to-asset covariance matrix.
+            numpy.ndarray: an asset-to-asset covariance matrix.
+        Raises:
+            QiskitFinanceError: no data loaded
         """
         try:
             if not self._data:
@@ -178,10 +199,13 @@ class BaseDataProvider(ABC):
 
     # it does not have to be overridden in non-abstract derived classes.
     def get_period_return_covariance_matrix(self):
-        """ Returns a vector containing the mean value of each asset.
+        """
+        Returns a vector containing the mean value of each asset.
 
-    Returns:
-        mean (numpy.ndarray) : a per-asset mean vector.
+        Returns:
+            numpy.ndarray: a per-asset mean vector.
+        Raises:
+            QiskitFinanceError: no data loaded
         """
         try:
             if not self._data:
@@ -200,10 +224,13 @@ class BaseDataProvider(ABC):
 
     # it does not have to be overridden in non-abstract derived classes.
     def get_similarity_matrix(self):
-        """ Returns time-series similarity matrix computed using dynamic time warping.
+        """
+        Returns time-series similarity matrix computed using dynamic time warping.
 
         Returns:
-            rho (numpy.ndarray) : an asset-to-asset similarity matrix.
+            numpy.ndarray: an asset-to-asset similarity matrix.
+        Raises:
+            QiskitFinanceError: no data loaded
         """
         try:
             if not self._data:
@@ -215,26 +242,25 @@ class BaseDataProvider(ABC):
                 'No data loaded, yet. Please run the method run() first to load the data.'
             )
         self.rho = np.zeros((self._n, self._n))
-        for ii in range(0, self._n):
-            self.rho[ii, ii] = 1.
-            for jj in range(ii + 1, self._n):
-                thisRho, path = fastdtw.fastdtw(self._data[ii], self._data[jj])
-                thisRho = 1.0 / thisRho
-                self.rho[ii, jj] = thisRho
-                self.rho[jj, ii] = thisRho
+        for i_i in range(0, self._n):
+            self.rho[i_i, i_i] = 1.
+            for j_j in range(i_i + 1, self._n):
+                this_rho, _ = fastdtw.fastdtw(self._data[i_i], self._data[j_j])
+                this_rho = 1.0 / this_rho
+                self.rho[i_i, j_j] = this_rho
+                self.rho[j_j, i_i] = this_rho
         return self.rho
 
     # gets coordinates suitable for plotting
     # it does not have to be overridden in non-abstract derived classes.
     def get_coordinates(self):
         """ Returns random coordinates for visualisation purposes. """
-        import numpy as np
         # Coordinates for visualisation purposes
-        xc = np.zeros([self._n, 1])
-        yc = np.zeros([self._n, 1])
-        xc = (np.random.rand(self._n) - 0.5) * 1
-        yc = (np.random.rand(self._n) - 0.5) * 1
+        x_c = np.zeros([self._n, 1])
+        y_c = np.zeros([self._n, 1])
+        x_c = (np.random.rand(self._n) - 0.5) * 1
+        y_c = (np.random.rand(self._n) - 0.5) * 1
         # for (cnt, s) in enumerate(self.tickers):
-        # xc[cnt, 1] = self.data[cnt][0]
-        # yc[cnt, 0] = self.data[cnt][-1]
-        return xc, yc
+        # x_c[cnt, 1] = self.data[cnt][0]
+        # y_c[cnt, 0] = self.data[cnt][-1]
+        return x_c, y_c

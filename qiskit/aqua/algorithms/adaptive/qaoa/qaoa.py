@@ -12,15 +12,23 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" The Quantum Approximate Optimization Algorithm. """
+
+# pylint: disable=unused-import
+
 import logging
 import warnings
 
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
-from qiskit.aqua.operators import WeightedPauliOperator, TPBGroupedWeightedPauliOperator, MatrixOperator
+from qiskit.aqua.operators import (WeightedPauliOperator,
+                                   TPBGroupedWeightedPauliOperator,
+                                   MatrixOperator)
 from qiskit.aqua.algorithms.adaptive import VQE
 from .var_form import QAOAVarForm
 
 logger = logging.getLogger(__name__)
+
+# pylint: disable=invalid-name
 
 
 class QAOA(VQE):
@@ -59,21 +67,24 @@ class QAOA(VQE):
         },
         'problems': ['ising'],
         'depends': [
-            {'pluggable_type': 'optimizer',
-             'default': {
-                     'name': 'COBYLA',
+            {
+                'pluggable_type': 'optimizer',
+                'default': {
+                    'name': 'COBYLA',
                 },
-             },
-            {'pluggable_type': 'initial_state',
-             'default': {
-                     'name': 'ZERO',
+            },
+            {
+                'pluggable_type': 'initial_state',
+                'default': {
+                    'name': 'ZERO',
                 },
-             },
+            },
         ],
     }
 
     def __init__(self, operator, optimizer, p=1, initial_state=None, mixer=None,
-                 initial_point=None, max_evals_grouped=1, aux_operators=None, callback=None, auto_conversion=True):
+                 initial_point=None, max_evals_grouped=1, aux_operators=None,
+                 callback=None, auto_conversion=True):
         """
         Args:
             operator (BaseOperator): Qubit operator
@@ -85,15 +96,19 @@ class QAOA(VQE):
             optimizer (Optimizer): the classical optimization algorithm.
             initial_point (numpy.ndarray): optimizer initial point.
             max_evals_grouped (int): max number of evaluations to be performed simultaneously.
-            callback (Callable): a callback that can access the intermediate data during the optimization.
+            aux_operators (list): aux operators
+            callback (Callable): a callback that can access the intermediate
+                                 data during the optimization.
                                  Internally, four arguments are provided as follows
                                  the index of evaluation, parameters of variational form,
                                  evaluated mean, evaluated standard deviation.
-            auto_conversion (bool): an automatic conversion for operator and aux_operators into the type which is
+            auto_conversion (bool): an automatic conversion for operator and aux_operators
+                                        into the type which is
                                     most suitable for the backend.
                                     - non-aer statevector_simulator: MatrixOperator
                                     - aer statevector_simulator: WeightedPauliOperator
-                                    - qasm simulator or real backend: TPBGroupedWeightedPauliOperator
+                                    - qasm simulator or real backend:
+                                        TPBGroupedWeightedPauliOperator
 
         """
         self.validate(locals())
@@ -111,6 +126,10 @@ class QAOA(VQE):
         Args:
             params (dict): parameters dictionary
             algo_input (EnergyInput): EnergyInput instance
+        Returns:
+            QAOA: instance of this class
+        Raises:
+            AquaError: invalid input
         """
         if algo_input is None:
             raise AquaError("EnergyInput instance is required.")

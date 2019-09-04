@@ -11,12 +11,16 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
 """
 The European Call Option Expected Value.
 """
+
 import numpy as np
 from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
 from qiskit.aqua.circuits.fixed_value_comparator import FixedValueComparator
+
+# pylint: disable=invalid-name
 
 
 class EuropeanCallExpectedValue(UncertaintyProblem):
@@ -71,7 +75,8 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
         ],
     }
 
-    def __init__(self, uncertainty_model, strike_price, c_approx, i_state=None, i_compare=None, i_objective=None):
+    def __init__(self, uncertainty_model, strike_price, c_approx, i_state=None,
+                 i_compare=None, i_objective=None):
         """
         Constructor.
 
@@ -80,7 +85,8 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
             strike_price (float): strike price of the European option
             c_approx (float): approximation factor for linear payoff
             i_state (list or array): indices of qubits representing the uncertainty
-            i_compare (int): index of qubit for comparing spot price to strike price (enabling payoff or not)
+            i_compare (int): index of qubit for comparing spot price to strike price
+                            (enabling payoff or not)
             i_objective (int): index of qubit for objective function
         """
         super().__init__(uncertainty_model.num_target_qubits + 2)
@@ -104,15 +110,19 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
         # map strike price to {0, ..., 2^n-1}
         lb = uncertainty_model.low
         ub = uncertainty_model.high
-        self._mapped_strike_price = int(np.round((strike_price - lb) / (ub - lb) * (uncertainty_model.num_values - 1)))
+        self._mapped_strike_price = int(np.round((strike_price - lb) /
+                                                 (ub - lb) * (uncertainty_model.num_values - 1)))
 
         # create comparator
-        self._comparator = FixedValueComparator(uncertainty_model.num_target_qubits, self._mapped_strike_price)
+        self._comparator = FixedValueComparator(uncertainty_model.num_target_qubits,
+                                                self._mapped_strike_price)
 
         self.offset_angle_zero = np.pi / 4 * (1 - self._c_approx)
         if self._mapped_strike_price < uncertainty_model.num_values - 1:
-            self.offset_angle = -1 * np.pi / 2 * self._c_approx * self._mapped_strike_price / (uncertainty_model.num_values - self._mapped_strike_price - 1)
-            self.slope_angle = np.pi / 2 * self._c_approx / (uncertainty_model.num_values - self._mapped_strike_price - 1)
+            self.offset_angle = -1 * np.pi / 2 * self._c_approx * self._mapped_strike_price / \
+                        (uncertainty_model.num_values - self._mapped_strike_price - 1)
+            self.slope_angle = np.pi / 2 * self._c_approx / \
+                (uncertainty_model.num_values - self._mapped_strike_price - 1)
         else:
             self.offset_angle = 0
             self.slope_angle = 0
@@ -121,7 +131,8 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
         estimator = value - 1 / 2 + np.pi / 4 * self._c_approx
         estimator *= 2 / np.pi / self._c_approx
         estimator *= (self._uncertainty_model.num_values - self._mapped_strike_price - 1)
-        estimator *= (self._uncertainty_model.high - self._uncertainty_model.low) / (self._uncertainty_model.num_values - 1)
+        estimator *= (self._uncertainty_model.high - self._uncertainty_model.low) / \
+            (self._uncertainty_model.num_values - 1)
         return estimator
 
     def required_ancillas(self):
@@ -130,7 +141,7 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
         num_ancillas = int(np.maximum(num_uncertainty_ancillas, num_comparator_ancillas))
         return num_ancillas
 
-    def build(self, qc, q, q_ancillas=None):
+    def build(self, qc, q, q_ancillas=None, params=None):
 
         # get qubits
         q_state = [q[i] for i in self.i_state]

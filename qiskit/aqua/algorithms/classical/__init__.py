@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" classical algorithms packages """
+
 from .exact_eigen_solver.exact_eigen_solver import ExactEigensolver
 from .exact_ls_solver.exact_ls_solver import ExactLSsolver
 from .svm.svm_classical import SVM_Classical

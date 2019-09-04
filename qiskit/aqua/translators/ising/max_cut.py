@@ -48,11 +48,11 @@ def get_qubit_op(weight_matrix):
     for i in range(num_nodes):
         for j in range(i):
             if weight_matrix[i, j] != 0:
-                xp = np.zeros(num_nodes, dtype=np.bool)
-                zp = np.zeros(num_nodes, dtype=np.bool)
-                zp[i] = True
-                zp[j] = True
-                pauli_list.append([0.5 * weight_matrix[i, j], Pauli(zp, xp)])
+                x_p = np.zeros(num_nodes, dtype=np.bool)
+                z_p = np.zeros(num_nodes, dtype=np.bool)
+                z_p[i] = True
+                z_p[j] = True
+                pauli_list.append([0.5 * weight_matrix[i, j], Pauli(z_p, x_p)])
                 shift -= 0.5 * weight_matrix[i, j]
     return WeightedPauliOperator(paulis=pauli_list), shift
 
@@ -67,8 +67,8 @@ def max_cut_value(x, w):
     Returns:
         float: value of the cut.
     """
-    X = np.outer(x, (1 - x))
-    return np.sum(w * X)
+    x_mat = np.outer(x, (1 - x))
+    return np.sum(w * x_mat)
 
 
 def get_graph_solution(x):
@@ -84,6 +84,7 @@ def get_graph_solution(x):
 
 
 def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None, seed=None):
+    """ random graph """
     from .common import random_graph as redirect_func
     warnings.warn("random_graph function has been moved to "
                   "qiskit.aqua.translators.ising.common, "
@@ -94,6 +95,7 @@ def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None, seed=None):
 
 
 def parse_gset_format(filename):
+    """ parse gset format """
     from .common import parse_gset_format as redirect_func
     warnings.warn("parse_gset_format function has been moved to "
                   "qiskit.aqua.translators.ising.common, "
@@ -103,6 +105,7 @@ def parse_gset_format(filename):
 
 
 def sample_most_likely(state_vector):
+    """ sample most likely """
     from .common import sample_most_likely as redirect_func
     warnings.warn("sample_most_likely function has been moved to "
                   "qiskit.aqua.translators.ising.common, "
@@ -112,6 +115,7 @@ def sample_most_likely(state_vector):
 
 
 def get_gset_result(x):
+    """ returns gset result """
     from .common import get_gset_result as redirect_func
     warnings.warn("get_gset_result function has been moved to "
                   "qiskit.aqua.translators.ising.common, "
@@ -121,6 +125,7 @@ def get_gset_result(x):
 
 
 def get_max_cut_qubitops(weight_matrix):
+    """ returns max cut qubit ops """
     warnings.warn("get_max_cut_qubitops function has been changed to get_qubit_op"
                   "the method here will be removed after Aqua 0.7+",
                   DeprecationWarning)

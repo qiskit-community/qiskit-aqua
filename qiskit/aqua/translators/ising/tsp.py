@@ -38,6 +38,7 @@ TspData = namedtuple('TspData', 'name dim coord w')
 
 
 def calc_distance(coord, name='tmp'):
+    """ calculate distance """
     assert coord.shape[1] == 2
     dim = coord.shape[0]
     w = np.zeros((dim, dim))
@@ -55,7 +56,7 @@ def random_tsp(n, low=0, high=100, savefile=None, seed=None, name='tmp'):
     Args:
         n (int): number of nodes.
         low (float): lower bound of coordinate.
-        high (float): uppper bound of coordinate.
+        high (float): upper bound of coordinate.
         savefile (str or None): name of file where to save graph.
         seed (int or None): random seed - if None, will not initialize.
         name (str): name of an instance
@@ -106,7 +107,7 @@ def parse_tsplib_format(filename):
                 typ = line.split(':')[1]
                 typ.strip()
                 if typ != 'TSP':
-                    logger.warning('This supports only "TSP" type. Actual: {}'.format(typ))
+                    logger.warning('This supports only "TSP" type. Actual: %s', typ)
             elif line.startswith('DIMENSION'):
                 dim = int(line.split(':')[1])
                 coord = np.zeros((dim, 2))
@@ -114,7 +115,7 @@ def parse_tsplib_format(filename):
                 typ = line.split(':')[1]
                 typ.strip()
                 if typ != 'EUC_2D':
-                    logger.warning('This supports only "EUC_2D" edge weight. Actual: {}'.format(typ))
+                    logger.warning('This supports only "EUC_2D" edge weight. Actual: %s', typ)
             elif line.startswith('NODE_COORD_SECTION'):
                 coord_section = True
             elif coord_section:
@@ -133,7 +134,7 @@ def get_qubit_op(ins, penalty=1e5):
         penalty (float) : Penalty coefficient for the constraints
 
     Returns:
-        WeightedPauliOperator, float: operator for the Hamiltonian and a
+        tuple(WeightedPauliOperator, float): operator for the Hamiltonian and a
         constant shift for the obj function.
 
     """
@@ -146,65 +147,65 @@ def get_qubit_op(ins, penalty=1e5):
         for j in range(num_nodes):
             if i == j:
                 continue
-            for p in range(num_nodes):
-                q = (p + 1) % num_nodes
+            for p__ in range(num_nodes):
+                q = (p__ + 1) % num_nodes
                 shift += ins.w[i, j] / 4
 
-                zp = np.zeros(num_qubits, dtype=np.bool)
-                zp[i * num_nodes + p] = True
-                pauli_list.append([-ins.w[i, j] / 4, Pauli(zp, zero)])
+                z_p = np.zeros(num_qubits, dtype=np.bool)
+                z_p[i * num_nodes + p__] = True
+                pauli_list.append([-ins.w[i, j] / 4, Pauli(z_p, zero)])
 
-                zp = np.zeros(num_qubits, dtype=np.bool)
-                zp[j * num_nodes + q] = True
-                pauli_list.append([-ins.w[i, j] / 4, Pauli(zp, zero)])
+                z_p = np.zeros(num_qubits, dtype=np.bool)
+                z_p[j * num_nodes + q] = True
+                pauli_list.append([-ins.w[i, j] / 4, Pauli(z_p, zero)])
 
-                zp = np.zeros(num_qubits, dtype=np.bool)
-                zp[i * num_nodes + p] = True
-                zp[j * num_nodes + q] = True
-                pauli_list.append([ins.w[i, j] / 4, Pauli(zp, zero)])
+                z_p = np.zeros(num_qubits, dtype=np.bool)
+                z_p[i * num_nodes + p__] = True
+                z_p[j * num_nodes + q] = True
+                pauli_list.append([ins.w[i, j] / 4, Pauli(z_p, zero)])
 
     for i in range(num_nodes):
-        for p in range(num_nodes):
-            zp = np.zeros(num_qubits, dtype=np.bool)
-            zp[i * num_nodes + p] = True
-            pauli_list.append([penalty, Pauli(zp, zero)])
+        for p__ in range(num_nodes):
+            z_p = np.zeros(num_qubits, dtype=np.bool)
+            z_p[i * num_nodes + p__] = True
+            pauli_list.append([penalty, Pauli(z_p, zero)])
             shift += -penalty
 
-    for p in range(num_nodes):
+    for p__ in range(num_nodes):
         for i in range(num_nodes):
             for j in range(i):
                 shift += penalty / 2
 
-                zp = np.zeros(num_qubits, dtype=np.bool)
-                zp[i * num_nodes + p] = True
-                pauli_list.append([-penalty / 2, Pauli(zp, zero)])
+                z_p = np.zeros(num_qubits, dtype=np.bool)
+                z_p[i * num_nodes + p__] = True
+                pauli_list.append([-penalty / 2, Pauli(z_p, zero)])
 
-                zp = np.zeros(num_qubits, dtype=np.bool)
-                zp[j * num_nodes + p] = True
-                pauli_list.append([-penalty / 2, Pauli(zp, zero)])
+                z_p = np.zeros(num_qubits, dtype=np.bool)
+                z_p[j * num_nodes + p__] = True
+                pauli_list.append([-penalty / 2, Pauli(z_p, zero)])
 
-                zp = np.zeros(num_qubits, dtype=np.bool)
-                zp[i * num_nodes + p] = True
-                zp[j * num_nodes + p] = True
-                pauli_list.append([penalty / 2, Pauli(zp, zero)])
+                z_p = np.zeros(num_qubits, dtype=np.bool)
+                z_p[i * num_nodes + p__] = True
+                z_p[j * num_nodes + p__] = True
+                pauli_list.append([penalty / 2, Pauli(z_p, zero)])
 
     for i in range(num_nodes):
-        for p in range(num_nodes):
-            for q in range(p):
+        for p__ in range(num_nodes):
+            for q in range(p__):
                 shift += penalty / 2
 
-                zp = np.zeros(num_qubits, dtype=np.bool)
-                zp[i * num_nodes + p] = True
-                pauli_list.append([-penalty / 2, Pauli(zp, zero)])
+                z_p = np.zeros(num_qubits, dtype=np.bool)
+                z_p[i * num_nodes + p__] = True
+                pauli_list.append([-penalty / 2, Pauli(z_p, zero)])
 
-                zp = np.zeros(num_qubits, dtype=np.bool)
-                zp[i * num_nodes + q] = True
-                pauli_list.append([-penalty / 2, Pauli(zp, zero)])
+                z_p = np.zeros(num_qubits, dtype=np.bool)
+                z_p[i * num_nodes + q] = True
+                pauli_list.append([-penalty / 2, Pauli(z_p, zero)])
 
-                zp = np.zeros(num_qubits, dtype=np.bool)
-                zp[i * num_nodes + p] = True
-                zp[i * num_nodes + q] = True
-                pauli_list.append([penalty / 2, Pauli(zp, zero)])
+                z_p = np.zeros(num_qubits, dtype=np.bool)
+                z_p[i * num_nodes + p__] = True
+                z_p[i * num_nodes + q] = True
+                pauli_list.append([penalty / 2, Pauli(z_p, zero)])
     shift += 2 * penalty * num_nodes
     return WeightedPauliOperator(paulis=pauli_list), shift
 
@@ -238,13 +239,13 @@ def tsp_feasible(x):
     n = int(np.sqrt(len(x)))
     y = np.zeros((n, n))
     for i in range(n):
-        for p in range(n):
-            y[i, p] = x[i * n + p]
+        for p__ in range(n):
+            y[i, p__] = x[i * n + p__]
     for i in range(n):
         if sum(y[i, p] for p in range(n)) != 1:
             return False
-    for p in range(n):
-        if sum(y[i, p] for i in range(n)) != 1:
+    for p__ in range(n):
+        if sum(y[i, p__] for i in range(n)) != 1:
             return False
     return True
 
@@ -260,15 +261,16 @@ def get_tsp_solution(x):
     """
     n = int(np.sqrt(len(x)))
     z = []
-    for p in range(n):
+    for p__ in range(n):
         for i in range(n):
-            if x[i * n + p] >= 0.999:
-                assert len(z) == p
+            if x[i * n + p__] >= 0.999:
+                assert len(z) == p__
                 z.append(i)
     return z
 
 
 def sample_most_likely(state_vector):
+    """ sample most likely """
     from .common import sample_most_likely as redirect_func
     warnings.warn("sample_most_likely function has been moved to "
                   "qiskit.aqua.translators.ising.common, "
@@ -278,6 +280,7 @@ def sample_most_likely(state_vector):
 
 
 def get_tsp_qubitops(ins, penalty=1e5):
+    """ get tsp qubit ops """
     warnings.warn("get_tsp_qubitops function has been changed to get_qubit_op"
                   "the method here will be removed after Aqua 0.7+",
                   DeprecationWarning)

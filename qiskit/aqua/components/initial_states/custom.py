@@ -12,8 +12,10 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-import numpy as np
+"""A custom initial state."""
+
 import logging
+import numpy as np
 
 from qiskit.circuit import QuantumRegister, QuantumCircuit, Qubit
 from qiskit import execute as q_execute
@@ -61,8 +63,10 @@ class Custom(InitialState):
         Args:
             num_qubits (int): number of qubits
             state (str): `zero`, `uniform` or `random`
-            state_vector: customized vector
+            state_vector (numpy.ndarray): customized vector
             circuit (QuantumCircuit): the actual custom circuit for the desired initial state
+        Raises:
+            AquaError: invalid input
         """
         loc = locals().copy()
         # since state_vector is a numpy array of complex numbers which aren't json valid,
@@ -76,12 +80,14 @@ class Custom(InitialState):
         self._circuit = None
         if circuit is not None:
             if circuit.width() != num_qubits:
-                logger.warning('The specified num_qubits and the provided custom circuit do not match.')
+                logger.warning('The specified num_qubits and '
+                               'the provided custom circuit do not match.')
             self._circuit = convert_to_basis_gates(circuit)
             if state_vector is not None:
                 self._state = None
                 self._state_vector = None
-                logger.warning('The provided state_vector is ignored in favor of the provided custom circuit.')
+                logger.warning('The provided state_vector is ignored in favor of '
+                               'the provided custom circuit.')
         else:
             if state_vector is None:
                 if self._state == 'zero':
@@ -94,9 +100,9 @@ class Custom(InitialState):
                     raise AquaError('Unknown state {}'.format(self._state))
             else:
                 if len(state_vector) != np.power(2, self._num_qubits):
-                    raise AquaError('The state vector length {} is incompatible with the number of qubits {}'.format(
-                        len(state_vector), self._num_qubits
-                    ))
+                    raise AquaError('The state vector length {} is incompatible with '
+                                    'the number of qubits {}'.format(
+                                        len(state_vector), self._num_qubits))
                 self._state_vector = normalize_vector(state_vector)
                 self._state = None
 

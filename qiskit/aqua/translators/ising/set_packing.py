@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" set packing module """
+
 import logging
 import warnings
 
@@ -41,12 +43,13 @@ def get_qubit_op(list_of_subsets):
         where Xi = (Zi + 1)/2
 
     Args:
-        list_of_subsets: list of lists (i.e., subsets)
+        list_of_subsets (list): list of lists (i.e., subsets)
 
     Returns:
-        WeightedPauliOperatorOperator: operator for the Hamiltonian
-        float: a constant shift for the obj function.
+        tuple(WeightedPauliOperator, float): operator for the Hamiltonian,
+                                        a constant shift for the obj function.
     """
+    # pylint: disable=invalid-name
     shift = 0
     pauli_list = []
     A = 10
@@ -93,6 +96,8 @@ def get_solution(x):
 
 
 def check_disjoint(sol, list_of_subsets):
+    """ check disjoint """
+    # pylint: disable=invalid-name
     n = len(list_of_subsets)
     selected_subsets = []
     for i in range(n):
@@ -110,6 +115,7 @@ def check_disjoint(sol, list_of_subsets):
 
 
 def random_number_list(n, weight_range=100, savefile=None):
+    """ random number list """
     from .common import random_number_list as redirect_func
     warnings.warn("random_number_list function has been moved to "
                   "qiskit.aqua.translators.ising.common, "
@@ -119,6 +125,7 @@ def random_number_list(n, weight_range=100, savefile=None):
 
 
 def read_numbers_from_file(filename):
+    """ read numbers from file """
     from .common import read_numbers_from_file as redirect_func
     warnings.warn("read_numbers_from_file function has been moved to "
                   "qiskit.aqua.translators.ising.common, "
@@ -128,6 +135,7 @@ def read_numbers_from_file(filename):
 
 
 def sample_most_likely(n=None, state_vector=None):
+    """ sample most likely """
     from .common import sample_most_likely as redirect_func
     if n is not None:
         warnings.warn("n argument is not need and it will be removed after Aqua 0.7+",
@@ -140,6 +148,7 @@ def sample_most_likely(n=None, state_vector=None):
 
 
 def get_set_packing_qubitops(list_of_subsets):
+    """ get set packing qubit ops """
     warnings.warn("get_set_packing_qubitops function has been changed to get_qubit_op"
                   "the method here will be removed after Aqua 0.7+",
                   DeprecationWarning)

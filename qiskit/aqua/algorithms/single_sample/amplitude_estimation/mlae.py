@@ -28,6 +28,8 @@ from .ae_base import AmplitudeEstimationBase
 
 logger = logging.getLogger(__name__)
 
+# pylint: disable=invalid-name
+
 
 class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationBase):
     """
@@ -67,11 +69,15 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationBase):
         Constructor.
 
         Args:
-            log_max_evals (int): base-2-logarithm of maximal number of evaluations - resulting evaluation schedule will be [Q^2^0, ..., Q^2^{max_evals_log-1}]
-            a_factory (CircuitFactory): the CircuitFactory subclass object representing the problem unitary
+            log_max_evals (int): base-2-logarithm of maximal number of evaluations -
+                resulting evaluation schedule will be [Q^2^0, ..., Q^2^{max_evals_log-1}]
+            a_factory (CircuitFactory): the CircuitFactory subclass object
+                representing the problem unitary
             i_objective (int): index of qubit representing the objective in the uncertainty problem
-            q_factory (CircuitFactory): the CircuitFactory subclass object representing an amplitude estimation sample (based on a_factory)
-            likelihood_evals (int): The number of gridpoints for the maximum search of the likelihood function
+            q_factory (CircuitFactory): the CircuitFactory subclass object representing
+                an amplitude estimation sample (based on a_factory)
+            likelihood_evals (int): The number of gridpoints for the maximum search
+                of the likelihood function
         """
         self.validate(locals())
         super().__init__(a_factory, q_factory, i_objective)
@@ -94,8 +100,12 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationBase):
         """
         Initialize via parameters dictionary and algorithm input instance
         Args:
-            params: parameters dictionary
-            algo_input: Input instance
+            params (dict): parameters dictionary
+            algo_input (object): Input instance
+        Returns:
+            MaximumLikelihoodAmplitudeEstimation: instance of this class
+        Raises:
+            AquaError: input instance not supported
         """
         if algo_input is not None:
             raise AquaError("Input instance not supported.")
@@ -127,10 +137,11 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationBase):
         Construct the Amplitude Estimation w/o QPE quantum circuits.
 
         Args:
-            measurement (bool): Boolean flag to indicate if measurement should be included in the circuits.
+            measurement (bool): Boolean flag to indicate if measurement
+                        should be included in the circuits.
 
         Returns:
-            a list with the QuantumCircuit objects for the algorithm
+            list: a list with the QuantumCircuit objects for the algorithm
         """
         # construct first part of circuit
         q = QuantumRegister(self.a_factory.num_target_qubits, 'q')
@@ -182,13 +193,11 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationBase):
         """
         Get the good and total counts
 
-        Args:
-            counts (list or array): a list of counts dictionaries, each list
-                entry holds the data for one experiment with some powers of Q
-
         Returns:
-            a pair of two lists,
+            tuple(list, list): a pair of two lists,
             ([1-counts per experiment], [shots per experiment])
+        Raises:
+            AquaError: Call run() first
         """
         one_hits = []  # h_k: how often 1 has been measured, for a power Q^(m_k)
         all_hits = []  # N_k: how often has been measured at a power Q^(m_k)
@@ -209,17 +218,19 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationBase):
 
     def _safe_min(self, array, default=0):
         """
-        Return default if array is empty, otherwise numpy.max(array)
+        Returns:
+            float: default if array is empty, otherwise numpy.max(array)
         """
-        if len(array) == 0:
+        if not array:
             return default
         return np.min(array)
 
     def _safe_max(self, array, default=(np.pi / 2)):
         """
-        Return default if array is empty, otherwise numpy.max(array)
+        Returns:
+            float: default if array is empty, otherwise numpy.max(array)
         """
-        if len(array) == 0:
+        if not array:
             return default
         return np.max(array)
 
@@ -228,12 +239,16 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationBase):
         Compute the Fisher information.
 
         Args:
+            a (float): a
+            num_sum_terms (int): num sum terms
             observed (bool): If True, compute the observed Fisher information,
                 otherwise the theoretical one
 
         Returns:
-            The computed Fisher information, or np.inf if statevector
+            float: The computed Fisher information, or np.inf if statevector
             simulation was used.
+        Raises:
+            KeyError: Call run() first!
         """
         # Set the value a. Use `est_a` if provided.
         if a is None:
@@ -268,7 +283,9 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationBase):
             fisher_information = d_logL**2 / len(all_hits)
 
         else:
-            fisher_information = 1 / (a * (1 - a)) * sum(Nk * (2 * mk + 1)**2 for Nk, mk in zip(all_hits, evaluation_schedule))
+            fisher_information = \
+                1 / (a * (1 - a)) * sum(Nk * (2 * mk + 1)**2 for Nk, mk in zip(all_hits,
+                                                                               evaluation_schedule))
 
         return fisher_information
 
@@ -281,7 +298,9 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationBase):
             observed (bool): If True, use observed Fisher information
 
         Returns:
-            The alpha confidence interval based on the Fisher information
+            float: The alpha confidence interval based on the Fisher information
+        Raises:
+            AssertionError: Call run() first!
         """
         # Get the (observed) Fisher information
         fisher_information = None
@@ -294,7 +313,8 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationBase):
             fisher_information = self._compute_fisher_information(observed=True)
 
         normal_quantile = norm.ppf(1 - alpha / 2)
-        ci = np.real(self._ret['value']) + normal_quantile / np.sqrt(fisher_information) * np.array([-1, 1])
+        ci = np.real(self._ret['value']) + \
+            normal_quantile / np.sqrt(fisher_information) * np.array([-1, 1])
         mapped_ci = [self.a_factory.value_to_estimation(bound) for bound in ci]
         return mapped_ci
 
@@ -308,7 +328,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationBase):
                 intersection with the loglikelihood function
 
         Returns:
-            The alpha-likelihood-ratio confidence interval.
+            float: The alpha-likelihood-ratio confidence interval.
         """
 
         def loglikelihood(theta, one_counts, all_counts):

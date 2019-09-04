@@ -11,6 +11,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
 """
 The General Logical Expression-based Quantum Oracle.
 """
@@ -31,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 class LogicalExpressionOracle(Oracle):
-
+    """ LOgical expression Oracle """
     CONFIGURATION = {
         'name': 'LogicalExpressionOracle',
         'description': 'Logical Expression Oracle',
@@ -73,6 +74,8 @@ class LogicalExpressionOracle(Oracle):
                 or a general boolean logical expression, such as 'a ^ b' and 'v[0] & (~v[1] | v[2])'
             optimization (bool): Boolean flag for attempting logical expression optimization
             mct_mode (str): The mode to use for building Multiple-Control Toffoli.
+        Raises:
+            AquaError: invalid input
         """
         self.validate(locals())
         super().__init__()
@@ -85,14 +88,14 @@ class LogicalExpressionOracle(Oracle):
 
         expression = re.sub('(?i)' + re.escape(' and '), ' & ', expression)
         expression = re.sub('(?i)' + re.escape(' xor '), ' ^ ', expression)
-        expression = re.sub('(?i)' + re.escape(' or '),  ' | ', expression)
-        expression = re.sub('(?i)' + re.escape('not '),  '~',   expression)
+        expression = re.sub('(?i)' + re.escape(' or '), ' | ', expression)
+        expression = re.sub('(?i)' + re.escape('not '), '~', expression)
 
         orig_expression = expression
         # try parsing as normal logical expression that sympy recognizes
         try:
             raw_expr = parse_expr(expression)
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             # try parsing as dimacs cnf
             try:
                 expression = LogicalExpressionOracle._dimacs_cnf_to_expression(expression)
@@ -122,16 +125,17 @@ class LogicalExpressionOracle(Oracle):
             toks = line.split()
             if not toks[-1] == '0':
                 raise AquaError('Unrecognized dimacs line {}.'.format(line))
-            else:
-                clauses.append('({})'.format(' | '.join(
-                    [create_var(t) for t in toks[:-1]]
-                )))
+
+            clauses.append('({})'.format(' | '.join(
+                [create_var(t) for t in toks[:-1]]
+            )))
         return ' & '.join(clauses)
 
     def _process_expr(self):
         self._num_vars = len(self._expr.binary_symbols)
         self._lit_to_var = [None] + sorted(self._expr.binary_symbols, key=str)
-        self._var_to_lit = {v: l for v, l in zip(self._lit_to_var[1:], range(1, self._num_vars + 1))}
+        self._var_to_lit = {v: l for v, l in zip(self._lit_to_var[1:],
+                                                 range(1, self._num_vars + 1))}
         cnf = to_cnf(self._expr, simplify=self._optimization)
 
         if isinstance(cnf, BooleanTrue):
@@ -148,17 +152,21 @@ class LogicalExpressionOracle(Oracle):
 
     @property
     def variable_register(self):
+        """ returns variable register """
         return self._variable_register
 
     @property
     def ancillary_register(self):
+        """ returns ancillary register """
         return self._ancillary_register
 
     @property
     def output_register(self):
+        """ returns output register """
         return self._output_register
 
     def construct_circuit(self):
+        """ construct circuit """
         if self._circuit is None:
             if self._nf is not None:
                 self._circuit = self._nf.construct_circuit(mct_mode=self._mct_mode)
@@ -173,8 +181,10 @@ class LogicalExpressionOracle(Oracle):
         return self._circuit
 
     def evaluate_classically(self, measurement):
-        assignment = [(var + 1) * (int(tf) * 2 - 1) for tf, var in zip(measurement[::-1], range(len(measurement)))]
+        """ evaluate classically """
+        assignment = [(var + 1) * (int(tf) * 2 - 1) for tf, var in zip(measurement[::-1],
+                                                                       range(len(measurement)))]
         assignment_dict = dict()
         for v in assignment:
-            assignment_dict[self._lit_to_var[abs(v)]] = True if v > 0 else False
+            assignment_dict[self._lit_to_var[abs(v)]] = bool(v > 0)
         return self._expr.subs(assignment_dict), assignment

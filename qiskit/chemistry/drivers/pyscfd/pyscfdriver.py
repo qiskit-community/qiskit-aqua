@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 class InitialGuess(Enum):
-    """ Iniial Guess Enum """
+    """ Initial Guess Enum """
     MINAO = 'minao'
     HCORE = '1e'
     ONE_E = '1e'

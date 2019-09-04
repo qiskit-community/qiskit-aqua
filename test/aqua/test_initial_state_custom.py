@@ -26,7 +26,7 @@ from qiskit.aqua.components.initial_states import Custom
 class TestInitialStateCustom(QiskitAquaTestCase):
     """ Test Initial State Custom """
     def test_qubits_2_zero_vector(self):
-        """ qubites 2 zero vector test """
+        """ qubits 2 zero vector test """
         custom = Custom(2, state='zero')
         cct = custom.construct_circuit('vector')
         np.testing.assert_array_equal(cct, [1.0, 0.0, 0.0, 0.0])

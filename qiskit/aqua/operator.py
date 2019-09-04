@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Operator """
+
 import copy
 import itertools
 from functools import reduce
@@ -31,35 +33,40 @@ from qiskit.assembler.run_config import RunConfig
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
 
-from qiskit.aqua import AquaError, aqua_globals
-from qiskit.aqua.operators import PauliGraph
-from qiskit.aqua.utils.backend_utils import is_statevector_backend
+from qiskit.aqua import aqua_globals
+from .aqua_error import AquaError
+from .operators.pauli_graph import PauliGraph
+from .utils.backend_utils import is_statevector_backend
 
 logger = logging.getLogger(__name__)
 
 
-class Operator(object):
-
+class Operator:
     """
     Operators relevant for quantum applications
 
     Note:
-        For grouped paulis representation, all operations will always convert it to paulis and then convert it back.
+        For grouped paulis representation, all operations will always convert it to paulis
+        and then convert it back.
         (It might be a performance issue.)
     """
 
     def __init__(self, paulis=None, grouped_paulis=None, matrix=None, coloring="largest-degree"):
         """
         Args:
-            paulis ([[float, Pauli]]): each list contains a coefficient (real number) and a corresponding Pauli class object.
-            grouped_paulis ([[[float, Pauli]]]): each list of list contains a grouped paulis.
-            matrix (numpy.ndarray or scipy.sparse.csr_matrix) : a 2-D sparse matrix represents operator (using CSR format internally)
+            paulis (list[[float, Pauli]]): each list contains a coefficient (real number)
+                and a corresponding Pauli class object.
+            grouped_paulis (list[[[float, Pauli]]]): each list of list contains a grouped paulis.
+            matrix (numpy.ndarray or scipy.sparse.csr_matrix) : a 2-D sparse matrix
+                represents operator (using CSR format internally)
             coloring (bool): method to group paulis.
         """
         warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
                       "Use the class for each representation instead, including `MatrixOperator`, "
                       "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
                       DeprecationWarning)
+        self._paulis_table = None
+        self._aer_paulis = None
         self._paulis = paulis
         self._coloring = coloring
         self._grouped_paulis = grouped_paulis
@@ -84,9 +91,12 @@ class Operator(object):
         Args:
             rhs (Operator): to-be-combined operator
             mode (str): in-place or not.
+            operation (object): operation
 
         Returns:
             Operator: the operator.
+        Raises:
+            TypeError: invalid operators representation
         """
 
         if mode == 'inplace':
@@ -114,8 +124,9 @@ class Operator(object):
             lhs._matrix = operation(lhs._matrix, rhs._matrix)
             lhs._to_dia_matrix(mode='matrix')
         else:
-            raise TypeError("the representations of two Operators should be the same. ({}, {})".format(
-                lhs.representations, rhs.representations))
+            raise TypeError(
+                "the representations of two Operators should be the same. ({}, {})".format(
+                    lhs.representations, rhs.representations))
 
         return lhs
 
@@ -141,6 +152,7 @@ class Operator(object):
         ret.scaling_coeff(-1.0)
         return ret
 
+    # pylint: disable=inconsistent-return-statements
     def __eq__(self, rhs):
         """Overload == operation"""
         if self._matrix is not None and rhs._matrix is not None:
@@ -188,7 +200,8 @@ class Operator(object):
             length = "{}x{}".format(2 ** self.num_qubits, 2 ** self.num_qubits)
 
         ret = "Representation: {}, qubits: {}, size: {}{}".format(
-            curr_repr, self.num_qubits, length, "" if group is None else " (number of groups: {})".format(group))
+            curr_repr, self.num_qubits, length, ""
+            if group is None else " (number of groups: {})".format(group))
 
         return ret
 
@@ -203,7 +216,8 @@ class Operator(object):
     def chop(self, threshold=1e-15):
         """
         Eliminate the real and imagine part of coeff in each pauli by `threshold`.
-        If pauli's coeff is less then `threshold` in both real and imagine parts, the pauli is removed.
+        If pauli's coeff is less then `threshold` in both real and
+        imagine parts, the pauli is removed.
         To align the internal representations, all available representations are chopped.
         The chopped result is stored back to original property.
         Note: if coeff is real-only, the imag part is skipped.
@@ -256,7 +270,8 @@ class Operator(object):
 
     def _simplify_paulis(self):
         """
-        Merge the paulis (grouped_paulis) whose bases are identical but the pauli with zero coefficient
+        Merge the paulis (grouped_paulis) whose bases are
+        identical but the pauli with zero coefficient
         would not be removed.
 
         Usually used in construction.
@@ -293,7 +308,7 @@ class Operator(object):
             Operator: the multiplied Operator.
 
         Raises:
-            TypeError, if two Operators do not have the same representations.
+            TypeError: if two Operators do not have the same representations.
         """
         if self._paulis is not None and rhs._paulis is not None:
             ret_pauli = Operator(paulis=[])
@@ -311,15 +326,17 @@ class Operator(object):
             rhs._grouped_paulis_to_paulis()
             mul_pauli = self * rhs
             mul_pauli._paulis_to_grouped_paulis()
-            ret_grouped_pauli = Operator(paulis=mul_pauli._paulis, grouped_paulis=mul_pauli._grouped_paulis)
+            ret_grouped_pauli = Operator(paulis=mul_pauli._paulis,
+                                         grouped_paulis=mul_pauli._grouped_paulis)
             return ret_grouped_pauli
 
         elif self._matrix is not None and rhs._matrix is not None:
             ret_matrix = self._matrix.dot(rhs._matrix)
             return Operator(matrix=ret_matrix)
         else:
-            raise TypeError("the representations of two Operators should be the same. ({}, {})".format(
-                self.representations, rhs.representations))
+            raise TypeError(
+                "the representations of two Operators should be the same. ({}, {})".format(
+                    self.representations, rhs.representations))
 
     @property
     def coloring(self):
@@ -341,6 +358,7 @@ class Operator(object):
 
     @property
     def aer_paulis(self):
+        """ aer paulis """
         warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
                       "Use the class for each representation instead, including `MatrixOperator`, "
                       "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
@@ -348,9 +366,9 @@ class Operator(object):
         if getattr(self, '_aer_paulis', None) is None:
             self.to_paulis()
             aer_paulis = []
-            for coeff, p in self._paulis:
+            for coeff, pauli in self._paulis:
                 new_coeff = [coeff.real, coeff.imag]
-                new_p = p.to_label()
+                new_p = pauli.to_label()
                 aer_paulis.append([new_coeff, new_p])
             self._aer_paulis = aer_paulis
         return self._aer_paulis
@@ -362,6 +380,8 @@ class Operator(object):
 
         Args:
             mode (str): "matrix", "paulis" or "grouped_paulis".
+        Raises:
+            ValueError: Invalid mode
         """
         warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
                       "Use the class for each representation instead, including `MatrixOperator`, "
@@ -385,7 +405,7 @@ class Operator(object):
                 dia_matrix = 0.0
                 for idx in range(len(self._paulis)):
                     coeff, pauli = self._paulis[idx][0], self._paulis[idx][1]
-                    if not (np.all(np.logical_not(pauli.x))):
+                    if not np.all(np.logical_not(pauli.x)):
                         valid_dia_matrix_flag = False
                         break
                     dia_matrix += coeff * pauli.to_spmatrix().diagonal()
@@ -426,9 +446,11 @@ class Operator(object):
         return self._dia_matrix if self._dia_matrix is not None else self._matrix
 
     def enable_summarize_circuits(self):
+        """ enable summarize circuits """
         self._summarize_circuits = True
 
     def disable_summarize_circuits(self):
+        """ disable summarize circuits """
         self._summarize_circuits = False
 
     @property
@@ -485,7 +507,7 @@ class Operator(object):
             before_04 (bool): support the format < 0.4.
 
         Returns:
-            Operator class: the loaded operator.
+            Operator: the loaded operator.
         """
         warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
                       "Use the `WeightedPauliOperator` class to load the operator",
@@ -505,8 +527,8 @@ class Operator(object):
                       "Use the class for each representation instead, including `MatrixOperator`, "
                       "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
                       DeprecationWarning)
-        with open(file_name, 'w') as f:
-            json.dump(self.save_to_dict(), f)
+        with open(file_name, 'w') as file:
+            json.dump(self.save_to_dict(), file)
 
     @staticmethod
     def load_from_dict(dictionary, before_04=False):
@@ -530,6 +552,8 @@ class Operator(object):
 
         Returns:
             Operator: the loaded operator.
+        Raises:
+            AquaError: invalid dictionary
         """
         warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
                       "Use the class for each representation instead, including `MatrixOperator`, "
@@ -588,6 +612,7 @@ class Operator(object):
 
     @staticmethod
     def from_file(file_name, before_04=False):
+        """ from file """
         warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
                       "Use the class for each representation instead, including `MatrixOperator`, "
                       "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
@@ -595,6 +620,7 @@ class Operator(object):
         return Operator.load_from_file(file_name, before_04)
 
     def to_file(self, file_name):
+        """ to file """
         warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
                       "Use the class for each representation instead, including `MatrixOperator`, "
                       "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
@@ -603,6 +629,7 @@ class Operator(object):
 
     @staticmethod
     def from_dict(dictionary, before_04=False):
+        """ from dict """
         warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
                       "Use the class for each representation instead, including `MatrixOperator`, "
                       "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
@@ -610,6 +637,7 @@ class Operator(object):
         return Operator.load_from_dict(dictionary, before_04)
 
     def to_dict(self):
+        """ to dict """
         warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
                       "Use the class for each representation instead, including `MatrixOperator`, "
                       "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
@@ -665,16 +693,18 @@ class Operator(object):
         Construct the circuits for evaluation.
 
         Args:
-            operator_mode (str): representation of operator, including paulis, grouped_paulis and matrix
+            operator_mode (str): representation of operator, including paulis,
+                                grouped_paulis and matrix
             input_circuit (QuantumCircuit): the quantum circuit.
             backend (BaseBackend): backend selection for quantum machine.
             qr (QuantumRegister, optional): the quantum register associated with the input_circuit
-            cr (ClassicalRegister, optional): the classical register associated with the input_circuit
+            cr (ClassicalRegister, optional): the classical register
+                                            associated with the input_circuit
             use_simulator_operator_mode (bool): if aer_provider is used, we can do faster
                            evaluation for pauli mode on statevector simulation
 
         Returns:
-            [QuantumCircuit]: the circuits for evaluation.
+            list[QuantumCircuit]: the circuits for evaluation.
 
         Raises:
             AquaError: Can not find quantum register with `q` as the name and do not provide
@@ -706,9 +736,10 @@ class Operator(object):
                 else:
                     n_qubits = self.num_qubits
                     circuits = [input_circuit]
-                    for idx, pauli in enumerate(self._paulis):
+                    for _, pauli in enumerate(self._paulis):
                         circuit = QuantumCircuit() + input_circuit
-                        if np.all(np.logical_not(pauli[1].z)) and np.all(np.logical_not(pauli[1].x)):  # all I
+                        if np.all(np.logical_not(pauli[1].z)) and \
+                                np.all(np.logical_not(pauli[1].x)):  # all I
                             continue
                         for qubit_idx in range(n_qubits):
                             if not pauli[1].z[qubit_idx] and pauli[1].x[qubit_idx]:
@@ -739,7 +770,7 @@ class Operator(object):
             if operator_mode == "paulis":
                 self._check_representation("paulis")
 
-                for idx, pauli in enumerate(self._paulis):
+                for _, pauli in enumerate(self._paulis):
                     circuit = QuantumCircuit() + base_circuit
                     for qubit_idx in range(n_qubits):
                         if pauli[1].x[qubit_idx]:
@@ -756,7 +787,7 @@ class Operator(object):
             else:
                 self._check_representation("grouped_paulis")
 
-                for idx, tpb_set in enumerate(self._grouped_paulis):
+                for _, tpb_set in enumerate(self._grouped_paulis):
                     circuit = QuantumCircuit() + base_circuit
                     for qubit_idx in range(n_qubits):
                         if tpb_set[0][1].x[qubit_idx]:
@@ -772,13 +803,15 @@ class Operator(object):
                     circuits.append(circuit)
         return circuits
 
-    def evaluate_with_result(self, operator_mode, circuits, backend, result, use_simulator_operator_mode=False):
+    def evaluate_with_result(self, operator_mode, circuits,
+                             backend, result, use_simulator_operator_mode=False):
         """
         Use the executed result with operator to get the evaluated value.
 
         Args:
-            operator_mode (str): representation of operator, including paulis, grouped_paulis and matrix
-            circuits (list of qiskit.QuantumCircuit): the quantum circuits.
+            operator_mode (str): representation of operator,
+                                including paulis, grouped_paulis and matrix
+            circuits (list[QuantumCircuit]): the quantum circuits.
             backend (str): backend selection for quantum machine.
             result (qiskit.Result): the result from the backend.
             use_simulator_operator_mode (bool): if aer_provider is used, we can do faster
@@ -805,16 +838,20 @@ class Operator(object):
             else:
                 self._check_representation("paulis")
                 if use_simulator_operator_mode:
-                    temp = result.data(circuits[0])['snapshots']['expectation_value']['test'][0]['value']
+                    temp = \
+                        result.data(circuits[0])['snapshots'][
+                            'expectation_value']['test'][0]['value']
                     avg = temp[0] + 1j * temp[1]
                 else:
                     quantum_state = np.asarray(result.get_statevector(circuits[0]))
                     circuit_idx = 1
-                    for idx, pauli in enumerate(self._paulis):
-                        if np.all(np.logical_not(pauli[1].z)) and np.all(np.logical_not(pauli[1].x)):
+                    for _, pauli in enumerate(self._paulis):
+                        if np.all(np.logical_not(pauli[1].z)) and \
+                                np.all(np.logical_not(pauli[1].x)):
                             avg += pauli[0]
                         else:
-                            quantum_state_i = np.asarray(result.get_statevector(circuits[circuit_idx]))
+                            quantum_state_i = \
+                                np.asarray(result.get_statevector(circuits[circuit_idx]))
                             avg += pauli[0] * (np.vdot(quantum_state, quantum_state_i))
                             circuit_idx += 1
         else:
@@ -828,18 +865,18 @@ class Operator(object):
                                        [(pauli, result.get_counts(circuits[idx]))
                                         for idx, pauli in enumerate(self._paulis)],
                                        num_processes=aqua_globals.num_processes)
-                for result in results:
-                    avg += result[0]
-                    variance += result[1]
+                for res in results:
+                    avg += res[0]
+                    variance += res[1]
             else:
                 self._check_representation("grouped_paulis")
                 results = parallel_map(Operator._routine_grouped_paulis_with_shots,
                                        [(tpb_set, result.get_counts(circuits[tpb_idx]))
                                         for tpb_idx, tpb_set in enumerate(self._grouped_paulis)],
                                        num_processes=aqua_globals.num_processes)
-                for result in results:
-                    avg += result[0]
-                    variance += result[1]
+                for res in results:
+                    avg += res[0]
+                    variance += res[1]
 
             std_dev = np.sqrt(variance / num_shots)
 
@@ -893,24 +930,28 @@ class Operator(object):
              run_config=None, qjob_config=None, noise_config=None):
         """
         Supporting three ways to evaluate the given circuits with the operator.
-        1. If `input_circuit` is a numpy.ndarray, it will directly perform inner product with the operator.
+        1. If `input_circuit` is a numpy.ndarray, it will directly perform
+            inner product with the operator.
         2. If `backend` is a statevector simulator, use quantum backend to get statevector \
            and then evaluate with the operator.
         3. Other cases: it use with quantum backend (simulator or real quantum machine), \
            to obtain the mean and standard deviation of measured results.
 
         Args:
-            operator_mode (str): representation of operator, including paulis, grouped_paulis and matrix
+            operator_mode (str): representation of operator,
+                                including paulis, grouped_paulis and matrix
             input_circuit (QuantumCircuit or numpy.ndarray): the quantum circuit.
             backend (BaseBackend): backend selection for quantum machine.
             backend_config (dict): configuration for backend
             compile_config (dict): configuration for compilation
             run_config (RunConfig): configuration for running a circuit
-            qjob_config (dict): the setting to retrieve results from quantum backend, including timeout and wait.
-            noise_config (dict) the setting of noise model for the qasm simulator in the Aer provider.
+            qjob_config (dict): the setting to retrieve results from quantum backend,
+                                including timeout and wait.
+            noise_config (dict): the setting of noise model for the qasm simulator
+                                in the Aer provider.
 
         Returns:
-            float, float: mean and standard deviation of avg
+            tuple(float, float): mean and standard deviation of avg
         """
         from qiskit.aqua.utils.run_circuits import compile_and_run_circuits
 
@@ -936,7 +977,8 @@ class Operator(object):
                 run_config.shots = 1
 
             circuits = self.construct_evaluation_circuit(operator_mode, input_circuit, backend)
-            result = compile_and_run_circuits(circuits, backend=backend, backend_config=backend_config,
+            result = compile_and_run_circuits(circuits, backend=backend,
+                                              backend_config=backend_config,
                                               compile_config=compile_config, run_config=run_config,
                                               qjob_config=qjob_config, noise_config=noise_config,
                                               show_circuit_summary=self._summarize_circuits)
@@ -945,6 +987,7 @@ class Operator(object):
         return avg, std_dev
 
     def to_paulis(self):
+        """ to paulis """
         warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
                       "Use the class for each representation instead, including `MatrixOperator`, "
                       "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
@@ -952,6 +995,7 @@ class Operator(object):
         self._check_representation('paulis')
 
     def to_grouped_paulis(self):
+        """ to grouped paulis """
         warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
                       "Use the class for each representation instead, including `MatrixOperator`, "
                       "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
@@ -959,6 +1003,7 @@ class Operator(object):
         self._check_representation('grouped_paulis')
 
     def to_matrix(self):
+        """ to matrix """
         warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
                       "Use the class for each representation instead, including `MatrixOperator`, "
                       "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
@@ -1041,7 +1086,8 @@ class Operator(object):
 
         Note:
             Conversion from Paulis to matrix: H = sum_i alpha_i * Pauli_i
-            Conversion from matrix to Paulis: alpha_i = coeff * Trace(H.Pauli_i) (dot product of trace)
+            Conversion from matrix to Paulis:
+                alpha_i = coeff * Trace(H.Pauli_i) (dot product of trace)
                 where coeff = 2^(- # of qubits), # of qubit = log2(dim of matrix)
         """
         if self._matrix.nnz == 0:
@@ -1084,7 +1130,7 @@ class Operator(object):
                         ret = True
                         break
                 return ret
-            for i in range(len(temp_paulis)):
+            for i, _ in enumerate(temp_paulis):
                 p_1 = temp_paulis[i]
                 if not check_pauli_in_list(p_1, sorted_paulis):
                     paulis_temp = []
@@ -1097,18 +1143,18 @@ class Operator(object):
                         p_2 = temp_paulis[j]
                         if not check_pauli_in_list(p_2, sorted_paulis) and p_1[1] != p_2[1]:
                             j = 0
-                            for i in range(n):
+                            for __i in range(n):
                                 # p_2 is identity, p_1 is identity, p_1 and p_2 has same basis
-                                if not ((not p_2[1].z[i] and not p_2[1].x[i]) or
-                                        (not p_1[1].z[i] and not p_1[1].x[i]) or
-                                        (p_2[1].z[i] == p_1[1].z[i] and
-                                         p_2[1].x[i] == p_1[1].x[i])):
+                                if not ((not p_2[1].z[__i] and not p_2[1].x[__i]) or
+                                        (not p_1[1].z[__i] and not p_1[1].x[__i]) or
+                                        (p_2[1].z[__i] == p_1[1].z[__i] and
+                                         p_2[1].x[__i] == p_1[1].x[__i])):
                                     break
                                 else:
                                     # update master, if p_2 is not identity
-                                    if p_2[1].z[i] or p_2[1].x[i]:
-                                        paulis_temp[0][1].update_z(p_2[1].z[i], i)
-                                        paulis_temp[0][1].update_x(p_2[1].x[i], i)
+                                    if p_2[1].z[__i] or p_2[1].x[__i]:
+                                        paulis_temp[0][1].update_z(p_2[1].z[__i], __i)
+                                        paulis_temp[0][1].update_x(p_2[1].x[__i], __i)
                                 j += 1
                             if j == n:
                                 paulis_temp.append(p_2)
@@ -1136,11 +1182,11 @@ class Operator(object):
         """
         if self._paulis == []:
             return
-        p = self._paulis[0]
-        hamiltonian = p[0] * p[1].to_spmatrix()
+        pauli = self._paulis[0]
+        hamiltonian = pauli[0] * pauli[1].to_spmatrix()
         for idx in range(1, len(self._paulis)):
-            p = self._paulis[idx]
-            hamiltonian += p[0] * p[1].to_spmatrix()
+            pauli = self._paulis[idx]
+            hamiltonian += pauli[0] * pauli[1].to_spmatrix()
         self._matrix = hamiltonian
         self._to_dia_matrix(mode='matrix')
         self._paulis = None
@@ -1153,16 +1199,16 @@ class Operator(object):
         """
         if self._grouped_paulis == []:
             return
-        p = self._grouped_paulis[0][1]
-        hamiltonian = p[0] * p[1].to_spmatrix()
+        pauli = self._grouped_paulis[0][1]
+        hamiltonian = pauli[0] * pauli[1].to_spmatrix()
         for idx in range(2, len(self._grouped_paulis[0])):
-            p = self._grouped_paulis[0][idx]
-            hamiltonian += p[0] * p[1].to_spmatrix()
+            pauli = self._grouped_paulis[0][idx]
+            hamiltonian += pauli[0] * pauli[1].to_spmatrix()
         for group_idx in range(1, len(self._grouped_paulis)):
             group = self._grouped_paulis[group_idx]
             for idx in range(1, len(group)):
-                p = group[idx]
-                hamiltonian += p[0] * p[1].to_spmatrix()
+                pauli = group[idx]
+                hamiltonian += pauli[0] * pauli[1].to_spmatrix()
         self._matrix = hamiltonian
         self._to_dia_matrix(mode='matrix')
         self._paulis = None
@@ -1236,7 +1282,7 @@ class Operator(object):
         sectors, (block spin order) according to the number of particles in the system.
 
         Args:
-            m (list, int): number of particles, if it is a list, the first number is alpha
+            m (Union(list, int)): number of particles, if it is a list, the first number is alpha
                             and the second number if beta.
             threshold (float): threshold for Pauli simplification
 
@@ -1313,25 +1359,33 @@ class Operator(object):
 
     @staticmethod
     def construct_evolution_circuit(slice_pauli_list, evo_time, num_time_slices, state_registers,
-                                    ancillary_registers=None, ctl_idx=0, unitary_power=None, use_basis_gates=True,
+                                    ancillary_registers=None,
+                                    ctl_idx=0, unitary_power=None, use_basis_gates=True,
                                     shallow_slicing=False):
         """
         Construct the evolution circuit according to the supplied specification.
 
         Args:
-            slice_pauli_list (list): The list of pauli terms corresponding to a single time slice to be evolved
+            slice_pauli_list (list): The list of pauli terms corresponding
+                                    to a single time slice to be evolved
             evo_time (int): The evolution time
             num_time_slices (int): The number of time slices for the expansion
-            state_registers (QuantumRegister): The Qiskit QuantumRegister corresponding to the qubits of the system
-            ancillary_registers (QuantumRegister): The optional Qiskit QuantumRegister corresponding to the control
+            state_registers (QuantumRegister): The Qiskit QuantumRegister corresponding
+                                                to the qubits of the system
+            ancillary_registers (QuantumRegister): The optional Qiskit QuantumRegister
+                corresponding to the control
                 qubits for the state_registers of the system
             ctl_idx (int): The index of the qubit of the control ancillary_registers to use
             unitary_power (int): The power to which the unitary operator is to be raised
-            use_basis_gates (bool): boolean flag for indicating only using basis gates when building circuit.
-            shallow_slicing (bool): boolean flag for indicating using shallow qc.data reference repetition for slicing
+            use_basis_gates (bool): boolean flag for indicating only using basis gates
+                                    when building circuit.
+            shallow_slicing (bool): boolean flag for indicating using shallow qc.data
+                                    reference repetition for slicing
 
         Returns:
             QuantumCircuit: The Qiskit QuantumCircuit corresponding to specified evolution.
+        Raises:
+            ValueError: Quantum state registers are required
         """
         warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
                       "Use the class for each representation instead, including `MatrixOperator`, "
@@ -1348,7 +1402,7 @@ class Operator(object):
         # for each pauli [IXYZ]+, record the list of qubit pairs needing CX's
         cnot_qubit_pairs = [None] * len(slice_pauli_list)
         # for each pauli [IXYZ]+, record the highest index of the nontrivial pauli gate (X,Y, or Z)
-        top_XYZ_pauli_indices = [-1] * len(slice_pauli_list)
+        top_xyz_pauli_indices = [-1] * len(slice_pauli_list)
 
         for pauli_idx, pauli in enumerate(reversed(slice_pauli_list)):
             n_qubits = pauli[1].numberofqubits
@@ -1381,8 +1435,8 @@ class Operator(object):
                 else:
                     raise ValueError('Unrecognized pauli: {}'.format(pauli[1]))
 
-            if len(nontrivial_pauli_indices) > 0:
-                top_XYZ_pauli_indices[pauli_idx] = nontrivial_pauli_indices[-1]
+            if nontrivial_pauli_indices:
+                top_xyz_pauli_indices[pauli_idx] = nontrivial_pauli_indices[-1]
 
             # insert lhs cnot gates
             if cnot_qubit_pairs[pauli_idx] is None:
@@ -1395,25 +1449,27 @@ class Operator(object):
                 qc_slice.cx(state_registers[pair[0]], state_registers[pair[1]])
 
             # insert Rz gate
-            if top_XYZ_pauli_indices[pauli_idx] >= 0:
+            if top_xyz_pauli_indices[pauli_idx] >= 0:
                 if ancillary_registers is None:
                     lam = (2.0 * pauli[0] * evo_time / num_time_slices).real
                     if use_basis_gates:
-                        qc_slice.u1(lam, state_registers[top_XYZ_pauli_indices[pauli_idx]])
+                        qc_slice.u1(lam, state_registers[top_xyz_pauli_indices[pauli_idx]])
                     else:
-                        qc_slice.rz(lam, state_registers[top_XYZ_pauli_indices[pauli_idx]])
+                        qc_slice.rz(lam, state_registers[top_xyz_pauli_indices[pauli_idx]])
                 else:
                     unitary_power = (2 ** ctl_idx) if unitary_power is None else unitary_power
                     lam = (2.0 * pauli[0] * evo_time / num_time_slices * unitary_power).real
 
                     if use_basis_gates:
-                        qc_slice.u1(lam / 2, state_registers[top_XYZ_pauli_indices[pauli_idx]])
-                        qc_slice.cx(ancillary_registers[ctl_idx], state_registers[top_XYZ_pauli_indices[pauli_idx]])
-                        qc_slice.u1(-lam / 2, state_registers[top_XYZ_pauli_indices[pauli_idx]])
-                        qc_slice.cx(ancillary_registers[ctl_idx], state_registers[top_XYZ_pauli_indices[pauli_idx]])
+                        qc_slice.u1(lam / 2, state_registers[top_xyz_pauli_indices[pauli_idx]])
+                        qc_slice.cx(ancillary_registers[ctl_idx],
+                                    state_registers[top_xyz_pauli_indices[pauli_idx]])
+                        qc_slice.u1(-lam / 2, state_registers[top_xyz_pauli_indices[pauli_idx]])
+                        qc_slice.cx(ancillary_registers[ctl_idx],
+                                    state_registers[top_xyz_pauli_indices[pauli_idx]])
                     else:
                         qc_slice.crz(lam, ancillary_registers[ctl_idx],
-                                     state_registers[top_XYZ_pauli_indices[pauli_idx]])
+                                     state_registers[top_xyz_pauli_indices[pauli_idx]])
 
             # insert rhs cnot gates
             for pair in reversed(cnot_qubit_pairs[pauli_idx]):
@@ -1438,7 +1494,8 @@ class Operator(object):
         # repeat the slice
         if shallow_slicing:
             logger.info('Under shallow slicing mode, the qc.data reference is repeated shallowly. '
-                        'Thus, changing gates of one slice of the output circuit might affect other slices.')
+                        'Thus, changing gates of one slice of the output circuit might affect '
+                        'other slices.')
             qc_slice.data *= num_time_slices
             qc = qc_slice
         else:
@@ -1459,7 +1516,7 @@ class Operator(object):
             expansion_order (int): The order for the suzuki expansion
 
         Returns:
-            numpy array: The matrix representation corresponding to the specified suzuki expansion
+            numpy.array: The matrix representation corresponding to the specified suzuki expansion
         """
         # pylint: disable=no-member
         if expansion_order == 1:
@@ -1473,16 +1530,16 @@ class Operator(object):
             )
             return left @ right
         else:
-            pk = (4 - 4 ** (1 / (2 * expansion_order - 1))) ** -1
+            p_k = (4 - 4 ** (1 / (2 * expansion_order - 1))) ** -1
             side_base = Operator._suzuki_expansion_slice_matrix(
                 pauli_list,
-                lam * pk,
+                lam * p_k,
                 expansion_order - 1
             )
             side = side_base @ side_base
             middle = Operator._suzuki_expansion_slice_matrix(
                 pauli_list,
-                lam * (1 - 4 * pk),
+                lam * (1 - 4 * p_k),
                 expansion_order - 1
             )
             return side @ middle @ side
@@ -1498,16 +1555,16 @@ class Operator(object):
             half = [[lam_coef / 2 * c, p] for c, p in pauli_list]
             return half + list(reversed(half))
         else:
-            pk = (4 - 4 ** (1 / (2 * expansion_order - 1))) ** -1
+            p_k = (4 - 4 ** (1 / (2 * expansion_order - 1))) ** -1
             side_base = Operator._suzuki_expansion_slice_pauli_list(
                 pauli_list,
-                lam_coef * pk,
+                lam_coef * p_k,
                 expansion_order - 1
             )
             side = side_base * 2
             middle = Operator._suzuki_expansion_slice_pauli_list(
                 pauli_list,
-                lam_coef * (1 - 4 * pk),
+                lam_coef * (1 - 4 * p_k),
                 expansion_order - 1
             )
             return side + middle + side
@@ -1526,12 +1583,13 @@ class Operator(object):
         Carry out the eoh evolution for the operator under supplied specifications.
 
         Args:
-            state_in: The initial state for the evolution
+            state_in (object): The initial state for the evolution
             evo_time (int): The evolution time
             evo_mode (str): The mode under which the evolution is carried out.
                 Currently only support 'matrix' or 'circuit'
             num_time_slices (int): The number of time slices for the expansion
-            quantum_registers (QuantumRegister): The QuantumRegister to build the QuantumCircuit off of
+            quantum_registers (QuantumRegister): The QuantumRegister to build
+                the QuantumCircuit off of
             expansion_mode (str): The mode under which the expansion is to be done.
                 Currently support 'trotter', which follows the expansion as discussed in
                 http://science.sciencemag.org/content/273/5278/1073,
@@ -1540,8 +1598,12 @@ class Operator(object):
             expansion_order (int): The order for suzuki expansion
 
         Returns:
-            Depending on the evo_mode specified, either return the matrix vector multiplication result
-            or the constructed QuantumCircuit.
+            Union(numpy.ndarray, QuantumCircuit): Depending on the evo_mode specified,
+                                    either return the matrix vector multiplication result
+                                    or the constructed QuantumCircuit.
+        Raises:
+            NotImplementedError: expansion mode not supported
+            ValueError: invalid expansion mode
 
         """
         warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
@@ -1552,7 +1614,7 @@ class Operator(object):
         # pylint: disable=no-member
         if num_time_slices < 0 or not isinstance(num_time_slices, int):
             raise ValueError('Number of time slices should be a non-negative integer.')
-        if not (expansion_mode == 'trotter' or expansion_mode == 'suzuki'):
+        if expansion_mode not in ('trotter', 'suzuki'):
             raise NotImplementedError('Expansion mode {} not supported.'.format(expansion_mode))
 
         pauli_list = self.get_flat_pauli_list()
@@ -1565,14 +1627,16 @@ class Operator(object):
             else:
                 if len(pauli_list) == 1:
                     approx_matrix_slice = scila.expm(
-                        -1.j * evo_time / num_time_slices * pauli_list[0][0] * pauli_list[0][1].to_spmatrix().tocsc()
+                        -1.j * evo_time /
+                        num_time_slices * pauli_list[0][0] * pauli_list[0][1].to_spmatrix().tocsc()
                     )
                 else:
                     if expansion_mode == 'trotter':
                         approx_matrix_slice = reduce(
                             lambda x, y: x @ y,
                             [
-                                scila.expm(-1.j * evo_time / num_time_slices * c * p.to_spmatrix().tocsc())
+                                scila.expm(-1.j * evo_time /
+                                           num_time_slices * c * p.to_spmatrix().tocsc())
                                 for c, p in pauli_list
                             ]
                         )
@@ -1585,29 +1649,32 @@ class Operator(object):
                         )
                     else:
                         raise ValueError('Unrecognized expansion mode {}.'.format(expansion_mode))
-                return reduce(lambda x, y: x @ y, [approx_matrix_slice] * num_time_slices) @ state_in
+                return reduce(lambda x, y: x @ y,
+                              [approx_matrix_slice] * num_time_slices) @ state_in
 
         elif evo_mode == 'circuit':
             if num_time_slices == 0:
-                raise ValueError('Number of time slices should be a positive integer for {} mode.'.format(evo_mode))
+                raise ValueError(
+                    'Number of time slices should be a positive integer for {} mode.'.format(
+                        evo_mode))
+
+            if quantum_registers is None:
+                raise ValueError('Quantum registers are needed for circuit construction.')
+            if len(pauli_list) == 1:
+                slice_pauli_list = pauli_list
             else:
-                if quantum_registers is None:
-                    raise ValueError('Quantum registers are needed for circuit construction.')
-                if len(pauli_list) == 1:
+                if expansion_mode == 'trotter':
                     slice_pauli_list = pauli_list
+                # suzuki expansion
                 else:
-                    if expansion_mode == 'trotter':
-                        slice_pauli_list = pauli_list
-                    # suzuki expansion
-                    else:
-                        slice_pauli_list = Operator._suzuki_expansion_slice_pauli_list(
-                            pauli_list,
-                            1,
-                            expansion_order
-                        )
-                return self.construct_evolution_circuit(
-                    slice_pauli_list, evo_time, num_time_slices, quantum_registers
-                )
+                    slice_pauli_list = Operator._suzuki_expansion_slice_pauli_list(
+                        pauli_list,
+                        1,
+                        expansion_order
+                    )
+            return self.construct_evolution_circuit(
+                slice_pauli_list, evo_time, num_time_slices, quantum_registers
+            )
         else:
             raise ValueError('Evolution mode should be either "matrix" or "circuit".')
 
@@ -1623,13 +1690,9 @@ class Operator(object):
                       "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
                       DeprecationWarning)
 
-        if self._matrix is None and self._dia_matrix is None \
-                and (self._paulis == [] or self._paulis is None) \
-                and (self._grouped_paulis == [] or self._grouped_paulis is None):
-
-            return True
-        else:
-            return False
+        return bool(self._matrix is None and self._dia_matrix is None
+                    and (self._paulis == [] or self._paulis is None)
+                    and (self._grouped_paulis == [] or self._grouped_paulis is None))
 
     def _check_representation(self, targeted_representation):
         """
@@ -1641,6 +1704,7 @@ class Operator(object):
 
         Raises:
             ValueError: if the `targeted_representation` is not recognized.
+            AquaError: invalid targeted representation
         """
         if targeted_representation == 'paulis':
             if self._paulis is None:
@@ -1673,9 +1737,11 @@ class Operator(object):
                         "at least having one of the three operator representations.")
         else:
             raise ValueError(
-                '"targeted_representation" should be one of "paulis", "grouped_paulis" and "matrix".'
+                '"targeted_representation" should be one of "paulis", '
+                '"grouped_paulis" and "matrix".'
             )
 
+    # pylint: disable=invalid-name
     @staticmethod
     def row_echelon_F2(matrix_in):
         """
@@ -1686,7 +1752,7 @@ class Operator(object):
             matrix_in (numpy.ndarray): binary matrix
 
         Returns:
-            numpy.ndarray : matrix_in in Echelon row form
+            numpy.ndarray: matrix_in in Echelon row form
         """
         warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
                       "Use the class for each representation instead, including `MatrixOperator`, "
@@ -1720,6 +1786,7 @@ class Operator(object):
 
         return matrix_out
 
+    # pylint: disable=invalid-name
     @staticmethod
     def kernel_F2(matrix_in):
         """
@@ -1729,11 +1796,12 @@ class Operator(object):
             matrix_in (numpy.ndarray): binary matrix
 
         Returns:
-            [numpy.ndarray]: the list of kernel vectors
+            list[numpy.ndarray]: the list of kernel vectors
         """
         warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
                       "Use the class for each representation instead, including `MatrixOperator`, "
-                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`", DeprecationWarning)
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
 
         size = matrix_in.shape
         kernel = []
@@ -1747,21 +1815,25 @@ class Operator(object):
 
         return kernel
 
+    # pylint: disable=invalid-name
     def find_Z2_symmetries(self):
         """
         Finds Z2 Pauli-type symmetries of an Operator
 
         Returns:
-            [Pauli]: the list of Pauli objects representing the Z2 symmetries
-            [Pauli]: the list of single - qubit Pauli objects to construct the Clifford operators
-            [Operators]: the list of Clifford unitaries to block diagonalize Operator
-            [int]: the list of support of the single-qubit Pauli objects used to build the clifford operators
+            list[Pauli]: the list of Pauli objects representing the Z2 symmetries
+            list[Pauli]: the list of single - qubit Pauli objects to
+                        construct the Clifford operators
+            list[Operators]: the list of Clifford unitaries to block diagonalize Operator
+            list[int]: the list of support of the single-qubit Pauli objects used
+                        to build the clifford operators
         """
         warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
                       "Use the class for each representation instead, including `MatrixOperator`, "
-                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`", DeprecationWarning)
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
 
-        Pauli_symmetries = []
+        pauli_symmetries = []
         sq_paulis = []
         cliffords = []
         sq_list = []
@@ -1780,7 +1852,7 @@ class Operator(object):
         stacked_matrix = np.array(np.stack(stacked_paulis))
         symmetries = Operator.kernel_F2(stacked_matrix)
 
-        if len(symmetries) == 0:
+        if not symmetries:
             logger.info("No symmetry is found.")
             return [], [], [], []
 
@@ -1789,22 +1861,22 @@ class Operator(object):
 
         for row in range(symm_shape[0]):
 
-            Pauli_symmetries.append(Pauli(stacked_symmetries[row, : symm_shape[1] // 2],
+            pauli_symmetries.append(Pauli(stacked_symmetries[row, : symm_shape[1] // 2],
                                           stacked_symmetries[row, symm_shape[1] // 2:]))
 
             stacked_symm_del = np.delete(stacked_symmetries, (row), axis=0)
             for col in range(symm_shape[1] // 2):
                 # case symmetries other than one at (row) have Z or I on col qubit
-                Z_or_I = True
+                z_or_i = True
                 for symm_idx in range(symm_shape[0] - 1):
                     if not (stacked_symm_del[symm_idx, col] == 0
                             and stacked_symm_del[symm_idx, col + symm_shape[1] // 2] in (0, 1)):
-                        Z_or_I = False
-                if Z_or_I:
+                        z_or_i = False
+                if z_or_i:
                     if ((stacked_symmetries[row, col] == 1 and
                          stacked_symmetries[row, col + symm_shape[1] // 2] == 0) or
-                        (stacked_symmetries[row, col] == 1 and
-                         stacked_symmetries[row, col + symm_shape[1] // 2] == 1)):
+                            (stacked_symmetries[row, col] == 1 and
+                             stacked_symmetries[row, col + symm_shape[1] // 2] == 1)):
                         sq_paulis.append(Pauli(np.zeros(symm_shape[1] // 2),
                                                np.zeros(symm_shape[1] // 2)))
                         sq_paulis[row].z[col] = False
@@ -1813,45 +1885,48 @@ class Operator(object):
                         break
 
                 # case symmetries other than one at (row) have X or I on col qubit
-                X_or_I = True
+                x_or_i = True
                 for symm_idx in range(symm_shape[0] - 1):
                     if not (stacked_symm_del[symm_idx, col] in (0, 1) and
                             stacked_symm_del[symm_idx, col + symm_shape[1] // 2] == 0):
-                        X_or_I = False
-                if X_or_I:
+                        x_or_i = False
+                if x_or_i:
                     if ((stacked_symmetries[row, col] == 0 and
                          stacked_symmetries[row, col + symm_shape[1] // 2] == 1) or
-                        (stacked_symmetries[row, col] == 1 and
-                         stacked_symmetries[row, col + symm_shape[1] // 2] == 1)):
-                        sq_paulis.append(Pauli(np.zeros(symm_shape[1] // 2), np.zeros(symm_shape[1] // 2)))
+                            (stacked_symmetries[row, col] == 1 and
+                             stacked_symmetries[row, col + symm_shape[1] // 2] == 1)):
+                        sq_paulis.append(Pauli(np.zeros(symm_shape[1] // 2),
+                                               np.zeros(symm_shape[1] // 2)))
                         sq_paulis[row].z[col] = True
                         sq_paulis[row].x[col] = False
                         sq_list.append(col)
                         break
 
                 # case symmetries other than one at (row)  have Y or I on col qubit
-                Y_or_I = True
+                y_or_i = True
                 for symm_idx in range(symm_shape[0] - 1):
                     if not ((stacked_symm_del[symm_idx, col] == 1 and
                              stacked_symm_del[symm_idx, col + symm_shape[1] // 2] == 1)
                             or (stacked_symm_del[symm_idx, col] == 0 and
                                 stacked_symm_del[symm_idx, col + symm_shape[1] // 2] == 0)):
-                        Y_or_I = False
-                if Y_or_I:
+                        y_or_i = False
+                if y_or_i:
                     if ((stacked_symmetries[row, col] == 0 and
                          stacked_symmetries[row, col + symm_shape[1] // 2] == 1) or
-                        (stacked_symmetries[row, col] == 1 and
-                         stacked_symmetries[row, col + symm_shape[1] // 2] == 0)):
-                        sq_paulis.append(Pauli(np.zeros(symm_shape[1] // 2), np.zeros(symm_shape[1] // 2)))
+                            (stacked_symmetries[row, col] == 1 and
+                             stacked_symmetries[row, col + symm_shape[1] // 2] == 0)):
+                        sq_paulis.append(Pauli(np.zeros(symm_shape[1] // 2),
+                                               np.zeros(symm_shape[1] // 2)))
                         sq_paulis[row].z[col] = True
                         sq_paulis[row].x[col] = True
                         sq_list.append(col)
                         break
 
-        for symm_idx, Pauli_symm in enumerate(Pauli_symmetries):
-            cliffords.append(Operator([[1 / np.sqrt(2), Pauli_symm], [1 / np.sqrt(2), sq_paulis[symm_idx]]]))
+        for symm_idx, pauli_symm in enumerate(pauli_symmetries):
+            cliffords.append(Operator([[1 / np.sqrt(2), pauli_symm],
+                                       [1 / np.sqrt(2), sq_paulis[symm_idx]]]))
 
-        return Pauli_symmetries, sq_paulis, cliffords, sq_list
+        return pauli_symmetries, sq_paulis, cliffords, sq_list
 
     @staticmethod
     def qubit_tapering(operator, cliffords, sq_list, tapering_values):
@@ -1863,20 +1938,21 @@ class Operator(object):
 
         Args:
             operator (Operator): the target operator to be tapered
-            cliffords ([Operator]): list of unitary Clifford transformation
-            sq_list ([int]): position of the single-qubit operators that anticommute
+            cliffords (list[Operator]): list of unitary Clifford transformation
+            sq_list (list[int]): position of the single-qubit operators that anticommute
             with the cliffords
-            tapering_values ([int]): array of +/- 1 used to select the subspace. Length
+            tapering_values (list[int]): array of +/- 1 used to select the subspace. Length
             has to be equal to the length of cliffords and sq_list
 
         Returns:
-            Operator : the tapered operator, or empty operator if the `operator` is empty.
+            Operator: the tapered operator, or empty operator if the `operator` is empty.
         """
         warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
                       "Use the class for each representation instead, including `MatrixOperator`, "
-                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`", DeprecationWarning)
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
 
-        if len(cliffords) == 0 or len(sq_list) == 0 or len(tapering_values) == 0:
+        if not cliffords or not sq_list or not tapering_values:
             logger.warning("Cliffords, single qubit list and tapering values cannot be empty.\n"
                            "Return the original operator instead.")
             return operator
@@ -1919,12 +1995,14 @@ class Operator(object):
         """
         Eliminate paulis or grouped paulis whose coefficients are zeros.
 
-        The difference from `_simplify_paulis` method is that, this method will not remove duplicated
+        The difference from `_simplify_paulis` method is that,
+        this method will not remove duplicated
         paulis.
         """
         warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
                       "Use the class for each representation instead, including `MatrixOperator`, "
-                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`", DeprecationWarning)
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
 
         if self._paulis is not None:
             new_paulis = [pauli for pauli in self._paulis if pauli[0] != 0]
@@ -1948,7 +2026,8 @@ class Operator(object):
         """
         warnings.warn("The `Operator` class is deprecated and will be removed after 0.6. "
                       "Use the class for each representation instead, including `MatrixOperator`, "
-                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`", DeprecationWarning)
+                      "`WeightedPauliOperator` and `TPBGroupedWeightedPauliOperator`",
+                      DeprecationWarning)
 
         if self._paulis is not None:
             for idx in range(len(self._paulis)):
@@ -1963,18 +2042,21 @@ class Operator(object):
                 self._dia_matrix *= scaling_factor
 
     def to_matrix_operator(self):
+        """ to matrix operator """
         from qiskit.aqua.operators import MatrixOperator
         ret = self.copy()
         ret.to_matrix()
         return MatrixOperator(matrix=ret._matrix)
 
     def to_weighted_pauli_operator(self):
+        """ to weighted pauli operator """
         from qiskit.aqua.operators import WeightedPauliOperator
         ret = self.copy()
         ret.to_paulis()
         return WeightedPauliOperator(paulis=ret._paulis)
 
     def to_tpb_grouped_weighted_pauli_operator(self):
+        """ to tpb grouped weighted pauli operator """
         from qiskit.aqua.operators import TPBGroupedWeightedPauliOperator
 
         ret = self.to_weighted_pauli_operator()

@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""An approximate QFT."""
+
 from qiskit.aqua.circuits import FourierTransformCircuits as ftc
 from . import QFT
 

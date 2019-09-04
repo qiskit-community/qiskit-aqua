@@ -31,6 +31,8 @@ from .ae_utils import pdf_a, derivative_log_pdf_a, bisect_max
 
 logger = logging.getLogger(__name__)
 
+# pylint: disable=invalid-name
+
 
 class AmplitudeEstimation(AmplitudeEstimationBase):
     """
@@ -70,15 +72,20 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
         ],
     }
 
-    def __init__(self, num_eval_qubits, a_factory=None, i_objective=None, q_factory=None, iqft=None):
+    def __init__(self, num_eval_qubits, a_factory=None,
+                 i_objective=None, q_factory=None, iqft=None):
         """
         Constructor.
 
         Args:
             num_eval_qubits (int): number of evaluation qubits
-            a_factory (CircuitFactory): the CircuitFactory subclass object representing the problem unitary
-            q_factory (CircuitFactory): the CircuitFactory subclass object representing an amplitude estimation sample (based on a_factory)
-            iqft (IQFT): the Inverse Quantum Fourier Transform pluggable component, defaults to using a standard iqft when None
+            a_factory (CircuitFactory): the CircuitFactory subclass object representing
+                                        the problem unitary
+            i_objective (int): i objective
+            q_factory (CircuitFactory): the CircuitFactory subclass object representing an
+                                        amplitude estimation sample (based on a_factory)
+            iqft (IQFT): the Inverse Quantum Fourier Transform pluggable component,
+                            defaults to using a standard iqft when None
         """
         self.validate(locals())
         super().__init__(a_factory, q_factory, i_objective)
@@ -99,8 +106,12 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
         """
         Initialize via parameters dictionary and algorithm input instance
         Args:
-            params: parameters dictionary
-            algo_input: Input instance
+            params (dict): parameters dictionary
+            algo_input (object): Input instance
+        Returns:
+            AmplitudeEstimation: instance of this class
+        Raises:
+            AquaError: Input instance not supported
         """
         if algo_input is not None:
             raise AquaError('Input instance not supported.')
@@ -139,10 +150,11 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
         Construct the Amplitude Estimation quantum circuit.
 
         Args:
-            measurement (bool): Boolean flag to indicate if measurement should be included in the circuit.
+            measurement (bool): Boolean flag to indicate if measurement
+                should be included in the circuit.
 
         Returns:
-            the QuantumCircuit object for the constructed circuit
+            QuantumCircuit: the QuantumCircuit object for the constructed circuit
         """
         pec = PhaseEstimationCircuit(
             iqft=self._iqft, num_ancillae=self._m,
@@ -252,6 +264,7 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
         return [self.a_factory.value_to_estimation(bound) for bound in ci]
 
     def confidence_interval(self, alpha, kind='likelihood_ratio'):
+        """ confidence interval """
         # check if AE did run already
         if 'mle' not in self._ret.keys():
             raise AquaError('Call run() first!')

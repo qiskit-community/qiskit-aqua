@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" VQC algorithm """
+
 import logging
 import math
 import numpy as np
@@ -26,6 +28,8 @@ from qiskit.aqua.algorithms.adaptive.vq_algorithm import VQAlgorithm
 
 logger = logging.getLogger(__name__)
 
+# pylint: disable=invalid-name
+
 
 def assign_label(measured_key, num_classes):
     """
@@ -38,6 +42,8 @@ def assign_label(measured_key, num_classes):
     Args:
         measured_key (str): measured key
         num_classes (int): number of classes
+    Returns:
+        int: key order
     """
     measured_key = np.asarray([int(k) for k in list(measured_key)])
     num_qubits = len(measured_key)
@@ -71,7 +77,7 @@ def assign_label(measured_key, num_classes):
         return key_order if key_order < num_classes else num_classes - 1
 
 
-def cost_estimate(probs, gt_labels, shots=None):
+def cost_estimate(probs, gt_labels, shots=None):  # pylint: disable=unused-argument
     """Calculate cross entropy
     # shots is kept since it may be needed in future.
     Args:
@@ -117,14 +123,14 @@ def cost_estimate_sigmoid(shots, probs, gt_labels):
 def return_probabilities(counts, num_classes):
     """Return the probabilities of given measured counts
     Args:
-        counts ([dict]): N data and each with a dict recording the counts
+        counts (list[dict]): N data and each with a dict recording the counts
         num_classes (int): number of classes
     Returns:
         numpy.ndarray: NxK array
     """
 
     probs = np.zeros(((len(counts), num_classes)))
-    for idx in range(len(counts)):
+    for idx, _ in enumerate(counts):
         count = counts[idx]
         shots = sum(count.values())
         for k, v in count.items():
@@ -134,7 +140,7 @@ def return_probabilities(counts, num_classes):
 
 
 class VQC(VQAlgorithm):
-
+    """ VQC Algorithm """
     CONFIGURATION = {
         'name': 'VQC',
         'description': 'Variational Quantum Classifier',
@@ -200,16 +206,21 @@ class VQC(VQAlgorithm):
             optimizer (Optimizer): The classical optimizer to use.
             feature_map (FeatureMap): The FeatureMap instance to use.
             var_form (VariationalForm): The variational form instance.
-            training_dataset (dict): The training dataset, in the format: {'A': np.ndarray, 'B': np.ndarray, ...}.
+            training_dataset (dict): The training dataset, in the format:
+                                    {'A': np.ndarray, 'B': np.ndarray, ...}.
             test_dataset (dict): The test dataset, in same format as `training_dataset`.
             datapoints (np.ndarray): NxD array, N is the number of data and D is data dimension.
             max_evals_grouped (int): The maximum number of evaluations to perform simultaneously.
             minibatch_size (int): The size of a mini-batch.
-            callback (Callable): a callback that can access the intermediate data during the optimization.
-                Internally, four arguments are provided as follows the index of data batch, the index of evaluation,
+            callback (Callable): a callback that can access the
+                intermediate data during the optimization.
+                Internally, four arguments are provided as follows the index
+                of data batch, the index of evaluation,
                 parameters of variational form, evaluated value.
         Notes:
             We use `label` to denotes numeric results and `class` the class names (str).
+        Raises:
+            AquaError: invalid input
         """
 
         self.validate(locals())
@@ -218,6 +229,11 @@ class VQC(VQAlgorithm):
             optimizer=optimizer,
             cost_fn=self._cost_function_wrapper
         )
+        self._batches = None
+        self._label_batches = None
+        self._batch_index = None
+        self._eval_time = None
+        self.batch_num = None
         self._optimizer.set_max_evals_grouped(max_evals_grouped)
 
         self._callback = callback
@@ -240,7 +256,7 @@ class VQC(VQAlgorithm):
 
         if datapoints is not None and not isinstance(datapoints, np.ndarray):
             datapoints = np.asarray(datapoints)
-            if len(datapoints) == 0:
+            if len(datapoints) == 0:  # pylint: disable=len-as-condition
                 datapoints = None
         self._datapoints = datapoints
         self._minibatch_size = minibatch_size
@@ -252,6 +268,7 @@ class VQC(VQAlgorithm):
 
     @classmethod
     def init_params(cls, params, algo_input):
+        """ init params """
         algo_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
         override_spsa_params = algo_params.get('override_SPSA_params')
         max_evals_grouped = algo_params.get('max_evals_grouped')
@@ -294,7 +311,7 @@ class VQC(VQAlgorithm):
 
         Args:
             x (numpy.ndarray): 1-D array with D dimension
-            theta ([numpy.ndarray]): list of 1-D array, parameters sets for variational form
+            theta (list[numpy.ndarray]): list of 1-D array, parameters sets for variational form
             measurement (bool): flag to add measurement
         Returns:
             QuantumCircuit: the circuit
@@ -316,10 +333,10 @@ class VQC(VQAlgorithm):
 
         Args:
             data (numpy.ndarray): 2-D array, NxD, N data points, each with D dimension
-            theta ([numpy.ndarray]): list of 1-D array, parameters sets for variational form
+            theta (list[numpy.ndarray]): list of 1-D array, parameters sets for variational form
         Returns:
-            numpy.ndarray or [numpy.ndarray]: list of NxK array
-            numpy.ndarray or [numpy.ndarray]: list of Nx1 array
+            Union(numpy.ndarray or [numpy.ndarray], numpy.ndarray or [numpy.ndarray]):
+                list of NxK array, list of Nx1 array
         """
         # if self._quantum_instance.is_statevector:
         #     raise ValueError('Selected backend "{}" is not supported.'.format(
@@ -331,12 +348,12 @@ class VQC(VQAlgorithm):
         num_theta_sets = len(theta) // self._var_form.num_parameters
         theta_sets = np.split(theta, num_theta_sets)
 
-        for theta in theta_sets:
+        for thet in theta_sets:
             for datum in data:
                 if self._quantum_instance.is_statevector:
-                    circuit = self.construct_circuit(datum, theta, measurement=False)
+                    circuit = self.construct_circuit(datum, thet, measurement=False)
                 else:
-                    circuit = self.construct_circuit(datum, theta, measurement=True)
+                    circuit = self.construct_circuit(datum, thet, measurement=True)
 
                 circuits[circuit_id] = circuit
                 circuit_id += 1
@@ -352,11 +369,13 @@ class VQC(VQAlgorithm):
                 if self._quantum_instance.is_statevector:
                     temp = results.get_statevector(circuits[circuit_id])
                     outcome_vector = (temp * temp.conj()).real
-                    # convert outcome_vector to outcome_dict, where key is a basis state and value is the count.
-                    # Note: the count can be scaled linearly, i.e., it does not have to be an integer.
+                    # convert outcome_vector to outcome_dict, where key
+                    # is a basis state and value is the count.
+                    # Note: the count can be scaled linearly, i.e.,
+                    # it does not have to be an integer.
                     outcome_dict = {}
                     bitstr_size = int(math.log2(len(outcome_vector)))
-                    for i in range(len(outcome_vector)):
+                    for i, _ in enumerate(outcome_vector):
                         bitstr_i = format(i, '0' + str(bitstr_size) + 'b')
                         outcome_dict[bitstr_i] = outcome_vector[i]
                 else:
@@ -376,8 +395,10 @@ class VQC(VQAlgorithm):
 
         return predicted_probs, predicted_labels
 
-    # Breaks data into minibatches. Labels are optional, but will be broken into batches if included.
+    # Breaks data into minibatches. Labels are optional,
+    # but will be broken into batches if included.
     def batch_data(self, data, labels=None, minibatch_size=-1):
+        """ batch data """
         label_batches = None
 
         if 0 < minibatch_size < len(data):
@@ -394,6 +415,7 @@ class VQC(VQAlgorithm):
         return batches, label_batches
 
     def is_gradient_really_supported(self):
+        """ returns is gradient really supported """
         return self.optimizer.is_gradient_supported and not self.optimizer.is_gradient_ignored
 
     def train(self, data, labels, quantum_instance=None, minibatch_size=-1):
@@ -405,7 +427,8 @@ class VQC(VQAlgorithm):
             quantum_instance (QuantumInstance): quantum backend with all setting
             minibatch_size (int): the size of each minibatched accuracy evaluation
         """
-        self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
+        self._quantum_instance = \
+            self._quantum_instance if quantum_instance is None else quantum_instance
         minibatch_size = minibatch_size if minibatch_size > 0 else self._minibatch_size
         self._batches, self._label_batches = self.batch_data(data, labels, minibatch_size)
         self._batch_index = 0
@@ -427,11 +450,12 @@ class VQC(VQAlgorithm):
             gradient_fn=grad_fn  # func for computing gradient
         )
 
-        if self._ret['num_optimizer_evals'] is not None and self._eval_count >= self._ret['num_optimizer_evals']:
+        if self._ret['num_optimizer_evals'] is not None and \
+                self._eval_count >= self._ret['num_optimizer_evals']:
             self._eval_count = self._ret['num_optimizer_evals']
         self._eval_time = self._ret['eval_time']
-        logger.info('Optimization complete in {} seconds.\nFound opt_params {} in {} evals'.format(
-            self._eval_time, self._ret['opt_params'], self._eval_count))
+        logger.info('Optimization complete in %s seconds.\nFound opt_params %s in %s evals',
+                    self._eval_time, self._ret['opt_params'], self._eval_count)
         self._ret['eval_count'] = self._eval_count
 
         del self._batches
@@ -451,7 +475,7 @@ class VQC(VQAlgorithm):
         epsilon = 1e-8
         f_orig = self._cost_function_wrapper(theta)
         grad = np.zeros((len(theta),), float)
-        for k in range(len(theta)):
+        for k, _ in enumerate(theta):
             theta[k] += epsilon
             f_new = self._cost_function_wrapper(theta)
             grad[k] = (f_new - f_orig) / epsilon
@@ -462,17 +486,18 @@ class VQC(VQAlgorithm):
 
     def _cost_function_wrapper(self, theta):
         batch_index = self._batch_index % len(self._batches)
-        predicted_probs, predicted_labels = self._get_prediction(self._batches[batch_index], theta)
+        predicted_probs, _ = self._get_prediction(self._batches[batch_index], theta)
         total_cost = []
         if not isinstance(predicted_probs, list):
             predicted_probs = [predicted_probs]
-        for i in range(len(predicted_probs)):
+        for i, _ in enumerate(predicted_probs):
             curr_cost = cost_estimate(predicted_probs[i], self._label_batches[batch_index])
             total_cost.append(curr_cost)
             if self._callback is not None:
                 self._callback(
                     self._eval_count,
-                    theta[i * self._var_form.num_parameters:(i + 1) * self._var_form.num_parameters],
+                    theta[i * self._var_form.num_parameters:(i + 1) *
+                          self._var_form.num_parameters],
                     curr_cost,
                     self._batch_index
                 )
@@ -480,7 +505,7 @@ class VQC(VQAlgorithm):
         if not self.is_gradient_really_supported():
             self._batch_index += 1  # increment the batch after eval callback
 
-        logger.debug('Intermediate batch cost: {}'.format(sum(total_cost)))
+        logger.debug('Intermediate batch cost: %s', sum(total_cost))
         return total_cost if len(total_cost) > 1 else total_cost[0]
 
     def test(self, data, labels, quantum_instance=None, minibatch_size=-1, params=None):
@@ -506,13 +531,15 @@ class VQC(VQAlgorithm):
         total_correct = 0
         total_samples = 0
 
-        self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
+        self._quantum_instance = \
+            self._quantum_instance if quantum_instance is None else quantum_instance
         for batch, label_batch in zip(batches, label_batches):
-            predicted_probs, predicted_labels = self._get_prediction(batch, params)
+            predicted_probs, _ = self._get_prediction(batch, params)
             total_cost += cost_estimate(predicted_probs, label_batch)
             total_correct += np.sum((np.argmax(predicted_probs, axis=1) == label_batch))
             total_samples += label_batch.shape[0]
-            int_accuracy = np.sum((np.argmax(predicted_probs, axis=1) == label_batch)) / label_batch.shape[0]
+            int_accuracy = \
+                np.sum((np.argmax(predicted_probs, axis=1) == label_batch)) / label_batch.shape[0]
             logger.debug('Intermediate batch accuracy: {:.2f}%'.format(int_accuracy * 100.0))
         total_accuracy = total_correct / total_samples
         logger.info('Accuracy is {:.2f}%'.format(total_accuracy * 100.0))
@@ -542,10 +569,11 @@ class VQC(VQAlgorithm):
         predicted_probs = None
         predicted_labels = None
 
-        self._quantum_instance = self._quantum_instance if quantum_instance is None else quantum_instance
+        self._quantum_instance = \
+            self._quantum_instance if quantum_instance is None else quantum_instance
         for i, batch in enumerate(batches):
-            if len(batches) > 0:
-                logger.debug('Predicting batch {}'.format(i))
+            if len(batches) > 0:  # pylint: disable=len-as-condition
+                logger.debug('Predicting batch %s', i)
             batch_probs, batch_labels = self._get_prediction(batch, params)
             if not predicted_probs and not predicted_labels:
                 predicted_probs = batch_probs
@@ -564,26 +592,32 @@ class VQC(VQAlgorithm):
             self.test(self._test_dataset[0], self._test_dataset[1])
 
         if self._datapoints is not None:
-            predicted_probs, predicted_labels = self.predict(self._datapoints)
+            _, predicted_labels = self.predict(self._datapoints)
             self._ret['predicted_classes'] = map_label_to_class_name(predicted_labels,
                                                                      self._label_to_class)
         return self._ret
 
     def get_optimal_cost(self):
+        """ get optimal cost """
         if 'opt_params' not in self._ret:
-            raise AquaError("Cannot return optimal cost before running the algorithm to find optimal params.")
+            raise AquaError("Cannot return optimal cost before running the "
+                            "algorithm to find optimal params.")
         return self._ret['min_val']
 
     def get_optimal_circuit(self):
+        """ get optimal circuit """
         if 'opt_params' not in self._ret:
-            raise AquaError("Cannot find optimal circuit before running the algorithm to find optimal params.")
+            raise AquaError("Cannot find optimal circuit before running "
+                            "the algorithm to find optimal params.")
         return self._var_form.construct_circuit(self._ret['opt_params'])
 
     def get_optimal_vector(self):
+        """ get optimal vector """
         from qiskit.aqua.utils.run_circuits import find_regs_by_name
 
         if 'opt_params' not in self._ret:
-            raise AquaError("Cannot find optimal vector before running the algorithm to find optimal params.")
+            raise AquaError("Cannot find optimal vector before running "
+                            "the algorithm to find optimal params.")
         qc = self.get_optimal_circuit()
         if self._quantum_instance.is_statevector:
             ret = self._quantum_instance.execute(qc)
@@ -600,42 +634,52 @@ class VQC(VQAlgorithm):
 
     @property
     def optimal_params(self):
+        """ returns optimal parameters """
         if 'opt_params' not in self._ret:
             raise AquaError("Cannot find optimal params before running the algorithm.")
         return self._ret['opt_params']
 
     @property
     def ret(self):
+        """ returns result """
         return self._ret
 
     @ret.setter
     def ret(self, new_value):
+        """ sets result """
         self._ret = new_value
 
     @property
     def label_to_class(self):
+        """ returns label to class """
         return self._label_to_class
 
     @property
     def class_to_label(self):
+        """ returns class to label """
         return self._class_to_label
 
     def load_model(self, file_path):
+        """ load model """
         model_npz = np.load(file_path, allow_pickle=True)
         self._ret['opt_params'] = model_npz['opt_params']
 
     def save_model(self, file_path):
+        """ save model """
         model = {'opt_params': self._ret['opt_params']}
         np.savez(file_path, **model)
 
     @property
     def test_dataset(self):
+        """ returns test dataset """
         return self._test_dataset
 
     @property
     def training_dataset(self):
+        """ returns training dataset """
         return self._training_dataset
 
     @property
     def datapoints(self):
+        """ return data points """
         return self._datapoints

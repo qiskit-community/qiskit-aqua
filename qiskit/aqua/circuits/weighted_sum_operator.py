@@ -12,6 +12,10 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""
+Adds q^T * w to separate register for non-negative integer weights w
+"""
+
 import logging
 
 import numpy as np
@@ -39,6 +43,8 @@ class WeightedSumOperator(CircuitFactory):
             i_state (array or list): indices of state qubits, set to range(num_state_qubits) if None
             i_sum (int): indices of target qubits (that represent the resulting sum),
                 set to range(num_state_qubits, num_state_qubits + req_num_sum_qubits) if None
+        Raises:
+            AquaError: invalid input
         """
 
         self._weights = weights
@@ -46,7 +52,8 @@ class WeightedSumOperator(CircuitFactory):
         # check weights
         for i, w in enumerate(weights):
             if not np.isclose(w, np.round(w)):
-                logger.warning('Non-integer weights are rounded to the nearest integer! ({}, {}).'.format(i, w))
+                logger.warning('Non-integer weights are rounded to '
+                               'the nearest integer! (%s, %s).', i, w)
 
         self._num_state_qubits = num_state_qubits
         self._num_sum_qubits = self.get_required_sum_qubits(weights)
@@ -71,26 +78,31 @@ class WeightedSumOperator(CircuitFactory):
 
     @staticmethod
     def get_required_sum_qubits(weights):
+        """ get required sum qubits """
         return int(np.floor(np.log2(sum(weights))) + 1)
 
     @property
     def weights(self):
+        """ returns weights """
         return self._weights
 
     @property
     def num_state_qubits(self):
+        """ returns num state qubits """
         return self._num_state_qubits
 
     @property
     def num_sum_qubits(self):
+        """ returns num sum qubits """
         return self._num_sum_qubits
 
     @property
     def num_carry_qubits(self):
+        """ returns num carry qubits """
         return self._num_carry_qubits
 
     def required_ancillas(self):
-
+        """ required ancillas """
         if self.num_sum_qubits > 2:
             # includes one ancilla qubit for 3-controlled not gates
             # TODO: validate when the +1 is needed and make a case distinction
@@ -99,9 +111,10 @@ class WeightedSumOperator(CircuitFactory):
             return self.num_carry_qubits
 
     def required_ancillas_controlled(self):
+        """ returns required ancillas controlled """
         return self.required_ancillas()
 
-    def build(self, qc, q, q_ancillas=None):
+    def build(self, qc, q, q_ancillas=None, params=None):
 
         # get indices for state and target qubits
         i_state = self.i_state

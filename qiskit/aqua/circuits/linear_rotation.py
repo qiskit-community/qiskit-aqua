@@ -11,9 +11,13 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-from qiskit.aqua.utils import CircuitFactory
-from qiskit.aqua.circuits.gates import cry
+
+"""Linearly-controlled X, Y or Z rotation."""
+
 import numpy as np
+
+from qiskit.aqua.utils import CircuitFactory
+from qiskit.aqua.circuits.gates import cry  # pylint: disable=unused-import
 
 
 class LinearRotation(CircuitFactory):
@@ -35,8 +39,11 @@ class LinearRotation(CircuitFactory):
             offset (float): offset of the controlled rotation
             num_state_qubits (int): number of qubits representing the state
             basis (str): type of Pauli rotation ('X', 'Y', 'Z')
-            i_state (array or list): indices of the state qubits (least significant to most significant)
+            i_state (array or list): indices of the state qubits
+                    (least significant to most significant)
             i_target (int): index of target qubit
+        Raises:
+            ValueError: invalid input
         """
 
         super().__init__(num_state_qubits + 1)
@@ -62,7 +69,7 @@ class LinearRotation(CircuitFactory):
         else:
             self.i_target = num_state_qubits
 
-    def build(self, qc, q, q_ancillas=None):
+    def build(self, qc, q, q_ancillas=None, params=None):
 
         # get indices
         i_state = self.i_state
