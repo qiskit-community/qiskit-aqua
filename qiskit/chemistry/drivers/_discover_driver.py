@@ -181,9 +181,9 @@ def register_driver(cls):
     """
     Registers a driver class
     Args:
-        cls (object): Driver class.
+        cls (BaseDriver): Driver class.
      Returns:
-        name: driver name
+        str: driver name
      Raises:
          QiskitChemistryError: if not derived from BaseDriver
     """
@@ -248,7 +248,7 @@ def get_driver_class(driver_name):
     Args:
         driver_name (str): the module name
     Returns:
-        Clas: class object for module
+        BaseDriver: class object for module
     Raises:
         QiskitChemistryError: if module is unavailable
     """

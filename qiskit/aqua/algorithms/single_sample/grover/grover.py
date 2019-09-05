@@ -182,7 +182,7 @@ class Grover(QuantumAlgorithm):
         Initialize via parameters dictionary and algorithm input instance
         Args:
             params (dict): parameters dictionary
-            algo_input (object): input instance
+            algo_input (AlgorithmInput): input instance
         Returns:
             Grover: and instance of this class
         Raises:

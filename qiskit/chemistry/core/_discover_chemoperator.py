@@ -184,9 +184,9 @@ def register_chemistry_operator(cls):
     """
     Registers a chemistry operator class
     Args:
-        cls (object): chemistry operator class.
+        cls (ChemistryOperator): chemistry operator class.
     Returns:
-        name: input name
+        str: input name
     Raises:
         QiskitChemistryError: if the class is already registered or could not be registered
     """
@@ -245,7 +245,7 @@ def get_chemistry_operator_class(chemistry_operator_name):
     Args:
         chemistry_operator_name (str): The chemistry operator name
     Returns:
-        cls: chemistry operator class
+        ChemistryOperator: chemistry operator class
     Raises:
         QiskitChemistryError: if the class is not registered
     """
@@ -280,7 +280,7 @@ def local_chemistry_operators():
     """
     Accesses chemistry operator names
     Returns:
-        names: chemistry operator names
+        str: chemistry operator names
     """
     _discover_on_demand()
     return [input.name for input in _REGISTRY_CHEM_OPS.registry.values()]

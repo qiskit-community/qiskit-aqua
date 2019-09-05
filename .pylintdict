@@ -50,6 +50,7 @@ ccx
 cdf
 ceil
 circ
+CircuitCache
 clas
 classifer
 clbits
@@ -311,6 +312,7 @@ ph
 piecewise
 plesset
 pluggable
+PluggableType
 pluggables
 polynomially
 postoracle
@@ -373,6 +375,7 @@ rohf
 rosen
 rsgtu
 rtype
+RunConfig
 ry
 rz
 sanjiv

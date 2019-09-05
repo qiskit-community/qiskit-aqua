@@ -262,9 +262,9 @@ def register_pluggable(cls):
     """
     Registers a pluggable class
     Args:
-        cls (object): Pluggable class.
+        cls (Pluggable): Pluggable class.
      Returns:
-        name: pluggable name
+        str: pluggable name
      Raises:
          AquaError: Class doesn't derive from known pluggable
     """
@@ -290,9 +290,9 @@ def _register_pluggable(pluggable_type, cls):
     Registers a pluggable class
     Args:
         pluggable_type(PluggableType): The pluggable type
-        cls (object): Pluggable class.
+        cls (Pluggable): Pluggable class.
      Returns:
-        name: pluggable name
+        str: pluggable name
     Raises:
         AquaError: if the class is already registered or could not be registered
     """
@@ -366,10 +366,10 @@ def get_pluggable_class(pluggable_type, pluggable_name):
     """
     Accesses pluggable class
     Args:
-        pluggable_type(PluggableType or str): The pluggable type
+        pluggable_type(Union(PluggableType,str)): The pluggable type
         pluggable_name (str): The pluggable name
     Returns:
-        cls: pluggable class
+        Pluggable: pluggable class
     Raises:
         AquaError: if the class is not registered
     """
@@ -401,10 +401,10 @@ def get_pluggable_configuration(pluggable_type, pluggable_name):
     """
     Accesses pluggable configuration
     Args:
-        pluggable_type(PluggableType or str): The pluggable type
+        pluggable_type(Union(PluggableType,str)): The pluggable type
         pluggable_name (str): The pluggable name
     Returns:
-        configuration: pluggable configuration
+        dict: pluggable configuration
     Raises:
         AquaError: if the class is not registered
     """
@@ -436,7 +436,7 @@ def local_pluggables_types():
     """
     Accesses all pluggable types
     Returns:
-       types: pluggable types
+       list[PluggableType]: pluggable types
     """
     _discover_on_demand()
     return list(_REGISTRY_PLUGGABLE.registry.keys())
@@ -446,9 +446,9 @@ def local_pluggables(pluggable_type):
     """
     Accesses pluggable names
     Args:
-        pluggable_type(PluggableType or str): The pluggable type
+        pluggable_type (Union(PluggableType,str)): The pluggable type
     Returns:
-        names: pluggable names
+        list[str]: pluggable names
     Raises:
         AquaError: if the type is not registered
     """

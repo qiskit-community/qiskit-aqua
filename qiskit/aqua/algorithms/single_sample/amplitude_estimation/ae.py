@@ -107,7 +107,7 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
         Initialize via parameters dictionary and algorithm input instance
         Args:
             params (dict): parameters dictionary
-            algo_input (object): Input instance
+            algo_input (AlgorithmInput): Input instance
         Returns:
             AmplitudeEstimation: instance of this class
         Raises:
