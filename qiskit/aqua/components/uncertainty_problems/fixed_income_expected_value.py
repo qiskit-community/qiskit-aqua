@@ -95,8 +95,9 @@ class FixedIncomeExpectedValue(UncertaintyProblem):
             b (int): offset for interest rates (= initial interest rates)
             cash_flow (object): cash flow time series
             c_approx (float): approximation scaling factor
-            i_state (int): indices of qubits that represent the state
-            i_objective (int): index of target qubit to apply the rotation to
+            i_state (Optional(Union(list, numpy.ndarray))): indices of qubits
+                                                            that represent the state
+            i_objective (Optional(int)): index of target qubit to apply the rotation to
         """
         super().validate(locals())
 

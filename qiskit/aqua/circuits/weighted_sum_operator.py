@@ -39,9 +39,10 @@ class WeightedSumOperator(CircuitFactory):
 
         Args:
             num_state_qubits (int): number of state qubits
-            weights (array or list): weights per state qubits
-            i_state (array or list): indices of state qubits, set to range(num_state_qubits) if None
-            i_sum (int): indices of target qubits (that represent the resulting sum),
+            weights (Union(list, numpy.ndarray)): weights per state qubits
+            i_state (Optional(Union(list, numpy.ndarray))): indices of state qubits,
+                                    set to range(num_state_qubits) if None
+            i_sum (Optional(int)): indices of target qubits (that represent the resulting sum),
                 set to range(num_state_qubits, num_state_qubits + req_num_sum_qubits) if None
         Raises:
             AquaError: invalid input

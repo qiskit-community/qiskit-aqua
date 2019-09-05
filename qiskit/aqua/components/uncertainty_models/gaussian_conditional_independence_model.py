@@ -89,11 +89,11 @@ class GaussianConditionalIndependenceModel(MultivariateDistribution):
         Args:
             n_normal (int): number of qubits to represent the latent normal random variable Z
             normal_max_value (float): min/max value to truncate the latent normal random variable Z
-            p_zeros (list or array): standard default probabilities for each asset
-            rhos (list or array): sensitivities of default probability of assets
+            p_zeros (Union(list, numpy.ndarray)): standard default probabilities for each asset
+            rhos (Union(list, numpy.ndarray)): sensitivities of default probability of assets
                                     with respect to latent variable Z
-            i_normal (list or array): indices of qubits to represent normal variable
-            i_ps (list or array): indices of qubits to represent asset defaults
+            i_normal (Union(list, numpy.ndarray)): indices of qubits to represent normal variable
+            i_ps (Union(list, numpy.ndarray)): indices of qubits to represent asset defaults
         """
         self.n_normal = n_normal
         self.normal_max_value = normal_max_value

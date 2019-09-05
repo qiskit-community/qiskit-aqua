@@ -39,10 +39,10 @@ class MultivariateDistribution(UncertaintyModel, ABC):
         Constructor.
 
         Args:
-            num_qubits (array or list): assigns qubits to dimensions
+            num_qubits (Union(list, numpy.ndarray)): assigns qubits to dimensions
             probabilities (map): map - maps index tuples to probabilities
-            low (array or list): lowest value per dimension
-            high (array or list): highest value per dimension
+            low (Union(list, numpy.ndarray)): lowest value per dimension
+            high (Union(list, numpy.ndarray)): highest value per dimension
         """
 
         self._values = 0

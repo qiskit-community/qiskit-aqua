@@ -67,8 +67,9 @@ def max_cut_value(x, w):
     Returns:
         float: value of the cut.
     """
-    x_mat = np.outer(x, (1 - x))
-    return np.sum(w * x_mat)
+    # pylint: disable=invalid-name
+    X = np.outer(x, (1 - x))
+    return np.sum(w * X)
 
 
 def get_graph_solution(x):

@@ -31,8 +31,10 @@ class UnivariateProblem(UncertaintyProblem):
             uncertainty_model (UnivariateUncertaintyModel): univariate uncertainty model to
             univariate_objective (UnivariatePiecewiseLinearObjective): objective function
             based on uncertainty
-            i_state(int): indices of qubits representing uncertainty
-            i_objective (int): index of qubit representing the objective value in the amplitude
+            i_state(Optional(Union(list, numpy.ndarray))): indices of qubits
+                                                            representing uncertainty
+            i_objective (Optional(int)): index of qubit representing the objective
+                                                            value in the amplitude
         """
 
         # determine number of target qubits

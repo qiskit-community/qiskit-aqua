@@ -40,7 +40,7 @@ class MultivariateProblem(UncertaintyProblem):
             the multiple dimension to an aggregated value
             univariate_objective (UnivariatePiecewiseLinearObjective): objective
             function applied to the aggregated value
-            conditions (list or array): list of pairs (int, CircuitFactory) =
+            conditions (Union(list, numpy.ndarray)): list of pairs (int, CircuitFactory) =
                 target dimension of uncertainty model and condition to be satisfied
                 to apply the aggregation
         """

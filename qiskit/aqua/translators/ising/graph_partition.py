@@ -85,9 +85,10 @@ def objective_value(x, w):
     Returns:
         float: value of the cut.
     """
-    x_mat = np.outer(x, (1-x))
+    # pylint: disable=invalid-name
+    X = np.outer(x, (1-x))
     w_01 = np.where(w != 0, 1, 0)
-    return np.sum(w_01 * x_mat)
+    return np.sum(w_01 * X)
 
 
 def get_graph_solution(x):

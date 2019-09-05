@@ -64,10 +64,10 @@ class MultivariateUniformDistribution(MultivariateDistribution):
         """
         Multivariate uniform distribution
         Args:
-            num_qubits (array or list): list with the number of qubits per dimension
-            low (array or list): list with the lower bounds per dimension,
+            num_qubits (Union(list, numpy.ndarray)): list with the number of qubits per dimension
+            low (Union(list, numpy.ndarray)): list with the lower bounds per dimension,
                                     set to 0 for each dimension if None
-            high (array or list): list with the upper bounds per dimension,
+            high (Union(list, numpy.ndarray)): list with the upper bounds per dimension,
                                     set to 1 for each dimension if None
         """
         super().validate(locals())

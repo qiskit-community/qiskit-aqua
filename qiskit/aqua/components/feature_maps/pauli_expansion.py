@@ -79,15 +79,18 @@ class PauliExpansion(FeatureMap):
 
         Args:
             feature_dimension (int): number of features
-            depth (int): the number of repeated circuits
-            entangler_map (list[list]): describe the connectivity of qubits, each list describes
+            depth (Optional(int)): the number of repeated circuits. Defaults to 2
+            entangler_map (Optional(list[list])): describe the connectivity of qubits,
+                                        each list describes
                                         [source, target], or None for full entanglement.
                                         Note that the order is the list is the order of
                                         applying the two-qubit gate.
-            entanglement (str): ['full', 'linear'], generate the qubit connectivity by predefined
-                                topology
-            paulis (str): a comma-separated string for to-be-used paulis
-            data_map_func (Callable): a mapping function for data x
+            entanglement (Optional((str)): ['full', 'linear'], generate the qubit
+                                          connectivity by predefined topology.
+                                          Defaults to full
+            paulis (Optional(list[str])): a list of strings for to-be-used paulis.
+                                    Defaults to None. If None, ['Z', 'ZZ'] will be used.
+            data_map_func (Optional(Callable)): a mapping function for data x
         """
         paulis = paulis if paulis is not None else ['Z', 'ZZ']
         self.validate(locals())

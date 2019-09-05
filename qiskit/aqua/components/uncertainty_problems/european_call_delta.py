@@ -74,7 +74,7 @@ class EuropeanCallDelta(UncertaintyProblem):
         Args:
             uncertainty_model (UnivariateDistribution): uncertainty model for spot price
             strike_price (float): strike price of the European option
-            i_state (list or array): indices of qubits representing the uncertainty
+            i_state (Union(list, numpy.ndarray)): indices of qubits representing the uncertainty
             i_objective (int): index of qubit for objective function
         """
         super().__init__(uncertainty_model.num_target_qubits + 1)

@@ -46,11 +46,11 @@ class FixedValueComparator(CircuitFactory):
         Args:
             num_state_qubits (int): number of state qubits, the target qubit comes on top of this
             value (int): fixed value to compare with
-            geq (bool): evaluate ">=" condition of "<" condition
-            i_state (array or list): indices of state qubits in
+            geq (Optional(bool)): evaluate ">=" condition of "<" condition
+            i_state (Optional(Union(list, numpy.ndarray))): indices of state qubits in
                 given list of qubits / register,
                 if None, i_state = list(range(num_state_qubits)) is used
-            i_target (int): index of target qubit in given list
+            i_target (Optional(int)): index of target qubit in given list
                 of qubits / register, if None, i_target = num_state_qubits is used
         """
         super().__init__(num_state_qubits + 1)

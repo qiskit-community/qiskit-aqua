@@ -39,9 +39,9 @@ class LinearRotation(CircuitFactory):
             offset (float): offset of the controlled rotation
             num_state_qubits (int): number of qubits representing the state
             basis (str): type of Pauli rotation ('X', 'Y', 'Z')
-            i_state (array or list): indices of the state qubits
+            i_state (Optional(Union(list, numpy.ndarray))): indices of the state qubits
                     (least significant to most significant)
-            i_target (int): index of target qubit
+            i_target (Optional(int)): index of target qubit
         Raises:
             ValueError: invalid input
         """
