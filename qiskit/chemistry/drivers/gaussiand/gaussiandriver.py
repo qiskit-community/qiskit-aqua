@@ -89,7 +89,7 @@ class GaussianDriver(BaseDriver):
             section (dict): section dictionary
 
         Returns:
-            Driver: Driver object
+            GaussianDriver: Driver object
         Raises:
             QiskitChemistryError: Invalid or missing section
         """

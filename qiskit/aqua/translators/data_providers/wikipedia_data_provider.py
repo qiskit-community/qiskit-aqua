@@ -130,7 +130,7 @@ class WikipediaDataProvider(BaseDataProvider):
             section (dict): section dictionary
 
         Returns:
-            DataProvider: data provider object
+            WikipediaDataProvider: data provider object
         Raises:
             QiskitFinanceError: Invalid section
         """

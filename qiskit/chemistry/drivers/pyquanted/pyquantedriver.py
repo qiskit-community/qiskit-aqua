@@ -164,7 +164,7 @@ class PyQuanteDriver(BaseDriver):
             section (dict): section dictionary
 
         Returns:
-            Driver: Driver object
+            PyQuanteDriver: Driver object
         Raises:
             QiskitChemistryError: Invalid sections
         """

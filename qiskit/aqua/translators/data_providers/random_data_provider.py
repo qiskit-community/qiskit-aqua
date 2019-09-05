@@ -112,8 +112,8 @@ class RandomDataProvider(BaseDataProvider):
             section (dict): section dictionary
 
         Returns:
-            Driver: Driver object
-         Raises:
+            RandomDataProvider: Driver object
+        Raises:
             QiskitFinanceError: invalid section
         """
         if section is None or not isinstance(section, dict):
