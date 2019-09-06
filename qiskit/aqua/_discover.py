@@ -212,11 +212,13 @@ def _discover_local_pluggables(directory=os.path.dirname(__file__),
     Discovers the pluggable modules on the directory and subdirectories of the current module
     and attempts to register them. Pluggable modules should subclass Pluggable Base classes.
     Args:
-        directory (str, optional): Directory to search for pluggable. Defaults
+        directory (Optional(str)): Directory to search for pluggable. Defaults
             to the directory of this module.
-        parentname (str, optional): Module parent name. Defaults to current directory name
-        names_to_exclude (str, optional): File names to exclude. Defaults to _NAMES_TO_EXCLUDE
-        folders_to_exclude (str, optional): Folders to exclude. Defaults to _FOLDERS_TO_EXCLUDE
+        parentname (Optional(str)): Module parent name. Defaults to current directory name
+        names_to_exclude (Optional(list[str])): File names to exclude.
+                                                    Defaults to _NAMES_TO_EXCLUDE
+        folders_to_exclude (Optional(list[str])): Folders to exclude.
+                                                    Defaults to _FOLDERS_TO_EXCLUDE
     """
     names_to_exclude = names_to_exclude if names_to_exclude is not None else _NAMES_TO_EXCLUDE
     folders_to_exclude = folders_to_exclude \
