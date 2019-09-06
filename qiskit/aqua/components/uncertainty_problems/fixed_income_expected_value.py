@@ -90,10 +90,10 @@ class FixedIncomeExpectedValue(UncertaintyProblem):
         Constructor.
 
         Args:
-            uncertainty_model (object):  multivariate distribution
+            uncertainty_model (UncertaintyModel):  multivariate distribution
             A (numpy.ndarray): PCA matrix for delta_r (changes in interest rates)
             b (int): offset for interest rates (= initial interest rates)
-            cash_flow (object): cash flow time series
+            cash_flow (list[float]): cash flow time series
             c_approx (float): approximation scaling factor
             i_state (Optional(Union(list, numpy.ndarray))): indices of qubits
                                                             that represent the state
