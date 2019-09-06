@@ -176,7 +176,7 @@ class PySCFDriver(BaseDriver):
             section (dict): section dictionary
 
         Returns:
-            Driver: Driver object
+            PySCFDriver: Driver object
         Raises:
             QiskitChemistryError: Invalid or missing section
         """

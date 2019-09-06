@@ -160,7 +160,7 @@ class HHL(QuantumAlgorithm):
 
         Args:
             params (dict): parameters dictionary
-            algo_input (object): LinearSystemInput instance
+            algo_input (LinearSystemInput): LinearSystemInput instance
         Returns:
             HHL: an instance of this class
         Raises:

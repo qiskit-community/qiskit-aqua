@@ -222,7 +222,7 @@ def _multicx_recursion(qc, qrs, qancilla=None):
         _ccccx(qc, qrs)
     else:  # qrs[0], qrs[n-2] is the controls, qrs[n-1] is the target, and qancilla as working qubit
         assert qancilla is not None, \
-            "There must be an ancilla qubit not necesseraly initialized to zero"
+            "There must be an ancilla qubit not necessarily initialized to zero"
         n = len(qrs)
         m1 = ceil(n / 2)
         _multicx_recursion(qc, [*qrs[:m1], qancilla], qrs[m1])

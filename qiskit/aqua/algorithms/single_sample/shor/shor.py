@@ -116,7 +116,7 @@ class Shor(QuantumAlgorithm):
 
         Args:
             params (dict): parameters dictionary
-            algo_input (object): input instance
+            algo_input (AlgorithmInput): input instance
         Returns:
             Shor: instance of this class
         Raises:

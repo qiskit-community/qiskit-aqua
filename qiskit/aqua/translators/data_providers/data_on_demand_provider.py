@@ -132,7 +132,7 @@ class DataOnDemandProvider(BaseDataProvider):
             section (dict): section dictionary
 
         Returns:
-            Driver: Driver object
+            DataOnDemandProvider: Driver object
         Raises:
             QiskitFinanceError: Invalid section
         """

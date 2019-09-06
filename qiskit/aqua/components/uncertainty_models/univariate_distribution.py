@@ -39,7 +39,7 @@ class UnivariateDistribution(UncertaintyModel, ABC):
         Abstract univariate distribution class
         Args:
             num_target_qubits (int): number of qubits it acts on
-            probabilities (array or list):  probabilities for different states
+            probabilities (Union(list, numpy.ndarray)):  probabilities for different states
             low (float): lower bound, i.e., the value corresponding to |0...0>
                         (assuming an equidistant grid)
             high (float): upper bound, i.e., the value corresponding to |1...1>

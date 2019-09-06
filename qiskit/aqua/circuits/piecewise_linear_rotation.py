@@ -47,14 +47,17 @@ class PiecewiseLinearRotation(CircuitFactory):
         Construct piecewise-linearly-controlled Y-rotation.
 
         Args:
-            breakpoints (array or list): breakpoints to define piecewise-linear function
-            slopes (array or list): slopes for different segments of piecewise-linear function
-            offsets (array or list): offsets for different segments of piecewise-linear function
+            breakpoints (Union(list, numpy.ndarray)): breakpoints to define
+                                                        piecewise-linear function
+            slopes (Union(list, numpy.ndarray)): slopes for different segments of
+                                                        piecewise-linear function
+            offsets (Union(list, numpy.ndarray)): offsets for different segments of
+                                                        piecewise-linear function
             num_state_qubits (int): number of qubits representing the state
-            basis (str): type of Pauli rotation ('X', 'Y', 'Z')
-            i_state (array or list): indices of qubits representing
+            basis (Optional(str)): type of Pauli rotation ('X', 'Y', 'Z')
+            i_state (Optional(Union(list, numpy.ndarray))): indices of qubits representing
                             the state, set to range(num_state_qubits) if None
-            i_target (int): index of target qubit, set to num_state_qubits if None
+            i_target (Optional(int)): index of target qubit, set to num_state_qubits if None
         """
 
         super().__init__(num_state_qubits + 1)

@@ -45,9 +45,9 @@ class UnivariatePiecewiseLinearObjective(CircuitFactory):
             num_state_qubits (int): number of qubits to represent the state
             min_state_value (float): lower bound of values to be represented by state qubits
             max_state_value (float): upper bound of values to be represented by state qubits
-            breakpoints (list or array): breakpoints of piecewise linear function
-            slopes (list or array): slopes of linear segments
-            offsets (list or array): offset of linear segments
+            breakpoints (Union(list, numpy.ndarray)): breakpoints of piecewise linear function
+            slopes (Union(list, numpy.ndarray)): slopes of linear segments
+            offsets (Union(list, numpy.ndarray)): offset of linear segments
             f_min (float): minimal value of resulting function
                             (required for normalization of amplitude)
             f_max (float): maximal value of resulting function

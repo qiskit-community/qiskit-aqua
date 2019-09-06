@@ -84,10 +84,11 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
             uncertainty_model (UnivariateDistribution): uncertainty model for spot price
             strike_price (float): strike price of the European option
             c_approx (float): approximation factor for linear payoff
-            i_state (list or array): indices of qubits representing the uncertainty
-            i_compare (int): index of qubit for comparing spot price to strike price
+            i_state (Optional(Union(list, numpy.ndarray))): indices of qubits
+                                                            representing the uncertainty
+            i_compare (Optional(int)): index of qubit for comparing spot price to strike price
                             (enabling payoff or not)
-            i_objective (int): index of qubit for objective function
+            i_objective (Optional(int)): index of qubit for objective function
         """
         super().__init__(uncertainty_model.num_target_qubits + 2)
 

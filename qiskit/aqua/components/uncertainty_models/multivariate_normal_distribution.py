@@ -81,11 +81,11 @@ class MultivariateNormalDistribution(MultivariateDistribution):
         Circuit Factory to build a circuit that represents a multivariate normal distribution.
 
         Args:
-            num_qubits (array or list): representing number of qubits per dimension
-            low (array or list): representing lower bounds per dimension
-            high (array or list): representing upper bounds per dimension
-            mu (array or list): representing expected values
-            sigma (array or list): representing co-variance matrix
+            num_qubits (Union(list, numpy.ndarray)): representing number of qubits per dimension
+            low (Union(list, numpy.ndarray)): representing lower bounds per dimension
+            high (Union(list, numpy.ndarray)): representing upper bounds per dimension
+            mu (Union(list, numpy.ndarray)): representing expected values
+            sigma (Union(list, numpy.ndarray)): representing co-variance matrix
         """
         super().validate(locals())
 

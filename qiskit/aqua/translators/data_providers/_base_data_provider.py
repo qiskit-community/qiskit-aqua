@@ -99,7 +99,7 @@ class BaseDataProvider(ABC):
             section (dict): section dictionary
 
         Returns:
-            Driver: Driver object
+            BaseDataProvider: Driver object
         """
         pass
 

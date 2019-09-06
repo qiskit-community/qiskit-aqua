@@ -295,9 +295,10 @@ class BaseParser(ABC):
         Args:
             section_name (str): the name of the section, case insensitive
             property_name (str): the property name in the section
-            default_value (object): default value in case it is not found
+            default_value (Union(dict,list,int,float,str)): default value
+                                                in case it is not found
         Returns:
-            object: The property value
+            Union(dict,list,int,float,str): The property value
         """
         section_name = JSONSchema.format_section_name(section_name)
         property_name = JSONSchema.format_property_name(property_name)
@@ -663,7 +664,7 @@ class BaseParser(ABC):
             sections (dict): sections dictionary
             section_name (str): the name of the section, case insensitive
             property_name (str): the property name in the section
-            value (object): property value
+            value (Union(dict,list,int,float,str)): property value
             types (list): schema types
         Raises:
             AquaError: failed to set pluggable
@@ -722,7 +723,7 @@ class BaseParser(ABC):
         Sets a section data.
         Args:
             section_name (str): the name of the section, case insensitive
-            value (object): value to set
+            value (Union(dict,list,int,float,str)): value to set
          Returns:
             Bool: True if updated
         """
