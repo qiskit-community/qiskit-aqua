@@ -6,3 +6,7 @@ pycodestyle
 pylint>=2.3,<2.4
 pylintfileheader>=0.0.2
 pyenchant
+Sphinx>=1.8.3
+sphinx-rtd-theme>=0.4.0
+sphinx-tabs>=1.1.11 
+sphinx-automodapi
