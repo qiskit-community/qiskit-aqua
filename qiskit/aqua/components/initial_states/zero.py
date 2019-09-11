@@ -12,8 +12,10 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from qiskit import QuantumRegister, QuantumCircuit
+"""A zero (null/vacuum) state."""
+
 import numpy as np
+from qiskit import QuantumRegister, QuantumCircuit
 
 from qiskit.aqua import AquaError
 from qiskit.aqua.components.initial_states import InitialState

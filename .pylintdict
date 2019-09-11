@@ -50,6 +50,7 @@ ccx
 cdf
 ceil
 circ
+CircuitCache
 clas
 classifer
 clbits
@@ -101,7 +102,6 @@ diagonalize
 diagonalizing
 dict
 diederik
-digonalize
 dimacs
 dimens
 dimensionality
@@ -147,7 +147,6 @@ fileio
 filepath
 fm
 fock
-formated
 formatter
 fortran
 fourier
@@ -187,7 +186,6 @@ imag
 implicants
 indices
 indvar
-iniial
 init
 initializer
 innerproduct
@@ -300,7 +298,6 @@ onwards
 optim
 optimizer's
 optimizers
-pairy
 parametrized
 params
 parentname
@@ -308,7 +305,6 @@ pauli
 pauli's
 paulis
 paulische
-paulisf
 pca
 pdf
 penality
@@ -316,6 +312,7 @@ ph
 piecewise
 plesset
 pluggable
+PluggableType
 pluggables
 polynomially
 postoracle
@@ -356,7 +353,6 @@ quantized
 quantumcircuit
 quantumregister
 qubit
-qubites
 qubits
 quine
 qutip
@@ -371,6 +367,7 @@ renyi
 reparameterizing
 reqd
 rescaling
+retval
 rhf
 rhobeg
 rhs
@@ -378,6 +375,7 @@ rohf
 rosen
 rsgtu
 rtype
+RunConfig
 ry
 rz
 sanjiv
@@ -424,7 +422,6 @@ sys
 tbd
 tdg
 temme
-tempoary
 tensorproduct
 terra
 terra's
@@ -445,7 +442,6 @@ transpiled
 transpiler
 tranter
 trunc
-tthe
 ub
 uccsd
 uhf
@@ -461,7 +457,6 @@ unroller
 unsetting
 unshifting
 untapered
-uppper
 validator
 vals
 variational
@@ -490,5 +485,6 @@ yy
 zi
 zmatrix
 zv
+ZZ
 äguivalenzverbot
 über

@@ -12,13 +12,15 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" qgan input """
+
 from qiskit.aqua import AquaError
 from qiskit.aqua.input import AlgorithmInput
 from qiskit.aqua.utils import convert_dict_to_json
 
 
 class QGANInput(AlgorithmInput):
-
+    """ qgan input """
     CONFIGURATION = {
         'name': 'QGANInput',
         'description': 'QGAN input',

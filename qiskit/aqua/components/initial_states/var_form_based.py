@@ -12,8 +12,11 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from qiskit import QuantumCircuit, QuantumRegister
+"""An initial state derived from a variational form.
+   Intended to be used programmatically only.
+"""
 
+from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.aqua import AquaError
 
 
@@ -28,6 +31,8 @@ class VarFormBased:
         Args:
             var_form (VariationalForm): the variational form.
             params (list or numpy.ndarray): parameter for the variational form.
+        Raises:
+            RuntimeError: invalid input
         """
         super().__init__()
         if not var_form.num_parameters == len(params):
@@ -50,10 +55,12 @@ class VarFormBased:
             QuantumCircuit or numpy.ndarray: statevector.
 
         Raises:
+            RuntimeError: invalid input for mode
             AquaError: when mode is not 'vector' or 'circuit'.
         """
         if mode == 'vector':
-            raise RuntimeError('Initial state based on variational form does not support vector mode.')
+            raise RuntimeError('Initial state based on variational form '
+                               'does not support vector mode.')
         elif mode == 'circuit':
             if register is None:
                 register = QuantumRegister(self._var_form.num_qubits, name='q')

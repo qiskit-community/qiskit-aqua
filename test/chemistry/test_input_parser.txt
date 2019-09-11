@@ -33,7 +33,6 @@ H2 molecule experiment
 
 &algorithm
    name=VQE
-   operator_mode=matrix
    initial_point=None
 &end
 

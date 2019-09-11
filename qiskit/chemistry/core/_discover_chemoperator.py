@@ -138,11 +138,14 @@ def _discover_local_chem_ops(directory=os.path.dirname(__file__),
     and attempts to register them. Chem.Operator modules should subclass
     ChemistryOperator Base class.
     Args:
-        directory (str, optional): Directory to search for input modules. Defaults
+        directory (Optional(str)): Directory to search for input modules. Defaults
             to the directory of this module.
-        parentname (str, optional): Module parent name. Defaults to current directory name
-        names_to_exclude (str, optional): File names to exclude. Defaults to _NAMES_TO_EXCLUDE
-        folders_to_exclude (str, optional): Folders to exclude. Defaults to _FOLDERS_TO_EXCLUDE
+        parentname (Optional(str)): Module parent name.
+                                    Defaults to current directory name
+        names_to_exclude (Optional(list[str])): File names to exclude.
+                                                    Defaults to _NAMES_TO_EXCLUDE
+        folders_to_exclude (Optional(list[str])): Folders to exclude.
+                                                    Defaults to _FOLDERS_TO_EXCLUDE
     """
     names_to_exclude = names_to_exclude if names_to_exclude is not None else _NAMES_TO_EXCLUDE
     folders_to_exclude = folders_to_exclude \
@@ -184,9 +187,9 @@ def register_chemistry_operator(cls):
     """
     Registers a chemistry operator class
     Args:
-        cls (object): chemistry operator class.
+        cls (ChemistryOperator): chemistry operator class.
     Returns:
-        name: input name
+        str: input name
     Raises:
         QiskitChemistryError: if the class is already registered or could not be registered
     """
@@ -245,7 +248,7 @@ def get_chemistry_operator_class(chemistry_operator_name):
     Args:
         chemistry_operator_name (str): The chemistry operator name
     Returns:
-        cls: chemistry operator class
+        ChemistryOperator: chemistry operator class
     Raises:
         QiskitChemistryError: if the class is not registered
     """
@@ -280,7 +283,7 @@ def local_chemistry_operators():
     """
     Accesses chemistry operator names
     Returns:
-        names: chemistry operator names
+        list[str]: chemistry operator names
     """
     _discover_on_demand()
     return [input.name for input in _REGISTRY_CHEM_OPS.registry.values()]

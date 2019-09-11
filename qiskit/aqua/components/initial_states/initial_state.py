@@ -17,22 +17,17 @@ initial states. An initial state might be used by a variational
 form or in eoh as a trial state to evolve
 """
 
-from qiskit.circuit import QuantumRegister
-
-from qiskit.aqua import Pluggable, AquaError
 from abc import abstractmethod
+from qiskit.circuit import QuantumRegister  # pylint: disable=unused-import
+from qiskit.aqua import Pluggable, AquaError  # pylint: disable=unused-import
 
 
 class InitialState(Pluggable):
-
     """Base class for InitialState.
 
         This method should initialize the module and its configuration, and
         use an exception if a component of the module is
         available.
-
-        Args:
-            configuration (dict): configuration dictionary
     """
 
     @abstractmethod
@@ -41,6 +36,7 @@ class InitialState(Pluggable):
 
     @classmethod
     def init_params(cls, params):
+        """ init params """
         init_state_params = params.get(Pluggable.SECTION_KEY_INITIAL_STATE)
         args = {k: v for k, v in init_state_params.items() if k != 'name'}
         return cls(**args)
@@ -76,4 +72,5 @@ class InitialState(Pluggable):
 
     @property
     def bitstr(self):
+        """ bitstr """
         return None

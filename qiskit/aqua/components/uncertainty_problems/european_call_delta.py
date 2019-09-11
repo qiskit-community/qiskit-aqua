@@ -11,6 +11,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
 """
 The European Call Option Delta.
 """
@@ -18,6 +19,8 @@ The European Call Option Delta.
 import numpy as np
 from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
 from qiskit.aqua.circuits.fixed_value_comparator import FixedValueComparator
+
+# pylint: disable=invalid-name
 
 
 class EuropeanCallDelta(UncertaintyProblem):
@@ -71,8 +74,7 @@ class EuropeanCallDelta(UncertaintyProblem):
         Args:
             uncertainty_model (UnivariateDistribution): uncertainty model for spot price
             strike_price (float): strike price of the European option
-            c_approx (float): approximation factor for linear payoff
-            i_state (list or array): indices of qubits representing the uncertainty
+            i_state (Union(list, numpy.ndarray)): indices of qubits representing the uncertainty
             i_objective (int): index of qubit for objective function
         """
         super().__init__(uncertainty_model.num_target_qubits + 1)
@@ -92,10 +94,12 @@ class EuropeanCallDelta(UncertaintyProblem):
         # map strike price to {0, ..., 2^n-1}
         lb = uncertainty_model.low
         ub = uncertainty_model.high
-        self._mapped_strike_price = int(np.ceil((strike_price - lb) / (ub - lb) * (uncertainty_model.num_values - 1)))
+        self._mapped_strike_price = int(np.ceil((strike_price - lb) /
+                                                (ub - lb) * (uncertainty_model.num_values - 1)))
 
         # create comparator
-        self._comparator = FixedValueComparator(uncertainty_model.num_target_qubits, self._mapped_strike_price)
+        self._comparator = FixedValueComparator(uncertainty_model.num_target_qubits,
+                                                self._mapped_strike_price)
 
     def required_ancillas(self):
         num_uncertainty_ancillas = self._uncertainty_model.required_ancillas()
@@ -109,7 +113,7 @@ class EuropeanCallDelta(UncertaintyProblem):
         num_ancillas_controlled = num_uncertainty_ancillas + num_comparator_ancillas
         return num_ancillas_controlled
 
-    def build(self, qc, q, q_ancillas=None):
+    def build(self, qc, q, q_ancillas=None, params=None):
 
         # get qubit lists
         q_state = [q[i] for i in self.i_state]

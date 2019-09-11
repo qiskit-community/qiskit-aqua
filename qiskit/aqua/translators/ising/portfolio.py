@@ -41,23 +41,25 @@ def random_model(n, seed=None):
         aqua_globals.random_seed = seed
 
     # draw random return values between [0, 1]
-    mu = aqua_globals.random.uniform(size=n, low=0, high=1)
+    m_u = aqua_globals.random.uniform(size=n, low=0, high=1)
 
     # construct positive semi-definite covariance matrix
     sigma = make_spd_matrix(n)
 
-    return mu, sigma
+    return m_u, sigma
 
 
-def get_qubit_op(mu, sigma, q, budget, penalty):
-
+def get_qubit_op(mu, sigma, q, budget, penalty):  # pylint: disable=invalid-name
+    """ get qubit op """
+    # pylint: disable=invalid-name
     # get problem dimension
     n = len(mu)
     e = np.ones(n)
     E = np.matmul(np.asmatrix(e).T, np.asmatrix(e))
 
     # map problem to Ising model
-    offset = -1*np.dot(mu, e)/2 + penalty*budget**2 - budget*n*penalty + n**2*penalty/4 + q/4*np.dot(e, np.dot(sigma, e))
+    offset = -1*np.dot(mu, e)/2 + penalty*budget**2 - \
+        budget*n*penalty + n**2*penalty/4 + q/4*np.dot(e, np.dot(sigma, e))
     mu_z = mu/2 + budget*penalty*e - n*penalty/2*e - q/2*np.dot(sigma, e)
     sigma_z = penalty/4*E + q/4*sigma
 
@@ -85,19 +87,23 @@ def get_qubit_op(mu, sigma, q, budget, penalty):
     return WeightedPauliOperator(paulis=pauli_list), offset
 
 
-def portfolio_value(x, mu, sigma, q, budget, penalty):
+def portfolio_value(x, mu, sigma, q, budget, penalty):  # pylint: disable=invalid-name
+    """ returns portfolio value """
     return q * np.dot(x, np.dot(sigma, x)) - np.dot(mu, x) + penalty * pow(sum(x) - budget, 2)
 
 
-def portfolio_expected_value(x, mu):
+def portfolio_expected_value(x, mu):  # pylint: disable=invalid-name
+    """ returns portfolio expected value """
     return np.dot(mu, x)
 
 
 def portfolio_variance(x, sigma):
+    """ returns portfolio variance """
     return np.dot(x, np.dot(sigma, x))
 
 
 def sample_most_likely(state_vector):
+    """ sample most likely """
     from .common import sample_most_likely as redirect_func
     warnings.warn("sample_most_likely function has been moved to qiskit.aqua.ising.common, "
                   "the method here will be removed after Aqua 0.7+",
@@ -105,7 +111,8 @@ def sample_most_likely(state_vector):
     return redirect_func(state_vector=state_vector)
 
 
-def get_portfolio_qubitops(mu, sigma, q, budget, penalty):
+def get_portfolio_qubitops(mu, sigma, q, budget, penalty):  # pylint: disable=invalid-name
+    """ returns portfolio qubit ops """
     warnings.warn("get_portfolio_qubitops function has been changed to get_qubit_op"
                   "the method here will be removed after Aqua 0.7+",
                   DeprecationWarning)

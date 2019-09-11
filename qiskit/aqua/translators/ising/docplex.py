@@ -81,7 +81,7 @@ def get_qubit_op(mdl, auto_penalty=True, default_penalty=1e5):
             This value is used if "auto_penalty" is False.
 
     Returns:
-        operators.WeightedPauliOperator, float: operator for the Hamiltonian and a
+        tuple(operators.WeightedPauliOperator, float): operator for the Hamiltonian and a
         constant shift for the obj function.
     """
 
@@ -100,16 +100,16 @@ def get_qubit_op(mdl, auto_penalty=True, default_penalty=1e5):
         sign = -1
 
     # assign variables of the model to qubits.
-    qd = {}
+    q_d = {}
     index = 0
     for i in mdl.iter_variables():
-        if i in qd:
+        if i in q_d:
             continue
-        qd[i] = index
+        q_d[i] = index
         index += 1
 
     # initialize Hamiltonian.
-    num_nodes = len(qd)
+    num_nodes = len(q_d)
     pauli_list = []
     shift = 0
     zero = np.zeros(num_nodes, dtype=np.bool)
@@ -120,36 +120,36 @@ def get_qubit_op(mdl, auto_penalty=True, default_penalty=1e5):
     # convert linear parts of the object function into Hamiltonian.
     l_itr = mdl.get_objective_expr().iter_terms()
     for j in l_itr:
-        zp = np.zeros(num_nodes, dtype=np.bool)
-        index = qd[j[0]]
+        z_p = np.zeros(num_nodes, dtype=np.bool)
+        index = q_d[j[0]]
         weight = j[1] * sign / 2
-        zp[index] = True
+        z_p[index] = True
 
-        pauli_list.append([-weight, Pauli(zp, zero)])
+        pauli_list.append([-weight, Pauli(z_p, zero)])
         shift += weight
 
     # convert quadratic parts of the object function into Hamiltonian.
     q_itr = mdl.get_objective_expr().iter_quads()
     for i in q_itr:
-        index1 = qd[i[0][0]]
-        index2 = qd[i[0][1]]
+        index1 = q_d[i[0][0]]
+        index2 = q_d[i[0][1]]
         weight = i[1] * sign / 4
 
         if index1 == index2:
             shift += weight
         else:
-            zp = np.zeros(num_nodes, dtype=np.bool)
-            zp[index1] = True
-            zp[index2] = True
-            pauli_list.append([weight, Pauli(zp, zero)])
+            z_p = np.zeros(num_nodes, dtype=np.bool)
+            z_p[index1] = True
+            z_p[index2] = True
+            pauli_list.append([weight, Pauli(z_p, zero)])
 
-        zp = np.zeros(num_nodes, dtype=np.bool)
-        zp[index1] = True
-        pauli_list.append([-weight, Pauli(zp, zero)])
+        z_p = np.zeros(num_nodes, dtype=np.bool)
+        z_p[index1] = True
+        pauli_list.append([-weight, Pauli(z_p, zero)])
 
-        zp = np.zeros(num_nodes, dtype=np.bool)
-        zp[index2] = True
-        pauli_list.append([-weight, Pauli(zp, zero)])
+        z_p = np.zeros(num_nodes, dtype=np.bool)
+        z_p[index2] = True
+        pauli_list.append([-weight, Pauli(z_p, zero)])
 
         shift += weight
 
@@ -161,46 +161,46 @@ def get_qubit_op(mdl, auto_penalty=True, default_penalty=1e5):
         shift += penalty * constant ** 2
 
         # linear parts of penalty*(Constant-func)**2: penalty*(-2*Constant*func)
-        for l in constraint.left_expr.iter_terms():
-            zp = np.zeros(num_nodes, dtype=np.bool)
-            index = qd[l[0]]
-            weight = l[1]
-            zp[index] = True
+        for __l in constraint.left_expr.iter_terms():
+            z_p = np.zeros(num_nodes, dtype=np.bool)
+            index = q_d[__l[0]]
+            weight = __l[1]
+            z_p[index] = True
 
-            pauli_list.append([penalty * constant * weight, Pauli(zp, zero)])
+            pauli_list.append([penalty * constant * weight, Pauli(z_p, zero)])
             shift += -penalty * constant * weight
 
         # quadratic parts of penalty*(Constant-func)**2: penalty*(func**2)
-        for l in constraint.left_expr.iter_terms():
-            for l2 in constraint.left_expr.iter_terms():
-                index1 = qd[l[0]]
-                index2 = qd[l2[0]]
-                weight1 = l[1]
-                weight2 = l2[1]
+        for __l in constraint.left_expr.iter_terms():
+            for l_2 in constraint.left_expr.iter_terms():
+                index1 = q_d[__l[0]]
+                index2 = q_d[l_2[0]]
+                weight1 = __l[1]
+                weight2 = l_2[1]
                 penalty_weight1_weight2 = penalty * weight1 * weight2 / 4
 
                 if index1 == index2:
                     shift += penalty_weight1_weight2
                 else:
-                    zp = np.zeros(num_nodes, dtype=np.bool)
-                    zp[index1] = True
-                    zp[index2] = True
-                    pauli_list.append([penalty_weight1_weight2, Pauli(zp, zero)])
+                    z_p = np.zeros(num_nodes, dtype=np.bool)
+                    z_p[index1] = True
+                    z_p[index2] = True
+                    pauli_list.append([penalty_weight1_weight2, Pauli(z_p, zero)])
 
-                zp = np.zeros(num_nodes, dtype=np.bool)
-                zp[index1] = True
-                pauli_list.append([-penalty_weight1_weight2, Pauli(zp, zero)])
+                z_p = np.zeros(num_nodes, dtype=np.bool)
+                z_p[index1] = True
+                pauli_list.append([-penalty_weight1_weight2, Pauli(z_p, zero)])
 
-                zp = np.zeros(num_nodes, dtype=np.bool)
-                zp[index2] = True
-                pauli_list.append([-penalty_weight1_weight2, Pauli(zp, zero)])
+                z_p = np.zeros(num_nodes, dtype=np.bool)
+                z_p[index2] = True
+                pauli_list.append([-penalty_weight1_weight2, Pauli(z_p, zero)])
 
                 shift += penalty_weight1_weight2
 
     # Remove paulis whose coefficients are zeros.
-    qubitOp = WeightedPauliOperator(paulis=pauli_list)
+    qubit_op = WeightedPauliOperator(paulis=pauli_list)
 
-    return qubitOp, shift
+    return qubit_op, shift
 
 
 def _validate_input_model(mdl):
@@ -208,6 +208,8 @@ def _validate_input_model(mdl):
 
     Args:
          mdl (docplex.mp.model.Model): A model of DOcplex for a optimization problem.
+    Raises:
+        AquaError: Unsupported input model
     """
     valid = True
 
@@ -218,14 +220,14 @@ def _validate_input_model(mdl):
     # raise an error if the type of the variable is not a binary type.
     for var in mdl.iter_variables():
         if not var.is_binary():
-            logger.warning('The type of Variable {} is {}. It must be a binary variable. '
-                           .format(var, var.vartype.short_name))
+            logger.warning('The type of Variable %s is %s. It must be a binary variable. ',
+                           var, var.vartype.short_name)
             valid = False
 
     # raise an error if the constraint type is not an equality constraint.
     for constraint in mdl.iter_constraints():
         if not constraint.sense == ComparisonType.EQ:
-            logger.warning('Constraint {} is not an equality constraint.'.format(constraint))
+            logger.warning('Constraint %s is not an equality constraint.', constraint)
             valid = False
 
     if not valid:
@@ -268,6 +270,7 @@ def _auto_define_penalty(mdl, default_penalty=1e5):
 
 
 def sample_most_likely(state_vector):
+    """ sample most likely """
     from .common import sample_most_likely as redirect_func
     warnings.warn("sample_most_likely function has been moved to qiskit.aqua.ising.common, "
                   "the method here will be removed after Aqua 0.7+",
@@ -276,6 +279,7 @@ def sample_most_likely(state_vector):
 
 
 def get_qubitops(mdl, auto_penalty=True, default_penalty=1e5):
+    """ get qubit ops """
     warnings.warn("get_qubitops function has been changed to get_qubit_op"
                   "the method here will be removed after Aqua 0.7+",
                   DeprecationWarning)

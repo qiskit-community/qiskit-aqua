@@ -15,11 +15,15 @@
 """
 Polynomially controlled Pauli-rotations
 """
-from qiskit.aqua.utils import CircuitFactory
-from qiskit.aqua.circuits.gates import cry, mcrx, mcry, mcrz
-from sympy.ntheory.multinomial import multinomial_coefficients
+
 from itertools import product
+from sympy.ntheory.multinomial import multinomial_coefficients
 import numpy as np
+
+from qiskit.aqua.utils import CircuitFactory
+from qiskit.aqua.circuits.gates import cry, mcrx, mcry, mcrz  # pylint: disable=unused-import
+
+# pylint: disable=invalid-name
 
 
 class PolynomialRotation(CircuitFactory):
@@ -44,6 +48,8 @@ class PolynomialRotation(CircuitFactory):
             px (list): coefficients of the polynomial, px[i] is the coefficient of x^i
             num_state_qubits (int): number of qubits representing the state
             basis (str): type of Pauli rotation ('X', 'Y', 'Z')
+        Raises:
+            ValueError: invalid input
         """
         super().__init__(num_state_qubits + 1)
 
@@ -64,7 +70,8 @@ class PolynomialRotation(CircuitFactory):
 
     def _get_controls(self):
         """
-        The list of controls is the list of all monomials of the polynomial, where the qubits are the variables.
+        The list of controls is the list of all
+        monomials of the polynomial, where the qubits are the variables.
         """
         t = [0] * (self.num_state_qubits - 1) + [1]
         cdict = {tuple(t): 0}
@@ -87,7 +94,8 @@ class PolynomialRotation(CircuitFactory):
 
     def _get_thetas(self, cdict):
         """
-        Compute the coefficient of each monomial. This will be the argument for the controlled y-rotation.
+        Compute the coefficient of each monomial.
+        This will be the argument for the controlled y-rotation.
         """
         for j in range(1, len(self.px)):
             # List of multinomial coefficients
@@ -97,7 +105,7 @@ class PolynomialRotation(CircuitFactory):
                 temp_t = []
                 powers = 1
                 # Get controls
-                for k in range(0, len(m)):
+                for k in range(0, len(m)):  # pylint: disable=consider-using-enumerate
                     if m[k] > 0:
                         temp_t.append(1)
                         powers *= 2 ** (k * m[k])
@@ -108,14 +116,17 @@ class PolynomialRotation(CircuitFactory):
                 cdict[temp_t] += self.px[j] * mlist[m] * powers
         return cdict
 
+    # pylint: disable=arguments-differ
     def build(self, qc, q, q_target, q_ancillas=None, reverse=0):
         """
         Args:
-            qc : quantum circuit
-            q : list of qubits (has to be same length as self.num_state_qubits)
-            q_target : qubit to be rotated. The algorithm is successful when this qubit is in the |1> state
-            q_ancillas : list of ancilla qubits (or None if none needed)
-            reverse: if 1, apply with reversed list of qubits (i.e. q_n as q_0, q_n-1 as q_1, etc).
+            qc (QuantumCircuit): quantum circuit
+            q (list): list of qubits (has to be same length as self.num_state_qubits)
+            q_target (Qubit): qubit to be rotated. The algorithm is successful when
+                    this qubit is in the |1> state
+            q_ancillas (list): list of ancilla qubits (or None if none needed)
+            reverse (int): if 1, apply with reversed list of qubits
+                            (i.e. q_n as q_0, q_n-1 as q_1, etc).
         """
 
         # Dictionary of controls for the rotation gates as a tuple and their respective angles
@@ -132,11 +143,11 @@ class PolynomialRotation(CircuitFactory):
         for c in cdict:
             q_controls = []
             if reverse == 1:
-                for i in range(0, len(c)):
+                for i in range(0, len(c)):  # pylint: disable=consider-using-enumerate
                     if c[i] > 0:
                         q_controls.append(q[q.size - i - 1])
             else:
-                for i in range(0, len(c)):
+                for i in range(0, len(c)):  # pylint: disable=consider-using-enumerate
                     if c[i] > 0:
                         q_controls.append(q[i])
             # Apply controlled y-rotation

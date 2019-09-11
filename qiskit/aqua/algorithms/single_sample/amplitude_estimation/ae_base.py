@@ -41,18 +41,22 @@ class AmplitudeEstimationBase(QuantumAlgorithm):
 
     @property
     def a_factory(self):
+        """ returns a factory """
         return self._a_factory
 
     @a_factory.setter
     def a_factory(self, a_factory):
+        """ sets a factory """
         self._a_factory = a_factory
 
     @property
     def q_factory(self):
+        """ returns q factory """
         return self._q_factory
 
     @q_factory.setter
     def q_factory(self, q_factory):
+        """ sets q factory """
         self._q_factory = q_factory
 
     def check_factories(self):

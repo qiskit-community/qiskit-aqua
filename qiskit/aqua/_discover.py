@@ -212,11 +212,13 @@ def _discover_local_pluggables(directory=os.path.dirname(__file__),
     Discovers the pluggable modules on the directory and subdirectories of the current module
     and attempts to register them. Pluggable modules should subclass Pluggable Base classes.
     Args:
-        directory (str, optional): Directory to search for pluggable. Defaults
+        directory (Optional(str)): Directory to search for pluggable. Defaults
             to the directory of this module.
-        parentname (str, optional): Module parent name. Defaults to current directory name
-        names_to_exclude (str, optional): File names to exclude. Defaults to _NAMES_TO_EXCLUDE
-        folders_to_exclude (str, optional): Folders to exclude. Defaults to _FOLDERS_TO_EXCLUDE
+        parentname (Optional(str)): Module parent name. Defaults to current directory name
+        names_to_exclude (Optional(list[str])): File names to exclude.
+                                                    Defaults to _NAMES_TO_EXCLUDE
+        folders_to_exclude (Optional(list[str])): Folders to exclude.
+                                                    Defaults to _FOLDERS_TO_EXCLUDE
     """
     names_to_exclude = names_to_exclude if names_to_exclude is not None else _NAMES_TO_EXCLUDE
     folders_to_exclude = folders_to_exclude \
@@ -262,9 +264,9 @@ def register_pluggable(cls):
     """
     Registers a pluggable class
     Args:
-        cls (object): Pluggable class.
+        cls (Pluggable): Pluggable class.
      Returns:
-        name: pluggable name
+        str: pluggable name
      Raises:
          AquaError: Class doesn't derive from known pluggable
     """
@@ -290,9 +292,9 @@ def _register_pluggable(pluggable_type, cls):
     Registers a pluggable class
     Args:
         pluggable_type(PluggableType): The pluggable type
-        cls (object): Pluggable class.
+        cls (Pluggable): Pluggable class.
      Returns:
-        name: pluggable name
+        str: pluggable name
     Raises:
         AquaError: if the class is already registered or could not be registered
     """
@@ -366,10 +368,10 @@ def get_pluggable_class(pluggable_type, pluggable_name):
     """
     Accesses pluggable class
     Args:
-        pluggable_type(PluggableType or str): The pluggable type
+        pluggable_type(Union(PluggableType,str)): The pluggable type
         pluggable_name (str): The pluggable name
     Returns:
-        cls: pluggable class
+        Pluggable: pluggable class
     Raises:
         AquaError: if the class is not registered
     """
@@ -401,10 +403,10 @@ def get_pluggable_configuration(pluggable_type, pluggable_name):
     """
     Accesses pluggable configuration
     Args:
-        pluggable_type(PluggableType or str): The pluggable type
+        pluggable_type(Union(PluggableType,str)): The pluggable type
         pluggable_name (str): The pluggable name
     Returns:
-        configuration: pluggable configuration
+        dict: pluggable configuration
     Raises:
         AquaError: if the class is not registered
     """
@@ -436,7 +438,7 @@ def local_pluggables_types():
     """
     Accesses all pluggable types
     Returns:
-       types: pluggable types
+       list[PluggableType]: pluggable types
     """
     _discover_on_demand()
     return list(_REGISTRY_PLUGGABLE.registry.keys())
@@ -446,9 +448,9 @@ def local_pluggables(pluggable_type):
     """
     Accesses pluggable names
     Args:
-        pluggable_type(PluggableType or str): The pluggable type
+        pluggable_type (Union(PluggableType,str)): The pluggable type
     Returns:
-        names: pluggable names
+        list[str]: pluggable names
     Raises:
         AquaError: if the type is not registered
     """

@@ -76,7 +76,7 @@ class PSI4Driver(BaseDriver):
             section (dict): section dictionary
 
         Returns:
-            Driver: Driver object
+            PSI4Driver: Driver object
         Raises:
             QiskitChemistryError: Invalid or missing section
         """

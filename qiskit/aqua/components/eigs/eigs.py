@@ -11,12 +11,13 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
 """
 This module contains the definition of a base class for eigenvalue estimators.
 """
-from qiskit.aqua import Pluggable
-from qiskit import QuantumCircuit, QuantumRegister
+
 from abc import abstractmethod
+from qiskit.aqua import Pluggable
 
 
 class Eigenvalues(Pluggable):
@@ -24,27 +25,28 @@ class Eigenvalues(Pluggable):
 
     This method should initialize the module and its configuration, and
     use an exception if a component of the module is available.
-
-    Args:
-        params (dict): configuration dictionary
     """
 
     @abstractmethod
     def __init__(self):
         super().__init__()
+        self._inverse = None
 
     @classmethod
     def init_params(cls, params):
+        """ init params """
         eigs_params = params.get(Pluggable.SECTION_KEY_EIGS)
         args = {k: v for k, v in eigs_params.items() if k != 'name'}
         return cls(**args)
 
     @abstractmethod
     def get_register_sizes(self):
+        """ get register sizes """
         raise NotImplementedError()
 
     @abstractmethod
     def get_scaling(self):
+        """ get scaling """
         raise NotImplementedError()
 
     @abstractmethod
@@ -57,7 +59,9 @@ class Eigenvalues(Pluggable):
                         where eigenvalues will be stored.
 
         Returns:
-            QuantumCircuit object for the eigenvalue estimation circuit.
+            QuantumCircuit: object for the eigenvalue estimation circuit.
+        Raises:
+            NotImplementedError: not implemented
         """
         raise NotImplementedError()
 
@@ -69,8 +73,11 @@ class Eigenvalues(Pluggable):
             circuit (QuantumCircuit): the quantum circuit to invert
 
         Returns:
-            QuantumCircuit object for of the inverted eigenvalue estimation
-            circuit.
+            QuantumCircuit: object for of the inverted eigenvalue estimation
+                            circuit.
+        Raises:
+            NotImplementedError: not implemented for matrix mode
+            ValueError: Circuit was not constructed beforehand
         """
         if mode == 'matrix':
             raise NotImplementedError('The matrix mode is not supported.')

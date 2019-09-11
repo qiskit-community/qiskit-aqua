@@ -22,13 +22,21 @@ from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.qasm import pi
 
 from qiskit.aqua import AquaError
-from .gates import mct
+from .gates import mct  # pylint: disable=unused-import
 
 logger = logging.getLogger(__name__)
 
+# pylint: disable=invalid-name
+
 
 class BooleanLogicNormalForm(ABC):
-
+    """
+    Boolean Logical DNF, CNF, and ESOP Circuits.
+    The base abstract class for:
+    - CNF (Conjunctive Normal Forms),
+    - DNF (Disjunctive Normal Forms), and
+    - ESOP (Exclusive Sum of Products)
+    """
     @staticmethod
     def _get_ast_depth(ast):
         if ast[0] == 'const' or ast[0] == 'lit':
@@ -68,12 +76,6 @@ class BooleanLogicNormalForm(ABC):
             flags[abs(v) - 1] = 1 if v > 0 else -1
         return flags
 
-    """
-    The base abstract class for:
-    - CNF (Conjunctive Normal Forms),
-    - DNF (Disjunctive Normal Forms), and
-    - ESOP (Exclusive Sum of Products)
-    """
     def __init__(self, ast, num_vars=None):
         """
         Constructor.
@@ -81,8 +83,10 @@ class BooleanLogicNormalForm(ABC):
         Args:
             ast (tuple): The logic expression as an Abstract Syntax Tree (AST) tuple
             num_vars (int): Number of boolean variables
+        Raises:
+            AquaError: invalid input
         """
-
+        self._output_idx = None
         ast_depth = BooleanLogicNormalForm._get_ast_depth(ast)
 
         if ast_depth > 2:
@@ -93,7 +97,8 @@ class BooleanLogicNormalForm(ABC):
             self._num_variables = inferred_num_vars
         else:
             if inferred_num_vars > num_vars:
-                raise AquaError('{} variables present, but only {} specified.'.format(inferred_num_vars, num_vars))
+                raise AquaError('{} variables present, but only {} '
+                                'specified.'.format(inferred_num_vars, num_vars))
             self._num_variables = num_vars
 
         if ast_depth == 0:
@@ -129,26 +134,32 @@ class BooleanLogicNormalForm(ABC):
 
     @property
     def num_variables(self):
+        """ return num variables """
         return self._num_variables
 
     @property
     def num_clauses(self):
+        """ returns num clauses """
         return self._num_clauses
 
     @property
     def variable_register(self):
+        """ returns variable register """
         return self._variable_register
 
     @property
     def clause_register(self):
+        """ returns clause register """
         return self._clause_register
 
     @property
     def output_register(self):
+        """ returns output register """
         return self._output_register
 
     @property
     def ancillary_register(self):
+        """ returns ancillary register """
         return self._ancillary_register
 
     @staticmethod
@@ -163,11 +174,13 @@ class BooleanLogicNormalForm(ABC):
                 num_qubits_provided = len(provided_register)
                 if num_qubits_needed > num_qubits_provided:
                     raise ValueError(
-                        'The {} QuantumRegister needs {} qubits, but the provided register contains only {}.'.format(
-                            description, num_qubits_needed, num_qubits_provided
-                        ))
-                else:
-                    return provided_register
+                        'The {} QuantumRegister needs {} qubits, '
+                        'but the provided register contains only {}.'.format(
+                            description, num_qubits_needed, num_qubits_provided))
+
+                return provided_register
+
+        return None
 
     def _set_up_circuit(
             self,
@@ -199,7 +212,7 @@ class BooleanLogicNormalForm(ABC):
             0
         )
         num_ancillae = 0
-        if mct_mode == 'basic' or mct_mode == 'basic-dirty-ancilla':
+        if mct_mode in ('basic', 'basic-dirty-ancilla'):
             num_ancillae = max_num_ancillae
         elif mct_mode == 'advanced':
             if max_num_ancillae >= 3:
@@ -240,6 +253,7 @@ class BooleanLogicNormalForm(ABC):
 
     @abstractmethod
     def construct_circuit(self, *args, **kwargs):
+        """ construct circuit """
         raise NotImplementedError
 
 
@@ -255,20 +269,25 @@ class CNF(BooleanLogicNormalForm):
             output_register=None,
             ancillary_register=None,
             mct_mode='basic'
-    ):
+    ):  # pylint: disable=arguments-differ
         """
         Construct circuit.
 
         Args:
             circuit (QuantumCircuit): The optional circuit to extend from
-            variable_register (QuantumRegister): The optional quantum register to use for problem variables
-            clause_register (QuantumRegister): The optional quantum register to use for problem clauses
-            output_register (QuantumRegister): The optional quantum register to use for holding the output
+            variable_register (QuantumRegister): The optional quantum register
+                        to use for problem variables
+            clause_register (QuantumRegister): The optional quantum register
+                        to use for problem clauses
+            output_register (QuantumRegister): The optional quantum register
+                        to use for holding the output
             ancillary_register (QuantumRegister): The optional quantum register to use as ancilla
             mct_mode (str): The mode to use for building Multiple-Control Toffoli
 
         Returns:
             QuantumCircuit: quantum circuit.
+        Raises:
+            AquaError: invalid input
         """
 
         circuit = self._set_up_circuit(
@@ -351,20 +370,25 @@ class DNF(BooleanLogicNormalForm):
             output_register=None,
             ancillary_register=None,
             mct_mode='basic'
-    ):
+    ):  # pylint: disable=arguments-differ
         """
         Construct circuit.
 
         Args:
             circuit (QuantumCircuit): The optional circuit to extend from
-            variable_register (QuantumRegister): The optional quantum register to use for problem variables
-            clause_register (QuantumRegister): The optional quantum register to use for problem clauses
-            output_register (QuantumRegister): The optional quantum register to use for holding the output
+            variable_register (QuantumRegister): The optional quantum register
+                            to use for problem variables
+            clause_register (QuantumRegister): The optional quantum register
+                            to use for problem clauses
+            output_register (QuantumRegister): The optional quantum register
+                            to use for holding the output
             ancillary_register (QuantumRegister): The optional quantum register to use as ancilla
             mct_mode (str): The mode to use for building Multiple-Control Toffoli
 
         Returns:
             QuantumCircuit: quantum circuit.
+        Raises:
+            AquaError: invalid input
         """
 
         circuit = self._set_up_circuit(
@@ -450,20 +474,24 @@ class ESOP(BooleanLogicNormalForm):
             output_idx=None,
             ancillary_register=None,
             mct_mode='basic'
-    ):
+    ):  # pylint: disable=arguments-differ
         """
         Construct circuit.
 
         Args:
             circuit (QuantumCircuit): The optional circuit to extend from
-            variable_register (QuantumRegister): The optional quantum register to use for problem variables
-            output_register (QuantumRegister): The optional quantum register to use for holding the output
+            variable_register (QuantumRegister): The optional quantum
+            register to use for problem variables
+            output_register (QuantumRegister): The optional quantum
+            register to use for holding the output
             output_idx (int): The index of the output register to write to
             ancillary_register (QuantumRegister): The optional quantum register to use as ancilla
             mct_mode (str): The mode to use for building Multiple-Control Toffoli
 
         Returns:
             QuantumCircuit: quantum circuit.
+        Raises:
+            AquaError: invalid input
         """
 
         circuit = self._set_up_circuit(
@@ -499,7 +527,8 @@ class ESOP(BooleanLogicNormalForm):
             build_clause(self._ast)
         elif self._depth == 2:
             if not self._ast[0] == 'xor':
-                raise AquaError('Unexpected root logical operation {} for ESOP.'.format(self._ast[0]))
+                raise AquaError('Unexpected root logical '
+                                'operation {} for ESOP.'.format(self._ast[0]))
             for cur_clause_expr in self._ast[1:]:
                 build_clause(cur_clause_expr)
         else:

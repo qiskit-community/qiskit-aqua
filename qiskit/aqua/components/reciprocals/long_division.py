@@ -12,10 +12,19 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+
+"""The Long Division Rotation for Reciprocals.
+
+It finds the reciprocal with long division method and rotates the ancillary
+qubit by C/lambda. This is a first order approximation of arcsin(C/lambda).
+"""
+
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.aqua.components.reciprocals import Reciprocal
-from qiskit.aqua.circuits.gates import mct
+from qiskit.aqua.circuits.gates import mct  # pylint: disable=unused-import
+
+# pylint: disable=invalid-name
 
 
 class LongDivision(Reciprocal):
@@ -28,7 +37,8 @@ class LongDivision(Reciprocal):
 
     CONFIGURATION = {
         'name': 'LongDivision',
-        'description': 'reciprocal computation with long division and rotation of the ancilla qubit',
+        'description':
+            'reciprocal computation with long division and rotation of the ancilla qubit',
         'input_schema': {
             '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'reciprocal_long_division_schema',
@@ -91,6 +101,12 @@ class LongDivision(Reciprocal):
         self._reg_size = 0
         self._neg_offset = 0
         self._n = 0
+        self._num_ancillae = None
+        self._a = None
+        self._b0 = None
+        self._anc1 = None
+        self._z = None
+        self._c = None
 
     def sv_to_resvec(self, statevector, num_q):
         half = int(len(statevector) / 2)
@@ -106,7 +122,7 @@ class LongDivision(Reciprocal):
             qc = QuantumCircuit(a, b0, b, c, z, r)
             qc2 = QuantumCircuit(a, b0, b, c, z, r)
 
-            def subtract_in(qc, a, b, b0, c, z, r, n):
+            def subtract_in(qc, a, b, b0, c, z, r, n):  # pylint: disable=unused-argument
                 """subtraction realized with ripple carry adder"""
 
                 def maj(p, a, b, c):
@@ -227,7 +243,8 @@ class LongDivision(Reciprocal):
 
         # executing long division:
         self._circuit.x(self._a[self._n-2])
-        shift_to_one(self._circuit, self._ev, self._anc1, self._n)  # initial alignment of most significant bits
+        # initial alignment of most significant bits
+        shift_to_one(self._circuit, self._ev, self._anc1, self._n)
 
         for rj in range(self._precision):  # iterated subtraction and shifting
             self._circuit += subtract(self._a, self._ev, self._b0, self._c,
@@ -258,24 +275,25 @@ class LongDivision(Reciprocal):
         self._rec = rec_reg
         self._anc = ancilla
 
-    def construct_circuit(self, mode, inreg):
-
+    def construct_circuit(self, mode, register=None, circuit=None):
         """Construct the Long Division Rotation circuit.
 
         Args:
             mode (str): construction mode, 'matrix' not supported
-            inreg (QuantumRegister): input register, typically output register of Eigenvalues
-
+            register (QuantumRegister): input register, typically output register of Eigenvalues
+            circuit (QuantumCircuit): Quantum Circuit or None
         Returns:
-            QuantumCircuit containing the Long Division Rotation circuit.
+            QuantumCircuit: containing the Long Division Rotation circuit.
+        Raises:
+            NotImplementedError: mode not supported
         """
 
         if mode == 'matrix':
             raise NotImplementedError('The matrix mode is not supported.')
-        self._ev = inreg
+        self._ev = register
 
         if self._scale == 0:
-            self._scale = 2**-len(inreg)
+            self._scale = 2**-len(register)
 
         if self._negative_evals:
             self._neg_offset = 1
@@ -294,10 +312,12 @@ class LongDivision(Reciprocal):
 
         self._a = QuantumRegister(self._n, 'one')  # register storing 1
         self._b0 = QuantumRegister(1, 'b0')  # extension of b - required by subtraction
-        self._anc1 = QuantumRegister(self._num_ancillae-1, 'algn_anc')  # ancilla for the initial shifting
+        # ancilla for the initial shifting
+        self._anc1 = QuantumRegister(self._num_ancillae-1, 'algn_anc')
         self._z = QuantumRegister(1, 'z')  # subtraction overflow
         self._c = QuantumRegister(1, 'c')  # carry
-        self._rec = QuantumRegister(self._precision + self._num_ancillae, 'res')  # reciprocal result
+        # reciprocal result
+        self._rec = QuantumRegister(self._precision + self._num_ancillae, 'res')
         self._anc = QuantumRegister(1, 'anc')
         qc = QuantumCircuit(self._a, self._b0, self._ev, self._anc1, self._c,
                             self._z, self._rec, self._anc)

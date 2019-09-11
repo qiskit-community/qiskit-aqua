@@ -28,15 +28,16 @@ from qiskit.aqua.operators import WeightedPauliOperator
 logger = logging.getLogger(__name__)
 
 
-def get_qubit_op(weight_matrix, K):
+def get_qubit_op(weight_matrix, K):  # pylint: disable=invalid-name
     r"""
     Generate Hamiltonian for the clique
 
     Args:
         weight_matrix (numpy.ndarray) : adjacency matrix.
+        K (numpy.ndarray): K
 
     Returns:
-        WeightedPauliOperator, float: operator for the Hamiltonian and a
+        tuple(WeightedPauliOperator, float): operator for the Hamiltonian and a
         constant shift for the obj function.
 
     Goals:
@@ -62,6 +63,7 @@ def get_qubit_op(weight_matrix, K):
     Without the above assumption, Hb may be negative (say you select all).
     In this case, one needs to use Hb^2 in the hamiltonian to minimize the difference.
     """
+    # pylint: disable=invalid-name
     num_nodes = len(weight_matrix)
     pauli_list = []
     shift = 0
@@ -112,16 +114,18 @@ def get_qubit_op(weight_matrix, K):
     return WeightedPauliOperator(paulis=pauli_list), shift
 
 
-def satisfy_or_not(x, w, K):
+def satisfy_or_not(x, w, K):  # pylint: disable=invalid-name
     """Compute the value of a cut.
 
     Args:
         x (numpy.ndarray): binary string as numpy array.
         w (numpy.ndarray): adjacency matrix.
+        K (numpy.ndarray): K
 
     Returns:
         float: value of the cut.
     """
+    # pylint: disable=invalid-name
     X = np.outer(x, x)
     w_01 = np.where(w != 0, 1, 0)
 
@@ -141,6 +145,7 @@ def get_graph_solution(x):
 
 
 def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None, seed=None):
+    """ random graph """
     from .common import random_graph as redirect_func
     warnings.warn("random_graph function has been moved to "
                   "qiskit.aqua.translators.ising.common, "
@@ -151,6 +156,7 @@ def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None, seed=None):
 
 
 def parse_gset_format(filename):
+    """ parse gset format """
     from .common import parse_gset_format as redirect_func
     warnings.warn("parse_gset_format function has been moved to "
                   "qiskit.aqua.translators.ising.common, "
@@ -160,6 +166,7 @@ def parse_gset_format(filename):
 
 
 def sample_most_likely(n=None, state_vector=None):
+    """ sample most likely """
     from .common import sample_most_likely as redirect_func
     if n is not None:
         warnings.warn("n argument is not need and it will be removed after Aqua 0.7+",
@@ -172,6 +179,7 @@ def sample_most_likely(n=None, state_vector=None):
 
 
 def get_gset_result(x):
+    """ get gset result """
     from .common import get_gset_result as redirect_func
     warnings.warn("get_gset_result function has been moved to "
                   "qiskit.aqua.translators.ising.common, "
@@ -180,7 +188,8 @@ def get_gset_result(x):
     return redirect_func(x)
 
 
-def get_clique_qubitops(weight_matrix, K):
+def get_clique_qubitops(weight_matrix, K):  # pylint: disable=invalid-name
+    """ get clique qubit ops """
     warnings.warn("get_clique_qubitops function has been changed to get_qubit_op"
                   "the method here will be removed after Aqua 0.7+",
                   DeprecationWarning)

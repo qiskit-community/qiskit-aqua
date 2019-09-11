@@ -72,7 +72,7 @@ class BaseDriver(ABC):
             section (dict): section dictionary
 
         Returns:
-            Driver: Driver object
+            BaseDriver: Driver object
         """
         pass
 

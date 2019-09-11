@@ -12,11 +12,19 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""
+The Gaussian Conditional Independence Model for Credit Risk
+Reference: https://arxiv.org/abs/1412.1183
+Dependency between individual risk variables and latent variable is approximated linearly.
+"""
+
 import numpy as np
+from scipy.stats.distributions import norm
 from qiskit.aqua.components.uncertainty_models import MultivariateDistribution
 from qiskit.aqua.components.uncertainty_models import NormalDistribution
-from scipy.stats.distributions import norm
 from qiskit.aqua.circuits.linear_rotation import LinearRotation
+
+# pylint: disable=invalid-name
 
 
 class GaussianConditionalIndependenceModel(MultivariateDistribution):
@@ -81,10 +89,11 @@ class GaussianConditionalIndependenceModel(MultivariateDistribution):
         Args:
             n_normal (int): number of qubits to represent the latent normal random variable Z
             normal_max_value (float): min/max value to truncate the latent normal random variable Z
-            p_zeros (list or array): standard default probabilities for each asset
-            rhos (list or array): sensitivities of default probability of assets with respect to latent variable Z
-            i_normal (list or array): indices of qubits to represent normal variable
-            i_ps (list or array): indices of qubits to represent asset defaults
+            p_zeros (Union(list, numpy.ndarray)): standard default probabilities for each asset
+            rhos (Union(list, numpy.ndarray)): sensitivities of default probability of assets
+                                    with respect to latent variable Z
+            i_normal (Union(list, numpy.ndarray)): indices of qubits to represent normal variable
+            i_ps (Union(list, numpy.ndarray)): indices of qubits to represent asset defaults
         """
         self.n_normal = n_normal
         self.normal_max_value = normal_max_value
@@ -105,9 +114,14 @@ class GaussianConditionalIndependenceModel(MultivariateDistribution):
             self.i_ps = range(n_normal, n_normal + self.K)
 
         # get normal (inverse) CDF and pdf
-        def F(x): return norm.cdf(x)
-        def F_inv(x): return norm.ppf(x)
-        def f(x): return norm.pdf(x)
+        def F(x):
+            return norm.cdf(x)
+
+        def F_inv(x):
+            return norm.ppf(x)
+
+        def f(x):
+            return norm.pdf(x)
 
         # set low/high values
         low = [-normal_max_value] + [0]*self.K
@@ -139,7 +153,8 @@ class GaussianConditionalIndependenceModel(MultivariateDistribution):
             self._offsets[k] = offset
             self._slopes[k] = slope
 
-            lry = LinearRotation(slope, offset, n_normal, i_state=self.i_normal, i_target=self.i_ps[k])
+            lry = LinearRotation(slope, offset, n_normal,
+                                 i_state=self.i_normal, i_target=self.i_ps[k])
             self._rotations += [lry]
 
     def build(self, qc, q, q_ancillas=None, params=None):

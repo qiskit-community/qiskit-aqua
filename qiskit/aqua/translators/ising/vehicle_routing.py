@@ -26,7 +26,7 @@ from qiskit.quantum_info import Pauli
 from qiskit.aqua.operators import WeightedPauliOperator
 
 
-def get_vehiclerouting_matrices(instance, n, K):
+def get_vehiclerouting_matrices(instance, n, K):  # pylint: disable=invalid-name
     """Constructs auxiliary matrices from a vehicle routing instance,
         which represent the encoding into a binary quadratic program.
         This is used in the construction of the qubit ops and computation
@@ -38,11 +38,12 @@ def get_vehiclerouting_matrices(instance, n, K):
         K (integer) : the number of vehicles available.
 
     Returns:
-        Q (numpy.ndarray) : a matrix defining the interactions between variables.
-        g (numpy.ndarray) : a matrix defining the contribution from the individual variables.
-        c (float) : the constant offset.
-        """
-
+        tuple(numpy.ndarray, numpy.ndarray, float):
+            a matrix defining the interactions between variables.
+            a matrix defining the contribution from the individual variables.
+            the constant offset.
+    """
+    # pylint: disable=invalid-name
     # N = (n - 1) * n
     A = np.max(instance) * 100  # A parameter of cost function
 
@@ -50,36 +51,36 @@ def get_vehiclerouting_matrices(instance, n, K):
     instance_vec = instance.reshape(n**2)
     w_list = [instance_vec[x] for x in range(n**2) if instance_vec[x] > 0]
     w = np.zeros(n * (n - 1))
-    for ii in range(len(w_list)):
-        w[ii] = w_list[ii]
+    for i_i, _ in enumerate(w_list):
+        w[i_i] = w_list[i_i]
 
     # Some additional variables
-    Id_n = np.eye(n)
-    Im_n_1 = np.ones([n - 1, n - 1])
-    Iv_n_1 = np.ones(n)
-    Iv_n_1[0] = 0
-    Iv_n = np.ones(n - 1)
-    neg_Iv_n_1 = np.ones(n) - Iv_n_1
+    id_n = np.eye(n)
+    im_n_1 = np.ones([n - 1, n - 1])
+    iv_n_1 = np.ones(n)
+    iv_n_1[0] = 0
+    iv_n = np.ones(n - 1)
+    neg_iv_n_1 = np.ones(n) - iv_n_1
 
     v = np.zeros([n, n * (n - 1)])
-    for ii in range(n):
-        count = ii - 1
-        for jj in range(n * (n - 1)):
+    for i_i in range(n):
+        count = i_i - 1
+        for j_j in range(n * (n - 1)):
 
-            if jj // (n - 1) == ii:
-                count = ii
+            if j_j // (n - 1) == i_i:
+                count = i_i
 
-            if jj // (n - 1) != ii and jj % (n - 1) == count:
-                v[ii][jj] = 1.
+            if j_j // (n - 1) != i_i and j_j % (n - 1) == count:
+                v[i_i][j_j] = 1.
 
-    vn = np.sum(v[1:], axis=0)
+    v_n = np.sum(v[1:], axis=0)
 
     # Q defines the interactions between variables
-    Q = A * (np.kron(Id_n, Im_n_1) + np.dot(v.T, v))
+    Q = A * (np.kron(id_n, im_n_1) + np.dot(v.T, v))
 
     # g defines the contribution from the individual variables
-    g = w - 2 * A * (np.kron(Iv_n_1, Iv_n) + vn.T) - \
-        2 * A * K * (np.kron(neg_Iv_n_1, Iv_n) + v[0].T)
+    g = w - 2 * A * (np.kron(iv_n_1, iv_n) + v_n.T) - \
+        2 * A * K * (np.kron(neg_iv_n_1, iv_n) + v[0].T)
 
     # c is the constant offset
     c = 2 * A * (n - 1) + 2 * A * (K**2)
@@ -87,7 +88,7 @@ def get_vehiclerouting_matrices(instance, n, K):
     return (Q, g, c)
 
 
-def get_vehiclerouting_cost(instance, n, K, x_sol):
+def get_vehiclerouting_cost(instance, n, K, x_sol):  # pylint: disable=invalid-name
     """Computes the cost of a solution to an instance of a vehicle routing problem.
 
     Args:
@@ -97,15 +98,18 @@ def get_vehiclerouting_cost(instance, n, K, x_sol):
         x_sol (numpy.ndarray): a solution, i.e., a path, in its binary representation.
 
     Returns:
-        cost (float): objective function value.
-        """
+        float: objective function value.
+    """
+    # pylint: disable=invalid-name
     (Q, g, c) = get_vehiclerouting_matrices(instance, n, K)
-    def fun(x): return np.dot(np.around(x), np.dot(Q, np.around(x))) + np.dot(g, np.around(x)) + c
+
+    def fun(x):
+        return np.dot(np.around(x), np.dot(Q, np.around(x))) + np.dot(g, np.around(x)) + c
     cost = fun(x_sol)
     return cost
 
 
-def get_qubit_op(instance, n, K):
+def get_qubit_op(instance, n, K):  # pylint: disable=invalid-name
     """Converts an instance of a vehicle routing problem into a list of Paulis.
 
     Args:
@@ -116,42 +120,42 @@ def get_qubit_op(instance, n, K):
     Returns:
         WeightedPauliOperator: operator for the Hamiltonian.
     """
-
+    # pylint: disable=invalid-name
     N = (n - 1) * n
-    (Q, g, c) = get_vehiclerouting_matrices(instance, n, K)
+    (Q, g__, c) = get_vehiclerouting_matrices(instance, n, K)
 
     # Defining the new matrices in the Z-basis
-    Iv = np.ones(N)
-    Qz = (Q / 4)
-    gz = (-g / 2 - np.dot(Iv, Q / 4) - np.dot(Q / 4, Iv))
-    cz = (c + np.dot(g / 2, Iv) + np.dot(Iv, np.dot(Q / 4, Iv)))
+    i_v = np.ones(N)
+    q_z = (Q / 4)
+    g_z = (-g__ / 2 - np.dot(i_v, Q / 4) - np.dot(Q / 4, i_v))
+    c_z = (c + np.dot(g__ / 2, i_v) + np.dot(i_v, np.dot(Q / 4, i_v)))
 
-    cz = cz + np.trace(Qz)
-    Qz = Qz - np.diag(np.diag(Qz))
+    c_z = c_z + np.trace(q_z)
+    q_z = q_z - np.diag(np.diag(q_z))
 
     # Getting the Hamiltonian in the form of a list of Pauli terms
 
     pauli_list = []
     for i in range(N):
-        if gz[i] != 0:
-            wp = np.zeros(N)
-            vp = np.zeros(N)
-            vp[i] = 1
-            pauli_list.append((gz[i], Pauli(vp, wp)))
+        if g_z[i] != 0:
+            w_p = np.zeros(N)
+            v_p = np.zeros(N)
+            v_p[i] = 1
+            pauli_list.append((g_z[i], Pauli(v_p, w_p)))
     for i in range(N):
         for j in range(i):
-            if Qz[i, j] != 0:
-                wp = np.zeros(N)
-                vp = np.zeros(N)
-                vp[i] = 1
-                vp[j] = 1
-                pauli_list.append((2 * Qz[i, j], Pauli(vp, wp)))
+            if q_z[i, j] != 0:
+                w_p = np.zeros(N)
+                v_p = np.zeros(N)
+                v_p[i] = 1
+                v_p[j] = 1
+                pauli_list.append((2 * q_z[i, j], Pauli(v_p, w_p)))
 
-    pauli_list.append((cz, Pauli(np.zeros(N), np.zeros(N))))
+    pauli_list.append((c_z, Pauli(np.zeros(N), np.zeros(N))))
     return WeightedPauliOperator(paulis=pauli_list)
 
 
-def get_vehiclerouting_solution(instance, n, K, result):
+def get_vehiclerouting_solution(instance, n, K, result):  # pylint: disable=invalid-name
     """Tries to obtain a feasible solution (in vector form) of an instance
         of vehicle routing from the results dictionary.
 
@@ -162,12 +166,13 @@ def get_vehiclerouting_solution(instance, n, K, result):
         result (dictionary) : a dictionary obtained by QAOA.run or VQE.run containing key 'eigvecs'.
 
     Returns:
-        x_sol (numpy.ndarray): a solution, i.e., a path, in its binary representation.
+        numpy.ndarray: a solution, i.e., a path, in its binary representation.
 
     #TODO: support statevector simulation, results should be a statevector or counts format, not
            a result from algorithm run
     """
-
+    # pylint: disable=invalid-name
+    del instance, K  # unused
     v = result['eigvecs'][0]
     N = (n - 1) * n
 
@@ -190,6 +195,8 @@ def get_vehiclerouting_solution(instance, n, K, result):
 
 
 def get_vehiclerouting_qubitops(instance, n, K):
+    """ get vehicle routing qubit ops """
+    # pylint: disable=invalid-name
     warnings.warn("get_vehiclerouting_qubitops function has been changed to get_qubit_op"
                   "the method here will be removed after Aqua 0.7+",
                   DeprecationWarning)

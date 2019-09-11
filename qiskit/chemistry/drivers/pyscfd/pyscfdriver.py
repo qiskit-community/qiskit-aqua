@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 class InitialGuess(Enum):
-    """ Iniial Guess Enum """
+    """ Initial Guess Enum """
     MINAO = 'minao'
     HCORE = '1e'
     ONE_E = '1e'
@@ -176,7 +176,7 @@ class PySCFDriver(BaseDriver):
             section (dict): section dictionary
 
         Returns:
-            Driver: Driver object
+            PySCFDriver: Driver object
         Raises:
             QiskitChemistryError: Invalid or missing section
         """

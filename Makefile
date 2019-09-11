@@ -14,12 +14,10 @@
 .PHONY: lint style test spell
 
 lint:
-	pylint -rn --errors-only --enable=invalid-file-header qiskit/aqua
-	pylint -rn --ignore=gauopen qiskit/chemistry test
+	pylint -rn --ignore=gauopen qiskit/aqua qiskit/chemistry test
 
 style:
-	pycodestyle --max-line-length=210 qiskit/aqua
-	pycodestyle --max-line-length=100 --exclude=gauopen qiskit/chemistry test
+	pycodestyle --max-line-length=100 --exclude=gauopen qiskit/aqua qiskit/chemistry test
 
 test:
 	python -m unittest discover -v test

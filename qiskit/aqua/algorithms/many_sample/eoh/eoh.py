@@ -16,7 +16,6 @@ The Quantum Dynamics algorithm.
 """
 
 import logging
-import warnings
 
 from qiskit import QuantumRegister
 
@@ -32,7 +31,6 @@ class EOH(QuantumAlgorithm):
     The Quantum EOH (Evolution of Hamiltonian) algorithm.
     """
 
-    PROP_OPERATOR_MODE = 'operator_mode'
     PROP_EVO_TIME = 'evo_time'
     PROP_NUM_TIME_SLICES = 'num_time_slices'
     PROP_EXPANSION_MODE = 'expansion_mode'
@@ -46,16 +44,6 @@ class EOH(QuantumAlgorithm):
             'id': 'EOH_schema',
             'type': 'object',
             'properties': {
-                PROP_OPERATOR_MODE: {
-                    'type': ['string', 'null'],
-                    'default': None,
-                    'enum': [
-                        'paulis',
-                        'grouped_paulis',
-                        'matrix',
-                        None
-                    ]
-                },
                 PROP_EVO_TIME: {
                     'type': 'number',
                     'default': 1,
@@ -84,21 +72,19 @@ class EOH(QuantumAlgorithm):
         },
         'problems': ['eoh'],
         'depends': [
-            {'pluggable_type': 'initial_state',
-             'default': {
-                     'name': 'ZERO'
-                }
-             },
+            {
+                'pluggable_type': 'initial_state',
+                'default': {
+                    'name': 'ZERO'
+                },
+            },
         ],
     }
 
-    def __init__(self, operator, initial_state, evo_operator, operator_mode=None, evo_time=1, num_time_slices=1,
+    def __init__(self, operator, initial_state, evo_operator, evo_time=1, num_time_slices=1,
                  expansion_mode='trotter', expansion_order=1):
         self.validate(locals())
         super().__init__()
-        if operator_mode is not None:
-            warnings.warn("operator_mode option is deprecated and it will be removed after 0.6. "
-                          "Now the operator has its own mode, no need extra info to tell the EOH.", DeprecationWarning)
         self._operator = op_converter.to_weighted_pauli_operator(operator)
         self._initial_state = initial_state
         self._evo_operator = op_converter.to_weighted_pauli_operator(evo_operator)
@@ -113,13 +99,18 @@ class EOH(QuantumAlgorithm):
         """
         Initialize via parameters dictionary and algorithm input instance
         Args:
-            params: parameters dictionary
-            algo_input: EnergyInput instance
+            params (dict): parameters dictionary
+            algo_input (EnergyInput): instance
+        Returns:
+            EOH: and instance of this class
+        Raises:
+            AquaError: invalid input
         """
         if algo_input is None:
             raise AquaError("EnergyInput instance is required.")
 
-        # For getting the extra operator, caller has to do something like: algo_input.add_aux_op(evo_op)
+        # For getting the extra operator, caller has
+        # to do something like: algo_input.add_aux_op(evo_op)
         operator = algo_input.qubit_op
         aux_ops = algo_input.aux_ops
         if aux_ops is None or len(aux_ops) != 1:
@@ -170,5 +161,5 @@ class EOH(QuantumAlgorithm):
             wave_function=qc, statevector_mode=self._quantum_instance.is_statevector)
         result = self._quantum_instance.execute(qc_with_op)
         self._ret['avg'], self._ret['std_dev'] = self._operator.evaluate_with_result(
-             result=result, statevector_mode=self._quantum_instance.is_statevector)
+            result=result, statevector_mode=self._quantum_instance.is_statevector)
         return self._ret

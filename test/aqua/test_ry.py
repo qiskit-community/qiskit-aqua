@@ -30,7 +30,7 @@ class TestRYCRX(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
-        self.seed = 50
+        self.seed = 99
         aqua_globals.random_seed = self.seed
         pauli_dict = {
             'paulis': [{"coeff": {"imag": 0.0, "real": -1.052373245772859}, "label": "II"},
@@ -52,13 +52,14 @@ class TestRYCRX(QiskitAquaTestCase):
         """ VQE Var Forms test """
         backend = BasicAer.get_backend('statevector_simulator')
         params = {
+            'problem': {'random_seed': self.seed},
             'algorithm': {'name': 'VQE'},
             'variational_form': {'name': 'RY',
                                  'depth': depth,
                                  'entanglement': 'sca',
                                  'entanglement_gate': 'crx',
                                  'skip_final_ry': True},
-            'backend': {'shots': 1, 'seed_simulator': self.seed, 'seed_transpiler': self.seed}
+            'backend': {'shots': 1}
         }
         result = run_algorithm(params, self.algo_input, backend=backend)
         self.assertAlmostEqual(result['energy'], -1.85727503, places=places)

@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" common module """
+
 from collections import OrderedDict
 
 import numpy as np
@@ -36,7 +38,7 @@ def random_graph(n, weight_range=10, edge_prob=0.3, negative_weight=True,
         numpy.ndarray: adjacency matrix (with weights).
 
     """
-    assert(weight_range >= 0)
+    assert weight_range >= 0
     if seed:
         aqua_globals.random_seed = seed
     w = np.zeros((n, n))
@@ -66,7 +68,7 @@ def random_number_list(n, weight_range=100, savefile=None, seed=None):
         n (int): size of the set of numbers.
         weight_range (int): maximum absolute value of the numbers.
         savefile (str or None): write numbers to this file.
-        seed (int | None): random seed - if None, will not initialize.
+        seed (Union(int,None)): random seed - if None, will not initialize.
 
     Returns:
         numpy.ndarray: the list of integer numbers.
@@ -94,7 +96,7 @@ def read_numbers_from_file(filename):
     numbers = []
     with open(filename) as infile:
         for line in infile:
-            assert(int(round(float(line))) == float(line))
+            assert int(round(float(line))) == float(line)
             numbers.append(int(round(float(line))))
     return np.array(numbers)
 
@@ -114,16 +116,16 @@ def parse_gset_format(filename):
         m = -1
         count = 0
         for line in infile:
-            v = map(lambda e: int(e), line.split())
+            v = map(lambda e: int(e), line.split())  # pylint: disable=unnecessary-lambda
             if header:
                 n, m = v
                 w = np.zeros((n, n))
                 header = False
             else:
-                s, t, x = v
-                s -= 1  # adjust 1-index
-                t -= 1  # ditto
-                w[s, t] = t
+                s__, t__, _ = v
+                s__ -= 1  # adjust 1-index
+                t__ -= 1  # ditto
+                w[s__, t__] = t__
                 count += 1
         assert m == count
     w += w.T
@@ -150,7 +152,7 @@ def sample_most_likely(state_vector):
     Returns:
         numpy.ndarray: binary string as numpy.ndarray of ints.
     """
-    if isinstance(state_vector, dict) or isinstance(state_vector, OrderedDict):
+    if isinstance(state_vector, (OrderedDict, dict)):
         # get the binary string with the largest count
         binary_string = sorted(state_vector.items(), key=lambda kv: kv[1])[-1][0]
         x = np.asarray([int(y) for y in reversed(list(binary_string))])

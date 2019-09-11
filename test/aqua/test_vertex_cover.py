@@ -86,7 +86,6 @@ class TestVertexCover(QiskitAquaTestCase):
         """ Vertex Cover VQE test """
         algorithm_cfg = {
             'name': 'VQE',
-            'operator_mode': 'grouped_paulis',
             'max_evals_grouped': 2
         }
 

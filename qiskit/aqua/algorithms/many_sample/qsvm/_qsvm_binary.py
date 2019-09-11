@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""The binary classifier."""
+
 import logging
 import warnings
 
@@ -22,16 +24,20 @@ from qiskit.aqua.utils import map_label_to_class_name, optimize_svm
 
 logger = logging.getLogger(__name__)
 
+# pylint: disable=invalid-name
+
 
 class _QSVM_Binary(_QSVM_ABC):
     """The binary classifier."""
 
     def construct_circuit(self, x1, x2, measurement=False):
+        """ construct circuit """
         warnings.warn("Please use the 'construct_circuit' in the qsvm class directly.",
                       DeprecationWarning)
         return self._qalgo.construct_circuit(x1, x2, measurement)
 
     def construct_kernel_matrix(self, x1_vec, x2_vec=None):
+        """ construct kernel matrix """
         warnings.warn("Please use the 'construct_kernel_matrix' in the qsvm "
                       "class directly.", DeprecationWarning)
         return self._qalgo.construct_kernel_matrix(x1_vec, x2_vec, self._qalgo.quantum_instance)
@@ -42,6 +48,7 @@ class _QSVM_Binary(_QSVM_ABC):
         Args:
             data (numpy.ndarray): NxD array, where N is the number of data,
                                   D is the feature dimension.
+            return_kernel_matrix (bool): return kernel matrix
         Returns:
             numpy.ndarray: Nx1 array, predicted confidence
             numpy.ndarray (optional): the kernel matrix, NxN1, where N1 is
@@ -139,6 +146,7 @@ class _QSVM_Binary(_QSVM_ABC):
         return self._ret
 
     def load_model(self, file_path):
+        """ load model """
         model_npz = np.load(file_path, allow_pickle=True)
         model = {'alphas': model_npz['alphas'],
                  'bias': model_npz['bias'],
@@ -148,11 +156,14 @@ class _QSVM_Binary(_QSVM_ABC):
         try:
             self._qalgo.class_to_label = model_npz['class_to_label']
             self._qalgo.label_to_class = model_npz['label_to_class']
-        except KeyError as e:
-            logger.warning("The model saved in Aqua 0.5 does not contain the mapping between class names and labels. "
-                           "Please setup them and save the model again for further use. Error: {}".format(str(e)))
+        except KeyError as ex:
+            logger.warning("The model saved in Aqua 0.5 does not contain the mapping "
+                           "between class names and labels. "
+                           "Please setup them and save the model again "
+                           "for further use. Error: %s", str(ex))
 
     def save_model(self, file_path):
+        """ save model """
         model = {'alphas': self._ret['svm']['alphas'],
                  'bias': self._ret['svm']['bias'],
                  'support_vectors': self._ret['svm']['support_vectors'],

@@ -12,13 +12,15 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Classification Input """
+
 from qiskit.aqua import AquaError
 from qiskit.aqua.input import AlgorithmInput
 from qiskit.aqua.utils import convert_dict_to_json
 
 
 class ClassificationInput(AlgorithmInput):
-
+    """ Classification Input """
     CONFIGURATION = {
         'name': 'ClassificationInput',
         'description': 'SVM input',
@@ -53,7 +55,8 @@ class ClassificationInput(AlgorithmInput):
         self.datapoints = datapoints if datapoints is not None else []
 
     def validate(self, args_dict):
-        params = {key: value for key, value in args_dict.items() if key in ['training_dataset', 'test_dataset', 'datapoints']}
+        params = {key: value for key, value in args_dict.items()
+                  if key in ['training_dataset', 'test_dataset', 'datapoints']}
         super().validate(convert_dict_to_json(params))
 
     def to_params(self):

@@ -134,11 +134,13 @@ def _discover_local_drivers(directory=os.path.dirname(__file__),
     subdirectories of the current module and attempts to register them.
     Driver modules should subclass BaseDriver Base class.
     Args:
-        directory (str, optional): Directory to search for input modules. Defaults
+        directory (Optional(str)): Directory to search for input modules. Defaults
             to the directory of this module.
-        parentname (str, optional): Module parent name. Defaults to current directory name
-        names_to_exclude (str, optional): File names to exclude. Defaults to _NAMES_TO_EXCLUDE
-        folders_to_exclude (str, optional): Folders to exclude. Defaults to _FOLDERS_TO_EXCLUDE
+        parentname (Optional(str)): Module parent name. Defaults to current directory name
+        names_to_exclude (Optional(list[str])): File names to exclude.
+                                                    Defaults to _NAMES_TO_EXCLUDE
+        folders_to_exclude (Optional(list[str])): Folders to exclude.
+                                                    Defaults to _FOLDERS_TO_EXCLUDE
     """
     names_to_exclude = names_to_exclude if names_to_exclude is not None else _NAMES_TO_EXCLUDE
     folders_to_exclude = folders_to_exclude \
@@ -181,9 +183,9 @@ def register_driver(cls):
     """
     Registers a driver class
     Args:
-        cls (object): Driver class.
+        cls (BaseDriver): Driver class.
      Returns:
-        name: driver name
+        str: driver name
      Raises:
          QiskitChemistryError: if not derived from BaseDriver
     """
@@ -248,7 +250,7 @@ def get_driver_class(driver_name):
     Args:
         driver_name (str): the module name
     Returns:
-        Clas: class object for module
+        BaseDriver: class object for module
     Raises:
         QiskitChemistryError: if module is unavailable
     """
@@ -281,7 +283,7 @@ def local_drivers():
     """
     Accesses chemistry drivers names
     Returns:
-        names: chemistry drivers names
+        list[str]: chemistry drivers names
     """
     _discover_on_demand()
     return [input.name for input in _REGISTRY_CHEM_DRIVER.registry.values()]

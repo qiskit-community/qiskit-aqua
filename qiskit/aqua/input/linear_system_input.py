@@ -12,14 +12,16 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from qiskit.aqua import AquaError
-from qiskit.aqua.input import AlgorithmInput
+""" Linear System Input """
 
 import numpy as np
 
+from qiskit.aqua import AquaError
+from qiskit.aqua.input import AlgorithmInput
+
 
 class LinearSystemInput(AlgorithmInput):
-
+    """ Linear System Input """
     PROP_KEY_MATRIX = 'matrix'
     PROP_KEY_VECTOR = 'vector'
 
@@ -52,21 +54,26 @@ class LinearSystemInput(AlgorithmInput):
 
     @property
     def matrix(self):
+        """ returns matrix """
         return self._matrix
 
     @matrix.setter
     def matrix(self, matrix):
+        """ sets matrix """
         self._matrix = matrix
 
     @property
     def vector(self):
+        """ returns vector """
         return self._vector
 
     @vector.setter
     def vector(self, vector):
+        """ sets vector """
         self._vector = vector
 
     def validate(self, args_dict):
+        """ validate input """
         params = {}
         for key, value in args_dict.items():
             if key == LinearSystemInput.PROP_KEY_MATRIX:
@@ -79,6 +86,7 @@ class LinearSystemInput(AlgorithmInput):
         super().validate(params)
 
     def to_params(self):
+        """ to params """
         params = {}
         params[LinearSystemInput.PROP_KEY_MATRIX] = self.save_to_list(self._matrix)
         params[LinearSystemInput.PROP_KEY_VECTOR] = self.save_to_list(self._vector)
@@ -86,6 +94,7 @@ class LinearSystemInput(AlgorithmInput):
 
     @classmethod
     def from_params(cls, params):
+        """ from params """
         if LinearSystemInput.PROP_KEY_MATRIX not in params:
             raise AquaError("Matrix is required.")
         if LinearSystemInput.PROP_KEY_VECTOR not in params:
@@ -98,7 +107,10 @@ class LinearSystemInput(AlgorithmInput):
 
     @staticmethod
     def load_mat_from_list(mat):
-        def depth(x): return isinstance(x, list) and max(map(depth, x))+1
+        """ load matrix from list """
+
+        def depth(x):
+            return isinstance(x, list) and max(map(depth, x))+1
         if depth(mat) == 3:
             return np.array(mat[0])+1j*np.array(mat[1])
         elif depth(mat) == 2:
@@ -108,7 +120,10 @@ class LinearSystemInput(AlgorithmInput):
 
     @staticmethod
     def load_vec_from_list(vec):
-        def depth(x): return isinstance(x, list) and max(map(depth, x))+1
+        """ load vector from list """
+
+        def depth(x):
+            return isinstance(x, list) and max(map(depth, x))+1
         if depth(vec) == 2:
             return np.array(vec[0])+1j*np.array(vec[1])
         elif depth(vec) == 1:
@@ -117,6 +132,7 @@ class LinearSystemInput(AlgorithmInput):
             raise AquaError("Vector list must be depth 2 or 3")
 
     def save_to_list(self, mat):
+        """ save to list """
         if not isinstance(mat, np.ndarray):
             return mat
         if mat.dtype == complex:
