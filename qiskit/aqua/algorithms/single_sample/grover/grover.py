@@ -112,6 +112,10 @@ class Grover(QuantumAlgorithm):
         """
         self.validate(locals())
         super().__init__()
+
+        if not callable(getattr(oracle, "evaluate_classically", None)):
+            raise AquaError('Missing the evaluate_classically() method from the provided oracle instance.')
+
         self._oracle = oracle
         self._mct_mode = mct_mode
         self._init_state = \
