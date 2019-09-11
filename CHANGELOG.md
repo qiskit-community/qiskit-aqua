@@ -18,6 +18,12 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 [UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.0...HEAD)
 ========================================================================
 
+Fixed
+-------
+
+-   A bug where `UCCSD` might generate an empty operator and try to evolve it. (#680)
+
+
 [0.6.0](https://github.com/Qiskit/qiskit-aqua/compare/0.5.5...0.6.0) - 2019-08-22
 =================================================================================
 
