@@ -27,7 +27,7 @@ class CustomCircuitOracle(Oracle):
     """
 
     def __init__(self, variable_register=None, output_register=None,
-                 ancillary_register=None, circuit=None):
+                 ancillary_register=None, circuit=None, evaluate_classically_callback=None):
         """
         Constructor.
 
@@ -54,6 +54,8 @@ class CustomCircuitOracle(Oracle):
         self._output_register = output_register
         self._ancillary_register = ancillary_register
         self._circuit = circuit
+        if evaluate_classically_callback is not None:
+            self.evaluate_classically = evaluate_classically_callback
 
     @property
     def variable_register(self):
