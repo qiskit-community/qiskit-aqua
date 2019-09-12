@@ -51,6 +51,29 @@ class TestCustomCircuitOracle(QiskitAquaTestCase):
             quantum_instance=QuantumInstance(BasicAer.get_backend('qasm_simulator')))
         self.assertEqual(result['result'], 'balanced')
 
+    def test_using_grover_for_error(self):
+        """ using grover without providing evaluate_classically callback """
+        q_v = QuantumRegister(2, name='v')
+        q_o = QuantumRegister(1, name='o')
+        circuit = QuantumCircuit(q_v, q_o)
+        oracle = CustomCircuitOracle(variable_register=q_v, output_register=q_o, circuit=circuit)
+        with self.assertRaises(AquaError):
+            _ = Grover(oracle)
+
+    def test_using_grover_for_ccx(self):
+        """ using grover correctly (with the evaluate_classically callback provided) """
+        q_v = QuantumRegister(2, name='v')
+        q_o = QuantumRegister(1, name='o')
+        circuit = QuantumCircuit(q_v, q_o)
+        circuit.ccx(q_v[0], q_v[1], q_o[0])
+        oracle = CustomCircuitOracle(variable_register=q_v, output_register=q_o, circuit=circuit,
+                                     evaluate_classically_callback=lambda m: (m == '11', [1, 2])
+        )
+        algorithm = Grover(oracle)
+        result = algorithm.run(
+            quantum_instance=QuantumInstance(BasicAer.get_backend('qasm_simulator')))
+        self.assertEqual(result['result'], [1, 2])
+
 
 if __name__ == '__main__':
     unittest.main()
