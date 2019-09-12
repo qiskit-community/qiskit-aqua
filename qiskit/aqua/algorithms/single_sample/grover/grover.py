@@ -109,6 +109,8 @@ class Grover(QuantumAlgorithm):
             incremental (bool): boolean flag for whether to use incremental search mode or not
             num_iterations (int): the number of iterations to use for amplitude amplification
             mct_mode (str): mct mode
+        Raises:
+            AquaError: evaluate_classically() missing from the input oracle
         """
         self.validate(locals())
         super().__init__()

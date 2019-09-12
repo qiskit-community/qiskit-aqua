@@ -38,7 +38,9 @@ class CustomCircuitOracle(Oracle):
                     for the oracle function
             ancillary_register (QuantumRegister): The register holding ancillary qubit(s)
             circuit (QuantumCircuit): The quantum circuit corresponding to the
-                                    intended oracle function
+                    intended oracle function
+            evaluate_classically_callback (function): The classical callback function for
+                    evaluating the oracle, for example, to use with Grover's search
         Raises:
             AquaError: invalid input
         """
