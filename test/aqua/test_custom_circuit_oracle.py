@@ -17,9 +17,10 @@
 import unittest
 from test.aqua.common import QiskitAquaTestCase
 from qiskit import BasicAer, QuantumCircuit, QuantumRegister
-from qiskit.aqua import QuantumInstance
+from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.components.oracles import CustomCircuitOracle
 from qiskit.aqua.algorithms import DeutschJozsa
+from qiskit.aqua.algorithms import Grover
 
 
 class TestCustomCircuitOracle(QiskitAquaTestCase):
@@ -35,7 +36,7 @@ class TestCustomCircuitOracle(QiskitAquaTestCase):
         algorithm = DeutschJozsa(oracle)
         result = algorithm.run(
             quantum_instance=QuantumInstance(BasicAer.get_backend('qasm_simulator')))
-        self.assertTrue(result['result'] == 'constant')
+        self.assertEqual(result['result'], 'constant')
 
     def test_using_dj_with_balanced_func(self):
         """ using dj with balanced func test """
@@ -48,7 +49,7 @@ class TestCustomCircuitOracle(QiskitAquaTestCase):
         algorithm = DeutschJozsa(oracle)
         result = algorithm.run(
             quantum_instance=QuantumInstance(BasicAer.get_backend('qasm_simulator')))
-        self.assertTrue(result['result'] == 'balanced')
+        self.assertEqual(result['result'], 'balanced')
 
 
 if __name__ == '__main__':
