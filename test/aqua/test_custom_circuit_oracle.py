@@ -67,8 +67,7 @@ class TestCustomCircuitOracle(QiskitAquaTestCase):
         circuit = QuantumCircuit(q_v, q_o)
         circuit.ccx(q_v[0], q_v[1], q_o[0])
         oracle = CustomCircuitOracle(variable_register=q_v, output_register=q_o, circuit=circuit,
-                                     evaluate_classically_callback=lambda m: (m == '11', [1, 2])
-        )
+                                     evaluate_classically_callback=lambda m: (m == '11', [1, 2]))
         algorithm = Grover(oracle)
         result = algorithm.run(
             quantum_instance=QuantumInstance(BasicAer.get_backend('qasm_simulator')))
