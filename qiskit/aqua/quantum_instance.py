@@ -97,6 +97,7 @@ class QuantumInstance:
             job_callback (Callable, optional): callback used in querying info of the submitted job, and
                                                providing the following arguments: job_id, job_status,
                                                queue_position, job
+            profiling (boolean, optional): True if profiling information is to be outputed
 
         Raises:
             AquaError: the shots exceeds the maximum number of shots
@@ -211,7 +212,7 @@ class QuantumInstance:
         logger.info(self)
 
         #profiling flag
-        self.profiling = profiling
+        self._profiling = profiling
 
     def __str__(self):
         """Overload string.
@@ -248,7 +249,7 @@ class QuantumInstance:
         qobj = compile_circuits(circuits, self._backend, self._backend_config, self._compile_config, self._run_config,
                                 show_circuit_summary=self._circuit_summary, circuit_cache=self._circuit_cache,
                                 **kwargs)
-        if self.profiling:
+        if self._profiling:
             import sys
             print("PROFILING>> ", sys.getsizeof(qobj))
 
@@ -259,7 +260,7 @@ class QuantumInstance:
 
             if measurement_error_mitigation_fitter is None:
                 # check the asked qubit_index are the subset of build matrices
-                for key in self._measurement_error_mitigation_fitters.keys():
+                for key in self._measurement_error_mitigation_fitters:
                     stored_qubit_index = [int(x) for x in key.split("_")[:-1]]
                     stored_shots = int(key.split("_")[-1])
                     if len(qubit_index) < len(stored_qubit_index):
@@ -354,8 +355,8 @@ class QuantumInstance:
                                                                                        self._backend.provider()))
                 else:
                     self._noise_config[k] = v
-            elif k == 'profiling':
-                self.profiling = True
+            elif k is 'profiling':
+                self._profiling = True
 
             else:
                 raise ValueError("unknown setting for the key ({}).".format(k))
