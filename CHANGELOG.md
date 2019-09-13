@@ -24,6 +24,10 @@ Added
 -   Ability to create a `CustomCircuitOracle` object with a callback for `evaluate_classically`,
     which a `Grover` object will now check for, upon initialization, on its provided oracle.
 
+Fixed
+-------
+
+-   A bug where `UCCSD` might generate an empty operator and try to evolve it. (#680)
 
 [0.6.0](https://github.com/Qiskit/qiskit-aqua/compare/0.5.5...0.6.0) - 2019-08-22
 =================================================================================
