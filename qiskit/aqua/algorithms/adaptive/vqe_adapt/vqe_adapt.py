@@ -33,48 +33,11 @@ class VQEAdapt(VQAlgorithm):
 
     CONFIGURATION = {
         'name': 'VQEAdapt',
-        'description': 'Adaptive VQE Algorithm',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
-            'id': 'vqe_schema',
-            'type': 'object',
-            'properties': {
-                'operator_mode': {
-                    'type': ['string', 'null'],
-                    'default': None,
-                    'enum': ['matrix', 'paulis', 'grouped_paulis', None]
-                },
-                'initial_point': {
-                    'type': ['array', 'null'],
-                    "items": {
-                        "type": "number"
-                    },
-                    'default': None
-                },
-                'max_evals_grouped': {
-                    'type': 'integer',
-                    'default': 1
-                }
-            },
-            'additionalProperties': False
-        },
-        'problems': ['energy', 'ising'],
-        'depends': [
-            {'pluggable_type': 'optimizer',
-             'default': {
-                     'name': 'L_BFGS_B'
-                }
-             },
-            {'pluggable_type': 'variational_form',
-             'default': {
-                     'name': 'RYRZ'
-                }
-             },
-        ],
+        'description': 'Adaptive VQE Algorithm'
     }
 
     def __init__(self, operator, var_form_base, threshold,
-                 optimizer, initial_point=None):
+                 optimizer, excitation_pool, initial_point=None):
         """Constructor.
 
         Args:
@@ -151,6 +114,32 @@ class VQEAdapt(VQAlgorithm):
 
         return res
 
+    def _config_the_best_mode(self, operator, backend):
+
+        if not isinstance(operator, (WeightedPauliOperator, MatrixOperator, TPBGroupedWeightedPauliOperator)):
+            logger.debug("Unrecognized operator type, skip auto conversion.")
+            return operator
+
+        ret_op = operator
+        if not is_statevector_backend(backend):  # assume qasm, should use grouped paulis.
+            if isinstance(operator, (WeightedPauliOperator, MatrixOperator)):
+                logger.debug("When running with Qasm simulator, grouped pauli can save number of measurements. "
+                             "We convert the operator into grouped ones.")
+                ret_op = op_converter.to_tpb_grouped_weighted_pauli_operator(
+                    operator, TPBGroupedWeightedPauliOperator.sorted_grouping)
+        else:
+            if not is_aer_statevector_backend(backend):
+                if not isinstance(operator, MatrixOperator):
+                    logger.info("When running with non-Aer statevector simulator, represent operator as a matrix could "
+                                "achieve the better performance. We convert the operator to matrix.")
+                    ret_op = op_converter.to_matrix_operator(operator)
+            else:
+                if not isinstance(operator, WeightedPauliOperator):
+                    logger.info("When running with Aer statevector simulator, represent operator as weighted paulis could "
+                                "achieve the better performance. We convert the operator to weighted paulis.")
+                    ret_op = op_converter.to_weighted_pauli_operator(operator)
+        return ret_op
+
     def _run(self):
         """
         Run the algorithm to compute the minimum eigenvalue.
@@ -179,3 +168,15 @@ class VQEAdapt(VQAlgorithm):
             self._ret = algorithm.run(self._quantum_instance)
             theta = self._ret['eigvals']
         return self._ret
+
+    def get_optimal_cost(self):
+        pass
+
+    def get_optimal_circuit(self):
+        pass
+
+    def get_optimal_vector(self):
+        pass
+
+    def optimal_params(self):
+        pass
