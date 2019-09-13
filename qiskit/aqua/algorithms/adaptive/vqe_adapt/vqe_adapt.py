@@ -70,64 +70,29 @@ class VQEAdapt(VQAlgorithm):
         self._threshold = threshold
 
     def _compute_gradients(self, var_form, delta, optimizer, theta, excitation_pool, operator):
-
+        """
+        Computes the gradients for all available excitation operators.
+        Returns:
+            List of pairs consisting of gradient and excitation operator.
+        """
         res = []
-
+        # compute gradients for all excitation in operator pool
         for exc in excitation_pool:
+            # append next excitation to variational form
             var_form._append_hopping_operator(exc)
-
+            # construct auxiliary VQE instance
             vqe = VQE(operator, var_form, optimizer)
-
-            if theta == []:
-                params_minus = [-delta]
-            else:
-                params_minus = theta + [-delta]
-            circuit_minus = vqe.construct_circuit(params_minus,
-                                                  statevector_mode=self._quantum_instance.is_statevector,
-                                                  use_simulator_operator_mode=self._use_simulator_operator_mode,
-                                                  circuit_name_prefix='minus')
-
-            to_be_simulated_circuit_minus = functools.reduce(lambda x, y: x + y, circuit_minus)
-
-            if self._use_simulator_operator_mode:
-                extra_args = {'expectation': {
-                    'params': [self._operator.aer_paulis],
-                    'num_qubits': self._operator.num_qubits}
-                }
-            else:
-                extra_args = {}
-            result_minus = self._quantum_instance.execute(to_be_simulated_circuit_minus, **extra_args)
-
-            mean_minus, std_minus = self._operator.evaluate_with_result(
-                    result=result_minus, statevector_mode=self._quantum_instance.is_statevector,
-                    use_simulator_operator_mode=self._use_simulator_operator_mode,
-                    circuit_name_prefix='minus')
-
-            if theta == []:
-                params_plus = [delta]
-            else:
-                params_plus = theta + [delta]
-            circuit_plus = vqe.construct_circuit(params_plus,
-                                                 statevector_mode=self._quantum_instance.is_statevector,
-                                                 use_simulator_operator_mode=self._use_simulator_operator_mode,
-                                                 circuit_name_prefix='plus')
-            to_be_simulated_circuit_plus = functools.reduce(lambda x, y: x + y, circuit_plus)
-            if self._use_simulator_operator_mode:
-                extra_args = {'expectation': {
-                    'params': [self._operator.aer_paulis],
-                    'num_qubits': self._operator.num_qubits}
-                }
-            else:
-                extra_args = {}
-            result_plus = self._quantum_instance.execute(to_be_simulated_circuit_plus, **extra_args)
-
-            mean_plus, std_plus = self._operator.evaluate_with_result(
-                result=result_plus, statevector_mode=self._quantum_instance.is_statevector,
-                use_simulator_operator_mode=self._use_simulator_operator_mode,
-                circuit_name_prefix='plus')
-
-            res.append(((mean_minus-mean_plus)/(2*delta), exc))
-
+            vqe._quantum_instance = self._quantum_instance
+            vqe._use_simulator_operator_mode = self._use_simulator_operator_mode
+            # evaluate energies
+            parameter_sets = theta + [-delta] + theta + [delta] + theta + [-delta*1j] + theta + [delta*1j]
+            energy_results = vqe._energy_evaluation(np.asarray(parameter_sets))
+            # compute real and imaginary gradients
+            gradient = (energy_results[0] - energy_results[1]) / (2*delta)
+            gradient_i = (energy_results[2] - energy_results[3]) / (2*delta)
+            # for now: simply use maximum of either
+            res.append((max(np.abs(gradient), np.abs(gradient_i)), exc))
+            # pop excitation from variational form
             var_form._pop_hopping_operator()
 
         return res
