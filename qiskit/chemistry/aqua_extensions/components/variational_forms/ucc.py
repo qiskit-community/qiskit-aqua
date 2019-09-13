@@ -193,6 +193,7 @@ class UCC(VariationalForm):
         Registers a new hopping operator.
         """
         self._hopping_ops.append(excitation)
+        # TODO fix
         if excitation.num_qubits == 2:
             self._single_excitations.append(excitation)
         elif excitation.num_qubits == 4:
@@ -205,6 +206,7 @@ class UCC(VariationalForm):
         Pops the hopping operator that was added last.
         """
         excitation = self._hopping_ops.pop()
+        # TODO fix
         if excitation.num_qubits == 2:
             self._single_excitations.pop()
         elif excitation.num_qubits == 4:

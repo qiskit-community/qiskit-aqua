@@ -16,9 +16,10 @@ from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 # Use PySCF, a classical computational chemistry software
 # package, to compute the one-body and two-body integrals in
 # molecular-orbital basis, necessary to form the Fermionic operator
-driver = PySCFDriver(atom='H .0 .0 .0; H .0 .0 0.735',
-                    unit=UnitsType.ANGSTROM,
-                    basis='sto3g')
+driver = PySCFDriver(atom='H .0 .0 .0; H .0 .0 0.735; H .0 0.735, .0',
+                     unit=UnitsType.ANGSTROM,
+                     basis='sto3g',
+                     charge=1)
 molecule = driver.run()
 num_particles = molecule.num_alpha + molecule.num_beta
 num_spin_orbitals = molecule.num_orbitals * 2

@@ -13,7 +13,6 @@
 # that they have been altered from the originals.
 
 import logging
-import functools
 import warnings
 
 import numpy as np
@@ -108,7 +107,6 @@ class VQEAdapt(VQAlgorithm):
         return res
 
     def _config_the_best_mode(self, operator, backend):
-
         if not isinstance(operator, (WeightedPauliOperator, MatrixOperator, TPBGroupedWeightedPauliOperator)):
             logger.debug("Unrecognized operator type, skip auto conversion.")
             return operator
