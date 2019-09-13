@@ -251,7 +251,7 @@ class QuantumInstance:
                                 **kwargs)
         if self._profiling:
             import sys
-            print("PROFILING>> ", sys.getsizeof(qobj))
+            print("PROFILING>> ", sys.getsizeof(qobj), " bytes.")
 
         if self._measurement_error_mitigation_cls is not None:
             qubit_index = get_measured_qubits_from_qobj(qobj)
