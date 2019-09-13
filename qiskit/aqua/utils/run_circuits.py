@@ -33,6 +33,7 @@ from qiskit.aqua.utils.backend_utils import (is_aer_provider,
                                              is_basicaer_provider,
                                              is_simulator_backend,
                                              is_local_backend)
+from qiskit.aqua.utils import qprofile
 
 MAX_CIRCUITS_PER_JOB = os.environ.get('QISKIT_AQUA_MAX_CIRCUITS_PER_JOB', None)
 
@@ -69,7 +70,8 @@ def _avoid_empty_circuits(circuits):
                 tmp_q = q
                 break
             if tmp_q is None:
-                raise NameError("A QASM without any quantum register is invalid.")
+                raise NameError(
+                    "A QASM without any quantum register is invalid.")
             qc.iden(tmp_q[0])
         new_circuits.append(qc)
     return new_circuits
@@ -120,7 +122,8 @@ def _maybe_add_aer_expectation_instruction(qobj, options):
 
 
 def _compile_wrapper(circuits, backend, backend_config, compile_config, run_config):
-    transpiled_circuits = compiler.transpile(circuits, backend, **backend_config, **compile_config)
+    transpiled_circuits = compiler.transpile(
+        circuits, backend, **backend_config, **compile_config)
     if not isinstance(transpiled_circuits, list):
         transpiled_circuits = [transpiled_circuits]
     qobj = compiler.assemble(transpiled_circuits, **run_config.to_dict())
@@ -139,23 +142,16 @@ def _split_qobj_to_qobjs(qobj, chunk_size):
             for i in range(num_chunks):
                 temp_qobj = copy.deepcopy(qobj_template)
                 temp_qobj.qobj_id = str(uuid.uuid4())
-                temp_qobj.experiments = qobj.experiments[i * chunk_size:(i + 1) * chunk_size]
+                temp_qobj.experiments = qobj.experiments[i *
+                                                         chunk_size:(i + 1) * chunk_size]
                 qobjs.append(temp_qobj)
         else:
             raise AquaError("Only support QasmQobj now.")
 
     return qobjs
 
-def _profiling(func):
-    def wrapper(*original_args, **original_kwargs):
-        qobj = func(*original_args, **original_kwargs)
-        if logging.root.level >= logging.DEBUG:
-            import sys
-            logger.debug("<<Profiling Info>> qobj is {} bytes".format(sys.getsizeof(qobj)))
-        return qobj
-    return wrapper
-    
-@_profiling
+
+@qprofile
 def compile_circuits(circuits, backend, backend_config=None, compile_config=None, run_config=None,
                      show_circuit_summary=False, circuit_cache=None, **kwargs):
     """
@@ -188,7 +184,8 @@ def compile_circuits(circuits, backend, backend_config=None, compile_config=None
     run_config = run_config or {}
 
     if backend is None or not isinstance(backend, BaseBackend):
-        raise ValueError('Backend is missing or not an instance of BaseBackend')
+        raise ValueError(
+            'Backend is missing or not an instance of BaseBackend')
 
     if not isinstance(circuits, list):
         circuits = [circuits]
@@ -224,7 +221,8 @@ def compile_circuits(circuits, backend, backend_config=None, compile_config=None
                 qobj = circuit_cache.load_qobj_from_cache(transpiled_circuits,
                                                           0, run_config=run_config)
             else:
-                qobj = circuit_cache.load_qobj_from_cache(circuits, 0, run_config=run_config)
+                qobj = circuit_cache.load_qobj_from_cache(
+                    circuits, 0, run_config=run_config)
 
             if is_aer_provider(backend):
                 qobj = _maybe_add_aer_expectation_instruction(qobj, kwargs)
@@ -232,7 +230,8 @@ def compile_circuits(circuits, backend, backend_config=None, compile_config=None
         except (TypeError, IndexError, FileNotFoundError, EOFError, AquaError, AttributeError) as e:
             circuit_cache.try_reusing_qobjs = False  # Reusing Qobj didn't work
             if circuit_cache.qobjs:
-                logger.info('Circuit cache miss, recompiling. Cache miss reason: %s', repr(e))
+                logger.info(
+                    'Circuit cache miss, recompiling. Cache miss reason: %s', repr(e))
                 circuit_cache.misses += 1
             else:
                 logger.info('Circuit cache is empty, compiling from scratch.')
@@ -249,8 +248,10 @@ def compile_circuits(circuits, backend, backend_config=None, compile_config=None
                     circuit_cache.cache_transpiled_circuits = True
                     circuit_cache.cache_circuit(qobj, transpiled_circuits, 0)
                 except (TypeError, IndexError, AquaError, AttributeError, KeyError) as e:
-                    logger.info('Circuit could not be cached for reason: %s', repr(e))
-                    logger.info('Transpilation may be too aggressive. Try skipping transpiler.')
+                    logger.info(
+                        'Circuit could not be cached for reason: %s', repr(e))
+                    logger.info(
+                        'Transpilation may be too aggressive. Try skipping transpiler.')
 
     else:
         qobj, transpiled_circuits = _compile_wrapper(circuits, backend,
@@ -338,7 +339,8 @@ def run_qobj(qobj, backend, qjob_config=None, backend_options=None,
     noise_config = noise_config or {}
 
     if backend is None or not isinstance(backend, BaseBackend):
-        raise ValueError('Backend is missing or not an instance of BaseBackend')
+        raise ValueError(
+            'Backend is missing or not an instance of BaseBackend')
 
     with_autorecover = not is_simulator_backend(backend)
 
@@ -378,13 +380,16 @@ def run_qobj(qobj, backend, qjob_config=None, backend_options=None,
                     if job_status in JOB_FINAL_STATES:
                         # do callback again after the job is in the final states
                         if job_callback is not None:
-                            job_callback(job_id, job_status, queue_position, job)
+                            job_callback(job_id, job_status,
+                                         queue_position, job)
                         break
                     elif job_status == JobStatus.QUEUED:
                         queue_position = job.queue_position()
-                        logger.info("Job id: %s is queued at position %s", job_id, queue_position)
+                        logger.info(
+                            "Job id: %s is queued at position %s", job_id, queue_position)
                     else:
-                        logger.info("Job id: %s, status: %s", job_id, job_status)
+                        logger.info("Job id: %s, status: %s",
+                                    job_id, job_status)
                     if job_callback is not None:
                         job_callback(job_id, job_status, queue_position, job)
                     time.sleep(qjob_config['wait'])
@@ -395,7 +400,8 @@ def run_qobj(qobj, backend, qjob_config=None, backend_options=None,
                         result = job.result(**qjob_config)
                         if result.success:
                             results.append(result)
-                            logger.info("COMPLETED the %s-th qobj, job id: %s", idx, job_id)
+                            logger.info(
+                                "COMPLETED the %s-th qobj, job id: %s", idx, job_id)
                             break
                         else:
                             logger.warning("FAILURE: Job id: %s", job_id)
@@ -483,11 +489,14 @@ def run_on_backend(backend, qobj, backend_options=None,
         if is_aer_provider(backend):
             from qiskit.providers.aer.aerjob import AerJob
             temp_backend_options = \
-                backend_options['backend_options'] if backend_options != {} else None
-            temp_noise_config = noise_config['noise_model'] if noise_config != {} else None
+                backend_options['backend_options'] if backend_options != {
+                } else None
+            temp_noise_config = noise_config['noise_model'] if noise_config != {
+            } else None
             job = AerJob(backend, job_id,
                          backend._run_job, qobj, temp_backend_options, temp_noise_config, False)
-            job._future = job._executor.submit(job._fn, job._job_id, job._qobj, *job._args)
+            job._future = job._executor.submit(
+                job._fn, job._job_id, job._qobj, *job._args)
         elif is_basicaer_provider(backend):
             backend._set_options(qobj_config=qobj.config, **backend_options)
             job = BasicAerJob(backend, job_id, backend._run_job, qobj)
