@@ -20,9 +20,11 @@ from scipy import sparse as scisparse
 
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua import AquaError, Pluggable
-from qiskit.aqua.operators import MatrixOperator, op_converter
+from qiskit.aqua.operators import MatrixOperator, op_converter  # pylint: disable=unused-import
 
 logger = logging.getLogger(__name__)
+
+# pylint: disable=invalid-name
 
 
 class ExactEigensolver(QuantumAlgorithm):
@@ -33,7 +35,7 @@ class ExactEigensolver(QuantumAlgorithm):
         'description': 'ExactEigensolver Algorithm',
         'classical': True,
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'ExactEigensolver_schema',
             'type': 'object',
             'properties': {
@@ -54,7 +56,8 @@ class ExactEigensolver(QuantumAlgorithm):
         Args:
             operator (MatrixOperator): instance
             k (int): How many eigenvalues are to be computed
-            aux_operators (list[MatrixOperator]): Auxiliary operators to be evaluated at each eigenvalue
+            aux_operators (list[MatrixOperator]): Auxiliary operators
+                        to be evaluated at each eigenvalue
         """
         self.validate(locals())
         super().__init__()
@@ -63,12 +66,14 @@ class ExactEigensolver(QuantumAlgorithm):
         if aux_operators is None:
             self._aux_operators = []
         else:
-            aux_operators = [aux_operators] if not isinstance(aux_operators, list) else aux_operators
-            self._aux_operators = [op_converter.to_matrix_operator(aux_op) for aux_op in aux_operators]
+            aux_operators = \
+                [aux_operators] if not isinstance(aux_operators, list) else aux_operators
+            self._aux_operators = \
+                [op_converter.to_matrix_operator(aux_op) for aux_op in aux_operators]
         self._k = k
         if self._k > self._operator.matrix.shape[0]:
             self._k = self._operator.matrix.shape[0]
-            logger.debug("WARNING: Asked for {} eigenvalues but max possible is {}.".format(k, self._k))
+            logger.debug("WARNING: Asked for %s eigenvalues but max possible is %s.", k, self._k)
         self._ret = {}
 
     @classmethod
@@ -76,8 +81,12 @@ class ExactEigensolver(QuantumAlgorithm):
         """
         Initialize via parameters dictionary and algorithm input instance
         Args:
-            params: parameters dictionary
-            algo_input: EnergyInput instance
+            params (dict): parameters dictionary
+            algo_input (EnergyInput): instance
+        Returns:
+            ExactEigensolver: an instance of this class
+        Raises:
+            AquaError: invalid input
         """
         if algo_input is None:
             raise AquaError("EnergyInput instance is required.")
@@ -118,7 +127,7 @@ class ExactEigensolver(QuantumAlgorithm):
         for i in range(self._k):
             energies[i] = self._ret['eigvals'][i].real
         self._ret['energies'] = energies
-        if len(self._aux_operators) > 0:
+        if self._aux_operators:
             aux_op_vals = np.empty([self._k, len(self._aux_operators), 2])
             for i in range(self._k):
                 aux_op_vals[i, :] = self._eval_aux_operators(self._ret['eigvecs'][i])
@@ -138,7 +147,7 @@ class ExactEigensolver(QuantumAlgorithm):
         """
         Run the algorithm to compute up to the requested k number of eigenvalues.
         Returns:
-            Dictionary of results
+            dict: Dictionary of results
         """
         self._solve()
         self._get_ground_state_energy()

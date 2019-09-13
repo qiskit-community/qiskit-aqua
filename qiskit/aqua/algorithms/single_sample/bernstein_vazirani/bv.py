@@ -27,6 +27,8 @@ from qiskit.aqua.utils import get_subsystem_density_matrix
 
 logger = logging.getLogger(__name__)
 
+# pylint: disable=invalid-name
+
 
 class BernsteinVazirani(QuantumAlgorithm):
     """The Bernstein-Vazirani algorithm."""
@@ -35,7 +37,7 @@ class BernsteinVazirani(QuantumAlgorithm):
         'name': 'BernsteinVazirani',
         'description': 'Bernstein Vazirani',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'bv_schema',
             'type': 'object',
             'properties': {
@@ -47,7 +49,7 @@ class BernsteinVazirani(QuantumAlgorithm):
             {
                 'pluggable_type': 'oracle',
                 'default': {
-                     'name': 'TruthTableOracle',
+                    'name': 'TruthTableOracle',
                 },
             },
         ],
@@ -63,6 +65,7 @@ class BernsteinVazirani(QuantumAlgorithm):
 
     @classmethod
     def init_params(cls, params, algo_input):
+        """ init params """
         if algo_input is not None:
             raise AquaError("Input instance not supported.")
 
@@ -77,10 +80,11 @@ class BernsteinVazirani(QuantumAlgorithm):
         Construct the quantum circuit
 
         Args:
-            measurement (bool): Boolean flag to indicate if measurement should be included in the circuit.
+            measurement (bool): Boolean flag to indicate if measurement
+                should be included in the circuit.
 
         Returns:
-            the QuantumCircuit object for the constructed circuit
+            QuantumCircuit: the QuantumCircuit object for the constructed circuit
         """
 
         if self._circuit is not None:
@@ -131,7 +135,8 @@ class BernsteinVazirani(QuantumAlgorithm):
                 variable_register_density_matrix_diag.max(),
                 key=abs
             )
-            max_amplitude_idx = np.where(variable_register_density_matrix_diag == max_amplitude)[0][0]
+            max_amplitude_idx = \
+                np.where(variable_register_density_matrix_diag == max_amplitude)[0][0]
             top_measurement = np.binary_repr(max_amplitude_idx, len(self._oracle.variable_register))
         else:
             qc = self.construct_circuit(measurement=True)

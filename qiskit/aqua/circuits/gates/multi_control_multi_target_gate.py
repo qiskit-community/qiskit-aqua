@@ -17,10 +17,10 @@ Multiple-Control, Multiple-Target Gate.
 
 import logging
 
-from qiskit.circuit import Gate
+from qiskit.circuit import Gate  # pylint: disable=unused-import
 from qiskit.circuit import QuantumCircuit
 from qiskit.circuit import QuantumRegister
-from qiskit.circuit import Qubit
+from qiskit.circuit import Qubit  # pylint: disable=unused-import
 
 from qiskit.aqua import AquaError
 
@@ -33,9 +33,9 @@ def _ccx_v_chain_compute(qc, control_qubits, ancillary_qubits):
     ccx of the control qubits and put the final result in the last ancillary
     qubit
     Args:
-        qc: the QuantumCircuit
-        control_qubits: the list of control qubits
-        ancillary_qubits: the list of ancillary qubits
+        qc (QuantumCircuit): the Quantum Circuit
+        control_qubits (list): the list of control qubits
+        ancillary_qubits (list): the list of ancillary qubits
 
     """
     anci_idx = 0
@@ -56,10 +56,9 @@ def _ccx_v_chain_uncompute(qc, control_qubits, ancillary_qubits):
     ccx of the control qubits and put the final result in the last ancillary
     qubit
     Args:
-        qc: the QuantumCircuit
-        control_qubits: the list of control qubits
-        ancillary_qubits: the list of ancillary qubits
-
+        qc (QuantumCircuit): the Quantum Circuit
+        control_qubits (list): the list of control qubits
+        ancillary_qubits (list): the list of ancillary qubits
     """
     anci_idx = len(ancillary_qubits) - 1
     for idx in (range(2, len(control_qubits)))[::-1]:
@@ -77,16 +76,20 @@ def mcmt(self,
          mode="basic"):
     """
     Apply a Multi-Control, Multi-Target using a generic gate.
-    It can also be used to implement a generic Multi-Control gate, as the target could also be of length 1.
+    It can also be used to implement a generic Multi-Control gate,
+    as the target could also be of length 1.
 
     Args:
         self (QuantumCircuit): The QuantumCircuit object to apply the mcmt gate on.
-        q_controls (QuantumRegister | list of Qubit): The list of control qubits
-        q_ancillae (QuantumRegister | list of Qubit): The list of ancillary qubits
-        single_control_gate_fun (Gate): The single control gate function (e.g QuantumCircuit.cz or QuantumCircuit.ch)
-        q_targets (QuantumRegister | list of Qubit): A list of qubits or a QuantumRegister
+        q_controls (Union(QuantumRegister, list[Qubit])): The list of control qubits
+        q_ancillae (Union(QuantumRegister, list[Qubit])): The list of ancillary qubits
+        single_control_gate_fun (Gate): The single control gate function (e.g QuantumCircuit.cz
+                                        or QuantumCircuit.ch)
+        q_targets (Union(QuantumRegister, list[Qubit])): A list of qubits or a QuantumRegister
             to which the gate function should be applied.
         mode (str): The implementation mode to use (at the moment, only the basic mode is supported)
+    Raises:
+        AquaError: invalid input
 
     """
     # check controls
@@ -134,7 +137,8 @@ def mcmt(self,
         _ccx_v_chain_uncompute(self, control_qubits, ancillary_qubits)
     else:
         raise AquaError(
-            'Unrecognized mode "{0}" for building mcmt circuit, at the moment only "basic" mode is supported.'
+            'Unrecognized mode "{0}" for building mcmt circuit, '
+            'at the moment only "basic" mode is supported.'
             .format(mode))
 
 

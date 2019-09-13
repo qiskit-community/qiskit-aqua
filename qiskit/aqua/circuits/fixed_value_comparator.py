@@ -11,21 +11,30 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-from qiskit.aqua.utils.circuit_factory import CircuitFactory
-from qiskit.aqua.circuits.gates import logical_or
+
+"""Fixed Value Comparator."""
+
 import numpy as np
+
+from qiskit.aqua.utils.circuit_factory import CircuitFactory
+from qiskit.aqua.circuits.gates import logical_or  # pylint: disable=unused-import
+
+# pylint: disable=invalid-name
 
 
 class FixedValueComparator(CircuitFactory):
     """
     Fixed Value Comparator.
 
-    Operator compares basis states |i>_n against a classically given fixed value L and flips a target qubit if i >= L (or < depending on parameters):
+    Operator compares basis states |i>_n against a classically
+    given fixed value L and flips a target qubit if i >= L (or < depending on parameters):
 
         |i>_n|0> --> |i>_n|1> if i >= L else |i>|0>
 
-    Operator is based on two's complement implementation of binary subtraction but only uses carry bits and no actual result bits.
-    If the most significant carry bit (= results bit) is 1, the "">=" condition is True otherwise it is False.
+    Operator is based on two's complement implementation of binary
+    subtraction but only uses carry bits and no actual result bits.
+    If the most significant carry bit (= results bit) is 1, the "">="
+    condition is True otherwise it is False.
     """
 
     def __init__(self, num_state_qubits, value, geq=True, i_state=None, i_target=None):
@@ -37,9 +46,12 @@ class FixedValueComparator(CircuitFactory):
         Args:
             num_state_qubits (int): number of state qubits, the target qubit comes on top of this
             value (int): fixed value to compare with
-            geq (bool): evaluate ">=" condition of "<" condition
-            i_state (array or list): indices of state qubits in given list of qubits / register, if None, i_state = list(range(num_state_qubits)) is used
-            i_target (int): index of target qubit in given list of qubits / register, if None, i_target = num_state_qubits is used
+            geq (Optional(bool)): evaluate ">=" condition of "<" condition
+            i_state (Optional(Union(list, numpy.ndarray))): indices of state qubits in
+                given list of qubits / register,
+                if None, i_state = list(range(num_state_qubits)) is used
+            i_target (Optional(int)): index of target qubit in given list
+                of qubits / register, if None, i_target = num_state_qubits is used
         """
         super().__init__(num_state_qubits + 1)
         self._num_state_qubits = num_state_qubits
@@ -61,10 +73,12 @@ class FixedValueComparator(CircuitFactory):
 
     @property
     def num_state_qubits(self):
+        """ returns num state qubits """
         return self._num_state_qubits
 
     @property
     def value(self):
+        """ returns value """
         return self._value
 
     def required_ancillas(self):
@@ -81,10 +95,11 @@ class FixedValueComparator(CircuitFactory):
 
         twos_complement = pow(2, self.num_state_qubits) - int(np.ceil(self.value))
         twos_complement = '{0:b}'.format(twos_complement).rjust(self.num_state_qubits, '0')
-        twos_complement = [1 if twos_complement[i] == '1' else 0 for i in reversed(range(len(twos_complement)))]
+        twos_complement = \
+            [1 if twos_complement[i] == '1' else 0 for i in reversed(range(len(twos_complement)))]
         return twos_complement
 
-    def build(self, qc, q, q_ancillas=None):
+    def build(self, qc, q, q_ancillas=None, params=None):
 
         # get parameters
         i_state = self.i_state
@@ -97,7 +112,8 @@ class FixedValueComparator(CircuitFactory):
         if self.value <= 0:  # condition always satisfied for non-positive values
             if self._geq:  # otherwise the condition is never satisfied
                 qc.x(q_result)
-        elif self.value < pow(2, self.num_state_qubits):  # condition never satisfied for values larger than or equal to 2^n
+        # condition never satisfied for values larger than or equal to 2^n
+        elif self.value < pow(2, self.num_state_qubits):
 
             if self.num_state_qubits > 1:
 

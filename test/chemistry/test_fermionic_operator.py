@@ -26,7 +26,7 @@ from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 
 def h2_transform_slow(h2_, unitary_matrix):
     """
-    Transform h2 based on unitry matrix, and overwrite original property.
+    Transform h2 based on unitary matrix, and overwrite original property.
     #MARK: A naive implementation based on MATLAB implementation.
     Args:
         unitary_matrix (numpy 2-D array, np.float or np.complex):

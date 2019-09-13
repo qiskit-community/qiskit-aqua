@@ -12,11 +12,14 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" exchange data provider """
+
 import datetime
 import importlib
 import logging
 
-from qiskit.aqua.translators.data_providers import BaseDataProvider, DataType, StockMarket, QiskitFinanceError
+from qiskit.aqua.translators.data_providers import (BaseDataProvider, DataType,
+                                                    StockMarket, QiskitFinanceError)
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +35,7 @@ class ExchangeDataProvider(BaseDataProvider):
         "name": "EDI",
         "description": "Exchange Data International Data Provider",
         "input_schema": {
-            "$schema": "http://json-schema.org/schema#",
+            "$schema": "http://json-schema.org/draft-07/schema#",
             "id": "edi_schema",
             "type": "object",
             "properties": {
@@ -71,6 +74,10 @@ class ExchangeDataProvider(BaseDataProvider):
             token (str): quandl access token
             tickers (str or list): tickers
             stockmarket (StockMarket): LONDON, EURONEXT, or SINGAPORE
+            start (datetime): first data point
+            end (datetime): last data point precedes this date
+        Raises:
+            QiskitFinanceError: provider doesn't support stock market
         """
 
         super().__init__()
@@ -81,15 +88,13 @@ class ExchangeDataProvider(BaseDataProvider):
             self._tickers = tickers.replace('\n', ';').split(";")
         self._n = len(self._tickers)
 
-        if not (stockmarket in [
-                StockMarket.LONDON, StockMarket.EURONEXT, StockMarket.SINGAPORE
-        ]):
+        if stockmarket not in [StockMarket.LONDON, StockMarket.EURONEXT, StockMarket.SINGAPORE]:
             msg = "ExchangeDataProvider does not support "
             msg += stockmarket.value
             msg += " as a stock market."
             raise QiskitFinanceError(msg)
 
-        # This is to aid serialisation; string is ok to serialise
+        # This is to aid serialization; string is ok to serialize
         self._stockmarket = str(stockmarket.value)
 
         self._token = token
@@ -101,13 +106,14 @@ class ExchangeDataProvider(BaseDataProvider):
 
     @staticmethod
     def check_provider_valid():
+        """ check if provider is valid """
         err_msg = 'quandl is not installed.'
         try:
             spec = importlib.util.find_spec('quandl')
             if spec is not None:
                 return
         except Exception as ex:  # pylint: disable=broad-except
-            logger.debug('quandl check error {}'.format(str(ex)))
+            logger.debug('quandl check error %s', str(ex))
             raise QiskitFinanceError(err_msg) from ex
 
         raise QiskitFinanceError(err_msg)
@@ -118,10 +124,12 @@ class ExchangeDataProvider(BaseDataProvider):
         Initialize via section dictionary.
 
         Args:
-            params (dict): section dictionary
+            section (dict): section dictionary
 
         Returns:
-            DataProvider object
+            DataProvider: provider object
+        Raises:
+            QiskitFinanceError: invalid section
         """
         if section is None or not isinstance(section, dict):
             raise QiskitFinanceError(
@@ -132,26 +140,29 @@ class ExchangeDataProvider(BaseDataProvider):
         # for k, v in params.items():
         #    if k == ExchangeDataProvider. ...: v = UnitsType(v)
         #    kwargs[k] = v
-        logger.debug('init_from_input: {}'.format(kwargs))
+        logger.debug('init_from_input: %s', kwargs)
         return cls(**kwargs)
 
     def run(self):
-        """ Loads data, thus enabling get_similarity_matrix and get_covariance_matrix methods in the base class. """
+        """
+        Loads data, thus enabling get_similarity_matrix and get_covariance_matrix
+        methods in the base class.
+        """
         self.check_provider_valid()
         import quandl
         self._data = []
         quandl.ApiConfig.api_key = self._token
         quandl.ApiConfig.api_version = '2015-04-09'
-        for (cnt, s) in enumerate(self._tickers):
+        for _, __s in enumerate(self._tickers):
             try:
-                d = quandl.get(self._stockmarket + "/" + s,
-                               start_date=self._start,
-                               end_date=self._end)
+                __d = quandl.get(self._stockmarket + "/" + __s,
+                                 start_date=self._start,
+                                 end_date=self._end)
             # The exception will be AuthenticationError, if the token is wrong
             except Exception as ex:  # pylint: disable=broad-except
                 raise QiskitFinanceError(
                     "Cannot retrieve Exchange Data data.") from ex
             try:
-                self._data.append(d["Adj. Close"])
-            except KeyError as e:
-                raise QiskitFinanceError("Cannot parse quandl output.") from e
+                self._data.append(__d["Adj. Close"])
+            except KeyError as ex:
+                raise QiskitFinanceError("Cannot parse quandl output.") from ex

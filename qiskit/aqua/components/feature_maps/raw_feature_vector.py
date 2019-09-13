@@ -19,7 +19,7 @@ feature map. Several types of commonly used approaches.
 import logging
 
 import numpy as np
-from qiskit import QuantumCircuit
+from qiskit import QuantumCircuit  # pylint: disable=unused-import
 
 from qiskit.aqua.utils.arithmetic import next_power_of_2_base
 from qiskit.aqua.components.feature_maps import FeatureMap
@@ -37,7 +37,7 @@ class RawFeatureVector(FeatureMap):
         'name': 'RawFeatureVector',
         'description': 'Raw feature vector',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'raw_feature_vector_schema',
             'type': 'object',
             'properties': {
@@ -55,7 +55,7 @@ class RawFeatureVector(FeatureMap):
         """Constructor.
 
         Args:
-            feature_vector: The raw feature vector
+            feature_dimension (int): The feature dimension
         """
         self.validate(locals())
         super().__init__()
@@ -70,9 +70,12 @@ class RawFeatureVector(FeatureMap):
             x (numpy.ndarray): 1-D to-be-encoded data.
             qr (QauntumRegister): the QuantumRegister object for the circuit, if None,
                                   generate new registers with name q.
-
+            inverse (bool): inverse
         Returns:
             QuantumCircuit: a quantum circuit transform data x.
+        Raises:
+            TypeError: invalid input
+            ValueError: invalid input
         """
         if not isinstance(x, np.ndarray):
             raise TypeError("x must be numpy array.")

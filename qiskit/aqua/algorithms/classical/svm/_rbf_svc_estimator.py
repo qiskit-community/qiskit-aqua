@@ -12,9 +12,13 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""The estimator that uses the RBF Kernel."""
+
 from sklearn.svm import SVC
 
 from qiskit.aqua.components.multiclass_extensions import Estimator
+
+# pylint: disable=invalid-name
 
 
 class _RBF_SVC_Estimator(Estimator):
@@ -37,5 +41,7 @@ class _RBF_SVC_Estimator(Estimator):
         predicted values for the points which account for both the labels and the confidence
         Args:
             x (numpy.ndarray): input points
+        Returns:
+            numpy.ndarray: decision function
         """
         return self._estimator.decision_function(x)

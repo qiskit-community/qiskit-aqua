@@ -29,8 +29,9 @@ from qiskit.aqua.operators import (WeightedPauliOperator, suzuki_expansion_slice
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
 
-
 logger = logging.getLogger(__name__)
+
+# pylint: disable=invalid-name
 
 
 class IQPE(QuantumAlgorithm):
@@ -49,7 +50,7 @@ class IQPE(QuantumAlgorithm):
         'name': 'IQPE',
         'description': 'Iterative Quantum Phase Estimation for Quantum Systems',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'IQPE_schema',
             'type': 'object',
             'properties': {
@@ -81,11 +82,12 @@ class IQPE(QuantumAlgorithm):
         },
         'problems': ['energy'],
         'depends': [
-            {'pluggable_type': 'initial_state',
-             'default': {
-                     'name': 'ZERO',
+            {
+                'pluggable_type': 'initial_state',
+                'default': {
+                    'name': 'ZERO',
                 },
-             },
+            },
         ],
     }
 
@@ -97,12 +99,14 @@ class IQPE(QuantumAlgorithm):
 
         Args:
             operator (BaseOperator): the hamiltonian Operator object
-            state_in (InitialState): the InitialState pluggable component representing the initial quantum state
+            state_in (InitialState): the InitialState pluggable component representing
+                    the initial quantum state
             num_time_slices (int): the number of time slices
             num_iterations (int): the number of iterations
             expansion_mode (str): the expansion mode (trotter|suzuki)
             expansion_order (int): the suzuki expansion order
-            shallow_circuit_concat (bool): indicate whether to use shallow (cheap) mode for circuit concatenation
+            shallow_circuit_concat (bool): indicate whether to use shallow (cheap)
+                    mode for circuit concatenation
         """
         self.validate(locals())
         super().__init__()
@@ -117,6 +121,7 @@ class IQPE(QuantumAlgorithm):
         self._ancillary_register = None
         self._pauli_list = None
         self._ret = {}
+        self._ancilla_phase_coef = None
         self._setup()
 
     @classmethod
@@ -125,8 +130,12 @@ class IQPE(QuantumAlgorithm):
         Initialize via parameters dictionary and algorithm input instance.
 
         Args:
-            params: parameters dictionary
-            algo_input: EnergyInput instance
+            params (dict): parameters dictionary
+            algo_input (EnergyInput): instance
+        Returns:
+            IQPE: instance of this class
+        Raises:
+            AquaError: EnergyInput instance is required
         """
         if algo_input is None:
             raise AquaError("EnergyInput instance is required.")
@@ -145,7 +154,8 @@ class IQPE(QuantumAlgorithm):
         init_state = get_pluggable_class(PluggableType.INITIAL_STATE,
                                          init_state_params['name']).init_params(params)
 
-        return cls(operator, init_state, num_time_slices=num_time_slices, num_iterations=num_iterations,
+        return cls(operator, init_state,
+                   num_time_slices=num_time_slices, num_iterations=num_iterations,
                    expansion_mode=expansion_mode,
                    expansion_order=expansion_order)
 
@@ -179,7 +189,8 @@ class IQPE(QuantumAlgorithm):
             if self._expansion_mode == 'trotter':
                 slice_pauli_list = self._pauli_list
             else:
-                slice_pauli_list = suzuki_expansion_slice_pauli_list(self._pauli_list, 1, self._expansion_order)
+                slice_pauli_list = suzuki_expansion_slice_pauli_list(self._pauli_list,
+                                                                     1, self._expansion_order)
         self._slice_pauli_list = slice_pauli_list
 
     def construct_circuit(self, k=None, omega=0, measurement=False):
@@ -190,7 +201,8 @@ class IQPE(QuantumAlgorithm):
         Args:
             k (int): the iteration idx.
             omega (float): the feedback angle.
-            measurement (bool): Boolean flag to indicate if measurement should be included in the circuit.
+            measurement (bool): Boolean flag to indicate if measurement should
+                    be included in the circuit.
 
         Returns:
             QuantumCircuit: the quantum circuit per iteration
@@ -206,7 +218,8 @@ class IQPE(QuantumAlgorithm):
         qc.add_register(a)
         qc.u2(0, np.pi, a[0])
         # controlled-U
-        qc_evolutions_inst = evolution_instruction(self._slice_pauli_list, -2 * np.pi, self._num_time_slices,
+        qc_evolutions_inst = evolution_instruction(self._slice_pauli_list, -2 * np.pi,
+                                                   self._num_time_slices,
                                                    controlled=True, power=2 ** (k - 1),
                                                    shallow_slicing=self._shallow_circuit_concat)
         if self._shallow_circuit_concat:
@@ -229,7 +242,10 @@ class IQPE(QuantumAlgorithm):
         return qc
 
     def _estimate_phase_iteratively(self):
-        """Iteratively construct the different order of controlled evolution circuit to carry out phase estimation."""
+        """
+        Iteratively construct the different order of controlled evolution
+        circuit to carry out phase estimation.
+        """
         self._ret['top_measurement_label'] = ''
 
         omega_coef = 0
@@ -245,7 +261,8 @@ class IQPE(QuantumAlgorithm):
                     range(self._operator.num_qubits)
                 )
                 ancilla_density_mat_diag = np.diag(ancilla_density_mat)
-                max_amplitude = max(ancilla_density_mat_diag.min(), ancilla_density_mat_diag.max(), key=abs)
+                max_amplitude = max(ancilla_density_mat_diag.min(),
+                                    ancilla_density_mat_diag.max(), key=abs)
                 x = np.where(ancilla_density_mat_diag == max_amplitude)[0][0]
             else:
                 qc = self.construct_circuit(k, -2 * np.pi * omega_coef, measurement=True)
@@ -261,9 +278,11 @@ class IQPE(QuantumAlgorithm):
                         x = 0
                     else:
                         x = 1 if measurements['1'] > measurements['0'] else 0
-            self._ret['top_measurement_label'] = '{}{}'.format(x, self._ret['top_measurement_label'])
+            self._ret['top_measurement_label'] = \
+                '{}{}'.format(x, self._ret['top_measurement_label'])
             omega_coef = omega_coef + x / 2
-            logger.info('Reverse iteration {} of {} with measured bit {}'.format(k, self._num_iterations, x))
+            logger.info('Reverse iteration %s of %s with measured bit %s',
+                        k, self._num_iterations, x)
         return omega_coef
 
     def _compute_energy(self):

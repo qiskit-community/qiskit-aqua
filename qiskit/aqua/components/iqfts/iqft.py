@@ -17,7 +17,7 @@ This module contains the definition of a base class for inverse quantum fourier 
 
 from abc import abstractmethod
 
-from qiskit import QuantumRegister, QuantumCircuit
+from qiskit import QuantumRegister, QuantumCircuit  # pylint: disable=unused-import
 
 from qiskit.aqua import Pluggable, AquaError
 
@@ -31,7 +31,8 @@ class IQFT(Pluggable):
         available.
 
         Args:
-            configuration (dict): configuration dictionary
+            args (list): args
+            kwargs (list): kwargs
     """
 
     @abstractmethod
@@ -40,6 +41,7 @@ class IQFT(Pluggable):
 
     @classmethod
     def init_params(cls, params):
+        """ init params """
         iqft_params = params.get(Pluggable.SECTION_KEY_IQFT)
         kwargs = {k: v for k, v in iqft_params.items() if k != 'name'}
         return cls(**kwargs)
@@ -62,7 +64,9 @@ class IQFT(Pluggable):
             do_swaps (bool): include the swaps.
 
         Returns:
-            The matrix or circuit depending on the specified mode.
+            numpy.ndarray: The matrix or circuit depending on the specified mode.
+        Raises:
+            AquaError: Unrecognized mode
         """
         if mode == 'circuit':
             return self._build_circuit(qubits=qubits, circuit=circuit, do_swaps=do_swaps)

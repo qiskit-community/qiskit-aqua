@@ -25,13 +25,13 @@ long_description = """<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Aqua
  Qiskit Aqua Artificial Intelligence, and Qiskit Aqua Optimization to experiment with real-world applications to quantum computing."""
 
 requirements = [
-    "qiskit-terra>=0.9.0,<0.10.0",
-    "qiskit-ignis>=0.2.0,<0.3.0",
+    "qiskit-terra>=0.10.0,<0.11.0",
+    "qiskit-ignis>=0.3.0,<0.4.0",
     "scipy>=1.0",
     "sympy>=1.3",
     "numpy>=1.13",
     "psutil>=5",
-    "jsonschema>=2.6,<2.7",
+    "jsonschema>=2.6",
     "scikit-learn>=0.20.0",
     "cvxopt",
     "dlx",
@@ -73,6 +73,7 @@ setuptools.setup(
         "Operating System :: POSIX :: Linux",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
         "Topic :: Scientific/Engineering"
     ),
     keywords='qiskit sdk quantum aqua',

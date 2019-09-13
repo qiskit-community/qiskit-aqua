@@ -12,11 +12,11 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-import logging
+""" Hartree-Fock initial state."""
 
+import logging
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
-
 from qiskit.aqua.components.initial_states import InitialState
 
 logger = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ class HartreeFock(InitialState):
         'name': 'HartreeFock',
         'description': 'Hartree-Fock initial state',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'hf_state_schema',
             'type': 'object',
             'properties': {
@@ -68,12 +68,12 @@ class HartreeFock(InitialState):
         Args:
             num_qubits (int): number of qubits
             num_orbitals (int): number of spin orbitals
-            num_particles (list, int): number of particles, if it is a list, the first number is alpha and the second
-                                        number if beta.
+            num_particles (Union(list, int)): number of particles, if it is a list, the first number
+                                      is alpha and the second number if beta.
             qubit_mapping (str): mapping type for qubit operator
             two_qubit_reduction (bool): flag indicating whether or not two qubit is reduced
-            sq_list ([int]): position of the single-qubit operators that anticommute
-                        with the cliffords
+            sq_list (list[int]): position of the single-qubit operators that
+                                anticommute with the cliffords
 
         Raises:
             ValueError: wrong setting in num_particles and num_orbitals.
@@ -82,14 +82,14 @@ class HartreeFock(InitialState):
         self.validate(locals())
         super().__init__()
         self._sq_list = sq_list
-        self._qubit_tapering = False if self._sq_list is None or self._sq_list == [] else True
+        self._qubit_tapering = bool(self._sq_list)
         self._qubit_mapping = qubit_mapping.lower()
         self._two_qubit_reduction = two_qubit_reduction
         if self._qubit_mapping != 'parity':
             if self._two_qubit_reduction:
                 logger.warning("two_qubit_reduction only works with parity qubit mapping "
-                               "but you have {}. We switch two_qubit_reduction "
-                               "to False.".format(self._qubit_mapping))
+                               "but you have %s. We switch two_qubit_reduction "
+                               "to False.", self._qubit_mapping)
                 self._two_qubit_reduction = False
 
         self._num_orbitals = num_orbitals
@@ -125,8 +125,8 @@ class HartreeFock(InitialState):
         if self._qubit_mapping == 'parity':
             new_bitstr = bitstr.copy()
 
-            t = np.triu(np.ones((self._num_orbitals, self._num_orbitals)))
-            new_bitstr = t.dot(new_bitstr.astype(np.int)) % 2  # pylint: disable=no-member
+            t_r = np.triu(np.ones((self._num_orbitals, self._num_orbitals)))
+            new_bitstr = t_r.dot(new_bitstr.astype(np.int)) % 2  # pylint: disable=no-member
 
             bitstr = np.append(new_bitstr[1:half_orbitals], new_bitstr[half_orbitals + 1:]) \
                 if self._two_qubit_reduction else new_bitstr
@@ -135,7 +135,7 @@ class HartreeFock(InitialState):
             binary_superset_size = int(np.ceil(np.log2(self._num_orbitals)))
             beta = 1
             basis = np.asarray([[1, 0], [0, 1]])
-            for i in range(binary_superset_size):
+            for _ in range(binary_superset_size):
                 beta = np.kron(basis, beta)
                 beta[0, :] = 1
             start_idx = beta.shape[0] - self._num_orbitals
@@ -149,7 +149,7 @@ class HartreeFock(InitialState):
 
         self._bitstr = bitstr.astype(np.bool)
 
-    def construct_circuit(self, mode, register=None):
+    def construct_circuit(self, mode='circuit', register=None):
         """
         Construct the statevector of desired initial state.
 

@@ -30,7 +30,7 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
                        'operator': {'name': 'hamiltonian',
                                     'qubit_mapping': 'parity',
                                     'two_qubit_reduction': True},
-                       'algorithm': {'name': 'VQE', 'operator_mode': 'matrix'},
+                       'algorithm': {'name': 'VQE'},
                        'optimizer': {'name': 'SLSQP', 'maxiter': 100},
                        'variational_form': {'name': 'UCCSD'},
                        'initial_state': {'name': 'HartreeFock'},
