@@ -33,7 +33,7 @@ from qiskit.chemistry.fermionic_operator import FermionicOperator
 logger = logging.getLogger(__name__)
 
 
-class UCC(VariationalForm):
+class UCCSD_single_operator(VariationalForm):
     """
         This trial wavefunction is a Unitary Coupled-Cluster Single and Double excitations
         variational form.
@@ -41,8 +41,8 @@ class UCC(VariationalForm):
     """
 
     CONFIGURATION = {
-        'name': 'UCC',
-        'description': 'UCC Adapt',
+        'name': 'UCCSD',
+        'description': 'UCCSD Variational Form',
         'input_schema': {
             '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'uccsd_schema',
@@ -102,8 +102,9 @@ class UCC(VariationalForm):
         ],
     }
 
-    def __init__(self, num_qubits, depth, num_orbitals, num_particles,
-                 active_occupied=None, active_unoccupied=None, initial_state=None,
+    def __init__(self, num_qubits, depth, num_orbitals, num_particles, hopping_op_list,
+                 single_excitation_list, double_excitation_list, initial_state, no_params,
+                 active_occupied=None, active_unoccupied=None,
                  qubit_mapping='parity', two_qubit_reduction=True, num_time_slices=1,
                  shallow_circuit_concat=True, z2_symmetries=None):
         """Constructor.
@@ -160,12 +161,11 @@ class UCC(VariationalForm):
         self._num_time_slices = num_time_slices
         self._shallow_circuit_concat = shallow_circuit_concat
 
-        self._single_excitations, self._double_excitations = \
-            UCC.compute_excitation_lists([self._num_alpha, self._num_beta], self._num_orbitals,
-                                           active_occupied, active_unoccupied)
+        self._single_excitations = single_excitation_list
+        self._double_excitations = double_excitation_list
 
-        self._hopping_ops, self._num_parameters = self._build_hopping_operators()
-	self._operator_pool=self._hopping_ops
+        self._hopping_ops = hopping_op_list
+        self._num_parameters = no_params
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
         self._logging_construct_circuit = True
@@ -192,8 +192,8 @@ class UCC(VariationalForm):
         if logger.isEnabledFor(logging.DEBUG):
             TextProgressBar(sys.stderr)
 
-        results = parallel_map(UCC._build_hopping_operator,
-			       self._single_excitations,self._double_excitations, 
+        results = parallel_map(UCCSD_single_operator._build_hopping_operator,
+                               self._single_excitations + self._double_excitations,
                                task_args=(self._num_orbitals,
                                           self._num_particles, self._qubit_mapping,
                                           self._two_qubit_reduction, self._z2_symmetries),
@@ -279,52 +279,11 @@ class UCC(VariationalForm):
             self._logging_construct_circuit = False
 
         num_excitations = len(self._hopping_ops)
-        results = parallel_map(UCC._construct_circuit_for_one_excited_operator,
+        results = parallel_map(UCCSD_single_operator._construct_circuit_for_one_excited_operator,
                                [(self._hopping_ops[index % num_excitations], parameters[index])
                                 for index in range(self._depth * num_excitations)],
                                task_args=(q, self._num_time_slices),
                                num_processes=aqua_globals.num_processes)
-        for qc in results:
-            if self._shallow_circuit_concat:
-                circuit.data += qc.data
-            else:
-                circuit += qc
-
-        return circuit
-
-   def var_form_function(self, parameter_single, q=None, hopping_op_single):
-        """
-        Construct the variational form, given its parameters.
-
-        Args:
-            parameter_single (numpy.ndarray): circuit parameters
-	    hopping_op_single: new operators 
-            q (QuantumRegister): Quantum Register for the circuit.
-
-        Returns:
-            QuantumCircuit: a quantum circuit with given `parameters`
-
-        Raises:
-            ValueError: the number of parameters is incorrect.
-        """
-        if len(parameters) != self._num_parameters:
-            raise ValueError('The number of parameters has to be {}'.format(self._num_parameters))
-
-        if q is None:
-            q = QuantumRegister(self._num_qubits, name='q')
-        if self._initial_state is not None:
-            circuit = self._initial_state.construct_circuit('circuit', q)
-        else:
-            circuit = QuantumCircuit(q)
-
-        if logger.isEnabledFor(logging.DEBUG) and self._logging_construct_circuit:
-            logger.debug("Evolving hopping operators:")
-            TextProgressBar(sys.stderr)
-            self._logging_construct_circuit = False
-
-        num_excitations = len(self._hopping_ops)
-        results = UCC._construct_circuit_for_one_excited_operator
-                               ([hopping_op_single,parameter_single],q, self._num_time_slices)
         for qc in results:
             if self._shallow_circuit_concat:
                 circuit.data += qc.data
@@ -344,7 +303,7 @@ class UCC(VariationalForm):
     def preferred_init_points(self):
         """Getter of preferred initial points based on the given initial state."""
         if self._initial_state is None:
-            return NoneG
+            return None
         else:
             bitstr = self._initial_state.bitstr
             if bitstr is not None:
@@ -483,3 +442,4 @@ class UCC(VariationalForm):
         logger.debug('double_excitations (%s) %s', len(double_excitations), double_excitations)
 
         return single_excitations, double_excitations
+

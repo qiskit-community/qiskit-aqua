@@ -21,7 +21,7 @@ import numpy as np
 from qiskit.aqua import Operator
 from qiskit.aqua.algorithms.adaptive.vq_algorithm import VQAlgorithm
 from qiskit.aqua.algorithms.adaptive.vqe.vqe import VQE
-from qiskit.chemistry.aqua_extensions.components.variational_forms.ucc_new import UCCSD_single_operator
+from qiskit.chemistry.aqua_extensions.components.variational_forms.ucc import UCCSD_single_operator
 from qiskit.aqua.operators import (TPBGroupedWeightedPauliOperator, WeightedPauliOperator,
                                    MatrixOperator, op_converter)
 from qiskit.aqua.utils.backend_utils import is_aer_statevector_backend, is_statevector_backend

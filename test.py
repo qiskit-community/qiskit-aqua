@@ -46,7 +46,7 @@ init_state = HartreeFock(num_qubits, num_spin_orbitals, num_particles)
 from qiskit.chemistry.aqua_extensions.components.variational_forms import UCCSD
 var_form = UCCSD(num_qubits, 1, num_spin_orbitals, num_particles, initial_state=init_state)
 
-from qiskit.chemistry.aqua_extensions.components.variational_forms.ucc_new import UCCSD_single_operator
+from qiskit.chemistry.aqua_extensions.components.variational_forms.ucc import UCCSD_single_operator
 var_form_base = UCCSD_single_operator(num_qubits, 1, num_spin_orbitals, num_particles, [], [], [], init_state, 0)
 
 from qiskit.aqua.algorithms.adaptive import VQEAdapt
