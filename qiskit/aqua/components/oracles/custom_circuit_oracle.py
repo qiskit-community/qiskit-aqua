@@ -27,7 +27,7 @@ class CustomCircuitOracle(Oracle):
     """
 
     def __init__(self, variable_register=None, output_register=None,
-                 ancillary_register=None, circuit=None):
+                 ancillary_register=None, circuit=None, evaluate_classically_callback=None):
         """
         Constructor.
 
@@ -38,7 +38,9 @@ class CustomCircuitOracle(Oracle):
                     for the oracle function
             ancillary_register (QuantumRegister): The register holding ancillary qubit(s)
             circuit (QuantumCircuit): The quantum circuit corresponding to the
-                                    intended oracle function
+                    intended oracle function
+            evaluate_classically_callback (function): The classical callback function for
+                    evaluating the oracle, for example, to use with Grover's search
         Raises:
             AquaError: invalid input
         """
@@ -54,6 +56,8 @@ class CustomCircuitOracle(Oracle):
         self._output_register = output_register
         self._ancillary_register = ancillary_register
         self._circuit = circuit
+        if evaluate_classically_callback is not None:
+            self.evaluate_classically = evaluate_classically_callback
 
     @property
     def variable_register(self):
