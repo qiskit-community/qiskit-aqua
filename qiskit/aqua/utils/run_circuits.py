@@ -33,7 +33,9 @@ from qiskit.aqua.utils.backend_utils import (is_aer_provider,
                                              is_basicaer_provider,
                                              is_simulator_backend,
                                              is_local_backend)
-from qiskit.aqua.utils import qprofile
+
+from qiskit.aqua.utils.qprofile_utils import qprofile
+# import line_profiler
 
 MAX_CIRCUITS_PER_JOB = os.environ.get('QISKIT_AQUA_MAX_CIRCUITS_PER_JOB', None)
 
