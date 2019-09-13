@@ -248,7 +248,7 @@ class QuantumInstance:
         qobj = compile_circuits(circuits, self._backend, self._backend_config, self._compile_config, self._run_config,
                                 show_circuit_summary=self._circuit_summary, circuit_cache=self._circuit_cache,
                                 **kwargs)
-        if profiling:
+        if self.profiling:
             import sys
             print("PROFILING>> ", sys.getsizeof(qobj))
 
