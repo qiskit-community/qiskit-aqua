@@ -102,7 +102,7 @@ class UCCSD_single_operator(VariationalForm):
         ],
     }
 
-    def __init__(self, num_qubits, depth, num_orbitals, num_particles,hopping_op_list,
+    def __init__(self, num_qubits, depth, num_orbitals, num_particles, hopping_op_list,
                  single_excitation_list, double_excitation_list, initial_state, no_params,
                  active_occupied=None, active_unoccupied=None,
                  qubit_mapping='parity', two_qubit_reduction=True, num_time_slices=1,
@@ -192,7 +192,7 @@ class UCCSD_single_operator(VariationalForm):
         if logger.isEnabledFor(logging.DEBUG):
             TextProgressBar(sys.stderr)
 
-        results = parallel_map(UCCSD._build_hopping_operator,
+        results = parallel_map(UCCSD_single_operator._build_hopping_operator,
                                self._single_excitations + self._double_excitations,
                                task_args=(self._num_orbitals,
                                           self._num_particles, self._qubit_mapping,
@@ -279,7 +279,7 @@ class UCCSD_single_operator(VariationalForm):
             self._logging_construct_circuit = False
 
         num_excitations = len(self._hopping_ops)
-        results = parallel_map(UCCSD._construct_circuit_for_one_excited_operator,
+        results = parallel_map(UCCSD_single_operator._construct_circuit_for_one_excited_operator,
                                [(self._hopping_ops[index % num_excitations], parameters[index])
                                 for index in range(self._depth * num_excitations)],
                                task_args=(q, self._num_time_slices),
