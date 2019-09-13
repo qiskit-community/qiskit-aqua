@@ -16,6 +16,9 @@
 Profiler decorator
 """
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 def qprofile(func):
     def wrapper(*original_args, **original_kwargs):
