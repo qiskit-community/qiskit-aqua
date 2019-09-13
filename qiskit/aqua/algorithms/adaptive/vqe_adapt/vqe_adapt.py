@@ -101,10 +101,55 @@ class VQEAdapt(VQAlgorithm):
         self._excitation_pool = self._var_form_base._hopping_ops
         self._threshold = threshold
 
-    def _compute_gradients(self):
-        """
-        # TODO
-        """
+    def _compute_gradients(self,var_form, delta, optimizer, theta):
+
+        res = []
+
+        for exc in excitation_pool:
+	    var_from._hoppin_ops.append(exc)
+            vqe = VQE(operator, var_form, optimizer)
+
+            qubit_op_and_param = (exc, delta)
+
+            circuit = vqe.construct_circuit(theta.append(-delta), statevector_mode=self._quantum_instance.is_statevector,
+                                         use_simulator_operator_mode=self._use_simulator_operator_mode,
+                                         circuit_name_prefix=str(idx))
+            to_be_simulated_circuit = functools.reduce(lambda x, y: x + y, circuit)
+            if self._use_simulator_operator_mode:
+                extra_args = {'expectation': {
+                    'params': [self._operator.aer_paulis],
+                    'num_qubits': self._operator.num_qubits}
+                }
+            else:
+                extra_args = {}
+            result = self._quantum_instance.execute(to_be_simulated_circuit, **extra_args)
+
+            mean_minus, std = self._operator.evaluate_with_result(
+                result=result, statevector_mode=self._quantum_instance.is_statevector,
+                use_simulator_operator_mode=self._use_simulator_operator_mode, circuit_name_prefix=str(idx))
+
+            theta.pop()
+            circuit = vqe.construct_circuit([theta.append(delta), statevector_mode=self._quantum_instance.is_statevector,
+                                         use_simulator_operator_mode=self._use_simulator_operator_mode,
+                                         circuit_name_prefix=str(idx))
+            to_be_simulated_circuit = functools.reduce(lambda x, y: x + y, circuit)
+            if self._use_simulator_operator_mode:
+                extra_args = {'expectation': {
+                    'params': [self._operator.aer_paulis],
+                    'num_qubits': self._operator.num_qubits}
+                }
+            else:
+                extra_args = {}
+            result = self._quantum_instance.execute(to_be_simulated_circuit, **extra_args)
+
+            mean_plus, std = self._operator.evaluate_with_result(
+                result=result, statevector_mode=self._quantum_instance.is_statevector,
+                use_simulator_operator_mode=self._use_simulator_operator_mode, circuit_name_prefix=str(idx))
+            theta.pop()
+
+            res.append(((mean_minus-mean_plus)/(2*delta), exc))
+
+        return res
 
     def _run(self):
         """
