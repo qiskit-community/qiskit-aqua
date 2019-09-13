@@ -146,7 +146,16 @@ def _split_qobj_to_qobjs(qobj, chunk_size):
 
     return qobjs
 
-
+def _profiling(func):
+    def wrapper(*original_args, **original_kwargs):
+        qobj = func(*original_args, **original_kwargs)
+        if logging.root.level >= logging.DEBUG:
+            import sys
+            logger.debug("<<Profiling Info>> qobj is {} bytes".format(sys.getsizeof(qobj)))
+        return qobj
+    return wrapper
+    
+@_profiling
 def compile_circuits(circuits, backend, backend_config=None, compile_config=None, run_config=None,
                      show_circuit_summary=False, circuit_cache=None, **kwargs):
     """

@@ -62,9 +62,7 @@ class QuantumInstance:
                  skip_qobj_validation=True,
                  measurement_error_mitigation_cls=None, cals_matrix_refresh_period=30,
                  measurement_error_mitigation_shots=None,
-                 job_callback=None, 
-                 # debugging
-                 profiling=False):
+                 job_callback=None):
         """Constructor.
 
         Args:
@@ -97,7 +95,6 @@ class QuantumInstance:
             job_callback (Callable, optional): callback used in querying info of the submitted job, and
                                                providing the following arguments: job_id, job_status,
                                                queue_position, job
-            profiling (boolean, optional): True if profiling information is to be outputed
 
         Raises:
             AquaError: the shots exceeds the maximum number of shots
@@ -211,9 +208,6 @@ class QuantumInstance:
         self._job_callback = job_callback
         logger.info(self)
 
-        #profiling flag
-        self._profiling = profiling
-
     def __str__(self):
         """Overload string.
 
@@ -249,9 +243,6 @@ class QuantumInstance:
         qobj = compile_circuits(circuits, self._backend, self._backend_config, self._compile_config, self._run_config,
                                 show_circuit_summary=self._circuit_summary, circuit_cache=self._circuit_cache,
                                 **kwargs)
-        if self._profiling:
-            import sys
-            print("<<Profiling Info>> qobj is ", sys.getsizeof(qobj), " bytes.")
 
         if self._measurement_error_mitigation_cls is not None:
             qubit_index = get_measured_qubits_from_qobj(qobj)
@@ -355,8 +346,6 @@ class QuantumInstance:
                                                                                        self._backend.provider()))
                 else:
                     self._noise_config[k] = v
-            elif k is 'profiling':
-                self._profiling = True
 
             else:
                 raise ValueError("unknown setting for the key ({}).".format(k))
