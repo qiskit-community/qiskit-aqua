@@ -33,7 +33,7 @@ from qiskit.chemistry.fermionic_operator import FermionicOperator
 logger = logging.getLogger(__name__)
 
 
-class UCCSD_single_operator(VariationalForm):
+class UCC(VariationalForm):
     """
         This trial wavefunction is a Unitary Coupled-Cluster Single and Double excitations
         variational form.
@@ -41,11 +41,11 @@ class UCCSD_single_operator(VariationalForm):
     """
 
     CONFIGURATION = {
-        'name': 'UCCSD',
-        'description': 'UCCSD Variational Form',
+        'name': 'UCC',
+        'description': 'UCC Variational Form',
         'input_schema': {
             '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'uccsd_schema',
+            'id': 'ucc_schema',
             'type': 'object',
             'properties': {
                 'depth': {
@@ -188,11 +188,35 @@ class UCCSD_single_operator(VariationalForm):
         """
         return self._double_excitations
 
+    def _append_hopping_operator(self, excitation):
+        """
+        Registers a new hopping operator.
+        """
+        self._hopping_ops.append(excitation)
+        if excitation.num_qubits == 2:
+            self._single_excitations.append(excitation)
+        elif excitation.num_qubits == 4:
+            self._double_excitations.append(excitation)
+        self._num_parameters += 1
+        self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
+
+    def _pop_hopping_operator(self):
+        """
+        Pops the hopping operator that was added last.
+        """
+        excitation = self._hopping_ops.pop()
+        if excitation.num_qubits == 2:
+            self._single_excitations.pop()
+        elif excitation.num_qubits == 4:
+            self._double_excitations.pop()
+        self._num_parameters -= 1
+        self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
+
     def _build_hopping_operators(self):
         if logger.isEnabledFor(logging.DEBUG):
             TextProgressBar(sys.stderr)
 
-        results = parallel_map(UCCSD_single_operator._build_hopping_operator,
+        results = parallel_map(UCC._build_hopping_operator,
                                self._single_excitations + self._double_excitations,
                                task_args=(self._num_orbitals,
                                           self._num_particles, self._qubit_mapping,
@@ -279,7 +303,7 @@ class UCCSD_single_operator(VariationalForm):
             self._logging_construct_circuit = False
 
         num_excitations = len(self._hopping_ops)
-        results = parallel_map(UCCSD_single_operator._construct_circuit_for_one_excited_operator,
+        results = parallel_map(UCC._construct_circuit_for_one_excited_operator,
                                [(self._hopping_ops[index % num_excitations], parameters[index])
                                 for index in range(self._depth * num_excitations)],
                                task_args=(q, self._num_time_slices),

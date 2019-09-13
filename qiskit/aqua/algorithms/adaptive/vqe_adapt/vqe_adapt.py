@@ -21,7 +21,7 @@ import numpy as np
 from qiskit.aqua import Operator
 from qiskit.aqua.algorithms.adaptive.vq_algorithm import VQAlgorithm
 from qiskit.aqua.algorithms.adaptive.vqe.vqe import VQE
-from qiskit.chemistry.aqua_extensions.components.variational_forms.ucc import UCCSD_single_operator
+from qiskit.chemistry.aqua_extensions.components.variational_forms.ucc import UCC
 from qiskit.aqua.operators import (TPBGroupedWeightedPauliOperator, WeightedPauliOperator,
                                    MatrixOperator, op_converter)
 from qiskit.aqua.utils.backend_utils import is_aer_statevector_backend, is_statevector_backend
@@ -62,8 +62,8 @@ class VQEAdapt(VQAlgorithm):
                           "it will be removed after 0.6.", DeprecationWarning)
             operator = op_converter.to_weighted_pauli_operator(operator)
         self._operator = operator
-        if not isinstance(var_form_base, UCCSD_single_operator):
-            warnings.warn("var_form_base has to be an instance of UCCSD_single_operator.")
+        if not isinstance(var_form_base, UCC):
+            warnings.warn("var_form_base has to be an instance of UCC.")
             return 1
         self._var_form_base = var_form_base
         self._excitation_pool = excitation_pool
@@ -74,12 +74,7 @@ class VQEAdapt(VQAlgorithm):
         res = []
 
         for exc in excitation_pool:
-            var_form._hopping_ops.append(exc)
-            var_form._num_parameters += 1
-            if exc._paulis[0][1].numberofqubits == 2:
-                var_form._single_excitations.append(exc)
-            elif exc._paulis[0][1].numberofqubits == 4:
-                var_form._double_excitations.append(exc)
+            var_form._append_hopping_operator(exc)
 
             vqe = VQE(operator, var_form, optimizer)
 
@@ -132,12 +127,8 @@ class VQEAdapt(VQAlgorithm):
                 circuit_name_prefix='plus')
 
             res.append(((mean_minus-mean_plus)/(2*delta), exc))
-            var_form._hopping_ops.pop()
-            var_form._num_parameters -= 1
-            if exc._paulis[0][1].numberofqubits == 2:
-                var_form._single_excitations.pop()
-            elif exc._paulis[0][1].numberofqubits == 4:
-                var_form._double_excitations.pop()
+
+            var_form._pop_hopping_operator()
 
         return res
 
@@ -197,14 +188,8 @@ class VQEAdapt(VQAlgorithm):
                 threshold_satisfied = True
                 break
             # add new excitation to self._var_form_base
-            self._var_form_base._hopping_ops.append(max_grad[1])
-            if max_grad[1]._paulis[0][1].numberofqubits == 2:
-                self._var_form_base._single_excitations.append(max_grad[1])
-            elif max_grad[1]._paulis[0][1].numberofqubits == 4:
-                self._var_form_base._double_excitations.append(max_grad[1])
+            self._var_form_base._append_hopping_operator(max_grad[1])
             theta.append(0.0)
-            self._var_form_base._num_parameters += 1
-            self._var_form_base._bounds = [(-np.pi, np.pi) for _ in range(self._var_form_base._num_parameters)]
             # run VQE on current Ansatz
             algorithm = VQE(self._operator, self._var_form_base, self._optimizer, initial_point=theta)
             self._ret = algorithm.run(self._quantum_instance)
