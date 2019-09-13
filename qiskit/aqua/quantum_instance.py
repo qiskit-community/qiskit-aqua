@@ -249,7 +249,8 @@ class QuantumInstance:
                                 show_circuit_summary=self._circuit_summary, circuit_cache=self._circuit_cache,
                                 **kwargs)
         if profiling:
-            size(qobj)
+            import sys
+            print("PROFILING>> ", sys.getsizeof(qobj))
 
         if self._measurement_error_mitigation_cls is not None:
             qubit_index = get_measured_qubits_from_qobj(qobj)
