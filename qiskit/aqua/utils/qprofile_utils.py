@@ -21,11 +21,19 @@ logger = logging.getLogger(__name__)
 
 
 def qprofile(func):
+    """
+    Function that is meant to be used as a decorator to get all sots of profiling info.
+
+    Args:
+        func (function): function to be profiled
+
+    Returns:
+        object: object that was returned by argument func.
+    """
     def wrapper(*original_args, **original_kwargs):
         qobj = func(*original_args, **original_kwargs)
         if logging.root.level >= logging.DEBUG:
             import sys
-            logger.debug("<<Profiling Info>> qobj is {} bytes".format(
-                sys.getsizeof(qobj)))
+            logger.debug("<<Profiling Info>> qobj is %d bytes", sys.getsizeof(qobj))
         return qobj
     return wrapper
