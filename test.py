@@ -50,5 +50,5 @@ from qiskit.chemistry.aqua_extensions.components.variational_forms.ucc import UC
 var_form_base = UCC(num_qubits, 1, num_spin_orbitals, num_particles, [], [], [], init_state, 0)
 
 from qiskit.aqua.algorithms.adaptive import VQEAdapt
-algorithm = VQEAdapt(qubitOp, var_form_base, 0.0000001, optimizer, var_form._hopping_ops)
+algorithm = VQEAdapt(qubitOp, var_form_base, optimizer, var_form._hopping_ops, threshold=0.00001, delta=1)
 result = algorithm.run(backend)
