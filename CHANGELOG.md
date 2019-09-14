@@ -18,6 +18,8 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 [UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.0...HEAD)
 ========================================================================
 
+- Profiling infrastructure
+
 Fixed
 -------
 

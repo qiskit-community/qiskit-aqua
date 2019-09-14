@@ -114,6 +114,56 @@ For example, output `1, -2, 3` indicates
 that logical expression (<i>x</i><sub>1</sub> &or; &not;<i>x</i><sub>2</sub> &or; <i>x</i><sub>3</sub>)
 satisfies the given CNF.
 
+### Profiling the codebase
+
+Qiskit Aqua provides infrastructure to profile the codebase both in terms of time and size. The profilers 
+are made available through the built-in logging infrastructure, and there are 4 levels of logging available:
+
+- `logging.MPROFILE`: get memory footprint of the object returned by the profiled function;
+- `logging.CPROFILE`: deep profiling from the function using the standard cprofile module;
+- `logging.LPROFILE`: line by line time profiling of the decorated function;
+- `logging.MEMPROFILE`: line by line memory profiling of the decorated function.
+
+As an example, these profilers can be activated as follows:
+
+```python
+from qiskit import Aer
+from qiskit.aqua.components.oracles import LogicalExpressionOracle
+from qiskit.aqua.algorithms import Grover
+import logging
+import sys
+
+import qiskit.aqua.utils.qprofile_utils
+
+logging.basicConfig(stream=sys.stdout, level=logging.MEMPROFILE)
+
+sat_cnf = """
+c Example DIMACS 3-sat
+p cnf 3 5
+-1 -2 -3 0
+1 -2 3 0
+1 2 -3 0
+1 -2 -3 0
+-1 2 3 0
+"""
+
+backend = Aer.get_backend('qasm_simulator')
+oracle = LogicalExpressionOracle(sat_cnf)
+algorithm = Grover(oracle)
+result = algorithm.run(backend)
+print(result["result"])
+```
+
+In order to get the profiling information, the functions of interest should be decorated using `@QProfile`. 
+For instance:
+
+```python
+@QProfile
+def compile_circuits(circuits, backend, backend_config=None, compile_config=None, run_config=None,
+                     show_circuit_summary=False, circuit_cache=None, **kwargs):
+    pass
+```
+
 ## Creating Your First Qiskit Chemistry Programming Experiment
 
 Now that Qiskit Aqua is installed, it's time to begin working with it.  We are ready to try out an experiment using Qiskit Chemistry:
