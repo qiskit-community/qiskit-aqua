@@ -148,6 +148,8 @@ class VQEAdapt(VQAlgorithm):
         self._quantum_instance.circuit_summary = True
 
         threshold_satisfied = False
+        prev_max = None
+        prev_prev_max = None
         theta = []
         iteration = 0
         while not threshold_satisfied:
@@ -156,11 +158,24 @@ class VQEAdapt(VQAlgorithm):
             # compute gradients
             cur_grads = self._compute_gradients(self._excitation_pool, theta, self._delta,
                                                 self._var_form_base, self._operator, self._optimizer)
-            print('Gradients:')
-            for i in range(len(cur_grads)):
-                print(str(i) + ': ' + str(cur_grads[i][1]) + ': ' + str(cur_grads[i][0]))
             # pick maximum gradients and choose that excitation
             max_grad = max(cur_grads, key=lambda item: np.abs(item[0]))
+            if prev_max is not None and prev_max[1] == max_grad[1]:
+                cur_grads_red = [g for g in cur_grads if g[1] != prev_max[1]]
+                max_grad = max(cur_grads_red, key=lambda item: np.abs(item[0]))
+            if prev_prev_max is not None and prev_prev_max[1] == max_grad[1]:
+                print("Alternating sequence found. Finishing.")
+                print("Final maximum gradient: " + str(np.abs(max_grad[0])))
+                threshold_satisfied = True
+                break
+            prev_prev_max = prev_max
+            prev_max = max_grad
+            print('Gradients:')
+            for i in range(len(cur_grads)):
+                string = str(i) + ': ' + str(cur_grads[i][1]) + ': ' + str(cur_grads[i][0])
+                if cur_grads[i][1] == max_grad[1]:
+                    string += '\t(*)'
+                print(string)
             if np.abs(max_grad[0]) < self._threshold:
                 print("Adaptive VQE terminated succesfully with a final maximum gradient: " + str(np.abs(max_grad[0])))
                 threshold_satisfied = True
@@ -173,6 +188,7 @@ class VQEAdapt(VQAlgorithm):
             self._ret = algorithm.run(self._quantum_instance)
             theta = self._ret['opt_params'].tolist()
             print('  --> Energy = ' + str(self._ret['energy']))
+        print('The final energy is: ' + str(self._ret['energy']))
         return self._ret
 
     def get_optimal_cost(self):
