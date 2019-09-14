@@ -69,6 +69,7 @@ class QProfile:
                 finally:
                     profiler.print_stats()
             except ImportError:
+                logger.debug("Error importing line_profiler.")
                 return self.function(*args, **kwargs)
 
         elif logger.getEffectiveLevel() == logging.MEMPROFILE:
@@ -82,6 +83,7 @@ class QProfile:
                 finally:
                     show_results(profiler)
             except ImportError:
+                logger.debug("Error importing memory_profiler.")
                 result = self.function(*args, **kwargs)
         else:
             result = self.function(*args, **kwargs)
