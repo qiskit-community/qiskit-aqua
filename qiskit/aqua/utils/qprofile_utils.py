@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-# pylint: skip-file
+# pylint: disable=no-member
 
 """
 Profiler decorator
@@ -35,6 +35,13 @@ logging.getLogger(__name__).setLevel("MEMPROFILE")
 if logger.getEffectiveLevel() >= logging.MPROFILE:
 
     def qprofile(func):
+        """
+        Function that is meant to be used as a decorator to get all sots of profiling info.
+        Args:
+            func (function): function to be profiled
+        Returns:
+            object: object that was returned by argument func.
+        """
         def wrapper(*original_args, **original_kwargs):
             qobj = func(*original_args, **original_kwargs)
             if logger.getEffectiveLevel() >= logging.MPROFILE:
@@ -47,6 +54,13 @@ elif logger.getEffectiveLevel() >= logging.CPROFILE:
         from line_profiler import LineProfiler
 
         def qprofile(func):
+            """
+            Function that is meant to be used as a decorator to get all sots of profiling info.
+            Args:
+                func (function): function to be profiled
+            Returns:
+                object: object that was returned by argument func.
+            """
             def wrapper(*original_args, **original_kwargs):
                 try:
                     profiler = LineProfiler()
@@ -72,7 +86,13 @@ elif logger.getEffectiveLevel() >= logging.MEMPROFILE:
         from memory_profiler import LineProfiler, show_results
 
         def qprofile(func):
-
+            """
+            Function that is meant to be used as a decorator to get all sots of profiling info.
+            Args:
+                func (function): function to be profiled
+            Returns:
+                object: object that was returned by argument func.
+            """
             def wrapper(*original_args, **original_kwargs):
                 try:
                     profiler = LineProfiler()

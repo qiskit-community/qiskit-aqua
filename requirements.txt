@@ -16,4 +16,5 @@ h5py
 networkx>=2.2
 cython
 git+https://github.com/rkern/line_profiler.git
+memory-profiler
 pyscf; sys_platform != 'win32'
