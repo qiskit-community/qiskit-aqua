@@ -29,18 +29,23 @@ add_qiskit_aqua_logging_level('MEMPROFILE', logging.DEBUG - 4)
 
 
 class QProfile:
+    """
+    This is a class for profiling fuctions.
+    Attributes:
+        function (function): Function to be profiled.
+    """
 
     def __init__(self, function):
         self.function = function
 
     def __call__(self, *args, **kwargs):
+        result = None
         if logger.getEffectiveLevel() == logging.MPROFILE:
             import sys
             result = self.function(*args, **kwargs)
 
-            logger.debug(">>Tracing memory size : qobj is %s bytes",
+            logger.debug(">>Tracing memory size : return object is %s bytes",
                          sys.getsizeof(result))
-            return result
 
         elif logger.getEffectiveLevel() == logging.CPROFILE:
             import cProfile
@@ -49,7 +54,6 @@ class QProfile:
                 profile.enable()
                 result = self.function(*args, **kwargs)
                 profile.disable()
-                return result
             finally:
                 profile.print_stats()
 
@@ -62,7 +66,6 @@ class QProfile:
 
                     profiler.enable_by_count()
                     result = self.function(*args, **kwargs)
-                    return result
                 finally:
                     profiler.print_stats()
             except ImportError:
@@ -76,10 +79,10 @@ class QProfile:
                     profiler.add_function(self.function)
                     profiler.enable_by_count()
                     result = self.function(*args, **kwargs)
-                    return result
                 finally:
                     show_results(profiler)
             except ImportError:
-                return self.function(*args, **kwargs)
+                result = self.function(*args, **kwargs)
         else:
-            return self.function(*args, **kwargs)
+            result = self.function(*args, **kwargs)
+        return result

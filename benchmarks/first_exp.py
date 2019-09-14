@@ -2,14 +2,9 @@ from qiskit import Aer
 from qiskit.aqua.components.oracles import LogicalExpressionOracle
 from qiskit.aqua.algorithms import Grover
 import logging
-
 import sys
 
 import qiskit.aqua.utils.qprofile_utils
-# addLoggingLevel('PROFILE', logging.DEBUG - 5)
-# logging.getLogger(__name__).setLevel("PROFILE")
-# logging.getLogger(__name__).trace('that worked')
-# logging.PROFILE = 5
 
 logging.basicConfig(stream=sys.stdout, level=logging.MEMPROFILE)
 
