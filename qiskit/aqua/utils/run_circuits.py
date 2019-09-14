@@ -34,11 +34,7 @@ from qiskit.aqua.utils.backend_utils import (is_aer_provider,
                                              is_simulator_backend,
                                              is_local_backend)
 
-<<<<<<< HEAD
 from qiskit.aqua.utils.qprofile_utils import QProfile
-=======
-from qiskit.aqua.utils.qprofile_utils import qprofile
->>>>>>> 8650c3a6fcc97ca6b06f7ded9d74d6ca3cc9cdab
 
 MAX_CIRCUITS_PER_JOB = os.environ.get('QISKIT_AQUA_MAX_CIRCUITS_PER_JOB', None)
 
@@ -156,11 +152,7 @@ def _split_qobj_to_qobjs(qobj, chunk_size):
     return qobjs
 
 
-<<<<<<< HEAD
 @QProfile
-=======
-@qprofile
->>>>>>> 8650c3a6fcc97ca6b06f7ded9d74d6ca3cc9cdab
 def compile_circuits(circuits, backend, backend_config=None, compile_config=None, run_config=None,
                      show_circuit_summary=False, circuit_cache=None, **kwargs):
     """
