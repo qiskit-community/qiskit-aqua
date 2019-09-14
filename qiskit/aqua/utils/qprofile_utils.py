@@ -12,12 +12,15 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from qiskit.aqua._logging import add_qiskit_aqua_logging_level
+
 """
 Profiler decorator
 """
 
 import logging
+
+from qiskit.aqua._logging import add_qiskit_aqua_logging_level
+
 logger = logging.getLogger(__name__)
 add_qiskit_aqua_logging_level('MPROFILE', logging.DEBUG - 6)
 logging.getLogger(__name__).setLevel("MPROFILE")
@@ -35,8 +38,7 @@ if logger.getEffectiveLevel() >= logging.MPROFILE:
             qobj = func(*original_args, **original_kwargs)
             if logger.getEffectiveLevel() >= logging.MPROFILE:
                 import sys
-                logger.debug("Tracing Memory size : <<Profiling Info>> qobj is {} bytes".format(
-                    sys.getsizeof(qobj)))
+                logger.debug(">>Tracing memory size : qobj is %s bytes", sys.getsizeof(qobj))
             return qobj
         return wrapper
 elif logger.getEffectiveLevel() >= logging.CPROFILE:
@@ -56,7 +58,9 @@ elif logger.getEffectiveLevel() >= logging.CPROFILE:
             return wrapper
     except ImportError:
         def qprofile(func):
-            "Helpful if you accidentally leave in production!"
+            """
+            Helpful if you accidentally leave in production!
+            """
             def wrapper(*original_args, **original_kwargs):
                 return func(*original_args, **original_kwargs)
             return wrapper
@@ -79,7 +83,9 @@ elif logger.getEffectiveLevel() >= logging.MEMPROFILE:
             return wrapper
     except ImportError:
         def qprofile(func):
-            "Helpful if you accidentally leave in production!"
+            """
+            Helpful if you accidentally leave in production!
+            """
             def wrapper(*original_args, **original_kwargs):
                 return func(*original_args, **original_kwargs)
             return wrapper

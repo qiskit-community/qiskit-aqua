@@ -25,7 +25,7 @@ _ALGO_LOGGING_CONFIG = {
     'disable_existing_loggers': False,
     'formatters': {
         'f': {
-            'format': '%(asctime)s:%(name)s:%(levelname)s: %(message)s'
+            'format': '%(asctime)s:%(name)s:%(level_name)s: %(message)s'
         },
     },
     'handlers': {
@@ -120,15 +120,15 @@ def set_qiskit_aqua_logging(level, filepath=None):
     set_logging_config(build_logging_config(level, filepath))
 
 
-def add_qiskit_aqua_logging_level(levelName, levelNum, methodName=None):
+def add_qiskit_aqua_logging_level(level_name, level_num, method_name=None):
     """
     Comprehensively adds a new logging level to the `logging` module and the
     currently configured logging class.
 
-    `levelName` becomes an attribute of the `logging` module with the value
-    `levelNum`. `methodName` becomes a convenience method for both `logging`
+    `level_name` becomes an attribute of the `logging` module with the value
+    `level_num`. `method_name` becomes a convenience method for both `logging`
     itself and the class returned by `logging.getLoggerClass()` (usually just
-    `logging.Logger`). If `methodName` is not specified, `levelName.lower()` is
+    `logging.Logger`). If `method_name` is not specified, `level_name.lower()` is
     used.
 
     To avoid accidental clobberings of existing attributes, this method will
@@ -145,30 +145,30 @@ def add_qiskit_aqua_logging_level(levelName, levelNum, methodName=None):
     5
 
     """
-    if not methodName:
-        methodName = levelName.lower()
+    if not method_name:
+        method_name = level_name.lower()
 
-    if hasattr(logging, levelName):
+    if hasattr(logging, level_name):
         raise AttributeError(
-            '{} already defined in logging module'.format(levelName))
-    if hasattr(logging, methodName):
+            '{} already defined in logging module'.format(level_name))
+    if hasattr(logging, method_name):
         raise AttributeError(
-            '{} already defined in logging module'.format(methodName))
-    if hasattr(logging.getLoggerClass(), methodName):
+            '{} already defined in logging module'.format(method_name))
+    if hasattr(logging.getLoggerClass(), method_name):
         raise AttributeError(
-            '{} already defined in logger class'.format(methodName))
+            '{} already defined in logger class'.format(method_name))
 
     # This method was inspired by the answers to Stack Overflow post
     # http://stackoverflow.com/q/2183233/2988730, especially
     # http://stackoverflow.com/a/13638084/2988730
-    def logForLevel(self, message, *args, **kwargs):
-        if self.isEnabledFor(levelNum):
-            self._log(levelNum, message, *args, **kwargs)
+    def log_for_level(self, message, *args, **kwargs):
+        if self.isEnabledFor(level_num):
+            self._log(level_num, message, *args, **kwargs)
 
-    def logToRoot(message, *args, **kwargs):
-        logging.log(levelNum, message, *args, **kwargs)
+    def log_to_root(message, *args, **kwargs):
+        logging.log(level_num, message, *args, **kwargs)
 
-    logging.addLevelName(levelNum, levelName)
-    setattr(logging, levelName, levelNum)
-    setattr(logging.getLoggerClass(), methodName, logForLevel)
-    setattr(logging, methodName, logToRoot)
+    logging.addLevelName(level_num, level_name)
+    setattr(logging, level_name, level_num)
+    setattr(logging.getLoggerClass(), method_name, log_for_level)
+    setattr(logging, method_name, log_to_root)
