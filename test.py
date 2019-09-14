@@ -16,7 +16,7 @@ from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 # Use PySCF, a classical computational chemistry software
 # package, to compute the one-body and two-body integrals in
 # molecular-orbital basis, necessary to form the Fermionic operator
-driver = PySCFDriver(atom='H .0 .0 .0; H .0 .0 0.735; H .0 0.735, .0',
+driver = PySCFDriver(atom='H .0 .0 .0; H .0 .0 0.735; H .0 0.735 .0',
                      unit=UnitsType.ANGSTROM,
                      basis='sto3g',
                      charge=1)
@@ -47,9 +47,14 @@ init_state = HartreeFock(num_qubits, num_spin_orbitals, num_particles)
 from qiskit.chemistry.aqua_extensions.components.variational_forms import UCCSD
 var_form = UCCSD(num_qubits, 1, num_spin_orbitals, num_particles, initial_state=init_state)
 
+from qiskit.aqua.algorithms.adaptive import VQE
+algorithm = VQE(qubitOp, var_form, optimizer)
+result = algorithm.run(backend)
+print('VQE result: ' + str(result['energy']))
+
 from qiskit.chemistry.aqua_extensions.components.variational_forms.ucc import UCC
 var_form_base = UCC(num_qubits, 1, num_spin_orbitals, num_particles, [], [], [], init_state, 0)
 
 from qiskit.aqua.algorithms.adaptive import VQEAdapt
-algorithm = VQEAdapt(qubitOp, var_form_base, optimizer, var_form._hopping_ops, threshold=0.00001, delta=1)
+algorithm = VQEAdapt(qubitOp, var_form_base, optimizer, var_form._hopping_ops, threshold=0.00001, delta=0.1)
 result = algorithm.run(backend)

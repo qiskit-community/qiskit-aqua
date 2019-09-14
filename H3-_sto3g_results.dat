@@ -1,0 +1,60 @@
+VQE result: -2.8540300666761445
+--- Iteration #1 ---
+Gradients:
+0: Representation: paulis, qubits: 4, size: 2: 5.696072058469781e-07
+1: Representation: paulis, qubits: 4, size: 2: 4.440892098500626e-15
+2: Representation: paulis, qubits: 4, size: 2: 5.696072058469781e-07
+3: Representation: paulis, qubits: 4, size: 2: 2.220446049250313e-15
+4: Representation: paulis, qubits: 4, size: 8: 0.27903463842918086	(*)
+5: Representation: paulis, qubits: 4, size: 8: 6.661338147750939e-15
+6: Representation: paulis, qubits: 4, size: 8: 0.0
+7: Representation: paulis, qubits: 4, size: 8: 0.19404156486937607
+  --> Energy = -2.8448821273884355
+--- Iteration #2 ---
+Gradients:
+0: Representation: paulis, qubits: 4, size: 2: 0.0062189052395611455
+1: Representation: paulis, qubits: 4, size: 2: 2.220446049250313e-15
+2: Representation: paulis, qubits: 4, size: 2: 0.006218905239556705
+3: Representation: paulis, qubits: 4, size: 2: 2.220446049250313e-15
+4: Representation: paulis, qubits: 4, size: 8: 8.648465861238464e-06
+5: Representation: paulis, qubits: 4, size: 8: 4.440892098500626e-15
+6: Representation: paulis, qubits: 4, size: 8: 0.0
+7: Representation: paulis, qubits: 4, size: 8: 0.17419842001584973	(*)
+  --> Energy = -2.8537382425001505
+--- Iteration #3 ---
+Gradients:
+0: Representation: paulis, qubits: 4, size: 2: 0.02726034070659633
+1: Representation: paulis, qubits: 4, size: 2: 6.661338147750939e-15
+2: Representation: paulis, qubits: 4, size: 2: 0.027260340706607433	(*)
+3: Representation: paulis, qubits: 4, size: 2: 2.220446049250313e-15
+4: Representation: paulis, qubits: 4, size: 8: 0.00014781168852229243
+5: Representation: paulis, qubits: 4, size: 8: 0.0
+6: Representation: paulis, qubits: 4, size: 8: 2.220446049250313e-15
+7: Representation: paulis, qubits: 4, size: 8: 9.240693634726682e-05
+  --> Energy = -2.853919270122013
+--- Iteration #4 ---
+Gradients:
+0: Representation: paulis, qubits: 4, size: 2: 0.020735054166736155	(*)
+1: Representation: paulis, qubits: 4, size: 2: 1.1102230246251565e-14
+2: Representation: paulis, qubits: 4, size: 2: 0.0001094033043735898
+3: Representation: paulis, qubits: 4, size: 2: 4.440892098500626e-15
+4: Representation: paulis, qubits: 4, size: 8: 0.00041830422245814347
+5: Representation: paulis, qubits: 4, size: 8: 6.661338147750939e-15
+6: Representation: paulis, qubits: 4, size: 8: 2.220446049250313e-15
+7: Representation: paulis, qubits: 4, size: 8: 7.875328914996871e-05
+  --> Energy = -2.8540300666757084
+--- Iteration #5 ---
+Gradients:
+0: Representation: paulis, qubits: 4, size: 2: 0.00011231645514531152
+1: Representation: paulis, qubits: 4, size: 2: 2.220446049250313e-15
+2: Representation: paulis, qubits: 4, size: 2: 0.00011189849062898105
+3: Representation: paulis, qubits: 4, size: 2: 6.661338147750939e-15
+4: Representation: paulis, qubits: 4, size: 8: 0.0001411228300218781	(*)
+5: Representation: paulis, qubits: 4, size: 8: 2.220446049250313e-15
+6: Representation: paulis, qubits: 4, size: 8: 6.661338147750939e-15
+7: Representation: paulis, qubits: 4, size: 8: 7.107394183414328e-05
+  --> Energy = -2.8540300666757084
+--- Iteration #6 ---
+Alternating sequence found. Finishing.
+Final maximum gradient: 0.00011231645514531152
+The final energy is: -2.8540300666757084
