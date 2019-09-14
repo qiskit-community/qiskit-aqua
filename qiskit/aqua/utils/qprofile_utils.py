@@ -12,80 +12,74 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-
 """
 Profiler decorator
 """
 
 import logging
-
 from qiskit.aqua._logging import add_qiskit_aqua_logging_level
 
 logger = logging.getLogger(__name__)
-add_qiskit_aqua_logging_level('MPROFILE', logging.DEBUG - 6)
-logging.getLogger(__name__).setLevel("MPROFILE")
 
-add_qiskit_aqua_logging_level('CPROFILE', logging.MPROFILE - 1)
-logging.getLogger(__name__).setLevel("CPROFILE")
+# Add extra levels of logging for performance analysis
+add_qiskit_aqua_logging_level('MPROFILE', logging.DEBUG - 1)
+add_qiskit_aqua_logging_level('CPROFILE', logging.DEBUG - 2)
+add_qiskit_aqua_logging_level('LPROFILE', logging.DEBUG - 3)
+add_qiskit_aqua_logging_level('MEMPROFILE', logging.DEBUG - 4)
 
-add_qiskit_aqua_logging_level('MEMPROFILE', logging.MPROFILE - 2)
-logging.getLogger(__name__).setLevel("MEMPROFILE")
 
-if logger.getEffectiveLevel() >= logging.MPROFILE:
+class QProfile:
 
-    def qprofile(func):
-        def wrapper(*original_args, **original_kwargs):
-            qobj = func(*original_args, **original_kwargs)
-            if logger.getEffectiveLevel() >= logging.MPROFILE:
-                import sys
-                logger.debug(">>Tracing memory size : qobj is %s bytes", sys.getsizeof(qobj))
-            return qobj
-        return wrapper
-elif logger.getEffectiveLevel() >= logging.CPROFILE:
-    try:
-        from line_profiler import LineProfiler
+    def __init__(self, function):
+        self.function = function
 
-        def qprofile(func):
-            def wrapper(*original_args, **original_kwargs):
+    def __call__(self, *args, **kwargs):
+        if logger.getEffectiveLevel() == logging.MPROFILE:
+            import sys
+            result = self.function(*args, **kwargs)
+
+            logger.debug(">>Tracing memory size : qobj is %s bytes",
+                         sys.getsizeof(result))
+            return result
+
+        elif logger.getEffectiveLevel() == logging.CPROFILE:
+            import cProfile
+            profile = cProfile.Profile()
+            try:
+                profile.enable()
+                result = self.function(*args, **kwargs)
+                profile.disable()
+                return result
+            finally:
+                profile.print_stats()
+
+        elif logger.getEffectiveLevel() == logging.LPROFILE:
+            try:
+                from line_profiler import LineProfiler
                 try:
                     profiler = LineProfiler()
-                    profiler.add_function(func)
+                    profiler.add_function(self.function)
 
                     profiler.enable_by_count()
-                    return func(*original_args, **original_kwargs)
+                    result = self.function(*args, **kwargs)
+                    return result
                 finally:
                     profiler.print_stats()
-            return wrapper
-    except ImportError:
-        def qprofile(func):
-            """
-            Helpful if you accidentally leave in production!
-            """
-            def wrapper(*original_args, **original_kwargs):
-                return func(*original_args, **original_kwargs)
-            return wrapper
+            except ImportError:
+                return self.function(*args, **kwargs)
 
-elif logger.getEffectiveLevel() >= logging.MEMPROFILE:
-
-    try:
-        from memory_profiler import LineProfiler, show_results
-
-        def qprofile(func):
-
-            def wrapper(*original_args, **original_kwargs):
+        elif logger.getEffectiveLevel() == logging.MEMPROFILE:
+            try:
+                from memory_profiler import LineProfiler, show_results
                 try:
                     profiler = LineProfiler()
-                    profiler.add_function(func)
+                    profiler.add_function(self.function)
                     profiler.enable_by_count()
-                    return func(*original_args, **original_kwargs)
+                    result = self.function(*args, **kwargs)
+                    return result
                 finally:
                     show_results(profiler)
-            return wrapper
-    except ImportError:
-        def qprofile(func):
-            """
-            Helpful if you accidentally leave in production!
-            """
-            def wrapper(*original_args, **original_kwargs):
-                return func(*original_args, **original_kwargs)
-            return wrapper
+            except ImportError:
+                return self.function(*args, **kwargs)
+        else:
+            return self.function(*args, **kwargs)
