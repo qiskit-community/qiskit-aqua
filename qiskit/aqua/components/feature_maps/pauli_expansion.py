@@ -24,6 +24,7 @@ import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.quantum_info import Pauli
 from qiskit.qasm import pi
+from qiskit.circuit import Parameter
 
 from qiskit.aqua.operators import evolution_instruction
 from qiskit.aqua.components.feature_maps import FeatureMap, self_product
@@ -104,6 +105,8 @@ class PauliExpansion(FeatureMap):
 
         self._pauli_strings = self._build_subset_paulis_string(paulis)
         self._data_map_func = data_map_func
+        self._parameters = [Parameter('f{}'.format(i)) for i in range(self._feature_dimension)]
+        self._is_parameterized_circuit = True
 
     def _build_subset_paulis_string(self, paulis):
         # fill out the paulis to the number of qubits
@@ -137,6 +140,7 @@ class PauliExpansion(FeatureMap):
 
     def _extract_data_for_rotation(self, pauli, x):
         where_non_i = np.where(np.asarray(list(pauli[::-1])) != 'I')[0]
+        x = np.asarray(x)
         return x[where_non_i]
 
     def construct_circuit(self, x, qr=None, inverse=False):
@@ -155,11 +159,7 @@ class PauliExpansion(FeatureMap):
             TypeError: invalid input
             ValueError: invalid input
         """
-        if not isinstance(x, np.ndarray):
-            raise TypeError("x must be numpy array.")
-        if x.ndim != 1:
-            raise ValueError("x must be 1-D array.")
-        if x.shape[0] != self._num_qubits:
+        if len(x) != self._num_qubits:
             raise ValueError("number of qubits and data dimension must be the same.")
 
         if qr is None:
@@ -172,8 +172,7 @@ class PauliExpansion(FeatureMap):
             for pauli in self._pauli_strings:
                 coeff = self._data_map_func(self._extract_data_for_rotation(pauli, x))
                 p = Pauli.from_label(pauli)
-
-                inst = evolution_instruction([[coeff, p]], 1, 1)
+                inst = evolution_instruction([[1, p]], coeff, 1)
                 qc.append(inst, qr)
                 qc = qc.decompose()
         return qc

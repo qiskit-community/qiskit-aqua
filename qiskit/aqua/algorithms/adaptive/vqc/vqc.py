@@ -265,6 +265,7 @@ class VQC(VQAlgorithm):
         self._ret = {}
         self._feature_map = feature_map
         self._num_qubits = feature_map.num_qubits
+        self._parameterized_circuits = None
 
     @classmethod
     def init_params(cls, params, algo_input):
@@ -338,27 +339,40 @@ class VQC(VQAlgorithm):
             Union(numpy.ndarray or [numpy.ndarray], numpy.ndarray or [numpy.ndarray]):
                 list of NxK array, list of Nx1 array
         """
-        # if self._quantum_instance.is_statevector:
-        #     raise ValueError('Selected backend "{}" is not supported.'.format(
-        #         self._quantum_instance.backend_name))
-
-        circuits = {}
-        circuit_id = 0
+        circuits = []
 
         num_theta_sets = len(theta) // self._var_form.num_parameters
         theta_sets = np.split(theta, num_theta_sets)
 
+        def _build_parameterized_circuits():
+            if self._var_form.is_paramterized_circuit and \
+                    self._feature_map.is_paramterized_circuit and \
+                    self._parameterized_circuits is None:
+
+                parameterized_circuits = self.construct_circuit(
+                    self._feature_map.parameters, self._var_form.parameters,
+                    measurement=not self._quantum_instance.is_statevector)
+                self._parameterized_circuits = \
+                    self._quantum_instance.transpile(parameterized_circuits)[0]
+
+        _build_parameterized_circuits()
         for thet in theta_sets:
             for datum in data:
-                if self._quantum_instance.is_statevector:
-                    circuit = self.construct_circuit(datum, thet, measurement=False)
+                if self._var_form.is_paramterized_circuit and \
+                        self._feature_map.is_paramterized_circuit:
+                    curr_params = {p: datum[i] for i, p in enumerate(self._feature_map.parameters)}
+                    curr_params.update({p: thet[i] for i, p in
+                                        enumerate(self._var_form.parameters)})
+                    circuit = self._parameterized_circuits
+                    circuit = circuit.bind_parameters(curr_params)
                 else:
-                    circuit = self.construct_circuit(datum, thet, measurement=True)
+                    circuit = self.construct_circuit(
+                        datum, thet, measurement=not self._quantum_instance.is_statevector)
+                circuits.append(circuit)
 
-                circuits[circuit_id] = circuit
-                circuit_id += 1
-
-        results = self._quantum_instance.execute(list(circuits.values()))
+        results = self._quantum_instance.execute(
+            circuits, had_transpiled=self._var_form.is_paramterized_circuit and
+            self._feature_map.is_paramterized_circuit)
 
         circuit_id = 0
         predicted_probs = []
@@ -367,7 +381,7 @@ class VQC(VQAlgorithm):
             counts = []
             for _ in data:
                 if self._quantum_instance.is_statevector:
-                    temp = results.get_statevector(circuits[circuit_id])
+                    temp = results.get_statevector(circuit_id)
                     outcome_vector = (temp * temp.conj()).real
                     # convert outcome_vector to outcome_dict, where key
                     # is a basis state and value is the count.
@@ -379,7 +393,7 @@ class VQC(VQAlgorithm):
                         bitstr_i = format(i, '0' + str(bitstr_size) + 'b')
                         outcome_dict[bitstr_i] = outcome_vector[i]
                 else:
-                    outcome_dict = results.get_counts(circuits[circuit_id])
+                    outcome_dict = results.get_counts(circuit_id)
 
                 counts.append(outcome_dict)
                 circuit_id += 1

@@ -127,6 +127,7 @@ class VQE(VQAlgorithm):
                 self._aux_operators.append(aux_op)
         self._auto_conversion = auto_conversion
         logger.info(self.print_settings())
+        self._parameterized_circuits = None
 
     @classmethod
     def init_params(cls, params, algo_input):
@@ -369,21 +370,41 @@ class VQE(VQAlgorithm):
             Union(float, list[float]): energy of the hamiltonian of each parameter.
         """
         num_parameter_sets = len(parameters) // self._var_form.num_parameters
-        circuits = []
         parameter_sets = np.split(parameters, num_parameter_sets)
         mean_energy = []
         std_energy = []
 
-        for idx, _ in enumerate(parameter_sets):
-            parameter = parameter_sets[idx]
-            circuit = self.construct_circuit(
-                parameter,
-                statevector_mode=self._quantum_instance.is_statevector,
-                use_simulator_operator_mode=self._use_simulator_operator_mode,
-                circuit_name_prefix=str(idx))
-            circuits.append(circuit)
+        def _build_parameterized_circuits():
+            if self._var_form.is_paramterized_circuit and self._parameterized_circuits is None:
+                parameterized_circuits = self.construct_circuit(
+                    self._var_form.parameters,
+                    statevector_mode=self._quantum_instance.is_statevector,
+                    use_simulator_operator_mode=self._use_simulator_operator_mode)
 
-        to_be_simulated_circuits = functools.reduce(lambda x, y: x + y, circuits)
+                self._parameterized_circuits = \
+                    self._quantum_instance.transpile(parameterized_circuits)
+
+        _build_parameterized_circuits()
+        circuits = []
+        # binding parameters here since the circuits had been transpiled
+        if self._var_form.is_paramterized_circuit:
+            for idx, parameter in enumerate(parameter_sets):
+                curr_param = {p: parameter[i] for i, p in enumerate(self._var_form.parameters)}
+                for qc in self._parameterized_circuits:
+                    tmp = qc.bind_parameters(curr_param)
+                    tmp.name = str(idx) + tmp.name
+                    circuits.append(tmp)
+            to_be_simulated_circuits = circuits
+        else:
+            for idx, parameter in enumerate(parameter_sets):
+                circuit = self.construct_circuit(
+                    parameter,
+                    statevector_mode=self._quantum_instance.is_statevector,
+                    use_simulator_operator_mode=self._use_simulator_operator_mode,
+                    circuit_name_prefix=str(idx))
+                circuits.append(circuit)
+            to_be_simulated_circuits = functools.reduce(lambda x, y: x + y, circuits)
+
         if self._use_simulator_operator_mode:
             extra_args = {
                 'expectation':
@@ -394,7 +415,10 @@ class VQE(VQAlgorithm):
             }
         else:
             extra_args = {}
-        result = self._quantum_instance.execute(to_be_simulated_circuits, **extra_args)
+
+        result = self._quantum_instance.execute(to_be_simulated_circuits,
+                                                self._var_form.is_paramterized_circuit,
+                                                **extra_args)
 
         for idx, _ in enumerate(parameter_sets):
             mean, std = self._operator.evaluate_with_result(

@@ -22,6 +22,7 @@ import sys
 
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
+from qiskit.circuit import Parameter
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
 
@@ -168,6 +169,8 @@ class UCCSD(VariationalForm):
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
         self._logging_construct_circuit = True
+        self._parameters = [Parameter('x{}'.format(i)) for i in range(self._num_parameters)]
+        self._is_parameterized_circuit = True
 
     def _build_hopping_operators(self):
         if logger.isEnabledFor(logging.DEBUG):
@@ -223,7 +226,7 @@ class UCCSD(VariationalForm):
 
         Args:
             parameters (numpy.ndarray): circuit parameters
-            q (QuantumRegister): Quantum Register for the circuit.
+            q (QuantumRegister, optional): Quantum Register for the circuit.
 
         Returns:
             QuantumCircuit: a quantum circuit with given `parameters`
@@ -263,8 +266,11 @@ class UCCSD(VariationalForm):
     @staticmethod
     def _construct_circuit_for_one_excited_operator(qubit_op_and_param, qr, num_time_slices):
         qubit_op, param = qubit_op_and_param
-        qc = qubit_op.evolve(state_in=None, evo_time=param * -1j,
-                             num_time_slices=num_time_slices, quantum_registers=qr)
+        # need to put -1j in the coeff of pauli since the Parameter does not support complex number
+        qubit_op = qubit_op * -1j
+        qc = qubit_op.evolve(state_in=None, evo_time=param,
+                             num_time_slices=num_time_slices,
+                             quantum_registers=qr)
         return qc
 
     @property

@@ -15,10 +15,12 @@
 """Global X phases and parameterized problem hamiltonian."""
 
 from functools import reduce
-import numpy as np
 
+import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
+from qiskit.circuit import Parameter
 from qiskit.quantum_info import Pauli
+
 from qiskit.aqua.operators import WeightedPauliOperator, op_converter
 
 # pylint: disable=invalid-name
@@ -70,6 +72,7 @@ class QAOAVarForm:
                 raise TypeError('The mixer should be a qiskit.aqua.operators.WeightedPauliOperator '
                                 + 'object, found {} instead'.format(type(mixer_operator)))
             self._mixer_operator = mixer_operator
+        self.parameters = [Parameter('x{}'.format(i)) for i in range(self.num_parameters)]
 
     def construct_circuit(self, angles):
         """ construct circuit """
