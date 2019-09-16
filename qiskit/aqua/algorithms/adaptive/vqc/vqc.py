@@ -345,8 +345,8 @@ class VQC(VQAlgorithm):
         theta_sets = np.split(theta, num_theta_sets)
 
         def _build_parameterized_circuits():
-            if self._var_form.is_paramterized_circuit and \
-                    self._feature_map.is_paramterized_circuit and \
+            if self._var_form.is_parameterized_circuit and \
+                    self._feature_map.is_parameterized_circuit and \
                     self._parameterized_circuits is None:
 
                 parameterized_circuits = self.construct_circuit(

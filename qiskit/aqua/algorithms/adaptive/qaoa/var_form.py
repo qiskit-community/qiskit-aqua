@@ -73,6 +73,7 @@ class QAOAVarForm:
                                 + 'object, found {} instead'.format(type(mixer_operator)))
             self._mixer_operator = mixer_operator
         self.parameters = [Parameter('x{}'.format(i)) for i in range(self.num_parameters)]
+        self.is_parameterized_circuit = True
 
     def construct_circuit(self, angles):
         """ construct circuit """
