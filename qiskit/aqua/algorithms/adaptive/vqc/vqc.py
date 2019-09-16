@@ -358,8 +358,8 @@ class VQC(VQAlgorithm):
         _build_parameterized_circuits()
         for thet in theta_sets:
             for datum in data:
-                if self._var_form.is_paramterized_circuit and \
-                        self._feature_map.is_paramterized_circuit:
+                if self._var_form.is_parameterized_circuit and \
+                        self._feature_map.is_parameterized_circuit:
                     curr_params = {p: datum[i] for i, p in enumerate(self._feature_map.parameters)}
                     curr_params.update({p: thet[i] for i, p in
                                         enumerate(self._var_form.parameters)})
@@ -371,8 +371,8 @@ class VQC(VQAlgorithm):
                 circuits.append(circuit)
 
         results = self._quantum_instance.execute(
-            circuits, had_transpiled=self._var_form.is_paramterized_circuit and
-            self._feature_map.is_paramterized_circuit)
+            circuits, had_transpiled=self._var_form.is_parameterized_circuit and
+            self._feature_map.is_parameterized_circuit)
 
         circuit_id = 0
         predicted_probs = []

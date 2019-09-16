@@ -375,7 +375,7 @@ class VQE(VQAlgorithm):
         std_energy = []
 
         def _build_parameterized_circuits():
-            if self._var_form.is_paramterized_circuit and self._parameterized_circuits is None:
+            if self._var_form.is_parameterized_circuit and self._parameterized_circuits is None:
                 parameterized_circuits = self.construct_circuit(
                     self._var_form.parameters,
                     statevector_mode=self._quantum_instance.is_statevector,
@@ -387,7 +387,7 @@ class VQE(VQAlgorithm):
         _build_parameterized_circuits()
         circuits = []
         # binding parameters here since the circuits had been transpiled
-        if self._var_form.is_paramterized_circuit:
+        if self._var_form.is_parameterized_circuit:
             for idx, parameter in enumerate(parameter_sets):
                 curr_param = {p: parameter[i] for i, p in enumerate(self._var_form.parameters)}
                 for qc in self._parameterized_circuits:
@@ -417,7 +417,7 @@ class VQE(VQAlgorithm):
             extra_args = {}
 
         result = self._quantum_instance.execute(to_be_simulated_circuits,
-                                                self._var_form.is_paramterized_circuit,
+                                                self._var_form.is_parameterized_circuit,
                                                 **extra_args)
 
         for idx, _ in enumerate(parameter_sets):
