@@ -15,5 +15,7 @@
 """ Variational Forms packages """
 
 from .uccsd import UCCSD
+from .uccsd_adapt import UCCSDAdapt
 
-__all__ = ['UCCSD']
+__all__ = ['UCCSD',
+           'UCCSDAdapt']

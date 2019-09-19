@@ -26,7 +26,7 @@ from qiskit.chemistry.aqua_extensions.components.variational_forms import UCCSD
 logger = logging.getLogger(__name__)
 
 
-class UCC(UCCSD):
+class UCCSDAdapt(UCCSD):
     """
         This trial wavefunction is an adapted version of the Unitary Coupled-Cluster
         Single and Double excitations variational form.
