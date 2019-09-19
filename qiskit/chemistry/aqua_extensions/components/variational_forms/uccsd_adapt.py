@@ -32,8 +32,9 @@ class UCCSDAdapt(UCCSD):
         Single and Double excitations variational form.
         It is used by the Adaptive VQE algorithm.
 
-        Fur further details see: qiskit/chemistry/aqua_extensions/components/variational_forms/uccsd.py
-                             and qiskit/aqua/algorithms/adaptive/vqe_adapt/vqe_adapt.py
+        Fur further details see:
+            qiskit/chemistry/aqua_extensions/components/variational_forms/uccsd.py
+            and qiskit/aqua/algorithms/adaptive/vqe_adapt/vqe_adapt.py
     """
 
     def __init__(self, *args, **kwargs):
