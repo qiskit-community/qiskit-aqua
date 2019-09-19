@@ -462,10 +462,7 @@ class VQE(VQAlgorithm):
             qc.add_register(c)
             qc.barrier(q)
             qc.measure(q, c)
-            tmp_cache = self._quantum_instance.circuit_cache
-            self._quantum_instance._circuit_cache = None
             ret = self._quantum_instance.execute(qc)
-            self._quantum_instance._circuit_cache = tmp_cache
             self._ret['min_vector'] = ret.get_counts(qc)
         return self._ret['min_vector']
 

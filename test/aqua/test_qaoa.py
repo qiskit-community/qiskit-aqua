@@ -15,7 +15,6 @@
 """ Test QAOA """
 
 import unittest
-import os
 from test.aqua.common import QiskitAquaTestCase
 
 import numpy as np
@@ -65,7 +64,6 @@ class TestQAOA(QiskitAquaTestCase):
         """ QAOA test """
         seed = 0
         aqua_globals.random_seed = seed
-        os.environ.pop('QISKIT_AQUA_CIRCUIT_CACHE', None)
         self.log.debug('Testing %s-step QAOA with MaxCut on graph\n%s', prob, w)
 
         backend = BasicAer.get_backend('statevector_simulator')
@@ -73,9 +71,7 @@ class TestQAOA(QiskitAquaTestCase):
         qubit_op, offset = max_cut.get_qubit_op(w)
 
         qaoa = QAOA(qubit_op, optimizer, prob, mixer=m)
-        # TODO: cache fails for QAOA since we construct the evolution circuit via instruction
-        quantum_instance = QuantumInstance(backend, circuit_caching=False,
-                                           seed_simulator=seed, seed_transpiler=seed)
+        quantum_instance = QuantumInstance(backend, seed_simulator=seed, seed_transpiler=seed)
 
         result = qaoa.run(quantum_instance)
         x = sample_most_likely(result['eigvecs'][0])
@@ -86,8 +82,6 @@ class TestQAOA(QiskitAquaTestCase):
         self.log.debug('solution:           %s', graph_solution)
         self.log.debug('solution objective: %s', max_cut.max_cut_value(x, w))
         self.assertIn(''.join([str(int(i)) for i in graph_solution]), solutions)
-        if quantum_instance.has_circuit_caching:
-            self.assertLess(quantum_instance._circuit_cache.misses, 3)
 
 
 if __name__ == '__main__':
