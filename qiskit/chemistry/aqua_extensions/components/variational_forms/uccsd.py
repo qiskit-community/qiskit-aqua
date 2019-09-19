@@ -172,6 +172,24 @@ class UCCSD(VariationalForm):
         self._parameters = [Parameter('x{}'.format(i)) for i in range(self._num_parameters)]
         self._is_parameterized_circuit = True
 
+    @property
+    def single_excitations(self):
+        """
+        Getter of single excitation list
+        Returns:
+            list[list[int]]: single excitation list
+        """
+        return self._single_excitations
+
+    @property
+    def double_excitations(self):
+        """
+        Getter of double excitation list
+        Returns:
+            list[list[int]]: double excitation list
+        """
+        return self._double_excitations
+
     def _build_hopping_operators(self):
         if logger.isEnabledFor(logging.DEBUG):
             TextProgressBar(sys.stderr)
@@ -182,7 +200,20 @@ class UCCSD(VariationalForm):
                                           self._num_particles, self._qubit_mapping,
                                           self._two_qubit_reduction, self._z2_symmetries),
                                num_processes=aqua_globals.num_processes)
-        hopping_ops = [qubit_op for qubit_op in results if qubit_op is not None]
+        hopping_ops = []
+        s_e_list = []
+        d_e_list = []
+        for op, index in results:
+            if op is not None and not op.is_empty():
+                hopping_ops.append(op)
+                if len(index) == 2:  # for double excitation
+                    s_e_list.append(index)
+                else:  # for double excitation
+                    d_e_list.append(index)
+
+        self._single_excitations = s_e_list
+        self._double_excitations = d_e_list
+
         num_parameters = len(hopping_ops) * self._depth
         return hopping_ops, num_parameters
 
@@ -218,7 +249,7 @@ class UCCSD(VariationalForm):
         if qubit_op is None:
             logger.debug('Excitation (%s) is skipped since it is not commuted '
                          'with symmetries', ','.join([str(x) for x in index]))
-        return qubit_op
+        return qubit_op, index
 
     def construct_circuit(self, parameters, q=None):
         """
