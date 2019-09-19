@@ -21,15 +21,15 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 Changed
 -----
 
--   `VQE` and `VQC` now use parameterized circuits to save transpilation time.
+-   `VQE` and `VQC` now use parameterized circuits if it is available to save transpilation time.
 
 Added
 -----
 
 -   Ability to create a `CustomCircuitOracle` object with a callback for `evaluate_classically`,
     which a `Grover` object will now check for, upon initialization, on its provided oracle.
--   Add `Parameter` in `VariationalForm`, `FeatureMap` and `evolution_instruction` to allow generate 
-    parameterized circuit/instruction.
+-   Add `Parameter` to `VariationalForm`, `FeatureMap` and `evolution_instruction` to allow 
+    generate parameterized circuit/instruction; hence, algorithm can save time in compilation.
 
 Fixed
 -------
@@ -60,7 +60,7 @@ Added
       shell support
 -   Chemistry: UHF open-shell support
     - Supported for all drivers: Gaussian16, PyQuante, PySCF and PSI4
-    - QMolecule extended to include integrals, coeffiecients etc for separate beta   
+    - QMolecule extended to include integrals, coefficients etc for separate beta   
 -   Chemistry: QMolecule extended with integrals in atomic orbital basis to facilitate common access
     to these for experimentation
     - Supported for all drivers: Gaussian16, PyQuante, PySCF and PSI4
