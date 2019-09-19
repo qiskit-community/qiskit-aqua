@@ -18,16 +18,28 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 [UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.0...HEAD)
 ========================================================================
 
+Changed
+-----
+
+-   `VQE` and `VQC` now use parameterized circuits to save transpilation time.
+
 Added
 -----
 
 -   Ability to create a `CustomCircuitOracle` object with a callback for `evaluate_classically`,
     which a `Grover` object will now check for, upon initialization, on its provided oracle.
+-   Add `Parameter` in `VariationalForm`, `FeatureMap` and `evolution_instruction` to allow generate 
+    parameterized circuit/instruction.
 
 Fixed
 -------
 
 -   A bug where `UCCSD` might generate an empty operator and try to evolve it. (#680)
+
+Removed
+-------
+
+-   The `CircuitCache` class is removed, use parameterized circuits as an alternative.
 
 [0.6.0](https://github.com/Qiskit/qiskit-aqua/compare/0.5.5...0.6.0) - 2019-08-22
 =================================================================================
