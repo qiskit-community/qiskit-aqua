@@ -145,6 +145,7 @@ class VQEAdapt(VQAlgorithm):
         alternating_sequence = False
         prev_op_indices = []
         theta = []
+        max_grad = ()
         iteration = 0
         while not threshold_satisfied and not alternating_sequence:
             iteration += 1
@@ -185,6 +186,14 @@ class VQEAdapt(VQAlgorithm):
             theta = self._ret['opt_params'].tolist()
             logger.info('  --> Energy = %s', str(self._ret['energy']))
         logger.info('The final energy is: %s', str(self._ret['energy']))
+        self._ret['num_iterations'] = iteration
+        self._ret['final_max_grad'] = max_grad[0]
+        if threshold_satisfied:
+            self._ret['finishing_criterion'] = 'threshold_converged'
+        elif alternating_sequence:
+            self._ret['finishing_criterion'] = 'aborted_due_to_cyclicity'
+        else:
+            raise AquaError('The algorithm finished due to an unforeseen reason!')
         return self._ret
 
     def get_optimal_cost(self):
