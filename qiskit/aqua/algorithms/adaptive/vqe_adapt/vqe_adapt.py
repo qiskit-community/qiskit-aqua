@@ -140,7 +140,7 @@ class VQEAdapt(VQAlgorithm):
         iteration = 0
         while not threshold_satisfied:
             iteration += 1
-            print('--- Iteration #' + str(iteration) + ' ---')
+            logger.info('--- Iteration #%s ---', str(iteration))
             # compute gradients
             cur_grads = self._compute_gradients(self._excitation_pool, theta, self._delta,
                                                 self._var_form_base, self._operator,
@@ -151,21 +151,21 @@ class VQEAdapt(VQAlgorithm):
                 cur_grads_red = [g for g in cur_grads if g[1] != prev_max[1]]
                 max_grad = max(cur_grads_red, key=lambda item: np.abs(item[0]))
             if prev_prev_max != () and prev_prev_max[1] == max_grad[1]:
-                print("Alternating sequence found. Finishing.")
-                print("Final maximum gradient: " + str(np.abs(max_grad[0])))
+                logger.info("Alternating sequence found. Finishing.")
+                logger.info("Final maximum gradient: %s", str(np.abs(max_grad[0])))
                 threshold_satisfied = True
                 break
             prev_prev_max = prev_max
             prev_max = max_grad
-            print('Gradients:')
+            logger.info('Gradients:')
             for i in range(len(cur_grads)):
                 string = str(i) + ': ' + str(cur_grads[i][1]) + ': ' + str(cur_grads[i][0])
                 if cur_grads[i][1] == max_grad[1]:
                     string += '\t(*)'
-                print(string)
+                logger.info(string)
             if np.abs(max_grad[0]) < self._threshold:
-                print("Adaptive VQE terminated succesfully with a final maximum gradient: "
-                      + str(np.abs(max_grad[0])))
+                logger.info("Adaptive VQE terminated succesfully with a final maximum gradient: %s",
+                            str(np.abs(max_grad[0])))
                 threshold_satisfied = True
                 break
             # add new excitation to self._var_form_base
@@ -176,8 +176,8 @@ class VQEAdapt(VQAlgorithm):
                             initial_point=theta)
             self._ret = algorithm.run(self._quantum_instance)
             theta = self._ret['opt_params'].tolist()
-            print('  --> Energy = ' + str(self._ret['energy']))
-        print('The final energy is: ' + str(self._ret['energy']))
+            logger.info('  --> Energy = %s', str(self._ret['energy']))
+        logger.info('The final energy is: %s', str(self._ret['energy']))
         return self._ret
 
     def get_optimal_cost(self):
