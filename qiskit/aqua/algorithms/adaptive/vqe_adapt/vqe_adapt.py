@@ -22,10 +22,12 @@ import logging
 
 import numpy as np
 
+from qiskit import ClassicalRegister
+from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms.adaptive.vq_algorithm import VQAlgorithm
 from qiskit.aqua.algorithms.adaptive.vqe.vqe import VQE
 from qiskit.chemistry.aqua_extensions.components.variational_forms import UCCSDAdapt
-from qiskit.aqua.operators import (TPBGroupedWeightedPauliOperator, WeightedPauliOperator)
+from qiskit.aqua.operators import TPBGroupedWeightedPauliOperator, WeightedPauliOperator
 from qiskit.aqua.utils.backend_utils import is_aer_statevector_backend
 
 logger = logging.getLogger(__name__)
@@ -179,13 +181,42 @@ class VQEAdapt(VQAlgorithm):
         return self._ret
 
     def get_optimal_cost(self):
-        pass
+        if 'opt_params' not in self._ret:
+            raise AquaError("Cannot return optimal cost before running the "
+                            "algorithm to find optimal params.")
+        return self._ret['min_val']
 
     def get_optimal_circuit(self):
-        pass
+        if 'opt_params' not in self._ret:
+            raise AquaError("Cannot find optimal circuit before running the "
+                            "algorithm to find optimal params.")
+        return self._var_form_base.construct_circuit(self._ret['opt_params'])
 
     def get_optimal_vector(self):
-        pass
+        from qiskit.aqua.utils.run_circuits import find_regs_by_name
 
+        if 'opt_params' not in self._ret:
+            raise AquaError("Cannot find optimal vector before running the "
+                            "algorithm to find optimal params.")
+        qc = self.get_optimal_circuit()
+        if self._quantum_instance.is_statevector:
+            ret = self._quantum_instance.execute(qc)
+            self._ret['min_vector'] = ret.get_statevector(qc)
+        else:
+            c = ClassicalRegister(qc.width(), name='c')
+            q = find_regs_by_name(qc, 'q')
+            qc.add_register(c)
+            qc.barrier(q)
+            qc.measure(q, c)
+            tmp_cache = self._quantum_instance.circuit_cache
+            self._quantum_instance._circuit_cache = None
+            ret = self._quantum_instance.execute(qc)
+            self._quantum_instance._circuit_cache = tmp_cache
+            self._ret['min_vector'] = ret.get_counts(qc)
+        return self._ret['min_vector']
+
+    @property
     def optimal_params(self):
-        pass
+        if 'opt_params' not in self._ret:
+            raise AquaError("Cannot find optimal params before running the algorithm.")
+        return self._ret['opt_params']
