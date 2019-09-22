@@ -19,9 +19,8 @@ See https://arxiv.org/abs/1812.11173
 """
 
 import logging
-
-import numpy as np
 import re
+import numpy as np
 
 from qiskit import ClassicalRegister
 from qiskit.aqua import AquaError
@@ -154,16 +153,17 @@ class VQEAdapt(VQAlgorithm):
             cur_grads = self._compute_gradients(self._excitation_pool, theta, self._delta,
                                                 self._var_form_base, self._operator,
                                                 self._optimizer)
-            # pick maximum gradients and choose that excitation
+            # pick maximum gradient
             max_grad_index, max_grad = max(enumerate(cur_grads),
                                            key=lambda item: np.abs(item[1][0]))
+            # store maximum gradient's index for cyclicity detection
             prev_op_indices.append(max_grad_index)
             # log gradients
             gradlog = "\nGradients in iteration #{}".format(str(iteration))
             gradlog += "\nID: Excitation Operator: Gradient  <(*) maximum>"
-            for i in range(len(cur_grads)):
-                gradlog += '\n{}: {}: {}'.format(str(i), str(cur_grads[i][1]), str(cur_grads[i][0]))
-                if cur_grads[i][1] == max_grad[1]:
+            for i, grad in enumerate(cur_grads):
+                gradlog += '\n{}: {}: {}'.format(str(i), str(grad[1]), str(grad[0]))
+                if grad[1] == max_grad[1]:
                     gradlog += '\t(*)'
             logger.info(gradlog)
             if np.abs(max_grad[0]) < self._threshold:
@@ -185,6 +185,7 @@ class VQEAdapt(VQAlgorithm):
                             initial_point=theta)
             self._ret = algorithm.run(self._quantum_instance)
             theta = self._ret['opt_params'].tolist()
+        # extend VQE returned information with additional outputs
         logger.info('The final energy is: %s', str(self._ret['energy']))
         self._ret['num_iterations'] = iteration
         self._ret['final_max_grad'] = max_grad[0]
