@@ -159,12 +159,13 @@ class VQEAdapt(VQAlgorithm):
                                            key=lambda item: np.abs(item[1][0]))
             prev_op_indices.append(max_grad_index)
             # log gradients
-            logger.info('Gradients:')
+            gradlog = "\nGradients in iteration #{}".format(str(iteration))
+            gradlog += "\nID: Excitation Operator: Gradient  <(*) maximum>"
             for i in range(len(cur_grads)):
-                string = str(i) + ': ' + str(cur_grads[i][1]) + ': ' + str(cur_grads[i][0])
+                gradlog += '\n{}: {}: {}'.format(str(i), str(cur_grads[i][1]), str(cur_grads[i][0]))
                 if cur_grads[i][1] == max_grad[1]:
-                    string += '\t(*)'
-                logger.info(string)
+                    gradlog += '\t(*)'
+            logger.info(gradlog)
             if np.abs(max_grad[0]) < self._threshold:
                 logger.info("Adaptive VQE terminated succesfully with a final maximum gradient: %s",
                             str(np.abs(max_grad[0])))
@@ -184,7 +185,6 @@ class VQEAdapt(VQAlgorithm):
                             initial_point=theta)
             self._ret = algorithm.run(self._quantum_instance)
             theta = self._ret['opt_params'].tolist()
-            logger.info('  --> Energy = %s', str(self._ret['energy']))
         logger.info('The final energy is: %s', str(self._ret['energy']))
         self._ret['num_iterations'] = iteration
         self._ret['final_max_grad'] = max_grad[0]
