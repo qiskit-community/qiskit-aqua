@@ -21,6 +21,7 @@ See https://arxiv.org/abs/1812.11173
 import logging
 
 import numpy as np
+import re
 
 from qiskit import ClassicalRegister
 from qiskit.aqua import AquaError
@@ -133,9 +134,15 @@ class VQEAdapt(VQAlgorithm):
             and isinstance(self._operator, (WeightedPauliOperator, TPBGroupedWeightedPauliOperator))
         self._quantum_instance.circuit_summary = True
 
+        cycle_regex = re.compile(r'(.+)( \1)+')
+        # regex explanation:
+        # 1. (.+) will match at least one number and try to match as many as possible
+        # 2. the match of this part is placed into capture group 1
+        # 3. ( \1)+ will amtch a space followed by the contents of capture group 1
+        # -> this results in any number of repeating numbers being detected
+
         threshold_satisfied = False
-        prev_max = ()
-        prev_prev_max = ()
+        prev_op_indices = []
         theta = []
         iteration = 0
         while not threshold_satisfied:
@@ -146,17 +153,15 @@ class VQEAdapt(VQAlgorithm):
                                                 self._var_form_base, self._operator,
                                                 self._optimizer)
             # pick maximum gradients and choose that excitation
-            max_grad = max(cur_grads, key=lambda item: np.abs(item[0]))
-            if prev_max != () and prev_max[1] == max_grad[1]:
-                cur_grads_red = [g for g in cur_grads if g[1] != prev_max[1]]
-                max_grad = max(cur_grads_red, key=lambda item: np.abs(item[0]))
-            if prev_prev_max != () and prev_prev_max[1] == max_grad[1]:
+            max_grad_index, max_grad = max(enumerate(cur_grads),
+                                           key=lambda item: np.abs(item[1][0]))
+            prev_op_indices.append(max_grad_index)
+            # check indices of picked gradients for cycles
+            if cycle_regex.search(' '.join(map(str, prev_op_indices))) is not None:
                 logger.info("Alternating sequence found. Finishing.")
                 logger.info("Final maximum gradient: %s", str(np.abs(max_grad[0])))
                 threshold_satisfied = True
                 break
-            prev_prev_max = prev_max
-            prev_max = max_grad
             logger.info('Gradients:')
             for i in range(len(cur_grads)):
                 string = str(i) + ': ' + str(cur_grads[i][1]) + ': ' + str(cur_grads[i][0])
