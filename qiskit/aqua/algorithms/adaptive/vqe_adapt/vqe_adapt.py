@@ -142,10 +142,11 @@ class VQEAdapt(VQAlgorithm):
         # -> this results in any number of repeating numbers being detected
 
         threshold_satisfied = False
+        alternating_sequence = False
         prev_op_indices = []
         theta = []
         iteration = 0
-        while not threshold_satisfied:
+        while not threshold_satisfied and not alternating_sequence:
             iteration += 1
             logger.info('--- Iteration #%s ---', str(iteration))
             # compute gradients
@@ -156,12 +157,7 @@ class VQEAdapt(VQAlgorithm):
             max_grad_index, max_grad = max(enumerate(cur_grads),
                                            key=lambda item: np.abs(item[1][0]))
             prev_op_indices.append(max_grad_index)
-            # check indices of picked gradients for cycles
-            if cycle_regex.search(' '.join(map(str, prev_op_indices))) is not None:
-                logger.info("Alternating sequence found. Finishing.")
-                logger.info("Final maximum gradient: %s", str(np.abs(max_grad[0])))
-                threshold_satisfied = True
-                break
+            # log gradients
             logger.info('Gradients:')
             for i in range(len(cur_grads)):
                 string = str(i) + ': ' + str(cur_grads[i][1]) + ': ' + str(cur_grads[i][0])
@@ -172,6 +168,12 @@ class VQEAdapt(VQAlgorithm):
                 logger.info("Adaptive VQE terminated succesfully with a final maximum gradient: %s",
                             str(np.abs(max_grad[0])))
                 threshold_satisfied = True
+                break
+            # check indices of picked gradients for cycles
+            if cycle_regex.search(' '.join(map(str, prev_op_indices))) is not None:
+                logger.info("Alternating sequence found. Finishing.")
+                logger.info("Final maximum gradient: %s", str(np.abs(max_grad[0])))
+                alternating_sequence = True
                 break
             # add new excitation to self._var_form_base
             self._var_form_base._append_hopping_operator(max_grad[1])
