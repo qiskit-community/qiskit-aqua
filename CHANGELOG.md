@@ -20,7 +20,9 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 
 Added
 -----
-
+-   Option to make the Quantum Fourier Transform "semiclassical" when it directly precedes
+    measurement. This then automatically creates the measurement registers, and reduces the
+    effects of noise due to classical control replacing quantum control two-qubit gates.
 -   Ability to create a `CustomCircuitOracle` object with a callback for `evaluate_classically`,
     which a `Grover` object will now check for, upon initialization, on its provided oracle.
 

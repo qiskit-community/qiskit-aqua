@@ -39,6 +39,7 @@ class FourierTransformCircuits:
             circuit=None,
             qubits=None,
             inverse=False,
+            precedes_measurement=False,
             approximation_degree=0,
             do_swaps=True
     ):
@@ -51,6 +52,10 @@ class FourierTransformCircuits:
                 the circuit with.
             approximation_degree (int): degree of approximation for the desired circuit
             inverse (bool): Boolean flag to indicate Inverse Quantum Fourier Transform
+            precedes_measurement (bool): Boolean flag to indicate circuit directly precedes measurement.
+                Semiclassical Fourier Transform is applied, reducing noise effects by replacing quantum
+                control gates with measurement and classical control. Subsequent measurement circuit
+                can be removed, as it is included herein (as well as creation of classical reg for meas.).
             do_swaps (bool): Boolean flag to specify if swaps should be included to align
                 the qubit order of
                 input and output. The output qubits would be in reversed order without the swaps.
@@ -86,6 +91,18 @@ class FourierTransformCircuits:
             FourierTransformCircuits._do_swaps(circuit, qubits)
 
         qubit_range = reversed(range(len(qubits))) if inverse else range(len(qubits))
+
+        if precedes_measurement and not do_swaps and not inverse and approximation_degree=0:
+            for j in qubit_range:
+                circuit.add_register(ClassicalRegister(1))
+                neighbor_range = range(np.max([0, j - len(qubits) + 1]), len(qubits) - j - 1)
+                circuit.h(j)
+                circuit.measure(j, j)
+                for k in neighbor_range:
+                    lam = 1.0 * np.pi / float(2 ** (k + 1))
+                    circuit.u1(lam, j + (k + 1)).c_if(circuit.cregs[j], 1)
+            return circuit
+
         for j in qubit_range:
             neighbor_range = range(np.max([0, j - len(qubits) + approximation_degree + 1]), j)
             if inverse:
