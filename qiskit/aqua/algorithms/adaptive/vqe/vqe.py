@@ -23,6 +23,7 @@ import functools
 
 import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit
+from qiskit.circuit import ParameterVector
 
 from qiskit.aqua.algorithms.adaptive.vq_algorithm import VQAlgorithm
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
@@ -127,6 +128,8 @@ class VQE(VQAlgorithm):
                 self._aux_operators.append(aux_op)
         self._auto_conversion = auto_conversion
         logger.info(self.print_settings())
+        self._var_form_params = ParameterVector('θ', self._var_form.num_parameters)
+
         self._parameterized_circuits = None
 
     @classmethod
@@ -377,7 +380,7 @@ class VQE(VQAlgorithm):
         def _build_parameterized_circuits():
             if self._var_form.is_parameterized_circuit and self._parameterized_circuits is None:
                 parameterized_circuits = self.construct_circuit(
-                    self._var_form.parameters,
+                    self._var_form_params,
                     statevector_mode=self._quantum_instance.is_statevector,
                     use_simulator_operator_mode=self._use_simulator_operator_mode)
 
@@ -389,7 +392,7 @@ class VQE(VQAlgorithm):
         # binding parameters here since the circuits had been transpiled
         if self._var_form.is_parameterized_circuit:
             for idx, parameter in enumerate(parameter_sets):
-                curr_param = {p: parameter[i] for i, p in enumerate(self._var_form.parameters)}
+                curr_param = {self._var_form_params: parameter}
                 for qc in self._parameterized_circuits:
                     tmp = qc.bind_parameters(curr_param)
                     tmp.name = str(idx) + tmp.name
@@ -417,7 +420,7 @@ class VQE(VQAlgorithm):
             extra_args = {}
 
         result = self._quantum_instance.execute(to_be_simulated_circuits,
-                                                self._var_form.is_parameterized_circuit,
+                                                self._parameterized_circuits is not None,
                                                 **extra_args)
 
         for idx, _ in enumerate(parameter_sets):

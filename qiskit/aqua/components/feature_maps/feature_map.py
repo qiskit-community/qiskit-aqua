@@ -80,12 +80,6 @@ class FeatureMap(Pluggable):
     def num_qubits(self):
         """ returns number of qubits """
         return self._num_qubits
-
-    @property
-    def parameters(self):
-        """ returns Parameters """
-        return self._parameters
-
     @property
     def is_parameterized_circuit(self):
         """ returns whether or not the sub-class support parameterized circuit """

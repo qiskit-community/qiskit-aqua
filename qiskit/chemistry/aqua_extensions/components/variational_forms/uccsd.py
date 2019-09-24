@@ -22,7 +22,6 @@ import sys
 
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
-from qiskit.circuit import Parameter
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
 
@@ -169,8 +168,6 @@ class UCCSD(VariationalForm):
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
         self._logging_construct_circuit = True
-        self._parameters = [Parameter('x{}'.format(i)) for i in range(self._num_parameters)]
-        self._is_parameterized_circuit = True
 
     @property
     def single_excitations(self):
@@ -256,7 +253,7 @@ class UCCSD(VariationalForm):
         Construct the variational form, given its parameters.
 
         Args:
-            parameters (numpy.ndarray): circuit parameters
+            parameters (Union(numpy.ndarray, list[Parameter], ParameterVector)): circuit parameters
             q (QuantumRegister, optional): Quantum Register for the circuit.
 
         Returns:

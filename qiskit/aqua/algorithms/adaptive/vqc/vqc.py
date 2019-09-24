@@ -20,6 +20,8 @@ import numpy as np
 
 from sklearn.utils import shuffle
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
+from qiskit.circuit import ParameterVector
+
 from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class, AquaError
 from qiskit.aqua.utils import get_feature_dimension
 from qiskit.aqua.utils import map_label_to_class_name
@@ -265,6 +267,8 @@ class VQC(VQAlgorithm):
         self._ret = {}
         self._feature_map = feature_map
         self._num_qubits = feature_map.num_qubits
+        self._var_form_params = ParameterVector('θ', self._var_form.num_parameters)
+        self._feature_map_params = ParameterVector('x', self._feature_map.feature_dimension)
         self._parameterized_circuits = None
 
     @classmethod
@@ -350,7 +354,7 @@ class VQC(VQAlgorithm):
                     self._parameterized_circuits is None:
 
                 parameterized_circuits = self.construct_circuit(
-                    self._feature_map.parameters, self._var_form.parameters,
+                    self._feature_map_params, self._var_form_params,
                     measurement=not self._quantum_instance.is_statevector)
                 self._parameterized_circuits = \
                     self._quantum_instance.transpile(parameterized_circuits)[0]
@@ -360,19 +364,16 @@ class VQC(VQAlgorithm):
             for datum in data:
                 if self._var_form.is_parameterized_circuit and \
                         self._feature_map.is_parameterized_circuit:
-                    curr_params = {p: datum[i] for i, p in enumerate(self._feature_map.parameters)}
-                    curr_params.update({p: thet[i] for i, p in
-                                        enumerate(self._var_form.parameters)})
-                    circuit = self._parameterized_circuits
-                    circuit = circuit.bind_parameters(curr_params)
+                    curr_params = {self._feature_map_params: datum,
+                                   self._var_form_params: thet}
+                    circuit = self._parameterized_circuits.bind_parameters(curr_params)
                 else:
                     circuit = self.construct_circuit(
                         datum, thet, measurement=not self._quantum_instance.is_statevector)
                 circuits.append(circuit)
 
         results = self._quantum_instance.execute(
-            circuits, had_transpiled=self._var_form.is_parameterized_circuit and
-            self._feature_map.is_parameterized_circuit)
+            circuits, had_transpiled=self._parameterized_circuits is not None)
 
         circuit_id = 0
         predicted_probs = []

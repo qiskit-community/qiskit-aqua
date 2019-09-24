@@ -105,7 +105,6 @@ class PauliExpansion(FeatureMap):
 
         self._pauli_strings = self._build_subset_paulis_string(paulis)
         self._data_map_func = data_map_func
-        self._parameters = [Parameter('f{}'.format(i)) for i in range(self._feature_dimension)]
         self._is_parameterized_circuit = True
 
     def _build_subset_paulis_string(self, paulis):
