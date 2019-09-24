@@ -68,6 +68,7 @@ class Custom(InitialState):
         Raises:
             AquaError: invalid input
         """
+        # pylint: disable=comparison-with-callable
         loc = locals().copy()
         # since state_vector is a numpy array of complex numbers which aren't json valid,
         # remove it from validation

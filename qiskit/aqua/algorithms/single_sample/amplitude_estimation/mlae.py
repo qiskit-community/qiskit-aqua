@@ -153,6 +153,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationBase):
                                   self.q_factory.required_ancillas())
 
         q_aux = None
+        # pylint: disable=comparison-with-callable
         if num_ancillas > 0:
             q_aux = QuantumRegister(num_ancillas, 'aux')
             qc_a.add_register(q_aux)
