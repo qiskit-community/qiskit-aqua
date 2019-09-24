@@ -170,6 +170,15 @@ class LongDivision(Reciprocal):
                 """controlled inverse subtraction to uncompute the registers(when
                 the result of the subtraction is negative)"""
 
+                # TODO - Remove this method when Terra fixes the QuantumCircuit
+                # mirror method
+                def mirror(qc):
+                    reverse_circ = qc.copy(name=qc.name + '_mirror')
+                    reverse_circ._data = []
+                    for inst, qargs, cargs in reversed(qc.data):
+                        reverse_circ.append(inst.mirror(), qargs, cargs)
+                    return reverse_circ
+
                 for i in range(n):
                     qc2.cx(r, a[i])
                 u_maj(qc2, c[0], a[0], b[n-2], r)
@@ -189,7 +198,9 @@ class LongDivision(Reciprocal):
                 for i in range(n):
                     qc2.cx(r, a[i])
 
-                un_qc = qc2.mirror()
+                # TODO - When Terra fixes the QuantumCircuit
+                # mirror method, this should be un_qc = qc2.mirror()
+                un_qc = mirror(qc2)
                 un_qc.cx(r, z[0])
                 return un_qc
 

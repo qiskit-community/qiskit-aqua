@@ -272,7 +272,23 @@ class QMolecule:
 
         with h5py.File(file, "w") as file:
             def create_dataset(group, name, value):
-                group.create_dataset(name, data=(value if value is not None else False))
+                def is_float(v):
+                    if v is None:
+                        return False
+                    if isinstance(v, float):
+                        return True
+                    if isinstance(v, list):
+                        v = numpy.array(v)
+
+                    try:
+                        return numpy.issubdtype(v.dtype, numpy.floating)
+                    except Exception:  # pylint: disable=broad-except
+                        return False
+
+                if is_float(value):
+                    group.create_dataset(name, data=value, dtype="float64")
+                else:
+                    group.create_dataset(name, data=(value if value is not None else False))
 
             file.create_dataset("version", data=(self.QMOLECULE_VERSION,))
 
