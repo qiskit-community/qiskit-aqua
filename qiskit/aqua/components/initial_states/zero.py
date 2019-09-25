@@ -12,8 +12,10 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from qiskit import QuantumRegister, QuantumCircuit
+"""A zero (null/vacuum) state."""
+
 import numpy as np
+from qiskit import QuantumRegister, QuantumCircuit
 
 from qiskit.aqua import AquaError
 from qiskit.aqua.components.initial_states import InitialState
@@ -26,7 +28,7 @@ class Zero(InitialState):
         'name': 'ZERO',
         'description': 'Zero initial state',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'zero_state_schema',
             'type': 'object',
             'properties': {

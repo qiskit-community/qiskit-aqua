@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" tensor product """
+
 import numpy as np
 
 
@@ -30,13 +32,13 @@ def tensorproduct(*args):
     Returns:
             np.ndarray: the tensor product
     """
-    M = 1
-    for j in range(len(args)):
+    m_l = 1
+    for j, _ in enumerate(args):
         if isinstance(args[j], tuple):
             m = args[j][0] if isinstance(args[j][0], np.ndarray) else np.asarray(args[j][0])
-            for k in range(args[j][1]):
-                M = np.kron(M, m)
+            for _ in range(args[j][1]):
+                m_l = np.kron(m_l, m)
         else:
             m = args[j] if isinstance(args[j], np.ndarray) else np.asarray(args[j])
-            M = np.kron(M, m)
-    return M
+            m_l = np.kron(m_l, m)
+    return m_l

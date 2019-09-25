@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" uncertainty models packages """
+
 from .uncertainty_model import UncertaintyModel
 from .univariate_distribution import UnivariateDistribution
 from .multivariate_distribution import MultivariateDistribution

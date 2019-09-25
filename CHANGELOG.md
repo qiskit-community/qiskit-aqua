@@ -15,17 +15,31 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 > -   **Fixed**: for any bug fixes.
 > -   **Security**: in case of vulnerabilities.
 
-[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.5.5...HEAD)
+[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.0...HEAD)
 ========================================================================
 
 Added
 -----
 
+-   Ability to create a `CustomCircuitOracle` object with a callback for `evaluate_classically`,
+    which a `Grover` object will now check for, upon initialization, on its provided oracle.
+
+Fixed
+-------
+
+-   A bug where `UCCSD` might generate an empty operator and try to evolve it. (#680)
+
+[0.6.0](https://github.com/Qiskit/qiskit-aqua/compare/0.5.5...0.6.0) - 2019-08-22
+=================================================================================
+
+Added
+-----
+
 -   Relative-Phase Toffoli gates `rccx` (with 2 controls) and `rcccx`
-    (with 3 controls).
--   Variational form `RYCRX` 
--   A new `'basic-no-ancilla'` mode to `mct`.
--   Multi-controlled rotation gates `mcrx`, `mcry`, and `mcrz` as a general 
+    (with 3 controls). (#517)
+-   Variational form `RYCRX` (#560)
+-   A new `'basic-no-ancilla'` mode to `mct`. (#473)
+-   Multi-controlled rotation gates `mcrx`, `mcry`, and `mcrz` as a general
     `u3` gate is not supported by graycode implementation
 -   Chemistry: ROHF open-shell support
     - Supported for all drivers: Gaussian16, PyQuante, PySCF and PSI4
@@ -41,35 +55,41 @@ Added
 -   Chemistry: Additional PyQuante and PySCF driver configuration
     - Convergence tolerance and max convergence iteration controls.
     - For PySCF initial guess choice   
--   Chemistry: Processing output added to debug log from PyQuante and PySCF computations (Gaussian16 
+-   Chemistry: Processing output added to debug log from PyQuante and PySCF computations (Gaussian16
     and PSI4 outputs were already added to debug log)
--   Chemistry: Merged qiskit-chemistry to this repo. The old chemistry changelog is at 
+-   Chemistry: Merged qiskit-chemistry to this repo. The old chemistry changelog is at
     [OLD_CHEMISTRY_CHANGELOG.md](OLD_CHEMISTRY_CHANGELOG.md)
 -   Add `MatrixOperator`, `WeightedPauliOperator` and `TPBGroupedPauliOperator` class. (#593)
 -   Add `evolution_instruction` function to get registerless instruction of time evolution. (#593)
 -   Add `op_converter` module to unified the place in charge of converting different types of operators. (#593)
 -   Add `Z2Symmetries` class to encapsulate the Z2 symmetries info and has helper methods for tapering an
     Operator. (#593).
+-   Amplitude Estimation: added maximum likelihood postprocessing and confidence interval computation.
+-   Maximum Likelihood Amplitude Estimation (MLAE): Implemented new algorithm for amplitude estimation based on
+    maximum likelihood estimation, which reduces number of required qubits and circuit depth. (#642)
+-   Added (piecewise) linearly and polynomially controlled Pauli-rotation circuits. (#642)  
+-   Add `q_equation_of_motion` to study excited state of a molecule, and add two algorithms to prepare the reference
+    state. (#655)     
 
 Changed
 -------
 
 -   Improve `mct`'s `'basic'` mode by using relative-phase Toffoli gates to build intermediate results.
--   Adapt to Qiskit Terra's newly introduced `Qubit` class.
--   Prevent `QPE/IQPE` from modifying input `Operator`s.
--   The PyEDA dependency was removed; 
-    corresponding oracles' underlying logic operations are now handled by SymPy.
--   Refactor the `Operator` class, each representation has its own class `MatrixOperator`, 
+-   Adapt to Qiskit Terra's newly introduced `Qubit` class. (#536)
+-   Prevent `QPE/IQPE` from modifying input `Operator`s. (#531)
+-   The PyEDA dependency was removed;
+    corresponding oracles' underlying logic operations are now handled by SymPy. (#586)
+-   Refactor the `Operator` class, each representation has its own class `MatrixOperator`,
     `WeightedPauliOperator` and `TPBGroupedPauliOperator`. (#593)
--   The `power` in `evolution_instruction` was applied on the theta on the CRZ gate directly, 
+-   The `power` in `evolution_instruction` was applied on the theta on the CRZ gate directly,
     the new version repeats the circuits to implement power. (#593)
--   CircuitCache is OFF by default, and it can be set via environment variable now 
+-   CircuitCache is OFF by default, and it can be set via environment variable now
     `QISKIT_AQUA_CIRCUIT_CACHE`. (#630)
 
 Fixed
 -------
 
--   A bug where `TruthTableOracle` would build incorrect circuits for truth tables with only a single `1` value. 
+-   A bug where `TruthTableOracle` would build incorrect circuits for truth tables with only a single `1` value.
 -   A bug caused by `PyEDA`'s indeterminism.
 -   A bug with `QPE/IQPE`'s translation and stretch computation.
 -   Chemistry: Bravyi-Kitaev mapping fixed when num qubits was not a power of 2
@@ -78,13 +98,13 @@ Fixed
 Removed
 -------
 
--   General multi-controlled rotation gate `mcu3` is removed and replaced by 
-    multi-controlled rotation gates `mcrx`, `mcry`, and `mcrz` 
+-   General multi-controlled rotation gate `mcu3` is removed and replaced by
+    multi-controlled rotation gates `mcrx`, `mcry`, and `mcrz`
 
 Deprecated
 ----------
 
--   The `Operator` class is deprecated, in favor of using `MatrixOperator`, 
+-   The `Operator` class is deprecated, in favor of using `MatrixOperator`,
     `WeightedPauliOperator` and `TPBGroupedPauliOperator`. (#593)
 
 [0.5.5](https://github.com/Qiskit/qiskit-aqua/compare/0.5.4...0.5.5) - 2019-07-26
@@ -102,7 +122,7 @@ Fixed
 -----
 
 -   Fix the bug about manipulating the right operand and rebuild diagonal matrix every time. (#622)
- 
+
 [0.5.3](https://github.com/Qiskit/qiskit-aqua/compare/0.5.2...0.5.3) - 2019-07-16
 =================================================================================
 
@@ -434,7 +454,7 @@ Changed
 -------
 
 -   Changed short and long descriptions in setup.py.
-                                                      
+
 [0.1.0](https://github.com/Qiskit/qiskit-aqua/compare/7e913ef...0.1.0) - 2018-06-13
 ================================
 

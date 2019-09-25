@@ -16,9 +16,9 @@ Multiple-Control U3 gate. Not using ancillary qubits.
 """
 
 import logging
-
-from sympy.combinatorics.graycode import GrayCode
 from math import pi
+from sympy.combinatorics.graycode import GrayCode
+
 from qiskit.circuit import QuantumCircuit, QuantumRegister, Qubit
 
 from qiskit.aqua.utils.controlled_circuit import apply_cu3
@@ -76,13 +76,16 @@ def mcrx(self, theta, q_controls, q_target, use_basis_gates=False):
     Args:
         self (QuantumCircuit): The QuantumCircuit object to apply the mcrx gate on.
         theta (float): angle theta
-        control_qubits (list of Qubit): The list of control qubits
-        target_qubit (Qubit): The target qubit
+        q_controls (list[Qubit]): The list of control qubits
+        q_target (Qubit): The target qubit
+        use_basis_gates (bool): use basis gates
+    Raises:
+        AquaError: invalid input
     """
 
     # check controls
     if isinstance(q_controls, QuantumRegister):
-        control_qubits = [qb for qb in q_controls]
+        control_qubits = list(q_controls)
     elif isinstance(q_controls, list):
         control_qubits = q_controls
     else:
@@ -118,15 +121,19 @@ def mcry(self, theta, q_controls, q_target, q_ancillae, mode='basic',
     Args:
         self (QuantumCircuit): The QuantumCircuit object to apply the mcry gate on.
         theta (float): angle theta
-        control_qubits (list of Qubit): The list of control qubits
-        target_qubit (Qubit): The target qubit
-        q_ancillae (QuantumRegister | tuple(QuantumRegister, int)): The list of ancillary qubits.
-        mode (string): The implementation mode to use
+        q_controls (list[Qubit]): The list of control qubits
+        q_target (Qubit): The target qubit
+        q_ancillae (Union(QuantumRegister,tuple(QuantumRegister, int))):
+                The list of ancillary qubits.
+        mode (str): The implementation mode to use
+        use_basis_gates (bool): use basis gates
+    Raises:
+        AquaError: invalid input
     """
 
     # check controls
     if isinstance(q_controls, QuantumRegister):
-        control_qubits = [qb for qb in q_controls]
+        control_qubits = list(q_controls)
     elif isinstance(q_controls, list):
         control_qubits = q_controls
     else:
@@ -142,11 +149,12 @@ def mcry(self, theta, q_controls, q_target, q_ancillae, mode='basic',
     if q_ancillae is None:
         ancillary_qubits = []
     elif isinstance(q_ancillae, QuantumRegister):
-        ancillary_qubits = [qb for qb in q_ancillae]
+        ancillary_qubits = list(q_ancillae)
     elif isinstance(q_ancillae, list):
         ancillary_qubits = q_ancillae
     else:
-        raise AquaError('The mcry gate needs None or a list of qubits or a quantum register for ancilla.')
+        raise AquaError('The mcry gate needs None or a list '
+                        'of qubits or a quantum register for ancilla.')
 
     all_qubits = control_qubits + [target_qubit] + ancillary_qubits
 
@@ -177,14 +185,17 @@ def mcrz(self, lam, q_controls, q_target, use_basis_gates=False):
 
     Args:
         self (QuantumCircuit): The QuantumCircuit object to apply the mcrz gate on.
-        phi (float): angle phi
-        control_qubits (list of Qubit): The list of control qubits
-        target_qubit (Qubit): The target qubit
+        lam (float): angle lam
+        q_controls (list[Qubit]): The list of control qubits
+        q_target (Qubit): The target qubit
+        use_basis_gates (bool): use basis gates
+    Raises:
+        AquaError: invalid input
     """
 
     # check controls
     if isinstance(q_controls, QuantumRegister):
-        control_qubits = [qb for qb in q_controls]
+        control_qubits = list(q_controls)
     elif isinstance(q_controls, list):
         control_qubits = q_controls
     else:

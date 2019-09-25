@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" feature map packages """
+
 from .feature_map import FeatureMap
 from .data_mapping import self_product
 from .pauli_expansion import PauliExpansion

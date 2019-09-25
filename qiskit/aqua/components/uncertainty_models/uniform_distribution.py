@@ -28,7 +28,7 @@ class UniformDistribution(UnivariateDistribution):
         'name': 'UniformDistribution',
         'description': 'Uniform Distribution',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'UniformDistribution_schema',
             'type': 'object',
             'properties': {
@@ -54,8 +54,10 @@ class UniformDistribution(UnivariateDistribution):
         Univariate uniform distribution
         Args:
             num_target_qubits (int): number of qubits it acts on
-            low (float): lower bound, i.e., the value corresponding to |0...0> (assuming an equidistant grid)
-            high (float): upper bound, i.e., the value corresponding to |1...1> (assuming an equidistant grid)
+            low (float): lower bound, i.e., the value corresponding \
+                        to |0...0> (assuming an equidistant grid)
+            high (float): upper bound, i.e., the value corresponding \
+                        to |1...1> (assuming an equidistant grid)
         """
         probabilities = np.ones(2**num_target_qubits)/2**num_target_qubits
         super().__init__(num_target_qubits, probabilities, low, high)

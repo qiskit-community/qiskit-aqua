@@ -16,11 +16,14 @@
 
 import json
 from test.aqua.common import QiskitAquaTestCase
+
 import numpy as np
 from qiskit import BasicAer
+
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.translators.ising import exact_cover
+from qiskit.aqua.translators.ising.common import sample_most_likely
 from qiskit.aqua.algorithms import ExactEigensolver
 
 
@@ -32,7 +35,7 @@ class TestExactCover(QiskitAquaTestCase):
         input_file = self._get_resource_path('sample.exactcover')
         with open(input_file) as file:
             self.list_of_subsets = json.load(file)
-            qubit_op, _ = exact_cover.get_exact_cover_qubitops(self.list_of_subsets)
+            qubit_op, _ = exact_cover.get_qubit_op(self.list_of_subsets)
             self.algo_input = EnergyInput(qubit_op)
 
     def _brute_force(self):
@@ -60,7 +63,7 @@ class TestExactCover(QiskitAquaTestCase):
             'algorithm': {'name': 'ExactEigensolver'}
         }
         result = run_algorithm(params, self.algo_input)
-        x = exact_cover.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
+        x = sample_most_likely(result['eigvecs'][0])
         ising_sol = exact_cover.get_solution(x)
         np.testing.assert_array_equal(ising_sol, [0, 1, 1, 0])
         oracle = self._brute_force()
@@ -71,7 +74,7 @@ class TestExactCover(QiskitAquaTestCase):
         """ Exact Cover Direct test """
         algo = ExactEigensolver(self.algo_input.qubit_op, k=1, aux_operators=[])
         result = algo.run()
-        x = exact_cover.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
+        x = sample_most_likely(result['eigvecs'][0])
         ising_sol = exact_cover.get_solution(x)
         np.testing.assert_array_equal(ising_sol, [0, 1, 1, 0])
         oracle = self._brute_force()
@@ -82,7 +85,6 @@ class TestExactCover(QiskitAquaTestCase):
         """ Exact Cover VQE test """
         algorithm_cfg = {
             'name': 'VQE',
-            'operator_mode': 'matrix',
             'max_evals_grouped': 2
         }
 
@@ -103,7 +105,7 @@ class TestExactCover(QiskitAquaTestCase):
         }
         backend = BasicAer.get_backend('statevector_simulator')
         result = run_algorithm(params, self.algo_input, backend=backend)
-        x = exact_cover.sample_most_likely(len(self.list_of_subsets), result['eigvecs'][0])
+        x = sample_most_likely(result['eigvecs'][0])
         ising_sol = exact_cover.get_solution(x)
         oracle = self._brute_force()
         self.assertEqual(exact_cover.check_solution_satisfiability(ising_sol, self.list_of_subsets),

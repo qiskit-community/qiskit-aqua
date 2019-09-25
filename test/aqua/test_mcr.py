@@ -18,11 +18,12 @@ import unittest
 from test.aqua.common import QiskitAquaTestCase
 from itertools import combinations, chain, product
 from math import pi
+
 from parameterized import parameterized
 import numpy as np
-from qiskit import QuantumCircuit, QuantumRegister
-from qiskit import execute
-from qiskit import BasicAer
+
+from qiskit import QuantumCircuit, QuantumRegister, execute, BasicAer
+from qiskit.aqua import aqua_globals
 
 NUM_CONTROLS = [[i + 1] for i in range(6)]
 NUM_CONTROLS_BASIC = [[i + 1] for i in range(4)]
@@ -31,6 +32,10 @@ USE_BASIS_GATES_VALS = [True, False]
 
 class TestMCR(QiskitAquaTestCase):
     """ Test MCR """
+    def setUp(self):
+        super().setUp()
+        aqua_globals.random_seed = 10598
+
     @parameterized.expand(
         product(NUM_CONTROLS, USE_BASIS_GATES_VALS)
     )
@@ -43,7 +48,7 @@ class TestMCR(QiskitAquaTestCase):
                                   ni in range(num_controls + 1)]))
         for subset in allsubsets:
             control_int = 0
-            theta = np.random.random(1)[0] * pi
+            theta = aqua_globals.random.random_sample(1)[0] * pi
             qc = QuantumCircuit(q_o, c)
             for idx in subset:
                 control_int += 2**idx
@@ -77,7 +82,7 @@ class TestMCR(QiskitAquaTestCase):
                                   ni in range(num_controls + 1)]))
         for subset in allsubsets:
             control_int = 0
-            theta = np.random.random(1)[0] * pi
+            theta = aqua_globals.random.random_sample(1)[0] * pi
             qc = QuantumCircuit(q_o, c)
             for idx in subset:
                 control_int += 2**idx
@@ -114,7 +119,7 @@ class TestMCR(QiskitAquaTestCase):
                                   ni in range(num_controls + 1)]))
         for subset in allsubsets:
             control_int = 0
-            theta = np.random.random(1)[0] * pi
+            theta = aqua_globals.random.random_sample(1)[0] * pi
             qc = QuantumCircuit(q_o, c)
             if num_ancillae > 0:
                 q_a = QuantumRegister(num_ancillae, name='a')
@@ -154,7 +159,7 @@ class TestMCR(QiskitAquaTestCase):
                                   ni in range(num_controls + 1)]))
         for subset in allsubsets:
             control_int = 0
-            lam = np.random.random(1)[0] * pi
+            lam = aqua_globals.random.random_sample(1)[0] * pi
             qc = QuantumCircuit(q_o, c)
             for idx in subset:
                 control_int += 2**idx

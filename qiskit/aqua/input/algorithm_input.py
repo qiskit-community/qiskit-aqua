@@ -12,29 +12,34 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from qiskit.aqua import Pluggable
-from abc import abstractmethod
+""" Algorithm Input """
+
 import copy
+from abc import abstractmethod
+from qiskit.aqua import Pluggable
 from qiskit.aqua import AquaError
 
 
 class AlgorithmInput(Pluggable):
-
+    """ Algorithm Input """
     _PROBLEM_SET = ['energy', 'excited_states', 'eoh', 'classification', 'ising', 'linear_system',
                     'distribution_learning_loading']
 
     @abstractmethod
     def __init__(self):
         super().__init__()
-        if 'problems' not in self.configuration or len(self.configuration['problems']) <= 0:
+        if 'problems' not in self.configuration or not self.configuration['problems']:
             raise AquaError('Algorithm Input missing or empty configuration problems')
 
         for problem in self.configuration['problems']:
             if problem not in AlgorithmInput._PROBLEM_SET:
-                raise AquaError('Problem {} not in known problem set {}'.format(problem, AlgorithmInput._PROBLEM_SET))
+                raise AquaError(
+                    'Problem {} not in known problem set {}'.format(problem,
+                                                                    AlgorithmInput._PROBLEM_SET))
 
     @property
     def all_problems(self):
+        """ returns all problems """
         return copy.deepcopy(self._PROBLEM_SET)
 
     @property
@@ -60,6 +65,6 @@ class AlgorithmInput(Pluggable):
         Load the dictionary into the algorithminput class fields. This dictionary being that as
         created by to_params()
         Args:
-            params: A dictionary as originally created by to_params()
+            params (dict): A dictionary as originally created by to_params()
         """
         raise NotImplementedError()
