@@ -83,5 +83,6 @@ setuptools.setup(
     python_requires=">=3.5",
     extras_require={
         'torch': ["torch; sys_platform != 'win32'"],
-    }
+    },
+    zip_safe=False
 )

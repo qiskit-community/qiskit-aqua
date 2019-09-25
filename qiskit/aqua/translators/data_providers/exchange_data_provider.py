@@ -149,7 +149,7 @@ class ExchangeDataProvider(BaseDataProvider):
         methods in the base class.
         """
         self.check_provider_valid()
-        import quandl
+        import quandl  # pylint: disable=import-outside-toplevel
         self._data = []
         quandl.ApiConfig.api_key = self._token
         quandl.ApiConfig.api_version = '2015-04-09'

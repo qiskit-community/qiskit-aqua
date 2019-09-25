@@ -169,6 +169,24 @@ class UCCSD(VariationalForm):
 
         self._logging_construct_circuit = True
 
+    @property
+    def single_excitations(self):
+        """
+        Getter of single excitation list
+        Returns:
+            list[list[int]]: single excitation list
+        """
+        return self._single_excitations
+
+    @property
+    def double_excitations(self):
+        """
+        Getter of double excitation list
+        Returns:
+            list[list[int]]: double excitation list
+        """
+        return self._double_excitations
+
     def _build_hopping_operators(self):
         if logger.isEnabledFor(logging.DEBUG):
             TextProgressBar(sys.stderr)
@@ -179,7 +197,20 @@ class UCCSD(VariationalForm):
                                           self._num_particles, self._qubit_mapping,
                                           self._two_qubit_reduction, self._z2_symmetries),
                                num_processes=aqua_globals.num_processes)
-        hopping_ops = [qubit_op for qubit_op in results if qubit_op is not None]
+        hopping_ops = []
+        s_e_list = []
+        d_e_list = []
+        for op, index in results:
+            if op is not None and not op.is_empty():
+                hopping_ops.append(op)
+                if len(index) == 2:  # for double excitation
+                    s_e_list.append(index)
+                else:  # for double excitation
+                    d_e_list.append(index)
+
+        self._single_excitations = s_e_list
+        self._double_excitations = d_e_list
+
         num_parameters = len(hopping_ops) * self._depth
         return hopping_ops, num_parameters
 
@@ -215,7 +246,7 @@ class UCCSD(VariationalForm):
         if qubit_op is None:
             logger.debug('Excitation (%s) is skipped since it is not commuted '
                          'with symmetries', ','.join([str(x) for x in index]))
-        return qubit_op
+        return qubit_op, index
 
     def construct_circuit(self, parameters, q=None):
         """
@@ -343,8 +374,8 @@ class UCCSD(VariationalForm):
                     raise ValueError(
                         'Invalid index {} in active active_occ_list {}'.format(i, active_occ_list))
         else:
-            active_occ_list_alpha = [i for i in range(0, num_alpha)]
-            active_occ_list_beta = [i for i in range(0, num_beta)]
+            active_occ_list_alpha = list(range(0, num_alpha))
+            active_occ_list_beta = list(range(0, num_beta))
 
         if active_unocc_list is not None:
             active_unocc_list = [i + min(num_alpha, num_beta) if i >=
@@ -361,8 +392,8 @@ class UCCSD(VariationalForm):
                     raise ValueError('Invalid index {} in active active_unocc_list {}'
                                      .format(i, active_unocc_list))
         else:
-            active_unocc_list_alpha = [i for i in range(num_alpha, num_orbitals // 2)]
-            active_unocc_list_beta = [i for i in range(num_beta, num_orbitals // 2)]
+            active_unocc_list_alpha = list(range(num_alpha, num_orbitals // 2))
+            active_unocc_list_beta = list(range(num_beta, num_orbitals // 2))
 
         logger.debug('active_occ_list_alpha %s', active_occ_list_alpha)
         logger.debug('active_unocc_list_alpha %s', active_unocc_list_alpha)

@@ -114,7 +114,7 @@ class QPE(QuantumAlgorithm):
         """
         self.validate(locals())
         super().__init__()
-        self._operator = op_converter.to_weighted_pauli_operator(operator)
+        self._operator = op_converter.to_weighted_pauli_operator(operator.copy())
         self._num_ancillae = num_ancillae
         self._ret = {}
 
