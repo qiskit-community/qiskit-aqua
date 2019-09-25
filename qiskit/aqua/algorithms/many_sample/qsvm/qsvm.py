@@ -205,7 +205,7 @@ class QSVM(QuantumAlgorithm):
 
     @staticmethod
     def get_kernel_matrix(quantum_instance, feature_map, x1_vec, x2_vec=None,
-                          use_parameterized_circuits=False):
+                          use_parameterized_circuits=True):
         """
         Construct kernel matrix, if x2_vec is None, self-innerproduct is conducted.
 
@@ -255,17 +255,7 @@ class QSVM(QuantumAlgorithm):
             else:
                 to_be_computed_data = np.concatenate((x1_vec, x2_vec))
 
-            if not use_parameterized_circuits:
-                #  the second x is redundant
-                to_be_computed_data_pair = [(x, x) for x in to_be_computed_data]
-                if logger.isEnabledFor(logging.DEBUG):
-                    logger.debug("Building circuits:")
-                    TextProgressBar(sys.stderr)
-                circuits = parallel_map(QSVM._construct_circuit,
-                                        to_be_computed_data_pair,
-                                        task_args=(feature_map, measurement, is_statevector_sim),
-                                        num_processes=aqua_globals.num_processes)
-            else:
+            if use_parameterized_circuits:
                 # build parameterized circuits, it could be slower for building circuit
                 # but overall it should be faster since it only transpile one circuit
                 feature_map_params = ParameterVector('x', feature_map.feature_dimension)
@@ -275,6 +265,17 @@ class QSVM(QuantumAlgorithm):
                 parameterized_circuit = quantum_instance.transpile(parameterized_circuit)[0]
                 circuits = [parameterized_circuit.bind_parameters({feature_map_params: x})
                             for x in to_be_computed_data]
+            else:
+                #  the second x is redundant
+                to_be_computed_data_pair = [(x, x) for x in to_be_computed_data]
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug("Building circuits:")
+                    TextProgressBar(sys.stderr)
+                circuits = parallel_map(QSVM._construct_circuit,
+                                        to_be_computed_data_pair,
+                                        task_args=(feature_map, measurement, is_statevector_sim),
+                                        num_processes=aqua_globals.num_processes)
+
             results = quantum_instance.execute(circuits,
                                                had_transpiled=use_parameterized_circuits)
 
