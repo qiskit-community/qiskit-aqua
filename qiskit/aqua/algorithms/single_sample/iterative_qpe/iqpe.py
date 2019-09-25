@@ -110,7 +110,7 @@ class IQPE(QuantumAlgorithm):
         """
         self.validate(locals())
         super().__init__()
-        self._operator = op_converter.to_weighted_pauli_operator(operator)
+        self._operator = op_converter.to_weighted_pauli_operator(operator.copy())
         self._state_in = state_in
         self._num_time_slices = num_time_slices
         self._num_iterations = num_iterations
@@ -224,10 +224,10 @@ class IQPE(QuantumAlgorithm):
                                                    shallow_slicing=self._shallow_circuit_concat)
         if self._shallow_circuit_concat:
             qc_evolutions = QuantumCircuit(q, a)
-            qc_evolutions.append(qc_evolutions_inst, [x for x in q] + [a[0]])
+            qc_evolutions.append(qc_evolutions_inst, list(q) + [a[0]])
             qc.data += qc_evolutions.data
         else:
-            qc.append(qc_evolutions_inst, [x for x in q] + [a[0]])
+            qc.append(qc_evolutions_inst, list(q) + [a[0]])
         # global phase due to identity pauli
         qc.u1(2 * np.pi * self._ancilla_phase_coef * (2 ** (k - 1)), a[0])
         # rz on a[0]

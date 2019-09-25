@@ -299,6 +299,7 @@ class TestDocplex(QiskitAquaTestCase):
                               [1., -0., 1., -2.]])
 
         mdl = Model()
+        # pylint: disable=unsubscriptable-object
         n = laplacian.shape[0]
         bias = [0] * 4
         x = {i: mdl.binary_var(name='x_{0}'.format(i)) for i in range(n)}
