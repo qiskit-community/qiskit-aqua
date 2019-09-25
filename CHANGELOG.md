@@ -22,16 +22,16 @@ Changed
 -----
 
 -   `VQE`, `VQC` and `QSVM` now use parameterized circuits if it is available to save time 
-    in transpilation.
+    in transpilation. (#693)
 
 Added
 -----
 
 -   Ability to create a `CustomCircuitOracle` object with a callback for `evaluate_classically`,
-    which a `Grover` object will now check for, upon initialization, on its provided oracle.
+    which a `Grover` object will now check for, upon initialization, on its provided oracle.  (#681)
 -   `VariationalForm` and `FeatureMap` has a new property on `support_parameterized_circuit`, which 
     implies whether or not can be built with `Parameter` (or `ParameterVector`). Furthermore, 
-    the `evolution_instruction` method support `Parameter` as time parameter. 
+    the `evolution_instruction` method support `Parameter` as time parameter.  (#693) 
 
 Fixed
 -------
@@ -41,7 +41,7 @@ Fixed
 Removed
 -------
 
--   The `CircuitCache` class is removed, use parameterized circuits as an alternative.
+-   The `CircuitCache` class is removed, use parameterized circuits as an alternative. (#693)
 
 [0.6.0](https://github.com/Qiskit/qiskit-aqua/compare/0.5.5...0.6.0) - 2019-08-22
 =================================================================================
