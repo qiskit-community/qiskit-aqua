@@ -245,8 +245,7 @@ class TruthTableOracle(Oracle):
         if self._lit_to_var is None:
             self._lit_to_var = [None] + sorted(v, key=str)
         if self._var_to_lit is None:
-            self._var_to_lit = {v: l for v, l in zip(self._lit_to_var[1:],
-                                                     range(1, self._nbits + 1))}
+            self._var_to_lit = dict(zip(self._lit_to_var[1:], range(1, self._nbits + 1)))
 
         def binstr_to_vars(binstr):
             return [(~v[x[1] - 1] if x[0] == '0' else v[x[1] - 1])
