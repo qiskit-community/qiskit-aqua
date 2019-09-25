@@ -37,7 +37,6 @@ class FeatureMap(Pluggable):
         self._num_qubits = 0
         self._feature_dimension = 0
         self._support_parameterized_circuit = False
-        self._parameters = None
 
     @classmethod
     def init_params(cls, params):

@@ -294,7 +294,8 @@ class UCCSD(VariationalForm):
     @staticmethod
     def _construct_circuit_for_one_excited_operator(qubit_op_and_param, qr, num_time_slices):
         qubit_op, param = qubit_op_and_param
-        # need to put -1j in the coeff of pauli since the Parameter does not support complex number
+        # TODO: need to put -1j in the coeff of pauli since the Parameter
+        # does not support complex number, but it can be removed if Parameter supports complex
         qubit_op = qubit_op * -1j
         qc = qubit_op.evolve(state_in=None, evo_time=param,
                              num_time_slices=num_time_slices,

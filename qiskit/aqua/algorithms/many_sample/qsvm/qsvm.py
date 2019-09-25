@@ -71,7 +71,7 @@ class QSVM(QuantumAlgorithm):
     BATCH_SIZE = 1000
 
     def __init__(self, feature_map, training_dataset=None, test_dataset=None, datapoints=None,
-                 multiclass_extension=None, use_parameterized_circuits=True):
+                 multiclass_extension=None):
         """Constructor.
 
         Args:
@@ -81,8 +81,6 @@ class QSVM(QuantumAlgorithm):
             datapoints (numpy.ndarray, optional): prediction dataset.
             multiclass_extension (MultiExtension, optional): if number of classes > 2 then
                 a multiclass scheme is needed.
-            use_parameterized_circuits (bool): whether or not use parameterized circuits to avoid
-                for transpile circuits with identical circuit topology.
 
         Raises:
             AquaError: use binary classifer for classes > 3
@@ -120,11 +118,8 @@ class QSVM(QuantumAlgorithm):
             qsvm_instance = _QSVM_Multiclass(self, multiclass_extension)
 
         self.instance = qsvm_instance
-        if self.feature_map.support_parameterized_circuit:
-            self._use_parameterized_circuits = use_parameterized_circuits
-        else:
-            # overwrite it to false if feature map does not support parameterized circuit
-            self._use_parameterized_circuits = False
+        self._use_parameterized_circuits = True if self.feature_map.support_parameterized_circuit \
+            else False
 
     @classmethod
     def init_params(cls, params, algo_input):
