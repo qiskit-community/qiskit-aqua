@@ -196,7 +196,7 @@ class LookupRotation(Reciprocal):
                 pattern = list(pattern_ + appendpat).copy()
                 if '1' not in pattern and (not negative_evals):
                     continue
-                elif '1' not in pattern and negative_evals:
+                if '1' not in pattern and negative_evals:
                     e_l = 0.5
                 else:
                     vec[last_fo - n:last_fo] = list(pattern)
