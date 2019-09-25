@@ -24,7 +24,6 @@ import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.quantum_info import Pauli
 from qiskit.qasm import pi
-from qiskit.circuit import Parameter
 
 from qiskit.aqua.operators import evolution_instruction
 from qiskit.aqua.components.feature_maps import FeatureMap, self_product
@@ -105,7 +104,7 @@ class PauliExpansion(FeatureMap):
 
         self._pauli_strings = self._build_subset_paulis_string(paulis)
         self._data_map_func = data_map_func
-        self._is_parameterized_circuit = True
+        self._support_parameterized_circuit = True
 
     def _build_subset_paulis_string(self, paulis):
         # fill out the paulis to the number of qubits

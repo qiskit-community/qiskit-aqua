@@ -349,8 +349,8 @@ class VQC(VQAlgorithm):
         theta_sets = np.split(theta, num_theta_sets)
 
         def _build_parameterized_circuits():
-            if self._var_form.is_parameterized_circuit and \
-                    self._feature_map.is_parameterized_circuit and \
+            if self._var_form.support_parameterized_circuit and \
+                    self._feature_map.support_parameterized_circuit and \
                     self._parameterized_circuits is None:
 
                 parameterized_circuits = self.construct_circuit(
@@ -362,8 +362,9 @@ class VQC(VQAlgorithm):
         _build_parameterized_circuits()
         for thet in theta_sets:
             for datum in data:
-                if self._var_form.is_parameterized_circuit and \
-                        self._feature_map.is_parameterized_circuit:
+                if self._var_form.support_parameterized_circuit and \
+                        self._feature_map.support_parameterized_circuit and \
+                        self._parameterized_circuits is not None:
                     curr_params = {self._feature_map_params: datum,
                                    self._var_form_params: thet}
                     circuit = self._parameterized_circuits.bind_parameters(curr_params)

@@ -18,7 +18,6 @@ from functools import reduce
 
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
-from qiskit.circuit import Parameter
 from qiskit.quantum_info import Pauli
 
 from qiskit.aqua.operators import WeightedPauliOperator, op_converter
@@ -72,8 +71,7 @@ class QAOAVarForm:
                 raise TypeError('The mixer should be a qiskit.aqua.operators.WeightedPauliOperator '
                                 + 'object, found {} instead'.format(type(mixer_operator)))
             self._mixer_operator = mixer_operator
-        self.parameters = [Parameter('x{}'.format(i)) for i in range(self.num_parameters)]
-        self.is_parameterized_circuit = True
+        self.support_parameterized_circuit = True
 
     def construct_circuit(self, angles):
         """ construct circuit """
