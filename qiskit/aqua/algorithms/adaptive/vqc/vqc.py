@@ -611,6 +611,7 @@ class VQC(VQAlgorithm):
             _, predicted_labels = self.predict(self._datapoints)
             self._ret['predicted_classes'] = map_label_to_class_name(predicted_labels,
                                                                      self._label_to_class)
+        self.cleanup_parameterized_circuits()
         return self._ret
 
     def get_optimal_cost(self):

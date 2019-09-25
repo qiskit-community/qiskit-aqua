@@ -359,6 +359,8 @@ class VQE(VQAlgorithm):
         self._ret['eigvals'] = np.asarray([self.get_optimal_cost()])
         self._ret['eigvecs'] = np.asarray([self.get_optimal_vector()])
         self._eval_aux_ops()
+
+        self.cleanup_parameterized_circuits()
         return self._ret
 
     # This is the objective function to be passed to the optimizer that is uses for evaluation
