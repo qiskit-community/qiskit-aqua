@@ -145,4 +145,5 @@ class RandomDataProvider(BaseDataProvider):
             d_f = pd.DataFrame(
                 np.random.randn(length)).cumsum() + random.randint(1, 101)
             trimmed = np.maximum(d_f[0].values, np.zeros(len(d_f[0].values)))
+            # pylint: disable=no-member
             self._data.append(trimmed.tolist())
