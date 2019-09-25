@@ -12,11 +12,15 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" The Multivariate Variational Distribution. """
+
 import numpy as np
 
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.aqua import Pluggable, get_pluggable_class, PluggableType
 from .multivariate_distribution import MultivariateDistribution
+
+# pylint: disable=invalid-name
 
 
 class MultivariateVariationalDistribution(MultivariateDistribution):
@@ -27,7 +31,7 @@ class MultivariateVariationalDistribution(MultivariateDistribution):
         'name': 'MultivariateVariationalDistribution',
         'description': 'Multivariate Variational Distribution',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'MultivariateVariationalDistribution_schema',
             'type': 'object',
             'properties': {
@@ -90,12 +94,12 @@ class MultivariateVariationalDistribution(MultivariateDistribution):
         """
         Initialize via parameters dictionary.
         Args:
-            params: parameters dictionary
+            params (dict): parameters dictionary
         Returns:
-            An object instance of this class
+            MultivariateVariationalDistribution: An object instance of this class
         """
 
-        multi_var_params_params = params.get(Pluggable.SECTION_KEY_UNIVARIATE_DISTRIBUTION)
+        multi_var_params_params = params.get(Pluggable.SECTION_KEY_UNIVARIATE_DIST)
         num_qubits = multi_var_params_params.get('num_qubits')
         params = multi_var_params_params.get('params')
         low = multi_var_params_params.get('low')
@@ -107,7 +111,7 @@ class MultivariateVariationalDistribution(MultivariateDistribution):
 
         return cls(num_qubits, var_form, params, low, high)
 
-    def build(self, qc, q, q_ancillas=None):
+    def build(self, qc, q, q_ancillas=None, params=None):
         circuit_var_form = self._var_form.construct_circuit(self.params)
         qc.append(circuit_var_form.to_instruction(), q)
 
@@ -115,10 +119,7 @@ class MultivariateVariationalDistribution(MultivariateDistribution):
         """
         Set Probabilities
         Args:
-            quantum_instance: QuantumInstance
-
-        Returns:
-
+            quantum_instance (QuantumInstance): Quantum Instance
         """
         q_ = QuantumRegister(self._num_qubits, name='q')
         qc_ = QuantumCircuit(q_)
@@ -145,4 +146,3 @@ class MultivariateVariationalDistribution(MultivariateDistribution):
 
         probabilities = values
         self._probabilities = np.array(probabilities)
-        return

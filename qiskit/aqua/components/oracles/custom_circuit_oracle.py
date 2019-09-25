@@ -11,11 +11,12 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
 """
 The Custom Circuit-based Quantum Oracle.
 """
 
-from qiskit import QuantumCircuit, QuantumRegister
+from qiskit import QuantumCircuit, QuantumRegister  # pylint: disable=unused-import
 from qiskit.aqua import AquaError
 from .oracle import Oracle
 
@@ -25,15 +26,23 @@ class CustomCircuitOracle(Oracle):
     The helper class for creating oracles from user-supplied quantum circuits
     """
 
-    def __init__(self, variable_register=None, output_register=None, ancillary_register=None, circuit=None):
+    def __init__(self, variable_register=None, output_register=None,
+                 ancillary_register=None, circuit=None, evaluate_classically_callback=None):
         """
         Constructor.
 
         Args:
-            variable_register (QuantumRegister): The register holding variable qubit(s) for the oracle function
-            output_register (QuantumRegister): The register holding output qubit(s) for the oracle function
+            variable_register (QuantumRegister): The register holding variable qubit(s) for
+                    the oracle function
+            output_register (QuantumRegister): The register holding output qubit(s)
+                    for the oracle function
             ancillary_register (QuantumRegister): The register holding ancillary qubit(s)
-            circuit (QuantumCircuit): The quantum circuit corresponding to the intended oracle function
+            circuit (QuantumCircuit): The quantum circuit corresponding to the
+                    intended oracle function
+            evaluate_classically_callback (function): The classical callback function for
+                    evaluating the oracle, for example, to use with Grover's search
+        Raises:
+            AquaError: invalid input
         """
 
         super().__init__()
@@ -47,6 +56,8 @@ class CustomCircuitOracle(Oracle):
         self._output_register = output_register
         self._ancillary_register = ancillary_register
         self._circuit = circuit
+        if evaluate_classically_callback is not None:
+            self.evaluate_classically = evaluate_classically_callback
 
     @property
     def variable_register(self):
@@ -68,6 +79,6 @@ class CustomCircuitOracle(Oracle):
         """Construct the oracle circuit.
 
         Returns:
-            A quantum circuit for the oracle.
+            QuantumCircuit: A quantum circuit for the oracle.
         """
         return self._circuit

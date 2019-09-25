@@ -47,7 +47,7 @@ class BernoulliAFactory(UncertaintyProblem):
         self.i_state = 0
         self._theta_p = 2 * np.arcsin(np.sqrt(probability))
 
-    def build(self, qc, q, q_ancillas=None):
+    def build(self, qc, q, q_ancillas=None, params=None):
         # A is a rotation of angle theta_p around the Y-axis
         qc.ry(self._theta_p, q[self.i_state])
 
@@ -67,7 +67,7 @@ class BernoulliQFactory(QFactory):
     def __init__(self, bernoulli_expected_value):
         super().__init__(bernoulli_expected_value, i_objective=0)
 
-    def build(self, qc, q, q_ancillas=None):
+    def build(self, qc, q, q_ancillas=None, params=None):
         i_state = self.a_factory.i_state
         theta_p = self.a_factory._theta_p
         # Q is a rotation of angle 2*theta_p around the Y-axis
@@ -180,7 +180,7 @@ class TestEuropeanCallOption(QiskitAquaTestCase):
         # set the approximation scaling for the payoff function
         c_approx = 0.1
 
-        # setup piecewise linear objective fcuntion
+        # setup piecewise linear objective function
         breakpoints = [uncertainty_model.low, strike_price]
         slopes = [0, 1]
         offsets = [0, 0]
@@ -297,7 +297,7 @@ class TestFixedIncomeAssets(QiskitAquaTestCase):
         b = np.zeros(2)
 
         # specify the number of qubits that are used to represent
-        # the different dimenions of the uncertainty model
+        # the different dimensions of the uncertainty model
         num_qubits = [2, 2]
 
         # specify the lower and upper bounds for the different dimension

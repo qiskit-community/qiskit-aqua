@@ -17,9 +17,10 @@
 from test.aqua.common import QiskitAquaTestCase
 import numpy as np
 from qiskit import BasicAer
-from qiskit.aqua import run_algorithm
+from qiskit.aqua import run_algorithm, aqua_globals
 from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.translators.ising import graph_partition
+from qiskit.aqua.translators.ising.common import random_graph, sample_most_likely
 from qiskit.aqua.algorithms import ExactEigensolver
 
 
@@ -28,10 +29,10 @@ class TestGraphPartition(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
-        np.random.seed(100)
+        aqua_globals.random_seed = 100
         self.num_nodes = 4
-        self.w = graph_partition.random_graph(self.num_nodes, edge_prob=0.8, weight_range=10)
-        self.qubit_op, self.offset = graph_partition.get_graph_partition_qubitops(self.w)
+        self.w = random_graph(self.num_nodes, edge_prob=0.8, weight_range=10)
+        self.qubit_op, self.offset = graph_partition.get_qubit_op(self.w)
         self.algo_input = EnergyInput(self.qubit_op)
 
     def _brute_force(self):
@@ -62,7 +63,7 @@ class TestGraphPartition(QiskitAquaTestCase):
             'algorithm': {'name': 'ExactEigensolver'}
         }
         result = run_algorithm(params, self.algo_input)
-        x = graph_partition.sample_most_likely(result['eigvecs'][0])
+        x = sample_most_likely(result['eigvecs'][0])
         # check against the oracle
         ising_sol = graph_partition.get_graph_solution(x)
         np.testing.assert_array_equal(ising_sol, [0, 1, 0, 1])
@@ -73,7 +74,7 @@ class TestGraphPartition(QiskitAquaTestCase):
         """ Graph Partition Direct test """
         algo = ExactEigensolver(self.algo_input.qubit_op, k=1, aux_operators=[])
         result = algo.run()
-        x = graph_partition.sample_most_likely(result['eigvecs'][0])
+        x = sample_most_likely(result['eigvecs'][0])
         # check against the oracle
         ising_sol = graph_partition.get_graph_solution(x)
         np.testing.assert_array_equal(ising_sol, [0, 1, 0, 1])
@@ -84,7 +85,6 @@ class TestGraphPartition(QiskitAquaTestCase):
         """ Graph Partition VQE test """
         algorithm_cfg = {
             'name': 'VQE',
-            'operator_mode': 'matrix',
             'max_evals_grouped': 2
         }
 
@@ -107,7 +107,7 @@ class TestGraphPartition(QiskitAquaTestCase):
         }
         backend = BasicAer.get_backend('statevector_simulator')
         result = run_algorithm(params, self.algo_input, backend=backend)
-        x = graph_partition.sample_most_likely(result['eigvecs'][0])
+        x = sample_most_likely(result['eigvecs'][0])
         # check against the oracle
         ising_sol = graph_partition.get_graph_solution(x)
         np.testing.assert_array_equal(ising_sol, [0, 1, 0, 1])

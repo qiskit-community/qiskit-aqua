@@ -12,12 +12,13 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" gates packages """
+
 from .multi_control_u1_gate import mcu1
 from .multi_control_rotation_gates import mcrx, mcry, mcrz
 from .multi_control_toffoli_gate import mct
 from .multi_control_multi_target_gate import mcmt
 from .boolean_logical_gates import logical_and, logical_or
-from .controlled_hadamard_gate import ch
 from .controlled_ry_gate import cry
 from .relative_phase_toffoli import rccx, rcccx
 
@@ -30,7 +31,6 @@ __all__ = [
     'mcmt',
     'logical_and',
     'logical_or',
-    'ch',
     'cry',
     'rccx',
     'rcccx'
