@@ -118,8 +118,7 @@ class QSVM(QuantumAlgorithm):
             qsvm_instance = _QSVM_Multiclass(self, multiclass_extension)
 
         self.instance = qsvm_instance
-        self._use_parameterized_circuits = True if self.feature_map.support_parameterized_circuit \
-            else False
+        self._use_parameterized_circuits = bool(self.feature_map.support_parameterized_circuit)
 
     @classmethod
     def init_params(cls, params, algo_input):
