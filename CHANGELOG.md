@@ -21,15 +21,17 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 Changed
 -----
 
--   `VQE` and `VQC` now use parameterized circuits if it is available to save transpilation time.
+-   `VQE`, `VQC` and `QSVM` now use parameterized circuits if it is available to save time 
+    in transpilation.
 
 Added
 -----
 
 -   Ability to create a `CustomCircuitOracle` object with a callback for `evaluate_classically`,
     which a `Grover` object will now check for, upon initialization, on its provided oracle.
--   Add `Parameter` to `VariationalForm`, `FeatureMap` and `evolution_instruction` to allow 
-    generate parameterized circuit/instruction; hence, algorithm can save time in compilation.
+-   `VariationalForm` and `FeatureMap` has a new property on `support_parameterized_circuit`, which 
+    implies whether or not can be built with `Parameter` (or `ParameterVector`). Furthermore, 
+    the `evolution_instruction` method support `Parameter` as time parameter. 
 
 Fixed
 -------

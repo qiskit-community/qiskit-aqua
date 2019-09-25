@@ -146,7 +146,7 @@ class PauliExpansion(FeatureMap):
         Construct the second order expansion based on given data.
 
         Args:
-            x (numpy.ndarray): 1-D to-be-transformed data.
+            x (Union(numpy.ndarray, list[Parameter], ParameterVector)): 1-D to-be-transformed data.
             qr (QauntumRegister, optional): the QuantumRegister object for the circuit, if None,
                                   generate new registers with name q.
             inverse (bool, optional): whether or not inverse the circuit
