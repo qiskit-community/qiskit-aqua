@@ -377,8 +377,8 @@ class UCCSD(VariationalForm):
                     raise ValueError(
                         'Invalid index {} in active active_occ_list {}'.format(i, active_occ_list))
         else:
-            active_occ_list_alpha = [i for i in range(0, num_alpha)]
-            active_occ_list_beta = [i for i in range(0, num_beta)]
+            active_occ_list_alpha = list(range(0, num_alpha))
+            active_occ_list_beta = list(range(0, num_beta))
 
         if active_unocc_list is not None:
             active_unocc_list = [i + min(num_alpha, num_beta) if i >=
@@ -395,8 +395,8 @@ class UCCSD(VariationalForm):
                     raise ValueError('Invalid index {} in active active_unocc_list {}'
                                      .format(i, active_unocc_list))
         else:
-            active_unocc_list_alpha = [i for i in range(num_alpha, num_orbitals // 2)]
-            active_unocc_list_beta = [i for i in range(num_beta, num_orbitals // 2)]
+            active_unocc_list_alpha = list(range(num_alpha, num_orbitals // 2))
+            active_unocc_list_beta = list(range(num_beta, num_orbitals // 2))
 
         logger.debug('active_occ_list_alpha %s', active_occ_list_alpha)
         logger.debug('active_unocc_list_alpha %s', active_unocc_list_alpha)

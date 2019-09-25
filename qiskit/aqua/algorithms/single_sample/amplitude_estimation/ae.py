@@ -389,8 +389,8 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
         # construct a_items and y_items
         a_items = [(a, p) for (a, p) in a_probabilities.items() if p > 1e-6]
         y_items = [(y, p) for (y, p) in y_probabilities.items() if p > 1e-6]
-        a_items = [(a, p) for (a, p) in a_probabilities.items()]
-        y_items = [(y, p) for (y, p) in y_probabilities.items()]
+        a_items = list(a_probabilities.items())
+        y_items = list(y_probabilities.items())
         a_items = sorted(a_items)
         y_items = sorted(y_items)
         self._ret['a_items'] = a_items

@@ -85,7 +85,7 @@ def mcrx(self, theta, q_controls, q_target, use_basis_gates=False):
 
     # check controls
     if isinstance(q_controls, QuantumRegister):
-        control_qubits = [qb for qb in q_controls]
+        control_qubits = list(q_controls)
     elif isinstance(q_controls, list):
         control_qubits = q_controls
     else:
@@ -133,7 +133,7 @@ def mcry(self, theta, q_controls, q_target, q_ancillae, mode='basic',
 
     # check controls
     if isinstance(q_controls, QuantumRegister):
-        control_qubits = [qb for qb in q_controls]
+        control_qubits = list(q_controls)
     elif isinstance(q_controls, list):
         control_qubits = q_controls
     else:
@@ -149,7 +149,7 @@ def mcry(self, theta, q_controls, q_target, q_ancillae, mode='basic',
     if q_ancillae is None:
         ancillary_qubits = []
     elif isinstance(q_ancillae, QuantumRegister):
-        ancillary_qubits = [qb for qb in q_ancillae]
+        ancillary_qubits = list(q_ancillae)
     elif isinstance(q_ancillae, list):
         ancillary_qubits = q_ancillae
     else:
@@ -195,7 +195,7 @@ def mcrz(self, lam, q_controls, q_target, use_basis_gates=False):
 
     # check controls
     if isinstance(q_controls, QuantumRegister):
-        control_qubits = [qb for qb in q_controls]
+        control_qubits = list(q_controls)
     elif isinstance(q_controls, list):
         control_qubits = q_controls
     else:
