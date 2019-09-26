@@ -168,6 +168,7 @@ class UCCSD(VariationalForm):
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
         self._logging_construct_circuit = True
+        self._support_parameterized_circuit = True
 
     @property
     def single_excitations(self):
