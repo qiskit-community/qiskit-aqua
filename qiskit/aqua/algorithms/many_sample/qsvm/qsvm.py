@@ -118,7 +118,6 @@ class QSVM(QuantumAlgorithm):
             qsvm_instance = _QSVM_Multiclass(self, multiclass_extension)
 
         self.instance = qsvm_instance
-        self._use_parameterized_circuits = bool(self.feature_map.support_parameterized_circuit)
 
     @classmethod
     def init_params(cls, params, algo_input):
@@ -198,8 +197,7 @@ class QSVM(QuantumAlgorithm):
         return QSVM._construct_circuit((x1, x2), self.feature_map, measurement)
 
     @staticmethod
-    def get_kernel_matrix(quantum_instance, feature_map, x1_vec, x2_vec=None,
-                          use_parameterized_circuits=True):
+    def get_kernel_matrix(quantum_instance, feature_map, x1_vec, x2_vec=None):
         """
         Construct kernel matrix, if x2_vec is None, self-innerproduct is conducted.
 
@@ -218,11 +216,12 @@ class QSVM(QuantumAlgorithm):
                                     D is the feature dimension
             x2_vec (numpy.ndarray): data points, 2-D array, N2xD, where N2 is the number of data,
                                     D is the feature dimension
-            use_parameterized_circuits (bool): whether or not use parameterized circuits to avoid
-                for transpile circuits with identical circuit topology.
         Returns:
             numpy.ndarray: 2-D matrix, N1xN2
         """
+
+        use_parameterized_circuits = feature_map.support_parameterized_circuit
+
         if x2_vec is None:
             is_symmetric = True
             x2_vec = x1_vec
@@ -369,8 +368,7 @@ class QSVM(QuantumAlgorithm):
         if self._quantum_instance is None:
             raise AquaError("Either setup quantum instance or provide it in the parameter.")
 
-        return QSVM.get_kernel_matrix(self._quantum_instance, self.feature_map, x1_vec, x2_vec,
-                                      use_parameterized_circuits=self._use_parameterized_circuits)
+        return QSVM.get_kernel_matrix(self._quantum_instance, self.feature_map, x1_vec, x2_vec)
 
     def train(self, data, labels, quantum_instance=None):
         """

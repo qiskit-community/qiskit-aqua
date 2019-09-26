@@ -392,7 +392,7 @@ class VQE(VQAlgorithm):
         _build_parameterized_circuits()
         circuits = []
         # binding parameters here since the circuits had been transpiled
-        if self._var_form.support_parameterized_circuit:
+        if self._parameterized_circuits is not None:
             for idx, parameter in enumerate(parameter_sets):
                 curr_param = {self._var_form_params: parameter}
                 for qc in self._parameterized_circuits:
