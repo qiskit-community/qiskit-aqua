@@ -93,7 +93,7 @@ class UCCSDAdapt(UCCSD):
             {
                 'pluggable_type': 'initial_state',
                 'default': {
-                    'name': 'UCCSD',
+                    'name': 'HartreeFock',
                 }
             },
         ],
