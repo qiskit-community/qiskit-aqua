@@ -196,10 +196,10 @@ class PhaseEstimationCircuit:
                         shallow_slicing=self._shallow_circuit_concat)
                     if self._shallow_circuit_concat:
                         qc_evolutions = QuantumCircuit(q, a)
-                        qc_evolutions.append(qc_evolutions_inst, qargs=[x for x in q] + [a[i]])
+                        qc_evolutions.append(qc_evolutions_inst, qargs=list(q) + [a[i]])
                         qc.data += qc_evolutions.decompose().data
                     else:
-                        qc.append(qc_evolutions_inst, qargs=[x for x in q] + [a[i]])
+                        qc.append(qc_evolutions_inst, qargs=list(q) + [a[i]])
                         qc = qc.decompose()
                     # global phase shift for the ancilla due to the identity pauli term
                     qc.u1(self._evo_time * self._ancilla_phase_coef * (2 ** i), a[i])

@@ -19,13 +19,15 @@ See https://arxiv.org/abs/1812.11173
 """
 
 import logging
-
+import re
 import numpy as np
 
+from qiskit import ClassicalRegister
+from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms.adaptive.vq_algorithm import VQAlgorithm
 from qiskit.aqua.algorithms.adaptive.vqe.vqe import VQE
 from qiskit.chemistry.aqua_extensions.components.variational_forms import UCCSDAdapt
-from qiskit.aqua.operators import (TPBGroupedWeightedPauliOperator, WeightedPauliOperator)
+from qiskit.aqua.operators import TPBGroupedWeightedPauliOperator, WeightedPauliOperator
 from qiskit.aqua.utils.backend_utils import is_aer_statevector_backend
 
 logger = logging.getLogger(__name__)
@@ -40,7 +42,37 @@ class VQEAdapt(VQAlgorithm):
 
     CONFIGURATION = {
         'name': 'VQEAdapt',
-        'description': 'Adaptive VQE Algorithm'
+        'description': 'Adaptive VQE Algorithm',
+        'input_schema': {
+            '$schema': 'http://json-schema.org/draft-07/schema#',
+            'id': 'vqe_adapt_schema',
+            'type': 'object',
+            'properties': {
+                'initial_point': {
+                    'type': ['array', 'null'],
+                    "items": {
+                        "type": "number"
+                    },
+                    'default': None
+                },
+            },
+            'additionalProperties': False
+        },
+        'problems': ['energy'],
+        'depends': [
+            {
+                'pluggable_type': 'algorithm',
+                'default': {
+                    'name': 'VQE'
+                },
+            },
+            {
+                'pluggable_type': 'variational_form',
+                'default': {
+                    'name': 'UCCSDAdapt'
+                },
+            },
+            ],
     }
 
     def __init__(self, operator, var_form_base, optimizer, excitation_pool,
@@ -131,40 +163,49 @@ class VQEAdapt(VQAlgorithm):
             and isinstance(self._operator, (WeightedPauliOperator, TPBGroupedWeightedPauliOperator))
         self._quantum_instance.circuit_summary = True
 
+        cycle_regex = re.compile(r'(.+)( \1)+')
+        # reg-ex explanation:
+        # 1. (.+) will match at least one number and try to match as many as possible
+        # 2. the match of this part is placed into capture group 1
+        # 3. ( \1)+ will match a space followed by the contents of capture group 1
+        # -> this results in any number of repeating numbers being detected
+
         threshold_satisfied = False
-        prev_max = ()
-        prev_prev_max = ()
+        alternating_sequence = False
+        prev_op_indices = []
         theta = []
+        max_grad = ()
         iteration = 0
-        while not threshold_satisfied:
+        while not threshold_satisfied and not alternating_sequence:
             iteration += 1
-            print('--- Iteration #' + str(iteration) + ' ---')
+            logger.info('--- Iteration #%s ---', str(iteration))
             # compute gradients
             cur_grads = self._compute_gradients(self._excitation_pool, theta, self._delta,
                                                 self._var_form_base, self._operator,
                                                 self._optimizer)
-            # pick maximum gradients and choose that excitation
-            max_grad = max(cur_grads, key=lambda item: np.abs(item[0]))
-            if prev_max != () and prev_max[1] == max_grad[1]:
-                cur_grads_red = [g for g in cur_grads if g[1] != prev_max[1]]
-                max_grad = max(cur_grads_red, key=lambda item: np.abs(item[0]))
-            if prev_prev_max != () and prev_prev_max[1] == max_grad[1]:
-                print("Alternating sequence found. Finishing.")
-                print("Final maximum gradient: " + str(np.abs(max_grad[0])))
+            # pick maximum gradient
+            max_grad_index, max_grad = max(enumerate(cur_grads),
+                                           key=lambda item: np.abs(item[1][0]))
+            # store maximum gradient's index for cycle detection
+            prev_op_indices.append(max_grad_index)
+            # log gradients
+            gradlog = "\nGradients in iteration #{}".format(str(iteration))
+            gradlog += "\nID: Excitation Operator: Gradient  <(*) maximum>"
+            for i, grad in enumerate(cur_grads):
+                gradlog += '\n{}: {}: {}'.format(str(i), str(grad[1]), str(grad[0]))
+                if grad[1] == max_grad[1]:
+                    gradlog += '\t(*)'
+            logger.info(gradlog)
+            if np.abs(max_grad[0]) < self._threshold:
+                logger.info("Adaptive VQE terminated succesfully with a final maximum gradient: %s",
+                            str(np.abs(max_grad[0])))
                 threshold_satisfied = True
                 break
-            prev_prev_max = prev_max
-            prev_max = max_grad
-            print('Gradients:')
-            for i in range(len(cur_grads)):
-                string = str(i) + ': ' + str(cur_grads[i][1]) + ': ' + str(cur_grads[i][0])
-                if cur_grads[i][1] == max_grad[1]:
-                    string += '\t(*)'
-                print(string)
-            if np.abs(max_grad[0]) < self._threshold:
-                print("Adaptive VQE terminated succesfully with a final maximum gradient: "
-                      + str(np.abs(max_grad[0])))
-                threshold_satisfied = True
+            # check indices of picked gradients for cycles
+            if cycle_regex.search(' '.join(map(str, prev_op_indices))) is not None:
+                logger.info("Alternating sequence found. Finishing.")
+                logger.info("Final maximum gradient: %s", str(np.abs(max_grad[0])))
+                alternating_sequence = True
                 break
             # add new excitation to self._var_form_base
             self._var_form_base._append_hopping_operator(max_grad[1])
@@ -174,18 +215,55 @@ class VQEAdapt(VQAlgorithm):
                             initial_point=theta)
             self._ret = algorithm.run(self._quantum_instance)
             theta = self._ret['opt_params'].tolist()
-            print('  --> Energy = ' + str(self._ret['energy']))
-        print('The final energy is: ' + str(self._ret['energy']))
+        # extend VQE returned information with additional outputs
+        logger.info('The final energy is: %s', str(self._ret['energy']))
+        self._ret['num_iterations'] = iteration
+        self._ret['final_max_grad'] = max_grad[0]
+        if threshold_satisfied:
+            self._ret['finishing_criterion'] = 'threshold_converged'
+        elif alternating_sequence:
+            self._ret['finishing_criterion'] = 'aborted_due_to_cyclicity'
+        else:
+            raise AquaError('The algorithm finished due to an unforeseen reason!')
         return self._ret
 
     def get_optimal_cost(self):
-        pass
+        if 'opt_params' not in self._ret:
+            raise AquaError("Cannot return optimal cost before running the "
+                            "algorithm to find optimal params.")
+        return self._ret['min_val']
 
     def get_optimal_circuit(self):
-        pass
+        if 'opt_params' not in self._ret:
+            raise AquaError("Cannot find optimal circuit before running the "
+                            "algorithm to find optimal params.")
+        return self._var_form_base.construct_circuit(self._ret['opt_params'])
 
     def get_optimal_vector(self):
-        pass
+        from qiskit.aqua.utils.run_circuits import find_regs_by_name
 
+        if 'opt_params' not in self._ret:
+            raise AquaError("Cannot find optimal vector before running the "
+                            "algorithm to find optimal params.")
+        qc = self.get_optimal_circuit()
+        if self._quantum_instance.is_statevector:
+            ret = self._quantum_instance.execute(qc)
+            self._ret['min_vector'] = ret.get_statevector(qc)
+        else:
+            c = ClassicalRegister(qc.width(), name='c')
+            q = find_regs_by_name(qc, 'q')
+            qc.add_register(c)
+            qc.barrier(q)
+            qc.measure(q, c)
+            tmp_cache = self._quantum_instance.circuit_cache
+            self._quantum_instance._circuit_cache = None
+            ret = self._quantum_instance.execute(qc)
+            self._quantum_instance._circuit_cache = tmp_cache
+            self._ret['min_vector'] = ret.get_counts(qc)
+        return self._ret['min_vector']
+
+    @property
     def optimal_params(self):
-        pass
+        if 'opt_params' not in self._ret:
+            raise AquaError("Cannot find optimal params before running the algorithm.")
+        return self._ret['opt_params']

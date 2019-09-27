@@ -160,9 +160,9 @@ class Grover(QuantumAlgorithm):
         if num_additional_ancillae > 0:
             extra_ancillae = QuantumRegister(num_additional_ancillae, name='a_e')
             qc.add_register(extra_ancillae)
-            ancilla = [q for q in extra_ancillae]
+            ancilla = list(extra_ancillae)
             if num_oracle_ancillae > 0:
-                ancilla += [q for q in self._oracle.ancillary_register]
+                ancilla += list(self._oracle.ancillary_register)
         else:
             ancilla = self._oracle.ancillary_register
 

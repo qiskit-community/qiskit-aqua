@@ -19,7 +19,6 @@ from .qaoa.qaoa import QAOA
 from .vqc.vqc import VQC
 from .qgan.qgan import QGAN
 from .vq_algorithm import VQAlgorithm
-from .vqe_adapt.vqe_adapt import VQEAdapt
 
 
 __all__ = [
@@ -28,5 +27,4 @@ __all__ = [
     'QGAN',
     'VQC',
     'VQAlgorithm',
-    'VQEAdapt',
 ]
