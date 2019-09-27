@@ -79,7 +79,7 @@ def _do_checks(flags, qr_variables, qb_target, qr_ancillae, circuit):
     if qr_ancillae is None:
         ancillary_qubits = []
     elif isinstance(qr_ancillae, QuantumRegister):
-        ancillary_qubits = [qb for qb in qr_ancillae]
+        ancillary_qubits = list(qr_ancillae)
     elif isinstance(qr_ancillae, list):
         ancillary_qubits = qr_ancillae
     else:
