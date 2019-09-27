@@ -42,7 +42,37 @@ class VQEAdapt(VQAlgorithm):
 
     CONFIGURATION = {
         'name': 'VQEAdapt',
-        'description': 'Adaptive VQE Algorithm'
+        'description': 'Adaptive VQE Algorithm',
+        'input_schema': {
+            '$schema': 'http://json-schema.org/draft-07/schema#',
+            'id': 'vqe_adapt_schema',
+            'type': 'object',
+            'properties': {
+                'initial_point': {
+                    'type': ['array', 'null'],
+                    "items": {
+                        "type": "number"
+                    },
+                    'default': None
+                },
+            },
+            'additionalProperties': False
+        },
+        'problems': ['energy'],
+        'depends': [
+            {
+                'pluggable_type': 'algorithm',
+                'default': {
+                    'name': 'VQE'
+                },
+            },
+            {
+                'pluggable_type': 'variational_form',
+                'default': {
+                    'name': 'UCCSDAdapt'
+                },
+            },
+            ],
     }
 
     def __init__(self, operator, var_form_base, optimizer, excitation_pool,

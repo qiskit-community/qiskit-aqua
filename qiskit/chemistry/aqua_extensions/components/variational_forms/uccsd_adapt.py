@@ -37,6 +37,68 @@ class UCCSDAdapt(UCCSD):
             and qiskit/aqua/algorithms/adaptive/vqe_adapt/vqe_adapt.py
     """
 
+    CONFIGURATION = {
+        'name': 'UCCSDAdapt',
+        'description': 'Adaptive UCCSD Variational Form',
+        'input_schema': {
+            '$schema': 'http://json-schema.org/draft-07/schema#',
+            'id': 'uccsd_schema',
+            'type': 'object',
+            'properties': {
+                'depth': {
+                    'type': 'integer',
+                    'default': 1,
+                    'minimum': 1
+                },
+                'num_orbitals': {
+                    'type': 'integer',
+                    'default': 4,
+                    'minimum': 1
+                },
+                'num_particles': {
+                    'type': ['array', 'integer'],
+                    'default': [1, 1],
+                    'contains': {
+                        'type': 'integer'
+                    },
+                    'minItems': 2,
+                    'maxItems': 2
+                },
+                'active_occupied': {
+                    'type': ['array', 'null'],
+                    'default': None
+                },
+                'active_unoccupied': {
+                    'type': ['array', 'null'],
+                    'default': None
+                },
+                'qubit_mapping': {
+                    'type': 'string',
+                    'default': 'parity',
+                    'enum': ['jordan_wigner', 'parity', 'bravyi_kitaev']
+                },
+                'two_qubit_reduction': {
+                    'type': 'boolean',
+                    'default': True
+                },
+                'num_time_slices': {
+                    'type': 'integer',
+                    'default': 1,
+                    'minimum': 1
+                },
+            },
+            'additionalProperties': False
+        },
+        'depends': [
+            {
+                'pluggable_type': 'initial_state',
+                'default': {
+                    'name': 'UCCSD',
+                }
+            },
+        ],
+    }
+
     def __init__(self, *args, **kwargs):
         """Constructor.
 
