@@ -134,7 +134,7 @@ class VQEAdapt(VQAlgorithm):
         self._quantum_instance.circuit_summary = True
 
         cycle_regex = re.compile(r'(.+)( \1)+')
-        # regex explanation:
+        # reg-ex explanation:
         # 1. (.+) will match at least one number and try to match as many as possible
         # 2. the match of this part is placed into capture group 1
         # 3. ( \1)+ will amtch a space followed by the contents of capture group 1
@@ -156,7 +156,7 @@ class VQEAdapt(VQAlgorithm):
             # pick maximum gradient
             max_grad_index, max_grad = max(enumerate(cur_grads),
                                            key=lambda item: np.abs(item[1][0]))
-            # store maximum gradient's index for cyclicity detection
+            # store maximum gradient's index for cycle detection
             prev_op_indices.append(max_grad_index)
             # log gradients
             gradlog = "\nGradients in iteration #{}".format(str(iteration))
