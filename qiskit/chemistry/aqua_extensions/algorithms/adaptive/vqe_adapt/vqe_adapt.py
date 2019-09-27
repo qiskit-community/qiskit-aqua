@@ -167,7 +167,7 @@ class VQEAdapt(VQAlgorithm):
         # reg-ex explanation:
         # 1. (.+) will match at least one number and try to match as many as possible
         # 2. the match of this part is placed into capture group 1
-        # 3. ( \1)+ will amtch a space followed by the contents of capture group 1
+        # 3. ( \1)+ will match a space followed by the contents of capture group 1
         # -> this results in any number of repeating numbers being detected
 
         threshold_satisfied = False
