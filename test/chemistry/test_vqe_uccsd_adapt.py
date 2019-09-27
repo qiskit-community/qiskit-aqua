@@ -42,15 +42,17 @@ class TestVQEAdaptUCCSD(QiskitAquaTestCase):
         molecule = driver.run()
         self.num_particles = molecule.num_alpha + molecule.num_beta
         self.num_spin_orbitals = molecule.num_orbitals * 2
-        ferOp = FermionicOperator(h1=molecule.one_body_integrals, h2=molecule.two_body_integrals)
+        fer_op = FermionicOperator(h1=molecule.one_body_integrals, h2=molecule.two_body_integrals)
         map_type = 'PARITY'
-        qubitOp = ferOp.mapping(map_type)
-        self.qubitOp = Z2Symmetries.two_qubit_reduction(to_weighted_pauli_operator(qubitOp),
-                                                        self.num_particles)
-        self.num_qubits = self.qubitOp.num_qubits
+        qubit_op = fer_op.mapping(map_type)
+        self.qubit_op = Z2Symmetries.two_qubit_reduction(to_weighted_pauli_operator(qubit_op),
+                                                         self.num_particles)
+        self.num_qubits = self.qubit_op.num_qubits
         self.init_state = HartreeFock(self.num_qubits, self.num_spin_orbitals, self.num_particles)
+        self.var_form_base = None
 
     def test_uccsd_adapt(self):
+        """ UCCSDAdapt test """
         self.var_form_base = UCCSDAdapt(self.num_qubits, 1, self.num_spin_orbitals,
                                         self.num_particles, initial_state=self.init_state)
         # assert that the excitation pool exists
@@ -65,7 +67,7 @@ class TestVQEAdaptUCCSD(QiskitAquaTestCase):
         self.test_uccsd_adapt()
         backend = Aer.get_backend('statevector_simulator')
         optimizer = L_BFGS_B()
-        algorithm = VQEAdapt(self.qubitOp, self.var_form_base, optimizer,
+        algorithm = VQEAdapt(self.qubit_op, self.var_form_base, optimizer,
                              self.var_form_base.excitation_pool, threshold=0.00001, delta=0.1)
         result = algorithm.run(backend)
         self.assertAlmostEqual(result['energy'], -1.85727503, places=2)
