@@ -104,6 +104,7 @@ class PauliExpansion(FeatureMap):
 
         self._pauli_strings = self._build_subset_paulis_string(paulis)
         self._data_map_func = data_map_func
+        self._support_parameterized_circuit = True
 
     def _build_subset_paulis_string(self, paulis):
         # fill out the paulis to the number of qubits
@@ -137,6 +138,7 @@ class PauliExpansion(FeatureMap):
 
     def _extract_data_for_rotation(self, pauli, x):
         where_non_i = np.where(np.asarray(list(pauli[::-1])) != 'I')[0]
+        x = np.asarray(x)
         return x[where_non_i]
 
     def construct_circuit(self, x, qr=None, inverse=False):
@@ -144,7 +146,7 @@ class PauliExpansion(FeatureMap):
         Construct the second order expansion based on given data.
 
         Args:
-            x (numpy.ndarray): 1-D to-be-transformed data.
+            x (Union(numpy.ndarray, list[Parameter], ParameterVector)): 1-D to-be-transformed data.
             qr (QauntumRegister, optional): the QuantumRegister object for the circuit, if None,
                                   generate new registers with name q.
             inverse (bool, optional): whether or not inverse the circuit
@@ -155,11 +157,7 @@ class PauliExpansion(FeatureMap):
             TypeError: invalid input
             ValueError: invalid input
         """
-        if not isinstance(x, np.ndarray):
-            raise TypeError("x must be numpy array.")
-        if x.ndim != 1:
-            raise ValueError("x must be 1-D array.")
-        if x.shape[0] != self._num_qubits:
+        if len(x) != self._num_qubits:
             raise ValueError("number of qubits and data dimension must be the same.")
 
         if qr is None:
@@ -172,8 +170,7 @@ class PauliExpansion(FeatureMap):
             for pauli in self._pauli_strings:
                 coeff = self._data_map_func(self._extract_data_for_rotation(pauli, x))
                 p = Pauli.from_label(pauli)
-
-                inst = evolution_instruction([[coeff, p]], 1, 1)
+                inst = evolution_instruction([[1, p]], coeff, 1)
                 qc.append(inst, qr)
                 qc = qc.decompose()
         return qc

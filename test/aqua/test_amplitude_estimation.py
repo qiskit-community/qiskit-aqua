@@ -91,13 +91,12 @@ class TestBernoulli(QiskitAquaTestCase):
         super().setUp()
 
         self._statevector = QuantumInstance(backend=BasicAer.get_backend('statevector_simulator'),
-                                            circuit_caching=False,
                                             seed_simulator=2,
                                             seed_transpiler=2)
 
         def qasm(shots=100):
             return QuantumInstance(backend=BasicAer.get_backend('qasm_simulator'), shots=shots,
-                                   circuit_caching=False, seed_simulator=2, seed_transpiler=2)
+                                   seed_simulator=2, seed_transpiler=2)
 
         self._qasm = qasm
 
@@ -211,11 +210,10 @@ class TestEuropeanCallOption(QiskitAquaTestCase):
         )
 
         self._statevector = QuantumInstance(backend=BasicAer.get_backend('statevector_simulator'),
-                                            circuit_caching=False,
                                             seed_simulator=2,
                                             seed_transpiler=2)
         self._qasm = QuantumInstance(backend=BasicAer.get_backend('qasm_simulator'), shots=100,
-                                     circuit_caching=False, seed_simulator=2, seed_transpiler=2)
+                                     seed_simulator=2, seed_transpiler=2)
 
     @parameterized.expand([
         ['statevector', AmplitudeEstimation(3),
@@ -270,12 +268,10 @@ class TestFixedIncomeAssets(QiskitAquaTestCase):
         super().setUp()
 
         self._statevector = QuantumInstance(backend=BasicAer.get_backend('statevector_simulator'),
-                                            circuit_caching=False,
                                             seed_simulator=2,
                                             seed_transpiler=2)
         self._qasm = QuantumInstance(backend=BasicAer.get_backend('qasm_simulator'),
                                      shots=100,
-                                     circuit_caching=False,
                                      seed_simulator=2,
                                      seed_transpiler=2)
 
