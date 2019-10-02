@@ -405,6 +405,7 @@ class QEquationOfMotion:
                 m_mat[m_u][n_u] = m_mean if m_mean != 0.0 else m_mat[m_u][n_u]
                 v_mat[m_u][n_u] = v_mean if v_mean != 0.0 else v_mat[m_u][n_u]
 
+        # pylint: disable=unsubscriptable-object
         if self._is_eom_matrix_symmetric:
             q_mat = q_mat + q_mat.T - np.identity(q_mat.shape[0]) * q_mat
             w_mat = w_mat + w_mat.T - np.identity(w_mat.shape[0]) * w_mat
