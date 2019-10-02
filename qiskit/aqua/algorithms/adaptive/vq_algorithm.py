@@ -60,6 +60,8 @@ class VQAlgorithm(QuantumAlgorithm):
         self._cost_fn = cost_fn
         self._initial_point = initial_point
 
+        self._parameterized_circuits = None
+
     @abstractmethod
     def get_optimal_cost(self):
         """ get optimal cost """
@@ -196,3 +198,7 @@ class VQAlgorithm(QuantumAlgorithm):
     def optimizer(self):
         """ returns optimizer """
         return self._optimizer
+
+    def cleanup_parameterized_circuits(self):
+        """ set parameterized circuits to None """
+        self._parameterized_circuits = None
