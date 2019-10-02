@@ -92,7 +92,7 @@ class FourierTransformCircuits:
 
         qubit_range = reversed(range(len(qubits))) if inverse else range(len(qubits))
 
-        if precedes_measurement and not do_swaps and not inverse and approximation_degree=0:
+        if precedes_measurement and not do_swaps and not inverse and approximation_degree == 0:
             for j in qubit_range:
                 circuit.add_register(ClassicalRegister(1))
                 neighbor_range = range(np.max([0, j - len(qubits) + 1]), len(qubits) - j - 1)
