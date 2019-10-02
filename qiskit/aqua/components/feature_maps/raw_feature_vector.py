@@ -77,11 +77,7 @@ class RawFeatureVector(FeatureMap):
             TypeError: invalid input
             ValueError: invalid input
         """
-        if not isinstance(x, np.ndarray):
-            raise TypeError("x must be numpy array.")
-        if x.ndim != 1:
-            raise ValueError("x must be 1-D array.")
-        if x.shape[0] != self._feature_dimension:
+        if len(x) != self._feature_dimension:
             raise ValueError("Unexpected feature vector dimension.")
 
         state_vector = np.pad(x, (0, (1 << self.num_qubits) - len(x)), 'constant')

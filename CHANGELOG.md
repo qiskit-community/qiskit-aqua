@@ -18,18 +18,32 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 [UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.0...HEAD)
 ========================================================================
 
+Changed
+-----
+
+-   `VQE`, `VQC` and `QSVM` now use parameterized circuits if it is available to save time 
+    in transpilation. (#693)
+
 Added
 -----
 -   Option to make the Quantum Fourier Transform "semiclassical" when it directly precedes
     measurement. This then automatically creates the measurement registers, and reduces the
     effects of noise due to classical control replacing quantum control two-qubit gates.
 -   Ability to create a `CustomCircuitOracle` object with a callback for `evaluate_classically`,
-    which a `Grover` object will now check for, upon initialization, on its provided oracle.
+    which a `Grover` object will now check for, upon initialization, on its provided oracle.  (#681)
+-   `VariationalForm` and `FeatureMap` has a new property on `support_parameterized_circuit`, which 
+    implies whether or not can be built with `Parameter` (or `ParameterVector`). Furthermore, 
+    the `evolution_instruction` method support `Parameter` as time parameter.  (#693) 
 
 Fixed
 -------
 
 -   A bug where `UCCSD` might generate an empty operator and try to evolve it. (#680)
+
+Removed
+-------
+
+-   The `CircuitCache` class is removed, use parameterized circuits as an alternative. (#693)
 
 [0.6.0](https://github.com/Qiskit/qiskit-aqua/compare/0.5.5...0.6.0) - 2019-08-22
 =================================================================================
@@ -50,7 +64,7 @@ Added
       shell support
 -   Chemistry: UHF open-shell support
     - Supported for all drivers: Gaussian16, PyQuante, PySCF and PSI4
-    - QMolecule extended to include integrals, coeffiecients etc for separate beta   
+    - QMolecule extended to include integrals, coefficients etc for separate beta   
 -   Chemistry: QMolecule extended with integrals in atomic orbital basis to facilitate common access
     to these for experimentation
     - Supported for all drivers: Gaussian16, PyQuante, PySCF and PSI4

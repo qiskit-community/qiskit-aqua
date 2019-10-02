@@ -20,6 +20,8 @@ import numpy as np
 
 from sklearn.utils import shuffle
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
+from qiskit.circuit import ParameterVector
+
 from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class, AquaError
 from qiskit.aqua.utils import get_feature_dimension
 from qiskit.aqua.utils import map_label_to_class_name
@@ -265,6 +267,9 @@ class VQC(VQAlgorithm):
         self._ret = {}
         self._feature_map = feature_map
         self._num_qubits = feature_map.num_qubits
+        self._var_form_params = ParameterVector('θ', self._var_form.num_parameters)
+        self._feature_map_params = ParameterVector('x', self._feature_map.feature_dimension)
+        self._parameterized_circuits = None
 
     @classmethod
     def init_params(cls, params, algo_input):
@@ -338,27 +343,36 @@ class VQC(VQAlgorithm):
             Union(numpy.ndarray or [numpy.ndarray], numpy.ndarray or [numpy.ndarray]):
                 list of NxK array, list of Nx1 array
         """
-        # if self._quantum_instance.is_statevector:
-        #     raise ValueError('Selected backend "{}" is not supported.'.format(
-        #         self._quantum_instance.backend_name))
-
-        circuits = {}
-        circuit_id = 0
+        circuits = []
 
         num_theta_sets = len(theta) // self._var_form.num_parameters
         theta_sets = np.split(theta, num_theta_sets)
 
+        def _build_parameterized_circuits():
+            if self._var_form.support_parameterized_circuit and \
+                    self._feature_map.support_parameterized_circuit and \
+                    self._parameterized_circuits is None:
+
+                parameterized_circuits = self.construct_circuit(
+                    self._feature_map_params, self._var_form_params,
+                    measurement=not self._quantum_instance.is_statevector)
+                self._parameterized_circuits = \
+                    self._quantum_instance.transpile(parameterized_circuits)[0]
+
+        _build_parameterized_circuits()
         for thet in theta_sets:
             for datum in data:
-                if self._quantum_instance.is_statevector:
-                    circuit = self.construct_circuit(datum, thet, measurement=False)
+                if self._parameterized_circuits is not None:
+                    curr_params = {self._feature_map_params: datum,
+                                   self._var_form_params: thet}
+                    circuit = self._parameterized_circuits.bind_parameters(curr_params)
                 else:
-                    circuit = self.construct_circuit(datum, thet, measurement=True)
+                    circuit = self.construct_circuit(
+                        datum, thet, measurement=not self._quantum_instance.is_statevector)
+                circuits.append(circuit)
 
-                circuits[circuit_id] = circuit
-                circuit_id += 1
-
-        results = self._quantum_instance.execute(list(circuits.values()))
+        results = self._quantum_instance.execute(
+            circuits, had_transpiled=self._parameterized_circuits is not None)
 
         circuit_id = 0
         predicted_probs = []
@@ -367,7 +381,7 @@ class VQC(VQAlgorithm):
             counts = []
             for _ in data:
                 if self._quantum_instance.is_statevector:
-                    temp = results.get_statevector(circuits[circuit_id])
+                    temp = results.get_statevector(circuit_id)
                     outcome_vector = (temp * temp.conj()).real
                     # convert outcome_vector to outcome_dict, where key
                     # is a basis state and value is the count.
@@ -379,7 +393,7 @@ class VQC(VQAlgorithm):
                         bitstr_i = format(i, '0' + str(bitstr_size) + 'b')
                         outcome_dict[bitstr_i] = outcome_vector[i]
                 else:
-                    outcome_dict = results.get_counts(circuits[circuit_id])
+                    outcome_dict = results.get_counts(circuit_id)
 
                 counts.append(outcome_dict)
                 circuit_id += 1
@@ -595,6 +609,7 @@ class VQC(VQAlgorithm):
             _, predicted_labels = self.predict(self._datapoints)
             self._ret['predicted_classes'] = map_label_to_class_name(predicted_labels,
                                                                      self._label_to_class)
+        self.cleanup_parameterized_circuits()
         return self._ret
 
     def get_optimal_cost(self):
