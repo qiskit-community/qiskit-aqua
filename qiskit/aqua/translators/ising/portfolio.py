@@ -12,14 +12,16 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-# Convert portfolio optimization instances into Pauli list
-
-from collections import OrderedDict
+"""
+Convert portfolio optimization instances into Pauli list
+"""
+import warnings
 
 import numpy as np
 from sklearn.datasets import make_spd_matrix
 from qiskit.quantum_info import Pauli
 
+from qiskit.aqua import aqua_globals
 from qiskit.aqua.operators import WeightedPauliOperator
 
 
@@ -36,26 +38,28 @@ def random_model(n, seed=None):
 
     """
     if seed:
-        np.random.seed(seed)
+        aqua_globals.random_seed = seed
 
     # draw random return values between [0, 1]
-    mu = np.random.uniform(size=n, low=0, high=1)
+    m_u = aqua_globals.random.uniform(size=n, low=0, high=1)
 
     # construct positive semi-definite covariance matrix
     sigma = make_spd_matrix(n)
 
-    return mu, sigma
+    return m_u, sigma
 
 
-def get_portfolio_qubitops(mu, sigma, q, budget, penalty):
-
+def get_qubit_op(mu, sigma, q, budget, penalty):  # pylint: disable=invalid-name
+    """ get qubit op """
+    # pylint: disable=invalid-name
     # get problem dimension
     n = len(mu)
     e = np.ones(n)
     E = np.matmul(np.asmatrix(e).T, np.asmatrix(e))
 
     # map problem to Ising model
-    offset = -1*np.dot(mu, e)/2 + penalty*budget**2 - budget*n*penalty + n**2*penalty/4 + q/4*np.dot(e, np.dot(sigma, e))
+    offset = -1*np.dot(mu, e)/2 + penalty*budget**2 - \
+        budget*n*penalty + n**2*penalty/4 + q/4*np.dot(e, np.dot(sigma, e))
     mu_z = mu/2 + budget*penalty*e - n*penalty/2*e - q/2*np.dot(sigma, e)
     sigma_z = penalty/4*E + q/4*sigma
 
@@ -83,37 +87,33 @@ def get_portfolio_qubitops(mu, sigma, q, budget, penalty):
     return WeightedPauliOperator(paulis=pauli_list), offset
 
 
-def portfolio_value(x, mu, sigma, q, budget, penalty):
+def portfolio_value(x, mu, sigma, q, budget, penalty):  # pylint: disable=invalid-name
+    """ returns portfolio value """
     return q * np.dot(x, np.dot(sigma, x)) - np.dot(mu, x) + penalty * pow(sum(x) - budget, 2)
 
 
-def portfolio_expected_value(x, mu):
+def portfolio_expected_value(x, mu):  # pylint: disable=invalid-name
+    """ returns portfolio expected value """
     return np.dot(mu, x)
 
 
 def portfolio_variance(x, sigma):
+    """ returns portfolio variance """
     return np.dot(x, np.dot(sigma, x))
 
 
 def sample_most_likely(state_vector):
-    """Compute the most likely binary string from state vector.
+    """ sample most likely """
+    from .common import sample_most_likely as redirect_func
+    warnings.warn("sample_most_likely function has been moved to qiskit.aqua.ising.common, "
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return redirect_func(state_vector=state_vector)
 
-    Args:
-        state_vector (numpy.ndarray or dict): state vector or counts.
 
-    Returns:
-        numpy.ndarray: binary string as numpy.ndarray of ints.
-    """
-    if isinstance(state_vector, dict) or isinstance(state_vector, OrderedDict):
-        # get the binary string with the largest count
-        binary_string = sorted(state_vector.items(), key=lambda kv: kv[1])[-1][0]
-        x = np.asarray([int(y) for y in reversed(list(binary_string))])
-        return x
-    else:
-        n = int(np.log2(state_vector.shape[0]))
-        k = np.argmax(np.abs(state_vector))
-        x = np.zeros(n, dtype=int)
-        for i in range(n):
-            x[i] = k % 2
-            k >>= 1
-        return x
+def get_portfolio_qubitops(mu, sigma, q, budget, penalty):  # pylint: disable=invalid-name
+    """ returns portfolio qubit ops """
+    warnings.warn("get_portfolio_qubitops function has been changed to get_qubit_op"
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return get_qubit_op(mu, sigma, q, budget, penalty)

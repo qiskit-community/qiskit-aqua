@@ -15,8 +15,9 @@
 This module contains the definition of a base class for computing reciprocals
 into an amplitude.
 """
-from qiskit.aqua import Pluggable
+
 from abc import abstractmethod
+from qiskit.aqua import Pluggable
 
 
 class Reciprocal(Pluggable):
@@ -25,9 +26,6 @@ class Reciprocal(Pluggable):
 
     This method should initialize the module and its configuration, and
     use an exception if a component of the module is available.
-
-    Args:
-        configuration (dict): configuration dictionary
     """
 
     @abstractmethod
@@ -36,6 +34,7 @@ class Reciprocal(Pluggable):
 
     @classmethod
     def init_params(cls, params):
+        """ init params """
         reci_params = params.get(Pluggable.SECTION_KEY_RECIPROCAL)
         args = {k: v for k, v in reci_params.items() if k != 'name'}
         return cls(**args)

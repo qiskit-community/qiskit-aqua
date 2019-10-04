@@ -12,41 +12,23 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-# Generate Number Partitioning (Partition) instances, and convert them
-# into a Hamiltonian given as a Pauli list.
-
+"""
+Generate Number Partitioning (Partition) instances, and convert them
+into a Hamiltonian given as a Pauli list.
+"""
 
 import logging
-from collections import OrderedDict
+import warnings
 
 import numpy as np
-
 from qiskit.quantum_info import Pauli
+
 from qiskit.aqua.operators import WeightedPauliOperator
 
 logger = logging.getLogger(__name__)
 
 
-def random_number_list(n, weight_range=100, savefile=None):
-    """Generate a set of positive integers within the given range.
-
-    Args:
-        n (int): size of the set of numbers.
-        weight_range (int): maximum absolute value of the numbers.
-        savefile (str or None): write numbers to this file.
-
-    Returns:
-        numpy.ndarray: the list of integer numbers.
-    """
-    number_list = np.random.randint(low=1, high=(weight_range + 1), size=n)
-    if savefile:
-        with open(savefile, 'w') as outfile:
-            for i in range(n):
-                outfile.write('{}\n'.format(number_list[i]))
-    return number_list
-
-
-def get_partition_qubitops(values):
+def get_qubit_op(values):
     """Construct the Hamiltonian for a given Partition instance.
 
     Given a list of numbers for the Number Partitioning problem, we
@@ -56,7 +38,7 @@ def get_partition_qubitops(values):
         values (numpy.ndarray): array of values.
 
     Returns:
-        WeightedPauliOperator, float: operator for the Hamiltonian and a
+        tuple(WeightedPauliOperator, float): operator for the Hamiltonian and a
         constant shift for the obj function.
 
     """
@@ -66,29 +48,12 @@ def get_partition_qubitops(values):
     pauli_list = []
     for i in range(n):
         for j in range(i):
-            xp = np.zeros(n, dtype=np.bool)
-            zp = np.zeros(n, dtype=np.bool)
-            zp[i] = True
-            zp[j] = True
-            pauli_list.append([2. * values[i] * values[j], Pauli(zp, xp)])
+            x_p = np.zeros(n, dtype=np.bool)
+            z_p = np.zeros(n, dtype=np.bool)
+            z_p[i] = True
+            z_p[j] = True
+            pauli_list.append([2. * values[i] * values[j], Pauli(z_p, x_p)])
     return WeightedPauliOperator(paulis=pauli_list), sum(values*values)
-
-
-def read_numbers_from_file(filename):
-    """Read numbers from a file
-
-    Args:
-        filename (str): name of the file.
-
-    Returns:
-        numpy.ndarray: list of numbers as a numpy.ndarray.
-    """
-    numbers = []
-    with open(filename) as infile:
-        for line in infile:
-            assert(int(round(float(line))) == float(line))
-            numbers.append(int(round(float(line))))
-    return np.array(numbers)
 
 
 def partition_value(x, number_list):
@@ -106,25 +71,38 @@ def partition_value(x, number_list):
     return diff * diff
 
 
+def random_number_list(n, weight_range=100, savefile=None):
+    """ random number list """
+    from .common import random_number_list as redirect_func
+    warnings.warn("random_number_list function has been moved to "
+                  "qiskit.aqua.translators.ising.common, "
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return redirect_func(n=n, weight_range=weight_range, savefile=savefile)
+
+
+def read_numbers_from_file(filename):
+    """ read numbers from file """
+    from .common import read_numbers_from_file as redirect_func
+    warnings.warn("read_numbers_from_file function has been moved to "
+                  "qiskit.aqua.translators.ising.common, "
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return redirect_func(filename)
+
+
 def sample_most_likely(state_vector):
-    """Compute the most likely binary string from state vector.
+    """ sample most likely """
+    from .common import sample_most_likely as redirect_func
+    warnings.warn("sample_most_likely function has been moved to qiskit.aqua.ising.common, "
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return redirect_func(state_vector=state_vector)
 
-    Args:
-        state_vector (numpy.ndarray or dict): state vector or counts.
 
-    Returns:
-        numpy.ndarray: binary string as numpy.ndarray of ints.
-    """
-    if isinstance(state_vector, dict) or isinstance(state_vector, OrderedDict):
-        # get the binary string with the largest count
-        binary_string = sorted(state_vector.items(), key=lambda kv: kv[1])[-1][0]
-        x = np.asarray([int(y) for y in reversed(list(binary_string))])
-        return x
-    else:
-        n = int(np.log2(state_vector.shape[0]))
-        k = np.argmax(np.abs(state_vector))
-        x = np.zeros(n)
-        for i in range(n):
-            x[i] = k % 2
-            k >>= 1
-        return x
+def get_partition_qubitops(values):
+    """ get partition qubit ops """
+    warnings.warn("get_partition_qubitops function has been changed to get_qubit_op"
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return get_qubit_op(values)

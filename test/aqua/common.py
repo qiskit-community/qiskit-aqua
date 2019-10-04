@@ -36,7 +36,6 @@ class QiskitAquaTestCase(unittest.TestCase):
     """Helper class that contains common functionality."""
 
     def setUp(self):
-        os.environ['QISKIT_AQUA_CIRCUIT_CACHE'] = '1'
         self._started_at = time.time()
 
     def tearDown(self):

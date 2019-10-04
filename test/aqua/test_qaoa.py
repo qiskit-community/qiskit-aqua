@@ -15,15 +15,17 @@
 """ Test QAOA """
 
 import unittest
-import os
 from test.aqua.common import QiskitAquaTestCase
+
 import numpy as np
 from parameterized import parameterized
 from qiskit import BasicAer
+
 from qiskit.aqua.translators.ising import max_cut
+from qiskit.aqua.translators.ising.common import sample_most_likely
 from qiskit.aqua.components.optimizers import COBYLA
 from qiskit.aqua.algorithms import QAOA
-from qiskit.aqua import QuantumInstance
+from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.operators import WeightedPauliOperator
 
 W1 = np.array([
@@ -60,20 +62,19 @@ class TestQAOA(QiskitAquaTestCase):
     ])
     def test_qaoa(self, w, prob, m, solutions):
         """ QAOA test """
-        os.environ.pop('QISKIT_AQUA_CIRCUIT_CACHE', None)
+        seed = 0
+        aqua_globals.random_seed = seed
         self.log.debug('Testing %s-step QAOA with MaxCut on graph\n%s', prob, w)
-        np.random.seed(0)
 
         backend = BasicAer.get_backend('statevector_simulator')
         optimizer = COBYLA()
-        qubit_op, offset = max_cut.get_max_cut_qubitops(w)
+        qubit_op, offset = max_cut.get_qubit_op(w)
 
         qaoa = QAOA(qubit_op, optimizer, prob, mixer=m)
-        # TODO: cache fails for QAOA since we construct the evolution circuit via instruction
-        quantum_instance = QuantumInstance(backend, circuit_caching=False)
+        quantum_instance = QuantumInstance(backend, seed_simulator=seed, seed_transpiler=seed)
 
         result = qaoa.run(quantum_instance)
-        x = max_cut.sample_most_likely(result['eigvecs'][0])
+        x = sample_most_likely(result['eigvecs'][0])
         graph_solution = max_cut.get_graph_solution(x)
         self.log.debug('energy:             %s', result['energy'])
         self.log.debug('time:               %s', result['eval_time'])
@@ -81,8 +82,6 @@ class TestQAOA(QiskitAquaTestCase):
         self.log.debug('solution:           %s', graph_solution)
         self.log.debug('solution objective: %s', max_cut.max_cut_value(x, w))
         self.assertIn(''.join([str(int(i)) for i in graph_solution]), solutions)
-        if quantum_instance.has_circuit_caching:
-            self.assertLess(quantum_instance._circuit_cache.misses, 3)
 
 
 if __name__ == '__main__':

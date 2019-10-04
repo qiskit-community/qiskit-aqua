@@ -31,12 +31,12 @@ SIMULATORS = ['statevector_simulator', 'qasm_simulator']
 
 
 class TestBernsteinVazirani(QiskitAquaTestCase):
-    """ Test Berstein Vazirani """
+    """ Test Bernstein Vazirani """
     @parameterized.expand(
         itertools.product(BITMAPS, MCT_MODES, OPTIMIZATIONS, SIMULATORS)
     )
     def test_bernstein_vazirani(self, bv_input, mct_mode, optimization, simulator):
-        """ Berstein Vazirani test """
+        """ Bernstein Vazirani test """
         nbits = int(math.log(len(bv_input), 2))
         # compute the ground-truth classically
         parameter = ""

@@ -18,6 +18,8 @@ The Univariate Bernoulli Distribution.
 import numpy as np
 from .univariate_distribution import UnivariateDistribution
 
+# pylint: disable=invalid-name
+
 
 class BernoulliDistribution(UnivariateDistribution):
     """
@@ -28,7 +30,7 @@ class BernoulliDistribution(UnivariateDistribution):
         'name': 'BernoulliDistribution',
         'description': 'Bernoulli Distribution',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'BernoulliDistribution_schema',
             'type': 'object',
             'properties': {
@@ -56,4 +58,5 @@ class BernoulliDistribution(UnivariateDistribution):
 
     @property
     def p(self):
+        """ p """
         return self._p

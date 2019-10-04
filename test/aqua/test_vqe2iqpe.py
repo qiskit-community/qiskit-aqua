@@ -16,9 +16,11 @@
 
 import unittest
 from test.aqua.common import QiskitAquaTestCase
+
 import numpy as np
 from qiskit import BasicAer
-from qiskit.aqua import QuantumInstance
+
+from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.utils import decimal_to_binary
 from qiskit.aqua.operators import WeightedPauliOperator
@@ -33,8 +35,8 @@ class TestVQE2IQPE(QiskitAquaTestCase):
     """ Test VQE to IQPE """
     def setUp(self):
         super().setUp()
-        self.random_seed = 0
-        np.random.seed(self.random_seed)
+        self.seed = 0
+        aqua_globals.random_seed = self.seed
         pauli_dict = {
             'paulis': [{"coeff": {"imag": 0.0, "real": -1.052373245772859}, "label": "II"},
                        {"coeff": {"imag": 0.0, "real": 0.39793742484318045}, "label": "IZ"},
@@ -54,7 +56,8 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         optimizer = SPSA(max_trials=10)
         # optimizer.set_options(**{'max_trials': 500})
         algo = VQE(self.algo_input.qubit_op, var_form, optimizer)
-        quantum_instance = QuantumInstance(backend)
+        quantum_instance = QuantumInstance(backend, seed_simulator=self.seed,
+                                           seed_transpiler=self.seed)
         result = algo.run(quantum_instance)
 
         self.log.debug('VQE result: %s.', result)
@@ -68,7 +71,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         iqpe = IQPE(self.algo_input.qubit_op, state_in, num_time_slices, num_iterations,
                     expansion_mode='suzuki', expansion_order=2, shallow_circuit_concat=True)
         quantum_instance = QuantumInstance(
-            backend, shots=100, seed_transpiler=self.random_seed
+            backend, shots=100, seed_transpiler=self.seed, seed_simulator=self.seed
         )
         result = iqpe.run(quantum_instance)
 

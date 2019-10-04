@@ -22,9 +22,11 @@ from qiskit.circuit import QuantumCircuit, QuantumRegister, Qubit
 from qiskit.qasm import pi
 
 from qiskit.aqua import AquaError
-from .multi_control_toffoli_gate import mct
+from .multi_control_toffoli_gate import mct  # pylint: disable=unused-import
 
 logger = logging.getLogger(__name__)
+
+# pylint: disable=expression-not-assigned
 
 
 def _logical_and(circuit, variable_register, flags, target_qubit, ancillary_register, mct_mode):
@@ -44,7 +46,9 @@ def _logical_or(circuit, qr_variables, flags, qb_target, qr_ancillae, mct_mode):
     if flags is not None:
         zvf = list(zip(qr_variables, flags))
         ctl_bits = [v for v, f in zvf if f]
-        anc_bits = [qr_ancillae[idx] for idx in range(np.count_nonzero(flags) - 2)] if qr_ancillae else None
+        anc_bits = \
+            [qr_ancillae[idx] for idx in range(np.count_nonzero(flags) - 2)] \
+            if qr_ancillae else None
         [circuit.u3(pi, 0, pi, v) for v, f in zvf if f > 0]
         circuit.mct(ctl_bits, qb_target, anc_bits, mode=mct_mode)
         [circuit.u3(pi, 0, pi, v) for v, f in zvf if f > 0]
@@ -60,7 +64,7 @@ def _do_checks(flags, qr_variables, qb_target, qr_ancillae, circuit):
 
     # check variables
     # TODO: improve the check
-    if isinstance(qr_variables, QuantumRegister) or isinstance(qr_variables, list):
+    if isinstance(qr_variables, (QuantumRegister, list)):
         variable_qubits = [qb for qb, i in zip(qr_variables, flags) if not i == 0]
     else:
         raise ValueError('A QuantumRegister or list of qubits is expected for variables.')
@@ -75,11 +79,12 @@ def _do_checks(flags, qr_variables, qb_target, qr_ancillae, circuit):
     if qr_ancillae is None:
         ancillary_qubits = []
     elif isinstance(qr_ancillae, QuantumRegister):
-        ancillary_qubits = [qb for qb in qr_ancillae]
+        ancillary_qubits = list(qr_ancillae)
     elif isinstance(qr_ancillae, list):
         ancillary_qubits = qr_ancillae
     else:
-        raise ValueError('An optional list of qubits or a QuantumRegister is expected for ancillae.')
+        raise ValueError('An optional list of qubits or a '
+                         'QuantumRegister is expected for ancillae.')
 
     all_qubits = variable_qubits + [target_qubit] + ancillary_qubits
 
@@ -95,10 +100,10 @@ def logical_and(self, qr_variables, qb_target, qr_ancillae, flags=None, mct_mode
 
     Args:
         self (QuantumCircuit): The QuantumCircuit object to build the conjunction on.
-        variable_register (QuantumRegister): The QuantumRegister holding the variable qubits.
-        flags (list of int): A list of +1/-1/0 to mark negations or omissions of qubits.
-        target_qubit (Qubit): The target qubit to hold the conjunction result.
-        ancillary_register (QuantumRegister): The ancillary QuantumRegister for building the mct.
+        qr_variables (QuantumRegister): The QuantumRegister holding the variable qubits.
+        qb_target (Qubit): The target qubit to hold the conjunction result.
+        qr_ancillae (QuantumRegister): The ancillary QuantumRegister for building the mct.
+        flags (list[int]): A list of +1/-1/0 to mark negations or omissions of qubits.
         mct_mode (str): The mct building mode.
     """
     flags = _do_checks(flags, qr_variables, qb_target, qr_ancillae, self)
@@ -112,7 +117,7 @@ def logical_or(self, qr_variables, qb_target, qr_ancillae, flags=None, mct_mode=
     Args:
         self (QuantumCircuit): The QuantumCircuit object to build the disjunction on.
         qr_variables (QuantumRegister): The QuantumRegister holding the variable qubits.
-        flags (list of int): A list of +1/-1/0 to mark negations or omissions of qubits.
+        flags (list[int]): A list of +1/-1/0 to mark negations or omissions of qubits.
         qb_target (Qubit): The target qubit to hold the disjunction result.
         qr_ancillae (QuantumRegister): The ancillary QuantumRegister for building the mct.
         mct_mode (str): The mct building mode.

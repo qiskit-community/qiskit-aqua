@@ -11,6 +11,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
 """
 This module contains the definition of a base class for multivariate distributions.
 """
@@ -31,17 +32,17 @@ class MultivariateDistribution(UncertaintyModel, ABC):
 
     @classmethod
     def get_section_key_name(cls):
-        return Pluggable.SECTION_KEY_MULTIVARIATE_DISTRIBUTION
+        return Pluggable.SECTION_KEY_MULTIVARIATE_DIST
 
     def __init__(self, num_qubits, low, high, probabilities=None):
         """
         Constructor.
 
         Args:
-            num_qubits (array or list): assigns qubits to dimensions
+            num_qubits (Union(list, numpy.ndarray)): assigns qubits to dimensions
             probabilities (map): map - maps index tuples to probabilities
-            low (array or list): lowest value per dimension
-            high (array or list): highest value per dimension
+            low (Union(list, numpy.ndarray)): lowest value per dimension
+            high (Union(list, numpy.ndarray)): highest value per dimension
         """
 
         self._values = 0
@@ -88,46 +89,57 @@ class MultivariateDistribution(UncertaintyModel, ABC):
 
     @property
     def num_qubits(self):
+        """ returns num qubits """
         return self._num_qubits
 
     @property
     def dimension(self):
+        """ returns dimensions """
         return self._dimension
 
     @property
     def low(self):
+        """ returns low """
         return self._low
 
     @property
     def high(self):
+        """ returns high """
         return self._high
 
     @property
     def num_values(self):
+        """ returns number of values """
         return self._num_values
 
     @property
     def values(self):
+        """ returns values """
         return self._values
 
     @property
     def probabilities(self):
+        """ returns probabilities """
         return self._probabilities
 
     @property
     def probabilities_vector(self):
+        """ returns probabilities vector """
         return self._probabilities_vector
 
     def build(self, qc, q, q_ancillas=None, params=None):
-        custom_state = Custom(self.num_target_qubits, state_vector=np.sqrt(self._probabilities_vector))
+        """ build """
+        custom_state = Custom(self.num_target_qubits,
+                              state_vector=np.sqrt(self._probabilities_vector))
         qc.extend(custom_state.construct_circuit('circuit', q))
 
     @staticmethod
     def pdf_to_probabilities(pdf, low, high, num_values):
+        """ pdf to probabilities """
         probabilities = np.zeros(num_values)
         values = np.linspace(low, high, num_values)
         total = 0
-        for i, x in enumerate(values):
+        for i, _ in enumerate(values):
             probabilities[i] = pdf(values[i])
             total += probabilities[i]
         probabilities /= total

@@ -30,7 +30,7 @@ class FirstOrderExpansion(PauliZExpansion):
         'name': 'FirstOrderExpansion',
         'description': 'First order expansion for feature map',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'First_Order_Expansion_schema',
             'type': 'object',
             'properties': {

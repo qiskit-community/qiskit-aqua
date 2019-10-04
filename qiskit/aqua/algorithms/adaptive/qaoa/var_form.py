@@ -12,11 +12,17 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-import numpy as np
+"""Global X phases and parameterized problem hamiltonian."""
+
 from functools import reduce
+
+import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.quantum_info import Pauli
+
 from qiskit.aqua.operators import WeightedPauliOperator, op_converter
+
+# pylint: disable=invalid-name
 
 
 class QAOAVarForm:
@@ -27,14 +33,19 @@ class QAOAVarForm:
         Constructor, following the QAOA paper https://arxiv.org/abs/1411.4028
 
         Args:
-            cost_operator (WeightedPauliOperator): The operator representing the cost of the optimization problem,
+            cost_operator (WeightedPauliOperator): The operator representing the cost of
+                                                   the optimization problem,
                                                    denoted as U(B, gamma) in the original paper.
             p (int): The integer parameter p, which determines the depth of the circuit,
                      as specified in the original paper.
             initial_state (InitialState, optional): An optional initial state to use.
-            mixer_operator (WeightedPauliOperator, optional): An optional custom mixer operator to use instead of
-                                                              the global X-rotations, denoted as U(B, beta)
+            mixer_operator (WeightedPauliOperator, optional): An optional custom mixer operator
+                                                              to use instead of
+                                                              the global X-rotations,
+                                                              denoted as U(B, beta)
                                                               in the original paper.
+        Raises:
+            TypeError: invalid input
         """
         cost_operator = op_converter.to_weighted_pauli_operator(cost_operator)
         self._cost_operator = cost_operator
@@ -60,8 +71,10 @@ class QAOAVarForm:
                 raise TypeError('The mixer should be a qiskit.aqua.operators.WeightedPauliOperator '
                                 + 'object, found {} instead'.format(type(mixer_operator)))
             self._mixer_operator = mixer_operator
+        self.support_parameterized_circuit = True
 
     def construct_circuit(self, angles):
+        """ construct circuit """
         if not len(angles) == self.num_parameters:
             raise ValueError('Incorrect number of angles: expecting {}, but {} given.'.format(
                 self.num_parameters, len(angles)
@@ -69,7 +82,7 @@ class QAOAVarForm:
         circuit = QuantumCircuit()
         if self._initial_state:
             circuit += self._initial_state.construct_circuit('circuit')
-        if len(circuit.qregs) == 0:
+        if not circuit.qregs:
             q = QuantumRegister(self._cost_operator.num_qubits, name='q')
             circuit.add_register(q)
         elif len(circuit.qregs) == 1:
@@ -89,6 +102,7 @@ class QAOAVarForm:
 
     @property
     def setting(self):
+        """ returns setting """
         ret = "Variational Form: {}\n".format(self.__class__.__name__)
         params = ""
         for key, value in self.__dict__.items():

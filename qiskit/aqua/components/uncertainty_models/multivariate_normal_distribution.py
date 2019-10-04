@@ -11,13 +11,17 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
 """
 The Multivariate Normal Distribution.
 """
 
 import numpy as np
 from scipy.stats import multivariate_normal
-from qiskit.aqua.components.uncertainty_models.multivariate_distribution import MultivariateDistribution
+from qiskit.aqua.components.uncertainty_models.multivariate_distribution \
+    import MultivariateDistribution
+
+# pylint: disable=invalid-name
 
 
 class MultivariateNormalDistribution(MultivariateDistribution):
@@ -29,7 +33,7 @@ class MultivariateNormalDistribution(MultivariateDistribution):
         'name': 'MultivariateNormalDistribution',
         'description': 'Multivariate Normal Distribution',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'MultivariateNormalDistribution_schema',
             'type': 'object',
             'properties': {
@@ -77,11 +81,11 @@ class MultivariateNormalDistribution(MultivariateDistribution):
         Circuit Factory to build a circuit that represents a multivariate normal distribution.
 
         Args:
-            num_qubits (array or list): representing number of qubits per dimension
-            low (array or list): representing lower bounds per dimension
-            high (array or list): representing upper bounds per dimension
-            mu (array or list): representing expected values
-            sigma (array or list): representing co-variance matrix
+            num_qubits (Union(list, numpy.ndarray)): representing number of qubits per dimension
+            low (Union(list, numpy.ndarray)): representing lower bounds per dimension
+            high (Union(list, numpy.ndarray)): representing upper bounds per dimension
+            mu (Union(list, numpy.ndarray)): representing expected values
+            sigma (Union(list, numpy.ndarray)): representing co-variance matrix
         """
         super().validate(locals())
 

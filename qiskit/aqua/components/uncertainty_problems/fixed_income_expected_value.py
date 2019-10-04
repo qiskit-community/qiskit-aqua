@@ -11,13 +11,16 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
 """
 The Fixed Income Expected Value.
 """
 
-from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
-from qiskit.aqua.circuits.gates import cry
 import numpy as np
+from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
+from qiskit.aqua.circuits.gates import cry  # pylint: disable=unused-import
+
+# pylint: disable=invalid-name
 
 
 class FixedIncomeExpectedValue(UncertaintyProblem):
@@ -31,7 +34,7 @@ class FixedIncomeExpectedValue(UncertaintyProblem):
         'name': 'FixedIncomeExpectedValue',
         'description': 'Fixed Income Expected Value',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'FIEV_schema',
             'type': 'object',
             'properties': {
@@ -81,16 +84,20 @@ class FixedIncomeExpectedValue(UncertaintyProblem):
         ],
     }
 
-    def __init__(self, uncertainty_model, A, b, cash_flow, c_approx, i_state=None, i_objective=None):
+    def __init__(self, uncertainty_model, A, b, cash_flow,
+                 c_approx, i_state=None, i_objective=None):
         """
         Constructor.
 
         Args:
-            uncertainty_model:  multivariate distribution
-            A: PCA matrix for delta_r (changes in interest rates)
-            b: offset for interest rates (= initial interest rates)
-            cash_flow: cash flow time series
-            c_approx: approximation scaling factor
+            uncertainty_model (UncertaintyModel):  multivariate distribution
+            A (numpy.ndarray): PCA matrix for delta_r (changes in interest rates)
+            b (int): offset for interest rates (= initial interest rates)
+            cash_flow (list[float]): cash flow time series
+            c_approx (float): approximation scaling factor
+            i_state (Optional(Union(list, numpy.ndarray))): indices of qubits
+                                                            that represent the state
+            i_objective (Optional(int)): index of target qubit to apply the rotation to
         """
         super().validate(locals())
 
@@ -127,7 +134,8 @@ class FixedIncomeExpectedValue(UncertaintyProblem):
         self.b = b
 
         # construct PCA-based cost function (1st order approximation):
-        # c_t / (1 + A_t x + b_t)^{t+1} ~ c_t / (1 + b_t)^{t+1} - (t+1) c_t A_t / (1 + b_t)^{t+2} x = h + np.dot(g, x)
+        # c_t / (1 + A_t x + b_t)^{t+1} ~ c_t / (1 + b_t)^{t+1} - (t+1) c_t A_t /
+        # (1 + b_t)^{t+2} x = h + np.dot(g, x)
         self.h = 0
         self.g = np.zeros(self.K)
         for t in range(self.T):
@@ -143,7 +151,9 @@ class FixedIncomeExpectedValue(UncertaintyProblem):
         for k in range(self.K):
             nk = uncertainty_model.num_qubits[k]
             for i in range(nk):
-                self.slope[index] = pow(2.0, i) / (pow(2.0, nk) - 1) * (uncertainty_model.high[k] - uncertainty_model.low[k]) * self.g[k]
+                self.slope[index] = \
+                    pow(2.0, i) / (pow(2.0, nk) - 1) * \
+                    (uncertainty_model.high[k] - uncertainty_model.low[k]) * self.g[k]
                 index += 1
 
         # evaluate min and max values
@@ -174,7 +184,7 @@ class FixedIncomeExpectedValue(UncertaintyProblem):
     def required_ancillas_controlled(self):
         return self.uncertainty_model.required_ancillas_controlled()
 
-    def build(self, qc, q, q_ancillas=None):
+    def build(self, qc, q, q_ancillas=None, params=None):
 
         params = self._params
 

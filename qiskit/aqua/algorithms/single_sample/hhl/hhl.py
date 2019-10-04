@@ -16,8 +16,8 @@ The HHL algorithm.
 """
 
 import logging
-import numpy as np
 from copy import deepcopy
+import numpy as np
 
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.aqua.algorithms import QuantumAlgorithm
@@ -27,6 +27,8 @@ from qiskit.ignis.verification.tomography import state_tomography_circuits, \
 from qiskit.converters import circuit_to_dag
 
 logger = logging.getLogger(__name__)
+
+# pylint: disable=invalid-name
 
 
 class HHL(QuantumAlgorithm):
@@ -44,7 +46,7 @@ class HHL(QuantumAlgorithm):
         'description': 'The HHL Algorithm for Solving Linear Systems of '
                        'equations',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'hhl_schema',
             'type': 'object',
             'properties': {
@@ -65,25 +67,28 @@ class HHL(QuantumAlgorithm):
         },
         'problems': ['linear_system'],
         'depends': [
-            {'pluggable_type': 'initial_state',
-             'default': {
-                     'name': 'CUSTOM',
-                }
-             },
-            {'pluggable_type': 'eigs',
-             'default': {
-                     'name': 'EigsQPE',
-                     'num_ancillae': 6,
-                     'num_time_slices': 50,
-                     'expansion_mode': 'suzuki',
-                     'expansion_order': 2
-                }
-             },
-            {'pluggable_type': 'reciprocal',
-             'default': {
-                     'name': 'Lookup'
-                }
-             }
+            {
+                'pluggable_type': 'initial_state',
+                'default': {
+                    'name': 'CUSTOM',
+                },
+            },
+            {
+                'pluggable_type': 'eigs',
+                'default': {
+                    'name': 'EigsQPE',
+                    'num_ancillae': 6,
+                    'num_time_slices': 50,
+                    'expansion_mode': 'suzuki',
+                    'expansion_order': 2
+                },
+            },
+            {
+                'pluggable_type': 'reciprocal',
+                'default': {
+                    'name': 'Lookup'
+                },
+            },
         ],
     }
 
@@ -114,6 +119,8 @@ class HHL(QuantumAlgorithm):
             num_q (int): number of qubits required for the matrix Operator instance
             num_a (int): number of ancillary qubits for Eigenvalues instance
             orig_size (int): The original dimension of the problem (if truncate_powerdim)
+        Raises:
+            ValueError: invalid input
         """
         super().__init__()
         super().validate(locals())
@@ -152,8 +159,13 @@ class HHL(QuantumAlgorithm):
         """Initialize via parameters dictionary and algorithm input instance
 
         Args:
-            params: parameters dictionary
-            algo_input: LinearSystemInput instance
+            params (dict): parameters dictionary
+            algo_input (LinearSystemInput): LinearSystemInput instance
+        Returns:
+            HHL: an instance of this class
+        Raises:
+            AquaError: invalid input
+            ValueError: invalid input
         """
         if algo_input is None:
             raise AquaError("LinearSystemInput instance is required.")
@@ -224,7 +236,7 @@ class HHL(QuantumAlgorithm):
                 should be performed
 
         Returns:
-            the QuantumCircuit object for the constructed circuit
+            QuantumCircuit: the QuantumCircuit object for the constructed circuit
         """
 
         q = QuantumRegister(self._num_q, name="io")
@@ -268,8 +280,7 @@ class HHL(QuantumAlgorithm):
             vector (np.array): the input vector
 
         Returns:
-            matrix (np.array): the expanded matrix
-            vector (np.array): the expanded vector
+           tuple(np.array, np.array): the expanded matrix, the expanded vector
         """
         mat_dim = matrix.shape[0]
         next_higher = int(np.ceil(np.log2(mat_dim)))
@@ -292,8 +303,7 @@ class HHL(QuantumAlgorithm):
             vector (np.array): the input vector
 
         Returns:
-            matrix (np.array): the expanded matrix
-            vector (np.array): the expanded vector
+            tuple(np.array, np.array): the expanded matrix, the expanded vector
         """
         #
         half_dim = matrix.shape[0]
@@ -326,7 +336,9 @@ class HHL(QuantumAlgorithm):
             new_matrix[:, :] = matrix[0:half_dim, half_dim:full_dim]
             matrix = new_matrix
         if self._truncate_powerdim:
-            new_matrix = np.ndarray(shape=(self._original_dimension, self._original_dimension), dtype=complex)
+            new_matrix = \
+                np.ndarray(shape=(self._original_dimension, self._original_dimension),
+                           dtype=complex)
             new_matrix[:, :] = matrix[:self._original_dimension, :self._original_dimension]
             matrix = new_matrix
         return matrix
@@ -342,7 +354,8 @@ class HHL(QuantumAlgorithm):
         # Extract solution vector from statevector
         vec = self._reciprocal.sv_to_resvec(sv, self._num_q)
         # remove added dimensions
-        self._ret['probability_result'] = np.real(self._resize_vector(vec).dot(self._resize_vector(vec).conj()))
+        self._ret['probability_result'] = \
+            np.real(self._resize_vector(vec).dot(self._resize_vector(vec).conj()))
         vec = vec/np.linalg.norm(vec)
         self._hhl_results(vec)
 
@@ -419,7 +432,8 @@ class HHL(QuantumAlgorithm):
         # Rescaling the output vector to the real solution vector
         tmp_vec = matrix.dot(res_vec)
         f1 = np.linalg.norm(in_vec)/np.linalg.norm(tmp_vec)
-        f2 = sum(np.angle(in_vec*tmp_vec.conj()-1+1))/(np.log2(matrix.shape[0]))  # "-1+1" to fix angle error for -0.-0.j
+        # "-1+1" to fix angle error for -0.-0.j
+        f2 = sum(np.angle(in_vec*tmp_vec.conj()-1+1))/(np.log2(matrix.shape[0]))
         self._ret["solution"] = f1*res_vec*np.exp(-1j*f2)
 
     def _run(self):

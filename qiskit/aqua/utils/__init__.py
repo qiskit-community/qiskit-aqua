@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Utility packages """
+
 from .tensor_product import tensorproduct
 from .json_utils import convert_dict_to_json, convert_json_to_dict
 from .random_matrix_generator import (random_unitary, random_h2_body,
@@ -26,7 +28,6 @@ from .dataset_helper import (get_feature_dimension, get_num_classes,
                              map_label_to_class_name, reduce_dim_to_via_pca)
 from .qp_solver import optimize_svm
 from .circuit_factory import CircuitFactory
-from .circuit_cache import CircuitCache
 from .backend_utils import has_ibmq, has_aer
 
 __all__ = [
@@ -51,7 +52,6 @@ __all__ = [
     'reduce_dim_to_via_pca',
     'optimize_svm',
     'CircuitFactory',
-    'CircuitCache',
     'has_ibmq',
     'has_aer',
 ]

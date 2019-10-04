@@ -31,7 +31,7 @@ class ExactLSsolver(QuantumAlgorithm):
         'description': 'ExactLSsolver Algorithm',
         'classical': True,
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'ExactLSsolver_schema',
             'type': 'object',
             'properties': {
@@ -55,12 +55,17 @@ class ExactLSsolver(QuantumAlgorithm):
         self._ret = {}
 
     @classmethod
-    def init_params(cls, params, algo_input):
+    def init_params(cls, params, algo_input):  # pylint: disable=unused-argument
         """
         Initialize via parameters dictionary and algorithm input instance
         Args:
-            params: parameters dictionary
-            algo_input: LinearSystemInput instance
+            params (dict): parameters dictionary
+            algo_input (LinearSystemInput): instance
+        Returns:
+            ExactLSsolver: an instance of this class
+        Raises:
+            AquaError: invalid input
+            ValueError: invalid input
         """
         if algo_input is None:
             raise AquaError("LinearSystemInput instance is required.")
@@ -88,7 +93,7 @@ class ExactLSsolver(QuantumAlgorithm):
         """
         Run the algorithm to compute eigenvalues and solution.
         Returns:
-            Dictionary of results
+            dict: Dictionary of results
         """
         self._solve()
         return self._ret
