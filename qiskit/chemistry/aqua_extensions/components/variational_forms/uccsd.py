@@ -165,6 +165,7 @@ class UCCSD(VariationalForm):
                                            active_occupied, active_unoccupied)
 
         self._hopping_ops, self._num_parameters = self._build_hopping_operators()
+        self._excitation_pool = None
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
         self._logging_construct_circuit = True
@@ -187,6 +188,15 @@ class UCCSD(VariationalForm):
             list[list[int]]: double excitation list
         """
         return self._double_excitations
+
+    @property
+    def excitation_pool(self):
+        """
+        Getter of full list of available excitations (called the pool)
+        Returns:
+            list[WeightedPauliOperator]: excitation pool
+        """
+        return self._excitation_pool
 
     def _build_hopping_operators(self):
         if logger.isEnabledFor(logging.DEBUG):
@@ -248,6 +258,31 @@ class UCCSD(VariationalForm):
             logger.debug('Excitation (%s) is skipped since it is not commuted '
                          'with symmetries', ','.join([str(x) for x in index]))
         return qubit_op, index
+
+    def _reset_hopping_operators(self):
+        # store full list of excitations as pool
+        self._excitation_pool = self._hopping_ops.copy()
+
+        # reset internal excitation list to be empty
+        self._hopping_ops = []
+        self._num_parameters = 0
+        self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
+
+    def _append_hopping_operator(self, excitation):
+        """
+        Registers a new hopping operator.
+        """
+        self._hopping_ops.append(excitation)
+        self._num_parameters += 1
+        self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
+
+    def _pop_hopping_operator(self):
+        """
+        Pops the hopping operator that was added last.
+        """
+        self._hopping_ops.pop()
+        self._num_parameters -= 1
+        self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
     def construct_circuit(self, parameters, q=None):
         """

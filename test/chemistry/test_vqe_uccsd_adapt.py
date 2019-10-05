@@ -25,7 +25,7 @@ from qiskit.aqua.operators.weighted_pauli_operator import Z2Symmetries
 from qiskit.chemistry import FermionicOperator
 from qiskit.chemistry.aqua_extensions.algorithms.adaptive import VQEAdapt
 from qiskit.chemistry.aqua_extensions.components.initial_states import HartreeFock
-from qiskit.chemistry.aqua_extensions.components.variational_forms import UCCSDAdapt
+from qiskit.chemistry.aqua_extensions.components.variational_forms import UCCSD
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 
 
@@ -52,9 +52,10 @@ class TestVQEAdaptUCCSD(QiskitAquaTestCase):
         self.var_form_base = None
 
     def test_uccsd_adapt(self):
-        """ UCCSDAdapt test """
-        self.var_form_base = UCCSDAdapt(self.num_qubits, 1, self.num_spin_orbitals,
-                                        self.num_particles, initial_state=self.init_state)
+        """ UCCSD adaptivity test """
+        self.var_form_base = UCCSD(self.num_qubits, 1, self.num_spin_orbitals,
+                                   self.num_particles, initial_state=self.init_state)
+        self.var_form_base._reset_hopping_operators()
         # assert that the excitation pool exists
         self.assertIsNotNone(self.var_form_base.excitation_pool)
         # assert that the hopping ops list has been reset to be empty

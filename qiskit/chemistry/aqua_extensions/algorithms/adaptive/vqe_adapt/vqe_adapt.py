@@ -26,7 +26,7 @@ from qiskit import ClassicalRegister
 from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms.adaptive.vq_algorithm import VQAlgorithm
 from qiskit.aqua.algorithms.adaptive.vqe.vqe import VQE
-from qiskit.chemistry.aqua_extensions.components.variational_forms import UCCSDAdapt
+from qiskit.chemistry.aqua_extensions.components.variational_forms import UCCSD
 from qiskit.aqua.operators import TPBGroupedWeightedPauliOperator, WeightedPauliOperator
 from qiskit.aqua.utils.backend_utils import is_aer_statevector_backend
 
@@ -69,7 +69,7 @@ class VQEAdapt(VQAlgorithm):
             {
                 'pluggable_type': 'variational_form',
                 'default': {
-                    'name': 'UCCSDAdapt'
+                    'name': 'UCCSD'
                 },
             },
             ],
@@ -89,7 +89,7 @@ class VQEAdapt(VQAlgorithm):
             delta (float): finite difference step size for gradient computation
 
         Raises:
-            ValueError: if var_form_base is not an instance of UCCSDAdapt.
+            ValueError: if var_form_base is not an instance of UCCSD.
             See also: qiskit/chemistry/aqua_extensions/components/variational_forms/uccsd_adapt.py
         """
         super().__init__(var_form=var_form_base,
@@ -100,9 +100,10 @@ class VQEAdapt(VQAlgorithm):
         if initial_point is None:
             self._initial_point = var_form_base.preferred_init_points
         self._operator = operator
-        if not isinstance(var_form_base, UCCSDAdapt):
-            raise ValueError("var_form_base has to be an instance of UCCSDAdapt.")
+        if not isinstance(var_form_base, UCCSD):
+            raise ValueError("var_form_base has to be an instance of UCCSD.")
         self._var_form_base = var_form_base
+        self._var_form_base._reset_hopping_operators()
         self._excitation_pool = excitation_pool
         self._threshold = threshold
         self._delta = delta
