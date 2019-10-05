@@ -133,14 +133,11 @@ class VQEAdapt(VQAlgorithm):
             vqe._quantum_instance = self._quantum_instance
             vqe._use_simulator_operator_mode = self._use_simulator_operator_mode
             # evaluate energies
-            parameter_sets = theta + [-delta] + theta + [delta] \
-                + theta + [-delta*1j] + theta + [delta*1j]
+            parameter_sets = theta + [-delta] + theta + [delta]
             energy_results = vqe._energy_evaluation(np.asarray(parameter_sets))
-            # compute real and imaginary gradients
+            # compute gradient
             gradient = (energy_results[0] - energy_results[1]) / (2*delta)
-            gradient_i = (energy_results[2] - energy_results[3]) / (2*delta)
-            # for now: simply use maximum of either
-            res.append((max(np.abs(gradient), np.abs(gradient_i)), exc))
+            res.append((np.abs(gradient), exc))
             # pop excitation from variational form
             var_form._pop_hopping_operator()
 
