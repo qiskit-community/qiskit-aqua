@@ -259,21 +259,27 @@ class UCCSD(VariationalForm):
                          'with symmetries', ','.join([str(x) for x in index]))
         return qubit_op, index
 
-    def _reset_hopping_operators(self):
+    def _manage_hopping_operators(self):
         # store full list of excitations as pool
         self._excitation_pool = self._hopping_ops.copy()
 
+        # check depth parameter
+        if (self._depth != 1):
+            logger.warning('The depth of the variational form was not 1 but %i which does not work in the adaptive VQE \
+                           algorithm. Thus, it has been reset to 1.')
+            self._depth = 1
+
         # reset internal excitation list to be empty
         self._hopping_ops = []
-        self._num_parameters = 0
+        self._num_parameters = len(self._hopping_ops) * self._depth
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
-    def _append_hopping_operator(self, excitation):
+    def _push_hopping_operator(self, excitation):
         """
         Registers a new hopping operator.
         """
         self._hopping_ops.append(excitation)
-        self._num_parameters += 1
+        self._num_parameters = len(self._hopping_ops) * self._depth
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
     def _pop_hopping_operator(self):
@@ -281,7 +287,7 @@ class UCCSD(VariationalForm):
         Pops the hopping operator that was added last.
         """
         self._hopping_ops.pop()
-        self._num_parameters -= 1
+        self._num_parameters = len(self._hopping_ops) * self._depth
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
     def construct_circuit(self, parameters, q=None):
