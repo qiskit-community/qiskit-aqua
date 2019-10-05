@@ -63,13 +63,12 @@ class TestVQEAdaptUCCSD(QiskitAquaTestCase):
 
     def test_vqe_adapt(self):
         """ VQEAdapt test """
-        # this is not nice, but unfortunately these two tests rely on each other
-        # thus, this line ensures that self.var_form_base exists where it should
-        self.test_uccsd_adapt()
+        self.var_form_base = UCCSD(self.num_qubits, 1, self.num_spin_orbitals,
+                                   self.num_particles, initial_state=self.init_state)
         backend = Aer.get_backend('statevector_simulator')
         optimizer = L_BFGS_B()
         algorithm = VQEAdapt(self.qubit_op, self.var_form_base, optimizer,
-                             self.var_form_base.excitation_pool, threshold=0.00001, delta=0.1)
+                             threshold=0.00001, delta=0.1)
         result = algorithm.run(backend)
         self.assertAlmostEqual(result['energy'], -1.85727503, places=2)
         self.assertIn('num_iterations', result)

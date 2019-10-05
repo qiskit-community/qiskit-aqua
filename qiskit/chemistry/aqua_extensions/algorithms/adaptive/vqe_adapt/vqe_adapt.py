@@ -75,7 +75,7 @@ class VQEAdapt(VQAlgorithm):
             ],
     }
 
-    def __init__(self, operator, var_form_base, optimizer, excitation_pool,
+    def __init__(self, operator, var_form_base, optimizer, excitation_pool=None,
                  initial_point=None, threshold=0.00001, delta=1):
         """Constructor.
 
@@ -104,7 +104,7 @@ class VQEAdapt(VQAlgorithm):
             raise ValueError("var_form_base has to be an instance of UCCSD.")
         self._var_form_base = var_form_base
         self._var_form_base._manage_hopping_operators()
-        self._excitation_pool = excitation_pool
+        self._excitation_pool = self._var_form_base.excitation_pool if excitation_pool is None else excitation_pool
         self._threshold = threshold
         self._delta = delta
 
