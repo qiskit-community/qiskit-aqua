@@ -36,6 +36,7 @@ class FeatureMap(Pluggable):
         super().__init__()
         self._num_qubits = 0
         self._feature_dimension = 0
+        self._support_parameterized_circuit = False
 
     @classmethod
     def init_params(cls, params):
@@ -78,3 +79,13 @@ class FeatureMap(Pluggable):
     def num_qubits(self):
         """ returns number of qubits """
         return self._num_qubits
+
+    @property
+    def support_parameterized_circuit(self):
+        """ returns whether or not the sub-class support parameterized circuit """
+        return self._support_parameterized_circuit
+
+    @support_parameterized_circuit.setter
+    def support_parameterized_circuit(self, new_value):
+        """ set whether or not the sub-class support parameterized circuit """
+        self._support_parameterized_circuit = new_value

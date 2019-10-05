@@ -168,6 +168,7 @@ class UCCSD(VariationalForm):
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
         self._logging_construct_circuit = True
+        self._support_parameterized_circuit = True
 
     @property
     def single_excitations(self):
@@ -253,8 +254,8 @@ class UCCSD(VariationalForm):
         Construct the variational form, given its parameters.
 
         Args:
-            parameters (numpy.ndarray): circuit parameters
-            q (QuantumRegister): Quantum Register for the circuit.
+            parameters (Union(numpy.ndarray, list[Parameter], ParameterVector)): circuit parameters
+            q (QuantumRegister, optional): Quantum Register for the circuit.
 
         Returns:
             QuantumCircuit: a quantum circuit with given `parameters`
@@ -294,8 +295,12 @@ class UCCSD(VariationalForm):
     @staticmethod
     def _construct_circuit_for_one_excited_operator(qubit_op_and_param, qr, num_time_slices):
         qubit_op, param = qubit_op_and_param
-        qc = qubit_op.evolve(state_in=None, evo_time=param * -1j,
-                             num_time_slices=num_time_slices, quantum_registers=qr)
+        # TODO: need to put -1j in the coeff of pauli since the Parameter
+        # does not support complex number, but it can be removed if Parameter supports complex
+        qubit_op = qubit_op * -1j
+        qc = qubit_op.evolve(state_in=None, evo_time=param,
+                             num_time_slices=num_time_slices,
+                             quantum_registers=qr)
         return qc
 
     @property
