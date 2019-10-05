@@ -264,9 +264,9 @@ class UCCSD(VariationalForm):
         self._excitation_pool = self._hopping_ops.copy()
 
         # check depth parameter
-        if (self._depth != 1):
-            logger.warning('The depth of the variational form was not 1 but %i which does not work in the adaptive VQE \
-                           algorithm. Thus, it has been reset to 1.')
+        if self._depth != 1:
+            logger.warning('The depth of the variational form was not 1 but %i which does not work \
+                    in the adaptive VQE algorithm. Thus, it has been reset to 1.')
             self._depth = 1
 
         # reset internal excitation list to be empty

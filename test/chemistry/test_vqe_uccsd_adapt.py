@@ -52,7 +52,7 @@ class TestVQEAdaptUCCSD(QiskitAquaTestCase):
         self.var_form_base = None
 
     def test_uccsd_adapt(self):
-        """ UCCSD adaptivity test """
+        """ UCCSD test for adaptive features """
         self.var_form_base = UCCSD(self.num_qubits, 1, self.num_spin_orbitals,
                                    self.num_particles, initial_state=self.init_state)
         self.var_form_base._manage_hopping_operators()
