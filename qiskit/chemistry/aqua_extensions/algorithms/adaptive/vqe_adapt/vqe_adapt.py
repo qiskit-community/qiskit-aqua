@@ -23,7 +23,7 @@ import re
 import numpy as np
 
 from qiskit import ClassicalRegister
-from qiskit.aqua import AquaError
+from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.algorithms.adaptive.vq_algorithm import VQAlgorithm
 from qiskit.aqua.algorithms.adaptive.vqe.vqe import VQE
 from qiskit.chemistry.aqua_extensions.components.variational_forms import UCCSD
@@ -55,15 +55,33 @@ class VQEAdapt(VQAlgorithm):
                     },
                     'default': None
                 },
+                'excitation_pool': {
+                    'type': ['array', 'null'],
+                    "items": {
+                        "type": "WeightedPauliOperator"
+                    },
+                    'default': None
+                },
+                'threshold': {
+                    'type': 'float',
+                    'minimum': 1e-15,  # limited by floating point precision
+                    'default': 1e-5
+
+                },
+                'delta': {
+                    'type': 'float',
+                    'minimum': 1e-5,
+                    'default': 1
+                }
             },
             'additionalProperties': False
         },
-        'problems': ['energy'],
+        'problems': ['energy', 'ising'],
         'depends': [
             {
-                'pluggable_type': 'algorithm',
+                'pluggable_type': 'optimizer',
                 'default': {
-                    'name': 'VQE'
+                    'name': 'L_BFGS_B'
                 },
             },
             {
@@ -72,11 +90,11 @@ class VQEAdapt(VQAlgorithm):
                     'name': 'UCCSD'
                 },
             },
-            ],
+        ],
     }
 
     def __init__(self, operator, var_form_base, optimizer, excitation_pool=None,
-                 initial_point=None, threshold=0.00001, delta=1):
+                 initial_point=None, threshold=1e-5, delta=1):
         """Constructor.
 
         Args:
@@ -107,6 +125,46 @@ class VQEAdapt(VQAlgorithm):
         self._excitation_pool = self._var_form_base.excitation_pool if excitation_pool is None else excitation_pool
         self._threshold = threshold
         self._delta = delta
+
+    @classmethod
+    def init_params(cls, params, algo_input):
+        """
+        Initialize via parameters dictionary and algorithm input instance.
+
+        Args:
+            params (dict): parameters dictionary
+            algo_input (EnergyInput): EnergyInput instance
+
+        Returns:
+            VQEAdapt: VQEAdapt object
+        Raises:
+            AquaError: invalid input
+        """
+        if algo_input is None:
+            raise AquaError("EnergyInput instance is required.")
+
+        operator = algo_input.qubit_op
+
+        vqe_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
+        initial_point = vqe_params.get('initial_point')
+        excitation_pool = vqe_params.get('excitation_pool')
+        threshold = vqe_params.get('threshold')
+        delta = vqe_params.get('delta')
+
+        # Set up variational form, we need to add computed num qubits
+        # Pass all parameters so that Variational Form can create its dependents
+        var_form_params = params.get(Pluggable.SECTION_KEY_VAR_FORM)
+        var_form_params['num_qubits'] = operator.num_qubits
+        var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM,
+                                       var_form_params['name']).init_params(params)
+
+        # Set up optimizer
+        opt_params = params.get(Pluggable.SECTION_KEY_OPTIMIZER)
+        optimizer = get_pluggable_class(PluggableType.OPTIMIZER,
+                                        opt_params['name']).init_params(params)
+
+        return cls(operator, var_form, optimizer, excitation_pool=excitation_pool,
+                   initial_point=initial_point, threshold=threshold, delta=delta)
 
     def _compute_gradients(self, excitation_pool, theta, delta,
                            var_form, operator, optimizer):
