@@ -72,6 +72,10 @@ class VQEAdapt(VQAlgorithm):
                     'type': 'float',
                     'minimum': 1e-5,
                     'default': 1
+                },
+                'max_evals_grouped': {
+                    'type': 'integer',
+                    'default': 1
                 }
             },
             'additionalProperties': False
@@ -93,18 +97,22 @@ class VQEAdapt(VQAlgorithm):
         ],
     }
 
-    def __init__(self, operator, var_form_base, optimizer, excitation_pool=None,
-                 initial_point=None, threshold=1e-5, delta=1):
+    def __init__(self, operator, var_form_base, optimizer, initial_point=None,
+                 excitation_pool=None, threshold=1e-5, delta=1,
+                 max_evals_grouped=1, aux_operators=None):
         """Constructor.
 
         Args:
             operator (BaseOperator): Qubit operator
             var_form_base (VariationalForm): base parametrized variational form
             optimizer (Optimizer): the classical optimizer algorithm
-            excitation_pool (list[WeightedPauliOperator]): list of excitation operators
             initial_point (numpy.ndarray): optimizer initial point
+            excitation_pool (list[WeightedPauliOperator]): list of excitation operators
             threshold (double): absolute threshold value for gradients
             delta (float): finite difference step size for gradient computation
+            max_evals_grouped (int): max number of evaluations performed simultaneously
+            aux_operators (list[BaseOperator]): Auxiliary operators to be evaluated
+                                                at each eigenvalue
 
         Raises:
             ValueError: if var_form_base is not an instance of UCCSD.
@@ -115,6 +123,7 @@ class VQEAdapt(VQAlgorithm):
                          initial_point=initial_point)
         self._use_simulator_operator_mode = None
         self._ret = None
+        self._optimizer.set_max_evals_grouped(max_evals_grouped)
         if initial_point is None:
             self._initial_point = var_form_base.preferred_init_points
         self._operator = operator
@@ -125,6 +134,12 @@ class VQEAdapt(VQAlgorithm):
         self._excitation_pool = self._var_form_base.excitation_pool if excitation_pool is None else excitation_pool
         self._threshold = threshold
         self._delta = delta
+        self._aux_operators = []
+        if aux_operators is not None:
+            aux_operators = \
+                [aux_operators] if not isinstance(aux_operators, list) else aux_operators
+            for aux_op in aux_operators:
+                self._aux_operators.append(aux_op)
 
     @classmethod
     def init_params(cls, params, algo_input):
@@ -150,6 +165,7 @@ class VQEAdapt(VQAlgorithm):
         excitation_pool = vqe_params.get('excitation_pool')
         threshold = vqe_params.get('threshold')
         delta = vqe_params.get('delta')
+        max_evals_grouped = vqe_params.get('max_evals_grouped')
 
         # Set up variational form, we need to add computed num qubits
         # Pass all parameters so that Variational Form can create its dependents
@@ -164,7 +180,8 @@ class VQEAdapt(VQAlgorithm):
                                         opt_params['name']).init_params(params)
 
         return cls(operator, var_form, optimizer, excitation_pool=excitation_pool,
-                   initial_point=initial_point, threshold=threshold, delta=delta)
+                   initial_point=initial_point, threshold=threshold, delta=delta,
+                   max_evals_grouped=max_evals_grouped, aux_operators=algo_input.aux_ops)
 
     def _compute_gradients(self, excitation_pool, theta, delta,
                            var_form, operator, optimizer):
@@ -271,6 +288,11 @@ class VQEAdapt(VQAlgorithm):
                             initial_point=theta)
             self._ret = algorithm.run(self._quantum_instance)
             theta = self._ret['opt_params'].tolist()
+        # once finished evaluate auxiliary operators if any
+        if self._aux_operators is not None and self._aux_operators:
+            algorithm = VQE(self._operator, self._var_form_base, self._optimizer,
+                            initial_point=theta, aux_operators=self._aux_operators)
+            self._ret = algorithm.run(self._quantum_instance)
         # extend VQE returned information with additional outputs
         logger.info('The final energy is: %s', str(self._ret['energy']))
         self._ret['num_iterations'] = iteration
