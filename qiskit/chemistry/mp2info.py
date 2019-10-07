@@ -14,7 +14,7 @@
 
 """ MP2Info class """
 
-from qiskit.chemistry.aqua_extensions.components.variational_forms import UCCSD
+from qiskit.chemistry.components.variational_forms import UCCSD
 
 
 class MP2Info:

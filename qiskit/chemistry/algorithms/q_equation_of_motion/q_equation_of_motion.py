@@ -29,7 +29,7 @@ from qiskit.aqua.operators import (WeightedPauliOperator, Z2Symmetries,
                                    TPBGroupedWeightedPauliOperator,
                                    op_converter, commutator)
 
-from qiskit.chemistry.aqua_extensions.components.variational_forms import UCCSD
+from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry import FermionicOperator
 
 logger = logging.getLogger(__name__)

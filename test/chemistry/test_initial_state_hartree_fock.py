@@ -18,7 +18,7 @@ import unittest
 from test.chemistry.common import QiskitChemistryTestCase
 import numpy as np
 from parameterized import parameterized
-from qiskit.chemistry.aqua_extensions.components.initial_states import HartreeFock
+from qiskit.chemistry.components.initial_states import HartreeFock
 from qiskit.aqua.operators import op_converter
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType

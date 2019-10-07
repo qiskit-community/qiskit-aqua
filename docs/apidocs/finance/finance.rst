@@ -18,6 +18,6 @@ qiskit.finance
   .. toctree::
      :maxdepth: 1
 
-     aqua_extensions/aqua_extensions
+     components/components
      data_providers/data_providers
      ising/ising
