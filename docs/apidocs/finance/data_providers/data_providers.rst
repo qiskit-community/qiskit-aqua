@@ -1,8 +1,8 @@
 .. _qiskit-finance-data_providers:
 
-**************************************
-qiskit.aqua.finance.data_providers
-**************************************
+*******************************
+qiskit.finance.data_providers
+*******************************
 
 .. currentmodule:: qiskit.finance.data_providers
 
