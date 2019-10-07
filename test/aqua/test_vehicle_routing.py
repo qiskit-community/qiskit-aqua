@@ -21,7 +21,7 @@ from qiskit.quantum_info import Pauli
 
 from qiskit.aqua import run_algorithm, aqua_globals
 from qiskit.aqua.input import EnergyInput
-from qiskit.aqua.translators.ising.vehicle_routing import get_qubit_op
+from qiskit.optimization.ising.vehicle_routing import get_operator
 
 
 # To run only this test, issue:
@@ -39,7 +39,7 @@ class TestVehicleRouting(QiskitAquaTestCase):
         self.instance = np.zeros((self.n, self.n))
         self.instance[0, 1] = 0.8
         self.instance[1, 0] = 0.8
-        self.qubit_op = get_qubit_op(self.instance, self.n, self.k)
+        self.qubit_op = get_operator(self.instance, self.n, self.k)
         self.algo_input = EnergyInput(self.qubit_op)
 
     def test_simple1(self):

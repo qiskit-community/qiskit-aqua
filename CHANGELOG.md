@@ -23,6 +23,7 @@ Changed
 
 -   `VQE`, `VQC` and `QSVM` now use parameterized circuits if it is available to save time 
     in transpilation. (#693)
+-   Refactor of ai,finance and optimization
 
 Added
 -----
