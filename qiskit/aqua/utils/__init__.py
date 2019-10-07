@@ -28,7 +28,6 @@ from .dataset_helper import (get_feature_dimension, get_num_classes,
                              map_label_to_class_name, reduce_dim_to_via_pca)
 from .qp_solver import optimize_svm
 from .circuit_factory import CircuitFactory
-from .circuit_cache import CircuitCache
 from .backend_utils import has_ibmq, has_aer
 
 __all__ = [
@@ -53,7 +52,6 @@ __all__ = [
     'reduce_dim_to_via_pca',
     'optimize_svm',
     'CircuitFactory',
-    'CircuitCache',
     'has_ibmq',
     'has_aer',
 ]

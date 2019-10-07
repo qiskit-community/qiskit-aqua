@@ -30,11 +30,11 @@ matrix:
   - name: "Lint and Style check and Test Chemistry"
     env: TEST_DIR=chemistry
   - name: "Test Aqua 1"
-    env: TEST_DIR=aqua TEST_PARAMS="-end 30"
+    env: TEST_DIR=aqua TEST_PARAMS="-end 29"
   - name: "Test Aqua 2"
-    env: TEST_DIR=aqua TEST_PARAMS="-start 30 -end 47"
+    env: TEST_DIR=aqua TEST_PARAMS="-start 29 -end 46"
   - name: "Test Aqua 3"
-    env: TEST_DIR=aqua TEST_PARAMS="-start 47"
+    env: TEST_DIR=aqua TEST_PARAMS="-start 46"
   - if: tag IS present
     python: 3.6
     env:
