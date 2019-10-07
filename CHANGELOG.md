@@ -39,6 +39,8 @@ Added
     the `evolution_instruction` method support `Parameter` as time parameter.  (#693)
 -   VQEAdapt, adaptive version of the VQE algorithm for chemistry. (#685)
 -   Optionally split qobj by max gates per job. (#694)
+-   An option in evolution_instruction to be able to control whether or not add a barrier
+    for every slice. (#708)
 
 Fixed
 -------
