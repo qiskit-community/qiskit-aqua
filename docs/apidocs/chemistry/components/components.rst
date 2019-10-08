@@ -11,3 +11,12 @@ qiskit.chemistry.components
   :no-heading:
   :no-inheritance-diagram:
   :inherited-members:
+
+Submodules
+==========
+
+.. toctree::
+   :maxdepth: 1
+
+   initial_states/initial_states
+   variational_forms/variational_forms

@@ -38,6 +38,7 @@ Added
     implies whether or not can be built with `Parameter` (or `ParameterVector`). Furthermore, 
     the `evolution_instruction` method support `Parameter` as time parameter.  (#693)
 -   VQEAdapt, adaptive version of the VQE algorithm for chemistry. (#685)
+-   Optionally split qobj by max gates per job. (#694)
 
 Fixed
 -------
