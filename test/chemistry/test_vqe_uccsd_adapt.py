@@ -55,7 +55,7 @@ class TestVQEAdaptUCCSD(QiskitAquaTestCase):
         """ UCCSD test for adaptive features """
         self.var_form_base = UCCSD(self.num_qubits, 1, self.num_spin_orbitals,
                                    self.num_particles, initial_state=self.init_state)
-        self.var_form_base._manage_hopping_operators()
+        self.var_form_base.manage_hopping_operators()
         # assert that the excitation pool exists
         self.assertIsNotNone(self.var_form_base.excitation_pool)
         # assert that the hopping ops list has been reset to be empty
