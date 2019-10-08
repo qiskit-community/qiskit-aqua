@@ -23,7 +23,11 @@ Changed
 
 -   `VQE`, `VQC` and `QSVM` now use parameterized circuits if it is available to save time 
     in transpilation. (#693)
--   Refactor of ai,finance and optimization
+-   Refactor of ai,finance and optimization. Among other changes:
+    - qiskit/aqua/translators/data_providers/ moved to qiskit/finance/data_providers/
+    - qiskit/aqua/translators/ising/portfolio.py and portfolio_diversification.py moved to qiskit/finance/ising/
+    - qiskit/aqua/translators/ising/ (i.e. all but above 2) moved to qiskit/optimization/ising/
+
 
 Added
 -----
