@@ -26,7 +26,7 @@ from qiskit import ClassicalRegister
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.algorithms.adaptive.vq_algorithm import VQAlgorithm
 from qiskit.aqua.algorithms.adaptive.vqe.vqe import VQE
-from qiskit.chemistry.aqua_extensions.components.variational_forms import UCCSD
+from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.aqua.operators import TPBGroupedWeightedPauliOperator, WeightedPauliOperator
 from qiskit.aqua.utils.backend_utils import is_aer_statevector_backend
 
@@ -109,7 +109,7 @@ class VQEAdapt(VQAlgorithm):
 
         Raises:
             ValueError: if var_form_base is not an instance of UCCSD.
-            See also: qiskit/chemistry/aqua_extensions/components/variational_forms/uccsd_adapt.py
+            See also: qiskit/chemistry/components/variational_forms/uccsd_adapt.py
         """
         super().__init__(var_form=var_form_base,
                          optimizer=optimizer,
