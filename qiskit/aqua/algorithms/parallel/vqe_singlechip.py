@@ -34,7 +34,7 @@ def run(operator, optimizer, varform, chosen_backend, num_qubits, initialParamet
 
 
 # Create Parallelized Measurement Circuits from single measurement circuits
-def opToCircs (circuit=QuantumCircuit, operator=WeightedPauliOperator, qr_size=int):
+def opToCircs(circuit=QuantumCircuit, operator=WeightedPauliOperator, qr_size=int):
     if(qr_size < operator.num_qubits):
         raise Exception('Error: Not enough qubits, enter at least QubitOp.num_qubits qubits.')
     qr = []
@@ -70,7 +70,7 @@ def energy_opt(parameters):
     energy = E(circuit, qubitOp, qr_size)
     if plottingTime:
         values.append(energy)
-    #print(energy)
+    # print(energy)
     return energy
 
 
@@ -112,8 +112,9 @@ def E(circuit=QuantumCircuit, qubitOp=WeightedPauliOperator, qr_size=int):
                 newdict[b] = 0
             for k in range(len(sep_counts)):
                 newdict[sep_counts[k][len(sep_counts[0])-2-i]] += sep_counts[k][-1]
-            energy += qubitOp.paulis[counter*paulis_per_register+i][0] * \
-                      sum_binary(newdict, qubitOp.paulis[counter*paulis_per_register+i][1])
+            energy += qubitOp.paulis[counter*paulis_per_register
+                                     +i][0] * sum_binary(newdict,
+                                                         qubitOp.paulis[counter*paulis_per_register+i][1])
         counter += 1
     return energy
 
@@ -122,7 +123,8 @@ def E(circuit=QuantumCircuit, qubitOp=WeightedPauliOperator, qr_size=int):
 def sum_binary(counts, pauli=Pauli):
     sum = 0
     total = 0
-    # countOperator tracks which parts of the Pauli Operator consist of the identity (which does not affect the parity)
+    # countOperator tracks which parts of the Pauli Operator consist of the identity
+    # (which does not affect the parity)
     countOperator = list(np.logical_or(pauli.x, pauli.z))
     for key in counts:
         parity = 0
