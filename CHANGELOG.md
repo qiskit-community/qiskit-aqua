@@ -23,11 +23,11 @@ Changed
 
 -   `VQE`, `VQC` and `QSVM` now use parameterized circuits if it is available to save time 
     in transpilation. (#693)
--   Refactor of ai,finance and optimization. Among other changes:
+-   Refactor of ai,finance and optimization. (#700) Among other changes:
     - qiskit/aqua/translators/data_providers/ moved to qiskit/finance/data_providers/
     - qiskit/aqua/translators/ising/portfolio.py and portfolio_diversification.py moved to qiskit/finance/ising/
     - qiskit/aqua/translators/ising/ (i.e. all but above 2) moved to qiskit/optimization/ising/
-
+-   UCCSD updated to all excitation pool to be managed by an adaptive algorithm like VQEAdapt. (#685)
 
 Added
 -----
@@ -36,7 +36,8 @@ Added
     which a `Grover` object will now check for, upon initialization, on its provided oracle.  (#681)
 -   `VariationalForm` and `FeatureMap` has a new property on `support_parameterized_circuit`, which 
     implies whether or not can be built with `Parameter` (or `ParameterVector`). Furthermore, 
-    the `evolution_instruction` method support `Parameter` as time parameter.  (#693) 
+    the `evolution_instruction` method support `Parameter` as time parameter.  (#693)
+-   VQEAdapt, adaptive version of the VQE algorithm for chemistry. (#685)
 
 Fixed
 -------
