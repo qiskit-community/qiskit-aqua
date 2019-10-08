@@ -3,9 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 import pickle
-from qiskit.chemistry.aqua_extensions.components.variational_forms import UCCSD
 from qiskit.aqua.components.variational_forms import RYRZ, VariationalForm
-from qiskit.chemistry.aqua_extensions.components.initial_states import HartreeFock
 from qiskit.aqua.components.optimizers import COBYLA, SPSA, SLSQP, AQGD
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry import FermionicOperator
@@ -17,52 +15,27 @@ from qiskit.aqua.operators.weighted_pauli_operator import WeightedPauliOperator
 
 backend = Aer.get_backend("qasm_simulator")
 
-# Create plot of optimization procedure
-def createPlot(exactGroundStateEnergy=-1.14, numberOfIterations=1000, bondLength=0.735,
-               initialParameters=None, numberOfParameters=32, shotsPerPoint=100000,
-               registerSize = 4, map_type='jordan_wigner'):
-    if initialParameters is None:
-        initialParameters = np.random.rand(numberOfParameters)
-    global qubitOp
-    global qr_size
+def run(operator, optimizer, varform, backend, initialParameters=None, shotsPerPoint=100000):
     global shots
     global values
     global plottingTime
+    global qubitOp
+    global qr_size
+    global var_form
+    var_form = varform
+    qr_size = 4
     plottingTime = True
+    qubitOp = operator
     shots = shotsPerPoint
-    qr_size = registerSize
-    optimizer = COBYLA(maxiter=numberOfIterations)
-    iterations = []
     values = []
-    for i in range(numberOfIterations):
-        iterations.append(i+1)
+    numberOfParameters = varform.num_parameters
+    if initialParameters is None:
+        initialParameters = np.random.rand(numberOfParameters)
 
-    # Build molecule with PySCF
-    driver = PySCFDriver(atom="H .0 .0 .0; H .0 .0 " + str(bondLength), unit=UnitsType.ANGSTROM,
-                         charge=0, spin=0, basis='sto3g')
-    molecule = driver.run()
-    repulsion_energy = molecule.nuclear_repulsion_energy
-    num_spin_orbitals = molecule.num_orbitals * 2
-    num_particles = molecule.num_alpha + molecule.num_beta
-
-    # Map fermionic operator to qubit operator and start optimization
-    ferOp = FermionicOperator(h1=molecule.one_body_integrals, h2=molecule.two_body_integrals)
-    qubitOp = ferOp.mapping(map_type=map_type, threshold=0.00000001)
+    # Start optimization
     sol_opt = optimizer.optimize(numberOfParameters, energy_opt, gradient_function=None,
                                  variable_bounds=None, initial_point=initialParameters)
-    # Adjust values to obtain Energy Error
-    for i in range(len(values)):
-        values[i] = values[i]+ repulsion_energy - exactGroundStateEnergy
-
-    # Saving and Plotting Data
-    filename = 'Energy Error - Iterations'
-    with open(filename, 'wb') as f:
-        pickle.dump([iterations, values], f)
-    plt.plot(iterations, values)
-    plt.ylabel('Energy Error')
-    plt.xlabel('Iterations')
-    #plt.show()
-
+    return(sol_opt[1])
 
 
 # Create Parallelized Measurement Circuits from single measurement circuits
@@ -94,14 +67,14 @@ def opToCircs (circuit = QuantumCircuit, operator = WeightedPauliOperator, qr_si
 # Function that is used by the optimizer, takes parameters and returns respective energy
 def energy_opt(parameters):
     # Create variational form with RYRZ model and build corresponding circuit with parameters
-    var_form = RYRZ(qubitOp.num_qubits, depth=3, entanglement="linear")
+    #var_form = RYRZ(qubitOp.num_qubits, depth=3, entanglement="linear")
     circuit = var_form.construct_circuit(parameters)
 
     # Calculate and output the energy
     energy = E(circuit, qubitOp, qr_size)
     if plottingTime:
         values.append(energy)
-    print(energy)
+    #print(energy)
     return energy
 
 
@@ -126,6 +99,7 @@ def E(circuit = QuantumCircuit, qubitOp = WeightedPauliOperator, qr_size = int):
        # result=quantum_instance.execute(circuit)
 
        counts = result.get_counts(circuit)
+
        # Separate dictionaries for the different Pauli Operators
        sep_counts = []
        for key in counts:
@@ -177,5 +151,3 @@ if noisy:
     noise_model = noise.device.basic_device_noise_model(device.properties())
     quantum_instance = QuantumInstance(backend=backend, shots=100,
                                        noise_model=noise_model, coupling_map=coupling_map)
-
-createPlot(numberOfIterations=1, registerSize=12)
