@@ -13,17 +13,19 @@ from qiskit.aqua import QuantumInstance
 from qiskit.quantum_info import Pauli
 from qiskit.aqua.operators.weighted_pauli_operator import WeightedPauliOperator
 
-backend = Aer.get_backend("qasm_simulator")
+#backend = Aer.get_backend("qasm_simulator")
 
-def run(operator, optimizer, varform, backend, initialParameters=None, shotsPerPoint=100000):
+def run(operator, optimizer, varform, backend, num_qubits, initialParameters=None, shotsPerPoint=10000):
     global shots
     global values
     global plottingTime
     global qubitOp
     global qr_size
     global var_form
+    global backend
+    backend = backend
     var_form = varform
-    qr_size = 4
+    qr_size = num_qubits
     plottingTime = True
     qubitOp = operator
     shots = shotsPerPoint
@@ -80,47 +82,47 @@ def energy_opt(parameters):
 
 
 # Function that calculates energy
-def E(circuit = QuantumCircuit, qubitOp = WeightedPauliOperator, qr_size = int):
-   # Initialize energy and calculate number of Paulis that fit on quantum device
-   energy=0
-   pauli_size = qubitOp.num_qubits
-   paulis_per_register = math.floor(qr_size/pauli_size)
+def E(circuit=QuantumCircuit, qubitOp=WeightedPauliOperator, qr_size=int):
+    # Initialize energy and calculate number of Paulis that fit on quantum device
+    energy = 0
+    pauli_size = qubitOp.num_qubits
+    paulis_per_register = math.floor(qr_size/pauli_size)
 
-   # Call opToCircs to obtain parallelized circuits
-   output_circuits = opToCircs(circuit, qubitOp, pauli_size*paulis_per_register)
-   counter = 0
+    # Call opToCircs to obtain parallelized circuits
+    output_circuits = opToCircs(circuit, qubitOp, pauli_size*paulis_per_register)
+    counter = 0
 
-   # Sum over the energies of the different measurement circuits
-   for circuit in output_circuits:
-       job = execute(circuit, backend, shots=shots, optimization_level=3)
-       result = job.result()
+    # Sum over the energies of the different measurement circuits
+    for circuit in output_circuits:
+        job = execute(circuit, backend, shots=shots, optimization_level=3)
+        result = job.result()
 
-       # Use the following for noisy calculation:
-       # result=quantum_instance.execute(circuit)
+        # Use the following for noisy calculation:
+        # result=quantum_instance.execute(circuit)
 
-       counts = result.get_counts(circuit)
+        counts = result.get_counts(circuit)
 
-       # Separate dictionaries for the different Pauli Operators
-       sep_counts = []
-       for key in counts:
-           string = []
-           for i in range(paulis_per_register):
-               if (i*(pauli_size + 1) + pauli_size <= len(key)):
-                   string.append(key[i * (pauli_size + 1):i * (pauli_size + 1) + pauli_size])
-           string.append(counts.get(key))
-           sep_counts.append(string)
-       for i in range(len(sep_counts[0])-1):
-           newdict = {}
-           for j in range(2**pauli_size):
-               b ='{0:b}'.format(j)
-               b = b.zfill(pauli_size)
-               newdict[b]=0
-           for k in range(len(sep_counts)):
-               newdict[sep_counts[k][len(sep_counts[0])-2-i]] += sep_counts[k][-1]
-           energy += qubitOp.paulis[counter*paulis_per_register+i][0] \
+        # Separate dictionaries for the different Pauli Operators
+        sep_counts = []
+        for key in counts:
+            string = []
+            for i in range(paulis_per_register):
+                if (i*(pauli_size + 1) + pauli_size <= len(key)):
+                    string.append(key[i * (pauli_size + 1):i * (pauli_size + 1) + pauli_size])
+            string.append(counts.get(key))
+            sep_counts.append(string)
+        for i in range(len(sep_counts[0])-1):
+            newdict = {}
+            for j in range(2**pauli_size):
+                b ='{0:b}'.format(j)
+                b = b.zfill(pauli_size)
+                newdict[b]=0
+            for k in range(len(sep_counts)):
+                newdict[sep_counts[k][len(sep_counts[0])-2-i]] += sep_counts[k][-1]
+            energy += qubitOp.paulis[counter*paulis_per_register+i][0] \
                      * sum_binary(newdict, qubitOp.paulis[counter*paulis_per_register+i][1])
-       counter += 1
-   return energy
+        counter += 1
+    return energy
 
 # Calculate the energy for a given Pauli operator and measurement outcome given as bitstring
 def sum_binary(counts, pauli = Pauli):
