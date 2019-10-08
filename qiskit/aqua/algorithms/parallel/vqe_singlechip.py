@@ -7,21 +7,20 @@ from qiskit.chemistry.aqua_extensions.components.variational_forms import UCCSD
 from qiskit.aqua.components.variational_forms import RYRZ, VariationalForm
 from qiskit.chemistry.aqua_extensions.components.initial_states import HartreeFock
 from qiskit.aqua.components.optimizers import COBYLA, SPSA, SLSQP, AQGD
-from qiskit import IBMQ, BasicAer, Aer, execute
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry import FermionicOperator
-from qiskit import IBMQ, QuantumRegister, ClassicalRegister, QuantumCircuit
+from qiskit import IBMQ, Aer, execute, QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.providers.aer import noise
 from qiskit.aqua import QuantumInstance
 from qiskit.quantum_info import Pauli
-from qiskit.ignis.mitigation.measurement import CompleteMeasFitter
 from qiskit.aqua.operators.weighted_pauli_operator import WeightedPauliOperator
 
 backend = Aer.get_backend("qasm_simulator")
 
-#Create plot of optimization procedure
-def createPlot(exactGroundStateEnergy=-1.14,numberOfIterations=1000,bondLength=0.735,initialParameters=None,
-               numberOfParameters=32,shotsPerPoint=100000,registerSize = 4,map_type='jordan_wigner'):
+# Create plot of optimization procedure
+def createPlot(exactGroundStateEnergy=-1.14, numberOfIterations=1000, bondLength=0.735,
+               initialParameters=None, numberOfParameters=32, shotsPerPoint=100000,
+               registerSize = 4, map_type='jordan_wigner'):
     if initialParameters is None:
         initialParameters = np.random.rand(numberOfParameters)
     global qubitOp
@@ -29,7 +28,7 @@ def createPlot(exactGroundStateEnergy=-1.14,numberOfIterations=1000,bondLength=0
     global shots
     global values
     global plottingTime
-    plottingTime= True
+    plottingTime = True
     shots = shotsPerPoint
     qr_size = registerSize
     optimizer = COBYLA(maxiter=numberOfIterations)
@@ -38,7 +37,7 @@ def createPlot(exactGroundStateEnergy=-1.14,numberOfIterations=1000,bondLength=0
     for i in range(numberOfIterations):
         iterations.append(i+1)
 
-    #Build molecule with PySCF
+    # Build molecule with PySCF
     driver = PySCFDriver(atom="H .0 .0 .0; H .0 .0 " + str(bondLength), unit=UnitsType.ANGSTROM,
                          charge=0, spin=0, basis='sto3g')
     molecule = driver.run()
@@ -46,16 +45,16 @@ def createPlot(exactGroundStateEnergy=-1.14,numberOfIterations=1000,bondLength=0
     num_spin_orbitals = molecule.num_orbitals * 2
     num_particles = molecule.num_alpha + molecule.num_beta
 
-    #Map fermionic operator to qubit operator and start optimization
+    # Map fermionic operator to qubit operator and start optimization
     ferOp = FermionicOperator(h1=molecule.one_body_integrals, h2=molecule.two_body_integrals)
     qubitOp = ferOp.mapping(map_type=map_type, threshold=0.00000001)
     sol_opt = optimizer.optimize(numberOfParameters, energy_opt, gradient_function=None,
                                  variable_bounds=None, initial_point=initialParameters)
-    #Adjust values to obtain Energy Error
+    # Adjust values to obtain Energy Error
     for i in range(len(values)):
         values[i] = values[i]+ repulsion_energy - exactGroundStateEnergy
 
-    #Saving and Plotting Data
+    # Saving and Plotting Data
     filename = 'Energy Error - Iterations'
     with open(filename, 'wb') as f:
         pickle.dump([iterations, values], f)
@@ -66,7 +65,7 @@ def createPlot(exactGroundStateEnergy=-1.14,numberOfIterations=1000,bondLength=0
 
 
 
-#Create Parallelized Measurement Circuits from single measurement circuits
+# Create Parallelized Measurement Circuits from single measurement circuits
 def opToCircs (circuit = QuantumCircuit, operator = WeightedPauliOperator, qr_size = int):
     if(qr_size < operator.num_qubits):
         raise Exception('Error: Not enough qubits, enter at least QubitOp.num_qubits qubits.')
@@ -85,22 +84,20 @@ def opToCircs (circuit = QuantumCircuit, operator = WeightedPauliOperator, qr_si
         l = j*paulis_per_register
         for k in range(paulis_per_register-1):
             if(l+k+1<len(qr)):
-                meascircuits[l].add_register(qr[j*(paulis_per_register-1)+k+1],cr[j*(paulis_per_register-1)+k+1])
-                meascircuits[l].append(meascircuits[l+k+1].to_instruction(), qr[j*(paulis_per_register-1)+k+1], cr[j*(paulis_per_register-1)+k+1])
+                meascircuits[l].add_register(qr[j*(paulis_per_register-1)+k+1], cr[j*(paulis_per_register-1)+k+1])
+                meascircuits[l].append(meascircuits[l+k+1].to_instruction(),
+                                       qr[j*(paulis_per_register-1)+k+1], cr[j*(paulis_per_register-1)+k+1])
         output_circ.append(meascircuits[l].decompose())
     return output_circ
 
 
-#Function that is used by the optimizer, takes parameters and returns respective energy
+# Function that is used by the optimizer, takes parameters and returns respective energy
 def energy_opt(parameters):
-    #Create variational form with RYRZ model and build corresponding circuit with parameters
+    # Create variational form with RYRZ model and build corresponding circuit with parameters
     var_form = RYRZ(qubitOp.num_qubits, depth=3, entanglement="linear")
-    #var_form = UCCSD(qubitOp.num_qubits, depth=1, num_orbitals=num_spin_orbitals, num_particles=num_particles,
-    #                 active_occupied=None, active_unoccupied=None, initial_state=HF_state,
-    #                 qubit_mapping="jordan_wigner", two_qubit_reduction = False, num_time_slices = 1, shallow_circuit_concat = True, z2_symmetries = None)
     circuit = var_form.construct_circuit(parameters)
 
-    #Calculate and output the energy
+    # Calculate and output the energy
     energy = E(circuit, qubitOp, qr_size)
     if plottingTime:
         values.append(energy)
@@ -109,27 +106,27 @@ def energy_opt(parameters):
 
 
 
-#Function that calculates energy
+# Function that calculates energy
 def E(circuit = QuantumCircuit, qubitOp = WeightedPauliOperator, qr_size = int):
-   #Initialize energy and calculate number of Paulis that fit on quantum device
+   # Initialize energy and calculate number of Paulis that fit on quantum device
    energy=0
    pauli_size = qubitOp.num_qubits
    paulis_per_register = math.floor(qr_size/pauli_size)
 
-   #Call opToCircs to obtain parallelized circuits
-   output_circuits = opToCircs(circuit, qubitOp,pauli_size*paulis_per_register)
+   # Call opToCircs to obtain parallelized circuits
+   output_circuits = opToCircs(circuit, qubitOp, pauli_size*paulis_per_register)
    counter = 0
 
-   #Sum over the energies of the different measurement circuits
+   # Sum over the energies of the different measurement circuits
    for circuit in output_circuits:
        job = execute(circuit, backend, shots=shots, optimization_level=3)
        result = job.result()
 
-       #Use the following for noisy calculation:
-       #result=quantum_instance.execute(circuit)
+       # Use the following for noisy calculation:
+       # result=quantum_instance.execute(circuit)
 
        counts = result.get_counts(circuit)
-       #Separate dictionaries for the different Pauli Operators
+       # Separate dictionaries for the different Pauli Operators
        sep_counts = []
        for key in counts:
            string = []
@@ -146,15 +143,16 @@ def E(circuit = QuantumCircuit, qubitOp = WeightedPauliOperator, qr_size = int):
                newdict[b]=0
            for k in range(len(sep_counts)):
                newdict[sep_counts[k][len(sep_counts[0])-2-i]] += sep_counts[k][-1]
-           energy += qubitOp.paulis[counter*paulis_per_register+i][0] * sum_binary(newdict, qubitOp.paulis[counter*paulis_per_register+i][1])
+           energy += qubitOp.paulis[counter*paulis_per_register+i][0] \
+                     * sum_binary(newdict, qubitOp.paulis[counter*paulis_per_register+i][1])
        counter += 1
    return energy
 
-#Calculate the energy for a given Pauli operator and measurement outcome given as bitstring
+# Calculate the energy for a given Pauli operator and measurement outcome given as bitstring
 def sum_binary(counts, pauli = Pauli):
     sum = 0
     total = 0
-    #countOperator tracks which parts of the Pauli Operator consist of the identity (which does not affect the parity)
+    # countOperator tracks which parts of the Pauli Operator consist of the identity (which does not affect the parity)
     countOperator =  list(np.logical_or(pauli.x, pauli.z))
     for key in counts:
         parity = 0
@@ -167,17 +165,17 @@ def sum_binary(counts, pauli = Pauli):
         total += counts[key]
     return sum / total
 
-
 global plottingTime
 plottingTime= False
 noisy = False
 
-# Noisy Backend :-)
+# Noisy Backend
 if noisy:
     provider = IBMQ.load_account()
     device = provider.get_backend("ibmq_16_melbourne")
     coupling_map = device.configuration().coupling_map
     noise_model = noise.device.basic_device_noise_model(device.properties())
-    quantum_instance = QuantumInstance(backend=backend, shots=100, noise_model=noise_model, coupling_map=coupling_map)
+    quantum_instance = QuantumInstance(backend=backend, shots=100,
+                                       noise_model=noise_model, coupling_map=coupling_map)
 
-createPlot(numberOfIterations=1,registerSize=12)
+createPlot(numberOfIterations=1, registerSize=12)
