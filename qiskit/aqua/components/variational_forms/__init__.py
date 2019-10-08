@@ -22,4 +22,5 @@ from .swaprz import SwapRZ
 __all__ = ['VariationalForm',
            'RY',
            'RYRZ',
-           'SwapRZ']
+           'SwapRZ',
+           'TASP']
