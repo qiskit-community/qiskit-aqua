@@ -259,7 +259,14 @@ class UCCSD(VariationalForm):
                          'with symmetries', ','.join([str(x) for x in index]))
         return qubit_op, index
 
-    def _manage_hopping_operators(self):
+    def manage_hopping_operators(self):
+        """
+        Triggers the adaptive behavior of this UCCSD instance.
+
+        This function is used by the Adaptive VQE algorithm. It stores the full list of available
+        hopping operators in a so called "excitation pool" and clears the previous list to be empty.
+        Furthermore, the depth is asserted to be 1 which is required by the Adaptive VQE algorithm.
+        """
         # store full list of excitations as pool
         self._excitation_pool = self._hopping_ops.copy()
 
@@ -274,15 +281,18 @@ class UCCSD(VariationalForm):
         self._num_parameters = len(self._hopping_ops) * self._depth
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
-    def _push_hopping_operator(self, excitation):
+    def push_hopping_operator(self, excitation):
         """
-        Registers a new hopping operator.
+        Pushes a new hopping operator.
+
+        Args:
+            excitation (WeightedPauliOperator): the new hopping operator to be added
         """
         self._hopping_ops.append(excitation)
         self._num_parameters = len(self._hopping_ops) * self._depth
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
-    def _pop_hopping_operator(self):
+    def pop_hopping_operator(self):
         """
         Pops the hopping operator that was added last.
         """

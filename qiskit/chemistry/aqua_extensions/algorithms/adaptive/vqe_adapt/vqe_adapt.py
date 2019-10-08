@@ -123,7 +123,7 @@ class VQEAdapt(VQAlgorithm):
         if not isinstance(var_form_base, UCCSD):
             raise ValueError("var_form_base has to be an instance of UCCSD.")
         self._var_form_base = var_form_base
-        self._var_form_base._manage_hopping_operators()
+        self._var_form_base.manage_hopping_operators()
         self._excitation_pool = self._var_form_base.excitation_pool \
             if excitation_pool is None else excitation_pool
         self._threshold = threshold
@@ -197,7 +197,7 @@ class VQEAdapt(VQAlgorithm):
         # compute gradients for all excitation in operator pool
         for exc in excitation_pool:
             # push next excitation to variational form
-            var_form._push_hopping_operator(exc)
+            var_form.push_hopping_operator(exc)
             # construct auxiliary VQE instance
             vqe = VQE(operator, var_form, optimizer)
             vqe._quantum_instance = self._quantum_instance
@@ -209,7 +209,7 @@ class VQEAdapt(VQAlgorithm):
             gradient = (energy_results[0] - energy_results[1]) / (2*delta)
             res.append((np.abs(gradient), exc))
             # pop excitation from variational form
-            var_form._pop_hopping_operator()
+            var_form.pop_hopping_operator()
 
         return res
 
@@ -275,7 +275,7 @@ class VQEAdapt(VQAlgorithm):
                 alternating_sequence = True
                 break
             # add new excitation to self._var_form_base
-            self._var_form_base._push_hopping_operator(max_grad[1])
+            self._var_form_base.push_hopping_operator(max_grad[1])
             theta.append(0.0)
             # run VQE on current Ansatz
             algorithm = VQE(self._operator, self._var_form_base, self._optimizer,
