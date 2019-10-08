@@ -165,6 +165,7 @@ class UCCSD(VariationalForm):
                                            active_occupied, active_unoccupied)
 
         self._hopping_ops, self._num_parameters = self._build_hopping_operators()
+        self._excitation_pool = None
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
         self._logging_construct_circuit = True
@@ -187,6 +188,15 @@ class UCCSD(VariationalForm):
             list[list[int]]: double excitation list
         """
         return self._double_excitations
+
+    @property
+    def excitation_pool(self):
+        """
+        Getter of full list of available excitations (called the pool)
+        Returns:
+            list[WeightedPauliOperator]: excitation pool
+        """
+        return self._excitation_pool
 
     def _build_hopping_operators(self):
         if logger.isEnabledFor(logging.DEBUG):
@@ -248,6 +258,47 @@ class UCCSD(VariationalForm):
             logger.debug('Excitation (%s) is skipped since it is not commuted '
                          'with symmetries', ','.join([str(x) for x in index]))
         return qubit_op, index
+
+    def manage_hopping_operators(self):
+        """
+        Triggers the adaptive behavior of this UCCSD instance.
+
+        This function is used by the Adaptive VQE algorithm. It stores the full list of available
+        hopping operators in a so called "excitation pool" and clears the previous list to be empty.
+        Furthermore, the depth is asserted to be 1 which is required by the Adaptive VQE algorithm.
+        """
+        # store full list of excitations as pool
+        self._excitation_pool = self._hopping_ops.copy()
+
+        # check depth parameter
+        if self._depth != 1:
+            logger.warning('The depth of the variational form was not 1 but %i which does not work \
+                    in the adaptive VQE algorithm. Thus, it has been reset to 1.')
+            self._depth = 1
+
+        # reset internal excitation list to be empty
+        self._hopping_ops = []
+        self._num_parameters = len(self._hopping_ops) * self._depth
+        self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
+
+    def push_hopping_operator(self, excitation):
+        """
+        Pushes a new hopping operator.
+
+        Args:
+            excitation (WeightedPauliOperator): the new hopping operator to be added
+        """
+        self._hopping_ops.append(excitation)
+        self._num_parameters = len(self._hopping_ops) * self._depth
+        self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
+
+    def pop_hopping_operator(self):
+        """
+        Pops the hopping operator that was added last.
+        """
+        self._hopping_ops.pop()
+        self._num_parameters = len(self._hopping_ops) * self._depth
+        self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
     def construct_circuit(self, parameters, q=None):
         """
