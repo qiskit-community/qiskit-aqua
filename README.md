@@ -10,8 +10,8 @@ built. Qiskit Chemistry has
 been created to utilize Aqua for quantum chemistry computations. Aqua is also showcased for other
 domains, such as Optimization, Artificial Intelligence, and
 Finance, with both code and notebook examples available in the
-[qiskit-tutorials](https://github.com/Qiskit/qiskit-tutorials) and
-[qiskit-tutorials-community](https://github.com/Qiskit/qiskit-community-tutorials) GitHub Repositories.
+[qiskit-iqx-tutorials](https://github.com/Qiskit/qiskit-iqx-tutorials) and
+[qiskit-community-tutorials](https://github.com/Qiskit/qiskit-community-tutorials) GitHub Repositories.
 
 Aqua was designed to be extensible, and uses a pluggable framework where algorithms and support objects used
 by algorithms—such as optimizers, variational forms, and oracles—are derived from a defined base class for the type and
