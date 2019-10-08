@@ -23,12 +23,12 @@ Changes for parallelization:
     Does not support parameter sets, statevector simulation and the calculation
     of the standard deviation is not correct. Also, currently it is assumed
     that all backends are the same.
-    
+
     During each energy evaluation the same circuits us sent to as many quantum
     instances for evaluation. However, currently the qiskit.aqua.QuantumInstance
     class' execute function is different from the root Qiskit execute function
     in the following way: The root function execute returns a job handle and
-    in principle the program can go on while the result is being computed 
+    in principle the program can go on while the result is being computed
     over the cloud. The execute method of QuantumInstance waits for the result
     to come in and returns a result object. For scheduling and for clarity,
     it would probably a good idea to make those functions more similar :-)
@@ -53,7 +53,6 @@ logger = logging.getLogger(__name__)
 class VQEMultichip(VQAlgorithm):
     """
     The Variational Quantum Eigensolver algorithm.
-
     See https://arxiv.org/abs/1304.3061
     """
 
@@ -100,7 +99,6 @@ class VQEMultichip(VQAlgorithm):
                  initial_point=None, max_evals_grouped=1, aux_operators=None, callback=None,
                  auto_conversion=True, threads=1):
         """Constructor.
-
         Args:
             operator (BaseOperator): Qubit operator
             var_form (VariationalForm): parametrized variational form.
@@ -122,7 +120,7 @@ class VQEMultichip(VQAlgorithm):
                                     - qasm simulator or real backend:
                                         TPBGroupedWeightedPauliOperator
         """
-        self._operators=[]
+        self._operators = []
         self.validate(locals())
         super().__init__(var_form=var_form,
                          optimizer=optimizer,
@@ -151,11 +149,9 @@ class VQEMultichip(VQAlgorithm):
     def init_params(cls, params, algo_input):
         """
         Initialize via parameters dictionary and algorithm input instance.
-
         Args:
             params (dict): parameters dictionary
             algo_input (EnergyInput): EnergyInput instance
-
         Returns:
             VQE: vqe object
         Raises:
@@ -203,7 +199,6 @@ class VQEMultichip(VQAlgorithm):
     def print_settings(self):
         """
         Preparing the setting of VQE into a string.
-
         Returns:
             str: the formatted setting of VQE
         """
@@ -253,14 +248,12 @@ class VQEMultichip(VQAlgorithm):
     def construct_circuit(self, parameter, statevector_mode=False,
                           use_simulator_operator_mode=False, circuit_name_prefix=''):
         """Generate the circuits.
-
         Args:
             parameter (numpy.ndarray): parameters for variational form.
             statevector_mode (bool, optional): indicate which type of simulator are going to use.
             use_simulator_operator_mode (bool, optional): is backend from AerProvider,
                             if True and mode is paulis, single circuit is generated.
             circuit_name_prefix (str, optional): a prefix of circuit name
-
         Returns:
             list[QuantumCircuit]: the generated circuits with Hamiltonian.
         """
@@ -328,16 +321,14 @@ class VQEMultichip(VQAlgorithm):
     def _run(self):
         """
         Run the algorithm to compute the minimum eigenvalue.
-
         Returns:
             dict: Dictionary of results
-
         Raises:
             AquaError: wrong setting of operator and backend.
         """
-        
-        #Threading currently only works if aux_operators is empty
-        if isinstance(self._quantum_instance,QuantumInstance):
+
+        # Threading currently only works if aux_operators is empty
+        if isinstance(self._quantum_instance, QuantumInstance):
             if self._auto_conversion:
                 self._operator = \
                     self._config_the_best_mode(self._operator, self._quantum_instance.backend)
@@ -349,7 +340,8 @@ class VQEMultichip(VQAlgorithm):
         else:
             if self._auto_conversion:
                 for j in range(len(self._quantum_instance)):
-                    self._operators.append(self._config_the_best_mode(self._operator, self._quantum_instance[j].backend))
+                    self._operators.append(
+                        self._config_the_best_mode(self._operator, self._quantum_instance[j].backend))
                     for i in range(len(self._aux_operators)):
                         if not self._aux_operators[i].is_empty():
                             self._aux_operators[i] = \
@@ -363,17 +355,16 @@ class VQEMultichip(VQAlgorithm):
                             "auto_conversion or use the proper "
                             "combination between operator and backend.")
 
-        if isinstance(self._quantum_instance,QuantumInstance):
+        if isinstance(self._quantum_instance, QuantumInstance):
             self._use_simulator_operator_mode = \
                 is_aer_statevector_backend(self._quantum_instance.backend) \
                 and isinstance(self._operator, (WeightedPauliOperator, TPBGroupedWeightedPauliOperator))
-                
+
             self._quantum_instance.circuit_summary = True
         else:
-            self._use_simulator_operator_mode=False
+            self._use_simulator_operator_mode = False
             for j in range(len(self._quantum_instance)):
                 self._quantum_instance[j].circuit_summary = True
-        
 
         self._eval_count = 0
         self._ret = self.find_minimum(initial_point=self.initial_point,
@@ -398,10 +389,8 @@ class VQEMultichip(VQAlgorithm):
     def _energy_evaluation(self, parameters):
         """
         Evaluate energy at given parameters for the variational form.
-
         Args:
             parameters (numpy.ndarray): parameters for variational form.
-
         Returns:
             Union(float, list[float]): energy of the hamiltonian of each parameter.
         """
@@ -431,21 +420,20 @@ class VQEMultichip(VQAlgorithm):
             }
         else:
             extra_args = {}
-            
-        results=[]
-        jobs=[]
-        
-        #Here we distribute the energy evaluation over a list of quantum 
-        #instances. For a comment see top.
-        
+
+        results = []
+        jobs = []
+
+        # Here we distribute the energy evaluation over a list of quantum
+        # instances. For a comment see top.
+
         for i in range(self._threads):
             jobs.append(self._quantum_instance[i].execute(to_be_simulated_circuits, optimization_level=3, **extra_args))
-        
+
         for i in range(self._threads):
             results.append(jobs[i])
-  
-        
-        means=[]
+
+        means = []
         for i in range(self._threads):
             mean_energy = []
             std_energy = []
@@ -460,12 +448,12 @@ class VQEMultichip(VQAlgorithm):
                 if self._callback is not None:
                     self._callback(self._eval_count, parameter_sets[idx], np.real(mean), np.real(std))
                 logger.info('Energy evaluation %s returned %s', self._eval_count, np.real(mean))
-                
-                #HERE
-            means.append(mean_energy)
-        mean_energy=np.sum(means)/self._threads
 
-        return mean_energy #if len(mean_energy) > 1 else mean_energy[0]
+                # HERE
+            means.append(mean_energy)
+        mean_energy = np.sum(means) / self._threads
+
+        return mean_energy  # if len(mean_energy) > 1 else mean_energy[0]
 
     def get_optimal_cost(self):
         if 'opt_params' not in self._ret:
