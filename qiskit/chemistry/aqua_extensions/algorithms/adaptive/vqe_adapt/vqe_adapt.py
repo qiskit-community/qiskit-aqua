@@ -55,13 +55,6 @@ class VQEAdapt(VQAlgorithm):
                     },
                     'default': None
                 },
-                'excitation_pool': {
-                    'type': ['array', 'null'],
-                    "items": {
-                        "type": "WeightedPauliOperator"
-                    },
-                    'default': None
-                },
                 'threshold': {
                     'type': 'float',
                     'minimum': 1e-15,  # limited by floating point precision
