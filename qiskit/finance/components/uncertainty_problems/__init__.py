@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Uncertainty Problems package """
+
 from .european_call_delta import EuropeanCallDelta
 from .european_call_expected_value import EuropeanCallExpectedValue
 from .fixed_income_expected_value import FixedIncomeExpectedValue

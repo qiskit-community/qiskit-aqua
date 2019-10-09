@@ -1,19 +1,20 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
+
+"""
+iris dataset
+"""
 
 import numpy as np
 from sklearn import datasets
@@ -27,12 +28,14 @@ except ImportError:
     HAS_MATPLOTLIB = False
 
 
-def iris(training_size, test_size, n, PLOT_DATA):
+def iris(training_size, test_size, n, plot_data):
+    """ returns iris dataset """
     class_labels = [r'A', r'B', r'C']
     data, target = datasets.load_iris(True)
-    sample_train, sample_test, label_train, label_test = train_test_split(data, target, test_size=1, random_state=42)
+    sample_train, sample_test, label_train, label_test = \
+        train_test_split(data, target, test_size=1, random_state=42)
 
-    # Now we standarize for gaussian around 0 with unit variance
+    # Now we standardize for gaussian around 0 with unit variance
     std_scale = StandardScaler().fit(sample_train)
     sample_train = std_scale.transform(sample_train)
     sample_test = std_scale.transform(sample_test)
@@ -49,10 +52,12 @@ def iris(training_size, test_size, n, PLOT_DATA):
     sample_test = minmax_scale.transform(sample_test)
 
     # Pick training size number of samples from each distro
-    training_input = {key: (sample_train[label_train == k, :])[:training_size] for k, key in enumerate(class_labels)}
-    test_input = {key: (sample_test[label_test == k, :])[:test_size] for k, key in enumerate(class_labels)}
+    training_input = {key: (sample_train[label_train == k, :])[:training_size]
+                      for k, key in enumerate(class_labels)}
+    test_input = {key: (sample_test[label_test == k, :])[:test_size]
+                  for k, key in enumerate(class_labels)}
 
-    if PLOT_DATA:
+    if plot_data:
         if not HAS_MATPLOTLIB:
             raise NameError('Matplotlib not installed. Plase install it before plotting')
         for k in range(0, 3):

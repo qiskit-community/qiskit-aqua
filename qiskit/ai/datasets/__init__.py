@@ -11,3 +11,20 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
+""" Datasets package """
+
+from .ad_hoc import ad_hoc_data, sample_ad_hoc_data
+from .breast_cancer import breast_cancer
+from .digits import digits
+from .gaussian import gaussian
+from .iris import iris
+from .wine import wine
+
+__all__ = ['ad_hoc_data',
+           'sample_ad_hoc_data',
+           'breast_cancer',
+           'digits',
+           'gaussian',
+           'iris',
+           'wine']

@@ -94,7 +94,8 @@ def read_numbers_from_file(filename):
 def sample_most_likely(state_vector):
     """ sample most likely """
     from .common import sample_most_likely as redirect_func
-    warnings.warn("sample_most_likely function has been moved to qiskit.optimization.ising.common,, "
+    warnings.warn("sample_most_likely function has been moved "
+                  "to qiskit.optimization.ising.common,, "
                   "the method here will be removed after Aqua 0.7+",
                   DeprecationWarning)
     return redirect_func(state_vector=state_vector)
