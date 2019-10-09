@@ -113,8 +113,9 @@ def E(circuit=QuantumCircuit, qubitOp=WeightedPauliOperator, qr_size=int):
             for k in range(len(sep_counts)):
                 newdict[sep_counts[k][len(sep_counts[0])-2-i]] += sep_counts[k][-1]
             energy += qubitOp.paulis[counter*paulis_per_register
-                                     +i][0] * sum_binary(newdict,
-                                                         qubitOp.paulis[counter*paulis_per_register+i][1])
+                                     + i][0] * sum_binary(newdict,
+                                                          qubitOp.paulis[counter
+                                                                         * paulis_per_register + i][1])
         counter += 1
     return energy
 

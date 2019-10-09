@@ -341,7 +341,8 @@ class VQEMultichip(VQAlgorithm):
             if self._auto_conversion:
                 for j in range(len(self._quantum_instance)):
                     self._operators.append(
-                        self._config_the_best_mode(self._operator, self._quantum_instance[j].backend))
+                        self._config_the_best_mode(self._operator,
+                                                   self._quantum_instance[j].backend))
                     for i in range(len(self._aux_operators)):
                         if not self._aux_operators[i].is_empty():
                             self._aux_operators[i] = \
@@ -358,7 +359,8 @@ class VQEMultichip(VQAlgorithm):
         if isinstance(self._quantum_instance, QuantumInstance):
             self._use_simulator_operator_mode = \
                 is_aer_statevector_backend(self._quantum_instance.backend) \
-                and isinstance(self._operator, (WeightedPauliOperator, TPBGroupedWeightedPauliOperator))
+                and isinstance(self._operator, (WeightedPauliOperator,
+                                                TPBGroupedWeightedPauliOperator))
 
             self._quantum_instance.circuit_summary = True
         else:
@@ -428,7 +430,8 @@ class VQEMultichip(VQAlgorithm):
         # instances. For a comment see top.
 
         for i in range(self._threads):
-            jobs.append(self._quantum_instance[i].execute(to_be_simulated_circuits, optimization_level=3, **extra_args))
+            jobs.append(self._quantum_instance[i].execute(to_be_simulated_circuits,
+                                                          optimization_level=3, **extra_args))
 
         for i in range(self._threads):
             results.append(jobs[i])
@@ -446,7 +449,8 @@ class VQEMultichip(VQAlgorithm):
                 std_energy.append(np.real(std))
                 self._eval_count += 1
                 if self._callback is not None:
-                    self._callback(self._eval_count, parameter_sets[idx], np.real(mean), np.real(std))
+                    self._callback(self._eval_count, parameter_sets[idx],
+                                   np.real(mean), np.real(std))
                 logger.info('Energy evaluation %s returned %s', self._eval_count, np.real(mean))
 
                 # HERE
@@ -495,3 +499,4 @@ class VQEMultichip(VQAlgorithm):
         if 'opt_params' not in self._ret:
             raise AquaError("Cannot find optimal params before running the algorithm.")
         return self._ret['opt_params']
+    
