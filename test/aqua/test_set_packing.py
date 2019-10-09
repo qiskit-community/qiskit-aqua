@@ -21,8 +21,8 @@ import numpy as np
 
 from qiskit.aqua import run_algorithm
 from qiskit.aqua.input import EnergyInput
-from qiskit.aqua.translators.ising import set_packing
-from qiskit.aqua.translators.ising.common import sample_most_likely
+from qiskit.optimization.ising import set_packing
+from qiskit.optimization.ising.common import sample_most_likely
 from qiskit.aqua.algorithms import ExactEigensolver
 
 
@@ -34,7 +34,7 @@ class TestSetPacking(QiskitAquaTestCase):
         input_file = self._get_resource_path('sample.setpacking')
         with open(input_file) as file:
             self.list_of_subsets = json.load(file)
-            qubit_op, _ = set_packing.get_qubit_op(self.list_of_subsets)
+            qubit_op, _ = set_packing.get_operator(self.list_of_subsets)
             self.algo_input = EnergyInput(qubit_op)
 
     def _brute_force(self):

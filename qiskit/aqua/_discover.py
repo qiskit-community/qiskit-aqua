@@ -145,8 +145,14 @@ def refresh_pluggables():
     _REGISTRY_PLUGGABLE.set_discovered()
     directory = os.path.dirname(__file__)
     _discover_local_pluggables(directory)
+    _discover_local_pluggables(os.path.abspath(os.path.join(directory, '..', 'ai')),
+                               'qiskit.ai')
     _discover_local_pluggables(os.path.abspath(os.path.join(directory, '..', 'chemistry')),
                                'qiskit.chemistry')
+    _discover_local_pluggables(os.path.abspath(os.path.join(directory, '..', 'finance')),
+                               'qiskit.finance')
+    _discover_local_pluggables(os.path.abspath(os.path.join(directory, '..', 'optimization')),
+                               'qiskit.optimization')
     _discover_entry_pt_pluggables()
     if logger.isEnabledFor(logging.DEBUG):
         for ptype in local_pluggables_types():
@@ -162,8 +168,14 @@ def _discover_on_demand():
         _REGISTRY_PLUGGABLE.set_discovered()
         directory = os.path.dirname(__file__)
         _discover_local_pluggables(directory)
+        _discover_local_pluggables(os.path.abspath(os.path.join(directory, '..', 'ai')),
+                                   'qiskit.ai')
         _discover_local_pluggables(os.path.abspath(os.path.join(directory, '..', 'chemistry')),
                                    'qiskit.chemistry')
+        _discover_local_pluggables(os.path.abspath(os.path.join(directory, '..', 'finance')),
+                                   'qiskit.finance')
+        _discover_local_pluggables(os.path.abspath(os.path.join(directory, '..', 'optimization')),
+                                   'qiskit.optimization')
         _discover_entry_pt_pluggables()
         if logger.isEnabledFor(logging.DEBUG):
             for ptype in local_pluggables_types():
