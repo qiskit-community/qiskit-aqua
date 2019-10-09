@@ -28,7 +28,7 @@ except ImportError:
     HAS_MATPLOTLIB = False
 
 
-def iris(training_size, test_size, n, plot_data):
+def iris(training_size, test_size, n, plot_data=False):
     """ returns iris dataset """
     class_labels = [r'A', r'B', r'C']
     data, target = datasets.load_iris(True)

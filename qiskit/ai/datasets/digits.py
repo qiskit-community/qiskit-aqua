@@ -28,7 +28,7 @@ except ImportError:
     HAS_MATPLOTLIB = False
 
 
-def digits(training_size, test_size, n, plot_data):
+def digits(training_size, test_size, n, plot_data=False):
     """ returns digits dataset """
     class_labels = [r'A', r'B', r'C', r'D', r'E', r'F', r'G', r'H', r'I', r'J']
     data = datasets.load_digits()

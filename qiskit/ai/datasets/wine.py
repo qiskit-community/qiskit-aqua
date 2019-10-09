@@ -28,7 +28,7 @@ except ImportError:
     HAS_MATPLOTLIB = False
 
 
-def wine(training_size, test_size, n, plot_data):
+def wine(training_size, test_size, n, plot_data=False):
     """ returns wine dataset """
     class_labels = [r'A', r'B', r'C']
 

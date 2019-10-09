@@ -24,7 +24,7 @@ except ImportError:
     HAS_MATPLOTLIB = False
 
 
-def gaussian(training_size, test_size, n, plot_data):
+def gaussian(training_size, test_size, n, plot_data=False):
     """ returns gaussian dataset """
     sigma = 1
     if n == 2:

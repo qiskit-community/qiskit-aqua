@@ -28,7 +28,7 @@ except ImportError:
     HAS_MATPLOTLIB = False
 
 
-def breast_cancer(training_size, test_size, n, plot_data):
+def breast_cancer(training_size, test_size, n, plot_data=False):
     """ returns breast cancer dataset """
     class_labels = [r'A', r'B']
     data, target = datasets.load_breast_cancer(True)

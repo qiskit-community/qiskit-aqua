@@ -25,7 +25,7 @@ except ImportError:
     HAS_MATPLOTLIB = False
 
 
-def ad_hoc_data(training_size, test_size, n, gap, plot_data):
+def ad_hoc_data(training_size, test_size, n, gap, plot_data=False):
     """ returns ad hoc dataset """
     class_labels = [r'A', r'B']
     count = 0
