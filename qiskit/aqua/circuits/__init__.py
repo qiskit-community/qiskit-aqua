@@ -23,6 +23,7 @@ from .linear_rotation import LinearRotation
 from .piecewise_linear_rotation import PiecewiseLinearRotation
 from .polynomial_rotation import PolynomialRotation
 from .weighted_sum_operator import WeightedSumOperator
+from .prepare_MPS import MPS_to_circuit
 
 __all__ = [
     'CNF',
@@ -36,4 +37,5 @@ __all__ = [
     'PiecewiseLinearRotation',
     'PolynomialRotation',
     'WeightedSumOperator'
+    'MPS_to_circuit'
 ]
