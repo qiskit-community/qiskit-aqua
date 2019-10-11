@@ -1,13 +1,13 @@
-.. _qiskit-aqua-components-optimizers:
+.. _qiskit-aqua-components-variational_forms:
 
-********************************************
-qiskit.aqua.components.optimizers
-********************************************
+*****************************************
+qiskit.aqua.components.variational_forms
+*****************************************
 
-.. currentmodule:: qiskit.aqua.components.optimizers
+.. currentmodule:: qiskit.aqua.components.variational_forms
 
 
-.. automodapi:: qiskit.aqua.components.optimizers
+.. automodapi:: qiskit.aqua.components.variational_forms
   :no-heading:
   :no-inheritance-diagram:
   :inherited-members:
