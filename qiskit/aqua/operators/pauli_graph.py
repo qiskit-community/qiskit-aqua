@@ -67,20 +67,20 @@ class PauliGraph:
         }
         a = np.array([[conv[e] for e in reversed(n.to_label())] for n in self.nodes], dtype=np.int8)
         b = a[:, None]
-        #c = (((a * b) * (a - b)) == 0).all(axis=2)  # i and j are commutable with TPB if c[i, j] is True
+        # c = (((a * b) * (a - b)) == 0).all(axis=2)
         """
         Consider the following case:
         XX*YZ = (X*Y)(X*Z) => if XX and YZ commute, XX*YZ = YZ*XX => (X*Y)(X*Z) = (Y*X)(Z*X).
-        
-        Previously, the code assumes that any pair of Pauli strings are commutable iff all the rows of 
-        (a*b)(a-b) == 0, that is if corresponding elements of a pair of Pauli strings is either composed 
-        of an I or if they are identical. However, a special property of Pauli matrices is that any 
-        Pi*Pj = -Pj*Pi. As such, in the above case, (X*Y)(X*Z) = (-(Y*X))(-(Z*X)). Whenever there are even
-        number of cases where corresponding elements do not commute, the negative signs cancel out and 
-        overall the Pauli strings still do commute.
-        
-        We generalise this idea for any pair of Pauli strings of N qubit-length, where we count the number 
-        of non-zero rows of (a*b)(a-b). If this number is even, then the Pauli strings commute. 
+        Previously, the code assumes that any pair of Pauli strings are commutable iff all
+        the rows of (a*b)(a-b) == 0, that is if corresponding elements of a pair of Pauli
+        strings is either composed of an I or if they are identical. However, a special
+        property of Pauli matrices is that any Pi*Pj = -Pj*Pi. As such, in the above case,
+        (X*Y)(X*Z) = (-(Y*X))(-(Z*X)). Whenever there are even number of cases where
+        corresponding elements do not commute, the negative signs cancel out and overall
+        the Pauli strings still do commute.
+        We generalise this idea for any pair of Pauli strings of N qubit-length, where we
+        count the number of non-zero rows of (a*b)(a-b). If this number is even, then
+        the Pauli strings commute.
         """
         c = np.mod((a*b*(a-b)!=0).astype(int).sum(axis=2),2)==0
         # pylint: disable=singleton-comparison
