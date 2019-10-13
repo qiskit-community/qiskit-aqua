@@ -4,5 +4,5 @@ VQE is a computing algorithm that can be used to obtain the eigenvalues of a Ham
 
 Currently, Qiskit-Aqua has a module that can determine the commutability of Pauli strings and then form a Pauli graph. However, we have found a tighter condition that correctly checks for some cases that were left out in the initial code.
 
-To test the code out, navigate to qiskit/aqua/operators/ and replace \__init__.py, pauli_graph.py 
+To test the code out, navigate to qiskit/aqua/operators/ and replace \_\_init__.py, pauli_graph.py 
 as well as add in pauli_graph2.py attached in this folder. Run the Python notebook file. 
