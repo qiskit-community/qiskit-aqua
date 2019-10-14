@@ -18,8 +18,8 @@ import unittest
 import inspect
 import os
 import subprocess
-import jsonschema
 from test.aqua.common import QiskitAquaTestCase
+import jsonschema
 from qiskit.aqua import (local_pluggables_types,
                          local_pluggables,
                          get_pluggable_class,
