@@ -56,13 +56,13 @@ class VQEAdapt(VQAlgorithm):
                     'default': None
                 },
                 'threshold': {
-                    'type': 'float',
+                    'type': 'number',
                     'minimum': 1e-15,  # limited by floating point precision
                     'default': 1e-5
 
                 },
                 'delta': {
-                    'type': 'float',
+                    'type': 'number',
                     'minimum': 1e-5,
                     'default': 1
                 },
