@@ -210,5 +210,5 @@ class TPBGroupedWeightedPauliOperator(WeightedPauliOperator):
             TPBGroupedWeightedPauliOperator: the multiplied operator
         """
         ret_op = super().multiply(other)
-        ret_op = ret_op._grouping_func(ret_op, **self._kwargs)
+        ret_op = ret_op._grouping_func(ret_op, **self._kwargs)  # pylint: disable=no-member
         return ret_op

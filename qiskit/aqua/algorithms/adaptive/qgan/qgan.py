@@ -130,7 +130,7 @@ class QGAN(QuantumAlgorithm):
         self._num_qubits = num_qubits
         if np.ndim(data) > 1:
             if self._num_qubits is None:
-                self._num_qubits = np.ones[len(data[0])]*3
+                self._num_qubits = np.ones[len(data[0])]*3  # pylint: disable=unsubscriptable-object
             self._prob_data = np.zeros(int(np.prod(np.power(np.ones(len(self._data[0]))*2, self._num_qubits))))
         else:
             if self._num_qubits is None:

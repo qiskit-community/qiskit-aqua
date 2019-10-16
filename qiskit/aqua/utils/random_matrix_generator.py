@@ -286,7 +286,7 @@ def limit_entries(mat, n=5, sparsity=None):
     if sparsity is not None:
         n = int(sparsity*mat.shape[0]*mat.shape[1])
     entries = entries[:n]
-    row, col, data = np.array(entries).T
+    row, col, data = np.array(entries).T  # pylint: disable=unpacking-non-sequence
     return scipy.sparse.csr_matrix(
         (data, (row.real.astype(int), col.real.astype(int))))
 

@@ -71,8 +71,8 @@ class ErrorCorrectingCode(MulticlassExtension):
         classes_index = dict((c, i) for i, c in enumerate(self.classes))
         Y = np.array([self.codebook[classes_index[y[i]]]
                       for i in range(x.shape[0])], dtype=np.int)
-        logger.info("Require {} estimators.".format(Y.shape[1]))
-        for i in range(Y.shape[1]):
+        logger.info("Require {} estimators.".format(Y.shape[1]))  # pylint: disable=unsubscriptable-object
+        for i in range(Y.shape[1]):  # pylint: disable=unsubscriptable-object
             y_bit = Y[:, i]
             unique_y = np.unique(y_bit)
             if len(unique_y) == 1:
