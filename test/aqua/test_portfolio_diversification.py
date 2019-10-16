@@ -41,7 +41,7 @@ class ClassicalOptimizer:
     def cplex_solution(self):
         """ cplex solution """
         try:
-            import cplex  # pylint: disable=import-outside-toplevel
+            import cplex
         except ImportError as ex:
             print(str(ex))
 

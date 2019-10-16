@@ -11,8 +11,7 @@
 # that they have been altered from the originals.
 
 notifications:
-    on_success: change
-    on_failure: always
+  email: false
 
 cache: pip
 os: linux
