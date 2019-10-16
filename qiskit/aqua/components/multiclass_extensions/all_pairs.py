@@ -86,7 +86,7 @@ class AllPairs(MulticlassExtension):
         B = y
         _l = len(A)
         diff = np.sum(A != B)
-        logger.debug("%d out of %d are wrong" % (diff, _l))
+        logger.debug("%d out of %d are wrong", diff, _l)
         return 1. - (diff * 1.0 / _l)
 
     def predict(self, x):
