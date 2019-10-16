@@ -15,7 +15,7 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 > -   **Fixed**: for any bug fixes.
 > -   **Security**: in case of vulnerabilities.
 
-[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.0...HEAD)
+[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.1...HEAD)
 ========================================================================
 
 Changed
@@ -49,6 +49,14 @@ Removed
 -------
 
 -   The `CircuitCache` class is removed, use parameterized circuits as an alternative. (#693)
+
+[0.6.1](https://github.com/Qiskit/qiskit-aqua/compare/0.6.0...0.6.1) - 2019-10-16
+=================================================================================
+
+Changed
+-------
+
+-   Remove terra cap from stable branch. (#709)
 
 [0.6.0](https://github.com/Qiskit/qiskit-aqua/compare/0.5.5...0.6.0) - 2019-08-22
 =================================================================================
