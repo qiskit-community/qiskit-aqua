@@ -108,6 +108,7 @@ class Custom(InitialState):
                 self._state = None
 
     def construct_circuit(self, mode='circuit', register=None):
+        # pylint: disable=import-outside-toplevel
         from qiskit import BasicAer
 
         if mode == 'vector':

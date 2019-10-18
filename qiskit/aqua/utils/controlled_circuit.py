@@ -86,6 +86,7 @@ def get_controlled_circuit(circuit, ctl_qubit, tgt_circuit=None, use_basis_gates
     Raises:
         RuntimeError: unexpected operation
     """
+    # pylint: disable=import-outside-toplevel
     from qiskit import BasicAer
     if tgt_circuit is not None:
         qc = tgt_circuit

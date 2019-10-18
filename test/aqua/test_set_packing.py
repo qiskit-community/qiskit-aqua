@@ -80,6 +80,7 @@ class TestSetPacking(QiskitAquaTestCase):
     def test_set_packing_vqe(self):
         """ set packing vqe test """
         try:
+            # pylint: disable=import-outside-toplevel
             from qiskit import Aer
         except Exception as ex:  # pylint: disable=broad-except
             self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(ex)))

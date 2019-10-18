@@ -104,6 +104,7 @@ def portfolio_variance(x, sigma):
 
 def sample_most_likely(state_vector):
     """ sample most likely """
+    # pylint: disable=import-outside-toplevel
     from qiskit.optimization.ising.common import sample_most_likely as redirect_func
     warnings.warn("sample_most_likely function has been moved to qiskit.aqua.ising.common, "
                   "the method here will be removed after Aqua 0.7+",
