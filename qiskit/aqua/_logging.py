@@ -39,6 +39,7 @@ _ALGO_LOGGING_CONFIG = {
 
 
 def _get_logging_names():
+    # pylint: disable=import-outside-toplevel
     from qiskit.aqua import PLUGGABLES_ENTRY_POINT
     names = OrderedDict()
     names['qiskit.aqua'] = None

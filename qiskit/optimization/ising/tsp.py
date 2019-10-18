@@ -271,6 +271,7 @@ def get_tsp_solution(x):
 
 def sample_most_likely(state_vector):
     """ sample most likely """
+    # pylint: disable=import-outside-toplevel
     from .common import sample_most_likely as redirect_func
     warnings.warn("sample_most_likely function has been moved to "
                   "qiskit.optimization.ising.common, "

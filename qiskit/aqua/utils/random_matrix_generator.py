@@ -219,6 +219,7 @@ def limit_paulis(mat, n=5, sparsity=None):
     Returns:
         scipy.sparse.csr_matrix: matrix
     """
+    # pylint: disable=import-outside-toplevel
     from qiskit.aqua.operators import MatrixOperator
     from qiskit.aqua.operators.op_converter import to_weighted_pauli_operator
     # Bringing matrix into form 2**Nx2**N
