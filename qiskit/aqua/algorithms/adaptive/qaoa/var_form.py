@@ -17,9 +17,10 @@ from functools import reduce
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.quantum_info import Pauli
 from qiskit.aqua.operators import WeightedPauliOperator, op_converter
+from qiskit.aqua.components.variational_forms import VariationalForm
 
 
-class QAOAVarForm:
+class QAOAVarForm(VariationalForm):
     """Global X phases and parameterized problem hamiltonian."""
 
     def __init__(self, cost_operator, p, initial_state=None, mixer_operator=None):
@@ -38,11 +39,12 @@ class QAOAVarForm:
         """
         cost_operator = op_converter.to_weighted_pauli_operator(cost_operator)
         self._cost_operator = cost_operator
+        self._num_qubits = cost_operator.num_qubits
         self._p = p
         self._initial_state = initial_state
-        self.num_parameters = 2 * p
-        self.parameter_bounds = [(0, np.pi)] * p + [(0, 2 * np.pi)] * p
-        self.preferred_init_points = [0] * p * 2
+        self._num_parameters = 2 * p
+        self._bounds = [(0, np.pi)] * p + [(0, 2 * np.pi)] * p
+        self._preferred_init_points = [0] * p * 2
 
         # prepare the mixer operator
         v = np.zeros(self._cost_operator.num_qubits)
