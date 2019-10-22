@@ -16,15 +16,17 @@
 
 import unittest
 from test.aqua.common import QiskitAquaTestCase
+
 import numpy as np
-from qiskit.aqua import AquaError
+
+from qiskit.aqua import AquaError, aqua_globals
 from qiskit.aqua.components.initial_states import Custom
 
 
 class TestInitialStateCustom(QiskitAquaTestCase):
     """ Test Initial State Custom """
     def test_qubits_2_zero_vector(self):
-        """ qubites 2 zero vector test """
+        """ qubits 2 zero vector test """
         custom = Custom(2, state='zero')
         cct = custom.construct_circuit('vector')
         np.testing.assert_array_equal(cct, [1.0, 0.0, 0.0, 0.0])
@@ -98,7 +100,8 @@ class TestInitialStateCustom(QiskitAquaTestCase):
 
     def test_qubits_5_randgiven_vector(self):
         """ qubits 5 randgiven vector test """
-        custom = Custom(5, state_vector=np.random.rand(32))
+        aqua_globals.random_seed = 32
+        custom = Custom(5, state_vector=aqua_globals.random.rand(32))
         cct = custom.construct_circuit('vector')
         prob = np.sqrt(np.sum([x**2 for x in cct]))
         self.assertAlmostEqual(prob, 1.0)

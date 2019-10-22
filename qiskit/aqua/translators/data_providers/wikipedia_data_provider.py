@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" wikipedia data provider """
+
 import datetime
 import importlib
 import logging
@@ -19,7 +21,8 @@ import logging
 import quandl
 from quandl.errors.quandl_error import NotFoundError
 
-from qiskit.aqua.translators.data_providers import BaseDataProvider, DataType, StockMarket, QiskitFinanceError
+from qiskit.aqua.translators.data_providers import (BaseDataProvider, DataType,
+                                                    StockMarket, QiskitFinanceError)
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +37,7 @@ class WikipediaDataProvider(BaseDataProvider):
         "name": "WIKI",
         "description": "Wikipedia Data Provider",
         "input_schema": {
-            "$schema": "http://json-schema.org/schema#",
+            "$schema": "http://json-schema.org/draft-07/schema#",
             "id": "edi_schema",
             "type": "object",
             "properties": {
@@ -62,7 +65,7 @@ class WikipediaDataProvider(BaseDataProvider):
 
     def __init__(self,
                  token=None,
-                 tickers=[],
+                 tickers=None,
                  stockmarket=StockMarket.NASDAQ,
                  start=datetime.datetime(2016, 1, 1),
                  end=datetime.datetime(2016, 1, 30)):
@@ -72,24 +75,28 @@ class WikipediaDataProvider(BaseDataProvider):
             token (str): quandl access token, which is not needed, strictly speaking
             tickers (str or list): tickers
             stockmarket (StockMarket): NASDAQ, NYSE
+            start (datetime.datetime): start time
+            end (datetime.datetime): end time
+        Raises:
+            QiskitFinanceError: provider doesn't support stock market input
         """
         # if not isinstance(atoms, list) and not isinstance(atoms, str):
         #    raise QiskitFinanceError("Invalid atom input for Wikipedia Driver '{}'".format(atoms))
         super().__init__()
-
+        tickers = tickers if tickers is not None else []
         if isinstance(tickers, list):
             self._tickers = tickers
         else:
             self._tickers = tickers.replace('\n', ';').split(";")
         self._n = len(self._tickers)
 
-        if not (stockmarket in [StockMarket.NASDAQ, StockMarket.NYSE]):
+        if stockmarket not in [StockMarket.NASDAQ, StockMarket.NYSE]:
             msg = "WikipediaDataProvider does not support "
             msg += stockmarket.value
             msg += " as a stock market."
             raise QiskitFinanceError(msg)
 
-        # This is to aid serialisation; string is ok to serialise
+        # This is to aid serialization; string is ok to serialize
         self._stockmarket = str(stockmarket.value)
 
         self._token = token
@@ -102,13 +109,14 @@ class WikipediaDataProvider(BaseDataProvider):
 
     @staticmethod
     def check_provider_valid():
+        """ checks if provider is valid """
         err_msg = 'quandl is not installed.'
         try:
             spec = importlib.util.find_spec('quandl')
             if spec is not None:
                 return
         except Exception as ex:  # pylint: disable=broad-except
-            logger.debug('quandl check error {}'.format(str(ex)))
+            logger.debug('quandl check error %s', str(ex))
             raise QiskitFinanceError(err_msg) from ex
 
         raise QiskitFinanceError(err_msg)
@@ -119,35 +127,40 @@ class WikipediaDataProvider(BaseDataProvider):
         Initialize via section dictionary.
 
         Args:
-            params (dict): section dictionary
+            section (dict): section dictionary
 
         Returns:
-            DataProvider object
+            WikipediaDataProvider: data provider object
+        Raises:
+            QiskitFinanceError: Invalid section
         """
         if section is None or not isinstance(section, dict):
             raise QiskitFinanceError(
                 'Invalid or missing section {}'.format(section))
 
-        params = section
+        # params = section
         kwargs = {}
         # for k, v in params.items():
         #    if k == ExchangeDataDriver. ...: v = UnitsType(v)
         #    kwargs[k] = v
-        logger.debug('init_from_input: {}'.format(kwargs))
+        logger.debug('init_from_input: %s', kwargs)
         return cls(**kwargs)
 
     def run(self):
-        """ Loads data, thus enabling get_similarity_matrix and get_covariance_matrix methods in the base class. """
+        """
+        Loads data, thus enabling get_similarity_matrix and
+        get_covariance_matrix methods in the base class.
+        """
         self.check_provider_valid()
         if self._token:
             quandl.ApiConfig.api_key = self._token
         quandl.ApiConfig.api_version = '2015-04-09'
         self._data = []
-        for (cnt, s) in enumerate(self._tickers):
+        for _, __s in enumerate(self._tickers):
             try:
-                d = quandl.get("WIKI/" + s,
-                               start_date=self._start,
-                               end_date=self._end)
+                __d = quandl.get("WIKI/" + __s,
+                                 start_date=self._start,
+                                 end_date=self._end)
             except NotFoundError as ex:
                 raise QiskitFinanceError(
                     "Cannot retrieve Wikipedia data due to an invalid token."
@@ -157,6 +170,6 @@ class WikipediaDataProvider(BaseDataProvider):
                 raise QiskitFinanceError(
                     "Cannot retrieve Wikipedia data.") from ex
             try:
-                self._data.append(d["Adj. Close"])
+                self._data.append(__d["Adj. Close"])
             except KeyError as ex:
                 raise QiskitFinanceError("Cannot parse quandl output.") from ex

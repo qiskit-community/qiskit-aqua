@@ -15,10 +15,13 @@
 """ Test Cplex Ising """
 
 from test.aqua.common import QiskitAquaTestCase
+
 import numpy as np
-from qiskit.aqua import run_algorithm, AquaError
+
+from qiskit.aqua import run_algorithm, AquaError, aqua_globals
 from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.translators.ising import max_cut
+from qiskit.aqua.translators.ising.common import random_graph
 from qiskit.aqua.algorithms.classical.cplex.cplex_ising import CPLEX_Ising
 
 
@@ -27,9 +30,9 @@ class TestCplexIsing(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
-        np.random.seed(8123179)
-        self.w = max_cut.random_graph(4, edge_prob=0.5, weight_range=10)
-        self.qubit_op, self.offset = max_cut.get_max_cut_qubitops(self.w)
+        aqua_globals.random_seed = 8123179
+        self.w = random_graph(4, edge_prob=0.5, weight_range=10)
+        self.qubit_op, self.offset = max_cut.get_qubit_op(self.w)
         self.algo_input = EnergyInput(self.qubit_op)
 
     def test_cplex_ising_via_run_algorithm(self):

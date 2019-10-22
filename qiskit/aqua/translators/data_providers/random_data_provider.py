@@ -12,6 +12,10 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""
+Python implementation of provider of mock stock-market data, which are generated pseudo-randomly.
+"""
+
 import datetime
 import logging
 import random
@@ -19,20 +23,25 @@ import random
 import numpy as np
 import pandas as pd
 
-from qiskit.aqua.translators.data_providers import BaseDataProvider, DataType, StockMarket, QiskitFinanceError
+from qiskit.aqua.translators.data_providers import (BaseDataProvider,
+                                                    DataType,
+                                                    StockMarket,
+                                                    QiskitFinanceError)
 
 logger = logging.getLogger(__name__)
 
 
 class RandomDataProvider(BaseDataProvider):
-    """Python implementation of provider of mock stock-market data, which are generated pseudo-randomly.
+    """
+    Python implementation of provider of mock stock-market data,
+    which are generated pseudo-randomly.
     """
 
     CONFIGURATION = {
         "name": "RND",
         "description": "Pseudo-Random Data Provider",
         "input_schema": {
-            "$schema": "http://json-schema.org/schema#",
+            "$schema": "http://json-schema.org/draft-07/schema#",
             "id": "rnd_schema",
             "type": "object",
             "properties": {
@@ -50,7 +59,7 @@ class RandomDataProvider(BaseDataProvider):
     }
 
     def __init__(self,
-                 tickers=["TICKER1", "TICKER2"],
+                 tickers=None,
                  stockmarket=StockMarket.RANDOM,
                  start=datetime.datetime(2016, 1, 1),
                  end=datetime.datetime(2016, 1, 30),
@@ -63,25 +72,24 @@ class RandomDataProvider(BaseDataProvider):
             start (datetime): first data point
             end (datetime): last data point precedes this date
             seed (None or int): shall a seed be used?
+        Raises:
+            QiskitFinanceError: provider doesn't support stock market value
         """
         super().__init__()
-
-        # if not isinstance(atoms, list) and not isinstance(atoms, str):
-        #    raise QiskitFinanceError("Invalid atom input for RANDOM data provider '{}'".format(atoms))
-
+        tickers = tickers if tickers is not None else ["TICKER1", "TICKER2"]
         if isinstance(tickers, list):
             self._tickers = tickers
         else:
             self._tickers = tickers.replace('\n', ';').split(";")
         self._n = len(self._tickers)
 
-        if not (stockmarket in [StockMarket.RANDOM]):
+        if stockmarket not in [StockMarket.RANDOM]:
             msg = "RandomDataProvider does not support "
             msg += stockmarket.value
             msg += " as a stock market. Please use Stockmarket.RANDOM."
             raise QiskitFinanceError(msg)
 
-        # This is to aid serialisation; string is ok to serialise
+        # This is to aid serialization; string is ok to serialize
         self._stockmarket = str(stockmarket.value)
 
         self._start = start
@@ -92,6 +100,7 @@ class RandomDataProvider(BaseDataProvider):
 
     @staticmethod
     def check_provider_valid():
+        """ check provider valid """
         return
 
     @classmethod
@@ -100,21 +109,23 @@ class RandomDataProvider(BaseDataProvider):
         Initialize via section dictionary.
 
         Args:
-            params (dict): section dictionary
+            section (dict): section dictionary
 
         Returns:
-            Driver: Driver object
+            RandomDataProvider: Driver object
+        Raises:
+            QiskitFinanceError: invalid section
         """
         if section is None or not isinstance(section, dict):
             raise QiskitFinanceError(
                 'Invalid or missing section {}'.format(section))
 
-        params = section
+        # params = section
         kwargs = {}
         # for k, v in params.items():
         #    if k == ExchangeDataDriver. ...: v = UnitsType(v)
         #    kwargs[k] = v
-        logger.debug('init_from_input: {}'.format(kwargs))
+        logger.debug('init_from_input: %s', kwargs)
         return cls(**kwargs)
 
     def run(self):
@@ -130,8 +141,8 @@ class RandomDataProvider(BaseDataProvider):
             np.random.seed(self._seed)
 
         self._data = []
-        for ticker in self._tickers:
-            df = pd.DataFrame(
+        for _ in self._tickers:
+            d_f = pd.DataFrame(
                 np.random.randn(length)).cumsum() + random.randint(1, 101)
-            trimmed = np.maximum(df[0].values, np.zeros(len(df[0].values)))
+            trimmed = np.maximum(d_f[0].values, np.zeros(len(d_f[0].values)))
             self._data.append(trimmed.tolist())

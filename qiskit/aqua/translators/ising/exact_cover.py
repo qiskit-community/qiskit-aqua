@@ -12,9 +12,10 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" exact cover """
 
 import logging
-from collections import OrderedDict
+import warnings
 
 import numpy as np
 
@@ -24,26 +25,7 @@ from qiskit.aqua.operators import WeightedPauliOperator
 logger = logging.getLogger(__name__)
 
 
-def random_number_list(n, weight_range=100, savefile=None):
-    """Generate a set of positive integers within the given range.
-
-    Args:
-        n (int): size of the set of numbers.
-        weight_range (int): maximum absolute value of the numbers.
-        savefile (str or None): write numbers to this file.
-
-    Returns:
-        numpy.ndarray: the list of integer numbers.
-    """
-    number_list = np.random.randint(low=1, high=(weight_range+1), size=n)
-    if savefile:
-        with open(savefile, 'w') as outfile:
-            for i in range(n):
-                outfile.write('{}\n'.format(number_list[i]))
-    return number_list
-
-
-def get_exact_cover_qubitops(list_of_subsets):
+def get_qubit_op(list_of_subsets):
     """Construct the Hamiltonian for the exact solver problem.
 
     Notes:
@@ -53,12 +35,13 @@ def get_exact_cover_qubitops(list_of_subsets):
            where Xi (Xi=1 or 0) means whether should include the subset i.
 
     Args:
-        list_of_subsets: list of lists (i.e., subsets)
+        list_of_subsets (list): list of lists (i.e., subsets)
 
     Returns:
-        WeightedPauliOperator: operator for the Hamiltonian
-        float: a constant shift for the obj function.
+        tuple(WeightedPauliOperator, float): operator for the Hamiltonian,
+                            a constant shift for the obj function.
     """
+    # pylint: disable=invalid-name
     n = len(list_of_subsets)
 
     U = []
@@ -70,6 +53,7 @@ def get_exact_cover_qubitops(list_of_subsets):
     pauli_list = []
 
     for e in U:
+        # pylint: disable=simplifiable-if-expression
         cond = [True if e in sub else False for sub in list_of_subsets]
         indices_has_e = np.arange(n)[cond]
         num_has_e = len(indices_has_e)
@@ -79,71 +63,25 @@ def get_exact_cover_qubitops(list_of_subsets):
         for i in indices_has_e:
             for j in indices_has_e:
                 if i != j:
-                    wp = np.zeros(n)
-                    vp = np.zeros(n)
-                    vp[i] = 1
-                    vp[j] = 1
-                    pauli_list.append([0.25, Pauli(vp, wp)])
+                    w_p = np.zeros(n)
+                    v_p = np.zeros(n)
+                    v_p[i] = 1
+                    v_p[j] = 1
+                    pauli_list.append([0.25, Pauli(v_p, w_p)])
                 else:
                     shift += 0.25
 
         for i in indices_has_e:
-            wp = np.zeros(n)
-            vp = np.zeros(n)
-            vp[i] = 1
-            pauli_list.append([-Y, Pauli(vp, wp)])
+            w_p = np.zeros(n)
+            v_p = np.zeros(n)
+            v_p[i] = 1
+            pauli_list.append([-Y, Pauli(v_p, w_p)])
 
     return WeightedPauliOperator(paulis=pauli_list), shift
 
 
-def read_numbers_from_file(filename):
-    """Read numbers from a file
-
-    Args:
-        filename (str): name of the file.
-
-    Returns:
-        numpy.ndarray: list of numbers as a numpy.ndarray.
-    """
-    numbers = []
-    with open(filename) as infile:
-        for line in infile:
-            assert(int(round(float(line))) == float(line))
-            numbers.append(int(round(float(line))))
-    return np.array(numbers)
-
-
-def sample_most_likely(n, state_vector):
-    """Compute the most likely binary string from state vector.
-
-    Args:
-        n (int): number of  qubits.
-        state_vector (numpy.ndarray or dict): state vector or counts.
-
-    Returns:
-        numpy.ndarray: binary string as numpy.ndarray of ints.
-    """
-    if isinstance(state_vector, dict) or isinstance(state_vector, OrderedDict):
-        temp_vec = np.zeros(2**n)
-        total = 0
-        for i in range(2**n):
-            state = np.binary_repr(i, n)
-            count = state_vector.get(state, 0)
-            temp_vec[i] = count
-            total += count
-        state_vector = temp_vec / float(total)
-
-    k = np.argmax(np.abs(state_vector))
-    x = np.zeros(n)
-    for i in range(n):
-        x[i] = k % 2
-        k >>= 1
-    return x
-
-
 def get_solution(x):
     """
-
     Args:
         x (numpy.ndarray) : binary string as numpy array.
 
@@ -154,6 +92,8 @@ def get_solution(x):
 
 
 def check_solution_satisfiability(sol, list_of_subsets):
+    """ check solution satisfiability """
+    # pylint: disable=invalid-name
     n = len(list_of_subsets)
     U = []
     for sub in list_of_subsets:
@@ -181,3 +121,43 @@ def check_solution_satisfiability(sol, list_of_subsets):
                 return False
 
     return True
+
+
+def random_number_list(n, weight_range=100, savefile=None):
+    """ random number list """
+    from .common import random_number_list as redirect_func
+    warnings.warn("random_number_list function has been moved to "
+                  "qiskit.aqua.translators.ising.common, "
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return redirect_func(n=n, weight_range=weight_range, savefile=savefile)
+
+
+def read_numbers_from_file(filename):
+    """ read numbers from file """
+    from .common import read_numbers_from_file as redirect_func
+    warnings.warn("read_numbers_from_file function has been moved to "
+                  "qiskit.aqua.translators.ising.common, "
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return redirect_func(filename)
+
+
+def sample_most_likely(n=None, state_vector=None):
+    """ sample most likely """
+    from .common import sample_most_likely as redirect_func
+    if n is not None:
+        warnings.warn("n argument is not need and it will be removed after Aqua 0.7+",
+                      DeprecationWarning)
+    warnings.warn("sample_most_likely function has been moved to qiskit.aqua.ising.common, "
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return redirect_func(state_vector=state_vector)
+
+
+def get_exact_cover_qubitops(list_of_subsets):
+    """ get exact cover qubit ops """
+    warnings.warn("get_exact_cover_qubitops function has been changed to get_qubit_op"
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return get_qubit_op(list_of_subsets)

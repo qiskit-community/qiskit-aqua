@@ -116,7 +116,7 @@ class TestDriverMethodsPySCF(TestDriverMethods):
         self._assert_energy_and_dipole(result, 'oh')
 
     def test_oh_uhf_parity(self):
-        """ oh uhf pairy test """
+        """ oh uhf parity test """
         driver = PySCFDriver(atom=self.o_h, unit=UnitsType.ANGSTROM,
                              charge=0, spin=1, basis='sto-3g',
                              hf_method=HFMethodType.UHF)

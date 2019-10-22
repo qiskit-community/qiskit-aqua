@@ -19,7 +19,6 @@ For more information, see https://arxiv.org/abs/1805.04340
 
 import logging
 import sys
-import warnings
 
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
@@ -45,7 +44,7 @@ class UCCSD(VariationalForm):
         'name': 'UCCSD',
         'description': 'UCCSD Variational Form',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'uccsd_schema',
             'type': 'object',
             'properties': {
@@ -106,43 +105,33 @@ class UCCSD(VariationalForm):
     def __init__(self, num_qubits, depth, num_orbitals, num_particles,
                  active_occupied=None, active_unoccupied=None, initial_state=None,
                  qubit_mapping='parity', two_qubit_reduction=True, num_time_slices=1,
-                 cliffords=None, sq_list=None, tapering_values=None, symmetries=None,
                  shallow_circuit_concat=True, z2_symmetries=None):
         """Constructor.
 
         Args:
-            num_orbitals (int): number of spin orbitals
+            num_qubits (int): number of qubits
             depth (int): number of replica of basic module
-            num_particles (list, int): number of particles, if it is a list, the first number is alpha
-                                        and the second number if beta.
+            num_orbitals (int): number of spin orbitals
+            num_particles (Union(list, int)): number of particles, if it is a list,
+                                        the first number is alpha and the second number if beta.
             active_occupied (list): list of occupied orbitals to consider as active space
             active_unoccupied (list): list of unoccupied orbitals to consider as active space
             initial_state (InitialState): An initial state object.
             qubit_mapping (str): qubit mapping type.
             two_qubit_reduction (bool): two qubit reduction is applied or not.
             num_time_slices (int): parameters for dynamics.
-            cliffords ([WeightedPauliOperator]): list of unitary Clifford transformation
-            sq_list ([int]): position of the single-qubit operators that anticommute
-                            with the cliffords
-            tapering_values ([int]): array of +/- 1 used to select the subspace. Length
-                                    has to be equal to the length of cliffords and sq_list
-            symmetries ([Pauli]): represent the Z2 symmetries
-            shallow_circuit_concat (bool): indicate whether to use shallow (cheap) mode for circuit concatenation
+            z2_symmetries (Z2Symmetries): represent the Z2 symmetries, including symmetries,
+                                          sq_paulis, sq_list, tapering_values, and cliffords
+            shallow_circuit_concat (bool): indicate whether to use shallow (cheap) mode for
+                                           circuit concatenation
+         Raises:
+             ValueError: Computed qubits do not match actual value
         """
         self.validate(locals())
         super().__init__()
 
-        if cliffords is not None and cliffords != [] and \
-                sq_list is not None and sq_list != [] and \
-                tapering_values is not None and tapering_values != [] and \
-                symmetries is not None and symmetries != []:
-            warnings.warn("symmetries, cliffords, sq_list, tapering_values options is deprecated "
-                          "and it will be removed after 0.6, Please encapsulate all tapering info "
-                          "into the Z2Symmetries class.", DeprecationWarning)
-            sq_paulis = [x.paulis[1][1] for x in cliffords]
-            self._z2_symmetries = Z2Symmetries(symmetries, sq_paulis, sq_list, tapering_values)
-        else:
-            self._z2_symmetries = Z2Symmetries([], [], [], []) if z2_symmetries is None else z2_symmetries
+        self._z2_symmetries = Z2Symmetries([], [], [], []) \
+            if z2_symmetries is None else z2_symmetries
 
         self._num_qubits = num_orbitals if not two_qubit_reduction else num_orbitals - 2
         self._num_qubits = self._num_qubits if self._z2_symmetries.is_empty() \
@@ -180,17 +169,48 @@ class UCCSD(VariationalForm):
 
         self._logging_construct_circuit = True
 
-    def _build_hopping_operators(self):
-        from .uccsd import UCCSD
+    @property
+    def single_excitations(self):
+        """
+        Getter of single excitation list
+        Returns:
+            list[list[int]]: single excitation list
+        """
+        return self._single_excitations
 
+    @property
+    def double_excitations(self):
+        """
+        Getter of double excitation list
+        Returns:
+            list[list[int]]: double excitation list
+        """
+        return self._double_excitations
+
+    def _build_hopping_operators(self):
         if logger.isEnabledFor(logging.DEBUG):
             TextProgressBar(sys.stderr)
 
-        results = parallel_map(UCCSD._build_hopping_operator, self._single_excitations + self._double_excitations,
-                               task_args=(self._num_orbitals, self._num_particles, self._qubit_mapping,
+        results = parallel_map(UCCSD._build_hopping_operator,
+                               self._single_excitations + self._double_excitations,
+                               task_args=(self._num_orbitals,
+                                          self._num_particles, self._qubit_mapping,
                                           self._two_qubit_reduction, self._z2_symmetries),
                                num_processes=aqua_globals.num_processes)
-        hopping_ops = [qubit_op for qubit_op in results if qubit_op is not None]
+        hopping_ops = []
+        s_e_list = []
+        d_e_list = []
+        for op, index in results:
+            if op is not None and not op.is_empty():
+                hopping_ops.append(op)
+                if len(index) == 2:  # for double excitation
+                    s_e_list.append(index)
+                else:  # for double excitation
+                    d_e_list.append(index)
+
+        self._single_excitations = s_e_list
+        self._double_excitations = d_e_list
+
         num_parameters = len(hopping_ops) * self._depth
         return hopping_ops, num_parameters
 
@@ -198,18 +218,18 @@ class UCCSD(VariationalForm):
     def _build_hopping_operator(index, num_orbitals, num_particles, qubit_mapping,
                                 two_qubit_reduction, z2_symmetries):
 
-        h1 = np.zeros((num_orbitals, num_orbitals))
-        h2 = np.zeros((num_orbitals, num_orbitals, num_orbitals, num_orbitals))
+        h_1 = np.zeros((num_orbitals, num_orbitals))
+        h_2 = np.zeros((num_orbitals, num_orbitals, num_orbitals, num_orbitals))
         if len(index) == 2:
             i, j = index
-            h1[i, j] = 1.0
-            h1[j, i] = -1.0
+            h_1[i, j] = 1.0
+            h_1[j, i] = -1.0
         elif len(index) == 4:
             i, j, k, m = index
-            h2[i, j, k, m] = 1.0
-            h2[m, k, j, i] = -1.0
+            h_2[i, j, k, m] = 1.0
+            h_2[m, k, j, i] = -1.0
 
-        dummpy_fer_op = FermionicOperator(h1=h1, h2=h2)
+        dummpy_fer_op = FermionicOperator(h1=h_1, h2=h_2)
         qubit_op = dummpy_fer_op.mapping(qubit_mapping)
         if two_qubit_reduction:
             qubit_op = Z2Symmetries.two_qubit_reduction(qubit_op, num_particles)
@@ -224,9 +244,9 @@ class UCCSD(VariationalForm):
             qubit_op = z2_symmetries.taper(qubit_op) if symm_commuting else None
 
         if qubit_op is None:
-            logger.debug('Excitation ({}) is skipped since it is not commuted '
-                         'with symmetries'.format(','.join([str(x) for x in index])))
-        return qubit_op
+            logger.debug('Excitation (%s) is skipped since it is not commuted '
+                         'with symmetries', ','.join([str(x) for x in index]))
+        return qubit_op, index
 
     def construct_circuit(self, parameters, q=None):
         """
@@ -242,7 +262,6 @@ class UCCSD(VariationalForm):
         Raises:
             ValueError: the number of parameters is incorrect.
         """
-        from .uccsd import UCCSD
         if len(parameters) != self._num_parameters:
             raise ValueError('The number of parameters has to be {}'.format(self._num_parameters))
 
@@ -275,7 +294,8 @@ class UCCSD(VariationalForm):
     @staticmethod
     def _construct_circuit_for_one_excited_operator(qubit_op_and_param, qr, num_time_slices):
         qubit_op, param = qubit_op_and_param
-        qc = qubit_op.evolve(state_in=None, evo_time=param * -1j, num_time_slices=num_time_slices, quantum_registers=qr)
+        qc = qubit_op.evolve(state_in=None, evo_time=param * -1j,
+                             num_time_slices=num_time_slices, quantum_registers=qr)
         return qc
 
     @property
@@ -297,8 +317,8 @@ class UCCSD(VariationalForm):
         Computes single and double excitation lists
 
         Args:
-            num_particles (list, int): number of particles, if it is a tuple, the first number is alpha
-                                        and the second number if beta.
+            num_particles (Union(list, int)): number of particles, if it is a tuple,
+                                        the first number is alpha and the second number if beta.
             num_orbitals (int): Total number of spin orbitals
             active_occ_list (list): List of occupied orbitals to include, indices are
                              0 to n where n is max(num_alpha, num_beta)
@@ -340,16 +360,19 @@ class UCCSD(VariationalForm):
         active_unocc_list_beta = []
 
         if active_occ_list is not None:
-            active_occ_list = [i if i >= 0 else i + max(num_alpha, num_beta) for i in active_occ_list]
+            active_occ_list = \
+                [i if i >= 0 else i + max(num_alpha, num_beta) for i in active_occ_list]
             for i in active_occ_list:
                 if i < num_alpha:
                     active_occ_list_alpha.append(i)
                 else:
-                    raise ValueError('Invalid index {} in active active_occ_list {}'.format(i, active_occ_list))
+                    raise ValueError(
+                        'Invalid index {} in active active_occ_list {}'.format(i, active_occ_list))
                 if i < num_beta:
                     active_occ_list_beta.append(i)
                 else:
-                    raise ValueError('Invalid index {} in active active_occ_list {}'.format(i, active_occ_list))
+                    raise ValueError(
+                        'Invalid index {} in active active_occ_list {}'.format(i, active_occ_list))
         else:
             active_occ_list_alpha = [i for i in range(0, num_alpha)]
             active_occ_list_beta = [i for i in range(0, num_beta)]
@@ -372,11 +395,11 @@ class UCCSD(VariationalForm):
             active_unocc_list_alpha = [i for i in range(num_alpha, num_orbitals // 2)]
             active_unocc_list_beta = [i for i in range(num_beta, num_orbitals // 2)]
 
-        logger.debug('active_occ_list_alpha {}'.format(active_occ_list_alpha))
-        logger.debug('active_unocc_list_alpha {}'.format(active_unocc_list_alpha))
+        logger.debug('active_occ_list_alpha %s', active_occ_list_alpha)
+        logger.debug('active_unocc_list_alpha %s', active_unocc_list_alpha)
 
-        logger.debug('active_occ_list_beta {}'.format(active_occ_list_beta))
-        logger.debug('active_unocc_list_beta {}'.format(active_unocc_list_beta))
+        logger.debug('active_occ_list_beta %s', active_occ_list_beta)
+        logger.debug('active_unocc_list_beta %s', active_unocc_list_beta)
 
         single_excitations = []
         double_excitations = []
@@ -396,7 +419,8 @@ class UCCSD(VariationalForm):
                     for unocc_beta in [i + beta_idx for i in active_unocc_list_beta]:
                         double_excitations.append([occ_alpha, unocc_alpha, occ_beta, unocc_beta])
 
-        if same_spin_doubles and len(active_occ_list_alpha) > 1 and len(active_unocc_list_alpha) > 1:
+        if same_spin_doubles and \
+                len(active_occ_list_alpha) > 1 and len(active_unocc_list_alpha) > 1:
             for i, occ_alpha in enumerate(active_occ_list_alpha[:-1]):
                 for j, unocc_alpha in enumerate(active_unocc_list_alpha[:-1]):
                     for occ_alpha_1 in active_occ_list_alpha[i + 1:]:
@@ -413,7 +437,7 @@ class UCCSD(VariationalForm):
                             double_excitations.append([occ_beta, unocc_beta,
                                                        occ_beta_1, unocc_beta_1])
 
-        logger.debug('single_excitations ({}) {}'.format(len(single_excitations), single_excitations))
-        logger.debug('double_excitations ({}) {}'.format(len(double_excitations), double_excitations))
+        logger.debug('single_excitations (%s) %s', len(single_excitations), single_excitations)
+        logger.debug('double_excitations (%s) %s', len(double_excitations), double_excitations)
 
         return single_excitations, double_excitations

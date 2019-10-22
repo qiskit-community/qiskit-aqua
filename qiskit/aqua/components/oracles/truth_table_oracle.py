@@ -11,6 +11,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
 """
 The Truth Table-based Quantum Oracle.
 """
@@ -34,6 +35,8 @@ from .ast_utils import get_ast
 
 logger = logging.getLogger(__name__)
 
+# pylint: disable=invalid-name
+
 
 def get_prime_implicants(ones=None, dcs=None):
     """
@@ -44,7 +47,7 @@ def get_prime_implicants(ones=None, dcs=None):
         dcs (list of int): The list of integers corresponding to don't-cares
 
     Return:
-        list of lists of int, representing all prime implicants
+        list: list of lists of int, representing all prime implicants
     """
 
     def combine_terms(terms, num1s_dict=None):
@@ -105,7 +108,8 @@ def get_prime_implicants(ones=None, dcs=None):
     prime_implicants = []
 
     while True:
-        next_implicants, next_num1s_dict, cur_prime_dict = combine_terms(terms, num1s_dict=cur_num1s_dict)
+        next_implicants, next_num1s_dict, cur_prime_dict = combine_terms(terms,
+                                                                         num1s_dict=cur_num1s_dict)
         for implicant in cur_prime_dict:
             if cur_prime_dict[implicant]:
                 if isinstance(implicant, int):
@@ -130,12 +134,12 @@ def get_exact_covers(cols, rows, num_cols=None):
     https://en.wikipedia.org/wiki/Knuth%27s_Algorithm_X
 
     Args:
-          cols (list of int): A list of integers representing the columns to be covered
-          rows (list of list of int): A list of lists of integers representing the rows
+          cols (list[int]): A list of integers representing the columns to be covered
+          rows (list[list[int]]): A list of lists of integers representing the rows
           num_cols (int): The total number of columns
 
     Returns:
-        All exact covers
+        list: All exact covers
     """
     if num_cols is None:
         num_cols = max(cols) + 1
@@ -152,12 +156,12 @@ def get_exact_covers(cols, rows, num_cols=None):
 
 
 class TruthTableOracle(Oracle):
-
+    """ Truth Table Oracle """
     CONFIGURATION = {
         'name': 'TruthTableOracle',
         'description': 'Truth Table Oracle',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'truth_table_oracle_schema',
             'type': 'object',
             'properties': {
@@ -192,12 +196,15 @@ class TruthTableOracle(Oracle):
         Constructor for Truth Table-based Oracle
 
         Args:
-            bitmaps (str or [str]): A single binary string or a list of binary strings representing the desired
-                single- and multi-value truth table.
+            bitmaps (Union(str, [str])): A single binary string or a list of binary strings
+                representing the desired single- and multi-value truth table.
             optimization (bool): Boolean flag for attempting circuit optimization.
-                When set, the Quine-McCluskey algorithm is used to compute the prime implicants of the truth table,
+                When set, the Quine-McCluskey algorithm is used to compute the prime
+                implicants of the truth table,
                 and then its exact cover is computed to try to reduce the circuit.
             mct_mode (str): The mode to use when constructing multiple-control Toffoli.
+        Raises:
+            AquaError: invalid input
         """
         if isinstance(bitmaps, str):
             bitmaps = [bitmaps]
@@ -238,13 +245,12 @@ class TruthTableOracle(Oracle):
         if self._lit_to_var is None:
             self._lit_to_var = [None] + sorted(v, key=str)
         if self._var_to_lit is None:
-            self._var_to_lit = {v: l for v, l in zip(self._lit_to_var[1:], range(1, self._nbits + 1))}
+            self._var_to_lit = {v: l for v, l in zip(self._lit_to_var[1:],
+                                                     range(1, self._nbits + 1))}
 
         def binstr_to_vars(binstr):
-            return [
-                       (~v[x[1] - 1] if x[0] == '0' else v[x[1] - 1])
-                       for x in zip(binstr, reversed(range(1, self._nbits + 1)))
-                   ][::-1]
+            return [(~v[x[1] - 1] if x[0] == '0' else v[x[1] - 1])
+                    for x in zip(binstr, reversed(range(1, self._nbits + 1)))][::-1]
 
         if not self._optimization:
             expression = Xor(*[
@@ -270,8 +276,8 @@ class TruthTableOracle(Oracle):
                     c_and = reduce(operator.and_, c)
                     _ = np.binary_repr(c_and ^ c_or, self._nbits)[::-1]
                     clause = And(*[
-                        v for i, v in enumerate(binstr_to_vars(np.binary_repr(c_and, self._nbits))) if _[i] == '0'
-                    ])
+                        v for i, v in enumerate(binstr_to_vars(np.binary_repr(c_and, self._nbits)))
+                        if _[i] == '0'])
                 else:
                     raise AquaError('Unexpected cover term size {}.'.format(len(c)))
                 if clause:
@@ -286,17 +292,21 @@ class TruthTableOracle(Oracle):
 
     @property
     def variable_register(self):
+        """ returns variable register """
         return self._variable_register
 
     @property
     def ancillary_register(self):
+        """ returns ancillary register """
         return self._ancillary_register
 
     @property
     def output_register(self):
+        """ returns output register """
         return self._output_register
 
     def construct_circuit(self):
+        """ construct circuit """
         if self._circuit is not None:
             return self._circuit
         self._circuit = QuantumCircuit()
@@ -323,7 +333,9 @@ class TruthTableOracle(Oracle):
         return self._circuit
 
     def evaluate_classically(self, measurement):
-        assignment = [(var + 1) * (int(tf) * 2 - 1) for tf, var in zip(measurement[::-1], range(len(measurement)))]
+        """ evaluate classical """
+        assignment = [(var + 1) * (int(tf) * 2 - 1) for tf, var in zip(measurement[::-1],
+                                                                       range(len(measurement)))]
         ret = [bitmap[int(measurement, 2)] == '1' for bitmap in self._bitmaps]
         if self._num_outputs == 1:
             return ret[0], assignment

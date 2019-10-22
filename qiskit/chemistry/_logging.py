@@ -11,17 +11,18 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
 """Utilities for logging."""
 
+import os
+import itertools
 import copy
 import logging
 from logging.config import dictConfig
 from collections import OrderedDict
+import pkg_resources
 from qiskit.chemistry.core import OPERATORS_ENTRY_POINT
 from qiskit.chemistry.drivers import DRIVERS_ENTRY_POINT
-import pkg_resources
-import itertools
-import os
 
 _QISKIT_CHEMISTRY_LOGGING_CONFIG = {
     'version': 1,
@@ -66,25 +67,27 @@ def build_logging_config(level, filepath=None):
     Args:
         level (number): logging level
         filepath (str): file to receive logging data
+    Returns:
+        dict: New configuration dictionary
     """
-    dict = copy.deepcopy(_QISKIT_CHEMISTRY_LOGGING_CONFIG)
+    dict_conf = copy.deepcopy(_QISKIT_CHEMISTRY_LOGGING_CONFIG)
     if filepath is not None:
         filepath = os.path.expanduser(filepath)
-        dict['handlers']['f'] = {
+        dict_conf['handlers']['f'] = {
             'class': 'logging.FileHandler',
             'formatter': 'f',
             'filename': filepath,
             'mode': 'w'
         }
 
-    handlers = list(dict['handlers'].keys())
+    handlers = list(dict_conf['handlers'].keys())
     for name in _get_logging_names():
-        dict['loggers'][name] = {
+        dict_conf['loggers'][name] = {
             'handlers': handlers,
             'propagate': False,
             'level': level
         }
-    return dict
+    return dict_conf
 
 
 def get_logging_level():
@@ -108,7 +111,7 @@ def get_qiskit_chemistry_logging():
     Returns the current Qiskit Chemistry logging level
 
     Returns:
-        logging level
+        int: logging level
     """
     return get_logging_level()
 

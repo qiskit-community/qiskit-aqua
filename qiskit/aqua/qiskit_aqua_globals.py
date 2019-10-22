@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Aqua Globals """
+
 import logging
 
 import numpy as np
@@ -24,7 +26,7 @@ from .aqua_error import AquaError
 logger = logging.getLogger(__name__)
 
 
-class QiskitAquaGlobals(object):
+class QiskitAquaGlobals:
     """Aqua class for global properties."""
 
     CPU_COUNT = local_hardware_info()['cpus']
@@ -59,12 +61,13 @@ class QiskitAquaGlobals(object):
             raise AquaError('Number of Processes {} cannot be greater than cpu count {}.'
                             .format(num_processes, QiskitAquaGlobals.CPU_COUNT))
         self._num_processes = num_processes
-        # TODO: change Terra CPU_COUNT until issue gets resolved: https://github.com/Qiskit/qiskit-terra/issues/1963
+        # TODO: change Terra CPU_COUNT until issue
+        # gets resolved: https://github.com/Qiskit/qiskit-terra/issues/1963
         try:
             qiskit.tools.parallel.CPU_COUNT = self.num_processes
         except Exception as ex:  # pylint: disable=broad-except
-            logger.warning("Failed to set qiskit.tools.parallel.CPU_COUNT to value: '{}': Error: '{}'".
-                           format(self.num_processes, str(ex)))
+            logger.warning("Failed to set qiskit.tools.parallel.CPU_COUNT "
+                           "to value: '%s': Error: '%s'", self.num_processes, str(ex))
 
     @property
     def random(self):
@@ -78,4 +81,4 @@ class QiskitAquaGlobals(object):
 
 
 # Global instance to be used as the entry point for globals.
-aqua_globals = QiskitAquaGlobals()
+aqua_globals = QiskitAquaGlobals()  # pylint: disable=invalid-name

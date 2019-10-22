@@ -12,15 +12,15 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-# Convert graph partitioning instances into Pauli list
-# Deal with Gset format. See https://web.stanford.edu/~yyye/yyye/Gset/
-
+"""
+Convert vertex cover instances into Pauli list
+Deal with Gset format. See https://web.stanford.edu/~yyye/yyye/Gset/
+"""
 
 import logging
-from collections import OrderedDict
+import warnings
 
 import numpy as np
-import numpy.random as rand
 from qiskit.quantum_info import Pauli
 
 from qiskit.aqua.operators import WeightedPauliOperator
@@ -28,51 +28,13 @@ from qiskit.aqua.operators import WeightedPauliOperator
 logger = logging.getLogger(__name__)
 
 
-def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None, seed=None):
-    """Generate random Erdos-Renyi graph.
-
-    Args:
-        n (int): number of nodes.
-        weight_range (int): weights will be smaller than this value,
-            in absolute value.
-        edge_prob (float): probability of edge appearing.
-        savefile (str or None): name of file where to save graph.
-        seed (int or None): random seed - if None, will not initialize.
-
-    Returns:
-        numpy.ndarray: adjacency matrix (with weights).
-
-    """
-    assert(weight_range >= 0)
-    if seed:
-        rand.seed(seed)
-    w = np.zeros((n, n))
-    m = 0
-    for i in range(n):
-        for j in range(i+1, n):
-            if rand.rand() <= edge_prob:
-                w[i, j] = rand.randint(1, weight_range)
-                if rand.rand() >= 0.5:
-                    w[i, j] *= -1
-                m += 1
-    w += w.T
-    if savefile:
-        with open(savefile, 'w') as outfile:
-            outfile.write('{} {}\n'.format(n, m))
-            for i in range(n):
-                for j in range(i+1, n):
-                    if w[i, j] != 0:
-                        outfile.write('{} {} {}\n'.format(i + 1, j + 1, w[i, j]))
-    return w
-
-
-def get_vertex_cover_qubitops(weight_matrix):
+def get_qubit_op(weight_matrix):
     r"""Generate Hamiltonian for the vertex cover
     Args:
         weight_matrix (numpy.ndarray) : adjacency matrix.
 
     Returns:
-        WeightedPauliOperator, float: operator for the Hamiltonian and a
+        tuple(WeightedPauliOperator, float): operator for the Hamiltonian and a
         constant shift for the obj function.
 
     Goals:
@@ -92,65 +54,34 @@ def get_vertex_cover_qubitops(weight_matrix):
     n = len(weight_matrix)
     pauli_list = []
     shift = 0
-    A = 5
+    a__ = 5
 
     for i in range(n):
         for j in range(i):
             if weight_matrix[i, j] != 0:
-                wp = np.zeros(n)
-                vp = np.zeros(n)
-                vp[i] = 1
-                vp[j] = 1
-                pauli_list.append([A*0.25, Pauli(vp, wp)])
+                w_p = np.zeros(n)
+                v_p = np.zeros(n)
+                v_p[i] = 1
+                v_p[j] = 1
+                pauli_list.append([a__*0.25, Pauli(v_p, w_p)])
 
-                vp2 = np.zeros(n)
-                vp2[i] = 1
-                pauli_list.append([-A*0.25, Pauli(vp2, wp)])
+                v_p2 = np.zeros(n)
+                v_p2[i] = 1
+                pauli_list.append([-a__*0.25, Pauli(v_p2, w_p)])
 
-                vp3 = np.zeros(n)
-                vp3[j] = 1
-                pauli_list.append([-A*0.25, Pauli(vp3, wp)])
+                v_p3 = np.zeros(n)
+                v_p3[j] = 1
+                pauli_list.append([-a__*0.25, Pauli(v_p3, w_p)])
 
-                shift += A*0.25
+                shift += a__*0.25
 
     for i in range(n):
-        wp = np.zeros(n)
-        vp = np.zeros(n)
-        vp[i] = 1
-        pauli_list.append([0.5, Pauli(vp, wp)])
+        w_p = np.zeros(n)
+        v_p = np.zeros(n)
+        v_p[i] = 1
+        pauli_list.append([0.5, Pauli(v_p, w_p)])
         shift += 0.5
     return WeightedPauliOperator(paulis=pauli_list), shift
-
-
-def parse_gset_format(filename):
-    """Read graph in Gset format from file.
-
-    Args:
-        filename (str): name of the file.
-
-    Returns:
-        numpy.ndarray: adjacency matrix as a 2D numpy array.
-    """
-    n = -1
-    with open(filename) as infile:
-        header = True
-        m = -1
-        count = 0
-        for line in infile:
-            v = map(lambda e: int(e), line.split())
-            if header:
-                n, m = v
-                w = np.zeros((n, n))
-                header = False
-            else:
-                s, t, x = v
-                s -= 1  # adjust 1-index
-                t -= 1  # ditto
-                w[s, t] = t
-                count += 1
-        assert m == count
-    w += w.T
-    return w
 
 
 def check_full_edge_coverage(x, w):
@@ -185,35 +116,53 @@ def get_graph_solution(x):
     return 1 - x
 
 
-def sample_most_likely(n, state_vector):
-    """Compute the most likely binary string from state vector.
-    Args:
-        state_vector (numpy.ndarray or dict): state vector or counts.
-    Returns:
-        numpy.ndarray: binary string as numpy.ndarray of ints.
-    """
-    if isinstance(state_vector, dict) or isinstance(state_vector, OrderedDict):
-        # get the binary string with the largest count
-        binary_string = sorted(state_vector.items(), key=lambda kv: kv[1])[-1][0]
-        x = np.asarray([int(y) for y in list(binary_string)])
-        return x
-    else:
-        n = int(np.log2(state_vector.shape[0]))
-        k = np.argmax(np.abs(state_vector))
-        x = np.zeros(n)
-        for i in range(n):
-            x[i] = k % 2
-            k >>= 1
-        return x
+def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None, seed=None):
+    """ random graph """
+    from .common import random_graph as redirect_func
+    warnings.warn("random_graph function has been moved to "
+                  "qiskit.aqua.translators.ising.common, "
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return redirect_func(n=n, weight_range=weight_range, edge_prob=edge_prob,
+                         savefile=savefile, seed=seed)
+
+
+def parse_gset_format(filename):
+    """ parse gset format """
+    from .common import parse_gset_format as redirect_func
+    warnings.warn("parse_gset_format function has been moved to "
+                  "qiskit.aqua.translators.ising.common, "
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return redirect_func(filename)
+
+
+def sample_most_likely(n=None, state_vector=None):
+    """ sample most likely """
+    from .common import sample_most_likely as redirect_func
+    if n is not None:
+        warnings.warn("n argument is not need and it will be removed after Aqua 0.7+",
+                      DeprecationWarning)
+    warnings.warn("sample_most_likely function has been moved to "
+                  "qiskit.aqua.translators.ising.common, "
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return redirect_func(state_vector=state_vector)
 
 
 def get_gset_result(x):
-    """Get graph solution in Gset format from binary string.
+    """ get gset result """
+    from .common import get_gset_result as redirect_func
+    warnings.warn("get_gset_result function has been moved to "
+                  "qiskit.aqua.translators.ising.common, "
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return redirect_func(x)
 
-    Args:
-        x (numpy.ndarray) : binary string as numpy array.
 
-    Returns:
-        Dict[int, int]: graph solution in Gset format.
-    """
-    return {i + 1: 1 - x[i] for i in range(len(x))}
+def get_vertex_cover_qubitops(weight_matrix):
+    """ get vertex cover qubit ops """
+    warnings.warn("get_vertex_cover_qubitops function has been changed to get_qubit_op"
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return get_qubit_op(weight_matrix)

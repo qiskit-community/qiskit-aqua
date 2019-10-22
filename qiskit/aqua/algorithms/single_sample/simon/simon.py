@@ -15,8 +15,8 @@
 Simon's algorithm.
 """
 
+import operator  # pylint: disable=unused-import
 import numpy as np
-import operator
 from sympy import Matrix, mod_inverse
 
 from qiskit import ClassicalRegister, QuantumCircuit
@@ -24,6 +24,8 @@ from qiskit import ClassicalRegister, QuantumCircuit
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.utils import get_subsystem_density_matrix
+
+# pylint: disable=invalid-name
 
 
 class Simon(QuantumAlgorithm):
@@ -33,7 +35,7 @@ class Simon(QuantumAlgorithm):
         'name': 'Simon',
         'description': 'Simon',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'simon_schema',
             'type': 'object',
             'properties': {
@@ -45,7 +47,7 @@ class Simon(QuantumAlgorithm):
             {
                 'pluggable_type': 'oracle',
                 'default': {
-                     'name': 'TruthTableOracle',
+                    'name': 'TruthTableOracle',
                 },
             },
         ],
@@ -61,6 +63,7 @@ class Simon(QuantumAlgorithm):
 
     @classmethod
     def init_params(cls, params, algo_input):
+        """ init params """
         if algo_input is not None:
             raise AquaError("Input instance not supported.")
 
@@ -75,10 +78,11 @@ class Simon(QuantumAlgorithm):
         Construct the quantum circuit
 
         Args:
-            measurement (bool): Boolean flag to indicate if measurement should be included in the circuit.
+            measurement (bool): Boolean flag to indicate if
+                measurement should be included in the circuit.
 
         Returns:
-            the QuantumCircuit object for the constructed circuit
+            QuantumCircuit: the QuantumCircuit object for the constructed circuit
         """
 
         if self._circuit is not None:
@@ -116,12 +120,12 @@ class Simon(QuantumAlgorithm):
         # reverse measurement bitstrings and remove all zero entry
         linear = [(k[::-1], v) for k, v in measurements.items()
                   if k != "0" * len(self._oracle.variable_register)]
-        # sort bitstrings by their probailities
+        # sort bitstrings by their probabilities
         linear.sort(key=lambda x: x[1], reverse=True)
 
         # construct matrix
         equations = []
-        for k, v in linear:
+        for k, _ in linear:
             equations.append([int(c) for c in k])
         y = Matrix(equations)
 
@@ -134,7 +138,7 @@ class Simon(QuantumAlgorithm):
         y_new = y_transformed[0].applyfunc(lambda x: mod(x, 2))
 
         # determine hidden string from final matrix
-        rows, cols = y_new.shape
+        rows, _ = y_new.shape
         hidden = [0] * len(self._oracle.variable_register)
         for r in range(rows):
             yi = [i for i, v in enumerate(list(y_new[r, :])) if v == 1]

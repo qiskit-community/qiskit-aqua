@@ -17,13 +17,15 @@ Quantum Fourier Transform Circuit.
 
 import numpy as np
 
-from qiskit.circuit import QuantumRegister, QuantumCircuit, Qubit
+from qiskit.circuit import QuantumRegister, QuantumCircuit, Qubit  # pylint: disable=unused-import
 
 from qiskit.aqua import AquaError
 
 
 class FourierTransformCircuits:
-
+    """
+    Quantum Fourier Transform Circuit.
+    """
     @staticmethod
     def _do_swaps(circuit, qubits):
         num_qubits = len(qubits)
@@ -45,14 +47,18 @@ class FourierTransformCircuits:
 
         Args:
             circuit (QuantumCircuit): The optional circuit to extend from.
-            qubits (QuantumRegister | list of Qubit): The optional qubits to construct the circuit with.
+            qubits (Union(QuantumRegister, list[Qubit])): The optional qubits to construct
+                the circuit with.
             approximation_degree (int): degree of approximation for the desired circuit
             inverse (bool): Boolean flag to indicate Inverse Quantum Fourier Transform
-            do_swaps (bool): Boolean flag to specify if swaps should be included to align the qubit order of
+            do_swaps (bool): Boolean flag to specify if swaps should be included to align
+                the qubit order of
                 input and output. The output qubits would be in reversed order without the swaps.
 
         Returns:
-            QuantumCircuit.
+            QuantumCircuit: quantum circuit
+        Raises:
+            AquaError: invalid input
         """
 
         if circuit is None:
@@ -60,19 +66,21 @@ class FourierTransformCircuits:
 
         if qubits is None:
             raise AquaError('Missing input qubits.')
+
+        if isinstance(qubits, QuantumRegister):
+            if not circuit.has_register(qubits):
+                circuit.add_register(qubits)
+        elif isinstance(qubits, list):
+            for qubit in qubits:
+                if isinstance(qubit, Qubit):
+                    if not circuit.has_register(qubit.register):
+                        circuit.add_register(qubit.register)
+                else:
+                    raise AquaError('A QuantumRegister or a list of qubits '
+                                    'is expected for the input qubits.')
         else:
-            if isinstance(qubits, QuantumRegister):
-                if not circuit.has_register(qubits):
-                    circuit.add_register(qubits)
-            elif isinstance(qubits, list):
-                for qubit in qubits:
-                    if isinstance(qubit, Qubit):
-                        if not circuit.has_register(qubit.register):
-                            circuit.add_register(qubit.register)
-                    else:
-                        raise AquaError('A QuantumRegister or a list of qubits is expected for the input qubits.')
-            else:
-                raise AquaError('A QuantumRegister or a list of qubits is expected for the input qubits.')
+            raise AquaError('A QuantumRegister or a list of qubits '
+                            'is expected for the input qubits.')
 
         if do_swaps and not inverse:
             FourierTransformCircuits._do_swaps(circuit, qubits)

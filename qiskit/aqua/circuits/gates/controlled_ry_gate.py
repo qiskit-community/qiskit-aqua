@@ -18,7 +18,7 @@ Controlled-RY (cry) and Multiple-Control RY (mcry) Gates
 
 import logging
 
-from qiskit.circuit import QuantumCircuit, QuantumRegister, Qubit
+from qiskit.circuit import QuantumCircuit, QuantumRegister, Qubit  # pylint: disable=unused-import
 
 from qiskit.aqua import AquaError
 
@@ -34,6 +34,10 @@ def cry(self, theta, q_control, q_target):
         theta (float): The rotation angle.
         q_control (Qubit): The control qubit.
         q_target (Qubit): The target qubit.
+    Returns:
+        QuantumCircuit: instance self
+    Raises:
+        AquaError: invalid input
     """
 
     if not isinstance(q_control, Qubit):

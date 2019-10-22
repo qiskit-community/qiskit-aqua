@@ -27,14 +27,17 @@ from qiskit.aqua.algorithms.classical.cplex.simple_cplex import SimpleCPLEX
 
 logger = logging.getLogger(__name__)
 
+# pylint: disable=invalid-name
+
 
 class CPLEX_Ising(QuantumAlgorithm):
+    """ CPLEX Ising algorithm """
     CONFIGURATION = {
         'name': 'CPLEX.Ising',
         'description': 'CPLEX backend for Ising Hamiltonian',
         'classical': True,
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'CPLEX_schema',
             'type': 'object',
             'properties': {
@@ -72,6 +75,7 @@ class CPLEX_Ising(QuantumAlgorithm):
 
     @classmethod
     def init_params(cls, params, algo_input):
+        """ init params """
         if algo_input is None:
             raise AquaError("EnergyInput instance is required.")
         algo_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
@@ -82,7 +86,10 @@ class CPLEX_Ising(QuantumAlgorithm):
 
     @staticmethod
     def check_pluggable_valid():
-        err_msg = 'CPLEX is not installed. See https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/ilog.odms.studio.help/Optimization_Studio/topics/COS_home.html'
+        """ check pluggable valid """
+        err_msg = 'CPLEX is not installed. See ' \
+            'https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/' \
+            'ilog.odms.studio.help/Optimization_Studio/topics/COS_home.html'
         try:
             spec = importlib.util.find_spec('cplex.callbacks')
             if spec is not None:
@@ -90,7 +97,7 @@ class CPLEX_Ising(QuantumAlgorithm):
                 if spec is not None:
                     return
         except Exception as ex:  # pylint: disable=broad-except
-            logger.debug('{} {}'.format(err_msg, str(ex)))
+            logger.debug('%s %s', err_msg, str(ex))
             raise AquaError(err_msg) from ex
 
         raise AquaError(err_msg)
@@ -105,10 +112,12 @@ class CPLEX_Ising(QuantumAlgorithm):
 
     @property
     def solution(self):
+        """ return solution """
         return self._sol
 
 
 def new_cplex(timelimit=600, thread=1, display=2):
+    """ new cplex """
     cplex = SimpleCPLEX()
     cplex.parameters.timelimit.set(timelimit)
     cplex.parameters.threads.set(thread)
@@ -119,6 +128,7 @@ def new_cplex(timelimit=600, thread=1, display=2):
 
 
 class IsingInstance:
+    """ Ising Instance """
     def __init__(self):
         self._num_vars = 0
         self._const = 0
@@ -127,27 +137,32 @@ class IsingInstance:
 
     @property
     def num_vars(self) -> int:
+        """ returns number of vars """
         return self._num_vars
 
     @property
     def constant(self) -> float:
+        """ returns constant """
         return self._const
 
     @property
     def linear_coef(self) -> Dict[int, float]:
+        """ returns linear coefficient """
         return self._lin
 
     @property
     def quad_coef(self) -> Dict[Tuple[int, int], float]:
+        """ returns quad coef """
         return self._quad
 
     def parse(self, pauli_list: List[Dict[str, Any]]):
+        """ parse """
         for pauli in pauli_list:
             if self._num_vars == 0:
                 self._num_vars = len(pauli['label'])
             elif self._num_vars != len(pauli['label']):
-                logger.critical('Inconsistent number of qubits: (target) %d, (actual) %d %s', self._num_vars,
-                                len(pauli['label']), pauli)
+                logger.critical('Inconsistent number of qubits: (target) %d, (actual) %d %s',
+                                self._num_vars, len(pauli['label']), pauli)
                 continue
             label = pauli['label'][::-1]
             if 'imag' in pauli['coeff'] and pauli['coeff']['imag'] != 0.0:
@@ -173,14 +188,14 @@ class IsingInstance:
             elif size == 1:
                 k = ones[0]
                 if k in self._lin:
-                    logger.warning('Overwrite the linear coefficient %s: (current) %f, (new) %f', k, self._lin[k],
-                                   weight)
+                    logger.warning('Overwrite the linear coefficient %s: (current) %f, (new) %f',
+                                   k, self._lin[k], weight)
                 self._lin[k] = weight
             elif size == 2:
                 k = tuple(sorted(ones))
                 if k in self._lin:
-                    logger.warning('Overwrite the quadratic coefficient %s: (current) %f, (new) %f', k, self._lin[k],
-                                   weight)
+                    logger.warning('Overwrite the quadratic coefficient %s: (current) %f, (new) %f',
+                                   k, self._lin[k], weight)
                 self._quad[k] = weight
             else:
                 logger.critical(
@@ -188,6 +203,7 @@ class IsingInstance:
 
 
 class IsingModel:
+    """ Ising Model """
     def __init__(self, instance: IsingInstance, **kwargs):
         self._instance = instance
         self._num_vars = instance.num_vars
@@ -199,10 +215,12 @@ class IsingModel:
 
     @property
     def linear_coef(self):
+        """ returns linear coef """
         return self._lin
 
     @property
     def quad_coef(self):
+        """ returns quad coef """
         return self._quad
 
     def _register_variables(self):
@@ -226,6 +244,7 @@ class IsingModel:
             fsum([self._const] + list(self._lin.values()) + list(self._quad.values())))
 
     def solve(self):
+        """ solve """
         start = default_timer()
         x = self._register_variables()
         self._cplex.minimize()
@@ -247,6 +266,7 @@ class IsingModel:
 
 
 class IsingSolution:
+    """ Ising Solution """
     delimiter = '\t'
 
     def __init__(self, ins: IsingInstance, sol: Dict[int, int], elapsed: float, obj):
@@ -258,7 +278,7 @@ class IsingSolution:
         self._eigvecs = self._calc_eigvecs(sol)
 
     def feasible(self):
-        # solutions are always feasible because the problem is unconstrained
+        """ solutions are always feasible because the problem is unconstrained """
         return True
 
     @staticmethod
@@ -272,17 +292,21 @@ class IsingSolution:
 
     @property
     def eigvecs(self):
+        """ returns eigvecs """
         return self._eigvecs
 
     @property
     def x_sol(self):
+        """ returns x sol """
         return self._x_sol
 
     @property
     def z_sol(self):
+        """ returns z sol """
         return self._z_sol
 
     def dump(self, filename):
+        """ dump """
         with open(filename, 'w') as outfile:
             outfile.write('# objective {}\n'.format(self.objective))
             outfile.write('# elapsed time {}\n'.format(self._elapsed))
@@ -293,8 +317,10 @@ class IsingSolution:
 
     @property
     def objective(self):
+        """ returns objective """
         return self._obj
 
     @property
     def time(self):
+        """ returns time elapsed """
         return self._elapsed

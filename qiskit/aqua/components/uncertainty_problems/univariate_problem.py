@@ -11,6 +11,9 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
+""" Univariate uncertainty problem. """
+
 from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
 
 
@@ -26,9 +29,12 @@ class UnivariateProblem(UncertaintyProblem):
 
         Args:
             uncertainty_model (UnivariateUncertaintyModel): univariate uncertainty model to
-            univariate_objective (UnivariatePiecewiseLinearObjective): objective function based on uncertainty
-            i_state(int): indices of qubits representing uncertainty
-            i_objective: index of qubit representing the objective value in the amplitude
+            univariate_objective (UnivariatePiecewiseLinearObjective): objective function
+            based on uncertainty
+            i_state(Optional(Union(list, numpy.ndarray))): indices of qubits
+                                                            representing uncertainty
+            i_objective (Optional(int)): index of qubit representing the objective
+                                                            value in the amplitude
         """
 
         # determine number of target qubits
@@ -55,7 +61,7 @@ class UnivariateProblem(UncertaintyProblem):
         num_objective_ancillas = self._univariate_objective.required_ancillas()
         return max([num_uncertainty_ancillas, num_objective_ancillas])
 
-    def build(self, qc, q, q_ancillas=None):
+    def build(self, qc, q, q_ancillas=None, params=None):
 
         q_state = [q[i] for i in self.i_state]
         q_objective = q[self.i_objective]

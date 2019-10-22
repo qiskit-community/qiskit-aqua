@@ -28,8 +28,8 @@ from qiskit.providers.ibmq.credentials.updater import is_directly_updatable, QE2
 logger = logging.getLogger(__name__)
 
 
-class IBMQCredentialsPreferences(object):
-
+class IBMQCredentialsPreferences:
+    """IBMQ Credential preferences"""
     _IBMQ_KEY = 'ibmq'
     _HUB_KEY = 'hub'
     _GROUP_KEY = 'group'
@@ -40,6 +40,7 @@ class IBMQCredentialsPreferences(object):
         self._ibmq_dict = preferences_dict.get(IBMQCredentialsPreferences._IBMQ_KEY, {})
         self._ibmq_changed = False
         self._credentials_changed = False
+        self._credentials = None
         self._read_credentials()
 
     def _read_credentials(self):
@@ -64,13 +65,14 @@ class IBMQCredentialsPreferences(object):
                                                         verify=credentials.verify)
                         self._ibmq_dict[IBMQCredentialsPreferences._HUB_KEY] = credentials.hub
                         self._ibmq_dict[IBMQCredentialsPreferences._GROUP_KEY] = credentials.group
-                        self._ibmq_dict[IBMQCredentialsPreferences._PROJECT_KEY] = credentials.project
+                        self._ibmq_dict[IBMQCredentialsPreferences._PROJECT_KEY] = \
+                            credentials.project
                     else:
                         # Unknown URL - do not act on it.
-                        logger.debug('The stored account with url "{}" could not be '
-                                     'parsed.'.format(credentials.url))
-        except Exception as ex:
-            logger.debug("Failed to read IBM credentials: '{}'".format(str(ex)))
+                        logger.debug('The stored account with url "%s" could not be '
+                                     'parsed.', credentials.url)
+        except Exception as ex:  # pylint: disable=broad-except
+            logger.debug("Failed to read IBM credentials: '%s'", str(ex))
 
     def save(self, preferences_dict):
         """Save credentials, always keep only one"""
@@ -81,8 +83,8 @@ class IBMQCredentialsPreferences(object):
                     stored_credentials[self._credentials.unique_id()] = self._credentials
 
                 write_qiskit_rc(stored_credentials)
-            except Exception as ex:
-                logger.debug("Failed to store IBM credentials: '{}'".format(str(ex)))
+            except Exception as ex:  # pylint: disable=broad-except
+                logger.debug("Failed to store IBM credentials: '%s'", str(ex))
 
             self._credentials_changed = False
             self._read_credentials()
@@ -93,9 +95,11 @@ class IBMQCredentialsPreferences(object):
 
     @property
     def credentials(self):
+        """ returns credentials """
         return self._credentials
 
     def set_credentials(self, token, proxy_urls=None):
+        """ set credentials """
         if token is not None:
             proxies = {} if proxy_urls is None else {'urls': proxy_urls}
             cred = Credentials(token, QX_AUTH_URL, proxies=proxies)
@@ -115,6 +119,7 @@ class IBMQCredentialsPreferences(object):
 
     @property
     def url(self):
+        """ returns URL """
         if self._credentials is not None:
             return self._credentials.url
 
@@ -122,6 +127,7 @@ class IBMQCredentialsPreferences(object):
 
     @property
     def token(self):
+        """ returns token """
         if self._credentials is not None:
             return self._credentials.token
 
@@ -129,6 +135,7 @@ class IBMQCredentialsPreferences(object):
 
     @property
     def proxies(self):
+        """ returns proxies """
         if self._credentials is not None:
             return copy.deepcopy(self._credentials.proxies)
 
@@ -136,6 +143,7 @@ class IBMQCredentialsPreferences(object):
 
     @property
     def proxy_urls(self):
+        """ returns proxy URL list """
         if self._credentials is not None and \
                 'urls' in self._credentials.proxies:
             return copy.deepcopy(self._credentials.proxies['urls'])
@@ -144,6 +152,7 @@ class IBMQCredentialsPreferences(object):
 
     @property
     def hub(self):
+        """ return hub """
         return self._ibmq_dict.get(IBMQCredentialsPreferences._HUB_KEY)
 
     @hub.setter
@@ -154,6 +163,7 @@ class IBMQCredentialsPreferences(object):
 
     @property
     def group(self):
+        """ returns group """
         return self._ibmq_dict.get(IBMQCredentialsPreferences._GROUP_KEY)
 
     @group.setter
@@ -164,6 +174,7 @@ class IBMQCredentialsPreferences(object):
 
     @property
     def project(self):
+        """ returns project """
         return self._ibmq_dict.get(IBMQCredentialsPreferences._PROJECT_KEY)
 
     @project.setter

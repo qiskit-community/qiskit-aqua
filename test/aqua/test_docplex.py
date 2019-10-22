@@ -16,11 +16,13 @@
 
 from math import fsum, isclose
 from test.aqua.common import QiskitAquaTestCase
+
 import networkx as nx
 import numpy as np
 from docplex.mp.model import Model
 from qiskit.quantum_info import Pauli
-from qiskit.aqua import AquaError
+
+from qiskit.aqua import AquaError, aqua_globals
 from qiskit.aqua.algorithms import ExactEigensolver
 from qiskit.aqua.translators.ising import tsp, docplex
 from qiskit.aqua.operators import WeightedPauliOperator
@@ -132,7 +134,7 @@ class TestDocplex(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
-        np.random.seed(100)
+        aqua_globals.random_seed = 100
 
     def test_validation(self):
         """ Validation Test """
@@ -147,7 +149,7 @@ class TestDocplex(QiskitAquaTestCase):
             x = {i: mdl.integer_var(name='x_{0}'.format(i)) for i in range(num_var)}
             obj_func = mdl.sum(x[i] for i in range(num_var))
             mdl.maximize(obj_func)
-            docplex.get_qubitops(mdl)
+            docplex.get_qubit_op(mdl)
 
         # validate types of constraints are equality constraints or not.
         with self.assertRaises(AquaError):
@@ -156,12 +158,12 @@ class TestDocplex(QiskitAquaTestCase):
             obj_func = mdl.sum(x[i] for i in range(num_var))
             mdl.maximize(obj_func)
             mdl.add_constraint(mdl.sum(x[i] for i in range(num_var)) <= 1)
-            docplex.get_qubitops(mdl)
+            docplex.get_qubit_op(mdl)
 
     def test_auto_define_penalty(self):
-        """ Auto defina Penalty test """
+        """ Auto define Penalty test """
         # check _auto_define_penalty() for positive coefficients.
-        positive_coefficients = np.random.rand(10, 10)
+        positive_coefficients = aqua_globals.random.rand(10, 10)
         for i in range(10):
             mdl = Model(name='Positive_auto_define_penalty')
             x = {j: mdl.binary_var(name='x_{0}'.format(j)) for j in range(10)}
@@ -172,7 +174,7 @@ class TestDocplex(QiskitAquaTestCase):
             self.assertEqual(isclose(actual, expected), True)
 
         # check _auto_define_penalty() for negative coefficients
-        negative_coefficients = -1 * np.random.rand(10, 10)
+        negative_coefficients = -1 * aqua_globals.random.rand(10, 10)
         for i in range(10):
             mdl = Model(name='Negative_auto_define_penalty')
             x = {j: mdl.binary_var(name='x_{0}'.format(j)) for j in range(10)}
@@ -183,7 +185,7 @@ class TestDocplex(QiskitAquaTestCase):
             self.assertEqual(isclose(actual, expected), True)
 
         # check _auto_define_penalty() for mixed coefficients
-        mixed_coefficients = np.random.randint(-100, 100, (10, 10))
+        mixed_coefficients = aqua_globals.random.randint(-100, 100, (10, 10))
         for i in range(10):
             mdl = Model(name='Mixed_auto_define_penalty')
             x = {j: mdl.binary_var(name='x_{0}'.format(j)) for j in range(10)}
@@ -226,7 +228,7 @@ class TestDocplex(QiskitAquaTestCase):
         maxcut_func = mdl.sum(w[i, j] * mdl.node_vars[i] * (1 - mdl.node_vars[j])
                               for i in range(n) for j in range(n))
         mdl.maximize(maxcut_func)
-        qubit_op, offset = docplex.get_qubitops(mdl)
+        qubit_op, offset = docplex.get_qubit_op(mdl)
 
         e_e = ExactEigensolver(qubit_op, k=1)
         result = e_e.run()
@@ -257,8 +259,8 @@ class TestDocplex(QiskitAquaTestCase):
         mdl.minimize(tsp_func)
         for i in range(num_node):
             mdl.add_constraint(mdl.sum(x[(i, p)] for p in range(num_node)) == 1)
-        for p_i in range(num_node):
-            mdl.add_constraint(mdl.sum(x[(i, p_i)] for i in range(num_node)) == 1)
+        for j in range(num_node):
+            mdl.add_constraint(mdl.sum(x[(i, j)] for i in range(num_node)) == 1)
         qubit_op, offset = docplex.get_qubitops(mdl)
 
         e_e = ExactEigensolver(qubit_op, k=1)
@@ -272,13 +274,13 @@ class TestDocplex(QiskitAquaTestCase):
 
     def test_docplex_integer_constraints(self):
         """ Docplex Integer Constraints test """
-        # Create an Ising Homiltonian with docplex
+        # Create an Ising Hamiltonian with docplex
         mdl = Model(name='integer_constraints')
         x = {i: mdl.binary_var(name='x_{0}'.format(i)) for i in range(1, 5)}
         max_vars_func = mdl.sum(x[i] for i in range(1, 5))
         mdl.maximize(max_vars_func)
         mdl.add_constraint(mdl.sum(i * x[i] for i in range(1, 5)) == 3)
-        qubit_op, offset = docplex.get_qubitops(mdl)
+        qubit_op, offset = docplex.get_qubit_op(mdl)
 
         e_e = ExactEigensolver(qubit_op, k=1)
         result = e_e.run()
@@ -290,7 +292,7 @@ class TestDocplex(QiskitAquaTestCase):
 
     def test_docplex_constant_and_quadratic_terms_in_object_function(self):
         """ Docplex Constant and Quadratic terms in Object function test """
-        # Create an Ising Homiltonian with docplex
+        # Create an Ising Hamiltonian with docplex
         laplacian = np.array([[-3., 1., 1., 1.],
                               [1., -2., 1., -0.],
                               [1., 1., -3., 1.],
@@ -306,7 +308,7 @@ class TestDocplex(QiskitAquaTestCase):
         bias_func = mdl.sum(float(bias[i]) * x[i] for i in range(n))
         ising_func = couplers_func + bias_func
         mdl.minimize(ising_func)
-        qubit_op, offset = docplex.get_qubitops(mdl)
+        qubit_op, offset = docplex.get_qubit_op(mdl)
 
         e_e = ExactEigensolver(qubit_op, k=1)
         result = e_e.run()
