@@ -29,7 +29,8 @@ from qiskit.aqua.algorithms.adaptive.vq_algorithm import VQAlgorithm
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.operators import (TPBGroupedWeightedPauliOperator, WeightedPauliOperator,
                                    MatrixOperator, op_converter)
-from qiskit.aqua.utils.backend_utils import is_aer_statevector_backend, is_statevector_backend
+from qiskit.aqua.utils.backend_utils import (is_statevector_backend,
+                                             is_aer_provider)
 
 logger = logging.getLogger(__name__)
 
@@ -211,7 +212,7 @@ class VQE(VQAlgorithm):
             return operator
 
         ret_op = operator
-        if not is_statevector_backend(backend):  # assume qasm, should use grouped paulis.
+        if not is_statevector_backend(backend) and not is_aer_provider(backend):
             if isinstance(operator, (WeightedPauliOperator, MatrixOperator)):
                 logger.debug("When running with Qasm simulator, grouped pauli can "
                              "save number of measurements. "
@@ -219,7 +220,7 @@ class VQE(VQAlgorithm):
                 ret_op = op_converter.to_tpb_grouped_weighted_pauli_operator(
                     operator, TPBGroupedWeightedPauliOperator.sorted_grouping)
         else:
-            if not is_aer_statevector_backend(backend):
+            if not is_aer_provider(backend):
                 if not isinstance(operator, MatrixOperator):
                     logger.info("When running with non-Aer statevector simulator, "
                                 "represent operator as a matrix could "
@@ -228,7 +229,7 @@ class VQE(VQAlgorithm):
                     ret_op = op_converter.to_matrix_operator(operator)
             else:
                 if not isinstance(operator, WeightedPauliOperator):
-                    logger.info("When running with Aer statevector simulator, "
+                    logger.info("When running with Aer simulator, "
                                 "represent operator as weighted paulis could "
                                 "achieve the better performance. We convert "
                                 "the operator to weighted paulis.")
@@ -337,7 +338,7 @@ class VQE(VQAlgorithm):
                             "combination between operator and backend.")
 
         self._use_simulator_operator_mode = \
-            is_aer_statevector_backend(self._quantum_instance.backend) \
+            is_aer_provider(self._quantum_instance.backend) \
             and isinstance(self._operator, (WeightedPauliOperator, TPBGroupedWeightedPauliOperator))
 
         self._quantum_instance.circuit_summary = True
