@@ -138,6 +138,7 @@ class FermionicOperator:
         unitary_matrix_dagger = np.conjugate(unitary_matrix)
 
         # option 3: temp1 is a 3-D tensor, temp2 and temp3 are 2-D tensors
+        # pylint: disable=unsubscriptable-object
         for a_i in range(num_modes):
             temp1 = np.einsum('i,i...->...', unitary_matrix_dagger[:, a_i], self._h2)
             for b_i in range(num_modes):
@@ -273,6 +274,7 @@ class FermionicOperator:
         a_list = []
         # FIND BINARY SUPERSET SIZE
         bin_sup = 1
+        # pylint: disable=comparison-with-callable
         while n > np.power(2, bin_sup):
             bin_sup += 1
         # DEFINE INDEX SETS FOR EVERY FERMIONIC MODE
@@ -452,6 +454,7 @@ class FermionicOperator:
         From up-up-up-up-down-down-down-down
           to up-down-up-down-up-down-up-down
         """
+        # pylint: disable=unsubscriptable-object
         matrix = np.zeros((self._h1.shape), self._h1.dtype)
         n = matrix.shape[0]
         j = np.arange(n // 2)
@@ -465,6 +468,7 @@ class FermionicOperator:
         From up-down-up-down-up-down-up-down
           to up-up-up-up-down-down-down-down
         """
+        # pylint: disable=unsubscriptable-object
         matrix = np.zeros((self._h1.shape), self._h1.dtype)
         n = matrix.shape[0]
         j = np.arange(n // 2)

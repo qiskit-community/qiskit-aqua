@@ -22,9 +22,9 @@ from qiskit.quantum_info import Pauli
 
 from qiskit.aqua import run_algorithm, aqua_globals
 from qiskit.aqua.input import EnergyInput
-from qiskit.aqua.translators.ising.portfolio_diversification import \
+from qiskit.finance.ising.portfolio_diversification import \
     (get_portfoliodiversification_solution,
-     get_qubit_op,
+     get_operator,
      get_portfoliodiversification_value)
 
 
@@ -43,7 +43,7 @@ class ClassicalOptimizer:
     def cplex_solution(self):
         """ cplex solution """
         try:
-            import cplex
+            import cplex  # pylint: disable=import-outside-toplevel
         except ImportError as ex:
             print(str(ex))
 
@@ -92,12 +92,12 @@ class ClassicalOptimizer:
         prob.set_results_stream(None)
 
         rows = []
-        col = [x for x in range(n**2, n**2+n)]
+        col = list(range(n**2, n**2+n))
         coef = [1 for x in range(0, n)]
         rows.append([col, coef])
 
         for i_i in range(0, n):
-            col = [x for x in range(0+n*i_i, n+n*i_i)]
+            col = list(range(0+n*i_i, n+n*i_i))
             coef = [1 for x in range(0, n)]
 
             rows.append([col, coef])
@@ -132,7 +132,7 @@ class TestPortfolioDiversification(QiskitAquaTestCase):
         self.instance[0, 1] = 0.8
         self.instance[1, 0] = 0.8
         # self.instance = -1 * self.instance
-        self.qubit_op = get_qubit_op(self.instance, self.n, self.q)
+        self.qubit_op = get_operator(self.instance, self.n, self.q)
         self.algo_input = EnergyInput(self.qubit_op)
 
     def test_simple1(self):

@@ -109,9 +109,17 @@ class Grover(QuantumAlgorithm):
             incremental (bool): boolean flag for whether to use incremental search mode or not
             num_iterations (int): the number of iterations to use for amplitude amplification
             mct_mode (str): mct mode
+        Raises:
+            AquaError: evaluate_classically() missing from the input oracle
         """
         self.validate(locals())
         super().__init__()
+
+        if not callable(getattr(oracle, "evaluate_classically", None)):
+            raise AquaError(
+                'Missing the evaluate_classically() method from the provided oracle instance.'
+            )
+
         self._oracle = oracle
         self._mct_mode = mct_mode
         self._init_state = \
@@ -152,9 +160,9 @@ class Grover(QuantumAlgorithm):
         if num_additional_ancillae > 0:
             extra_ancillae = QuantumRegister(num_additional_ancillae, name='a_e')
             qc.add_register(extra_ancillae)
-            ancilla = [q for q in extra_ancillae]
+            ancilla = list(extra_ancillae)
             if num_oracle_ancillae > 0:
-                ancilla += [q for q in self._oracle.ancillary_register]
+                ancilla += list(self._oracle.ancillary_register)
         else:
             ancilla = self._oracle.ancillary_register
 

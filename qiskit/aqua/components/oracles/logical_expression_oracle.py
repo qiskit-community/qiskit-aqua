@@ -134,8 +134,7 @@ class LogicalExpressionOracle(Oracle):
     def _process_expr(self):
         self._num_vars = len(self._expr.binary_symbols)
         self._lit_to_var = [None] + sorted(self._expr.binary_symbols, key=str)
-        self._var_to_lit = {v: l for v, l in zip(self._lit_to_var[1:],
-                                                 range(1, self._num_vars + 1))}
+        self._var_to_lit = dict(zip(self._lit_to_var[1:], range(1, self._num_vars + 1)))
         cnf = to_cnf(self._expr, simplify=self._optimization)
 
         if isinstance(cnf, BooleanTrue):

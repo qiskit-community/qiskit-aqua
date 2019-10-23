@@ -146,7 +146,7 @@ class LookupRotation(Reciprocal):
                                                         k + 1)])
                 return bin_to_num(pattern)+remainder/2
             return bin_to_num(pattern)
-
+        # pylint: disable=import-outside-toplevel
         from collections import OrderedDict
         output = OrderedDict()
         fo = None
@@ -196,7 +196,7 @@ class LookupRotation(Reciprocal):
                 pattern = list(pattern_ + appendpat).copy()
                 if '1' not in pattern and (not negative_evals):
                     continue
-                elif '1' not in pattern and negative_evals:
+                if '1' not in pattern and negative_evals:
                     e_l = 0.5
                 else:
                     vec[last_fo - n:last_fo] = list(pattern)

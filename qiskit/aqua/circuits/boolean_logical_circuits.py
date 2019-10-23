@@ -67,7 +67,7 @@ class BooleanLogicNormalForm(ABC):
         for v in vs:
             if v in _vs:
                 continue
-            elif -v in _vs:
+            if -v in _vs:
                 return None
             else:
                 _vs.append(v)

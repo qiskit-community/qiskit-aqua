@@ -10,8 +10,8 @@ built. Qiskit Chemistry has
 been created to utilize Aqua for quantum chemistry computations. Aqua is also showcased for other
 domains, such as Optimization, Artificial Intelligence, and
 Finance, with both code and notebook examples available in the
-[qiskit-tutorials](https://github.com/Qiskit/qiskit-tutorials) and
-[qiskit-tutorials-community](https://github.com/Qiskit/qiskit-tutorials-sommunity) GitHub Repositories.
+[qiskit-iqx-tutorials](https://github.com/Qiskit/qiskit-iqx-tutorials) and
+[qiskit-community-tutorials](https://github.com/Qiskit/qiskit-community-tutorials) GitHub Repositories.
 
 Aqua was designed to be extensible, and uses a pluggable framework where algorithms and support objects used
 by algorithms—such as optimizers, variational forms, and oracles—are derived from a defined base class for the type and
@@ -34,7 +34,7 @@ To run chemistry experiments using Qiskit Chemistry, it is recommended that you 
 computation chemistry software program interfaced by Qiskit Chemistry.
 Several such programs are supported, and while logic to
 interface these programs is supplied by Qiskit Chemistry via the above pip installation,
-the dependent programs themselves need to be installed separately becausea they are not part of the Qiskit
+the dependent programs themselves need to be installed separately because they are not part of the Qiskit
 Chemistry installation bundle.
 Qiskit Chemistry comes with prebuilt support to interface the following classical computational chemistry
 software programs:
@@ -148,7 +148,7 @@ from qiskit.aqua.components.optimizers import L_BFGS_B
 optimizer = L_BFGS_B()
 
 # setup the initial state for the variational form
-from qiskit.chemistry.aqua_extensions.components.initial_states import HartreeFock
+from qiskit.chemistry.components.initial_states import HartreeFock
 init_state = HartreeFock(num_qubits, num_spin_orbitals, num_particles)
 
 # setup the variational form for VQE

@@ -219,6 +219,7 @@ def limit_paulis(mat, n=5, sparsity=None):
     Returns:
         scipy.sparse.csr_matrix: matrix
     """
+    # pylint: disable=import-outside-toplevel
     from qiskit.aqua.operators import MatrixOperator
     from qiskit.aqua.operators.op_converter import to_weighted_pauli_operator
     # Bringing matrix into form 2**Nx2**N
@@ -307,6 +308,7 @@ def limit_entries(mat, n=5, sparsity=None):
     if sparsity is not None:
         n = int(sparsity*mat.shape[0]*mat.shape[1])
     entries = entries[:n]
+    # pylint: disable=unpacking-non-sequence
     row, col, data = np.array(entries).T
     return scipy.sparse.csr_matrix(
         (data, (row.real.astype(int), col.real.astype(int))))

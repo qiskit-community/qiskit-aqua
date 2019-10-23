@@ -23,6 +23,7 @@ import functools
 
 import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit
+from qiskit.circuit import ParameterVector
 
 from qiskit.aqua.algorithms.adaptive.vq_algorithm import VQAlgorithm
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
@@ -127,6 +128,9 @@ class VQE(VQAlgorithm):
                 self._aux_operators.append(aux_op)
         self._auto_conversion = auto_conversion
         logger.info(self.print_settings())
+        self._var_form_params = ParameterVector('θ', self._var_form.num_parameters)
+
+        self._parameterized_circuits = None
 
     @classmethod
     def init_params(cls, params, algo_input):
@@ -355,6 +359,8 @@ class VQE(VQAlgorithm):
         self._ret['eigvals'] = np.asarray([self.get_optimal_cost()])
         self._ret['eigvecs'] = np.asarray([self.get_optimal_vector()])
         self._eval_aux_ops()
+
+        self.cleanup_parameterized_circuits()
         return self._ret
 
     # This is the objective function to be passed to the optimizer that is uses for evaluation
@@ -369,21 +375,41 @@ class VQE(VQAlgorithm):
             Union(float, list[float]): energy of the hamiltonian of each parameter.
         """
         num_parameter_sets = len(parameters) // self._var_form.num_parameters
-        circuits = []
         parameter_sets = np.split(parameters, num_parameter_sets)
         mean_energy = []
         std_energy = []
 
-        for idx, _ in enumerate(parameter_sets):
-            parameter = parameter_sets[idx]
-            circuit = self.construct_circuit(
-                parameter,
-                statevector_mode=self._quantum_instance.is_statevector,
-                use_simulator_operator_mode=self._use_simulator_operator_mode,
-                circuit_name_prefix=str(idx))
-            circuits.append(circuit)
+        def _build_parameterized_circuits():
+            if self._var_form.support_parameterized_circuit and \
+                    self._parameterized_circuits is None:
+                parameterized_circuits = self.construct_circuit(
+                    self._var_form_params,
+                    statevector_mode=self._quantum_instance.is_statevector,
+                    use_simulator_operator_mode=self._use_simulator_operator_mode)
 
-        to_be_simulated_circuits = functools.reduce(lambda x, y: x + y, circuits)
+                self._parameterized_circuits = \
+                    self._quantum_instance.transpile(parameterized_circuits)
+        _build_parameterized_circuits()
+        circuits = []
+        # binding parameters here since the circuits had been transpiled
+        if self._parameterized_circuits is not None:
+            for idx, parameter in enumerate(parameter_sets):
+                curr_param = {self._var_form_params: parameter}
+                for qc in self._parameterized_circuits:
+                    tmp = qc.bind_parameters(curr_param)
+                    tmp.name = str(idx) + tmp.name
+                    circuits.append(tmp)
+            to_be_simulated_circuits = circuits
+        else:
+            for idx, parameter in enumerate(parameter_sets):
+                circuit = self.construct_circuit(
+                    parameter,
+                    statevector_mode=self._quantum_instance.is_statevector,
+                    use_simulator_operator_mode=self._use_simulator_operator_mode,
+                    circuit_name_prefix=str(idx))
+                circuits.append(circuit)
+            to_be_simulated_circuits = functools.reduce(lambda x, y: x + y, circuits)
+
         if self._use_simulator_operator_mode:
             extra_args = {
                 'expectation':
@@ -394,7 +420,10 @@ class VQE(VQAlgorithm):
             }
         else:
             extra_args = {}
-        result = self._quantum_instance.execute(to_be_simulated_circuits, **extra_args)
+
+        result = self._quantum_instance.execute(to_be_simulated_circuits,
+                                                self._parameterized_circuits is not None,
+                                                **extra_args)
 
         for idx, _ in enumerate(parameter_sets):
             mean, std = self._operator.evaluate_with_result(
@@ -423,6 +452,7 @@ class VQE(VQAlgorithm):
         return self._var_form.construct_circuit(self._ret['opt_params'])
 
     def get_optimal_vector(self):
+        # pylint: disable=import-outside-toplevel
         from qiskit.aqua.utils.run_circuits import find_regs_by_name
 
         if 'opt_params' not in self._ret:
@@ -438,10 +468,7 @@ class VQE(VQAlgorithm):
             qc.add_register(c)
             qc.barrier(q)
             qc.measure(q, c)
-            tmp_cache = self._quantum_instance.circuit_cache
-            self._quantum_instance._circuit_cache = None
             ret = self._quantum_instance.execute(qc)
-            self._quantum_instance._circuit_cache = tmp_cache
             self._ret['min_vector'] = ret.get_counts(qc)
         return self._ret['min_vector']
 

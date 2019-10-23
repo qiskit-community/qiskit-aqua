@@ -23,7 +23,8 @@ from qiskit.aqua import QuantumInstance
 from qiskit.aqua.components.uncertainty_models import (LogNormalDistribution,
                                                        MultivariateNormalDistribution)
 from qiskit.aqua.components.uncertainty_models import GaussianConditionalIndependenceModel as GCI
-from qiskit.aqua.components.uncertainty_problems import EuropeanCallDelta, FixedIncomeExpectedValue
+from qiskit.finance.components.uncertainty_problems import \
+    (EuropeanCallDelta, FixedIncomeExpectedValue)
 from qiskit.aqua.components.uncertainty_problems import \
                         UnivariatePiecewiseLinearObjective as PwlObjective
 from qiskit.aqua.components.uncertainty_problems import (UnivariateProblem,
@@ -91,13 +92,12 @@ class TestBernoulli(QiskitAquaTestCase):
         super().setUp()
 
         self._statevector = QuantumInstance(backend=BasicAer.get_backend('statevector_simulator'),
-                                            circuit_caching=False,
                                             seed_simulator=2,
                                             seed_transpiler=2)
 
         def qasm(shots=100):
             return QuantumInstance(backend=BasicAer.get_backend('qasm_simulator'), shots=shots,
-                                   circuit_caching=False, seed_simulator=2, seed_transpiler=2)
+                                   seed_simulator=2, seed_transpiler=2)
 
         self._qasm = qasm
 
@@ -211,11 +211,10 @@ class TestEuropeanCallOption(QiskitAquaTestCase):
         )
 
         self._statevector = QuantumInstance(backend=BasicAer.get_backend('statevector_simulator'),
-                                            circuit_caching=False,
                                             seed_simulator=2,
                                             seed_transpiler=2)
         self._qasm = QuantumInstance(backend=BasicAer.get_backend('qasm_simulator'), shots=100,
-                                     circuit_caching=False, seed_simulator=2, seed_transpiler=2)
+                                     seed_simulator=2, seed_transpiler=2)
 
     @parameterized.expand([
         ['statevector', AmplitudeEstimation(3),
@@ -270,12 +269,10 @@ class TestFixedIncomeAssets(QiskitAquaTestCase):
         super().setUp()
 
         self._statevector = QuantumInstance(backend=BasicAer.get_backend('statevector_simulator'),
-                                            circuit_caching=False,
                                             seed_simulator=2,
                                             seed_transpiler=2)
         self._qasm = QuantumInstance(backend=BasicAer.get_backend('qasm_simulator'),
                                      shots=100,
-                                     circuit_caching=False,
                                      seed_simulator=2,
                                      seed_transpiler=2)
 

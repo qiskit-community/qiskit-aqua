@@ -141,6 +141,7 @@ class QGAN(QuantumAlgorithm):
                                 'dimension are incompatible.')
         self._bounds = np.array(bounds)
         self._num_qubits = num_qubits
+        # pylint: disable=unsubscriptable-object
         if np.ndim(data) > 1:
             if self._num_qubits is None:
                 self._num_qubits = np.ones[len(data[0])]*3

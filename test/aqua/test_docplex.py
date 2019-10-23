@@ -24,7 +24,7 @@ from qiskit.quantum_info import Pauli
 
 from qiskit.aqua import AquaError, aqua_globals
 from qiskit.aqua.algorithms import ExactEigensolver
-from qiskit.aqua.translators.ising import tsp, docplex
+from qiskit.optimization.ising import docplex, tsp
 from qiskit.aqua.operators import WeightedPauliOperator
 
 # Reference operators and offsets for maxcut and tsp.
@@ -149,7 +149,7 @@ class TestDocplex(QiskitAquaTestCase):
             x = {i: mdl.integer_var(name='x_{0}'.format(i)) for i in range(num_var)}
             obj_func = mdl.sum(x[i] for i in range(num_var))
             mdl.maximize(obj_func)
-            docplex.get_qubit_op(mdl)
+            docplex.get_operator(mdl)
 
         # validate types of constraints are equality constraints or not.
         with self.assertRaises(AquaError):
@@ -158,7 +158,7 @@ class TestDocplex(QiskitAquaTestCase):
             obj_func = mdl.sum(x[i] for i in range(num_var))
             mdl.maximize(obj_func)
             mdl.add_constraint(mdl.sum(x[i] for i in range(num_var)) <= 1)
-            docplex.get_qubit_op(mdl)
+            docplex.get_operator(mdl)
 
     def test_auto_define_penalty(self):
         """ Auto define Penalty test """
@@ -228,7 +228,7 @@ class TestDocplex(QiskitAquaTestCase):
         maxcut_func = mdl.sum(w[i, j] * mdl.node_vars[i] * (1 - mdl.node_vars[j])
                               for i in range(n) for j in range(n))
         mdl.maximize(maxcut_func)
-        qubit_op, offset = docplex.get_qubit_op(mdl)
+        qubit_op, offset = docplex.get_operator(mdl)
 
         e_e = ExactEigensolver(qubit_op, k=1)
         result = e_e.run()
@@ -261,7 +261,7 @@ class TestDocplex(QiskitAquaTestCase):
             mdl.add_constraint(mdl.sum(x[(i, p)] for p in range(num_node)) == 1)
         for j in range(num_node):
             mdl.add_constraint(mdl.sum(x[(i, j)] for i in range(num_node)) == 1)
-        qubit_op, offset = docplex.get_qubitops(mdl)
+        qubit_op, offset = docplex.get_operator(mdl)
 
         e_e = ExactEigensolver(qubit_op, k=1)
         result = e_e.run()
@@ -280,7 +280,7 @@ class TestDocplex(QiskitAquaTestCase):
         max_vars_func = mdl.sum(x[i] for i in range(1, 5))
         mdl.maximize(max_vars_func)
         mdl.add_constraint(mdl.sum(i * x[i] for i in range(1, 5)) == 3)
-        qubit_op, offset = docplex.get_qubit_op(mdl)
+        qubit_op, offset = docplex.get_operator(mdl)
 
         e_e = ExactEigensolver(qubit_op, k=1)
         result = e_e.run()
@@ -299,6 +299,7 @@ class TestDocplex(QiskitAquaTestCase):
                               [1., -0., 1., -2.]])
 
         mdl = Model()
+        # pylint: disable=unsubscriptable-object
         n = laplacian.shape[0]
         bias = [0] * 4
         x = {i: mdl.binary_var(name='x_{0}'.format(i)) for i in range(n)}
@@ -308,7 +309,7 @@ class TestDocplex(QiskitAquaTestCase):
         bias_func = mdl.sum(float(bias[i]) * x[i] for i in range(n))
         ising_func = couplers_func + bias_func
         mdl.minimize(ising_func)
-        qubit_op, offset = docplex.get_qubit_op(mdl)
+        qubit_op, offset = docplex.get_operator(mdl)
 
         e_e = ExactEigensolver(qubit_op, k=1)
         result = e_e.run()

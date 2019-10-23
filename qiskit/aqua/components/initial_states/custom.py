@@ -68,6 +68,7 @@ class Custom(InitialState):
         Raises:
             AquaError: invalid input
         """
+        # pylint: disable=comparison-with-callable
         loc = locals().copy()
         # since state_vector is a numpy array of complex numbers which aren't json valid,
         # remove it from validation
@@ -107,6 +108,7 @@ class Custom(InitialState):
                 self._state = None
 
     def construct_circuit(self, mode='circuit', register=None):
+        # pylint: disable=import-outside-toplevel
         from qiskit import BasicAer
 
         if mode == 'vector':

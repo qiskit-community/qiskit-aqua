@@ -41,12 +41,14 @@ class TestInitialStateZero(QiskitAquaTestCase):
         """ Qubits 2 Circuit test """
         zero = Zero(2)
         cct = zero.construct_circuit('circuit')
+        # pylint: disable=no-member
         self.assertEqual(cct.qasm(), 'OPENQASM 2.0;\ninclude "qelib1.inc";\nqreg q[2];\n')
 
     def test_qubits_5_circuit(self):
         """ Qubits 5 circuit test """
         zero = Zero(5)
         cct = zero.construct_circuit('circuit')
+        # pylint: disable=no-member
         self.assertEqual(cct.qasm(), 'OPENQASM 2.0;\ninclude "qelib1.inc";\nqreg q[5];\n')
 
 
