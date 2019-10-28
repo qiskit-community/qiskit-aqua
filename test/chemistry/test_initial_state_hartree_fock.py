@@ -60,15 +60,15 @@ class TestInitialStateHartreeFock(QiskitChemistryTestCase):
         hrfo = HartreeFock(2, 4, [1, 1], 'parity', True)
         cct = hrfo.construct_circuit('circuit')
         self.assertEqual(cct.qasm(), 'OPENQASM 2.0;\ninclude "qelib1.inc";\nqreg q[2];\n'
-                                     'u3(3.14159265358979,0.0,3.14159265358979) q[0];\n')
+                                     'u3(3.141592653589793,0.0,3.141592653589793) q[0];\n')
 
     def test_qubits_6_py_lih_cct(self):
         """ qubits 6 py lih cct test """
         hrfo = HartreeFock(6, 10, [1, 1], 'parity', True, [1, 2])
         cct = hrfo.construct_circuit('circuit')
         self.assertEqual(cct.qasm(), 'OPENQASM 2.0;\ninclude "qelib1.inc";\nqreg q[6];\n'
-                                     'u3(3.14159265358979,0.0,3.14159265358979) q[0];\n'
-                                     'u3(3.14159265358979,0.0,3.14159265358979) q[1];\n')
+                                     'u3(3.141592653589793,0.0,3.141592653589793) q[0];\n'
+                                     'u3(3.141592653589793,0.0,3.141592653589793) q[1];\n')
 
     def test_qubits_10_bk_lih_bitstr(self):
         """ qubits 10 bk lih bitstr test """
