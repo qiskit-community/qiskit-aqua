@@ -74,6 +74,7 @@ class Preferences:
         """Return IBMQ Credentials Preferences"""
         if self._ibmq_credentials_preferences is None:
             try:
+                # pylint: disable=import-outside-toplevel
                 from ._ibmq_credentials_preferences import IBMQCredentialsPreferences
                 self._ibmq_credentials_preferences = IBMQCredentialsPreferences(self._preferences)
             except Exception as ex:  # pylint: disable=broad-except

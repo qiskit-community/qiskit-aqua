@@ -206,7 +206,7 @@ class GaussianDriver(BaseDriver):
             gauopen_directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'gauopen')
             if gauopen_directory not in sys.path:
                 sys.path.insert(0, gauopen_directory)
-
+            # pylint: disable=import-outside-toplevel
             from .gauopen.QCMatEl import MatEl
         except ImportError as mnfe:
             msg = ('qcmatrixio extension not found. '

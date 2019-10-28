@@ -73,6 +73,7 @@ def partition_value(x, number_list):
 
 def random_number_list(n, weight_range=100, savefile=None):
     """ random number list """
+    # pylint: disable=import-outside-toplevel
     from .common import random_number_list as redirect_func
     warnings.warn("random_number_list function has been moved to "
                   "qiskit.optimization.ising.common,, "
@@ -83,6 +84,7 @@ def random_number_list(n, weight_range=100, savefile=None):
 
 def read_numbers_from_file(filename):
     """ read numbers from file """
+    # pylint: disable=import-outside-toplevel
     from .common import read_numbers_from_file as redirect_func
     warnings.warn("read_numbers_from_file function has been moved to "
                   "qiskit.optimization.ising.common, "
@@ -93,6 +95,7 @@ def read_numbers_from_file(filename):
 
 def sample_most_likely(state_vector):
     """ sample most likely """
+    # pylint: disable=import-outside-toplevel
     from .common import sample_most_likely as redirect_func
     warnings.warn("sample_most_likely function has been moved "
                   "to qiskit.optimization.ising.common,, "

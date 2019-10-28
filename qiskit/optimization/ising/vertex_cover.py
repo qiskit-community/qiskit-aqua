@@ -118,6 +118,7 @@ def get_graph_solution(x):
 
 def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None, seed=None):
     """ random graph """
+    # pylint: disable=import-outside-toplevel
     from .common import random_graph as redirect_func
     warnings.warn("random_graph function has been moved to "
                   "qiskit.optimization.ising.common, "
@@ -129,6 +130,7 @@ def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None, seed=None):
 
 def parse_gset_format(filename):
     """ parse gset format """
+    # pylint: disable=import-outside-toplevel
     from .common import parse_gset_format as redirect_func
     warnings.warn("parse_gset_format function has been moved to "
                   "qiskit.optimization.ising.common, "
@@ -139,6 +141,7 @@ def parse_gset_format(filename):
 
 def sample_most_likely(n=None, state_vector=None):
     """ sample most likely """
+    # pylint: disable=import-outside-toplevel
     from .common import sample_most_likely as redirect_func
     if n is not None:
         warnings.warn("n argument is not need and it will be removed after Aqua 0.7+",
@@ -152,6 +155,7 @@ def sample_most_likely(n=None, state_vector=None):
 
 def get_gset_result(x):
     """ get gset result """
+    # pylint: disable=import-outside-toplevel
     from .common import get_gset_result as redirect_func
     warnings.warn("get_gset_result function has been moved to "
                   "qiskit.optimization.ising.common, "

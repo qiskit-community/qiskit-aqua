@@ -21,6 +21,7 @@ from collections import OrderedDict
 # pylint: disable=no-name-in-module, import-error
 from qiskit.providers.ibmq.ibmqfactory import QX_AUTH_URL
 from qiskit.providers.ibmq.credentials import Credentials
+# pylint: disable=syntax-error
 from qiskit.providers.ibmq.credentials.configrc import (read_credentials_from_qiskitrc,
                                                         write_qiskit_rc)
 from qiskit.providers.ibmq.credentials.updater import is_directly_updatable, QE2_AUTH_URL

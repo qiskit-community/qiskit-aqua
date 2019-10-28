@@ -628,6 +628,7 @@ class VQC(VQAlgorithm):
 
     def get_optimal_vector(self):
         """ get optimal vector """
+        # pylint: disable=import-outside-toplevel
         from qiskit.aqua.utils.run_circuits import find_regs_by_name
 
         if 'opt_params' not in self._ret:
