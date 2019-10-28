@@ -21,8 +21,8 @@ from qiskit import BasicAer
 
 from qiskit.aqua import run_algorithm, aqua_globals
 from qiskit.aqua.input import EnergyInput
-from qiskit.aqua.translators.ising import clique
-from qiskit.aqua.translators.ising.common import random_graph, sample_most_likely
+from qiskit.optimization.ising import clique
+from qiskit.optimization.ising.common import random_graph, sample_most_likely
 from qiskit.aqua.algorithms import ExactEigensolver
 
 
@@ -36,7 +36,7 @@ class TestClique(QiskitAquaTestCase):
         aqua_globals.random_seed = self.seed
         self.num_nodes = 5
         self.w = random_graph(self.num_nodes, edge_prob=0.8, weight_range=10)
-        self.qubit_op, self.offset = clique.get_qubit_op(self.w, self.k)
+        self.qubit_op, self.offset = clique.get_operator(self.w, self.k)
         self.algo_input = EnergyInput(self.qubit_op)
 
     def _brute_force(self):
@@ -63,7 +63,7 @@ class TestClique(QiskitAquaTestCase):
             'algorithm': {'name': 'ExactEigensolver'}
         }
         result = run_algorithm(params, self.algo_input)
-        x = clique.sample_most_likely(len(self.w), result['eigvecs'][0])
+        x = sample_most_likely(result['eigvecs'][0])
         ising_sol = clique.get_graph_solution(x)
         np.testing.assert_array_equal(ising_sol, [1, 1, 1, 1, 1])
         oracle = self._brute_force()

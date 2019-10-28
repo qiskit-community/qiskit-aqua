@@ -146,7 +146,7 @@ class LookupRotation(Reciprocal):
                                                         k + 1)])
                 return bin_to_num(pattern)+remainder/2
             return bin_to_num(pattern)
-
+        # pylint: disable=import-outside-toplevel
         from collections import OrderedDict
         output = OrderedDict()
         fo = None
