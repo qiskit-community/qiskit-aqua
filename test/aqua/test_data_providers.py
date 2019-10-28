@@ -18,12 +18,12 @@ import datetime
 from test.aqua.common import QiskitAquaTestCase
 import warnings
 import numpy as np
-from qiskit.aqua.translators.data_providers import (RandomDataProvider,
-                                                    QiskitFinanceError,
-                                                    WikipediaDataProvider,
-                                                    StockMarket,
-                                                    DataOnDemandProvider,
-                                                    ExchangeDataProvider)
+from qiskit.finance.data_providers import (RandomDataProvider,
+                                           QiskitFinanceError,
+                                           WikipediaDataProvider,
+                                           StockMarket,
+                                           DataOnDemandProvider,
+                                           ExchangeDataProvider)
 
 
 # This can be run as python -m unittest test.test_data_providers.TestDataProviders
@@ -47,11 +47,10 @@ class TestDataProviders(QiskitAquaTestCase):
         # depending on the data volumes, hence not ok in the constructor)
         self.assertRaises(QiskitFinanceError, rnd.get_covariance_matrix)
         self.assertRaises(QiskitFinanceError, rnd.get_similarity_matrix)
-        from qiskit.aqua.translators.data_providers.wikipedia_data_provider import StockMarket as SM
         wiki = WikipediaDataProvider(
             token="",
             tickers=["GOOG", "AAPL"],
-            stockmarket=SM.NASDAQ,
+            stockmarket=StockMarket.NASDAQ,
             start=datetime.datetime(2016, 1, 1),
             end=datetime.datetime(2016, 1, 30)
         )
@@ -61,7 +60,6 @@ class TestDataProviders(QiskitAquaTestCase):
 
     def test_random(self):
         """ random test """
-        # from qiskit.aqua.translators.data_providers.random_data_provider import StockMarket
         rnd = RandomDataProvider(seed=1)
         rnd.run()
         similarity = np.array([[1.00000000e+00, 6.2284804e-04], [6.2284804e-04, 1.00000000e+00]])

@@ -18,6 +18,8 @@ Submodules
 .. toctree::
    :maxdepth: 1
 
-   aqua_extensions/aqua_extensions
+   algorithms/algorithms
+   components/components
    core/core
    drivers/drivers
+   parser/parser

@@ -159,6 +159,7 @@ class QiskitAqua:
         return self._parser
 
     def _build_algorithm_from_dict(self, quantum_instance):
+        # pylint: disable=import-outside-toplevel
         from qiskit.providers import BaseBackend
 
         _discover_on_demand()
@@ -270,6 +271,7 @@ class QiskitAqua:
                     names = noise_model.split(':')
                     if len(names) == 2:
                         # Generate an Aer noise model for device
+                        # pylint: disable=import-outside-toplevel
                         from qiskit.providers.aer import noise
                         device_backend = get_backend_from_provider(names[0], names[1])
                         noise_model = \

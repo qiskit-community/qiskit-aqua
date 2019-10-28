@@ -23,9 +23,9 @@ from qiskit.aqua.components.optimizers import L_BFGS_B
 from qiskit.aqua.operators.op_converter import to_weighted_pauli_operator
 from qiskit.aqua.operators.weighted_pauli_operator import Z2Symmetries
 from qiskit.chemistry import FermionicOperator
-from qiskit.chemistry.aqua_extensions.algorithms.adaptive import VQEAdapt
-from qiskit.chemistry.aqua_extensions.components.initial_states import HartreeFock
-from qiskit.chemistry.aqua_extensions.components.variational_forms import UCCSD
+from qiskit.chemistry.algorithms.adaptive import VQEAdapt
+from qiskit.chemistry.components.initial_states import HartreeFock
+from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 
 

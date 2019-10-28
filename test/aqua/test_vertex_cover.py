@@ -21,8 +21,8 @@ from qiskit import BasicAer
 
 from qiskit.aqua import run_algorithm, aqua_globals
 from qiskit.aqua.input import EnergyInput
-from qiskit.aqua.translators.ising import vertex_cover
-from qiskit.aqua.translators.ising.common import random_graph, sample_most_likely
+from qiskit.optimization.ising import vertex_cover
+from qiskit.optimization.ising.common import random_graph, sample_most_likely
 from qiskit.aqua.algorithms import ExactEigensolver
 
 
@@ -35,7 +35,7 @@ class TestVertexCover(QiskitAquaTestCase):
         aqua_globals.random_seed = self.seed
         self.num_nodes = 3
         self.w = random_graph(self.num_nodes, edge_prob=0.8, weight_range=10)
-        self.qubit_op, self.offset = vertex_cover.get_qubit_op(self.w)
+        self.qubit_op, self.offset = vertex_cover.get_operator(self.w)
         self.algo_input = EnergyInput(self.qubit_op)
 
     def _brute_force(self):

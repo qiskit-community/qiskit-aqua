@@ -10,7 +10,7 @@ _q_mints = MintsHelper(_q_hf_wavefn.basisset())
 _q_mol   = _q_hf_wavefn.molecule()
 _has_B   = not _q_hf_wavefn.same_a_b_orbs()
 
-_q_molecule.origin_driver_version = '?' if version() == '' else version()
+_q_molecule.origin_driver_version = psi4.__version__
 # Energies and orbits
 _q_molecule.hf_energy                = _q_hf_energy
 _q_molecule.nuclear_repulsion_energy = _q_mol.nuclear_repulsion_energy()

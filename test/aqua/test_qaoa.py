@@ -21,8 +21,8 @@ import numpy as np
 from parameterized import parameterized
 from qiskit import BasicAer
 
-from qiskit.aqua.translators.ising import max_cut
-from qiskit.aqua.translators.ising.common import sample_most_likely
+from qiskit.optimization.ising import max_cut
+from qiskit.optimization.ising.common import sample_most_likely
 from qiskit.aqua.components.optimizers import COBYLA
 from qiskit.aqua.algorithms import QAOA
 from qiskit.aqua import QuantumInstance, aqua_globals
@@ -68,7 +68,7 @@ class TestQAOA(QiskitAquaTestCase):
 
         backend = BasicAer.get_backend('statevector_simulator')
         optimizer = COBYLA()
-        qubit_op, offset = max_cut.get_qubit_op(w)
+        qubit_op, offset = max_cut.get_operator(w)
 
         qaoa = QAOA(qubit_op, optimizer, prob, mixer=m)
         quantum_instance = QuantumInstance(backend, seed_simulator=seed, seed_transpiler=seed)

@@ -452,6 +452,7 @@ class VQE(VQAlgorithm):
         return self._var_form.construct_circuit(self._ret['opt_params'])
 
     def get_optimal_vector(self):
+        # pylint: disable=import-outside-toplevel
         from qiskit.aqua.utils.run_circuits import find_regs_by_name
 
         if 'opt_params' not in self._ret:
