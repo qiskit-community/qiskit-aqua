@@ -58,7 +58,7 @@ class PauliGraph:
             dict: dictionary of graph connectivity with node index as key and
                     list of neighbor as values
         """
-        # pylint: disable=invalid-name
+        # pylint: disable=invalid-name,pointless-string-statement
         conv = {
             'I': 0,
             'X': 1,
@@ -82,7 +82,7 @@ class PauliGraph:
         count the number of non-zero rows of (a*b)(a-b). If this number is even, then
         the Pauli strings commute.
         """
-        c = np.mod((a*b*(a-b)!=0).astype(int).sum(axis=2),2)==0
+        c = np.mod((a*b*(a-b) != 0).astype(int).sum(axis=2), 2) == 0
         # pylint: disable=singleton-comparison
         edges = {i: np.where(c[i] == False)[0] for i in range(len(self.nodes))}  # noqa
         return edges
