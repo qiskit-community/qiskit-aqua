@@ -1,5 +1,17 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
+# This code is part of Qiskit.
+#
+# (C) Copyright IBM 2019.
+#
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
+#
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
+
 
 """TASP Ansatz described in https://journals.aps.org/pra/pdf/10.1103/PhysRevA.92.042303"""
 
@@ -45,18 +57,18 @@ class TASP(VariationalForm):
             num_qubits (int) : number of qubits
             depth (int) : number of TASP steps layers (corresponds to the variable S in
                           equation 8 of the paper above)
-            h_list (WeightedPauliOperator) : list of Hamiltonians with which to evolve, 
+            h_list (WeightedPauliOperator) : list of Hamiltonians with which to evolve,
                                              e.g. H_ex, H_hop, H_diag in the paper above.
             initial_state (InitialState): an initial state object
         """
-        
+
         self.validate(locals())
         super().__init__()
         self._num_qubits = num_qubits
         self._h_list = h_list
         self._depth = depth
         self._initial_state = initial_state
-        self._num_parameters=len(self._h_list)*depth
+        self._num_parameters = len(self._h_list)*depth
         self._bounds = [(-np.pi, np.pi)] * self._num_parameters
 
     def construct_circuit(self, parameters, q=None):
@@ -82,13 +94,13 @@ class TASP(VariationalForm):
             circuit = self._initial_state.construct_circuit('circuit', q)
         else:
             circuit = QuantumCircuit(q)
-            
-        for b in range(self._depth):
+
+        for _ in range(self._depth):
             for i in range(len(self._h_list)):
                 if not self._h_list[i].is_empty():
-                    circuit+=self._h_list[i].evolve(evo_time=parameters[i], quantum_registers=q)
-                    
-            for i in range(len(self._h_list)-1,-1,-1):
+                    circuit += self._h_list[i].evolve(evo_time=parameters[i], quantum_registers=q)
+
+            for i in range(len(self._h_list)-1, -1, -1):
                 if not self._h_list[i].is_empty():
-                    circuit+=self._h_list[i].evolve(evo_time=parameters[i], quantum_registers=q)
+                    circuit += self._h_list[i].evolve(evo_time=parameters[i], quantum_registers=q)
         return circuit
