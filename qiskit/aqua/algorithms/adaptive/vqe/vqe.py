@@ -212,8 +212,9 @@ class VQE(VQAlgorithm):
             return operator
 
         ret_op = operator
-        if not is_statevector_backend(backend) and not is_aer_provider(backend) \
-                and self._quantum_instance.run_config.shots > 1:
+        if not is_statevector_backend(backend) and not (
+                is_aer_provider(backend)
+                and self._quantum_instance.run_config.shots == 1):
             if isinstance(operator, (WeightedPauliOperator, MatrixOperator)):
                 logger.debug("When running with Qasm simulator, grouped pauli can "
                              "save number of measurements. "
