@@ -272,8 +272,6 @@ class VQE(VQAlgorithm):
                     statevector_mode=self._quantum_instance.is_statevector,
                     use_simulator_operator_mode=self._use_simulator_operator_mode,
                     circuit_name_prefix=str(idx))
-                if self._use_simulator_operator_mode:
-                    params.append(operator.aer_paulis)
             else:
                 circuit = None
             circuits.append(circuit)
@@ -281,17 +279,7 @@ class VQE(VQAlgorithm):
         if circuits:
             to_be_simulated_circuits = \
                 functools.reduce(lambda x, y: x + y, [c for c in circuits if c is not None])
-            if self._use_simulator_operator_mode:
-                extra_args = {
-                    'expectation':
-                        {
-                            'params': params,
-                            'num_qubits': self._operator.num_qubits
-                        }
-                }
-            else:
-                extra_args = {}
-            result = self._quantum_instance.execute(to_be_simulated_circuits, **extra_args)
+            result = self._quantum_instance.execute(to_be_simulated_circuits)
 
             for idx, operator in enumerate(self._aux_operators):
                 if operator.is_empty():
@@ -411,20 +399,8 @@ class VQE(VQAlgorithm):
                 circuits.append(circuit)
             to_be_simulated_circuits = functools.reduce(lambda x, y: x + y, circuits)
 
-        if self._use_simulator_operator_mode:
-            extra_args = {
-                'expectation':
-                    {
-                        'params': [self._operator.aer_paulis],
-                        'num_qubits': self._operator.num_qubits
-                    }
-            }
-        else:
-            extra_args = {}
-
         result = self._quantum_instance.execute(to_be_simulated_circuits,
-                                                self._parameterized_circuits is not None,
-                                                **extra_args)
+                                                self._parameterized_circuits is not None)
 
         for idx, _ in enumerate(parameter_sets):
             mean, std = self._operator.evaluate_with_result(
