@@ -112,7 +112,7 @@ class VQE(VQAlgorithm):
                          optimizer=optimizer,
                          cost_fn=self._energy_evaluation,
                          initial_point=initial_point)
-        self._use_simulator_operator_mode = None
+        self._use_simulator_snapshot_mode = None
         self._ret = None
         self._eval_time = None
         self._optimizer.set_max_evals_grouped(max_evals_grouped)
@@ -238,13 +238,13 @@ class VQE(VQAlgorithm):
         return ret_op
 
     def construct_circuit(self, parameter, statevector_mode=False,
-                          use_simulator_operator_mode=False, circuit_name_prefix=''):
+                          use_simulator_snapshot_mode=False, circuit_name_prefix=''):
         """Generate the circuits.
 
         Args:
             parameter (numpy.ndarray): parameters for variational form.
             statevector_mode (bool, optional): indicate which type of simulator are going to use.
-            use_simulator_operator_mode (bool, optional): is backend from AerProvider,
+            use_simulator_snapshot_mode (bool, optional): is backend from AerProvider,
                             if True and mode is paulis, single circuit is generated.
             circuit_name_prefix (str, optional): a prefix of circuit name
 
@@ -254,7 +254,7 @@ class VQE(VQAlgorithm):
         wave_function = self._var_form.construct_circuit(parameter)
         circuits = self._operator.construct_evaluation_circuit(
             wave_function, statevector_mode,
-            use_simulator_operator_mode=use_simulator_operator_mode,
+            use_simulator_snapshot_mode=use_simulator_snapshot_mode,
             circuit_name_prefix=circuit_name_prefix)
         return circuits
 
@@ -271,7 +271,7 @@ class VQE(VQAlgorithm):
                 circuit = operator.construct_evaluation_circuit(
                     wave_function=temp_circuit,
                     statevector_mode=self._quantum_instance.is_statevector,
-                    use_simulator_operator_mode=self._use_simulator_operator_mode,
+                    use_simulator_snapshot_mode=self._use_simulator_snapshot_mode,
                     circuit_name_prefix=str(idx))
             else:
                 circuit = None
@@ -288,7 +288,7 @@ class VQE(VQAlgorithm):
                 else:
                     mean, std = operator.evaluate_with_result(
                         result=result, statevector_mode=self._quantum_instance.is_statevector,
-                        use_simulator_operator_mode=self._use_simulator_operator_mode,
+                        use_simulator_snapshot_mode=self._use_simulator_snapshot_mode,
                         circuit_name_prefix=str(idx))
 
                 mean = mean.real if abs(mean.real) > threshold else 0.0
@@ -326,7 +326,7 @@ class VQE(VQAlgorithm):
                             "auto_conversion or use the proper "
                             "combination between operator and backend.")
 
-        self._use_simulator_operator_mode = (
+        self._use_simulator_snapshot_mode = (
             is_aer_provider(self._quantum_instance.backend)
             and self._quantum_instance.run_config.shots == 1
             and not self._quantum_instance.noise_config
@@ -378,7 +378,7 @@ class VQE(VQAlgorithm):
                 parameterized_circuits = self.construct_circuit(
                     self._var_form_params,
                     statevector_mode=self._quantum_instance.is_statevector,
-                    use_simulator_operator_mode=self._use_simulator_operator_mode)
+                    use_simulator_snapshot_mode=self._use_simulator_snapshot_mode)
 
                 self._parameterized_circuits = \
                     self._quantum_instance.transpile(parameterized_circuits)
@@ -398,7 +398,7 @@ class VQE(VQAlgorithm):
                 circuit = self.construct_circuit(
                     parameter,
                     statevector_mode=self._quantum_instance.is_statevector,
-                    use_simulator_operator_mode=self._use_simulator_operator_mode,
+                    use_simulator_snapshot_mode=self._use_simulator_snapshot_mode,
                     circuit_name_prefix=str(idx))
                 circuits.append(circuit)
             to_be_simulated_circuits = functools.reduce(lambda x, y: x + y, circuits)
@@ -409,7 +409,7 @@ class VQE(VQAlgorithm):
         for idx, _ in enumerate(parameter_sets):
             mean, std = self._operator.evaluate_with_result(
                 result=result, statevector_mode=self._quantum_instance.is_statevector,
-                use_simulator_operator_mode=self._use_simulator_operator_mode,
+                use_simulator_snapshot_mode=self._use_simulator_snapshot_mode,
                 circuit_name_prefix=str(idx))
             mean_energy.append(np.real(mean))
             std_energy.append(np.real(std))
