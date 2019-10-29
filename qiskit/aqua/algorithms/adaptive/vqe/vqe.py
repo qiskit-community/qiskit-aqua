@@ -212,7 +212,8 @@ class VQE(VQAlgorithm):
             return operator
 
         ret_op = operator
-        if not is_statevector_backend(backend) and not is_aer_provider(backend):
+        if not is_statevector_backend(backend) and not is_aer_provider(backend) \
+                and self._quantum_instance.run_config.shots > 1:
             if isinstance(operator, (WeightedPauliOperator, MatrixOperator)):
                 logger.debug("When running with Qasm simulator, grouped pauli can "
                              "save number of measurements. "
@@ -325,9 +326,12 @@ class VQE(VQAlgorithm):
                             "auto_conversion or use the proper "
                             "combination between operator and backend.")
 
-        self._use_simulator_operator_mode = \
-            is_aer_provider(self._quantum_instance.backend) \
-            and isinstance(self._operator, (WeightedPauliOperator, TPBGroupedWeightedPauliOperator))
+        self._use_simulator_operator_mode = (
+            is_aer_provider(self._quantum_instance.backend)
+            and self._quantum_instance.run_config.shots == 1
+            and not self._quantum_instance.noise_config
+            and isinstance(self._operator,
+                           (WeightedPauliOperator, TPBGroupedWeightedPauliOperator)))
 
         self._quantum_instance.circuit_summary = True
 
