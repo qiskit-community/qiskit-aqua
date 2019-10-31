@@ -48,6 +48,7 @@ class QAOAVarForm(VariationalForm):
         Raises:
             TypeError: invalid input
         """
+        super().__init__()
         cost_operator = op_converter.to_weighted_pauli_operator(cost_operator)
         self._cost_operator = cost_operator
         self._num_qubits = cost_operator.num_qubits
@@ -75,22 +76,21 @@ class QAOAVarForm(VariationalForm):
             self._mixer_operator = mixer_operator
         self.support_parameterized_circuit = True
 
-    def construct_circuit(self, angles):
+    def construct_circuit(self, angles, q=None):
         """ construct circuit """
         if not len(angles) == self.num_parameters:
             raise ValueError('Incorrect number of angles: expecting {}, but {} given.'.format(
                 self.num_parameters, len(angles)
             ))
-        circuit = QuantumCircuit()
-        if self._initial_state:
-            circuit += self._initial_state.construct_circuit('circuit')
-        if not circuit.qregs:
-            q = QuantumRegister(self._cost_operator.num_qubits, name='q')
-            circuit.add_register(q)
-        elif len(circuit.qregs) == 1:
-            q = circuit.qregs[0]
+
+        # initialize circuit, possibly based on given register/initial state
+        if q is None:
+            q = QuantumRegister(self._num_qubits, name='q')
+        if self._initial_state is not None:
+            circuit = self._initial_state.construct_circuit('circuit', q)
         else:
-            raise NotImplementedError
+            circuit = QuantumCircuit(q)
+            
         circuit.u2(0, np.pi, q)
         for idx in range(self._p):
             beta, gamma = angles[idx], angles[idx + self._p]
