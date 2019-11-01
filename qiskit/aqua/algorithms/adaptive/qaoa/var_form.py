@@ -90,7 +90,7 @@ class QAOAVarForm(VariationalForm):
             circuit = self._initial_state.construct_circuit('circuit', q)
         else:
             circuit = QuantumCircuit(q)
-            
+
         circuit.u2(0, np.pi, q)
         for idx in range(self._p):
             beta, gamma = angles[idx], angles[idx + self._p]
