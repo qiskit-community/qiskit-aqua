@@ -19,8 +19,9 @@ import os
 import json
 from test.aqua.common import QiskitAquaTestCase
 from qiskit.aqua import AquaError
-from qiskit.aqua import run_algorithm
 from qiskit.aqua.parser._inputparser import InputParser
+from qiskit.aqua.algorithms import ExactEigensolver
+from qiskit.aqua.operators import WeightedPauliOperator
 
 
 class TestInputParser(QiskitAquaTestCase):
@@ -80,17 +81,14 @@ class TestInputParser(QiskitAquaTestCase):
 
     def test_run_algorithm(self):
         """ run algorithm test """
-        filepath = self._get_resource_path('ExactEigensolver.json')
-        params = None
-        with open(filepath) as json_file:
-            params = json.load(json_file)
-
-        dict_ret = None
-        try:
-            dict_ret = run_algorithm(params, None, False)
-        except Exception as ex:  # pylint: disable=broad-except
-            self.fail(str(ex))
-
+        pauli_dict_zz = {
+            'paulis': [
+                {"coeff": {"imag": 0.0, "real": 1.0}, "label": "ZZ"}
+            ]
+        }
+        qubit_op_zz = WeightedPauliOperator.from_dict(pauli_dict_zz)
+        exact_eigensolver = ExactEigensolver(qubit_op_zz, k=1)
+        dict_ret = exact_eigensolver.run()
         self.assertIsInstance(dict_ret, dict)
 
 
