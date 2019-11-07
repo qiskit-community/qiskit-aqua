@@ -48,6 +48,7 @@ Fixed
 -------
 
 -   A bug where `UCCSD` might generate an empty operator and try to evolve it. (#680)
+-   Decompose causes DAG failure using feature maps. (#719)
 
 Removed
 -------
