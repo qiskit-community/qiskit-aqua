@@ -20,8 +20,8 @@ from test.aqua.common import QiskitAquaTestCase
 import numpy as np
 from qiskit.quantum_info import Pauli
 
-from qiskit.aqua import run_algorithm, aqua_globals
-from qiskit.aqua.input import EnergyInput
+from qiskit.aqua import aqua_globals
+from qiskit.aqua.algorithms import ExactEigensolver
 from qiskit.finance.ising.portfolio_diversification import \
     (get_portfoliodiversification_solution,
      get_operator,
@@ -133,7 +133,6 @@ class TestPortfolioDiversification(QiskitAquaTestCase):
         self.instance[1, 0] = 0.8
         # self.instance = -1 * self.instance
         self.qubit_op = get_operator(self.instance, self.n, self.q)
-        self.algo_input = EnergyInput(self.qubit_op)
 
     def test_simple1(self):
         """ simple1 test """
@@ -212,11 +211,7 @@ class TestPortfolioDiversification(QiskitAquaTestCase):
         """ simple2 test """
         # Computes the cost using the exact eigensolver
         # and compares it against pre-determined value.
-        params = {
-            'problem': {'name': 'ising'},
-            'algorithm': {'name': 'ExactEigensolver'}
-        }
-        result = run_algorithm(params, self.algo_input)
+        result = ExactEigensolver(self.qubit_op).run()
         quantum_solution = get_portfoliodiversification_solution(self.instance,
                                                                  self.n,
                                                                  self.q, result)
@@ -238,11 +233,7 @@ class TestPortfolioDiversification(QiskitAquaTestCase):
             # This test should not focus on the availability of CPLEX, so we just eat the exception.
             self.skipTest("CPLEX may be missing.")
         # Solve the problem using the exact eigensolver
-        params = {
-            'problem': {'name': 'ising'},
-            'algorithm': {'name': 'ExactEigensolver'}
-        }
-        result = run_algorithm(params, self.algo_input)
+        result = ExactEigensolver(self.qubit_op).run()
         quantum_solution = get_portfoliodiversification_solution(self.instance,
                                                                  self.n,
                                                                  self.q, result)

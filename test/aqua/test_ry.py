@@ -20,8 +20,10 @@ from test.aqua.common import QiskitAquaTestCase
 from parameterized import parameterized
 from qiskit import BasicAer
 
-from qiskit.aqua import run_algorithm, aqua_globals
-from qiskit.aqua.input import EnergyInput
+from qiskit.aqua import aqua_globals, QuantumInstance
+from qiskit.aqua.algorithms import VQE
+from qiskit.aqua.components.variational_forms import RY
+from qiskit.aqua.components.optimizers import L_BFGS_B
 from qiskit.aqua.operators import WeightedPauliOperator
 
 
@@ -40,8 +42,7 @@ class TestRYCRX(QiskitAquaTestCase):
                        {"coeff": {"imag": 0.0, "real": 0.18093119978423156}, "label": "XX"}
                        ]
         }
-        qubit_op = WeightedPauliOperator.from_dict(pauli_dict)
-        self.algo_input = EnergyInput(qubit_op)
+        self.qubit_op = WeightedPauliOperator.from_dict(pauli_dict)
 
     @parameterized.expand([
         [2, 5],
@@ -50,18 +51,10 @@ class TestRYCRX(QiskitAquaTestCase):
     ])
     def test_vqe_var_forms(self, depth, places):
         """ VQE Var Forms test """
-        backend = BasicAer.get_backend('statevector_simulator')
-        params = {
-            'problem': {'random_seed': self.seed},
-            'algorithm': {'name': 'VQE'},
-            'variational_form': {'name': 'RY',
-                                 'depth': depth,
-                                 'entanglement': 'sca',
-                                 'entanglement_gate': 'crx',
-                                 'skip_final_ry': True},
-            'backend': {'shots': 1}
-        }
-        result = run_algorithm(params, self.algo_input, backend=backend)
+        aqua_globals.random_seed = self.seed
+        result = VQE(self.qubit_op,
+                     RY(self.qubit_op.num_qubits, depth=depth, entanglement='sca', entanglement_gate='crx', skip_final_ry=True),
+                     L_BFGS_B()).run(QuantumInstance(BasicAer.get_backend('statevector_simulator'), shots=1))
         self.assertAlmostEqual(result['energy'], -1.85727503, places=places)
 
 

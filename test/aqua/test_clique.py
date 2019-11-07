@@ -17,13 +17,16 @@
 from test.aqua.common import QiskitAquaTestCase
 
 import numpy as np
+import warnings
 from qiskit import BasicAer
 
-from qiskit.aqua import run_algorithm, aqua_globals
+from qiskit.aqua import run_algorithm, aqua_globals, QuantumInstance
 from qiskit.aqua.input import EnergyInput
 from qiskit.optimization.ising import clique
 from qiskit.optimization.ising.common import random_graph, sample_most_likely
-from qiskit.aqua.algorithms import ExactEigensolver
+from qiskit.aqua.algorithms import ExactEigensolver, VQE
+from qiskit.aqua.components.optimizers import COBYLA
+from qiskit.aqua.components.variational_forms import RY
 
 
 class TestClique(QiskitAquaTestCase):
@@ -31,13 +34,13 @@ class TestClique(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
+        warnings.filterwarnings("ignore", message=aqua_globals.CONFIG_DEPRECATION_MSG, category=DeprecationWarning)
         self.k = 5  # K means the size of the clique
         self.seed = 100
         aqua_globals.random_seed = self.seed
         self.num_nodes = 5
         self.w = random_graph(self.num_nodes, edge_prob=0.8, weight_range=10)
         self.qubit_op, self.offset = clique.get_operator(self.w, self.k)
-        self.algo_input = EnergyInput(self.qubit_op)
 
     def _brute_force(self):
         # brute-force way: try every possible assignment!
@@ -62,7 +65,7 @@ class TestClique(QiskitAquaTestCase):
             'problem': {'name': 'ising'},
             'algorithm': {'name': 'ExactEigensolver'}
         }
-        result = run_algorithm(params, self.algo_input)
+        result = run_algorithm(params, EnergyInput(self.qubit_op))
         x = sample_most_likely(result['eigvecs'][0])
         ising_sol = clique.get_graph_solution(x)
         np.testing.assert_array_equal(ising_sol, [1, 1, 1, 1, 1])
@@ -71,7 +74,7 @@ class TestClique(QiskitAquaTestCase):
 
     def test_clique_direct(self):
         """ Clique Direct test """
-        algo = ExactEigensolver(self.algo_input.qubit_op, k=1, aux_operators=[])
+        algo = ExactEigensolver(self.qubit_op, k=1, aux_operators=[])
         result = algo.run()
         x = sample_most_likely(result['eigvecs'][0])
         ising_sol = clique.get_graph_solution(x)
@@ -81,29 +84,11 @@ class TestClique(QiskitAquaTestCase):
 
     def test_clique_vqe(self):
         """ VQE Clique test """
-        algorithm_cfg = {
-            'name': 'VQE',
-            'max_evals_grouped': 2
-        }
-
-        optimizer_cfg = {
-            'name': 'COBYLA'
-        }
-
-        var_form_cfg = {
-            'name': 'RY',
-            'depth': 5,
-            'entanglement': 'linear'
-        }
-
-        params = {
-            'problem': {'name': 'ising', 'random_seed': 10598},
-            'algorithm': algorithm_cfg,
-            'optimizer': optimizer_cfg,
-            'variational_form': var_form_cfg
-        }
-        backend = BasicAer.get_backend('statevector_simulator')
-        result = run_algorithm(params, self.algo_input, backend=backend)
+        aqua_globals.random_seed = 10598
+        result = VQE(self.qubit_op,
+                     RY(self.qubit_op.num_qubits, depth=5, entanglement='linear'),
+                     COBYLA(),
+                     max_evals_grouped=2).run(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
         x = sample_most_likely(result['eigvecs'][0])
         ising_sol = clique.get_graph_solution(x)
         np.testing.assert_array_equal(ising_sol, [1, 1, 1, 1, 1])
