@@ -28,7 +28,8 @@ class TestInputParser(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
-        warnings.filterwarnings("ignore", message=aqua_globals.CONFIG_DEPRECATION_MSG, category=DeprecationWarning)
+        warnings.filterwarnings("ignore", message=aqua_globals.CONFIG_DEPRECATION_MSG,
+                                category=DeprecationWarning)
         filepath = self._get_resource_path('H2-0.735.json')
         self.parser = InputParser(filepath)
         self.parser.parse()

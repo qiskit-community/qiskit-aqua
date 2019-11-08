@@ -15,9 +15,8 @@
 """ Test Clique """
 
 from test.aqua.common import QiskitAquaTestCase
-
-import numpy as np
 import warnings
+import numpy as np
 from qiskit import BasicAer
 
 from qiskit.aqua import run_algorithm, aqua_globals, QuantumInstance
@@ -34,7 +33,8 @@ class TestClique(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
-        warnings.filterwarnings("ignore", message=aqua_globals.CONFIG_DEPRECATION_MSG, category=DeprecationWarning)
+        warnings.filterwarnings("ignore", message=aqua_globals.CONFIG_DEPRECATION_MSG,
+                                category=DeprecationWarning)
         self.k = 5  # K means the size of the clique
         self.seed = 100
         aqua_globals.random_seed = self.seed
@@ -88,7 +88,8 @@ class TestClique(QiskitAquaTestCase):
         result = VQE(self.qubit_op,
                      RY(self.qubit_op.num_qubits, depth=5, entanglement='linear'),
                      COBYLA(),
-                     max_evals_grouped=2).run(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
+                     max_evals_grouped=2).run(
+                         QuantumInstance(BasicAer.get_backend('statevector_simulator')))
         x = sample_most_likely(result['eigvecs'][0])
         ising_sol = clique.get_graph_solution(x)
         np.testing.assert_array_equal(ising_sol, [1, 1, 1, 1, 1])

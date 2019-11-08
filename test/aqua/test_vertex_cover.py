@@ -15,15 +15,17 @@
 """ Text Vertex Cover """
 
 from test.aqua.common import QiskitAquaTestCase
-
+import warnings
 import numpy as np
 from qiskit import BasicAer
 
-from qiskit.aqua import run_algorithm, aqua_globals
+from qiskit.aqua import run_algorithm, aqua_globals, QuantumInstance
 from qiskit.aqua.input import EnergyInput
 from qiskit.optimization.ising import vertex_cover
 from qiskit.optimization.ising.common import random_graph, sample_most_likely
-from qiskit.aqua.algorithms import ExactEigensolver
+from qiskit.aqua.algorithms import ExactEigensolver, VQE
+from qiskit.aqua.components.variational_forms import RYRZ
+from qiskit.aqua.components.optimizers import SPSA
 
 
 class TestVertexCover(QiskitAquaTestCase):
@@ -31,12 +33,13 @@ class TestVertexCover(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
+        warnings.filterwarnings("ignore", message=aqua_globals.CONFIG_DEPRECATION_MSG,
+                                category=DeprecationWarning)
         self.seed = 100
         aqua_globals.random_seed = self.seed
         self.num_nodes = 3
         self.w = random_graph(self.num_nodes, edge_prob=0.8, weight_range=10)
         self.qubit_op, self.offset = vertex_cover.get_operator(self.w)
-        self.algo_input = EnergyInput(self.qubit_op)
 
     def _brute_force(self):
         # brute-force way
@@ -64,7 +67,7 @@ class TestVertexCover(QiskitAquaTestCase):
             'problem': {'name': 'ising'},
             'algorithm': {'name': 'ExactEigensolver'}
         }
-        result = run_algorithm(params, self.algo_input)
+        result = run_algorithm(params, EnergyInput(self.qubit_op))
 
         x = sample_most_likely(result['eigvecs'][0])
         sol = vertex_cover.get_graph_solution(x)
@@ -74,7 +77,7 @@ class TestVertexCover(QiskitAquaTestCase):
 
     def test_vertex_cover_direct(self):
         """ Vertex Cover Direct test """
-        algo = ExactEigensolver(self.algo_input.qubit_op, k=1, aux_operators=[])
+        algo = ExactEigensolver(self.qubit_op, k=1, aux_operators=[])
         result = algo.run()
         x = sample_most_likely(result['eigvecs'][0])
         sol = vertex_cover.get_graph_solution(x)
@@ -84,29 +87,14 @@ class TestVertexCover(QiskitAquaTestCase):
 
     def test_vertex_cover_vqe(self):
         """ Vertex Cover VQE test """
-        algorithm_cfg = {
-            'name': 'VQE',
-            'max_evals_grouped': 2
-        }
+        aqua_globals.random_seed = self.seed
 
-        optimizer_cfg = {
-            'name': 'SPSA',
-            'max_trials': 200
-        }
+        result = VQE(self.qubit_op,
+                     RYRZ(self.qubit_op.num_qubits, depth=3),
+                     SPSA(max_trials=200),
+                     max_evals_grouped=2).run(
+                         QuantumInstance(BasicAer.get_backend('qasm_simulator')))
 
-        var_form_cfg = {
-            'name': 'RYRZ',
-            'depth': 3,
-        }
-
-        params = {
-            'problem': {'name': 'ising', 'random_seed': self.seed},
-            'algorithm': algorithm_cfg,
-            'optimizer': optimizer_cfg,
-            'variational_form': var_form_cfg
-        }
-        backend = BasicAer.get_backend('qasm_simulator')
-        result = run_algorithm(params, self.algo_input, backend=backend)
         x = sample_most_likely(result['eigvecs'][0])
         sol = vertex_cover.get_graph_solution(x)
         oracle = self._brute_force()

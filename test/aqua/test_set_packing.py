@@ -33,7 +33,8 @@ class TestSetPacking(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
-        warnings.filterwarnings("ignore", message=aqua_globals.CONFIG_DEPRECATION_MSG, category=DeprecationWarning)
+        warnings.filterwarnings("ignore", message=aqua_globals.CONFIG_DEPRECATION_MSG,
+                                category=DeprecationWarning)
         input_file = self._get_resource_path('sample.setpacking')
         with open(input_file) as file:
             self.list_of_subsets = json.load(file)

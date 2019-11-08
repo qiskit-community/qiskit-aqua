@@ -53,8 +53,11 @@ class TestRYCRX(QiskitAquaTestCase):
         """ VQE Var Forms test """
         aqua_globals.random_seed = self.seed
         result = VQE(self.qubit_op,
-                     RY(self.qubit_op.num_qubits, depth=depth, entanglement='sca', entanglement_gate='crx', skip_final_ry=True),
-                     L_BFGS_B()).run(QuantumInstance(BasicAer.get_backend('statevector_simulator'), shots=1))
+                     RY(self.qubit_op.num_qubits,
+                        depth=depth, entanglement='sca',
+                        entanglement_gate='crx', skip_final_ry=True),
+                     L_BFGS_B()).run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                                     shots=1))
         self.assertAlmostEqual(result['energy'], -1.85727503, places=places)
 
 
