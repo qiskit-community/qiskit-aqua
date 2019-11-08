@@ -43,11 +43,13 @@ Added
 -   Optionally split qobj by max gates per job. (#694)
 -   An option in evolution_instruction to be able to control whether or not add a barrier
     for every slice. (#708)
+-   Added VQE snapshot mode for Aer QasmSimulator when no noise and shots=1 (#715)
 
 Fixed
 -------
 
 -   A bug where `UCCSD` might generate an empty operator and try to evolve it. (#680)
+-   Decompose causes DAG failure using feature maps. (#719)
 
 Removed
 -------
