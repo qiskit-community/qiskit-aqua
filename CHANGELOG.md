@@ -28,7 +28,7 @@ Changed
     - qiskit/aqua/translators/ising/portfolio.py and portfolio_diversification.py moved to qiskit/finance/ising/
     - qiskit/aqua/translators/ising/ (i.e. all but above 2) moved to qiskit/optimization/ising/
 -   UCCSD updated to all excitation pool to be managed by an adaptive algorithm like VQEAdapt. (#685)
--   Deprecate Declarative JSON API.
+-   Deprecate Declarative JSON API. (#720)
 
 Added
 -----
