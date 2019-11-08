@@ -92,7 +92,9 @@ class TestGraphPartition(QiskitAquaTestCase):
                      RY(self.qubit_op.num_qubits, depth=5, entanglement='linear'),
                      SPSA(max_trials=300),
                      max_evals_grouped=2).run(
-                         QuantumInstance(BasicAer.get_backend('statevector_simulator')))
+                         QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                         seed_simulator=aqua_globals.random_seed,
+                                         seed_transpiler=aqua_globals.random_seed))
 
         x = sample_most_likely(result['eigvecs'][0])
         # check against the oracle

@@ -87,7 +87,9 @@ class TestHHL(QiskitAquaTestCase):
 
         algo = HHL(matrix, vector, truncate_powerdim, truncate_hermitian, eigs,
                    init_state, reci, num_q, num_a, orig_size)
-        hhl_result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
+        hhl_result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                              seed_simulator=aqua_globals.random_seed,
+                                              seed_transpiler=aqua_globals.random_seed))
 
         hhl_solution = hhl_result['solution']
         hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
@@ -129,7 +131,9 @@ class TestHHL(QiskitAquaTestCase):
 
         algo = HHL(matrix, vector, truncate_powerdim, truncate_hermitian, eigs,
                    init_state, reci, num_q, num_a, orig_size)
-        hhl_result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
+        hhl_result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                              seed_simulator=aqua_globals.random_seed,
+                                              seed_transpiler=aqua_globals.random_seed))
         hhl_solution = hhl_result['solution']
         hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
 
@@ -170,7 +174,9 @@ class TestHHL(QiskitAquaTestCase):
 
         algo = HHL(matrix, vector, truncate_powerdim, truncate_hermitian, eigs,
                    init_state, reci, num_q, num_a, orig_size)
-        hhl_result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
+        hhl_result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                              seed_simulator=aqua_globals.random_seed,
+                                              seed_transpiler=aqua_globals.random_seed))
         hhl_solution = hhl_result['solution']
         hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
 
@@ -212,7 +218,9 @@ class TestHHL(QiskitAquaTestCase):
 
         algo = HHL(matrix, vector, truncate_powerdim, truncate_hermitian, eigs,
                    init_state, reci, num_q, num_a, orig_size)
-        hhl_result = algo.run(QuantumInstance(BasicAer.get_backend('qasm_simulator'), shots=1000))
+        hhl_result = algo.run(QuantumInstance(BasicAer.get_backend('qasm_simulator'), shots=1000,
+                                              seed_simulator=aqua_globals.random_seed,
+                                              seed_transpiler=aqua_globals.random_seed))
         hhl_solution = hhl_result['solution']
         hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
 
@@ -254,7 +262,9 @@ class TestHHL(QiskitAquaTestCase):
 
         algo = HHL(matrix, vector, truncate_powerdim, truncate_hermitian, eigs,
                    init_state, reci, num_q, num_a, orig_size)
-        hhl_result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
+        hhl_result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                              seed_simulator=aqua_globals.random_seed,
+                                              seed_transpiler=aqua_globals.random_seed))
 
         hhl_solution = hhl_result['solution']
         hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
@@ -297,7 +307,9 @@ class TestHHL(QiskitAquaTestCase):
 
         algo = HHL(matrix, vector, truncate_powerdim, truncate_hermitian, eigs,
                    init_state, reci, num_q, num_a, orig_size)
-        hhl_result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
+        hhl_result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                              seed_simulator=aqua_globals.random_seed,
+                                              seed_transpiler=aqua_globals.random_seed))
         hhl_solution = hhl_result["solution"]
         hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
 
@@ -339,7 +351,9 @@ class TestHHL(QiskitAquaTestCase):
 
         algo = HHL(matrix, vector, truncate_powerdim, truncate_hermitian, eigs,
                    init_state, reci, num_q, num_a, orig_size)
-        hhl_result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
+        hhl_result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                              seed_simulator=aqua_globals.random_seed,
+                                              seed_transpiler=aqua_globals.random_seed))
         hhl_solution = hhl_result['solution']
         hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
 
@@ -380,7 +394,9 @@ class TestHHL(QiskitAquaTestCase):
 
         algo = HHL(matrix, vector, truncate_powerdim, truncate_hermitian, eigs,
                    init_state, reci, num_q, num_a, orig_size)
-        hhl_result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
+        hhl_result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                              seed_simulator=aqua_globals.random_seed,
+                                              seed_transpiler=aqua_globals.random_seed))
         hhl_solution = hhl_result['solution']
         hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
         # compare result

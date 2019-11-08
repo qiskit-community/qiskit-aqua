@@ -57,7 +57,9 @@ class TestRYCRX(QiskitAquaTestCase):
                         depth=depth, entanglement='sca',
                         entanglement_gate='crx', skip_final_ry=True),
                      L_BFGS_B()).run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),
-                                                     shots=1))
+                                                     shots=1,
+                                                     seed_simulator=aqua_globals.random_seed,
+                                                     seed_transpiler=aqua_globals.random_seed))
         self.assertAlmostEqual(result['energy'], -1.85727503, places=places)
 
 

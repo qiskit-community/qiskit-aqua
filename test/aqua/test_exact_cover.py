@@ -91,7 +91,9 @@ class TestExactCover(QiskitAquaTestCase):
                      RYRZ(self.qubit_op.num_qubits, depth=5),
                      COBYLA(),
                      max_evals_grouped=2).run(
-                         QuantumInstance(BasicAer.get_backend('statevector_simulator')))
+                         QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                         seed_simulator=aqua_globals.random_seed,
+                                         seed_transpiler=aqua_globals.random_seed))
         x = sample_most_likely(result['eigvecs'][0])
         ising_sol = exact_cover.get_solution(x)
         oracle = self._brute_force()

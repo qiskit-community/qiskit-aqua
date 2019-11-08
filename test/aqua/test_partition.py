@@ -63,7 +63,9 @@ class TestSetPacking(QiskitAquaTestCase):
                      RY(self.qubit_op.num_qubits, depth=5, entanglement='linear'),
                      SPSA(max_trials=200),
                      max_evals_grouped=2).run(
-                         QuantumInstance(BasicAer.get_backend('qasm_simulator')))
+                         QuantumInstance(BasicAer.get_backend('qasm_simulator'),
+                                         seed_simulator=aqua_globals.random_seed,
+                                         seed_transpiler=aqua_globals.random_seed))
         x = sample_most_likely(result['eigvecs'][0])
         self.assertNotEqual(x[0], x[1])
         self.assertNotEqual(x[2], x[1])  # hardcoded oracle
