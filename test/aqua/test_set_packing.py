@@ -16,14 +16,16 @@
 
 import json
 from test.aqua.common import QiskitAquaTestCase
-
+import warnings
 import numpy as np
 
-from qiskit.aqua import run_algorithm
-from qiskit.aqua.input import EnergyInput
 from qiskit.optimization.ising import set_packing
 from qiskit.optimization.ising.common import sample_most_likely
-from qiskit.aqua.algorithms import ExactEigensolver
+from qiskit.aqua import QuantumInstance, run_algorithm, aqua_globals
+from qiskit.aqua.input import EnergyInput
+from qiskit.aqua.algorithms import ExactEigensolver, VQE
+from qiskit.aqua.components.optimizers import SPSA
+from qiskit.aqua.components.variational_forms import RY
 
 
 class TestSetPacking(QiskitAquaTestCase):
@@ -31,11 +33,12 @@ class TestSetPacking(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
+        warnings.filterwarnings("ignore", message=aqua_globals.CONFIG_DEPRECATION_MSG,
+                                category=DeprecationWarning)
         input_file = self._get_resource_path('sample.setpacking')
         with open(input_file) as file:
             self.list_of_subsets = json.load(file)
-            qubit_op, _ = set_packing.get_operator(self.list_of_subsets)
-            self.algo_input = EnergyInput(qubit_op)
+            self.qubit_op, _ = set_packing.get_operator(self.list_of_subsets)
 
     def _brute_force(self):
         # brute-force way: try every possible assignment!
@@ -60,7 +63,7 @@ class TestSetPacking(QiskitAquaTestCase):
             'problem': {'name': 'ising'},
             'algorithm': {'name': 'ExactEigensolver'}
         }
-        result = run_algorithm(params, self.algo_input)
+        result = run_algorithm(params, EnergyInput(self.qubit_op))
         x = sample_most_likely(result['eigvecs'][0])
         ising_sol = set_packing.get_solution(x)
         np.testing.assert_array_equal(ising_sol, [0, 1, 1])
@@ -69,7 +72,7 @@ class TestSetPacking(QiskitAquaTestCase):
 
     def test_set_packing_direct(self):
         """ set packing direct test """
-        algo = ExactEigensolver(self.algo_input.qubit_op, k=1, aux_operators=[])
+        algo = ExactEigensolver(self.qubit_op, k=1, aux_operators=[])
         result = algo.run()
         x = sample_most_likely(result['eigvecs'][0])
         ising_sol = set_packing.get_solution(x)
@@ -86,30 +89,10 @@ class TestSetPacking(QiskitAquaTestCase):
             self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(ex)))
             return
 
-        algorithm_cfg = {
-            'name': 'VQE',
-            'max_evals_grouped': 2
-        }
-
-        optimizer_cfg = {
-            'name': 'SPSA',
-            'max_trials': 200
-        }
-
-        var_form_cfg = {
-            'name': 'RY',
-            'depth': 5,
-            'entanglement': 'linear'
-        }
-
-        params = {
-            'problem': {'name': 'ising', 'random_seed': 100},
-            'algorithm': algorithm_cfg,
-            'optimizer': optimizer_cfg,
-            'variational_form': var_form_cfg
-        }
-        backend = Aer.get_backend('qasm_simulator')
-        result = run_algorithm(params, self.algo_input, backend=backend)
+        result = VQE(self.qubit_op,
+                     RY(self.qubit_op.num_qubits, depth=5, entanglement='linear'),
+                     SPSA(max_trials=200),
+                     max_evals_grouped=2).run(QuantumInstance(Aer.get_backend('qasm_simulator')))
         x = sample_most_likely(result['eigvecs'][0])
         ising_sol = set_packing.get_solution(x)
         oracle = self._brute_force()
