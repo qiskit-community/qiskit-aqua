@@ -15,7 +15,7 @@
 """ Test Cplex Ising """
 
 from test.aqua.common import QiskitAquaTestCase
-
+import warnings
 import numpy as np
 
 from qiskit.aqua import run_algorithm, AquaError, aqua_globals
@@ -30,6 +30,8 @@ class TestCplexIsing(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
+        warnings.filterwarnings("ignore", message=aqua_globals.CONFIG_DEPRECATION_MSG,
+                                category=DeprecationWarning)
         aqua_globals.random_seed = 8123179
         self.w = random_graph(4, edge_prob=0.5, weight_range=10)
         self.qubit_op, self.offset = max_cut.get_operator(self.w)
