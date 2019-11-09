@@ -19,11 +19,18 @@ from test.aqua.common import QiskitAquaTestCase
 
 import numpy as np
 from parameterized import parameterized
+from qiskit import BasicAer
 from qiskit.quantum_info import state_fidelity
 
-from qiskit.aqua import run_algorithm, aqua_globals
-from qiskit.aqua.input import LinearSystemInput
+from qiskit.aqua import aqua_globals, QuantumInstance
+from qiskit.aqua.algorithms import HHL, ExactLSsolver
 from qiskit.aqua.utils import random_matrix_generator as rmg
+from qiskit.aqua.operators import MatrixOperator
+from qiskit.aqua.components.eigs import EigsQPE
+from qiskit.aqua.components.reciprocals import LookupRotation, LongDivision
+from qiskit.aqua.components.qfts import Standard as StandardQFTS
+from qiskit.aqua.components.iqfts import Standard as StandardIQFTS
+from qiskit.aqua.components.initial_states import Custom
 
 
 class TestHHL(QiskitAquaTestCase):
@@ -33,42 +40,24 @@ class TestHHL(QiskitAquaTestCase):
         super(TestHHL, self).setUp()
         self.random_seed = 0
         aqua_globals.random_seed = self.random_seed
-        self.els_params = {
-            'algorithm': {
-                'name': 'ExactLSsolver'
-            },
-            'problem': {
-                'name': 'linear_system',
-                'random_seed': self.random_seed
-            }
-        }
-        self.params = {
-            'problem': {
-                'name': 'linear_system',
-                'random_seed': self.random_seed
-            },
-            'algorithm': {
-                'name': 'HHL'
-            },
-            'eigs': {
-                'expansion_mode': 'suzuki',
-                'expansion_order': 2,
-                'name': 'EigsQPE',
-                'negative_evals': False,
-                'num_ancillae': 3,
-                'num_time_slices': 1
-            },
-            'reciprocal': {
-                'name': 'Lookup',
-                'negative_evals': False,
-                'scale': 0.0
-            },
-            'backend': {
-                'provider': 'qiskit.BasicAer',
-                'name': 'statevector_simulator',
-                'skip_transpiler': False
-            }
-        }
+
+    @staticmethod
+    def _create_eigs(matrix, num_ancillae, negative_evals):
+        # Adding an additional flag qubit for negative eigenvalues
+        ne_qfts = [None, None]
+        if negative_evals:
+            num_ancillae += 1
+            ne_qfts = [StandardQFTS(num_ancillae - 1), StandardIQFTS(num_ancillae - 1)]
+
+        return EigsQPE(MatrixOperator(matrix=matrix),
+                       StandardIQFTS(num_ancillae),
+                       num_time_slices=1,
+                       num_ancillae=num_ancillae,
+                       expansion_mode='suzuki',
+                       expansion_order=2,
+                       evo_time=None,
+                       negative_evals=negative_evals,
+                       ne_qfts=ne_qfts)
 
     @parameterized.expand([[[0, 1]], [[1, 0]], [[1, 0.1]], [[1, 1]], [[1, 10]]])
     def test_hhl_diagonal(self, vector):
@@ -76,19 +65,32 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('Testing HHL simple test in mode Lookup with statevector simulator')
 
         matrix = [[1, 0], [0, 1]]
-        self.params['input'] = {
-            'name': 'LinearSystemInput',
-            'matrix': matrix,
-            'vector': vector
-        }
 
         # run ExactLSsolver
-        self.els_params['input'] = self.params['input']
-        ref_result = run_algorithm(self.els_params)
+        ref_result = ExactLSsolver(matrix, vector).run()
         ref_solution = ref_result['solution']
         ref_normed = ref_solution/np.linalg.norm(ref_solution)
+
         # run hhl
-        hhl_result = run_algorithm(self.params)
+        orig_size = len(vector)
+        matrix, vector, truncate_powerdim, truncate_hermitian = HHL.matrix_resize(matrix, vector)
+
+        # Initialize eigenvalue finding module
+        eigs = TestHHL._create_eigs(matrix, 3, False)
+        num_q, num_a = eigs.get_register_sizes()
+
+        # Initialize initial state module
+        init_state = Custom(num_q, state_vector=vector)
+
+        # Initialize reciprocal rotation module
+        reci = LookupRotation(negative_evals=eigs._negative_evals, evo_time=eigs._evo_time)
+
+        algo = HHL(matrix, vector, truncate_powerdim, truncate_hermitian, eigs,
+                   init_state, reci, num_q, num_a, orig_size)
+        hhl_result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                              seed_simulator=aqua_globals.random_seed,
+                                              seed_transpiler=aqua_globals.random_seed))
+
         hhl_solution = hhl_result['solution']
         hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
 
@@ -106,24 +108,32 @@ class TestHHL(QiskitAquaTestCase):
         """ hhl diagonal negative test """
         self.log.debug('Testing HHL simple test in mode Lookup with statevector simulator')
 
-        neg_params = self.params
         matrix = [[1, 0], [0, 1]]
-        neg_params['input'] = {
-            'name': 'LinearSystemInput',
-            'matrix': matrix,
-            'vector': vector
-        }
-        neg_params['eigs']['negative_evals'] = True
-        neg_params['reciprocal']['negative_evals'] = True
-        neg_params['eigs']['num_ancillae'] = 4
 
         # run ExactLSsolver
-        self.els_params['input'] = neg_params['input']
-        ref_result = run_algorithm(self.els_params)
+        ref_result = ExactLSsolver(matrix, vector).run()
         ref_solution = ref_result['solution']
         ref_normed = ref_solution/np.linalg.norm(ref_solution)
+
         # run hhl
-        hhl_result = run_algorithm(neg_params)
+        orig_size = len(vector)
+        matrix, vector, truncate_powerdim, truncate_hermitian = HHL.matrix_resize(matrix, vector)
+
+        # Initialize eigenvalue finding module
+        eigs = TestHHL._create_eigs(matrix, 4, True)
+        num_q, num_a = eigs.get_register_sizes()
+
+        # Initialize initial state module
+        init_state = Custom(num_q, state_vector=vector)
+
+        # Initialize reciprocal rotation module
+        reci = LookupRotation(negative_evals=eigs._negative_evals, evo_time=eigs._evo_time)
+
+        algo = HHL(matrix, vector, truncate_powerdim, truncate_hermitian, eigs,
+                   init_state, reci, num_q, num_a, orig_size)
+        hhl_result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                              seed_simulator=aqua_globals.random_seed,
+                                              seed_transpiler=aqua_globals.random_seed))
         hhl_solution = hhl_result['solution']
         hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
 
@@ -141,23 +151,32 @@ class TestHHL(QiskitAquaTestCase):
         """ hhl diagonal long division test """
         self.log.debug('Testing HHL simple test in mode LongDivision and statevector simulator')
 
-        ld_params = self.params
         matrix = [[1, 0], [0, 1]]
-        ld_params['input'] = {
-            'name': 'LinearSystemInput',
-            'matrix': matrix,
-            'vector': vector
-        }
-        ld_params['reciprocal']['name'] = 'LongDivision'
-        ld_params['reciprocal']['scale'] = 1.0
 
         # run ExactLSsolver
-        self.els_params['input'] = ld_params['input']
-        ref_result = run_algorithm(self.els_params)
+        ref_result = ExactLSsolver(matrix, vector).run()
         ref_solution = ref_result['solution']
         ref_normed = ref_solution/np.linalg.norm(ref_solution)
+
         # run hhl
-        hhl_result = run_algorithm(ld_params)
+        orig_size = len(vector)
+        matrix, vector, truncate_powerdim, truncate_hermitian = HHL.matrix_resize(matrix, vector)
+
+        # Initialize eigenvalue finding module
+        eigs = TestHHL._create_eigs(matrix, 3, False)
+        num_q, num_a = eigs.get_register_sizes()
+
+        # Initialize initial state module
+        init_state = Custom(num_q, state_vector=vector)
+
+        # Initialize reciprocal
+        reci = LongDivision(scale=1.0, negative_evals=eigs._negative_evals, evo_time=eigs._evo_time)
+
+        algo = HHL(matrix, vector, truncate_powerdim, truncate_hermitian, eigs,
+                   init_state, reci, num_q, num_a, orig_size)
+        hhl_result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                              seed_simulator=aqua_globals.random_seed,
+                                              seed_transpiler=aqua_globals.random_seed))
         hhl_solution = hhl_result['solution']
         hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
 
@@ -175,24 +194,33 @@ class TestHHL(QiskitAquaTestCase):
         """ hhl diagonal qasm test """
         self.log.debug('Testing HHL simple test with qasm simulator')
 
-        qasm_params = self.params
         matrix = [[1, 0], [0, 1]]
-        qasm_params['input'] = {
-            'name': 'LinearSystemInput',
-            'matrix': matrix,
-            'vector': vector
-        }
-        qasm_params['reciprocal']['scale'] = 0.5
-        qasm_params['backend']['name'] = 'qasm_simulator'
-        qasm_params['backend']['shots'] = 1000
 
         # run ExactLSsolver
-        self.els_params['input'] = qasm_params['input']
-        ref_result = run_algorithm(self.els_params)
+        ref_result = ExactLSsolver(matrix, vector).run()
         ref_solution = ref_result['solution']
         ref_normed = ref_solution/np.linalg.norm(ref_solution)
+
         # run hhl
-        hhl_result = run_algorithm(qasm_params)
+        orig_size = len(vector)
+        matrix, vector, truncate_powerdim, truncate_hermitian = HHL.matrix_resize(matrix, vector)
+
+        # Initialize eigenvalue finding module
+        eigs = TestHHL._create_eigs(matrix, 3, False)
+        num_q, num_a = eigs.get_register_sizes()
+
+        # Initialize initial state module
+        init_state = Custom(num_q, state_vector=vector)
+
+        # Initialize reciprocal rotation module
+        reci = LookupRotation(negative_evals=eigs._negative_evals,
+                              scale=0.5, evo_time=eigs._evo_time)
+
+        algo = HHL(matrix, vector, truncate_powerdim, truncate_hermitian, eigs,
+                   init_state, reci, num_q, num_a, orig_size)
+        hhl_result = algo.run(QuantumInstance(BasicAer.get_backend('qasm_simulator'), shots=1000,
+                                              seed_simulator=aqua_globals.random_seed,
+                                              seed_transpiler=aqua_globals.random_seed))
         hhl_solution = hhl_result['solution']
         hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
 
@@ -210,24 +238,34 @@ class TestHHL(QiskitAquaTestCase):
         """ hhl diagonal other dim test """
         self.log.debug('Testing HHL with matrix dimension other than 2**n')
 
-        dim_params = self.params
-        dim_params['eigs']['num_ancillae'] = num_ancillary
-        dim_params['eigs']['negative_evals'] = True
-        dim_params['reciprocal']['negative_evals'] = True
-
         matrix = rmg.random_diag(n, eigrange=[0, 1])
         vector = aqua_globals.random.random_sample(n)
 
-        algo_input = LinearSystemInput()
-        algo_input.matrix = matrix
-        algo_input.vector = vector
-
         # run ExactLSsolver
-        ref_result = run_algorithm(self.els_params, algo_input)
+        ref_result = ExactLSsolver(matrix, vector).run()
         ref_solution = ref_result['solution']
         ref_normed = ref_solution/np.linalg.norm(ref_solution)
+
         # run hhl
-        hhl_result = run_algorithm(dim_params, algo_input)
+        orig_size = len(vector)
+        matrix, vector, truncate_powerdim, truncate_hermitian = HHL.matrix_resize(matrix, vector)
+
+        # Initialize eigenvalue finding module
+        eigs = TestHHL._create_eigs(matrix, num_ancillary, True)
+        num_q, num_a = eigs.get_register_sizes()
+
+        # Initialize initial state module
+        init_state = Custom(num_q, state_vector=vector)
+
+        # Initialize reciprocal rotation module
+        reci = LookupRotation(negative_evals=eigs._negative_evals, evo_time=eigs._evo_time)
+
+        algo = HHL(matrix, vector, truncate_powerdim, truncate_hermitian, eigs,
+                   init_state, reci, num_q, num_a, orig_size)
+        hhl_result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                              seed_simulator=aqua_globals.random_seed,
+                                              seed_transpiler=aqua_globals.random_seed))
+
         hhl_solution = hhl_result['solution']
         hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
 
@@ -244,25 +282,34 @@ class TestHHL(QiskitAquaTestCase):
         """ hhl negative eigs test """
         self.log.debug('Testing HHL with matrix with negative eigenvalues')
 
-        neg_params = self.params
-        neg_params['eigs']['num_ancillae'] = 4
-        neg_params['eigs']['negative_evals'] = True
-        neg_params['reciprocal']['negative_evals'] = True
-
         n = 2
         matrix = rmg.random_diag(n, eigrange=[-1, 1])
         vector = aqua_globals.random.random_sample(n)
 
-        algo_input = LinearSystemInput()
-        algo_input.matrix = matrix
-        algo_input.vector = vector
-
         # run ExactLSsolver
-        ref_result = run_algorithm(self.els_params, algo_input)
+        ref_result = ExactLSsolver(matrix, vector).run()
         ref_solution = ref_result['solution']
         ref_normed = ref_solution/np.linalg.norm(ref_solution)
+
         # run hhl
-        hhl_result = run_algorithm(neg_params, algo_input)
+        orig_size = len(vector)
+        matrix, vector, truncate_powerdim, truncate_hermitian = HHL.matrix_resize(matrix, vector)
+
+        # Initialize eigenvalue finding module
+        eigs = TestHHL._create_eigs(matrix, 4, True)
+        num_q, num_a = eigs.get_register_sizes()
+
+        # Initialize initial state module
+        init_state = Custom(num_q, state_vector=vector)
+
+        # Initialize reciprocal rotation module
+        reci = LookupRotation(negative_evals=eigs._negative_evals, evo_time=eigs._evo_time)
+
+        algo = HHL(matrix, vector, truncate_powerdim, truncate_hermitian, eigs,
+                   init_state, reci, num_q, num_a, orig_size)
+        hhl_result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                              seed_simulator=aqua_globals.random_seed,
+                                              seed_transpiler=aqua_globals.random_seed))
         hhl_solution = hhl_result["solution"]
         hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
 
@@ -279,23 +326,34 @@ class TestHHL(QiskitAquaTestCase):
         """ hhl random hermitian test """
         self.log.debug('Testing HHL with random hermitian matrix')
 
-        hermitian_params = self.params
-        hermitian_params['eigs']['num_ancillae'] = 4
-
         n = 2
         matrix = rmg.random_hermitian(n, eigrange=[0, 1])
         vector = aqua_globals.random.random_sample(n)
 
-        algo_input = LinearSystemInput()
-        algo_input.matrix = matrix
-        algo_input.vector = vector
-
         # run ExactLSsolver
-        ref_result = run_algorithm(self.els_params, algo_input)
+        ref_result = ExactLSsolver(matrix, vector).run()
         ref_solution = ref_result['solution']
         ref_normed = ref_solution/np.linalg.norm(ref_solution)
+
         # run hhl
-        hhl_result = run_algorithm(hermitian_params, algo_input)
+        orig_size = len(vector)
+        matrix, vector, truncate_powerdim, truncate_hermitian = HHL.matrix_resize(matrix, vector)
+
+        # Initialize eigenvalue finding module
+        eigs = TestHHL._create_eigs(matrix, 4, False)
+        num_q, num_a = eigs.get_register_sizes()
+
+        # Initialize initial state module
+        init_state = Custom(num_q, state_vector=vector)
+
+        # Initialize reciprocal rotation module
+        reci = LookupRotation(negative_evals=eigs._negative_evals, evo_time=eigs._evo_time)
+
+        algo = HHL(matrix, vector, truncate_powerdim, truncate_hermitian, eigs,
+                   init_state, reci, num_q, num_a, orig_size)
+        hhl_result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                              seed_simulator=aqua_globals.random_seed,
+                                              seed_transpiler=aqua_globals.random_seed))
         hhl_solution = hhl_result['solution']
         hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
 
@@ -312,25 +370,33 @@ class TestHHL(QiskitAquaTestCase):
         """ hhl non hermitian test """
         self.log.debug('Testing HHL with simple non-hermitian matrix')
 
-        nonherm_params = self.params
-        nonherm_params['eigs']['num_ancillae'] = 6
-        nonherm_params['eigs']['num_time_slices'] = 1
-        nonherm_params['eigs']['negative_evals'] = True
-        nonherm_params['reciprocal']['negative_evals'] = True
-
         matrix = [[1, 1], [2, 1]]
         vector = [1, 0]
 
-        algo_input = LinearSystemInput()
-        algo_input.matrix = matrix
-        algo_input.vector = vector
-
         # run ExactLSsolver
-        ref_result = run_algorithm(self.els_params, algo_input)
+        ref_result = ExactLSsolver(matrix, vector).run()
         ref_solution = ref_result['solution']
         ref_normed = ref_solution/np.linalg.norm(ref_solution)
+
         # run hhl
-        hhl_result = run_algorithm(nonherm_params, algo_input)
+        orig_size = len(vector)
+        matrix, vector, truncate_powerdim, truncate_hermitian = HHL.matrix_resize(matrix, vector)
+
+        # Initialize eigenvalue finding module
+        eigs = TestHHL._create_eigs(matrix, 6, True)
+        num_q, num_a = eigs.get_register_sizes()
+
+        # Initialize initial state module
+        init_state = Custom(num_q, state_vector=vector)
+
+        # Initialize reciprocal rotation module
+        reci = LookupRotation(negative_evals=eigs._negative_evals, evo_time=eigs._evo_time)
+
+        algo = HHL(matrix, vector, truncate_powerdim, truncate_hermitian, eigs,
+                   init_state, reci, num_q, num_a, orig_size)
+        hhl_result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                              seed_simulator=aqua_globals.random_seed,
+                                              seed_transpiler=aqua_globals.random_seed))
         hhl_solution = hhl_result['solution']
         hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
         # compare result
