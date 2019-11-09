@@ -154,6 +154,51 @@ class HHL(QuantumAlgorithm):
         self._original_dimension = orig_size
         self._ret = {}
 
+    @staticmethod
+    def matrix_resize(matrix, vector):
+        """Resizes matrix if necessary
+
+        Args:
+            matrix (np.array): the input matrix of linear system of equations
+            vector (np.array): the input vector of linear system of equations
+        Returns:
+            tuple: new matrix, vector, truncate_powerdim, truncate_hermitian
+        Raises:
+            ValueError: invalid input
+        """
+        if not isinstance(matrix, np.ndarray):
+            matrix = np.asarray(matrix)
+        if not isinstance(vector, np.ndarray):
+            vector = np.asarray(vector)
+
+        if matrix.shape[0] != matrix.shape[1]:
+            raise ValueError("Input matrix must be square!")
+        if matrix.shape[0] != len(vector):
+            raise ValueError("Input vector dimension does not match input "
+                             "matrix dimension!")
+
+        truncate_powerdim = False
+        truncate_hermitian = False
+        orig_size = None
+        if orig_size is None:
+            orig_size = len(vector)
+
+        is_powerdim = np.log2(matrix.shape[0]) % 1 == 0
+        if not is_powerdim:
+            logger.warning("Input matrix does not have dimension 2**n. It "
+                           "will be expanded automatically.")
+            matrix, vector = HHL.expand_to_powerdim(matrix, vector)
+            truncate_powerdim = True
+
+        is_hermitian = np.allclose(matrix, matrix.conj().T)
+        if not is_hermitian:
+            logger.warning("Input matrix is not hermitian. It will be "
+                           "expanded to a hermitian matrix automatically.")
+            matrix, vector = HHL.expand_to_hermitian(matrix, vector)
+            truncate_hermitian = True
+
+        return (matrix, vector, truncate_powerdim, truncate_hermitian)
+
     @classmethod
     def init_params(cls, params, algo_input):
         """Initialize via parameters dictionary and algorithm input instance
