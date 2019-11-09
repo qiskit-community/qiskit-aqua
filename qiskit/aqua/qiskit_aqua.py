@@ -17,6 +17,7 @@
 import copy
 import json
 import logging
+import warnings
 
 from qiskit.transpiler import PassManager
 from qiskit.ignis.mitigation.measurement import CompleteMeasFitter
@@ -115,6 +116,7 @@ class QiskitAqua:
             quantum_instance (QuantumInstance or BaseBackend): the experimental
                                         settings to be used in place of backend name
         """
+        warnings.warn(aqua_globals.CONFIG_DEPRECATION_MSG, DeprecationWarning)
         self._params = params
         self._algorithm_input = algo_input
         self._quantum_instance = None

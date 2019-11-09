@@ -15,13 +15,16 @@
 """ Test Graph Partition """
 
 from test.aqua.common import QiskitAquaTestCase
+import warnings
 import numpy as np
 from qiskit import BasicAer
-from qiskit.aqua import run_algorithm, aqua_globals
+from qiskit.aqua import run_algorithm, aqua_globals, QuantumInstance
 from qiskit.aqua.input import EnergyInput
 from qiskit.optimization.ising import graph_partition
 from qiskit.optimization.ising.common import random_graph, sample_most_likely
-from qiskit.aqua.algorithms import ExactEigensolver
+from qiskit.aqua.algorithms import ExactEigensolver, VQE
+from qiskit.aqua.components.variational_forms import RY
+from qiskit.aqua.components.optimizers import SPSA
 
 
 class TestGraphPartition(QiskitAquaTestCase):
@@ -29,11 +32,12 @@ class TestGraphPartition(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
+        warnings.filterwarnings("ignore", message=aqua_globals.CONFIG_DEPRECATION_MSG,
+                                category=DeprecationWarning)
         aqua_globals.random_seed = 100
         self.num_nodes = 4
         self.w = random_graph(self.num_nodes, edge_prob=0.8, weight_range=10)
         self.qubit_op, self.offset = graph_partition.get_operator(self.w)
-        self.algo_input = EnergyInput(self.qubit_op)
 
     def _brute_force(self):
         # use the brute-force way to generate the oracle
@@ -62,7 +66,7 @@ class TestGraphPartition(QiskitAquaTestCase):
             'problem': {'name': 'ising'},
             'algorithm': {'name': 'ExactEigensolver'}
         }
-        result = run_algorithm(params, self.algo_input)
+        result = run_algorithm(params, EnergyInput(self.qubit_op))
         x = sample_most_likely(result['eigvecs'][0])
         # check against the oracle
         ising_sol = graph_partition.get_graph_solution(x)
@@ -72,7 +76,7 @@ class TestGraphPartition(QiskitAquaTestCase):
 
     def test_graph_partition_direct(self):
         """ Graph Partition Direct test """
-        algo = ExactEigensolver(self.algo_input.qubit_op, k=1, aux_operators=[])
+        algo = ExactEigensolver(self.qubit_op, k=1, aux_operators=[])
         result = algo.run()
         x = sample_most_likely(result['eigvecs'][0])
         # check against the oracle
@@ -83,30 +87,15 @@ class TestGraphPartition(QiskitAquaTestCase):
 
     def test_graph_partition_vqe(self):
         """ Graph Partition VQE test """
-        algorithm_cfg = {
-            'name': 'VQE',
-            'max_evals_grouped': 2
-        }
+        aqua_globals.random_seed = 10598
+        result = VQE(self.qubit_op,
+                     RY(self.qubit_op.num_qubits, depth=5, entanglement='linear'),
+                     SPSA(max_trials=300),
+                     max_evals_grouped=2).run(
+                         QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                         seed_simulator=aqua_globals.random_seed,
+                                         seed_transpiler=aqua_globals.random_seed))
 
-        optimizer_cfg = {
-            'name': 'SPSA',
-            'max_trials': 300
-        }
-
-        var_form_cfg = {
-            'name': 'RY',
-            'depth': 5,
-            'entanglement': 'linear'
-        }
-
-        params = {
-            'problem': {'name': 'ising', 'random_seed': 10598},
-            'algorithm': algorithm_cfg,
-            'optimizer': optimizer_cfg,
-            'variational_form': var_form_cfg
-        }
-        backend = BasicAer.get_backend('statevector_simulator')
-        result = run_algorithm(params, self.algo_input, backend=backend)
         x = sample_most_likely(result['eigvecs'][0])
         # check against the oracle
         ising_sol = graph_partition.get_graph_solution(x)
