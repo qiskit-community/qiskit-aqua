@@ -18,9 +18,8 @@ from test.aqua.common import QiskitAquaTestCase
 
 import numpy as np
 from qiskit.quantum_info import Pauli
-
-from qiskit.aqua import run_algorithm, aqua_globals
-from qiskit.aqua.input import EnergyInput
+from qiskit.aqua import aqua_globals
+from qiskit.aqua.algorithms import ExactEigensolver
 from qiskit.optimization.ising.vehicle_routing import get_operator
 
 
@@ -40,7 +39,6 @@ class TestVehicleRouting(QiskitAquaTestCase):
         self.instance[0, 1] = 0.8
         self.instance[1, 0] = 0.8
         self.qubit_op = get_operator(self.instance, self.n, self.k)
-        self.algo_input = EnergyInput(self.qubit_op)
 
     def test_simple1(self):
         """ simple1 test """
@@ -63,14 +61,6 @@ class TestVehicleRouting(QiskitAquaTestCase):
     def test_simple2(self):
         """ simple2 test """
         # Solve the problem using the exact eigensolver
-        params = {
-            'problem': {
-                'name': 'ising'
-            },
-            'algorithm': {
-                'name': 'ExactEigensolver'
-            }
-        }
-        result = run_algorithm(params, self.algo_input)
+        result = ExactEigensolver(self.qubit_op).run()
         arr = np.array([0., 0., 0., 1.])
         np.testing.assert_array_almost_equal(arr, result['eigvecs'][0], 4)
