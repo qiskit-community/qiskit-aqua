@@ -172,5 +172,4 @@ class PauliExpansion(FeatureMap):
                 p = Pauli.from_label(pauli)
                 inst = evolution_instruction([[1, p]], coeff, 1)
                 qc.append(inst, qr)
-                qc = qc.decompose()
         return qc

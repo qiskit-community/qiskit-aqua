@@ -25,7 +25,6 @@ from qiskit import compiler
 
 from .aqua_error import AquaError
 from .utils.backend_utils import (is_ibmq_provider,
-                                  is_aer_provider,
                                   is_statevector_backend,
                                   is_simulator_backend,
                                   is_local_backend,
@@ -237,6 +236,7 @@ class QuantumInstance:
         Returns:
             str: the info of the object.
         """
+        # pylint: disable=import-outside-toplevel
         from qiskit import __version__ as terra_version
 
         info = "\nQiskit Terra version: {}\n".format(terra_version)
@@ -270,14 +270,13 @@ class QuantumInstance:
 
         return transpiled_circuits
 
-    def execute(self, circuits, had_transpiled=False, **kwargs):
+    def execute(self, circuits, had_transpiled=False):
         """
         A wrapper to interface with quantum backend.
 
         Args:
             circuits (QuantumCircuit or list[QuantumCircuit]): circuits to execute
             had_transpiled (bool, optional): whether or not circuits had been transpiled
-            kwargs (dict, optional): additional parameters
 
         Returns:
             Result: Result object
@@ -285,8 +284,8 @@ class QuantumInstance:
         TODO: Maybe we can combine the circuits for the main ones and calibration circuits before
               assembling to the qobj.
         """
-        from .utils.run_circuits import (run_qobj,
-                                         maybe_add_aer_expectation_instruction)
+        # pylint: disable=import-outside-toplevel
+        from .utils.run_circuits import run_qobj
 
         from .utils.measurement_error_mitigation import (get_measured_qubits_from_qobj,
                                                          build_measurement_error_mitigation_qobj)
@@ -296,8 +295,6 @@ class QuantumInstance:
 
         # assemble
         qobj = compiler.assemble(circuits, **self._run_config.to_dict())
-        if is_aer_provider(self._backend):
-            qobj = maybe_add_aer_expectation_instruction(qobj, kwargs)
 
         if self._meas_error_mitigation_cls is not None:
             qubit_index = get_measured_qubits_from_qobj(qobj)

@@ -58,6 +58,7 @@ def _get_pluggables_types_dict():
     Gets all the pluggables types
     Any new pluggable type should be added here
     """
+    # pylint: disable=import-outside-toplevel
     from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
     from qiskit.aqua.components.uncertainty_models import UnivariateDistribution
     from qiskit.aqua.components.uncertainty_models import MultivariateDistribution

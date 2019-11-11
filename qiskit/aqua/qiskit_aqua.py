@@ -17,6 +17,7 @@
 import copy
 import json
 import logging
+import warnings
 
 from qiskit.transpiler import PassManager
 from qiskit.ignis.mitigation.measurement import CompleteMeasFitter
@@ -115,6 +116,7 @@ class QiskitAqua:
             quantum_instance (QuantumInstance or BaseBackend): the experimental
                                         settings to be used in place of backend name
         """
+        warnings.warn(aqua_globals.CONFIG_DEPRECATION_MSG, DeprecationWarning)
         self._params = params
         self._algorithm_input = algo_input
         self._quantum_instance = None
@@ -159,6 +161,7 @@ class QiskitAqua:
         return self._parser
 
     def _build_algorithm_from_dict(self, quantum_instance):
+        # pylint: disable=import-outside-toplevel
         from qiskit.providers import BaseBackend
 
         _discover_on_demand()
@@ -270,6 +273,7 @@ class QiskitAqua:
                     names = noise_model.split(':')
                     if len(names) == 2:
                         # Generate an Aer noise model for device
+                        # pylint: disable=import-outside-toplevel
                         from qiskit.providers.aer import noise
                         device_backend = get_backend_from_provider(names[0], names[1])
                         noise_model = \

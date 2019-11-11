@@ -497,6 +497,7 @@ class TestWeightedPauliOperator(QiskitAquaTestCase):
     def test_evaluate_with_aer_mode(self):
         """ evaluate with aer mode test """
         try:
+            # pylint: disable=import-outside-toplevel
             from qiskit import Aer
         except Exception as ex:  # pylint: disable=broad-except
             self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(ex)))
@@ -514,16 +515,11 @@ class TestWeightedPauliOperator(QiskitAquaTestCase):
             result=quantum_instance_statevector.execute(circuits), statevector_mode=True)
 
         circuits = self.qubit_op.construct_evaluation_circuit(
-            wave_function=wave_function, statevector_mode=True, use_simulator_operator_mode=True)
-        extra_args = {
-            'expectation': {
-                'params': [self.qubit_op.aer_paulis],
-                'num_qubits': self.qubit_op.num_qubits}
-        }
+            wave_function=wave_function, statevector_mode=True, use_simulator_snapshot_mode=True)
         actual_value = self.qubit_op.evaluate_with_result(
-            result=quantum_instance_statevector.execute(circuits, **extra_args),
+            result=quantum_instance_statevector.execute(circuits),
             statevector_mode=True,
-            use_simulator_operator_mode=True)
+            use_simulator_snapshot_mode=True)
         self.assertAlmostEqual(reference[0], actual_value[0], places=10)
 
     @parameterized.expand([

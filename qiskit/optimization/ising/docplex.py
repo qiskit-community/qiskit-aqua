@@ -271,6 +271,7 @@ def _auto_define_penalty(mdl, default_penalty=1e5):
 
 def sample_most_likely(state_vector):
     """ sample most likely """
+    # pylint: disable=import-outside-toplevel
     from .common import sample_most_likely as redirect_func
     warnings.warn("sample_most_likely function has been moved to qiskit.optimization.ising.common, "
                   "the method here will be removed after Aqua 0.7+",

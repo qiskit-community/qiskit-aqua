@@ -56,13 +56,13 @@ class VQEAdapt(VQAlgorithm):
                     'default': None
                 },
                 'threshold': {
-                    'type': 'float',
+                    'type': 'number',
                     'minimum': 1e-15,  # limited by floating point precision
                     'default': 1e-5
 
                 },
                 'delta': {
-                    'type': 'float',
+                    'type': 'number',
                     'minimum': 1e-5,
                     'default': 1
                 },
@@ -114,7 +114,7 @@ class VQEAdapt(VQAlgorithm):
         super().__init__(var_form=var_form_base,
                          optimizer=optimizer,
                          initial_point=initial_point)
-        self._use_simulator_operator_mode = None
+        self._use_simulator_snapshot_mode = None
         self._ret = None
         self._optimizer.set_max_evals_grouped(max_evals_grouped)
         if initial_point is None:
@@ -201,7 +201,7 @@ class VQEAdapt(VQAlgorithm):
             # construct auxiliary VQE instance
             vqe = VQE(operator, var_form, optimizer)
             vqe._quantum_instance = self._quantum_instance
-            vqe._use_simulator_operator_mode = self._use_simulator_operator_mode
+            vqe._use_simulator_snapshot_mode = self._use_simulator_snapshot_mode
             # evaluate energies
             parameter_sets = theta + [-delta] + theta + [delta]
             energy_results = vqe._energy_evaluation(np.asarray(parameter_sets))
@@ -225,7 +225,7 @@ class VQEAdapt(VQAlgorithm):
         """
         self._operator = VQE._config_the_best_mode(self, self._operator,
                                                    self._quantum_instance.backend)
-        self._use_simulator_operator_mode = \
+        self._use_simulator_snapshot_mode = \
             is_aer_statevector_backend(self._quantum_instance.backend) \
             and isinstance(self._operator, (WeightedPauliOperator, TPBGroupedWeightedPauliOperator))
         self._quantum_instance.circuit_summary = True
@@ -312,6 +312,7 @@ class VQEAdapt(VQAlgorithm):
         return self._var_form_base.construct_circuit(self._ret['opt_params'])
 
     def get_optimal_vector(self):
+        # pylint: disable=import-outside-toplevel
         from qiskit.aqua.utils.run_circuits import find_regs_by_name
 
         if 'opt_params' not in self._ret:

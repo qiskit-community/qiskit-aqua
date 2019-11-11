@@ -19,9 +19,10 @@ import os
 import copy
 import pprint
 import logging
+import warnings
 from qiskit.providers import BaseBackend
 from qiskit.chemistry.drivers import local_drivers, get_driver_class
-from qiskit.aqua import QiskitAqua, get_provider_from_backend
+from qiskit.aqua import QiskitAqua, get_provider_from_backend, aqua_globals
 from qiskit.aqua.input import EnergyInput
 from qiskit.chemistry.parser import InputParser
 from qiskit.aqua.parser import JSONSchema
@@ -78,6 +79,7 @@ class QiskitChemistry:
 
     def __init__(self):
         """Create an QiskitChemistry object."""
+        warnings.warn(aqua_globals.CONFIG_DEPRECATION_MSG, DeprecationWarning)
         self._parser = None
         self._operator = None
         self._qiskit_aqua = None

@@ -15,7 +15,7 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 > -   **Fixed**: for any bug fixes.
 > -   **Security**: in case of vulnerabilities.
 
-[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.0...HEAD)
+[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.1...HEAD)
 ========================================================================
 
 Changed
@@ -28,6 +28,7 @@ Changed
     - qiskit/aqua/translators/ising/portfolio.py and portfolio_diversification.py moved to qiskit/finance/ising/
     - qiskit/aqua/translators/ising/ (i.e. all but above 2) moved to qiskit/optimization/ising/
 -   UCCSD updated to all excitation pool to be managed by an adaptive algorithm like VQEAdapt. (#685)
+-   Deprecate Declarative JSON API. (#720)
 
 Added
 -----
@@ -39,16 +40,28 @@ Added
     the `evolution_instruction` method support `Parameter` as time parameter.  (#693)
 -   VQEAdapt, adaptive version of the VQE algorithm for chemistry. (#685)
 -   Optionally split qobj by max gates per job. (#694)
+-   An option in evolution_instruction to be able to control whether or not add a barrier
+    for every slice. (#708)
+-   Added VQE snapshot mode for Aer QasmSimulator when no noise and shots=1 (#715)
 
 Fixed
 -------
 
 -   A bug where `UCCSD` might generate an empty operator and try to evolve it. (#680)
+-   Decompose causes DAG failure using feature maps. (#719)
 
 Removed
 -------
 
 -   The `CircuitCache` class is removed, use parameterized circuits as an alternative. (#693)
+
+[0.6.1](https://github.com/Qiskit/qiskit-aqua/compare/0.6.0...0.6.1) - 2019-10-16
+=================================================================================
+
+Changed
+-------
+
+-   Remove terra cap from stable branch. (#709)
 
 [0.6.0](https://github.com/Qiskit/qiskit-aqua/compare/0.5.5...0.6.0) - 2019-08-22
 =================================================================================
