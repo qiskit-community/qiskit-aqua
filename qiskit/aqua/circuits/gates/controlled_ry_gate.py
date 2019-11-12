@@ -32,8 +32,8 @@ def cry(self, theta, q_control, q_target):
     Args:
         self (QuantumCircuit): The circuit to apply the cry gate on.
         theta (float): The rotation angle.
-        q_control (Qubit | int): The control qubit.
-        q_target (Qubit | int): The target qubit.
+        q_control (Union(Qubit, int)): The control qubit.
+        q_target (Union(Qubit, int)): The target qubit.
     Returns:
         QuantumCircuit: instance self
     Raises:
