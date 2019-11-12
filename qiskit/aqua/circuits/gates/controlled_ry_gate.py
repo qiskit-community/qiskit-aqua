@@ -32,23 +32,26 @@ def cry(self, theta, q_control, q_target):
     Args:
         self (QuantumCircuit): The circuit to apply the cry gate on.
         theta (float): The rotation angle.
-        q_control (Qubit): The control qubit.
-        q_target (Qubit): The target qubit.
+        q_control (Qubit | int): The control qubit.
+        q_target (Qubit | int): The target qubit.
     Returns:
         QuantumCircuit: instance self
     Raises:
         AquaError: invalid input
     """
 
-    if not isinstance(q_control, Qubit):
-        raise AquaError('A qubit is expected for the control.')
-    if not self.has_register(q_control.register):
-        raise AquaError('The control qubit is expected to be part of the circuit.')
+    qubits = [q_control, q_target]
+    names = ["control", "target"]
 
-    if not isinstance(q_target, Qubit):
-        raise AquaError('A qubit is expected for the target.')
-    if not self.has_register(q_target.register):
-        raise AquaError('The target qubit is expected to be part of the circuit.')
+    for qubit, name in zip(qubits, names):
+        if isinstance(qubit, Qubit):
+            if not self.has_register(q_control.register):
+                raise AquaError('The {} qubit is expected to be part of the circuit.'.format(name))
+        elif isinstance(qubit, int):
+            if qubit >= self.n_qubits:
+                raise AquaError('Qubit index out of range.')
+        else:
+            raise AquaError('A qubit or int is expected for the {}.'.format(name))
 
     if q_control == q_target:
         raise AquaError('The control and target need to be different qubits.')
