@@ -55,6 +55,14 @@ Removed
 
 -   The `CircuitCache` class is removed, use parameterized circuits as an alternative. (#693)
 
+Deprecated
+----------
+
+-   Python 3.5 support in qiskit-aqua is deprecated. Support will be
+    removed on the upstream python community's end of life date for the version,
+    which is 09/13/2020.
+
+
 [0.6.1](https://github.com/Qiskit/qiskit-aqua/compare/0.6.0...0.6.1) - 2019-10-16
 =================================================================================
 
