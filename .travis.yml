@@ -95,6 +95,7 @@ before_install:
   # install Aqua and dev requirements
   - pip install -e $TRAVIS_BUILD_DIR --progress-bar off
   - pip install -U -r requirements-dev.txt --progress-bar off
+  - pip install pyenchant
   
 script:
   - |
