@@ -37,20 +37,21 @@ before_script:
     test.aqua.operators.test_tpb_grouped_weigted_pauli_operator
     test.aqua.operators.test_weighted_pauli_operator
     test.aqua.test_amplitude_estimation
+    test.finance.test_amplitude_estimation
     test.aqua.test_bernstein_vazirani
-    test.aqua.test_clique
-    test.aqua.test_cplex_ising
+    test.optimization.test_clique
+    test.optimization.test_cplex_ising
     test.aqua.test_custom_circuit_oracle
-    test.aqua.test_data_providers
+    test.finance.test_data_providers
     test.aqua.test_deutsch_jozsa
-    test.aqua.test_docplex
+    test.optimization.test_docplex
     test.aqua.test_entangler_map
     test.aqua.test_eoh
-    test.aqua.test_exact_cover
+    test.optimization.test_exact_cover
     test.aqua.test_exact_eigen_solver
     test.aqua.test_exact_ls_solver
     test.aqua.test_fixed_value_comparator
-    test.aqua.test_graph_partition
+    test.optimization.test_graph_partition
     test.aqua.test_grover
     test.aqua.test_hhl
     test.aqua.test_initial_state_custom
@@ -69,21 +70,22 @@ before_script:
     test.aqua.test_measure_error_mitigation
     test.aqua.test_nlopt_optimizers
     test.aqua.test_optimizers
-    test.aqua.test_partition
-    test.aqua.test_portfolio_diversification
-    test.aqua.test_qaoa
+    test.optimization.test_partition
+    test.finance.test_portfolio_diversification
+    test.optimization.test_qaoa
     test.aqua.test_qgan
     test.aqua.test_qpe
     test.aqua.test_qsvm
     test.aqua.test_rmg
     test.aqua.test_ry
-    test.aqua.test_set_packing
+    test.optimization.test_set_packing
     test.aqua.test_shor
     test.aqua.test_simon
     test.aqua.test_skip_qobj_validation
     EOF
   - |
-    cat selection.txt > blacklist.txt
+    echo 'test.chemistry.*' > blacklist.txt
+    cat selection.txt >> blacklist.txt
     cat selection2.txt >> blacklist.txt
   - |
     if [ ! "$(ls -A .stestr)" ]; then
@@ -97,11 +99,11 @@ matrix:
     script:
         make spell && make style && make lint && export OPENBLAS_NUM_THREADS=1 && stestr --test-path test/chemistry run
   - name: "Test Aqua"
-    script: stestr --test-path test/aqua run --blacklist-file blacklist.txt
+    script: stestr --test-path test run --blacklist-file blacklist.txt
   - name: "Test Aqua 2"
-    script: stestr --test-path test/aqua run --whitelist-file selection.txt
+    script: stestr --test-path test run --whitelist-file selection.txt
   - name: "Test Aqua 3"
-    script: stestr --test-path test/aqua run --whitelist-file selection2.txt
+    script: stestr --test-path test run --whitelist-file selection2.txt
 
   - if: tag IS present
     python: 3.6

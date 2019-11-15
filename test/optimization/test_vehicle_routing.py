@@ -14,7 +14,7 @@
 
 """ Test Vehicle Routing """
 
-from test.aqua.common import QiskitAquaTestCase
+from test.optimization.common import QiskitOptimizationTestCase
 
 import numpy as np
 from qiskit.quantum_info import Pauli
@@ -27,7 +27,7 @@ from qiskit.optimization.ising.vehicle_routing import get_operator
 # python -m unittest test.test_vrp.TestVehicleRouting
 
 
-class TestVehicleRouting(QiskitAquaTestCase):
+class TestVehicleRouting(QiskitOptimizationTestCase):
     """Tests vehicle routing Ising translator."""
 
     def setUp(self):
