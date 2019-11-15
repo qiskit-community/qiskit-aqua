@@ -15,7 +15,7 @@
 """ Test Amplitude Estimation """
 
 import unittest
-from test.aqua.common import QiskitAquaTestCase
+from test.finance.common import QiskitFinanceTestCase
 import numpy as np
 from parameterized import parameterized
 from qiskit import QuantumRegister, QuantumCircuit, BasicAer, execute
@@ -86,7 +86,7 @@ class BernoulliQFactory(QFactory):
         qc.cry(2 * power * theta_p, q_control, q[i_state])
 
 
-class TestBernoulli(QiskitAquaTestCase):
+class TestBernoulli(QiskitFinanceTestCase):
     """ Test Bernoulli """
     def setUp(self):
         super().setUp()
@@ -144,7 +144,7 @@ class TestBernoulli(QiskitAquaTestCase):
                                    msg="estimate `{}` failed".format(key))
 
 
-class TestEuropeanCallOption(QiskitAquaTestCase):
+class TestEuropeanCallOption(QiskitFinanceTestCase):
     """ Test European Call Option """
     def setUp(self):
         super().setUp()
@@ -263,7 +263,7 @@ class TestEuropeanCallOption(QiskitAquaTestCase):
                                    msg="estimate `{}` failed".format(key))
 
 
-class TestFixedIncomeAssets(QiskitAquaTestCase):
+class TestFixedIncomeAssets(QiskitFinanceTestCase):
     """ Test Fixed Income Assets """
     def setUp(self):
         super().setUp()
@@ -325,7 +325,7 @@ class TestFixedIncomeAssets(QiskitAquaTestCase):
                                    msg="estimate `{}` failed".format(key))
 
 
-class TestCreditRiskAnalysis(QiskitAquaTestCase):
+class TestCreditRiskAnalysis(QiskitFinanceTestCase):
     """ Test Credit Risk Analysis """
     @parameterized.expand([
         'statevector_simulator'
