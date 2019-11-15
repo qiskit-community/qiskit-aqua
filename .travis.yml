@@ -36,6 +36,7 @@ before_script:
     test.aqua.operators.test_op_converter
     test.aqua.operators.test_tpb_grouped_weigted_pauli_operator
     test.aqua.operators.test_weighted_pauli_operator
+    test.aqua.test_amplitude_estimation
     test.finance.test_amplitude_estimation
     test.aqua.test_bernstein_vazirani
     test.optimization.test_clique
