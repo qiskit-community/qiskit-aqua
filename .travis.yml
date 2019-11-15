@@ -83,7 +83,8 @@ before_script:
     test.aqua.test_skip_qobj_validation
     EOF
   - |
-    cat selection.txt > blacklist.txt
+    echo 'test.chemistry.*' > blacklist.txt
+    cat selection.txt >> blacklist.txt
     cat selection2.txt >> blacklist.txt
   - |
     if [ ! "$(ls -A .stestr)" ]; then
@@ -97,11 +98,11 @@ matrix:
     script:
         make spell && make style && make lint && export OPENBLAS_NUM_THREADS=1 && stestr --test-path test/chemistry run
   - name: "Test Aqua"
-    script: stestr --test-path test/aqua run --blacklist-file blacklist.txt
+    script: stestr --test-path test run --blacklist-file blacklist.txt
   - name: "Test Aqua 2"
-    script: stestr --test-path test/aqua run --whitelist-file selection.txt
+    script: stestr --test-path test run --whitelist-file selection.txt
   - name: "Test Aqua 3"
-    script: stestr --test-path test/aqua run --whitelist-file selection2.txt
+    script: stestr --test-path test run --whitelist-file selection2.txt
 
   - if: tag IS present
     python: 3.6
