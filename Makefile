@@ -20,7 +20,7 @@ style:
 	pycodestyle --max-line-length=100 --exclude=gauopen qiskit/ai qiskit/aqua qiskit/chemistry qiskit/finance qiskit/optimization test
 
 test:
-	python -m unittest discover -v test
+	stestr run
 
 spell:
 	pylint -rn --disable=all --enable=spelling --spelling-dict=en_US --spelling-private-dict-file=.pylintdict --ignore=gauopen qiskit/ai qiskit/aqua qiskit/chemistry qiskit/finance qiskit/optimization test
