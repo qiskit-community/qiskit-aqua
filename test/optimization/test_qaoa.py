@@ -15,7 +15,7 @@
 """ Test QAOA """
 
 import unittest
-from test.aqua.common import QiskitAquaTestCase
+from test.optimization.common import QiskitOptimizationTestCase
 
 import numpy as np
 from parameterized import parameterized
@@ -54,7 +54,7 @@ M2 = None
 S2 = {'1011', '0100'}
 
 
-class TestQAOA(QiskitAquaTestCase):
+class TestQAOA(QiskitOptimizationTestCase):
     """Test QAOA with MaxCut."""
     @parameterized.expand([
         [W1, P1, M1, S1],
