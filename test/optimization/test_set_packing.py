@@ -15,7 +15,7 @@
 """ Test Set Packing """
 
 import json
-from test.aqua.common import QiskitAquaTestCase
+from test.optimization.common import QiskitOptimizationTestCase
 import warnings
 import numpy as np
 
@@ -28,7 +28,7 @@ from qiskit.aqua.components.optimizers import SPSA
 from qiskit.aqua.components.variational_forms import RY
 
 
-class TestSetPacking(QiskitAquaTestCase):
+class TestSetPacking(QiskitOptimizationTestCase):
     """Cplex Ising tests."""
 
     def setUp(self):

@@ -15,7 +15,7 @@
 """ Test Exact Cover """
 
 import json
-from test.aqua.common import QiskitAquaTestCase
+from test.optimization.common import QiskitOptimizationTestCase
 import warnings
 import numpy as np
 from qiskit import BasicAer
@@ -29,7 +29,7 @@ from qiskit.aqua.components.optimizers import COBYLA
 from qiskit.aqua.components.variational_forms import RYRZ
 
 
-class TestExactCover(QiskitAquaTestCase):
+class TestExactCover(QiskitOptimizationTestCase):
     """Cplex Ising tests."""
 
     def setUp(self):
