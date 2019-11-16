@@ -14,7 +14,7 @@
 
 """ Test Cplex Ising """
 
-from test.aqua.common import QiskitAquaTestCase
+from test.optimization.common import QiskitOptimizationTestCase
 import warnings
 import numpy as np
 
@@ -25,7 +25,7 @@ from qiskit.optimization.ising.common import random_graph
 from qiskit.aqua.algorithms.classical.cplex.cplex_ising import CPLEX_Ising
 
 
-class TestCplexIsing(QiskitAquaTestCase):
+class TestCplexIsing(QiskitOptimizationTestCase):
     """Cplex Ising tests."""
 
     def setUp(self):

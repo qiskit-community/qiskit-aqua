@@ -15,7 +15,7 @@
 
 from .version import __version__
 from .aqua_error import AquaError
-from .qiskit_aqua_globals import aqua_globals
+from .aqua_globals import aqua_globals
 from .preferences import Preferences
 from ._discover import (PLUGGABLES_ENTRY_POINT,
                         PluggableType,

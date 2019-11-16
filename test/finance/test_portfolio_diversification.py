@@ -15,7 +15,7 @@
 """ Test Portfolio Optimization """
 
 import math
-from test.aqua.common import QiskitAquaTestCase
+from test.finance.common import QiskitFinanceTestCase
 
 import numpy as np
 from qiskit.quantum_info import Pauli
@@ -120,7 +120,7 @@ class ClassicalOptimizer:
 # To run only this test, issue:
 # python -m unittest test.test_portfoliodiversification.TestPortfolioDiversification
 
-class TestPortfolioDiversification(QiskitAquaTestCase):
+class TestPortfolioDiversification(QiskitFinanceTestCase):
     """Tests vehicle routing Ising translator."""
 
     def setUp(self):
