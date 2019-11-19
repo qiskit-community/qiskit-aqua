@@ -93,9 +93,10 @@ class TestSetPacking(QiskitOptimizationTestCase):
         result = VQE(self.qubit_op,
                      RY(self.qubit_op.num_qubits, depth=5, entanglement='linear'),
                      SPSA(max_trials=200),
-                     max_evals_grouped=2).run(QuantumInstance(Aer.get_backend('qasm_simulator'),
-                                              seed_simulator=aqua_globals.random_seed,
-                                              seed_transpiler=aqua_globals.random_seed))
+                     max_evals_grouped=2).run(
+                         QuantumInstance(Aer.get_backend('qasm_simulator'),
+                                         seed_simulator=aqua_globals.random_seed,
+                                         seed_transpiler=aqua_globals.random_seed))
         x = sample_most_likely(result['eigvecs'][0])
         ising_sol = set_packing.get_solution(x)
         oracle = self._brute_force()
