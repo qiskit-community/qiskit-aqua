@@ -146,7 +146,7 @@ def refresh_pluggables():
     _REGISTRY_PLUGGABLE.set_discovered()
     directory = os.path.dirname(__file__)
     _discover_local_pluggables(directory)
-    _discover_local_pluggables(os.path.abspath(os.path.join(directory, '..', 'ai')),
+    _discover_local_pluggables(os.path.abspath(os.path.join(directory, '..', 'ml')),
                                'qiskit.ml')
     _discover_local_pluggables(os.path.abspath(os.path.join(directory, '..', 'chemistry')),
                                'qiskit.chemistry')
@@ -169,7 +169,7 @@ def _discover_on_demand():
         _REGISTRY_PLUGGABLE.set_discovered()
         directory = os.path.dirname(__file__)
         _discover_local_pluggables(directory)
-        _discover_local_pluggables(os.path.abspath(os.path.join(directory, '..', 'ai')),
+        _discover_local_pluggables(os.path.abspath(os.path.join(directory, '..', 'ml')),
                                    'qiskit.ml')
         _discover_local_pluggables(os.path.abspath(os.path.join(directory, '..', 'chemistry')),
                                    'qiskit.chemistry')
