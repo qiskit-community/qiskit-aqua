@@ -68,7 +68,7 @@ class RawFeatureVector(FeatureMap):
 
         Args:
             x (numpy.ndarray): 1-D to-be-encoded data.
-            qr (QauntumRegister): the QuantumRegister object for the circuit, if None,
+            qr (QuantumRegister): the QuantumRegister object for the circuit, if None,
                                   generate new registers with name q.
             inverse (bool): inverse
         Returns:
