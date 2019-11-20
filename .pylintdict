@@ -151,6 +151,7 @@ formatter
 fortran
 fourier
 ftol
+Fujii
 fullname
 func
 gambetta
@@ -268,6 +269,7 @@ msq
 multiclass
 multinomial
 multiprocess
+Nakanishi
 nan
 narray
 nasdaq
@@ -278,6 +280,7 @@ ndarray's
 nelder
 nevals
 nfev
+nft
 nk
 nlopt
 nn
@@ -431,6 +434,7 @@ tiajb
 tibja
 timestamp
 tnc
+Todo
 toffoli
 tol
 tomo

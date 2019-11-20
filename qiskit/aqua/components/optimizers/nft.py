@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -11,6 +11,8 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
+"""Nakanishi-Fujii-Todo algorithm."""
 
 import logging
 
@@ -74,6 +76,7 @@ class NFT(Optimizer):
         Args:
             maxiter (int): Maximum number of iterations to perform.
             maxfev (int): Maximum number of function evaluations to perform.
+            disp (bool): disp
             reset_interval (int): The minimum estimates directly once
                 in``reset_interval`` times.
         Notes:
@@ -100,17 +103,18 @@ class NFT(Optimizer):
         return res.x, res.fun, res.nfev
 
 
+# pylint: disable=invalid-name
 def nakanishi_fujii_todo(fun, x0, args=(), maxiter=None, maxfev=1024,
                          reset_interval=32, eps=1e-32, callback=None, **_):
     """
     Find the global minimum of a function using the nakanishi_fujii_todo
     algorithm [1].
     Args:
-        fun (callable ``f(x, *args)``):
+        fun (callable): ``f(x, *args)``
             Function to be optimized.  ``args`` can be passed as an optional item
             in the dict ``minimizer_kwargs``.
             This function must satisfy the three condition written in Ref. [1].
-        x0 (ndarray, shape (n,)):
+        x0 (ndarray): shape (n,)
             Initial guess. Array of real elements of size (n,),
             where 'n' is the number of independent variables.
         args (tuple, optional):
@@ -124,10 +128,12 @@ def nakanishi_fujii_todo(fun, x0, args=(), maxiter=None, maxfev=1024,
         reset_interval (int):
             The minimum estimates directly once in ``reset_interval`` times.
             Default: 32.
+        eps (float): eps
+        **_ : additional options
         callback (callable, optional):
             Called after each iteration.
     Returns:
-        res (OptimizeResult):
+        OptimizeResult:
             The optimization result represented as a ``OptimizeResult`` object.
             Important attributes are: ``x`` the solution array. See
             `OptimizeResult` for a description of other attributes.
