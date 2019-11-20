@@ -26,6 +26,7 @@ from .slsqp import SLSQP
 from .spsa import SPSA
 from .tnc import TNC
 from .aqgd import AQGD
+from .nft import NFT
 
 
 __all__ = ['Optimizer',
@@ -39,7 +40,8 @@ __all__ = ['Optimizer',
            'SLSQP',
            'SPSA',
            'TNC',
-           'AQGD']
+           'AQGD',
+           'NFT']
 
 try:
     import nlopt
