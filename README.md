@@ -8,7 +8,7 @@ Qiskit is made up elements that work together to enable quantum computing. This 
 Aqua provides a library of cross-domain algorithms upon which domain-specific applications can be
 built. Qiskit Chemistry has
 been created to utilize Aqua for quantum chemistry computations. Aqua is also showcased for other
-domains, such as Optimization, Artificial Intelligence, and
+domains, such as Optimization, Machine Learning, and
 Finance, with both code and notebook examples available in the
 [qiskit-iqx-tutorials](https://github.com/Qiskit/qiskit-iqx-tutorials) and
 [qiskit-community-tutorials](https://github.com/Qiskit/qiskit-community-tutorials) GitHub Repositories.
