@@ -9,7 +9,7 @@ qiskit
 .. toctree::
    :maxdepth: 1
 
-   ai/ai
+   ml/ml
    aqua/aqua
    chemistry/chemistry
    finance/finance
