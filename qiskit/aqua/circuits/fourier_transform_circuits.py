@@ -105,10 +105,10 @@ class FourierTransformCircuits:
                         circuit.u1(lam, j + (k + 1)).c_if(circuit.cregs[j], 1)
                 return circuit
             else:
-                qubit_range = range(len(qubits) - 1, -1, -1)
-                for i in qubit_range:
+                inv_qubit_range = range(len(qubits) - 1, -1, -1)
+                for i in inv_qubit_range:
                     circuit.add_register(ClassicalRegister(1))
-                for j in qubit_range:
+                for j in inv_qubit_range:
                     neighbor_range = range(j - 1, -1, -1)
                     circuit.h(j)
                     circuit.measure(j, j)
