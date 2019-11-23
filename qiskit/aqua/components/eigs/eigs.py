@@ -83,5 +83,7 @@ class Eigenvalues(Pluggable):
             raise NotImplementedError('The matrix mode is not supported.')
         if circuit is None:
             raise ValueError('Circuit was not constructed beforehand.')
+        # TODO: need to check if circuit is empty, now, it enforce to put a barrier in evolution
+        # instruction
         self._inverse = circuit.inverse()
         return self._inverse

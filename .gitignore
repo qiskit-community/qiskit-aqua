@@ -131,3 +131,6 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# stestr repostiory
+.stestr/

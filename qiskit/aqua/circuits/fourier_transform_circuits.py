@@ -16,8 +16,8 @@ Quantum Fourier Transform Circuit.
 """
 
 import numpy as np
-
-from qiskit.circuit import QuantumRegister, QuantumCircuit, Qubit  # pylint: disable=unused-import
+# pylint: disable=unused-import
+from qiskit.circuit import (ClassicalRegister, QuantumRegister, QuantumCircuit, Qubit)
 
 from qiskit.aqua import AquaError
 
@@ -52,10 +52,11 @@ class FourierTransformCircuits:
                 the circuit with.
             approximation_degree (int): degree of approximation for the desired circuit
             inverse (bool): Boolean flag to indicate Inverse Quantum Fourier Transform
-            precedes_measurement (bool): Boolean flag to indicate circuit directly precedes measurement.
-                Semiclassical Fourier Transform is applied, reducing noise effects by replacing quantum
-                control gates with measurement and classical control. Subsequent measurement circuit
-                can be removed, as it is included herein (as well as creation of classical reg for meas.).
+            precedes_measurement (bool): Boolean flag to indicate circuit directly precedes
+                measurement. Semiclassical Fourier Transform is applied, reducing noise
+                effects by replacing quantum control gates with measurement and classical
+                control. Subsequent measurement circuit can be removed, as it is included
+                herein (as well as creation of classical reg for meas.).
             do_swaps (bool): Boolean flag to specify if swaps should be included to align
                 the qubit order of
                 input and output. The output qubits would be in reversed order without the swaps.

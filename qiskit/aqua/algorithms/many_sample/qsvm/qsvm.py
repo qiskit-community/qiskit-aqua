@@ -21,6 +21,8 @@ import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
+from qiskit.circuit import ParameterVector
+
 from qiskit.aqua import aqua_globals
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
@@ -148,7 +150,7 @@ class QSVM(QuantumAlgorithm):
         Psi(x2)^dagger Psi(x1)|0>.
         """
         x1, x2 = x
-        if x1.shape[0] != x2.shape[0]:
+        if len(x1) != len(x2):
             raise ValueError("x1 and x2 must be the same dimension.")
 
         q = QuantumRegister(feature_map.num_qubits, 'q')
@@ -218,6 +220,8 @@ class QSVM(QuantumAlgorithm):
             numpy.ndarray: 2-D matrix, N1xN2
         """
 
+        use_parameterized_circuits = feature_map.support_parameterized_circuit
+
         if x2_vec is None:
             is_symmetric = True
             x2_vec = x1_vec
@@ -244,18 +248,29 @@ class QSVM(QuantumAlgorithm):
             else:
                 to_be_computed_data = np.concatenate((x1_vec, x2_vec))
 
-            #  the second x is redundant
-            to_be_computed_data_pair = [(x, x) for x in to_be_computed_data]
+            if use_parameterized_circuits:
+                # build parameterized circuits, it could be slower for building circuit
+                # but overall it should be faster since it only transpile one circuit
+                feature_map_params = ParameterVector('x', feature_map.feature_dimension)
+                parameterized_circuit = QSVM._construct_circuit(
+                    (feature_map_params, feature_map_params), feature_map, measurement,
+                    is_statevector_sim=is_statevector_sim)
+                parameterized_circuit = quantum_instance.transpile(parameterized_circuit)[0]
+                circuits = [parameterized_circuit.bind_parameters({feature_map_params: x})
+                            for x in to_be_computed_data]
+            else:
+                #  the second x is redundant
+                to_be_computed_data_pair = [(x, x) for x in to_be_computed_data]
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug("Building circuits:")
+                    TextProgressBar(sys.stderr)
+                circuits = parallel_map(QSVM._construct_circuit,
+                                        to_be_computed_data_pair,
+                                        task_args=(feature_map, measurement, is_statevector_sim),
+                                        num_processes=aqua_globals.num_processes)
 
-            if logger.isEnabledFor(logging.DEBUG):
-                logger.debug("Building circuits:")
-                TextProgressBar(sys.stderr)
-            circuits = parallel_map(QSVM._construct_circuit,
-                                    to_be_computed_data_pair,
-                                    task_args=(feature_map, measurement, is_statevector_sim),
-                                    num_processes=aqua_globals.num_processes)
-
-            results = quantum_instance.execute(circuits)
+            results = quantum_instance.execute(circuits,
+                                               had_transpiled=use_parameterized_circuits)
 
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug("Calculating overlap:")
@@ -284,15 +299,29 @@ class QSVM(QuantumAlgorithm):
                         to_be_computed_data_pair.append((x1, x2))
                         to_be_computed_index.append((i, j))
 
-                if logger.isEnabledFor(logging.DEBUG):
-                    logger.debug("Building circuits:")
-                    TextProgressBar(sys.stderr)
-                circuits = parallel_map(QSVM._construct_circuit,
-                                        to_be_computed_data_pair,
-                                        task_args=(feature_map, measurement),
-                                        num_processes=aqua_globals.num_processes)
+                if use_parameterized_circuits:
+                    # build parameterized circuits, it could be slower for building circuit
+                    # but overall it should be faster since it only transpile one circuit
+                    feature_map_params_x = ParameterVector('x', feature_map.feature_dimension)
+                    feature_map_params_y = ParameterVector('y', feature_map.feature_dimension)
+                    parameterized_circuit = QSVM._construct_circuit(
+                        (feature_map_params_x, feature_map_params_y), feature_map, measurement,
+                        is_statevector_sim=is_statevector_sim)
+                    parameterized_circuit = quantum_instance.transpile(parameterized_circuit)[0]
+                    circuits = [parameterized_circuit.bind_parameters({feature_map_params_x: x,
+                                                                       feature_map_params_y: y})
+                                for x, y in to_be_computed_data_pair]
+                else:
+                    if logger.isEnabledFor(logging.DEBUG):
+                        logger.debug("Building circuits:")
+                        TextProgressBar(sys.stderr)
+                    circuits = parallel_map(QSVM._construct_circuit,
+                                            to_be_computed_data_pair,
+                                            task_args=(feature_map, measurement),
+                                            num_processes=aqua_globals.num_processes)
 
-                results = quantum_instance.execute(circuits)
+                results = quantum_instance.execute(circuits,
+                                                   had_transpiled=use_parameterized_circuits)
 
                 if logger.isEnabledFor(logging.DEBUG):
                     logger.debug("Calculating overlap:")

@@ -58,6 +58,7 @@ def _get_pluggables_types_dict():
     Gets all the pluggables types
     Any new pluggable type should be added here
     """
+    # pylint: disable=import-outside-toplevel
     from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
     from qiskit.aqua.components.uncertainty_models import UnivariateDistribution
     from qiskit.aqua.components.uncertainty_models import MultivariateDistribution
@@ -145,8 +146,14 @@ def refresh_pluggables():
     _REGISTRY_PLUGGABLE.set_discovered()
     directory = os.path.dirname(__file__)
     _discover_local_pluggables(directory)
+    _discover_local_pluggables(os.path.abspath(os.path.join(directory, '..', 'ml')),
+                               'qiskit.ml')
     _discover_local_pluggables(os.path.abspath(os.path.join(directory, '..', 'chemistry')),
                                'qiskit.chemistry')
+    _discover_local_pluggables(os.path.abspath(os.path.join(directory, '..', 'finance')),
+                               'qiskit.finance')
+    _discover_local_pluggables(os.path.abspath(os.path.join(directory, '..', 'optimization')),
+                               'qiskit.optimization')
     _discover_entry_pt_pluggables()
     if logger.isEnabledFor(logging.DEBUG):
         for ptype in local_pluggables_types():
@@ -162,8 +169,14 @@ def _discover_on_demand():
         _REGISTRY_PLUGGABLE.set_discovered()
         directory = os.path.dirname(__file__)
         _discover_local_pluggables(directory)
+        _discover_local_pluggables(os.path.abspath(os.path.join(directory, '..', 'ml')),
+                                   'qiskit.ml')
         _discover_local_pluggables(os.path.abspath(os.path.join(directory, '..', 'chemistry')),
                                    'qiskit.chemistry')
+        _discover_local_pluggables(os.path.abspath(os.path.join(directory, '..', 'finance')),
+                                   'qiskit.finance')
+        _discover_local_pluggables(os.path.abspath(os.path.join(directory, '..', 'optimization')),
+                                   'qiskit.optimization')
         _discover_entry_pt_pluggables()
         if logger.isEnabledFor(logging.DEBUG):
             for ptype in local_pluggables_types():

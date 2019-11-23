@@ -210,32 +210,32 @@ class MatrixOperator(BaseOperator):
 
     # pylint: disable=arguments-differ
     def construct_evaluation_circuit(self, wave_function, statevector_mode=True,
-                                     use_simulator_operator_mode=None, circuit_name_prefix=''):
+                                     use_simulator_snapshot_mode=None, circuit_name_prefix=''):
         """
         Construct the circuits for evaluation.
 
         Args:
             wave_function (QuantumCircuit): the quantum circuit.
             statevector_mode (bool): mode
-            use_simulator_operator_mode (bool): uses simulator operator mode
+            use_simulator_snapshot_mode (bool): uses simulator operator mode
             circuit_name_prefix (str, optional): a prefix of circuit name
 
         Returns:
             list[QuantumCircuit]: the circuits for computing the expectation of the operator over
                               the wavefunction evaluation.
         """
-        del use_simulator_operator_mode  # unused
+        del use_simulator_snapshot_mode  # unused
         return [wave_function.copy(name=circuit_name_prefix + 'psi')]
 
     def evaluate_with_result(self, result, statevector_mode=True,
-                             use_simulator_operator_mode=None, circuit_name_prefix=''):
+                             use_simulator_snapshot_mode=None, circuit_name_prefix=''):
         """
         Use the executed result with operator to get the evaluated value.
 
         Args:
             result (qiskit.Result): the result from the backend
             statevector_mode (bool): mode
-            use_simulator_operator_mode (bool): uses simulator operator mode
+            use_simulator_snapshot_mode (bool): uses simulator operator mode
             circuit_name_prefix (str, optional): a prefix of circuit name
 
         Returns:
@@ -247,7 +247,7 @@ class MatrixOperator(BaseOperator):
         if self.is_empty():
             raise AquaError("Operator is empty, check the operator.")
 
-        del use_simulator_operator_mode  # unused
+        del use_simulator_snapshot_mode  # unused
         avg, std_dev = 0.0, 0.0
         quantum_state = np.asarray(result.get_statevector(circuit_name_prefix + 'psi'))
         avg = np.vdot(quantum_state, self._matrix.dot(quantum_state))
@@ -320,7 +320,7 @@ class MatrixOperator(BaseOperator):
         Args:
             state_in (Union(list,numpy.array)): A vector representing the initial state
                                             for the evolution
-            evo_time (int): The evolution time
+            evo_time (Union(complex, float)): The evolution time
             num_time_slices (int): The number of time slices for the expansion
             expansion_mode (str): The mode under which the expansion is to be done.
                 Currently support 'trotter', which follows the expansion as discussed in
@@ -335,6 +335,7 @@ class MatrixOperator(BaseOperator):
             ValueError: Invalid arguments
             AquaError: if Operator is empty
         """
+        # pylint: disable=import-outside-toplevel
         from .op_converter import to_weighted_pauli_operator
 
         if self.is_empty():

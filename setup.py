@@ -22,11 +22,11 @@ long_description = """<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Aqua
  Researchers can experiment with Aqua algorithms, on near-term quantum devices and simulators,
  and can also get involved by contributing new algorithms and algorithm-supporting objects,
  such as optimizers and variational forms. Qiskit Aqua is used by Qiskit Aqua Chemistry,
- Qiskit Aqua Artificial Intelligence, and Qiskit Aqua Optimization to experiment with real-world applications to quantum computing."""
+ Qiskit Aqua Machine Learning, and Qiskit Aqua Optimization to experiment with real-world applications to quantum computing."""
 
 requirements = [
-    "qiskit-terra>=0.10.0,<0.11.0",
-    "qiskit-ignis>=0.3.0,<0.4.0",
+    "qiskit-terra>=0.11.0",
+    "qiskit-ignis>=0.2.0",
     "scipy>=1.0",
     "sympy>=1.3",
     "numpy>=1.13",

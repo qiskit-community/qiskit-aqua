@@ -14,13 +14,13 @@
 .PHONY: lint style test spell
 
 lint:
-	pylint -rn --ignore=gauopen qiskit/aqua qiskit/chemistry test
+	pylint -rn --ignore=gauopen qiskit/ml qiskit/aqua qiskit/chemistry qiskit/finance qiskit/optimization test
 
 style:
-	pycodestyle --max-line-length=100 --exclude=gauopen qiskit/aqua qiskit/chemistry test
+	pycodestyle --max-line-length=100 --exclude=gauopen qiskit/ml qiskit/aqua qiskit/chemistry qiskit/finance qiskit/optimization test
 
 test:
-	python -m unittest discover -v test
+	stestr run
 
 spell:
-	pylint -rn --disable=all --enable=spelling --spelling-dict=en_US --spelling-private-dict-file=.pylintdict --ignore=gauopen qiskit/aqua qiskit/chemistry test
+	pylint -rn --disable=all --enable=spelling --spelling-dict=en_US --spelling-private-dict-file=.pylintdict --ignore=gauopen qiskit/ml qiskit/aqua qiskit/chemistry qiskit/finance qiskit/optimization test
