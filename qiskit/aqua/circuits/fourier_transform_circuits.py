@@ -114,7 +114,7 @@ class FourierTransformCircuits:
                     circuit.measure(j, j)
                     for qubit in neighbor_range:
                         k = j - qubit
-                        lam = -math.pi / float(2 ** (k))
+                        lam = - np.pi / float(2 ** (k))
                         circuit.u1(lam, qubit).c_if(circuit.cregs[j], 1)
                 return circuit
 
