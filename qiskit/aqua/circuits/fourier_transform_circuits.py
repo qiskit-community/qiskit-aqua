@@ -92,16 +92,30 @@ class FourierTransformCircuits:
 
         qubit_range = reversed(range(len(qubits))) if inverse else range(len(qubits))
 
-        if precedes_measurement and not do_swaps and not inverse and approximation_degree == 0:
-            for j in qubit_range:
-                circuit.add_register(ClassicalRegister(1))
-                neighbor_range = range(np.max([0, j - len(qubits) + 1]), len(qubits) - j - 1)
-                circuit.h(j)
-                circuit.measure(j, j)
-                for k in neighbor_range:
-                    lam = 1.0 * np.pi / float(2 ** (k + 1))
-                    circuit.u1(lam, j + (k + 1)).c_if(circuit.cregs[j], 1)
-            return circuit
+        if precedes_measurement and not do_swaps and approximation_degree == 0:
+            if not inverse:
+                for j in qubit_range:
+                    circuit.add_register(ClassicalRegister(1))
+                    neighbor_range = range(np.max([0, j - len(qubits) + 1]), len(qubits) - j - 1)
+                    circuit.h(j)
+                    circuit.measure(j, j)
+                    for k in neighbor_range:
+                        lam = 1.0 * np.pi / float(2 ** (k + 1))
+                        circuit.u1(lam, j + (k + 1)).c_if(circuit.cregs[j], 1)
+                return circuit
+            else:
+                qubit_range = range(len(qubits) - 1, -1, -1)
+                for i in qubit_range:
+                    circuit.add_register(ClassicalRegister(1))
+                for j in qubit_range:
+                    neighbor_range = range(j - 1, -1, -1)
+                    circuit.h(j)
+                    circuit.measure(j, j)
+                    for qubit in neighbor_range:
+                        k = j - qubit
+                        lam = -math.pi / float(2 ** (k))
+                        circuit.u1(lam, qubit).c_if(circuit.cregs[j], 1)
+                return circuit
 
         for j in qubit_range:
             neighbor_range = range(np.max([0, j - len(qubits) + approximation_degree + 1]), j)
