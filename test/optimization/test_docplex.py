@@ -15,7 +15,7 @@
 """ Test Docplex """
 
 from math import fsum, isclose
-from test.aqua.common import QiskitAquaTestCase
+from test.optimization.common import QiskitOptimizationTestCase
 
 import networkx as nx
 import numpy as np
@@ -129,7 +129,7 @@ QUBIT_OP_TSP = WeightedPauliOperator(
 OFFSET_TSP = 600297.0
 
 
-class TestDocplex(QiskitAquaTestCase):
+class TestDocplex(QiskitOptimizationTestCase):
     """Cplex Ising tests."""
 
     def setUp(self):

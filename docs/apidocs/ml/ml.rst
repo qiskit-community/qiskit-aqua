@@ -1,13 +1,13 @@
-.. _qiskit-ai:
+.. _qiskit-ml:
 
 **********
-qiskit.ai
+qiskit.ml
 **********
 
-.. currentmodule:: qiskit.ai
+.. currentmodule:: qiskit.ml
 
 
-.. automodapi:: qiskit.ai
+.. automodapi:: qiskit.ml
   :no-heading:
   :no-inheritance-diagram:
   :inherited-members:

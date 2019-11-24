@@ -51,7 +51,7 @@ class FeatureMap(Pluggable):
 
         Args:
             x (numpy.ndarray[float]): 1-D array, data
-            qr (QauntumRegister): the QuantumRegister object for the circuit, if None,
+            qr (QuantumRegister): the QuantumRegister object for the circuit, if None,
                                   generate new registers with name q.
             inverse (bool): whether or not inverse the circuit
 

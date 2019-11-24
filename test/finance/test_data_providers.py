@@ -15,7 +15,7 @@
 """ Test Data Providers """
 
 import datetime
-from test.aqua.common import QiskitAquaTestCase
+from test.finance.common import QiskitFinanceTestCase
 import warnings
 import numpy as np
 from qiskit.finance.data_providers import (RandomDataProvider,
@@ -28,7 +28,7 @@ from qiskit.finance.data_providers import (RandomDataProvider,
 
 # This can be run as python -m unittest test.test_data_providers.TestDataProviders
 
-class TestDataProviders(QiskitAquaTestCase):
+class TestDataProviders(QiskitFinanceTestCase):
     """Tests data providers for the Portfolio Optimization and Diversification."""
 
     def setUp(self):

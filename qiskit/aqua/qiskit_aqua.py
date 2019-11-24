@@ -31,7 +31,7 @@ from .utils.json_utils import convert_dict_to_json, convert_json_to_dict
 from .parser._inputparser import InputParser
 from .parser import JSONSchema
 from .quantum_instance import QuantumInstance
-from .qiskit_aqua_globals import aqua_globals
+from .aqua_globals import aqua_globals
 from .utils.backend_utils import (get_backend_from_provider,
                                   get_provider_from_backend,
                                   is_statevector_backend)
