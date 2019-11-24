@@ -76,8 +76,9 @@ class QAOAVarForm(VariationalForm):
             self._mixer_operator = mixer_operator
         self.support_parameterized_circuit = True
 
-    def construct_circuit(self, angles, q=None):
+    def construct_circuit(self, parameters, q=None):
         """ construct circuit """
+        angles = parameters
         if not len(angles) == self.num_parameters:
             raise ValueError('Incorrect number of angles: expecting {}, but {} given.'.format(
                 self.num_parameters, len(angles)
