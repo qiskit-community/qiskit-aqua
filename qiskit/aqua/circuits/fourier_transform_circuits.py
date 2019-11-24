@@ -106,7 +106,7 @@ class FourierTransformCircuits:
                 return circuit
             else:
                 inv_qubit_range = range(len(qubits) - 1, -1, -1)
-                for i in inv_qubit_range:
+                for _ in inv_qubit_range:
                     circuit.add_register(ClassicalRegister(1))
                 for j in inv_qubit_range:
                     neighbor_range = range(j - 1, -1, -1)
