@@ -11,3 +11,22 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
+"""
+Ising Models (:mod:`qiskit.finance.ising`)
+==========================================
+Ising models for finance problems
+
+.. currentmodule:: qiskit.finance.ising
+
+Ising Models
+============
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   portfolio
+   portfolio_diversification
+
+"""

@@ -12,7 +12,27 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Uncertainty Problems package """
+"""
+Uncertainty Problems (:mod:`qiskit.finance.components.uncertainty_problems`)
+============================================================================
+These are finance specific Aqua Uncertainty Problems where they inherit from
+Aqua :class:`UncertaintyProblem`. As they rely on finance specific knowledge
+and/or functions they live here rather than in Aqua.
+
+.. currentmodule:: qiskit.finance.components.uncertainty_problems
+
+Uncertainty Problems
+====================
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+    EuropeanCallDelta
+    EuropeanCallExpectedValue
+    FixedIncomeExpectedValue
+
+"""
 
 from .european_call_delta import EuropeanCallDelta
 from .european_call_expected_value import EuropeanCallExpectedValue

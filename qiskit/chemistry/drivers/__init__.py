@@ -12,8 +12,52 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Chemistry drivers packages """
+"""
+Chemistry Drivers (:mod:`qiskit.chemistry.drivers`)
+=========================================================
+Chemistry drivers take a molecule configuration as input, and run classical
+software to produce a :class:`QMolecule` containing information the
+chemistry stacks needs to produce input for a Quantum Algorithm. Such information
+includes one and two-body electronic integrals, dipole integrals, nuclear
+repulsion energy and more.
 
+.. currentmodule:: qiskit.chemistry.drivers
+
+Driver Base Class
+=================
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   BaseDriver
+
+Driver Common
+=============
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   UnitsType
+   HFMethodType
+   BasisType
+   InitialGuess
+
+Drivers
+=======
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   GaussianDriver
+   HDF5Driver
+   PSI4Driver
+   PyQuanteDriver
+   PySCFDriver
+
+"""
 from ._basedriver import BaseDriver, UnitsType, HFMethodType
 from ._discover_driver import (DRIVERS_ENTRY_POINT,
                                refresh_drivers,

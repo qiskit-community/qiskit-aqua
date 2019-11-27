@@ -95,6 +95,11 @@ instance/
 # Scrapy stuff:
 .scrapy
 
+# Sphinx documentation
+docs/_build/
+docs/api/*
+docs/stubs/*
+
 # PyBuilder
 target/
 

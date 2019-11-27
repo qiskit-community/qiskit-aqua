@@ -12,7 +12,37 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" uncertainty problems packages """
+"""
+Uncertainty Problems (:mod:`qiskit.aqua.components.uncertainty_problems`)
+=========================================================================
+Uncertainty Problems
+
+.. currentmodule:: qiskit.aqua.components.uncertainty_problems
+
+Uncertainty Problem Base Classes
+================================
+:class:`UncertaintyProblem` is the base class from which further
+base classes for univariate and multivariate problems are
+derived
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   UncertaintyProblem
+   UnivariateProblem
+   MultivariateProblem
+
+Univariate Problems
+===================
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+    UnivariatePiecewiseLinearObjective
+
+"""
 
 from .uncertainty_problem import UncertaintyProblem
 from .multivariate_problem import MultivariateProblem

@@ -12,7 +12,45 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" feature map packages """
+"""
+Feature Maps (:mod:`qiskit.aqua.components.feature_maps`)
+=========================================================
+Feature Maps...
+
+.. currentmodule:: qiskit.aqua.components.feature_maps
+
+Feature Map Base Class
+======================
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   FeatureMap
+
+Feature Maps
+============
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   PauliExpansion
+   PauliZExpansion
+   FirstOrderExpansion
+   SecondOrderExpansion
+   RawFeatureVector
+
+Feature Map Utility
+===================
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   self_product
+
+"""
 
 from .feature_map import FeatureMap
 from .data_mapping import self_product

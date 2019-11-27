@@ -11,7 +11,57 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""Algorithm discovery methods, Error and Base classes"""
+
+"""
+===============================================================
+Aqua (Algorithms for QUantum Applications) (:mod:`qiskit.aqua`)
+===============================================================
+Qiskit Aqua provides a library of quantum algorithms and components
+to build quantum applications and leverage near-term devices.
+
+.. currentmodule:: qiskit.aqua
+
+Aqua Globals
+============
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   aqua_globals
+
+Aqua Error
+==========
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   AquaError
+
+Quantum Instance
+================
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   QuantumInstance
+
+Submodules
+==========
+
+.. autosummary::
+   :toctree:
+
+   algorithms
+   components
+   circuits
+   operators
+   utils
+
+"""
+
 
 from .version import __version__
 from .aqua_error import AquaError

@@ -11,3 +11,22 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
+"""
+Finance Components (:mod:`qiskit.finance.components`)
+=====================================================
+These are finance specific Aqua components where they inherit from the
+respective Aqua component type base class. As they rely on finance specific
+knowledge and/or functions they live here rather than in Aqua.
+
+.. currentmodule:: qiskit.finance.components
+
+Submodules
+==========
+
+.. autosummary::
+   :toctree:
+
+   uncertainty_problems
+
+"""
