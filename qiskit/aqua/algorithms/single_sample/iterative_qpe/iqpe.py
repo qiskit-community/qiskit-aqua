@@ -95,7 +95,6 @@ class IQPE(QuantumAlgorithm):
                  expansion_mode='suzuki', expansion_order=2,
                  shallow_circuit_concat=False):
         """
-        Constructor.
 
         Args:
             operator (BaseOperator): the hamiltonian Operator object

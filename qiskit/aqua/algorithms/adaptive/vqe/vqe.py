@@ -84,7 +84,7 @@ class VQE(VQAlgorithm):
     def __init__(self, operator, var_form, optimizer,
                  initial_point=None, max_evals_grouped=1, aux_operators=None, callback=None,
                  auto_conversion=True):
-        """Constructor.
+        """
 
         Args:
             operator (BaseOperator): Qubit operator
@@ -94,18 +94,20 @@ class VQE(VQAlgorithm):
             max_evals_grouped (int): max number of evaluations performed simultaneously
             aux_operators (list[BaseOperator]): Auxiliary operators to be evaluated
                                                 at each eigenvalue
-            callback (Callable): a callback that can access the intermediate data
-                                 during the optimization.
+            callback (Callable): a callback that can access the intermediate
+                                 data during the optimization.
                                  Internally, four arguments are provided as follows
                                  the index of evaluation, parameters of variational form,
                                  evaluated mean, evaluated standard deviation.
-            auto_conversion (bool): an automatic conversion for operator and aux_operators into
-                                    the type which is
-                                    most suitable for the backend.
-                                    - non-aer statevector_simulator: MatrixOperator
-                                    - aer statevector_simulator: WeightedPauliOperator
-                                    - qasm simulator or real backend:
-                                        TPBGroupedWeightedPauliOperator
+            auto_conversion (bool): an automatic conversion for operator and aux_operators
+                into the type which is most suitable for the backend.
+
+                - for *non-Aer statevector simulator:*
+                  :class:`~qiskit.aqua.operators.MatrixOperator`
+                - for *Aer statevector simulator:*
+                  :class:`~qiskit.aqua.operators.WeightedPauliOperator`
+                - for *qasm simulator or real backend:*
+                  :class:`~qiskit.aqua.operators.TPBGroupedWeightedPauliOperator`
         """
         self.validate(locals())
         super().__init__(var_form=var_form,

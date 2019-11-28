@@ -66,7 +66,6 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationBase):
     def __init__(self, log_max_evals, a_factory=None, i_objective=None,
                  q_factory=None, likelihood_evals=None):
         """
-        Constructor.
 
         Args:
             log_max_evals (int): base-2-logarithm of maximal number of evaluations -

@@ -75,7 +75,6 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
     def __init__(self, num_eval_qubits, a_factory=None,
                  i_objective=None, q_factory=None, iqft=None):
         """
-        Constructor.
 
         Args:
             num_eval_qubits (int): number of evaluation qubits

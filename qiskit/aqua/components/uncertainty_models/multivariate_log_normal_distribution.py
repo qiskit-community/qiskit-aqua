@@ -75,8 +75,6 @@ class MultivariateLogNormalDistribution(MultivariateDistribution):
     # pylint: disable=invalid-name
     def __init__(self, num_qubits, low=None, high=None, mu=None, cov=None):
         """
-        Constructor.
-
         Circuit Factory to build a circuit that represents a multivariate log-normal distribution.
 
         Args:
