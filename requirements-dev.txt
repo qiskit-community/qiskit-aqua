@@ -10,5 +10,6 @@ sphinx-rtd-theme>=0.4.0
 sphinx-tabs>=1.1.11
 sphinx-autodoc-typehints
 jupyter-sphinx
+reno>=2.11.0
 matplotlib>=2.1
 stestr>=2.5.0
