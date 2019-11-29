@@ -597,8 +597,8 @@ class VQC(VQAlgorithm):
                 predicted_probs = batch_probs
                 predicted_labels = batch_labels
             else:
-                np.concatenate((predicted_probs, batch_probs))
-                np.concatenate((predicted_labels, batch_labels))
+                predicted_probs = np.concatenate((predicted_probs, batch_probs))
+                predicted_labels = np.concatenate((predicted_labels, batch_labels))
         self._ret['predicted_probs'] = predicted_probs
         self._ret['predicted_labels'] = predicted_labels
         return predicted_probs, predicted_labels
