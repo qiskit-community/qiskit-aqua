@@ -14,6 +14,7 @@ ancilla
 ancillae
 ancillas
 ansatz
+ansatzes
 anticommute
 ao
 ap
@@ -24,6 +25,7 @@ args
 asmatrix
 ast
 atol
+autosummary
 autorecovery
 babbush
 backend
@@ -78,6 +80,7 @@ crs
 crx
 csr
 ctls
+currentmodule
 cvs
 cx
 cx's
@@ -101,6 +104,7 @@ devsglobals
 diagonalize
 diagonalizing
 dict
+dicts
 diederik
 dimacs
 dimens
@@ -176,6 +180,7 @@ hartree
 hb
 hhl
 hk
+https
 iadd
 idx
 ign
@@ -195,6 +200,7 @@ ints
 ip
 iprint
 iqft
+iqfts
 iqpe
 ising
 isinstance
@@ -284,6 +290,7 @@ nn
 noint
 noqa
 norbs
+nosignatures
 np
 num
 numpy
@@ -298,6 +305,7 @@ onwards
 optim
 optimizer's
 optimizers
+org
 parametrized
 params
 parentname
@@ -337,6 +345,7 @@ qbit
 qc
 qeom
 qft
+qfts
 qgan
 qiskit
 qith
@@ -384,6 +393,7 @@ satyen
 savefile
 sca
 scf
+scikit
 schemas
 scipy
 sdg
@@ -395,6 +405,7 @@ shor
 shor's
 sigmoid
 sj
+sklearn
 slsqp
 spsa
 sqrt
@@ -431,6 +442,7 @@ tiajb
 tibja
 timestamp
 tnc
+toctree
 toffoli
 tol
 tomo
@@ -457,6 +469,7 @@ unroller
 unsetting
 unshifting
 untapered
+utils
 validator
 vals
 variational

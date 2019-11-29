@@ -452,7 +452,8 @@ class QGAN(QuantumAlgorithm):
 
         Returns:
             dict: with generator(discriminator) parameters & loss, relative entropy
-
+        Raises:
+            AquaError: invalid backend
         """
         if self._quantum_instance.backend_name == ('unitary_simulator' or 'clifford_simulator'):
             raise AquaError(

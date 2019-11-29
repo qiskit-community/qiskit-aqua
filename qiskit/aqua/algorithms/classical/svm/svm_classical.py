@@ -79,7 +79,6 @@ class SVM_Classical(QuantumAlgorithm):
             AquaError: If using binary classifier where num classes >= 3
         """
 
-
         self.validate(locals())
         super().__init__()
         if training_dataset is None:
