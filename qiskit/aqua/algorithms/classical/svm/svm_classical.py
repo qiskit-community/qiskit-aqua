@@ -62,6 +62,7 @@ class SVM_Classical(QuantumAlgorithm):
 
     def __init__(self, training_dataset, test_dataset=None, datapoints=None,
                  gamma=None, multiclass_extension=None):
+        # pylint: disable=line-too-long
         """
 
         Args:
@@ -69,9 +70,9 @@ class SVM_Classical(QuantumAlgorithm):
             test_dataset (dict, optional): testing dataset.
             datapoints (numpy.ndarray, optional): prediction dataset.
             gamma (int, optional): Used as input for sklearn rbf_kernel internally. See
-                `sklearn.metrics.pairwise.rbf_kernel <https://scikit-learn.org/stable/modules\
-                /generated/sklearn.metrics.pairwise.rbf_kernel.html>`_ for more information
-                about gamma.
+                `sklearn.metrics.pairwise.rbf_kernel
+                <https://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.rbf_kernel.html>`_
+                for more information about gamma.
             multiclass_extension (MultiExtension, optional): if number of classes > 2 then
                 a multiclass scheme is needed.
 

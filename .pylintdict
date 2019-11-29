@@ -146,6 +146,7 @@ excitations
 expr
 factr
 fermionic
+FermionicOperator
 fermions
 fileio
 filepath
