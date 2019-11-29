@@ -7,7 +7,8 @@ pylint>=2.4.3
 pylintfileheader>=0.0.2
 Sphinx>=1.8.3
 sphinx-rtd-theme>=0.4.0
-sphinx-tabs>=1.1.11 
-sphinx-automodapi
+sphinx-tabs>=1.1.11
+sphinx-autodoc-typehints
+jupyter-sphinx
 matplotlib>=2.1
 stestr>=2.5.0
