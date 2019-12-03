@@ -524,7 +524,11 @@ class ESOP(BooleanLogicNormalForm):
         if self._depth == 0:
             self._construct_circuit_for_tiny_expr(circuit, output_idx=output_idx)
         elif self._depth == 1:
-            build_clause(self._ast)
+            if self._ast[0] == 'xor':
+                for cur_clause_expr in self._ast[1:]:
+                    build_clause(cur_clause_expr)
+            else:
+                build_clause(self._ast)
         elif self._depth == 2:
             if not self._ast[0] == 'xor':
                 raise AquaError('Unexpected root logical '

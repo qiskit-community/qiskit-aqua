@@ -147,7 +147,7 @@ class PauliExpansion(FeatureMap):
 
         Args:
             x (Union(numpy.ndarray, list[Parameter], ParameterVector)): 1-D to-be-transformed data.
-            qr (QauntumRegister, optional): the QuantumRegister object for the circuit, if None,
+            qr (QuantumRegister, optional): the QuantumRegister object for the circuit, if None,
                                   generate new registers with name q.
             inverse (bool, optional): whether or not inverse the circuit
 
