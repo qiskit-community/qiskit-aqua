@@ -46,6 +46,25 @@ Driver Common
 
 Drivers
 =======
+Qiskit Chemistry drivers obtain their information from classical ab-initio programs
+or libraries. Several drivers, interfacing to common programs and libraries, are
+available. To use the driver its dependent program/library must be installed. See
+the relevant installation instructions below for your program/library that you intend
+to use.
+
+Note: `PySCF` is automatically installed for `macOS` and `Linux` platforms when Qiskit
+is installed. For other platforms again consult the relevant installation instructions below.
+
+.. toctree::
+   :maxdepth: 1
+
+   qiskit.chemistry.drivers.gaussiand
+   qiskit.chemistry.drivers.psi4d
+   qiskit.chemistry.drivers.pyscfd
+   qiskit.chemistry.drivers.pyquanted
+
+The :class:`HDF5Driver` reads and writes molecular data from a file and is not dependent
+on any external chemistry program/library and needs no special install.
 
 .. autosummary::
    :toctree: ../stubs/
