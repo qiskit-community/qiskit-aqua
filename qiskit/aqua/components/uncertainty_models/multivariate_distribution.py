@@ -34,7 +34,7 @@ class MultivariateDistribution(UncertaintyModel, ABC):
     def get_section_key_name(cls):
         return Pluggable.SECTION_KEY_MULTIVARIATE_DIST
 
-    def __init__(self, num_qubits, probabilities=None, low=[], high=[]):
+    def __init__(self, num_qubits, probabilities=None, low=None, high=None):
         """
         Constructor.
 
