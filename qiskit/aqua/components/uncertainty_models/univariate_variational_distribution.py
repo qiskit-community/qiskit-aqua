@@ -71,8 +71,7 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
         self._num_qubits = num_qubits
         self._var_form = var_form
         self.params = params
-        probabilities = list(np.zeros(2**num_qubits))
-        super().__init__(num_qubits, probabilities, low, high)
+        super().__init__(num_qubits, low=low, high=high)
 
     @classmethod
     def init_params(cls, params):
