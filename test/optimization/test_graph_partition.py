@@ -14,7 +14,7 @@
 
 """ Test Graph Partition """
 
-from test.aqua.common import QiskitAquaTestCase
+from test.optimization.common import QiskitOptimizationTestCase
 import warnings
 import numpy as np
 from qiskit import BasicAer
@@ -27,7 +27,7 @@ from qiskit.aqua.components.variational_forms import RY
 from qiskit.aqua.components.optimizers import SPSA
 
 
-class TestGraphPartition(QiskitAquaTestCase):
+class TestGraphPartition(QiskitOptimizationTestCase):
     """Cplex Ising tests."""
 
     def setUp(self):
