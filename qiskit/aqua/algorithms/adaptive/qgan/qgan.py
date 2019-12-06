@@ -16,7 +16,6 @@
 Quantum Generative Adversarial Network.
 """
 
-from copy import deepcopy
 import csv
 import os
 import logging
