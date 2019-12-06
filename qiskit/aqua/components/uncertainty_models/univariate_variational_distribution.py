@@ -71,7 +71,13 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
         self._num_qubits = num_qubits
         self._var_form = var_form
         self.params = params
-        super().__init__(num_qubits, low=low, high=high)
+        if isinstance(num_qubits, int):
+            probabilities = np.zeros(2 ** num_qubits)
+        elif isinstance(num_qubits, float):
+            probabilities = np.zeros(2 ** int(num_qubits))
+        else:
+            probabilities = np.zeros(2 ** sum(num_qubits))
+        super().__init__(num_qubits, probabilities, low, high)
 
     @classmethod
     def init_params(cls, params):

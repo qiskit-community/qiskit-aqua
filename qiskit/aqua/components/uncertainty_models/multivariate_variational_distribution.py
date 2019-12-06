@@ -84,7 +84,8 @@ class MultivariateVariationalDistribution(MultivariateDistribution):
         self._num_qubits = num_qubits
         self._var_form = var_form
         self.params = params
-        super().__init__(num_qubits, low=low, high=high)
+        probabilities = np.zeros(2 ** sum(num_qubits))
+        super().__init__(num_qubits, probabilities, low, high)
         self._var_form = var_form
         self.params = params
 
