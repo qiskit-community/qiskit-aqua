@@ -68,6 +68,8 @@ coeffs
 commutativities
 comparator
 comparators
+conda
+conf
 config
 coord
 coords
@@ -143,6 +145,7 @@ evals
 excitations
 expr
 factr
+fcompiler
 fermionic
 FermionicOperator
 fermions
@@ -159,10 +162,13 @@ func
 gambetta
 gauopen
 gaussian
+gaussiand
+gcc
 gcd
 geq
 getattr
 getter
+gfortran
 globals
 graycode
 gridpoints
@@ -182,6 +188,8 @@ hk
 https
 iadd
 idx
+ifdef
+ifortvars
 ign
 ij
 ijkm
@@ -195,6 +203,7 @@ initializer
 innerproduct
 inreg
 instantiations
+intelvem
 ints
 ip
 iprint
@@ -237,6 +246,7 @@ lst
 majorana
 matrixoperator
 maxcut
+maxdepth
 maxfev
 maxfun
 maxima
@@ -285,6 +295,7 @@ nevals
 nfev
 nk
 nlopt
+nkopts
 nn
 noint
 noqa
@@ -300,6 +311,7 @@ objval
 oe
 ok
 oneee
+online
 onwards
 optim
 optimizer's
@@ -325,6 +337,7 @@ polynomially
 postoracle
 powell
 pre
+prebuilt
 precomputed
 preoracle
 prepend
@@ -334,7 +347,9 @@ proj
 px
 py
 pyquante
+pyquanted
 pyscf
+pyscfd
 pytorch
 qae
 qancilla
@@ -342,6 +357,7 @@ qargs
 qasm
 qbit
 qc
+qcmatrixio
 qeom
 qft
 qfts
@@ -420,6 +436,7 @@ subdirectories
 subgraph
 subpattern
 subspaces
+sudo
 superclass
 suzuki
 svm
@@ -429,6 +446,7 @@ symm
 symmetrized
 sympy
 sys
+sysctl
 tbd
 tdg
 temme
@@ -456,6 +474,7 @@ trunc
 ub
 uccsd
 uhf
+ulimit
 unary
 uncompiled
 uncompute
@@ -468,6 +487,8 @@ unroller
 unsetting
 unshifting
 untapered
+username
+usr
 utils
 validator
 vals
