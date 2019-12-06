@@ -158,11 +158,11 @@ The following steps can be used with the Intel Fortran compiler on the Microsoft
 
    .. code::
 
-       #ifdef USE_I8
+       `#ifdef` USE_I8
            Parameter (Len12D=8,Len4D=8)
-       #else
+       `#else`
            Parameter (Len12D=4,Len4D=4)
-       #endif
+       `#endif`
 
    This may need to be simplified by deleting the first three lines and the last line,
    leaving just the fourth line, as follows:

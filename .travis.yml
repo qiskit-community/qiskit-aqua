@@ -159,8 +159,6 @@ before_install:
       # Install local PyQuante
       pip install -e /tmp/pyquante2-master --progress-bar off
     fi
-  # install seaborn for now until Terra makes it optional
-  - pip install seaborn
   # install spell check libraries
   - sudo apt-get -y install python3-enchant
   - sudo apt-get -y install hunspell-en-us
