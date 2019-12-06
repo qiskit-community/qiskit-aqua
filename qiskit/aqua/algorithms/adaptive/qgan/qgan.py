@@ -16,7 +16,6 @@
 Quantum Generative Adversarial Network.
 """
 
-from copy import deepcopy
 import csv
 import os
 import logging
@@ -29,6 +28,7 @@ from qiskit.aqua import Pluggable, get_pluggable_class, PluggableType
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.components.neural_networks.quantum_generator import QuantumGenerator
 from qiskit.aqua.components.neural_networks.numpy_discriminator import NumpyDiscriminator
+from qiskit.aqua.utils.dataset_helper import discretize_and_truncate
 
 logger = logging.getLogger(__name__)
 
@@ -145,15 +145,13 @@ class QGAN(QuantumAlgorithm):
         if np.ndim(data) > 1:
             if self._num_qubits is None:
                 self._num_qubits = np.ones[len(data[0])]*3
-            self._prob_data = \
-                np.zeros(int(np.prod(np.power(np.ones(len(self._data[0]))*2, self._num_qubits))))
         else:
             if self._num_qubits is None:
                 self._num_qubits = np.array([3])
-            self._prob_data = np.zeros(int(np.prod(np.power(np.array([2]), self._num_qubits))))
-        self._data_grid = []
-        self._grid_elements = None
-        self._prepare_data()
+        self._data, self._data_grid, self._grid_elements, self._prob_data = \
+            discretize_and_truncate(self._data, self._bounds, self._num_qubits,
+                                    return_data_grid_elements=True,
+                                    return_prob=True, prob_non_zero=True)
         self._batch_size = batch_size
         self._num_epochs = num_epochs
         self._snapshot_dir = snapshot_dir
@@ -305,77 +303,13 @@ class QGAN(QuantumAlgorithm):
         """ returns relative entropy """
         return self._rel_entr
 
-    def _prepare_data(self):
-        """
-        Discretize and truncate the input data such that it
-        is compatible wih the chosen data resolution.
-        """
-        # Truncate the data
-        if np.ndim(self._bounds) == 1:
-            bounds = np.reshape(self._bounds, (1, len(self._bounds)))
-        else:
-            bounds = self._bounds
-        self._data = self._data.reshape((len(self._data), len(self._num_qubits)))
-        temp = []
-        for i, data_sample in enumerate(self._data):
-            append = True
-            for j, entry in enumerate(data_sample):
-                if entry < bounds[j, 0]:
-                    append = False
-                if entry > bounds[j, 1]:
-                    append = False
-            if append:
-                temp.append(list(data_sample))
-        self._data = np.array(temp)
-
-        # Fit the data to the data resolution. i.e. grid
-        for j, prec in enumerate(self._num_qubits):
-            data_row = self._data[:, j]  # dim j of all data samples
-            # prepare data grid for dim j
-            grid = np.linspace(bounds[j, 0], bounds[j, 1], (2 ** prec))
-            # find index for data sample in grid
-            index_grid = np.searchsorted(grid, data_row-(grid[1]-grid[0])*0.5)
-            for k, index in enumerate(index_grid):
-                self._data[k, j] = grid[index]
-            if j == 0:
-                if len(self._num_qubits) > 1:
-                    self._data_grid = [grid]
-                else:
-                    self._data_grid = grid
-                self._grid_elements = grid
-            elif j == 1:
-                self._data_grid.append(grid)
-                temp = []
-                for g_e in self._grid_elements:
-                    for g in grid:
-                        temp0 = [g_e]
-                        temp0.append(g)
-                        temp.append(temp0)
-                self._grid_elements = temp
-            else:
-                self._data_grid.append(grid)
-                temp = []
-                for g_e in self._grid_elements:
-                    for g in grid:
-                        temp0 = deepcopy(g_e)
-                        temp0.append(g)
-                        temp.append(temp0)
-                self._grid_elements = deepcopy(temp)
-        self._data_grid = np.array(self._data_grid)
-        self._data = np.reshape(self._data, (len(self._data), len(self._data[0])))
-        for data in self._data:
-            for i, element in enumerate(self._grid_elements):
-                if all(data == element):
-                    self._prob_data[i] += 1 / len(self._data)
-        self._prob_data = [1e-10 if x == 0 else x for x in self._prob_data]
-
     def get_rel_entr(self):
         """ get relative entropy """
         samples_gen, prob_gen = self._generator.get_output(self._quantum_instance)
         temp = np.zeros(len(self._grid_elements))
         for j, sample in enumerate(samples_gen):
             for i, element in enumerate(self._grid_elements):
-                if all(sample == element):
+                if sample == element:
                     temp[i] += prob_gen[j]
         prob_gen = temp
         prob_gen = [1e-8 if x == 0 else x for x in prob_gen]

@@ -78,7 +78,7 @@ class MultivariateUniformDistribution(MultivariateDistribution):
 
         num_values = np.prod([2**n for n in num_qubits])
         probabilities = np.ones(num_values)
-        super().__init__(num_qubits, low, high, probabilities)
+        super().__init__(num_qubits, probabilities, low, high)
 
     def build(self, qc, q, q_ancillas=None, params=None):
         if params is None or params['i_state'] is None:

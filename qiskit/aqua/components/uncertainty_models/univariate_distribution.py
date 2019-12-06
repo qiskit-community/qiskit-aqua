@@ -34,7 +34,7 @@ class UnivariateDistribution(UncertaintyModel, ABC):
     def get_section_key_name(cls):
         return Pluggable.SECTION_KEY_UNIVARIATE_DIST
 
-    def __init__(self, num_target_qubits, probabilities, low=0, high=1):
+    def __init__(self, num_target_qubits, probabilities=None, low=0, high=1):
         r"""
         Abstract univariate distribution class
 
@@ -54,8 +54,9 @@ class UnivariateDistribution(UncertaintyModel, ABC):
         self._low = low
         self._high = high
         self._values = np.linspace(low, high, self.num_values)
-        if self.num_values != len(probabilities):
-            raise AquaError('num qubits and length of probabilities vector do not match!')
+        if probabilities is not None:
+            if self.num_values != len(probabilities):
+                raise AquaError('num qubits and length of probabilities vector do not match!')
 
     @property
     def low(self):

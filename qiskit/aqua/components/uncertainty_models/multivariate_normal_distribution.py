@@ -105,7 +105,7 @@ class MultivariateNormalDistribution(MultivariateDistribution):
         self.sigma = sigma
         probs = self._compute_probabilities([], num_qubits, low, high)
         probs = np.asarray(probs) / np.sum(probs)
-        super().__init__(num_qubits, low, high, probs)
+        super().__init__(num_qubits, probs, low, high)
 
     def _compute_probabilities(self, probs, num_qubits, low, high, x=None):
 
