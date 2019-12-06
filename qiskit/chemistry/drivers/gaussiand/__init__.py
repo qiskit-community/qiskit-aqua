@@ -135,7 +135,7 @@ Microsoft Windows
 
 The following steps can be used with the Intel Fortran compiler on the Microsoft Windows platform:
 
-1. Set up the environment running the Intel Fortran compiler batch program `ifortvars.bat`
+1. Set up the environment by running the Intel Fortran compiler batch program `ifortvars.bat`
    as follows:
 
    .. code:: sh
