@@ -150,7 +150,7 @@ class QGAN(QuantumAlgorithm):
                 self._num_qubits = np.array([3])
         self._data, self._data_grid, self._grid_elements, self._prob_data = \
             discretize_and_truncate(self._data, self._bounds, self._num_qubits,
-                                    return_data_grid=True, return_data_grid_elements=True,
+                                    return_data_grid_elements=True,
                                     return_prob=True, prob_non_zero=True)
         self._batch_size = batch_size
         self._num_epochs = num_epochs
