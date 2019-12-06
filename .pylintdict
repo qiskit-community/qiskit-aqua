@@ -200,6 +200,7 @@ indices
 indvar
 init
 initializer
+initio
 innerproduct
 inreg
 instantiations
@@ -295,7 +296,7 @@ nevals
 nfev
 nk
 nlopt
-nkopts
+nlopts
 nn
 noint
 noqa
