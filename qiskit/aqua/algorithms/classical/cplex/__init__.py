@@ -27,6 +27,6 @@ to CPLEX for the algorithm to be operational.
 
     The above links are to the latest version of IBM ILOG CPLEX at the time of writing.
     Information links for other versions can be found on the above linked pages under the
-    `Change version or product` dropdown.
+    `Change version or product` drop-down list.
 
 """
