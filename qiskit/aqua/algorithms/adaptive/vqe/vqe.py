@@ -359,7 +359,7 @@ class VQE(VQAlgorithm):
         self.cleanup_parameterized_circuits()
         return self._ret
 
-    # This is the objective function to be passed to the optimizer that is uses for evaluation
+    # This is the objective function to be passed to the optimizer that is used for evaluation
     def _energy_evaluation(self, parameters):
         """
         Evaluate energy at given parameters for the variational form.
