@@ -62,6 +62,4 @@ def cry(self, theta, ctl, tgt):
     return self.append(CryGate(theta), [ctl, tgt], [])
 
 
-
-
 QuantumCircuit.cry = cry
