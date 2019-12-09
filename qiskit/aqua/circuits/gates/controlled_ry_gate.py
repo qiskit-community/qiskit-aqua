@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2017.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -13,54 +13,55 @@
 # that they have been altered from the originals.
 
 """
-Controlled-RY (cry) and Multiple-Control RY (mcry) Gates
+controlled-rz gate.
 """
-
-import logging
-
-from qiskit.circuit import QuantumCircuit, QuantumRegister, Qubit  # pylint: disable=unused-import
-
-from qiskit.aqua import AquaError
-
-logger = logging.getLogger(__name__)
+from qiskit.circuit import ControlledGate
+from qiskit.circuit import QuantumCircuit
+from qiskit.circuit import QuantumRegister
+from qiskit.extensions.standard.u1 import U3Gate
+from qiskit.extensions.standard.cx import CnotGate
+from qiskit.extensions.standard.ry import RYGate
 
 
-def cry(self, theta, q_control, q_target):
-    """
-    Apply Controlled-RY (cry) Gate.
+class CryGate(ControlledGate):
+    """controlled-ry gate."""
 
-    Args:
-        self (QuantumCircuit): The circuit to apply the cry gate on.
-        theta (float): The rotation angle.
-        q_control (Union(Qubit, int)): The control qubit.
-        q_target (Union(Qubit, int)): The target qubit.
-    Returns:
-        QuantumCircuit: instance self
-    Raises:
-        AquaError: invalid input
-    """
+    def __init__(self, theta):
+        """Create new cry gate."""
+        super().__init__("cry", 2, [theta], num_ctrl_qubits=1)
+        self.base_gate = RYGate
+        self.base_gate_name = "ry"
 
-    qubits = [q_control, q_target]
-    names = ["control", "target"]
+    def _define(self):
+        """
+        gate cry(lambda) a,b
+        { u3(lambda/2,0,0) b; cx a,b;
+          u3(-lambda/2,0,0) b; cx a,b;
+        }
 
-    for qubit, name in zip(qubits, names):
-        if isinstance(qubit, Qubit):
-            if not self.has_register(q_control.register):
-                raise AquaError('The {} qubit is expected to be part of the circuit.'.format(name))
-        elif isinstance(qubit, int):
-            if qubit >= self.n_qubits:
-                raise AquaError('Qubit index out of range.')
-        else:
-            raise AquaError('A qubit or int is expected for the {}.'.format(name))
+        """
+        definition = []
+        q = QuantumRegister(2, "q")
+        rule = [
+            (U3Gate(self.params[0] / 2, 0, 0), [q[1]], []),
+            (CnotGate(), [q[0], q[1]], []),
+            (U3Gate(-self.params[0] / 2, 0, 0), [q[1]], []),
+            (CnotGate(), [q[0], q[1]], [])
+        ]
+        for inst in rule:
+            definition.append(inst)
+        self.definition = definition
 
-    if q_control == q_target:
-        raise AquaError('The control and target need to be different qubits.')
+    def inverse(self):
+        """Invert this gate."""
+        return CryGate(-self.params[0])
 
-    self.u3(theta / 2, 0, 0, q_target)
-    self.cx(q_control, q_target)
-    self.u3(-theta / 2, 0, 0, q_target)
-    self.cx(q_control, q_target)
-    return self
+
+def cry(self, theta, ctl, tgt):
+    """Apply crz from ctl to tgt with angle theta."""
+    return self.append(CryGate(theta), [ctl, tgt], [])
+
+
 
 
 QuantumCircuit.cry = cry
