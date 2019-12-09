@@ -24,6 +24,8 @@ from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.core import Hamiltonian, QubitMappingType, TransformationType
 
+# pylint: disable=invalid-name
+
 
 class TestUCCSDHartreeFock(QiskitChemistryTestCase):
     """Test for these aqua extensions."""
@@ -32,18 +34,18 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         super().setUp()
         self.molecule = "H 0.000000 0.000000 0.735000;H 0.000000 0.000000 0.000000"
         self.driver = PySCFDriver(atom=self.molecule,
-                             unit=UnitsType.ANGSTROM,
-                             charge=0,
-                             spin=0,
-                             basis='631g')
+                                  unit=UnitsType.ANGSTROM,
+                                  charge=0,
+                                  spin=0,
+                                  basis='631g')
 
         self.qmolecule = self.driver.run()
 
         self.core = Hamiltonian(transformation=TransformationType.FULL,
-                           qubit_mapping=QubitMappingType.PARITY,
-                           two_qubit_reduction=True,
-                           freeze_core=True,
-                           orbital_reduction=[])
+                                qubit_mapping=QubitMappingType.PARITY,
+                                two_qubit_reduction=True,
+                                freeze_core=True,
+                                orbital_reduction=[])
         self.qubit_op, _ = self.core.run(self.qmolecule)
 
         self.reference_energy_pUCCD = -1.1434447924298028
@@ -138,5 +140,3 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
         _, result = self.core.process_algorithm_result(result)
         self.assertAlmostEqual(result['energy'], self.reference_energy_UCCD0full, places=6)
-
-

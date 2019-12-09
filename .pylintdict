@@ -16,6 +16,7 @@ ancillas
 ansatz
 anticommute
 ao
+AOs
 ap
 api
 appfactory
@@ -38,6 +39,7 @@ bitstr
 bitstring
 bitstrings
 bksf
+blockspin
 bohr
 bool
 boolean
@@ -138,6 +140,7 @@ et
 ev
 eval
 evals
+exc
 excitations
 expr
 factr
@@ -157,6 +160,7 @@ gambetta
 gauopen
 gaussian
 gcd
+gde
 geq
 getattr
 getter
@@ -184,6 +188,7 @@ ijkm
 ikmj
 imag
 implicants
+indice
 indices
 indvar
 init
@@ -280,6 +285,7 @@ nevals
 nfev
 nk
 nlopt
+nmo
 nn
 noint
 noqa
@@ -291,6 +297,7 @@ nxd
 nxk
 nxn
 objval
+occ
 oe
 ok
 oneee
@@ -386,6 +393,7 @@ sca
 scf
 schemas
 scipy
+sd
 sdg
 sdk
 seeley
@@ -410,6 +418,7 @@ subdirectories
 subgraph
 subpattern
 subspaces
+succ
 superclass
 suzuki
 svm
@@ -488,3 +497,7 @@ zv
 ZZ
 äguivalenzverbot
 über
+ucc
+uccd
+UCCS
+vir

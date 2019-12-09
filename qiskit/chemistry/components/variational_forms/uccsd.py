@@ -536,7 +536,7 @@ class UCCSD(VariationalForm):
                 list_exc[j] = UCCSD._interleaved_to_block_spin_single_indice(i_end_act_sp,
                                                                              list_exc[j])
 
-            # overwrite the old excitaiton
+            # overwrite the old excitation
             double_exc_op[i] = list_exc
 
             # permute the indices to Aqua convention
@@ -881,10 +881,9 @@ class UCCSD(VariationalForm):
             if ind >= half_active_space:
                 de_2_new[count] = ind % half_active_space
 
-
         # the collections bastard actually does not cop[y but modifies the thing
         # so it goes out of the scope of function
-        # I created with copy a separate object on which I operatre\
+        # I created with copy a separate object on which I operate\
 
         # first we check if 2 unordered lists are same (involve same AOs)
         if collections.Counter(de_1_new) == collections.Counter(de_2_new):
