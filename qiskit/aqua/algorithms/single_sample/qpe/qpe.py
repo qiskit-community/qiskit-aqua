@@ -102,7 +102,7 @@ class QPE(QuantumAlgorithm):
             state_in (InitialState): the InitialState pluggable component
                 representing the initial quantum state
             state_in_circuit_factory: a Circuit Factory class that could 
-                potentially use auxillary qubits
+                potentially use auxiliary qubits
             iqft (IQFT): the Inverse Quantum Fourier Transform pluggable component
             num_time_slices (int): the number of time slices
             num_ancillae (int): the number of ancillary qubits to use for the measurement
