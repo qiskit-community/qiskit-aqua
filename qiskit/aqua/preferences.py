@@ -22,7 +22,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class Preferences(object):
+class Preferences:
+    """Qiskit Aqua preferences"""
 
     _FILENAME = '.qiskit_aqua'
     _VERSION = '2.0'
@@ -46,7 +47,7 @@ class Preferences(object):
                     del self._preferences['logging_config']
                 if 'selected_ibmq_credentials_url' in self._preferences:
                     del self._preferences['selected_ibmq_credentials_url']
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             pass
 
         self._old_preferences = copy.deepcopy(self._preferences)
@@ -56,8 +57,8 @@ class Preferences(object):
         if self._ibmq_credentials_preferences is not None:
             self._ibmq_credentials_preferences.save(self._preferences)
             if self._preferences != self._old_preferences:
-                with open(self._filepath, 'w') as fp:
-                    json.dump(self._preferences, fp, sort_keys=True, indent=4)
+                with open(self._filepath, 'w') as file:
+                    json.dump(self._preferences, file, sort_keys=True, indent=4)
 
                 self._old_preferences = copy.deepcopy(self._preferences)
 
@@ -73,9 +74,10 @@ class Preferences(object):
         """Return IBMQ Credentials Preferences"""
         if self._ibmq_credentials_preferences is None:
             try:
+                # pylint: disable=import-outside-toplevel
                 from ._ibmq_credentials_preferences import IBMQCredentialsPreferences
                 self._ibmq_credentials_preferences = IBMQCredentialsPreferences(self._preferences)
-            except Exception as ex:
-                logger.debug("IBMQCredentialsPreferences not created: '{}'".format(str(ex)))
+            except Exception as ex:  # pylint: disable=broad-except
+                logger.debug("IBMQCredentialsPreferences not created: '%s'", str(ex))
 
         return self._ibmq_credentials_preferences

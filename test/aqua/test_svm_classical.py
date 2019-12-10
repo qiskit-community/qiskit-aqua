@@ -17,8 +17,11 @@
 from test.aqua.common import QiskitAquaTestCase
 import numpy as np
 from qiskit.aqua import aqua_globals
-from qiskit.aqua import run_algorithm
-from qiskit.aqua.input import ClassificationInput
+from qiskit.aqua.algorithms import SVM_Classical
+from qiskit.aqua.components.multiclass_extensions import (OneAgainstRest,
+                                                          AllPairs,
+                                                          ErrorCorrectingCode)
+from qiskit.aqua.algorithms.classical.svm import _RBF_SVC_Estimator
 
 
 class TestSVMClassical(QiskitAquaTestCase):
@@ -95,16 +98,8 @@ class TestSVMClassical(QiskitAquaTestCase):
         temp = [test_input[k] for k in sorted(test_input)]
         total_array = np.concatenate(temp)
 
-        params = {
-            'problem': {'name': 'classification'},
-            'algorithm': {
-                'name': 'SVM',
-            }
-        }
+        result = SVM_Classical(training_input, test_input, total_array).run()
 
-        algo_input = ClassificationInput(training_input, test_input, total_array)
-
-        result = run_algorithm(params, algo_input)
         self.assertEqual(result['testing_accuracy'], 1.0)
         self.assertEqual(result['predicted_classes'],
                          ['A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A',
@@ -207,17 +202,11 @@ class TestSVMClassical(QiskitAquaTestCase):
         temp = [test_input[k] for k in sorted(test_input)]
         total_array = np.concatenate(temp)
 
-        params = {
-            'problem': {'name': 'classification'},
-            'algorithm': {
-                'name': 'SVM'
-            },
-            'multiclass_extension': {'name': 'OneAgainstRest'}
-        }
+        result = SVM_Classical(training_input,
+                               test_input,
+                               total_array,
+                               multiclass_extension=OneAgainstRest(_RBF_SVC_Estimator)).run()
 
-        algo_input = ClassificationInput(training_input, test_input, total_array)
-
-        result = run_algorithm(params, algo_input)
         self.assertEqual(result['testing_accuracy'], 1.0)
         self.assertEqual(result['predicted_classes'],
                          ['A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'B',
@@ -321,18 +310,11 @@ class TestSVMClassical(QiskitAquaTestCase):
         temp = [test_input[k] for k in sorted(test_input)]
         total_array = np.concatenate(temp)
 
-        params = {
-            'problem': {'name': 'classification'},
-            'algorithm': {
-                'name': 'SVM'
-            },
-            'multiclass_extension': {'name': 'AllPairs'}
+        result = SVM_Classical(training_input,
+                               test_input,
+                               total_array,
+                               multiclass_extension=AllPairs(_RBF_SVC_Estimator)).run()
 
-        }
-
-        algo_input = ClassificationInput(training_input, test_input, total_array)
-
-        result = run_algorithm(params, algo_input)
         self.assertEqual(result['testing_accuracy'], 1.0)
         self.assertEqual(result['predicted_classes'],
                          ['A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'B',
@@ -436,17 +418,12 @@ class TestSVMClassical(QiskitAquaTestCase):
         temp = [test_input[k] for k in sorted(test_input)]
         total_array = np.concatenate(temp)
 
-        params = {
-            'problem': {'name': 'classification'},
-            'algorithm': {
-                'name': 'SVM',
-            },
-            'multiclass_extension': {'name': 'ErrorCorrectingCode', 'code_size': 5},
-        }
+        result = SVM_Classical(training_input,
+                               test_input,
+                               total_array,
+                               multiclass_extension=ErrorCorrectingCode(_RBF_SVC_Estimator,
+                                                                        code_size=5)).run()
 
-        algo_input = ClassificationInput(training_input, test_input, total_array)
-
-        result = run_algorithm(params, algo_input)
         self.assertEqual(result['testing_accuracy'], 1.0)
         self.assertEqual(result['predicted_classes'],
                          ['A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'B',

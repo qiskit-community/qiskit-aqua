@@ -12,6 +12,10 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""
+The Univariate Variational Distribution.
+"""
+
 import numpy as np
 
 from qiskit import ClassicalRegister
@@ -27,7 +31,7 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
         'name': 'UnivariateVariationalDistribution',
         'description': 'Univariate Variational Distribution',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'UnivariateVariationalDistribution_schema',
             'type': 'object',
             'properties': {
@@ -67,7 +71,12 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
         self._num_qubits = num_qubits
         self._var_form = var_form
         self.params = params
-        probabilities = list(np.zeros(2**num_qubits))
+        if isinstance(num_qubits, int):
+            probabilities = np.zeros(2 ** num_qubits)
+        elif isinstance(num_qubits, float):
+            probabilities = np.zeros(2 ** int(num_qubits))
+        else:
+            probabilities = np.zeros(2 ** sum(num_qubits))
         super().__init__(num_qubits, probabilities, low, high)
 
     @classmethod
@@ -75,23 +84,24 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
         """
         Initialize via parameters dictionary.
         Args:
-            params: parameters dictionary
+            params (dict): parameters dictionary
         Returns:
-            An object instance of this class
+            UnivariateVariationalDistribution: An object instance of this class
         """
 
-        uni_var_params_params = params.get(Pluggable.SECTION_KEY_UNIVARIATE_DISTRIBUTION)
+        uni_var_params_params = params.get(Pluggable.SECTION_KEY_UNIVARIATE_DIST)
         num_qubits = uni_var_params_params.get('num_qubits')
         params = uni_var_params_params.get('params')
         low = uni_var_params_params.get('low')
         high = uni_var_params_params.get('high')
 
         var_form_params = params.get(Pluggable.SECTION_KEY_VAR_FORM)
-        var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM, var_form_params['name']).init_params(params)
+        var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM,
+                                       var_form_params['name']).init_params(params)
 
         return cls(num_qubits, var_form, params, low, high)
 
-    def build(self, qc, q, q_ancillas=None):
+    def build(self, qc, q, q_ancillas=None, params=None):
         circuit_var_form = self._var_form.construct_circuit(self.params)
         qc.append(circuit_var_form.to_instruction(), q)
 
@@ -99,10 +109,7 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
         """
         Set Probabilities
         Args:
-            quantum_instance: QuantumInstance
-
-        Returns:
-
+            quantum_instance (QuantumInstance): Quantum instance
         """
         qc_ = self._var_form.construct_circuit(self.params)
 
@@ -113,9 +120,9 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
         if quantum_instance.is_statevector:
             pass
         else:
-            c_ = ClassicalRegister(self._num_qubits, name='c')
-            qc_.add_register(c_)
-            qc_.measure(qc_.qregs[0], c_)
+            c__ = ClassicalRegister(self._num_qubits, name='c')
+            qc_.add_register(c__)
+            qc_.measure(qc_.qregs[0], c__)
         result = quantum_instance.execute(qc_)
         if quantum_instance.is_statevector:
             result = result.get_statevector(qc_)
@@ -130,4 +137,3 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
 
         probabilities = values
         self._probabilities = np.array(probabilities)
-        return

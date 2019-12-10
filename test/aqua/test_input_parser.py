@@ -17,9 +17,9 @@
 import unittest
 import os
 import json
+import warnings
 from test.aqua.common import QiskitAquaTestCase
-from qiskit.aqua import AquaError
-from qiskit.aqua import run_algorithm
+from qiskit.aqua import AquaError, run_algorithm, aqua_globals
 from qiskit.aqua.parser._inputparser import InputParser
 
 
@@ -28,6 +28,8 @@ class TestInputParser(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
+        warnings.filterwarnings("ignore", message=aqua_globals.CONFIG_DEPRECATION_MSG,
+                                category=DeprecationWarning)
         filepath = self._get_resource_path('H2-0.735.json')
         self.parser = InputParser(filepath)
         self.parser.parse()

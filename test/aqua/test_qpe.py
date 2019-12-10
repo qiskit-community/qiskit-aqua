@@ -87,7 +87,7 @@ class TestQPE(QiskitAquaTestCase):
     def test_qpe(self, qubit_op, simulator, num_time_slices, n_ancillae):
         """ QPE test """
         self.log.debug('Testing QPE')
-
+        tmp_qubit_op = qubit_op.copy()
         exact_eigensolver = ExactEigensolver(qubit_op, k=1)
         results = exact_eigensolver.run()
 
@@ -125,6 +125,7 @@ class TestQPE(QiskitAquaTestCase):
         ))
 
         np.testing.assert_approx_equal(result['energy'], ref_eigenval.real, significant=2)
+        self.assertEqual(tmp_qubit_op, qubit_op, "Operator is modified after QPE.")
 
         #Re-run, now with state_in_circuit_factory
         superpose_state_and_flip = FlipSuperposition(state_in)

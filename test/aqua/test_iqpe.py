@@ -67,7 +67,7 @@ class TestIQPE(QiskitAquaTestCase):
     def test_iqpe(self, qubit_op, simulator, num_time_slices, num_iterations):
         """ iqpe test """
         self.log.debug('Testing IQPE')
-
+        tmp_qubit_op = qubit_op.copy()
         exact_eigensolver = ExactEigensolver(qubit_op, k=1)
         results = exact_eigensolver.run()
 
@@ -100,6 +100,7 @@ class TestIQPE(QiskitAquaTestCase):
         ))
 
         np.testing.assert_approx_equal(result['energy'], ref_eigenval.real, significant=2)
+        self.assertEqual(tmp_qubit_op, qubit_op, "Operator is modified after IQPE.")
 
 
 if __name__ == '__main__':

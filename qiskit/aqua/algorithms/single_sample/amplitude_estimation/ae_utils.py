@@ -12,10 +12,14 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" ae utilities """
+
 import logging
 import numpy as np
 
 logger = logging.getLogger(__name__)
+
+# pylint: disable=invalid-name
 
 
 def bisect_max(f, a, b, steps=50, minwidth=1e-12, retval=False):
@@ -30,9 +34,10 @@ def bisect_max(f, a, b, steps=50, minwidth=1e-12, retval=False):
         steps (int): the maximum number of steps in the bisection
         minwidth (float): if the current interval is smaller than minwidth stop
             the search
+        retval (bool): return value
 
     Returns:
-        The maximum of f in [a,b] according to this algorithm.
+        float: The maximum of f in [a,b] according to this algorithm.
     """
     it = 0
     m = (a + b) / 2
@@ -57,7 +62,7 @@ def bisect_max(f, a, b, steps=50, minwidth=1e-12, retval=False):
         it += 1
 
     if it == steps:
-        logger.warning("-- Warning, bisect_max didn't converge after {} steps".format(steps))
+        logger.warning("-- Warning, bisect_max didn't converge after %s steps", steps)
 
     if retval:
         return m, fm
@@ -103,6 +108,7 @@ def derivative_circ_dist(x, p):
     Returns:
         float: d/dp d(x, p)
     """
+    # pylint: disable=chained-comparison,misplaced-comparison-constant
     t = p - x
     if t < -0.5 or (0 < t and t < 0.5):
         return -1
@@ -199,7 +205,7 @@ def pdf_a(x, p, m):
                    ]).flatten()
 
     # If is was a scalar return scalar otherwise the array
-    return (pr[0] if scalar else pr)
+    return pr[0] if scalar else pr
 
 
 def derivative_log_pdf_a(x, p, m):
@@ -218,8 +224,11 @@ def derivative_log_pdf_a(x, p, m):
 
     if x not in [0, 1]:
         num_p1 = 0
-        for A, dA, B, dB in zip([alpha, beta], [derivative_alpha, derivative_beta], [beta, alpha], [derivative_beta, derivative_alpha]):
-            num_p1 += 2 * M * np.sin(M * A(x, p)) * np.cos(M * A(x, p)) * dA(x, p) * np.sin(B(x, p))**2 \
+        for A, dA, B, dB in zip([alpha, beta],
+                                [derivative_alpha, derivative_beta],
+                                [beta, alpha], [derivative_beta, derivative_alpha]):
+            num_p1 += 2 * M * np.sin(M * A(x, p)) * np.cos(M * A(x, p)) \
+                * dA(x, p) * np.sin(B(x, p))**2 \
                 + 2 * np.sin(M * A(x, p))**2 * np.sin(B(x, p)) * np.cos(B(x, p)) * dB(x, p)
 
         den_p1 = np.sin(M * alpha(x, p))**2 * np.sin(beta(x, p))**2 + \

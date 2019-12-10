@@ -31,6 +31,8 @@ from qiskit.aqua.operators import WeightedPauliOperator
 
 logger = logging.getLogger(__name__)
 
+# pylint: disable=invalid-name
+
 
 class QPE(QuantumAlgorithm):
     """The Quantum Phase Estimation algorithm."""
@@ -44,7 +46,7 @@ class QPE(QuantumAlgorithm):
         'name': 'QPE',
         'description': 'Quantum Phase Estimation for Quantum Systems',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'qpe_schema',
             'type': 'object',
             'properties': {
@@ -76,16 +78,18 @@ class QPE(QuantumAlgorithm):
         },
         'problems': ['energy'],
         'depends': [
-            {'pluggable_type': 'initial_state',
-             'default': {
-                     'name': 'ZERO'
-                }
-             },
-            {'pluggable_type': 'iqft',
-             'default': {
-                     'name': 'STANDARD',
-                }
-             },
+            {
+                'pluggable_type': 'initial_state',
+                'default': {
+                    'name': 'ZERO'
+                },
+            },
+            {
+                'pluggable_type': 'iqft',
+                'default': {
+                    'name': 'STANDARD',
+                },
+            },
         ],
     }
 
@@ -95,20 +99,23 @@ class QPE(QuantumAlgorithm):
 
         Args:
             operator (BaseOperator): the hamiltonian Operator object
-            state_in (InitialState): the InitialState pluggable component representing the initial quantum state
-        state_in_circuit_factory: a Circuit Factory class that could potentially use auxillary qubits
+            state_in (InitialState): the InitialState pluggable component
+                representing the initial quantum state
+            state_in_circuit_factory: a Circuit Factory class that could 
+                potentially use auxillary qubits
             iqft (IQFT): the Inverse Quantum Fourier Transform pluggable component
             num_time_slices (int): the number of time slices
             num_ancillae (int): the number of ancillary qubits to use for the measurement
             expansion_mode (str): the expansion mode (trotter|suzuki)
             expansion_order (int): the suzuki expansion order
-            shallow_circuit_concat (bool): indicate whether to use shallow (cheap) mode for circuit concatenation
+            shallow_circuit_concat (bool): indicate whether to use shallow
+                (cheap) mode for circuit concatenation
         """
         if (state_in_circuit_factory is None and state_in is None) or (state_in_circuit_factory is not None and state_in is not None):
             raise(AquaError("QPE error: either state_in or state_in_circuit_factory should be supplied and not both."))
         self.validate(locals())
         super().__init__()
-        self._operator = op_converter.to_weighted_pauli_operator(operator)
+        self._operator = op_converter.to_weighted_pauli_operator(operator.copy())
         self._num_ancillae = num_ancillae
         self._ret = {}
 
@@ -154,8 +161,12 @@ class QPE(QuantumAlgorithm):
         Initialize via parameters dictionary and algorithm input instance.
 
         Args:
-            params: parameters dictionary
-            algo_input: EnergyInput instance
+            params (dict): parameters dictionary
+            algo_input (EnergyInput): instance
+        Returns:
+            QPE: instance of this class
+        Raises:
+            AquaError: EnergyInput instance is required.
         """
         if algo_input is None:
             raise AquaError("EnergyInput instance is required.")
@@ -188,7 +199,8 @@ class QPE(QuantumAlgorithm):
         Construct circuit.
 
         Args:
-            measurement (bool): Boolean flag to indicate if measurement should be included in the circuit.
+            measurement (bool): Boolean flag to indicate if measurement
+                should be included in the circuit.
 
         Returns:
             QuantumCircuit: quantum circuit.
@@ -210,7 +222,8 @@ class QPE(QuantumAlgorithm):
             )
             ancilla_density_mat_diag = np.diag(ancilla_density_mat)
             ancilla_counts = np.abs(ancilla_density_mat_diag)
-            max_amplitude = max(ancilla_density_mat_diag.min(), ancilla_density_mat_diag.max(), key=abs)
+            max_amplitude = \
+                max(ancilla_density_mat_diag.min(), ancilla_density_mat_diag.max(), key=abs)
             max_amplitude_idx = np.where(ancilla_density_mat_diag == max_amplitude)[0][0]
             top_measurement_label = np.binary_repr(max_amplitude_idx, self._num_ancillae)[::-1]
 
@@ -226,25 +239,30 @@ class QPE(QuantumAlgorithm):
         else:
             qc = self.construct_circuit(measurement=True)
             result = self._quantum_instance.execute(qc)
+
             all_counts  = result.get_counts(qc)
             if self._num_auxiliary > 0:
                 aux_counts, ancilla_counts = get_subsystems_counts(all_counts)
             else:
                 ancilla_counts = all_counts
-            
-            top_measurement_label = sorted([(ancilla_counts[k], k) for k in ancilla_counts])[::-1][0][-1][::-1]
+
+            top_measurement_label = \
+                sorted([(ancilla_counts[k], k) for k in ancilla_counts])[::-1][0][-1][::-1]
             
         if self._num_auxiliary > 0:
             self._ret['aux_counts'] = aux_counts
         self._ret['ancilla_counts'] = ancilla_counts
 
         top_measurement_decimal = sum(
-            [t[0] * t[1] for t in zip(self._binary_fractions, [int(n) for n in top_measurement_label])]
+            [t[0] * t[1] for t in zip(self._binary_fractions,
+                                      [int(n) for n in top_measurement_label])]
         )
         self._ret['top_measurement_label'] = top_measurement_label
         self._ret['top_measurement_decimal'] = top_measurement_decimal
-        
-        self._ret['eigvals'] = [top_measurement_decimal / self._ret['stretch'] - self._ret['translation']]
+
+        self._ret['eigvals'] = \
+            [top_measurement_decimal / self._ret['stretch'] - self._ret['translation']]
+
         self._ret['energy'] = self._ret['eigvals'][0]
 
     def _run(self):

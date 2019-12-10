@@ -21,6 +21,8 @@ from qiskit.qasm import pi
 
 from qiskit.aqua import AquaError
 
+# pylint: disable=invalid-name
+
 
 def _apply_rccx(circ, a, b, c):
     circ.u2(0, pi, c)  # h
@@ -66,6 +68,8 @@ def rccx(self, q_control_1, q_control_2, q_target):
         q_control_1 (Qubit): The 1st control qubit.
         q_control_2 (Qubit): The 2nd control qubit.
         q_target (Qubit): The target qubit.
+    Raises:
+        AquaError: invalid input
 
     """
     if not isinstance(q_control_1, Qubit):
@@ -88,7 +92,8 @@ def rccx(self, q_control_1, q_control_2, q_target):
 
 def rcccx(self, q_control_1, q_control_2, q_control_3, q_target):
     """
-    Apply 3-Control Relative-Phase Toffoli gate from q_control_1, q_control_2, and q_control_3 to q_target.
+    Apply 3-Control Relative-Phase Toffoli gate from q_control_1,
+    q_control_2, and q_control_3 to q_target.
 
     The implementation is based on https://arxiv.org/pdf/1508.03273.pdf Figure 4
 
@@ -98,6 +103,8 @@ def rcccx(self, q_control_1, q_control_2, q_control_3, q_target):
         q_control_2 (Qubit): The 2nd control qubit.
         q_control_3 (Qubit): The 3rd control qubit.
         q_target (Qubit): The target qubit.
+    Raises:
+        AquaError: invalid input
 
     """
     if not isinstance(q_control_1, Qubit):

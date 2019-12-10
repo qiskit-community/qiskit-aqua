@@ -23,8 +23,8 @@ from qiskit.aqua.components.optimizers import SLSQP
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
-from qiskit.chemistry.aqua_extensions.components.variational_forms import UCCSD
-from qiskit.chemistry.aqua_extensions.components.initial_states import HartreeFock
+from qiskit.chemistry.components.variational_forms import UCCSD
+from qiskit.chemistry.components.initial_states import HartreeFock
 
 
 class TestSymmetries(QiskitChemistryTestCase):

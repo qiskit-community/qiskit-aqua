@@ -11,61 +11,134 @@
 # that they have been altered from the originals.
 
 notifications:
-    on_success: change
-    on_failure: always
+  email: false
 
-cache: pip
+cache:
+  pip: true
+  directories:
+    - .stestr
 os: linux
 dist: xenial
 
 language: python
-python: "3.6"
+python: 3.6
 
 env:
   global:
-    - DEPENDENCY_BRANCH=$(if [ "$TRAVIS_BRANCH" = "stable" ]; then echo "stable"; else echo "master"; fi)
+    - DEPENDENCY_BRANCH=$(if [[ "$TRAVIS_BRANCH" == stable* ]]; then echo "stable"; else echo "master"; fi)
     - INIT_FILE="$TRAVIS_BUILD_DIR/qiskit/__init__.py"
+
+before_script:
+  - |
+    cat > selection.txt <<EOF
+    test.aqua.integrity.test_configuration_integrity
+    test.aqua.operators.test_matrix_operator
+    test.aqua.operators.test_op_converter
+    test.aqua.operators.test_tpb_grouped_weigted_pauli_operator
+    test.aqua.operators.test_weighted_pauli_operator
+    test.aqua.test_amplitude_estimation
+    test.finance.test_amplitude_estimation
+    test.aqua.test_bernstein_vazirani
+    test.optimization.test_clique
+    test.optimization.test_cplex_ising
+    test.aqua.test_custom_circuit_oracle
+    test.finance.test_data_providers
+    test.aqua.test_deutsch_jozsa
+    test.optimization.test_docplex
+    test.aqua.test_entangler_map
+    test.aqua.test_eoh
+    test.optimization.test_exact_cover
+    test.aqua.test_exact_eigen_solver
+    test.aqua.test_exact_ls_solver
+    test.aqua.test_fixed_value_comparator
+    test.optimization.test_graph_partition
+    test.aqua.test_grover
+    test.aqua.test_hhl
+    test.aqua.test_initial_state_custom
+    test.aqua.test_initial_state_zero
+    test.aqua.test_input_parser
+    test.aqua.test_iqpe
+    test.aqua.test_logical_expression_oracle
+    test.aqua.test_lookup_rotation
+    test.aqua.test_mcmt
+    EOF
+  - |
+    cat > selection2.txt <<EOF
+    test.aqua.test_mcr
+    test.aqua.test_mct
+    test.aqua.test_mcu1
+    test.aqua.test_measure_error_mitigation
+    test.aqua.test_nlopt_optimizers
+    test.aqua.test_optimizers
+    test.optimization.test_partition
+    test.finance.test_portfolio_diversification
+    test.optimization.test_qaoa
+    test.aqua.test_qgan
+    test.aqua.test_qpe
+    test.aqua.test_qsvm
+    test.aqua.test_rmg
+    test.aqua.test_ry
+    test.optimization.test_set_packing
+    test.aqua.test_shor
+    test.aqua.test_simon
+    test.aqua.test_skip_qobj_validation
+    EOF
+  - |
+    echo 'test.chemistry.*' > blacklist.txt
+    cat selection.txt >> blacklist.txt
+    cat selection2.txt >> blacklist.txt
+  - |
+    if [ ! "$(ls -A .stestr)" ]; then
+        rm -rf .stestr
+    fi
 
 matrix:
   include:
   - name: "Lint and Style check and Test Chemistry"
     env: TEST_DIR=chemistry
-  - name: "Test Aqua 1"
-    env: TEST_DIR=aqua TEST_PARAMS="-end 27"
+    script:
+        make spell && make style && make lint && export OPENBLAS_NUM_THREADS=1 && stestr --test-path test/chemistry run
+  - name: "Test Aqua"
+    script: stestr --test-path test run --blacklist-file blacklist.txt
   - name: "Test Aqua 2"
-    env: TEST_DIR=aqua TEST_PARAMS="-start 27 -end 39"
+    script: stestr --test-path test run --whitelist-file selection.txt
   - name: "Test Aqua 3"
-    env: TEST_DIR=aqua TEST_PARAMS="-start 39 -end 51"
-  - name: "Test Aqua 4"
-    env: TEST_DIR=aqua TEST_PARAMS="-start 51"
-        
+    script: stestr --test-path test run --whitelist-file selection2.txt
+
+  - if: tag IS present
+    python: 3.6
+    env:
+      - TWINE_USERNAME=qiskit
+    install: pip install -U twine
+    script:
+      - python3 setup.py sdist bdist_wheel
+      - twine upload dist/qiskit*
+
 before_install:
+  - pip install --upgrade pip setuptools wheel
   - |
     if [ -f $INIT_FILE ]; then
       # stops travis if __init__.py exists under qiskit
       echo "File '$INIT_FILE' found. It should not exist, since this repo extends qiskit namespace.";
       travis_terminate 1;
     fi
-    if [ "$BUILD_AER" != "false" ]; then
+  - |
+    if [ "$DEPENDENCY_BRANCH" == "master" ]; then
       # install Qiskit Aer build dependencies
       sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
       sudo apt-get -y update
       sudo apt-get -y install g++-7
       sudo apt-get -y install libopenblas-dev
-    fi
-  - pip install --upgrade pip setuptools wheel
-  # Download github Terra
-  - wget https://codeload.github.com/Qiskit/qiskit-terra/zip/$DEPENDENCY_BRANCH -O /tmp/qiskit-terra.zip
-  - unzip /tmp/qiskit-terra.zip -d /tmp/
-  # Install local Qiskit Terra
-  - pip install -e /tmp/qiskit-terra-$DEPENDENCY_BRANCH --progress-bar off
-  # Download github Ignis
-  - wget https://codeload.github.com/Qiskit/qiskit-ignis/zip/$DEPENDENCY_BRANCH -O /tmp/qiskit-ignis.zip
-  - unzip /tmp/qiskit-ignis.zip -d /tmp/
-  # Install local Qiskit Ignis
-  - pip install -e /tmp/qiskit-ignis-$DEPENDENCY_BRANCH --progress-bar off
-  - |
-    if [ "$BUILD_AER" != "false" ]; then
+      # Download github Terra
+      wget https://codeload.github.com/Qiskit/qiskit-terra/zip/$DEPENDENCY_BRANCH -O /tmp/qiskit-terra.zip
+      unzip /tmp/qiskit-terra.zip -d /tmp/
+      # Install local Qiskit Terra
+      pip install -e /tmp/qiskit-terra-$DEPENDENCY_BRANCH --progress-bar off
+      # Download github Ignis
+      wget https://codeload.github.com/Qiskit/qiskit-ignis/zip/$DEPENDENCY_BRANCH -O /tmp/qiskit-ignis.zip
+      unzip /tmp/qiskit-ignis.zip -d /tmp/
+      # Install local Qiskit Ignis
+      pip install -e /tmp/qiskit-ignis-$DEPENDENCY_BRANCH --progress-bar off
       # Download github Qiskit Aer
       wget https://codeload.github.com/Qiskit/qiskit-aer/zip/$DEPENDENCY_BRANCH -O /tmp/qiskit-aer.zip
       unzip /tmp/qiskit-aer.zip -d /tmp/
@@ -78,9 +151,6 @@ before_install:
       # back to current repo directory
       cd $TRAVIS_BUILD_DIR
     fi
-  # install Aqua and dev requirements
-  - pip install -e $TRAVIS_BUILD_DIR --progress-bar off
-  - pip install -U -r requirements-dev.txt --progress-bar off
   - |
     if [ "$TEST_DIR" == "chemistry" ]; then
       # download PyQuante master and unzip it
@@ -89,13 +159,12 @@ before_install:
       # Install local PyQuante
       pip install -e /tmp/pyquante2-master --progress-bar off
     fi
-  
-script:
-  - |
-    if [ "$TEST_DIR" == "chemistry" ];
-      # Chemistry: remove OpenBLAS warning message when compiled without USE_OPENMP=1 in PySCF
-      then make style && make lint && export OPENBLAS_NUM_THREADS=1 && python -m unittest discover -v test/$TEST_DIR
-      else python test/custom_tests.py -dir $TEST_DIR $TEST_PARAMS
-    fi
-        
-
+  # install seaborn for now until Terra makes it optional
+  - pip install seaborn
+  # install spell check libraries
+  - sudo apt-get -y install python3-enchant
+  - sudo apt-get -y install hunspell-en-us
+  # install Aqua and dev requirements
+  - pip install -e $TRAVIS_BUILD_DIR --progress-bar off
+  - pip install -U -r requirements-dev.txt --progress-bar off
+  - pip install pyenchant

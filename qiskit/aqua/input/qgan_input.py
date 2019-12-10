@@ -12,18 +12,20 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" qgan input """
+
 from qiskit.aqua import AquaError
 from qiskit.aqua.input import AlgorithmInput
 from qiskit.aqua.utils import convert_dict_to_json
 
 
 class QGANInput(AlgorithmInput):
-
+    """ qgan input """
     CONFIGURATION = {
         'name': 'QGANInput',
         'description': 'QGAN input',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'qgan_input_schema',
             'type': 'object',
             'properties': {

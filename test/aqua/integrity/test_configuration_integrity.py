@@ -19,6 +19,7 @@ import inspect
 import os
 import subprocess
 from test.aqua.common import QiskitAquaTestCase
+import jsonschema
 from qiskit.aqua import (local_pluggables_types,
                          local_pluggables,
                          get_pluggable_class,
@@ -149,6 +150,13 @@ class TestConfigurationIntegrity(QiskitAquaTestCase):
         if not isinstance(properties, dict):
             return ["{} configuration schema '{}' isn't a dictionary.".format(cls, 'properties')]
 
+        try:
+            validator_class = jsonschema.validators.validator_for(schema)
+            if validator_class:
+                validator_class.check_schema(schema)
+        except Exception as ex:  # pylint: disable=broad-except
+            return ["{} configuration schema invalid. Error: {}.".format(cls, str(ex))]
+
         parameters = inspect.signature(cls.__init__).parameters
         err_msgs = []
         for prop_name, value in properties.items():
@@ -159,7 +167,7 @@ class TestConfigurationIntegrity(QiskitAquaTestCase):
 
             parameter = parameters.get(prop_name)
             if parameter is None:
-                # It is not mandatory that all schema parametere be in the constructor
+                # It is not mandatory that all schema parameters be in the constructor
                 continue
 
             if 'default' in value:

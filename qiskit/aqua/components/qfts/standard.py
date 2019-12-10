@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""A normal standard QFT."""
+
 from scipy import linalg
 
 from .approximate import Approximate
@@ -24,7 +26,7 @@ class Standard(Approximate):
         'name': 'STANDARD',
         'description': 'QFT',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'std_qft_schema',
             'type': 'object',
             'properties': {

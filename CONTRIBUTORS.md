@@ -14,6 +14,7 @@ project at different levels:
 -   Chun-Fu (Richard) Chen
 -   [Antonio
     Córcoles-Gonzalez](https://researcher.watson.ibm.com/researcher/view.php?person=us-adcorcol)
+-   [Eric Drechsler](https://www.sfu.ca/physics/people/profiles/edrechsl.html)
 -   Albert Frisch
 -   [Jay
     Gambetta](https://researcher.watson.ibm.com/researcher/view.php?person=us-jay.gambetta)
