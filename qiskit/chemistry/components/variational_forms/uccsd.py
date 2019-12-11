@@ -16,7 +16,7 @@ This trial wavefunction is a Unitary Coupled-Cluster Single and Double excitatio
 variational form.
 For more information, see https://arxiv.org/abs/1805.04340
 Also, for more information on the tapering see: https://arxiv.org/abs/1701.08213
-And for singlet q-UCCD and paired q-UCCD see: https://arxiv.org/abs/1911.10864
+And for singlet q-UCCD (full) and paired q-UCCD see: https://arxiv.org/abs/1911.10864
 """
 
 import logging
@@ -39,9 +39,10 @@ logger = logging.getLogger(__name__)
 
 class UCCSD(VariationalForm):
     """
-        This trial wavefunction is a Unitary Coupled-Cluster Single and Double excitations
-        variational form.
-        For more information, see https://arxiv.org/abs/1805.04340
+    This trial wavefunction is a Unitary Coupled-Cluster Single and Double excitations
+    variational form.
+    For more information, see https://arxiv.org/abs/1805.04340
+    And for the singlet q-UCCD (full) and paired q-UCCD) see: https://arxiv.org/abs/1911.10864
     """
 
     CONFIGURATION = {
@@ -103,7 +104,7 @@ class UCCSD(VariationalForm):
                     'default': 'ucc',
                     'enum': ['ucc', 'pucc', 'succ', 'succ_full']
                 },
-                'exc_type': {
+                'excitation_type': {
                     'type': 'string',
                     'default': 'sd',
                     'enum': ['sd', 's', 'd']
@@ -125,7 +126,7 @@ class UCCSD(VariationalForm):
                  active_occupied=None, active_unoccupied=None, initial_state=None,
                  qubit_mapping='parity', two_qubit_reduction=True, num_time_slices=1,
                  shallow_circuit_concat=True, z2_symmetries=None,
-                 method_singles='both', method_doubles='ucc', exc_type='sd',
+                 method_singles='both', method_doubles='ucc', excitation_type='sd',
                  same_spin_doubles=True, force_no_tap_excitation=False):
         """Constructor.
 
@@ -145,19 +146,18 @@ class UCCSD(VariationalForm):
                                           sq_paulis, sq_list, tapering_values, and cliffords
             shallow_circuit_concat (bool): indicate whether to use shallow (cheap) mode for
                                            circuit concatenation
-            method_singles (str): 'alpha', 'beta', 'both' only alpha or beta spin-orbital
-                            single exc. or both (all)
-            method_doubles (str): 'ucc' (conventional ucc), succ (singlet ucc,
-                            "https://arxiv.org/abs/1911.10864"
-                            Eq.(14) page 5), succ_full (singlet ucc full
-                            this implements the "https://arxiv.org/abs/1911.10864" Eq.(16) page 5.)
-            exc_type (str): 'sd', 's', 'd', choose q-UCCSD, q-UCCS, q-UCCD
-            same_spin_doubles (bool):, enable double excitations of the same spin
-            force_no_tap_excitation (bool): keep all the excitation regardless if tapering is used
+            method_singles (str): specify the single excitation considered. 'alpha', 'beta',
+                                  'both' only alpha or beta spin-orbital single excitations or
+                                  both (all of them)
+            method_doubles (str): specify the single excitation considered. 'ucc' (conventional
+                                  ucc), succ (singlet ucc), succ_full (singlet ucc full)
+            excitation_type (str): specify the excitation type 'sd', 's', 'd' respectively
+                                   for single and double, only single, only double excitations.
+            same_spin_doubles (bool):, enable double excitations of the same spin.
+            force_no_tap_excitation (bool): keep all the excitation regardless if tapering is used.
 
          Raises:
              ValueError: Computed qubits do not match actual value
-
         """
         # basic parameters
         self.validate(locals())
@@ -196,8 +196,9 @@ class UCCSD(VariationalForm):
         # advanced parameters
         self._method_singles = method_singles
         self._method_doubles = method_doubles
-        self._exc_type = exc_type
+        self._excitation_type = excitation_type
         self.same_spin_doubles = same_spin_doubles
+        self._force_no_tap_excitation = force_no_tap_excitation
 
         self._single_excitations, self._double_excitations = \
             UCCSD.compute_excitation_lists([self._num_alpha, self._num_beta], self._num_orbitals,
@@ -205,7 +206,7 @@ class UCCSD(VariationalForm):
                                            same_spin_doubles=self.same_spin_doubles,
                                            method_singles=self._method_singles,
                                            method_doubles=self._method_doubles,
-                                           exc_type=self._exc_type, )
+                                           excitation_type=self._excitation_type,)
 
         self._hopping_ops, self._num_parameters = self._build_hopping_operators()
         self._excitation_pool = None
@@ -216,7 +217,6 @@ class UCCSD(VariationalForm):
 
         self.uccd_singlet = False
         if self._method_doubles == 'succ_full':
-            # this implements the UCCD0-full "https://arxiv.org/abs/1911.10864" Eq.(16) page 5.
             self.uccd_singlet = True
             self._single_excitations, self._double_excitations = \
                 UCCSD.compute_excitation_lists([self._num_alpha, self._num_beta],
@@ -225,7 +225,7 @@ class UCCSD(VariationalForm):
                                                same_spin_doubles=self.same_spin_doubles,
                                                method_singles=self._method_singles,
                                                method_doubles=self._method_doubles,
-                                               exc_type=self._exc_type,
+                                               excitation_type=self._excitation_type,
                                                )
         if self.uccd_singlet:
             self._hopping_ops, _ = self._build_hopping_operators()
@@ -234,17 +234,17 @@ class UCCSD(VariationalForm):
             self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
         if self.uccd_singlet:
-            # logging.debug('Reordered hopping ops')
-            # logging.debug('Original hopping ops')
-            # logging.debug(self._hopping_ops)
             self._double_excitations_grouped = \
                 UCCSD.compute_excitation_lists_singlet(self._double_excitations, num_orbitals)
             self.num_groups = len(self._double_excitations_grouped)
 
+            logging.debug('Grouped double excitations for singlet ucc')
+            logging.debug(self._double_excitations_grouped)
+
             self._num_parameters = self.num_groups
             self._bounds = [(-np.pi, np.pi) for _ in range(self.num_groups)]
 
-            # this will order the hopping operators (hop hopping_op per excitation)
+            # this will order the hopping operators
             self.labeled_double_excitations = []
             for i in range(len(self._double_excitations)):
                 self.labeled_double_excitations.append((self._double_excitations[i], i))
@@ -260,9 +260,6 @@ class UCCSD(VariationalForm):
                 self._hopping_ops_doubles_temp.append(self._hopping_ops_doubles[i])
 
             self._hopping_ops[len(self._single_excitations):] = self._hopping_ops_doubles_temp
-
-            # logging.debug('Reordered hopping ops')
-            # logging.debug(self._hopping_ops)
 
         self._logging_construct_circuit = True
 
@@ -293,31 +290,23 @@ class UCCSD(VariationalForm):
         """
         return self._excitation_pool
 
-    def _build_hopping_operators(self, excitation_list=None):
+    def _build_hopping_operators(self):
         if logger.isEnabledFor(logging.DEBUG):
             TextProgressBar(sys.stderr)
 
-        # change 1: custom excitation list is allowed
-        if excitation_list is None:
-            results = parallel_map(UCCSD._build_hopping_operator,
-                                   self._single_excitations + self._double_excitations,
-                                   task_args=(self._num_orbitals,
-                                              self._num_particles, self._qubit_mapping,
-                                              self._two_qubit_reduction, self._z2_symmetries),
-                                   num_processes=aqua_globals.num_processes)
-        else:
-            results = parallel_map(UCCSD._build_hopping_operator,
-                                   excitation_list,
-                                   task_args=(self._num_orbitals,
-                                              self._num_particles, self._qubit_mapping,
-                                              self._two_qubit_reduction, self._z2_symmetries),
-                                   num_processes=aqua_globals.num_processes)
+        results = parallel_map(UCCSD._build_hopping_operator,
+                               self._single_excitations + self._double_excitations,
+                               task_args=(self._num_orbitals, self._num_particles,
+                                          self._qubit_mapping, self._two_qubit_reduction,
+                                          self._z2_symmetries,
+                                          self._force_no_tap_excitation),
+                               num_processes=aqua_globals.num_processes)
         hopping_ops = []
         s_e_list = []
         d_e_list = []
-        for hopping_op, index in results:
-            if hopping_op is not None and not hopping_op.is_empty():
-                hopping_ops.append(hopping_op)
+        for op, index in results:
+            if op is not None and not op.is_empty():
+                hopping_ops.append(op)
                 if len(index) == 2:  # for double excitation
                     s_e_list.append(index)
                 else:  # for double excitation
@@ -329,12 +318,28 @@ class UCCSD(VariationalForm):
         num_parameters = len(hopping_ops) * self._depth
         return hopping_ops, num_parameters
 
-    # change 2: added force_no_tap_excitation to taper the excitations ops when necessary only
-    # (user should be aware that some excitations are gone because tapering is used)
     @staticmethod
     def _build_hopping_operator(index, num_orbitals, num_particles, qubit_mapping,
                                 two_qubit_reduction, z2_symmetries, force_no_tap_excitation=False):
+        """
+        Builds a hopping operator given the list of indices (index) that is a single or a double
+        excitation.
 
+        Args:
+            index (list): a single or double excitation (e.g. double excitation [0,1,2,3] for a 4
+                          spin-orbital system)
+            num_orbitals (int): number of spin-orbitals
+            num_particles (int): number of electrons
+            qubit_mapping (str): qubit mapping type
+            two_qubit_reduction (bool): reduce the number of qubits by 2 if
+                                        parity qubit mapping is used
+            z2_symmetries (Z2Symmetries): class that contains the symmetries
+                                          of hamiltonian for tapering
+            force_no_tap_excitation (bool): prevent tapering from eliminating excitations
+        Returns:
+            WeightedPauliOperator: qubit_op
+            list: index
+        """
         h_1 = np.zeros((num_orbitals, num_orbitals))
         h_2 = np.zeros((num_orbitals, num_orbitals, num_orbitals, num_orbitals))
         if len(index) == 2:
@@ -351,29 +356,26 @@ class UCCSD(VariationalForm):
         if two_qubit_reduction:
             qubit_op = Z2Symmetries.two_qubit_reduction(qubit_op, num_particles)
 
-        # change 2: option to taper the uccsd excitation ops
-        # (by default if tapering is used, the excitations ops are also tapered)
-        if force_no_tap_excitation is False:
-            if not z2_symmetries.is_empty():
-                # symm_commuting = True
-                for symmetry in z2_symmetries.symmetries:
-                    symmetry_op = WeightedPauliOperator(paulis=[[1.0, symmetry]])
-                    symm_commuting = qubit_op.commute_with(symmetry_op)
-                    if not symm_commuting:
-                        break
-                    qubit_op = z2_symmetries.taper(qubit_op) if symm_commuting else None
+        if not z2_symmetries.is_empty():
+            symm_commuting = True
+            for symmetry in z2_symmetries.symmetries:
+                symmetry_op = WeightedPauliOperator(paulis=[[1.0, symmetry]])
+                symm_commuting = qubit_op.commute_with(symmetry_op)
+                if not symm_commuting:
+                    break
+            if not force_no_tap_excitation:
+                qubit_op = z2_symmetries.taper(qubit_op) if symm_commuting else None
+            else:
+                qubit_op = z2_symmetries.taper(qubit_op)
 
         if qubit_op is None:
-            logger.info('Excitation (%s) is skipped since it is not commuted '
-                        'with symmetries (set force_no_tap_excitation'
-                        '=True to keep all excitations)',
-                        ','.join([str(x) for x in index]))
+            logger.debug('Excitation (%s) is skipped since it is not commuted '
+                         'with symmetries', ','.join([str(x) for x in index]))
         return qubit_op, index
 
     def manage_hopping_operators(self):
         """
         Triggers the adaptive behavior of this UCCSD instance.
-
         This function is used by the Adaptive VQE algorithm. It stores the full list of available
         hopping operators in a so called "excitation pool" and clears the previous list to be empty.
         Furthermore, the depth is asserted to be 1 which is required by the Adaptive VQE algorithm.
@@ -411,7 +413,6 @@ class UCCSD(VariationalForm):
         self._num_parameters = len(self._hopping_ops) * self._depth
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
-    # change 3: to include singlet
     def construct_circuit(self, parameters, q=None):
         """
         Construct the variational form, given its parameters.
@@ -443,19 +444,12 @@ class UCCSD(VariationalForm):
 
         num_excitations = len(self._hopping_ops)
 
-        # define the list of operators
         if not self.uccd_singlet:
-            # make a list of excited operators
             list_excitation_operators = [
                 (self._hopping_ops[index % num_excitations], parameters[index])
                 for index in range(self._depth * num_excitations)]
-
-            # assign parameters according to groups
-            # reorder the self._hopping_ops
         else:
             list_excitation_operators = []
-            # you just count through the operators for exc and assign the parameter if that operator
-            # corresponds to the group, of course all operators are in the correct order of groups
             counter = 0
             for i in range(int(self._depth * self.num_groups)):
                 for _ in range(len(self._double_excitations_grouped[i % self.num_groups])):
@@ -500,128 +494,16 @@ class UCCSD(VariationalForm):
                 return None
 
     @staticmethod
-    def _interleaved_spin_to_block_spin(i_end_act_sp, single_exc_op,
-                                        double_exc_op):
-        """
-        Function that changes the excitation labels from interleaved to block spin orbital
-        labeling convention. Transforms the excitation [occ, occ, vir, vir] -> [occ, vir, occ,
-        vir], for example for H2 is 631G
-        we have 8 qubits with JW mapping so the double excitations [[0,1,2,3],...] (interleaved)
-        becomes [[0,1,4,5],...] (block spin).
-
-        Active space
-
-                     4 -   - 5       2 -   - 5
-                     2 -   - 3   ->  1 -   - 4
-        spin orbital 0 -   - 1       0 -   - 3
-
-        Args:
-            i_end_act_sp (int): indice of the last orbital in the AS, if 8 MOs then its index is 7
-            single_exc_op (list): [[0,2], [1,3],..]
-            double_exc_op (list): [[0,2], [1,3],..]
-
-        Returns:
-            list: single_exc_op, list: double_exc_op
-
-        """
-        for i, _ in enumerate(double_exc_op):
-            # transform to Aqua notation
-
-            # take an excitation
-            list_exc = double_exc_op[i]
-            # max_index = i_end_act_sp
-
-            # transform each indice to the block spin indice
-            for j, _ in enumerate(list_exc):
-                list_exc[j] = UCCSD._interleaved_to_block_spin_single_indice(i_end_act_sp,
-                                                                             list_exc[j])
-
-            # overwrite the old excitation
-            double_exc_op[i] = list_exc
-
-            # permute the indices to Aqua convention
-            # occ occ vir vir -> occ vir occ vir
-            list_exc = double_exc_op[i]
-            list_exc_temp_1 = list_exc[0]
-            list_exc_temp_2 = list_exc[1]
-            list_exc_temp_3 = list_exc[2]
-            list_exc_temp_4 = list_exc[3]
-            list_exc[0] = list_exc_temp_1
-            list_exc[1] = list_exc_temp_3
-            list_exc[2] = list_exc_temp_2
-            list_exc[3] = list_exc_temp_4
-
-            # overwrite again
-            double_exc_op[i] = list_exc
-
-        # same procedure for single excitations
-        for i, _ in enumerate(single_exc_op):
-            # transform to Aqua notation
-            list_exc = single_exc_op[i]
-            max_index = i_end_act_sp
-            for k, _ in enumerate(list_exc):
-                if list_exc[k] % 2 == 0:
-                    list_exc[k] = int(list_exc[k] / 2)
-                elif list_exc[k] % 2 != 0:
-                    list_exc[k] = int((list_exc[k] + max_index) / 2)
-            single_exc_op[i] = list_exc
-
-        return single_exc_op, double_exc_op
-
-    @staticmethod
-    def _block_spin_to_interleaved_single_indice(i_end_act_sp, indice):
-        """
-        It converts an indice in block_spin to interleaved notation.
-        i.exc. if 8 orbitals, orbital 4 becomes orbital 1.
-
-        Args:
-            i_end_act_sp int: label of the last spin orbital
-            indice int: which indice will be converted to interleaved notation
-
-        Returns:
-            int: converted_indice, indice converted to interleaved notation
-        """
-
-        if indice < (i_end_act_sp + 1) / 2:
-            converted_indice = int(indice * 2)
-        else:
-            converted_indice = int(2 * (indice - (i_end_act_sp + 1) / 2) + 1)
-
-        return converted_indice
-
-    @staticmethod
-    def _interleaved_to_block_spin_single_indice(i_end_act_sp, indice):
-        """
-        It converts an indice in interleaved spin to block spin (Aqua) notation.
-        i.exc. if 8 orbitals, orbital 4 becomes orbital 1
-
-        Args:
-            i_end_act_sp int: label of the last spin orbital
-            indice int: which indice will be converted to blockspin notation
-
-        Returns:
-            int: converted_indice, indice converted to blockspin notation
-        """
-        converted_indice = 0
-        if indice % 2 == 0:
-            converted_indice = int(indice / 2)
-        elif indice % 2 != 0:
-            converted_indice = int((indice + i_end_act_sp) / 2)
-
-        return converted_indice
-
-    @staticmethod
     def compute_excitation_lists(num_particles, num_orbitals, active_occ_list=None,
                                  active_unocc_list=None, same_spin_doubles=True,
                                  method_singles='both', method_doubles='ucc',
-                                 exc_type='sd'):
+                                 excitation_type='sd'):
         """
-
-        Computes single and double excitation lists
+        Computes single and double excitation lists.
 
         Args:
-            num_particles (list): number of particles, if it is a tuple, the first number is
-                                  alpha and the second number if beta.
+            num_particles (Union(list, int)): number of particles, if it is a tuple, the first
+                                              number is alpha and the second number if beta.
             num_orbitals (int): Total number of spin orbitals
             active_occ_list (list): List of occupied orbitals to include, indices are
                              0 to n where n is max(num_alpha, num_beta)
@@ -629,13 +511,13 @@ class UCCSD(VariationalForm):
                                0 to m where m is num_orbitals // 2 - min(num_alpha, num_beta)
             same_spin_doubles (bool): True to include alpha,alpha and beta,beta double excitations
                                as well as alpha,beta pairings. False includes only alpha,beta
-            exc_type (str): 'sd', 's', 'd' compute q-UCCSD, q-UCCS, q-UCCD excitation lists
-            method_singles (str):  'alpha', 'beta', 'both' only alpha or beta spin-orbital
-                            single exc. or both (all)
-            method_doubles (str): 'ucc' (conventional ucc), succ (singlet ucc,
-                            "https://arxiv.org/abs/1911.10864" Eq.(14) page 5),
-                            succ_full (singlet ucc full this implements the
-                            "https://arxiv.org/abs/1911.10864" Eq.(14) page 5.)
+            excitation_type (str): choose 'sd', 's', 'd' to compute q-UCCSD, q-UCCS,
+                                   q-UCCD excitation lists
+            method_singles (str):  specify type of single excitations, 'alpha', 'beta', 'both' only
+                                   alpha or beta spin-orbital single excitations or both (all
+                                   single excitations)
+            method_doubles (str): choose method for double excitations 'ucc' (conventional ucc),
+                                  'succ' (singlet ucc), 'succ_full' (singlet ucc full)
 
         Returns:
             list: Single excitation list
@@ -672,7 +554,6 @@ class UCCSD(VariationalForm):
         beta_idx = num_orbitals // 2
 
         # making lists of indexes of MOs involved in excitations
-
         if active_occ_list is not None:
             active_occ_list = [i if i >= 0 else i + max(num_alpha, num_beta) for i in
                                active_occ_list]
@@ -718,8 +599,7 @@ class UCCSD(VariationalForm):
         single_excitations = []
         double_excitations = []
 
-        # Constructing the lists of excitations
-        #  single excitation on both or only alpha or beta orbitals
+        # lists of single excitations
         if method_singles == 'alpha ':
 
             for occ_alpha in active_occ_list_alpha:
@@ -749,7 +629,7 @@ class UCCSD(VariationalForm):
                         for unocc_beta in active_unocc_list_beta:
                             double_excitations.append(
                                 [occ_alpha, unocc_alpha, occ_beta, unocc_beta])
-        # paired ucc
+        # pair ucc
         elif method_doubles == 'pucc':
             for occ_alpha in active_occ_list_alpha:
                 for unocc_alpha in active_unocc_list_alpha:
@@ -760,35 +640,20 @@ class UCCSD(VariationalForm):
                                     and unocc_beta - unocc_alpha == num_orbitals / 2:
                                 double_excitations.append(
                                     [occ_alpha, unocc_alpha, occ_beta, unocc_beta])
-        # singlet ucc (different to full singlet ucc that actually)
-        # this implements the "https://arxiv.org/abs/1911.10864" Eq.(14) page 5.
+
+        # singlet ucc
         elif method_doubles == 'succ':
+            for i in active_occ_list_alpha:
+                for i_prime in active_unocc_list_alpha:
+                    for j in active_occ_list_beta:
+                        for j_prime in active_unocc_list_beta:
+                            if j - beta_idx >= i and j_prime - beta_idx >= i_prime:
+                                double_excitations.append([i, i_prime, j, j_prime])
 
-            act_unocc_alpha_block_spin = [
-                UCCSD._block_spin_to_interleaved_single_indice(num_orbitals - 1, i)
-                for i in active_unocc_list_alpha]
-            act_unocc_beta_block_spin = [
-                UCCSD._block_spin_to_interleaved_single_indice(num_orbitals - 1, i)
-                for i in active_unocc_list_beta]
-            act_occ_alpha_block_spin = [
-                UCCSD._block_spin_to_interleaved_single_indice(num_orbitals - 1, i)
-                for i in active_occ_list_alpha]
-            act_occ_beta_block_spin = [
-                UCCSD._block_spin_to_interleaved_single_indice(num_orbitals - 1, i)
-                for i in active_occ_list_beta]
+            same_spin_doubles = False
+            logger.info('Same spin double excitations are forced to be disabled in'
+                        'singlet ucc')
 
-            # build double excitations in the succ way in interleaved notations
-            for i in act_occ_alpha_block_spin:
-                for i_prime in act_unocc_alpha_block_spin:
-                    for j in act_occ_beta_block_spin:
-                        for j_prime in act_unocc_beta_block_spin:
-                            if j > i and j_prime > i_prime:
-                                double_excitations.append([i, j, i_prime, j_prime])
-
-            # translate the interleaved excitations (occ, occ, vir, vir) with inter labeling
-            # back to block spin (occ, vir, occ, vir)
-            _, double_excitations = UCCSD._interleaved_spin_to_block_spin(num_orbitals - 1, [],
-                                                                          double_excitations)
         # same spin excitations
         if same_spin_doubles and len(active_occ_list_alpha) > 1 and len(
                 active_unocc_list_alpha) > 1:
@@ -799,7 +664,6 @@ class UCCSD(VariationalForm):
                             double_excitations.append([occ_alpha, unocc_alpha,
                                                        occ_alpha_1, unocc_alpha_1])
 
-            # TODO look into this line if there is any problems
             up_active_occ_list = active_occ_list_beta
             up_active_unocc_list = active_unocc_list_beta
 
@@ -810,10 +674,9 @@ class UCCSD(VariationalForm):
                             double_excitations.append([occ_beta, unocc_beta,
                                                        occ_beta_1, unocc_beta_1])
 
-        # if one wants only single or double excitations
-        if exc_type == 's':
+        if excitation_type == 's':
             double_excitations = []
-        elif exc_type == 'd':
+        elif excitation_type == 'd':
             single_excitations = []
         else:
             logger.info('Singles and Doubles excitations are used.')
@@ -824,12 +687,12 @@ class UCCSD(VariationalForm):
         return single_excitations, double_excitations
 
     # below are all tool functions that serve to group excitations that are controlled by
-    # same angle theta in singlet ucc ("https://arxiv.org/abs/1911.10864")
+    # same angle theta in singlet ucc
     @staticmethod
     def compute_excitation_lists_singlet(double_exc, num_orbitals):
         """
         Outputs the list of lists of grouped excitation. A single list inside is controlled by
-        the same parameter theta
+        the same parameter theta.
 
         Args:
             double_exc (list): exc.group. [[0,1,2,3], [...]]
@@ -839,13 +702,14 @@ class UCCSD(VariationalForm):
             list: de_groups grouped excitations
         """
         de_groups = UCCSD.group_excitations_if_same_ao(double_exc, num_orbitals)
+
         return de_groups
 
     @staticmethod
-    def same_ao_double_excitation_block_spin(de_1, de_2, nmo):
+    def same_ao_double_excitation_block_spin(de_1, de_2, num_orbitals):
         """
         Regroups the excitations that involve same spatial orbitals
-        for example, with labeling
+        for example, with labeling.
 
         2--- ---5
         1--- ---4
@@ -853,20 +717,18 @@ class UCCSD(VariationalForm):
 
         excitations [0,1,3,5] and [0,2,3,4] are controlled by the same parameter in the full
         singlet UCCSD unlike in usual UCCSD where every excitation is controlled by independent
-        parameter
+        parameter.
 
         Args:
              de_1 (list): double exc in block spin [ from to from to ]
              de_2 (list): double exc in block spin [ from to from to ]
-             nmo (int): number of molecular orbitals
+             num_orbitals (int): number of molecular orbitals
 
         Returns:
              int: says if given excitation involves same spatial orbitals 1 = yes, 0 = no.
         """
-        # for the RHF, may have to adapt to UHF
-        half_active_space = int(nmo / 2)
+        half_active_space = int(num_orbitals / 2)
 
-        # writing the indices of the orbitals for 2 double excitations
         de_1_new = copy.copy(de_1)
         de_2_new = copy.copy(de_2)
 
@@ -881,22 +743,17 @@ class UCCSD(VariationalForm):
             if ind >= half_active_space:
                 de_2_new[count] = ind % half_active_space
 
-        # the collections bastard actually does not cop[y but modifies the thing
-        # so it goes out of the scope of function
-        # I created with copy a separate object on which I operate\
-
-        # first we check if 2 unordered lists are same (involve same AOs)
+        # check if 2 unordered lists are same (involve same AOs)
         if collections.Counter(de_1_new) == collections.Counter(de_2_new):
             # we check that the permutations of terms i,j and k,l in [[i,j][k,l]] [[a,b][c,d]
             # as [i,j] ==? [a,b] or [c,d] and [k,l] ==? ...
-            # then only return 0
-            # basically criterion for equivalence of 2 mirror excitations
+            # then only return 0, basically criterion for equivalence of 2 mirror excitations
             return 1
         else:
             return 0
 
     @staticmethod
-    def group_excitations(list_de, nmo):
+    def group_excitations(list_de, num_orbitals):
         """
         Groups the excitations and gives out the remaining ones in the list_de_temp list
         because those excitations are controlled by the same parameter in full singlet UCCSD
@@ -904,18 +761,18 @@ class UCCSD(VariationalForm):
 
         Args:
             list_de (list): list of the double excitations grouped
-            nmo (int): number of spin-orbitals (qubits)
+            num_orbitals (int): number of spin-orbitals (qubits)
+
         Returns:
             tuple: list_same_ao_group, list_de_temp, the grouped double_exc
             (that involve same spatial orbitals)
-
         """
         list_de_temp = copy.copy(list_de)
         list_same_ao_group = []
         de1 = list_de[0]
         counter = 0
         for de2 in list_de:
-            if UCCSD.same_ao_double_excitation_block_spin(de1, de2, nmo) == 1:
+            if UCCSD.same_ao_double_excitation_block_spin(de1, de2, num_orbitals) == 1:
                 counter += 1
                 if counter == 1:
                     list_same_ao_group.append(de1)
@@ -927,26 +784,27 @@ class UCCSD(VariationalForm):
                 for i in list_de_temp:
                     if i == de2:
                         list_de_temp.remove(de2)
+
         return list_same_ao_group, list_de_temp
 
     @staticmethod
-    def group_excitations_if_same_ao(list_de, nmo):
+    def group_excitations_if_same_ao(list_de, num_orbitals):
         """
-        Define that, given list of double excitations list_de and number of spin-orbitals nmo,
-        which excitations involve the same spatial orbitals for full singlet UCCSD
+        Define that, given list of double excitations list_de and number of spin-orbitals
+        num_orbitals, which excitations involve the same spatial orbitals for full singlet UCCSD.
 
         Args:
             list_de (list): list of double exc
-            nmo (int): number of spin-orbitals
+            num_orbitals (int): number of spin-orbitals
 
         Returns:
             list: grouped list of excitations
         """
         list_groups = []
-        list_same_ao_group, list_de_temp = UCCSD.group_excitations(list_de, nmo)
+        list_same_ao_group, list_de_temp = UCCSD.group_excitations(list_de, num_orbitals)
         list_groups.append(list_same_ao_group)
         while len(list_de_temp) != 0:
-            list_same_ao_group, list_de_temp = UCCSD.group_excitations(list_de_temp, nmo)
+            list_same_ao_group, list_de_temp = UCCSD.group_excitations(list_de_temp, num_orbitals)
             list_groups.append(list_same_ao_group)
 
         return list_groups
@@ -954,8 +812,8 @@ class UCCSD(VariationalForm):
     @staticmethod
     def order_labels_for_hopping_ops(double_exc, gde):
         """
-        Orders the hopping operators according to the grouped excitations for the
-        full singlet UCCSD
+        Orders the hopping operators according to the grouped excitations for the full singlet
+        UCCSD.
 
         Args:
             double_exc (list): list of double excitations
@@ -964,19 +822,16 @@ class UCCSD(VariationalForm):
         Returns:
             list: ordered_labels to order hopping ops
         """
-        # import collections
-        # making a labeled list
+
         labeled_de = []
         for i, _ in enumerate(double_exc):
             labeled_de.append((double_exc[i], i))
 
-        # ordered labels
         ordered_labels = []
         for group in gde:
             for exc in group:
                 for l_e in labeled_de:
                     if exc == l_e[0]:
-                        # if collections.Counter(exc) == collections.Counter(l_e[0]):
                         ordered_labels.append(l_e[1])
 
         return ordered_labels
