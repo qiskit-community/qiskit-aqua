@@ -43,12 +43,12 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
             'type': 'object',
             'properties': {
                 'epsilon': {
-                    'type': 'float',
+                    'type': 'number',
                     'default': 0.01,
                     'minimum': 0.0
                 },
                 'alpha': {
-                    'type': 'float',
+                    'type': 'number',
                     'default': 0.05,
                     'minimum': 0.0
                 },
@@ -95,15 +95,15 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
 
         # intialize temporary variables and apriori parameter estimates
         self._i = 0
-        self._k = [0]  # initial power of Q^k
-        self._q = []  # multiplication factor
-        self._theta_interval = [[0, 1 / 4]]  # apriori knowledge of theta/2/pi
-        self._theta_i_interval = [[0, 1 / 4]]  # apriori knowledge of theta_i/2/pi
-        self._a_interval = [[0, 1]]  # apriori knowledge of a parameter
-        self._a_i_interval = [[0, 1]]  # apriori knowledge of a_i parameter
+        self._ks = [0]  # list of powers k: Q^k, initialize with initial power: 0
+        self._qs = []  # multiplication factors
+        self._theta_intervals = [[0, 1 / 4]]  # apriori knowledge of theta/2/pi
+        self._theta_i_intervals = [[0, 1 / 4]]  # apriori knowledge of theta_i/2/pi
+        self._a_intervals = [[0, 1]]  # apriori knowledge of a parameter
+        self._a_i_intervals = [[0, 1]]  # apriori knowledge of a_i parameter
         self._up = [True]  # initially theta is in the upper half-circle
-        self._T = int(np.log(self._min_ratio * np.pi / 8 /
-                             self._epsilon) / np.log(self._min_ratio)) + 1
+        self._T = int(np.log(self._min_ratio * np.pi / 8
+                             / self._epsilon) / np.log(self._min_ratio)) + 1
         self._num_oracle_queries = 0
         self._N_1_shots = []  # track number of 1 shots in each iteration
 
@@ -115,7 +115,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
     def precision(self, epsilon):
         self._epsilon = epsilon
 
-    def find_next_k(self, k, up, theta_interval, min_ratio=2):
+    def _find_next_k(self, k, up, theta_interval, min_ratio=2):
         """
         Find the largest integer k, such that the scaled interval (4k + 2)*theta_interval
         lies completely in [0, pi] or [pi, 2pi], for theta_interval = (theta_lower, theta_upper).
@@ -129,15 +129,13 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
 
         Returns:
             tuple(int, bool): Next power k, and boolean flag for extrapoled interval
-
         """
         if min_ratio <= 1:
             raise AquaError('min_ratio must be larger than 1: '
                             'the next k should not be smaller than the previous one')
 
         # intialize variables
-        theta_u = theta_interval[1]
-        theta_l = theta_interval[0]
+        theta_l, theta_u = theta_interval
         K_current = 4 * k + 2
 
         # feasible K is not bigger than K_max, which is bounded by the length of current CI
@@ -254,14 +252,14 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
                     "Statevector simlator was used before this run. Change qunatum_instance to statevector simulator")
 
         # do while loop, keep in mind that we scaled theta mod 2pi such that it lies in [0,1]
-        while self._theta_interval[-1][1] - self._theta_interval[-1][0] > self._epsilon / np.pi:
+        while self._theta_intervals[-1][1] - self._theta_intervals[-1][0] > self._epsilon / np.pi:
             self._i += 1
 
-            k, up = self.find_next_k(self._k[-1], self._up[-1],
-                                     self._theta_interval[-1], min_ratio=self._min_ratio)
-            self._k.append(k)
+            k, up = self._find_next_k(self._ks[-1], self._up[-1], self._theta_intervals[-1],
+                                      min_ratio=self._min_ratio)
+            self._ks.append(k)
             self._up.append(up)
-            self._q.append((2 * self._k[-1] + 1) / (2 * self._k[-2] + 1))
+            self._qs.append((2 * self._ks[-1] + 1) / (2 * self._ks[-2] + 1))
 
             # run measurements for Q^k A|0> circuit
             if self._quantum_instance.is_statevector:
@@ -276,6 +274,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
                 # calculate the probability of measuring '1'
                 prob = self._prob_from_cos_data_sv(state_vector)
                 # we imitate that we have 100 shots, calculate CI accordingly
+                N_shots = 100
                 self._N_1_shots.append(int(prob * N_shots))
 
             else:
@@ -295,12 +294,12 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
             self._num_oracle_queries += N_shots * k
 
             # if on previous iterations we have K_{i-1}==K_i, then we need to sum up these samples
-            l = 1
+            j = 1  # number of times we stayed fixed at the same K
             if self._i > 1:
-                while self._k[self._i - l] == self._k[self._i] and self._i >= l + 1:
-                    l = l + 1
-                N_total_1_shots = sum([self._N_1_shots[j] for j in range(self._i - l, self._i)])
-                N_total_shots = l * N_shots
+                while self._ks[self._i - j] == self._ks[self._i] and self._i >= j + 1:
+                    j = j + 1
+                N_total_1_shots = sum([self._N_1_shots[j] for j in range(self._i - j, self._i)])
+                N_total_shots = j * N_shots
             else:
                 N_total_1_shots = self._N_1_shots[-1]
                 N_total_shots = N_shots
@@ -309,11 +308,11 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
             if self._method == 'chernoff':
                 a_i = N_total_1_shots / N_total_shots
                 a_i_min, a_i_max = self._chernoff(a_i, N_total_shots, self._T, self._alpha)
-                self._a_i_interval.append([a_i_min, a_i_max])
+                self._a_i_intervals.append([a_i_min, a_i_max])
             else:
                 a_i_min, a_i_max = proportion_confint(
                     N_total_1_shots, N_total_shots, method=self._method, alpha=self._alpha / self._T)
-                self._a_i_interval.append([a_i_min, a_i_max])
+                self._a_i_intervals.append([a_i_min, a_i_max])
 
             # compute theta_min_i, theta_max_i
             if up:
@@ -323,34 +322,43 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
                 theta_min_i = 1 - np.arccos(1 - 2 * a_i_max) / 2 / np.pi
                 theta_max_i = 1 - np.arccos(1 - 2 * a_i_min) / 2 / np.pi
 
-            self._theta_i_interval.append([theta_min_i, theta_max_i])
+            self._theta_i_intervals.append([theta_min_i, theta_max_i])
 
             # compute theta_u_i, theta_l_i
             K_i = 4 * k + 2  # current K_i factor
 
-            theta_u_i = (int(K_i * self._theta_interval[-1][1]) + theta_max_i) / K_i
-            theta_l_i = (int(K_i * self._theta_interval[-1][0]) + theta_min_i) / K_i
+            theta_u_i = (int(K_i * self._theta_intervals[-1][1]) + theta_max_i) / K_i
+            theta_l_i = (int(K_i * self._theta_intervals[-1][0]) + theta_min_i) / K_i
 
-            self._theta_interval.append([theta_l_i, theta_u_i])
+            self._theta_intervals.append([theta_l_i, theta_u_i])
 
             # compute a_u_i, a_l_i
             a_u_i = np.sin(2 * np.pi * theta_u_i)**2
             a_l_i = np.sin(2 * np.pi * theta_l_i)**2
 
-            self._a_interval.append([a_l_i, a_u_i])
+            self._a_intervals.append([a_l_i, a_u_i])
+
+        a_confidence_interval = self._a_intervals[-1]
+
+        # get final estimate for a value
+        value = np.mean(a_confidence_interval)
+
+        # transform to estimate
+        estimation = self.a_factory.value_to_estimation(value)
+        confidence_interval = [self.a_factory.value_to_estimation(x) for x in a_confidence_interval]
 
         # set up results dictionary
         results = {
-            'a_interval': self._a_interval,
-            'theta_interval': self._theta_interval,
-            'a_l': self._a_interval[-1][0],
-            'a_u': self._a_interval[-1][1],
-            'epsilon': (self._a_interval[-1][1] - self._a_interval[-1][0]) / 2,
-            'theta_u': self._theta_interval[-1][1],
-            'theta_l': self._theta_interval[-1][0],
-            'k': self._k,
-            'q': self._q,
-            'num_oracle_queries': self._num_oracle_queries
+            'value': value,
+            'estimation': estimation,
+            'alpha': self._alpha,
+            'confidence_interval': confidence_interval,
+            'actual_epsilon': (confidence_interval[1] - confidence_interval[0]) / 2,
+            'num_oracle_queries': self._num_oracle_queries,
+            'a_intervals': self._a_intervals,
+            'theta_intervals': self._theta_intervals,
+            'ks': self._ks,
+            'qs': self._qs
         }
 
         return results
