@@ -75,7 +75,7 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
     def __init__(self, num_eval_qubits, a_factory=None,
                  i_objective=None, q_factory=None, iqft=None):
         """
-        Constructor.
+        Initializer.
 
         Args:
             num_eval_qubits (int): number of evaluation qubits
@@ -433,7 +433,7 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
 
         # get 95% confidence interval
         alpha = 0.05
-        kind = "likelihood_ratio"  # empirically the most precise kind
+        kind = 'likelihood_ratio'  # empirically the most precise kind
         self._ret['95%_confidence_interval'] = self.confidence_interval(alpha, kind)
 
         return self._ret
