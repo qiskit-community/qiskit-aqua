@@ -90,7 +90,6 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
         self._min_ratio = min_ratio
 
         # intialize internal parameters
-        self._circuits = []
         self._ret = {}
 
         # intialize temporary variables and apriori parameter estimates
@@ -100,7 +99,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
         self._theta_i_intervals = [[0, 1 / 4]]  # apriori knowledge of theta_i/2/pi
         self._a_intervals = [[0, 1]]  # apriori knowledge of a parameter
         self._a_i_intervals = [[0, 1]]  # apriori knowledge of a_i parameter
-        self._up = [True]  # inum_iterationsially theta is in the upper half-circle
+        self._up = [True]  # intially theta is in the upper half-circle
         self._T = int(np.log(self._min_ratio * np.pi / 8 /
                              self._epsilon) / np.log(self._min_ratio)) + 1
         self._num_oracle_queries = 0
@@ -108,10 +107,22 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
 
     @property
     def precision(self):
+        """
+        Returns the target precision `epsilon` of the algorithm
+
+        Returns:
+            float: target precision
+        """
         return self._epsilon
 
     @precision.setter
     def precision(self, epsilon):
+        """
+        Set the target precision of the algorithm.
+
+        Args:
+            epsilon (float): target precision for estimation target a
+        """
         self._epsilon = epsilon
 
     def _find_next_k(self, k, up, theta_interval, min_ratio=2):
@@ -231,6 +242,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
         return (a_min, a_max)
 
     def _run(self):
+        # check that A and Q operators are correctly set
         self.check_factories()
 
         # do while loop, keep in mind that we scaled theta mod 2pi such that it lies in [0,1]
@@ -253,11 +265,11 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
             # run measurements for Q^k A|0> circuit
             if self._quantum_instance.is_statevector:
                 # run circuit on statevector simlator
-                self._circuits.append(self.construct_circuit(k, measurement=False))
-                ret = self._quantum_instance.execute(self._circuits[-1])
+                circuit = self.construct_circuit(k, measurement=False)
+                ret = self._quantum_instance.execute(circuit)
 
                 # get statevector
-                state_vector = np.asarray(ret.get_statevector(self._circuits[-1]))
+                state_vector = np.asarray(ret.get_statevector(circuit))
                 self._ret['statevectors'] += [{num_iterations: state_vector}]
 
                 # calculate the probability of measuring '1'
@@ -268,10 +280,10 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
 
             else:
                 # run circuit on QASM simulator
-                self._circuits.append(self.construct_circuit(k, measurement=True))
-                ret = self._quantum_instance.execute(self._circuits[-1])
+                circuit = self.construct_circuit(k, measurement=True)
+                ret = self._quantum_instance.execute(circuit)
 
-                result_mmt = ret.get_counts(self._circuits[-1])
+                result_mmt = ret.get_counts(circuit)
                 self._ret['counts'] += [{num_iterations: result_mmt}]
 
                 # calculate the probability of measuring '1'
