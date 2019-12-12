@@ -53,6 +53,7 @@ Fixed
 -   fix bug in list concatenation in VQC algorithm (#733)
 -   A bug where `UCCSD` might generate an empty operator and try to evolve it. (#680)
 -   Decompose causes DAG failure using feature maps. (#719)
+-   Fixes error when only using a subset of qubits in error mitigation. (#748)
 
 Removed
 -------
