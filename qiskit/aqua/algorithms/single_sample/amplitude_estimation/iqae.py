@@ -196,6 +196,18 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
         return circuit
 
     def _probability_to_measure_one(self, counts_or_statevector):
+        """
+        Convenient function to get the probability to measure '1' in the last qubit
+
+        Args:
+            counts_or_statevector (Union(dict, numpy.array, list)): either the counts dictionary
+                returned from the qasm_simulator (with one measured qubit only!) or the statevector
+                returned from the statevector_simulator
+
+        Returns:
+            Union(tuple(int, float), float): if a dict is given, it returns
+                (#one-counts, #one-counts/#all-counts), otherwise Pr(measure '1' in the last qubit)
+        """
         if isinstance(counts_or_statevector, dict):
             one_counts = counts_or_statevector.get('1', 0)
             return one_counts, one_counts / sum(counts_or_statevector.values())
@@ -210,7 +222,21 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
                     prob = prob + np.abs(g)**2
             return prob
 
-    def _chernoff(self, a, shots, T, alpha):
+    def _chernoff_confint(self, a, shots, T, alpha):
+        """
+        Compute the Chernoff confidence interval for i.i.d. Bernoulli trials with `shots` samples:
+
+            [a - eps, a + eps], where eps = sqrt(3 * log(2 * T / alpha) / shots)
+
+        Args:
+            a (float): the current estimate
+            shots (int): the number of shots
+            T (int): the maximum number of rounds, used to compute epsilon_a
+            alpha (float): the confidence level, used to compute epsilon_a
+
+        Returns:
+            tuple(float, float): the Chernoff confidence interval
+        """
         epsilon_a = np.sqrt(3 * np.log(2 * T / alpha) / shots)
         if a - epsilon_a < 0:
             a_min = 0
@@ -220,7 +246,8 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
             a_max = 1
         else:
             a_max = a + epsilon_a
-        return (a_min, a_max)
+
+        return a_min, a_max
 
     def _run(self):
         # check that A and Q operators are correctly set
@@ -301,7 +328,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
 
                 # compute a_min_i, a_max_i
                 if self._ci_method == 'chernoff':
-                    a_i_min, a_i_max = self._chernoff(prob, round_shots, T, self._alpha)
+                    a_i_min, a_i_max = self._chernoff_confint(prob, round_shots, T, self._alpha)
                 else:
                     a_i_min, a_i_max = proportion_confint(round_one_counts, round_shots,
                                                           method=self._ci_method,
@@ -326,9 +353,10 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
                 a_l = np.sin(2 * np.pi * theta_l)**2
                 a_intervals.append([a_l, a_u])
 
+        # get the latest confidence interval for the estimate of a
         a_confidence_interval = a_intervals[-1]
 
-        # get final estimate for a value
+        # the final estimate is the mean of the confidence interval
         value = np.mean(a_confidence_interval)
 
         # transform to estimate
