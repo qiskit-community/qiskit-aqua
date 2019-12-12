@@ -99,9 +99,9 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
         self._theta_i_intervals = [[0, 1 / 4]]  # apriori knowledge of theta_i/2/pi
         self._a_intervals = [[0, 1]]  # apriori knowledge of a parameter
         self._a_i_intervals = [[0, 1]]  # apriori knowledge of a_i parameter
-        self._up = [True]  # intially theta is in the upper half-circle
-        self._T = int(np.log(self._min_ratio * np.pi / 8 /
-                             self._epsilon) / np.log(self._min_ratio)) + 1
+        self._ups = [True]  # intially theta is in the upper half-circle
+        self._T = int(np.log(self._min_ratio * np.pi / 8
+                             / self._epsilon) / np.log(self._min_ratio)) + 1
         self._num_oracle_queries = 0
         self._N_1_shots = []  # track number of 1 shots in each iteration
 
@@ -225,7 +225,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
     def _prob_from_cos_data_sv(self, state_vector):
         prob = 0
         for i, g in enumerate(state_vector):
-            if ('{:0%db}' % self._num_qubits).format(i)[-(1 + self.i_objective)] == '1':
+            if ('{:0%db}' % self.a_factory.num_target_qubits).format(i)[-(1 + self.i_objective)] == '1':
                 prob = prob + np.abs(g)**2
         return prob
 
@@ -256,10 +256,10 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
         while self._theta_intervals[-1][1] - self._theta_intervals[-1][0] > self._epsilon / np.pi:
             num_iterations += 1
 
-            k, up = self._find_next_k(self._ks[-1], self._up[-1], self._theta_intervals[-1],
+            k, up = self._find_next_k(self._ks[-1], self._ups[-1], self._theta_intervals[-1],
                                       min_ratio=self._min_ratio)
             self._ks.append(k)
-            self._up.append(up)
+            self._ups.append(up)
             self._qs.append((2 * self._ks[-1] + 1) / (2 * self._ks[-2] + 1))
 
             # run measurements for Q^k A|0> circuit
@@ -274,9 +274,10 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
 
                 # calculate the probability of measuring '1'
                 prob = self._prob_from_cos_data_sv(state_vector)
+
                 # we imitate that we have 100 shots, calculate CI accordingly
                 N_shots = 100
-                self._N_1_shots.append(int(prob * N_shots))
+                self._N_1_shots.append(int(N_shots * prob))
 
             else:
                 # run circuit on QASM simulator
@@ -290,8 +291,9 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
                 prob = self._prob_from_cos_data_qasm(result_mmt)
                 self._N_1_shots.append(result_mmt['1'])
 
+                N_shots = self._quantum_instance._run_config.shots
+
             # track number of Q-oracle calls
-            N_shots = self._quantum_instance._run_config.shots
             self._num_oracle_queries += N_shots * k
 
             # if on previous num_iterations we have K_{i-1} == K_i, we need to sum up these samples
