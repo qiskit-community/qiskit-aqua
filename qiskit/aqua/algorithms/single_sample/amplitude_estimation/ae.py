@@ -264,7 +264,17 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
         return [self.a_factory.value_to_estimation(bound) for bound in ci]
 
     def confidence_interval(self, alpha, kind='likelihood_ratio'):
-        """ confidence interval """
+        """
+        Compute the (1 - alpha) confidence interval
+
+        Args:
+            alpha (float): confidence level: compute the (1 - alpha) confidence interval
+            kind (str): the method to compute the confidence interval, can be 'fisher',
+                'observed_fisher' or 'likelihood_ratio' (default)
+
+        Returns:
+            list[float]: the (1 - alpha) confidence interval
+        """
         # check if AE did run already
         if 'mle' not in self._ret.keys():
             raise AquaError('Call run() first!')
@@ -286,10 +296,12 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
 
     def _run_mle(self):
         """
-        @brief Compute the Maximum Likelihood Estimator (MLE)
-        @return The MLE for the previous AE run
-        @note Before calling this method, call the method `run` of the
-              AmplitudeEstimation instance
+        Compute the Maximum Likelihood Estimator (MLE)
+
+        Returns:
+            The MLE for the previous AE run
+
+        Note: Before calling this method, call the method `run` of the AmplitudeEstimation instance
         """
         M = self._M
         qae = self._ret['value']
