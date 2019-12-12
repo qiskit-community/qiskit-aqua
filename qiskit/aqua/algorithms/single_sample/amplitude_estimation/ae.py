@@ -274,6 +274,10 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
 
         Returns:
             list[float]: the (1 - alpha) confidence interval
+
+        Raises:
+            AquaError: if 'mle' is not in self._ret.keys() (i.e. `run` was not called yet)
+            NotImplementedError: if the confidence interval method `kind` is not implemented
         """
         # check if AE did run already
         if 'mle' not in self._ret.keys():
