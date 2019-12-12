@@ -106,7 +106,11 @@ class TestBernoulli(QiskitAquaTestCase):
         [0.2, MaximumLikelihoodAmplitudeEstimation(2), {'estimation': 0.2}],
         [0.4, MaximumLikelihoodAmplitudeEstimation(4), {'estimation': 0.4}],
         [0.82, MaximumLikelihoodAmplitudeEstimation(5), {'estimation': 0.82}],
-        [0.49, MaximumLikelihoodAmplitudeEstimation(3), {'estimation': 0.49}]
+        [0.49, MaximumLikelihoodAmplitudeEstimation(3), {'estimation': 0.49}],
+        [0.2, IterativeAmplitudeEstimation(0.1, 0.1), {'estimation': 0.2}],
+        [0.4, IterativeAmplitudeEstimation(0.00001, 0.01), {'estimation': 0.4}],
+        [0.82, IterativeAmplitudeEstimation(0.00001, 0.05), {'estimation': 0.82}],
+        [0.49, IterativeAmplitudeEstimation(0.001, 0.01), {'estimation': 0.49}]
     ])
     def test_statevector(self, prob, a_e, expect):
         """ statevector test """
