@@ -22,11 +22,12 @@ from qiskit import QuantumRegister, QuantumCircuit, BasicAer, execute
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.components.uncertainty_models import GaussianConditionalIndependenceModel as GCI
 from qiskit.aqua.components.uncertainty_problems import \
-                        UnivariatePiecewiseLinearObjective as PwlObjective
+    UnivariatePiecewiseLinearObjective as PwlObjective
 from qiskit.aqua.components.uncertainty_problems import (MultivariateProblem,
                                                          UncertaintyProblem)
 from qiskit.aqua.circuits import WeightedSumOperator
-from qiskit.aqua.algorithms import AmplitudeEstimation, MaximumLikelihoodAmplitudeEstimation
+from qiskit.aqua.algorithms import (AmplitudeEstimation, MaximumLikelihoodAmplitudeEstimation,
+                                    IterativeAmplitudeEstimation)
 from qiskit.aqua.algorithms.single_sample.amplitude_estimation.q_factory import QFactory
 
 
@@ -83,6 +84,7 @@ class BernoulliQFactory(QFactory):
 
 class TestBernoulli(QiskitAquaTestCase):
     """ Test Bernoulli """
+
     def setUp(self):
         super().setUp()
 
@@ -124,7 +126,10 @@ class TestBernoulli(QiskitAquaTestCase):
         [0.8, 10, AmplitudeEstimation(7), {'estimation': 0.79784, 'mle': 0.801612}],
         [0.2, 100, MaximumLikelihoodAmplitudeEstimation(4), {'estimation': 0.199606}],
         [0.4, 1000, MaximumLikelihoodAmplitudeEstimation(6), {'estimation': 0.399488}],
-        [0.8, 10, MaximumLikelihoodAmplitudeEstimation(7), {'estimation': 0.800926}]
+        [0.8, 10, MaximumLikelihoodAmplitudeEstimation(7), {'estimation': 0.800926}],
+        [0.2, 100, IterativeAmplitudeEstimation(0.0001, 0.99), {'estimation': 0.203772}],
+        [0.4, 1000, IterativeAmplitudeEstimation(0.001, 0.95), {'estimation': 0.396051}],
+        [0.8, 10, IterativeAmplitudeEstimation(0.1, 0.95), {'estimation': 0.8052820}]
     ])
     def test_qasm(self, prob, shots, a_e, expect):
         """ qasm test """
@@ -211,7 +216,7 @@ class TestCreditRiskAnalysis(QiskitAquaTestCase):
         for i, a_i in enumerate(job.result().get_statevector()):
             b = ('{0:0%sb}' %
                  multivariate_cvar.num_target_qubits).\
-                 format(i)[-multivariate_cvar.num_target_qubits:]
+                format(i)[-multivariate_cvar.num_target_qubits:]
             a_m = np.round(np.real(a_i), decimals=4)
             if np.abs(a_m) > 1e-6 and b[0] == '1':
                 value += a_m ** 2
