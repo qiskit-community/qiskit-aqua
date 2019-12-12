@@ -21,7 +21,7 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 Changed
 -----
 
--   `VQE`, `VQC` and `QSVM` now use parameterized circuits if it is available to save time 
+-   `VQE`, `VQC` and `QSVM` now use parameterized circuits if it is available to save time
     in transpilation. (#693)
 -   Refactor of ai,finance and optimization. (#700) Among other changes:
     - qiskit/aqua/translators/data_providers/ moved to qiskit/finance/data_providers/
@@ -35,14 +35,15 @@ Added
 
 -   Ability to create a `CustomCircuitOracle` object with a callback for `evaluate_classically`,
     which a `Grover` object will now check for, upon initialization, on its provided oracle.  (#681)
--   `VariationalForm` and `FeatureMap` has a new property on `support_parameterized_circuit`, which 
-    implies whether or not can be built with `Parameter` (or `ParameterVector`). Furthermore, 
+-   `VariationalForm` and `FeatureMap` has a new property on `support_parameterized_circuit`, which
+    implies whether or not can be built with `Parameter` (or `ParameterVector`). Furthermore,
     the `evolution_instruction` method support `Parameter` as time parameter.  (#693)
 -   VQEAdapt, adaptive version of the VQE algorithm for chemistry. (#685)
 -   Optionally split qobj by max gates per job. (#694)
 -   An option in evolution_instruction to be able to control whether or not add a barrier
     for every slice. (#708)
 -   Added VQE snapshot mode for Aer QasmSimulator when no noise and shots=1 (#715)
+-   Added the implementation for the iterative QAE algorithm (#749)
 
 Fixed
 -------
