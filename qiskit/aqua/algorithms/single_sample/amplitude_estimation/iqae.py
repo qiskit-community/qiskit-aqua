@@ -66,15 +66,15 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
         ],
     }
 
-    def __init__(self, epsilon, alpha, method='beta', min_ratio=2, a_factory=None, q_factory=None,
-                 i_objective=None):
+    def __init__(self, epsilon, alpha, ci_method='beta', min_ratio=2, a_factory=None,
+                 q_factory=None, i_objective=None):
         """
-        Inum_iterationsializer.
+        Initializer.
 
         Args:
             epsilon (float): target precision for estimation target a
             alpha (float): confidence level
-            method (string): statistical method for confidence interval estimation
+            ci_method (string): statistical method for confidence interval estimation
             min_ratio (float): minimal q-ratio (K_{i+1} / K_i) for FindNextK
             a_factory (CircuitFactory): A oracle
             q_factory (CircuitFactory): Q oracle
@@ -86,17 +86,18 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
         # store parameters
         self._epsilon = epsilon
         self._alpha = alpha
-        self._method = method
+        self._ci_method = ci_method
         self._min_ratio = min_ratio
 
         # intialize internal parameters
         self._ret = {}
+        self._memory = {}
 
         # intialize temporary variables and apriori parameter estimates
-        self._ks = [0]  # list of powers k: Q^k, inum_iterationsialize with inum_iterationsial power: 0
+        self._ks = [0]  # list of powers k: Q^k, inum_iterationsialize with initial power: 0
         self._qs = []  # multiplication factors
-        self._theta_intervals = [[0, 1 / 4]]  # apriori knowledge of theta/2/pi
-        self._theta_i_intervals = [[0, 1 / 4]]  # apriori knowledge of theta_i/2/pi
+        self._theta_intervals = [[0, 1 / 4]]  # apriori knowledge of theta / 2 / pi
+        self._theta_i_intervals = [[0, 1 / 4]]  # apriori knowledge of theta_i / 2 / pi
         self._a_intervals = [[0, 1]]  # apriori knowledge of a parameter
         self._a_i_intervals = [[0, 1]]  # apriori knowledge of a_i parameter
         self._ups = [True]  # intially theta is in the upper half-circle
@@ -211,23 +212,20 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
 
         return circuit
 
-    def _prob_from_cos_data_qasm(self, counts):
-        # sometimes we have zero counts for some label, we need to fix this
-        if len(list(counts.keys())) == 1:
-            if list(counts.keys())[0] == '0':
-                counts['1'] = 0
-            else:
-                counts['0'] = 0
-        # estimate the probability
-        prob = counts['1'] / sum(counts.values())
-        return prob
+    def _probability_to_measure_one(self, counts_or_statevector):
+        if isinstance(counts_or_statevector, dict):
+            counts = counts_or_statevector
+            return counts.get('1', 0) / sum(counts.values())
+        else:
+            statevector = counts_or_statevector
+            num_qubits = self.a_factory.num_target_qubits
 
-    def _prob_from_cos_data_sv(self, state_vector):
-        prob = 0
-        for i, g in enumerate(state_vector):
-            if ('{:0%db}' % self.a_factory.num_target_qubits).format(i)[-(1 + self.i_objective)] == '1':
-                prob = prob + np.abs(g)**2
-        return prob
+            # sum over all amplitudes where the objective qubit is 1
+            prob = 0
+            for i, g in enumerate(statevector):
+                if ('{:0%db}' % num_qubits).format(i)[-(1 + self.i_objective)] == '1':
+                    prob = prob + np.abs(g)**2
+            return prob
 
     def _chernoff(self, a, N_total_shots, T, alpha):
         epsilon_a = np.sqrt(3 * np.log(2 * T / alpha) / N_total_shots)
@@ -245,104 +243,107 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
         # check that A and Q operators are correctly set
         self.check_factories()
 
-        # do while loop, keep in mind that we scaled theta mod 2pi such that it lies in [0,1]
-        num_iterations = 0
-
+        # for statevector we can directly return the probability to measure 1
+        # note, that no iterations here are necessary
         if self._quantum_instance.is_statevector:
-            self._ret['statevectors'] = []
+            # simulate circuit
+            circuit = self.construct_circuit(k=0, measurement=False)
+            ret = self._quantum_instance.execute(circuit)
+
+            # get statevector
+            statevector = ret.get_statevector(circuit)
+
+            # calculate the probability of measuring '1'
+            prob = self._probability_to_measure_one(statevector)
+
+            a_confidence_interval = [prob, prob]
+            self._a_intervals.append(a_confidence_interval)
+            self._a_i_intervals.append(a_confidence_interval)
+
+            theta_i_interval = [np.arccos(1 - 2 * a_i) / 2 / np.pi for a_i in a_confidence_interval]
+            self._theta_i_intervals.append(theta_i_interval)
+            self._theta_intervals.append(theta_i_interval)
+            self._num_oracle_queries = 1
+
         else:
+
+            # do while loop, keep in mind that we scaled theta mod 2pi such that it lies in [0,1]
+            num_iterations = 0
+
             self._ret['counts'] = []
 
-        while self._theta_intervals[-1][1] - self._theta_intervals[-1][0] > self._epsilon / np.pi:
-            num_iterations += 1
+            while self._theta_intervals[-1][1] - self._theta_intervals[-1][0] > self._epsilon / np.pi:
+                num_iterations += 1
 
-            k, up = self._find_next_k(self._ks[-1], self._ups[-1], self._theta_intervals[-1],
-                                      min_ratio=self._min_ratio)
-            self._ks.append(k)
-            self._ups.append(up)
-            self._qs.append((2 * self._ks[-1] + 1) / (2 * self._ks[-2] + 1))
+                k, up = self._find_next_k(self._ks[-1], self._ups[-1], self._theta_intervals[-1],
+                                          min_ratio=self._min_ratio)
+                self._ks.append(k)
+                self._ups.append(up)
+                self._qs.append((2 * self._ks[-1] + 1) / (2 * self._ks[-2] + 1))
 
-            # run measurements for Q^k A|0> circuit
-            if self._quantum_instance.is_statevector:
-                # run circuit on statevector simlator
-                circuit = self.construct_circuit(k, measurement=False)
-                ret = self._quantum_instance.execute(circuit)
-
-                # get statevector
-                state_vector = np.asarray(ret.get_statevector(circuit))
-                self._ret['statevectors'] += [{num_iterations: state_vector}]
-
-                # calculate the probability of measuring '1'
-                prob = self._prob_from_cos_data_sv(state_vector)
-
-                # we imitate that we have 100 shots, calculate CI accordingly
-                N_shots = 100
-                self._N_1_shots.append(int(N_shots * prob))
-
-            else:
-                # run circuit on QASM simulator
+                # run measurements for Q^k A|0> circuit
                 circuit = self.construct_circuit(k, measurement=True)
                 ret = self._quantum_instance.execute(circuit)
 
-                result_mmt = ret.get_counts(circuit)
-                self._ret['counts'] += [{num_iterations: result_mmt}]
+                counts = ret.get_counts(circuit)
+                self._ret['counts'] += [{num_iterations: counts}]
 
                 # calculate the probability of measuring '1'
-                prob = self._prob_from_cos_data_qasm(result_mmt)
-                self._N_1_shots.append(result_mmt['1'])
+                prob = self._probability_to_measure_one(counts)
+                self._N_1_shots.append(counts.get('1', 0))
 
                 N_shots = self._quantum_instance._run_config.shots
 
-            # track number of Q-oracle calls
-            self._num_oracle_queries += N_shots * k
+                # track number of Q-oracle calls
+                self._num_oracle_queries += N_shots * k
 
-            # if on previous num_iterations we have K_{i-1} == K_i, we need to sum up these samples
-            j = 1  # number of times we stayed fixed at the same K
-            if num_iterations > 1:
-                while self._ks[num_iterations - j] == self._ks[num_iterations] \
-                        and num_iterations >= j + 1:
-                    j = j + 1
-                N_total_1_shots = sum([self._N_1_shots[j] for j in
-                                       range(num_iterations - j, num_iterations)])
-                N_total_shots = j * N_shots
-            else:
-                N_total_1_shots = self._N_1_shots[-1]
-                N_total_shots = N_shots
+                # if on previous num_iterations we have K_{i-1} == K_i, we need to sum up these samples
+                j = 1  # number of times we stayed fixed at the same K
+                if num_iterations > 1:
+                    while self._ks[num_iterations - j] == self._ks[num_iterations] \
+                            and num_iterations >= j + 1:
+                        j = j + 1
+                    N_total_1_shots = sum([self._N_1_shots[j] for j in
+                                           range(num_iterations - j, num_iterations)])
+                    N_total_shots = j * N_shots
+                else:
+                    N_total_1_shots = self._N_1_shots[-1]
+                    N_total_shots = N_shots
 
-            # compute a_min_i, a_max_i
-            if self._method == 'chernoff':
-                a_i = N_total_1_shots / N_total_shots
-                a_i_min, a_i_max = self._chernoff(a_i, N_total_shots, self._T, self._alpha)
-                self._a_i_intervals.append([a_i_min, a_i_max])
-            else:
-                a_i_min, a_i_max = proportion_confint(N_total_1_shots, N_total_shots,
-                                                      method=self._method,
-                                                      alpha=self._alpha / self._T)
-                self._a_i_intervals.append([a_i_min, a_i_max])
+                # compute a_min_i, a_max_i
+                if self._ci_method == 'chernoff':
+                    a_i = N_total_1_shots / N_total_shots
+                    a_i_min, a_i_max = self._chernoff(a_i, N_total_shots, self._T, self._alpha)
+                    self._a_i_intervals.append([a_i_min, a_i_max])
+                else:
+                    a_i_min, a_i_max = proportion_confint(N_total_1_shots, N_total_shots,
+                                                          method=self._ci_method,
+                                                          alpha=self._alpha / self._T)
+                    self._a_i_intervals.append([a_i_min, a_i_max])
 
-            # compute theta_min_i, theta_max_i
-            if up:
-                theta_min_i = np.arccos(1 - 2 * a_i_min) / 2 / np.pi
-                theta_max_i = np.arccos(1 - 2 * a_i_max) / 2 / np.pi
-            else:
-                theta_min_i = 1 - np.arccos(1 - 2 * a_i_max) / 2 / np.pi
-                theta_max_i = 1 - np.arccos(1 - 2 * a_i_min) / 2 / np.pi
+                # compute theta_min_i, theta_max_i
+                if up:
+                    theta_min_i = np.arccos(1 - 2 * a_i_min) / 2 / np.pi
+                    theta_max_i = np.arccos(1 - 2 * a_i_max) / 2 / np.pi
+                else:
+                    theta_min_i = 1 - np.arccos(1 - 2 * a_i_max) / 2 / np.pi
+                    theta_max_i = 1 - np.arccos(1 - 2 * a_i_min) / 2 / np.pi
 
-            self._theta_i_intervals.append([theta_min_i, theta_max_i])
+                self._theta_i_intervals.append([theta_min_i, theta_max_i])
 
-            # compute theta_u_i, theta_l_i
-            K_i = 4 * k + 2  # current K_i factor
+                # compute theta_u_i, theta_l_i
+                K_i = 4 * k + 2  # current K_i factor
 
-            theta_u_i = (int(K_i * self._theta_intervals[-1][1]) + theta_max_i) / K_i
-            theta_l_i = (int(K_i * self._theta_intervals[-1][0]) + theta_min_i) / K_i
+                theta_u_i = (int(K_i * self._theta_intervals[-1][1]) + theta_max_i) / K_i
+                theta_l_i = (int(K_i * self._theta_intervals[-1][0]) + theta_min_i) / K_i
 
-            self._theta_intervals.append([theta_l_i, theta_u_i])
+                self._theta_intervals.append([theta_l_i, theta_u_i])
 
-            # compute a_u_i, a_l_i
-            a_u_i = np.sin(2 * np.pi * theta_u_i)**2
-            a_l_i = np.sin(2 * np.pi * theta_l_i)**2
+                # compute a_u_i, a_l_i
+                a_u_i = np.sin(2 * np.pi * theta_u_i)**2
+                a_l_i = np.sin(2 * np.pi * theta_l_i)**2
 
-            self._a_intervals.append([a_l_i, a_u_i])
+                self._a_intervals.append([a_l_i, a_u_i])
 
         a_confidence_interval = self._a_intervals[-1]
 
