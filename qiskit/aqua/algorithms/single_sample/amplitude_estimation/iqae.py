@@ -69,7 +69,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
     def __init__(self, epsilon, alpha, method='beta', min_ratio=2, a_factory=None, q_factory=None,
                  i_objective=None):
         """
-        Initializer.
+        Inum_iterationsializer.
 
         Args:
             epsilon (float): target precision for estimation target a
@@ -94,16 +94,15 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
         self._ret = {}
 
         # intialize temporary variables and apriori parameter estimates
-        self._i = 0
-        self._ks = [0]  # list of powers k: Q^k, initialize with initial power: 0
+        self._ks = [0]  # list of powers k: Q^k, inum_iterationsialize with inum_iterationsial power: 0
         self._qs = []  # multiplication factors
         self._theta_intervals = [[0, 1 / 4]]  # apriori knowledge of theta/2/pi
         self._theta_i_intervals = [[0, 1 / 4]]  # apriori knowledge of theta_i/2/pi
         self._a_intervals = [[0, 1]]  # apriori knowledge of a parameter
         self._a_i_intervals = [[0, 1]]  # apriori knowledge of a_i parameter
-        self._up = [True]  # initially theta is in the upper half-circle
-        self._T = int(np.log(self._min_ratio * np.pi / 8
-                             / self._epsilon) / np.log(self._min_ratio)) + 1
+        self._up = [True]  # inum_iterationsially theta is in the upper half-circle
+        self._T = int(np.log(self._min_ratio * np.pi / 8 /
+                             self._epsilon) / np.log(self._min_ratio)) + 1
         self._num_oracle_queries = 0
         self._N_1_shots = []  # track number of 1 shots in each iteration
 
@@ -234,26 +233,16 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
     def _run(self):
         self.check_factories()
 
-        # initialize result variable for keeping the data from measurements
-        if self._i == 0:
-            if self._quantum_instance.is_statevector:
-                self._ret['statevectors'] = []
-                self._sim_ind = 'sv'
-            else:
-                self._ret['counts'] = []
-                # qasm -> counts
-                self._sim_ind = 'qasm'
-        else:
-            if self._quantum_instance.is_statevector and self._sim_ind == 'qasm':
-                raise AquaError(
-                    "QASM simlator was used before this run. Change qunatum_instance to QASM simulator")
-            if not self._quantum_instance.is_statevector and self._sim_ind == 'sv':
-                raise AquaError(
-                    "Statevector simlator was used before this run. Change qunatum_instance to statevector simulator")
-
         # do while loop, keep in mind that we scaled theta mod 2pi such that it lies in [0,1]
+        num_iterations = 0
+
+        if self._quantum_instance.is_statevector:
+            self._ret['statevectors'] = []
+        else:
+            self._ret['counts'] = []
+
         while self._theta_intervals[-1][1] - self._theta_intervals[-1][0] > self._epsilon / np.pi:
-            self._i += 1
+            num_iterations += 1
 
             k, up = self._find_next_k(self._ks[-1], self._up[-1], self._theta_intervals[-1],
                                       min_ratio=self._min_ratio)
@@ -269,7 +258,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
 
                 # get statevector
                 state_vector = np.asarray(ret.get_statevector(self._circuits[-1]))
-                self._ret['statevectors'] += [{self._i: state_vector}]
+                self._ret['statevectors'] += [{num_iterations: state_vector}]
 
                 # calculate the probability of measuring '1'
                 prob = self._prob_from_cos_data_sv(state_vector)
@@ -283,7 +272,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
                 ret = self._quantum_instance.execute(self._circuits[-1])
 
                 result_mmt = ret.get_counts(self._circuits[-1])
-                self._ret['counts'] += [{self._i: result_mmt}]
+                self._ret['counts'] += [{num_iterations: result_mmt}]
 
                 # calculate the probability of measuring '1'
                 prob = self._prob_from_cos_data_qasm(result_mmt)
@@ -293,12 +282,14 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
             N_shots = self._quantum_instance._run_config.shots
             self._num_oracle_queries += N_shots * k
 
-            # if on previous iterations we have K_{i-1}==K_i, then we need to sum up these samples
+            # if on previous num_iterations we have K_{i-1} == K_i, we need to sum up these samples
             j = 1  # number of times we stayed fixed at the same K
-            if self._i > 1:
-                while self._ks[self._i - j] == self._ks[self._i] and self._i >= j + 1:
+            if num_iterations > 1:
+                while self._ks[num_iterations - j] == self._ks[num_iterations] \
+                        and num_iterations >= j + 1:
                     j = j + 1
-                N_total_1_shots = sum([self._N_1_shots[j] for j in range(self._i - j, self._i)])
+                N_total_1_shots = sum([self._N_1_shots[j] for j in
+                                       range(num_iterations - j, num_iterations)])
                 N_total_shots = j * N_shots
             else:
                 N_total_1_shots = self._N_1_shots[-1]
@@ -310,8 +301,9 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
                 a_i_min, a_i_max = self._chernoff(a_i, N_total_shots, self._T, self._alpha)
                 self._a_i_intervals.append([a_i_min, a_i_max])
             else:
-                a_i_min, a_i_max = proportion_confint(
-                    N_total_1_shots, N_total_shots, method=self._method, alpha=self._alpha / self._T)
+                a_i_min, a_i_max = proportion_confint(N_total_1_shots, N_total_shots,
+                                                      method=self._method,
+                                                      alpha=self._alpha / self._T)
                 self._a_i_intervals.append([a_i_min, a_i_max])
 
             # compute theta_min_i, theta_max_i
