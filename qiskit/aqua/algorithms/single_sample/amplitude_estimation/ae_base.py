@@ -35,7 +35,7 @@ class AmplitudeEstimationBase(QuantumAlgorithm):
     def __init__(self, a_factory=None, q_factory=None, i_objective=None):
         self._a_factory = a_factory
         self._q_factory = q_factory
-        self.i_objective = i_objective
+        self._i_objective = i_objective
 
         super().__init__()
 
@@ -51,13 +51,28 @@ class AmplitudeEstimationBase(QuantumAlgorithm):
 
     @property
     def q_factory(self):
-        """ returns q factory """
-        return self._q_factory
+        if self._q_factory is not None:
+            return self._q_factory
+
+        if self._a_factory is not None:
+            return QFactory(self._a_factory, self.i_objective)
+
+        return None
 
     @q_factory.setter
     def q_factory(self, q_factory):
         """ sets q factory """
         self._q_factory = q_factory
+
+    @property
+    def i_objective(self):
+        if self._i_objective is not None:
+            return self._i_objective
+
+        if self._q_factory is not None:
+            return self._q_factory.i_objective
+
+        return self.a_factory.num_target_qubits - 1
 
     def check_factories(self):
         """
@@ -67,12 +82,3 @@ class AmplitudeEstimationBase(QuantumAlgorithm):
         # check if A factory has been set
         if self._a_factory is None:
             raise AquaError("a_factory must be set!")
-
-        # check if Q factory has been set
-        if self._q_factory is None:
-            self.i_objective = self.a_factory.num_target_qubits - 1
-            self._q_factory = QFactory(self._a_factory, self.i_objective)
-        # set i_objective if has not been set
-        else:
-            if self.i_objective is None:
-                self.i_objective = self._q_factory.i_objective
