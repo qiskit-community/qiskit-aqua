@@ -147,17 +147,17 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
             if theta_min <= theta_max <= 0.5 and theta_min <= 0.5:
                 # if extrapolated theta is in upper half-circle
                 upper_half_circle = True
-                return (scaling - 2) / 4, upper_half_circle
+                return int((scaling - 2) / 4), upper_half_circle
 
             elif theta_max >= 0.5 and theta_max >= theta_min >= 0.5:
                 # if extrapolated theta is in lower half-circle
                 upper_half_circle = False
-                return (scaling - 2) / 4, upper_half_circle
+                return int((scaling - 2) / 4), upper_half_circle
 
             scaling -= 4
 
         # if we do not find a feasible k, return the old one
-        return k, upper_half_circle
+        return int(k), upper_half_circle
 
     def construct_circuit(self, k, measurement=False):
         """
@@ -217,7 +217,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
         """
         if isinstance(counts_or_statevector, dict):
             one_counts = counts_or_statevector.get('1', 0)
-            return one_counts, one_counts / sum(counts_or_statevector.values())
+            return int(one_counts), one_counts / sum(counts_or_statevector.values())
         else:
             statevector = counts_or_statevector
             num_qubits = self.a_factory.num_target_qubits
