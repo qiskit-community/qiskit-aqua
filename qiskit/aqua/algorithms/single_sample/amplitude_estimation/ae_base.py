@@ -41,7 +41,13 @@ class AmplitudeEstimationBase(QuantumAlgorithm):
 
     @property
     def a_factory(self):
-        """ returns a factory """
+        """
+        Get the a_factory.
+
+        Returns:
+            CircuitFactory: the a_factory
+
+        """
         return self._a_factory
 
     @a_factory.setter
@@ -51,6 +57,13 @@ class AmplitudeEstimationBase(QuantumAlgorithm):
 
     @property
     def q_factory(self):
+        """
+        Get the q_factory. If the q_factory is not set, we try to build it from the a_factory.
+        If the a_factory is not set as well, None is returned.
+
+        Returns:
+            QFactory: returns the current Q factory of the algorithm
+        """
         if self._q_factory is not None:
             return self._q_factory
 
@@ -66,13 +79,25 @@ class AmplitudeEstimationBase(QuantumAlgorithm):
 
     @property
     def i_objective(self):
+        """
+        Get the index of the objective qubit. If i_objective is not set, we check if the
+        q_factory is set and return the index specified there. If the q_factory is not defined,
+        the index equals the number of qubits of the a_factory minus one. If also the
+        a_factory is not set, return None.
+
+        Returns:
+            int: the index of the objective qubit
+        """
         if self._i_objective is not None:
             return self._i_objective
 
         if self._q_factory is not None:
             return self._q_factory.i_objective
 
-        return self.a_factory.num_target_qubits - 1
+        if self._a_factory is not None:
+            return self.a_factory.num_target_qubits - 1
+
+        return None
 
     def check_factories(self):
         """
