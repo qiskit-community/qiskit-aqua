@@ -14,6 +14,7 @@ ancilla
 ancillae
 ancillas
 ansatz
+ansatzes
 anticommute
 ao
 ap
@@ -24,6 +25,7 @@ args
 asmatrix
 ast
 atol
+autosummary
 autorecovery
 babbush
 backend
@@ -42,6 +44,7 @@ bohr
 bool
 boolean
 bpa
+brassard
 bravyi
 cargs
 ccphase
@@ -49,13 +52,14 @@ cct
 ccx
 cdf
 ceil
+chernoff
 circ
 CircuitCache
 clas
-classifer
 clbits
 clifford
 cliffords
+clopper
 cls
 cnf
 cnot
@@ -67,6 +71,8 @@ coeffs
 commutativities
 comparator
 comparators
+conda
+conf
 config
 coord
 coords
@@ -78,11 +84,11 @@ crs
 crx
 csr
 ctls
+currentmodule
 cvs
 cx
 cx's
 cz
-dafault
 das
 dat
 dataondemand
@@ -101,6 +107,7 @@ devsglobals
 diagonalize
 diagonalizing
 dict
+dicts
 diederik
 dimacs
 dimens
@@ -126,7 +133,7 @@ eigs
 eigvecs
 einsum
 els
-emtpy
+endif
 entangler
 enum
 eoh
@@ -141,7 +148,9 @@ evals
 excitations
 expr
 factr
+fcompiler
 fermionic
+FermionicOperator
 fermions
 fileio
 filepath
@@ -156,10 +165,13 @@ func
 gambetta
 gauopen
 gaussian
+gaussiand
+gcc
 gcd
 geq
 getattr
 getter
+gfortran
 globals
 graycode
 gridpoints
@@ -176,8 +188,11 @@ hartree
 hb
 hhl
 hk
+https
 iadd
 idx
+ifdef
+ifortvars
 ign
 ij
 ijkm
@@ -188,13 +203,16 @@ indices
 indvar
 init
 initializer
+initio
 innerproduct
 inreg
 instantiations
+intelvem
 ints
 ip
 iprint
 iqft
+iqfts
 iqpe
 ising
 isinstance
@@ -232,6 +250,7 @@ lst
 majorana
 matrixoperator
 maxcut
+maxdepth
 maxfev
 maxfun
 maxima
@@ -280,10 +299,12 @@ nevals
 nfev
 nk
 nlopt
+nlopts
 nn
 noint
 noqa
 norbs
+nosignatures
 np
 num
 numpy
@@ -294,10 +315,12 @@ objval
 oe
 ok
 oneee
+online
 onwards
 optim
 optimizer's
 optimizers
+org
 parametrized
 params
 parentname
@@ -318,6 +341,7 @@ polynomially
 postoracle
 powell
 pre
+prebuilt
 precomputed
 preoracle
 prepend
@@ -327,7 +351,9 @@ proj
 px
 py
 pyquante
+pyquanted
 pyscf
+pyscfd
 pytorch
 qae
 qancilla
@@ -335,8 +361,11 @@ qargs
 qasm
 qbit
 qc
+qcmatrixio
 qeom
+QFactory
 qft
+qfts
 qgan
 qiskit
 qith
@@ -384,6 +413,7 @@ satyen
 savefile
 sca
 scf
+scikit
 schemas
 scipy
 sdg
@@ -395,6 +425,7 @@ shor
 shor's
 sigmoid
 sj
+sklearn
 slsqp
 spsa
 sqrt
@@ -410,6 +441,7 @@ subdirectories
 subgraph
 subpattern
 subspaces
+sudo
 superclass
 suzuki
 svm
@@ -419,6 +451,7 @@ symm
 symmetrized
 sympy
 sys
+sysctl
 tbd
 tdg
 temme
@@ -431,6 +464,7 @@ tiajb
 tibja
 timestamp
 tnc
+toctree
 toffoli
 tol
 tomo
@@ -445,6 +479,7 @@ trunc
 ub
 uccsd
 uhf
+ulimit
 unary
 uncompiled
 uncompute
@@ -457,6 +492,9 @@ unroller
 unsetting
 unshifting
 untapered
+username
+usr
+utils
 validator
 vals
 variational

@@ -13,7 +13,7 @@
 # that they have been altered from the originals.
 
 """
-The classical svm interface.
+Classical SVM algorithm.
 """
 
 import logging
@@ -32,9 +32,10 @@ logger = logging.getLogger(__name__)
 
 class SVM_Classical(QuantumAlgorithm):
     """
-    The classical svm interface.
+    Classical SVM algorithm.
+
     Internally, it will run the binary classification or multiclass classification
-    based on how many classes the data have.
+    based on how many classes the data has.
     """
 
     CONFIGURATION = {
@@ -61,6 +62,24 @@ class SVM_Classical(QuantumAlgorithm):
 
     def __init__(self, training_dataset, test_dataset=None, datapoints=None,
                  gamma=None, multiclass_extension=None):
+        # pylint: disable=line-too-long
+        """
+
+        Args:
+            training_dataset (dict, optional): training dataset.
+            test_dataset (dict, optional): testing dataset.
+            datapoints (numpy.ndarray, optional): prediction dataset.
+            gamma (int, optional): Used as input for sklearn rbf_kernel internally. See
+                `sklearn.metrics.pairwise.rbf_kernel
+                <https://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.rbf_kernel.html>`_
+                for more information about gamma.
+            multiclass_extension (MultiExtension, optional): if number of classes > 2 then
+                a multiclass scheme is needed.
+
+        Raises:
+            AquaError: If using binary classifier where num classes >= 3
+        """
+
         self.validate(locals())
         super().__init__()
         if training_dataset is None:
@@ -106,20 +125,22 @@ class SVM_Classical(QuantumAlgorithm):
 
     def train(self, data, labels):
         """
-        train the svm
+        Train the SVM
+
         Args:
             data (numpy.ndarray): NxD array, where N is the number of data,
-                                  D is the feature dimension.
+                D is the feature dimension.
             labels (numpy.ndarray): Nx1 array, where N is the number of data
         """
         self.instance.train(data, labels)
 
     def test(self, data, labels):
         """
-        test the svm
+        Test the SVM
+
         Args:
             data (numpy.ndarray): NxD array, where N is the number of data,
-                                  D is the feature dimension.
+                D is the feature dimension.
             labels (numpy.ndarray): Nx1 array, where N is the number of data
 
         Returns:
@@ -129,7 +150,8 @@ class SVM_Classical(QuantumAlgorithm):
 
     def predict(self, data):
         """
-        predict using the svm
+        Predict using the SVM
+
         Args:
             data (numpy.ndarray): NxD array, where N is the number of data,
                                   D is the feature dimension.
@@ -162,7 +184,8 @@ class SVM_Classical(QuantumAlgorithm):
         self.instance.ret = new_ret
 
     def load_model(self, file_path):
-        """Load a model from a file path.
+        """
+        Load a model from a file path.
 
         Args:
             file_path (str): the path of the saved model.
@@ -170,7 +193,8 @@ class SVM_Classical(QuantumAlgorithm):
         self.instance.load_model(file_path)
 
     def save_model(self, file_path):
-        """Save the model to a file path.
+        """
+        Save the model to a file path.
 
         Args:
             file_path (str): a path to save the model.

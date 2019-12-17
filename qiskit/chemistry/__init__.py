@@ -11,8 +11,46 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+"""
+==============================================================
+Chemistry application stack for Aqua (:mod:`qiskit.chemistry`)
+==============================================================
+This is the chemistry domain logic....
 
-"""Main public functionality."""
+.. currentmodule:: qiskit.chemistry
+
+Chemistry Error
+===============
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   QiskitChemistryError
+
+Chemistry Classes
+==================
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   FermionicOperator
+   QMolecule
+   MP2Info
+
+Submodules
+==========
+
+.. autosummary::
+   :toctree:
+
+   algorithms
+   components
+   core
+   drivers
+
+"""
 
 from .qiskit_chemistry_error import QiskitChemistryError
 from .qmolecule import QMolecule

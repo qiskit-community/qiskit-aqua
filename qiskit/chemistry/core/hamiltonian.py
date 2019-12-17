@@ -109,7 +109,6 @@ class Hamiltonian(ChemistryOperator):
                  freeze_core=False,
                  orbital_reduction=None):
         """
-        Initializer
         Args:
             transformation (TransformationType): full or particle_hole
             qubit_mapping (QubitMappingType): jordan_wigner, parity or bravyi_kitaev
