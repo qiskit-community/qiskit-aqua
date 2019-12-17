@@ -34,9 +34,9 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     This class implements the Iterative Quantum Amplitude Estimation (QAE) algorithm, proposed
     in https://arxiv.org/abs/1912.05559.
     It differs from the original QAE algorithm proposed by Brassard
-    (https://arxiv.org/abs/quant-ph/0005055) that it does rely on Quantum Phase Estimation, but is
-    only based on Grover's algorithm. Iterative IQAE iteratively applies carefully selected Grover
-    iterations to find an estimate for the target amplitude.
+    (https://arxiv.org/abs/quant-ph/0005055) in that it does rely on Quantum Phase Estimation, but
+    is only based on Grover's algorithm. Iterative IQAE iteratively applies carefully selected
+    Grover iterations to find an estimate for the target amplitude.
     """
 
     CONFIGURATION = {
@@ -143,7 +143,8 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         theta_l, theta_u = theta_interval
         old_scaling = 4 * k + 2  # current K_i factor
 
-        # feasible K is not bigger than K_max, which is bounded by the length of current CI
+        # the largest feasible K cannot be larger than K_max, which is bounded by the length of
+        # the current confidence interval
         max_scaling = int(1 / (2 * (theta_u - theta_l)))
         scaling = max_scaling - (max_scaling - 2) % 4
 
