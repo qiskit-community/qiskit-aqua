@@ -19,7 +19,7 @@ The Iterative Quantum Amplitude Estimation Algorithm.
 
 import logging
 import numpy as np
-from statsmodels.stats.proportion import proportion_confint
+from scipy.stats import beta
 
 from qiskit import ClassicalRegister, QuantumRegister, QuantumCircuit
 from qiskit.aqua import AquaError
@@ -88,12 +88,16 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             epsilon (float): target precision for estimation target `a`
             alpha (float): confidence level, the target probability is 1 - alpha
             ci_method (str): statistical method used to estimate the confidence intervals in each
-                iteration, can be 'chernoff' or 'beta' (for Clopper-Pearson)
+                iteration, can be 'chernoff' for the Chernoff intervals or 'beta' for the
+                Clopper-Pearson intervals (default)
             min_ratio (float): minimal q-ratio (K_{i+1} / K_i) for FindNextK
             a_factory (CircuitFactory): the A operator, specifying the QAE problem
             q_factory (CircuitFactory): the Q operator (Grover operator), constructed from the
                 A operator
             i_objective (int): index of the objective qubit, that marks the 'good/bad' states
+
+        Raises:
+            AquaError: if the method to compute the confidence intervals is not supported
         """
         self.validate(locals())
         super().__init__(a_factory, q_factory, i_objective)
@@ -101,8 +105,12 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         # store parameters
         self._epsilon = epsilon
         self._alpha = alpha
-        self._ci_method = ci_method
         self._min_ratio = min_ratio
+
+        if ci_method in ['chernoff', 'beta']:
+            self._ci_method = ci_method
+        else:
+            raise AquaError('invalid method to compute confidence intervals')
 
         # results dictionary
         self._ret = {}
@@ -272,6 +280,19 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         upper = np.minimum(1, value + eps)
         return lower, upper
 
+    def _clopper_pearson_confint(self, counts, shots, alpha):
+        lower, upper = 0, 1
+
+        # if counts == 0, the beta quantile returns nan
+        if counts != 0:
+            lower = beta.ppf(alpha / 2, counts, shots - counts + 1)
+
+        # if counts == shots, the beta quantile returns nan
+        if counts != shots:
+            upper = beta.ppf(1 - alpha / 2, counts + 1, shots - counts)
+
+        return lower, upper
+
     def _run(self):
         # check if A factory has been set
         if self.a_factory is None:
@@ -356,10 +377,9 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 if self._ci_method == 'chernoff':
                     a_i_min, a_i_max = self._chernoff_confint(prob, round_shots, max_rounds,
                                                               self._alpha)
-                else:
-                    a_i_min, a_i_max = proportion_confint(round_one_counts, round_shots,
-                                                          method=self._ci_method,
-                                                          alpha=self._alpha / max_rounds)
+                else:  # 'beta'
+                    a_i_min, a_i_max = self._clopper_pearson_confint(round_one_counts, round_shots,
+                                                                     self._alpha / max_rounds)
 
                 # compute theta_min_i, theta_max_i
                 if upper_half_circle:
