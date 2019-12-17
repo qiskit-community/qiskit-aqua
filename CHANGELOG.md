@@ -15,11 +15,14 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 > -   **Fixed**: for any bug fixes.
 > -   **Security**: in case of vulnerabilities.
 
-[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.1...HEAD)
+[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.2...HEAD)
 ========================================================================
 
+[0.6.2](https://github.com/Qiskit/qiskit-aqua/compare/0.6.1...0.6.2) - 2019-12-17
+=================================================================================
+
 Changed
------
+-------
 
 -   `VQE`, `VQC` and `QSVM` now use parameterized circuits when available to save time
     in transpilation. (#693)
