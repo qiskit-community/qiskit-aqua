@@ -24,7 +24,7 @@ from statsmodels.stats.proportion import proportion_confint
 from qiskit import ClassicalRegister, QuantumRegister, QuantumCircuit
 from qiskit.aqua import AquaError
 
-from .ae_base import (AmplitudeEstimationBase)
+from .ae_base import AmplitudeEstimationBase
 
 logger = logging.getLogger(__name__)
 
@@ -253,8 +253,9 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
         return lower, upper
 
     def _run(self):
-        # check that A and Q operators are correctly set
-        self.check_factories()
+        # check if A factory has been set
+        if self.a_factory is None:
+            raise AquaError("a_factory must be set!")
 
         # initialize memory variables
         powers = [0]  # list of powers k: Q^k, (called 'k' in paper)

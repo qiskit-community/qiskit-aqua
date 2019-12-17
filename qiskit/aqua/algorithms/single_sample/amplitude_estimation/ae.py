@@ -357,9 +357,9 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
         self._ret['mle'] = val_opt
 
     def _run(self):
-        # check if A/Q operators have been set and set Q operator if
-        # it hasn't been set manually
-        self.check_factories()
+        # check if A factory has been set
+        if self.a_factory is None:
+            raise AquaError("a_factory must be set!")
 
         if self._quantum_instance.is_statevector:
             self.construct_circuit(measurement=False)

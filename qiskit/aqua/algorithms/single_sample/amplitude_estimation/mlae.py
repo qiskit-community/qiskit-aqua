@@ -413,7 +413,9 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationBase):
         return self._compute_mle_safe()
 
     def _run(self):
-        self.check_factories()
+        # check if A factory has been set
+        if self.a_factory is None:
+            raise AquaError("a_factory must be set!")
 
         if self._quantum_instance.is_statevector:
 

@@ -42,24 +42,38 @@ class AmplitudeEstimationBase(QuantumAlgorithm):
     @property
     def a_factory(self):
         """
-        Get the a_factory.
+        Get the A operator encoding the amplitude `a` that's approximated, i.e.
+
+            A |0>_n |0> = sqrt{1 - a} |psi_0>_n |0> + sqrt{a} |psi_1>_n |1>
+
+        see Brassard's paper (arxiv.org/abs/quant-ph/0005055) for more detail.
 
         Returns:
-            CircuitFactory: the a_factory
-
+            CircuitFactory: the A operator as CircuitFactory
         """
         return self._a_factory
 
     @a_factory.setter
     def a_factory(self, a_factory):
-        """ sets a factory """
+        """
+        Set the A operator, that encodes the amplitude to be estimated.
+
+        Args:
+            a_factory (CircuitFactory): the A Operator
+        """
         self._a_factory = a_factory
 
     @property
     def q_factory(self):
         """
-        Get the q_factory. If the q_factory is not set, we try to build it from the a_factory.
-        If the a_factory is not set as well, None is returned.
+        Get the Q operator, or Grover-operator for the Amplitude Estimation algorithm, i.e.
+
+            Q = - A S_0 A^{-1} S_psi
+
+        see arxiv.org/abs/quant-ph/0005055 for more detail.
+
+        If the Q operator is not set, we try to build it from the A operator.
+        If neither the A operator is set, None is returned.
 
         Returns:
             QFactory: returns the current Q factory of the algorithm
@@ -74,16 +88,30 @@ class AmplitudeEstimationBase(QuantumAlgorithm):
 
     @q_factory.setter
     def q_factory(self, q_factory):
-        """ sets q factory """
+        """
+        Set the Q operator as QFactory.
+
+        Args:
+            q_factory (QFactory): the specialised Q operator
+        """
         self._q_factory = q_factory
 
     @property
     def i_objective(self):
         """
-        Get the index of the objective qubit. If i_objective is not set, we check if the
-        q_factory is set and return the index specified there. If the q_factory is not defined,
-        the index equals the number of qubits of the a_factory minus one. If also the
-        a_factory is not set, return None.
+        Get the index of the objective qubit. The objective qubit marks the |psi_0> state (called
+        'bad states' in arxiv.org/abs/quant-ph/0005055)
+        with |0> and |psi_1> ('good' states) with |1>.
+        If the A operator performs the mapping
+
+            A |0>_n |0> = sqrt{1 - a} |psi_0>_n |0> + sqrt{a} |psi_1>_n |1>
+
+        then, the objective qubit is the last one (which is either |0> or |1>).
+
+        If the objectiv qubit (i_objective) is not set, we check if the Q operator (q_factory) is
+        set and return the index specified there. If the q_factory is not defined,
+        the index equals the number of qubits of the A operator (a_factory) minus one.
+        If also the a_factory is not set, return None.
 
         Returns:
             int: the index of the objective qubit
@@ -98,12 +126,3 @@ class AmplitudeEstimationBase(QuantumAlgorithm):
             return self.a_factory.num_target_qubits - 1
 
         return None
-
-    def check_factories(self):
-        """
-        Check if a_factory has been set, and set q_factory if it hasn't been
-        set already.
-        """
-        # check if A factory has been set
-        if self._a_factory is None:
-            raise AquaError("a_factory must be set!")
