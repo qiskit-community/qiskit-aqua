@@ -53,7 +53,7 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
 
             A |0>_n |0> = sqrt{1 - a} |psi_0>_n |0> + sqrt{a} |psi_1>_n |1>
 
-        see Brassard's paper (https://arxiv.org/abs/quant-ph/0005055) for more detail.
+        see the original Brassard paper (https://arxiv.org/abs/quant-ph/0005055) for more detail.
 
         Returns:
             CircuitFactory: the A operator as CircuitFactory
@@ -99,7 +99,7 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
         Set the Q operator as QFactory.
 
         Args:
-            q_factory (QFactory): the specialised Q operator
+            q_factory (QFactory): the specialized Q operator
         """
         self._q_factory = q_factory
 
@@ -115,7 +115,7 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
 
         then, the objective qubit is the last one (which is either |0> or |1>).
 
-        If the objectiv qubit (i_objective) is not set, we check if the Q operator (q_factory) is
+        If the objective qubit (i_objective) is not set, we check if the Q operator (q_factory) is
         set and return the index specified there. If the q_factory is not defined,
         the index equals the number of qubits of the A operator (a_factory) minus one.
         If also the a_factory is not set, return None.
