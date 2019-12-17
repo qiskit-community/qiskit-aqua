@@ -81,8 +81,8 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             alpha (float): confidence level
             ci_method (string): statistical method for confidence interval estimation
             min_ratio (float): minimal q-ratio (K_{i+1} / K_i) for FindNextK
-            a_factory (CircuitFactory): A oracle
-            q_factory (CircuitFactory): Q oracle
+            a_factory (CircuitFactory): A operator
+            q_factory (CircuitFactory): Q operator
             i_objective (int): index of objective qubit
         """
         self.validate(locals())
@@ -93,6 +93,9 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         self._alpha = alpha
         self._ci_method = ci_method
         self._min_ratio = min_ratio
+
+        # results dictionary
+        self._ret = {}
 
     @property
     def precision(self):
@@ -169,7 +172,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         Construct the circuit Q^k A |0>
 
         Args:
-            k (int): the power of Q
+            k (int): the power of Q operator
             measurement (bool): boolean flag to indicate if measurements should be included in the
                 circuits
 
@@ -271,8 +274,8 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         num_one_shots = []
 
         # maximum number of rounds
-        max_rounds = int(np.log(self._min_ratio * np.pi / 8 /
-                                self._epsilon) / np.log(self._min_ratio)) + 1
+        max_rounds = int(np.log(self._min_ratio * np.pi / 8
+                                / self._epsilon) / np.log(self._min_ratio)) + 1
         upper_half_circle = True  # initially theta is in the upper half-circle
 
         # for statevector we can directly return the probability to measure 1
@@ -375,8 +378,8 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         estimation = self.a_factory.value_to_estimation(value)
         confidence_interval = [self.a_factory.value_to_estimation(x) for x in a_confidence_interval]
 
-        # set up results dictionary
-        results = {
+        # add result items to the results dictionary
+        self._ret.update({
             'value': value,
             'value_confidence_interval': a_confidence_interval,
             'confidence_interval': confidence_interval,
@@ -388,6 +391,6 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             'theta_intervals': theta_intervals,
             'powers': powers,
             'ratios': ratios,
-        }
+        })
 
-        return results
+        return self._ret
