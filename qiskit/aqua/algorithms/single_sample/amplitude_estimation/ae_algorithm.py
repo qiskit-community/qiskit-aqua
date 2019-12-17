@@ -30,12 +30,19 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
     The Quantum Amplitude Estimation (QAE) algorithm base class.
 
     In general, QAE algorithms aim to approximate the amplitude of a certain, marked state.
-    This amplitude is encoded in the so-called A operator, performing the  mapping
+    This amplitude is encoded in the so-called A operator, performing the mapping
 
             A |0>_n |0> = sqrt{1 - a} |psi_0>_n |0> + sqrt{a} |psi_1>_n |1>
 
     where the amplitude `a` (in [0, 1]) is approximated, and |psi_0> and |psi_1> are two
     normalized, not necessarily orthogonal, states.
+    In the QAE algorithms, the Grover operator Q is used, which is defined as
+
+            Q = -A S_0 A^{-1} S_psi0,
+
+    where S_0 reflects about the |0>_n state and S_psi0 reflects about |psi_0>_n.
+
+    See https://arxiv.org/abs/quant-ph/0005055 for more detail about QAE.
     """
 
     @abstractmethod
@@ -75,9 +82,10 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
         """
         Get the Q operator, or Grover-operator for the Amplitude Estimation algorithm, i.e.
 
-            Q = - A S_0 A^{-1} S_psi
+            Q = -A S_0 A^{-1} S_psi0,
 
-        see https://arxiv.org/abs/quant-ph/0005055 for more detail.
+        where S_0 reflects about the |0>_n state and S_psi0 reflects about |psi_0>_n.
+        See https://arxiv.org/abs/quant-ph/0005055 for more detail.
 
         If the Q operator is not set, we try to build it from the A operator.
         If neither the A operator is set, None is returned.
