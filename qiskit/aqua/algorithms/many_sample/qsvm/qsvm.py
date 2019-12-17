@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Quantum SVM method."""
+"""Quantum SVM algorithm."""
 
 import logging
 import sys
@@ -39,10 +39,10 @@ logger = logging.getLogger(__name__)
 
 class QSVM(QuantumAlgorithm):
     """
-    Quantum SVM method.
+    Quantum SVM algorithm.
 
     Internally, it will run the binary classification or multiclass classification
-    based on how many classes the data have.
+    based on how many classes the data has.
     """
 
     CONFIGURATION = {
@@ -72,7 +72,7 @@ class QSVM(QuantumAlgorithm):
 
     def __init__(self, feature_map, training_dataset=None, test_dataset=None, datapoints=None,
                  multiclass_extension=None):
-        """Constructor.
+        """
 
         Args:
             feature_map (FeatureMap): feature map module, used to transform data
@@ -83,7 +83,7 @@ class QSVM(QuantumAlgorithm):
                 a multiclass scheme is needed.
 
         Raises:
-            AquaError: use binary classifer for classes > 3
+            AquaError: use binary classifier for classes > 3
         """
         super().__init__()
         # check the validity of provided arguments if possible
