@@ -12,7 +12,46 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Data Providers Packages """
+"""
+Data Providers (:mod:`qiskit.finance.data_providers`)
+=====================================================
+Providers of financial data...
+
+.. currentmodule:: qiskit.finance.data_providers
+
+Data Providers Base Class
+=========================
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   BaseDataProvider
+
+Data Provider Utilities
+=======================
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+    DataType
+    StockMarket
+    QiskitFinanceError
+
+Data Providers
+==============
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   DataOnDemandProvider
+   ExchangeDataProvider
+   WikipediaDataProvider
+   RandomDataProvider
+
+"""
 
 from ._base_data_provider import BaseDataProvider, DataType, StockMarket, QiskitFinanceError
 from .data_on_demand_provider import DataOnDemandProvider

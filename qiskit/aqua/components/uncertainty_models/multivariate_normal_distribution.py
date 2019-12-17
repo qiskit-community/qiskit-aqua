@@ -76,8 +76,6 @@ class MultivariateNormalDistribution(MultivariateDistribution):
 
     def __init__(self, num_qubits, low=None, high=None, mu=None, sigma=None):
         """
-        Constructor.
-
         Circuit Factory to build a circuit that represents a multivariate normal distribution.
 
         Args:

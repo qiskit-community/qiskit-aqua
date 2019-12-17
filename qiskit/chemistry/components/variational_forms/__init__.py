@@ -12,8 +12,25 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Variational Forms packages """
+"""
+Variational Forms (:mod:`qiskit.chemistry.components.variational_forms`)
+========================================================================
+These are chemistry specific Aqua Variational Forms where they inherit from
+Aqua :class:`VariationalForm`. As they rely on chemistry specific knowledge
+and/or functions they live here rather than in Aqua.
 
+.. currentmodule:: qiskit.chemistry.components.variational_forms
+
+Variational Forms
+=================
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   UCCSD
+
+"""
 from .uccsd import UCCSD
 
 __all__ = ['UCCSD']

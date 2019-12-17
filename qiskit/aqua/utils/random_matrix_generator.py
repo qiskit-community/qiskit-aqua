@@ -32,6 +32,7 @@ def random_h1_body(N):  # pylint: disable=invalid-name
 
     Returns:
         np.ndarray: a 2-D matrix with np.complex data type.
+
     Raises:
         ValueError: invalid number of spin orbitals
     """
@@ -52,6 +53,7 @@ def random_unitary(N):  # pylint: disable=invalid-name
 
     Args:
         N (int): the dimension of unitary matrix
+
     Returns:
         np.ndarray: a 2-D matrix with np.complex data type.
     """
@@ -65,11 +67,14 @@ def random_unitary(N):  # pylint: disable=invalid-name
 def random_h2_body(N, M):  # pylint: disable=invalid-name
     """
     Generate a random two body integrals.
+
     Args:
         N (int) : number of spin-orbitals (dimension of h2)
         M (int) : number of non-zero entries
+
     Returns:
         np.ndarray: a numpy 4-D tensor with np.complex data type.
+
     Raises:
         ValueError: invalid spin orbitals
     """
@@ -155,19 +160,20 @@ def random_h2_body(N, M):  # pylint: disable=invalid-name
 def random_diag(N, eigs=None, K=None, eigrange=None):  # pylint: disable=invalid-name
     """
     Generate random diagonal matrix with given properties
+
     Args:
         N (int): size of matrix
-        eigs (Union(list, tuple, np.ndarray)): list of N eigenvalues. Overrides K,
-                                        eigrange.
+        eigs (Union(list, tuple, np.ndarray)): list of N eigenvalues. Overrides K, eigrange.
         K (Union(float, list, tuple()): condition number. Either use only condition
-                                number K or list/tuple of (K, lmin) or (K,
-                                lmin, sgn). Where lmin is the smallest
-                                eigenvalue and sign +/- 1 specifies if
-                                eigenvalues can be negative.
+            number K or list/tuple of (K, lmin) or (K,
+            lmin, sgn). Where lmin is the smallest
+            eigenvalue and sign +/- 1 specifies if
+            eigenvalues can be negative.
         eigrange (Union(list, tuple, nd.ndarray)): [min, max] list for eigenvalue
-                                            range. (default=[0, 1])
+                                                   range. (default=[0, 1])
     Returns:
         np.ndarray: diagonal matrix
+
      Raises:
         ValueError: invalid input data
     """
@@ -211,6 +217,7 @@ def limit_paulis(mat, n=5, sparsity=None):
     """
     Limits the number of Pauli basis matrices of a hermitian matrix to the n
     highest magnitude ones.
+
     Args:
         mat (np.ndarray): Input matrix
         n (int): number of surviving Pauli matrices (default=5)
@@ -261,21 +268,23 @@ def random_hermitian(N, eigs=None, K=None,  # pylint: disable=invalid-name
     Generate random hermitian (sparse) matrix with given properties. Sparsity is
     achieved by truncating Pauli matrices. Sparsity settings alternate the
     eigenvalues due to truncation.
+
     Args:
         N (int): size of matrix
-        eigs (Union(list, tuple, np.ndarray)): list of N eigenvalues. Overrides K,
-                                        eigrange
+        eigs (Union(list, tuple, np.ndarray)): list of N eigenvalues. Overrides K, eigrange
         K (Union(float, list, tuple)): condition number. Either use only condition
-                                number K or list/tuple of (K, lmin) or (K,
-                                lmin, sgn). Where lmin is the smallest
-                                eigenvalue and sign +/- 1 specifies if
-                                eigenvalues can be negative.
+            number K or list/tuple of (K, lmin) or (K,
+            lmin, sgn). Where lmin is the smallest
+            eigenvalue and sign +/- 1 specifies if
+            eigenvalues can be negative.
         eigrange (Union(list, tuple, nd.ndarray)): [min, max] list for eigenvalue
-                                            range. (default=[0, 1])
+                                                   range. (default=[0, 1])
         trunc (int): limit for number of Pauli matrices.
         sparsity (float): sparsity of matrix. Overrides trunc.
+
     Returns:
         np.ndarray: hermitian matrix
+
     Raises:
         ValueError: invalid matrix
     """
@@ -294,6 +303,7 @@ def random_hermitian(N, eigs=None, K=None,  # pylint: disable=invalid-name
 def limit_entries(mat, n=5, sparsity=None):
     """
     Limits the number of entries of a matrix to the n highest magnitude ones.
+
     Args:
         mat (np.array): Input Matrix
         n (int): number of surviving entries (default=5)
@@ -321,20 +331,23 @@ def random_non_hermitian(N, M=None, sings=None, K=None,   # pylint: disable=inva
     Generate random (sparse) matrix with given properties (singular values).
     Sparsity is achieved by truncating Pauli matrices. Sparsity settings
     alternate the singular values due to truncation.
+
     Args:
         N (int): size of matrix
         M (int): size of matrix
         sings (Union(list, tuple, np.ndarray)): list of N singular values.
-                                         Overrides K, srange.
+                                                Overrides K, srange.
         K (Union(float, list, tuple)): condition number. Either use only condition
-                                number K or list/tuple of (K, lmin). Where lmin
-                                specifies the smallest singular value.
+                                       number K or list/tuple of (K, lmin). Where lmin
+                                       specifies the smallest singular value.
         srange (Union(list, tuple, nd.ndarray)): [min, max] list for singular value
-                                          range, min >= 0. (default=[0, 1]).
+                                                 range, min >= 0. (default=[0, 1]).
         sparsity (float): sparsity of matrix. Overrides trunc.
         trunc (int): limit of Pauli matrices.
+
     Returns:
         np.ndarray: random matrix
+
      Raises:
         ValueError: invalid matrix
     """

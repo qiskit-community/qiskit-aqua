@@ -11,3 +11,32 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
+"""
+Components (:mod:`qiskit.aqua.components`)
+==========================================
+Components form part of an algorithm....
+
+.. currentmodule:: qiskit.aqua.components
+
+Submodules
+==========
+
+.. autosummary::
+   :toctree:
+
+   eigs
+   feature_maps
+   initial_states
+   iqfts
+   multiclass_extensions
+   neural_networks
+   optimizers
+   oracles
+   qfts
+   reciprocals
+   uncertainty_models
+   uncertainty_problems
+   variational_forms
+
+"""
