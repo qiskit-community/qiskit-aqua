@@ -18,14 +18,15 @@ from qiskit.chemistry.components.variational_forms import UCCSD
 
 
 class MP2Info:
-    """A utility class for Moller-Plesset 2nd order (MP2) information
+    """
+    A utility class for Moller-Plesset 2nd order (MP2) information
 
-    Each double excitation given by [i,a,j,b] has a coefficient computed using
-      coeff = -(2 * Tiajb - Tibja)/(oe[b] + oe[a] - oe[i] - oe[j])
-    where oe[] is the orbital energy
+    | Each double excitation given by [i,a,j,b] has a coefficient computed using
+    |     coeff = -(2 * Tiajb - Tibja)/(oe[b] + oe[a] - oe[i] - oe[j])
+    | where oe[] is the orbital energy
 
-    and an energy delta given by
-      e_delta = coeff * Tiajb
+    | and an energy delta given by
+    |     e_delta = coeff * Tiajb
 
     All the computations are done using the molecule orbitals but the indexes used
     in the excitation information passed in and out are in the block spin orbital
@@ -136,6 +137,7 @@ class MP2Info:
 
         Returns:
             Tuple(list, list): List of coefficients and list of energy deltas
+
         Raises:
             ValueError: Excitation not present in mp2 terms
         """

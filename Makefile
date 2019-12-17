@@ -24,3 +24,6 @@ test:
 
 spell:
 	pylint -rn --disable=all --enable=spelling --spelling-dict=en_US --spelling-private-dict-file=.pylintdict --ignore=gauopen qiskit/ml qiskit/aqua qiskit/chemistry qiskit/finance qiskit/optimization test
+
+html:
+	make -C docs html
