@@ -12,19 +12,22 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" neural networks packages """
 
 from .generative_network import GenerativeNetwork
 from .quantum_generator import QuantumGenerator
 from .discriminative_network import DiscriminativeNetwork
+from .numpy_discriminator import NumpyDiscriminator
 
 __all__ = [
     'DiscriminativeNetwork',
     'GenerativeNetwork',
-    'QuantumGenerator'
+    'QuantumGenerator',
+    'NumpyDiscriminator'
 ]
 
 try:
     from .pytorch_discriminator import ClassicalDiscriminator
     __all__ += ['ClassicalDiscriminator']
-except Exception:
+except Exception:  # pylint: disable=broad-except
     pass

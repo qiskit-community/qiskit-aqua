@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" PSI4 packages """
+
 from .psi4driver import PSI4Driver
 
 __all__ = ['PSI4Driver']

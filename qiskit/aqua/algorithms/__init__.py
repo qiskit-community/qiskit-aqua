@@ -12,13 +12,15 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" algorithms package """
+
 from .quantum_algorithm import QuantumAlgorithm
 from .adaptive import VQE, QAOA, VQC, QGAN
 from .classical import ExactEigensolver, ExactLSsolver, SVM_Classical
 from .many_sample import EOH, QSVM
 from .single_sample import Grover, IQPE, QPE, AmplitudeEstimation, \
     Simon, DeutschJozsa, BernsteinVazirani, HHL, Shor, \
-    MaximumLikelihoodAmplitudeEstimation
+    IterativeAmplitudeEstimation, MaximumLikelihoodAmplitudeEstimation
 
 
 __all__ = [
@@ -36,6 +38,7 @@ __all__ = [
     'IQPE',
     'QPE',
     'AmplitudeEstimation',
+    'IterativeAmplitudeEstimation',
     'MaximumLikelihoodAmplitudeEstimation',
     'Simon',
     'DeutschJozsa',

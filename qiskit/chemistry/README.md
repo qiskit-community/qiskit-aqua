@@ -184,7 +184,6 @@ variational forms that are used by VQE.
 &ALGORITHM
   name=VQE
   shots=1
-  operator_mode=matrix
 &END
 
 &OPTIMIZER

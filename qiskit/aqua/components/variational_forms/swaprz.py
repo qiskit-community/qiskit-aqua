@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""Layers of Swap+Z rotations followed by entangling gates."""
+
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 
@@ -25,7 +27,7 @@ class SwapRZ(VariationalForm):
         'name': 'SWAPRZ',
         'description': 'SWAPRZ Variational Form',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'swaprz_schema',
             'type': 'object',
             'properties': {
@@ -98,13 +100,14 @@ class SwapRZ(VariationalForm):
         # for repeated block
         self._num_parameters += (len(self._entangled_qubits) + len(self._entangler_map)) * depth
         self._bounds = [(-np.pi, np.pi)] * self._num_parameters
+        self._support_parameterized_circuit = True
 
     def construct_circuit(self, parameters, q=None):
         """
         Construct the variational form, given its parameters.
 
         Args:
-            parameters (numpy.ndarray): circuit parameters
+            parameters (Union(numpy.ndarray, list[Parameter], ParameterVector)): circuit parameters
             q (QuantumRegister): Quantum Register for the circuit.
 
         Returns:
@@ -129,7 +132,7 @@ class SwapRZ(VariationalForm):
                 circuit.u1(parameters[param_idx], q[qubit])  # rz
                 param_idx += 1
 
-        for block in range(self._depth):
+        for _ in range(self._depth):
             circuit.barrier(q)
             for src, targ in self._entangler_map:
                 # XX

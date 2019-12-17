@@ -16,11 +16,14 @@
 
 import unittest
 from test.aqua.common import QiskitAquaTestCase
-import numpy as np
+
 from parameterized import parameterized
 from qiskit import BasicAer
-from qiskit.aqua import run_algorithm
-from qiskit.aqua.input import EnergyInput
+
+from qiskit.aqua import aqua_globals, QuantumInstance
+from qiskit.aqua.algorithms import VQE
+from qiskit.aqua.components.variational_forms import RY
+from qiskit.aqua.components.optimizers import L_BFGS_B
 from qiskit.aqua.operators import WeightedPauliOperator
 
 
@@ -29,7 +32,8 @@ class TestRYCRX(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
-        np.random.seed(50)
+        self.seed = 99
+        aqua_globals.random_seed = self.seed
         pauli_dict = {
             'paulis': [{"coeff": {"imag": 0.0, "real": -1.052373245772859}, "label": "II"},
                        {"coeff": {"imag": 0.0, "real": 0.39793742484318045}, "label": "IZ"},
@@ -38,8 +42,7 @@ class TestRYCRX(QiskitAquaTestCase):
                        {"coeff": {"imag": 0.0, "real": 0.18093119978423156}, "label": "XX"}
                        ]
         }
-        qubit_op = WeightedPauliOperator.from_dict(pauli_dict)
-        self.algo_input = EnergyInput(qubit_op)
+        self.qubit_op = WeightedPauliOperator.from_dict(pauli_dict)
 
     @parameterized.expand([
         [2, 5],
@@ -48,17 +51,15 @@ class TestRYCRX(QiskitAquaTestCase):
     ])
     def test_vqe_var_forms(self, depth, places):
         """ VQE Var Forms test """
-        backend = BasicAer.get_backend('statevector_simulator')
-        params = {
-            'algorithm': {'name': 'VQE'},
-            'variational_form': {'name': 'RY',
-                                 'depth': depth,
-                                 'entanglement': 'sca',
-                                 'entanglement_gate': 'crx',
-                                 'skip_final_ry': True},
-            'backend': {'shots': 1}
-        }
-        result = run_algorithm(params, self.algo_input, backend=backend)
+        aqua_globals.random_seed = self.seed
+        result = VQE(self.qubit_op,
+                     RY(self.qubit_op.num_qubits,
+                        depth=depth, entanglement='sca',
+                        entanglement_gate='crx', skip_final_ry=True),
+                     L_BFGS_B()).run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                                     shots=1,
+                                                     seed_simulator=aqua_globals.random_seed,
+                                                     seed_transpiler=aqua_globals.random_seed))
         self.assertAlmostEqual(result['energy'], -1.85727503, places=places)
 
 

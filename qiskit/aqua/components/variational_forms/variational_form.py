@@ -29,9 +29,6 @@ class VariationalForm(Pluggable):
         This method should initialize the module and its configuration, and
         use an exception if a component of the module is
         available.
-
-        Args:
-            configuration (dict): configuration dictionary
     """
 
     @abstractmethod
@@ -40,10 +37,12 @@ class VariationalForm(Pluggable):
         self._num_parameters = 0
         self._num_qubits = 0
         self._bounds = list()
+        self._support_parameterized_circuit = False
         pass
 
     @classmethod
     def init_params(cls, params):
+        """ init params """
         var_form_params = params.get(Pluggable.SECTION_KEY_VAR_FORM)
         args = {k: v for k, v in var_form_params.items() if k != 'name'}
 
@@ -64,7 +63,7 @@ class VariationalForm(Pluggable):
             q (QuantumRegister): Quantum Register for the circuit.
 
         Returns:
-            A quantum circuit.
+            QuantumCircuit: A quantum circuit.
         """
         raise NotImplementedError()
 
@@ -73,16 +72,30 @@ class VariationalForm(Pluggable):
         """Number of parameters of the variational form.
 
         Returns:
-            An integer indicating the number of parameters.
+            int: An integer indicating the number of parameters.
         """
         return self._num_parameters
+
+    @property
+    def support_parameterized_circuit(self):
+        """ Whether or not the sub-class support parameterized circuit.
+
+        Returns:
+            boolean: indicate the sub-class support parameterized circuit
+        """
+        return self._support_parameterized_circuit
+
+    @support_parameterized_circuit.setter
+    def support_parameterized_circuit(self, new_value):
+        """ set whether or not the sub-class support parameterized circuit """
+        self._support_parameterized_circuit = new_value
 
     @property
     def num_qubits(self):
         """Number of qubits of the variational form.
 
         Returns:
-            An integer indicating the number of qubits.
+           int:  An integer indicating the number of qubits.
         """
         return self._num_qubits
 
@@ -91,7 +104,7 @@ class VariationalForm(Pluggable):
         """Parameter bounds.
 
         Returns:
-            A list of pairs indicating the bounds, as (lower,
+            list: A list of pairs indicating the bounds, as (lower,
             upper). None indicates an unbounded parameter in the
             corresponding direction. If None is returned, problem is
             fully unbounded.
@@ -100,6 +113,7 @@ class VariationalForm(Pluggable):
 
     @property
     def setting(self):
+        """ setting """
         ret = "Variational Form: {}\n".format(self._configuration['name'])
         params = ""
         for key, value in self.__dict__.items():
@@ -110,12 +124,15 @@ class VariationalForm(Pluggable):
 
     @property
     def preferred_init_points(self):
+        """ return preferred init points """
         return None
 
     @staticmethod
     def get_entangler_map(map_type, num_qubits, offset=0):
+        """ returns entangler map """
         return get_entangler_map(map_type, num_qubits, offset)
 
     @staticmethod
     def validate_entangler_map(entangler_map, num_qubits):
+        """ validate entangler map """
         return validate_entangler_map(entangler_map, num_qubits)

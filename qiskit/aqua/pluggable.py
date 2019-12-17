@@ -51,13 +51,13 @@ class Pluggable(ABC):
     SECTION_KEY_QFT = PluggableType.QFT.value
     SECTION_KEY_ORACLE = PluggableType.ORACLE.value
     SECTION_KEY_FEATURE_MAP = PluggableType.FEATURE_MAP.value
-    SECTION_KEY_MULTICLASS_EXTENSION = PluggableType.MULTICLASS_EXTENSION.value
+    SECTION_KEY_MULTICLASS_EXT = PluggableType.MULTICLASS_EXTENSION.value
     SECTION_KEY_UNCERTAINTY_PROBLEM = PluggableType.UNCERTAINTY_PROBLEM.value
-    SECTION_KEY_UNIVARIATE_DISTRIBUTION = PluggableType.UNIVARIATE_DISTRIBUTION.value
-    SECTION_KEY_MULTIVARIATE_DISTRIBUTION = PluggableType.MULTIVARIATE_DISTRIBUTION.value
+    SECTION_KEY_UNIVARIATE_DIST = PluggableType.UNIVARIATE_DISTRIBUTION.value
+    SECTION_KEY_MULTIVARIATE_DIST = PluggableType.MULTIVARIATE_DISTRIBUTION.value
     SECTION_KEY_EIGS = PluggableType.EIGENVALUES.value
     SECTION_KEY_RECIPROCAL = PluggableType.RECIPROCAL.value
-    SECTION_KEY_DISCRIMINATIVE_NETWORK = PluggableType.DISCRIMINATIVE_NETWORK.value
+    SECTION_KEY_DISCRIMINATIVE_NET = PluggableType.DISCRIMINATIVE_NETWORK.value
     SECTION_KEY_GENERATIVE_NETWORK = PluggableType.GENERATIVE_NETWORK.value
 
     @abstractmethod
@@ -76,12 +76,13 @@ class Pluggable(ABC):
         pass
 
     def validate(self, args_dict):
+        """ validate input data """
         schema_dict = self.CONFIGURATION.get('input_schema')
         if schema_dict is None:
             return
 
-        jsonSchema = JSONSchema(schema_dict)
-        schema_property_names = jsonSchema.get_default_section_names()
+        json_schema = JSONSchema(schema_dict)
+        schema_property_names = json_schema.get_default_section_names()
         json_dict = {}
         for property_name in schema_property_names:
             if property_name in args_dict:
@@ -90,4 +91,4 @@ class Pluggable(ABC):
                     value = value.tolist()
                 json_dict[property_name] = value
 
-        jsonSchema.validate(json_dict)
+        json_schema.validate(json_dict)

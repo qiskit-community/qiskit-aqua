@@ -12,16 +12,18 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from .base_parser import BaseParser
+"""Aqua input Parser."""
+
 import json
 import logging
 import os
 import copy
+from qiskit.aqua.aqua_error import AquaError
 from qiskit.aqua import (local_pluggables_types,
                          PluggableType,
                          get_pluggable_configuration,
                          local_pluggables)
-from qiskit.aqua.aqua_error import AquaError
+from .base_parser import BaseParser
 from .json_schema import JSONSchema
 
 logger = logging.getLogger(__name__)
@@ -30,14 +32,14 @@ logger = logging.getLogger(__name__)
 class InputParser(BaseParser):
     """Aqua input Parser."""
 
-    def __init__(self, input=None):
+    def __init__(self, input_value=None):
         """Create Parser object."""
         super().__init__(JSONSchema(os.path.join(os.path.dirname(__file__), 'input_schema.json')))
         if input is not None:
-            if isinstance(input, dict):
-                self._sections = input
-            elif isinstance(input, str):
-                self._filename = input
+            if isinstance(input_value, dict):
+                self._sections = input_value
+            elif isinstance(input_value, str):
+                self._filename = input_value
             else:
                 raise AquaError("Invalid parser input type.")
 
@@ -98,10 +100,7 @@ class InputParser(BaseParser):
             if new_properties is not None:
                 if self.section_is_text(section_name):
                     text = self.get_section_text(section_name)
-                    if (text is None or len(text) == 0) and \
-                            isinstance(new_properties, str) and \
-                            len(new_properties) > 0 and \
-                            text != new_properties:
+                    if not text and isinstance(new_properties, str) and new_properties:
                         self.set_section_data(section_name, new_properties)
                 else:
                     properties = self.get_section_properties(section_name)
@@ -119,11 +118,11 @@ class InputParser(BaseParser):
             raise AquaError('Missing file path')
 
         file_name = file_name.strip()
-        if len(file_name) == 0:
+        if not file_name:
             raise AquaError('Missing file path')
 
-        with open(file_name, 'w') as f:
-            print(json.dumps(self.get_sections(), sort_keys=True, indent=4), file=f)
+        with open(file_name, 'w') as file:
+            print(json.dumps(self.get_sections(), sort_keys=True, indent=4), file=file)
 
     def delete_section(self, section_name):
         """
@@ -152,6 +151,7 @@ class InputParser(BaseParser):
 
     @staticmethod
     def get_input_problems(input_name):
+        """ returns input problems """
         config = get_pluggable_configuration(PluggableType.INPUT, input_name)
         if 'problems' in config:
             return config['problems']
@@ -161,12 +161,14 @@ class InputParser(BaseParser):
     def _update_algorithm_input_schema(self):
         # find algorithm input
         default_name = self.get_property_default_value(PluggableType.INPUT.value, JSONSchema.NAME)
-        input_name = self.get_section_property(PluggableType.INPUT.value, JSONSchema.NAME, default_name)
+        input_name = self.get_section_property(PluggableType.INPUT.value,
+                                               JSONSchema.NAME, default_name)
         if input_name is None:
             # find the first valid input for the problem
             problem_name = self.get_section_property(JSONSchema.PROBLEM, JSONSchema.NAME)
             if problem_name is None:
-                problem_name = self.get_property_default_value(JSONSchema.PROBLEM, JSONSchema.NAME)
+                problem_name = self.get_property_default_value(JSONSchema.PROBLEM,
+                                                               JSONSchema.NAME)
 
             if problem_name is None:
                 raise AquaError("No algorithm 'problem' section found on input.")
@@ -178,7 +180,7 @@ class InputParser(BaseParser):
                     break
 
         if input_name is None:
-            # just remove fromm schema if none solves the problem
+            # just remove from schema if none solves the problem
             if PluggableType.INPUT.value in self.json_schema.schema['properties']:
                 del self.json_schema.schema['properties'][PluggableType.INPUT.value]
             return
@@ -189,14 +191,15 @@ class InputParser(BaseParser):
         config = {}
         try:
             config = get_pluggable_configuration(PluggableType.INPUT, input_name)
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             pass
 
         input_schema = config['input_schema'] if 'input_schema' in config else {}
         properties = input_schema['properties'] if 'properties' in input_schema else {}
         properties[JSONSchema.NAME] = {'type': 'string'}
         required = input_schema['required'] if 'required' in input_schema else []
-        additionalProperties = input_schema['additionalProperties'] if 'additionalProperties' in input_schema else True
+        additional_properties = input_schema['additionalProperties'] \
+            if 'additionalProperties' in input_schema else True
         if default_name is not None:
             properties[JSONSchema.NAME]['default'] = default_name
             required.append(JSONSchema.NAME)
@@ -206,7 +209,8 @@ class InputParser(BaseParser):
 
         self.json_schema.schema['properties'][PluggableType.INPUT.value]['properties'] = properties
         self.json_schema.schema['properties'][PluggableType.INPUT.value]['required'] = required
-        self.json_schema.schema['properties'][PluggableType.INPUT.value]['additionalProperties'] = additionalProperties
+        self.json_schema.schema['properties'][PluggableType.INPUT.value]['additionalProperties'] = \
+            additional_properties
 
     def _validate_input_problem(self):
         input_name = self.get_section_property(PluggableType.INPUT.value, JSONSchema.NAME)
@@ -222,7 +226,9 @@ class InputParser(BaseParser):
 
         problems = InputParser.get_input_problems(input_name)
         if problem_name not in problems:
-            raise AquaError("Problem: {} not in the list of problems: {} for input: {}.".format(problem_name, problems, input_name))
+            raise AquaError(
+                "Problem: {} not in the list of problems: {} for input: {}.".format(
+                    problem_name, problems, input_name))
 
     def _update_input_problem(self):
         problem_name = self.get_section_property(JSONSchema.PROBLEM, JSONSchema.NAME)

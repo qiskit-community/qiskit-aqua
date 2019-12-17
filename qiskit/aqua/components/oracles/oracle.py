@@ -30,7 +30,8 @@ class Oracle(Pluggable):
         available.
 
         Args:
-            configuration (dict): configuration dictionary
+            args (list): args
+            kwargs (dict): kwargs
     """
 
     CONFIGURATION = {}
@@ -45,12 +46,14 @@ class Oracle(Pluggable):
 
     @classmethod
     def init_params(cls, params):
+        """ init params """
         oracle_params = params.get(Pluggable.SECTION_KEY_ORACLE)
         args = {k: v for k, v in oracle_params.items() if k != 'name'}
         return cls(**args)
 
     @property
     def circuit(self):
+        """ circuit """
         if self._circuit is None:
             self._circuit = self.construct_circuit()
         return self._circuit
@@ -58,16 +61,19 @@ class Oracle(Pluggable):
     @property
     @abstractmethod
     def variable_register(self):
+        """ returns variable register """
         raise NotImplementedError()
 
     @property
     @abstractmethod
     def ancillary_register(self):
+        """ returns ancillary register """
         raise NotImplementedError()
 
     @property
     @abstractmethod
     def output_register(self):
+        """ returns output register """
         raise NotImplementedError()
 
     @abstractmethod

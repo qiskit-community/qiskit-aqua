@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""Quantum SVM method."""
+
 import logging
 import sys
 
@@ -19,6 +21,8 @@ import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
+from qiskit.circuit import ParameterVector
+
 from qiskit.aqua import aqua_globals
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
@@ -29,6 +33,8 @@ from qiskit.aqua.utils.dataset_helper import get_feature_dimension, get_num_clas
 from qiskit.aqua.utils import split_dataset_to_data_and_labels
 
 logger = logging.getLogger(__name__)
+
+# pylint: disable=invalid-name
 
 
 class QSVM(QuantumAlgorithm):
@@ -43,7 +49,7 @@ class QSVM(QuantumAlgorithm):
         'name': 'QSVM',
         'description': 'QSVM Algorithm',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'QSVM_schema',
             'type': 'object',
             'properties': {
@@ -124,14 +130,15 @@ class QSVM(QuantumAlgorithm):
                                           fea_map_params['name']).init_params(params)
 
         multiclass_extension = None
-        multiclass_extension_params = params.get(Pluggable.SECTION_KEY_MULTICLASS_EXTENSION)
+        multiclass_extension_params = params.get(Pluggable.SECTION_KEY_MULTICLASS_EXT)
         if multiclass_extension_params is not None:
             multiclass_extension_params['params'] = [feature_map]
             multiclass_extension_params['estimator_cls'] = _QSVM_Estimator
 
-            multiclass_extension = get_pluggable_class(PluggableType.MULTICLASS_EXTENSION,
-                                                       multiclass_extension_params['name']).init_params(params)
-            logger.info("Multiclass classifier based on {}".format(multiclass_extension_params['name']))
+            multiclass_extension = \
+                get_pluggable_class(PluggableType.MULTICLASS_EXTENSION,
+                                    multiclass_extension_params['name']).init_params(params)
+            logger.info("Multiclass classifier based on %s", multiclass_extension_params['name'])
 
         return cls(feature_map, algo_input.training_dataset, algo_input.test_dataset,
                    algo_input.datapoints, multiclass_extension)
@@ -143,7 +150,7 @@ class QSVM(QuantumAlgorithm):
         Psi(x2)^dagger Psi(x1)|0>.
         """
         x1, x2 = x
-        if x1.shape[0] != x2.shape[0]:
+        if len(x1) != len(x2):
             raise ValueError("x1 and x2 must be the same dimension.")
 
         q = QuantumRegister(feature_map.num_qubits, 'q')
@@ -184,6 +191,8 @@ class QSVM(QuantumAlgorithm):
             x1 (numpy.ndarray): data points, 1-D array, dimension is D
             x2 (numpy.ndarray): data points, 1-D array, dimension is D
             measurement (bool): add measurement gates at the end
+        Returns:
+            QuantumCircuit: constructed circuit
         """
         return QSVM._construct_circuit((x1, x2), self.feature_map, measurement)
 
@@ -193,9 +202,11 @@ class QSVM(QuantumAlgorithm):
         Construct kernel matrix, if x2_vec is None, self-innerproduct is conducted.
 
         Notes:
-            When using `statevector_simulator`, we only build the circuits for Psi(x1)|0> rather than
+            When using `statevector_simulator`,
+            we only build the circuits for Psi(x1)|0> rather than
             Psi(x2)^dagger Psi(x1)|0>, and then we perform the inner product classically.
-            That is, for `statevector_simulator`, the total number of circuits will be O(N) rather than
+            That is, for `statevector_simulator`,
+            the total number of circuits will be O(N) rather than
             O(N^2) for `qasm_simulator`.
 
         Args:
@@ -208,7 +219,8 @@ class QSVM(QuantumAlgorithm):
         Returns:
             numpy.ndarray: 2-D matrix, N1xN2
         """
-        from .qsvm import QSVM
+
+        use_parameterized_circuits = feature_map.support_parameterized_circuit
 
         if x2_vec is None:
             is_symmetric = True
@@ -236,18 +248,29 @@ class QSVM(QuantumAlgorithm):
             else:
                 to_be_computed_data = np.concatenate((x1_vec, x2_vec))
 
-            #  the second x is redundant
-            to_be_computed_data_pair = [(x, x) for x in to_be_computed_data]
+            if use_parameterized_circuits:
+                # build parameterized circuits, it could be slower for building circuit
+                # but overall it should be faster since it only transpile one circuit
+                feature_map_params = ParameterVector('x', feature_map.feature_dimension)
+                parameterized_circuit = QSVM._construct_circuit(
+                    (feature_map_params, feature_map_params), feature_map, measurement,
+                    is_statevector_sim=is_statevector_sim)
+                parameterized_circuit = quantum_instance.transpile(parameterized_circuit)[0]
+                circuits = [parameterized_circuit.bind_parameters({feature_map_params: x})
+                            for x in to_be_computed_data]
+            else:
+                #  the second x is redundant
+                to_be_computed_data_pair = [(x, x) for x in to_be_computed_data]
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug("Building circuits:")
+                    TextProgressBar(sys.stderr)
+                circuits = parallel_map(QSVM._construct_circuit,
+                                        to_be_computed_data_pair,
+                                        task_args=(feature_map, measurement, is_statevector_sim),
+                                        num_processes=aqua_globals.num_processes)
 
-            if logger.isEnabledFor(logging.DEBUG):
-                logger.debug("Building circuits:")
-                TextProgressBar(sys.stderr)
-            circuits = parallel_map(QSVM._construct_circuit,
-                                    to_be_computed_data_pair,
-                                    task_args=(feature_map, measurement, is_statevector_sim),
-                                    num_processes=aqua_globals.num_processes)
-
-            results = quantum_instance.execute(circuits)
+            results = quantum_instance.execute(circuits,
+                                               had_transpiled=use_parameterized_circuits)
 
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug("Calculating overlap:")
@@ -255,7 +278,8 @@ class QSVM(QuantumAlgorithm):
 
             offset = 0 if is_symmetric else len(x1_vec)
             matrix_elements = parallel_map(QSVM._compute_overlap, list(zip(mus, nus + offset)),
-                                           task_args=(results, is_statevector_sim, measurement_basis),
+                                           task_args=(results,
+                                                      is_statevector_sim, measurement_basis),
                                            num_processes=aqua_globals.num_processes)
 
             for i, j, value in zip(mus, nus, matrix_elements):
@@ -275,21 +299,36 @@ class QSVM(QuantumAlgorithm):
                         to_be_computed_data_pair.append((x1, x2))
                         to_be_computed_index.append((i, j))
 
-                if logger.isEnabledFor(logging.DEBUG):
-                    logger.debug("Building circuits:")
-                    TextProgressBar(sys.stderr)
-                circuits = parallel_map(QSVM._construct_circuit,
-                                        to_be_computed_data_pair,
-                                        task_args=(feature_map, measurement),
-                                        num_processes=aqua_globals.num_processes)
+                if use_parameterized_circuits:
+                    # build parameterized circuits, it could be slower for building circuit
+                    # but overall it should be faster since it only transpile one circuit
+                    feature_map_params_x = ParameterVector('x', feature_map.feature_dimension)
+                    feature_map_params_y = ParameterVector('y', feature_map.feature_dimension)
+                    parameterized_circuit = QSVM._construct_circuit(
+                        (feature_map_params_x, feature_map_params_y), feature_map, measurement,
+                        is_statevector_sim=is_statevector_sim)
+                    parameterized_circuit = quantum_instance.transpile(parameterized_circuit)[0]
+                    circuits = [parameterized_circuit.bind_parameters({feature_map_params_x: x,
+                                                                       feature_map_params_y: y})
+                                for x, y in to_be_computed_data_pair]
+                else:
+                    if logger.isEnabledFor(logging.DEBUG):
+                        logger.debug("Building circuits:")
+                        TextProgressBar(sys.stderr)
+                    circuits = parallel_map(QSVM._construct_circuit,
+                                            to_be_computed_data_pair,
+                                            task_args=(feature_map, measurement),
+                                            num_processes=aqua_globals.num_processes)
 
-                results = quantum_instance.execute(circuits)
+                results = quantum_instance.execute(circuits,
+                                                   had_transpiled=use_parameterized_circuits)
 
                 if logger.isEnabledFor(logging.DEBUG):
                     logger.debug("Calculating overlap:")
                     TextProgressBar(sys.stderr)
                 matrix_elements = parallel_map(QSVM._compute_overlap, range(len(circuits)),
-                                               task_args=(results, is_statevector_sim, measurement_basis),
+                                               task_args=(results,
+                                                          is_statevector_sim, measurement_basis),
                                                num_processes=aqua_globals.num_processes)
 
                 for (i, j), value in zip(to_be_computed_index, matrix_elements):
@@ -304,9 +343,11 @@ class QSVM(QuantumAlgorithm):
         Construct kernel matrix, if x2_vec is None, self-innerproduct is conducted.
 
         Notes:
-            When using `statevector_simulator`, we only build the circuits for Psi(x1)|0> rather than
+            When using `statevector_simulator`, we only build
+            the circuits for Psi(x1)|0> rather than
             Psi(x2)^dagger Psi(x1)|0>, and then we perform the inner product classically.
-            That is, for `statevector_simulator`, the total number of circuits will be O(N) rather than
+            That is, for `statevector_simulator`, the total number
+            of circuits will be O(N) rather than
             O(N^2) for `qasm_simulator`.
 
         Args:
@@ -397,17 +438,19 @@ class QSVM(QuantumAlgorithm):
 
     @property
     def ret(self):
+        """ returns result """
         return self.instance.ret
 
     @ret.setter
     def ret(self, new_value):
+        """ sets result """
         self.instance.ret = new_value
 
     def load_model(self, file_path):
         """Load a model from a file path.
 
         Args:
-            file_path (str): tthe path of the saved model.
+            file_path (str): the path of the saved model.
         """
         self.instance.load_model(file_path)
 
@@ -426,7 +469,8 @@ class QSVM(QuantumAlgorithm):
             training_dataset (dict): training dataset.
         """
         if training_dataset is not None:
-            self.training_dataset, self.class_to_label = split_dataset_to_data_and_labels(training_dataset)
+            self.training_dataset, self.class_to_label = \
+                split_dataset_to_data_and_labels(training_dataset)
             self.label_to_class = {label: class_name for class_name, label
                                    in self.class_to_label.items()}
             self.num_classes = len(list(self.class_to_label.keys()))
@@ -441,9 +485,11 @@ class QSVM(QuantumAlgorithm):
             if self.class_to_label is None:
                 logger.warning("The mapping from the class name to the label is missed, "
                                "regenerate it but it might be mismatched to previous mapping.")
-                self.test_dataset, self.class_to_label = split_dataset_to_data_and_labels(test_dataset)
+                self.test_dataset, self.class_to_label = \
+                    split_dataset_to_data_and_labels(test_dataset)
             else:
-                self.test_dataset = split_dataset_to_data_and_labels(test_dataset, self.class_to_label)
+                self.test_dataset = \
+                    split_dataset_to_data_and_labels(test_dataset, self.class_to_label)
 
     def setup_datapoint(self, datapoints):
         """Setup data points, if the data were there, they would be overwritten.
