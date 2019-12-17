@@ -96,24 +96,24 @@ class QGAN(QuantumAlgorithm):
     def __init__(self, data, bounds=None, num_qubits=None, batch_size=500, num_epochs=3000, seed=7,
                  discriminator=None, generator=None, tol_rel_ent=None, snapshot_dir=None):
         """
-        Initialize qGAN.
+
         Args:
             data (np.ndarray): training data of dimension k
-            bounds (np.ndarray):  k min/max data values [[min_0,max_0],...,[min_k-1,max_k-1]]
-                        if univariate data: [min_0,max_0]
+            bounds (np.ndarray): k min/max data values [[min_0,max_0],...,[min_k-1,max_k-1]]
+                if univariate data: [min_0,max_0]
             num_qubits (np.ndarray): k numbers of qubits to determine representation resolution,
-                                    i.e. n qubits enable the representation of 2**n values
-                                    [num_qubits_0,..., num_qubits_k-1]
+                i.e. n qubits enable the representation of 2**n values
+                [num_qubits_0,..., num_qubits_k-1]
             batch_size (int): batch size
             num_epochs (int): number of training epochs
-            seed (int): seed
-            discriminator (NeuralNetwork): discriminates between real and fake data samples
-            generator (NeuralNetwork): generates 'fake' data samples
+            seed (int): random number seed
+            discriminator (DiscriminativeNetwork): discriminates between real and fake data samples
+            generator (GenerativeNetwork): generates 'fake' data samples
             tol_rel_ent (Union(float, None)): Set tolerance level for relative entropy.
-                                     If the training achieves relative
+                If the training achieves relative
             entropy equal or lower than tolerance it finishes.
             snapshot_dir (Union(str, None)): path or None, if path given store cvs file
-                                      with parameters to the directory
+                with parameters to the directory
         Raises:
             AquaError: invalid input
         """
@@ -179,6 +179,7 @@ class QGAN(QuantumAlgorithm):
     def init_params(cls, params, algo_input):
         """
         Initialize qGAN via parameters dictionary and algorithm input instance.
+
         Args:
             params (dict): parameters dictionary
             algo_input (AlgorithmInput): Input instance
@@ -220,11 +221,11 @@ class QGAN(QuantumAlgorithm):
     @seed.setter
     def seed(self, s):
         """
+        Sets the random seed for QGAN and updates the aqua_globals seed
+        at the same time
+
         Args:
             s (int): random seed
-
-        Returns:
-
         """
         self._random_seed = s
         aqua_globals.random_seed = self._random_seed
@@ -239,6 +240,7 @@ class QGAN(QuantumAlgorithm):
     def tol_rel_ent(self, t):
         """
         Set tolerance for relative entropy
+
         Args:
             t (float): or None, Set tolerance level for relative entropy.
                 If the training achieves relative
@@ -256,9 +258,10 @@ class QGAN(QuantumAlgorithm):
                       generator_init_params=None, generator_optimizer=None):
         """
         Initialize generator.
+
         Args:
             generator_circuit (VariationalForm): parameterized quantum circuit which sets
-                                the structure of the quantum generator
+                the structure of the quantum generator
             generator_init_params(numpy.ndarray): initial parameters for the generator circuit
             generator_optimizer (Optimizer): optimizer to be used for the training of the generator
         """
@@ -380,8 +383,11 @@ class QGAN(QuantumAlgorithm):
     def _run(self):
         """
         Run qGAN training
-        Returns: dict, with generator(discriminator) parameters & loss, relative entropy
 
+        Returns:
+            dict: with generator(discriminator) parameters & loss, relative entropy
+        Raises:
+            AquaError: invalid backend
         """
         if self._quantum_instance.backend_name == ('unitary_simulator' or 'clifford_simulator'):
             raise AquaError(
