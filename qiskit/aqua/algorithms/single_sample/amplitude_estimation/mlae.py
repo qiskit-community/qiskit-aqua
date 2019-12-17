@@ -66,7 +66,6 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     def __init__(self, log_max_evals, a_factory=None, i_objective=None,
                  q_factory=None, likelihood_evals=None):
         """
-        Constructor.
 
         Args:
             log_max_evals (int): base-2-logarithm of maximal number of evaluations -
@@ -139,7 +138,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         Args:
             measurement (bool): Boolean flag to indicate if measurement
-                        should be included in the circuits.
+                should be included in the circuits.
 
         Returns:
             list: a list with the QuantumCircuit objects for the algorithm
@@ -197,7 +196,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         Returns:
             tuple(list, list): a pair of two lists,
-            ([1-counts per experiment], [shots per experiment])
+                ([1-counts per experiment], [shots per experiment])
         Raises:
             AquaError: Call run() first
         """

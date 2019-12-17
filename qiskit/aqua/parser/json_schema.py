@@ -282,7 +282,7 @@ class JSONSchema:
             property_name (str): schema section property
 
         Returns:
-            list: dafault values
+            list: default values
         """
         # pylint: disable=too-many-return-statements
         section_name = JSONSchema.format_section_name(section_name)
@@ -329,7 +329,7 @@ class JSONSchema:
             property_name (str): schema section property
 
         Returns:
-            object: dafault value
+            object: default value
         """
         section_name = JSONSchema.format_section_name(section_name)
         property_name = JSONSchema.format_property_name(property_name)

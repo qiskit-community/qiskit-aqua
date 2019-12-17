@@ -23,25 +23,22 @@ from qiskit.aqua.circuits.gates import logical_or  # pylint: disable=unused-impo
 
 
 class FixedValueComparator(CircuitFactory):
-    """
+    r"""
     Fixed Value Comparator.
 
-    Operator compares basis states |i>_n against a classically
+    Operator compares basis states \|i>_n against a classically
     given fixed value L and flips a target qubit if i >= L (or < depending on parameters):
 
-        |i>_n|0> --> |i>_n|1> if i >= L else |i>|0>
+        \|i>_n\|0> --> \|i>_n\|1> if i >= L else \|i>\|0>
 
     Operator is based on two's complement implementation of binary
     subtraction but only uses carry bits and no actual result bits.
-    If the most significant carry bit (= results bit) is 1, the "">="
+    If the most significant carry bit (= results bit) is 1, the ">="
     condition is True otherwise it is False.
     """
 
     def __init__(self, num_state_qubits, value, geq=True, i_state=None, i_target=None):
         """
-        Constructor.
-
-        Initializes the fixed value comparator
 
         Args:
             num_state_qubits (int): number of state qubits, the target qubit comes on top of this
@@ -90,7 +87,9 @@ class FixedValueComparator(CircuitFactory):
     def _get_twos_complement(self):
         """
         Returns the 2's complement of value as array
-        Returns: two's complement
+
+        Returns:
+             list: two's complement
         """
 
         twos_complement = pow(2, self.num_state_qubits) - int(np.ceil(self.value))

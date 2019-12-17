@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" VQC algorithm """
+""" Variational Quantum Classifier algorithm """
 
 import logging
 import math
@@ -40,7 +40,8 @@ def assign_label(measured_key, num_classes):
     - If even number of qubits we use parity
     Classes = 3
     - We use part-parity
-        {ex. for 2 qubits: [00], [01,10], [11] would be the three labels}
+      {ex. for 2 qubits: [00], [01,10], [11] would be the three labels}
+
     Args:
         measured_key (str): measured key
         num_classes (int): number of classes
@@ -82,6 +83,7 @@ def assign_label(measured_key, num_classes):
 def cost_estimate(probs, gt_labels, shots=None):  # pylint: disable=unused-argument
     """Calculate cross entropy
     # shots is kept since it may be needed in future.
+
     Args:
         shots (int): the number of shots used in quantum computing
         probs (numpy.ndarray): NxK array, N is the number of data and K is the number of class
@@ -124,6 +126,7 @@ def cost_estimate_sigmoid(shots, probs, gt_labels):
 
 def return_probabilities(counts, num_classes):
     """Return the probabilities of given measured counts
+
     Args:
         counts (list[dict]): N data and each with a dict recording the counts
         num_classes (int): number of classes
@@ -142,7 +145,7 @@ def return_probabilities(counts, num_classes):
 
 
 class VQC(VQAlgorithm):
-    """ VQC Algorithm """
+    """ Variational Quantum Classifier algorithm """
     CONFIGURATION = {
         'name': 'VQC',
         'description': 'Variational Quantum Classifier',
@@ -203,13 +206,14 @@ class VQC(VQAlgorithm):
             minibatch_size=-1,
             callback=None
     ):
-        """Initialize the object
+        """
+
         Args:
             optimizer (Optimizer): The classical optimizer to use.
             feature_map (FeatureMap): The FeatureMap instance to use.
             var_form (VariationalForm): The variational form instance.
-            training_dataset (dict): The training dataset, in the format:
-                                    {'A': np.ndarray, 'B': np.ndarray, ...}.
+            training_dataset (dict): The training dataset, in the format
+                {'A': np.ndarray, 'B': np.ndarray, ...}.
             test_dataset (dict): The test dataset, in same format as `training_dataset`.
             datapoints (np.ndarray): NxD array, N is the number of data and D is data dimension.
             max_evals_grouped (int): The maximum number of evaluations to perform simultaneously.
@@ -219,7 +223,7 @@ class VQC(VQAlgorithm):
                 Internally, four arguments are provided as follows the index
                 of data batch, the index of evaluation,
                 parameters of variational form, evaluated value.
-        Notes:
+        Note:
             We use `label` to denotes numeric results and `class` the class names (str).
         Raises:
             AquaError: invalid input
