@@ -12,7 +12,32 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" eigs packages """
+"""
+Eigenvalues (:mod:`qiskit.aqua.components.eigs`)
+================================================
+Eigenvalue components - principally used by HHL
+
+.. currentmodule:: qiskit.aqua.components.eigs
+
+Eigenvalues Base Class
+======================
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   Eigenvalues
+
+Eigenvalues
+===========
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   EigsQPE
+
+"""
 
 from .eigs import Eigenvalues
 from .eigs_qpe import EigsQPE

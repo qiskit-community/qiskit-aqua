@@ -26,20 +26,21 @@ logger = logging.getLogger(__name__)
 
 
 def get_operator(list_of_subsets):
-    """Construct the Hamiltonian for the exact solver problem.
+    """
+    Construct the Hamiltonian for the exact solver problem.
 
-    Notes:
-        Assumption: the union of the subsets contains all the elements to cover.
-        The Hamiltonian is:
-           sum_{each element e}{(1-sum_{every subset_i that contains e}{Xi})^2},
-           where Xi (Xi=1 or 0) means whether should include the subset i.
+    Note:
+        | Assumption: the union of the subsets contains all the elements to cover.
+        | The Hamiltonian is:
+        |   sum_{each element e}{(1-sum_{every subset_i that contains e}{Xi})^2},
+        |   where Xi (Xi=1 or 0) means whether should include the subset i.
 
     Args:
         list_of_subsets (list): list of lists (i.e., subsets)
 
     Returns:
-        tuple(WeightedPauliOperator, float): operator for the Hamiltonian,
-                            a constant shift for the obj function.
+        tuple(WeightedPauliOperator, float):
+            operator for the Hamiltonian, a constant shift for the obj function.
     """
     # pylint: disable=invalid-name
     n = len(list_of_subsets)

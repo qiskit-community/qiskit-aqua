@@ -11,3 +11,20 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+"""
+====================================================================
+Optimization application stack for Aqua (:mod:`qiskit.optimization`)
+====================================================================
+This is the finance domain logic....
+
+.. currentmodule:: qiskit.optimization
+
+Submodules
+==========
+
+.. autosummary::
+   :toctree:
+
+   ising
+
+"""

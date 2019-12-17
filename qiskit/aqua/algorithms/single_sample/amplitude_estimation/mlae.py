@@ -24,14 +24,14 @@ from qiskit import ClassicalRegister, QuantumRegister, QuantumCircuit
 from qiskit.aqua import AquaError
 from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
 
-from .ae_base import AmplitudeEstimationBase
+from .ae_algorithm import AmplitudeEstimationAlgorithm
 
 logger = logging.getLogger(__name__)
 
 # pylint: disable=invalid-name
 
 
-class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationBase):
+class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     """
     The Amplitude Estimation without QPE algorithm.
     """
@@ -66,7 +66,6 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationBase):
     def __init__(self, log_max_evals, a_factory=None, i_objective=None,
                  q_factory=None, likelihood_evals=None):
         """
-        Constructor.
 
         Args:
             log_max_evals (int): base-2-logarithm of maximal number of evaluations -
@@ -125,7 +124,8 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationBase):
 
     @property
     def _num_qubits(self):
-        self.check_factories()  # ensure that A/Q factories are set
+        if self.a_factory is None:  # if A factory is not set, no qubits are specified
+            return 0
 
         num_ancillas = self.q_factory.required_ancillas_controlled()
         num_qubits = self.a_factory.num_target_qubits + num_ancillas
@@ -138,7 +138,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationBase):
 
         Args:
             measurement (bool): Boolean flag to indicate if measurement
-                        should be included in the circuits.
+                should be included in the circuits.
 
         Returns:
             list: a list with the QuantumCircuit objects for the algorithm
@@ -196,7 +196,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationBase):
 
         Returns:
             tuple(list, list): a pair of two lists,
-            ([1-counts per experiment], [shots per experiment])
+                ([1-counts per experiment], [shots per experiment])
         Raises:
             AquaError: Call run() first
         """
@@ -413,7 +413,9 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationBase):
         return self._compute_mle_safe()
 
     def _run(self):
-        self.check_factories()
+        # check if A factory has been set
+        if self.a_factory is None:
+            raise AquaError("a_factory must be set!")
 
         if self._quantum_instance.is_statevector:
 

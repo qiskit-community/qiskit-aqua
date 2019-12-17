@@ -34,18 +34,19 @@ class UnivariateDistribution(UncertaintyModel, ABC):
     def get_section_key_name(cls):
         return Pluggable.SECTION_KEY_UNIVARIATE_DIST
 
-    def __init__(self, num_target_qubits, probabilities, low=0, high=1):
-        """
+    def __init__(self, num_target_qubits, probabilities=None, low=0, high=1):
+        r"""
         Abstract univariate distribution class
+
         Args:
             num_target_qubits (int): number of qubits it acts on
             probabilities (Union(list, numpy.ndarray)):  probabilities for different states
-            low (float): lower bound, i.e., the value corresponding to |0...0>
-                        (assuming an equidistant grid)
-            high (float): upper bound, i.e., the value corresponding to |1...1>
-                        (assuming an equidistant grid)
+            low (float): lower bound, i.e., the value corresponding to \|0...0>
+                         (assuming an equidistant grid)
+            high (float): upper bound, i.e., the value corresponding to \|1...1>
+                          (assuming an equidistant grid)
         Raises:
-            AquaError: 'num qubits and length of probabilities vector do not match
+            AquaError: num qubits and length of probabilities vector do not match
         """
         super().__init__(num_target_qubits)
         self._num_values = 2 ** self.num_target_qubits
@@ -53,8 +54,9 @@ class UnivariateDistribution(UncertaintyModel, ABC):
         self._low = low
         self._high = high
         self._values = np.linspace(low, high, self.num_values)
-        if self.num_values != len(probabilities):
-            raise AquaError('num qubits and length of probabilities vector do not match!')
+        if probabilities is not None:
+            if self.num_values != len(probabilities):
+                raise AquaError('num qubits and length of probabilities vector do not match!')
 
     @property
     def low(self):
@@ -91,11 +93,13 @@ class UnivariateDistribution(UncertaintyModel, ABC):
         """
         Takes a probability density function (pdf), and returns a truncated and
         discretized array of probabilities corresponding to it
+
         Args:
             pdf (function): probability density function
             low (float): lower bound of equidistant grid
             high (float): upper bound of equidistant grid
             num_values (int): number of grid points
+
         Returns:
             list: array of probabilities
         """

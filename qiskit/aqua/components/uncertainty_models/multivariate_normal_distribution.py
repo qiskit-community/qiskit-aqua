@@ -76,8 +76,6 @@ class MultivariateNormalDistribution(MultivariateDistribution):
 
     def __init__(self, num_qubits, low=None, high=None, mu=None, sigma=None):
         """
-        Constructor.
-
         Circuit Factory to build a circuit that represents a multivariate normal distribution.
 
         Args:
@@ -107,7 +105,7 @@ class MultivariateNormalDistribution(MultivariateDistribution):
         self.sigma = sigma
         probs = self._compute_probabilities([], num_qubits, low, high)
         probs = np.asarray(probs) / np.sum(probs)
-        super().__init__(num_qubits, low, high, probs)
+        super().__init__(num_qubits, probs, low, high)
 
     def _compute_probabilities(self, probs, num_qubits, low, high, x=None):
 
