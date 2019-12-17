@@ -33,32 +33,34 @@ logger = logging.getLogger(__name__)
 
 
 class FermionicOperator:
-    r"""
+    """
     A set of functions to map fermionic Hamiltonians to qubit Hamiltonians.
 
     References:
-    - E. Wigner and P. Jordan., Über das Paulische Äguivalenzverbot, \
-        Z. Phys., 47:631 (1928). \
-    - S. Bravyi and A. Kitaev. Fermionic quantum computation, \
-        Ann. of Phys., 298(1):210–226 (2002). \
-    - A. Tranter, S. Sofia, J. Seeley, M. Kaicher, J. McClean, R. Babbush, \
-        P. Coveney, F. Mintert, F. Wilhelm, and P. Love. The Bravyi–Kitaev \
-        transformation: Properties and applications. Int. Journal of Quantum \
-        Chemistry, 115(19):1431–1441 (2015). \
-    - S. Bravyi, J. M. Gambetta, A. Mezzacapo, and K. Temme, \
-        arXiv e-print arXiv:1701.08213 (2017). \
-    - K. Setia, J. D. Whitfield, arXiv:1712.00446 (2017)
+
+    - *E. Wigner and P. Jordan., Über das Paulische Äguivalenzverbot,
+      Z. Phys., 47:631 (1928).*
+    - *S. Bravyi and A. Kitaev. Fermionic quantum computation,
+      Ann. of Phys., 298(1):210–226 (2002).*
+    - *A. Tranter, S. Sofia, J. Seeley, M. Kaicher, J. McClean, R. Babbush,
+      P. Coveney, F. Mintert, F. Wilhelm, and P. Love. The Bravyi–Kitaev
+      transformation: Properties and applications. Int. Journal of Quantum
+      Chemistry, 115(19):1431–1441 (2015).*
+    - *S. Bravyi, J. M. Gambetta, A. Mezzacapo, and K. Temme,
+      arXiv e-print arXiv:1701.08213 (2017).*
+    - *K. Setia, J. D. Whitfield, arXiv:1712.00446 (2017)*
+
     """
 
     def __init__(self, h1, h2=None, ph_trans_shift=None):
-        """Constructor.
+        """
+        | This class requires the integrals stored in the '*chemist*' notation
+        |    h2(i,j,k,l) --> adag_i adag_k a_l a_j
+        | There is another popular notation is the '*physicist*' notation
+        |    h2(i,j,k,l) --> adag_i adag_j a_k a_l
 
-        This class requires the integrals stored in the 'chemist' notation
-            h2(i,j,k,l) --> adag_i adag_k a_l a_j
-        There is another popular notation is the 'physicist' notation
-            h2(i,j,k,l) --> adag_i adag_j a_k a_l
-        If you are using the 'physicist' notation, you need to convert it to
-        the 'chemist' notation first. E.g., h2 = numpy.einsum('ikmj->ijkm', h2)
+        If you are using the '*physicist*' notation, you need to convert it to
+        the '*chemist*' notation first. E.g., h2 = numpy.einsum('ikmj->ijkm', h2)
 
         Args:
             h1 (numpy.ndarray): second-quantized fermionic one-body operator, a 2-D (NxN) tensor
@@ -149,14 +151,14 @@ class FermionicOperator:
         self._h2 = temp_ret
 
     def _jordan_wigner_mode(self, n):
-        """
+        r"""
         Jordan_Wigner mode.
 
         Each Fermionic Operator is mapped to 2 Pauli Operators, added together with the
         appropriate phase, i.e.:
 
-        a_i^\\dagger = Z^i (X + iY) I^(n-i-1) = (Z^i X I^(n-i-1)) + i (Z^i Y I^(n-i-1))
-        a_i = Z^i (X - iY) I^(n-i-1)
+        a_i\^\\dagger = Z\^i (X + iY) I\^(n-i-1) = (Z\^i X I\^(n-i-1)) + i (Z\^i Y I\^(n-i-1))
+        a_i = Z\^i (X - iY) I\^(n-i-1)
 
         This is implemented by creating an array of tuples, each including two operators.
         The phase between two elements in a tuple is implicitly assumed, and added calculated at the
@@ -164,6 +166,7 @@ class FermionicOperator:
 
         Args:
             n (int): number of modes
+
         Returns:
             list[Tuple]: Pauli
         """
@@ -182,6 +185,7 @@ class FermionicOperator:
 
         Args:
             n (int): number of modes
+
         Returns:
             list[Tuple]: Pauli
         """
@@ -204,12 +208,14 @@ class FermionicOperator:
 
         Args:
             n (int): number of modes
+
          Returns:
              numpy.ndarray: Array of mode indexes
         """
 
         def parity_set(j, n):
-            """Computes the parity set of the j-th orbital in n modes.
+            """
+            Computes the parity set of the j-th orbital in n modes.
 
             Args:
                 j (int) : the orbital index
@@ -230,7 +236,8 @@ class FermionicOperator:
             return indexes
 
         def update_set(j, n):
-            """Computes the update set of the j-th orbital in n modes.
+            """
+            Computes the update set of the j-th orbital in n modes.
 
             Args:
                 j (int) : the orbital index
@@ -250,7 +257,8 @@ class FermionicOperator:
             return indexes
 
         def flip_set(j, n):
-            """Computes the flip set of the j-th orbital in n modes.
+            """
+            Computes the flip set of the j-th orbital in n modes.
 
             Args:
                 j (int) : the orbital index
@@ -322,7 +330,8 @@ class FermionicOperator:
         return a_list
 
     def mapping(self, map_type, threshold=0.00000001):
-        """Map fermionic operator to qubit operator.
+        """
+        Map fermionic operator to qubit operator.
 
         Using multiprocess to speedup the mapping, the improvement can be
         observed when h2 is a non-sparse matrix.
@@ -424,8 +433,8 @@ class FermionicOperator:
 
         Args:
             h2_ijkm_a_ijkm (tuple): value of h2 at index (i,j,k,m),
-                                   pauli at index i, pauli at index j,
-                                   pauli at index k, pauli at index m
+                                    pauli at index i, pauli at index j,
+                                    pauli at index k, pauli at index m
             threshold (float): threshold to remove a pauli
 
         Returns:
@@ -449,10 +458,11 @@ class FermionicOperator:
         return WeightedPauliOperator(paulis=pauli_list)
 
     def _convert_to_interleaved_spins(self):
-        """Converting the spin order.
+        """
+        Converting the spin order from block to interleaved.
 
         From up-up-up-up-down-down-down-down
-          to up-down-up-down-up-down-up-down
+        to up-down-up-down-up-down-up-down
         """
         # pylint: disable=unsubscriptable-object
         matrix = np.zeros((self._h1.shape), self._h1.dtype)
@@ -463,10 +473,11 @@ class FermionicOperator:
         self.transform(matrix)
 
     def _convert_to_block_spins(self):
-        """Converting the spin order.
+        """
+        Converting the spin order from interleaved to block.
 
         From up-down-up-down-up-down-up-down
-          to up-up-up-up-down-down-down-down
+        to up-up-up-up-down-down-down-down
         """
         # pylint: disable=unsubscriptable-object
         matrix = np.zeros((self._h1.shape), self._h1.dtype)
@@ -490,7 +501,7 @@ class FermionicOperator:
 
         Args:
             num_particles (list, int): number of particles, if it is a list,
-                                         the first number is alpha
+                                       the first number is alpha
                                        and the second number is beta.
         Returns:
             tuple: new_fer_op, energy_shift
@@ -529,7 +540,8 @@ class FermionicOperator:
         return FermionicOperator(h1_new, h2_new)
 
     def fermion_mode_freezing(self, fermion_mode_array):
-        """Freezing modes and extracting its energy.
+        """
+        Freezing modes and extracting its energy.
 
         Generate a fermionic operator with the modes in fermion_mode_array deleted and
         provide the shifted energy after freezing.
@@ -538,8 +550,8 @@ class FermionicOperator:
             fermion_mode_array (list): orbital index for freezing
 
         Returns:
-            FermionicOperator: Fermionic Hamiltonian
-            float: energy of frozen modes
+            tuple(FermionicOperator, float):
+                Fermionic Hamiltonian and energy of frozen modes
         """
         fermion_mode_array = np.sort(fermion_mode_array)
         n_modes_old = self._modes
@@ -603,7 +615,7 @@ class FermionicOperator:
 
     def total_magnetization(self):
         """
-        A data_preprocess_helper fermionic operator which can be used to \
+        A data_preprocess_helper fermionic operator which can be used to
         evaluate the magnetization of the given eigenstate.
 
         Returns:
@@ -705,7 +717,8 @@ class FermionicOperator:
         return h_1, h_2
 
     def total_angular_momentum(self):
-        """Total angular momentum.
+        """
+        Total angular momentum.
 
         A data_preprocess_helper fermionic operator which can be used to evaluate the total
         angular momentum of the given eigenstate.
