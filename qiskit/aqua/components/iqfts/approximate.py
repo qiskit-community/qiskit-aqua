@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""An approximate IQFT."""
+
 from qiskit.aqua.circuits import FourierTransformCircuits as ftc
 from . import IQFT
 
@@ -23,7 +25,7 @@ class Approximate(IQFT):
         'name': 'APPROXIMATE',
         'description': 'Approximate inverse QFT',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'aiqft_schema',
             'type': 'object',
             'properties': {

@@ -16,9 +16,11 @@
 
 import unittest
 from test.aqua.common import QiskitAquaTestCase
+
 from parameterized import parameterized
 from scipy.optimize import rosen
 import numpy as np
+
 from qiskit.aqua import PluggableType, get_pluggable_class
 
 
@@ -26,9 +28,8 @@ class TestNLOptOptimizers(QiskitAquaTestCase):
     """ Test NLOpt Optimizers """
     def setUp(self):
         super().setUp()
-        np.random.seed(50)
         try:
-            import nlopt  # pylint: disable=unused-import
+            import nlopt  # pylint: disable=unused-import,import-outside-toplevel
         except ImportError:
             self.skipTest('NLOpt dependency does not appear to be installed')
         pass

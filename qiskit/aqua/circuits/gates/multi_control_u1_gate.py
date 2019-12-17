@@ -19,7 +19,7 @@ import logging
 from numpy import angle
 
 from sympy.combinatorics.graycode import GrayCode
-from qiskit.circuit import QuantumCircuit, QuantumRegister, Qubit
+from qiskit.circuit import QuantumCircuit, QuantumRegister, Qubit  # pylint: disable=unused-import
 
 
 from qiskit.aqua.utils.controlled_circuit import apply_cu1
@@ -79,7 +79,7 @@ def mcu1(self, lam, control_qubits, target_qubit):
     Args:
         self (QuantumCircuit): The QuantumCircuit object to apply the mcu1 gate on.
         lam (float): angle lambda
-        control_qubits (list of Qubit): The list of control qubits
+        control_qubits (list[Qubit]): The list of control qubits
         target_qubit (Qubit): The target qubit
     """
     if isinstance(target_qubit, QuantumRegister) and len(target_qubit) == 1:

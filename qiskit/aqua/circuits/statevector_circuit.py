@@ -23,12 +23,16 @@ from qiskit.aqua.utils.circuit_utils import convert_to_basis_gates
 
 
 class StateVectorCircuit:
-
+    """
+    Arbitrary State-Vector Circuit.
+    """
     def __init__(self, state_vector):
         """Constructor.
 
         Args:
-            state_vector: vector representation of the desired quantum state
+            state_vector (numpy.ndarray): vector representation of the desired quantum state
+        Raises:
+            AquaError: invalid input
         """
         if not is_power_of_2(len(state_vector)):
             raise AquaError('The length of the input state vector needs to be a power of 2.')
@@ -41,10 +45,13 @@ class StateVectorCircuit:
 
         Args:
             circuit (QuantumCircuit): The optional circuit to extend from.
-            register (QuantumRegister | list of Qubit): The optional qubits to construct the circuit with.
+            register (Union(QuantumRegister , list[Qubit])): The optional qubits to construct
+                            the circuit with.
 
         Returns:
-            QuantumCircuit.
+            QuantumCircuit: quantum circuit
+        Raises:
+            AquaError: invalid input
         """
 
         if register is None:

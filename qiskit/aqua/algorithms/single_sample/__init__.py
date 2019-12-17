@@ -12,10 +12,13 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" single sample packages """
+
 from .grover.grover import Grover
 from .iterative_qpe.iqpe import IQPE
 from .qpe.qpe import QPE
 from .amplitude_estimation.ae import AmplitudeEstimation
+from .amplitude_estimation.iqae import IterativeAmplitudeEstimation
 from .amplitude_estimation.mlae import MaximumLikelihoodAmplitudeEstimation
 from .simon.simon import Simon
 from .deutsch_jozsa.dj import DeutschJozsa
@@ -29,6 +32,7 @@ __all__ = [
     'IQPE',
     'QPE',
     'AmplitudeEstimation',
+    'IterativeAmplitudeEstimation',
     'MaximumLikelihoodAmplitudeEstimation',
     'Simon',
     'DeutschJozsa',

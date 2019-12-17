@@ -13,6 +13,8 @@
 # that they have been altered from the originals.
 # =============================================================================
 
+""" qgan packages """
+
 from .qgan import QGAN
 
 __all__ = ['QGAN']

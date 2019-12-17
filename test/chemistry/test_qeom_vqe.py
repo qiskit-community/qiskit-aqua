@@ -20,16 +20,16 @@ from test.aqua.common import QiskitAquaTestCase
 import numpy as np
 from qiskit import BasicAer
 
-from qiskit.aqua import QuantumInstance
+from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.components.variational_forms import RY
 from qiskit.aqua.components.optimizers import COBYLA, SPSA
 from qiskit.aqua.algorithms import ExactEigensolver
 from qiskit.aqua.operators import Z2Symmetries
-from qiskit.chemistry.aqua_extensions.algorithms import QEomVQE
+from qiskit.chemistry.algorithms import QEomVQE
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
-from qiskit.chemistry.aqua_extensions.components.variational_forms import UCCSD
-from qiskit.chemistry.aqua_extensions.components.initial_states import HartreeFock
+from qiskit.chemistry.components.variational_forms import UCCSD
+from qiskit.chemistry.components.initial_states import HartreeFock
 
 
 class TestEomVQE(QiskitAquaTestCase):
@@ -37,6 +37,7 @@ class TestEomVQE(QiskitAquaTestCase):
     def setUp(self):
         """Setup."""
         super().setUp()
+        aqua_globals.random_seed = 0
         atom = 'H .0 .0 .7414; H .0 .0 .0'
         pyscf_driver = PySCFDriver(atom=atom,
                                    unit=UnitsType.ANGSTROM, charge=0, spin=0, basis='sto3g')
@@ -72,7 +73,7 @@ class TestEomVQE(QiskitAquaTestCase):
                          num_particles=num_particles,
                          initial_state=initial_state,
                          qubit_mapping=qubit_mapping, two_qubit_reduction=two_qubit_reduction)
-        optimizer = COBYLA(maxiter=1000)
+        optimizer = COBYLA(maxiter=1000, tol=1e-8)
 
         eom_vqe = QEomVQE(qubit_op, var_form, optimizer, num_orbitals=num_orbitals,
                           num_particles=num_particles, qubit_mapping=qubit_mapping,
@@ -81,7 +82,7 @@ class TestEomVQE(QiskitAquaTestCase):
         backend = BasicAer.get_backend('statevector_simulator')
         quantum_instance = QuantumInstance(backend)
         result = eom_vqe.run(quantum_instance)
-        np.testing.assert_array_almost_equal(self.reference, result['energies'], decimal=5)
+        np.testing.assert_array_almost_equal(self.reference, result['energies'], decimal=4)
 
     def test_h2_one_qubit_statevector(self):
         """Test H2 with tapering and statevector backend."""

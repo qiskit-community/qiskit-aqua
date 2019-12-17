@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" svm packages """
+
 from ._svm_classical_abc import _SVM_Classical_ABC
 from ._svm_classical_binary import _SVM_Classical_Binary
 from ._svm_classical_multiclass import _SVM_Classical_Multiclass

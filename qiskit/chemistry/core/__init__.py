@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Chemistry Core Packages """
+
 from .chemistry_operator import ChemistryOperator
 from .hamiltonian import Hamiltonian, TransformationType, QubitMappingType
 from ._discover_chemoperator import (OPERATORS_ENTRY_POINT,
@@ -19,7 +21,7 @@ from ._discover_chemoperator import (OPERATORS_ENTRY_POINT,
                                      register_chemistry_operator,
                                      deregister_chemistry_operator,
                                      get_chemistry_operator_class,
-                                     get_chemistry_operator_configuration,
+                                     get_chem_operator_config,
                                      local_chemistry_operators)
 
 __all__ = ['ChemistryOperator',
@@ -31,5 +33,5 @@ __all__ = ['ChemistryOperator',
            'register_chemistry_operator',
            'deregister_chemistry_operator',
            'get_chemistry_operator_class',
-           'get_chemistry_operator_configuration',
+           'get_chem_operator_config',
            'local_chemistry_operators']

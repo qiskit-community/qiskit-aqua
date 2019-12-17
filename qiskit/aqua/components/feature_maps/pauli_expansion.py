@@ -11,6 +11,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
 """
 This module contains the definition of a base class for
 feature map. Several types of commonly used approaches.
@@ -18,7 +19,6 @@ feature map. Several types of commonly used approaches.
 
 import itertools
 import logging
-import warnings
 
 import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister
@@ -29,6 +29,8 @@ from qiskit.aqua.operators import evolution_instruction
 from qiskit.aqua.components.feature_maps import FeatureMap, self_product
 
 logger = logging.getLogger(__name__)
+
+# pylint: disable=invalid-name
 
 
 class PauliExpansion(FeatureMap):
@@ -41,7 +43,7 @@ class PauliExpansion(FeatureMap):
         'name': 'PauliExpansion',
         'description': 'Pauli expansion for feature map (any order)',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'Pauli_Expansion_schema',
             'type': 'object',
             'properties': {
@@ -60,11 +62,11 @@ class PauliExpansion(FeatureMap):
                     'enum': ['full', 'linear']
                 },
                 'paulis': {
-                    'type': ['array'],
-                    "items": {
-                        "type": "string"
+                    'type': ['array', 'null'],
+                    'items': {
+                        'type': 'string'
                     },
-                    'default': ['Z', 'ZZ']
+                    'default': None
                 }
             },
             'additionalProperties': False
@@ -72,21 +74,25 @@ class PauliExpansion(FeatureMap):
     }
 
     def __init__(self, feature_dimension, depth=2, entangler_map=None,
-                 entanglement='full', paulis=['Z', 'ZZ'], data_map_func=self_product):
+                 entanglement='full', paulis=None, data_map_func=self_product):
         """Constructor.
 
         Args:
             feature_dimension (int): number of features
-            depth (int): the number of repeated circuits
-            entangler_map (list[list]): describe the connectivity of qubits, each list describes
+            depth (Optional(int)): the number of repeated circuits. Defaults to 2
+            entangler_map (Optional(list[list])): describe the connectivity of qubits,
+                                        each list describes
                                         [source, target], or None for full entanglement.
                                         Note that the order is the list is the order of
                                         applying the two-qubit gate.
-            entanglement (str): ['full', 'linear'], generate the qubit connectivitiy by predefined
-                                topology
-            paulis (str): a comma-seperated string for to-be-used paulis
-            data_map_func (Callable): a mapping function for data x
+            entanglement (Optional((str)): ['full', 'linear'], generate the qubit
+                                          connectivity by predefined topology.
+                                          Defaults to full
+            paulis (Optional(list[str])): a list of strings for to-be-used paulis.
+                                    Defaults to None. If None, ['Z', 'ZZ'] will be used.
+            data_map_func (Optional(Callable)): a mapping function for data x
         """
+        paulis = paulis if paulis is not None else ['Z', 'ZZ']
         self.validate(locals())
         super().__init__()
         self._num_qubits = self._feature_dimension = feature_dimension
@@ -98,6 +104,7 @@ class PauliExpansion(FeatureMap):
 
         self._pauli_strings = self._build_subset_paulis_string(paulis)
         self._data_map_func = data_map_func
+        self._support_parameterized_circuit = True
 
     def _build_subset_paulis_string(self, paulis):
         # fill out the paulis to the number of qubits
@@ -106,7 +113,7 @@ class PauliExpansion(FeatureMap):
             len_pauli = len(pauli)
             for possible_pauli_idx in itertools.combinations(range(self._num_qubits), len_pauli):
                 string_temp = ['I'] * self._num_qubits
-                for idx in range(len(possible_pauli_idx)):
+                for idx, _ in enumerate(possible_pauli_idx):
                     string_temp[-possible_pauli_idx[idx] - 1] = pauli[-idx - 1]
                 temp_paulis.append(''.join(string_temp))
         # clean up string that can not be entangled.
@@ -125,37 +132,32 @@ class PauliExpansion(FeatureMap):
                     final_paulis.append(pauli)
                 else:
                     logger.warning("Due to the limited entangler_map,"
-                                   " {} is skipped.".format(pauli))
-        logger.info("Pauli terms include: {}".format(final_paulis))
+                                   " %s is skipped.", pauli)
+        logger.info("Pauli terms include: %s", final_paulis)
         return final_paulis
 
     def _extract_data_for_rotation(self, pauli, x):
         where_non_i = np.where(np.asarray(list(pauli[::-1])) != 'I')[0]
+        x = np.asarray(x)
         return x[where_non_i]
 
-    def construct_circuit(self, x, qr=None, inverse=None):
+    def construct_circuit(self, x, qr=None, inverse=False):
         """
         Construct the second order expansion based on given data.
 
         Args:
-            x (numpy.ndarray): 1-D to-be-transformed data.
-            qr (QauntumRegister, optional): the QuantumRegister object for the circuit, if None,
+            x (Union(numpy.ndarray, list[Parameter], ParameterVector)): 1-D to-be-transformed data.
+            qr (QuantumRegister, optional): the QuantumRegister object for the circuit, if None,
                                   generate new registers with name q.
             inverse (bool, optional): whether or not inverse the circuit
 
         Returns:
             QuantumCircuit: a quantum circuit transform data x.
+        Raises:
+            TypeError: invalid input
+            ValueError: invalid input
         """
-
-        if inverse is not None:
-            warnings.warn("inverse option is deprecated and it will be removed after 0.6, "
-                          "Since terra supports to inverse the circuit by calling qc.inverses()", DeprecationWarning)
-
-        if not isinstance(x, np.ndarray):
-            raise TypeError("x must be numpy array.")
-        if x.ndim != 1:
-            raise ValueError("x must be 1-D array.")
-        if x.shape[0] != self._num_qubits:
+        if len(x) != self._num_qubits:
             raise ValueError("number of qubits and data dimension must be the same.")
 
         if qr is None:
@@ -168,11 +170,6 @@ class PauliExpansion(FeatureMap):
             for pauli in self._pauli_strings:
                 coeff = self._data_map_func(self._extract_data_for_rotation(pauli, x))
                 p = Pauli.from_label(pauli)
-
-                inst = evolution_instruction([[coeff, p]], 1, 1)
+                inst = evolution_instruction([[1, p]], coeff, 1)
                 qc.append(inst, qr)
-                qc = qc.decompose()
-        if inverse is not None and inverse:
-            qc = qc.inverse()
-
         return qc

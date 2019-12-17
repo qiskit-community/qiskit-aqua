@@ -15,7 +15,7 @@
 
 from .version import __version__
 from .aqua_error import AquaError
-from .qiskit_aqua_globals import aqua_globals
+from .aqua_globals import aqua_globals
 from .preferences import Preferences
 from ._discover import (PLUGGABLES_ENTRY_POINT,
                         PluggableType,
@@ -34,7 +34,6 @@ from .utils.backend_utils import (get_aer_backend,
                                   get_provider_from_backend)
 from .pluggable import Pluggable
 from .quantum_instance import QuantumInstance
-from .operator import Operator
 from .algorithms import QuantumAlgorithm
 from .qiskit_aqua import (QiskitAqua,
                           execute_algorithm,
@@ -50,7 +49,6 @@ __all__ = ['__version__',
            'AquaError',
            'Preferences',
            'Pluggable',
-           'Operator',
            'QuantumAlgorithm',
            'PLUGGABLES_ENTRY_POINT',
            'PluggableType',

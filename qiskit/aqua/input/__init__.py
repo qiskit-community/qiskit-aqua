@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Input Packages """
+
 from .algorithm_input import AlgorithmInput
 from .energy_input import EnergyInput
 from .linear_system_input import LinearSystemInput

@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""Layers of Y rotations followed by entangling gates."""
+
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 
@@ -25,7 +27,7 @@ class RY(VariationalForm):
         'name': 'RY',
         'description': 'RY Variational Form',
         'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
             'id': 'ry_schema',
             'type': 'object',
             'properties': {
@@ -122,13 +124,14 @@ class RY(VariationalForm):
             self._num_parameters += len(self._entangler_map) * depth
 
         self._bounds = [(-np.pi, np.pi)] * self._num_parameters
+        self._support_parameterized_circuit = True
 
     def construct_circuit(self, parameters, q=None):
         """
         Construct the variational form, given its parameters.
 
         Args:
-            parameters (numpy.ndarray): circuit parameters.
+            parameters (Union(numpy.ndarray, list[Parameter], ParameterVector)): circuit parameters.
             q (QuantumRegister): Quantum Register for the circuit.
 
         Returns:
