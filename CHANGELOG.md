@@ -43,7 +43,7 @@ Added
 -   An option in evolution_instruction to be able to control whether or not add a barrier
     for every slice. (#708)
 -   Added VQE snapshot mode for Aer QasmSimulator when no noise and shots=1 (#715)
--   Added the implementation for the iterative QAE algorithm (#749)
+-   Added the implementation for the Iterative Quantum Amplitude Estimation algorithm (#749)
 
 Fixed
 -------
