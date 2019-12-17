@@ -30,30 +30,22 @@ logger = logging.getLogger(__name__)
 
 def get_operator(weight_matrix, K):  # pylint: disable=invalid-name
     r"""
-    Generate Hamiltonian for the clique
+    Generate Hamiltonian for the clique.
 
-    Args:
-        weight_matrix (numpy.ndarray) : adjacency matrix.
-        K (numpy.ndarray): K
+    The goals is can we find a complete graph of size K?
 
-    Returns:
-        tuple(WeightedPauliOperator, float): operator for the Hamiltonian and a
-        constant shift for the obj function.
+    To build the Hamiltonian the following logic is applied.
 
-    Goals:
-        can we find a complete graph of size K?
+    | Suppose Xv denotes whether v should appear in the clique (Xv=1 or 0)\n
+    | H = Ha + Hb\n
+    | Ha = (K-sum_{v}{Xv})\^2
+    | Hb = K(K−1)/2 - sum_{(u,v)\in E}{XuXv}
 
-    Hamiltonian:
-    suppose Xv denotes whether v should appear in the clique (Xv=1 or 0)
-    H = Ha + Hb
-    Ha = (K-sum_{v}{Xv})^2
-    Hb = K(K−1)/2 􏰏- sum_{(u,v)\in E}{XuXv}
+    | Besides, Xv = (Zv+1)/2
+    | By replacing Xv with Zv and simplifying it, we get what we want below.
 
-    Besides, Xv = (Zv+1)/2
-    By replacing Xv with Zv and simplifying it, we get what we want below.
+    Note: in practice, we use H = A\*Ha + Bb, where A is a large constant such as 1000.
 
-    Note: in practice, we use H = A*Ha + Bb,
-        where A is a large constant such as 1000.
     A is like a huge penality over the violation of Ha,
     which forces Ha to be 0, i.e., you have exact K vertices selected.
     Under this assumption, Hb = 0 starts to make sense,
@@ -61,7 +53,15 @@ def get_operator(weight_matrix, K):  # pylint: disable=invalid-name
     Note the lowest possible value of Hb is 0.
 
     Without the above assumption, Hb may be negative (say you select all).
-    In this case, one needs to use Hb^2 in the hamiltonian to minimize the difference.
+    In this case, one needs to use Hb\^2 in the hamiltonian to minimize the difference.
+
+    Args:
+        weight_matrix (numpy.ndarray) : adjacency matrix.
+        K (numpy.ndarray): K
+
+    Returns:
+        tuple(WeightedPauliOperator, float):
+            The operator for the Hamiltonian and a constant shift for the obj function.
     """
     # pylint: disable=invalid-name
     num_nodes = len(weight_matrix)

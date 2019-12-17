@@ -94,10 +94,10 @@ before_script:
 
 matrix:
   include:
-  - name: "Lint and Style check and Test Chemistry"
+  - name: "Spell, Style, Lint, Docs check and Test Chemistry"
     env: TEST_DIR=chemistry
     script:
-        make spell && make style && make lint && export OPENBLAS_NUM_THREADS=1 && stestr --test-path test/chemistry run
+        make spell && make style && make lint && make html && export OPENBLAS_NUM_THREADS=1 && stestr --test-path test/chemistry run
   - name: "Test Aqua"
     script: stestr --test-path test run --blacklist-file blacklist.txt
   - name: "Test Aqua 2"
@@ -159,8 +159,6 @@ before_install:
       # Install local PyQuante
       pip install -e /tmp/pyquante2-master --progress-bar off
     fi
-  # install seaborn for now until Terra makes it optional
-  - pip install seaborn
   # install spell check libraries
   - sudo apt-get -y install python3-enchant
   - sudo apt-get -y install hunspell-en-us

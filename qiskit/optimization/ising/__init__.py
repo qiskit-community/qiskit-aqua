@@ -11,3 +11,39 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
+"""
+Ising Models (:mod:`qiskit.optimization.ising`)
+===============================================
+Ising models for optimization problems
+
+.. currentmodule:: qiskit.optimization.ising
+
+Ising Models
+============
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   clique
+   exact_cover
+   graph_partition
+   max_cut
+   partition
+   set_packing
+   stable_set
+   tsp
+   vehicle_routing
+   vertex_cover
+
+Automatic Ising Model Generator from DoCPLEX Model
+==================================================
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   docplex
+
+"""

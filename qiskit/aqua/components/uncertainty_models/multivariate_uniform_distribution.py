@@ -62,13 +62,12 @@ class MultivariateUniformDistribution(MultivariateDistribution):
 
     def __init__(self, num_qubits, low=None, high=None):
         """
-        Multivariate uniform distribution
         Args:
             num_qubits (Union(list, numpy.ndarray)): list with the number of qubits per dimension
             low (Union(list, numpy.ndarray)): list with the lower bounds per dimension,
-                                    set to 0 for each dimension if None
+                                              set to 0 for each dimension if None
             high (Union(list, numpy.ndarray)): list with the upper bounds per dimension,
-                                    set to 1 for each dimension if None
+                                               set to 1 for each dimension if None
         """
         super().validate(locals())
 

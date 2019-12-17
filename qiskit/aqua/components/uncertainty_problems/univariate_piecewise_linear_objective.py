@@ -12,11 +12,12 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
+r"""
 Univariate Piecewise Linear Objective Function, applies controlled Y-rotation to target qubit.
 Control qubits represent integer value, and rotation approximates a piecewise
 linear function of the amplitude f:
-    |x>|0> --> |x>( sqrt(1 - f(x))|0> + sqrt(f(x))|1> )
+|
+|    \|x>\|0> --> \|x>( sqrt(1 - f(x))\|0> + sqrt(f(x))\|1> )
 """
 
 import numpy as np
@@ -28,19 +29,18 @@ from qiskit.aqua.utils import CircuitFactory
 
 class UnivariatePiecewiseLinearObjective(CircuitFactory):
 
-    """
+    r"""
     Univariate Piecewise Linear Objective Function, applies controlled Y-rotation to target qubit.
     Control qubits represent integer value, and rotation approximates a piecewise
     linear function of the amplitude f:
-        |x>|0> --> |x>( sqrt(1 - f(x))|0> + sqrt(f(x))|1> )
+    |
+    |    \|x>\|0> --> \|x>( sqrt(1 - f(x))\|0> + sqrt(f(x))\|1> )
     """
 
     def __init__(self, num_state_qubits, min_state_value, max_state_value,
                  breakpoints, slopes, offsets, f_min, f_max, c_approx,
                  i_state=None, i_objective=None):
-        """
-        Constructor.
-
+        r"""
         Args:
             num_state_qubits (int): number of qubits to represent the state
             min_state_value (float): lower bound of values to be represented by state qubits
@@ -49,12 +49,12 @@ class UnivariatePiecewiseLinearObjective(CircuitFactory):
             slopes (Union(list, numpy.ndarray)): slopes of linear segments
             offsets (Union(list, numpy.ndarray)): offset of linear segments
             f_min (float): minimal value of resulting function
-                            (required for normalization of amplitude)
+                           (required for normalization of amplitude)
             f_max (float): maximal value of resulting function
-                            (required for normalization of amplitude)
+                           (required for normalization of amplitude)
             c_approx (float): approximating factor (linear segments are approximated by
-                                             contracting rotation
-                                            around pi/4, where sin^2() is locally linear)
+                              contracting rotation
+                              around pi/4, where sin\^2() is locally linear)
             i_state (int): indices of qubits that represent the state
             i_objective (int): index of target qubit to apply the rotation to
         """
