@@ -21,17 +21,18 @@ to build quantum applications and leverage near-term devices.
 
 .. currentmodule:: qiskit.aqua
 
-Aqua Globals
-============
-
 .. autosummary::
    :toctree: ../stubs/
    :nosignatures:
 
    aqua_globals
 
-Aqua Error
-==========
+Aqua globals class provides random number and max parallel process configuration.
+Aqua uses the random function and max parallel processes when running any
+function requiring randomization and/or that can be be done in parallel. Setting
+the random seed to a given value will ensure predictability in outcome when using
+a simulator (seeds should also be set in :class:`QuantumInstance` for transpiler
+and simulator too).
 
 .. autosummary::
    :toctree: ../stubs/
@@ -39,14 +40,20 @@ Aqua Error
 
    AquaError
 
-Quantum Instance
-================
+In addition to standard Python errors Aqua will raise this error if circumstances
+are that it cannot proceed to completion.
 
 .. autosummary::
    :toctree: ../stubs/
    :nosignatures:
 
    QuantumInstance
+
+A QuantumInstance holds the Qiskit `backend` as well as a number of compile and
+runtime parameters controlling circuit compilation and execution. Aqua's quantum
+:mod:`algorithms <qiskit.aqua.algorithms>`
+are run on a device or simulator by passing a QuantumInstance setup with the desired
+backend etc.
 
 Submodules
 ==========

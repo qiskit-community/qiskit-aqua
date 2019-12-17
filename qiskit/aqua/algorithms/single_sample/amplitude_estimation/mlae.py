@@ -138,7 +138,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         Args:
             measurement (bool): Boolean flag to indicate if measurement
-                        should be included in the circuits.
+                should be included in the circuits.
 
         Returns:
             list: a list with the QuantumCircuit objects for the algorithm
@@ -196,7 +196,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         Returns:
             tuple(list, list): a pair of two lists,
-            ([1-counts per experiment], [shots per experiment])
+                ([1-counts per experiment], [shots per experiment])
         Raises:
             AquaError: Call run() first
         """

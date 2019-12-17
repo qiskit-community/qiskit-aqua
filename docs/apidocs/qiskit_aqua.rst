@@ -5,7 +5,7 @@ API Documentation
 =================
 
 .. toctree::
-    :maxdepth: 6
+    :maxdepth: 2
 
     aqua
     chemistry
