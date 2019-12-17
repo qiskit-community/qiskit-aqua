@@ -24,14 +24,19 @@ from statsmodels.stats.proportion import proportion_confint
 from qiskit import ClassicalRegister, QuantumRegister, QuantumCircuit
 from qiskit.aqua import AquaError
 
-from .ae_base import AmplitudeEstimationBase
+from .ae_algorithm import AmplitudeEstimationAlgorithm
 
 logger = logging.getLogger(__name__)
 
 
-class IterativeAmplitudeEstimation(AmplitudeEstimationBase):
+class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     """
-    The Iterative Quantum Amplitude Estimation Algorithm.
+    This class implements the Iterative Quantum Amplitude Estimation (QAE) algorithm, proposed
+    in https://arxiv.org/abs/1912.05559.
+    It differs from the original QAE algorithm proposed by Brassard
+    (https://arxiv.org/abs/quant-ph/0005055) that it does rely on Quantum Phase Estimation, but is
+    only based on Grover's algorithm. Iterative IQAE iteratively applies carefully selected Grover
+    iterations to find an estimate for the target amplitude.
     """
 
     CONFIGURATION = {

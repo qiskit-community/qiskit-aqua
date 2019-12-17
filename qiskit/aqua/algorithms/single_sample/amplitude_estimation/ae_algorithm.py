@@ -18,7 +18,6 @@ The Amplitude Estimation Algorithm.
 import logging
 from abc import abstractmethod
 
-from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms import QuantumAlgorithm
 
 from .q_factory import QFactory
@@ -26,9 +25,17 @@ from .q_factory import QFactory
 logger = logging.getLogger(__name__)
 
 
-class AmplitudeEstimationBase(QuantumAlgorithm):
+class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
     """
-    The Amplitude Estimation Base class.
+    The Quantum Amplitude Estimation (QAE) algorithm base class.
+
+    In general, QAE algorithms aim to approximate the amplitude of a certain, marked state.
+    This amplitude is encoded in the so-called A operator, performing the  mapping
+
+            A |0>_n |0> = sqrt{1 - a} |psi_0>_n |0> + sqrt{a} |psi_1>_n |1>
+
+    where the amplitude `a` (in [0, 1]) is approximated, and |psi_0> and |psi_1> are two
+    normalized, not necessarily orthogonal, states.
     """
 
     @abstractmethod
@@ -46,7 +53,7 @@ class AmplitudeEstimationBase(QuantumAlgorithm):
 
             A |0>_n |0> = sqrt{1 - a} |psi_0>_n |0> + sqrt{a} |psi_1>_n |1>
 
-        see Brassard's paper (arxiv.org/abs/quant-ph/0005055) for more detail.
+        see Brassard's paper (https://arxiv.org/abs/quant-ph/0005055) for more detail.
 
         Returns:
             CircuitFactory: the A operator as CircuitFactory
@@ -70,7 +77,7 @@ class AmplitudeEstimationBase(QuantumAlgorithm):
 
             Q = - A S_0 A^{-1} S_psi
 
-        see arxiv.org/abs/quant-ph/0005055 for more detail.
+        see https://arxiv.org/abs/quant-ph/0005055 for more detail.
 
         If the Q operator is not set, we try to build it from the A operator.
         If neither the A operator is set, None is returned.
@@ -100,7 +107,7 @@ class AmplitudeEstimationBase(QuantumAlgorithm):
     def i_objective(self):
         """
         Get the index of the objective qubit. The objective qubit marks the |psi_0> state (called
-        'bad states' in arxiv.org/abs/quant-ph/0005055)
+        'bad states' in https://arxiv.org/abs/quant-ph/0005055)
         with |0> and |psi_1> ('good' states) with |1>.
         If the A operator performs the mapping
 

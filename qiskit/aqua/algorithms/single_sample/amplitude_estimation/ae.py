@@ -26,7 +26,7 @@ from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.circuits import PhaseEstimationCircuit
 from qiskit.aqua.components.iqfts import Standard
 
-from .ae_base import AmplitudeEstimationBase
+from .ae_algorithm import AmplitudeEstimationAlgorithm
 from .ae_utils import pdf_a, derivative_log_pdf_a, bisect_max
 
 logger = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 # pylint: disable=invalid-name
 
 
-class AmplitudeEstimation(AmplitudeEstimationBase):
+class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
     """
     The Amplitude Estimation algorithm.
     """
@@ -138,7 +138,8 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
 
     @property
     def _num_qubits(self):
-        self.check_factories()  # ensure that A/Q factories are set
+        if self.a_factory is None:  # if A factory is not set, no qubits are specified
+            return 0
 
         num_ancillas = self.q_factory.required_ancillas_controlled()
         num_qubits = self.a_factory.num_target_qubits + self._m + num_ancillas
