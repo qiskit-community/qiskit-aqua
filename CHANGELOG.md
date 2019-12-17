@@ -22,7 +22,7 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 =================================================================================
 
 Changed
------
+-------
 
 -   `VQE`, `VQC` and `QSVM` now use parameterized circuits when available to save time
     in transpilation. (#693)
