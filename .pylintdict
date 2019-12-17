@@ -44,6 +44,7 @@ bohr
 bool
 boolean
 bpa
+brassard
 bravyi
 cargs
 ccphase
@@ -51,12 +52,14 @@ cct
 ccx
 cdf
 ceil
+chernoff
 circ
 CircuitCache
 clas
 clbits
 clifford
 cliffords
+clopper
 cls
 cnf
 cnot
@@ -360,6 +363,7 @@ qbit
 qc
 qcmatrixio
 qeom
+QFactory
 qft
 qfts
 qgan
