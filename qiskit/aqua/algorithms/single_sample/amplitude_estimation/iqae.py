@@ -37,8 +37,8 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     both alpha and epsilon can be specified.
 
     It differs from the original QAE algorithm proposed by Brassard
-    (https://arxiv.org/abs/quant-ph/0005055) in that it does rely on Quantum Phase Estimation, but
-    is only based on Grover's algorithm. Iterative IQAE iteratively applies carefully selected
+    (https://arxiv.org/abs/quant-ph/0005055) in that it does not rely on Quantum Phase Estimation,
+    but is only based on Grover's algorithm. Iterative IQAE iteratively applies carefully selected
     Grover iterations to find an estimate for the target amplitude.
     """
 
@@ -82,7 +82,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         Initializer.
 
         The output of the algorithm is an estimate for the amplitude `a`, that with at least
-        probability 1 - alpha has an error of epsilon. The number of oracle calls scales
+        probability 1 - alpha has an error of epsilon. The number of A operator calls scales
         linearly in 1/epsilon (up to a logarithmic factor).
 
         Args:
