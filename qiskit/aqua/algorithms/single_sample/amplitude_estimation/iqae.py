@@ -32,7 +32,10 @@ logger = logging.getLogger(__name__)
 class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     """
     This class implements the Iterative Quantum Amplitude Estimation (QAE) algorithm, proposed
-    in https://arxiv.org/abs/1912.05559.
+    in https://arxiv.org/abs/1912.05559. The output of the algorithm is an estimate that,
+    with at least probability 1 - alpha, differs by epsilon to the target value, where
+    both alpha and epsilon can be specified.
+
     It differs from the original QAE algorithm proposed by Brassard
     (https://arxiv.org/abs/quant-ph/0005055) in that it does rely on Quantum Phase Estimation, but
     is only based on Grover's algorithm. Iterative IQAE iteratively applies carefully selected
@@ -50,12 +53,14 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 'epsilon': {
                     'type': 'number',
                     'default': 0.01,
-                    'minimum': 0.0
+                    'minimum': 0.0,
+                    'maximum': 0.5,
                 },
                 'alpha': {
                     'type': 'number',
                     'default': 0.05,
-                    'minimum': 0.0
+                    'minimum': 0.0,
+                    'maximum': 1.0,
                 },
             },
             'additionalProperties': False
@@ -76,14 +81,19 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         """
         Initializer.
 
+        The output of the algorithm is an estimate for the amplitude `a`, that with at least
+        probability 1 - alpha has an error of epsilon.
+
         Args:
-            epsilon (float): target precision for estimation target a
-            alpha (float): confidence level
-            ci_method (string): statistical method for confidence interval estimation
+            epsilon (float): target precision for estimation target `a`
+            alpha (float): confidence level, the target probability is 1 - alpha
+            ci_method (str): statistical method used to estimate the confidence intervals in each
+                iteration, can be 'chernoff' or 'beta' (for Clopper-Pearson)
             min_ratio (float): minimal q-ratio (K_{i+1} / K_i) for FindNextK
-            a_factory (CircuitFactory): A operator
-            q_factory (CircuitFactory): Q operator
-            i_objective (int): index of objective qubit
+            a_factory (CircuitFactory): the A operator, specifying the QAE problem
+            q_factory (CircuitFactory): the Q operator (Grover operator), constructed from the
+                A operator
+            i_objective (int): index of the objective qubit, that marks the 'good/bad' states
         """
         self.validate(locals())
         super().__init__(a_factory, q_factory, i_objective)
@@ -170,7 +180,8 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
     def construct_circuit(self, k, measurement=False):
         """
-        Construct the circuit Q^k A |0>
+        Construct the circuit Q^k A |0>, with the A operator specifying the QAE problem and
+        the Grover operator Q.
 
         Args:
             k (int): the power of Q operator
@@ -380,7 +391,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         confidence_interval = [self.a_factory.value_to_estimation(x) for x in a_confidence_interval]
 
         # add result items to the results dictionary
-        self._ret.update({
+        self._ret = {
             'value': value,
             'value_confidence_interval': a_confidence_interval,
             'confidence_interval': confidence_interval,
@@ -392,6 +403,6 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             'theta_intervals': theta_intervals,
             'powers': powers,
             'ratios': ratios,
-        })
+        }
 
         return self._ret
