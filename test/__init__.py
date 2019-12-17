@@ -11,3 +11,17 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
+""" test packages """
+
+import warnings
+
+# disable deprecation warnings that can cause log output overflow
+# pylint: disable=unused-argument
+
+
+def _noop(*args, **kargs):
+    pass
+
+
+warnings.warn = _noop
