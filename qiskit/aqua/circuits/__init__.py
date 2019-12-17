@@ -12,7 +12,42 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" circuits packages """
+"""
+Circuits (:mod:`qiskit.aqua.circuits`)
+======================================
+Collection of circuits and gates that may be used to build quantum algorithms
+and components...
+
+.. currentmodule:: qiskit.aqua.circuits
+
+Circuits
+========
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+    CNF
+    DNF
+    ESOP
+    PhaseEstimationCircuit
+    StateVectorCircuit
+    FourierTransformCircuits
+    FixedValueComparator
+    LinearRotation
+    PiecewiseLinearRotation
+    PolynomialRotation
+    WeightedSumOperator
+
+Submodules
+==========
+
+.. autosummary::
+   :toctree:
+
+   gates
+
+"""
 
 from .boolean_logical_circuits import CNF, DNF, ESOP
 from .phase_estimation_circuit import PhaseEstimationCircuit

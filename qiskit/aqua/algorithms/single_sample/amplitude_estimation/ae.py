@@ -26,7 +26,7 @@ from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.circuits import PhaseEstimationCircuit
 from qiskit.aqua.components.iqfts import Standard
 
-from .ae_base import AmplitudeEstimationBase
+from .ae_algorithm import AmplitudeEstimationAlgorithm
 from .ae_utils import pdf_a, derivative_log_pdf_a, bisect_max
 
 logger = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 # pylint: disable=invalid-name
 
 
-class AmplitudeEstimation(AmplitudeEstimationBase):
+class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
     """
     The Amplitude Estimation algorithm.
     """
@@ -75,7 +75,6 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
     def __init__(self, num_eval_qubits, a_factory=None,
                  i_objective=None, q_factory=None, iqft=None):
         """
-        Constructor.
 
         Args:
             num_eval_qubits (int): number of evaluation qubits
@@ -85,7 +84,7 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
             q_factory (CircuitFactory): the CircuitFactory subclass object representing an
                                         amplitude estimation sample (based on a_factory)
             iqft (IQFT): the Inverse Quantum Fourier Transform pluggable component,
-                            defaults to using a standard iqft when None
+                         defaults to using a standard iqft when None
         """
         self.validate(locals())
         super().__init__(a_factory, q_factory, i_objective)
@@ -138,7 +137,8 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
 
     @property
     def _num_qubits(self):
-        self.check_factories()  # ensure that A/Q factories are set
+        if self.a_factory is None:  # if A factory is not set, no qubits are specified
+            return 0
 
         num_ancillas = self.q_factory.required_ancillas_controlled()
         num_qubits = self.a_factory.num_target_qubits + self._m + num_ancillas
@@ -264,7 +264,21 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
         return [self.a_factory.value_to_estimation(bound) for bound in ci]
 
     def confidence_interval(self, alpha, kind='likelihood_ratio'):
-        """ confidence interval """
+        """
+        Compute the (1 - alpha) confidence interval
+
+        Args:
+            alpha (float): confidence level: compute the (1 - alpha) confidence interval
+            kind (str): the method to compute the confidence interval, can be 'fisher',
+                'observed_fisher' or 'likelihood_ratio' (default)
+
+        Returns:
+            list[float]: the (1 - alpha) confidence interval
+
+        Raises:
+            AquaError: if 'mle' is not in self._ret.keys() (i.e. `run` was not called yet)
+            NotImplementedError: if the confidence interval method `kind` is not implemented
+        """
         # check if AE did run already
         if 'mle' not in self._ret.keys():
             raise AquaError('Call run() first!')
@@ -286,10 +300,12 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
 
     def _run_mle(self):
         """
-        @brief Compute the Maximum Likelihood Estimator (MLE)
-        @return The MLE for the previous AE run
-        @note Before calling this method, call the method `run` of the
-              AmplitudeEstimation instance
+        Compute the Maximum Likelihood Estimator (MLE)
+
+        Returns:
+            The MLE for the previous AE run
+
+        Note: Before calling this method, call the method `run` of the AmplitudeEstimation instance
         """
         M = self._M
         qae = self._ret['value']
@@ -341,9 +357,9 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
         self._ret['mle'] = val_opt
 
     def _run(self):
-        # check if A/Q operators have been set and set Q operator if
-        # it hasn't been set manually
-        self.check_factories()
+        # check if A factory has been set
+        if self.a_factory is None:
+            raise AquaError("a_factory must be set!")
 
         if self._quantum_instance.is_statevector:
             self.construct_circuit(measurement=False)
@@ -421,7 +437,7 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
 
         # get 95% confidence interval
         alpha = 0.05
-        kind = "likelihood_ratio"  # empirically the most precise kind
+        kind = 'likelihood_ratio'  # empirically the most precise kind
         self._ret['95%_confidence_interval'] = self.confidence_interval(alpha, kind)
 
         return self._ret

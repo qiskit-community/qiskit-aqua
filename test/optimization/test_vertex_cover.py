@@ -1,0 +1,103 @@
+# -*- coding: utf-8 -*-
+
+# This code is part of Qiskit.
+#
+# (C) Copyright IBM 2018, 2019.
+#
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
+#
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
+
+""" Text Vertex Cover """
+
+from test.optimization.common import QiskitOptimizationTestCase
+import warnings
+import numpy as np
+from qiskit import BasicAer
+
+from qiskit.aqua import run_algorithm, aqua_globals, QuantumInstance
+from qiskit.aqua.input import EnergyInput
+from qiskit.optimization.ising import vertex_cover
+from qiskit.optimization.ising.common import random_graph, sample_most_likely
+from qiskit.aqua.algorithms import ExactEigensolver, VQE
+from qiskit.aqua.components.variational_forms import RYRZ
+from qiskit.aqua.components.optimizers import SPSA
+
+
+class TestVertexCover(QiskitOptimizationTestCase):
+    """Cplex Ising tests."""
+
+    def setUp(self):
+        super().setUp()
+        warnings.filterwarnings("ignore", message=aqua_globals.CONFIG_DEPRECATION_MSG,
+                                category=DeprecationWarning)
+        self.seed = 100
+        aqua_globals.random_seed = self.seed
+        self.num_nodes = 3
+        self.w = random_graph(self.num_nodes, edge_prob=0.8, weight_range=10)
+        self.qubit_op, self.offset = vertex_cover.get_operator(self.w)
+
+    def _brute_force(self):
+        # brute-force way
+        def bitfield(n, length):
+            result = np.binary_repr(n, length)
+            return [int(digit) for digit in result]  # [2:] to chop off the "0b" part
+
+        nodes = self.num_nodes
+        maximum = 2**nodes
+        minimal_v = np.inf
+        for i in range(maximum):
+            cur = bitfield(i, nodes)
+
+            cur_v = vertex_cover.check_full_edge_coverage(np.array(cur), self.w)
+            if cur_v:
+                nonzerocount = np.count_nonzero(cur)
+                if nonzerocount < minimal_v:
+                    minimal_v = nonzerocount
+
+        return minimal_v
+
+    def test_vertex_cover(self):
+        """ Vertex cover test """
+        params = {
+            'problem': {'name': 'ising'},
+            'algorithm': {'name': 'ExactEigensolver'}
+        }
+        result = run_algorithm(params, EnergyInput(self.qubit_op))
+
+        x = sample_most_likely(result['eigvecs'][0])
+        sol = vertex_cover.get_graph_solution(x)
+        np.testing.assert_array_equal(sol, [0, 1, 1])
+        oracle = self._brute_force()
+        self.assertEqual(np.count_nonzero(sol), oracle)
+
+    def test_vertex_cover_direct(self):
+        """ Vertex Cover Direct test """
+        algo = ExactEigensolver(self.qubit_op, k=1, aux_operators=[])
+        result = algo.run()
+        x = sample_most_likely(result['eigvecs'][0])
+        sol = vertex_cover.get_graph_solution(x)
+        np.testing.assert_array_equal(sol, [0, 1, 1])
+        oracle = self._brute_force()
+        self.assertEqual(np.count_nonzero(sol), oracle)
+
+    def test_vertex_cover_vqe(self):
+        """ Vertex Cover VQE test """
+        aqua_globals.random_seed = self.seed
+
+        result = VQE(self.qubit_op,
+                     RYRZ(self.qubit_op.num_qubits, depth=3),
+                     SPSA(max_trials=200),
+                     max_evals_grouped=2).run(
+                         QuantumInstance(BasicAer.get_backend('qasm_simulator'),
+                                         seed_simulator=aqua_globals.random_seed,
+                                         seed_transpiler=aqua_globals.random_seed))
+
+        x = sample_most_likely(result['eigvecs'][0])
+        sol = vertex_cover.get_graph_solution(x)
+        oracle = self._brute_force()
+        self.assertEqual(np.count_nonzero(sol), oracle)
