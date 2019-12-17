@@ -45,6 +45,7 @@ Added
     running on quantum hardware. (#694)
 -   An option in `evolution_instruction` to control whether to add a barrier between every slice. (#708)
 -   Added `VQE` snapshot mode for the Aer QasmSimulator when no noise model is specified and `shots==1`. (#715)
+-   Added the implementation for the iterative QAE algorithm (#749)
 
 Fixed
 -------
