@@ -82,7 +82,8 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         Initializer.
 
         The output of the algorithm is an estimate for the amplitude `a`, that with at least
-        probability 1 - alpha has an error of epsilon.
+        probability 1 - alpha has an error of epsilon. The number of oracle calls scales
+        linearly in 1/epsilon (up to a logarithmic factor).
 
         Args:
             epsilon (float): target precision for estimation target `a`
