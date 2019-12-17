@@ -338,6 +338,7 @@ qasm
 qbit
 qc
 qeom
+QFactory
 qft
 qgan
 qiskit
