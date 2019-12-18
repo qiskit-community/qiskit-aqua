@@ -173,6 +173,7 @@ class TestBernoulli(QiskitAquaTestCase):
         [True], [False]
     ])
     def test_ae_circuit(self, efficient_circuit):
+        """ Test circuits resulting from canonical amplitude estimation """
         print(efficient_circuit)
         prob = 0.5
         basis_gates = ['u1', 'u2', 'u3', 'cx']
