@@ -18,8 +18,9 @@ import unittest
 from test.aqua.common import QiskitAquaTestCase
 import numpy as np
 from parameterized import parameterized
-from qiskit import QuantumRegister, QuantumCircuit, BasicAer, execute
+from qiskit import QuantumRegister, QuantumCircuit, BasicAer, execute, transpile
 from qiskit.aqua import QuantumInstance
+from qiskit.aqua.components.iqfts import Standard
 from qiskit.aqua.components.uncertainty_models import GaussianConditionalIndependenceModel as GCI
 from qiskit.aqua.components.uncertainty_problems import \
     UnivariatePiecewiseLinearObjective as PwlObjective
@@ -82,6 +83,27 @@ class BernoulliQFactory(QFactory):
         qc.cry(2 * power * theta_p, q_control, q[i_state])
 
 
+class SineIntegralAFactory(UncertaintyProblem):
+    def __init__(self, num_qubits):
+        super().__init__(num_qubits + 1)
+        self._i_objective = num_qubits
+
+    def build(self, qc, q, q_ancillas=None):
+        n = self.num_target_qubits - 1
+        q_state = [q[i] for i in range(self.num_target_qubits) if i != self._i_objective]
+        q_objective = q[self._i_objective]
+
+        # prepare 1/sqrt{2^n} sum_x |x>_n
+        for q_i in q_state:
+            qc.h(q_i)
+
+        # apply the sine/cosine term
+        qc.ry(2 * 1 / 2 / 2**n, q_objective)
+
+        for i, q_i in enumerate(q_state):
+            qc.cry(2 * 2**i / 2**n, q_i, q_objective)
+
+
 class TestBernoulli(QiskitAquaTestCase):
     """ Test Bernoulli """
 
@@ -112,13 +134,13 @@ class TestBernoulli(QiskitAquaTestCase):
         [0.82, IterativeAmplitudeEstimation(0.00001, 0.05), {'estimation': 0.82}],
         [0.49, IterativeAmplitudeEstimation(0.001, 0.01), {'estimation': 0.49}]
     ])
-    def test_statevector(self, prob, a_e, expect):
+    def test_statevector(self, prob, ae, expect):
         """ statevector test """
         # construct factories for A and Q
-        a_e.a_factory = BernoulliAFactory(prob)
-        a_e.q_factory = BernoulliQFactory(a_e.a_factory)
+        ae.a_factory = BernoulliAFactory(prob)
+        ae.q_factory = BernoulliQFactory(ae.a_factory)
 
-        result = a_e.run(self._statevector)
+        result = ae.run(self._statevector)
 
         for key, value in expect.items():
             self.assertAlmostEqual(value, result[key], places=3,
@@ -135,13 +157,114 @@ class TestBernoulli(QiskitAquaTestCase):
         [0.4, 1000, IterativeAmplitudeEstimation(0.001, 0.05), {'estimation': 0.400071}],
         [0.8, 10, IterativeAmplitudeEstimation(0.1, 0.05), {'estimation': 0.811711}]
     ])
-    def test_qasm(self, prob, shots, a_e, expect):
+    def test_qasm(self, prob, shots, ae, expect):
         """ qasm test """
         # construct factories for A and Q
-        a_e.a_factory = BernoulliAFactory(prob)
-        a_e.q_factory = BernoulliQFactory(a_e.a_factory)
+        ae.a_factory = BernoulliAFactory(prob)
+        ae.q_factory = BernoulliQFactory(ae.a_factory)
 
-        result = a_e.run(self._qasm(shots))
+        result = ae.run(self._qasm(shots))
+
+        for key, value in expect.items():
+            self.assertAlmostEqual(value, result[key], places=3,
+                                   msg="estimate `{}` failed".format(key))
+
+    @parameterized.expand([
+        [True], [False]
+    ])
+    def test_ae_circuit(self, efficient_circuit):
+        print(efficient_circuit)
+        prob = 0.5
+        basis_gates = ['u1', 'u2', 'u3', 'cx']
+
+        for m in range(2, 7):
+            print('m =', m)
+
+            ae = AmplitudeEstimation(m, a_factory=BernoulliAFactory(prob))
+            angle = 2 * np.arcsin(np.sqrt(prob))
+
+            # manually set up the inefficient AE circuit
+            q_ancilla = QuantumRegister(m, 'a')
+            q_objective = QuantumRegister(1, 'q')
+            circuit = QuantumCircuit(q_ancilla, q_objective)
+
+            # initial hadamards
+            for i in range(m):
+                circuit.h(q_ancilla[i])
+
+            # A operator
+            circuit.ry(angle, q_objective)
+
+            if efficient_circuit:
+                ae.q_factory = BernoulliQFactory(ae.a_factory)
+                for power in range(m):
+                    circuit.cry(2 ** power * angle, q_ancilla[power], q_objective[0])
+
+            else:
+                q_factory = QFactory(ae.a_factory, i_objective=0)
+                for power in range(m):
+                    for _ in range(2**power):
+                        q_factory.build_controlled(circuit, q_objective, q_ancilla[power])
+
+            # fourier transform
+            iqft = Standard(m)
+            circuit = iqft.construct_circuit(qubits=q_ancilla, circuit=circuit, do_swaps=False)
+            expected_ops = transpile(circuit, basis_gates=basis_gates).count_ops()
+
+            actual_circuit = ae.construct_circuit(measurement=False)
+            actual_ops = transpile(actual_circuit, basis_gates=basis_gates).count_ops()
+
+            for key in expected_ops.keys():
+                self.assertEqual(expected_ops[key], actual_ops[key])
+
+
+class TestSineIntegral(QiskitAquaTestCase):
+    def setUp(self):
+        super().setUp()
+
+        self._statevector = QuantumInstance(backend=BasicAer.get_backend('statevector_simulator'),
+                                            seed_simulator=123,
+                                            seed_transpiler=41)
+
+        def qasm(shots=100):
+            return QuantumInstance(backend=BasicAer.get_backend('qasm_simulator'), shots=shots,
+                                   seed_simulator=7192, seed_transpiler=90000)
+
+        self._qasm = qasm
+
+    @parameterized.expand([
+        [4, AmplitudeEstimation(2), {'estimation': 0.5, 'mle': 0.272675}],
+        [4, AmplitudeEstimation(4), {'estimation': 0.30866, 'mle': 0.272675}],
+        [3, MaximumLikelihoodAmplitudeEstimation(2), {'estimation': 0.272675}],
+        [4, MaximumLikelihoodAmplitudeEstimation(4), {'estimation': 0.272675}],
+        [3, IterativeAmplitudeEstimation(0.1, 0.1), {'estimation': 0.272675}],
+        [5, IterativeAmplitudeEstimation(0.00001, 0.01), {'estimation': 0.272675}],
+    ])
+    def test_statevector(self, n, ae, expect):
+        """ statevector test """
+        # construct factories for A and Q
+        ae.a_factory = SineIntegralAFactory(n)
+
+        result = ae.run(self._statevector)
+
+        for key, value in expect.items():
+            self.assertAlmostEqual(value, result[key], places=3,
+                                   msg="estimate `{}` failed".format(key))
+
+    @parameterized.expand([
+        [4, 10, AmplitudeEstimation(2), {'estimation': 0.5, 'mle': 0.272675}],
+        [4, 1000, AmplitudeEstimation(4), {'estimation': 0.30866, 'mle': 0.272675}],
+        [3, 10, MaximumLikelihoodAmplitudeEstimation(2), {'estimation': 0.272675}],
+        [4, 1000, MaximumLikelihoodAmplitudeEstimation(4), {'estimation': 0.272675}],
+        [3, 10, IterativeAmplitudeEstimation(0.1, 0.1), {'estimation': 0.272675}],
+        [5, 1000, IterativeAmplitudeEstimation(0.00001, 0.01), {'estimation': 0.272675}],
+    ])
+    def test_qasm(self, n, shots, ae, expect):
+        """ qasm test """
+        # construct factories for A and Q
+        ae.a_factory = SineIntegralAFactory(n)
+
+        result = ae.run(self._qasm(shots))
 
         for key, value in expect.items():
             self.assertAlmostEqual(value, result[key], places=3,
