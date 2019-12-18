@@ -174,13 +174,10 @@ class TestBernoulli(QiskitAquaTestCase):
     ])
     def test_ae_circuit(self, efficient_circuit):
         """ Test circuits resulting from canonical amplitude estimation """
-        print(efficient_circuit)
         prob = 0.5
         basis_gates = ['u1', 'u2', 'u3', 'cx']
 
         for m in range(2, 7):
-            print('m =', m)
-
             ae = AmplitudeEstimation(m, a_factory=BernoulliAFactory(prob))
             angle = 2 * np.arcsin(np.sqrt(prob))
 
@@ -218,13 +215,55 @@ class TestBernoulli(QiskitAquaTestCase):
             for key in expected_ops.keys():
                 self.assertEqual(expected_ops[key], actual_ops[key])
 
+    @parameterized.expand([
+        [True], [False]
+    ])
+    def test_iqae_circuit(self, efficient_circuit):
+        prob = 0.5
+        basis_gates = ['u1', 'u2', 'u3', 'cx']
+
+        for k in range(2, 7):
+            ae = IterativeAmplitudeEstimation(0.01, 0.05, a_factory=BernoulliAFactory(prob))
+            angle = 2 * np.arcsin(np.sqrt(prob))
+
+            # manually set up the inefficient AE circuit
+            q_objective = QuantumRegister(1, 'q')
+            circuit = QuantumCircuit(q_objective)
+
+            # A operator
+            circuit.ry(angle, q_objective)
+
+            if efficient_circuit:
+                ae.q_factory = BernoulliQFactory(ae.a_factory)
+                for power in range(k):
+                    circuit.ry(2 ** power * angle, q_objective[0])
+
+            else:
+                q_factory = QFactory(ae.a_factory, i_objective=0)
+                for power in range(k):
+                    for _ in range(2**power):
+                        q_factory.build(circuit, q_objective)
+
+            expected_ops = transpile(circuit, basis_gates=basis_gates).count_ops()
+
+            actual_circuit = ae.construct_circuit(k, measurement=False)
+            actual_ops = transpile(actual_circuit, basis_gates=basis_gates).count_ops()
+
+            for key in expected_ops.keys():
+                self.assertEqual(expected_ops[key], actual_ops[key])
+
 
 class TestInternals(QiskitAquaTestCase):
     def setUp(self):
         super().setUp()
-        self.a_factory = BernoulliAFactory(0)
-        self.q_factory = BernoulliQFactory(self.a_factory)
-        self.i_objective = 0
+        self.a_bernoulli = BernoulliAFactory(0)
+        self.q_bernoulli = BernoulliQFactory(self.a_bernoulli)
+        self.i_bernoulli = 0
+
+        num_qubits = 5
+        self.a_integral = SineIntegralAFactory(num_qubits)
+        self.q_intergal = QFactory(self.a_integral, num_qubits)
+        self.i_intergal = num_qubits
 
     @parameterized.expand([
         [AmplitudeEstimation(2)],
@@ -240,7 +279,7 @@ class TestInternals(QiskitAquaTestCase):
         self.assertIsNone(ae._q_factory)
         self.assertIsNone(ae._i_objective)
 
-        ae.a_factory = self.a_factory
+        ae.a_factory = self.a_bernoulli
         self.assertIsNotNone(ae.a_factory)
         self.assertIsNotNone(ae.q_factory)
         self.assertIsNotNone(ae.i_objective)
@@ -248,7 +287,7 @@ class TestInternals(QiskitAquaTestCase):
         self.assertIsNone(ae._q_factory)
         self.assertIsNone(ae._i_objective)
 
-        ae.q_factory = self.q_factory
+        ae.q_factory = self.q_bernoulli
         self.assertIsNotNone(ae.a_factory)
         self.assertIsNotNone(ae.q_factory)
         self.assertIsNotNone(ae.i_objective)
@@ -256,13 +295,42 @@ class TestInternals(QiskitAquaTestCase):
         self.assertIsNotNone(ae._q_factory)
         self.assertIsNone(ae._i_objective)
 
-        ae.i_objective = self.i_objective
+        ae.i_objective = self.i_bernoulli
         self.assertIsNotNone(ae.a_factory)
         self.assertIsNotNone(ae.q_factory)
         self.assertIsNotNone(ae.i_objective)
         self.assertIsNotNone(ae._a_factory)
         self.assertIsNotNone(ae._q_factory)
         self.assertIsNotNone(ae._i_objective)
+
+    @parameterized.expand([
+        [AmplitudeEstimation(2)],
+        [IterativeAmplitudeEstimation(0.1, 0.001)],
+        [MaximumLikelihoodAmplitudeEstimation(3)],
+    ])
+    def test_a_factory_update(self, ae):
+        """ Test if the Q factory is updated if the a_factory changes -- except set manually """
+        # Case 1: Set to BernoulliAFactory with default Q operator
+        ae.a_factory = self.a_bernoulli
+        self.assertIsInstance(ae.q_factory.a_factory, BernoulliAFactory)
+        self.assertEqual(ae.i_objective, self.i_bernoulli)
+
+        # Case 2: Change to SineIntegralAFactory with default Q operator
+        ae.a_factory = self.a_integral
+        self.assertIsInstance(ae.q_factory.a_factory, SineIntegralAFactory)
+        self.assertEqual(ae.i_objective, self.i_intergal)
+
+        # Case 3: Set to BernoulliAFactory with special Q operator
+        ae.a_factory = self.a_bernoulli
+        ae.q_factory = self.q_bernoulli
+        self.assertIsInstance(ae.q_factory, BernoulliQFactory)
+        self.assertEqual(ae.i_objective, self.i_bernoulli)
+
+        # Case 4: Set to SineIntegralAFactory, and do not set Q. Then the old Q operator
+        # should remain
+        ae.a_factory = self.a_integral
+        self.assertIsInstance(ae.q_factory, BernoulliQFactory)
+        self.assertEqual(ae.i_objective, self.i_bernoulli)
 
 
 class TestSineIntegral(QiskitAquaTestCase):
