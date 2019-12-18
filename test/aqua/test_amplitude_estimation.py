@@ -219,6 +219,52 @@ class TestBernoulli(QiskitAquaTestCase):
                 self.assertEqual(expected_ops[key], actual_ops[key])
 
 
+class TestInternals(QiskitAquaTestCase):
+    def setUp(self):
+        super().setUp()
+        self.a_factory = BernoulliAFactory(0)
+        self.q_factory = BernoulliQFactory(self.a_factory)
+        self.i_objective = 0
+
+    @parameterized.expand([
+        [AmplitudeEstimation(2)],
+        [IterativeAmplitudeEstimation(0.1, 0.001)],
+        [MaximumLikelihoodAmplitudeEstimation(3)],
+    ])
+    def test_operators(self, ae):
+        """ Test if A/Q operator + i_objective set correctly """
+        self.assertIsNone(ae.a_factory)
+        self.assertIsNone(ae.q_factory)
+        self.assertIsNone(ae.i_objective)
+        self.assertIsNone(ae._a_factory)
+        self.assertIsNone(ae._q_factory)
+        self.assertIsNone(ae._i_objective)
+
+        ae.a_factory = self.a_factory
+        self.assertIsNotNone(ae.a_factory)
+        self.assertIsNotNone(ae.q_factory)
+        self.assertIsNotNone(ae.i_objective)
+        self.assertIsNotNone(ae._a_factory)
+        self.assertIsNone(ae._q_factory)
+        self.assertIsNone(ae._i_objective)
+
+        ae.q_factory = self.q_factory
+        self.assertIsNotNone(ae.a_factory)
+        self.assertIsNotNone(ae.q_factory)
+        self.assertIsNotNone(ae.i_objective)
+        self.assertIsNotNone(ae._a_factory)
+        self.assertIsNotNone(ae._q_factory)
+        self.assertIsNone(ae._i_objective)
+
+        ae.i_objective = self.i_objective
+        self.assertIsNotNone(ae.a_factory)
+        self.assertIsNotNone(ae.q_factory)
+        self.assertIsNotNone(ae.i_objective)
+        self.assertIsNotNone(ae._a_factory)
+        self.assertIsNotNone(ae._q_factory)
+        self.assertIsNotNone(ae._i_objective)
+
+
 class TestSineIntegral(QiskitAquaTestCase):
     """ Integrate the sine squared using amplitude estimation """
 
