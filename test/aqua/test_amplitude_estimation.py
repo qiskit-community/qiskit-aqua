@@ -220,6 +220,8 @@ class TestBernoulli(QiskitAquaTestCase):
 
 
 class TestSineIntegral(QiskitAquaTestCase):
+    """ Integrate the sine squared using amplitude estimation """
+
     def setUp(self):
         super().setUp()
 
