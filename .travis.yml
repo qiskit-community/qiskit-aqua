@@ -94,10 +94,14 @@ before_script:
 
 matrix:
   include:
-  - name: "Spell, Style, Lint, Docs check and Test Chemistry"
+  - name: "Spell, Style, Lint, Docs check"
     env: TEST_DIR=chemistry
+    python: 3.7
     script:
-        make spell && make style && make lint && make html && export OPENBLAS_NUM_THREADS=1 && stestr --test-path test/chemistry run
+        make spell && make style && make lint && make html
+  - name: "Chemistry Tests"
+    env: TEST_DIR=chemistry
+    script: export OPENBLAS_NUM_THREADS=1 && stestr --test-path test/chemistry run
   - name: "Test Aqua"
     script: stestr --test-path test run --blacklist-file blacklist.txt
   - name: "Test Aqua 2"
@@ -164,5 +168,5 @@ before_install:
   - sudo apt-get -y install hunspell-en-us
   # install Aqua and dev requirements
   - pip install -e $TRAVIS_BUILD_DIR --progress-bar off
-  - pip install -U -r requirements-dev.txt --progress-bar off
+  - pip install -U -c constraints.txt -r requirements-dev.txt --progress-bar off
   - pip install pyenchant
