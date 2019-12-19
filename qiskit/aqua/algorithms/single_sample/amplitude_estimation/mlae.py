@@ -222,7 +222,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         Returns:
             float: default if array is empty, otherwise numpy.max(array)
         """
-        if not array:
+        if len(array) == 0:
             return default
         return np.min(array)
 
@@ -231,7 +231,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         Returns:
             float: default if array is empty, otherwise numpy.max(array)
         """
-        if not array:
+        if len(array) == 0:
             return default
         return np.max(array)
 
@@ -319,7 +319,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         mapped_ci = [self.a_factory.value_to_estimation(bound) for bound in ci]
         return mapped_ci
 
-    def _likelihood_ratio_ci(self, alpha=0.05, nevals=10000):
+    def _likelihood_ratio_ci(self, alpha=0.05, nevals=None):
         """
         Compute the likelihood-ratio confidence interval.
 
@@ -331,6 +331,9 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         Returns:
             float: The alpha-likelihood-ratio confidence interval.
         """
+
+        if nevals is None:
+            nevals = self._likelihood_evals
 
         def loglikelihood(theta, one_counts, all_counts):
             logL = 0
@@ -352,6 +355,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         # the (outer) LR confidence interval
         above_thres = thetas[values >= thres]
+        print('above_thres', above_thres)
 
         # it might happen that the `above_thres` array is empty,
         # to still provide a valid result use safe_min/max which
@@ -360,7 +364,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
               self._safe_max(above_thres, default=(np.pi / 2))]
         mapped_ci = [self.a_factory.value_to_estimation(np.sin(bound)**2) for bound in ci]
 
-        return mapped_ci
+        return thetas, values, thres, mapped_ci
 
     def confidence_interval(self, alpha, kind='fisher'):
         """
