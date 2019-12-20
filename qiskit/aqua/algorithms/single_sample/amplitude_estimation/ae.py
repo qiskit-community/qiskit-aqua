@@ -217,11 +217,21 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         # the likelihood ratio: the two bubbles next to the QAE estimate
         M = 2**self._m
         qae = self._ret['value']
-        y = M * np.arcsin(np.sqrt(qae)) / np.pi
-        left_of_qae = np.sin(np.pi * (y - 1) / M)**2
-        right_of_qae = np.sin(np.pi * (y + 1) / M)**2
 
-        bubbles = [left_of_qae, qae, right_of_qae]
+        bubbles = None
+        y = M * np.arcsin(np.sqrt(qae)) / np.pi
+        if y == 0:
+            right_of_qae = np.sin(np.pi * (y + 1) / M)**2
+            bubbles = [qae, right_of_qae]
+
+        elif y == int(M / 2):  # remember, M = 2^m is a power of 2
+            left_of_qae = np.sin(np.pi * (y - 1) / M)**2
+            bubbles = [left_of_qae, qae]
+
+        else:
+            left_of_qae = np.sin(np.pi * (y - 1) / M)**2
+            right_of_qae = np.sin(np.pi * (y + 1) / M)**2
+            bubbles = [left_of_qae, qae, right_of_qae]
 
         # likelihood function
         ai = np.asarray(self._ret['values'])
@@ -241,6 +251,9 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
             return loglikelihood(x) - thres
 
         # Store the boundaries of the confidence interval
+        # It's valid to start off with the zero-width confidence interval, since the maximum
+        # of the likelihood function is guaranteed to be over the threshold, and if alpha = 0
+        # that's the valid interval
         lower = upper = self._ret['ml_value']
 
         # Check the two intervals/bubbles: check if they surpass the
