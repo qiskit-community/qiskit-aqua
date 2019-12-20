@@ -15,12 +15,10 @@
 """ Test Clique """
 
 from test.optimization.common import QiskitOptimizationTestCase
-import warnings
 import numpy as np
 from qiskit import BasicAer
 
-from qiskit.aqua import run_algorithm, aqua_globals, QuantumInstance
-from qiskit.aqua.input import EnergyInput
+from qiskit.aqua import aqua_globals, QuantumInstance
 from qiskit.optimization.ising import clique
 from qiskit.optimization.ising.common import random_graph, sample_most_likely
 from qiskit.aqua.algorithms import ExactEigensolver, VQE
@@ -33,8 +31,6 @@ class TestClique(QiskitOptimizationTestCase):
 
     def setUp(self):
         super().setUp()
-        warnings.filterwarnings("ignore", message=aqua_globals.CONFIG_DEPRECATION_MSG,
-                                category=DeprecationWarning)
         self.k = 5  # K means the size of the clique
         self.seed = 100
         aqua_globals.random_seed = self.seed
@@ -61,19 +57,6 @@ class TestClique(QiskitOptimizationTestCase):
 
     def test_clique(self):
         """ Clique test """
-        params = {
-            'problem': {'name': 'ising'},
-            'algorithm': {'name': 'ExactEigensolver'}
-        }
-        result = run_algorithm(params, EnergyInput(self.qubit_op))
-        x = sample_most_likely(result['eigvecs'][0])
-        ising_sol = clique.get_graph_solution(x)
-        np.testing.assert_array_equal(ising_sol, [1, 1, 1, 1, 1])
-        oracle = self._brute_force()
-        self.assertEqual(clique.satisfy_or_not(ising_sol, self.w, self.k), oracle)
-
-    def test_clique_direct(self):
-        """ Clique Direct test """
         algo = ExactEigensolver(self.qubit_op, k=1, aux_operators=[])
         result = algo.run()
         x = sample_most_likely(result['eigvecs'][0])

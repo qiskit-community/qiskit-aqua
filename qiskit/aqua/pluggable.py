@@ -23,9 +23,7 @@ Doing so requires that the required pluggable interface is implemented.
 from abc import ABC, abstractmethod
 import logging
 import copy
-import numpy as np
-from qiskit.aqua import PluggableType
-from qiskit.aqua.parser import JSONSchema
+import jsonschema
 
 
 logger = logging.getLogger(__name__)
@@ -41,24 +39,6 @@ class Pluggable(ABC):
     """
 
     CONFIGURATION = None
-
-    # Configuration dictionary keys
-    SECTION_KEY_ALGORITHM = PluggableType.ALGORITHM.value
-    SECTION_KEY_OPTIMIZER = PluggableType.OPTIMIZER.value
-    SECTION_KEY_VAR_FORM = PluggableType.VARIATIONAL_FORM.value
-    SECTION_KEY_INITIAL_STATE = PluggableType.INITIAL_STATE.value
-    SECTION_KEY_IQFT = PluggableType.IQFT.value
-    SECTION_KEY_QFT = PluggableType.QFT.value
-    SECTION_KEY_ORACLE = PluggableType.ORACLE.value
-    SECTION_KEY_FEATURE_MAP = PluggableType.FEATURE_MAP.value
-    SECTION_KEY_MULTICLASS_EXT = PluggableType.MULTICLASS_EXTENSION.value
-    SECTION_KEY_UNCERTAINTY_PROBLEM = PluggableType.UNCERTAINTY_PROBLEM.value
-    SECTION_KEY_UNIVARIATE_DIST = PluggableType.UNIVARIATE_DISTRIBUTION.value
-    SECTION_KEY_MULTIVARIATE_DIST = PluggableType.MULTIVARIATE_DISTRIBUTION.value
-    SECTION_KEY_EIGS = PluggableType.EIGENVALUES.value
-    SECTION_KEY_RECIPROCAL = PluggableType.RECIPROCAL.value
-    SECTION_KEY_DISCRIMINATIVE_NET = PluggableType.DISCRIMINATIVE_NETWORK.value
-    SECTION_KEY_GENERATIVE_NETWORK = PluggableType.GENERATIVE_NETWORK.value
 
     @abstractmethod
     def __init__(self):
@@ -76,19 +56,18 @@ class Pluggable(ABC):
         pass
 
     def validate(self, args_dict):
-        """ validate input data """
-        schema_dict = self.CONFIGURATION.get('input_schema')
+        """ validate driver input """
+        schema_dict = self.CONFIGURATION.get('input_schema', None)
         if schema_dict is None:
             return
 
-        json_schema = JSONSchema(schema_dict)
-        schema_property_names = json_schema.get_default_section_names()
-        json_dict = {}
-        for property_name in schema_property_names:
-            if property_name in args_dict:
-                value = args_dict[property_name]
-                if isinstance(value, np.ndarray):
-                    value = value.tolist()
-                json_dict[property_name] = value
+        properties_dict = schema_dict.get('properties', None)
+        if properties_dict is None:
+            return
 
-        json_schema.validate(json_dict)
+        json_dict = {}
+        for property_name, _ in properties_dict.items():
+            if property_name in args_dict:
+                json_dict[property_name] = args_dict[property_name]
+
+        jsonschema.validate(json_dict, schema_dict)

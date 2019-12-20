@@ -23,7 +23,7 @@ import numpy as np
 
 from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.operators import Z2Symmetries
-from qiskit.chemistry import ChemistryProblem, QMolecule
+from qiskit.chemistry import QMolecule
 from qiskit.chemistry.fermionic_operator import FermionicOperator
 from .chemistry_operator import ChemistryOperator
 
@@ -99,7 +99,7 @@ class Hamiltonian(ChemistryOperator):
             },
             "additionalProperties": False
         },
-        'problems': [ChemistryProblem.ENERGY.value, ChemistryProblem.EXCITED_STATES.value]
+        'problems': ['energy', 'excited_states']
     }
 
     def __init__(self,
@@ -144,32 +144,6 @@ class Hamiltonian(ChemistryOperator):
         self._ph_x_dipole_shift = 0.0
         self._ph_y_dipole_shift = 0.0
         self._ph_z_dipole_shift = 0.0
-
-    @classmethod
-    def init_params(cls, params):
-        """
-        Initialize via parameters dictionary.
-
-        Args:
-            params (dict): parameters dictionary
-
-        Returns:
-            Hamiltonian: hamiltonian object
-        """
-        kwargs = {}
-        for k, v in params.items():
-            if k == 'name':
-                continue
-
-            if k == Hamiltonian.KEY_TRANSFORMATION:
-                v = TransformationType(v)
-            elif k == Hamiltonian.KEY_QUBIT_MAPPING:
-                v = QubitMappingType(v)
-
-            kwargs[k] = v
-
-        logger.debug('init_params: %s', kwargs)
-        return cls(**kwargs)
 
     def run(self, qmolecule):
         logger.debug('Processing started...')

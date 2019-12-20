@@ -23,7 +23,7 @@ from abc import ABC, abstractmethod
 import copy
 from enum import Enum
 import logging
-from qiskit.aqua.parser import JSONSchema
+import jsonschema
 
 logger = logging.getLogger(__name__)
 
@@ -87,14 +87,16 @@ class BaseDriver(ABC):
         if schema_dict is None:
             return
 
-        json_schema = JSONSchema(schema_dict)
-        schema_property_names = json_schema.get_default_section_names()
+        properties_dict = schema_dict.get('properties', None)
+        if properties_dict is None:
+            return
+
         json_dict = {}
-        for property_name in schema_property_names:
+        for property_name, _ in properties_dict.items():
             if property_name in args_dict:
                 json_dict[property_name] = args_dict[property_name]
 
-        json_schema.validate(json_dict)
+        jsonschema.validate(json_dict, schema_dict)
 
     @property
     def work_path(self):
