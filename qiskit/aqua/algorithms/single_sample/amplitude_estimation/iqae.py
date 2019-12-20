@@ -31,8 +31,6 @@ logger = logging.getLogger(__name__)
 
 class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     """
-    The Iterative Amplitude Estimation Algorithm.
-
     This class implements the Iterative Quantum Amplitude Estimation (QAE) algorithm, proposed
     in https://arxiv.org/abs/1912.05559. The output of the algorithm is an estimate that,
     with at least probability 1 - alpha, differs by epsilon to the target value, where
@@ -81,6 +79,8 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     def __init__(self, epsilon, alpha, ci_method='beta', min_ratio=2, a_factory=None,
                  q_factory=None, i_objective=None):
         """
+        Initializer.
+
         The output of the algorithm is an estimate for the amplitude `a`, that with at least
         probability 1 - alpha has an error of epsilon. The number of A operator calls scales
         linearly in 1/epsilon (up to a logarithmic factor).
@@ -188,8 +188,8 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         return int(k), upper_half_circle
 
     def construct_circuit(self, k, measurement=False):
-        r"""
-        Construct the circuit Q^k A \|0>, with the A operator specifying the QAE problem and
+        """
+        Construct the circuit Q^k A |0>, with the A operator specifying the QAE problem and
         the Grover operator Q.
 
         Args:
@@ -198,7 +198,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 circuits
 
         Returns:
-            QuantumCircuit: the circuit Q^k A \|0>
+            QuantumCircuit: the circuit Q^k A |0>
         """
         # set up circuit
         q = QuantumRegister(self.a_factory.num_target_qubits, 'q')
@@ -223,7 +223,8 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         self.a_factory.build(circuit, q, q_aux)
 
         # add Q^k
-        self.q_factory.build_power(circuit, q, k, q_aux)
+        if k != 0:
+            self.q_factory.build_power(circuit, q, k, q_aux)
 
         # add optional measurement
         if measurement:
