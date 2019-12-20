@@ -285,7 +285,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         # if statevector simulator the estimate is exact
         if self._quantum_instance.is_statevector:
-            return 2 * [self._ret['estimation']]
+            return 2 * [self._ret['mle']]
 
         if kind in ['likelihood_ratio', 'lr']:
             return self._likelihood_ratio_ci(alpha)
@@ -331,7 +331,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
             right_of_qae = np.sin(np.pi * (y + 1) / M)**2
             bubbles = [qae, right_of_qae]
 
-        elif y == int(M / 2):
+        elif y == int(M / 2):  # remember, M = 2^m is a power of 2
             left_of_qae = np.sin(np.pi * (y - 1) / M)**2
             bubbles = [left_of_qae, qae]
 
