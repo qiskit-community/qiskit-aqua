@@ -168,7 +168,9 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         self._circuits = []
         for k in self._evaluation_schedule:
             qc_k = qc_a.copy(name='qc_a_q_%s' % k)
-            self.q_factory.build_power(qc_k, q, k, q_aux)
+
+            if k != 0:
+                self.q_factory.build_power(qc_k, q, k, q_aux)
 
             if measurement:
                 qc_k.measure(q[self.i_objective], c[0])
@@ -355,7 +357,6 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         # the (outer) LR confidence interval
         above_thres = thetas[values >= thres]
-        print('above_thres', above_thres)
 
         # it might happen that the `above_thres` array is empty,
         # to still provide a valid result use safe_min/max which
@@ -364,7 +365,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
               self._safe_max(above_thres, default=(np.pi / 2))]
         mapped_ci = [self.a_factory.value_to_estimation(np.sin(bound)**2) for bound in ci]
 
-        return thetas, values, thres, mapped_ci
+        return mapped_ci
 
     def confidence_interval(self, alpha, kind='fisher'):
         """
