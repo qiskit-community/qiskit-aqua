@@ -346,7 +346,8 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         one_counts, all_counts = self._get_hits()
 
-        thetas = np.linspace(np.pi / nevals / 2, np.pi / 2, nevals)
+        eps = 1e-15  # to avoid invalid value in log
+        thetas = np.linspace(0 + eps, np.pi / 2 - eps, nevals)
         values = np.zeros(len(thetas))
         for i, t in enumerate(thetas):
             values[i] = loglikelihood(t, one_counts, all_counts)
@@ -399,7 +400,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         one_hits, all_hits = self._get_hits()
 
         # search range
-        eps = 1e-15  # to avoid division by 0
+        eps = 1e-15  # to avoid invalid value in log
         search_range = [0 + eps, np.pi / 2 - eps]
 
         def loglikelihood(theta):
