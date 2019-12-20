@@ -63,7 +63,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         ],
     }
 
-    def __init__(self, log_max_evals, a_factory=None, q_objective=None, i_objective=None,
+    def __init__(self, log_max_evals, a_factory=None, q_factory=None, i_objective=None,
                  likelihood_evals=None):
         """
 
