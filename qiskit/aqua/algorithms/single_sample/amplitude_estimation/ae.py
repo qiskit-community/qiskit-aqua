@@ -187,6 +187,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         fisher_information = None
         mlv = self._ret['ml_value']  # MLE in [0,1]
         m = self._m
+
         if observed:
             ai = np.asarray(self._ret['values'])
             pi = np.asarray(self._ret['probabilities'])
@@ -218,8 +219,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         M = 2**self._m
         qae = self._ret['value']
 
-        bubbles = None
-        y = M * np.arcsin(np.sqrt(qae)) / np.pi
+        y = int(np.round(M * np.arcsin(np.sqrt(qae)) / np.pi))
         if y == 0:
             right_of_qae = np.sin(np.pi * (y + 1) / M)**2
             bubbles = [qae, right_of_qae]
@@ -339,7 +339,6 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         # Compute the two intervals in which are candidates for containing
         # the maximum of the log-likelihood function: the two bubbles next to
         # the QAE estimate
-        bubbles = None
         if y == 0:
             right_of_qae = np.sin(np.pi * (y + 1) / M)**2
             bubbles = [qae, right_of_qae]
