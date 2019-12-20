@@ -218,7 +218,7 @@ class TestBernoulli(QiskitAquaTestCase):
     @parameterized.expand([
         [True], [False]
     ])
-    def test_iqae_circuit(self, efficient_circuit):
+    def test_iqae_circuits(self, efficient_circuit):
         prob = 0.5
         basis_gates = ['u1', 'u2', 'u3', 'cx']
 
@@ -235,14 +235,14 @@ class TestBernoulli(QiskitAquaTestCase):
 
             if efficient_circuit:
                 ae.q_factory = BernoulliQFactory(ae.a_factory)
-                for power in range(k):
-                    circuit.ry(2 ** power * angle, q_objective[0])
+                # for power in range(k):
+                #    circuit.ry(2 ** power * angle, q_objective[0])
+                circuit.ry(2 * 2**k * angle, q_objective[0])
 
             else:
                 q_factory = QFactory(ae.a_factory, i_objective=0)
-                for power in range(k):
-                    for _ in range(2**power):
-                        q_factory.build(circuit, q_objective)
+                for _ in range(2**k):
+                    q_factory.build(circuit, q_objective)
 
             expected_ops = transpile(circuit, basis_gates=basis_gates).count_ops()
 
@@ -251,6 +251,53 @@ class TestBernoulli(QiskitAquaTestCase):
 
             for key in expected_ops.keys():
                 self.assertEqual(expected_ops[key], actual_ops[key])
+
+    @parameterized.expand([
+        [True], [False]
+    ])
+    def test_mlae_circuits(self, efficient_circuit):
+        prob = 0.5
+        basis_gates = ['u1', 'u2', 'u3', 'cx']
+
+        for k in range(1, 7):
+            ae = MaximumLikelihoodAmplitudeEstimation(k, a_factory=BernoulliAFactory(prob))
+            angle = 2 * np.arcsin(np.sqrt(prob))
+
+            # compute all the circuits used for MLAE
+            circuits = []
+
+            # 0th power
+            q_objective = QuantumRegister(1, 'q')
+            circuit = QuantumCircuit(q_objective)
+            circuit.ry(angle, q_objective)
+            circuits += [circuit]
+
+            # powers of 2
+            for power in range(k):
+                q_objective = QuantumRegister(1, 'q')
+                circuit = QuantumCircuit(q_objective)
+
+                # A operator
+                circuit.ry(angle, q_objective)
+
+                # Q^(2^j) operator
+                if efficient_circuit:
+                    ae.q_factory = BernoulliQFactory(ae.a_factory)
+                    circuit.ry(2 * 2 ** power * angle, q_objective[0])
+
+                else:
+                    q_factory = QFactory(ae.a_factory, i_objective=0)
+                    for _ in range(2**power):
+                        q_factory.build(circuit, q_objective)
+
+            actual_circuits = ae.construct_circuits(measurement=False)
+
+            for actual, expected in zip(actual_circuits, circuits):
+                actual_ops = transpile(actual, basis_gates=basis_gates).count_ops()
+                expected_ops = transpile(circuit, basis_gates=basis_gates).count_ops()
+
+                for key in expected_ops.keys():
+                    self.assertEqual(expected_ops[key], actual_ops[key])
 
 
 class TestInternals(QiskitAquaTestCase):
@@ -352,9 +399,9 @@ class TestSineIntegral(QiskitAquaTestCase):
     @parameterized.expand([
         [4, AmplitudeEstimation(2), {'estimation': 0.5, 'mle': 0.272675}],
         [4, AmplitudeEstimation(4), {'estimation': 0.30866, 'mle': 0.272675}],
-        [3, MaximumLikelihoodAmplitudeEstimation(2), {'estimation': 0.272675}],
+        [3, MaximumLikelihoodAmplitudeEstimation(2), {'estimation': 0.272074}],
         [4, MaximumLikelihoodAmplitudeEstimation(4), {'estimation': 0.272675}],
-        [3, IterativeAmplitudeEstimation(0.1, 0.1), {'estimation': 0.272675}],
+        [3, IterativeAmplitudeEstimation(0.1, 0.1), {'estimation': 0.272082}],
         [5, IterativeAmplitudeEstimation(0.00001, 0.01), {'estimation': 0.272675}],
     ])
     def test_statevector(self, n, ae, expect):
@@ -369,11 +416,11 @@ class TestSineIntegral(QiskitAquaTestCase):
                                    msg="estimate `{}` failed".format(key))
 
     @parameterized.expand([
-        [4, 10, AmplitudeEstimation(2), {'estimation': 0.5, 'mle': 0.272675}],
-        [4, 1000, AmplitudeEstimation(4), {'estimation': 0.30866, 'mle': 0.272675}],
-        [3, 10, MaximumLikelihoodAmplitudeEstimation(2), {'estimation': 0.272675}],
-        [4, 1000, MaximumLikelihoodAmplitudeEstimation(4), {'estimation': 0.272675}],
-        [3, 10, IterativeAmplitudeEstimation(0.1, 0.1), {'estimation': 0.272675}],
+        [4, 10, AmplitudeEstimation(2), {'estimation': 0.5, 'mle': 0.333333}],
+        [4, 1000, AmplitudeEstimation(4), {'estimation': 0.30866, 'mle': 0.274335}],
+        [3, 10, MaximumLikelihoodAmplitudeEstimation(2), {'estimation': 0.256878}],
+        [4, 1000, MaximumLikelihoodAmplitudeEstimation(4), {'estimation': 0.271866}],
+        [3, 10, IterativeAmplitudeEstimation(0.1, 0.1), {'estimation': 0.255756}],
         [5, 1000, IterativeAmplitudeEstimation(0.00001, 0.01), {'estimation': 0.272675}],
     ])
     def test_qasm(self, n, shots, ae, expect):
