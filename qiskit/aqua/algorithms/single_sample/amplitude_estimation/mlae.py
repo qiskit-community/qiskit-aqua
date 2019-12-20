@@ -83,7 +83,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         # get parameters
         self._log_max_evals = log_max_evals
-        self._evaluation_schedule = [2**j for j in range(log_max_evals)]
+        self._evaluation_schedule = [0] + [2**j for j in range(log_max_evals)]
 
         self._likelihood_evals = likelihood_evals
         # default number of evaluations is max(10^5, 10^5 * 2^(log_max_evals - 5))
