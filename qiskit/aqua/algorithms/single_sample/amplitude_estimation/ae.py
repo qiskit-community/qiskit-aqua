@@ -72,17 +72,18 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         ],
     }
 
-    def __init__(self, num_eval_qubits, a_factory=None,
-                 i_objective=None, q_factory=None, iqft=None):
+    def __init__(self, num_eval_qubits, a_factory=None, q_factory=None, i_objective=None,
+                 iqft=None):
         """
+        Initializer.
 
         Args:
             num_eval_qubits (int): number of evaluation qubits
             a_factory (CircuitFactory): the CircuitFactory subclass object representing
                                         the problem unitary
-            i_objective (int): i objective
             q_factory (CircuitFactory): the CircuitFactory subclass object representing an
                                         amplitude estimation sample (based on a_factory)
+            i_objective (int): i objective
             iqft (IQFT): the Inverse Quantum Fourier Transform pluggable component,
                          defaults to using a standard iqft when None
         """

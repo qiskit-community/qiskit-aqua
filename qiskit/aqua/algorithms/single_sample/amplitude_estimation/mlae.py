@@ -63,8 +63,8 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         ],
     }
 
-    def __init__(self, log_max_evals, a_factory=None, i_objective=None,
-                 q_factory=None, likelihood_evals=None):
+    def __init__(self, log_max_evals, a_factory=None, q_objective=None, i_objective=None,
+                 likelihood_evals=None):
         """
 
         Args:
@@ -72,9 +72,9 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 resulting evaluation schedule will be [Q^2^0, ..., Q^2^{max_evals_log-1}]
             a_factory (CircuitFactory): the CircuitFactory subclass object
                 representing the problem unitary
-            i_objective (int): index of qubit representing the objective in the uncertainty problem
             q_factory (CircuitFactory): the CircuitFactory subclass object representing
                 an amplitude estimation sample (based on a_factory)
+            i_objective (int): index of qubit representing the objective in the uncertainty problem
             likelihood_evals (int): The number of gridpoints for the maximum search
                 of the likelihood function
         """
