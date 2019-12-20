@@ -86,10 +86,10 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         self._evaluation_schedule = [0] + [2**j for j in range(log_max_evals)]
 
         self._likelihood_evals = likelihood_evals
-        # default number of evaluations is max(10^5, 10^5 * 2^(log_max_evals - 5))
+        # default number of evaluations is max(10^5, pi/2 * 10^3 * 2^(log_max_evals))
         if likelihood_evals is None:
             default = 10000
-            self._likelihood_evals = default * np.maximum(1, pow(2, log_max_evals - 5))
+            self._likelihood_evals = np.maximum(default, int(np.pi / 2 * 1000 * 2 ** log_max_evals))
 
         self._circuits = []
         self._ret = {}
@@ -333,7 +333,6 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         Returns:
             float: The alpha-likelihood-ratio confidence interval.
         """
-
         if nevals is None:
             nevals = self._likelihood_evals
 
