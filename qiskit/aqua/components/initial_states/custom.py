@@ -119,7 +119,7 @@ class Custom(InitialState):
             return self._state_vector
         elif mode == 'circuit':
             if self._circuit is None:
-                # create emtpy quantum circuit
+                # create empty quantum circuit
                 circuit = QuantumCircuit()
 
                 if register is None:

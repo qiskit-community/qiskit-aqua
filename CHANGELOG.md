@@ -15,19 +15,23 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 > -   **Fixed**: for any bug fixes.
 > -   **Security**: in case of vulnerabilities.
 
-[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.1...HEAD)
+[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.2...HEAD)
 ========================================================================
 
-Changed
------
+[0.6.2](https://github.com/Qiskit/qiskit-aqua/compare/0.6.1...0.6.2) - 2019-12-17
+=================================================================================
 
--   `VQE`, `VQC` and `QSVM` now use parameterized circuits if it is available to save time 
+Changed
+-------
+
+-   `VQE`, `VQC` and `QSVM` now use parameterized circuits when available to save time
     in transpilation. (#693)
--   Refactor of ai,finance and optimization. (#700) Among other changes:
+-   Initial stage of ml, finance, and optimization refactor into separate application-specific directories. 
+    (#700) Among other changes:
     - qiskit/aqua/translators/data_providers/ moved to qiskit/finance/data_providers/
     - qiskit/aqua/translators/ising/portfolio.py and portfolio_diversification.py moved to qiskit/finance/ising/
     - qiskit/aqua/translators/ising/ (i.e. all but above 2) moved to qiskit/optimization/ising/
--   UCCSD updated to all excitation pool to be managed by an adaptive algorithm like VQEAdapt. (#685)
+-   `UCCSD` updated so the excitation pool can be managed by an adaptive algorithm like VQEAdapt. (#685)
 -   Deprecate Declarative JSON API. (#720)
 
 Added
@@ -35,22 +39,25 @@ Added
 
 -   Ability to create a `CustomCircuitOracle` object with a callback for `evaluate_classically`,
     which a `Grover` object will now check for, upon initialization, on its provided oracle.  (#681)
--   `VariationalForm` and `FeatureMap` has a new property on `support_parameterized_circuit`, which 
-    implies whether or not can be built with `Parameter` (or `ParameterVector`). Furthermore, 
-    the `evolution_instruction` method support `Parameter` as time parameter.  (#693)
--   VQEAdapt, adaptive version of the VQE algorithm for chemistry. (#685)
--   Optionally split qobj by max gates per job. (#694)
--   An option in evolution_instruction to be able to control whether or not add a barrier
-    for every slice. (#708)
--   Added VQE snapshot mode for Aer QasmSimulator when no noise and shots=1 (#715)
+-   `VariationalForm` and `FeatureMap` have a new property called `support_parameterized_circuit` which 
+    indicates whether or not the circuit can be built with a Terra `Parameter` (or `ParameterVector`) object. 
+    Further, the `evolution_instruction` method supports `Parameter` for the time parameter.  (#693)
+-   `VQEAdapt`, an adaptive version of VQE for chemistry which dynamically selects the UCCSD excitations to 
+    include in the ansatz. (#685)
+-   Optionally split a qobj by max gates per job to better avoid "Payload is too large" errors when 
+    running on quantum hardware. (#694)
+-   An option in `evolution_instruction` to control whether to add a barrier between every slice. (#708)
+-   Added `VQE` snapshot mode for the Aer QasmSimulator when no noise model is specified and `shots==1`. (#715)
+-   Added the implementation for the iterative QAE algorithm (#749)
 
 Fixed
 -------
 
--   fix parameter ordering in the init of the multivariate distribution class (#741)
--   fix bug in list concatenation in VQC algorithm (#733)
--   A bug where `UCCSD` might generate an empty operator and try to evolve it. (#680)
+-   Parameter ordering in the init of the `multivariate_distribution` class. (#741)
+-   List concatenation bug in the `VQC` algorithm. (#733)
+-   Bug where `UCCSD` might generate an empty operator and try to evolve it. (#680)
 -   Decompose causes DAG failure using feature maps. (#719)
+-   Error when only using a subset of qubits in measurement error mitigation. (#748)
 
 Removed
 -------

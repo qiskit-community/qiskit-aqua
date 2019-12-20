@@ -98,7 +98,6 @@ class QPE(QuantumAlgorithm):
             shallow_circuit_concat=False
     ):
         """
-        Constructor.
 
         Args:
             operator (BaseOperator): the hamiltonian Operator object

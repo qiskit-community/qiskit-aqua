@@ -28,7 +28,8 @@ logger = logging.getLogger(__name__)
 
 
 class DataOnDemandProvider(BaseDataProvider):
-    """Python implementation of an NASDAQ Data on Demand data provider.
+    """
+    Python implementation of an NASDAQ Data on Demand data provider.
     Please see:
     https://github.com/Qiskit/qiskit-tutorials/qiskit/finance/data_providers/time_series.ipynb
     for instructions on use, which involve obtaining a NASDAQ DOD access token.
@@ -74,7 +75,6 @@ class DataOnDemandProvider(BaseDataProvider):
                  end=datetime.datetime(2016, 1, 30),
                  verify=None):
         """
-        Initializer
         Args:
             token (str): quandl access token
             tickers (str or list): tickers
@@ -88,6 +88,7 @@ class DataOnDemandProvider(BaseDataProvider):
                 to a certificate for the HTTPS connection to NASDAQ (dataondemand.nasdaq.com),
                 either in the
                 form of a CA_BUNDLE file or a directory wherein to look.
+
         Raises:
             QiskitFinanceError: invalid data
         """
@@ -133,6 +134,7 @@ class DataOnDemandProvider(BaseDataProvider):
 
         Returns:
             DataOnDemandProvider: Driver object
+
         Raises:
             QiskitFinanceError: Invalid section
         """

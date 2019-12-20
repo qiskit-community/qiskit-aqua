@@ -112,8 +112,8 @@ class QEomVQE(VQE):
             optimizer (Optimizer): the classical optimization algorithm.
             num_orbitals (int):  total number of spin orbitals
             num_particles (Union(list, int)): number of particles, if it is a list,
-                                        the first number is
-                                        alpha and the second number if beta.
+                                              the first number is
+                                              alpha and the second number if beta.
             initial_point (numpy.ndarray): optimizer initial point, 1-D vector
             max_evals_grouped (int): max number of evaluations performed simultaneously
             callback (Callable): a callback that can access the intermediate data during
@@ -123,6 +123,7 @@ class QEomVQE(VQE):
                                  evaluated mean, evaluated standard deviation.
             auto_conversion (bool): an automatic conversion for operator and aux_operators into
                                     the type which is most suitable for the backend.
+
                                     - non-aer statevector_simulator: MatrixOperator
                                     - aer statevector_simulator: WeightedPauliOperator
                                     - qasm simulator or real backend:
@@ -133,7 +134,7 @@ class QEomVQE(VQE):
             active_occupied (list): list of occupied orbitals to include, indices are
                                     0 to n where n is num particles // 2
             active_unoccupied (list): list of unoccupied orbitals to include, indices are
-                                    0 to m where m is (num_orbitals - num particles) // 2
+                                      0 to m where m is (num_orbitals - num particles) // 2
             se_list (list[list]): single excitation list, overwrite the setting in active space
             de_list (list[list]): double excitation list, overwrite the setting in active space
             z2_symmetries (Z2Symmetries): represent the Z2 symmetries

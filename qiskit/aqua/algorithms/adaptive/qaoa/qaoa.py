@@ -20,10 +20,10 @@ import logging
 import warnings
 
 from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
-from qiskit.aqua.operators import (WeightedPauliOperator,
-                                   TPBGroupedWeightedPauliOperator,
-                                   MatrixOperator)
+from qiskit.aqua.operators import BaseOperator
 from qiskit.aqua.algorithms.adaptive import VQE
+from qiskit.aqua.components.optimizers import Optimizer
+from qiskit.aqua.components.initial_states import InitialState
 from .var_form import QAOAVarForm
 
 logger = logging.getLogger(__name__)
@@ -90,9 +90,9 @@ class QAOA(VQE):
             operator (BaseOperator): Qubit operator
             p (int): the integer parameter p as specified in https://arxiv.org/abs/1411.4028
             initial_state (InitialState): the initial state to prepend the QAOA circuit with
-            mixer (BaseOperator): the mixer Hamiltonian to evolve with. Allows support
-                              of optimizations in constrained subspaces as
-                              specified in https://arxiv.org/abs/1709.03489
+            mixer (BaseOperator): the mixer Hamiltonian to evolve with. Allows support of
+                                  optimizations in constrained subspaces
+                                  as per https://arxiv.org/abs/1709.03489
             optimizer (Optimizer): the classical optimization algorithm.
             initial_point (numpy.ndarray): optimizer initial point.
             max_evals_grouped (int): max number of evaluations to be performed simultaneously.
@@ -103,13 +103,14 @@ class QAOA(VQE):
                                  the index of evaluation, parameters of variational form,
                                  evaluated mean, evaluated standard deviation.
             auto_conversion (bool): an automatic conversion for operator and aux_operators
-                                        into the type which is
-                                    most suitable for the backend.
-                                    - non-aer statevector_simulator: MatrixOperator
-                                    - aer statevector_simulator: WeightedPauliOperator
-                                    - qasm simulator or real backend:
-                                        TPBGroupedWeightedPauliOperator
+                into the type which is most suitable for the backend.
 
+                - for *non-Aer statevector simulator:*
+                  :class:`~qiskit.aqua.operators.MatrixOperator`
+                - for *Aer statevector simulator:*
+                  :class:`~qiskit.aqua.operators.WeightedPauliOperator`
+                - for *qasm simulator or real backend:*
+                  :class:`~qiskit.aqua.operators.TPBGroupedWeightedPauliOperator`
         """
         self.validate(locals())
         var_form = QAOAVarForm(operator.copy(), p, initial_state=initial_state,
