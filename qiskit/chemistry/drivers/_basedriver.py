@@ -23,7 +23,9 @@ from abc import ABC, abstractmethod
 import copy
 from enum import Enum
 import logging
+import numpy as np
 import jsonschema
+from qiskit.chemistry import QiskitChemistryError
 
 logger = logging.getLogger(__name__)
 
@@ -82,7 +84,7 @@ class BaseDriver(ABC):
         pass
 
     def validate(self, args_dict):
-        """ validate driver input """
+        """ validate input """
         schema_dict = self.CONFIGURATION.get('input_schema', None)
         if schema_dict is None:
             return
@@ -94,9 +96,15 @@ class BaseDriver(ABC):
         json_dict = {}
         for property_name, _ in properties_dict.items():
             if property_name in args_dict:
-                json_dict[property_name] = args_dict[property_name]
+                value = args_dict[property_name]
+                if isinstance(value, np.ndarray):
+                    value = value.tolist()
 
-        jsonschema.validate(json_dict, schema_dict)
+                json_dict[property_name] = value
+        try:
+            jsonschema.validate(json_dict, schema_dict)
+        except jsonschema.exceptions.ValidationError as vex:
+            raise QiskitChemistryError(vex.message)
 
     @property
     def work_path(self):

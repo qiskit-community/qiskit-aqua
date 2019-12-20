@@ -19,7 +19,9 @@ a quantum algorithm
 from abc import ABC, abstractmethod
 import logging
 import copy
+import numpy as np
 import jsonschema
+from qiskit.chemistry import QiskitChemistryError
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +56,7 @@ class ChemistryOperator(ABC):
         pass
 
     def validate(self, args_dict):
-        """ validate driver input """
+        """ validate input """
         schema_dict = self.CONFIGURATION.get('input_schema', None)
         if schema_dict is None:
             return
@@ -66,9 +68,15 @@ class ChemistryOperator(ABC):
         json_dict = {}
         for property_name, _ in properties_dict.items():
             if property_name in args_dict:
-                json_dict[property_name] = args_dict[property_name]
+                value = args_dict[property_name]
+                if isinstance(value, np.ndarray):
+                    value = value.tolist()
 
-        jsonschema.validate(json_dict, schema_dict)
+                json_dict[property_name] = value
+        try:
+            jsonschema.validate(json_dict, schema_dict)
+        except jsonschema.exceptions.ValidationError as vex:
+            raise QiskitChemistryError(vex.message)
 
     @abstractmethod
     def run(self, qmolecule):

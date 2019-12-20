@@ -25,7 +25,7 @@ import logging
 import copy
 import numpy as np
 import jsonschema
-
+from qiskit.aqua import AquaError
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +57,7 @@ class Pluggable(ABC):
         pass
 
     def validate(self, args_dict):
-        """ validate driver input """
+        """ validate input """
         schema_dict = self.CONFIGURATION.get('input_schema', None)
         if schema_dict is None:
             return
@@ -74,5 +74,7 @@ class Pluggable(ABC):
                     value = value.tolist()
 
                 json_dict[property_name] = value
-
-        jsonschema.validate(json_dict, schema_dict)
+        try:
+            jsonschema.validate(json_dict, schema_dict)
+        except jsonschema.exceptions.ValidationError as vex:
+            raise AquaError(vex.message)
