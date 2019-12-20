@@ -23,6 +23,7 @@ Doing so requires that the required pluggable interface is implemented.
 from abc import ABC, abstractmethod
 import logging
 import copy
+import numpy as np
 import jsonschema
 
 
@@ -68,6 +69,10 @@ class Pluggable(ABC):
         json_dict = {}
         for property_name, _ in properties_dict.items():
             if property_name in args_dict:
-                json_dict[property_name] = args_dict[property_name]
+                value = args_dict[property_name]
+                if isinstance(value, np.ndarray):
+                    value = value.tolist()
+
+                json_dict[property_name] = value
 
         jsonschema.validate(json_dict, schema_dict)
