@@ -23,7 +23,7 @@ import re
 import numpy as np
 
 from qiskit import ClassicalRegister
-from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
+from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms.adaptive.vq_algorithm import VQAlgorithm
 from qiskit.aqua.algorithms.adaptive.vqe.vqe import VQE
 from qiskit.chemistry.components.variational_forms import UCCSD
@@ -134,48 +134,6 @@ class VQEAdapt(VQAlgorithm):
                 [aux_operators] if not isinstance(aux_operators, list) else aux_operators
             for aux_op in aux_operators:
                 self._aux_operators.append(aux_op)
-
-    @classmethod
-    def init_params(cls, params, algo_input):
-        """
-        Initialize via parameters dictionary and algorithm input instance.
-
-        Args:
-            params (dict): parameters dictionary
-            algo_input (EnergyInput): EnergyInput instance
-
-        Returns:
-            VQEAdapt: VQEAdapt object
-        Raises:
-            AquaError: invalid input
-        """
-        if algo_input is None:
-            raise AquaError("EnergyInput instance is required.")
-
-        operator = algo_input.qubit_op
-
-        vqe_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
-        initial_point = vqe_params.get('initial_point')
-        excitation_pool = vqe_params.get('excitation_pool')
-        threshold = vqe_params.get('threshold')
-        delta = vqe_params.get('delta')
-        max_evals_grouped = vqe_params.get('max_evals_grouped')
-
-        # Set up variational form, we need to add computed num qubits
-        # Pass all parameters so that Variational Form can create its dependents
-        var_form_params = params.get(Pluggable.SECTION_KEY_VAR_FORM)
-        var_form_params['num_qubits'] = operator.num_qubits
-        var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM,
-                                       var_form_params['name']).init_params(params)
-
-        # Set up optimizer
-        opt_params = params.get(Pluggable.SECTION_KEY_OPTIMIZER)
-        optimizer = get_pluggable_class(PluggableType.OPTIMIZER,
-                                        opt_params['name']).init_params(params)
-
-        return cls(operator, var_form, optimizer, excitation_pool=excitation_pool,
-                   initial_point=initial_point, threshold=threshold, delta=delta,
-                   max_evals_grouped=max_evals_grouped, aux_operators=algo_input.aux_ops)
 
     def _compute_gradients(self, excitation_pool, theta, delta,
                            var_form, operator, optimizer):

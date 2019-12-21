@@ -32,13 +32,6 @@ class Eigenvalues(Pluggable):
         super().__init__()
         self._inverse = None
 
-    @classmethod
-    def init_params(cls, params):
-        """ init params """
-        eigs_params = params.get(Pluggable.SECTION_KEY_EIGS)
-        args = {k: v for k, v in eigs_params.items() if k != 'name'}
-        return cls(**args)
-
     @abstractmethod
     def get_register_sizes(self):
         """ get register sizes """
