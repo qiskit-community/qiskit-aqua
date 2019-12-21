@@ -24,9 +24,8 @@ from enum import Enum
 
 import numpy as np
 import fastdtw
-
+import jsonschema
 from qiskit.aqua import AquaError
-from qiskit.aqua.parser import JSONSchema
 
 logger = logging.getLogger(__name__)
 
@@ -109,20 +108,21 @@ class BaseDataProvider(ABC):
         pass
 
     def validate(self, args_dict):
-        """ Validates the configuration against the input schema. N.B. Not in use at the moment. """
-
+        """ validate driver input """
         schema_dict = self.CONFIGURATION.get('input_schema', None)
         if schema_dict is None:
             return
 
-        json_schema = JSONSchema(schema_dict)
-        schema_property_names = json_schema.get_default_section_names()
+        properties_dict = schema_dict.get('properties', None)
+        if properties_dict is None:
+            return
+
         json_dict = {}
-        for property_name in schema_property_names:
+        for property_name, _ in properties_dict.items():
             if property_name in args_dict:
                 json_dict[property_name] = args_dict[property_name]
 
-        json_schema.validate(json_dict)
+        jsonschema.validate(json_dict, schema_dict)
 
     @abstractmethod
     def run(self):

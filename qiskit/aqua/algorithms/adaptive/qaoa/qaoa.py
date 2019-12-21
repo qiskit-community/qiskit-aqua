@@ -17,13 +17,7 @@
 # pylint: disable=unused-import
 
 import logging
-import warnings
-
-from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
-from qiskit.aqua.operators import BaseOperator
 from qiskit.aqua.algorithms.adaptive import VQE
-from qiskit.aqua.components.optimizers import Optimizer
-from qiskit.aqua.components.initial_states import InitialState
 from .var_form import QAOAVarForm
 
 logger = logging.getLogger(__name__)
@@ -118,40 +112,3 @@ class QAOA(VQE):
         super().__init__(operator, var_form, optimizer, initial_point=initial_point,
                          max_evals_grouped=max_evals_grouped, aux_operators=aux_operators,
                          callback=callback, auto_conversion=auto_conversion)
-
-    @classmethod
-    def init_params(cls, params, algo_input):
-        """
-        Initialize via parameters dictionary and algorithm input instance
-
-        Args:
-            params (dict): parameters dictionary
-            algo_input (EnergyInput): EnergyInput instance
-        Returns:
-            QAOA: instance of this class
-        Raises:
-            AquaError: invalid input
-        """
-        if algo_input is None:
-            raise AquaError("EnergyInput instance is required.")
-
-        operator = algo_input.qubit_op
-
-        qaoa_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
-        p = qaoa_params.get('p')
-        initial_point = qaoa_params.get('initial_point')
-        max_evals_grouped = qaoa_params.get('max_evals_grouped')
-
-        init_state_params = params.get(Pluggable.SECTION_KEY_INITIAL_STATE)
-        init_state_params['num_qubits'] = operator.num_qubits
-        init_state = get_pluggable_class(PluggableType.INITIAL_STATE,
-                                         init_state_params['name']).init_params(params)
-
-        # Set up optimizer
-        opt_params = params.get(Pluggable.SECTION_KEY_OPTIMIZER)
-        optimizer = get_pluggable_class(PluggableType.OPTIMIZER,
-                                        opt_params['name']).init_params(params)
-
-        return cls(operator, optimizer, p=p, initial_state=init_state,
-                   initial_point=initial_point, max_evals_grouped=max_evals_grouped,
-                   aux_operators=algo_input.aux_ops)

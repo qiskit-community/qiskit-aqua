@@ -16,10 +16,7 @@
 
 import unittest
 from test.aqua.common import QiskitAquaTestCase
-import warnings
 import numpy as np
-from qiskit.aqua import run_algorithm, aqua_globals
-from qiskit.aqua.input import LinearSystemInput
 from qiskit.aqua.algorithms import ExactLSsolver
 
 
@@ -27,46 +24,11 @@ class TestExactLSsolver(QiskitAquaTestCase):
     """ Test Exact LS solver """
     def setUp(self):
         super().setUp()
-        warnings.filterwarnings("ignore", message=aqua_globals.CONFIG_DEPRECATION_MSG,
-                                category=DeprecationWarning)
         self.matrix = [[1, 2], [2, 1]]
         self.vector = [1, 2]
 
-    def test_els_via_run_algorithm_full_dict(self):
-        """ ELS Via Run Algorithm Full Dict test """
-        params = {
-            'algorithm': {
-                'name': 'ExactLSsolver'
-            },
-            'problem': {
-                'name': 'linear_system'
-            },
-            'input': {
-                'name': 'LinearSystemInput',
-                'matrix': self.matrix,
-                'vector': self.vector
-            }
-        }
-        result = run_algorithm(params)
-        np.testing.assert_array_almost_equal(result['solution'], [1, 0])
-        np.testing.assert_array_almost_equal(result['eigvals'], [3, -1])
-
-    def test_els_via_run_algorithm(self):
-        """ ELS Via Run Algorithm test """
-        params = {
-            'algorithm': {
-                'name': 'ExactLSsolver'
-            },
-            'problem': {
-                'name': 'linear_system'
-            }
-        }
-        result = run_algorithm(params, LinearSystemInput(self.matrix, self.vector))
-        np.testing.assert_array_almost_equal(result['solution'], [1, 0])
-        np.testing.assert_array_almost_equal(result['eigvals'], [3, -1])
-
-    def test_els_direct(self):
-        """ ELS Direct test """
+    def test_els(self):
+        """ ELS test """
         algo = ExactLSsolver(self.matrix, self.vector)
         result = algo.run()
         np.testing.assert_array_almost_equal(result['solution'], [1, 0])

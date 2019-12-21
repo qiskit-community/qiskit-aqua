@@ -34,13 +34,6 @@ class InitialState(Pluggable):
     def __init__(self):
         super().__init__()
 
-    @classmethod
-    def init_params(cls, params):
-        """ init params """
-        init_state_params = params.get(Pluggable.SECTION_KEY_INITIAL_STATE)
-        args = {k: v for k, v in init_state_params.items() if k != 'name'}
-        return cls(**args)
-
     @abstractmethod
     def construct_circuit(self, mode='circuit', register=None):
         """
