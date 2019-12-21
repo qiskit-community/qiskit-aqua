@@ -19,7 +19,7 @@ This module contains the definition of a base class for univariate distributions
 from abc import ABC
 import numpy as np
 
-from qiskit.aqua import AquaError, Pluggable
+from qiskit.aqua import AquaError
 from qiskit.aqua.components.initial_states import Custom
 from .uncertainty_model import UncertaintyModel
 
@@ -29,10 +29,6 @@ class UnivariateDistribution(UncertaintyModel, ABC):
     This module contains the definition of a base class for univariate distributions.
     (Interface for discrete bounded uncertainty models assuming an equidistant grid)
     """
-
-    @classmethod
-    def get_section_key_name(cls):
-        return Pluggable.SECTION_KEY_UNIVARIATE_DIST
 
     def __init__(self, num_target_qubits, probabilities=None, low=0, high=1):
         r"""

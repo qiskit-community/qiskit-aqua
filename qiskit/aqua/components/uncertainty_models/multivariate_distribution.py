@@ -19,7 +19,6 @@ This module contains the definition of a base class for multivariate distributio
 from abc import ABC
 import numpy as np
 
-from qiskit.aqua import Pluggable
 from qiskit.aqua.components.initial_states import Custom
 from .uncertainty_model import UncertaintyModel
 
@@ -29,10 +28,6 @@ class MultivariateDistribution(UncertaintyModel, ABC):
     This module contains the definition of a base class for multivariate distributions.
     (Interface for discrete bounded uncertainty models assuming an equidistant grid)
     """
-
-    @classmethod
-    def get_section_key_name(cls):
-        return Pluggable.SECTION_KEY_MULTIVARIATE_DIST
 
     def __init__(self, num_qubits, probabilities=None, low=None, high=None):
         """
