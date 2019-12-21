@@ -19,7 +19,6 @@ import numpy as np
 from scipy import sparse as scisparse
 
 from qiskit.aqua.algorithms import QuantumAlgorithm
-from qiskit.aqua import AquaError, Pluggable
 from qiskit.aqua.operators import MatrixOperator, op_converter  # pylint: disable=unused-import
 
 logger = logging.getLogger(__name__)
@@ -75,24 +74,6 @@ class ExactEigensolver(QuantumAlgorithm):
             self._k = self._operator.matrix.shape[0]
             logger.debug("WARNING: Asked for %s eigenvalues but max possible is %s.", k, self._k)
         self._ret = {}
-
-    @classmethod
-    def init_params(cls, params, algo_input):
-        """
-        Initialize via parameters dictionary and algorithm input instance
-        Args:
-            params (dict): parameters dictionary
-            algo_input (EnergyInput): instance
-        Returns:
-            ExactEigensolver: an instance of this class
-        Raises:
-            AquaError: invalid input
-        """
-        if algo_input is None:
-            raise AquaError("EnergyInput instance is required.")
-        ee_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
-        k = ee_params.get('k')
-        return cls(algo_input.qubit_op, k, algo_input.aux_ops)
 
     def _solve(self):
         if self._operator.dia_matrix is None:

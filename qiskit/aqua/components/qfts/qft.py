@@ -39,13 +39,6 @@ class QFT(Pluggable):
     def __init__(self, *args, **kwargs):
         super().__init__()
 
-    @classmethod
-    def init_params(cls, params):
-        """ init params """
-        qft_params = params.get(Pluggable.SECTION_KEY_QFT)
-        kwargs = {k: v for k, v in qft_params.items() if k != 'name'}
-        return cls(**kwargs)
-
     @abstractmethod
     def _build_matrix(self):
         raise NotImplementedError

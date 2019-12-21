@@ -21,9 +21,8 @@ from enum import Enum
 
 import numpy as np
 
-from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.operators import Z2Symmetries
-from qiskit.chemistry import ChemistryProblem, QMolecule
+from qiskit.chemistry import QMolecule
 from qiskit.chemistry.fermionic_operator import FermionicOperator
 from .chemistry_operator import ChemistryOperator
 
@@ -99,7 +98,7 @@ class Hamiltonian(ChemistryOperator):
             },
             "additionalProperties": False
         },
-        'problems': [ChemistryProblem.ENERGY.value, ChemistryProblem.EXCITED_STATES.value]
+        'problems': ['energy', 'excited_states']
     }
 
     def __init__(self,
@@ -144,32 +143,6 @@ class Hamiltonian(ChemistryOperator):
         self._ph_x_dipole_shift = 0.0
         self._ph_y_dipole_shift = 0.0
         self._ph_z_dipole_shift = 0.0
-
-    @classmethod
-    def init_params(cls, params):
-        """
-        Initialize via parameters dictionary.
-
-        Args:
-            params (dict): parameters dictionary
-
-        Returns:
-            Hamiltonian: hamiltonian object
-        """
-        kwargs = {}
-        for k, v in params.items():
-            if k == 'name':
-                continue
-
-            if k == Hamiltonian.KEY_TRANSFORMATION:
-                v = TransformationType(v)
-            elif k == Hamiltonian.KEY_QUBIT_MAPPING:
-                v = QubitMappingType(v)
-
-            kwargs[k] = v
-
-        logger.debug('init_params: %s', kwargs)
-        return cls(**kwargs)
 
     def run(self, qmolecule):
         logger.debug('Processing started...')
@@ -255,13 +228,14 @@ class Hamiltonian(ChemistryOperator):
                                                                 self._two_qubit_reduction)
 
         logger.debug('  num paulis: %s, num qubits: %s', len(qubit_op.paulis), qubit_op.num_qubits)
-        algo_input = EnergyInput(qubit_op)
+
+        aux_ops = []
 
         def _add_aux_op(aux_op):
-            algo_input.add_aux_op(
+            aux_ops.append(
                 Hamiltonian._map_fermionic_operator_to_qubit(aux_op, self._qubit_mapping, new_nel,
                                                              self._two_qubit_reduction))
-            logger.debug('  num paulis: %s', len(algo_input.aux_ops[-1].paulis))
+            logger.debug('  num paulis: %s', len(aux_ops[-1].paulis))
 
         logger.debug('Creating aux op for Number of Particles')
         _add_aux_op(fer_op.total_particle_number())
@@ -298,9 +272,9 @@ class Hamiltonian(ChemistryOperator):
             op_dipole_z, self._z_dipole_shift, self._ph_z_dipole_shift = \
                 _dipole_op(qmolecule.z_dipole_integrals, 'z')
 
-            algo_input.add_aux_op(op_dipole_x)
-            algo_input.add_aux_op(op_dipole_y)
-            algo_input.add_aux_op(op_dipole_z)
+            aux_ops.append(op_dipole_x)
+            aux_ops.append(op_dipole_y)
+            aux_ops.append(op_dipole_z)
 
         logger.info('Molecule num electrons: %s, remaining for processing: %s',
                     [num_alpha, num_beta], new_nel)
@@ -316,7 +290,7 @@ class Hamiltonian(ChemistryOperator):
                                 if self._qubit_mapping == 'parity' else False)
 
         logger.debug('Processing complete ready to run algorithm')
-        return algo_input.qubit_op, algo_input.aux_ops
+        return qubit_op, aux_ops
 
     # Called by public superclass method process_algorithm_result to complete specific processing
     def _process_algorithm_result(self, algo_result):

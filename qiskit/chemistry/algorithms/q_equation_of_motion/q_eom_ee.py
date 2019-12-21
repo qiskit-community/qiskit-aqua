@@ -18,7 +18,6 @@ import logging
 
 import numpy as np
 
-from qiskit.aqua import QuantumAlgorithm, AquaError
 from qiskit.aqua.algorithms import ExactEigensolver
 from .q_equation_of_motion import QEquationOfMotion
 
@@ -108,37 +107,6 @@ class QEomEE(ExactEigensolver):
                                       two_qubit_reduction, active_occupied, active_unoccupied,
                                       is_eom_matrix_symmetric, se_list, de_list,
                                       z2_symmetries, untapered_op)
-
-    @classmethod
-    def init_params(cls, params, algo_input):
-        """
-        Initialize via parameters dictionary and algorithm input instance.
-
-        Args:
-            params (dict): parameters dictionary
-            algo_input (EnergyInput): EnergyInput instance
-        Returns:
-            QEomEE: Newly created instance
-        Raises:
-             AquaError: EnergyInput instance is required
-        """
-        if algo_input is None:
-            raise AquaError("EnergyInput instance is required.")
-
-        operator = algo_input.qubit_op
-
-        q_eom_ee_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
-        num_orbitals = q_eom_ee_params.get('num_orbitals')
-        num_particles = q_eom_ee_params.get('num_particles')
-        qubit_mapping = q_eom_ee_params.get('qubit_mapping')
-        two_qubit_reduction = q_eom_ee_params.get('two_qubit_reduction')
-        active_occupied = q_eom_ee_params.get('active_occupied')
-        active_unoccupied = q_eom_ee_params.get('active_unoccupied')
-
-        return cls(operator, aux_operators=algo_input.aux_ops, num_orbitals=num_orbitals,
-                   num_particles=num_particles,
-                   qubit_mapping=qubit_mapping, two_qubit_reduction=two_qubit_reduction,
-                   active_occupied=active_occupied, active_unoccupied=active_unoccupied)
 
     def _run(self):
         super()._run()

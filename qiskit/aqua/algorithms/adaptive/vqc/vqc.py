@@ -22,8 +22,7 @@ from sklearn.utils import shuffle
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 from qiskit.circuit import ParameterVector
 
-from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class, AquaError
-from qiskit.aqua.utils import get_feature_dimension
+from qiskit.aqua import AquaError
 from qiskit.aqua.utils import map_label_to_class_name
 from qiskit.aqua.utils import split_dataset_to_data_and_labels
 from qiskit.aqua.algorithms.adaptive.vq_algorithm import VQAlgorithm
@@ -274,45 +273,6 @@ class VQC(VQAlgorithm):
         self._var_form_params = ParameterVector('θ', self._var_form.num_parameters)
         self._feature_map_params = ParameterVector('x', self._feature_map.feature_dimension)
         self._parameterized_circuits = None
-
-    @classmethod
-    def init_params(cls, params, algo_input):
-        """ init params """
-        algo_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
-        override_spsa_params = algo_params.get('override_SPSA_params')
-        max_evals_grouped = algo_params.get('max_evals_grouped')
-        minibatch_size = algo_params.get('minibatch_size')
-
-        # Set up optimizer
-        opt_params = params.get(Pluggable.SECTION_KEY_OPTIMIZER)
-        # If SPSA then override SPSA params as reqd to our predetermined values
-        if opt_params['name'] == 'SPSA' and override_spsa_params:
-            opt_params['c0'] = 4.0
-            opt_params['c1'] = 0.1
-            opt_params['c2'] = 0.602
-            opt_params['c3'] = 0.101
-            opt_params['c4'] = 0.0
-            opt_params['skip_calibration'] = True
-        optimizer = get_pluggable_class(PluggableType.OPTIMIZER,
-                                        opt_params['name']).init_params(params)
-
-        # Set up feature map
-        fea_map_params = params.get(Pluggable.SECTION_KEY_FEATURE_MAP)
-        feature_dimension = get_feature_dimension(algo_input.training_dataset)
-        fea_map_params['feature_dimension'] = feature_dimension
-        feature_map = get_pluggable_class(PluggableType.FEATURE_MAP,
-                                          fea_map_params['name']).init_params(params)
-
-        # Set up variational form, we need to add computed num qubits
-        # Pass all parameters so that Variational Form can create its dependents
-        var_form_params = params.get(Pluggable.SECTION_KEY_VAR_FORM)
-        var_form_params['num_qubits'] = feature_map.num_qubits
-        var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM,
-                                       var_form_params['name']).init_params(params)
-
-        return cls(optimizer, feature_map, var_form, algo_input.training_dataset,
-                   algo_input.test_dataset, algo_input.datapoints, max_evals_grouped,
-                   minibatch_size)
 
     def construct_circuit(self, x, theta, measurement=False):
         """
