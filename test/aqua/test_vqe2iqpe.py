@@ -21,7 +21,6 @@ import numpy as np
 from qiskit import BasicAer
 
 from qiskit.aqua import QuantumInstance, aqua_globals
-from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.utils import decimal_to_binary
 from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.aqua.components.initial_states import VarFormBased
@@ -45,17 +44,16 @@ class TestVQE2IQPE(QiskitAquaTestCase):
                        {"coeff": {"imag": 0.0, "real": 0.18093119978423156}, "label": "XX"}
                        ]
         }
-        qubit_op = WeightedPauliOperator.from_dict(pauli_dict)
-        self.algo_input = EnergyInput(qubit_op)
+        self.qubit_op = WeightedPauliOperator.from_dict(pauli_dict)
 
     def test_vqe_2_iqpe(self):
         """ vqe to iqpe test """
         backend = BasicAer.get_backend('qasm_simulator')
-        num_qbits = self.algo_input.qubit_op.num_qubits
+        num_qbits = self.qubit_op.num_qubits
         var_form = RYRZ(num_qbits, 3)
         optimizer = SPSA(max_trials=10)
         # optimizer.set_options(**{'max_trials': 500})
-        algo = VQE(self.algo_input.qubit_op, var_form, optimizer)
+        algo = VQE(self.qubit_op, var_form, optimizer)
         quantum_instance = QuantumInstance(backend, seed_simulator=self.seed,
                                            seed_transpiler=self.seed)
         result = algo.run(quantum_instance)
@@ -68,7 +66,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         num_iterations = 6
 
         state_in = VarFormBased(var_form, result['opt_params'])
-        iqpe = IQPE(self.algo_input.qubit_op, state_in, num_time_slices, num_iterations,
+        iqpe = IQPE(self.qubit_op, state_in, num_time_slices, num_iterations,
                     expansion_mode='suzuki', expansion_order=2, shallow_circuit_concat=True)
         quantum_instance = QuantumInstance(
             backend, shots=100, seed_transpiler=self.seed, seed_simulator=self.seed
