@@ -15,14 +15,9 @@
 """Utilities for logging."""
 
 import os
-import itertools
 import copy
 import logging
 from logging.config import dictConfig
-from collections import OrderedDict
-import pkg_resources
-from qiskit.chemistry.core import OPERATORS_ENTRY_POINT
-from qiskit.chemistry.drivers import DRIVERS_ENTRY_POINT
 
 _QISKIT_CHEMISTRY_LOGGING_CONFIG = {
     'version': 1,
@@ -43,17 +38,7 @@ _QISKIT_CHEMISTRY_LOGGING_CONFIG = {
 
 
 def _get_logging_names():
-    # pylint: disable=import-outside-toplevel
-    from qiskit.aqua import PLUGGABLES_ENTRY_POINT
-    names = OrderedDict()
-    names['qiskit.chemistry'] = None
-    for entry_point in itertools.chain(pkg_resources.iter_entry_points(PLUGGABLES_ENTRY_POINT),
-                                       pkg_resources.iter_entry_points(OPERATORS_ENTRY_POINT),
-                                       pkg_resources.iter_entry_points(DRIVERS_ENTRY_POINT)):
-        names[entry_point.module_name] = None
-
-    names['qiskit.aqua'] = None
-    return list(names.keys())
+    return ['qiskit.aqua', 'qiskit.chemistry']
 
 
 def build_logging_config(level, filepath=None):

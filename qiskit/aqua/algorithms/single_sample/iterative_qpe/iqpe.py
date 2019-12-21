@@ -22,8 +22,6 @@ import numpy as np
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.quantum_info import Pauli
 
-from qiskit.aqua import AquaError
-from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.operators import (WeightedPauliOperator, suzuki_expansion_slice_pauli_list,
                                    evolution_instruction, op_converter)
 from qiskit.aqua.utils import get_subsystem_density_matrix
@@ -122,41 +120,6 @@ class IQPE(QuantumAlgorithm):
         self._ret = {}
         self._ancilla_phase_coef = None
         self._setup()
-
-    @classmethod
-    def init_params(cls, params, algo_input):
-        """
-        Initialize via parameters dictionary and algorithm input instance.
-
-        Args:
-            params (dict): parameters dictionary
-            algo_input (EnergyInput): instance
-        Returns:
-            IQPE: instance of this class
-        Raises:
-            AquaError: EnergyInput instance is required
-        """
-        if algo_input is None:
-            raise AquaError("EnergyInput instance is required.")
-
-        operator = algo_input.qubit_op
-
-        iqpe_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
-        num_time_slices = iqpe_params.get(IQPE.PROP_NUM_TIME_SLICES)
-        expansion_mode = iqpe_params.get(IQPE.PROP_EXPANSION_MODE)
-        expansion_order = iqpe_params.get(IQPE.PROP_EXPANSION_ORDER)
-        num_iterations = iqpe_params.get(IQPE.PROP_NUM_ITERATIONS)
-
-        # Set up initial state, we need to add computed num qubits to params
-        init_state_params = params.get(Pluggable.SECTION_KEY_INITIAL_STATE)
-        init_state_params['num_qubits'] = operator.num_qubits
-        init_state = get_pluggable_class(PluggableType.INITIAL_STATE,
-                                         init_state_params['name']).init_params(params)
-
-        return cls(operator, init_state,
-                   num_time_slices=num_time_slices, num_iterations=num_iterations,
-                   expansion_mode=expansion_mode,
-                   expansion_order=expansion_order)
 
     def _setup(self):
         self._ret['translation'] = sum([abs(p[0]) for p in self._operator.reorder_paulis()])

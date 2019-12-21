@@ -18,7 +18,6 @@ import logging
 import numpy as np
 
 from qiskit.aqua.algorithms import QuantumAlgorithm
-from qiskit.aqua import AquaError
 
 logger = logging.getLogger(__name__)
 
@@ -53,37 +52,6 @@ class ExactLSsolver(QuantumAlgorithm):
         self._matrix = matrix
         self._vector = vector
         self._ret = {}
-
-    @classmethod
-    def init_params(cls, params, algo_input):  # pylint: disable=unused-argument
-        """
-        Initialize via parameters dictionary and algorithm input instance
-        Args:
-            params (dict): parameters dictionary
-            algo_input (LinearSystemInput): instance
-        Returns:
-            ExactLSsolver: an instance of this class
-        Raises:
-            AquaError: invalid input
-            ValueError: invalid input
-        """
-        if algo_input is None:
-            raise AquaError("LinearSystemInput instance is required.")
-
-        matrix = algo_input.matrix
-        vector = algo_input.vector
-        if not isinstance(matrix, np.ndarray):
-            matrix = np.asarray(matrix)
-        if not isinstance(vector, np.ndarray):
-            vector = np.asarray(vector)
-
-        if matrix.shape[0] != len(vector):
-            raise ValueError("Input vector dimension does not match input "
-                             "matrix dimension!")
-        if matrix.shape[0] != matrix.shape[1]:
-            raise ValueError("Input matrix must be square!")
-
-        return cls(matrix, vector)
 
     def _solve(self):
         self._ret['eigvals'] = np.linalg.eig(self._matrix)[0]

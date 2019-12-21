@@ -38,13 +38,6 @@ class FeatureMap(Pluggable):
         self._feature_dimension = 0
         self._support_parameterized_circuit = False
 
-    @classmethod
-    def init_params(cls, params):
-        """ init params """
-        feat_map__params = params.get(Pluggable.SECTION_KEY_FEATURE_MAP)
-        args = {k: v for k, v in feat_map__params.items() if k != 'name'}
-        return cls(**args)
-
     @abstractmethod
     def construct_circuit(self, x, qr=None, inverse=False):
         """Construct the variational form, given its parameters.
