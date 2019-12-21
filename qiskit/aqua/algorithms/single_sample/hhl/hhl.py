@@ -21,7 +21,6 @@ import numpy as np
 
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.aqua.algorithms import QuantumAlgorithm
-from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.ignis.verification.tomography import state_tomography_circuits, \
     StateTomographyFitter
 from qiskit.converters import circuit_to_dag
@@ -198,80 +197,6 @@ class HHL(QuantumAlgorithm):
             truncate_hermitian = True
 
         return (matrix, vector, truncate_powerdim, truncate_hermitian)
-
-    @classmethod
-    def init_params(cls, params, algo_input):
-        """Initialize via parameters dictionary and algorithm input instance
-
-        Args:
-            params (dict): parameters dictionary
-            algo_input (LinearSystemInput): LinearSystemInput instance
-        Returns:
-            HHL: an instance of this class
-        Raises:
-            AquaError: invalid input
-            ValueError: invalid input
-        """
-        if algo_input is None:
-            raise AquaError("LinearSystemInput instance is required.")
-
-        matrix = algo_input.matrix
-        vector = algo_input.vector
-        if not isinstance(matrix, np.ndarray):
-            matrix = np.asarray(matrix)
-        if not isinstance(vector, np.ndarray):
-            vector = np.asarray(vector)
-
-        if matrix.shape[0] != matrix.shape[1]:
-            raise ValueError("Input matrix must be square!")
-        if matrix.shape[0] != len(vector):
-            raise ValueError("Input vector dimension does not match input "
-                             "matrix dimension!")
-
-        hhl_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
-        truncate_powerdim = hhl_params.get('truncate_powerdim')
-        truncate_hermitian = hhl_params.get('truncate_hermitian')
-        orig_size = hhl_params.get('orig_size')
-        if orig_size is None:
-            orig_size = len(vector)
-
-        is_powerdim = np.log2(matrix.shape[0]) % 1 == 0
-        if not is_powerdim:
-            logger.warning("Input matrix does not have dimension 2**n. It "
-                           "will be expanded automatically.")
-            matrix, vector = cls.expand_to_powerdim(matrix, vector)
-            truncate_powerdim = True
-
-        is_hermitian = np.allclose(matrix, matrix.conj().T)
-        if not is_hermitian:
-            logger.warning("Input matrix is not hermitian. It will be "
-                           "expanded to a hermitian matrix automatically.")
-            matrix, vector = cls.expand_to_hermitian(matrix, vector)
-            truncate_hermitian = True
-
-        # Initialize eigenvalue finding module
-        eigs_params = params.get(Pluggable.SECTION_KEY_EIGS)
-        eigs = get_pluggable_class(PluggableType.EIGENVALUES,
-                                   eigs_params['name']).init_params(params, matrix)
-        num_q, num_a = eigs.get_register_sizes()
-
-        # Initialize initial state module
-        tmpvec = vector
-        init_state_params = params.get(Pluggable.SECTION_KEY_INITIAL_STATE)
-        init_state_params["num_qubits"] = num_q
-        init_state_params["state_vector"] = tmpvec
-        init_state = get_pluggable_class(PluggableType.INITIAL_STATE,
-                                         init_state_params['name']).init_params(params)
-
-        # Initialize reciprocal rotation module
-        reciprocal_params = params.get(Pluggable.SECTION_KEY_RECIPROCAL)
-        reciprocal_params["negative_evals"] = eigs._negative_evals
-        reciprocal_params["evo_time"] = eigs._evo_time
-        reci = get_pluggable_class(PluggableType.RECIPROCAL,
-                                   reciprocal_params['name']).init_params(params)
-
-        return cls(matrix, vector, truncate_powerdim, truncate_hermitian, eigs,
-                   init_state, reci, num_q, num_a, orig_size)
 
     def construct_circuit(self, measurement=False):
         """Construct the HHL circuit.

@@ -21,7 +21,6 @@ import numpy as np
 
 from qiskit import ClassicalRegister, QuantumCircuit
 
-from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.utils import get_subsystem_density_matrix
 
@@ -62,18 +61,6 @@ class DeutschJozsa(QuantumAlgorithm):
         self._oracle = oracle
         self._circuit = None
         self._ret = {}
-
-    @classmethod
-    def init_params(cls, params, algo_input):
-        """ init params """
-        if algo_input is not None:
-            raise AquaError("Input instance not supported.")
-
-        oracle_params = params.get(Pluggable.SECTION_KEY_ORACLE)
-        oracle = get_pluggable_class(
-            PluggableType.ORACLE,
-            oracle_params['name']).init_params(params)
-        return cls(oracle)
 
     def construct_circuit(self, measurement=False):
         """

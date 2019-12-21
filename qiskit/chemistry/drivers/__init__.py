@@ -78,13 +78,6 @@ on any external chemistry program/library and needs no special install.
 
 """
 from ._basedriver import BaseDriver, UnitsType, HFMethodType
-from ._discover_driver import (DRIVERS_ENTRY_POINT,
-                               refresh_drivers,
-                               register_driver,
-                               deregister_driver,
-                               get_driver_class,
-                               get_driver_configuration,
-                               local_drivers)
 from .gaussiand import GaussianDriver
 from .hdf5d import HDF5Driver
 from .psi4d import PSI4Driver
@@ -94,13 +87,6 @@ from .pyscfd import PySCFDriver, InitialGuess
 __all__ = ['BaseDriver',
            'UnitsType',
            'HFMethodType',
-           'DRIVERS_ENTRY_POINT',
-           'refresh_drivers',
-           'register_driver',
-           'deregister_driver',
-           'get_driver_class',
-           'get_driver_configuration',
-           'local_drivers',
            'GaussianDriver',
            'HDF5Driver',
            'PSI4Driver',
