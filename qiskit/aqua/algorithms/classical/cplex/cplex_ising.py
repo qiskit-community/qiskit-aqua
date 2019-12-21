@@ -22,7 +22,7 @@ from typing import Dict, List, Tuple, Any
 import importlib
 import numpy as np
 
-from qiskit.aqua import QuantumAlgorithm, Pluggable, AquaError
+from qiskit.aqua import QuantumAlgorithm, AquaError
 from qiskit.aqua.algorithms.classical.cplex.simple_cplex import SimpleCPLEX
 
 logger = logging.getLogger(__name__)
@@ -72,17 +72,6 @@ class CPLEX_Ising(QuantumAlgorithm):
         self._thread = thread
         self._display = display
         self._sol = None
-
-    @classmethod
-    def init_params(cls, params, algo_input):
-        """ init params """
-        if algo_input is None:
-            raise AquaError("EnergyInput instance is required.")
-        algo_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
-        timelimit = algo_params['timelimit']
-        thread = algo_params['thread']
-        display = algo_params['display']
-        return cls(algo_input.qubit_op, timelimit, thread, display)
 
     @staticmethod
     def check_pluggable_valid():

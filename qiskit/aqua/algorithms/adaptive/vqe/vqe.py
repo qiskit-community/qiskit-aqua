@@ -26,7 +26,7 @@ from qiskit import ClassicalRegister, QuantumCircuit
 from qiskit.circuit import ParameterVector
 
 from qiskit.aqua.algorithms.adaptive.vq_algorithm import VQAlgorithm
-from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
+from qiskit.aqua import AquaError
 from qiskit.aqua.operators import (TPBGroupedWeightedPauliOperator, WeightedPauliOperator,
                                    MatrixOperator, op_converter)
 from qiskit.aqua.utils.backend_utils import (is_statevector_backend,
@@ -134,45 +134,6 @@ class VQE(VQAlgorithm):
         self._var_form_params = ParameterVector('θ', self._var_form.num_parameters)
 
         self._parameterized_circuits = None
-
-    @classmethod
-    def init_params(cls, params, algo_input):
-        """
-        Initialize via parameters dictionary and algorithm input instance.
-
-        Args:
-            params (dict): parameters dictionary
-            algo_input (EnergyInput): EnergyInput instance
-
-        Returns:
-            VQE: vqe object
-        Raises:
-            AquaError: invalid input
-        """
-        if algo_input is None:
-            raise AquaError("EnergyInput instance is required.")
-
-        operator = algo_input.qubit_op
-
-        vqe_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
-        initial_point = vqe_params.get('initial_point')
-        max_evals_grouped = vqe_params.get('max_evals_grouped')
-
-        # Set up variational form, we need to add computed num qubits
-        # Pass all parameters so that Variational Form can create its dependents
-        var_form_params = params.get(Pluggable.SECTION_KEY_VAR_FORM)
-        var_form_params['num_qubits'] = operator.num_qubits
-        var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM,
-                                       var_form_params['name']).init_params(params)
-
-        # Set up optimizer
-        opt_params = params.get(Pluggable.SECTION_KEY_OPTIMIZER)
-        optimizer = get_pluggable_class(PluggableType.OPTIMIZER,
-                                        opt_params['name']).init_params(params)
-
-        return cls(operator, var_form, optimizer,
-                   initial_point=initial_point, max_evals_grouped=max_evals_grouped,
-                   aux_operators=algo_input.aux_ops)
 
     @property
     def setting(self):

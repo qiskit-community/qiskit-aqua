@@ -18,8 +18,6 @@ import logging
 
 import numpy as np
 
-from qiskit.aqua import QuantumAlgorithm, AquaError
-from qiskit.aqua import PluggableType, get_pluggable_class, Pluggable
 from qiskit.aqua.algorithms import VQE
 from .q_equation_of_motion import QEquationOfMotion
 
@@ -153,52 +151,6 @@ class QEomVQE(VQE):
                                       active_unoccupied,
                                       is_eom_matrix_symmetric, se_list, de_list,
                                       z2_symmetries, untapered_op)
-
-    @classmethod
-    def init_params(cls, params, algo_input):
-        """
-        Initialize via parameters dictionary and algorithm input instance.
-
-        Args:
-            params (dict): parameters dictionary
-            algo_input (EnergyInput): EnergyInput instance
-        Returns:
-            QEomVQE: Newly created instance
-        Raises:
-             AquaError: EnergyInput instance is required
-        """
-        if algo_input is None:
-            raise AquaError("EnergyInput instance is required.")
-
-        operator = algo_input.qubit_op
-
-        q_eom_vqe_params = params.get(QuantumAlgorithm.SECTION_KEY_ALGORITHM)
-        initial_point = q_eom_vqe_params.get('initial_point')
-        max_evals_grouped = q_eom_vqe_params.get('max_evals_grouped')
-        num_orbitals = q_eom_vqe_params.get('num_orbitals')
-        num_particles = q_eom_vqe_params.get('num_particles')
-        qubit_mapping = q_eom_vqe_params.get('qubit_mapping')
-        two_qubit_reduction = q_eom_vqe_params.get('two_qubit_reduction')
-        active_occupied = q_eom_vqe_params.get('active_occupied')
-        active_unoccupied = q_eom_vqe_params.get('active_unoccupied')
-
-        # Set up variational form, we need to add computed num qubits, and initial state to params
-        var_form_params = params.get(Pluggable.SECTION_KEY_VAR_FORM)
-        var_form_params['num_qubits'] = operator.num_qubits
-        var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM,
-                                       var_form_params['name']).init_params(params)
-
-        # Set up optimizer
-        opt_params = params.get(Pluggable.SECTION_KEY_OPTIMIZER)
-        optimizer = get_pluggable_class(PluggableType.OPTIMIZER,
-                                        opt_params['name']).init_params(params)
-
-        return cls(operator, var_form, optimizer,
-                   initial_point=initial_point, max_evals_grouped=max_evals_grouped,
-                   aux_operators=algo_input.aux_ops, num_orbitals=num_orbitals,
-                   num_particles=num_particles,
-                   qubit_mapping=qubit_mapping, two_qubit_reduction=two_qubit_reduction,
-                   active_occupied=active_occupied, active_unoccupied=active_unoccupied)
 
     def _run(self):
         super()._run()
