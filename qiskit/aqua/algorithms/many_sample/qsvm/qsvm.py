@@ -25,11 +25,10 @@ from qiskit.circuit import ParameterVector
 
 from qiskit.aqua import aqua_globals
 from qiskit.aqua.algorithms import QuantumAlgorithm
-from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
+from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms.many_sample.qsvm._qsvm_binary import _QSVM_Binary
 from qiskit.aqua.algorithms.many_sample.qsvm._qsvm_multiclass import _QSVM_Multiclass
-from qiskit.aqua.algorithms.many_sample.qsvm._qsvm_estimator import _QSVM_Estimator
-from qiskit.aqua.utils.dataset_helper import get_feature_dimension, get_num_classes
+from qiskit.aqua.utils.dataset_helper import get_num_classes
 from qiskit.aqua.utils import split_dataset_to_data_and_labels
 
 logger = logging.getLogger(__name__)
@@ -118,30 +117,6 @@ class QSVM(QuantumAlgorithm):
             qsvm_instance = _QSVM_Multiclass(self, multiclass_extension)
 
         self.instance = qsvm_instance
-
-    @classmethod
-    def init_params(cls, params, algo_input):
-        """Constructor from params."""
-        feature_dimension = get_feature_dimension(algo_input.training_dataset)
-        fea_map_params = params.get(Pluggable.SECTION_KEY_FEATURE_MAP)
-        fea_map_params['feature_dimension'] = feature_dimension
-
-        feature_map = get_pluggable_class(PluggableType.FEATURE_MAP,
-                                          fea_map_params['name']).init_params(params)
-
-        multiclass_extension = None
-        multiclass_extension_params = params.get(Pluggable.SECTION_KEY_MULTICLASS_EXT)
-        if multiclass_extension_params is not None:
-            multiclass_extension_params['params'] = [feature_map]
-            multiclass_extension_params['estimator_cls'] = _QSVM_Estimator
-
-            multiclass_extension = \
-                get_pluggable_class(PluggableType.MULTICLASS_EXTENSION,
-                                    multiclass_extension_params['name']).init_params(params)
-            logger.info("Multiclass classifier based on %s", multiclass_extension_params['name'])
-
-        return cls(feature_map, algo_input.training_dataset, algo_input.test_dataset,
-                   algo_input.datapoints, multiclass_extension)
 
     @staticmethod
     def _construct_circuit(x, feature_map, measurement, is_statevector_sim=False):

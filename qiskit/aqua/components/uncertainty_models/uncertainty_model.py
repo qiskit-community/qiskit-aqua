@@ -27,19 +27,10 @@ class UncertaintyModel(CircuitFactory, Pluggable, ABC):
     The abstract Uncertainty Model
     """
 
-    @classmethod
-    def init_params(cls, params):
-        """ init params """
-        uncertainty_model_params = params.get(cls.get_section_key_name())
-        args = {k: v for k, v in uncertainty_model_params.items() if k != 'name'}
-        return cls(**args)
-
-    @classmethod
-    @abstractmethod
-    def get_section_key_name(cls):
-        """ get section key name """
-        pass
-
     # pylint: disable=useless-super-delegation
     def __init__(self, num_target_qubits):
         super().__init__(num_target_qubits)
+
+    @abstractmethod
+    def build(self, qc, q, q_ancillas=None, params=None):
+        raise NotImplementedError()
