@@ -15,11 +15,9 @@
 """ Test Graph Partition """
 
 from test.optimization.common import QiskitOptimizationTestCase
-import warnings
 import numpy as np
 from qiskit import BasicAer
-from qiskit.aqua import run_algorithm, aqua_globals, QuantumInstance
-from qiskit.aqua.input import EnergyInput
+from qiskit.aqua import aqua_globals, QuantumInstance
 from qiskit.optimization.ising import graph_partition
 from qiskit.optimization.ising.common import random_graph, sample_most_likely
 from qiskit.aqua.algorithms import ExactEigensolver, VQE
@@ -32,8 +30,6 @@ class TestGraphPartition(QiskitOptimizationTestCase):
 
     def setUp(self):
         super().setUp()
-        warnings.filterwarnings("ignore", message=aqua_globals.CONFIG_DEPRECATION_MSG,
-                                category=DeprecationWarning)
         aqua_globals.random_seed = 100
         self.num_nodes = 4
         self.w = random_graph(self.num_nodes, edge_prob=0.8, weight_range=10)
@@ -62,20 +58,6 @@ class TestGraphPartition(QiskitOptimizationTestCase):
 
     def test_graph_partition(self):
         """ Graph Partition test """
-        params = {
-            'problem': {'name': 'ising'},
-            'algorithm': {'name': 'ExactEigensolver'}
-        }
-        result = run_algorithm(params, EnergyInput(self.qubit_op))
-        x = sample_most_likely(result['eigvecs'][0])
-        # check against the oracle
-        ising_sol = graph_partition.get_graph_solution(x)
-        np.testing.assert_array_equal(ising_sol, [0, 1, 0, 1])
-        oracle = self._brute_force()
-        self.assertEqual(graph_partition.objective_value(x, self.w), oracle)
-
-    def test_graph_partition_direct(self):
-        """ Graph Partition Direct test """
         algo = ExactEigensolver(self.qubit_op, k=1, aux_operators=[])
         result = algo.run()
         x = sample_most_likely(result['eigvecs'][0])

@@ -17,8 +17,6 @@ import os
 import copy
 import logging
 from logging.config import dictConfig
-from collections import OrderedDict
-import pkg_resources
 
 _ALGO_LOGGING_CONFIG = {
     'version': 1,
@@ -39,14 +37,7 @@ _ALGO_LOGGING_CONFIG = {
 
 
 def _get_logging_names():
-    # pylint: disable=import-outside-toplevel
-    from qiskit.aqua import PLUGGABLES_ENTRY_POINT
-    names = OrderedDict()
-    names['qiskit.aqua'] = None
-    for entry_point in pkg_resources.iter_entry_points(PLUGGABLES_ENTRY_POINT):
-        names[entry_point.module_name] = None
-
-    return list(names.keys())
+    return ['qiskit.aqua']
 
 
 def build_logging_config(level, filepath=None):
