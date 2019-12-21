@@ -32,13 +32,6 @@ class Reciprocal(Pluggable):
     def __init__(self):
         super().__init__()
 
-    @classmethod
-    def init_params(cls, params):
-        """ init params """
-        reci_params = params.get(Pluggable.SECTION_KEY_RECIPROCAL)
-        args = {k: v for k, v in reci_params.items() if k != 'name'}
-        return cls(**args)
-
     @abstractmethod
     def sv_to_resvec(self, statevector, num_q):
         """Convert statevector to result vector.

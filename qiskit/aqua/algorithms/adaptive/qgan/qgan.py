@@ -24,7 +24,6 @@ import numpy as np
 from scipy.stats import entropy
 
 from qiskit.aqua import AquaError, aqua_globals
-from qiskit.aqua import Pluggable, get_pluggable_class, PluggableType
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.components.neural_networks.quantum_generator import QuantumGenerator
 from qiskit.aqua.components.neural_networks.numpy_discriminator import NumpyDiscriminator
@@ -174,44 +173,6 @@ class QGAN(QuantumAlgorithm):
         self.seed = self._random_seed
 
         self._ret = {}
-
-    @classmethod
-    def init_params(cls, params, algo_input):
-        """
-        Initialize qGAN via parameters dictionary and algorithm input instance.
-
-        Args:
-            params (dict): parameters dictionary
-            algo_input (AlgorithmInput): Input instance
-        Returns:
-            QGAN: qgan object
-        Raises:
-            AquaError: invalid input
-        """
-
-        if algo_input is None:
-            raise AquaError("Input instance not supported.")
-
-        qgan_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
-        num_qubits = qgan_params.get('num_qubits')
-        batch_size = qgan_params.get('batch_size')
-        num_epochs = qgan_params.get('num_epochs')
-        seed = qgan_params.get('seed')
-        tol_rel_ent = qgan_params.get('tol_rel_ent')
-        snapshot_dir = qgan_params.get('snapshot_dir')
-
-        discriminator_params = params.get(Pluggable.SECTION_KEY_DISCRIMINATIVE_NET)
-        generator_params = params.get(Pluggable.SECTION_KEY_GENERATIVE_NETWORK)
-        generator_params['num_qubits'] = num_qubits
-
-        discriminator = get_pluggable_class(PluggableType.DISCRIMINATIVE_NETWORK,
-                                            discriminator_params['name']).init_params(params)
-        generator = get_pluggable_class(PluggableType.GENERATIVE_NETWORK,
-                                        generator_params['name']).init_params(params)
-
-        return cls(algo_input.data, algo_input.bounds,
-                   num_qubits, batch_size, num_epochs, seed, discriminator,
-                   generator, tol_rel_ent, snapshot_dir)
 
     @property
     def seed(self):

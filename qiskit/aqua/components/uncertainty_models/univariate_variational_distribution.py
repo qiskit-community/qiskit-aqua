@@ -19,7 +19,6 @@ The Univariate Variational Distribution.
 import numpy as np
 
 from qiskit import ClassicalRegister
-from qiskit.aqua import Pluggable, get_pluggable_class, PluggableType
 from .univariate_distribution import UnivariateDistribution
 
 
@@ -78,28 +77,6 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
         else:
             probabilities = np.zeros(2 ** sum(num_qubits))
         super().__init__(num_qubits, probabilities, low, high)
-
-    @classmethod
-    def init_params(cls, params):
-        """
-        Initialize via parameters dictionary.
-        Args:
-            params (dict): parameters dictionary
-        Returns:
-            UnivariateVariationalDistribution: An object instance of this class
-        """
-
-        uni_var_params_params = params.get(Pluggable.SECTION_KEY_UNIVARIATE_DIST)
-        num_qubits = uni_var_params_params.get('num_qubits')
-        params = uni_var_params_params.get('params')
-        low = uni_var_params_params.get('low')
-        high = uni_var_params_params.get('high')
-
-        var_form_params = params.get(Pluggable.SECTION_KEY_VAR_FORM)
-        var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM,
-                                       var_form_params['name']).init_params(params)
-
-        return cls(num_qubits, var_form, params, low, high)
 
     def build(self, qc, q, q_ancillas=None, params=None):
         circuit_var_form = self._var_form.construct_circuit(self.params)
