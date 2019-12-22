@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 """
-The Amplitude Estimation Algorithm.
+The Maximum Likelihood Amplitude Estimation algorithm.
 """
 
 import logging
@@ -33,7 +33,12 @@ logger = logging.getLogger(__name__)
 
 class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     """
-    The Amplitude Estimation without QPE algorithm.
+    This class implements the an quantum amplitude estimation (QAE) algorithm without phase
+    estimation, according to https://arxiv.org/abs/1904.10246. In comparison to the original
+    QAE algorithm (https://arxiv.org/abs/quant-ph/0005055), this implementation relies solely
+    on different powers of the Grover algorithm and does not require ancilla qubits.
+    Finally, the estimate is determined via a maximum likelihood estimation, which is why this
+    class in named MaximumLikelihoodAmplitudeEstimation.
     """
 
     CONFIGURATION = {
@@ -66,10 +71,11 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     def __init__(self, log_max_evals, a_factory=None, q_factory=None, i_objective=None,
                  likelihood_evals=None):
         """
+        Initializer.
 
         Args:
             log_max_evals (int): base-2-logarithm of maximal number of evaluations -
-                resulting evaluation schedule will be [Q^2^0, ..., Q^2^{max_evals_log-1}]
+                resulting evaluation schedule will be [A, Q^2^0, ..., Q^2^{max_evals_log-1}]
             a_factory (CircuitFactory): the CircuitFactory subclass object
                 representing the problem unitary
             q_factory (CircuitFactory): the CircuitFactory subclass object representing
@@ -97,7 +103,8 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     @classmethod
     def init_params(cls, params, algo_input):
         """
-        Initialize via parameters dictionary and algorithm input instance
+        Initialize via parameters dictionary and algorithm input instance.
+
         Args:
             params (dict): parameters dictionary
             algo_input (AlgorithmInput): Input instance
@@ -124,10 +131,16 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
     @property
     def _num_qubits(self):
+        """
+        Return the number of qubits needed in the circuit.
+
+        Returns:
+            int: the total number of qubits
+        """
         if self.a_factory is None:  # if A factory is not set, no qubits are specified
             return 0
 
-        num_ancillas = self.q_factory.required_ancillas_controlled()
+        num_ancillas = self.q_factory.required_ancillas()
         num_qubits = self.a_factory.num_target_qubits + num_ancillas
 
         return num_qubits
@@ -179,9 +192,18 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         return self._circuits
 
-    def _evaluate_statevectors(self, state_vectors):
+    def _evaluate_statevectors(self, statevectors):
+        """
+        For each statevector, compute the probability that |1> is measured in the objective qubit.
+
+        Args:
+            statevectors (Union(list[list[complex]], list[numpy.array]): a list of statvectors
+
+        Returns:
+            list[float]: the corresponding probabilities
+        """
         probabilities = []
-        for sv in state_vectors:
+        for sv in statevectors:
             p_k = 0
             for i, a in enumerate(sv):
                 p = np.abs(a)**2
@@ -200,7 +222,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             tuple(list, list): a pair of two lists,
                 ([1-counts per experiment], [shots per experiment])
         Raises:
-            AquaError: Call run() first
+            AquaError: if self.run() has not been called yet
         """
         one_hits = []  # h_k: how often 1 has been measured, for a power Q^(m_k)
         all_hits = []  # N_k: how often has been measured at a power Q^(m_k)
@@ -277,6 +299,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         # Compute the Fisher information
         fisher_information = None
         if observed:
+            # Note, that the observed Fisher information is very unreliable in this algorithm!
             d_logL = 0
             for Nk, hk, mk in zip(all_hits, one_hits, evaluation_schedule):
                 tan = np.tan((2 * mk + 1) * theta_a)
@@ -292,7 +315,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         return fisher_information
 
-    def _fisher_ci(self, alpha=0.05, observed=False):
+    def _fisher_confint(self, alpha=0.05, observed=False):
         """
         Compute the alpha confidence interval based on the Fisher information
 
@@ -316,12 +339,12 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             fisher_information = self._compute_fisher_information(observed=True)
 
         normal_quantile = norm.ppf(1 - alpha / 2)
-        ci = np.real(self._ret['value']) + \
+        confint = np.real(self._ret['value']) + \
             normal_quantile / np.sqrt(fisher_information) * np.array([-1, 1])
-        mapped_ci = [self.a_factory.value_to_estimation(bound) for bound in ci]
-        return mapped_ci
+        mapped_confint = [self.a_factory.value_to_estimation(bound) for bound in confint]
+        return mapped_confint
 
-    def _likelihood_ratio_ci(self, alpha=0.05, nevals=None):
+    def _likelihood_ratio_confint(self, alpha=0.05, nevals=None):
         """
         Compute the likelihood-ratio confidence interval.
 
@@ -361,11 +384,11 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         # it might happen that the `above_thres` array is empty,
         # to still provide a valid result use safe_min/max which
         # then yield [0, pi/2]
-        ci = [self._safe_min(above_thres, default=0),
-              self._safe_max(above_thres, default=(np.pi / 2))]
-        mapped_ci = [self.a_factory.value_to_estimation(np.sin(bound)**2) for bound in ci]
+        confint = [self._safe_min(above_thres, default=0),
+                   self._safe_max(above_thres, default=(np.pi / 2))]
+        mapped_confint = [self.a_factory.value_to_estimation(np.sin(bound)**2) for bound in confint]
 
-        return mapped_ci
+        return mapped_confint
 
     def confidence_interval(self, alpha, kind='fisher'):
         """
@@ -381,13 +404,13 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             return 2 * [self._ret['estimation']]
 
         if kind in ['likelihood_ratio', 'lr']:
-            return self._likelihood_ratio_ci(alpha)
+            return self._likelihood_ratio_confint(alpha)
 
         if kind in ['fisher', 'fi']:
-            return self._fisher_ci(alpha, observed=False)
+            return self._fisher_confint(alpha, observed=False)
 
         if kind in ['observed_fisher', 'observed_information', 'oi']:
-            return self._fisher_ci(alpha, observed=True)
+            return self._fisher_confint(alpha, observed=True)
 
         raise NotImplementedError('CI `{}` is not implemented.'.format(kind))
 
@@ -414,6 +437,13 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         return est_theta
 
     def _run_mle(self):
+        """
+        Compute the maximum likelihood estimator (MLE) for the angle theta, based on which the
+        final result of this algorithm is computed.
+
+        Returns:
+            float: the MLE for the angle theta, related to the amplitude a via a = sin^2(theta)
+        """
         # TODO implement a **reliable**, fast method to find the maximum of the likelihood function
         return self._compute_mle_safe()
 
@@ -429,8 +459,8 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             ret = self._quantum_instance.execute(self._circuits)
 
             # get statevectors and construct MLE input
-            state_vectors = [np.asarray(ret.get_statevector(circuit)) for circuit in self._circuits]
-            self._ret['statevectors'] = state_vectors
+            statevectors = [np.asarray(ret.get_statevector(circuit)) for circuit in self._circuits]
+            self._ret['statevectors'] = statevectors
 
         else:
             # run circuit on QASM simulator
@@ -446,7 +476,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         self._ret['estimation'] = self.a_factory.value_to_estimation(self._ret['value'])
         self._ret['fisher_information'] = self._compute_fisher_information()
 
-        confidence_interval = self._fisher_ci(alpha=0.05)
+        confidence_interval = self._fisher_confint(alpha=0.05)
         self._ret['95%_confidence_interval'] = confidence_interval
 
         return self._ret

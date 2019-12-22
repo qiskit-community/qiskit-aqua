@@ -76,7 +76,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         ],
     }
 
-    def __init__(self, epsilon, alpha, ci_method='beta', min_ratio=2, a_factory=None,
+    def __init__(self, epsilon, alpha, confint_method='beta', min_ratio=2, a_factory=None,
                  q_factory=None, i_objective=None):
         """
         Initializer.
@@ -88,8 +88,8 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         Args:
             epsilon (float): target precision for estimation target `a`
             alpha (float): confidence level, the target probability is 1 - alpha
-            ci_method (str): statistical method used to estimate the confidence intervals in each
-                iteration, can be 'chernoff' for the Chernoff intervals or 'beta' for the
+            confint_method (str): statistical method used to estimate the confidence intervals in
+                each iteration, can be 'chernoff' for the Chernoff intervals or 'beta' for the
                 Clopper-Pearson intervals (default)
             min_ratio (float): minimal q-ratio (K_{i+1} / K_i) for FindNextK
             a_factory (CircuitFactory): the A operator, specifying the QAE problem
@@ -108,8 +108,8 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         self._alpha = alpha
         self._min_ratio = min_ratio
 
-        if ci_method in ['chernoff', 'beta']:
-            self._ci_method = ci_method
+        if confint_method in ['chernoff', 'beta']:
+            self._confint_method = confint_method
         else:
             raise AquaError('invalid method to compute confidence intervals')
 
@@ -376,7 +376,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                         round_one_counts += num_one_shots[-j]
 
                 # compute a_min_i, a_max_i
-                if self._ci_method == 'chernoff':
+                if self._confint_method == 'chernoff':
                     a_i_min, a_i_max = self._chernoff_confint(prob, round_shots, max_rounds,
                                                               self._alpha)
                 else:  # 'beta'

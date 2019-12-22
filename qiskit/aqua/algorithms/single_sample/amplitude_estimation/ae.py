@@ -35,8 +35,17 @@ logger = logging.getLogger(__name__)
 
 
 class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
-    """
-    The Amplitude Estimation algorithm.
+    r"""
+    This class implements the Quantum Amplitude Estimation (QAE) algorithm, introduced by
+    https://arxiv.org/abs/quant-ph/0005055. This (original) version uses quantum phase
+    estimation along with a set of m ancilla qubits to find an estimate, that is restricted
+    to the grid
+
+        \{sin^2(\pi  y / 2^m) : y = 0, ..., 2^{m-1}\}.
+
+    Using a maximum likelihood postprocessing, this grid constraint can be circumvented.
+    This improved estimator is implemented as well, see https://arxiv.org/abs/1912.05559 (App. A)
+    for more detail.
     """
 
     CONFIGURATION = {
@@ -138,6 +147,12 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
     @property
     def _num_qubits(self):
+        """
+        Return the number of qubits needed in the circuit.
+
+        Returns:
+            int: the total number of qubits
+        """
         if self.a_factory is None:  # if A factory is not set, no qubits are specified
             return 0
 
@@ -167,6 +182,19 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         return self._circuit
 
     def _evaluate_statevector_results(self, probabilities):
+        """
+        Given the probabilities from statevector simulation of the QAE circuit, compute the
+        probabilities that the measurements y/gridpoints a are the best estimate.
+
+        Args:
+            probabilities (list[float] | numpy.array): the probabilities obtained from the
+                statevector simulation, i.e. real(statevector * statevector.conj())[0]
+
+        Returns:
+            tuple[OrderedDict, OrderedDict]: dictionaries containind the a gridpoints with
+                respective probabilities and y measurements with respective probabilities,
+                in this order
+        """
         # map measured results to estimates
         y_probabilities = OrderedDict()
         for i, probability in enumerate(probabilities):
@@ -178,6 +206,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         for y, probability in y_probabilities.items():
             if y >= int(self._M / 2):
                 y = self._M - y
+            # due to the finite accuracy of the sine, we round the result to 7 decimals
             a = np.round(np.power(np.sin(y * np.pi / 2 ** self._m), 2),
                          decimals=7)
             a_probabilities[a] = a_probabilities.get(a, 0) + probability
@@ -185,6 +214,16 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         return a_probabilities, y_probabilities
 
     def _compute_fisher_information(self, observed=False):
+        """
+        Computes the Fisher information for the output of the previous run.
+
+        Args:
+            observed (bool): if true, the observed Fisher information is returned, otherwise
+                the expected Fisher information
+
+        Returns:
+            float: the Fisher information
+        """
         fisher_information = None
         mlv = self._ret['ml_value']  # MLE in [0,1]
         m = self._m
@@ -205,16 +244,40 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         return fisher_information
 
-    def _fisher_ci(self, alpha, observed=False):
+    def _fisher_confint(self, alpha, observed=False):
+        """
+        Compute the confidence interval for the MLE of the previous run based on the Fisher
+        information.
+
+        Args:
+            alpha (float): specify the (1 - alpha) confidence level (0 < alpha < 1)
+            observed (bool): if true, the observed Fisher information is used to construct the
+                confidence interval, otherwise the expected Fisher information
+
+        Returns:
+            list[float]: the confidence interval
+        """
         shots = self._ret['shots']
         mle = self._ret['ml_value']
 
+        # approximate the standard deviation of the MLE and construct the confidence interval
         std = np.sqrt(shots * self._compute_fisher_information(observed))
         ci = mle + norm.ppf(1 - alpha / 2) / std * np.array([-1, 1])
 
+        # transform the confidence interval from [0, 1] to the target interval
         return [self.a_factory.value_to_estimation(bound) for bound in ci]
 
-    def _likelihood_ratio_ci(self, alpha):
+    def _likelihood_ratio_confint(self, alpha):
+        """
+        Compute the confidence interval for the MLE of the previous run based on the likelihood
+        ratio.
+
+        Args:
+            alpha (float): specify the (1 - alpha) confidence level (0 < alpha < 1)
+
+        Returns:
+            list[float]: the confidence interval
+        """
         # Compute the two intervals in which we the look for values above
         # the likelihood ratio: the two bubbles next to the QAE estimate
         M = 2**self._m
@@ -302,13 +365,13 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
             return 2 * [self._ret['mle']]
 
         if kind in ['likelihood_ratio', 'lr']:
-            return self._likelihood_ratio_ci(alpha)
+            return self._likelihood_ratio_confint(alpha)
 
         if kind in ['fisher', 'fi']:
-            return self._fisher_ci(alpha, observed=False)
+            return self._fisher_confint(alpha, observed=False)
 
         if kind in ['observed_fisher', 'observed_information', 'oi']:
-            return self._fisher_ci(alpha, observed=True)
+            return self._fisher_confint(alpha, observed=True)
 
         raise NotImplementedError('CI `{}` is not implemented.'.format(kind))
 
