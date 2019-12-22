@@ -197,7 +197,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         For each statevector, compute the probability that |1> is measured in the objective qubit.
 
         Args:
-            statevectors (Union(list[list[complex]], list[numpy.array]): a list of statvectors
+            statevectors (Union(list[list[complex]], list[numpy.array]): a list of statevectors
 
         Returns:
             list[float]: the corresponding probabilities

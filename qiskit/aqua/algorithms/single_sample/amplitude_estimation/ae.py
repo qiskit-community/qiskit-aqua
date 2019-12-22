@@ -43,8 +43,8 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         \{sin^2(\pi  y / 2^m) : y = 0, ..., 2^{m-1}\}.
 
-    Using a maximum likelihood postprocessing, this grid constraint can be circumvented.
-    This improved estimator is implemented as well, see https://arxiv.org/abs/1912.05559 (App. A)
+    Using a maximum likelihood post processing, this grid constraint can be circumvented.
+    This improved estimator is implemented as well, see https://arxiv.org/abs/1912.05559 Appendix A
     for more detail.
     """
 
@@ -191,9 +191,8 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 statevector simulation, i.e. real(statevector * statevector.conj())[0]
 
         Returns:
-            tuple[OrderedDict, OrderedDict]: dictionaries containind the a gridpoints with
-                respective probabilities and y measurements with respective probabilities,
-                in this order
+            tuple[dict, dict]: dictionaries containing the a gridpoints with respective
+                probabilities and y measurements with respective probabilities, in this order
         """
         # map measured results to estimates
         y_probabilities = OrderedDict()
