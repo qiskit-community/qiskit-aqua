@@ -111,7 +111,7 @@ class TestEuropeanCallOption(QiskitFinanceTestCase):
         ['statevector', MaximumLikelihoodAmplitudeEstimation(5),
          {'estimation': 0.16330976193204114}],
         ['qasm', MaximumLikelihoodAmplitudeEstimation(3),
-         {'estimation': 0.09808188840384949}],
+         {'estimation': 0.09784548904622023}],
     ])
     def test_expected_value(self, simulator, a_e, expect):
         """ expected value test """
@@ -170,9 +170,9 @@ class TestFixedIncomeAssets(QiskitFinanceTestCase):
         ['qasm', AmplitudeEstimation(5),
          {'estimation': 2.4600, 'mle': 2.3632087675061726}],
         ['statevector', MaximumLikelihoodAmplitudeEstimation(5),
-         {'estimation': 2.340361798381051}],
+         {'estimation': 2.340228883624973}],
         ['qasm', MaximumLikelihoodAmplitudeEstimation(5),
-         {'estimation': 2.3175136132411103}]
+         {'estimation': 2.3174630932734077}]
     ])
     def test_expected_value(self, simulator, a_e, expect):
         """ expected value test """
