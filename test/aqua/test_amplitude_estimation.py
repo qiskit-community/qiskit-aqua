@@ -87,7 +87,7 @@ class SineIntegralAFactory(UncertaintyProblem):
     r"""
     Construct the A operator to approximate the integral
 
-        \int_0^1 \sin^2(x) dx
+        \int_0^1 \sin^2(x) d x
 
     with a specified number of qubits.
     """
@@ -198,7 +198,7 @@ class TestBernoulli(QiskitAquaTestCase):
             q_objective = QuantumRegister(1, 'q')
             circuit = QuantumCircuit(q_ancilla, q_objective)
 
-            # initial hadamards
+            # initial Hadamard gates
             for i in range(m):
                 circuit.h(q_ancilla[i])
 
@@ -450,13 +450,14 @@ class TestSineIntegral(QiskitAquaTestCase):
 
     @parameterized.expand([
         [AmplitudeEstimation(3), 'mle',
-            {'likelihood_ratio': [0.24947346406470136, 0.3003771197734433],
-             'fisher': [0.24861769995820207, 0.2999286066724035],
-             'observed_fisher': [0.24845622030041542, 0.30009008633019013]}],
+         {'likelihood_ratio': [0.24947346406470136, 0.3003771197734433],
+          'fisher': [0.24861769995820207, 0.2999286066724035],
+          'observed_fisher': [0.24845622030041542, 0.30009008633019013]}
+         ],
         [MaximumLikelihoodAmplitudeEstimation(3), 'estimation',
-            {'likelihood_ratio': [0.25987941798909114, 0.27985361366769945],
-             'fisher': [0.2584889015125656, 0.2797018754936686],
-             'observed_fisher': [0.2659279996107888, 0.2722627773954454]}],
+         {'likelihood_ratio': [0.25987941798909114, 0.27985361366769945],
+          'fisher': [0.2584889015125656, 0.2797018754936686],
+          'observed_fisher': [0.2659279996107888, 0.2722627773954454]}],
     ])
     def test_confidence_intervals(self, ae, key, expect):
         """ End-to-end test for all confidence intervals """
