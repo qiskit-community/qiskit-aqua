@@ -84,11 +84,19 @@ class BernoulliQFactory(QFactory):
 
 
 class SineIntegralAFactory(UncertaintyProblem):
+    r"""
+    Construct the A operator to approximate the integral
+
+        \int_0^1 \sin^2(x) dx
+
+    with a specified number of qubits.
+    """
+
     def __init__(self, num_qubits):
         super().__init__(num_qubits + 1)
         self._i_objective = num_qubits
 
-    def build(self, qc, q, q_ancillas=None):
+    def build(self, qc, q, q_ancillas=None, params=None):
         n = self.num_target_qubits - 1
         q_state = [q[i] for i in range(self.num_target_qubits) if i != self._i_objective]
         q_objective = q[self._i_objective]
@@ -219,6 +227,7 @@ class TestBernoulli(QiskitAquaTestCase):
         [True], [False]
     ])
     def test_iqae_circuits(self, efficient_circuit):
+        """ Test the circuits constructed for IQAE """
         prob = 0.5
         basis_gates = ['u1', 'u2', 'u3', 'cx']
 
@@ -256,6 +265,7 @@ class TestBernoulli(QiskitAquaTestCase):
         [True], [False]
     ])
     def test_mlae_circuits(self, efficient_circuit):
+        """ Test the circuits constructed for MLAE """
         prob = 0.5
         basis_gates = ['u1', 'u2', 'u3', 'cx']
 
@@ -294,13 +304,15 @@ class TestBernoulli(QiskitAquaTestCase):
 
             for actual, expected in zip(actual_circuits, circuits):
                 actual_ops = transpile(actual, basis_gates=basis_gates).count_ops()
-                expected_ops = transpile(circuit, basis_gates=basis_gates).count_ops()
+                expected_ops = transpile(expected, basis_gates=basis_gates).count_ops()
 
                 for key in expected_ops.keys():
                     self.assertEqual(expected_ops[key], actual_ops[key])
 
 
-class TestInternals(QiskitAquaTestCase):
+class TestProblemSetting(QiskitAquaTestCase):
+    """ Test the setting and getting of the A and Q operator and the objective qubit index """
+
     def setUp(self):
         super().setUp()
         self.a_bernoulli = BernoulliAFactory(0)
@@ -397,12 +409,9 @@ class TestSineIntegral(QiskitAquaTestCase):
         self._qasm = qasm
 
     @parameterized.expand([
-        [4, AmplitudeEstimation(2), {'estimation': 0.5, 'mle': 0.272675}],
-        [4, AmplitudeEstimation(4), {'estimation': 0.30866, 'mle': 0.272675}],
-        [3, MaximumLikelihoodAmplitudeEstimation(2), {'estimation': 0.272074}],
+        [2, AmplitudeEstimation(2), {'estimation': 0.5, 'mle': 0.270290}],
         [4, MaximumLikelihoodAmplitudeEstimation(4), {'estimation': 0.272675}],
         [3, IterativeAmplitudeEstimation(0.1, 0.1), {'estimation': 0.272082}],
-        [5, IterativeAmplitudeEstimation(0.00001, 0.01), {'estimation': 0.272675}],
     ])
     def test_statevector(self, n, ae, expect):
         """ statevector test """
@@ -417,11 +426,8 @@ class TestSineIntegral(QiskitAquaTestCase):
 
     @parameterized.expand([
         [4, 10, AmplitudeEstimation(2), {'estimation': 0.5, 'mle': 0.333333}],
-        [4, 1000, AmplitudeEstimation(4), {'estimation': 0.30866, 'mle': 0.274335}],
         [3, 10, MaximumLikelihoodAmplitudeEstimation(2), {'estimation': 0.256878}],
-        [4, 1000, MaximumLikelihoodAmplitudeEstimation(4), {'estimation': 0.271866}],
-        [3, 10, IterativeAmplitudeEstimation(0.1, 0.1), {'estimation': 0.255756}],
-        [5, 1000, IterativeAmplitudeEstimation(0.00001, 0.01), {'estimation': 0.272675}],
+        [3, 1000, IterativeAmplitudeEstimation(0.01, 0.01), {'estimation': 0.271790}],
     ])
     def test_qasm(self, n, shots, ae, expect):
         """ qasm test """
@@ -433,6 +439,9 @@ class TestSineIntegral(QiskitAquaTestCase):
         for key, value in expect.items():
             self.assertAlmostEqual(value, result[key], places=3,
                                    msg="estimate `{}` failed".format(key))
+
+    # def test_confidence_intervals(self, n, ae, expect):
+    #     ae.a_factory = SineIntegralAFactory(n)
 
 
 class TestCreditRiskAnalysis(QiskitAquaTestCase):
