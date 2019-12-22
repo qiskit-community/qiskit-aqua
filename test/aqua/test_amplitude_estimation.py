@@ -113,7 +113,11 @@ class SineIntegralAFactory(UncertaintyProblem):
 
 
 class TestBernoulli(QiskitAquaTestCase):
-    """ Test Bernoulli """
+    """
+    Tests based on the Bernoulli A operator. This class tests
+        * the estimation result
+        * the constructed circuits
+    """
 
     def setUp(self):
         super().setUp()
@@ -393,7 +397,11 @@ class TestProblemSetting(QiskitAquaTestCase):
 
 
 class TestSineIntegral(QiskitAquaTestCase):
-    """ Integrate the sine squared using amplitude estimation """
+    """
+    Tests based on the A operator to integrate sin^2(x). This class tests
+        * the estimation result
+        * the confidence intervals
+    """
 
     def setUp(self):
         super().setUp()
@@ -414,7 +422,7 @@ class TestSineIntegral(QiskitAquaTestCase):
         [3, IterativeAmplitudeEstimation(0.1, 0.1), {'estimation': 0.272082}],
     ])
     def test_statevector(self, n, ae, expect):
-        """ statevector test """
+        """ Statevector end-to-end test """
         # construct factories for A and Q
         ae.a_factory = SineIntegralAFactory(n)
 
@@ -430,7 +438,7 @@ class TestSineIntegral(QiskitAquaTestCase):
         [3, 1000, IterativeAmplitudeEstimation(0.01, 0.01), {'estimation': 0.271790}],
     ])
     def test_qasm(self, n, shots, ae, expect):
-        """ qasm test """
+        """ QASM end-to-end test """
         # construct factories for A and Q
         ae.a_factory = SineIntegralAFactory(n)
 
@@ -440,8 +448,59 @@ class TestSineIntegral(QiskitAquaTestCase):
             self.assertAlmostEqual(value, result[key], places=3,
                                    msg="estimate `{}` failed".format(key))
 
-    # def test_confidence_intervals(self, n, ae, expect):
-    #     ae.a_factory = SineIntegralAFactory(n)
+    @parameterized.expand([
+        [AmplitudeEstimation(3), 'mle',
+            {'likelihood_ratio': [0.24947346406470136, 0.3003771197734433],
+             'fisher': [0.24861769995820207, 0.2999286066724035],
+             'observed_fisher': [0.24845622030041542, 0.30009008633019013]}],
+        [MaximumLikelihoodAmplitudeEstimation(3), 'estimation',
+            {'likelihood_ratio': [0.25987941798909114, 0.27985361366769945],
+             'fisher': [0.2584889015125656, 0.2797018754936686],
+             'observed_fisher': [0.2659279996107888, 0.2722627773954454]}],
+    ])
+    def test_confidence_intervals(self, ae, key, expect):
+        """ End-to-end test for all confidence intervals """
+        n = 3
+        ae.a_factory = SineIntegralAFactory(n)
+
+        # statevector
+        result = ae.run(self._statevector)
+        methods = ['lr', 'fi', 'oi']  # short for likelihood_ratio, fisher, observed_fisher
+        alphas = [0.1, 0.00001, 0.9]  # alpha shouldn't matter in statevector
+        for alpha, method in zip(alphas, methods):
+            confint = ae.confidence_interval(alpha, method)
+            # confidence interval based on statevector should be empty, as we are sure of the result
+            self.assertAlmostEqual(confint[1] - confint[0], 0.0)
+            self.assertAlmostEqual(confint[0], result[key])
+
+        # qasm
+        shots = 100
+        alpha = 0.01
+        result = ae.run(self._qasm(shots))
+        for method, expected_confint in expect.items():
+            confint = ae.confidence_interval(alpha, method)
+            self.assertEqual(confint, expected_confint)
+            self.assertTrue(confint[0] <= result[key] <= confint[1])
+
+    def test_iqae_confidence_intervals(self):
+        """ End-to-end test for the IQAE confidence interval """
+        n = 3
+        ae = IterativeAmplitudeEstimation(0.1, 0.01, a_factory=SineIntegralAFactory(n))
+        expected_confint = [0.19840508760087738, 0.35110155403424115]
+
+        # statevector
+        result = ae.run(self._statevector)
+        confint = result['confidence_interval']
+        # confidence interval based on statevector should be empty, as we are sure of the result
+        self.assertAlmostEqual(confint[1] - confint[0], 0.0)
+        self.assertAlmostEqual(confint[0], result['estimation'])
+
+        # qasm
+        shots = 100
+        result = ae.run(self._qasm(shots))
+        confint = result['confidence_interval']
+        self.assertEqual(confint, expected_confint)
+        self.assertTrue(confint[0] <= result['estimation'] <= confint[1])
 
 
 class TestCreditRiskAnalysis(QiskitAquaTestCase):
