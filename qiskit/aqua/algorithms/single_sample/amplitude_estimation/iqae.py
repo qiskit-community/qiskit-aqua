@@ -138,15 +138,16 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
     def _find_next_k(self, k, upper_half_circle, theta_interval, min_ratio=2):
         """
-        Find the largest integer k, such that the scaled interval (4k + 2)*theta_interval
+        Find the largest integer k_next, such that the interval (4 * k_next + 2)*theta_interval
         lies completely in [0, pi] or [pi, 2pi], for theta_interval = (theta_lower, theta_upper).
 
         Args:
             k (int): current power of the Q operator
-            upper_half_circle (bool): boolean flag of whether theta lies in upper half-circle or not
+            upper_half_circle (bool): boolean flag of whether theta_interval lies in the
+                upper half-circle [0, pi] or in the lower one [pi, 2pi]
             theta_interval (tuple(float, float)): current confidence interval for the angle
                 theta, i.e. (theta_lower, theta_upper)
-            min_ratio (float): minimal ratio K/K_i allowed in the algorithm
+            min_ratio (float): minimal ratio K/K_next allowed in the algorithm
 
         Returns:
             tuple(int, bool): next power k, and boolean flag for the extrapolated interval
@@ -155,30 +156,29 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             AquaError: if min_ratio is smaller or equal to 1
         """
         if min_ratio <= 1:
-            raise AquaError('min_ratio must be larger than 1: '
-                            'the next k should not be smaller than the previous one')
+            raise AquaError('min_ratio must be larger than 1 to ensure convergence')
 
         # initialize variables
         theta_l, theta_u = theta_interval
-        old_scaling = 4 * k + 2  # current K_i factor
+        old_scaling = 4 * k + 2  # current scaling factor, called K := (4k + 2)
 
-        # the largest feasible K cannot be larger than K_max, which is bounded by the length of
-        # the current confidence interval
+        # the largest feasible scaling factor K cannot be larger than K_max,
+        # which is bounded by the length of the current confidence interval
         max_scaling = int(1 / (2 * (theta_u - theta_l)))
-        scaling = max_scaling - (max_scaling - 2) % 4
+        scaling = max_scaling - (max_scaling - 2) % 4  # bring into the form 4 * k_max + 2
 
-        # find next feasible K = 4k+2
+        # find the largest feasible scaling factor K_next, and thus k_next
         while scaling >= min_ratio * old_scaling:
             theta_min = scaling * theta_l - int(scaling * theta_l)
             theta_max = scaling * theta_u - int(scaling * theta_u)
 
             if theta_min <= theta_max <= 0.5 and theta_min <= 0.5:
-                # if extrapolated theta is in upper half-circle
+                # the extrapolated theta interval is in the upper half-circle
                 upper_half_circle = True
                 return int((scaling - 2) / 4), upper_half_circle
 
             elif theta_max >= 0.5 and theta_max >= theta_min >= 0.5:
-                # if extrapolated theta is in lower half-circle
+                # the extrapolated theta interval is in the upper half-circle
                 upper_half_circle = False
                 return int((scaling - 2) / 4), upper_half_circle
 
