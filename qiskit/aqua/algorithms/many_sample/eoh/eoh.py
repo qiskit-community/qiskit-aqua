@@ -21,7 +21,6 @@ from qiskit import QuantumRegister
 
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.operators import op_converter
-from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 
 logger = logging.getLogger(__name__)
 
@@ -93,47 +92,6 @@ class EOH(QuantumAlgorithm):
         self._expansion_mode = expansion_mode
         self._expansion_order = expansion_order
         self._ret = {}
-
-    @classmethod
-    def init_params(cls, params, algo_input):
-        """
-        Initialize via parameters dictionary and algorithm input instance
-        Args:
-            params (dict): parameters dictionary
-            algo_input (EnergyInput): instance
-        Returns:
-            EOH: and instance of this class
-        Raises:
-            AquaError: invalid input
-        """
-        if algo_input is None:
-            raise AquaError("EnergyInput instance is required.")
-
-        # For getting the extra operator, caller has
-        # to do something like: algo_input.add_aux_op(evo_op)
-        operator = algo_input.qubit_op
-        aux_ops = algo_input.aux_ops
-        if aux_ops is None or len(aux_ops) != 1:
-            raise AquaError("EnergyInput, a single aux op is required for evaluation.")
-        evo_operator = aux_ops[0]
-        if evo_operator is None:
-            raise AquaError("EnergyInput, invalid aux op.")
-
-        dynamics_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
-        evo_time = dynamics_params.get(EOH.PROP_EVO_TIME)
-        num_time_slices = dynamics_params.get(EOH.PROP_NUM_TIME_SLICES)
-        expansion_mode = dynamics_params.get(EOH.PROP_EXPANSION_MODE)
-        expansion_order = dynamics_params.get(EOH.PROP_EXPANSION_ORDER)
-
-        # Set up initial state, we need to add computed num qubits to params
-        initial_state_params = params.get(Pluggable.SECTION_KEY_INITIAL_STATE)
-        initial_state_params['num_qubits'] = operator.num_qubits
-        initial_state = get_pluggable_class(PluggableType.INITIAL_STATE,
-                                            initial_state_params['name']).init_params(params)
-
-        return cls(operator, initial_state, evo_operator, evo_time=evo_time,
-                   num_time_slices=num_time_slices, expansion_mode=expansion_mode,
-                   expansion_order=expansion_order)
 
     def construct_circuit(self):
         """
