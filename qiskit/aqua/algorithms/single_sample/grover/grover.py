@@ -22,7 +22,7 @@ import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 from qiskit.qasm import pi
 
-from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
+from qiskit.aqua import AquaError
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.components.initial_states import Custom
@@ -183,39 +183,6 @@ class Grover(QuantumAlgorithm):
         qc += self._init_state_circuit
         qc.barrier(self._oracle.variable_register)
         return qc
-
-    @classmethod
-    def init_params(cls, params, algo_input):
-        """
-        Initialize via parameters dictionary and algorithm input instance
-        Args:
-            params (dict): parameters dictionary
-            algo_input (AlgorithmInput): input instance
-        Returns:
-            Grover: and instance of this class
-        Raises:
-            AquaError: invalid input
-        """
-        if algo_input is not None:
-            raise AquaError("Input instance not supported.")
-
-        grover_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
-        incremental = grover_params.get(Grover.PROP_INCREMENTAL)
-        num_iterations = grover_params.get(Grover.PROP_NUM_ITERATIONS)
-        mct_mode = grover_params.get(Grover.PROP_MCT_MODE)
-
-        oracle_params = params.get(Pluggable.SECTION_KEY_ORACLE)
-        oracle = get_pluggable_class(PluggableType.ORACLE,
-                                     oracle_params['name']).init_params(params)
-
-        # Set up initial state, we need to add computed num qubits to params
-        init_state_params = params.get(Pluggable.SECTION_KEY_INITIAL_STATE)
-        init_state_params['num_qubits'] = len(oracle.variable_register)
-        init_state = get_pluggable_class(PluggableType.INITIAL_STATE,
-                                         init_state_params['name']).init_params(params)
-
-        return cls(oracle, init_state=init_state,
-                   incremental=incremental, num_iterations=num_iterations, mct_mode=mct_mode)
 
     @property
     def qc_amplitude_amplification_iteration(self):

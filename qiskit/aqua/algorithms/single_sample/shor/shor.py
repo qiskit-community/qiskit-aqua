@@ -26,7 +26,7 @@ import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 
 from qiskit.aqua.utils.arithmetic import is_power
-from qiskit.aqua import AquaError, Pluggable
+from qiskit.aqua import AquaError
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.circuits import FourierTransformCircuits as ftc
@@ -108,28 +108,6 @@ class Shor(QuantumAlgorithm):
         if tf:
             logger.info('The input integer is a power: %s=%s^%s.', N, b, p)
             self._ret['factors'].append(b)
-
-    @classmethod
-    def init_params(cls, params, algo_input):
-        """
-        Initialize via parameters dictionary and algorithm input instance.
-
-        Args:
-            params (dict): parameters dictionary
-            algo_input (AlgorithmInput): input instance
-        Returns:
-            Shor: instance of this class
-        Raises:
-            AquaError: invalid input
-        """
-
-        if algo_input is not None:
-            raise AquaError("Input instance not supported.")
-
-        shor_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
-        N = shor_params.get(Shor.PROP_N)
-
-        return cls(N)
 
     def _get_angles(self, a):
         """

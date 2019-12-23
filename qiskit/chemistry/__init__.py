@@ -54,8 +54,6 @@ Submodules
 
 from .qiskit_chemistry_error import QiskitChemistryError
 from .qmolecule import QMolecule
-from .qiskit_chemistry_problem import ChemistryProblem
-from .qiskit_chemistry import (QiskitChemistry, run_experiment, run_driver_to_json)
 from .fermionic_operator import FermionicOperator
 from .mp2info import MP2Info
 from ._logging import (get_logging_level,
@@ -66,10 +64,6 @@ from ._logging import (get_logging_level,
 
 __all__ = ['QiskitChemistryError',
            'QMolecule',
-           'ChemistryProblem',
-           'QiskitChemistry',
-           'run_experiment',
-           'run_driver_to_json',
            'FermionicOperator',
            'MP2Info',
            'get_logging_level',
