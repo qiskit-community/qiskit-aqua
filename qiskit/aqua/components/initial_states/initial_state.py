@@ -25,8 +25,8 @@ from qiskit.aqua import AquaError  # pylint: disable=unused-import
 class InitialState(ABC):
     """Base class for InitialState.
 
-        This method should initialize the module and its configuration, and
-        use an exception if a component of the module is
+        This method should initialize the module and
+        use an exception if a component of the module is not
         available.
     """
 

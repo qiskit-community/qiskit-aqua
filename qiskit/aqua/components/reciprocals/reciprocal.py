@@ -23,8 +23,8 @@ class Reciprocal(ABC):
 
     """Base class for reciprocal calculation.
 
-    This method should initialize the module and its configuration, and
-    use an exception if a component of the module is available.
+    This method should initialize the module and
+    use an exception if a component of the module is not available.
     """
 
     @abstractmethod

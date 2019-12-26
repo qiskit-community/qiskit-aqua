@@ -23,16 +23,14 @@ class Oracle(ABC):
     """
         Base class for oracles.
 
-        This method should initialize the module and its configuration, and
-        use an exception if a component of the module is
+        This method should initialize the module and
+        use an exception if a component of the module is not
         available.
 
         Args:
             args (list): args
             kwargs (dict): kwargs
     """
-
-    CONFIGURATION = {}
 
     @abstractmethod
     def __init__(self, *args, **kwargs):

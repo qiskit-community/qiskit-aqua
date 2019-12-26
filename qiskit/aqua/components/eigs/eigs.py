@@ -22,8 +22,8 @@ from abc import ABC, abstractmethod
 class Eigenvalues(ABC):
     """Base class for eigenvalue estimation.
 
-    This method should initialize the module and its configuration, and
-    use an exception if a component of the module is available.
+    This method should initialize the module and
+    use an exception if a component of the module is not available.
     """
 
     @abstractmethod
