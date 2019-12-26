@@ -16,11 +16,10 @@
 This module contains the definition of a base class for eigenvalue estimators.
 """
 
-from abc import abstractmethod
-from qiskit.aqua import Pluggable
+from abc import ABC, abstractmethod
 
 
-class Eigenvalues(Pluggable):
+class Eigenvalues(ABC):
     """Base class for eigenvalue estimation.
 
     This method should initialize the module and its configuration, and

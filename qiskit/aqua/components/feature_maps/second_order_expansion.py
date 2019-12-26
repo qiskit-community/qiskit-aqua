@@ -17,6 +17,7 @@ feature map. Several types of commonly used approaches.
 """
 
 from qiskit.aqua.components.feature_maps import PauliZExpansion, self_product
+from qiskit.aqua.utils.validation import validate
 
 
 class SecondOrderExpansion(PauliZExpansion):
@@ -26,31 +27,27 @@ class SecondOrderExpansion(PauliZExpansion):
     Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
     """
 
-    CONFIGURATION = {
-        'name': 'SecondOrderExpansion',
-        'description': 'Second order expansion for feature map',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'Second_Order_Expansion_schema',
-            'type': 'object',
-            'properties': {
-                'depth': {
-                    'type': 'integer',
-                    'default': 2,
-                    'minimum': 1
-                },
-                'entangler_map': {
-                    'type': ['array', 'null'],
-                    'default': None
-                },
-                'entanglement': {
-                    'type': 'string',
-                    'default': 'full',
-                    'enum': ['full', 'linear']
-                }
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'Second_Order_Expansion_schema',
+        'type': 'object',
+        'properties': {
+            'depth': {
+                'type': 'integer',
+                'default': 2,
+                'minimum': 1
             },
-            'additionalProperties': False
-        }
+            'entangler_map': {
+                'type': ['array', 'null'],
+                'default': None
+            },
+            'entanglement': {
+                'type': 'string',
+                'default': 'full',
+                'enum': ['full', 'linear']
+            }
+        },
+        'additionalProperties': False
     }
 
     def __init__(self, feature_dimension, depth=2, entangler_map=None,
@@ -68,6 +65,6 @@ class SecondOrderExpansion(PauliZExpansion):
                                 topology
             data_map_func (Callable): a mapping function for data x
         """
-        self.validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
         super().__init__(feature_dimension, depth, entangler_map, entanglement,
                          z_order=2, data_map_func=data_map_func)

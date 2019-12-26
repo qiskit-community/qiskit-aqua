@@ -17,12 +17,11 @@ This module contains the definition of a base class for
 feature map. Several types of commonly used approaches.
 """
 
-from abc import abstractmethod
-from qiskit.aqua import Pluggable
+from abc import ABC, abstractmethod
 from qiskit.aqua.utils import get_entangler_map, validate_entangler_map
 
 
-class FeatureMap(Pluggable):
+class FeatureMap(ABC):
 
     """Base class for FeatureMap.
 

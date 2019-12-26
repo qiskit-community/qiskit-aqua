@@ -16,11 +16,10 @@ This module contains the definition of a base class for computing reciprocals
 into an amplitude.
 """
 
-from abc import abstractmethod
-from qiskit.aqua import Pluggable
+from abc import ABC, abstractmethod
 
 
-class Reciprocal(Pluggable):
+class Reciprocal(ABC):
 
     """Base class for reciprocal calculation.
 

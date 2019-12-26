@@ -18,6 +18,7 @@
 
 import logging
 from qiskit.aqua.algorithms.adaptive import VQE
+from qiskit.aqua.utils.validation import validate
 from .var_form import QAOAVarForm
 
 logger = logging.getLogger(__name__)
@@ -32,48 +33,29 @@ class QAOA(VQE):
     See https://arxiv.org/abs/1411.4028
     """
 
-    CONFIGURATION = {
-        'name': 'QAOA.Variational',
-        'description': 'Quantum Approximate Optimization Algorithm',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'qaoa_schema',
-            'type': 'object',
-            'properties': {
-                'p': {
-                    'type': 'integer',
-                    'default': 1,
-                    'minimum': 1
-                },
-                'initial_point': {
-                    'type': ['array', 'null'],
-                    "items": {
-                        "type": "number"
-                    },
-                    'default': None
-                },
-                'max_evals_grouped': {
-                    'type': 'integer',
-                    'default': 1
-                }
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'qaoa_schema',
+        'type': 'object',
+        'properties': {
+            'p': {
+                'type': 'integer',
+                'default': 1,
+                'minimum': 1
             },
-            'additionalProperties': False
+            'initial_point': {
+                'type': ['array', 'null'],
+                "items": {
+                    "type": "number"
+                },
+                'default': None
+            },
+            'max_evals_grouped': {
+                'type': 'integer',
+                'default': 1
+            }
         },
-        'problems': ['ising'],
-        'depends': [
-            {
-                'pluggable_type': 'optimizer',
-                'default': {
-                    'name': 'COBYLA',
-                },
-            },
-            {
-                'pluggable_type': 'initial_state',
-                'default': {
-                    'name': 'ZERO',
-                },
-            },
-        ],
+        'additionalProperties': False
     }
 
     def __init__(self, operator, optimizer, p=1, initial_state=None, mixer=None,
@@ -106,7 +88,7 @@ class QAOA(VQE):
                 - for *qasm simulator or real backend:*
                   :class:`~qiskit.aqua.operators.TPBGroupedWeightedPauliOperator`
         """
-        self.validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
         var_form = QAOAVarForm(operator.copy(), p, initial_state=initial_state,
                                mixer_operator=mixer)
         super().__init__(operator, var_form, optimizer, initial_point=initial_point,

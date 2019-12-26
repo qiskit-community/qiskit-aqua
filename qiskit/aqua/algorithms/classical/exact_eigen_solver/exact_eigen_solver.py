@@ -19,6 +19,7 @@ import numpy as np
 from scipy import sparse as scisparse
 
 from qiskit.aqua.algorithms import QuantumAlgorithm
+from qiskit.aqua.utils.validation import validate
 from qiskit.aqua.operators import MatrixOperator, op_converter  # pylint: disable=unused-import
 
 logger = logging.getLogger(__name__)
@@ -29,24 +30,18 @@ logger = logging.getLogger(__name__)
 class ExactEigensolver(QuantumAlgorithm):
     """The Exact Eigensolver algorithm."""
 
-    CONFIGURATION = {
-        'name': 'ExactEigensolver',
-        'description': 'ExactEigensolver Algorithm',
-        'classical': True,
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'ExactEigensolver_schema',
-            'type': 'object',
-            'properties': {
-                'k': {
-                    'type': 'integer',
-                    'default': 1,
-                    'minimum': 1
-                }
-            },
-            'additionalProperties': False
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'ExactEigensolver_schema',
+        'type': 'object',
+        'properties': {
+            'k': {
+                'type': 'integer',
+                'default': 1,
+                'minimum': 1
+            }
         },
-        'problems': ['energy', 'excited_states', 'ising']
+        'additionalProperties': False
     }
 
     def __init__(self, operator, k=1, aux_operators=None):
@@ -58,7 +53,7 @@ class ExactEigensolver(QuantumAlgorithm):
             aux_operators (list[MatrixOperator]): Auxiliary operators
                         to be evaluated at each eigenvalue
         """
-        self.validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
         super().__init__()
 
         self._operator = op_converter.to_matrix_operator(operator)
@@ -74,6 +69,10 @@ class ExactEigensolver(QuantumAlgorithm):
             self._k = self._operator.matrix.shape[0]
             logger.debug("WARNING: Asked for %s eigenvalues but max possible is %s.", k, self._k)
         self._ret = {}
+
+    def is_classical(self):
+        """Returns true if algorithm is classical"""
+        return True
 
     def _solve(self):
         if self._operator.dia_matrix is None:

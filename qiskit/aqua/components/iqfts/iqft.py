@@ -15,14 +15,14 @@
 This module contains the definition of a base class for inverse quantum fourier transforms.
 """
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
 from qiskit import QuantumRegister, QuantumCircuit  # pylint: disable=unused-import
 
-from qiskit.aqua import Pluggable, AquaError
+from qiskit.aqua import AquaError
 
 
-class IQFT(Pluggable):
+class IQFT(ABC):
 
     """Base class for Inverse QFT.
 
