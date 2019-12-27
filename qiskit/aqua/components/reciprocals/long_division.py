@@ -23,6 +23,7 @@ import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.aqua.components.reciprocals import Reciprocal
 from qiskit.aqua.circuits.gates import mct  # pylint: disable=unused-import
+from qiskit.aqua.utils.validation import validate
 
 # pylint: disable=invalid-name
 
@@ -35,38 +36,33 @@ class LongDivision(Reciprocal):
     qubit by C/lambda. This is a first order approximation of arcsin(C/lambda).
     """
 
-    CONFIGURATION = {
-        'name': 'LongDivision',
-        'description':
-            'reciprocal computation with long division and rotation of the ancilla qubit',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'reciprocal_long_division_schema',
-            'type': 'object',
-            'properties': {
-                'negative_evals': {
-                    'type': 'boolean',
-                    'default': False
-                },
-                'scale': {
-                    'type': 'number',
-                    'default': 0,
-                },
-                'precision': {
-                    'type': ['integer', 'null'],
-                    'default': None,
-                },
-                'evo_time': {
-                    'type': ['number', 'null'],
-                    'default': None
-                },
-                'lambda_min': {
-                    'type': ['number', 'null'],
-                    'default': None
-                }
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'reciprocal_long_division_schema',
+        'type': 'object',
+        'properties': {
+            'negative_evals': {
+                'type': 'boolean',
+                'default': False
             },
-            'additionalProperties': False
+            'scale': {
+                'type': 'number',
+                'default': 0,
+            },
+            'precision': {
+                'type': ['integer', 'null'],
+                'default': None,
+            },
+            'evo_time': {
+                'type': ['number', 'null'],
+                'default': None
+            },
+            'lambda_min': {
+                'type': ['number', 'null'],
+                'default': None
+            }
         },
+        'additionalProperties': False
     }
 
     def __init__(
@@ -87,7 +83,7 @@ class LongDivision(Reciprocal):
             lambda_min (float, optional): the smallest expected eigenvalue
         """
 
-        self.validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
         super().__init__()
         self._negative_evals = negative_evals
         self._scale = scale

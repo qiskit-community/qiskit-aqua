@@ -24,6 +24,7 @@ from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.ignis.verification.tomography import state_tomography_circuits, \
     StateTomographyFitter
 from qiskit.converters import circuit_to_dag
+from qiskit.aqua.utils.validation import validate
 
 logger = logging.getLogger(__name__)
 
@@ -40,55 +41,25 @@ class HHL(QuantumAlgorithm):
     state tomography or calculated from the statevector (statevector_simulator).
     """
 
-    CONFIGURATION = {
-        'name': 'HHL',
-        'description': 'The HHL Algorithm for Solving Linear Systems of '
-                       'equations',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'hhl_schema',
-            'type': 'object',
-            'properties': {
-                'truncate_powerdim': {
-                    'type': 'boolean',
-                    'default': False
-                },
-                'truncate_hermitian': {
-                    'type': 'boolean',
-                    'default': False
-                },
-                'orig_size': {
-                    'type': ['integer', 'null'],
-                    'default': None
-                }
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'hhl_schema',
+        'type': 'object',
+        'properties': {
+            'truncate_powerdim': {
+                'type': 'boolean',
+                'default': False
             },
-            'additionalProperties': False
+            'truncate_hermitian': {
+                'type': 'boolean',
+                'default': False
+            },
+            'orig_size': {
+                'type': ['integer', 'null'],
+                'default': None
+            }
         },
-        'problems': ['linear_system'],
-        'depends': [
-            {
-                'pluggable_type': 'initial_state',
-                'default': {
-                    'name': 'CUSTOM',
-                },
-            },
-            {
-                'pluggable_type': 'eigs',
-                'default': {
-                    'name': 'EigsQPE',
-                    'num_ancillae': 6,
-                    'num_time_slices': 50,
-                    'expansion_mode': 'suzuki',
-                    'expansion_order': 2
-                },
-            },
-            {
-                'pluggable_type': 'reciprocal',
-                'default': {
-                    'name': 'Lookup'
-                },
-            },
-        ],
+        'additionalProperties': False
     }
 
     def __init__(
@@ -122,7 +93,7 @@ class HHL(QuantumAlgorithm):
             ValueError: invalid input
         """
         super().__init__()
-        super().validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
         if matrix.shape[0] != matrix.shape[1]:
             raise ValueError("Input matrix must be square!")
         if matrix.shape[0] != len(vector):

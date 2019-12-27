@@ -44,27 +44,13 @@ class QSVM(QuantumAlgorithm):
     based on how many classes the data has.
     """
 
-    CONFIGURATION = {
-        'name': 'QSVM',
-        'description': 'QSVM Algorithm',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'QSVM_schema',
-            'type': 'object',
-            'properties': {
-            },
-            'additionalProperties': False
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'QSVM_schema',
+        'type': 'object',
+        'properties': {
         },
-        'problems': ['classification'],
-        'depends': [
-            {'pluggable_type': 'multiclass_extension'},
-            {'pluggable_type': 'feature_map',
-             'default': {
-                 'name': 'SecondOrderExpansion',
-                 'depth': 2
-             }
-             },
-        ],
+        'additionalProperties': False
     }
 
     BATCH_SIZE = 1000
