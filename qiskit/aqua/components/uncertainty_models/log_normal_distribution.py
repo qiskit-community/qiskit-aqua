@@ -18,6 +18,7 @@ The Univariate Log-Normal Distribution.
 
 from scipy.stats.distributions import lognorm
 import numpy as np
+from qiskit.aqua.utils.validation import validate
 from qiskit.aqua.components.uncertainty_models.univariate_distribution import UnivariateDistribution
 
 
@@ -26,37 +27,33 @@ class LogNormalDistribution(UnivariateDistribution):
     The Univariate Log-Normal Distribution.
     """
 
-    CONFIGURATION = {
-        'name': 'LogNormalDistribution',
-        'description': 'Log-Normal Distribution',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'LogNormalDistribution_schema',
-            'type': 'object',
-            'properties': {
-                'num_target_qubits': {
-                    'type': 'integer',
-                    'default': 2,
-                },
-                'mu': {
-                    'type': 'number',
-                    'default': 0,
-                },
-                'sigma': {
-                    'type': 'number',
-                    'default': 1,
-                },
-                'low': {
-                    'type': 'number',
-                    'default': 0,
-                },
-                'high': {
-                    'type': 'number',
-                    'default': 1,
-                },
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'LogNormalDistribution_schema',
+        'type': 'object',
+        'properties': {
+            'num_target_qubits': {
+                'type': 'integer',
+                'default': 2,
             },
-            'additionalProperties': False
-        }
+            'mu': {
+                'type': 'number',
+                'default': 0,
+            },
+            'sigma': {
+                'type': 'number',
+                'default': 1,
+            },
+            'low': {
+                'type': 'number',
+                'default': 0,
+            },
+            'high': {
+                'type': 'number',
+                'default': 1,
+            },
+        },
+        'additionalProperties': False
     }
 
     def __init__(self, num_target_qubits, mu=0, sigma=1, low=0, high=1):
@@ -72,7 +69,7 @@ class LogNormalDistribution(UnivariateDistribution):
             high (float): upper bound, i.e., the value corresponding to \|1...1>
                           (assuming an equidistant grid)
         """
-        self.validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
         probabilities, _ = UnivariateDistribution.\
             pdf_to_probabilities(
                 lambda x: lognorm.pdf(x, s=sigma, scale=np.exp(mu)),

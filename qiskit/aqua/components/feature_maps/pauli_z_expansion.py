@@ -17,6 +17,7 @@ feature map. Several types of commonly used approaches.
 """
 
 from qiskit.aqua.components.feature_maps import PauliExpansion, self_product
+from qiskit.aqua.utils.validation import validate
 
 
 class PauliZExpansion(PauliExpansion):
@@ -26,36 +27,32 @@ class PauliZExpansion(PauliExpansion):
     Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
     """
 
-    CONFIGURATION = {
-        'name': 'PauliZExpansion',
-        'description': 'Pauli Z expansion for feature map (any order)',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'Pauli_Z_Expansion_schema',
-            'type': 'object',
-            'properties': {
-                'depth': {
-                    'type': 'integer',
-                    'default': 2,
-                    'minimum': 1
-                },
-                'entangler_map': {
-                    'type': ['array', 'null'],
-                    'default': None
-                },
-                'entanglement': {
-                    'type': 'string',
-                    'default': 'full',
-                    'enum': ['full', 'linear']
-                },
-                'z_order': {
-                    'type': 'integer',
-                    'minimum': 1,
-                    'default': 2
-                }
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'Pauli_Z_Expansion_schema',
+        'type': 'object',
+        'properties': {
+            'depth': {
+                'type': 'integer',
+                'default': 2,
+                'minimum': 1
             },
-            'additionalProperties': False
-        }
+            'entangler_map': {
+                'type': ['array', 'null'],
+                'default': None
+            },
+            'entanglement': {
+                'type': 'string',
+                'default': 'full',
+                'enum': ['full', 'linear']
+            },
+            'z_order': {
+                'type': 'integer',
+                'minimum': 1,
+                'default': 2
+            }
+        },
+        'additionalProperties': False
     }
 
     def __init__(self, feature_dimension, depth=2, entangler_map=None,
@@ -74,7 +71,7 @@ class PauliZExpansion(PauliExpansion):
             z_order (int): z order
             data_map_func (Callable): a mapping function for data x
         """
-        self.validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
         pauli_string = []
         for i in range(1, z_order + 1):
             pauli_string.append('Z' * i)

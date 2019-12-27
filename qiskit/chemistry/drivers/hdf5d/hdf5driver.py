@@ -17,7 +17,7 @@
 import os
 import logging
 from qiskit.chemistry.drivers import BaseDriver
-from qiskit.chemistry import QMolecule, QiskitChemistryError
+from qiskit.chemistry import QMolecule
 
 logger = logging.getLogger(__name__)
 
@@ -27,52 +27,28 @@ class HDF5Driver(BaseDriver):
 
     KEY_HDF5_INPUT = 'hdf5_input'
 
-    CONFIGURATION = {
-        "name": "HDF5",
-        "description": "HDF5 Driver",
-        "input_schema": {
-            "$schema": "http://json-schema.org/draft-07/schema#",
-            "id": "hdf5_schema",
-            "type": "object",
-            "properties": {
-                "hdf5_input": {
-                    "type": "string",
-                    "default": "molecule.hdf5"
-                }
-            },
-            "additionalProperties": False
-        }
-    }
-
-    def __init__(self, hdf5_input):
+    def __init__(self, hdf5_input=None):
         """
         Initializer
         Args:
             hdf5_input (str): path to hdf5 file
         """
-        self.validate(locals())
+        if hdf5_input is None:
+            hdf5_input = "molecule.hdf5"
+
         super().__init__()
         self._hdf5_input = hdf5_input
+        self._work_path = None
 
-    @classmethod
-    def init_from_input(cls, section):
-        """
-        Initialize via section dictionary.
+    @property
+    def work_path(self):
+        """ returns work path """
+        return self._work_path
 
-        Args:
-            section (dict): section dictionary
-
-        Returns:
-            HDF5Driver: Driver object
-        Raises:
-            QiskitChemistryError: Invalid or missing section
-        """
-        if section is None or not isinstance(section, dict):
-            raise QiskitChemistryError('Invalid or missing section {}'.format(section))
-
-        kwargs = section
-        logger.debug('init_from_input: %s', kwargs)
-        return cls(**kwargs)
+    @work_path.setter
+    def work_path(self, new_work_path):
+        """ sets work path """
+        self._work_path = new_work_path
 
     def run(self):
         hdf5_file = self._hdf5_input

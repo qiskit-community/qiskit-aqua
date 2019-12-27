@@ -24,6 +24,7 @@ from scipy.optimize import bisect
 from qiskit.aqua import AquaError
 from qiskit.aqua.circuits import PhaseEstimationCircuit
 from qiskit.aqua.components.iqfts import Standard
+from qiskit.aqua.utils.validation import validate
 
 from .ae_algorithm import AmplitudeEstimationAlgorithm
 from .ae_utils import pdf_a, derivative_log_pdf_a, bisect_max
@@ -38,37 +39,18 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
     The Amplitude Estimation algorithm.
     """
 
-    CONFIGURATION = {
-        'name': 'AmplitudeEstimation',
-        'description': 'Amplitude Estimation Algorithm',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'AmplitudeEstimation_schema',
-            'type': 'object',
-            'properties': {
-                'num_eval_qubits': {
-                    'type': 'integer',
-                    'default': 5,
-                    'minimum': 1
-                }
-            },
-            'additionalProperties': False
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'AmplitudeEstimation_schema',
+        'type': 'object',
+        'properties': {
+            'num_eval_qubits': {
+                'type': 'integer',
+                'default': 5,
+                'minimum': 1
+            }
         },
-        'problems': ['uncertainty'],
-        'depends': [
-            {
-                'pluggable_type': 'uncertainty_problem',
-                'default': {
-                    'name': 'EuropeanCallDelta'
-                }
-            },
-            {
-                'pluggable_type': 'iqft',
-                'default': {
-                    'name': 'STANDARD',
-                }
-            },
-        ],
+        'additionalProperties': False
     }
 
     def __init__(self, num_eval_qubits, a_factory=None,
@@ -82,10 +64,10 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
             i_objective (int): i objective
             q_factory (CircuitFactory): the CircuitFactory subclass object representing an
                                         amplitude estimation sample (based on a_factory)
-            iqft (IQFT): the Inverse Quantum Fourier Transform pluggable component,
+            iqft (IQFT): the Inverse Quantum Fourier Transform component,
                          defaults to using a standard iqft when None
         """
-        self.validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
         super().__init__(a_factory, q_factory, i_objective)
 
         # get parameters

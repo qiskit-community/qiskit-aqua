@@ -28,6 +28,7 @@ from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.components.neural_networks.quantum_generator import QuantumGenerator
 from qiskit.aqua.components.neural_networks.numpy_discriminator import NumpyDiscriminator
 from qiskit.aqua.utils.dataset_helper import discretize_and_truncate
+from qiskit.aqua.utils.validation import validate
 
 logger = logging.getLogger(__name__)
 
@@ -39,57 +40,39 @@ class QGAN(QuantumAlgorithm):
     Quantum Generative Adversarial Network.
 
     """
-    CONFIGURATION = {
-        'name': 'QGAN',
-        'description': 'Quantum Generative Adversarial Network',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'Qgan_schema',
-            'type': 'object',
-            'properties': {
-                'num_qubits': {
-                    'type': ['array', 'null'],
-                    'default': None
-                },
-                'batch_size': {
-                    'type': 'integer',
-                    'default': 500,
-                    'minimum': 1
-                },
-                'num_epochs': {
-                    'type': 'integer',
-                    'default': 3000
-                },
-                'seed': {
-                    'type': ['integer'],
-                    'default': 7
-                },
-                'tol_rel_ent': {
-                    'type': ['number', 'null'],
-                    'default': None
-                },
-                'snapshot_dir': {
-                    'type': ['string', 'null'],
-                    'default': None
-                }
+
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'Qgan_schema',
+        'type': 'object',
+        'properties': {
+            'num_qubits': {
+                'type': ['array', 'null'],
+                'default': None
             },
-            'additionalProperties': False
+            'batch_size': {
+                'type': 'integer',
+                'default': 500,
+                'minimum': 1
+            },
+            'num_epochs': {
+                'type': 'integer',
+                'default': 3000
+            },
+            'seed': {
+                'type': ['integer'],
+                'default': 7
+            },
+            'tol_rel_ent': {
+                'type': ['number', 'null'],
+                'default': None
+            },
+            'snapshot_dir': {
+                'type': ['string', 'null'],
+                'default': None
+            }
         },
-        'problems': ['distribution_learning_loading'],
-        'depends': [
-            {
-                'pluggable_type': 'generative_network',
-                'default': {
-                    'name': 'QuantumGenerator'
-                }
-            },
-            {
-                'pluggable_type': 'discriminative_network',
-                'default': {
-                    'name': 'NumpyDiscriminator'
-                }
-            },
-        ],
+        'additionalProperties': False
     }
 
     def __init__(self, data, bounds=None, num_qubits=None, batch_size=500, num_epochs=3000, seed=7,
@@ -117,7 +100,7 @@ class QGAN(QuantumAlgorithm):
             AquaError: invalid input
         """
 
-        self.validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
         super().__init__()
         if data is None:
             raise AquaError('Training data not given.')
