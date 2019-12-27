@@ -103,10 +103,6 @@ class QEomEE(ExactEigensolver):
                                       is_eom_matrix_symmetric, se_list, de_list,
                                       z2_symmetries, untapered_op)
 
-    def is_classical(self):
-        """Returns true if algorithm is classical"""
-        return True
-
     def _run(self):
         super()._run()
         wave_fn = self._ret['eigvecs'][0]

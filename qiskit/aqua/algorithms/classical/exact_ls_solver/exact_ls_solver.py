@@ -17,13 +17,13 @@ import logging
 
 import numpy as np
 
-from qiskit.aqua.algorithms import QuantumAlgorithm
+from qiskit.aqua.algorithms.classical import ClassicalAlgorithm
 from qiskit.aqua.utils.validation import validate
 
 logger = logging.getLogger(__name__)
 
 
-class ExactLSsolver(QuantumAlgorithm):
+class ExactLSsolver(ClassicalAlgorithm):
     """The Exact LinearSystem algorithm."""
 
     _INPUT_SCHEMA = {
@@ -47,10 +47,6 @@ class ExactLSsolver(QuantumAlgorithm):
         self._matrix = matrix
         self._vector = vector
         self._ret = {}
-
-    def is_classical(self):
-        """Returns true if algorithm is classical"""
-        return True
 
     def _solve(self):
         self._ret['eigvals'] = np.linalg.eig(self._matrix)[0]

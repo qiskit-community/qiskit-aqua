@@ -18,7 +18,7 @@ import logging
 import numpy as np
 from scipy import sparse as scisparse
 
-from qiskit.aqua.algorithms import QuantumAlgorithm
+from qiskit.aqua.algorithms.classical import ClassicalAlgorithm
 from qiskit.aqua.utils.validation import validate
 from qiskit.aqua.operators import MatrixOperator, op_converter  # pylint: disable=unused-import
 
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 # pylint: disable=invalid-name
 
 
-class ExactEigensolver(QuantumAlgorithm):
+class ExactEigensolver(ClassicalAlgorithm):
     """The Exact Eigensolver algorithm."""
 
     _INPUT_SCHEMA = {
@@ -69,10 +69,6 @@ class ExactEigensolver(QuantumAlgorithm):
             self._k = self._operator.matrix.shape[0]
             logger.debug("WARNING: Asked for %s eigenvalues but max possible is %s.", k, self._k)
         self._ret = {}
-
-    def is_classical(self):
-        """Returns true if algorithm is classical"""
-        return True
 
     def _solve(self):
         if self._operator.dia_matrix is None:

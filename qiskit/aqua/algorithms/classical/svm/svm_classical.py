@@ -18,8 +18,8 @@ Classical SVM algorithm.
 
 import logging
 
-from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua import AquaError
+from qiskit.aqua.algorithms.classical import ClassicalAlgorithm
 from qiskit.aqua.algorithms.classical.svm import (_SVM_Classical_Binary,
                                                   _SVM_Classical_Multiclass)
 from qiskit.aqua.utils import get_num_classes
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 # pylint: disable=invalid-name
 
 
-class SVM_Classical(QuantumAlgorithm):
+class SVM_Classical(ClassicalAlgorithm):
     """
     Classical SVM algorithm.
 
@@ -93,10 +93,6 @@ class SVM_Classical(QuantumAlgorithm):
                 training_dataset, test_dataset, datapoints, gamma, multiclass_extension)
 
         self.instance = svm_instance
-
-    def is_classical(self):
-        """Returns true if algorithm is classical"""
-        return True
 
     def train(self, data, labels):
         """

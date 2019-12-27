@@ -14,8 +14,7 @@ Finance, with both code and notebook examples available in the
 [qiskit-community-tutorials](https://github.com/Qiskit/qiskit-community-tutorials) GitHub Repositories.
 
 Aqua was designed to be extensible, and uses a framework where algorithms and support objects used
-by algorithms—such as optimizers, variational forms, and oracles—are derived from a defined base class for the type and
-discovered dynamically at run time.
+by algorithms—such as optimizers, variational forms, and oracles—are derived from a defined base class for the type.
 
 ## Installation
 

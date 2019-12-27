@@ -29,7 +29,7 @@ class Reciprocal(ABC):
 
     @abstractmethod
     def __init__(self):
-        super().__init__()
+        pass
 
     @abstractmethod
     def sv_to_resvec(self, statevector, num_q):

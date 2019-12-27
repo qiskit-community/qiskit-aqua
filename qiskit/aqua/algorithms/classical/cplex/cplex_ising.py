@@ -22,7 +22,8 @@ from typing import Dict, List, Tuple, Any
 import importlib
 import numpy as np
 
-from qiskit.aqua import QuantumAlgorithm, AquaError
+from qiskit.aqua import AquaError
+from qiskit.aqua.algorithms.classical import ClassicalAlgorithm
 from qiskit.aqua.utils.validation import validate
 from qiskit.aqua.algorithms.classical.cplex.simple_cplex import SimpleCPLEX
 
@@ -31,7 +32,7 @@ logger = logging.getLogger(__name__)
 # pylint: disable=invalid-name
 
 
-class CPLEX_Ising(QuantumAlgorithm):
+class CPLEX_Ising(ClassicalAlgorithm):
     """ CPLEX Ising algorithm """
 
     _INPUT_SCHEMA = {
@@ -69,10 +70,6 @@ class CPLEX_Ising(QuantumAlgorithm):
         self._thread = thread
         self._display = display
         self._sol = None
-
-    def is_classical(self):
-        """Returns true if algorithm is classical"""
-        return True
 
     @staticmethod
     def _check_valid():

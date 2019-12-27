@@ -13,35 +13,33 @@
 # that they have been altered from the originals.
 
 """
-This module implements the abstract base class for algorithm modules.
+This module implements the abstract base class for classical algorithm modules.
 
-To create add-on algorithm modules subclass the QuantumAlgorithm
+To create add-on classical algorithm modules subclass the ClassicalAlgorithm
 class in this module.
 Doing so requires that the required algorithm interface is implemented.
 """
 
-from abc import ABC, abstractmethod
+# pylint: disable=unused-import
+
+from abc import abstractmethod
 import logging
-from qiskit.aqua import aqua_globals, QuantumInstance, AquaError
+from qiskit.aqua import QuantumAlgorithm, QuantumInstance
 
 logger = logging.getLogger(__name__)
 
 
-class QuantumAlgorithm(ABC):
+class ClassicalAlgorithm(QuantumAlgorithm):
     """
-    Base class for Algorithms.
+    Base class for Classical Algorithms.
 
     This method should initialize the module and
     use an exception if a component of the module is available.
     """
+
     @abstractmethod
     def __init__(self):
-        self._quantum_instance = None
-
-    @property
-    def random(self):
-        """Return a numpy random."""
-        return aqua_globals.random
+        super().__init__()
 
     def run(self, quantum_instance=None, **kwargs):
         """Execute the algorithm with selected backend.
@@ -52,24 +50,5 @@ class QuantumAlgorithm(ABC):
         Returns:
             dict: results of an algorithm.
         """
-        # pylint: disable=import-outside-toplevel
-        from qiskit.providers import BaseBackend
-
-        if quantum_instance is None:
-            AquaError("Quantum device or backend "
-                      "is needed since you are running quantum algorithm.")
-        if isinstance(quantum_instance, BaseBackend):
-            quantum_instance = QuantumInstance(quantum_instance)
-            quantum_instance.set_config(**kwargs)
-        self._quantum_instance = quantum_instance
 
         return self._run()
-
-    @abstractmethod
-    def _run(self):
-        raise NotImplementedError()
-
-    @property
-    def quantum_instance(self):
-        """ returns quantum instance """
-        return self._quantum_instance
