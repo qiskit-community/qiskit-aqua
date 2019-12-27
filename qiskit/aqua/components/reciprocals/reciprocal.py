@@ -16,21 +16,20 @@ This module contains the definition of a base class for computing reciprocals
 into an amplitude.
 """
 
-from abc import abstractmethod
-from qiskit.aqua import Pluggable
+from abc import ABC, abstractmethod
 
 
-class Reciprocal(Pluggable):
+class Reciprocal(ABC):
 
     """Base class for reciprocal calculation.
 
-    This method should initialize the module and its configuration, and
-    use an exception if a component of the module is available.
+    This method should initialize the module and
+    use an exception if a component of the module is not available.
     """
 
     @abstractmethod
     def __init__(self):
-        super().__init__()
+        pass
 
     @abstractmethod
     def sv_to_resvec(self, statevector, num_q):
