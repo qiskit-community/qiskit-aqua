@@ -24,7 +24,8 @@ Doing so requires that the required algorithm interface is implemented.
 
 from abc import abstractmethod
 import logging
-from qiskit.aqua import QuantumAlgorithm, QuantumInstance
+from qiskit.aqua import QuantumInstance
+from qiskit.aqua.algorithms import QuantumAlgorithm
 
 logger = logging.getLogger(__name__)
 
