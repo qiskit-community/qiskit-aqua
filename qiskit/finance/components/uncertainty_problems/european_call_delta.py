@@ -17,6 +17,7 @@ The European Call Option Delta.
 """
 
 import numpy as np
+from qiskit.aqua.utils.validation import validate
 from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
 from qiskit.aqua.circuits.fixed_value_comparator import FixedValueComparator
 
@@ -31,40 +32,28 @@ class EuropeanCallDelta(UncertaintyProblem):
     The payoff function is f(S, K) = max(0, S - K) for a spot price S and strike price K.
     """
 
-    CONFIGURATION = {
-        'name': 'EuropeanCallDelta',
-        'description': 'European Call Delta',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'ECD_schema',
-            'type': 'object',
-            'properties': {
-                'strike_price': {
-                    'type': 'number',
-                    'default': 0
-                },
-                'i_state': {
-                    'type': ['array', 'null'],
-                    'items': {
-                        'type': 'integer'
-                    },
-                    'default': None
-                },
-                'i_objective': {
-                    'type': ['integer', 'null'],
-                    'default': None
-                }
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'ECD_schema',
+        'type': 'object',
+        'properties': {
+            'strike_price': {
+                'type': 'number',
+                'default': 0
             },
-            'additionalProperties': False
+            'i_state': {
+                'type': ['array', 'null'],
+                'items': {
+                    'type': 'integer'
+                },
+                'default': None
+            },
+            'i_objective': {
+                'type': ['integer', 'null'],
+                'default': None
+            }
         },
-        'depends': [
-            {
-                'pluggable_type': 'univariate_distribution',
-                'default': {
-                    'name': 'NormalDistribution'
-                }
-            },
-        ],
+        'additionalProperties': False
     }
 
     def __init__(self, uncertainty_model, strike_price, i_state=None, i_objective=None):
@@ -89,7 +78,7 @@ class EuropeanCallDelta(UncertaintyProblem):
             i_objective = uncertainty_model.num_target_qubits
         self.i_objective = i_objective
 
-        super().validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
 
         # map strike price to {0, ..., 2^n-1}
         lb = uncertainty_model.low

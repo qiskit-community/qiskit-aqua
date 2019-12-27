@@ -20,6 +20,7 @@ from qiskit import QuantumRegister
 from qiskit.aqua.components.eigs import Eigenvalues
 from qiskit.aqua.circuits import PhaseEstimationCircuit
 from qiskit.aqua.operators import op_converter
+from qiskit.aqua.utils.validation import validate
 
 # pylint: disable=invalid-name
 
@@ -33,62 +34,44 @@ class EigsQPE(Eigenvalues):
     known from plain QPE. It depends on QFT and IQFT.
     """
 
-    CONFIGURATION = {
-        'name': 'EigsQPE',
-        'description': 'Quantum Phase Estimation for eigenvalues',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'eigsqpe_schema',
-            'type': 'object',
-            'properties': {
-                'num_time_slices': {
-                    'type': 'integer',
-                    'default': 1,
-                    'minimum': 0
-                },
-                'expansion_mode': {
-                    'type': 'string',
-                    'default': 'trotter',
-                    'enum': [
-                        'suzuki',
-                        'trotter'
-                    ]
-                },
-                'expansion_order': {
-                    'type': 'integer',
-                    'default': 1,
-                    'minimum': 1
-                },
-                'num_ancillae': {
-                    'type': 'integer',
-                    'default': 1,
-                    'minimum': 1
-                },
-                'evo_time': {
-                    'type': ['number', 'null'],
-                    'default': None
-                },
-                'negative_evals': {
-                    'type': 'boolean',
-                    'default': False
-                },
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'eigsqpe_schema',
+        'type': 'object',
+        'properties': {
+            'num_time_slices': {
+                'type': 'integer',
+                'default': 1,
+                'minimum': 0
             },
-            'additionalProperties': False
+            'expansion_mode': {
+                'type': 'string',
+                'default': 'trotter',
+                'enum': [
+                    'suzuki',
+                    'trotter'
+                ]
+            },
+            'expansion_order': {
+                'type': 'integer',
+                'default': 1,
+                'minimum': 1
+            },
+            'num_ancillae': {
+                'type': 'integer',
+                'default': 1,
+                'minimum': 1
+            },
+            'evo_time': {
+                'type': ['number', 'null'],
+                'default': None
+            },
+            'negative_evals': {
+                'type': 'boolean',
+                'default': False
+            },
         },
-        'depends': [
-            {
-                'pluggable_type': 'iqft',
-                'default': {
-                    'name': 'STANDARD',
-                },
-            },
-            {
-                'pluggable_type': 'qft',
-                'default': {
-                    'name': 'STANDARD',
-                },
-            },
-        ],
+        'additionalProperties': False
     }
 
     def __init__(
@@ -105,19 +88,19 @@ class EigsQPE(Eigenvalues):
 
         Args:
             operator (BaseOperator): the hamiltonian Operator object
-            iqft (IQFT): the Inverse Quantum Fourier Transform pluggable component
+            iqft (IQFT): the Inverse Quantum Fourier Transform component
             num_time_slices (int, optional): the number of time slices
             num_ancillae (int, optional): the number of ancillary qubits to use for the measurement
             expansion_mode (str, optional): the expansion mode (trotter|suzuki)
             expansion_order (int, optional): the suzuki expansion order
             evo_time (float, optional): the evolution time
             negative_evals (bool, optional): indicate if negative eigenvalues need to be handled
-            ne_qfts (Union([QFT, IQFT], optional)): the QFT and IQFT pluggable components for
+            ne_qfts (Union([QFT, IQFT], optional)): the QFT and IQFT components for
                                             handling negative eigenvalues
         """
         super().__init__()
         ne_qfts = ne_qfts if ne_qfts is not None else [None, None]
-        super().validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
         self._operator = op_converter.to_weighted_pauli_operator(operator)
         self._iqft = iqft
         self._num_ancillae = num_ancillae

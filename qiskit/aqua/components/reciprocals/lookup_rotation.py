@@ -21,6 +21,7 @@ import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.aqua.components.reciprocals import Reciprocal
 from qiskit.aqua.circuits.gates import mct  # pylint: disable=unused-import
+from qiskit.aqua.utils.validation import validate
 
 logger = logging.getLogger(__name__)
 
@@ -37,43 +38,39 @@ class LookupRotation(Reciprocal):
     Please refer to the HHL documentation for an explanation of this method.
     """
 
-    CONFIGURATION = {
-        'name': 'Lookup',
-        'description': 'approximate inversion for HHL based on table lookup',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'reciprocal_lookup_schema',
-            'type': 'object',
-            'properties': {
-                'pat_length': {
-                    'type': ['integer', 'null'],
-                    'default': None,
-                },
-                'subpat_length': {
-                    'type': ['integer', 'null'],
-                    'default': None,
-                },
-                'negative_evals': {
-                    'type': 'boolean',
-                    'default': False
-                },
-                'scale': {
-                    'type': 'number',
-                    'default': 0,
-                    'minimum': 0,
-                    'maximum': 1,
-                },
-                'evo_time': {
-                    'type': ['number', 'null'],
-                    'default': None
-                },
-                'lambda_min': {
-                    'type': ['number', 'null'],
-                    'default': None
-                }
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'reciprocal_lookup_schema',
+        'type': 'object',
+        'properties': {
+            'pat_length': {
+                'type': ['integer', 'null'],
+                'default': None,
             },
-            'additionalProperties': False
+            'subpat_length': {
+                'type': ['integer', 'null'],
+                'default': None,
+            },
+            'negative_evals': {
+                'type': 'boolean',
+                'default': False
+            },
+            'scale': {
+                'type': 'number',
+                'default': 0,
+                'minimum': 0,
+                'maximum': 1,
+            },
+            'evo_time': {
+                'type': ['number', 'null'],
+                'default': None
+            },
+            'lambda_min': {
+                'type': ['number', 'null'],
+                'default': None
+            }
         },
+        'additionalProperties': False
     }
 
     def __init__(
@@ -96,7 +93,7 @@ class LookupRotation(Reciprocal):
             lambda_min (float, optional): the smallest expected eigenvalue
         """
 
-        self.validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
         super().__init__()
         self._pat_length = pat_length
         self._subpat_length = subpat_length

@@ -37,25 +37,21 @@ class RandomDataProvider(BaseDataProvider):
     which are generated pseudo-randomly.
     """
 
-    CONFIGURATION = {
-        "name": "RND",
-        "description": "Pseudo-Random Data Provider",
-        "input_schema": {
-            "$schema": "http://json-schema.org/draft-07/schema#",
-            "id": "rnd_schema",
-            "type": "object",
-            "properties": {
-                "stockmarket": {
-                    "type": "string",
-                    "default": "RANDOM"
-                },
-                "datatype": {
-                    "type": "string",
-                    "default": DataType.DAILYADJUSTED.value,
-                    "enum": [DataType.DAILYADJUSTED.value]
-                },
+    _INPUT_SCHEMA = {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "id": "rnd_schema",
+        "type": "object",
+        "properties": {
+            "stockmarket": {
+                "type": "string",
+                "default": "RANDOM"
             },
-        }
+            "datatype": {
+                "type": "string",
+                "default": DataType.DAILYADJUSTED.value,
+                "enum": [DataType.DAILYADJUSTED.value]
+            },
+        },
     }
 
     def __init__(self,
@@ -96,44 +92,13 @@ class RandomDataProvider(BaseDataProvider):
         self._end = end
         self._seed = seed
 
-        # self.validate(locals())
-
-    @staticmethod
-    def check_provider_valid():
-        """ check provider valid """
-        return
-
-    @classmethod
-    def init_from_input(cls, section):
-        """
-        Initialize via section dictionary.
-
-        Args:
-            section (dict): section dictionary
-
-        Returns:
-            RandomDataProvider: Driver object
-        Raises:
-            QiskitFinanceError: invalid section
-        """
-        if section is None or not isinstance(section, dict):
-            raise QiskitFinanceError(
-                'Invalid or missing section {}'.format(section))
-
-        # params = section
-        kwargs = {}
-        # for k, v in params.items():
-        #    if k == ExchangeDataDriver. ...: v = UnitsType(v)
-        #    kwargs[k] = v
-        logger.debug('init_from_input: %s', kwargs)
-        return cls(**kwargs)
+        # validate(locals(), self._INPUT_SCHEMA)
 
     def run(self):
         """
         Generates data pseudo-randomly, thus enabling get_similarity_matrix
         and get_covariance_matrix methods in the base class.
         """
-        self.check_provider_valid()
 
         length = (self._end - self._start).days
         if self._seed:

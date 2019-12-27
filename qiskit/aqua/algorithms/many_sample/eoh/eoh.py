@@ -21,6 +21,7 @@ from qiskit import QuantumRegister
 
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.operators import op_converter
+from qiskit.aqua.utils.validation import validate
 
 logger = logging.getLogger(__name__)
 
@@ -35,54 +36,41 @@ class EOH(QuantumAlgorithm):
     PROP_EXPANSION_MODE = 'expansion_mode'
     PROP_EXPANSION_ORDER = 'expansion_order'
 
-    CONFIGURATION = {
-        'name': 'EOH',
-        'description': 'Evolution of Hamiltonian for Quantum Systems',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'EOH_schema',
-            'type': 'object',
-            'properties': {
-                PROP_EVO_TIME: {
-                    'type': 'number',
-                    'default': 1,
-                    'minimum': 0
-                },
-                PROP_NUM_TIME_SLICES: {
-                    'type': 'integer',
-                    'default': 1,
-                    'minimum': 0
-                },
-                PROP_EXPANSION_MODE: {
-                    'type': 'string',
-                    'default': 'trotter',
-                    'enum': [
-                        'trotter',
-                        'suzuki'
-                    ]
-                },
-                PROP_EXPANSION_ORDER: {
-                    'type': 'integer',
-                    'default': 1,
-                    'minimum': 1
-                }
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'EOH_schema',
+        'type': 'object',
+        'properties': {
+            PROP_EVO_TIME: {
+                'type': 'number',
+                'default': 1,
+                'minimum': 0
             },
-            'additionalProperties': False
+            PROP_NUM_TIME_SLICES: {
+                'type': 'integer',
+                'default': 1,
+                'minimum': 0
+            },
+            PROP_EXPANSION_MODE: {
+                'type': 'string',
+                'default': 'trotter',
+                'enum': [
+                    'trotter',
+                    'suzuki'
+                ]
+            },
+            PROP_EXPANSION_ORDER: {
+                'type': 'integer',
+                'default': 1,
+                'minimum': 1
+            }
         },
-        'problems': ['eoh'],
-        'depends': [
-            {
-                'pluggable_type': 'initial_state',
-                'default': {
-                    'name': 'ZERO'
-                },
-            },
-        ],
+        'additionalProperties': False
     }
 
     def __init__(self, operator, initial_state, evo_operator, evo_time=1, num_time_slices=1,
                  expansion_mode='trotter', expansion_order=1):
-        self.validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
         super().__init__()
         self._operator = op_converter.to_weighted_pauli_operator(operator)
         self._initial_state = initial_state

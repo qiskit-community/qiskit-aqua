@@ -31,6 +31,7 @@ from qiskit.aqua.operators import (TPBGroupedWeightedPauliOperator, WeightedPaul
                                    MatrixOperator, op_converter)
 from qiskit.aqua.utils.backend_utils import (is_statevector_backend,
                                              is_aer_provider)
+from qiskit.aqua.utils.validation import validate
 
 logger = logging.getLogger(__name__)
 
@@ -42,43 +43,24 @@ class VQE(VQAlgorithm):
     See https://arxiv.org/abs/1304.3061
     """
 
-    CONFIGURATION = {
-        'name': 'VQE',
-        'description': 'VQE Algorithm',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'vqe_schema',
-            'type': 'object',
-            'properties': {
-                'initial_point': {
-                    'type': ['array', 'null'],
-                    "items": {
-                        "type": "number"
-                    },
-                    'default': None
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'vqe_schema',
+        'type': 'object',
+        'properties': {
+            'initial_point': {
+                'type': ['array', 'null'],
+                "items": {
+                    "type": "number"
                 },
-                'max_evals_grouped': {
-                    'type': 'integer',
-                    'default': 1
-                }
+                'default': None
             },
-            'additionalProperties': False
+            'max_evals_grouped': {
+                'type': 'integer',
+                'default': 1
+            }
         },
-        'problems': ['energy', 'ising'],
-        'depends': [
-            {
-                'pluggable_type': 'optimizer',
-                'default': {
-                    'name': 'L_BFGS_B'
-                },
-            },
-            {
-                'pluggable_type': 'variational_form',
-                'default': {
-                    'name': 'RYRZ'
-                },
-            },
-        ],
+        'additionalProperties': False
     }
 
     def __init__(self, operator, var_form, optimizer,
@@ -109,7 +91,7 @@ class VQE(VQAlgorithm):
                 - for *qasm simulator or real backend:*
                   :class:`~qiskit.aqua.operators.TPBGroupedWeightedPauliOperator`
         """
-        self.validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
         super().__init__(var_form=var_form,
                          optimizer=optimizer,
                          cost_fn=self._energy_evaluation,
@@ -138,10 +120,10 @@ class VQE(VQAlgorithm):
     @property
     def setting(self):
         """Prepare the setting of VQE as a string."""
-        ret = "Algorithm: {}\n".format(self._configuration['name'])
+        ret = "Algorithm: {}\n".format(self.__class__.__name__)
         params = ""
         for key, value in self.__dict__.items():
-            if key != "_configuration" and key[0] == "_":
+            if key[0] == "_":
                 if "initial_point" in key and value is None:
                     params += "-- {}: {}\n".format(key[1:], "Random seed")
                 else:
@@ -158,7 +140,7 @@ class VQE(VQAlgorithm):
         """
         ret = "\n"
         ret += "==================== Setting of {} ============================\n".format(
-            self.configuration['name'])
+            self.__class__.__name__)
         ret += "{}".format(self.setting)
         ret += "===============================================================\n"
         ret += "{}".format(self._var_form.setting)
