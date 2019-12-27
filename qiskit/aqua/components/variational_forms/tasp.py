@@ -17,6 +17,7 @@
 
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
+from qiskit.aqua.utils.validation import validate
 from qiskit.aqua.components.variational_forms import VariationalForm
 
 
@@ -24,30 +25,18 @@ class TASP(VariationalForm):
     """Trotterized Adiabatic State Preparation.
     https://journals.aps.org/pra/pdf/10.1103/PhysRevA.92.042303"""
 
-    CONFIGURATION = {
-        'name': 'TASP',
-        'description': 'TASP Variational Form',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'tasp_schema',
-            'type': 'object',
-            'properties': {
-                'depth': {
-                    'type': 'integer',
-                    'default': 1,
-                    'minimum': 1
-                },
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'tasp_schema',
+        'type': 'object',
+        'properties': {
+            'depth': {
+                'type': 'integer',
+                'default': 1,
+                'minimum': 1
             },
-            'additionalProperties': False
         },
-        'depends': [
-            {
-                'pluggable_type': 'initial_state',
-                'default': {
-                    'name': 'ZERO',
-                }
-            },
-        ],
+        'additionalProperties': False
     }
 
     def __init__(self, num_qubits, h_list, depth=1, initial_state=None):
@@ -62,7 +51,7 @@ class TASP(VariationalForm):
             initial_state (InitialState): an initial state object
         """
 
-        self.validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
         super().__init__()
         self._num_qubits = num_qubits
         self._h_list = h_list
