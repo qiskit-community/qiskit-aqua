@@ -20,8 +20,8 @@ import subprocess
 import logging
 import sys
 from shutil import which
-from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry import QMolecule, QiskitChemistryError
+from qiskit.chemistry.drivers import BaseDriver
 
 logger = logging.getLogger(__name__)
 
@@ -33,19 +33,7 @@ PSI4_APP = which(PSI4)
 class PSI4Driver(BaseDriver):
     """Python implementation of a psi4 driver."""
 
-    CONFIGURATION = {
-        "name": "PSI4",
-        "description": "PSI4 Driver",
-        "input_schema": {
-            "$schema": "http://json-schema.org/draft-07/schema#",
-            "id": "psi4_schema",
-            "type": "string",
-            "default": "molecule h2 {\n  0 1\n  H  0.0 0.0 0.0\n  H  0.0 0.0 0.735\n}\n\n"
-                       "set {\n  basis sto-3g\n  scf_type pk\n  reference rhf\n}"
-        }
-    }
-
-    def __init__(self, config):
+    def __init__(self, config=None):
         """
         Initializer
         Args:
@@ -53,6 +41,10 @@ class PSI4Driver(BaseDriver):
         Raises:
             QiskitChemistryError: Invalid Input
         """
+        self._check_valid()
+        if config is None:
+            config = "molecule h2 {\n  0 1\n  H  0.0 0.0 0.0\n  H  0.0 0.0 0.735\n}\n\n" \
+                        "set {\n  basis sto-3g\n  scf_type pk\n  reference rhf\n"
         if not isinstance(config, list) and not isinstance(config, str):
             raise QiskitChemistryError("Invalid input for PSI4 Driver '{}'".format(config))
 
@@ -63,31 +55,12 @@ class PSI4Driver(BaseDriver):
         self._config = config
 
     @staticmethod
-    def check_driver_valid():
+    def _check_valid():
         if PSI4_APP is None:
             raise QiskitChemistryError("Could not locate {}".format(PSI4))
 
-    @classmethod
-    def init_from_input(cls, section):
-        """
-        Initialize via section dictionary.
-
-        Args:
-            section (dict): section dictionary
-
-        Returns:
-            PSI4Driver: Driver object
-        Raises:
-            QiskitChemistryError: Invalid or missing section
-        """
-        if not isinstance(section, str):
-            raise QiskitChemistryError('Invalid or missing section {}'.format(section))
-
-        kwargs = {'config': section}
-        logger.debug('init_from_input: %s', kwargs)
-        return cls(**kwargs)
-
     def run(self):
+        """ runs driver """
         # create input
         psi4d_directory = os.path.dirname(os.path.realpath(__file__))
         template_file = psi4d_directory + '/_template.txt'
@@ -142,7 +115,7 @@ class PSI4Driver(BaseDriver):
         _q_molecule.load()
         # remove internal file
         _q_molecule.remove_file()
-        _q_molecule.origin_driver_name = self.configuration['name']
+        _q_molecule.origin_driver_name = 'PSI4'
         _q_molecule.origin_driver_config = self._config
         return _q_molecule
 

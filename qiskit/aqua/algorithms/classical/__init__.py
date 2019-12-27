@@ -14,11 +14,13 @@
 
 """ classical algorithms packages """
 
+from .classical_algorithm import ClassicalAlgorithm
 from .exact_eigen_solver.exact_eigen_solver import ExactEigensolver
 from .exact_ls_solver.exact_ls_solver import ExactLSsolver
 from .svm.svm_classical import SVM_Classical
 
-__all__ = ['ExactEigensolver',
+__all__ = ['ClassicalAlgorithm',
+           'ExactEigensolver',
            'ExactLSsolver',
            'SVM_Classical']
 try:

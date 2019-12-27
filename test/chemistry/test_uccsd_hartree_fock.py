@@ -30,18 +30,7 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
 
     def setUp(self):
         super().setUp()
-        self.config = {'driver': {'name': 'HDF5'},
-                       'hdf5': {'hdf5_input': self._get_resource_path('test_driver_hdf5.hdf5')},
-                       'operator': {'name': 'hamiltonian',
-                                    'qubit_mapping': 'parity',
-                                    'two_qubit_reduction': True},
-                       'algorithm': {'name': 'VQE'},
-                       'optimizer': {'name': 'SLSQP', 'maxiter': 100},
-                       'variational_form': {'name': 'UCCSD'},
-                       'initial_state': {'name': 'HartreeFock'},
-                       'backend': {'provider': 'qiskit.BasicAer', 'name': 'statevector_simulator'}}
         self.reference_energy = -1.1373060356951838
-        pass
 
     def test_uccsd_hf(self):
         """ uccsd hf test """

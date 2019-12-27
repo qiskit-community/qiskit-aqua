@@ -13,19 +13,18 @@
 # that they have been altered from the originals.
 
 """
-The abstract Uncertainty Problem pluggable component.
+The abstract Uncertainty Problem component.
 """
 
 from abc import ABC
-from qiskit.aqua import Pluggable
 from qiskit.aqua.utils import CircuitFactory
 
 # pylint: disable=abstract-method
 
 
-class UncertaintyProblem(CircuitFactory, Pluggable, ABC):
+class UncertaintyProblem(CircuitFactory, ABC):
     """
-    The abstract Uncertainty Problem pluggable component.
+    The abstract Uncertainty Problem component.
     """
 
     # pylint: disable=useless-super-delegation

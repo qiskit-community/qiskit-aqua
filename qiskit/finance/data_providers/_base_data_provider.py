@@ -19,12 +19,10 @@ within Qiskit Finance.
 
 from abc import ABC, abstractmethod
 import logging
-import copy
 from enum import Enum
 
 import numpy as np
 import fastdtw
-import jsonschema
 from qiskit.aqua import AquaError
 
 logger = logging.getLogger(__name__)
@@ -70,12 +68,8 @@ class BaseDataProvider(ABC):
 
     """
 
-    CONFIGURATION = None
-
     @abstractmethod
     def __init__(self):
-        self.check_driver_valid()
-        self._configuration = copy.deepcopy(self.CONFIGURATION)
         self._data = None
         self._n = 0  # pylint: disable=invalid-name
         self.period_return_mean = None
@@ -83,46 +77,6 @@ class BaseDataProvider(ABC):
         self.period_return_cov = None
         self.rho = None
         self.mean = None
-
-    @property
-    def configuration(self):
-        """Return driver configuration."""
-        return self._configuration
-
-    @classmethod
-    def init_from_input(cls, section):
-        """
-        Initialize via section dictionary. N.B. Not in use at the moment.
-
-        Args:
-            section (dict): section dictionary
-
-        Returns:
-            BaseDataProvider: Driver object
-        """
-        pass
-
-    @staticmethod
-    def check_driver_valid():
-        """Checks if driver is ready for use. Throws an ex_ception if not"""
-        pass
-
-    def validate(self, args_dict):
-        """ validate driver input """
-        schema_dict = self.CONFIGURATION.get('input_schema', None)
-        if schema_dict is None:
-            return
-
-        properties_dict = schema_dict.get('properties', None)
-        if properties_dict is None:
-            return
-
-        json_dict = {}
-        for property_name, _ in properties_dict.items():
-            if property_name in args_dict:
-                json_dict[property_name] = args_dict[property_name]
-
-        jsonschema.validate(json_dict, schema_dict)
 
     @abstractmethod
     def run(self):
