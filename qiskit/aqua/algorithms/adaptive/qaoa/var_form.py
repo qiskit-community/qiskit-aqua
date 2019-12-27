@@ -109,7 +109,7 @@ class QAOAVarForm(VariationalForm):
         ret = "Variational Form: {}\n".format(self.__class__.__name__)
         params = ""
         for key, value in self.__dict__.items():
-            if key != "_configuration" and key[0] == "_":
+            if key[0] == "_":
                 params += "-- {}: {}\n".format(key[1:], value)
         ret += "{}".format(params)
         return ret
