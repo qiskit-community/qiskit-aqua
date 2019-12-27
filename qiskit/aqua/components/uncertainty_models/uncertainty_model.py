@@ -18,11 +18,10 @@ constructing Amplification Estimation tasks.
 """
 
 from abc import ABC, abstractmethod
-from qiskit.aqua import Pluggable
 from qiskit.aqua.utils import CircuitFactory
 
 
-class UncertaintyModel(CircuitFactory, Pluggable, ABC):
+class UncertaintyModel(CircuitFactory, ABC):
     """
     The abstract Uncertainty Model
     """

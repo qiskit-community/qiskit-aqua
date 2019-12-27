@@ -17,7 +17,7 @@
 import logging
 
 import numpy as np
-
+from qiskit.aqua.utils.validation import validate
 from qiskit.aqua.algorithms import VQE
 from .q_equation_of_motion import QEquationOfMotion
 
@@ -26,74 +26,58 @@ logger = logging.getLogger(__name__)
 
 class QEomVQE(VQE):
     """ QEomVQE algorithm """
-    CONFIGURATION = {
-        'name': 'QEomVQE',
-        'description': 'Q_EOM with VQE Algorithm to find the reference state',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'qeom_vqe_schema',
-            'type': 'object',
-            'properties': {
-                'initial_point': {
-                    'type': ['array', 'null'],
-                    "items": {
-                        "type": "number"
-                    },
-                    'default': None
+
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'qeom_vqe_schema',
+        'type': 'object',
+        'properties': {
+            'initial_point': {
+                'type': ['array', 'null'],
+                "items": {
+                    "type": "number"
                 },
-                'num_orbitals': {
-                    'type': 'integer',
-                    'default': 4,
-                    'minimum': 1
-                },
-                'num_particles': {
-                    'type': ['array', 'integer'],
-                    'default': [1, 1],
-                    'contains': {
-                        'type': 'integer'
-                    },
-                    'minItems': 2,
-                    'maxItems': 2
-                },
-                'qubit_mapping': {
-                    'type': 'string',
-                    'default': 'parity',
-                    'oneOf': [
-                        {'enum': ['jordan_wigner', 'parity', 'bravyi_kitaev']}
-                    ]
-                },
-                'two_qubit_reduction': {
-                    'type': 'boolean',
-                    'default': True
-                },
-                'active_occupied': {
-                    'type': ['array', 'null'],
-                    'default': None
-                },
-                'active_unoccupied': {
-                    'type': ['array', 'null'],
-                    'default': None
-                },
-                'max_evals_grouped': {
-                    'type': 'integer',
-                    'default': 1
-                }
+                'default': None
             },
-            'additionalProperties': False
+            'num_orbitals': {
+                'type': 'integer',
+                'default': 4,
+                'minimum': 1
+            },
+            'num_particles': {
+                'type': ['array', 'integer'],
+                'default': [1, 1],
+                'contains': {
+                    'type': 'integer'
+                },
+                'minItems': 2,
+                'maxItems': 2
+            },
+            'qubit_mapping': {
+                'type': 'string',
+                'default': 'parity',
+                'oneOf': [
+                    {'enum': ['jordan_wigner', 'parity', 'bravyi_kitaev']}
+                ]
+            },
+            'two_qubit_reduction': {
+                'type': 'boolean',
+                'default': True
+            },
+            'active_occupied': {
+                'type': ['array', 'null'],
+                'default': None
+            },
+            'active_unoccupied': {
+                'type': ['array', 'null'],
+                'default': None
+            },
+            'max_evals_grouped': {
+                'type': 'integer',
+                'default': 1
+            }
         },
-        'problems': ['excited_states'],
-        'depends': [
-            {'pluggable_type': 'optimizer',
-             'default': {
-                 'name': 'L_BFGS_B'
-             }
-             },
-            {'pluggable_type': 'variational_form',
-             'default': {
-                 'name': 'RYRZ'
-             }
-             },
-        ],
+        'additionalProperties': False
     }
 
     def __init__(self, operator, var_form, optimizer, num_orbitals, num_particles,
@@ -141,7 +125,7 @@ class QEomVQE(VQE):
             aux_operators (list[BaseOperator]): Auxiliary operators to be
                                                 evaluated at each eigenvalue
         """
-        self.validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
         super().__init__(operator.copy(), var_form, optimizer, initial_point=initial_point,
                          max_evals_grouped=max_evals_grouped, aux_operators=aux_operators,
                          callback=callback, auto_conversion=auto_conversion)

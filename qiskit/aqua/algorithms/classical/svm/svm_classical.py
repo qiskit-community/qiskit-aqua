@@ -18,18 +18,19 @@ Classical SVM algorithm.
 
 import logging
 
-from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua import AquaError
+from qiskit.aqua.algorithms.classical import ClassicalAlgorithm
 from qiskit.aqua.algorithms.classical.svm import (_SVM_Classical_Binary,
                                                   _SVM_Classical_Multiclass)
 from qiskit.aqua.utils import get_num_classes
+from qiskit.aqua.utils.validation import validate
 
 logger = logging.getLogger(__name__)
 
 # pylint: disable=invalid-name
 
 
-class SVM_Classical(QuantumAlgorithm):
+class SVM_Classical(ClassicalAlgorithm):
     """
     Classical SVM algorithm.
 
@@ -37,26 +38,17 @@ class SVM_Classical(QuantumAlgorithm):
     based on how many classes the data has.
     """
 
-    CONFIGURATION = {
-        'name': 'SVM',
-        'description': 'SVM_Classical Algorithm',
-        'classical': True,
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'SVM_Classical_schema',
-            'type': 'object',
-            'properties': {
-                'gamma': {
-                    'type': ['number', 'null'],
-                    'default': None
-                }
-            },
-            'additionalProperties': False
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'SVM_Classical_schema',
+        'type': 'object',
+        'properties': {
+            'gamma': {
+                'type': ['number', 'null'],
+                'default': None
+            }
         },
-        'problems': ['classification'],
-        'depends': [
-            {'pluggable_type': 'multiclass_extension'},
-        ],
+        'additionalProperties': False
     }
 
     def __init__(self, training_dataset, test_dataset=None, datapoints=None,
@@ -79,7 +71,7 @@ class SVM_Classical(QuantumAlgorithm):
             AquaError: If using binary classifier where num classes >= 3
         """
 
-        self.validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
         super().__init__()
         if training_dataset is None:
             raise AquaError('Training dataset must be provided.')

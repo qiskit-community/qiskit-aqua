@@ -26,53 +26,40 @@ class MultivariateVariationalDistribution(MultivariateDistribution):
     """
     The Multivariate Variational Distribution.
     """
-    CONFIGURATION = {
-        'name': 'MultivariateVariationalDistribution',
-        'description': 'Multivariate Variational Distribution',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'MultivariateVariationalDistribution_schema',
-            'type': 'object',
-            'properties': {
-                'num_qubits': {
-                    'type': 'array',
-                    "items": {
-                        "type": "number"
-                    }
-                },
-
-                'params': {
-                    'type': 'array',
-                    "items": {
-                        "type": "number"
-                    }
-                },
-                'low': {
-                    'type': ['array', 'null'],
-                    "items": {
-                        "type": "number"
-                    },
-                    'default': None
-                },
-                'high': {
-                    'type': ['array', 'null'],
-                    "items": {
-                        "type": "number"
-                    },
-                    'default': None
-                },
-            },
-            'additionalProperties': False
-        },
-        'depends': [
-            {
-                'pluggable_type': 'variational_form',
-                'default': {
-                    'name': 'RY'
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'MultivariateVariationalDistribution_schema',
+        'type': 'object',
+        'properties': {
+            'num_qubits': {
+                'type': 'array',
+                "items": {
+                    "type": "number"
                 }
-            }
+            },
 
-        ],
+            'params': {
+                'type': 'array',
+                "items": {
+                    "type": "number"
+                }
+            },
+            'low': {
+                'type': ['array', 'null'],
+                "items": {
+                    "type": "number"
+                },
+                'default': None
+            },
+            'high': {
+                'type': ['array', 'null'],
+                "items": {
+                    "type": "number"
+                },
+                'default': None
+            },
+        },
+        'additionalProperties': False
     }
 
     def __init__(self, num_qubits, var_form, params, low=None, high=None):
