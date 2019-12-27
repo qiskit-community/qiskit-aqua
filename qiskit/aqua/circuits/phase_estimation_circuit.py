@@ -49,9 +49,9 @@ class PhaseEstimationCircuit:
 
         Args:
             operator (WeightedPauliOperator): the hamiltonian Operator object
-            state_in (InitialState): the InitialState pluggable component
+            state_in (InitialState): the InitialState component
             representing the initial quantum state
-            iqft (IQFT): the Inverse Quantum Fourier Transform pluggable component
+            iqft (IQFT): the Inverse Quantum Fourier Transform component
             num_time_slices (int): the number of time slices
             num_ancillae (int): the number of ancillary qubits to use for the measurement
             expansion_mode (str): the expansion mode (trotter|suzuki)

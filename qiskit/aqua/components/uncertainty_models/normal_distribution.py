@@ -17,6 +17,7 @@ The Univariate Normal Distribution.
 """
 
 from scipy.stats.distributions import norm
+from qiskit.aqua.utils.validation import validate
 from .univariate_distribution import UnivariateDistribution
 
 
@@ -25,37 +26,33 @@ class NormalDistribution(UnivariateDistribution):
     The Univariate Normal Distribution.
     """
 
-    CONFIGURATION = {
-        'name': 'NormalDistribution',
-        'description': 'Normal Distribution',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'NormalDistribution_schema',
-            'type': 'object',
-            'properties': {
-                'num_target_qubits': {
-                    'type': 'integer',
-                    'default': 2,
-                },
-                'mu': {
-                    'type': 'number',
-                    'default': 0,
-                },
-                'sigma': {
-                    'type': 'number',
-                    'default': 1,
-                },
-                'low': {
-                    'type': 'number',
-                    'default': -1,
-                },
-                'high': {
-                    'type': 'number',
-                    'default': 1,
-                },
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'NormalDistribution_schema',
+        'type': 'object',
+        'properties': {
+            'num_target_qubits': {
+                'type': 'integer',
+                'default': 2,
             },
-            'additionalProperties': False
-        }
+            'mu': {
+                'type': 'number',
+                'default': 0,
+            },
+            'sigma': {
+                'type': 'number',
+                'default': 1,
+            },
+            'low': {
+                'type': 'number',
+                'default': -1,
+            },
+            'high': {
+                'type': 'number',
+                'default': 1,
+            },
+        },
+        'additionalProperties': False
     }
 
     def __init__(self, num_target_qubits, mu=0, sigma=1, low=-1, high=1):
@@ -69,7 +66,7 @@ class NormalDistribution(UnivariateDistribution):
             high (float): upper bound, i.e., the value corresponding to \|1...1>
                           (assuming an equidistant grid)
         """
-        self.validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
         probabilities, _ = UnivariateDistribution.\
             pdf_to_probabilities(
                 lambda x: norm.pdf(x, mu, sigma), low, high, 2 ** num_target_qubits)

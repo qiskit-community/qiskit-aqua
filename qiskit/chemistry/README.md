@@ -52,7 +52,7 @@ The dictionary contains the following fields of note:
 
 ### For writers of algorithms and other utilities such as optimizers and variational forms:
 
-Qiskit Aqua is the library of cross-domain algorithms and pluggable utilities. Please refer to the documentation 
+Qiskit Aqua is the library of cross-domain algorithms and utilities. Please refer to the documentation 
 there for more information on how to write and contribute such objects to Qiskit Aqua. Such objects are then available
 to be used by Qiskit Chemistry.  
 

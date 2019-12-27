@@ -26,6 +26,7 @@ from qiskit.aqua.operators import (WeightedPauliOperator, suzuki_expansion_slice
                                    evolution_instruction, op_converter)
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
+from qiskit.aqua.utils.validation import validate
 
 logger = logging.getLogger(__name__)
 
@@ -44,49 +45,36 @@ class IQPE(QuantumAlgorithm):
     PROP_EXPANSION_ORDER = 'expansion_order'
     PROP_NUM_ITERATIONS = 'num_iterations'
 
-    CONFIGURATION = {
-        'name': 'IQPE',
-        'description': 'Iterative Quantum Phase Estimation for Quantum Systems',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'IQPE_schema',
-            'type': 'object',
-            'properties': {
-                PROP_NUM_TIME_SLICES: {
-                    'type': 'integer',
-                    'default': 1,
-                    'minimum': 1
-                },
-                PROP_EXPANSION_MODE: {
-                    'type': 'string',
-                    'default': 'suzuki',
-                    'enum': [
-                        'suzuki',
-                        'trotter'
-                    ]
-                },
-                PROP_EXPANSION_ORDER: {
-                    'type': 'integer',
-                    'default': 2,
-                    'minimum': 1
-                },
-                PROP_NUM_ITERATIONS: {
-                    'type': 'integer',
-                    'default': 1,
-                    'minimum': 1
-                }
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'IQPE_schema',
+        'type': 'object',
+        'properties': {
+            PROP_NUM_TIME_SLICES: {
+                'type': 'integer',
+                'default': 1,
+                'minimum': 1
             },
-            'additionalProperties': False
+            PROP_EXPANSION_MODE: {
+                'type': 'string',
+                'default': 'suzuki',
+                'enum': [
+                    'suzuki',
+                    'trotter'
+                ]
+            },
+            PROP_EXPANSION_ORDER: {
+                'type': 'integer',
+                'default': 2,
+                'minimum': 1
+            },
+            PROP_NUM_ITERATIONS: {
+                'type': 'integer',
+                'default': 1,
+                'minimum': 1
+            }
         },
-        'problems': ['energy'],
-        'depends': [
-            {
-                'pluggable_type': 'initial_state',
-                'default': {
-                    'name': 'ZERO',
-                },
-            },
-        ],
+        'additionalProperties': False
     }
 
     def __init__(self, operator, state_in, num_time_slices=1, num_iterations=1,
@@ -96,7 +84,7 @@ class IQPE(QuantumAlgorithm):
 
         Args:
             operator (BaseOperator): the hamiltonian Operator object
-            state_in (InitialState): the InitialState pluggable component representing
+            state_in (InitialState): the InitialState component representing
                     the initial quantum state
             num_time_slices (int): the number of time slices
             num_iterations (int): the number of iterations
@@ -105,7 +93,7 @@ class IQPE(QuantumAlgorithm):
             shallow_circuit_concat (bool): indicate whether to use shallow (cheap)
                     mode for circuit concatenation
         """
-        self.validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
         super().__init__()
         self._operator = op_converter.to_weighted_pauli_operator(operator.copy())
         self._state_in = state_in

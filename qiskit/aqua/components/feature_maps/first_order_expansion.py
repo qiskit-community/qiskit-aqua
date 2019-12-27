@@ -17,6 +17,7 @@ feature map. Several types of commonly used approaches.
 """
 
 from qiskit.aqua.components.feature_maps import PauliZExpansion, self_product
+from qiskit.aqua.utils.validation import validate
 
 
 class FirstOrderExpansion(PauliZExpansion):
@@ -26,22 +27,18 @@ class FirstOrderExpansion(PauliZExpansion):
     Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
     """
 
-    CONFIGURATION = {
-        'name': 'FirstOrderExpansion',
-        'description': 'First order expansion for feature map',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'First_Order_Expansion_schema',
-            'type': 'object',
-            'properties': {
-                'depth': {
-                    'type': 'integer',
-                    'default': 2,
-                    'minimum': 1
-                }
-            },
-            'additionalProperties': False
-        }
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'First_Order_Expansion_schema',
+        'type': 'object',
+        'properties': {
+            'depth': {
+                'type': 'integer',
+                'default': 2,
+                'minimum': 1
+            }
+        },
+        'additionalProperties': False
     }
 
     def __init__(self, feature_dimension, depth=2, data_map_func=self_product):
@@ -52,5 +49,5 @@ class FirstOrderExpansion(PauliZExpansion):
             depth (int): the number of repeated circuits
             data_map_func (Callable): a mapping function for data x
         """
-        self.validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
         super().__init__(feature_dimension, depth, z_order=1, data_map_func=data_map_func)

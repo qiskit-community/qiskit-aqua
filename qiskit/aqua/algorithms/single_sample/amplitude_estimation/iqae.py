@@ -23,6 +23,7 @@ from scipy.stats import beta
 
 from qiskit import ClassicalRegister, QuantumRegister, QuantumCircuit
 from qiskit.aqua import AquaError
+from qiskit.aqua.utils.validation import validate
 
 from .ae_algorithm import AmplitudeEstimationAlgorithm
 
@@ -44,38 +45,25 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     Grover iterations to find an estimate for the target amplitude.
     """
 
-    CONFIGURATION = {
-        'name': 'IterativeAmplitudeEstimation',
-        'description': 'Iterative Amplitude Estimation Algorithm',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'IterativeAmplitudeEstimation_schema',
-            'type': 'object',
-            'properties': {
-                'epsilon': {
-                    'type': 'number',
-                    'default': 0.01,
-                    'minimum': 0.0,
-                    'maximum': 0.5,
-                },
-                'alpha': {
-                    'type': 'number',
-                    'default': 0.05,
-                    'minimum': 0.0,
-                    'maximum': 1.0,
-                },
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'IterativeAmplitudeEstimation_schema',
+        'type': 'object',
+        'properties': {
+            'epsilon': {
+                'type': 'number',
+                'default': 0.01,
+                'minimum': 0.0,
+                'maximum': 0.5,
             },
-            'additionalProperties': False
+            'alpha': {
+                'type': 'number',
+                'default': 0.05,
+                'minimum': 0.0,
+                'maximum': 1.0,
+            },
         },
-        'problems': ['uncertainty'],
-        'depends': [
-            {
-                'pluggable_type': 'uncertainty_problem',
-                'default': {
-                    'name': 'EuropeanCallDelta'
-                }
-            },
-        ],
+        'additionalProperties': False
     }
 
     def __init__(self, epsilon, alpha, ci_method='beta', min_ratio=2, a_factory=None,
@@ -100,7 +88,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         Raises:
             AquaError: if the method to compute the confidence intervals is not supported
         """
-        self.validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
         super().__init__(a_factory, q_factory, i_objective)
 
         # store parameters

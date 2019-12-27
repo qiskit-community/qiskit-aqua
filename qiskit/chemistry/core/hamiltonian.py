@@ -20,7 +20,7 @@ import logging
 from enum import Enum
 
 import numpy as np
-
+from qiskit.aqua.utils.validation import validate
 from qiskit.aqua.operators import Z2Symmetries
 from qiskit.chemistry import QMolecule
 from qiskit.chemistry.fermionic_operator import FermionicOperator
@@ -55,50 +55,44 @@ class Hamiltonian(ChemistryOperator):
     KEY_FREEZE_CORE = 'freeze_core'
     KEY_ORBITAL_REDUCTION = 'orbital_reduction'
 
-    CONFIGURATION = {
-        'name': 'hamiltonian',
-        'description': 'Hamiltonian chemistry operator',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'hamiltonian_schema',
-            'type': 'object',
-            'properties': {
-                KEY_TRANSFORMATION: {
-                    'type': 'string',
-                    'default': TransformationType.FULL.value,
-                    'enum': [
-                        TransformationType.FULL.value,
-                        TransformationType.PARTICLE_HOLE.value,
-                    ]
-                },
-                KEY_QUBIT_MAPPING: {
-                    'type': 'string',
-                    'default': QubitMappingType.PARITY.value,
-                    'enum': [
-                        QubitMappingType.JORDAN_WIGNER.value,
-                        QubitMappingType.PARITY.value,
-                        QubitMappingType.BRAVYI_KITAEV.value,
-                    ]
-                },
-                KEY_TWO_QUBIT_REDUCTION: {
-                    'type': 'boolean',
-                    'default': True
-                },
-                KEY_FREEZE_CORE: {
-                    'type': 'boolean',
-                    'default': False
-                },
-                KEY_ORBITAL_REDUCTION: {
-                    'default': [],
-                    'type': 'array',
-                    'items': {
-                        'type': 'number'
-                    }
-                }
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'hamiltonian_schema',
+        'type': 'object',
+        'properties': {
+            KEY_TRANSFORMATION: {
+                'type': 'string',
+                'default': TransformationType.FULL.value,
+                'enum': [
+                    TransformationType.FULL.value,
+                    TransformationType.PARTICLE_HOLE.value,
+                ]
             },
-            "additionalProperties": False
-        },
-        'problems': ['energy', 'excited_states']
+            KEY_QUBIT_MAPPING: {
+                'type': 'string',
+                'default': QubitMappingType.PARITY.value,
+                'enum': [
+                    QubitMappingType.JORDAN_WIGNER.value,
+                    QubitMappingType.PARITY.value,
+                    QubitMappingType.BRAVYI_KITAEV.value,
+                ]
+            },
+            KEY_TWO_QUBIT_REDUCTION: {
+                'type': 'boolean',
+                'default': True
+            },
+            KEY_FREEZE_CORE: {
+                'type': 'boolean',
+                'default': False
+            },
+            KEY_ORBITAL_REDUCTION: {
+                'default': [],
+                'type': 'array',
+                'items': {
+                    'type': 'number'
+                }
+            }
+        }
     }
 
     def __init__(self,
@@ -119,7 +113,7 @@ class Hamiltonian(ChemistryOperator):
         transformation = transformation.value
         qubit_mapping = qubit_mapping.value
         orbital_reduction = orbital_reduction if orbital_reduction is not None else []
-        self.validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
         super().__init__()
         self._transformation = transformation
         self._qubit_mapping = qubit_mapping

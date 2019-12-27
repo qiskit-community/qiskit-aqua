@@ -17,6 +17,7 @@ The European Call Option Expected Value.
 """
 
 import numpy as np
+from qiskit.aqua.utils.validation import validate
 from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
 from qiskit.aqua.circuits.fixed_value_comparator import FixedValueComparator
 
@@ -31,48 +32,36 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
     The payoff function is f(S, K) = max(0, S - K) for a spot price S and strike price K.
     """
 
-    CONFIGURATION = {
-        'name': 'EuropeanCallExpectedValue',
-        'description': 'European Call Expected Value',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'ECEV_schema',
-            'type': 'object',
-            'properties': {
-                'strike_price': {
-                    'type': 'number',
-                    'default': 0
-                },
-                'c_approx': {
-                    'type': 'number',
-                    'default': 0.5
-                },
-                'i_state': {
-                    'type': ['array', 'null'],
-                    'items': {
-                        'type': 'integer'
-                    },
-                    'default': None
-                },
-                'i_compare': {
-                    'type': ['integer', 'null'],
-                    'default': None
-                },
-                'i_objective': {
-                    'type': ['integer', 'null'],
-                    'default': None
-                }
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'ECEV_schema',
+        'type': 'object',
+        'properties': {
+            'strike_price': {
+                'type': 'number',
+                'default': 0
             },
-            'additionalProperties': False
+            'c_approx': {
+                'type': 'number',
+                'default': 0.5
+            },
+            'i_state': {
+                'type': ['array', 'null'],
+                'items': {
+                    'type': 'integer'
+                },
+                'default': None
+            },
+            'i_compare': {
+                'type': ['integer', 'null'],
+                'default': None
+            },
+            'i_objective': {
+                'type': ['integer', 'null'],
+                'default': None
+            }
         },
-        'depends': [
-            {
-                'pluggable_type': 'univariate_distribution',
-                'default': {
-                    'name': 'NormalDistribution'
-                }
-            },
-        ],
+        'additionalProperties': False
     }
 
     def __init__(self, uncertainty_model, strike_price, c_approx, i_state=None,
@@ -106,7 +95,7 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
             i_objective = uncertainty_model.num_target_qubits + 1
         self.i_objective = i_objective
 
-        super().validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
 
         # map strike price to {0, ..., 2^n-1}
         lb = uncertainty_model.low
