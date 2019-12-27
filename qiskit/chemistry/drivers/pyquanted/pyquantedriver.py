@@ -17,6 +17,7 @@
 import importlib
 from enum import Enum
 import logging
+from qiskit.aqua.utils.validation import validate
 from qiskit.chemistry.drivers import BaseDriver, UnitsType, HFMethodType
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers.pyquanted.integrals import compute_integrals
@@ -37,63 +38,58 @@ class PyQuanteDriver(BaseDriver):
     KEY_UNITS = 'units'
     KEY_BASIS = 'basis'
 
-    CONFIGURATION = {
-        "name": "PYQUANTE",
-        "description": "PyQuante Driver",
-        "input_schema": {
-            "$schema": "http://json-schema.org/draft-07/schema#",
-            "id": "pyquante_schema",
-            "type": "object",
-            "properties": {
-                "atoms": {
-                    "type": "string",
-                    "default": "H 0.0 0.0 0.0; H 0.0 0.0 0.735"
-                },
-                KEY_UNITS: {
-                    "type": "string",
-                    "default": UnitsType.ANGSTROM.value,
-                    "enum": [
-                        UnitsType.ANGSTROM.value,
-                        UnitsType.BOHR.value,
-                    ]
-                },
-                "charge": {
-                    "type": "integer",
-                    "default": 0
-                },
-                "multiplicity": {
-                    "type": "integer",
-                    "default": 1
-                },
-                KEY_BASIS: {
-                    "type": "string",
-                    "default": BasisType.BSTO3G.value,
-                    "enum": [
-                        BasisType.BSTO3G.value,
-                        BasisType.B631G.value,
-                        BasisType.B631GSS.value,
-                    ]
-                },
-                "hf_method": {
-                    "type": "string",
-                    "default": HFMethodType.RHF.value,
-                    "enum": [
-                        HFMethodType.RHF.value,
-                        HFMethodType.ROHF.value,
-                        HFMethodType.UHF.value
-                    ]
-                },
-                "tol": {
-                    "type": "number",
-                    "default": 1e-08
-                },
-                "maxiters": {
-                    "type": "integer",
-                    "default": 100,
-                    "minimum": 1
-                }
+    _INPUT_SCHEMA = {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "id": "pyquante_schema",
+        "type": "object",
+        "properties": {
+            "atoms": {
+                "type": "string",
+                "default": "H 0.0 0.0 0.0; H 0.0 0.0 0.735"
             },
-            "additionalProperties": False
+            KEY_UNITS: {
+                "type": "string",
+                "default": UnitsType.ANGSTROM.value,
+                "enum": [
+                    UnitsType.ANGSTROM.value,
+                    UnitsType.BOHR.value,
+                ]
+            },
+            "charge": {
+                "type": "integer",
+                "default": 0
+            },
+            "multiplicity": {
+                "type": "integer",
+                "default": 1
+            },
+            KEY_BASIS: {
+                "type": "string",
+                "default": BasisType.BSTO3G.value,
+                "enum": [
+                    BasisType.BSTO3G.value,
+                    BasisType.B631G.value,
+                    BasisType.B631GSS.value,
+                ]
+            },
+            "hf_method": {
+                "type": "string",
+                "default": HFMethodType.RHF.value,
+                "enum": [
+                    HFMethodType.RHF.value,
+                    HFMethodType.ROHF.value,
+                    HFMethodType.UHF.value
+                ]
+            },
+            "tol": {
+                "type": "number",
+                "default": 1e-08
+            },
+            "maxiters": {
+                "type": "integer",
+                "default": 100,
+                "minimum": 1
+            }
         }
     }
 
@@ -120,6 +116,7 @@ class PyQuanteDriver(BaseDriver):
         Raises:
             QiskitChemistryError: Invalid Input
         """
+        self._check_valid()
         if not isinstance(atoms, list) and not isinstance(atoms, str):
             raise QiskitChemistryError("Invalid atom input for PYQUANTE Driver '{}'".format(atoms))
 
@@ -131,7 +128,7 @@ class PyQuanteDriver(BaseDriver):
         units = units.value
         basis = basis.value
         hf_method = hf_method.value
-        self.validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
         super().__init__()
         self._atoms = atoms
         self._units = units
@@ -143,7 +140,7 @@ class PyQuanteDriver(BaseDriver):
         self._maxiters = maxiters
 
     @staticmethod
-    def check_driver_valid():
+    def _check_valid():
         err_msg = 'PyQuante2 is not installed. See https://github.com/rpmuller/pyquante2'
         try:
             spec = importlib.util.find_spec('pyquante2')
@@ -155,37 +152,6 @@ class PyQuanteDriver(BaseDriver):
 
         raise QiskitChemistryError(err_msg)
 
-    @classmethod
-    def init_from_input(cls, section):
-        """
-        Initialize via section dictionary.
-
-        Args:
-            section (dict): section dictionary
-
-        Returns:
-            PyQuanteDriver: Driver object
-        Raises:
-            QiskitChemistryError: Invalid sections
-        """
-        if section is None or not isinstance(section, dict):
-            raise QiskitChemistryError('Invalid or missing section {}'.format(section))
-
-        params = section
-        kwargs = {}
-        for k, v in params.items():
-            if k == PyQuanteDriver.KEY_UNITS:
-                v = UnitsType(v)
-            elif k == PyQuanteDriver.KEY_BASIS:
-                v = BasisType(v)
-            elif k == 'hf_method':
-                v = HFMethodType(v)
-
-            kwargs[k] = v
-
-        logger.debug('init_from_input: %s', kwargs)
-        return cls(**kwargs)
-
     def run(self):
         q_mol = compute_integrals(atoms=self._atoms,
                                   units=self._units,
@@ -196,7 +162,7 @@ class PyQuanteDriver(BaseDriver):
                                   tol=self._tol,
                                   maxiters=self._maxiters)
 
-        q_mol.origin_driver_name = self.configuration['name']
+        q_mol.origin_driver_name = 'PYQUANTE'
         cfg = ['atoms={}'.format(self._atoms),
                'units={}'.format(self._units),
                'charge={}'.format(self._charge),

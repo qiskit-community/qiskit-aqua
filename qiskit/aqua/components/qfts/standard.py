@@ -22,17 +22,13 @@ from .approximate import Approximate
 class Standard(Approximate):
     """A normal standard QFT."""
 
-    CONFIGURATION = {
-        'name': 'STANDARD',
-        'description': 'QFT',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'std_qft_schema',
-            'type': 'object',
-            'properties': {
-            },
-            'additionalProperties': False
-        }
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'std_qft_schema',
+        'type': 'object',
+        'properties': {
+        },
+        'additionalProperties': False
     }
 
     def __init__(self, num_qubits):

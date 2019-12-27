@@ -27,6 +27,7 @@ from qiskit.qasm import pi
 
 from qiskit.aqua.operators import evolution_instruction
 from qiskit.aqua.components.feature_maps import FeatureMap, self_product
+from qiskit.aqua.utils.validation import validate
 
 logger = logging.getLogger(__name__)
 
@@ -39,38 +40,34 @@ class PauliExpansion(FeatureMap):
     Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
     """
 
-    CONFIGURATION = {
-        'name': 'PauliExpansion',
-        'description': 'Pauli expansion for feature map (any order)',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'Pauli_Expansion_schema',
-            'type': 'object',
-            'properties': {
-                'depth': {
-                    'type': 'integer',
-                    'default': 2,
-                    'minimum': 1
-                },
-                'entangler_map': {
-                    'type': ['array', 'null'],
-                    'default': None
-                },
-                'entanglement': {
-                    'type': 'string',
-                    'default': 'full',
-                    'enum': ['full', 'linear']
-                },
-                'paulis': {
-                    'type': ['array', 'null'],
-                    'items': {
-                        'type': 'string'
-                    },
-                    'default': None
-                }
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'Pauli_Expansion_schema',
+        'type': 'object',
+        'properties': {
+            'depth': {
+                'type': 'integer',
+                'default': 2,
+                'minimum': 1
             },
-            'additionalProperties': False
-        }
+            'entangler_map': {
+                'type': ['array', 'null'],
+                'default': None
+            },
+            'entanglement': {
+                'type': 'string',
+                'default': 'full',
+                'enum': ['full', 'linear']
+            },
+            'paulis': {
+                'type': ['array', 'null'],
+                'items': {
+                    'type': 'string'
+                },
+                'default': None
+            }
+        },
+        'additionalProperties': False
     }
 
     def __init__(self, feature_dimension, depth=2, entangler_map=None,
@@ -93,7 +90,7 @@ class PauliExpansion(FeatureMap):
             data_map_func (Optional(Callable)): a mapping function for data x
         """
         paulis = paulis if paulis is not None else ['Z', 'ZZ']
-        self.validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
         super().__init__()
         self._num_qubits = self._feature_dimension = feature_dimension
         self._depth = depth

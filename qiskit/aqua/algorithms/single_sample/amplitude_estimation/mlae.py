@@ -22,7 +22,7 @@ from scipy.stats import norm, chi2
 
 from qiskit import ClassicalRegister, QuantumRegister, QuantumCircuit
 from qiskit.aqua import AquaError
-
+from qiskit.aqua.utils.validation import validate
 from .ae_algorithm import AmplitudeEstimationAlgorithm
 
 logger = logging.getLogger(__name__)
@@ -35,31 +35,18 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     The Amplitude Estimation without QPE algorithm.
     """
 
-    CONFIGURATION = {
-        'name': 'MaximumLikelihoodAmplitudeEstimation',
-        'description': 'Maximum Likelihood Amplitude Estimation',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'MaximumLikelihoodAmplitudeEstimation_schema',
-            'type': 'object',
-            'properties': {
-                'log_max_evals': {
-                    'type': 'integer',
-                    'default': 5,
-                    'minimum': 1
-                }
-            },
-            'additionalProperties': False
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'MaximumLikelihoodAmplitudeEstimation_schema',
+        'type': 'object',
+        'properties': {
+            'log_max_evals': {
+                'type': 'integer',
+                'default': 5,
+                'minimum': 1
+            }
         },
-        'problems': ['uncertainty'],
-        'depends': [
-            {
-                'pluggable_type': 'uncertainty_problem',
-                'default': {
-                    'name': 'EuropeanCallDelta'
-                }
-            },
-        ],
+        'additionalProperties': False
     }
 
     def __init__(self, log_max_evals, a_factory=None, i_objective=None,
@@ -77,7 +64,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             likelihood_evals (int): The number of gridpoints for the maximum search
                 of the likelihood function
         """
-        self.validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
         super().__init__(a_factory, q_factory, i_objective)
 
         # get parameters

@@ -25,6 +25,7 @@ from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.circuits import StateVectorCircuit
 from qiskit.aqua.utils.arithmetic import normalize_vector
 from qiskit.aqua.utils.circuit_utils import convert_to_basis_gates
+from qiskit.aqua.utils.validation import validate
 
 logger = logging.getLogger(__name__)
 
@@ -32,29 +33,25 @@ logger = logging.getLogger(__name__)
 class Custom(InitialState):
     """A custom initial state."""
 
-    CONFIGURATION = {
-        'name': 'CUSTOM',
-        'description': 'Custom initial state',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'custom_state_schema',
-            'type': 'object',
-            'properties': {
-                'state': {
-                    'type': 'string',
-                    'default': 'zero',
-                    'enum': ['zero', 'uniform', 'random']
-                },
-                'state_vector': {
-                    'type': ['array', 'null'],
-                    "items": {
-                        "type": "number"
-                    },
-                    'default': None
-                }
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'custom_state_schema',
+        'type': 'object',
+        'properties': {
+            'state': {
+                'type': 'string',
+                'default': 'zero',
+                'enum': ['zero', 'uniform', 'random']
             },
-            'additionalProperties': False
-        }
+            'state_vector': {
+                'type': ['array', 'null'],
+                "items": {
+                    "type": "number"
+                },
+                'default': None
+            }
+        },
+        'additionalProperties': False
     }
 
     def __init__(self, num_qubits, state="zero", state_vector=None, circuit=None):
@@ -73,7 +70,7 @@ class Custom(InitialState):
         # since state_vector is a numpy array of complex numbers which aren't json valid,
         # remove it from validation
         del loc['state_vector']
-        self.validate(loc)
+        validate(locals(), self._INPUT_SCHEMA)
         super().__init__()
         self._num_qubits = num_qubits
         self._state = state

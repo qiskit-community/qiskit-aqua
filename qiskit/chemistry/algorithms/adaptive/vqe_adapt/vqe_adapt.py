@@ -40,54 +40,35 @@ class VQEAdapt(VQAlgorithm):
     See https://arxiv.org/abs/1812.11173
     """
 
-    CONFIGURATION = {
-        'name': 'VQEAdapt',
-        'description': 'Adaptive VQE Algorithm',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'vqe_adapt_schema',
-            'type': 'object',
-            'properties': {
-                'initial_point': {
-                    'type': ['array', 'null'],
-                    "items": {
-                        "type": "number"
-                    },
-                    'default': None
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'vqe_adapt_schema',
+        'type': 'object',
+        'properties': {
+            'initial_point': {
+                'type': ['array', 'null'],
+                "items": {
+                    "type": "number"
                 },
-                'threshold': {
-                    'type': 'number',
-                    'minimum': 1e-15,  # limited by floating point precision
-                    'default': 1e-5
+                'default': None
+            },
+            'threshold': {
+                'type': 'number',
+                'minimum': 1e-15,  # limited by floating point precision
+                'default': 1e-5
 
-                },
-                'delta': {
-                    'type': 'number',
-                    'minimum': 1e-5,
-                    'default': 1
-                },
-                'max_evals_grouped': {
-                    'type': 'integer',
-                    'default': 1
-                }
             },
-            'additionalProperties': False
+            'delta': {
+                'type': 'number',
+                'minimum': 1e-5,
+                'default': 1
+            },
+            'max_evals_grouped': {
+                'type': 'integer',
+                'default': 1
+            }
         },
-        'problems': ['energy', 'ising'],
-        'depends': [
-            {
-                'pluggable_type': 'optimizer',
-                'default': {
-                    'name': 'L_BFGS_B'
-                },
-            },
-            {
-                'pluggable_type': 'variational_form',
-                'default': {
-                    'name': 'UCCSD'
-                },
-            },
-        ],
+        'additionalProperties': False
     }
 
     def __init__(self, operator, var_form_base, optimizer, initial_point=None,

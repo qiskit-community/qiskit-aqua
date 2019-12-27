@@ -22,6 +22,7 @@ import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.utils import get_subsystem_density_matrix
+from qiskit.aqua.utils.validation import validate
 
 logger = logging.getLogger(__name__)
 
@@ -31,30 +32,17 @@ logger = logging.getLogger(__name__)
 class BernsteinVazirani(QuantumAlgorithm):
     """The Bernstein-Vazirani algorithm."""
 
-    CONFIGURATION = {
-        'name': 'BernsteinVazirani',
-        'description': 'Bernstein Vazirani',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'bv_schema',
-            'type': 'object',
-            'properties': {
-            },
-            'additionalProperties': False
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'bv_schema',
+        'type': 'object',
+        'properties': {
         },
-        'problems': ['hiddenstringfinding'],
-        'depends': [
-            {
-                'pluggable_type': 'oracle',
-                'default': {
-                    'name': 'TruthTableOracle',
-                },
-            },
-        ],
+        'additionalProperties': False
     }
 
     def __init__(self, oracle):
-        self.validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
         super().__init__()
 
         self._oracle = oracle
