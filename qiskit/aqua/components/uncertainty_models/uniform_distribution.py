@@ -24,29 +24,25 @@ class UniformDistribution(UnivariateDistribution):
     The Univariate Uniform Distribution.
     """
 
-    CONFIGURATION = {
-        'name': 'UniformDistribution',
-        'description': 'Uniform Distribution',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'UniformDistribution_schema',
-            'type': 'object',
-            'properties': {
-                'num_target_qubits': {
-                    'type': 'integer',
-                    'default': 2,
-                },
-                'low': {
-                    'type': 'number',
-                    'default': 0,
-                },
-                'high': {
-                    'type': 'number',
-                    'default': 1,
-                },
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'UniformDistribution_schema',
+        'type': 'object',
+        'properties': {
+            'num_target_qubits': {
+                'type': 'integer',
+                'default': 2,
             },
-            'additionalProperties': False
-        }
+            'low': {
+                'type': 'number',
+                'default': 0,
+            },
+            'high': {
+                'type': 'number',
+                'default': 1,
+            },
+        },
+        'additionalProperties': False
     }
 
     def __init__(self, num_target_qubits, low=0, high=1):

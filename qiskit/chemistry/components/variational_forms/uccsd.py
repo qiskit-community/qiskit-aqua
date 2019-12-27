@@ -21,6 +21,7 @@ import logging
 import sys
 
 import numpy as np
+from qiskit.aqua.utils.validation import validate
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
@@ -40,66 +41,54 @@ class UCCSD(VariationalForm):
         For more information, see https://arxiv.org/abs/1805.04340
     """
 
-    CONFIGURATION = {
-        'name': 'UCCSD',
-        'description': 'UCCSD Variational Form',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'uccsd_schema',
-            'type': 'object',
-            'properties': {
-                'depth': {
-                    'type': 'integer',
-                    'default': 1,
-                    'minimum': 1
-                },
-                'num_orbitals': {
-                    'type': 'integer',
-                    'default': 4,
-                    'minimum': 1
-                },
-                'num_particles': {
-                    'type': ['array', 'integer'],
-                    'default': [1, 1],
-                    'contains': {
-                        'type': 'integer'
-                    },
-                    'minItems': 2,
-                    'maxItems': 2
-                },
-                'active_occupied': {
-                    'type': ['array', 'null'],
-                    'default': None
-                },
-                'active_unoccupied': {
-                    'type': ['array', 'null'],
-                    'default': None
-                },
-                'qubit_mapping': {
-                    'type': 'string',
-                    'default': 'parity',
-                    'enum': ['jordan_wigner', 'parity', 'bravyi_kitaev']
-                },
-                'two_qubit_reduction': {
-                    'type': 'boolean',
-                    'default': True
-                },
-                'num_time_slices': {
-                    'type': 'integer',
-                    'default': 1,
-                    'minimum': 1
-                },
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'uccsd_schema',
+        'type': 'object',
+        'properties': {
+            'depth': {
+                'type': 'integer',
+                'default': 1,
+                'minimum': 1
             },
-            'additionalProperties': False
+            'num_orbitals': {
+                'type': 'integer',
+                'default': 4,
+                'minimum': 1
+            },
+            'num_particles': {
+                'type': ['array', 'integer'],
+                'default': [1, 1],
+                'contains': {
+                    'type': 'integer'
+                },
+                'minItems': 2,
+                'maxItems': 2
+            },
+            'active_occupied': {
+                'type': ['array', 'null'],
+                'default': None
+            },
+            'active_unoccupied': {
+                'type': ['array', 'null'],
+                'default': None
+            },
+            'qubit_mapping': {
+                'type': 'string',
+                'default': 'parity',
+                'enum': ['jordan_wigner', 'parity', 'bravyi_kitaev']
+            },
+            'two_qubit_reduction': {
+                'type': 'boolean',
+                'default': True
+            },
+            'num_time_slices': {
+                'type': 'integer',
+                'default': 1,
+                'minimum': 1
+            },
         },
-        'depends': [
-            {
-                'pluggable_type': 'initial_state',
-                'default': {
-                    'name': 'HartreeFock',
-                }
-            },
-        ],
+        'additionalProperties': False
     }
 
     def __init__(self, num_qubits, depth, num_orbitals, num_particles,
@@ -127,7 +116,7 @@ class UCCSD(VariationalForm):
          Raises:
              ValueError: Computed qubits do not match actual value
         """
-        self.validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
         super().__init__()
 
         self._z2_symmetries = Z2Symmetries([], [], [], []) \

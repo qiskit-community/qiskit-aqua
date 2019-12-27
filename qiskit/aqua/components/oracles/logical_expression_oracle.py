@@ -25,6 +25,7 @@ from qiskit import QuantumCircuit, QuantumRegister
 
 from qiskit.aqua import AquaError
 from qiskit.aqua.circuits import CNF, DNF
+from qiskit.aqua.utils.validation import validate
 from .oracle import Oracle
 from .ast_utils import get_ast
 
@@ -33,35 +34,32 @@ logger = logging.getLogger(__name__)
 
 class LogicalExpressionOracle(Oracle):
     """ LOgical expression Oracle """
-    CONFIGURATION = {
-        'name': 'LogicalExpressionOracle',
-        'description': 'Logical Expression Oracle',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'logical_expression_oracle_schema',
-            'type': 'object',
-            'properties': {
-                'expression': {
-                    'type': ['string', 'null'],
-                    'default': None
-                },
-                "optimization": {
-                    "type": "boolean",
-                    "default": False,
-                },
-                'mct_mode': {
-                    'type': 'string',
-                    'default': 'basic',
-                    'enum': [
-                        'basic',
-                        'basic-dirty-ancilla',
-                        'advanced',
-                        'noancilla'
-                    ]
-                },
+
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'logical_expression_oracle_schema',
+        'type': 'object',
+        'properties': {
+            'expression': {
+                'type': ['string', 'null'],
+                'default': None
             },
-            'additionalProperties': False
-        }
+            "optimization": {
+                "type": "boolean",
+                "default": False,
+            },
+            'mct_mode': {
+                'type': 'string',
+                'default': 'basic',
+                'enum': [
+                    'basic',
+                    'basic-dirty-ancilla',
+                    'advanced',
+                    'noancilla'
+                ]
+            },
+        },
+        'additionalProperties': False
     }
 
     def __init__(self, expression=None, optimization=False, mct_mode='basic'):
@@ -77,7 +75,7 @@ class LogicalExpressionOracle(Oracle):
         Raises:
             AquaError: invalid input
         """
-        self.validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
         super().__init__()
 
         if expression is None:
