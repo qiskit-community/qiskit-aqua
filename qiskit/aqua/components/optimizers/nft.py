@@ -19,7 +19,7 @@ import logging
 import numpy as np
 from scipy.optimize import minimize
 from scipy.optimize import OptimizeResult
-
+from qiskit.aqua.utils.validation import validate
 from qiskit.aqua.components.optimizers import Optimizer
 
 
@@ -29,41 +29,32 @@ logger = logging.getLogger(__name__)
 class NFT(Optimizer):
     """Nakanishi-Fujii-Todo algorithm."""
 
-    CONFIGURATION = {
-        'name': 'NFT',
-        'description': 'NFT Optimizer',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'nft_schema',
-            'type': 'object',
-            'properties': {
-                'maxiter': {
-                    'type': ['integer', 'null'],
-                    'default': None
-                },
-                'maxfev': {
-                    'type': ['integer', 'null'],
-                    'default': 1024
-                },
-                'reset_interval': {
-                    'type': 'integer',
-                    'default': 32
-                },
-                'disp': {
-                    'type': 'boolean',
-                    'default': False
-                },
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'nft_schema',
+        'type': 'object',
+        'properties': {
+            'maxiter': {
+                'type': ['integer', 'null'],
+                'default': None
             },
-            'additionalProperties': False
+            'maxfev': {
+                'type': ['integer', 'null'],
+                'default': 1024
+            },
+            'reset_interval': {
+                'type': 'integer',
+                'default': 32
+            },
+            'disp': {
+                'type': 'boolean',
+                'default': False
+            },
         },
-        'support_level': {
-            'gradient': Optimizer.SupportLevel.ignored,
-            'bounds': Optimizer.SupportLevel.ignored,
-            'initial_point': Optimizer.SupportLevel.required
-        },
-        'options': ['maxiter', 'maxfev', 'disp', 'reset_interval'],
-        'optimizer': ['local']
+        'additionalProperties': False
     }
+
+    _OPTIONS = ['maxiter', 'maxfev', 'disp', 'reset_interval']
 
     # pylint: disable=unused-argument
     def __init__(self, maxiter=None, maxfev=1024, disp=False, reset_interval=32):
@@ -87,11 +78,19 @@ class NFT(Optimizer):
             Sequential minimal optimization for quantum-classical hybrid algorithms.
             arXiv preprint arXiv:1903.12166.
         """
-        self.validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
         super().__init__()
         for k, v in locals().items():
-            if k in self._configuration['options']:
+            if k in self._OPTIONS:
                 self._options[k] = v
+
+    def get_support_level(self):
+        """ return support level dictionary """
+        return {
+            'gradient': Optimizer.SupportLevel.ignored,
+            'bounds': Optimizer.SupportLevel.ignored,
+            'initial_point': Optimizer.SupportLevel.required
+        }
 
     def optimize(self, num_vars, objective_function, gradient_function=None,
                  variable_bounds=None, initial_point=None):
