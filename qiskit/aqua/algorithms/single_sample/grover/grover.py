@@ -15,6 +15,7 @@
 The Grover's Search algorithm.
 """
 
+from typing import Optional
 import logging
 import operator
 import numpy as np
@@ -23,10 +24,11 @@ from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 from qiskit.qasm import pi
 
 from qiskit.aqua import AquaError
-from qiskit.aqua.utils.validation import validate
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.components.initial_states import Custom
+from qiskit.aqua.components.oracles import Oracle
+from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.circuits.gates import mct  # pylint: disable=unused-import
 
 logger = logging.getLogger(__name__)
@@ -47,40 +49,9 @@ class Grover(QuantumAlgorithm):
     The implementation follows Section 4 of Boyer et al. <https://arxiv.org/abs/quant-ph/9605034>
     """
 
-    PROP_INCREMENTAL = 'incremental'
-    PROP_NUM_ITERATIONS = 'num_iterations'
-    PROP_MCT_MODE = 'mct_mode'
-
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'grover_schema',
-        'type': 'object',
-        'properties': {
-            PROP_INCREMENTAL: {
-                'type': 'boolean',
-                'default': False
-            },
-            PROP_NUM_ITERATIONS: {
-                'type': 'integer',
-                'default': 1,
-                'minimum': 1
-            },
-            PROP_MCT_MODE: {
-                'type': 'string',
-                'default': 'basic',
-                'enum': [
-                    'basic',
-                    'basic-dirty-ancilla',
-                    'advanced',
-                    'noancilla',
-                ]
-            },
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, oracle, init_state=None,
-                 incremental=False, num_iterations=1, mct_mode='basic'):
+    def __init__(self, oracle: Oracle, init_state: Optional[InitialState] = None,
+                 incremental: bool = False, num_iterations: int = 1,
+                 mct_mode: str = 'basic') -> None:
         """
         Constructor.
 
@@ -93,7 +64,7 @@ class Grover(QuantumAlgorithm):
         Raises:
             AquaError: evaluate_classically() missing from the input oracle
         """
-        validate(locals(), self._INPUT_SCHEMA)
+        self._validate_grover(num_iterations, mct_mode)
         super().__init__()
 
         if not callable(getattr(oracle, "evaluate_classically", None)):
@@ -113,7 +84,7 @@ class Grover(QuantumAlgorithm):
         self._max_num_iterations = np.ceil(2 ** (len(oracle.variable_register) / 2))
         self._incremental = incremental
         self._num_iterations = num_iterations if not incremental else 1
-        validate(locals(), self._INPUT_SCHEMA)
+        self._validate_grover(num_iterations, mct_mode)
         if incremental:
             logger.debug('Incremental mode specified, ignoring "num_iterations".')
         else:
@@ -124,6 +95,18 @@ class Grover(QuantumAlgorithm):
         self._qc_aa_iteration = None
         self._qc_amplitude_amplification = None
         self._qc_measurement = None
+
+    def _validate_grover(self, num_iterations: int, mct_mode: str) -> None:
+        if num_iterations < 1:
+            raise AquaError('Num iterations value {}. Minimum value allowed is 1'.format(
+                num_iterations))
+        if mct_mode not in ['basic',
+                            'basic-dirty-ancilla',
+                            'advanced',
+                            'noancilla']:
+            raise AquaError(
+                "Qubit Mapping value '{}'. Values allowed are 'basic', 'basic-dirty-ancilla', \
+                    'advanced', 'noancilla'".format(mct_mode))
 
     def _construct_diffusion_circuit(self):
         qc = QuantumCircuit(self._oracle.variable_register)

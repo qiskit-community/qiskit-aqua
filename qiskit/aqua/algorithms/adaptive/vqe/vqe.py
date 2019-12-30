@@ -18,6 +18,7 @@ The Variational Quantum Eigensolver algorithm.
 See https://arxiv.org/abs/1304.3061
 """
 
+from typing import Optional, List, Callable
 import logging
 import functools
 
@@ -31,7 +32,8 @@ from qiskit.aqua.operators import (TPBGroupedWeightedPauliOperator, WeightedPaul
                                    MatrixOperator, op_converter)
 from qiskit.aqua.utils.backend_utils import (is_statevector_backend,
                                              is_aer_provider)
-from qiskit.aqua.utils.validation import validate
+from qiskit.aqua.operators import BaseOperator
+from qiskit.aqua.components.optimizers import Optimizer
 
 logger = logging.getLogger(__name__)
 
@@ -43,29 +45,11 @@ class VQE(VQAlgorithm):
     See https://arxiv.org/abs/1304.3061
     """
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'vqe_schema',
-        'type': 'object',
-        'properties': {
-            'initial_point': {
-                'type': ['array', 'null'],
-                "items": {
-                    "type": "number"
-                },
-                'default': None
-            },
-            'max_evals_grouped': {
-                'type': 'integer',
-                'default': 1
-            }
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, operator, var_form, optimizer,
-                 initial_point=None, max_evals_grouped=1, aux_operators=None, callback=None,
-                 auto_conversion=True):
+    def __init__(self, operator: BaseOperator, var_form, optimizer: Optimizer,
+                 initial_point: Optional[np.ndarray] = None, max_evals_grouped: int = 1,
+                 aux_operators: Optional[List[BaseOperator]] = None,
+                 callback: Optional[Callable[[int, np.ndarray, float, float], None]] = None,
+                 auto_conversion: bool = True) -> None:
         """
 
         Args:
@@ -91,7 +75,6 @@ class VQE(VQAlgorithm):
                 - for *qasm simulator or real backend:*
                   :class:`~qiskit.aqua.operators.TPBGroupedWeightedPauliOperator`
         """
-        validate(locals(), self._INPUT_SCHEMA)
         super().__init__(var_form=var_form,
                          optimizer=optimizer,
                          cost_fn=self._energy_evaluation,

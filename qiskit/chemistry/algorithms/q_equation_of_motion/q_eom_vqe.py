@@ -16,9 +16,13 @@
 
 import logging
 
+from typing import Union, List, Optional, Callable
 import numpy as np
-from qiskit.aqua.utils.validation import validate
+from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms import VQE
+from qiskit.aqua.operators import BaseOperator, Z2Symmetries
+from qiskit.aqua.components.optimizers import Optimizer
+from qiskit.aqua.components.variational_forms import VariationalForm
 from .q_equation_of_motion import QEquationOfMotion
 
 logger = logging.getLogger(__name__)
@@ -27,66 +31,21 @@ logger = logging.getLogger(__name__)
 class QEomVQE(VQE):
     """ QEomVQE algorithm """
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'qeom_vqe_schema',
-        'type': 'object',
-        'properties': {
-            'initial_point': {
-                'type': ['array', 'null'],
-                "items": {
-                    "type": "number"
-                },
-                'default': None
-            },
-            'num_orbitals': {
-                'type': 'integer',
-                'default': 4,
-                'minimum': 1
-            },
-            'num_particles': {
-                'type': ['array', 'integer'],
-                'default': [1, 1],
-                'contains': {
-                    'type': 'integer'
-                },
-                'minItems': 2,
-                'maxItems': 2
-            },
-            'qubit_mapping': {
-                'type': 'string',
-                'default': 'parity',
-                'oneOf': [
-                    {'enum': ['jordan_wigner', 'parity', 'bravyi_kitaev']}
-                ]
-            },
-            'two_qubit_reduction': {
-                'type': 'boolean',
-                'default': True
-            },
-            'active_occupied': {
-                'type': ['array', 'null'],
-                'default': None
-            },
-            'active_unoccupied': {
-                'type': ['array', 'null'],
-                'default': None
-            },
-            'max_evals_grouped': {
-                'type': 'integer',
-                'default': 1
-            }
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, operator, var_form, optimizer, num_orbitals, num_particles,
-                 initial_point=None, max_evals_grouped=1, callback=None,
-                 auto_conversion=True, qubit_mapping='parity',
-                 two_qubit_reduction=True, is_eom_matrix_symmetric=True,
-                 active_occupied=None, active_unoccupied=None,
-                 se_list=None, de_list=None, z2_symmetries=None,
-                 untapered_op=None, aux_operators=None):
+    def __init__(self, operator: BaseOperator, var_form: VariationalForm,
+                 optimizer: Optimizer, num_orbitals: int,
+                 num_particles: Union[List[int], int],
+                 initial_point: Optional[np.ndarray] = None,
+                 max_evals_grouped: int = 1,
+                 callback: Optional[Callable[[int, np.ndarray, float, float], None]] = None,
+                 auto_conversion: bool = True, qubit_mapping: str = 'parity',
+                 two_qubit_reduction: bool = True, is_eom_matrix_symmetric: bool = True,
+                 active_occupied: Optional[List[int]] = None,
+                 active_unoccupied: Optional[List[int]] = None,
+                 se_list: Optional[List[List[int]]] = None,
+                 de_list: Optional[List[List[int]]] = None,
+                 z2_symmetries: Optional[Z2Symmetries] = None,
+                 untapered_op: Optional[BaseOperator] = None,
+                 aux_operators: Optional[List[BaseOperator]] = None) -> None:
         """
         Args:
             operator (BaseOperator): qubit operator
@@ -125,7 +84,7 @@ class QEomVQE(VQE):
             aux_operators (list[BaseOperator]): Auxiliary operators to be
                                                 evaluated at each eigenvalue
         """
-        validate(locals(), self._INPUT_SCHEMA)
+        self._validate_qeomvqe(num_orbitals, num_particles, qubit_mapping)
         super().__init__(operator.copy(), var_form, optimizer, initial_point=initial_point,
                          max_evals_grouped=max_evals_grouped, aux_operators=aux_operators,
                          callback=callback, auto_conversion=auto_conversion)
@@ -135,6 +94,19 @@ class QEomVQE(VQE):
                                       active_unoccupied,
                                       is_eom_matrix_symmetric, se_list, de_list,
                                       z2_symmetries, untapered_op)
+
+    def _validate_qeomvqe(self, num_orbitals: int, num_particles: Union[List[int], int],
+                          qubit_mapping: str) -> None:
+        if num_orbitals < 1:
+            raise AquaError('Num Orbitals value {}. Minimum value allowed is 1'.format(
+                num_orbitals))
+        if isinstance(num_particles, list) and len(num_particles) != 2:
+            raise AquaError('Num particles value {}. Number of values allowed is 2'.format(
+                num_particles))
+        if qubit_mapping not in ['jordan_wigner', 'parity', 'bravyi_kitaev']:
+            raise AquaError(
+                "Qubit Mapping value '{}'. Values allowed are 'jordan_wigner', 'parity', \
+                'bravyi_kitaev'".format(qubit_mapping))
 
     def _run(self):
         super()._run()

@@ -13,14 +13,16 @@
 # that they have been altered from the originals.
 """The Exact Eigensolver algorithm."""
 
+from typing import List, Optional
 import logging
 
 import numpy as np
 from scipy import sparse as scisparse
 
 from qiskit.aqua.algorithms.classical import ClassicalAlgorithm
-from qiskit.aqua.utils.validation import validate
 from qiskit.aqua.operators import MatrixOperator, op_converter  # pylint: disable=unused-import
+from qiskit.aqua import AquaError
+from qiskit.aqua.operators import BaseOperator
 
 logger = logging.getLogger(__name__)
 
@@ -30,21 +32,8 @@ logger = logging.getLogger(__name__)
 class ExactEigensolver(ClassicalAlgorithm):
     """The Exact Eigensolver algorithm."""
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'ExactEigensolver_schema',
-        'type': 'object',
-        'properties': {
-            'k': {
-                'type': 'integer',
-                'default': 1,
-                'minimum': 1
-            }
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, operator, k=1, aux_operators=None):
+    def __init__(self, operator: BaseOperator, k: int = 1,
+                 aux_operators: Optional[List[MatrixOperator]] = None) -> None:
         """Constructor.
 
         Args:
@@ -53,7 +42,7 @@ class ExactEigensolver(ClassicalAlgorithm):
             aux_operators (list[MatrixOperator]): Auxiliary operators
                         to be evaluated at each eigenvalue
         """
-        validate(locals(), self._INPUT_SCHEMA)
+        self._validate_exact_eigensolver(k)
         super().__init__()
 
         self._operator = op_converter.to_matrix_operator(operator)
@@ -69,6 +58,10 @@ class ExactEigensolver(ClassicalAlgorithm):
             self._k = self._operator.matrix.shape[0]
             logger.debug("WARNING: Asked for %s eigenvalues but max possible is %s.", k, self._k)
         self._ret = {}
+
+    def _validate_exact_eigensolver(self, k: int) -> None:
+        if k < 1:
+            raise AquaError('Parameter k value {}. Minimum value allowed is 1'.format(k))
 
     def _solve(self):
         if self._operator.dia_matrix is None:

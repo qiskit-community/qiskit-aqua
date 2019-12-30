@@ -16,14 +16,14 @@
 The Iterative Quantum Amplitude Estimation Algorithm.
 """
 
-
+from typing import Optional
 import logging
 import numpy as np
 from scipy.stats import beta
 
 from qiskit import ClassicalRegister, QuantumRegister, QuantumCircuit
 from qiskit.aqua import AquaError
-from qiskit.aqua.utils.validation import validate
+from qiskit.aqua.utils.circuit_factory import CircuitFactory
 
 from .ae_algorithm import AmplitudeEstimationAlgorithm
 
@@ -45,29 +45,11 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     Grover iterations to find an estimate for the target amplitude.
     """
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'IterativeAmplitudeEstimation_schema',
-        'type': 'object',
-        'properties': {
-            'epsilon': {
-                'type': 'number',
-                'default': 0.01,
-                'minimum': 0.0,
-                'maximum': 0.5,
-            },
-            'alpha': {
-                'type': 'number',
-                'default': 0.05,
-                'minimum': 0.0,
-                'maximum': 1.0,
-            },
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, epsilon, alpha, ci_method='beta', min_ratio=2, a_factory=None,
-                 q_factory=None, i_objective=None):
+    def __init__(self, epsilon: float, alpha: float,
+                 ci_method: str = 'beta', min_ratio: float = 2,
+                 a_factory: Optional[CircuitFactory] = None,
+                 q_factory: Optional[CircuitFactory] = None,
+                 i_objective: Optional[int] = None) -> None:
         """
         The output of the algorithm is an estimate for the amplitude `a`, that with at least
         probability 1 - alpha has an error of epsilon. The number of A operator calls scales
@@ -88,7 +70,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         Raises:
             AquaError: if the method to compute the confidence intervals is not supported
         """
-        validate(locals(), self._INPUT_SCHEMA)
+        self._validate_iqae(epsilon, alpha, ci_method)
         super().__init__(a_factory, q_factory, i_objective)
 
         # store parameters
@@ -103,6 +85,17 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         # results dictionary
         self._ret = {}
+
+    def _validate_iqae(self, epsilon: float, alpha: float, ci_method: str) -> None:
+        if epsilon < 0 or epsilon > 0.5:
+            raise AquaError(
+                'Epsilon value {}. Min/Max values allowed are 0 and 0.5'.format(epsilon))
+        if alpha < 0 or alpha > 1:
+            raise AquaError('Alpha value {}. Min/Max values allowed are 0 and 1'.format(alpha))
+        if ci_method not in ['chernoff', 'beta']:
+            raise AquaError(
+                "CI method value '{}'. Values allowed are 'chernoff', 'beta'".format(
+                    ci_method))
 
     @property
     def precision(self):

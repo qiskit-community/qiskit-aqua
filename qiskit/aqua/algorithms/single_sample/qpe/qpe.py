@@ -20,12 +20,15 @@ import logging
 import numpy as np
 from qiskit.quantum_info import Pauli
 
+from qiskit.aqua import AquaError
 from qiskit.aqua.operators import op_converter
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.circuits import PhaseEstimationCircuit
 from qiskit.aqua.operators import WeightedPauliOperator
-from qiskit.aqua.utils.validation import validate
+from qiskit.aqua.operators import BaseOperator
+from qiskit.aqua.components.initial_states import InitialState
+from qiskit.aqua.components.iqfts import IQFT
 
 logger = logging.getLogger(__name__)
 
@@ -35,48 +38,12 @@ logger = logging.getLogger(__name__)
 class QPE(QuantumAlgorithm):
     """The Quantum Phase Estimation algorithm."""
 
-    PROP_NUM_TIME_SLICES = 'num_time_slices'
-    PROP_EXPANSION_MODE = 'expansion_mode'
-    PROP_EXPANSION_ORDER = 'expansion_order'
-    PROP_NUM_ANCILLAE = 'num_ancillae'
-
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'qpe_schema',
-        'type': 'object',
-        'properties': {
-            PROP_NUM_TIME_SLICES: {
-                'type': 'integer',
-                'default': 1,
-                'minimum': 1
-            },
-            PROP_EXPANSION_MODE: {
-                'type': 'string',
-                'default': 'trotter',
-                'enum': [
-                    'suzuki',
-                    'trotter'
-                ]
-            },
-            PROP_EXPANSION_ORDER: {
-                'type': 'integer',
-                'default': 1,
-                'minimum': 1
-            },
-            PROP_NUM_ANCILLAE: {
-                'type': 'integer',
-                'default': 1,
-                'minimum': 1
-            }
-        },
-        'additionalProperties': False
-    }
-
     def __init__(
-            self, operator, state_in, iqft, num_time_slices=1, num_ancillae=1,
-            expansion_mode='trotter', expansion_order=1,
-            shallow_circuit_concat=False
-    ):
+            self, operator: BaseOperator, state_in: InitialState,
+            iqft: IQFT, num_time_slices: int = 1,
+            num_ancillae: int = 1, expansion_mode: str = 'trotter',
+            expansion_order: int = 1, shallow_circuit_concat: bool = False
+    ) -> None:
         """
 
         Args:
@@ -91,7 +58,7 @@ class QPE(QuantumAlgorithm):
             shallow_circuit_concat (bool): indicate whether to use shallow
                 (cheap) mode for circuit concatenation
         """
-        validate(locals(), self._INPUT_SCHEMA)
+        self._validate_qpe(num_time_slices, expansion_mode, expansion_order, num_ancillae)
         super().__init__()
         self._operator = op_converter.to_weighted_pauli_operator(operator.copy())
         self._num_ancillae = num_ancillae
@@ -126,6 +93,22 @@ class QPE(QuantumAlgorithm):
             shallow_circuit_concat=shallow_circuit_concat, pauli_list=self._pauli_list
         )
         self._binary_fractions = [1 / 2 ** p for p in range(1, num_ancillae + 1)]
+
+    def _validate_qpe(self, num_time_slices: int, expansion_mode: str,
+                      expansion_order: int, num_ancillae: int) -> None:
+        if num_time_slices < 1:
+            raise AquaError(
+                'Num time slices value {}. Minimum value allowed is 1'.format(num_time_slices))
+        if expansion_mode not in ['trotter', 'suzuki']:
+            raise AquaError(
+                "Expansion Mode value '{}'. Values allowed are 'trotter', 'suzuki'".format(
+                    expansion_mode))
+        if expansion_order < 1:
+            raise AquaError(
+                'Expansion order value {}. Minimum value allowed is 1'.format(expansion_order))
+        if num_ancillae < 1:
+            raise AquaError(
+                'Num ancillae value {}. Minimum value allowed is 1'.format(num_ancillae))
 
     def construct_circuit(self, measurement=False):
         """

@@ -15,6 +15,7 @@
 The Amplitude Estimation Algorithm.
 """
 
+from typing import Optional
 import logging
 import numpy as np
 from scipy.optimize import brute
@@ -22,7 +23,7 @@ from scipy.stats import norm, chi2
 
 from qiskit import ClassicalRegister, QuantumRegister, QuantumCircuit
 from qiskit.aqua import AquaError
-from qiskit.aqua.utils.validation import validate
+from qiskit.aqua.utils.circuit_factory import CircuitFactory
 from .ae_algorithm import AmplitudeEstimationAlgorithm
 
 logger = logging.getLogger(__name__)
@@ -35,22 +36,11 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     The Amplitude Estimation without QPE algorithm.
     """
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'MaximumLikelihoodAmplitudeEstimation_schema',
-        'type': 'object',
-        'properties': {
-            'log_max_evals': {
-                'type': 'integer',
-                'default': 5,
-                'minimum': 1
-            }
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, log_max_evals, a_factory=None, i_objective=None,
-                 q_factory=None, likelihood_evals=None):
+    def __init__(self, log_max_evals: int,
+                 a_factory: Optional[CircuitFactory] = None,
+                 i_objective: Optional[int] = None,
+                 q_factory: Optional[CircuitFactory] = None,
+                 likelihood_evals: Optional[int] = None):
         """
 
         Args:
@@ -64,7 +54,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             likelihood_evals (int): The number of gridpoints for the maximum search
                 of the likelihood function
         """
-        validate(locals(), self._INPUT_SCHEMA)
+        self._validate_mlae(log_max_evals)
         super().__init__(a_factory, q_factory, i_objective)
 
         # get parameters
@@ -79,6 +69,11 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         self._circuits = []
         self._ret = {}
+
+    def _validate_mlae(self, log_max_evals: int) -> None:
+        if log_max_evals < 1:
+            raise AquaError(
+                'Log max evals value {}. Minimum value allowed is 1'.format(log_max_evals))
 
     @property
     def _num_qubits(self):

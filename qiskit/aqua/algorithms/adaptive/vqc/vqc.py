@@ -14,6 +14,7 @@
 
 """ Variational Quantum Classifier algorithm """
 
+from typing import Optional, Callable, Dict
 import logging
 import math
 import numpy as np
@@ -23,10 +24,12 @@ from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 from qiskit.circuit import ParameterVector
 
 from qiskit.aqua import AquaError
-from qiskit.aqua.utils.validation import validate
 from qiskit.aqua.utils import map_label_to_class_name
 from qiskit.aqua.utils import split_dataset_to_data_and_labels
 from qiskit.aqua.algorithms.adaptive.vq_algorithm import VQAlgorithm
+from qiskit.aqua.components.optimizers import Optimizer
+from qiskit.aqua.components.feature_maps import FeatureMap
+from qiskit.aqua.components.variational_forms import VariationalForm
 
 logger = logging.getLogger(__name__)
 
@@ -147,39 +150,18 @@ def return_probabilities(counts, num_classes):
 class VQC(VQAlgorithm):
     """ Variational Quantum Classifier algorithm """
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'vqc_schema',
-        'type': 'object',
-        'properties': {
-            'override_SPSA_params': {
-                'type': 'boolean',
-                'default': True
-            },
-            'max_evals_grouped': {
-                'type': 'integer',
-                'default': 1
-            },
-            'minibatch_size': {
-                'type': 'integer',
-                'default': -1
-            }
-        },
-        'additionalProperties': False
-    }
-
     def __init__(
             self,
-            optimizer=None,
-            feature_map=None,
-            var_form=None,
-            training_dataset=None,
-            test_dataset=None,
-            datapoints=None,
-            max_evals_grouped=1,
-            minibatch_size=-1,
-            callback=None
-    ):
+            optimizer: Optional[Optimizer] = None,
+            feature_map: Optional[FeatureMap] = None,
+            var_form: Optional[VariationalForm] = None,
+            training_dataset: Optional[Dict[str, np.ndarray]] = None,
+            test_dataset: Optional[Dict[str, np.ndarray]] = None,
+            datapoints: Optional[np.ndarray] = None,
+            max_evals_grouped: int = 1,
+            minibatch_size: int = -1,
+            callback: Optional[Callable[[int, np.ndarray, float, int], None]] = None
+    ) -> None:
         """
 
         Args:
@@ -202,8 +184,6 @@ class VQC(VQAlgorithm):
         Raises:
             AquaError: invalid input
         """
-
-        validate(locals(), self._INPUT_SCHEMA)
         super().__init__(
             var_form=var_form,
             optimizer=optimizer,

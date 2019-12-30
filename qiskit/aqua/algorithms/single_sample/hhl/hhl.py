@@ -15,6 +15,7 @@
 The HHL algorithm.
 """
 
+from typing import Optional
 import logging
 from copy import deepcopy
 import numpy as np
@@ -24,7 +25,9 @@ from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.ignis.verification.tomography import state_tomography_circuits, \
     StateTomographyFitter
 from qiskit.converters import circuit_to_dag
-from qiskit.aqua.utils.validation import validate
+from qiskit.aqua.components.initial_states import InitialState
+from qiskit.aqua.components.reciprocals import Reciprocal
+from qiskit.aqua.components.eigs import Eigenvalues
 
 logger = logging.getLogger(__name__)
 
@@ -41,40 +44,19 @@ class HHL(QuantumAlgorithm):
     state tomography or calculated from the statevector (statevector_simulator).
     """
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'hhl_schema',
-        'type': 'object',
-        'properties': {
-            'truncate_powerdim': {
-                'type': 'boolean',
-                'default': False
-            },
-            'truncate_hermitian': {
-                'type': 'boolean',
-                'default': False
-            },
-            'orig_size': {
-                'type': ['integer', 'null'],
-                'default': None
-            }
-        },
-        'additionalProperties': False
-    }
-
     def __init__(
             self,
-            matrix=None,
-            vector=None,
-            truncate_powerdim=False,
-            truncate_hermitian=False,
-            eigs=None,
-            init_state=None,
-            reciprocal=None,
-            num_q=0,
-            num_a=0,
-            orig_size=None
-    ):
+            matrix: Optional[np.ndarray] = None,
+            vector: Optional[np.ndarray] = None,
+            truncate_powerdim: bool = False,
+            truncate_hermitian: bool = False,
+            eigs: Optional[Eigenvalues] = None,
+            init_state: Optional[InitialState] = None,
+            reciprocal: Optional[Reciprocal] = None,
+            num_q: int = 0,
+            num_a: int = 0,
+            orig_size: Optional[int] = None
+    ) -> None:
         """
         Constructor.
 
@@ -93,7 +75,6 @@ class HHL(QuantumAlgorithm):
             ValueError: invalid input
         """
         super().__init__()
-        validate(locals(), self._INPUT_SCHEMA)
         if matrix.shape[0] != matrix.shape[1]:
             raise ValueError("Input matrix must be square!")
         if matrix.shape[0] != len(vector):

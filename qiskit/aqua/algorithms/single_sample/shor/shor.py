@@ -32,7 +32,6 @@ from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.circuits import FourierTransformCircuits as ftc
 from qiskit.aqua.circuits.gates import mcu1  # pylint: disable=unused-import
 from qiskit.aqua.utils import summarize_circuits
-from qiskit.aqua.utils.validation import validate
 
 logger = logging.getLogger(__name__)
 
@@ -46,29 +45,7 @@ class Shor(QuantumAlgorithm):
     Adapted from https://github.com/ttlion/ShorAlgQiskit
     """
 
-    PROP_N = 'N'
-    PROP_A = 'a'
-
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'shor_schema',
-        'type': 'object',
-        'properties': {
-            PROP_N: {
-                'type': 'integer',
-                'default': 15,
-                'minimum': 3
-            },
-            PROP_A: {
-                'type': 'integer',
-                'default': 2,
-                'minimum': 2
-            },
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, N=15, a=2):
+    def __init__(self, N: int = 15, a: int = 2) -> None:
         """
         Constructor.
 
@@ -78,7 +55,7 @@ class Shor(QuantumAlgorithm):
          Raises:
             AquaError: invalid input
         """
-        validate(locals(), self._INPUT_SCHEMA)
+        self._validate_shor(N, a)
         super().__init__()
         self._n = None
         self._up_qreg = None
@@ -103,6 +80,12 @@ class Shor(QuantumAlgorithm):
         if tf:
             logger.info('The input integer is a power: %s=%s^%s.', N, b, p)
             self._ret['factors'].append(b)
+
+    def _validate_shor(self, N: int, a: int) -> None:
+        if N < 3:
+            raise AquaError('N value {}. Minimum value allowed is 3'.format(N))
+        if a < 2:
+            raise AquaError('Random value {}. Minimum value allowed is 2'.format(a))
 
     def _get_angles(self, a):
         """

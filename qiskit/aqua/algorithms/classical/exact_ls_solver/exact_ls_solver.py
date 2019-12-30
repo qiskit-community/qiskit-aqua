@@ -13,12 +13,12 @@
 # that they have been altered from the originals.
 """The Exact LinearSystem algorithm."""
 
+from typing import List, Optional
 import logging
 
 import numpy as np
 
 from qiskit.aqua.algorithms.classical import ClassicalAlgorithm
-from qiskit.aqua.utils.validation import validate
 
 logger = logging.getLogger(__name__)
 
@@ -26,23 +26,14 @@ logger = logging.getLogger(__name__)
 class ExactLSsolver(ClassicalAlgorithm):
     """The Exact LinearSystem algorithm."""
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'ExactLSsolver_schema',
-        'type': 'object',
-        'properties': {
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, matrix=None, vector=None):
+    def __init__(self, matrix: Optional[List[List[float]]] = None,
+                 vector: Optional[List[float]] = None) -> None:
         """Constructor.
 
         Args:
             matrix (array): the input matrix of linear system of equations
             vector (array): the input vector of linear system of equations
         """
-        validate(locals(), self._INPUT_SCHEMA)
         super().__init__()
         self._matrix = matrix
         self._vector = vector

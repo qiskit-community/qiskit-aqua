@@ -18,10 +18,11 @@ The Quantum Dynamics algorithm.
 import logging
 
 from qiskit import QuantumRegister
-
+from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.operators import op_converter
-from qiskit.aqua.utils.validation import validate
+from qiskit.aqua.operators import BaseOperator
+from qiskit.aqua.components.initial_states import InitialState
 
 logger = logging.getLogger(__name__)
 
@@ -31,46 +32,13 @@ class EOH(QuantumAlgorithm):
     The Quantum EOH (Evolution of Hamiltonian) algorithm.
     """
 
-    PROP_EVO_TIME = 'evo_time'
-    PROP_NUM_TIME_SLICES = 'num_time_slices'
-    PROP_EXPANSION_MODE = 'expansion_mode'
-    PROP_EXPANSION_ORDER = 'expansion_order'
-
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'EOH_schema',
-        'type': 'object',
-        'properties': {
-            PROP_EVO_TIME: {
-                'type': 'number',
-                'default': 1,
-                'minimum': 0
-            },
-            PROP_NUM_TIME_SLICES: {
-                'type': 'integer',
-                'default': 1,
-                'minimum': 0
-            },
-            PROP_EXPANSION_MODE: {
-                'type': 'string',
-                'default': 'trotter',
-                'enum': [
-                    'trotter',
-                    'suzuki'
-                ]
-            },
-            PROP_EXPANSION_ORDER: {
-                'type': 'integer',
-                'default': 1,
-                'minimum': 1
-            }
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, operator, initial_state, evo_operator, evo_time=1, num_time_slices=1,
-                 expansion_mode='trotter', expansion_order=1):
-        validate(locals(), self._INPUT_SCHEMA)
+    def __init__(self, operator: BaseOperator,
+                 initial_state: InitialState,
+                 evo_operator: BaseOperator,
+                 evo_time: int = 1, num_time_slices: int = 1,
+                 expansion_mode: str = 'trotter',
+                 expansion_order: int = 1) -> None:
+        self._validate_eoh(evo_time, num_time_slices, expansion_mode, expansion_order)
         super().__init__()
         self._operator = op_converter.to_weighted_pauli_operator(operator)
         self._initial_state = initial_state
@@ -80,6 +48,21 @@ class EOH(QuantumAlgorithm):
         self._expansion_mode = expansion_mode
         self._expansion_order = expansion_order
         self._ret = {}
+
+    def _validate_eoh(self, evo_time: int, num_time_slices: int,
+                      expansion_mode: str, expansion_order: int) -> None:
+        if evo_time < 0:
+            raise AquaError('Evo time value {}. Minimum value allowed is 0'.format(evo_time))
+        if num_time_slices < 0:
+            raise AquaError(
+                'Num time slices value {}. Minimum value allowed is 0'.format(num_time_slices))
+        if expansion_mode not in ['trotter', 'suzuki']:
+            raise AquaError(
+                "Expansion Mode value '{}'. Values allowed are 'trotter', 'suzuki'".format(
+                    expansion_mode))
+        if expansion_order < 1:
+            raise AquaError(
+                'Expansion order value {}. Minimum value allowed is 1'.format(expansion_order))
 
     def construct_circuit(self):
         """

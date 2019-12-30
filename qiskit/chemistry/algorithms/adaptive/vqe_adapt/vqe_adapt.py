@@ -18,6 +18,7 @@ An adaptive VQE implementation.
 See https://arxiv.org/abs/1812.11173
 """
 
+from typing import Optional, List
 import logging
 import re
 import numpy as np
@@ -29,6 +30,9 @@ from qiskit.aqua.algorithms.adaptive.vqe.vqe import VQE
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.aqua.operators import TPBGroupedWeightedPauliOperator, WeightedPauliOperator
 from qiskit.aqua.utils.backend_utils import is_aer_statevector_backend
+from qiskit.aqua.operators import BaseOperator
+from qiskit.aqua.components.optimizers import Optimizer
+from qiskit.aqua.components.variational_forms import VariationalForm
 
 logger = logging.getLogger(__name__)
 
@@ -40,40 +44,13 @@ class VQEAdapt(VQAlgorithm):
     See https://arxiv.org/abs/1812.11173
     """
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'vqe_adapt_schema',
-        'type': 'object',
-        'properties': {
-            'initial_point': {
-                'type': ['array', 'null'],
-                "items": {
-                    "type": "number"
-                },
-                'default': None
-            },
-            'threshold': {
-                'type': 'number',
-                'minimum': 1e-15,  # limited by floating point precision
-                'default': 1e-5
-
-            },
-            'delta': {
-                'type': 'number',
-                'minimum': 1e-5,
-                'default': 1
-            },
-            'max_evals_grouped': {
-                'type': 'integer',
-                'default': 1
-            }
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, operator, var_form_base, optimizer, initial_point=None,
-                 excitation_pool=None, threshold=1e-5, delta=1,
-                 max_evals_grouped=1, aux_operators=None):
+    def __init__(self, operator: BaseOperator,
+                 var_form_base: VariationalForm, optimizer: Optimizer,
+                 initial_point: Optional[np.ndarray] = None,
+                 excitation_pool: Optional[List[WeightedPauliOperator]] = None,
+                 threshold: float = 1e-5,
+                 delta: float = 1, max_evals_grouped: int = 1,
+                 aux_operators: Optional[List[BaseOperator]] = None) -> None:
         """Constructor.
 
         Args:
@@ -92,6 +69,7 @@ class VQEAdapt(VQAlgorithm):
             ValueError: if var_form_base is not an instance of UCCSD.
             See also: qiskit/chemistry/components/variational_forms/uccsd_adapt.py
         """
+        self._validate_vqe_adapt(threshold, delta)
         super().__init__(var_form=var_form_base,
                          optimizer=optimizer,
                          initial_point=initial_point)
@@ -115,6 +93,12 @@ class VQEAdapt(VQAlgorithm):
                 [aux_operators] if not isinstance(aux_operators, list) else aux_operators
             for aux_op in aux_operators:
                 self._aux_operators.append(aux_op)
+
+    def _validate_vqe_adapt(self, threshold: float, delta: float) -> None:
+        if threshold < 1e-15:
+            raise AquaError('Threshold value {}. Minimum value allowed is 1e-15'.format(threshold))
+        if delta < 1e-5:
+            raise AquaError('Delta value {}. Minimum value allowed is 1e-5'.format(delta))
 
     def _compute_gradients(self, excitation_pool, theta, delta,
                            var_form, operator, optimizer):

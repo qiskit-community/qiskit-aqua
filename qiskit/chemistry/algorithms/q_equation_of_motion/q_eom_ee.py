@@ -14,10 +14,12 @@
 
 """ QEomEE algorithm """
 
+from typing import Union, List, Optional
 import logging
 
 import numpy as np
-from qiskit.aqua.utils.validation import validate
+from qiskit.aqua import AquaError
+from qiskit.aqua.operators import BaseOperator, Z2Symmetries
 from qiskit.aqua.algorithms import ExactEigensolver
 from .q_equation_of_motion import QEquationOfMotion
 
@@ -27,52 +29,17 @@ logger = logging.getLogger(__name__)
 class QEomEE(ExactEigensolver):
     """ QEomEE algorithm """
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'qeom_vqe_schema',
-        'type': 'object',
-        'properties': {
-            'num_orbitals': {
-                'type': 'integer',
-                'default': 4,
-                'minimum': 1
-            },
-            'num_particles': {
-                'type': ['array', 'integer'],
-                'default': [1, 1],
-                'contains': {
-                    'type': 'integer'
-                },
-                'minItems': 2,
-                'maxItems': 2
-            },
-            'qubit_mapping': {
-                'type': 'string',
-                'default': 'parity',
-                'oneOf': [
-                    {'enum': ['jordan_wigner', 'parity', 'bravyi_kitaev']}
-                ]
-            },
-            'two_qubit_reduction': {
-                'type': 'boolean',
-                'default': True
-            },
-            'active_occupied': {
-                'type': ['array', 'null'],
-                'default': None
-            },
-            'active_unoccupied': {
-                'type': ['array', 'null'],
-                'default': None
-            }
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, operator, num_orbitals, num_particles, qubit_mapping='parity',
-                 two_qubit_reduction=True, active_occupied=None, active_unoccupied=None,
-                 is_eom_matrix_symmetric=True, se_list=None, de_list=None,
-                 z2_symmetries=None, untapered_op=None, aux_operators=None):
+    def __init__(self, operator: BaseOperator, num_orbitals: int,
+                 num_particles: Union[List[int], int], qubit_mapping: str = 'parity',
+                 two_qubit_reduction: bool = True,
+                 active_occupied: Optional[List[int]] = None,
+                 active_unoccupied: Optional[List[int]] = None,
+                 is_eom_matrix_symmetric: bool = True,
+                 se_list: Optional[List[List[int]]] = None,
+                 de_list: Optional[List[List[int]]] = None,
+                 z2_symmetries: Optional[Z2Symmetries] = None,
+                 untapered_op: Optional[BaseOperator] = None,
+                 aux_operators: Optional[List[BaseOperator]] = None) -> None:
         """
         Args:
             operator (BaseOperator): qubit operator
@@ -95,13 +62,26 @@ class QEomEE(ExactEigensolver):
             aux_operators (list[BaseOperator]): Auxiliary operators to be evaluated at
                                                 each eigenvalue
         """
-        validate(locals(), self._INPUT_SCHEMA)
+        self._validate_qeomee(num_orbitals, num_particles, qubit_mapping)
         super().__init__(operator, 1, aux_operators)
 
         self.qeom = QEquationOfMotion(operator, num_orbitals, num_particles, qubit_mapping,
                                       two_qubit_reduction, active_occupied, active_unoccupied,
                                       is_eom_matrix_symmetric, se_list, de_list,
                                       z2_symmetries, untapered_op)
+
+    def _validate_qeomee(self, num_orbitals: int, num_particles: Union[List[int], int],
+                         qubit_mapping: str) -> None:
+        if num_orbitals < 1:
+            raise AquaError('Num Orbitals value {}. Minimum value allowed is 1'.format(
+                num_orbitals))
+        if isinstance(num_particles, list) and len(num_particles) != 2:
+            raise AquaError('Num particles value {}. Number of values allowed is 2'.format(
+                num_particles))
+        if qubit_mapping not in ['jordan_wigner', 'parity', 'bravyi_kitaev']:
+            raise AquaError(
+                "Qubit Mapping value '{}'. Values allowed are 'jordan_wigner', 'parity', \
+                'bravyi_kitaev'".format(qubit_mapping))
 
     def _run(self):
         super()._run()

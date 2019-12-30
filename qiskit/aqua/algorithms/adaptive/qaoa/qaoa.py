@@ -14,11 +14,14 @@
 
 """ The Quantum Approximate Optimization Algorithm. """
 
-# pylint: disable=unused-import
-
+from typing import List, Callable, Optional
 import logging
+import numpy as np
+from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms.adaptive import VQE
-from qiskit.aqua.utils.validation import validate
+from qiskit.aqua.operators import BaseOperator
+from qiskit.aqua.components.initial_states import InitialState
+from qiskit.aqua.components.optimizers import Optimizer
 from .var_form import QAOAVarForm
 
 logger = logging.getLogger(__name__)
@@ -33,34 +36,12 @@ class QAOA(VQE):
     See https://arxiv.org/abs/1411.4028
     """
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'qaoa_schema',
-        'type': 'object',
-        'properties': {
-            'p': {
-                'type': 'integer',
-                'default': 1,
-                'minimum': 1
-            },
-            'initial_point': {
-                'type': ['array', 'null'],
-                "items": {
-                    "type": "number"
-                },
-                'default': None
-            },
-            'max_evals_grouped': {
-                'type': 'integer',
-                'default': 1
-            }
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, operator, optimizer, p=1, initial_state=None, mixer=None,
-                 initial_point=None, max_evals_grouped=1, aux_operators=None,
-                 callback=None, auto_conversion=True):
+    def __init__(self, operator: BaseOperator, optimizer: Optimizer, p: int = 1,
+                 initial_state: Optional[InitialState] = None,
+                 mixer: Optional[BaseOperator] = None, initial_point: Optional[np.ndarray] = None,
+                 max_evals_grouped: int = 1, aux_operators: Optional[List[BaseOperator]] = None,
+                 callback: Optional[Callable[[int, np.ndarray, float, float], None]] = None,
+                 auto_conversion: bool = True) -> None:
         """
         Args:
             operator (BaseOperator): Qubit operator
@@ -88,9 +69,13 @@ class QAOA(VQE):
                 - for *qasm simulator or real backend:*
                   :class:`~qiskit.aqua.operators.TPBGroupedWeightedPauliOperator`
         """
-        validate(locals(), self._INPUT_SCHEMA)
+        self._validate_qaoa(p)
         var_form = QAOAVarForm(operator.copy(), p, initial_state=initial_state,
                                mixer_operator=mixer)
         super().__init__(operator, var_form, optimizer, initial_point=initial_point,
                          max_evals_grouped=max_evals_grouped, aux_operators=aux_operators,
                          callback=callback, auto_conversion=auto_conversion)
+
+    def _validate_qaoa(self, p: int) -> None:
+        if p < 1:
+            raise AquaError('Parameter p value {}. Minimum value allowed is 1'.format(p))
