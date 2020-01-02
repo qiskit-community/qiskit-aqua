@@ -31,8 +31,8 @@ class ExactLSsolver(ClassicalAlgorithm):
         """Constructor.
 
         Args:
-            matrix (array): the input matrix of linear system of equations
-            vector (array): the input vector of linear system of equations
+            matrix: the input matrix of linear system of equations
+            vector: the input vector of linear system of equations
         """
         super().__init__()
         self._matrix = matrix

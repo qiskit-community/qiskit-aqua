@@ -61,16 +61,16 @@ class HHL(QuantumAlgorithm):
         Constructor.
 
         Args:
-            matrix (np.array): the input matrix of linear system of equations
-            vector (np.array): the input vector of linear system of equations
-            truncate_powerdim (bool): flag indicating expansion to 2**n matrix to be truncated
-            truncate_hermitian (bool): flag indicating expansion to hermitian matrix to be truncated
-            eigs (Eigenvalues): the eigenvalue estimation instance
-            init_state (InitialState): the initial quantum state preparation
-            reciprocal (Reciprocal): the eigenvalue reciprocal and controlled rotation instance
-            num_q (int): number of qubits required for the matrix Operator instance
-            num_a (int): number of ancillary qubits for Eigenvalues instance
-            orig_size (int): The original dimension of the problem (if truncate_powerdim)
+            matrix: the input matrix of linear system of equations
+            vector: the input vector of linear system of equations
+            truncate_powerdim: flag indicating expansion to 2**n matrix to be truncated
+            truncate_hermitian: flag indicating expansion to hermitian matrix to be truncated
+            eigs: the eigenvalue estimation instance
+            init_state: the initial quantum state preparation
+            reciprocal: the eigenvalue reciprocal and controlled rotation instance
+            num_q: number of qubits required for the matrix Operator instance
+            num_a: number of ancillary qubits for Eigenvalues instance
+            orig_size: The original dimension of the problem (if truncate_powerdim)
         Raises:
             ValueError: invalid input
         """

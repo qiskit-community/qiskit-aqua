@@ -44,14 +44,14 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         """
 
         Args:
-            log_max_evals (int): base-2-logarithm of maximal number of evaluations -
+            log_max_evals: base-2-logarithm of maximal number of evaluations -
                 resulting evaluation schedule will be [Q^2^0, ..., Q^2^{max_evals_log-1}]
-            a_factory (CircuitFactory): the CircuitFactory subclass object
+            a_factory: the CircuitFactory subclass object
                 representing the problem unitary
-            i_objective (int): index of qubit representing the objective in the uncertainty problem
-            q_factory (CircuitFactory): the CircuitFactory subclass object representing
+            i_objective: index of qubit representing the objective in the uncertainty problem
+            q_factory: the CircuitFactory subclass object representing
                 an amplitude estimation sample (based on a_factory)
-            likelihood_evals (int): The number of gridpoints for the maximum search
+            likelihood_evals: The number of gridpoints for the maximum search
                 of the likelihood function
         """
         self._validate_mlae(log_max_evals)

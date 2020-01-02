@@ -48,40 +48,40 @@ class QEomVQE(VQE):
                  aux_operators: Optional[List[BaseOperator]] = None) -> None:
         """
         Args:
-            operator (BaseOperator): qubit operator
-            var_form (VariationalForm): parametrized variational form.
-            optimizer (Optimizer): the classical optimization algorithm.
-            num_orbitals (int):  total number of spin orbitals
-            num_particles (Union(list, int)): number of particles, if it is a list,
+            operator: qubit operator
+            var_form: parametrized variational form.
+            optimizer: the classical optimization algorithm.
+            num_orbitals:  total number of spin orbitals
+            num_particles: number of particles, if it is a list,
                                               the first number is
                                               alpha and the second number if beta.
-            initial_point (numpy.ndarray): optimizer initial point, 1-D vector
-            max_evals_grouped (int): max number of evaluations performed simultaneously
-            callback (Callable): a callback that can access the intermediate data during
+            initial_point: optimizer initial point, 1-D vector
+            max_evals_grouped: max number of evaluations performed simultaneously
+            callback: a callback that can access the intermediate data during
                                  the optimization.
                                  Internally, four arguments are provided as follows
                                  the index of evaluation, parameters of variational form,
                                  evaluated mean, evaluated standard deviation.
-            auto_conversion (bool): an automatic conversion for operator and aux_operators into
+            auto_conversion: an automatic conversion for operator and aux_operators into
                                     the type which is most suitable for the backend.
 
                                     - non-aer statevector_simulator: MatrixOperator
                                     - aer statevector_simulator: WeightedPauliOperator
                                     - qasm simulator or real backend:
                                         TPBGroupedWeightedPauliOperator
-            qubit_mapping (str): qubit mapping type
-            two_qubit_reduction (bool): two qubit reduction is applied or not
-            is_eom_matrix_symmetric (bool): is EoM matrix symmetric
-            active_occupied (list): list of occupied orbitals to include, indices are
+            qubit_mapping: qubit mapping type
+            two_qubit_reduction: two qubit reduction is applied or not
+            is_eom_matrix_symmetric: is EoM matrix symmetric
+            active_occupied: list of occupied orbitals to include, indices are
                                     0 to n where n is num particles // 2
-            active_unoccupied (list): list of unoccupied orbitals to include, indices are
+            active_unoccupied: list of unoccupied orbitals to include, indices are
                                       0 to m where m is (num_orbitals - num particles) // 2
-            se_list (list[list]): single excitation list, overwrite the setting in active space
-            de_list (list[list]): double excitation list, overwrite the setting in active space
-            z2_symmetries (Z2Symmetries): represent the Z2 symmetries
-            untapered_op (BaseOperator): if the operator is tapered, we need untapered operator
+            se_list: single excitation list, overwrite the setting in active space
+            de_list: double excitation list, overwrite the setting in active space
+            z2_symmetries: represent the Z2 symmetries
+            untapered_op: if the operator is tapered, we need untapered operator
                                          during building element of EoM matrix
-            aux_operators (list[BaseOperator]): Auxiliary operators to be
+            aux_operators: Auxiliary operators to be
                                                 evaluated at each eigenvalue
         """
         self._validate_qeomvqe(num_orbitals, num_particles, qubit_mapping)

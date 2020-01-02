@@ -47,15 +47,15 @@ class QPE(QuantumAlgorithm):
         """
 
         Args:
-            operator (BaseOperator): the hamiltonian Operator object
-            state_in (InitialState): the InitialState component
+            operator: the hamiltonian Operator object
+            state_in: the InitialState component
                 representing the initial quantum state
-            iqft (IQFT): the Inverse Quantum Fourier Transform component
-            num_time_slices (int): the number of time slices
-            num_ancillae (int): the number of ancillary qubits to use for the measurement
-            expansion_mode (str): the expansion mode (trotter|suzuki)
-            expansion_order (int): the suzuki expansion order
-            shallow_circuit_concat (bool): indicate whether to use shallow
+            iqft: the Inverse Quantum Fourier Transform component
+            num_time_slices: the number of time slices
+            num_ancillae: the number of ancillary qubits to use for the measurement
+            expansion_mode: the expansion mode (trotter|suzuki)
+            expansion_order: the suzuki expansion order
+            shallow_circuit_concat: indicate whether to use shallow
                 (cheap) mode for circuit concatenation
         """
         self._validate_qpe(num_time_slices, expansion_mode, expansion_order, num_ancillae)

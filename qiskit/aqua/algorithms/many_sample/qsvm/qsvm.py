@@ -57,11 +57,11 @@ class QSVM(QuantumAlgorithm):
         """
 
         Args:
-            feature_map (FeatureMap): feature map module, used to transform data
-            training_dataset (dict, optional): training dataset.
-            test_dataset (dict, optional): testing dataset.
-            datapoints (numpy.ndarray, optional): prediction dataset.
-            multiclass_extension (MultiExtension, optional): if number of classes > 2 then
+            feature_map: feature map module, used to transform data
+            training_dataset: training dataset.
+            test_dataset: testing dataset.
+            datapoints: prediction dataset.
+            multiclass_extension: if number of classes > 2 then
                 a multiclass scheme is needed.
 
         Raises:

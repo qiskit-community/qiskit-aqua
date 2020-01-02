@@ -165,16 +165,16 @@ class VQC(VQAlgorithm):
         """
 
         Args:
-            optimizer (Optimizer): The classical optimizer to use.
-            feature_map (FeatureMap): The FeatureMap instance to use.
-            var_form (VariationalForm): The variational form instance.
-            training_dataset (dict): The training dataset, in the format
+            optimizer: The classical optimizer to use.
+            feature_map: The FeatureMap instance to use.
+            var_form: The variational form instance.
+            training_dataset: The training dataset, in the format
                 {'A': np.ndarray, 'B': np.ndarray, ...}.
-            test_dataset (dict): The test dataset, in same format as `training_dataset`.
-            datapoints (np.ndarray): NxD array, N is the number of data and D is data dimension.
-            max_evals_grouped (int): The maximum number of evaluations to perform simultaneously.
-            minibatch_size (int): The size of a mini-batch.
-            callback (Callable): a callback that can access the
+            test_dataset: The test dataset, in same format as `training_dataset`.
+            datapoints: NxD array, N is the number of data and D is data dimension.
+            max_evals_grouped: The maximum number of evaluations to perform simultaneously.
+            minibatch_size: The size of a mini-batch.
+            callback: a callback that can access the
                 intermediate data during the optimization.
                 Internally, four arguments are provided as follows the index
                 of data batch, the index of evaluation,

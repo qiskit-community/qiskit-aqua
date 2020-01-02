@@ -54,15 +54,15 @@ class VQEAdapt(VQAlgorithm):
         """Constructor.
 
         Args:
-            operator (BaseOperator): Qubit operator
-            var_form_base (VariationalForm): base parametrized variational form
-            optimizer (Optimizer): the classical optimizer algorithm
-            initial_point (numpy.ndarray): optimizer initial point
-            excitation_pool (list[WeightedPauliOperator]): list of excitation operators
-            threshold (double): absolute threshold value for gradients
-            delta (float): finite difference step size for gradient computation
-            max_evals_grouped (int): max number of evaluations performed simultaneously
-            aux_operators (list[BaseOperator]): Auxiliary operators to be evaluated
+            operator: Qubit operator
+            var_form_base: base parametrized variational form
+            optimizer: the classical optimizer algorithm
+            initial_point: optimizer initial point
+            excitation_pool: list of excitation operators
+            threshold: absolute threshold value for gradients
+            delta: finite difference step size for gradient computation
+            max_evals_grouped: max number of evaluations performed simultaneously
+            aux_operators: Auxiliary operators to be evaluated
                                                 at each eigenvalue
 
         Raises:

@@ -48,14 +48,14 @@ class SVM_Classical(ClassicalAlgorithm):
         """
 
         Args:
-            training_dataset (dict): training dataset.
-            test_dataset (dict, optional): testing dataset.
-            datapoints (numpy.ndarray, optional): prediction dataset.
-            gamma (int, optional): Used as input for sklearn rbf_kernel internally. See
+            training_dataset: training dataset.
+            test_dataset: testing dataset.
+            datapoints: prediction dataset.
+            gamma: Used as input for sklearn rbf_kernel internally. See
                 `sklearn.metrics.pairwise.rbf_kernel
                 <https://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.rbf_kernel.html>`_
                 for more information about gamma.
-            multiclass_extension (MulticlassExtension, optional): if number of classes > 2 then
+            multiclass_extension: if number of classes > 2 then
                 a multiclass scheme is needed.
 
         Raises:

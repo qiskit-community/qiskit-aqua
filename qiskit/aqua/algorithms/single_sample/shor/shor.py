@@ -50,8 +50,8 @@ class Shor(QuantumAlgorithm):
         Constructor.
 
         Args:
-            N (int): The integer to be factored.
-            a (int): A random integer a that satisfies a < N and gcd(a, N) = 1
+            N: The integer to be factored.
+            a: A random integer a that satisfies a < N and gcd(a, N) = 1
          Raises:
             AquaError: invalid input
         """

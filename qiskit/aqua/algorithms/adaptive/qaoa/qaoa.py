@@ -44,22 +44,23 @@ class QAOA(VQE):
                  auto_conversion: bool = True) -> None:
         """
         Args:
-            operator (BaseOperator): Qubit operator
-            p (int): the integer parameter p as specified in https://arxiv.org/abs/1411.4028
-            initial_state (InitialState): the initial state to prepend the QAOA circuit with
-            mixer (BaseOperator): the mixer Hamiltonian to evolve with. Allows support of
-                                  optimizations in constrained subspaces
-                                  as per https://arxiv.org/abs/1709.03489
-            optimizer (Optimizer): the classical optimization algorithm.
-            initial_point (numpy.ndarray): optimizer initial point.
-            max_evals_grouped (int): max number of evaluations to be performed simultaneously.
-            aux_operators (list): aux operators
-            callback (Callable): a callback that can access the intermediate
+            operator: Qubit operator
+            optimizer: The classical optimizer to use.
+            p: the integer parameter p as specified in https://arxiv.org/abs/1411.4028
+            initial_state: the initial state to prepend the QAOA circuit with
+            mixer: the mixer Hamiltonian to evolve with. Allows support of
+                   optimizations in constrained subspaces
+                   as per https://arxiv.org/abs/1709.03489
+            optimizer: the classical optimization algorithm.
+            initial_point: optimizer initial point.
+            max_evals_grouped: max number of evaluations to be performed simultaneously.
+            aux_operators: aux operators
+            callback: a callback that can access the intermediate
                                  data during the optimization.
                                  Internally, four arguments are provided as follows
                                  the index of evaluation, parameters of variational form,
                                  evaluated mean, evaluated standard deviation.
-            auto_conversion (bool): an automatic conversion for operator and aux_operators
+            auto_conversion: an automatic conversion for operator and aux_operators
                 into the type which is most suitable for the backend.
 
                 - for *non-Aer statevector simulator:*

@@ -52,21 +52,21 @@ class QGAN(QuantumAlgorithm):
         """
 
         Args:
-            data (np.ndarray): training data of dimension k
-            bounds (np.ndarray): k min/max data values [[min_0,max_0],...,[min_k-1,max_k-1]]
+            data: training data of dimension k
+            bounds: k min/max data values [[min_0,max_0],...,[min_k-1,max_k-1]]
                 if univariate data: [min_0,max_0]
-            num_qubits (np.ndarray): k numbers of qubits to determine representation resolution,
+            num_qubits: k numbers of qubits to determine representation resolution,
                 i.e. n qubits enable the representation of 2**n values
                 [num_qubits_0,..., num_qubits_k-1]
-            batch_size (int): batch size
-            num_epochs (int): number of training epochs
-            seed (int): random number seed
-            discriminator (DiscriminativeNetwork): discriminates between real and fake data samples
-            generator (GenerativeNetwork): generates 'fake' data samples
-            tol_rel_ent (Union(float, None)): Set tolerance level for relative entropy.
+            batch_size: batch size
+            num_epochs: number of training epochs
+            seed: random number seed
+            discriminator: discriminates between real and fake data samples
+            generator: generates 'fake' data samples
+            tol_rel_ent: Set tolerance level for relative entropy.
                 If the training achieves relative
-            entropy equal or lower than tolerance it finishes.
-            snapshot_dir (Union(str, None)): path or None, if path given store cvs file
+                entropy equal or lower than tolerance it finishes.
+            snapshot_dir: path or None, if path given store cvs file
                 with parameters to the directory
         Raises:
             AquaError: invalid input

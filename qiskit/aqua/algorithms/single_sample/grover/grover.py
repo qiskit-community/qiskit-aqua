@@ -56,11 +56,11 @@ class Grover(QuantumAlgorithm):
         Constructor.
 
         Args:
-            oracle (Oracle): the oracle component
-            init_state (InitialState): the initial quantum state preparation
-            incremental (bool): boolean flag for whether to use incremental search mode or not
-            num_iterations (int): the number of iterations to use for amplitude amplification
-            mct_mode (str): mct mode
+            oracle: the oracle component
+            init_state: the initial quantum state preparation
+            incremental: boolean flag for whether to use incremental search mode or not
+            num_iterations: the number of iterations to use for amplitude amplification
+            mct_mode: mct mode
         Raises:
             AquaError: evaluate_classically() missing from the input oracle
         """

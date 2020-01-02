@@ -37,9 +37,9 @@ class ExactEigensolver(ClassicalAlgorithm):
         """Constructor.
 
         Args:
-            operator (MatrixOperator): instance
-            k (int): How many eigenvalues are to be computed
-            aux_operators (list[MatrixOperator]): Auxiliary operators
+            operator: instance
+            k: How many eigenvalues are to be computed
+            aux_operators: Auxiliary operators
                         to be evaluated at each eigenvalue
         """
         self._validate_exact_eigensolver(k)

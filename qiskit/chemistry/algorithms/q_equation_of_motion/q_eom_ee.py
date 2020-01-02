@@ -42,24 +42,24 @@ class QEomEE(ExactEigensolver):
                  aux_operators: Optional[List[BaseOperator]] = None) -> None:
         """
         Args:
-            operator (BaseOperator): qubit operator
-            num_orbitals (int):  total number of spin orbitals
-            num_particles (Union(list, int)): number of particles, if it is a list,
+            operator: qubit operator
+            num_orbitals:  total number of spin orbitals
+            num_particles: number of particles, if it is a list,
                                         the first number is alpha and the second
                                         number if beta.
-            qubit_mapping (str): qubit mapping type
-            two_qubit_reduction (bool): two qubit reduction is applied or not
-            active_occupied (list): list of occupied orbitals to include, indices are
+            qubit_mapping: qubit mapping type
+            two_qubit_reduction: two qubit reduction is applied or not
+            active_occupied: list of occupied orbitals to include, indices are
                                     0 to n where n is num particles // 2
-            active_unoccupied (list): list of unoccupied orbitals to include, indices are
+            active_unoccupied: list of unoccupied orbitals to include, indices are
                                     0 to m where m is (num_orbitals - num particles) // 2
-            is_eom_matrix_symmetric (bool): is EoM matrix symmetric
-            se_list (list[list]): single excitation list, overwrite the setting in active space
-            de_list (list[list]): double excitation list, overwrite the setting in active space
-            z2_symmetries (Z2Symmetries): represent the Z2 symmetries
-            untapered_op (BaseOperator): if the operator is tapered, we need untapered operator
+            is_eom_matrix_symmetric: is EoM matrix symmetric
+            se_list: single excitation list, overwrite the setting in active space
+            de_list: double excitation list, overwrite the setting in active space
+            z2_symmetries: represent the Z2 symmetries
+            untapered_op: if the operator is tapered, we need untapered operator
                                          to build element of EoM matrix
-            aux_operators (list[BaseOperator]): Auxiliary operators to be evaluated at
+            aux_operators: Auxiliary operators to be evaluated at
                                                 each eigenvalue
         """
         self._validate_qeomee(num_orbitals, num_particles, qubit_mapping)

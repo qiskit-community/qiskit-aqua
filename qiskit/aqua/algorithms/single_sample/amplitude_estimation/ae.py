@@ -48,13 +48,13 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         """
 
         Args:
-            num_eval_qubits (int): number of evaluation qubits
-            a_factory (CircuitFactory): the CircuitFactory subclass object representing
+            num_eval_qubits: number of evaluation qubits
+            a_factory: the CircuitFactory subclass object representing
                                         the problem unitary
-            i_objective (int): i objective
-            q_factory (CircuitFactory): the CircuitFactory subclass object representing an
+            i_objective: i objective
+            q_factory: the CircuitFactory subclass object representing an
                                         amplitude estimation sample (based on a_factory)
-            iqft (IQFT): the Inverse Quantum Fourier Transform component,
+            iqft: the Inverse Quantum Fourier Transform component,
                          defaults to using a standard iqft when None
         """
         self._validate_ae(num_eval_qubits)

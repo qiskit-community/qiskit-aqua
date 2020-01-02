@@ -48,14 +48,14 @@ class IQPE(QuantumAlgorithm):
         """
 
         Args:
-            operator (BaseOperator): the hamiltonian Operator object
-            state_in (InitialState): the InitialState component representing
+            operator: the hamiltonian Operator object
+            state_in: the InitialState component representing
                     the initial quantum state
-            num_time_slices (int): the number of time slices
-            num_iterations (int): the number of iterations
-            expansion_mode (str): the expansion mode (trotter|suzuki)
-            expansion_order (int): the suzuki expansion order
-            shallow_circuit_concat (bool): indicate whether to use shallow (cheap)
+            num_time_slices: the number of time slices
+            num_iterations: the number of iterations
+            expansion_mode: the expansion mode (trotter|suzuki)
+            expansion_order: the suzuki expansion order
+            shallow_circuit_concat: indicate whether to use shallow (cheap)
                     mode for circuit concatenation
         """
         self._validate_iqpe(num_time_slices, expansion_mode, expansion_order, num_iterations)

@@ -56,16 +56,16 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         linearly in 1/epsilon (up to a logarithmic factor).
 
         Args:
-            epsilon (float): target precision for estimation target `a`
-            alpha (float): confidence level, the target probability is 1 - alpha
-            ci_method (str): statistical method used to estimate the confidence intervals in each
+            epsilon: target precision for estimation target `a`
+            alpha: confidence level, the target probability is 1 - alpha
+            ci_method: statistical method used to estimate the confidence intervals in each
                 iteration, can be 'chernoff' for the Chernoff intervals or 'beta' for the
                 Clopper-Pearson intervals (default)
-            min_ratio (float): minimal q-ratio (K_{i+1} / K_i) for FindNextK
-            a_factory (CircuitFactory): the A operator, specifying the QAE problem
-            q_factory (CircuitFactory): the Q operator (Grover operator), constructed from the
+            min_ratio: minimal q-ratio (K_{i+1} / K_i) for FindNextK
+            a_factory: the A operator, specifying the QAE problem
+            q_factory: the Q operator (Grover operator), constructed from the
                 A operator
-            i_objective (int): index of the objective qubit, that marks the 'good/bad' states
+            i_objective: index of the objective qubit, that marks the 'good/bad' states
 
         Raises:
             AquaError: if the method to compute the confidence intervals is not supported
