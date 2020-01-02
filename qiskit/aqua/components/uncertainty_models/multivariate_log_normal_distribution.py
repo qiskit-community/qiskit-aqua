@@ -27,49 +27,45 @@ class MultivariateLogNormalDistribution(MultivariateDistribution):
     The Multivariate Log-Normal Distribution.
     """
 
-    CONFIGURATION = {
-        'name': 'MultivariateLogNormalDistribution',
-        'description': 'Multivariate Log-Normal Distribution',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'MultivariateLogNormalDistribution_schema',
-            'type': 'object',
-            'properties': {
-                'num_qubits': {
-                    'type': 'array',
-                    "items": {
-                        "type": "number"
-                    },
-                    'default': [2, 2]
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'MultivariateLogNormalDistribution_schema',
+        'type': 'object',
+        'properties': {
+            'num_qubits': {
+                'type': 'array',
+                "items": {
+                    "type": "number"
                 },
-                'low': {
-                    'type': ['array', 'null'],
-                    "items": {
-                        "type": "number"
-                    },
-                    'default': None
-                },
-                'high': {
-                    'type': ['array', 'null'],
-                    "items": {
-                        "type": "number"
-                    },
-                    'default': None
-                },
-                'mu': {
-                    'type': ['array', 'null'],
-                    "items": {
-                        "type": "number"
-                    },
-                    'default': None
-                },
-                'cov': {
-                    'type': ['array', 'null'],
-                    'default': None
-                },
+                'default': [2, 2]
             },
-            'additionalProperties': False
-        }
+            'low': {
+                'type': ['array', 'null'],
+                "items": {
+                    "type": "number"
+                },
+                'default': None
+            },
+            'high': {
+                'type': ['array', 'null'],
+                "items": {
+                    "type": "number"
+                },
+                'default': None
+            },
+            'mu': {
+                'type': ['array', 'null'],
+                "items": {
+                    "type": "number"
+                },
+                'default': None
+            },
+            'cov': {
+                'type': ['array', 'null'],
+                'default': None
+            },
+        },
+        'additionalProperties': False
     }
 
     # pylint: disable=invalid-name

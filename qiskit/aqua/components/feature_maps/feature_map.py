@@ -17,23 +17,21 @@ This module contains the definition of a base class for
 feature map. Several types of commonly used approaches.
 """
 
-from abc import abstractmethod
-from qiskit.aqua import Pluggable
+from abc import ABC, abstractmethod
 from qiskit.aqua.utils import get_entangler_map, validate_entangler_map
 
 
-class FeatureMap(Pluggable):
+class FeatureMap(ABC):
 
     """Base class for FeatureMap.
 
-        This method should initialize the module and its configuration, and
-        use an exception if a component of the module is
+        This method should initialize the module and
+        use an exception if a component of the module is not
         available.
     """
 
     @abstractmethod
     def __init__(self):
-        super().__init__()
         self._num_qubits = 0
         self._feature_dimension = 0
         self._support_parameterized_circuit = False

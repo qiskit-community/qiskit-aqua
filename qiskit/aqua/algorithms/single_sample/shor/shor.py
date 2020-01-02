@@ -32,7 +32,7 @@ from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.circuits import FourierTransformCircuits as ftc
 from qiskit.aqua.circuits.gates import mcu1  # pylint: disable=unused-import
 from qiskit.aqua.utils import summarize_circuits
-
+from qiskit.aqua.utils.validation import validate
 
 logger = logging.getLogger(__name__)
 
@@ -49,28 +49,23 @@ class Shor(QuantumAlgorithm):
     PROP_N = 'N'
     PROP_A = 'a'
 
-    CONFIGURATION = {
-        'name': 'Shor',
-        'description': "The Shor's Factoring Algorithm",
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'shor_schema',
-            'type': 'object',
-            'properties': {
-                PROP_N: {
-                    'type': 'integer',
-                    'default': 15,
-                    'minimum': 3
-                },
-                PROP_A: {
-                    'type': 'integer',
-                    'default': 2,
-                    'minimum': 2
-                },
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'shor_schema',
+        'type': 'object',
+        'properties': {
+            PROP_N: {
+                'type': 'integer',
+                'default': 15,
+                'minimum': 3
             },
-            'additionalProperties': False
+            PROP_A: {
+                'type': 'integer',
+                'default': 2,
+                'minimum': 2
+            },
         },
-        'problems': ['factoring'],
+        'additionalProperties': False
     }
 
     def __init__(self, N=15, a=2):
@@ -83,7 +78,7 @@ class Shor(QuantumAlgorithm):
          Raises:
             AquaError: invalid input
         """
-        self.validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
         super().__init__()
         self._n = None
         self._up_qreg = None

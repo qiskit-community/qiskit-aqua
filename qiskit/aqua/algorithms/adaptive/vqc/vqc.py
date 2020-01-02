@@ -23,6 +23,7 @@ from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 from qiskit.circuit import ParameterVector
 
 from qiskit.aqua import AquaError
+from qiskit.aqua.utils.validation import validate
 from qiskit.aqua.utils import map_label_to_class_name
 from qiskit.aqua.utils import split_dataset_to_data_and_labels
 from qiskit.aqua.algorithms.adaptive.vq_algorithm import VQAlgorithm
@@ -145,52 +146,26 @@ def return_probabilities(counts, num_classes):
 
 class VQC(VQAlgorithm):
     """ Variational Quantum Classifier algorithm """
-    CONFIGURATION = {
-        'name': 'VQC',
-        'description': 'Variational Quantum Classifier',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'vqc_schema',
-            'type': 'object',
-            'properties': {
-                'override_SPSA_params': {
-                    'type': 'boolean',
-                    'default': True
-                },
-                'max_evals_grouped': {
-                    'type': 'integer',
-                    'default': 1
-                },
-                'minibatch_size': {
-                    'type': 'integer',
-                    'default': -1
-                }
+
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'vqc_schema',
+        'type': 'object',
+        'properties': {
+            'override_SPSA_params': {
+                'type': 'boolean',
+                'default': True
             },
-            'additionalProperties': False
+            'max_evals_grouped': {
+                'type': 'integer',
+                'default': 1
+            },
+            'minibatch_size': {
+                'type': 'integer',
+                'default': -1
+            }
         },
-        'problems': ['classification'],
-        'depends': [
-            {
-                'pluggable_type': 'optimizer',
-                'default': {
-                    'name': 'SPSA'
-                },
-            },
-            {
-                'pluggable_type': 'feature_map',
-                'default': {
-                    'name': 'SecondOrderExpansion',
-                    'depth': 2
-                },
-            },
-            {
-                'pluggable_type': 'variational_form',
-                'default': {
-                    'name': 'RYRZ',
-                    'depth': 3
-                },
-            },
-        ],
+        'additionalProperties': False
     }
 
     def __init__(
@@ -228,7 +203,7 @@ class VQC(VQAlgorithm):
             AquaError: invalid input
         """
 
-        self.validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
         super().__init__(
             var_form=var_form,
             optimizer=optimizer,

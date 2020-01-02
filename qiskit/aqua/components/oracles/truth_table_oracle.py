@@ -31,6 +31,7 @@ from qiskit.aqua import AquaError
 from qiskit.aqua.circuits import ESOP
 from qiskit.aqua.components.oracles import Oracle
 from qiskit.aqua.utils.arithmetic import is_power_of_2
+from qiskit.aqua.utils.validation import validate
 from .ast_utils import get_ast
 
 logger = logging.getLogger(__name__)
@@ -157,38 +158,35 @@ def get_exact_covers(cols, rows, num_cols=None):
 
 class TruthTableOracle(Oracle):
     """ Truth Table Oracle """
-    CONFIGURATION = {
-        'name': 'TruthTableOracle',
-        'description': 'Truth Table Oracle',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'truth_table_oracle_schema',
-            'type': 'object',
-            'properties': {
-                'bitmaps': {
-                    "type": "array",
-                    "default": [],
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "optimization": {
-                    "type": "boolean",
-                    "default": False,
-                },
-                'mct_mode': {
-                    'type': 'string',
-                    'default': 'basic',
-                    'enum': [
-                        'basic',
-                        'basic-dirty-ancilla',
-                        'advanced',
-                        'noancilla',
-                    ]
-                },
+
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'truth_table_oracle_schema',
+        'type': 'object',
+        'properties': {
+            'bitmaps': {
+                "type": "array",
+                "default": [],
+                "items": {
+                    "type": "string"
+                }
             },
-            'additionalProperties': False
-        }
+            "optimization": {
+                "type": "boolean",
+                "default": False,
+            },
+            'mct_mode': {
+                'type': 'string',
+                'default': 'basic',
+                'enum': [
+                    'basic',
+                    'basic-dirty-ancilla',
+                    'advanced',
+                    'noancilla',
+                ]
+            },
+        },
+        'additionalProperties': False
     }
 
     def __init__(self, bitmaps, optimization=False, mct_mode='basic'):
@@ -209,7 +207,7 @@ class TruthTableOracle(Oracle):
         if isinstance(bitmaps, str):
             bitmaps = [bitmaps]
 
-        self.validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
         super().__init__()
 
         self._mct_mode = mct_mode.strip().lower()
