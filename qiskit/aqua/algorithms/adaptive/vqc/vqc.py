@@ -152,10 +152,10 @@ class VQC(VQAlgorithm):
 
     def __init__(
             self,
-            optimizer: Optional[Optimizer] = None,
-            feature_map: FeatureMap = None,
-            var_form: Optional[VariationalForm] = None,
-            training_dataset: Dict[str, np.ndarray] = None,
+            optimizer: Optimizer,
+            feature_map: FeatureMap,
+            var_form: VariationalForm,
+            training_dataset: Dict[str, np.ndarray],
             test_dataset: Optional[Dict[str, np.ndarray]] = None,
             datapoints: Optional[np.ndarray] = None,
             max_evals_grouped: int = 1,
