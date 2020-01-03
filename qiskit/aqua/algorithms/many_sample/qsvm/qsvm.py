@@ -65,7 +65,7 @@ class QSVM(QuantumAlgorithm):
                 a multiclass scheme is needed.
 
         Raises:
-            AquaError: use binary classifier for classes > 3
+            AquaError: Using binary classifier when number of classes > 2
         """
         super().__init__()
         # check the validity of provided arguments if possible
