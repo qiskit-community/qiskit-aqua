@@ -25,6 +25,7 @@ this infrastructure but still meet the
 interface requirements.
 """
 
+from typing import Optional, Callable
 import time
 import logging
 from abc import abstractmethod
@@ -32,6 +33,8 @@ import numpy as np
 
 from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms import QuantumAlgorithm
+from qiskit.aqua.components.optimizers import Optimizer
+from qiskit.aqua.components.variational_forms import VariationalForm
 
 logger = logging.getLogger(__name__)
 
@@ -44,10 +47,10 @@ class VQAlgorithm(QuantumAlgorithm):
     """
 
     def __init__(self,
-                 var_form=None,
-                 optimizer=None,
-                 cost_fn=None,
-                 initial_point=None):
+                 var_form: VariationalForm,
+                 optimizer: Optimizer,
+                 cost_fn: Optional[Callable] = None,
+                 initial_point: Optional[np.ndarray] = None) -> None:
         super().__init__()
         if var_form is None:
             raise AquaError('Missing variational form.')

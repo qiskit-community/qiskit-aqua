@@ -16,6 +16,7 @@
 Quantum Generative Adversarial Network.
 """
 
+from typing import Optional
 import csv
 import os
 import logging
@@ -25,10 +26,12 @@ from scipy.stats import entropy
 
 from qiskit.aqua import AquaError, aqua_globals
 from qiskit.aqua.algorithms import QuantumAlgorithm
+from qiskit.aqua.components.neural_networks.discriminative_network import DiscriminativeNetwork
+from qiskit.aqua.components.neural_networks.generative_network import GenerativeNetwork
 from qiskit.aqua.components.neural_networks.quantum_generator import QuantumGenerator
 from qiskit.aqua.components.neural_networks.numpy_discriminator import NumpyDiscriminator
 from qiskit.aqua.utils.dataset_helper import discretize_and_truncate
-from qiskit.aqua.utils.validation import validate
+from qiskit.aqua.utils.validation import validate_min
 
 logger = logging.getLogger(__name__)
 
@@ -41,66 +44,35 @@ class QGAN(QuantumAlgorithm):
 
     """
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'Qgan_schema',
-        'type': 'object',
-        'properties': {
-            'num_qubits': {
-                'type': ['array', 'null'],
-                'default': None
-            },
-            'batch_size': {
-                'type': 'integer',
-                'default': 500,
-                'minimum': 1
-            },
-            'num_epochs': {
-                'type': 'integer',
-                'default': 3000
-            },
-            'seed': {
-                'type': ['integer'],
-                'default': 7
-            },
-            'tol_rel_ent': {
-                'type': ['number', 'null'],
-                'default': None
-            },
-            'snapshot_dir': {
-                'type': ['string', 'null'],
-                'default': None
-            }
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, data, bounds=None, num_qubits=None, batch_size=500, num_epochs=3000, seed=7,
-                 discriminator=None, generator=None, tol_rel_ent=None, snapshot_dir=None):
+    def __init__(self, data: np.ndarray, bounds: Optional[np.ndarray] = None,
+                 num_qubits: Optional[np.ndarray] = None, batch_size: int = 500,
+                 num_epochs: int = 3000, seed: int = 7,
+                 discriminator: Optional[DiscriminativeNetwork] = None,
+                 generator: Optional[GenerativeNetwork] = None,
+                 tol_rel_ent: Optional[float] = None, snapshot_dir: Optional[str] = None) -> None:
         """
 
         Args:
-            data (np.ndarray): training data of dimension k
-            bounds (np.ndarray): k min/max data values [[min_0,max_0],...,[min_k-1,max_k-1]]
+            data: training data of dimension k
+            bounds: k min/max data values [[min_0,max_0],...,[min_k-1,max_k-1]]
                 if univariate data: [min_0,max_0]
-            num_qubits (np.ndarray): k numbers of qubits to determine representation resolution,
+            num_qubits: k numbers of qubits to determine representation resolution,
                 i.e. n qubits enable the representation of 2**n values
                 [num_qubits_0,..., num_qubits_k-1]
-            batch_size (int): batch size
-            num_epochs (int): number of training epochs
-            seed (int): random number seed
-            discriminator (DiscriminativeNetwork): discriminates between real and fake data samples
-            generator (GenerativeNetwork): generates 'fake' data samples
-            tol_rel_ent (Union(float, None)): Set tolerance level for relative entropy.
+            batch_size: batch size, has a min. value of 1.
+            num_epochs: number of training epochs
+            seed: random number seed
+            discriminator: discriminates between real and fake data samples
+            generator: generates 'fake' data samples
+            tol_rel_ent: Set tolerance level for relative entropy.
                 If the training achieves relative
-            entropy equal or lower than tolerance it finishes.
-            snapshot_dir (Union(str, None)): path or None, if path given store cvs file
+                entropy equal or lower than tolerance it finishes.
+            snapshot_dir: path or None, if path given store cvs file
                 with parameters to the directory
         Raises:
             AquaError: invalid input
         """
-
-        validate(locals(), self._INPUT_SCHEMA)
+        validate_min('batch_size', batch_size, 1)
         super().__init__()
         if data is None:
             raise AquaError('Training data not given.')

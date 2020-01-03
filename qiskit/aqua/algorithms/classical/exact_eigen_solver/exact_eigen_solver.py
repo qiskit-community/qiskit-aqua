@@ -13,14 +13,16 @@
 # that they have been altered from the originals.
 """The Exact Eigensolver algorithm."""
 
+from typing import List, Optional
 import logging
 
 import numpy as np
 from scipy import sparse as scisparse
 
 from qiskit.aqua.algorithms.classical import ClassicalAlgorithm
-from qiskit.aqua.utils.validation import validate
-from qiskit.aqua.operators import MatrixOperator, op_converter  # pylint: disable=unused-import
+from qiskit.aqua.operators import op_converter
+from qiskit.aqua.operators import BaseOperator
+from qiskit.aqua.utils.validation import validate_min
 
 logger = logging.getLogger(__name__)
 
@@ -30,30 +32,17 @@ logger = logging.getLogger(__name__)
 class ExactEigensolver(ClassicalAlgorithm):
     """The Exact Eigensolver algorithm."""
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'ExactEigensolver_schema',
-        'type': 'object',
-        'properties': {
-            'k': {
-                'type': 'integer',
-                'default': 1,
-                'minimum': 1
-            }
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, operator, k=1, aux_operators=None):
+    def __init__(self, operator: BaseOperator, k: int = 1,
+                 aux_operators: Optional[List[BaseOperator]] = None) -> None:
         """Constructor.
 
         Args:
-            operator (MatrixOperator): instance
-            k (int): How many eigenvalues are to be computed
-            aux_operators (list[MatrixOperator]): Auxiliary operators
+            operator: instance
+            k: How many eigenvalues are to be computed, has a min. value of 1.
+            aux_operators: Auxiliary operators
                         to be evaluated at each eigenvalue
         """
-        validate(locals(), self._INPUT_SCHEMA)
+        validate_min('k', k, 1)
         super().__init__()
 
         self._operator = op_converter.to_matrix_operator(operator)
