@@ -46,8 +46,8 @@ class HHL(QuantumAlgorithm):
 
     def __init__(
             self,
-            matrix: Optional[np.ndarray] = None,
-            vector: Optional[np.ndarray] = None,
+            matrix: np.ndarray,
+            vector: np.ndarray,
             truncate_powerdim: bool = False,
             truncate_hermitian: bool = False,
             eigs: Optional[Eigenvalues] = None,

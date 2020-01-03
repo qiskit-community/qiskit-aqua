@@ -13,7 +13,7 @@
 # that they have been altered from the originals.
 """The Exact LinearSystem algorithm."""
 
-from typing import List, Optional
+from typing import List, Union
 import logging
 
 import numpy as np
@@ -26,8 +26,8 @@ logger = logging.getLogger(__name__)
 class ExactLSsolver(ClassicalAlgorithm):
     """The Exact LinearSystem algorithm."""
 
-    def __init__(self, matrix: Optional[List[List[float]]] = None,
-                 vector: Optional[List[float]] = None) -> None:
+    def __init__(self, matrix: Union(List[List[float]], np.ndarray),
+                 vector: Union(List[float], np.ndarray)) -> None:
         """Constructor.
 
         Args:
