@@ -24,8 +24,9 @@ import numpy as np
 
 from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms.classical import ClassicalAlgorithm
-from qiskit.aqua.utils.validation import validate
 from qiskit.aqua.algorithms.classical.cplex.simple_cplex import SimpleCPLEX
+from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.aqua.utils.validation import validate_min, validate_range
 
 logger = logging.getLogger(__name__)
 
@@ -35,33 +36,12 @@ logger = logging.getLogger(__name__)
 class CPLEX_Ising(ClassicalAlgorithm):
     """ CPLEX Ising algorithm """
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'CPLEX_schema',
-        'type': 'object',
-        'properties': {
-            'timelimit': {
-                'type': 'integer',
-                'default': 600,
-                'minimum': 1
-            },
-            'thread': {
-                'type': 'integer',
-                'default': 1,
-                'minimum': 0
-            },
-            'display': {
-                'type': 'integer',
-                'default': 2,
-                'minimum': 0,
-                'maximum': 5
-            }
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, operator, timelimit=600, thread=1, display=2):
-        validate(locals(), self._INPUT_SCHEMA)
+    def __init__(self, operator: WeightedPauliOperator,
+                 timelimit: int = 600, thread: int = 1,
+                 display: int = 2) -> None:
+        validate_min('timelimit', timelimit, 1)
+        validate_min('thread', thread, 0)
+        validate_range('display', display, 0, 5)
         self._check_valid()
         super().__init__()
         self._ins = IsingInstance()
