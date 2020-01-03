@@ -52,9 +52,12 @@ class IQPE(QuantumAlgorithm):
             state_in: the InitialState component representing
                     the initial quantum state
             num_time_slices: the number of time slices
+                            , has a min. value of 1.
             num_iterations: the number of iterations
+                            , has a min. value of 1.
             expansion_mode: the expansion mode (trotter|suzuki)
             expansion_order: the suzuki expansion order
+                            , has a min. value of 1.
             shallow_circuit_concat: indicate whether to use shallow (cheap)
                     mode for circuit concatenation
         """

@@ -38,7 +38,7 @@ class ExactEigensolver(ClassicalAlgorithm):
 
         Args:
             operator: instance
-            k: How many eigenvalues are to be computed
+            k: How many eigenvalues are to be computed, has a min. value of 1.
             aux_operators: Auxiliary operators
                         to be evaluated at each eigenvalue
         """

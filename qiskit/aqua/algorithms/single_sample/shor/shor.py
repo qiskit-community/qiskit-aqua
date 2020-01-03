@@ -50,8 +50,9 @@ class Shor(QuantumAlgorithm):
         Constructor.
 
         Args:
-            N: The integer to be factored.
+            N: The integer to be factored, has a min. value of 3.
             a: A random integer a that satisfies a < N and gcd(a, N) = 1
+                , has a min. value of 2.
          Raises:
             ValueError: invalid input
         """

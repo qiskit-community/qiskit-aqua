@@ -59,7 +59,7 @@ class QGAN(QuantumAlgorithm):
             num_qubits: k numbers of qubits to determine representation resolution,
                 i.e. n qubits enable the representation of 2**n values
                 [num_qubits_0,..., num_qubits_k-1]
-            batch_size: batch size
+            batch_size: batch size, has a min. value of 1.
             num_epochs: number of training epochs
             seed: random number seed
             discriminator: discriminates between real and fake data samples

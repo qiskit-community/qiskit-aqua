@@ -60,8 +60,9 @@ class VQEAdapt(VQAlgorithm):
             optimizer: the classical optimizer algorithm
             initial_point: optimizer initial point
             excitation_pool: list of excitation operators
-            threshold: absolute threshold value for gradients
+            threshold: absolute threshold value for gradients, has a min. value of 1e-15.
             delta: finite difference step size for gradient computation
+                    , has a min. value of 1e-5.
             max_evals_grouped: max number of evaluations performed simultaneously
             aux_operators: Auxiliary operators to be evaluated
                                                 at each eigenvalue

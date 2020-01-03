@@ -51,10 +51,11 @@ class QPE(QuantumAlgorithm):
             state_in: the InitialState component
                 representing the initial quantum state
             iqft: the Inverse Quantum Fourier Transform component
-            num_time_slices: the number of time slices
+            num_time_slices: the number of time slices, has a min. value of 1.
             num_ancillae: the number of ancillary qubits to use for the measurement
+                            , has a min. value of 1.
             expansion_mode: the expansion mode (trotter|suzuki)
-            expansion_order: the suzuki expansion order
+            expansion_order: the suzuki expansion order, has a min. value of 1.
             shallow_circuit_concat: indicate whether to use shallow
                 (cheap) mode for circuit concatenation
         """

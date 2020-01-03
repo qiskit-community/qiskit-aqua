@@ -47,6 +47,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         Args:
             log_max_evals: base-2-logarithm of maximal number of evaluations -
                 resulting evaluation schedule will be [Q^2^0, ..., Q^2^{max_evals_log-1}]
+                , has a min. value of 1.
             a_factory: the CircuitFactory subclass object
                 representing the problem unitary
             i_objective: index of qubit representing the objective in the uncertainty problem

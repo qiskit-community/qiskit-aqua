@@ -49,6 +49,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         Args:
             num_eval_qubits: number of evaluation qubits
+                                , has a min. value of 1.
             a_factory: the CircuitFactory subclass object representing
                                         the problem unitary
             i_objective: i objective

@@ -43,7 +43,7 @@ class QEomEE(ExactEigensolver):
         """
         Args:
             operator: qubit operator
-            num_orbitals:  total number of spin orbitals
+            num_orbitals:  total number of spin orbitals, has a min. value of 1.
             num_particles: number of particles, if it is a list,
                                         the first number is alpha and the second
                                         number if beta.
