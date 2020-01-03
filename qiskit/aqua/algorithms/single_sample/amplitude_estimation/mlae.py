@@ -15,6 +15,7 @@
 The Amplitude Estimation Algorithm.
 """
 
+from typing import Optional
 import logging
 import numpy as np
 from scipy.optimize import brute
@@ -22,7 +23,8 @@ from scipy.stats import norm, chi2
 
 from qiskit import ClassicalRegister, QuantumRegister, QuantumCircuit
 from qiskit.aqua import AquaError
-from qiskit.aqua.utils.validation import validate
+from qiskit.aqua.utils.circuit_factory import CircuitFactory
+from qiskit.aqua.utils.validation import validate_min
 from .ae_algorithm import AmplitudeEstimationAlgorithm
 
 logger = logging.getLogger(__name__)
@@ -35,36 +37,26 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     The Amplitude Estimation without QPE algorithm.
     """
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'MaximumLikelihoodAmplitudeEstimation_schema',
-        'type': 'object',
-        'properties': {
-            'log_max_evals': {
-                'type': 'integer',
-                'default': 5,
-                'minimum': 1
-            }
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, log_max_evals, a_factory=None, i_objective=None,
-                 q_factory=None, likelihood_evals=None):
+    def __init__(self, log_max_evals: int,
+                 a_factory: Optional[CircuitFactory] = None,
+                 i_objective: Optional[int] = None,
+                 q_factory: Optional[CircuitFactory] = None,
+                 likelihood_evals: Optional[int] = None) -> None:
         """
 
         Args:
-            log_max_evals (int): base-2-logarithm of maximal number of evaluations -
-                resulting evaluation schedule will be [Q^2^0, ..., Q^2^{max_evals_log-1}]
-            a_factory (CircuitFactory): the CircuitFactory subclass object
+            log_max_evals: base-2-logarithm of maximal number of evaluations -
+                resulting evaluation schedule will be [Q^2^0, ..., Q^2^{max_evals_log-1}],
+                has a min. value of 1.
+            a_factory: the CircuitFactory subclass object
                 representing the problem unitary
-            i_objective (int): index of qubit representing the objective in the uncertainty problem
-            q_factory (CircuitFactory): the CircuitFactory subclass object representing
+            i_objective: index of qubit representing the objective in the uncertainty problem
+            q_factory: the CircuitFactory subclass object representing
                 an amplitude estimation sample (based on a_factory)
-            likelihood_evals (int): The number of gridpoints for the maximum search
+            likelihood_evals: The number of gridpoints for the maximum search
                 of the likelihood function
         """
-        validate(locals(), self._INPUT_SCHEMA)
+        validate_min('log_max_evals', log_max_evals, 1)
         super().__init__(a_factory, q_factory, i_objective)
 
         # get parameters
