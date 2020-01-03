@@ -20,9 +20,9 @@ import numpy as np
 from scipy import sparse as scisparse
 
 from qiskit.aqua.algorithms.classical import ClassicalAlgorithm
-from qiskit.aqua.operators import MatrixOperator, op_converter  # pylint: disable=unused-import
-from qiskit.aqua import AquaError
+from qiskit.aqua.operators import op_converter
 from qiskit.aqua.operators import BaseOperator
+from qiskit.aqua.utils.validation import validate_min
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ class ExactEigensolver(ClassicalAlgorithm):
     """The Exact Eigensolver algorithm."""
 
     def __init__(self, operator: BaseOperator, k: int = 1,
-                 aux_operators: Optional[List[MatrixOperator]] = None) -> None:
+                 aux_operators: Optional[List[BaseOperator]] = None) -> None:
         """Constructor.
 
         Args:
@@ -42,7 +42,7 @@ class ExactEigensolver(ClassicalAlgorithm):
             aux_operators: Auxiliary operators
                         to be evaluated at each eigenvalue
         """
-        self._validate_exact_eigensolver(k)
+        validate_min('k', k, 1)
         super().__init__()
 
         self._operator = op_converter.to_matrix_operator(operator)
@@ -58,10 +58,6 @@ class ExactEigensolver(ClassicalAlgorithm):
             self._k = self._operator.matrix.shape[0]
             logger.debug("WARNING: Asked for %s eigenvalues but max possible is %s.", k, self._k)
         self._ret = {}
-
-    def _validate_exact_eigensolver(self, k: int) -> None:
-        if k < 1:
-            raise AquaError('Parameter k value {}. Minimum value allowed is 1'.format(k))
 
     def _solve(self):
         if self._operator.dia_matrix is None:

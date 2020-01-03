@@ -24,6 +24,7 @@ from scipy.stats import norm, chi2
 from qiskit import ClassicalRegister, QuantumRegister, QuantumCircuit
 from qiskit.aqua import AquaError
 from qiskit.aqua.utils.circuit_factory import CircuitFactory
+from qiskit.aqua.utils.validation import validate_min
 from .ae_algorithm import AmplitudeEstimationAlgorithm
 
 logger = logging.getLogger(__name__)
@@ -54,7 +55,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             likelihood_evals: The number of gridpoints for the maximum search
                 of the likelihood function
         """
-        self._validate_mlae(log_max_evals)
+        validate_min('log_max_evals', log_max_evals, 1)
         super().__init__(a_factory, q_factory, i_objective)
 
         # get parameters
@@ -69,11 +70,6 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         self._circuits = []
         self._ret = {}
-
-    def _validate_mlae(self, log_max_evals: int) -> None:
-        if log_max_evals < 1:
-            raise AquaError(
-                'Log max evals value {}. Minimum value allowed is 1'.format(log_max_evals))
 
     @property
     def _num_qubits(self):

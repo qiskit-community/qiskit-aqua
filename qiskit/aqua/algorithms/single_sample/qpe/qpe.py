@@ -20,7 +20,6 @@ import logging
 import numpy as np
 from qiskit.quantum_info import Pauli
 
-from qiskit.aqua import AquaError
 from qiskit.aqua.operators import op_converter
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
@@ -29,6 +28,7 @@ from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.aqua.operators import BaseOperator
 from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.components.iqfts import IQFT
+from qiskit.aqua.utils.validation import validate_min, validate_in_list
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +58,10 @@ class QPE(QuantumAlgorithm):
             shallow_circuit_concat: indicate whether to use shallow
                 (cheap) mode for circuit concatenation
         """
-        self._validate_qpe(num_time_slices, expansion_mode, expansion_order, num_ancillae)
+        validate_min('num_time_slices', num_time_slices, 1)
+        validate_in_list('expansion_mode', expansion_mode, ['trotter', 'suzuki'])
+        validate_min('expansion_order', expansion_order, 1)
+        validate_min('num_ancillae', num_ancillae, 1)
         super().__init__()
         self._operator = op_converter.to_weighted_pauli_operator(operator.copy())
         self._num_ancillae = num_ancillae
@@ -93,22 +96,6 @@ class QPE(QuantumAlgorithm):
             shallow_circuit_concat=shallow_circuit_concat, pauli_list=self._pauli_list
         )
         self._binary_fractions = [1 / 2 ** p for p in range(1, num_ancillae + 1)]
-
-    def _validate_qpe(self, num_time_slices: int, expansion_mode: str,
-                      expansion_order: int, num_ancillae: int) -> None:
-        if num_time_slices < 1:
-            raise AquaError(
-                'Num time slices value {}. Minimum value allowed is 1'.format(num_time_slices))
-        if expansion_mode not in ['trotter', 'suzuki']:
-            raise AquaError(
-                "Expansion Mode value '{}'. Values allowed are 'trotter', 'suzuki'".format(
-                    expansion_mode))
-        if expansion_order < 1:
-            raise AquaError(
-                'Expansion order value {}. Minimum value allowed is 1'.format(expansion_order))
-        if num_ancillae < 1:
-            raise AquaError(
-                'Num ancillae value {}. Minimum value allowed is 1'.format(num_ancillae))
 
     def construct_circuit(self, measurement=False):
         """

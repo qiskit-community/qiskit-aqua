@@ -17,11 +17,11 @@
 from typing import List, Callable, Optional
 import logging
 import numpy as np
-from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms.adaptive import VQE
 from qiskit.aqua.operators import BaseOperator
 from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.components.optimizers import Optimizer
+from qiskit.aqua.utils.validation import validate_min
 from .var_form import QAOAVarForm
 
 logger = logging.getLogger(__name__)
@@ -70,13 +70,9 @@ class QAOA(VQE):
                 - for *qasm simulator or real backend:*
                   :class:`~qiskit.aqua.operators.TPBGroupedWeightedPauliOperator`
         """
-        self._validate_qaoa(p)
+        validate_min('p', p, 1)
         var_form = QAOAVarForm(operator.copy(), p, initial_state=initial_state,
                                mixer_operator=mixer)
         super().__init__(operator, var_form, optimizer, initial_point=initial_point,
                          max_evals_grouped=max_evals_grouped, aux_operators=aux_operators,
                          callback=callback, auto_conversion=auto_conversion)
-
-    def _validate_qaoa(self, p: int) -> None:
-        if p < 1:
-            raise AquaError('Parameter p value {}. Minimum value allowed is 1'.format(p))

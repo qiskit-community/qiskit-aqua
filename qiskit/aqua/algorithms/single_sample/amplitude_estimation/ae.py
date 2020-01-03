@@ -26,7 +26,7 @@ from qiskit.aqua import AquaError
 from qiskit.aqua.utils import CircuitFactory
 from qiskit.aqua.circuits import PhaseEstimationCircuit
 from qiskit.aqua.components.iqfts import IQFT, Standard
-
+from qiskit.aqua.utils.validation import validate_min
 from .ae_algorithm import AmplitudeEstimationAlgorithm
 from .ae_utils import pdf_a, derivative_log_pdf_a, bisect_max
 
@@ -57,7 +57,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
             iqft: the Inverse Quantum Fourier Transform component,
                          defaults to using a standard iqft when None
         """
-        self._validate_ae(num_eval_qubits)
+        validate_min('num_eval_qubits', num_eval_qubits, 1)
         super().__init__(a_factory, q_factory, i_objective)
 
         # get parameters
@@ -70,11 +70,6 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         self._iqft = iqft
         self._circuit = None
         self._ret = {}
-
-    def _validate_ae(self, num_eval_qubits: int) -> None:
-        if num_eval_qubits < 1:
-            raise AquaError('Num evals qubits value {}. Minimum value allowed is 1'.format(
-                num_eval_qubits))
 
     @property
     def _num_qubits(self):

@@ -18,11 +18,11 @@ The Quantum Dynamics algorithm.
 import logging
 
 from qiskit import QuantumRegister
-from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.operators import op_converter
 from qiskit.aqua.operators import BaseOperator
 from qiskit.aqua.components.initial_states import InitialState
+from qiskit.aqua.utils.validation import validate_min, validate_in_list
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +38,10 @@ class EOH(QuantumAlgorithm):
                  evo_time: int = 1, num_time_slices: int = 1,
                  expansion_mode: str = 'trotter',
                  expansion_order: int = 1) -> None:
-        self._validate_eoh(evo_time, num_time_slices, expansion_mode, expansion_order)
+        validate_min('evo_time', evo_time, 0)
+        validate_min('num_time_slices', num_time_slices, 0)
+        validate_in_list('expansion_mode', expansion_mode, ['trotter', 'suzuki'])
+        validate_min('expansion_order', expansion_order, 1)
         super().__init__()
         self._operator = op_converter.to_weighted_pauli_operator(operator)
         self._initial_state = initial_state
@@ -48,21 +51,6 @@ class EOH(QuantumAlgorithm):
         self._expansion_mode = expansion_mode
         self._expansion_order = expansion_order
         self._ret = {}
-
-    def _validate_eoh(self, evo_time: int, num_time_slices: int,
-                      expansion_mode: str, expansion_order: int) -> None:
-        if evo_time < 0:
-            raise AquaError('Evo time value {}. Minimum value allowed is 0'.format(evo_time))
-        if num_time_slices < 0:
-            raise AquaError(
-                'Num time slices value {}. Minimum value allowed is 0'.format(num_time_slices))
-        if expansion_mode not in ['trotter', 'suzuki']:
-            raise AquaError(
-                "Expansion Mode value '{}'. Values allowed are 'trotter', 'suzuki'".format(
-                    expansion_mode))
-        if expansion_order < 1:
-            raise AquaError(
-                'Expansion order value {}. Minimum value allowed is 1'.format(expansion_order))
 
     def construct_circuit(self):
         """

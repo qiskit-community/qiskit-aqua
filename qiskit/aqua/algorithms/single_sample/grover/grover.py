@@ -25,6 +25,7 @@ from qiskit.qasm import pi
 
 from qiskit.aqua import AquaError
 from qiskit.aqua.utils import get_subsystem_density_matrix
+from qiskit.aqua.utils.validation import validate_min, validate_in_list
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.components.initial_states import Custom
 from qiskit.aqua.components.oracles import Oracle
@@ -64,7 +65,10 @@ class Grover(QuantumAlgorithm):
         Raises:
             AquaError: evaluate_classically() missing from the input oracle
         """
-        self._validate_grover(num_iterations, mct_mode)
+        validate_min('num_iterations', num_iterations, 1)
+        validate_in_list('mct_mode', mct_mode,
+                         ['basic', 'basic-dirty-ancilla',
+                          'advanced', 'noancilla'])
         super().__init__()
 
         if not callable(getattr(oracle, "evaluate_classically", None)):
@@ -84,7 +88,7 @@ class Grover(QuantumAlgorithm):
         self._max_num_iterations = np.ceil(2 ** (len(oracle.variable_register) / 2))
         self._incremental = incremental
         self._num_iterations = num_iterations if not incremental else 1
-        self._validate_grover(num_iterations, mct_mode)
+        validate_min('num_iterations', num_iterations, 1)
         if incremental:
             logger.debug('Incremental mode specified, ignoring "num_iterations".')
         else:
@@ -95,18 +99,6 @@ class Grover(QuantumAlgorithm):
         self._qc_aa_iteration = None
         self._qc_amplitude_amplification = None
         self._qc_measurement = None
-
-    def _validate_grover(self, num_iterations: int, mct_mode: str) -> None:
-        if num_iterations < 1:
-            raise AquaError('Num iterations value {}. Minimum value allowed is 1'.format(
-                num_iterations))
-        if mct_mode not in ['basic',
-                            'basic-dirty-ancilla',
-                            'advanced',
-                            'noancilla']:
-            raise AquaError(
-                "Qubit Mapping value '{}'. Values allowed are 'basic', 'basic-dirty-ancilla', \
-                    'advanced', 'noancilla'".format(mct_mode))
 
     def _construct_diffusion_circuit(self):
         qc = QuantumCircuit(self._oracle.variable_register)

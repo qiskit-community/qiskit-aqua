@@ -33,6 +33,7 @@ from qiskit.aqua.utils.backend_utils import is_aer_statevector_backend
 from qiskit.aqua.operators import BaseOperator
 from qiskit.aqua.components.optimizers import Optimizer
 from qiskit.aqua.components.variational_forms import VariationalForm
+from qiskit.aqua.utils.validation import validate_min
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +70,8 @@ class VQEAdapt(VQAlgorithm):
             ValueError: if var_form_base is not an instance of UCCSD.
             See also: qiskit/chemistry/components/variational_forms/uccsd_adapt.py
         """
-        self._validate_vqe_adapt(threshold, delta)
+        validate_min('threshold', threshold, 1e-15)
+        validate_min('delta', delta, 1e-5)
         super().__init__(var_form=var_form_base,
                          optimizer=optimizer,
                          initial_point=initial_point)
@@ -93,12 +95,6 @@ class VQEAdapt(VQAlgorithm):
                 [aux_operators] if not isinstance(aux_operators, list) else aux_operators
             for aux_op in aux_operators:
                 self._aux_operators.append(aux_op)
-
-    def _validate_vqe_adapt(self, threshold: float, delta: float) -> None:
-        if threshold < 1e-15:
-            raise AquaError('Threshold value {}. Minimum value allowed is 1e-15'.format(threshold))
-        if delta < 1e-5:
-            raise AquaError('Delta value {}. Minimum value allowed is 1e-5'.format(delta))
 
     def _compute_gradients(self, excitation_pool, theta, delta,
                            var_form, operator, optimizer):

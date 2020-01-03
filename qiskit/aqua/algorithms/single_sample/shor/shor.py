@@ -26,12 +26,12 @@ import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 
 from qiskit.aqua.utils.arithmetic import is_power
-from qiskit.aqua import AquaError
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.circuits import FourierTransformCircuits as ftc
 from qiskit.aqua.circuits.gates import mcu1  # pylint: disable=unused-import
 from qiskit.aqua.utils import summarize_circuits
+from qiskit.aqua.utils.validation import validate_min
 
 logger = logging.getLogger(__name__)
 
@@ -53,9 +53,10 @@ class Shor(QuantumAlgorithm):
             N: The integer to be factored.
             a: A random integer a that satisfies a < N and gcd(a, N) = 1
          Raises:
-            AquaError: invalid input
+            ValueError: invalid input
         """
-        self._validate_shor(N, a)
+        validate_min('N', N, 3)
+        validate_min('a', a, 2)
         super().__init__()
         self._n = None
         self._up_qreg = None
@@ -64,12 +65,12 @@ class Shor(QuantumAlgorithm):
 
         # check the input integer
         if N < 1 or N % 2 == 0:
-            raise AquaError('The input needs to be an odd integer greater than 1.')
+            raise ValueError('The input needs to be an odd integer greater than 1.')
 
         self._N = N
 
         if a >= N or math.gcd(a, self._N) != 1:
-            raise AquaError('The integer a needs to satisfy a < N and gcd(a, N) = 1.')
+            raise ValueError('The integer a needs to satisfy a < N and gcd(a, N) = 1.')
 
         self._a = a
 
@@ -80,12 +81,6 @@ class Shor(QuantumAlgorithm):
         if tf:
             logger.info('The input integer is a power: %s=%s^%s.', N, b, p)
             self._ret['factors'].append(b)
-
-    def _validate_shor(self, N: int, a: int) -> None:
-        if N < 3:
-            raise AquaError('N value {}. Minimum value allowed is 3'.format(N))
-        if a < 2:
-            raise AquaError('Random value {}. Minimum value allowed is 2'.format(a))
 
     def _get_angles(self, a):
         """

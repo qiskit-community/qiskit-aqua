@@ -24,6 +24,7 @@ from scipy.stats import beta
 from qiskit import ClassicalRegister, QuantumRegister, QuantumCircuit
 from qiskit.aqua import AquaError
 from qiskit.aqua.utils.circuit_factory import CircuitFactory
+from qiskit.aqua.utils.validation import validate_range, validate_in_list
 
 from .ae_algorithm import AmplitudeEstimationAlgorithm
 
@@ -70,7 +71,9 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         Raises:
             AquaError: if the method to compute the confidence intervals is not supported
         """
-        self._validate_iqae(epsilon, alpha, ci_method)
+        validate_range('epsilon', epsilon, 0, 0.5)
+        validate_range('alpha', alpha, 0, 1)
+        validate_in_list('ci_method', ci_method, ['chernoff', 'beta'])
         super().__init__(a_factory, q_factory, i_objective)
 
         # store parameters
@@ -85,17 +88,6 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         # results dictionary
         self._ret = {}
-
-    def _validate_iqae(self, epsilon: float, alpha: float, ci_method: str) -> None:
-        if epsilon < 0 or epsilon > 0.5:
-            raise AquaError(
-                'Epsilon value {}. Min/Max values allowed are 0 and 0.5'.format(epsilon))
-        if alpha < 0 or alpha > 1:
-            raise AquaError('Alpha value {}. Min/Max values allowed are 0 and 1'.format(alpha))
-        if ci_method not in ['chernoff', 'beta']:
-            raise AquaError(
-                "CI method value '{}'. Values allowed are 'chernoff', 'beta'".format(
-                    ci_method))
 
     @property
     def precision(self):

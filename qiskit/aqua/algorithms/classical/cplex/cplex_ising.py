@@ -25,7 +25,8 @@ import numpy as np
 from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms.classical import ClassicalAlgorithm
 from qiskit.aqua.algorithms.classical.cplex.simple_cplex import SimpleCPLEX
-from qiskit.aqua.operators import BaseOperator
+from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.aqua.utils.validation import validate_min, validate_range
 
 logger = logging.getLogger(__name__)
 
@@ -35,9 +36,12 @@ logger = logging.getLogger(__name__)
 class CPLEX_Ising(ClassicalAlgorithm):
     """ CPLEX Ising algorithm """
 
-    def __init__(self, operator: BaseOperator, timelimit: int = 600, thread: int = 1,
+    def __init__(self, operator: WeightedPauliOperator,
+                 timelimit: int = 600, thread: int = 1,
                  display: int = 2) -> None:
-        self._validate_cplex_ising(timelimit, thread, display)
+        validate_min('timelimit', timelimit, 1)
+        validate_min('thread', thread, 0)
+        validate_range('display', display, 0, 5)
         self._check_valid()
         super().__init__()
         self._ins = IsingInstance()
@@ -46,14 +50,6 @@ class CPLEX_Ising(ClassicalAlgorithm):
         self._thread = thread
         self._display = display
         self._sol = None
-
-    def _validate_cplex_ising(self, timelimit: int, thread: int, display: int) -> None:
-        if timelimit < 1:
-            raise AquaError('Time limit value {}. Minimum value allowed is 1'.format(timelimit))
-        if thread < 0:
-            raise AquaError('Thread value {}. Minimum value allowed is 0'.format(thread))
-        if display < 0 or display > 5:
-            raise AquaError('Display value {}. Min/Max values allowed are 0 and 5'.format(display))
 
     @staticmethod
     def _check_valid():

@@ -31,6 +31,7 @@ from qiskit.aqua.components.neural_networks.generative_network import Generative
 from qiskit.aqua.components.neural_networks.quantum_generator import QuantumGenerator
 from qiskit.aqua.components.neural_networks.numpy_discriminator import NumpyDiscriminator
 from qiskit.aqua.utils.dataset_helper import discretize_and_truncate
+from qiskit.aqua.utils.validation import validate_min
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +72,7 @@ class QGAN(QuantumAlgorithm):
         Raises:
             AquaError: invalid input
         """
-        self._validate_qgan(batch_size)
+        validate_min('batch_size', batch_size, 1)
         super().__init__()
         if data is None:
             raise AquaError('Training data not given.')
@@ -127,10 +128,6 @@ class QGAN(QuantumAlgorithm):
         self.seed = self._random_seed
 
         self._ret = {}
-
-    def _validate_qgan(self, batch_size: int) -> None:
-        if batch_size < 1:
-            raise AquaError('Batch size value {}. Minimum value allowed is 1'.format(batch_size))
 
     @property
     def seed(self):
