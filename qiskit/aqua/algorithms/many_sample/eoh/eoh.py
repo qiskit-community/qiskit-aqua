@@ -22,7 +22,7 @@ from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.operators import op_converter
 from qiskit.aqua.operators import BaseOperator
 from qiskit.aqua.components.initial_states import InitialState
-from qiskit.aqua.utils.validation import validate_min, validate_in_list
+from qiskit.aqua.utils.validation import validate_min, validate_in_set
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ class EOH(QuantumAlgorithm):
                  expansion_order: int = 1) -> None:
         validate_min('evo_time', evo_time, 0)
         validate_min('num_time_slices', num_time_slices, 0)
-        validate_in_list('expansion_mode', expansion_mode, ['trotter', 'suzuki'])
+        validate_in_set('expansion_mode', expansion_mode, {'trotter', 'suzuki'})
         validate_min('expansion_order', expansion_order, 1)
         super().__init__()
         self._operator = op_converter.to_weighted_pauli_operator(operator)

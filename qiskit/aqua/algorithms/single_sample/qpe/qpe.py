@@ -28,7 +28,7 @@ from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.aqua.operators import BaseOperator
 from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.components.iqfts import IQFT
-from qiskit.aqua.utils.validation import validate_min, validate_in_list
+from qiskit.aqua.utils.validation import validate_min, validate_in_set
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +59,7 @@ class QPE(QuantumAlgorithm):
                 (cheap) mode for circuit concatenation
         """
         validate_min('num_time_slices', num_time_slices, 1)
-        validate_in_list('expansion_mode', expansion_mode, ['trotter', 'suzuki'])
+        validate_in_set('expansion_mode', expansion_mode, {'trotter', 'suzuki'})
         validate_min('expansion_order', expansion_order, 1)
         validate_min('num_ancillae', num_ancillae, 1)
         super().__init__()

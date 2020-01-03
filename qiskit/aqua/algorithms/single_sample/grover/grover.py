@@ -25,7 +25,7 @@ from qiskit.qasm import pi
 
 from qiskit.aqua import AquaError
 from qiskit.aqua.utils import get_subsystem_density_matrix
-from qiskit.aqua.utils.validation import validate_min, validate_in_list
+from qiskit.aqua.utils.validation import validate_min, validate_in_set
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.components.initial_states import Custom
 from qiskit.aqua.components.oracles import Oracle
@@ -66,9 +66,9 @@ class Grover(QuantumAlgorithm):
             AquaError: evaluate_classically() missing from the input oracle
         """
         validate_min('num_iterations', num_iterations, 1)
-        validate_in_list('mct_mode', mct_mode,
-                         ['basic', 'basic-dirty-ancilla',
-                          'advanced', 'noancilla'])
+        validate_in_set('mct_mode', mct_mode,
+                        {'basic', 'basic-dirty-ancilla',
+                         'advanced', 'noancilla'})
         super().__init__()
 
         if not callable(getattr(oracle, "evaluate_classically", None)):

@@ -20,7 +20,7 @@ import logging
 import numpy as np
 from qiskit.aqua.operators import BaseOperator, Z2Symmetries
 from qiskit.aqua.algorithms import ExactEigensolver
-from qiskit.aqua.utils.validation import validate_min, validate_in_list
+from qiskit.aqua.utils.validation import validate_min, validate_in_set
 from .q_equation_of_motion import QEquationOfMotion
 
 logger = logging.getLogger(__name__)
@@ -65,8 +65,8 @@ class QEomEE(ExactEigensolver):
             ValueError: invalid parameter
         """
         validate_min('num_orbitals', num_orbitals, 1)
-        validate_in_list('qubit_mapping', qubit_mapping,
-                         ['jordan_wigner', 'parity', 'bravyi_kitaev'])
+        validate_in_set('qubit_mapping', qubit_mapping,
+                        {'jordan_wigner', 'parity', 'bravyi_kitaev'})
         if isinstance(num_particles, list) and len(num_particles) != 2:
             raise ValueError('Num particles value {}. Number of values allowed is 2'.format(
                 num_particles))

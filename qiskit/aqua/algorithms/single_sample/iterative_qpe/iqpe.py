@@ -27,7 +27,7 @@ from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.operators import BaseOperator
 from qiskit.aqua.components.initial_states import InitialState
-from qiskit.aqua.utils.validation import validate_min, validate_in_list
+from qiskit.aqua.utils.validation import validate_min, validate_in_set
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +59,7 @@ class IQPE(QuantumAlgorithm):
                     mode for circuit concatenation
         """
         validate_min('num_time_slices', num_time_slices, 1)
-        validate_in_list('expansion_mode', expansion_mode, ['trotter', 'suzuki'])
+        validate_in_set('expansion_mode', expansion_mode, {'trotter', 'suzuki'})
         validate_min('expansion_order', expansion_order, 1)
         validate_min('num_iterations', num_iterations, 1)
         super().__init__()
