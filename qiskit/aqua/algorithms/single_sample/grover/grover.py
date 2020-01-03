@@ -89,7 +89,6 @@ class Grover(QuantumAlgorithm):
         self._max_num_iterations = np.ceil(2 ** (len(oracle.variable_register) / 2))
         self._incremental = incremental
         self._num_iterations = num_iterations if not incremental else 1
-        validate_min('num_iterations', num_iterations, 1)
         if incremental:
             logger.debug('Incremental mode specified, ignoring "num_iterations".')
         else:
