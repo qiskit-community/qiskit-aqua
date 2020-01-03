@@ -16,9 +16,13 @@
 
 import logging
 
+from typing import Union, List, Optional, Callable
 import numpy as np
-from qiskit.aqua.utils.validation import validate
 from qiskit.aqua.algorithms import VQE
+from qiskit.aqua.operators import BaseOperator, Z2Symmetries
+from qiskit.aqua.components.optimizers import Optimizer
+from qiskit.aqua.components.variational_forms import VariationalForm
+from qiskit.aqua.utils.validation import validate_min, validate_in_set
 from .q_equation_of_motion import QEquationOfMotion
 
 logger = logging.getLogger(__name__)
@@ -27,105 +31,69 @@ logger = logging.getLogger(__name__)
 class QEomVQE(VQE):
     """ QEomVQE algorithm """
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'qeom_vqe_schema',
-        'type': 'object',
-        'properties': {
-            'initial_point': {
-                'type': ['array', 'null'],
-                "items": {
-                    "type": "number"
-                },
-                'default': None
-            },
-            'num_orbitals': {
-                'type': 'integer',
-                'default': 4,
-                'minimum': 1
-            },
-            'num_particles': {
-                'type': ['array', 'integer'],
-                'default': [1, 1],
-                'contains': {
-                    'type': 'integer'
-                },
-                'minItems': 2,
-                'maxItems': 2
-            },
-            'qubit_mapping': {
-                'type': 'string',
-                'default': 'parity',
-                'oneOf': [
-                    {'enum': ['jordan_wigner', 'parity', 'bravyi_kitaev']}
-                ]
-            },
-            'two_qubit_reduction': {
-                'type': 'boolean',
-                'default': True
-            },
-            'active_occupied': {
-                'type': ['array', 'null'],
-                'default': None
-            },
-            'active_unoccupied': {
-                'type': ['array', 'null'],
-                'default': None
-            },
-            'max_evals_grouped': {
-                'type': 'integer',
-                'default': 1
-            }
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, operator, var_form, optimizer, num_orbitals, num_particles,
-                 initial_point=None, max_evals_grouped=1, callback=None,
-                 auto_conversion=True, qubit_mapping='parity',
-                 two_qubit_reduction=True, is_eom_matrix_symmetric=True,
-                 active_occupied=None, active_unoccupied=None,
-                 se_list=None, de_list=None, z2_symmetries=None,
-                 untapered_op=None, aux_operators=None):
+    def __init__(self, operator: BaseOperator, var_form: VariationalForm,
+                 optimizer: Optimizer, num_orbitals: int,
+                 num_particles: Union[List[int], int],
+                 initial_point: Optional[np.ndarray] = None,
+                 max_evals_grouped: int = 1,
+                 callback: Optional[Callable[[int, np.ndarray, float, float], None]] = None,
+                 auto_conversion: bool = True,
+                 qubit_mapping: str = 'parity',
+                 two_qubit_reduction: bool = True,
+                 is_eom_matrix_symmetric: bool = True,
+                 active_occupied: Optional[List[int]] = None,
+                 active_unoccupied: Optional[List[int]] = None,
+                 se_list: Optional[List[List[int]]] = None,
+                 de_list: Optional[List[List[int]]] = None,
+                 z2_symmetries: Optional[Z2Symmetries] = None,
+                 untapered_op: Optional[BaseOperator] = None,
+                 aux_operators: Optional[List[BaseOperator]] = None) -> None:
         """
         Args:
-            operator (BaseOperator): qubit operator
-            var_form (VariationalForm): parametrized variational form.
-            optimizer (Optimizer): the classical optimization algorithm.
-            num_orbitals (int):  total number of spin orbitals
-            num_particles (Union(list, int)): number of particles, if it is a list,
+            operator: qubit operator
+            var_form: parameterized variational form.
+            optimizer: the classical optimization algorithm.
+            num_orbitals:  total number of spin orbitals, has a min. value of 1.
+            num_particles: number of particles, if it is a list,
                                               the first number is
                                               alpha and the second number if beta.
-            initial_point (numpy.ndarray): optimizer initial point, 1-D vector
-            max_evals_grouped (int): max number of evaluations performed simultaneously
-            callback (Callable): a callback that can access the intermediate data during
+            initial_point: optimizer initial point, 1-D vector
+            max_evals_grouped: max number of evaluations performed simultaneously
+            callback: a callback that can access the intermediate data during
                                  the optimization.
                                  Internally, four arguments are provided as follows
                                  the index of evaluation, parameters of variational form,
                                  evaluated mean, evaluated standard deviation.
-            auto_conversion (bool): an automatic conversion for operator and aux_operators into
+            auto_conversion: an automatic conversion for operator and aux_operators into
                                     the type which is most suitable for the backend.
 
                                     - non-aer statevector_simulator: MatrixOperator
                                     - aer statevector_simulator: WeightedPauliOperator
                                     - qasm simulator or real backend:
                                         TPBGroupedWeightedPauliOperator
-            qubit_mapping (str): qubit mapping type
-            two_qubit_reduction (bool): two qubit reduction is applied or not
-            is_eom_matrix_symmetric (bool): is EoM matrix symmetric
-            active_occupied (list): list of occupied orbitals to include, indices are
+            qubit_mapping: qubit mapping type
+            two_qubit_reduction: two qubit reduction is applied or not
+            is_eom_matrix_symmetric: is EoM matrix symmetric
+            active_occupied: list of occupied orbitals to include, indices are
                                     0 to n where n is num particles // 2
-            active_unoccupied (list): list of unoccupied orbitals to include, indices are
+            active_unoccupied: list of unoccupied orbitals to include, indices are
                                       0 to m where m is (num_orbitals - num particles) // 2
-            se_list (list[list]): single excitation list, overwrite the setting in active space
-            de_list (list[list]): double excitation list, overwrite the setting in active space
-            z2_symmetries (Z2Symmetries): represent the Z2 symmetries
-            untapered_op (BaseOperator): if the operator is tapered, we need untapered operator
+            se_list: single excitation list, overwrite the setting in active space
+            de_list: double excitation list, overwrite the setting in active space
+            z2_symmetries: represent the Z2 symmetries
+            untapered_op: if the operator is tapered, we need untapered operator
                                          during building element of EoM matrix
-            aux_operators (list[BaseOperator]): Auxiliary operators to be
+            aux_operators: Auxiliary operators to be
                                                 evaluated at each eigenvalue
+        Raises:
+            ValueError: invalid parameter
         """
-        validate(locals(), self._INPUT_SCHEMA)
+        validate_min('num_orbitals', num_orbitals, 1)
+        validate_in_set('qubit_mapping', qubit_mapping,
+                        {'jordan_wigner', 'parity', 'bravyi_kitaev'})
+        if isinstance(num_particles, list) and len(num_particles) != 2:
+            raise ValueError('Num particles value {}. Number of values allowed is 2'.format(
+                num_particles))
         super().__init__(operator.copy(), var_form, optimizer, initial_point=initial_point,
                          max_evals_grouped=max_evals_grouped, aux_operators=aux_operators,
                          callback=callback, auto_conversion=auto_conversion)

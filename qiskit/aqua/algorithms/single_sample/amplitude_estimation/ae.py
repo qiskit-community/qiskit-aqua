@@ -15,6 +15,7 @@
 The Amplitude Estimation Algorithm.
 """
 
+from typing import Optional
 import logging
 from collections import OrderedDict
 import numpy as np
@@ -22,10 +23,10 @@ from scipy.stats import chi2, norm
 from scipy.optimize import bisect
 
 from qiskit.aqua import AquaError
+from qiskit.aqua.utils import CircuitFactory
 from qiskit.aqua.circuits import PhaseEstimationCircuit
-from qiskit.aqua.components.iqfts import Standard
-from qiskit.aqua.utils.validation import validate
-
+from qiskit.aqua.components.iqfts import IQFT, Standard
+from qiskit.aqua.utils.validation import validate_min
 from .ae_algorithm import AmplitudeEstimationAlgorithm
 from .ae_utils import pdf_a, derivative_log_pdf_a, bisect_max
 
@@ -39,35 +40,24 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
     The Amplitude Estimation algorithm.
     """
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'AmplitudeEstimation_schema',
-        'type': 'object',
-        'properties': {
-            'num_eval_qubits': {
-                'type': 'integer',
-                'default': 5,
-                'minimum': 1
-            }
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, num_eval_qubits, a_factory=None,
-                 i_objective=None, q_factory=None, iqft=None):
+    def __init__(self, num_eval_qubits: int,
+                 a_factory: Optional[CircuitFactory] = None,
+                 i_objective: Optional[int] = None,
+                 q_factory: Optional[CircuitFactory] = None,
+                 iqft: Optional[IQFT] = None) -> None:
         """
 
         Args:
-            num_eval_qubits (int): number of evaluation qubits
-            a_factory (CircuitFactory): the CircuitFactory subclass object representing
+            num_eval_qubits: number of evaluation qubits, has a min. value of 1.
+            a_factory: the CircuitFactory subclass object representing
                                         the problem unitary
-            i_objective (int): i objective
-            q_factory (CircuitFactory): the CircuitFactory subclass object representing an
+            i_objective: i objective
+            q_factory: the CircuitFactory subclass object representing an
                                         amplitude estimation sample (based on a_factory)
-            iqft (IQFT): the Inverse Quantum Fourier Transform component,
+            iqft: the Inverse Quantum Fourier Transform component,
                          defaults to using a standard iqft when None
         """
-        validate(locals(), self._INPUT_SCHEMA)
+        validate_min('num_eval_qubits', num_eval_qubits, 1)
         super().__init__(a_factory, q_factory, i_objective)
 
         # get parameters
