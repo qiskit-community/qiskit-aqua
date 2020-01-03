@@ -55,7 +55,7 @@ class VQE(VQAlgorithm):
 
         Args:
             operator: Qubit operator
-            var_form: parametrized variational form.
+            var_form: parameterized variational form.
             optimizer: the classical optimization algorithm.
             initial_point: optimizer initial point.
             max_evals_grouped: max number of evaluations performed simultaneously

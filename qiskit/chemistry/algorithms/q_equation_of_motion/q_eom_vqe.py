@@ -49,7 +49,7 @@ class QEomVQE(VQE):
         """
         Args:
             operator: qubit operator
-            var_form: parametrized variational form.
+            var_form: parameterized variational form.
             optimizer: the classical optimization algorithm.
             num_orbitals:  total number of spin orbitals, has a min. value of 1.
             num_particles: number of particles, if it is a list,

@@ -56,7 +56,7 @@ class VQEAdapt(VQAlgorithm):
 
         Args:
             operator: Qubit operator
-            var_form_base: base parametrized variational form
+            var_form_base: base parameterized variational form
             optimizer: the classical optimizer algorithm
             initial_point: optimizer initial point
             excitation_pool: list of excitation operators
