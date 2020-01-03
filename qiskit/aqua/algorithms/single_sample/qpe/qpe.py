@@ -25,7 +25,10 @@ from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.circuits import PhaseEstimationCircuit
 from qiskit.aqua.operators import WeightedPauliOperator
-from qiskit.aqua.utils.validation import validate
+from qiskit.aqua.operators import BaseOperator
+from qiskit.aqua.components.initial_states import InitialState
+from qiskit.aqua.components.iqfts import IQFT
+from qiskit.aqua.utils.validation import validate_min, validate_in_set
 
 logger = logging.getLogger(__name__)
 
@@ -35,63 +38,31 @@ logger = logging.getLogger(__name__)
 class QPE(QuantumAlgorithm):
     """The Quantum Phase Estimation algorithm."""
 
-    PROP_NUM_TIME_SLICES = 'num_time_slices'
-    PROP_EXPANSION_MODE = 'expansion_mode'
-    PROP_EXPANSION_ORDER = 'expansion_order'
-    PROP_NUM_ANCILLAE = 'num_ancillae'
-
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'qpe_schema',
-        'type': 'object',
-        'properties': {
-            PROP_NUM_TIME_SLICES: {
-                'type': 'integer',
-                'default': 1,
-                'minimum': 1
-            },
-            PROP_EXPANSION_MODE: {
-                'type': 'string',
-                'default': 'trotter',
-                'enum': [
-                    'suzuki',
-                    'trotter'
-                ]
-            },
-            PROP_EXPANSION_ORDER: {
-                'type': 'integer',
-                'default': 1,
-                'minimum': 1
-            },
-            PROP_NUM_ANCILLAE: {
-                'type': 'integer',
-                'default': 1,
-                'minimum': 1
-            }
-        },
-        'additionalProperties': False
-    }
-
     def __init__(
-            self, operator, state_in, iqft, num_time_slices=1, num_ancillae=1,
-            expansion_mode='trotter', expansion_order=1,
-            shallow_circuit_concat=False
-    ):
+            self, operator: BaseOperator, state_in: InitialState,
+            iqft: IQFT, num_time_slices: int = 1,
+            num_ancillae: int = 1, expansion_mode: str = 'trotter',
+            expansion_order: int = 1, shallow_circuit_concat: bool = False
+    ) -> None:
         """
 
         Args:
-            operator (BaseOperator): the hamiltonian Operator object
-            state_in (InitialState): the InitialState component
+            operator: the hamiltonian Operator object
+            state_in: the InitialState component
                 representing the initial quantum state
-            iqft (IQFT): the Inverse Quantum Fourier Transform component
-            num_time_slices (int): the number of time slices
-            num_ancillae (int): the number of ancillary qubits to use for the measurement
-            expansion_mode (str): the expansion mode (trotter|suzuki)
-            expansion_order (int): the suzuki expansion order
-            shallow_circuit_concat (bool): indicate whether to use shallow
+            iqft: the Inverse Quantum Fourier Transform component
+            num_time_slices: the number of time slices, has a min. value of 1.
+            num_ancillae: the number of ancillary qubits to use for the measurement,
+                            has a min. value of 1.
+            expansion_mode: the expansion mode (trotter|suzuki)
+            expansion_order: the suzuki expansion order, has a min. value of 1.
+            shallow_circuit_concat: indicate whether to use shallow
                 (cheap) mode for circuit concatenation
         """
-        validate(locals(), self._INPUT_SCHEMA)
+        validate_min('num_time_slices', num_time_slices, 1)
+        validate_min('num_ancillae', num_ancillae, 1)
+        validate_in_set('expansion_mode', expansion_mode, {'trotter', 'suzuki'})
+        validate_min('expansion_order', expansion_order, 1)
         super().__init__()
         self._operator = op_converter.to_weighted_pauli_operator(operator.copy())
         self._num_ancillae = num_ancillae
