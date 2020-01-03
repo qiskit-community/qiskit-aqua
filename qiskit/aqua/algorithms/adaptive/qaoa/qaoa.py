@@ -46,8 +46,8 @@ class QAOA(VQE):
         Args:
             operator: Qubit operator
             optimizer: The classical optimizer to use.
-            p: the integer parameter p as specified in https://arxiv.org/abs/1411.4028
-                , has a min. value of 1.
+            p: the integer parameter p as specified in https://arxiv.org/abs/1411.4028,
+                has a min. value of 1.
             initial_state: the initial state to prepend the QAOA circuit with
             mixer: the mixer Hamiltonian to evolve with. Allows support of
                    optimizations in constrained subspaces
