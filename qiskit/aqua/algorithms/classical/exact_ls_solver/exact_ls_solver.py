@@ -26,8 +26,8 @@ logger = logging.getLogger(__name__)
 class ExactLSsolver(ClassicalAlgorithm):
     """The Exact LinearSystem algorithm."""
 
-    def __init__(self, matrix: Union(List[List[float]], np.ndarray),
-                 vector: Union(List[float], np.ndarray)) -> None:
+    def __init__(self, matrix: Union[List[List[float]], np.ndarray],
+                 vector: Union[List[float], np.ndarray]) -> None:
         """Constructor.
 
         Args:
