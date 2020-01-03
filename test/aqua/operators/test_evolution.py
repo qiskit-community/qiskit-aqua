@@ -14,18 +14,14 @@
 
 """ Test Operator Evolution """
 
-import unittest
 import itertools
 import os
 from test.aqua.common import QiskitAquaTestCase
-import numpy as np
-from parameterized import parameterized
-from qiskit import BasicAer, QuantumCircuit, QuantumRegister
-from qiskit.quantum_info import Pauli, state_fidelity
+from qiskit import BasicAer
+from qiskit.quantum_info import Pauli
 from qiskit.aqua import aqua_globals, QuantumInstance
-from qiskit.aqua.operators import WeightedPauliOperator, op_converter
+from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.aqua.components.variational_forms import RYRZ
-from qiskit.aqua.components.initial_states import Custom
 
 
 class TestEvolution(QiskitAquaTestCase):
