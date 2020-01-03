@@ -26,13 +26,12 @@ import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 
 from qiskit.aqua.utils.arithmetic import is_power
-from qiskit.aqua import AquaError
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.circuits import FourierTransformCircuits as ftc
 from qiskit.aqua.circuits.gates import mcu1  # pylint: disable=unused-import
 from qiskit.aqua.utils import summarize_circuits
-from qiskit.aqua.utils.validation import validate
+from qiskit.aqua.utils.validation import validate_min
 
 logger = logging.getLogger(__name__)
 
@@ -46,39 +45,19 @@ class Shor(QuantumAlgorithm):
     Adapted from https://github.com/ttlion/ShorAlgQiskit
     """
 
-    PROP_N = 'N'
-    PROP_A = 'a'
-
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'shor_schema',
-        'type': 'object',
-        'properties': {
-            PROP_N: {
-                'type': 'integer',
-                'default': 15,
-                'minimum': 3
-            },
-            PROP_A: {
-                'type': 'integer',
-                'default': 2,
-                'minimum': 2
-            },
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, N=15, a=2):
+    def __init__(self, N: int = 15, a: int = 2) -> None:
         """
         Constructor.
 
         Args:
-            N (int): The integer to be factored.
-            a (int): A random integer a that satisfies a < N and gcd(a, N) = 1
+            N: The integer to be factored, has a min. value of 3.
+            a: A random integer a that satisfies a < N and gcd(a, N) = 1,
+                has a min. value of 2.
          Raises:
-            AquaError: invalid input
+            ValueError: invalid input
         """
-        validate(locals(), self._INPUT_SCHEMA)
+        validate_min('N', N, 3)
+        validate_min('a', a, 2)
         super().__init__()
         self._n = None
         self._up_qreg = None
@@ -87,12 +66,12 @@ class Shor(QuantumAlgorithm):
 
         # check the input integer
         if N < 1 or N % 2 == 0:
-            raise AquaError('The input needs to be an odd integer greater than 1.')
+            raise ValueError('The input needs to be an odd integer greater than 1.')
 
         self._N = N
 
         if a >= N or math.gcd(a, self._N) != 1:
-            raise AquaError('The integer a needs to satisfy a < N and gcd(a, N) = 1.')
+            raise ValueError('The integer a needs to satisfy a < N and gcd(a, N) = 1.')
 
         self._a = a
 
