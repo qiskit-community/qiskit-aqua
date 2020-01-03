@@ -22,7 +22,7 @@ import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.utils import get_subsystem_density_matrix
-from qiskit.aqua.utils.validation import validate
+from qiskit.aqua.components.oracles import Oracle
 
 logger = logging.getLogger(__name__)
 
@@ -32,17 +32,7 @@ logger = logging.getLogger(__name__)
 class BernsteinVazirani(QuantumAlgorithm):
     """The Bernstein-Vazirani algorithm."""
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'bv_schema',
-        'type': 'object',
-        'properties': {
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, oracle):
-        validate(locals(), self._INPUT_SCHEMA)
+    def __init__(self, oracle: Oracle) -> None:
         super().__init__()
 
         self._oracle = oracle

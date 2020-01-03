@@ -16,14 +16,15 @@
 Classical SVM algorithm.
 """
 
+from typing import Dict, Optional
 import logging
-
+import numpy as np
 from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms.classical import ClassicalAlgorithm
 from qiskit.aqua.algorithms.classical.svm import (_SVM_Classical_Binary,
                                                   _SVM_Classical_Multiclass)
 from qiskit.aqua.utils import get_num_classes
-from qiskit.aqua.utils.validation import validate
+from qiskit.aqua.components.multiclass_extensions import MulticlassExtension
 
 logger = logging.getLogger(__name__)
 
@@ -38,40 +39,28 @@ class SVM_Classical(ClassicalAlgorithm):
     based on how many classes the data has.
     """
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'SVM_Classical_schema',
-        'type': 'object',
-        'properties': {
-            'gamma': {
-                'type': ['number', 'null'],
-                'default': None
-            }
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, training_dataset, test_dataset=None, datapoints=None,
-                 gamma=None, multiclass_extension=None):
+    def __init__(self, training_dataset: Dict[str, np.ndarray],
+                 test_dataset: Optional[Dict[str, np.ndarray]] = None,
+                 datapoints: Optional[np.ndarray] = None,
+                 gamma: Optional[int] = None,
+                 multiclass_extension: Optional[MulticlassExtension] = None) -> None:
         # pylint: disable=line-too-long
         """
 
         Args:
-            training_dataset (dict, optional): training dataset.
-            test_dataset (dict, optional): testing dataset.
-            datapoints (numpy.ndarray, optional): prediction dataset.
-            gamma (int, optional): Used as input for sklearn rbf_kernel internally. See
+            training_dataset: training dataset.
+            test_dataset: testing dataset.
+            datapoints: prediction dataset.
+            gamma: Used as input for sklearn rbf_kernel internally. See
                 `sklearn.metrics.pairwise.rbf_kernel
                 <https://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.rbf_kernel.html>`_
                 for more information about gamma.
-            multiclass_extension (MultiExtension, optional): if number of classes > 2 then
+            multiclass_extension: if number of classes > 2 then
                 a multiclass scheme is needed.
 
         Raises:
             AquaError: If using binary classifier where num classes >= 3
         """
-
-        validate(locals(), self._INPUT_SCHEMA)
         super().__init__()
         if training_dataset is None:
             raise AquaError('Training dataset must be provided.')
