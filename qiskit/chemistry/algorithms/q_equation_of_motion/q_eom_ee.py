@@ -30,7 +30,8 @@ class QEomEE(ExactEigensolver):
     """ QEomEE algorithm """
 
     def __init__(self, operator: BaseOperator, num_orbitals: int,
-                 num_particles: Union[List[int], int], qubit_mapping: str = 'parity',
+                 num_particles: Union[List[int], int],
+                 qubit_mapping: str = 'parity',
                  two_qubit_reduction: bool = True,
                  active_occupied: Optional[List[int]] = None,
                  active_unoccupied: Optional[List[int]] = None,

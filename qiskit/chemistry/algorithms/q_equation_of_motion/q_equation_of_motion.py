@@ -14,6 +14,7 @@
 
 """ QEquationOfMotion algorithm """
 
+from typing import Optional, List, Union
 import logging
 import copy
 import itertools
@@ -25,7 +26,9 @@ from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
 from qiskit.aqua import AquaError, aqua_globals
-from qiskit.aqua.operators import (WeightedPauliOperator, Z2Symmetries,
+from qiskit.aqua.operators import (BaseOperator,
+                                   WeightedPauliOperator,
+                                   Z2Symmetries,
                                    TPBGroupedWeightedPauliOperator,
                                    op_converter, commutator)
 
@@ -37,32 +40,38 @@ logger = logging.getLogger(__name__)
 
 class QEquationOfMotion:
     """ QEquationOfMotion algorithm """
-    def __init__(self, operator, num_orbitals, num_particles,
-                 qubit_mapping=None, two_qubit_reduction=False,
-                 active_occupied=None, active_unoccupied=None,
-                 is_eom_matrix_symmetric=True, se_list=None, de_list=None,
-                 z2_symmetries=None, untapered_op=None):
+    def __init__(self, operator: BaseOperator,
+                 num_orbitals: int,
+                 num_particles: Union[List[int], int],
+                 qubit_mapping: Optional[str] = None,
+                 two_qubit_reduction: bool = False,
+                 active_occupied: Optional[List[int]] = None,
+                 active_unoccupied: Optional[List[int]] = None,
+                 is_eom_matrix_symmetric: bool = True,
+                 se_list: Optional[List[List[int]]] = None,
+                 de_list: Optional[List[List[int]]] = None,
+                 z2_symmetries: Optional[Z2Symmetries] = None,
+                 untapered_op: Optional[BaseOperator] = None) -> None:
         """Constructor.
 
         Args:
-            operator (WeightedPauliOperator): qubit operator
-            num_orbitals (int):  total number of spin orbitals
-            num_particles (Union(list, int)): number of particles, if it is a list,
+            operator: qubit operator
+            num_orbitals:  total number of spin orbitals
+            num_particles: number of particles, if it is a list,
                                         the first number
                                         is alpha and the second number if beta.
-            qubit_mapping (str): qubit mapping type
-            two_qubit_reduction (bool): two qubit reduction is applied or not
-            active_occupied (list): list of occupied orbitals to include, indices are
+            qubit_mapping: qubit mapping type
+            two_qubit_reduction: two qubit reduction is applied or not
+            active_occupied: list of occupied orbitals to include, indices are
                                     0 to n where n is num particles // 2
-            active_unoccupied (list): list of unoccupied orbitals to include, indices are
+            active_unoccupied: list of unoccupied orbitals to include, indices are
                                     0 to m where m is (num_orbitals - num particles) // 2
-            is_eom_matrix_symmetric (bool): is EoM matrix symmetric
-            se_list (list[list]): single excitation list, overwrite the setting in active space
-            de_list (list[list]): double excitation list, overwrite the setting in active space
-            z2_symmetries (Z2Symmetries): represent the Z2 symmetries
-            untapered_op (WeightedPauliOperator): if the operator is tapered, we need
-                                                    untapered operator
-                                                    to build element of EoM matrix
+            is_eom_matrix_symmetric: is EoM matrix symmetric
+            se_list: single excitation list, overwrite the setting in active space
+            de_list: double excitation list, overwrite the setting in active space
+            z2_symmetries: represent the Z2 symmetries
+            untapered_op: if the operator is tapered, we need untapered operator
+                            to build element of EoM matrix
         """
         self._operator = operator
         self._num_orbitals = num_orbitals
