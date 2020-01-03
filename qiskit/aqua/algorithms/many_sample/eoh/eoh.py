@@ -35,7 +35,8 @@ class EOH(QuantumAlgorithm):
     def __init__(self, operator: BaseOperator,
                  initial_state: InitialState,
                  evo_operator: BaseOperator,
-                 evo_time: int = 1, num_time_slices: int = 1,
+                 evo_time: int = 1,
+                 num_time_slices: int = 1,
                  expansion_mode: str = 'trotter',
                  expansion_order: int = 1) -> None:
         validate_min('evo_time', evo_time, 0)

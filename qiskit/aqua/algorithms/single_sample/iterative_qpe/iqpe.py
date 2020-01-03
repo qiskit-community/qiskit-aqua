@@ -62,9 +62,9 @@ class IQPE(QuantumAlgorithm):
                     mode for circuit concatenation
         """
         validate_min('num_time_slices', num_time_slices, 1)
+        validate_min('num_iterations', num_iterations, 1)
         validate_in_set('expansion_mode', expansion_mode, {'trotter', 'suzuki'})
         validate_min('expansion_order', expansion_order, 1)
-        validate_min('num_iterations', num_iterations, 1)
         super().__init__()
         self._operator = op_converter.to_weighted_pauli_operator(operator.copy())
         self._state_in = state_in
