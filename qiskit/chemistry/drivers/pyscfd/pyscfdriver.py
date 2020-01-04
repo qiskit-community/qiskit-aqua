@@ -14,10 +14,11 @@
 
 """ PYSCF Driver """
 
+from typing import Optional, Union, List
 import importlib
 from enum import Enum
 import logging
-from qiskit.aqua.utils.validation import validate
+from qiskit.aqua.utils.validation import validate_min, validate_in_set
 from qiskit.chemistry.drivers import BaseDriver, UnitsType, HFMethodType
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers.pyscfd.integrals import compute_integrals
@@ -36,93 +37,31 @@ class InitialGuess(Enum):
 class PySCFDriver(BaseDriver):
     """Python implementation of a PySCF driver."""
 
-    _INPUT_SCHEMA = {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "id": "pyscf_schema",
-        "type": "object",
-        "properties": {
-            "atom": {
-                "type": "string",
-                "default": "H 0.0 0.0 0.0; H 0.0 0.0 0.735"
-            },
-            "unit": {
-                "type": "string",
-                "default": UnitsType.ANGSTROM.value,
-                "enum": [
-                    UnitsType.ANGSTROM.value,
-                    UnitsType.BOHR.value,
-                ]
-            },
-            "charge": {
-                "type": "integer",
-                "default": 0
-            },
-            "spin": {
-                "type": "integer",
-                "default": 0
-            },
-            "basis": {
-                "type": "string",
-                "default": "sto3g"
-            },
-            "hf_method": {
-                "type": "string",
-                "default": HFMethodType.RHF.value,
-                "enum": [
-                    HFMethodType.RHF.value,
-                    HFMethodType.ROHF.value,
-                    HFMethodType.UHF.value
-                ]
-            },
-            "conv_tol": {
-                "type": "number",
-                "default": 1e-09
-            },
-            "max_cycle": {
-                "type": "integer",
-                "default": 50,
-                "minimum": 1
-            },
-            "init_guess": {
-                "type": "string",
-                "default": InitialGuess.MINAO.value,
-                "enum": [
-                    InitialGuess.MINAO.value,
-                    InitialGuess.HCORE.value,
-                    InitialGuess.ATOM.value
-                ]
-            },
-            "max_memory": {
-                "type": ["integer", "null"],
-                "default": None
-            }
-        }
-    }
-
     def __init__(self,
-                 atom,
-                 unit=UnitsType.ANGSTROM,
-                 charge=0,
-                 spin=0,
-                 basis='sto3g',
-                 hf_method=HFMethodType.RHF,
-                 conv_tol=1e-9,
-                 max_cycle=50,
-                 init_guess=InitialGuess.MINAO,
-                 max_memory=None):
+                 atom: Union[str, List[str]] = 'H 0.0 0.0 0.0; H 0.0 0.0 0.735',
+                 unit: UnitsType = UnitsType.ANGSTROM,
+                 charge: int = 0,
+                 spin: int = 0,
+                 basis: str = 'sto3g',
+                 hf_method: HFMethodType = HFMethodType.RHF,
+                 conv_tol: float = 1e-9,
+                 max_cycle: int = 50,
+                 init_guess: InitialGuess = InitialGuess.MINAO,
+                 max_memory: Optional[int] = None) -> None:
         """
         Initializer
         Args:
-            atom (str or list): atom list or string separated by semicolons or line breaks
-            unit (UnitsType): angstrom or bohr
-            charge (int): charge
-            spin (int): spin
-            basis (str): basis set
-            hf_method (HFMethodType): Hartree-Fock Method type
-            conv_tol (float): Convergence tolerance see PySCF docs and pyscf/scf/hf.py
-            max_cycle (int): Max convergence cycles see PySCF docs and pyscf/scf/hf.py
-            init_guess (InitialGuess): See PySCF pyscf/scf/hf.py init_guess_by_minao/1e/atom methods
-            max_memory (int): maximum memory
+            atom: atom list or string separated by semicolons or line breaks
+            unit: angstrom or bohr
+            charge: charge
+            spin: spin
+            basis: basis set
+            hf_method: Hartree-Fock Method type
+            conv_tol: Convergence tolerance see PySCF docs and pyscf/scf/hf.py
+            max_cycle: Max convergence cycles see PySCF docs and pyscf/scf/hf.py,
+                        has a min. value of 1.
+            init_guess: See PySCF pyscf/scf/hf.py init_guess_by_minao/1e/atom methods
+            max_memory: maximum memory
         Raises:
             QiskitChemistryError: Invalid Input
         """
@@ -138,7 +77,18 @@ class PySCFDriver(BaseDriver):
         unit = unit.value
         hf_method = hf_method.value
         init_guess = init_guess.value
-        validate(locals(), self._INPUT_SCHEMA)
+        validate_in_set('unit', unit,
+                        {UnitsType.ANGSTROM.value,
+                         UnitsType.BOHR.value})
+        validate_in_set('hf_method', hf_method,
+                        {HFMethodType.RHF.value,
+                         HFMethodType.ROHF.value,
+                         HFMethodType.UHF.value})
+        validate_min('max_cycle', max_cycle, 1)
+        validate_in_set('init_guess', init_guess,
+                        {InitialGuess.MINAO.value,
+                         InitialGuess.HCORE.value,
+                         InitialGuess.ATOM.value})
         super().__init__()
         self._atom = atom
         self._unit = unit
