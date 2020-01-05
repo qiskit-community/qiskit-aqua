@@ -18,7 +18,7 @@ from typing import Union, List
 import importlib
 from enum import Enum
 import logging
-from qiskit.aqua.utils.validation import validate_min, validate_in_set
+from qiskit.aqua.utils.validation import validate_min
 from qiskit.chemistry.drivers import BaseDriver, UnitsType, HFMethodType
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers.pyquanted.integrals import compute_integrals
@@ -63,17 +63,6 @@ class PyQuanteDriver(BaseDriver):
         units = units.value
         basis = basis.value
         hf_method = hf_method.value
-        validate_in_set('units', units,
-                        {UnitsType.ANGSTROM.value,
-                         UnitsType.BOHR.value})
-        validate_in_set('basis', basis,
-                        {BasisType.BSTO3G.value,
-                         BasisType.B631G.value,
-                         BasisType.B631GSS.value})
-        validate_in_set('hf_method', hf_method,
-                        {HFMethodType.RHF.value,
-                         HFMethodType.ROHF.value,
-                         HFMethodType.UHF.value})
         validate_min('maxiters', maxiters, 1)
         self._check_valid()
         if not isinstance(atoms, list) and not isinstance(atoms, str):

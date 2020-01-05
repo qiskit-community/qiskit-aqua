@@ -18,7 +18,7 @@ from typing import Optional, Union, List
 import importlib
 from enum import Enum
 import logging
-from qiskit.aqua.utils.validation import validate_min, validate_in_set
+from qiskit.aqua.utils.validation import validate_min
 from qiskit.chemistry.drivers import BaseDriver, UnitsType, HFMethodType
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers.pyscfd.integrals import compute_integrals
@@ -77,18 +77,7 @@ class PySCFDriver(BaseDriver):
         unit = unit.value
         hf_method = hf_method.value
         init_guess = init_guess.value
-        validate_in_set('unit', unit,
-                        {UnitsType.ANGSTROM.value,
-                         UnitsType.BOHR.value})
-        validate_in_set('hf_method', hf_method,
-                        {HFMethodType.RHF.value,
-                         HFMethodType.ROHF.value,
-                         HFMethodType.UHF.value})
         validate_min('max_cycle', max_cycle, 1)
-        validate_in_set('init_guess', init_guess,
-                        {InitialGuess.MINAO.value,
-                         InitialGuess.HCORE.value,
-                         InitialGuess.ATOM.value})
         super().__init__()
         self._atom = atom
         self._unit = unit

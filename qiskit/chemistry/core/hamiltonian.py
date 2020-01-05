@@ -21,7 +21,6 @@ import logging
 from enum import Enum
 
 import numpy as np
-from qiskit.aqua.utils.validation import validate_in_set
 from qiskit.aqua.operators import Z2Symmetries
 from qiskit.chemistry import QMolecule
 from qiskit.chemistry.fermionic_operator import FermionicOperator
@@ -68,13 +67,6 @@ class Hamiltonian(ChemistryOperator):
         transformation = transformation.value
         qubit_mapping = qubit_mapping.value
         orbital_reduction = orbital_reduction if orbital_reduction is not None else []
-        validate_in_set('transformation', transformation,
-                        {TransformationType.FULL.value,
-                         TransformationType.PARTICLE_HOLE.value})
-        validate_in_set('qubit_mapping', qubit_mapping,
-                        {QubitMappingType.JORDAN_WIGNER.value,
-                         QubitMappingType.PARITY.value,
-                         QubitMappingType.BRAVYI_KITAEV.value})
         super().__init__()
         self._transformation = transformation
         self._qubit_mapping = qubit_mapping
