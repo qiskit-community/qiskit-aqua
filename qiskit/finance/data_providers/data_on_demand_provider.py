@@ -42,7 +42,7 @@ class DataOnDemandProvider(BaseDataProvider):
                  stockmarket: StockMarket = StockMarket.NASDAQ,
                  start: datetime = datetime.datetime(2016, 1, 1),
                  end: datetime = datetime.datetime(2016, 1, 30),
-                 verify: Optional[str, bool] = None) -> None:
+                 verify: Optional[Union[str, bool]] = None) -> None:
         """
         Args:
             token: quandl access token
