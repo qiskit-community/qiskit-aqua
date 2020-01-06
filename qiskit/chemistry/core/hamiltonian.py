@@ -16,11 +16,11 @@ This module implements a molecular Hamiltonian operator, representing the
 energy of the electrons and nuclei in a molecule.
 """
 
+from typing import Optional, List
 import logging
 from enum import Enum
 
 import numpy as np
-from qiskit.aqua.utils.validation import validate
 from qiskit.aqua.operators import Z2Symmetries
 from qiskit.chemistry import QMolecule
 from qiskit.chemistry.fermionic_operator import FermionicOperator
@@ -49,71 +49,24 @@ class Hamiltonian(ChemistryOperator):
     energy of the electrons and nuclei in a molecule.
     """
 
-    KEY_TRANSFORMATION = 'transformation'
-    KEY_QUBIT_MAPPING = 'qubit_mapping'
-    KEY_TWO_QUBIT_REDUCTION = 'two_qubit_reduction'
-    KEY_FREEZE_CORE = 'freeze_core'
-    KEY_ORBITAL_REDUCTION = 'orbital_reduction'
-
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'hamiltonian_schema',
-        'type': 'object',
-        'properties': {
-            KEY_TRANSFORMATION: {
-                'type': 'string',
-                'default': TransformationType.FULL.value,
-                'enum': [
-                    TransformationType.FULL.value,
-                    TransformationType.PARTICLE_HOLE.value,
-                ]
-            },
-            KEY_QUBIT_MAPPING: {
-                'type': 'string',
-                'default': QubitMappingType.PARITY.value,
-                'enum': [
-                    QubitMappingType.JORDAN_WIGNER.value,
-                    QubitMappingType.PARITY.value,
-                    QubitMappingType.BRAVYI_KITAEV.value,
-                ]
-            },
-            KEY_TWO_QUBIT_REDUCTION: {
-                'type': 'boolean',
-                'default': True
-            },
-            KEY_FREEZE_CORE: {
-                'type': 'boolean',
-                'default': False
-            },
-            KEY_ORBITAL_REDUCTION: {
-                'default': [],
-                'type': 'array',
-                'items': {
-                    'type': 'number'
-                }
-            }
-        }
-    }
-
     def __init__(self,
-                 transformation=TransformationType.FULL,
-                 qubit_mapping=QubitMappingType.PARITY,
-                 two_qubit_reduction=True,
-                 freeze_core=False,
-                 orbital_reduction=None):
+                 transformation: TransformationType = TransformationType.FULL,
+                 qubit_mapping: QubitMappingType = QubitMappingType.PARITY,
+                 two_qubit_reduction: bool = True,
+                 freeze_core: bool = False,
+                 orbital_reduction: Optional[List[int]] = None) -> None:
         """
         Args:
-            transformation (TransformationType): full or particle_hole
-            qubit_mapping (QubitMappingType): jordan_wigner, parity or bravyi_kitaev
-            two_qubit_reduction (bool): Whether two qubit reduction should be used,
+            transformation: full or particle_hole
+            qubit_mapping: jordan_wigner, parity or bravyi_kitaev
+            two_qubit_reduction: Whether two qubit reduction should be used,
                                         when parity mapping only
-            freeze_core (bool): Whether to freeze core orbitals when possible
-            orbital_reduction (list): Orbital list to be frozen or removed
+            freeze_core: Whether to freeze core orbitals when possible
+            orbital_reduction: Orbital list to be frozen or removed
         """
         transformation = transformation.value
         qubit_mapping = qubit_mapping.value
         orbital_reduction = orbital_reduction if orbital_reduction is not None else []
-        validate(locals(), self._INPUT_SCHEMA)
         super().__init__()
         self._transformation = transformation
         self._qubit_mapping = qubit_mapping

@@ -14,6 +14,7 @@
 
 """ PSI4 Driver """
 
+from typing import Union, List
 import tempfile
 import os
 import subprocess
@@ -33,18 +34,18 @@ PSI4_APP = which(PSI4)
 class PSI4Driver(BaseDriver):
     """Python implementation of a psi4 driver."""
 
-    def __init__(self, config=None):
+    def __init__(self,
+                 config: Union[str, List[str]] =
+                 'molecule h2 {\n  0 1\n  H  0.0 0.0 0.0\n  H  0.0 0.0 0.735\n}\n\n'
+                 'set {\n  basis sto-3g\n  scf_type pk\n  reference rhf\n') -> None:
         """
         Initializer
         Args:
-            config (str or list): driver configuration
+            config: driver configuration
         Raises:
             QiskitChemistryError: Invalid Input
         """
         self._check_valid()
-        if config is None:
-            config = "molecule h2 {\n  0 1\n  H  0.0 0.0 0.0\n  H  0.0 0.0 0.735\n}\n\n" \
-                        "set {\n  basis sto-3g\n  scf_type pk\n  reference rhf\n"
         if not isinstance(config, list) and not isinstance(config, str):
             raise QiskitChemistryError("Invalid input for PSI4 Driver '{}'".format(config))
 
