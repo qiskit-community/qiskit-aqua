@@ -14,10 +14,11 @@
 
 """ PyQuante Driver """
 
+from typing import Union, List
 import importlib
 from enum import Enum
 import logging
-from qiskit.aqua.utils.validation import validate
+from qiskit.aqua.utils.validation import validate_min
 from qiskit.chemistry.drivers import BaseDriver, UnitsType, HFMethodType
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers.pyquanted.integrals import compute_integrals
@@ -35,87 +36,34 @@ class BasisType(Enum):
 class PyQuanteDriver(BaseDriver):
     """Python implementation of a PyQuante driver."""
 
-    KEY_UNITS = 'units'
-    KEY_BASIS = 'basis'
-
-    _INPUT_SCHEMA = {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "id": "pyquante_schema",
-        "type": "object",
-        "properties": {
-            "atoms": {
-                "type": "string",
-                "default": "H 0.0 0.0 0.0; H 0.0 0.0 0.735"
-            },
-            KEY_UNITS: {
-                "type": "string",
-                "default": UnitsType.ANGSTROM.value,
-                "enum": [
-                    UnitsType.ANGSTROM.value,
-                    UnitsType.BOHR.value,
-                ]
-            },
-            "charge": {
-                "type": "integer",
-                "default": 0
-            },
-            "multiplicity": {
-                "type": "integer",
-                "default": 1
-            },
-            KEY_BASIS: {
-                "type": "string",
-                "default": BasisType.BSTO3G.value,
-                "enum": [
-                    BasisType.BSTO3G.value,
-                    BasisType.B631G.value,
-                    BasisType.B631GSS.value,
-                ]
-            },
-            "hf_method": {
-                "type": "string",
-                "default": HFMethodType.RHF.value,
-                "enum": [
-                    HFMethodType.RHF.value,
-                    HFMethodType.ROHF.value,
-                    HFMethodType.UHF.value
-                ]
-            },
-            "tol": {
-                "type": "number",
-                "default": 1e-08
-            },
-            "maxiters": {
-                "type": "integer",
-                "default": 100,
-                "minimum": 1
-            }
-        }
-    }
-
     def __init__(self,
-                 atoms,
-                 units=UnitsType.ANGSTROM,
-                 charge=0,
-                 multiplicity=1,
-                 basis=BasisType.BSTO3G,
-                 hf_method=HFMethodType.RHF,
-                 tol=1e-8,
-                 maxiters=100):
+                 atoms: Union[str, List[str]] = 'H 0.0 0.0 0.0; H 0.0 0.0 0.735',
+                 units: UnitsType = UnitsType.ANGSTROM,
+                 charge: int = 0,
+                 multiplicity: int = 1,
+                 basis: BasisType = BasisType.BSTO3G,
+                 hf_method: HFMethodType = HFMethodType.RHF,
+                 tol: float = 1e-8,
+                 maxiters: int = 100) -> None:
         """
         Initializer
         Args:
-            atoms (str or list): atoms list or string separated by semicolons or line breaks
-            units (UnitsType): angstrom or bohr
-            charge (int): charge
-            multiplicity (int): spin multiplicity
-            basis (BasisType): sto3g or 6-31g or 6-31g**
-            hf_method (HFMethodType): Hartree-Fock Method type
-            tol (float): Convergence tolerance see pyquante2.scf hamiltonians and iterators
-            maxiters (int): Convergence max iterations see pyquante2.scf hamiltonians and iterators
+            atoms: atoms list or string separated by semicolons or line breaks
+            units: angstrom or bohr
+            charge: charge
+            multiplicity: spin multiplicity
+            basis: sto3g or 6-31g or 6-31g**
+            hf_method: Hartree-Fock Method type
+            tol: Convergence tolerance see pyquante2.scf hamiltonians and iterators
+            maxiters: Convergence max iterations see pyquante2.scf hamiltonians and iterators,
+                        has a min. value of 1.
         Raises:
             QiskitChemistryError: Invalid Input
         """
+        units = units.value
+        basis = basis.value
+        hf_method = hf_method.value
+        validate_min('maxiters', maxiters, 1)
         self._check_valid()
         if not isinstance(atoms, list) and not isinstance(atoms, str):
             raise QiskitChemistryError("Invalid atom input for PYQUANTE Driver '{}'".format(atoms))
@@ -125,10 +73,6 @@ class PyQuanteDriver(BaseDriver):
         else:
             atoms = atoms.replace('\n', ';')
 
-        units = units.value
-        basis = basis.value
-        hf_method = hf_method.value
-        validate(locals(), self._INPUT_SCHEMA)
         super().__init__()
         self._atoms = atoms
         self._units = units
