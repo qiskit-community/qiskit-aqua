@@ -51,7 +51,7 @@ class EigsQPE(Eigenvalues):
         Args:
             operator: the hamiltonian Operator object
             iqft: the Inverse Quantum Fourier Transform component
-            num_time_slices: the number of time slices, has a min. value of 0.
+            num_time_slices: the number of time slices, has a min. value of 1.
             num_ancillae: the number of ancillary qubits to use for the measurement,
                             has a min. value of 1.
             expansion_mode: the expansion mode (trotter|suzuki)
@@ -62,7 +62,7 @@ class EigsQPE(Eigenvalues):
         """
         super().__init__()
         ne_qfts = ne_qfts if ne_qfts is not None else [None, None]
-        validate_min('num_time_slices', num_time_slices, 0)
+        validate_min('num_time_slices', num_time_slices, 1)
         validate_min('num_ancillae', num_ancillae, 1)
         validate_in_set('expansion_mode', expansion_mode, {'trotter', 'suzuki'})
         validate_min('expansion_order', expansion_order, 1)
