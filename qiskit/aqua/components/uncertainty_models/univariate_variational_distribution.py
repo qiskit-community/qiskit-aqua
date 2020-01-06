@@ -26,44 +26,31 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
     """
     The Univariate Variational Distribution.
     """
-    CONFIGURATION = {
-        'name': 'UnivariateVariationalDistribution',
-        'description': 'Univariate Variational Distribution',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'UnivariateVariationalDistribution_schema',
-            'type': 'object',
-            'properties': {
-                'num_qubits': {
-                    'type': 'number',
-                },
-
-                'params': {
-                    'type': 'array',
-                    "items": {
-                        "type": "number"
-                    }
-                },
-                'low': {
-                    'type': 'number',
-                    'default': 0
-                },
-                'high': {
-                    'type': 'number',
-                    'default': 1
-                },
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'UnivariateVariationalDistribution_schema',
+        'type': 'object',
+        'properties': {
+            'num_qubits': {
+                'type': 'number',
             },
-            'additionalProperties': False
-        },
-        'depends': [
-            {
-                'pluggable_type': 'variational_form',
-                'default': {
-                    'name': 'RY'
-                }
-            }
-        ]
 
+            'params': {
+                'type': 'array',
+                "items": {
+                    "type": "number"
+                }
+            },
+            'low': {
+                'type': 'number',
+                'default': 0
+            },
+            'high': {
+                'type': 'number',
+                'default': 1
+            },
+        },
+        'additionalProperties': False
     }
 
     def __init__(self, num_qubits, var_form, params, low=0, high=1):

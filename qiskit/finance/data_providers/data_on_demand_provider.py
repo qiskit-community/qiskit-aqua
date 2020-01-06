@@ -35,36 +35,32 @@ class DataOnDemandProvider(BaseDataProvider):
     for instructions on use, which involve obtaining a NASDAQ DOD access token.
     """
 
-    CONFIGURATION = {
-        "name": "DOD",
-        "description": "NASDAQ Data on Demand Driver",
-        "input_schema": {
-            "$schema": "http://json-schema.org/draft-07/schema#",
-            "id": "dod_schema",
-            "type": "object",
-            "properties": {
-                "stockmarket": {
-                    "type":
-                    "string",
-                    "default": StockMarket.NASDAQ.value,
-                    "enum": [
-                        StockMarket.NASDAQ.value,
-                        StockMarket.NYSE.value,
-                    ]
-                },
-                "datatype": {
-                    "type":
-                    "string",
-                    "default": DataType.DAILYADJUSTED.value,
-                    "enum": [
-                        DataType.DAILYADJUSTED.value,
-                        DataType.DAILY.value,
-                        DataType.BID.value,
-                        DataType.ASK.value,
-                    ]
-                },
+    _INPUT_SCHEMA = {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "id": "dod_schema",
+        "type": "object",
+        "properties": {
+            "stockmarket": {
+                "type":
+                "string",
+                "default": StockMarket.NASDAQ.value,
+                "enum": [
+                    StockMarket.NASDAQ.value,
+                    StockMarket.NYSE.value,
+                ]
             },
-        }
+            "datatype": {
+                "type":
+                "string",
+                "default": DataType.DAILYADJUSTED.value,
+                "enum": [
+                    DataType.DAILYADJUSTED.value,
+                    DataType.DAILY.value,
+                    DataType.BID.value,
+                    DataType.ASK.value,
+                ]
+            },
+        },
     }
 
     def __init__(self,
@@ -117,45 +113,14 @@ class DataOnDemandProvider(BaseDataProvider):
         self._end = end
         self._verify = verify
 
-        # self.validate(locals())
-
-    @staticmethod
-    def check_provider_valid():
-        """ check provider valid """
-        return
-
-    @classmethod
-    def init_from_input(cls, section):
-        """
-        Initialize via section dictionary.
-
-        Args:
-            section (dict): section dictionary
-
-        Returns:
-            DataOnDemandProvider: Driver object
-
-        Raises:
-            QiskitFinanceError: Invalid section
-        """
-        if section is None or not isinstance(section, dict):
-            raise QiskitFinanceError(
-                'Invalid or missing section {}'.format(section))
-
-        # params = section
-        kwargs = {}
-        # for k, v in params.items():
-        #    if k == ExchangeDataDriver. ...: v = UnitsType(v)
-        #    kwargs[k] = v
-        logger.debug('init_from_input: %s', kwargs)
-        return cls(**kwargs)
+        # validate(locals(), self._INPUT_SCHEMA)
 
     def run(self):
         """
         Loads data, thus enabling get_similarity_matrix and get_covariance_matrix
         methods in the base class.
         """
-        self.check_provider_valid()
+
         http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED',
                                    ca_certs=certifi.where())
         url = 'https://dataondemand.nasdaq.com/api/v1/quotes?'

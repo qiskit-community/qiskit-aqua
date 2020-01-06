@@ -17,6 +17,7 @@ The Multivariate Uniform Distribution.
 """
 
 import numpy as np
+from qiskit.aqua.utils.validation import validate
 from qiskit.aqua.components.uncertainty_models.multivariate_distribution \
     import MultivariateDistribution
 
@@ -26,38 +27,34 @@ class MultivariateUniformDistribution(MultivariateDistribution):
     The Multivariate Uniform Distribution.
     """
 
-    CONFIGURATION = {
-        'name': 'MultivariateUniformDistribution',
-        'description': 'Multivariate Uniform Distribution',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'MultivariateUniformDistribution_schema',
-            'type': 'object',
-            'properties': {
-                'num_qubits': {
-                    'type': 'array',
-                    "items": {
-                        "type": "number"
-                    },
-                    'default': [2, 2]
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'MultivariateUniformDistribution_schema',
+        'type': 'object',
+        'properties': {
+            'num_qubits': {
+                'type': 'array',
+                "items": {
+                    "type": "number"
                 },
-                'low': {
-                    'type': ['array', 'null'],
-                    "items": {
-                        "type": "number"
-                    },
-                    'default': None
-                },
-                'high': {
-                    'type': ['array', 'null'],
-                    "items": {
-                        "type": "number"
-                    },
-                    'default': None
-                },
+                'default': [2, 2]
             },
-            'additionalProperties': False
-        }
+            'low': {
+                'type': ['array', 'null'],
+                "items": {
+                    "type": "number"
+                },
+                'default': None
+            },
+            'high': {
+                'type': ['array', 'null'],
+                "items": {
+                    "type": "number"
+                },
+                'default': None
+            },
+        },
+        'additionalProperties': False
     }
 
     def __init__(self, num_qubits, low=None, high=None):
@@ -69,7 +66,7 @@ class MultivariateUniformDistribution(MultivariateDistribution):
             high (Union(list, numpy.ndarray)): list with the upper bounds per dimension,
                                                set to 1 for each dimension if None
         """
-        super().validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
 
         if low is None:
             low = np.zeros(num_qubits)

@@ -23,6 +23,7 @@ from qiskit import ClassicalRegister, QuantumCircuit
 
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.utils import get_subsystem_density_matrix
+from qiskit.aqua.components.oracles import Oracle
 
 # pylint: disable=invalid-name
 
@@ -30,30 +31,7 @@ from qiskit.aqua.utils import get_subsystem_density_matrix
 class Simon(QuantumAlgorithm):
     """The Simon algorithm."""
 
-    CONFIGURATION = {
-        'name': 'Simon',
-        'description': 'Simon',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'simon_schema',
-            'type': 'object',
-            'properties': {
-            },
-            'additionalProperties': False
-        },
-        'problems': ['periodfinding'],
-        'depends': [
-            {
-                'pluggable_type': 'oracle',
-                'default': {
-                    'name': 'TruthTableOracle',
-                },
-            },
-        ],
-    }
-
-    def __init__(self, oracle):
-        self.validate(locals())
+    def __init__(self, oracle: Oracle) -> None:
         super().__init__()
 
         self._oracle = oracle

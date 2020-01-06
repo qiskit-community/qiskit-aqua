@@ -73,7 +73,6 @@ Submodules
 from .version import __version__
 from .aqua_error import AquaError
 from .aqua_globals import aqua_globals
-from .pluggable import Pluggable
 from .quantum_instance import QuantumInstance
 from .algorithms import QuantumAlgorithm
 from ._logging import (get_logging_level,
@@ -84,7 +83,6 @@ from ._logging import (get_logging_level,
 
 __all__ = ['__version__',
            'AquaError',
-           'Pluggable',
            'QuantumAlgorithm',
            'QuantumInstance',
            'aqua_globals',

@@ -14,6 +14,7 @@
 
 """ Variational Quantum Classifier algorithm """
 
+from typing import Optional, Callable, Dict
 import logging
 import math
 import numpy as np
@@ -26,6 +27,9 @@ from qiskit.aqua import AquaError
 from qiskit.aqua.utils import map_label_to_class_name
 from qiskit.aqua.utils import split_dataset_to_data_and_labels
 from qiskit.aqua.algorithms.adaptive.vq_algorithm import VQAlgorithm
+from qiskit.aqua.components.optimizers import Optimizer
+from qiskit.aqua.components.feature_maps import FeatureMap
+from qiskit.aqua.components.variational_forms import VariationalForm
 
 logger = logging.getLogger(__name__)
 
@@ -145,79 +149,32 @@ def return_probabilities(counts, num_classes):
 
 class VQC(VQAlgorithm):
     """ Variational Quantum Classifier algorithm """
-    CONFIGURATION = {
-        'name': 'VQC',
-        'description': 'Variational Quantum Classifier',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'vqc_schema',
-            'type': 'object',
-            'properties': {
-                'override_SPSA_params': {
-                    'type': 'boolean',
-                    'default': True
-                },
-                'max_evals_grouped': {
-                    'type': 'integer',
-                    'default': 1
-                },
-                'minibatch_size': {
-                    'type': 'integer',
-                    'default': -1
-                }
-            },
-            'additionalProperties': False
-        },
-        'problems': ['classification'],
-        'depends': [
-            {
-                'pluggable_type': 'optimizer',
-                'default': {
-                    'name': 'SPSA'
-                },
-            },
-            {
-                'pluggable_type': 'feature_map',
-                'default': {
-                    'name': 'SecondOrderExpansion',
-                    'depth': 2
-                },
-            },
-            {
-                'pluggable_type': 'variational_form',
-                'default': {
-                    'name': 'RYRZ',
-                    'depth': 3
-                },
-            },
-        ],
-    }
 
     def __init__(
             self,
-            optimizer=None,
-            feature_map=None,
-            var_form=None,
-            training_dataset=None,
-            test_dataset=None,
-            datapoints=None,
-            max_evals_grouped=1,
-            minibatch_size=-1,
-            callback=None
-    ):
+            optimizer: Optimizer,
+            feature_map: FeatureMap,
+            var_form: VariationalForm,
+            training_dataset: Dict[str, np.ndarray],
+            test_dataset: Optional[Dict[str, np.ndarray]] = None,
+            datapoints: Optional[np.ndarray] = None,
+            max_evals_grouped: int = 1,
+            minibatch_size: int = -1,
+            callback: Optional[Callable[[int, np.ndarray, float, int], None]] = None
+    ) -> None:
         """
 
         Args:
-            optimizer (Optimizer): The classical optimizer to use.
-            feature_map (FeatureMap): The FeatureMap instance to use.
-            var_form (VariationalForm): The variational form instance.
-            training_dataset (dict): The training dataset, in the format
+            optimizer: The classical optimizer to use.
+            feature_map: The FeatureMap instance to use.
+            var_form: The variational form instance.
+            training_dataset: The training dataset, in the format
                 {'A': np.ndarray, 'B': np.ndarray, ...}.
-            test_dataset (dict): The test dataset, in same format as `training_dataset`.
-            datapoints (np.ndarray): NxD array, N is the number of data and D is data dimension.
-            max_evals_grouped (int): The maximum number of evaluations to perform simultaneously.
-            minibatch_size (int): The size of a mini-batch.
-            callback (Callable): a callback that can access the
+            test_dataset: The test dataset, in same format as `training_dataset`.
+            datapoints: NxD array, N is the number of data and D is data dimension.
+            max_evals_grouped: The maximum number of evaluations to perform simultaneously.
+            minibatch_size: The size of a mini-batch.
+            callback: a callback that can access the
                 intermediate data during the optimization.
                 Internally, four arguments are provided as follows the index
                 of data batch, the index of evaluation,
@@ -227,8 +184,6 @@ class VQC(VQAlgorithm):
         Raises:
             AquaError: invalid input
         """
-
-        self.validate(locals())
         super().__init__(
             var_form=var_form,
             optimizer=optimizer,

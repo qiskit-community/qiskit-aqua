@@ -15,6 +15,7 @@
 The Maximum Likelihood Amplitude Estimation algorithm.
 """
 
+from typing import Optional
 import logging
 import numpy as np
 from scipy.optimize import brute
@@ -22,7 +23,8 @@ from scipy.stats import norm, chi2
 
 from qiskit import ClassicalRegister, QuantumRegister, QuantumCircuit
 from qiskit.aqua import AquaError
-
+from qiskit.aqua.utils.circuit_factory import CircuitFactory
+from qiskit.aqua.utils.validation import validate_min
 from .ae_algorithm import AmplitudeEstimationAlgorithm
 
 logger = logging.getLogger(__name__)
@@ -40,23 +42,27 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     class in named MaximumLikelihoodAmplitudeEstimation.
     """
 
-    def __init__(self, log_max_evals, a_factory=None, q_factory=None, i_objective=None,
-                 likelihood_evals=None):
+    def __init__(self, log_max_evals: int,
+                 a_factory: Optional[CircuitFactory] = None,
+                 q_factory: Optional[CircuitFactory] = None,
+                 i_objective: Optional[int] = None,
+                 likelihood_evals: Optional[int] = None) -> None:
         """
         Initializer.
 
         Args:
-            log_max_evals (int): base-2-logarithm of maximal number of evaluations -
-                resulting evaluation schedule will be [A, Q^2^0, ..., Q^2^{max_evals_log-1}]
-            a_factory (CircuitFactory): the CircuitFactory subclass object
-                representing the problem unitary
-            q_factory (CircuitFactory): the CircuitFactory subclass object representing
+            log_max_evals: base-2-logarithm of the maximal number of evaluations. The resulting
+                evaluation schedule will be [0, Q^2^0, ..., Q^2^{max_evals_log-1}].
+                Has a minimum value of 1.
+            a_factory: the CircuitFactory subclass object representing the problem unitary
+            q_factory: the CircuitFactory subclass object representing
                 an amplitude estimation sample (based on a_factory)
-            i_objective (int): index of qubit representing the objective in the uncertainty problem
-            likelihood_evals (int): The number of gridpoints for the maximum search
-                of the likelihood function
+            i_objective: the index of the objective qubit, i.e. the qubit marking 'good' solutions
+                with the state |1> and 'bad' solutions with the state |0>
+            likelihood_evals: the number of gridpoints for the maximum search of the likelihood 
+                function
         """
-        self.validate(locals())
+        validate_min('log_max_evals', log_max_evals, 1)
         super().__init__(a_factory, q_factory, i_objective)
 
         # get parameters
