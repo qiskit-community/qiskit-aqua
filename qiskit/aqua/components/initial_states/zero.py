@@ -24,20 +24,11 @@ from qiskit.aqua.components.initial_states import InitialState
 class Zero(InitialState):
     """A zero (null/vacuum) state."""
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'zero_state_schema',
-        'type': 'object',
-        'properties': {
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, num_qubits):
+    def __init__(self, num_qubits: int) -> None:
         """Constructor.
 
         Args:
-            num_qubits (int): number of qubits.
+            num_qubits: number of qubits.
         """
         super().__init__()
         self._num_qubits = num_qubits

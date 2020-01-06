@@ -22,16 +22,7 @@ from .approximate import Approximate
 class Standard(Approximate):
     """A normal standard QFT."""
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'std_qft_schema',
-        'type': 'object',
-        'properties': {
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, num_qubits):
+    def __init__(self, num_qubits: int) -> None:
         super().__init__(num_qubits, degree=0)
 
     def _build_matrix(self):

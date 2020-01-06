@@ -16,8 +16,11 @@ This module contains the definition of a base class for
 feature map. Several types of commonly used approaches.
 """
 
-from qiskit.aqua.components.feature_maps import PauliZExpansion, self_product
-from qiskit.aqua.utils.validation import validate
+from typing import Optional, Callable, List
+import numpy as np
+from qiskit.aqua.utils.validation import validate_min, validate_in_set
+from .pauli_z_expansion import PauliZExpansion
+from .data_mapping import self_product
 
 
 class SecondOrderExpansion(PauliZExpansion):
@@ -27,44 +30,26 @@ class SecondOrderExpansion(PauliZExpansion):
     Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
     """
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'Second_Order_Expansion_schema',
-        'type': 'object',
-        'properties': {
-            'depth': {
-                'type': 'integer',
-                'default': 2,
-                'minimum': 1
-            },
-            'entangler_map': {
-                'type': ['array', 'null'],
-                'default': None
-            },
-            'entanglement': {
-                'type': 'string',
-                'default': 'full',
-                'enum': ['full', 'linear']
-            }
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, feature_dimension, depth=2, entangler_map=None,
-                 entanglement='full', data_map_func=self_product):
+    def __init__(self,
+                 feature_dimension: int,
+                 depth: int = 2,
+                 entangler_map: Optional[List[List[int]]] = None,
+                 entanglement: str = 'full',
+                 data_map_func: Callable[[np.ndarray], float] = self_product) -> None:
         """Constructor.
 
         Args:
-            feature_dimension (int): number of features
-            depth (int): the number of repeated circuits
-            entangler_map (list[list]): describe the connectivity of qubits, each list describes
+            feature_dimension: number of features
+            depth: the number of repeated circuits, has a min. value of 1.
+            entangler_map: describe the connectivity of qubits, each list describes
                                         [source, target], or None for full entanglement.
                                         Note that the order is the list is the order of
                                         applying the two-qubit gate.
-            entanglement (str): ['full', 'linear'], generate the qubit connectivity by predefined
+            entanglement: ['full', 'linear'], generate the qubit connectivity by predefined
                                 topology
-            data_map_func (Callable): a mapping function for data x
+            data_map_func: a mapping function for data x
         """
-        validate(locals(), self._INPUT_SCHEMA)
+        validate_min('depth', depth, 1)
+        validate_in_set('entanglement', entanglement, {'full', 'linear'})
         super().__init__(feature_dimension, depth, entangler_map, entanglement,
                          z_order=2, data_map_func=data_map_func)

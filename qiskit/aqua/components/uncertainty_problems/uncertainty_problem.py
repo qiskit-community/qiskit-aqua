@@ -28,7 +28,7 @@ class UncertaintyProblem(CircuitFactory, ABC):
     """
 
     # pylint: disable=useless-super-delegation
-    def __init__(self, num_qubits):
+    def __init__(self, num_qubits: int) -> None:
         super().__init__(num_qubits)
 
     def value_to_estimation(self, value):

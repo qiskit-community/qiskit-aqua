@@ -17,7 +17,6 @@ The Univariate Normal Distribution.
 """
 
 from scipy.stats.distributions import norm
-from qiskit.aqua.utils.validation import validate
 from .univariate_distribution import UnivariateDistribution
 
 
@@ -26,47 +25,22 @@ class NormalDistribution(UnivariateDistribution):
     The Univariate Normal Distribution.
     """
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'NormalDistribution_schema',
-        'type': 'object',
-        'properties': {
-            'num_target_qubits': {
-                'type': 'integer',
-                'default': 2,
-            },
-            'mu': {
-                'type': 'number',
-                'default': 0,
-            },
-            'sigma': {
-                'type': 'number',
-                'default': 1,
-            },
-            'low': {
-                'type': 'number',
-                'default': -1,
-            },
-            'high': {
-                'type': 'number',
-                'default': 1,
-            },
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, num_target_qubits, mu=0, sigma=1, low=-1, high=1):
+    def __init__(self,
+                 num_target_qubits: int,
+                 mu: float = 0,
+                 sigma: float = 1,
+                 low: float = -1,
+                 high: float = 1):
         r"""
         Args:
-            num_target_qubits (int): number of qubits it acts on
-            mu (float): expected value of considered normal distribution
-            sigma (float): standard deviation of considered normal distribution
-            low (float): lower bound, i.e., the value corresponding to \|0...0>
+            num_target_qubits: number of qubits it acts on
+            mu: expected value of considered normal distribution
+            sigma: standard deviation of considered normal distribution
+            low: lower bound, i.e., the value corresponding to \|0...0>
                          (assuming an equidistant grid)
-            high (float): upper bound, i.e., the value corresponding to \|1...1>
+            high: upper bound, i.e., the value corresponding to \|1...1>
                           (assuming an equidistant grid)
         """
-        validate(locals(), self._INPUT_SCHEMA)
         probabilities, _ = UnivariateDistribution.\
             pdf_to_probabilities(
                 lambda x: norm.pdf(x, mu, sigma), low, high, 2 ** num_target_qubits)

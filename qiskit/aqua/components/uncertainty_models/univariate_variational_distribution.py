@@ -16,9 +16,11 @@
 The Univariate Variational Distribution.
 """
 
+from typing import Union, List
 import numpy as np
 
 from qiskit import ClassicalRegister
+from qiskit.aqua.components.variational_forms import VariationalForm
 from .univariate_distribution import UnivariateDistribution
 
 
@@ -26,34 +28,13 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
     """
     The Univariate Variational Distribution.
     """
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'UnivariateVariationalDistribution_schema',
-        'type': 'object',
-        'properties': {
-            'num_qubits': {
-                'type': 'number',
-            },
 
-            'params': {
-                'type': 'array',
-                "items": {
-                    "type": "number"
-                }
-            },
-            'low': {
-                'type': 'number',
-                'default': 0
-            },
-            'high': {
-                'type': 'number',
-                'default': 1
-            },
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, num_qubits, var_form, params, low=0, high=1):
+    def __init__(self,
+                 num_qubits: int,
+                 var_form: VariationalForm,
+                 params: [Union[List[float], np.ndarray]],
+                 low: float = 0,
+                 high: float = 1) -> None:
         self._num_qubits = num_qubits
         self._var_form = var_form
         self.params = params

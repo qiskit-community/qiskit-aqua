@@ -16,6 +16,7 @@
 This module contains the definition of a base class for univariate distributions.
 """
 
+from typing import Optional, Union, List
 from abc import ABC
 import numpy as np
 
@@ -30,16 +31,20 @@ class UnivariateDistribution(UncertaintyModel, ABC):
     (Interface for discrete bounded uncertainty models assuming an equidistant grid)
     """
 
-    def __init__(self, num_target_qubits, probabilities=None, low=0, high=1):
+    def __init__(self,
+                 num_target_qubits: int,
+                 probabilities: Optional[Union[List[float], np.ndarray]] = None,
+                 low: float = 0,
+                 high: float = 1):
         r"""
         Abstract univariate distribution class
 
         Args:
-            num_target_qubits (int): number of qubits it acts on
-            probabilities (Union(list, numpy.ndarray)):  probabilities for different states
-            low (float): lower bound, i.e., the value corresponding to \|0...0>
+            num_target_qubits: number of qubits it acts on
+            probabilities:  probabilities for different states
+            low: lower bound, i.e., the value corresponding to \|0...0>
                          (assuming an equidistant grid)
-            high (float): upper bound, i.e., the value corresponding to \|1...1>
+            high: upper bound, i.e., the value corresponding to \|1...1>
                           (assuming an equidistant grid)
         Raises:
             AquaError: num qubits and length of probabilities vector do not match

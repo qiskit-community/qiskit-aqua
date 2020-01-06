@@ -16,6 +16,7 @@
 The Truth Table-based Quantum Oracle.
 """
 
+from typing import Union, List
 import logging
 import operator
 import math
@@ -31,7 +32,7 @@ from qiskit.aqua import AquaError
 from qiskit.aqua.circuits import ESOP
 from qiskit.aqua.components.oracles import Oracle
 from qiskit.aqua.utils.arithmetic import is_power_of_2
-from qiskit.aqua.utils.validation import validate
+from qiskit.aqua.utils.validation import validate_in_set
 from .ast_utils import get_ast
 
 logger = logging.getLogger(__name__)
@@ -159,55 +160,30 @@ def get_exact_covers(cols, rows, num_cols=None):
 class TruthTableOracle(Oracle):
     """ Truth Table Oracle """
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'truth_table_oracle_schema',
-        'type': 'object',
-        'properties': {
-            'bitmaps': {
-                "type": "array",
-                "default": [],
-                "items": {
-                    "type": "string"
-                }
-            },
-            "optimization": {
-                "type": "boolean",
-                "default": False,
-            },
-            'mct_mode': {
-                'type': 'string',
-                'default': 'basic',
-                'enum': [
-                    'basic',
-                    'basic-dirty-ancilla',
-                    'advanced',
-                    'noancilla',
-                ]
-            },
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, bitmaps, optimization=False, mct_mode='basic'):
+    def __init__(self,
+                 bitmaps: Union[str, List[str]],
+                 optimization: bool = False,
+                 mct_mode: str = 'basic'):
         """
         Constructor for Truth Table-based Oracle
 
         Args:
-            bitmaps (Union(str, [str])): A single binary string or a list of binary strings
+            bitmaps: A single binary string or a list of binary strings
                 representing the desired single- and multi-value truth table.
-            optimization (bool): Boolean flag for attempting circuit optimization.
+            optimization: Boolean flag for attempting circuit optimization.
                 When set, the Quine-McCluskey algorithm is used to compute the prime
                 implicants of the truth table,
                 and then its exact cover is computed to try to reduce the circuit.
-            mct_mode (str): The mode to use when constructing multiple-control Toffoli.
+            mct_mode: The mode to use when constructing multiple-control Toffoli.
         Raises:
             AquaError: invalid input
         """
         if isinstance(bitmaps, str):
             bitmaps = [bitmaps]
 
-        validate(locals(), self._INPUT_SCHEMA)
+        validate_in_set('mct_mode', mct_mode,
+                        {'basic', 'basic-dirty-ancilla',
+                         'advanced', 'noancilla'})
         super().__init__()
 
         self._mct_mode = mct_mode.strip().lower()

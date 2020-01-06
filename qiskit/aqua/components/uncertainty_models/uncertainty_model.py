@@ -27,7 +27,7 @@ class UncertaintyModel(CircuitFactory, ABC):
     """
 
     # pylint: disable=useless-super-delegation
-    def __init__(self, num_target_qubits):
+    def __init__(self, num_target_qubits: int) -> None:
         super().__init__(num_target_qubits)
 
     @abstractmethod
