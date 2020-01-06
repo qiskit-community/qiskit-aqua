@@ -14,10 +14,11 @@
 
 """ Hartree-Fock initial state."""
 
+from typing import Optional, Union, List
 import logging
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
-from qiskit.aqua.utils.validation import validate
+from qiskit.aqua.utils.validation import validate_min, validate_in_set
 from qiskit.aqua.components.initial_states import InitialState
 
 logger = logging.getLogger(__name__)
@@ -26,57 +27,34 @@ logger = logging.getLogger(__name__)
 class HartreeFock(InitialState):
     """A Hartree-Fock initial state."""
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'hf_state_schema',
-        'type': 'object',
-        'properties': {
-            'num_orbitals': {
-                'type': 'integer',
-                'default': 4,
-                'minimum': 1
-            },
-            'num_particles': {
-                'type': ['array', 'integer'],
-                'default': [1, 1],
-                'contains': {
-                    'type': 'integer'
-                },
-                'minItems': 2,
-                'maxItems': 2
-            },
-            'qubit_mapping': {
-                'type': 'string',
-                'default': 'parity',
-                'enum': ['jordan_wigner', 'parity', 'bravyi_kitaev']
-            },
-            'two_qubit_reduction': {
-                'type': 'boolean',
-                'default': True
-            }
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, num_qubits, num_orbitals, num_particles,
-                 qubit_mapping='parity', two_qubit_reduction=True, sq_list=None):
+    def __init__(self, num_qubits: int,
+                 num_orbitals: int,
+                 num_particles: Union[List[int], int],
+                 qubit_mapping: str = 'parity',
+                 two_qubit_reduction: bool = True,
+                 sq_list: Optional[List[int]] = None) -> None:
         """Constructor.
 
         Args:
-            num_qubits (int): number of qubits
-            num_orbitals (int): number of spin orbitals
-            num_particles (Union(list, int)): number of particles, if it is a list, the first number
-                                      is alpha and the second number if beta.
-            qubit_mapping (str): mapping type for qubit operator
-            two_qubit_reduction (bool): flag indicating whether or not two qubit is reduced
-            sq_list (list[int]): position of the single-qubit operators that
-                                anticommute with the cliffords
+            num_qubits: number of qubits
+            num_orbitals: number of spin orbitals, has a min. value of 1.
+            num_particles: number of particles, if it is a list, the first number
+                            is alpha and the second number if beta.
+            qubit_mapping: mapping type for qubit operator
+            two_qubit_reduction: flag indicating whether or not two qubit is reduced
+            sq_list: position of the single-qubit operators that
+                    anticommute with the cliffords
 
         Raises:
             ValueError: wrong setting in num_particles and num_orbitals.
             ValueError: wrong setting for computed num_qubits and supplied num_qubits.
         """
-        validate(locals(), self._INPUT_SCHEMA)
+        validate_min('num_orbitals', num_orbitals, 1)
+        if isinstance(num_particles, list) and len(num_particles) != 2:
+            raise ValueError('Num particles value {}. Number of values allowed is 2'.format(
+                num_particles))
+        validate_in_set('qubit_mapping', qubit_mapping,
+                        {'jordan_wigner', 'parity', 'bravyi_kitaev'})
         super().__init__()
         self._sq_list = sq_list
         self._qubit_tapering = bool(self._sq_list)
