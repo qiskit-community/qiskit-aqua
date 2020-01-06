@@ -27,15 +27,13 @@ class HDF5Driver(BaseDriver):
 
     KEY_HDF5_INPUT = 'hdf5_input'
 
-    def __init__(self, hdf5_input=None):
+    def __init__(self,
+                 hdf5_input: str = 'molecule.hdf5') -> None:
         """
         Initializer
         Args:
-            hdf5_input (str): path to hdf5 file
+            hdf5_input: path to hdf5 file
         """
-        if hdf5_input is None:
-            hdf5_input = "molecule.hdf5"
-
         super().__init__()
         self._hdf5_input = hdf5_input
         self._work_path = None

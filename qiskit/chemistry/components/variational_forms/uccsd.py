@@ -17,16 +17,18 @@ variational form.
 For more information, see https://arxiv.org/abs/1805.04340
 """
 
+from typing import Optional, Union, List
 import logging
 import sys
 
 import numpy as np
-from qiskit.aqua.utils.validation import validate
+from qiskit.aqua.utils.validation import validate_min, validate_in_set
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
 
 from qiskit.aqua import aqua_globals
+from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.operators import WeightedPauliOperator, Z2Symmetries
 from qiskit.aqua.components.variational_forms import VariationalForm
 from qiskit.chemistry.fermionic_operator import FermionicOperator
@@ -41,82 +43,47 @@ class UCCSD(VariationalForm):
         For more information, see https://arxiv.org/abs/1805.04340
     """
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'uccsd_schema',
-        'type': 'object',
-        'properties': {
-            'depth': {
-                'type': 'integer',
-                'default': 1,
-                'minimum': 1
-            },
-            'num_orbitals': {
-                'type': 'integer',
-                'default': 4,
-                'minimum': 1
-            },
-            'num_particles': {
-                'type': ['array', 'integer'],
-                'default': [1, 1],
-                'contains': {
-                    'type': 'integer'
-                },
-                'minItems': 2,
-                'maxItems': 2
-            },
-            'active_occupied': {
-                'type': ['array', 'null'],
-                'default': None
-            },
-            'active_unoccupied': {
-                'type': ['array', 'null'],
-                'default': None
-            },
-            'qubit_mapping': {
-                'type': 'string',
-                'default': 'parity',
-                'enum': ['jordan_wigner', 'parity', 'bravyi_kitaev']
-            },
-            'two_qubit_reduction': {
-                'type': 'boolean',
-                'default': True
-            },
-            'num_time_slices': {
-                'type': 'integer',
-                'default': 1,
-                'minimum': 1
-            },
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, num_qubits, depth, num_orbitals, num_particles,
-                 active_occupied=None, active_unoccupied=None, initial_state=None,
-                 qubit_mapping='parity', two_qubit_reduction=True, num_time_slices=1,
-                 shallow_circuit_concat=True, z2_symmetries=None):
+    def __init__(self, num_qubits: int,
+                 depth: int,
+                 num_orbitals: int,
+                 num_particles: Union[List[int], int],
+                 active_occupied: Optional[List[int]] = None,
+                 active_unoccupied: Optional[List[int]] = None,
+                 initial_state: Optional[InitialState] = None,
+                 qubit_mapping: str = 'parity',
+                 two_qubit_reduction: bool = True,
+                 num_time_slices: int = 1,
+                 shallow_circuit_concat: bool = True,
+                 z2_symmetries: Optional[Z2Symmetries] = None) -> None:
         """Constructor.
 
         Args:
-            num_qubits (int): number of qubits
-            depth (int): number of replica of basic module
-            num_orbitals (int): number of spin orbitals
-            num_particles (Union(list, int)): number of particles, if it is a list,
-                                        the first number is alpha and the second number if beta.
-            active_occupied (list): list of occupied orbitals to consider as active space
-            active_unoccupied (list): list of unoccupied orbitals to consider as active space
-            initial_state (InitialState): An initial state object.
-            qubit_mapping (str): qubit mapping type.
-            two_qubit_reduction (bool): two qubit reduction is applied or not.
-            num_time_slices (int): parameters for dynamics.
-            z2_symmetries (Z2Symmetries): represent the Z2 symmetries, including symmetries,
-                                          sq_paulis, sq_list, tapering_values, and cliffords
-            shallow_circuit_concat (bool): indicate whether to use shallow (cheap) mode for
+            num_qubits: number of qubits
+            depth: number of replica of basic module, has a min. value of 1.
+            num_orbitals: number of spin orbitals, has a min. value of 1.
+            num_particles: number of particles, if it is a list,
+                            the first number is alpha and the second number if beta.
+            active_occupied: list of occupied orbitals to consider as active space
+            active_unoccupied: list of unoccupied orbitals to consider as active space
+            initial_state: An initial state object.
+            qubit_mapping: qubit mapping type.
+            two_qubit_reduction: two qubit reduction is applied or not.
+            num_time_slices: parameters for dynamics, has a min. value of 1.
+            shallow_circuit_concat: indicate whether to use shallow (cheap) mode for
                                            circuit concatenation
+            z2_symmetries: represent the Z2 symmetries, including symmetries,
+                            sq_paulis, sq_list, tapering_values, and cliffords
          Raises:
              ValueError: Computed qubits do not match actual value
         """
-        validate(locals(), self._INPUT_SCHEMA)
+        validate_min('depth', depth, 1)
+        validate_min('num_orbitals', num_orbitals, 1)
+        if isinstance(num_particles, list) and len(num_particles) != 2:
+            raise ValueError('Num particles value {}. Number of values allowed is 2'.format(
+                num_particles))
+        validate_in_set('qubit_mapping', qubit_mapping,
+                        {'jordan_wigner', 'parity', 'bravyi_kitaev'})
+        validate_min('num_time_slices', num_time_slices, 1)
         super().__init__()
 
         self._z2_symmetries = Z2Symmetries([], [], [], []) \
