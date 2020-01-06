@@ -15,6 +15,7 @@
 The Grover's Search algorithm.
 """
 
+from typing import Optional
 import logging
 import operator
 import numpy as np
@@ -24,8 +25,11 @@ from qiskit.qasm import pi
 
 from qiskit.aqua import AquaError
 from qiskit.aqua.utils import get_subsystem_density_matrix
+from qiskit.aqua.utils.validation import validate_min, validate_in_set
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.components.initial_states import Custom
+from qiskit.aqua.components.oracles import Oracle
+from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.circuits.gates import mct  # pylint: disable=unused-import
 
 logger = logging.getLogger(__name__)
@@ -46,73 +50,26 @@ class Grover(QuantumAlgorithm):
     The implementation follows Section 4 of Boyer et al. <https://arxiv.org/abs/quant-ph/9605034>
     """
 
-    PROP_INCREMENTAL = 'incremental'
-    PROP_NUM_ITERATIONS = 'num_iterations'
-    PROP_MCT_MODE = 'mct_mode'
-
-    CONFIGURATION = {
-        'name': 'Grover',
-        'description': "Grover's Search Algorithm",
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'grover_schema',
-            'type': 'object',
-            'properties': {
-                PROP_INCREMENTAL: {
-                    'type': 'boolean',
-                    'default': False
-                },
-                PROP_NUM_ITERATIONS: {
-                    'type': 'integer',
-                    'default': 1,
-                    'minimum': 1
-                },
-                PROP_MCT_MODE: {
-                    'type': 'string',
-                    'default': 'basic',
-                    'enum': [
-                        'basic',
-                        'basic-dirty-ancilla',
-                        'advanced',
-                        'noancilla',
-                    ]
-                },
-            },
-            'additionalProperties': False
-        },
-        'problems': ['search'],
-        'depends': [
-            {
-                'pluggable_type': 'initial_state',
-                'default': {
-                    'name': 'CUSTOM',
-                    'state': 'uniform'
-                }
-            },
-            {
-                'pluggable_type': 'oracle',
-                'default': {
-                    'name': 'LogicalExpressionOracle',
-                },
-            },
-        ],
-    }
-
-    def __init__(self, oracle, init_state=None,
-                 incremental=False, num_iterations=1, mct_mode='basic'):
+    def __init__(self, oracle: Oracle, init_state: Optional[InitialState] = None,
+                 incremental: bool = False, num_iterations: int = 1,
+                 mct_mode: str = 'basic') -> None:
         """
         Constructor.
 
         Args:
-            oracle (Oracle): the oracle pluggable component
-            init_state (InitialState): the initial quantum state preparation
-            incremental (bool): boolean flag for whether to use incremental search mode or not
-            num_iterations (int): the number of iterations to use for amplitude amplification
-            mct_mode (str): mct mode
+            oracle: the oracle component
+            init_state: the initial quantum state preparation
+            incremental: boolean flag for whether to use incremental search mode or not
+            num_iterations: the number of iterations to use for amplitude amplification,
+                            has a min. value of 1.
+            mct_mode: mct mode
         Raises:
             AquaError: evaluate_classically() missing from the input oracle
         """
-        self.validate(locals())
+        validate_min('num_iterations', num_iterations, 1)
+        validate_in_set('mct_mode', mct_mode,
+                        {'basic', 'basic-dirty-ancilla',
+                         'advanced', 'noancilla'})
         super().__init__()
 
         if not callable(getattr(oracle, "evaluate_classically", None)):
@@ -132,7 +89,6 @@ class Grover(QuantumAlgorithm):
         self._max_num_iterations = np.ceil(2 ** (len(oracle.variable_register) / 2))
         self._incremental = incremental
         self._num_iterations = num_iterations if not incremental else 1
-        self.validate(locals())
         if incremental:
             logger.debug('Incremental mode specified, ignoring "num_iterations".')
         else:

@@ -16,13 +16,15 @@
 The Iterative Quantum Amplitude Estimation Algorithm.
 """
 
-
+from typing import Optional
 import logging
 import numpy as np
 from scipy.stats import beta
 
 from qiskit import ClassicalRegister, QuantumRegister, QuantumCircuit
 from qiskit.aqua import AquaError
+from qiskit.aqua.utils.circuit_factory import CircuitFactory
+from qiskit.aqua.utils.validation import validate_range, validate_in_set
 
 from .ae_algorithm import AmplitudeEstimationAlgorithm
 
@@ -44,74 +46,43 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     Grover iterations to find an estimate for the target amplitude.
     """
 
-    CONFIGURATION = {
-        'name': 'IterativeAmplitudeEstimation',
-        'description': 'Iterative Amplitude Estimation Algorithm',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'IterativeAmplitudeEstimation_schema',
-            'type': 'object',
-            'properties': {
-                'epsilon': {
-                    'type': 'number',
-                    'default': 0.01,
-                    'minimum': 0.0,
-                    'maximum': 0.5,
-                },
-                'alpha': {
-                    'type': 'number',
-                    'default': 0.05,
-                    'minimum': 0.0,
-                    'maximum': 1.0,
-                },
-            },
-            'additionalProperties': False
-        },
-        'problems': ['uncertainty'],
-        'depends': [
-            {
-                'pluggable_type': 'uncertainty_problem',
-                'default': {
-                    'name': 'EuropeanCallDelta'
-                }
-            },
-        ],
-    }
-
-    def __init__(self, epsilon, alpha, ci_method='beta', min_ratio=2, a_factory=None,
-                 q_factory=None, i_objective=None):
+    def __init__(self, epsilon: float, alpha: float,
+                 ci_method: str = 'beta', min_ratio: float = 2,
+                 a_factory: Optional[CircuitFactory] = None,
+                 q_factory: Optional[CircuitFactory] = None,
+                 i_objective: Optional[int] = None) -> None:
         """
         The output of the algorithm is an estimate for the amplitude `a`, that with at least
         probability 1 - alpha has an error of epsilon. The number of A operator calls scales
         linearly in 1/epsilon (up to a logarithmic factor).
 
         Args:
-            epsilon (float): target precision for estimation target `a`
-            alpha (float): confidence level, the target probability is 1 - alpha
-            ci_method (str): statistical method used to estimate the confidence intervals in each
+            epsilon: target precision for estimation target `a`
+                    , has values between 0 and 0.5.
+            alpha: confidence level, the target probability is 1 - alpha
+                    , has values between 0 and 1.
+            ci_method: statistical method used to estimate the confidence intervals in each
                 iteration, can be 'chernoff' for the Chernoff intervals or 'beta' for the
                 Clopper-Pearson intervals (default)
-            min_ratio (float): minimal q-ratio (K_{i+1} / K_i) for FindNextK
-            a_factory (CircuitFactory): the A operator, specifying the QAE problem
-            q_factory (CircuitFactory): the Q operator (Grover operator), constructed from the
+            min_ratio: minimal q-ratio (K_{i+1} / K_i) for FindNextK
+            a_factory: the A operator, specifying the QAE problem
+            q_factory: the Q operator (Grover operator), constructed from the
                 A operator
-            i_objective (int): index of the objective qubit, that marks the 'good/bad' states
+            i_objective: index of the objective qubit, that marks the 'good/bad' states
 
         Raises:
             AquaError: if the method to compute the confidence intervals is not supported
         """
-        self.validate(locals())
+        validate_range('epsilon', epsilon, 0, 0.5)
+        validate_range('alpha', alpha, 0, 1)
+        validate_in_set('ci_method', ci_method, {'chernoff', 'beta'})
         super().__init__(a_factory, q_factory, i_objective)
 
         # store parameters
         self._epsilon = epsilon
         self._alpha = alpha
         self._min_ratio = min_ratio
-
-        if ci_method in ['chernoff', 'beta']:
-            self._ci_method = ci_method
-        else:
-            raise AquaError('invalid method to compute confidence intervals')
+        self._ci_method = ci_method
 
         # results dictionary
         self._ret = {}

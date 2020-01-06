@@ -21,11 +21,13 @@ import numpy as np
 
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.quantum_info import Pauli
-
 from qiskit.aqua.operators import (WeightedPauliOperator, suzuki_expansion_slice_pauli_list,
                                    evolution_instruction, op_converter)
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
+from qiskit.aqua.operators import BaseOperator
+from qiskit.aqua.components.initial_states import InitialState
+from qiskit.aqua.utils.validation import validate_min, validate_in_set
 
 logger = logging.getLogger(__name__)
 
@@ -39,73 +41,27 @@ class IQPE(QuantumAlgorithm):
     See https://arxiv.org/abs/quant-ph/0610214
     """
 
-    PROP_NUM_TIME_SLICES = 'num_time_slices'
-    PROP_EXPANSION_MODE = 'expansion_mode'
-    PROP_EXPANSION_ORDER = 'expansion_order'
-    PROP_NUM_ITERATIONS = 'num_iterations'
-
-    CONFIGURATION = {
-        'name': 'IQPE',
-        'description': 'Iterative Quantum Phase Estimation for Quantum Systems',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'IQPE_schema',
-            'type': 'object',
-            'properties': {
-                PROP_NUM_TIME_SLICES: {
-                    'type': 'integer',
-                    'default': 1,
-                    'minimum': 1
-                },
-                PROP_EXPANSION_MODE: {
-                    'type': 'string',
-                    'default': 'suzuki',
-                    'enum': [
-                        'suzuki',
-                        'trotter'
-                    ]
-                },
-                PROP_EXPANSION_ORDER: {
-                    'type': 'integer',
-                    'default': 2,
-                    'minimum': 1
-                },
-                PROP_NUM_ITERATIONS: {
-                    'type': 'integer',
-                    'default': 1,
-                    'minimum': 1
-                }
-            },
-            'additionalProperties': False
-        },
-        'problems': ['energy'],
-        'depends': [
-            {
-                'pluggable_type': 'initial_state',
-                'default': {
-                    'name': 'ZERO',
-                },
-            },
-        ],
-    }
-
-    def __init__(self, operator, state_in, num_time_slices=1, num_iterations=1,
-                 expansion_mode='suzuki', expansion_order=2,
-                 shallow_circuit_concat=False):
+    def __init__(self, operator: BaseOperator, state_in: InitialState,
+                 num_time_slices: int = 1, num_iterations: int = 1,
+                 expansion_mode: str = 'suzuki', expansion_order: int = 2,
+                 shallow_circuit_concat: bool = False) -> None:
         """
 
         Args:
-            operator (BaseOperator): the hamiltonian Operator object
-            state_in (InitialState): the InitialState pluggable component representing
+            operator: the hamiltonian Operator object
+            state_in: the InitialState component representing
                     the initial quantum state
-            num_time_slices (int): the number of time slices
-            num_iterations (int): the number of iterations
-            expansion_mode (str): the expansion mode (trotter|suzuki)
-            expansion_order (int): the suzuki expansion order
-            shallow_circuit_concat (bool): indicate whether to use shallow (cheap)
+            num_time_slices: the number of time slices, has a min. value of 1.
+            num_iterations: the number of iterations, has a min. value of 1.
+            expansion_mode: the expansion mode (trotter|suzuki)
+            expansion_order: the suzuki expansion order, has a min. value of 1.
+            shallow_circuit_concat: indicate whether to use shallow (cheap)
                     mode for circuit concatenation
         """
-        self.validate(locals())
+        validate_min('num_time_slices', num_time_slices, 1)
+        validate_min('num_iterations', num_iterations, 1)
+        validate_in_set('expansion_mode', expansion_mode, {'trotter', 'suzuki'})
+        validate_min('expansion_order', expansion_order, 1)
         super().__init__()
         self._operator = op_converter.to_weighted_pauli_operator(operator.copy())
         self._state_in = state_in

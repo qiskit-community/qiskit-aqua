@@ -31,35 +31,31 @@ class ExchangeDataProvider(BaseDataProvider):
     for instructions on use, which involve obtaining a Quandl access token.
     """
 
-    CONFIGURATION = {
-        "name": "EDI",
-        "description": "Exchange Data International Data Provider",
-        "input_schema": {
-            "$schema": "http://json-schema.org/draft-07/schema#",
-            "id": "edi_schema",
-            "type": "object",
-            "properties": {
-                "stockmarket": {
-                    "type":
-                    "string",
-                    "default": StockMarket.LONDON.value,
-                    "enum": [
-                        StockMarket.LONDON.value,
-                        StockMarket.EURONEXT.value,
-                        StockMarket.SINGAPORE.value,
-                    ]
-                },
-                "datatype": {
-                    "type":
-                    "string",
-                    "default": DataType.DAILYADJUSTED.value,
-                    "enum": [
-                        DataType.DAILYADJUSTED.value,
-                        DataType.DAILY.value,
-                    ]
-                },
+    _INPUT_SCHEMA = {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "id": "edi_schema",
+        "type": "object",
+        "properties": {
+            "stockmarket": {
+                "type":
+                "string",
+                "default": StockMarket.LONDON.value,
+                "enum": [
+                    StockMarket.LONDON.value,
+                    StockMarket.EURONEXT.value,
+                    StockMarket.SINGAPORE.value,
+                ]
             },
-        }
+            "datatype": {
+                "type":
+                "string",
+                "default": DataType.DAILYADJUSTED.value,
+                "enum": [
+                    DataType.DAILYADJUSTED.value,
+                    DataType.DAILY.value,
+                ]
+            },
+        },
     }
 
     def __init__(self,
@@ -102,10 +98,10 @@ class ExchangeDataProvider(BaseDataProvider):
         self._start = start
         self._end = end
 
-        # self.validate(locals())
+        # validate(locals(), self._INPUT_SCHEMA)
 
     @staticmethod
-    def check_provider_valid():
+    def _check_provider_valid():
         """ check if provider is valid """
         err_msg = 'quandl is not installed.'
         try:
@@ -118,37 +114,12 @@ class ExchangeDataProvider(BaseDataProvider):
 
         raise QiskitFinanceError(err_msg)
 
-    @classmethod
-    def init_from_input(cls, section):
-        """
-        Initialize via section dictionary.
-
-        Args:
-            section (dict): section dictionary
-
-        Returns:
-            DataProvider: provider object
-        Raises:
-            QiskitFinanceError: invalid section
-        """
-        if section is None or not isinstance(section, dict):
-            raise QiskitFinanceError(
-                'Invalid or missing section {}'.format(section))
-
-        # params = section
-        kwargs = {}
-        # for k, v in params.items():
-        #    if k == ExchangeDataProvider. ...: v = UnitsType(v)
-        #    kwargs[k] = v
-        logger.debug('init_from_input: %s', kwargs)
-        return cls(**kwargs)
-
     def run(self):
         """
         Loads data, thus enabling get_similarity_matrix and get_covariance_matrix
         methods in the base class.
         """
-        self.check_provider_valid()
+        self._check_provider_valid()
         import quandl  # pylint: disable=import-outside-toplevel
         self._data = []
         quandl.ApiConfig.api_key = self._token

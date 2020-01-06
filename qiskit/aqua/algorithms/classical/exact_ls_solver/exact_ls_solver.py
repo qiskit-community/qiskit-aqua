@@ -13,41 +13,27 @@
 # that they have been altered from the originals.
 """The Exact LinearSystem algorithm."""
 
+from typing import List, Union
 import logging
 
 import numpy as np
 
-from qiskit.aqua.algorithms import QuantumAlgorithm
+from qiskit.aqua.algorithms.classical import ClassicalAlgorithm
 
 logger = logging.getLogger(__name__)
 
 
-class ExactLSsolver(QuantumAlgorithm):
+class ExactLSsolver(ClassicalAlgorithm):
     """The Exact LinearSystem algorithm."""
 
-    CONFIGURATION = {
-        'name': 'ExactLSsolver',
-        'description': 'ExactLSsolver Algorithm',
-        'classical': True,
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'ExactLSsolver_schema',
-            'type': 'object',
-            'properties': {
-            },
-            'additionalProperties': False
-        },
-        'problems': ['linear_system']
-    }
-
-    def __init__(self, matrix=None, vector=None):
+    def __init__(self, matrix: Union[List[List[float]], np.ndarray],
+                 vector: Union[List[float], np.ndarray]) -> None:
         """Constructor.
 
         Args:
-            matrix (array): the input matrix of linear system of equations
-            vector (array): the input vector of linear system of equations
+            matrix: the input matrix of linear system of equations
+            vector: the input vector of linear system of equations
         """
-        self.validate(locals())
         super().__init__()
         self._matrix = matrix
         self._vector = vector

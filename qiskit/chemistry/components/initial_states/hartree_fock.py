@@ -17,6 +17,7 @@
 import logging
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
+from qiskit.aqua.utils.validation import validate
 from qiskit.aqua.components.initial_states import InitialState
 
 logger = logging.getLogger(__name__)
@@ -25,40 +26,36 @@ logger = logging.getLogger(__name__)
 class HartreeFock(InitialState):
     """A Hartree-Fock initial state."""
 
-    CONFIGURATION = {
-        'name': 'HartreeFock',
-        'description': 'Hartree-Fock initial state',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'hf_state_schema',
-            'type': 'object',
-            'properties': {
-                'num_orbitals': {
-                    'type': 'integer',
-                    'default': 4,
-                    'minimum': 1
-                },
-                'num_particles': {
-                    'type': ['array', 'integer'],
-                    'default': [1, 1],
-                    'contains': {
-                        'type': 'integer'
-                    },
-                    'minItems': 2,
-                    'maxItems': 2
-                },
-                'qubit_mapping': {
-                    'type': 'string',
-                    'default': 'parity',
-                    'enum': ['jordan_wigner', 'parity', 'bravyi_kitaev']
-                },
-                'two_qubit_reduction': {
-                    'type': 'boolean',
-                    'default': True
-                }
+    _INPUT_SCHEMA = {
+        '$schema': 'http://json-schema.org/draft-07/schema#',
+        'id': 'hf_state_schema',
+        'type': 'object',
+        'properties': {
+            'num_orbitals': {
+                'type': 'integer',
+                'default': 4,
+                'minimum': 1
             },
-            'additionalProperties': False
-        }
+            'num_particles': {
+                'type': ['array', 'integer'],
+                'default': [1, 1],
+                'contains': {
+                    'type': 'integer'
+                },
+                'minItems': 2,
+                'maxItems': 2
+            },
+            'qubit_mapping': {
+                'type': 'string',
+                'default': 'parity',
+                'enum': ['jordan_wigner', 'parity', 'bravyi_kitaev']
+            },
+            'two_qubit_reduction': {
+                'type': 'boolean',
+                'default': True
+            }
+        },
+        'additionalProperties': False
     }
 
     def __init__(self, num_qubits, num_orbitals, num_particles,
@@ -79,7 +76,7 @@ class HartreeFock(InitialState):
             ValueError: wrong setting in num_particles and num_orbitals.
             ValueError: wrong setting for computed num_qubits and supplied num_qubits.
         """
-        self.validate(locals())
+        validate(locals(), self._INPUT_SCHEMA)
         super().__init__()
         self._sq_list = sq_list
         self._qubit_tapering = bool(self._sq_list)

@@ -18,6 +18,7 @@ The Variational Quantum Eigensolver algorithm.
 See https://arxiv.org/abs/1304.3061
 """
 
+from typing import Optional, List, Callable
 import logging
 import functools
 
@@ -31,6 +32,9 @@ from qiskit.aqua.operators import (TPBGroupedWeightedPauliOperator, WeightedPaul
                                    MatrixOperator, op_converter)
 from qiskit.aqua.utils.backend_utils import (is_statevector_backend,
                                              is_aer_provider)
+from qiskit.aqua.operators import BaseOperator
+from qiskit.aqua.components.optimizers import Optimizer
+from qiskit.aqua.components.variational_forms import VariationalForm
 
 logger = logging.getLogger(__name__)
 
@@ -42,64 +46,27 @@ class VQE(VQAlgorithm):
     See https://arxiv.org/abs/1304.3061
     """
 
-    CONFIGURATION = {
-        'name': 'VQE',
-        'description': 'VQE Algorithm',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'vqe_schema',
-            'type': 'object',
-            'properties': {
-                'initial_point': {
-                    'type': ['array', 'null'],
-                    "items": {
-                        "type": "number"
-                    },
-                    'default': None
-                },
-                'max_evals_grouped': {
-                    'type': 'integer',
-                    'default': 1
-                }
-            },
-            'additionalProperties': False
-        },
-        'problems': ['energy', 'ising'],
-        'depends': [
-            {
-                'pluggable_type': 'optimizer',
-                'default': {
-                    'name': 'L_BFGS_B'
-                },
-            },
-            {
-                'pluggable_type': 'variational_form',
-                'default': {
-                    'name': 'RYRZ'
-                },
-            },
-        ],
-    }
-
-    def __init__(self, operator, var_form, optimizer,
-                 initial_point=None, max_evals_grouped=1, aux_operators=None, callback=None,
-                 auto_conversion=True):
+    def __init__(self, operator: BaseOperator, var_form: VariationalForm, optimizer: Optimizer,
+                 initial_point: Optional[np.ndarray] = None, max_evals_grouped: int = 1,
+                 aux_operators: Optional[List[BaseOperator]] = None,
+                 callback: Optional[Callable[[int, np.ndarray, float, float], None]] = None,
+                 auto_conversion: bool = True) -> None:
         """
 
         Args:
-            operator (BaseOperator): Qubit operator
-            var_form (VariationalForm): parametrized variational form.
-            optimizer (Optimizer): the classical optimization algorithm.
-            initial_point (numpy.ndarray): optimizer initial point.
-            max_evals_grouped (int): max number of evaluations performed simultaneously
-            aux_operators (list[BaseOperator]): Auxiliary operators to be evaluated
+            operator: Qubit operator
+            var_form: parameterized variational form.
+            optimizer: the classical optimization algorithm.
+            initial_point: optimizer initial point.
+            max_evals_grouped: max number of evaluations performed simultaneously
+            aux_operators: Auxiliary operators to be evaluated
                                                 at each eigenvalue
-            callback (Callable): a callback that can access the intermediate
+            callback: a callback that can access the intermediate
                                  data during the optimization.
                                  Internally, four arguments are provided as follows
                                  the index of evaluation, parameters of variational form,
                                  evaluated mean, evaluated standard deviation.
-            auto_conversion (bool): an automatic conversion for operator and aux_operators
+            auto_conversion: an automatic conversion for operator and aux_operators
                 into the type which is most suitable for the backend.
 
                 - for *non-Aer statevector simulator:*
@@ -109,7 +76,6 @@ class VQE(VQAlgorithm):
                 - for *qasm simulator or real backend:*
                   :class:`~qiskit.aqua.operators.TPBGroupedWeightedPauliOperator`
         """
-        self.validate(locals())
         super().__init__(var_form=var_form,
                          optimizer=optimizer,
                          cost_fn=self._energy_evaluation,
@@ -138,10 +104,10 @@ class VQE(VQAlgorithm):
     @property
     def setting(self):
         """Prepare the setting of VQE as a string."""
-        ret = "Algorithm: {}\n".format(self._configuration['name'])
+        ret = "Algorithm: {}\n".format(self.__class__.__name__)
         params = ""
         for key, value in self.__dict__.items():
-            if key != "_configuration" and key[0] == "_":
+            if key[0] == "_":
                 if "initial_point" in key and value is None:
                     params += "-- {}: {}\n".format(key[1:], "Random seed")
                 else:
@@ -158,7 +124,7 @@ class VQE(VQAlgorithm):
         """
         ret = "\n"
         ret += "==================== Setting of {} ============================\n".format(
-            self.configuration['name'])
+            self.__class__.__name__)
         ret += "{}".format(self.setting)
         ret += "===============================================================\n"
         ret += "{}".format(self._var_form.setting)

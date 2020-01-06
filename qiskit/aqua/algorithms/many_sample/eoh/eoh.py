@@ -18,9 +18,11 @@ The Quantum Dynamics algorithm.
 import logging
 
 from qiskit import QuantumRegister
-
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.operators import op_converter
+from qiskit.aqua.operators import BaseOperator
+from qiskit.aqua.components.initial_states import InitialState
+from qiskit.aqua.utils.validation import validate_min, validate_in_set
 
 logger = logging.getLogger(__name__)
 
@@ -30,59 +32,17 @@ class EOH(QuantumAlgorithm):
     The Quantum EOH (Evolution of Hamiltonian) algorithm.
     """
 
-    PROP_EVO_TIME = 'evo_time'
-    PROP_NUM_TIME_SLICES = 'num_time_slices'
-    PROP_EXPANSION_MODE = 'expansion_mode'
-    PROP_EXPANSION_ORDER = 'expansion_order'
-
-    CONFIGURATION = {
-        'name': 'EOH',
-        'description': 'Evolution of Hamiltonian for Quantum Systems',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'EOH_schema',
-            'type': 'object',
-            'properties': {
-                PROP_EVO_TIME: {
-                    'type': 'number',
-                    'default': 1,
-                    'minimum': 0
-                },
-                PROP_NUM_TIME_SLICES: {
-                    'type': 'integer',
-                    'default': 1,
-                    'minimum': 0
-                },
-                PROP_EXPANSION_MODE: {
-                    'type': 'string',
-                    'default': 'trotter',
-                    'enum': [
-                        'trotter',
-                        'suzuki'
-                    ]
-                },
-                PROP_EXPANSION_ORDER: {
-                    'type': 'integer',
-                    'default': 1,
-                    'minimum': 1
-                }
-            },
-            'additionalProperties': False
-        },
-        'problems': ['eoh'],
-        'depends': [
-            {
-                'pluggable_type': 'initial_state',
-                'default': {
-                    'name': 'ZERO'
-                },
-            },
-        ],
-    }
-
-    def __init__(self, operator, initial_state, evo_operator, evo_time=1, num_time_slices=1,
-                 expansion_mode='trotter', expansion_order=1):
-        self.validate(locals())
+    def __init__(self, operator: BaseOperator,
+                 initial_state: InitialState,
+                 evo_operator: BaseOperator,
+                 evo_time: int = 1,
+                 num_time_slices: int = 1,
+                 expansion_mode: str = 'trotter',
+                 expansion_order: int = 1) -> None:
+        validate_min('evo_time', evo_time, 0)
+        validate_min('num_time_slices', num_time_slices, 0)
+        validate_in_set('expansion_mode', expansion_mode, {'trotter', 'suzuki'})
+        validate_min('expansion_order', expansion_order, 1)
         super().__init__()
         self._operator = op_converter.to_weighted_pauli_operator(operator)
         self._initial_state = initial_state

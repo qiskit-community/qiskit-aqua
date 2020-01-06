@@ -22,49 +22,27 @@ from typing import Dict, List, Tuple, Any
 import importlib
 import numpy as np
 
-from qiskit.aqua import QuantumAlgorithm, AquaError
+from qiskit.aqua import AquaError
+from qiskit.aqua.algorithms.classical import ClassicalAlgorithm
 from qiskit.aqua.algorithms.classical.cplex.simple_cplex import SimpleCPLEX
+from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.aqua.utils.validation import validate_min, validate_range
 
 logger = logging.getLogger(__name__)
 
 # pylint: disable=invalid-name
 
 
-class CPLEX_Ising(QuantumAlgorithm):
+class CPLEX_Ising(ClassicalAlgorithm):
     """ CPLEX Ising algorithm """
-    CONFIGURATION = {
-        'name': 'CPLEX.Ising',
-        'description': 'CPLEX backend for Ising Hamiltonian',
-        'classical': True,
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'CPLEX_schema',
-            'type': 'object',
-            'properties': {
-                'timelimit': {
-                    'type': 'integer',
-                    'default': 600,
-                    'minimum': 1
-                },
-                'thread': {
-                    'type': 'integer',
-                    'default': 1,
-                    'minimum': 0
-                },
-                'display': {
-                    'type': 'integer',
-                    'default': 2,
-                    'minimum': 0,
-                    'maximum': 5
-                }
-            },
-            'additionalProperties': False
-        },
-        'problems': ['ising']
-    }
 
-    def __init__(self, operator, timelimit=600, thread=1, display=2):
-        self.validate(locals())
+    def __init__(self, operator: WeightedPauliOperator,
+                 timelimit: int = 600, thread: int = 1,
+                 display: int = 2) -> None:
+        validate_min('timelimit', timelimit, 1)
+        validate_min('thread', thread, 0)
+        validate_range('display', display, 0, 5)
+        self._check_valid()
         super().__init__()
         self._ins = IsingInstance()
         self._ins.parse(operator.to_dict()['paulis'])
@@ -74,8 +52,7 @@ class CPLEX_Ising(QuantumAlgorithm):
         self._sol = None
 
     @staticmethod
-    def check_pluggable_valid():
-        """ check pluggable valid """
+    def _check_valid():
         err_msg = 'CPLEX is not installed. See ' \
             'https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/' \
             'ilog.odms.studio.help/Optimization_Studio/topics/COS_home.html'
