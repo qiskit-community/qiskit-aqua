@@ -26,7 +26,7 @@ from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.circuits import StateVectorCircuit
 from qiskit.aqua.utils.arithmetic import normalize_vector
 from qiskit.aqua.utils.circuit_utils import convert_to_basis_gates
-from qiskit.aqua.utils.validation import validate_in_set
+from qiskit.aqua.utils.validation import validate_in_set, validate_min
 
 logger = logging.getLogger(__name__)
 
@@ -42,18 +42,14 @@ class Custom(InitialState):
         """Constructor.
 
         Args:
-            num_qubits: number of qubits
+            num_qubits: number of qubits, has a min. value of 1.
             state: `zero`, `uniform` or `random`
             state_vector: customized vector
             circuit: the actual custom circuit for the desired initial state
         Raises:
             AquaError: invalid input
         """
-        # pylint: disable=comparison-with-callable
-        loc = locals().copy()
-        # since state_vector is a numpy array of complex numbers which aren't json valid,
-        # remove it from validation
-        del loc['state_vector']
+        validate_min('num_qubits', num_qubits, 1)
         validate_in_set('state', state, {'zero', 'uniform', 'random'})
         super().__init__()
         self._num_qubits = num_qubits

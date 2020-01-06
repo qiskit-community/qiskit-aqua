@@ -19,6 +19,7 @@ from qiskit import QuantumRegister, QuantumCircuit
 
 from qiskit.aqua import AquaError
 from qiskit.aqua.components.initial_states import InitialState
+from qiskit.aqua.utils.validation import validate_min
 
 
 class Zero(InitialState):
@@ -28,9 +29,10 @@ class Zero(InitialState):
         """Constructor.
 
         Args:
-            num_qubits: number of qubits.
+            num_qubits: number of qubits, has a min. value of 1.
         """
         super().__init__()
+        validate_min('num_qubits', num_qubits, 1)
         self._num_qubits = num_qubits
 
     def construct_circuit(self, mode='circuit', register=None):

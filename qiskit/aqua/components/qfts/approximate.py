@@ -25,6 +25,7 @@ class Approximate(QFT):
     def __init__(self,
                  num_qubits: int,
                  degree: int = 0) -> None:
+        validate_min('num_qubits', num_qubits, 1)
         validate_min('degree', degree, 0)
         super().__init__()
         self._num_qubits = num_qubits

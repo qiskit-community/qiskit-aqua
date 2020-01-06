@@ -16,6 +16,7 @@
 
 from scipy import linalg
 
+from qiskit.aqua.utils.validation import validate_min
 from .approximate import Approximate
 
 
@@ -23,6 +24,7 @@ class Standard(Approximate):
     """A normal standard IQFT."""
 
     def __init__(self, num_qubits: int) -> None:
+        validate_min('num_qubits', num_qubits, 1)
         super().__init__(num_qubits, degree=0)
 
     def _build_matrix(self):

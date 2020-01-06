@@ -18,6 +18,7 @@ The abstract Uncertainty Problem component.
 
 from abc import ABC
 from qiskit.aqua.utils import CircuitFactory
+from qiskit.aqua.utils.validation import validate_min
 
 # pylint: disable=abstract-method
 
@@ -29,6 +30,7 @@ class UncertaintyProblem(CircuitFactory, ABC):
 
     # pylint: disable=useless-super-delegation
     def __init__(self, num_qubits: int) -> None:
+        validate_min('num_qubits', num_qubits, 1)
         super().__init__(num_qubits)
 
     def value_to_estimation(self, value):

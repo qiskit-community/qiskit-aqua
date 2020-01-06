@@ -21,6 +21,7 @@ import numpy as np
 
 from qiskit import ClassicalRegister
 from qiskit.aqua.components.variational_forms import VariationalForm
+from qiskit.aqua.utils.validation import validate_min
 from .univariate_distribution import UnivariateDistribution
 
 
@@ -35,6 +36,7 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
                  params: [Union[List[float], np.ndarray]],
                  low: float = 0,
                  high: float = 1) -> None:
+        validate_min('num_qubits', num_qubits, 1)
         self._num_qubits = num_qubits
         self._var_form = var_form
         self.params = params

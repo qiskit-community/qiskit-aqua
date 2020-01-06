@@ -24,7 +24,6 @@ from qiskit.aqua.components.variational_forms import VariationalForm
 
 class VarFormBased:
     """An initial state derived from a variational form.
-       Intended to be used programmatically only.
     """
 
     def __init__(self,
