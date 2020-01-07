@@ -14,7 +14,10 @@
 
 """ Univariate uncertainty problem. """
 
+from typing import Optional
+from qiskit.aqua.components.uncertainty_models import UnivariateDistribution
 from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
+from .univariate_piecewise_linear_objective import UnivariatePiecewiseLinearObjective
 
 
 class UnivariateProblem(UncertaintyProblem):
@@ -23,18 +26,20 @@ class UnivariateProblem(UncertaintyProblem):
     Univariate uncertainty problem.
     """
 
-    def __init__(self, uncertainty_model, univariate_objective, i_state=None, i_objective=None):
+    def __init__(self,
+                 uncertainty_model: UnivariateDistribution,
+                 univariate_objective: UnivariatePiecewiseLinearObjective,
+                 i_state: Optional[int] = None,
+                 i_objective: Optional[int] = None) -> None:
         """
         Constructor.
 
         Args:
-            uncertainty_model (UnivariateUncertaintyModel): univariate uncertainty model to
-            univariate_objective (UnivariatePiecewiseLinearObjective): objective function
-            based on uncertainty
-            i_state(Optional(Union(list, numpy.ndarray))): indices of qubits
-                                                            representing uncertainty
-            i_objective (Optional(int)): index of qubit representing the objective
-                                                            value in the amplitude
+            uncertainty_model: univariate uncertainty model to
+            univariate_objective: objective function based on uncertainty
+            i_state: indices of qubits representing uncertainty
+            i_objective: index of qubit representing the objective
+                            value in the amplitude
         """
 
         # determine number of target qubits
