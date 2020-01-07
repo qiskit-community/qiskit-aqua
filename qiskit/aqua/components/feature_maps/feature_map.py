@@ -31,7 +31,7 @@ class FeatureMap(ABC):
     """
 
     @abstractmethod
-    def __init__(self):
+    def __init__(self) -> None:
         self._num_qubits = 0
         self._feature_dimension = 0
         self._support_parameterized_circuit = False

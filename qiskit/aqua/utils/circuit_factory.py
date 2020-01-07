@@ -26,7 +26,7 @@ class CircuitFactory(ABC):
 
     """ Base class for CircuitFactories """
 
-    def __init__(self, num_target_qubits):
+    def __init__(self, num_target_qubits: int) -> None:
         self._num_target_qubits = num_target_qubits
         pass
 

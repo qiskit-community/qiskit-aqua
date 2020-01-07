@@ -57,10 +57,10 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         linearly in 1/epsilon (up to a logarithmic factor).
 
         Args:
-            epsilon: target precision for estimation target `a`
-                    , has values between 0 and 0.5.
-            alpha: confidence level, the target probability is 1 - alpha
-                    , has values between 0 and 1.
+            epsilon: target precision for estimation target `a`,
+                        has values between 0 and 0.5.
+            alpha: confidence level, the target probability is 1 - alpha,
+                    has values between 0 and 1.
             ci_method: statistical method used to estimate the confidence intervals in each
                 iteration, can be 'chernoff' for the Chernoff intervals or 'beta' for the
                 Clopper-Pearson intervals (default)
