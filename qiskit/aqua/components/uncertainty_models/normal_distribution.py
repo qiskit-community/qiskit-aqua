@@ -17,6 +17,7 @@ The Univariate Normal Distribution.
 """
 
 from scipy.stats.distributions import norm
+from qiskit.aqua.utils.validation import validate_min
 from .univariate_distribution import UnivariateDistribution
 
 
@@ -30,10 +31,11 @@ class NormalDistribution(UnivariateDistribution):
                  mu: float = 0,
                  sigma: float = 1,
                  low: float = -1,
-                 high: float = 1):
+                 high: float = 1) -> None:
         r"""
         Args:
-            num_target_qubits: number of qubits it acts on
+            num_target_qubits: number of qubits it acts on,
+                has a min. value of 1.
             mu: expected value of considered normal distribution
             sigma: standard deviation of considered normal distribution
             low: lower bound, i.e., the value corresponding to \|0...0>
@@ -41,6 +43,7 @@ class NormalDistribution(UnivariateDistribution):
             high: upper bound, i.e., the value corresponding to \|1...1>
                           (assuming an equidistant grid)
         """
+        validate_min('num_target_qubits', num_target_qubits, 1)
         probabilities, _ = UnivariateDistribution.\
             pdf_to_probabilities(
                 lambda x: norm.pdf(x, mu, sigma), low, high, 2 ** num_target_qubits)

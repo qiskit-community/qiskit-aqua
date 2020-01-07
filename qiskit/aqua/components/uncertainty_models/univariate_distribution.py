@@ -21,6 +21,7 @@ from abc import ABC
 import numpy as np
 
 from qiskit.aqua import AquaError
+from qiskit.aqua.utils.validation import validate_min
 from qiskit.aqua.components.initial_states import Custom
 from .uncertainty_model import UncertaintyModel
 
@@ -40,7 +41,8 @@ class UnivariateDistribution(UncertaintyModel, ABC):
         Abstract univariate distribution class
 
         Args:
-            num_target_qubits: number of qubits it acts on
+            num_target_qubits: number of qubits it acts on,
+                has a min. value of 1.
             probabilities:  probabilities for different states
             low: lower bound, i.e., the value corresponding to \|0...0>
                          (assuming an equidistant grid)
@@ -49,6 +51,7 @@ class UnivariateDistribution(UncertaintyModel, ABC):
         Raises:
             AquaError: num qubits and length of probabilities vector do not match
         """
+        validate_min('num_target_qubits', num_target_qubits, 1)
         super().__init__(num_target_qubits)
         self._num_values = 2 ** self.num_target_qubits
         self._probabilities = np.array(probabilities)
