@@ -14,6 +14,7 @@
 
 """ wikipedia data provider """
 
+from typing import Optional, Union, List
 import datetime
 import importlib
 import logging
@@ -21,7 +22,7 @@ import logging
 import quandl
 from quandl.errors.quandl_error import NotFoundError
 
-from qiskit.finance.data_providers import (BaseDataProvider, DataType,
+from qiskit.finance.data_providers import (BaseDataProvider,
                                            StockMarket, QiskitFinanceError)
 
 logger = logging.getLogger(__name__)
@@ -33,51 +34,23 @@ class WikipediaDataProvider(BaseDataProvider):
     https://github.com/Qiskit/qiskit-tutorials/qiskit/finance/data_providers/time_series.ipynb
     for instructions on use."""
 
-    _INPUT_SCHEMA = {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "id": "edi_schema",
-        "type": "object",
-        "properties": {
-            "stockmarket": {
-                "type":
-                "string",
-                "default": StockMarket.NASDAQ.value,
-                "enum": [
-                    StockMarket.NASDAQ.value,
-                    StockMarket.NYSE.value,
-                ]
-            },
-            "datatype": {
-                "type":
-                "string",
-                "default": DataType.DAILYADJUSTED.value,
-                "enum": [
-                    DataType.DAILYADJUSTED.value,
-                    DataType.DAILY.value,
-                ]
-            },
-        },
-    }
-
     def __init__(self,
-                 token=None,
-                 tickers=None,
-                 stockmarket=StockMarket.NASDAQ,
-                 start=datetime.datetime(2016, 1, 1),
-                 end=datetime.datetime(2016, 1, 30)):
+                 token: Optional[str] = None,
+                 tickers: Optional[Union[str, List[str]]] = None,
+                 stockmarket: StockMarket = StockMarket.NASDAQ,
+                 start: datetime = datetime.datetime(2016, 1, 1),
+                 end: datetime = datetime.datetime(2016, 1, 30)) -> None:
         """
         Initializer
         Args:
-            token (str): quandl access token, which is not needed, strictly speaking
-            tickers (str or list): tickers
-            stockmarket (StockMarket): NASDAQ, NYSE
-            start (datetime.datetime): start time
-            end (datetime.datetime): end time
+            token: quandl access token, which is not needed, strictly speaking
+            tickers: tickers
+            stockmarket: NASDAQ, NYSE
+            start: start time
+            end: end time
         Raises:
             QiskitFinanceError: provider doesn't support stock market input
         """
-        # if not isinstance(atoms, list) and not isinstance(atoms, str):
-        #    raise QiskitFinanceError("Invalid atom input for Wikipedia Driver '{}'".format(atoms))
         super().__init__()
         tickers = tickers if tickers is not None else []
         if isinstance(tickers, list):
@@ -100,8 +73,6 @@ class WikipediaDataProvider(BaseDataProvider):
         self._start = start
         self._end = end
         self._data = []
-
-        # validate(locals(), self._INPUT_SCHEMA)
 
     @staticmethod
     def _check_provider_valid():

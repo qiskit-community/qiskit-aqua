@@ -16,10 +16,9 @@
 The Multivariate Uniform Distribution.
 """
 
+from typing import Optional, List, Union
 import numpy as np
-from qiskit.aqua.utils.validation import validate
-from qiskit.aqua.components.uncertainty_models.multivariate_distribution \
-    import MultivariateDistribution
+from .multivariate_distribution import MultivariateDistribution
 
 
 class MultivariateUniformDistribution(MultivariateDistribution):
@@ -27,47 +26,18 @@ class MultivariateUniformDistribution(MultivariateDistribution):
     The Multivariate Uniform Distribution.
     """
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'MultivariateUniformDistribution_schema',
-        'type': 'object',
-        'properties': {
-            'num_qubits': {
-                'type': 'array',
-                "items": {
-                    "type": "number"
-                },
-                'default': [2, 2]
-            },
-            'low': {
-                'type': ['array', 'null'],
-                "items": {
-                    "type": "number"
-                },
-                'default': None
-            },
-            'high': {
-                'type': ['array', 'null'],
-                "items": {
-                    "type": "number"
-                },
-                'default': None
-            },
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, num_qubits, low=None, high=None):
+    def __init__(self,
+                 num_qubits: Union[List[int], np.ndarray],
+                 low: Optional[Union[List[float], np.ndarray]] = None,
+                 high: Optional[Union[List[float], np.ndarray]] = None) -> None:
         """
         Args:
-            num_qubits (Union(list, numpy.ndarray)): list with the number of qubits per dimension
-            low (Union(list, numpy.ndarray)): list with the lower bounds per dimension,
-                                              set to 0 for each dimension if None
-            high (Union(list, numpy.ndarray)): list with the upper bounds per dimension,
-                                               set to 1 for each dimension if None
+            num_qubits: list with the number of qubits per dimension
+            low: list with the lower bounds per dimension,
+                    set to 0 for each dimension if None
+            high: list with the upper bounds per dimension,
+                    set to 1 for each dimension if None
         """
-        validate(locals(), self._INPUT_SCHEMA)
-
         if low is None:
             low = np.zeros(num_qubits)
         if high is None:
