@@ -18,6 +18,11 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 [UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.2...HEAD)
 ========================================================================
 
+Changed
+-------
+
+-   Remove declarative api (#758) (#759) (#760) (#762) (#763)
+
 [0.6.2](https://github.com/Qiskit/qiskit-aqua/compare/0.6.1...0.6.2) - 2019-12-17
 =================================================================================
 

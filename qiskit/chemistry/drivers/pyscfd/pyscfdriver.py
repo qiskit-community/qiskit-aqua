@@ -50,6 +50,7 @@ class PySCFDriver(BaseDriver):
                  max_memory: Optional[int] = None) -> None:
         """
         Initializer
+
         Args:
             atom: atom list or string separated by semicolons or line breaks
             unit: angstrom or bohr
@@ -59,9 +60,10 @@ class PySCFDriver(BaseDriver):
             hf_method: Hartree-Fock Method type
             conv_tol: Convergence tolerance see PySCF docs and pyscf/scf/hf.py
             max_cycle: Max convergence cycles see PySCF docs and pyscf/scf/hf.py,
-                        has a min. value of 1.
+                       has a min. value of 1.
             init_guess: See PySCF pyscf/scf/hf.py init_guess_by_minao/1e/atom methods
             max_memory: maximum memory
+
         Raises:
             QiskitChemistryError: Invalid Input
         """

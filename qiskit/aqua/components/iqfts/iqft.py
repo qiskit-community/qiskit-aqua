@@ -36,7 +36,7 @@ class IQFT(ABC):
     """
 
     @abstractmethod
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__()
 
     @abstractmethod
