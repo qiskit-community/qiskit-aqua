@@ -14,13 +14,15 @@
 
 """ PhaseEstimationCircuit for getting the eigenvalues of a matrix. """
 
+from typing import Optional, List
 import numpy as np
 from qiskit import QuantumRegister
 
-from qiskit.aqua.components.eigs import Eigenvalues
 from qiskit.aqua.circuits import PhaseEstimationCircuit
-from qiskit.aqua.operators import op_converter
-from qiskit.aqua.utils.validation import validate
+from qiskit.aqua.operators import op_converter, BaseOperator
+from qiskit.aqua.components.iqfts import IQFT
+from qiskit.aqua.utils.validation import validate_min, validate_in_set
+from .eigs import Eigenvalues
 
 # pylint: disable=invalid-name
 
@@ -34,73 +36,36 @@ class EigsQPE(Eigenvalues):
     known from plain QPE. It depends on QFT and IQFT.
     """
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'eigsqpe_schema',
-        'type': 'object',
-        'properties': {
-            'num_time_slices': {
-                'type': 'integer',
-                'default': 1,
-                'minimum': 0
-            },
-            'expansion_mode': {
-                'type': 'string',
-                'default': 'trotter',
-                'enum': [
-                    'suzuki',
-                    'trotter'
-                ]
-            },
-            'expansion_order': {
-                'type': 'integer',
-                'default': 1,
-                'minimum': 1
-            },
-            'num_ancillae': {
-                'type': 'integer',
-                'default': 1,
-                'minimum': 1
-            },
-            'evo_time': {
-                'type': ['number', 'null'],
-                'default': None
-            },
-            'negative_evals': {
-                'type': 'boolean',
-                'default': False
-            },
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(
-            self, operator, iqft,
-            num_time_slices=1,
-            num_ancillae=1,
-            expansion_mode='trotter',
-            expansion_order=1,
-            evo_time=None,
-            negative_evals=False,
-            ne_qfts=None
-    ):
+    def __init__(self,
+                 operator: BaseOperator,
+                 iqft: IQFT,
+                 num_time_slices: int = 1,
+                 num_ancillae: int = 1,
+                 expansion_mode: str = 'trotter',
+                 expansion_order: int = 1,
+                 evo_time: Optional[float] = None,
+                 negative_evals: bool = False,
+                 ne_qfts: Optional[List] = None) -> None:
         """Constructor.
 
         Args:
-            operator (BaseOperator): the hamiltonian Operator object
-            iqft (IQFT): the Inverse Quantum Fourier Transform component
-            num_time_slices (int, optional): the number of time slices
-            num_ancillae (int, optional): the number of ancillary qubits to use for the measurement
-            expansion_mode (str, optional): the expansion mode (trotter|suzuki)
-            expansion_order (int, optional): the suzuki expansion order
-            evo_time (float, optional): the evolution time
-            negative_evals (bool, optional): indicate if negative eigenvalues need to be handled
-            ne_qfts (Union([QFT, IQFT], optional)): the QFT and IQFT components for
-                                            handling negative eigenvalues
+            operator: the hamiltonian Operator object
+            iqft: the Inverse Quantum Fourier Transform component
+            num_time_slices: the number of time slices, has a min. value of 1.
+            num_ancillae: the number of ancillary qubits to use for the measurement,
+                            has a min. value of 1.
+            expansion_mode: the expansion mode (trotter|suzuki)
+            expansion_order: the suzuki expansion order, has a min. value of 1.
+            evo_time: the evolution time
+            negative_evals: indicate if negative eigenvalues need to be handled
+            ne_qfts: the QFT and IQFT components for handling negative eigenvalues
         """
         super().__init__()
         ne_qfts = ne_qfts if ne_qfts is not None else [None, None]
-        validate(locals(), self._INPUT_SCHEMA)
+        validate_min('num_time_slices', num_time_slices, 1)
+        validate_min('num_ancillae', num_ancillae, 1)
+        validate_in_set('expansion_mode', expansion_mode, {'trotter', 'suzuki'})
+        validate_min('expansion_order', expansion_order, 1)
         self._operator = op_converter.to_weighted_pauli_operator(operator)
         self._iqft = iqft
         self._num_ancillae = num_ancillae

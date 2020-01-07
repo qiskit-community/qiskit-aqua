@@ -14,9 +14,11 @@
 
 """ The Multivariate Variational Distribution. """
 
+from typing import Optional, List, Union
 import numpy as np
 
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
+from qiskit.aqua.components.variational_forms import VariationalForm
 from .multivariate_distribution import MultivariateDistribution
 
 # pylint: disable=invalid-name
@@ -26,43 +28,13 @@ class MultivariateVariationalDistribution(MultivariateDistribution):
     """
     The Multivariate Variational Distribution.
     """
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'MultivariateVariationalDistribution_schema',
-        'type': 'object',
-        'properties': {
-            'num_qubits': {
-                'type': 'array',
-                "items": {
-                    "type": "number"
-                }
-            },
 
-            'params': {
-                'type': 'array',
-                "items": {
-                    "type": "number"
-                }
-            },
-            'low': {
-                'type': ['array', 'null'],
-                "items": {
-                    "type": "number"
-                },
-                'default': None
-            },
-            'high': {
-                'type': ['array', 'null'],
-                "items": {
-                    "type": "number"
-                },
-                'default': None
-            },
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, num_qubits, var_form, params, low=None, high=None):
+    def __init__(self,
+                 num_qubits: Union[List[int], np.ndarray],
+                 var_form: VariationalForm,
+                 params: Union[List[float], np.ndarray],
+                 low: Optional[Union[List[float], np.ndarray]] = None,
+                 high: Optional[Union[List[float], np.ndarray]] = None) -> None:
         if low is None:
             low = np.zeros(len(num_qubits))
         if high is None:
