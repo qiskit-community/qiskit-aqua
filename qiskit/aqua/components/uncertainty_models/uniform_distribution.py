@@ -26,7 +26,7 @@ class UniformDistribution(UnivariateDistribution):
     """
 
     def __init__(self,
-                 num_target_qubits: int = 2,
+                 num_target_qubits: int,
                  low: float = 0,
                  high: float = 1) -> None:
         r"""

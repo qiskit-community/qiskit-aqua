@@ -36,7 +36,7 @@ class Custom(InitialState):
 
     def __init__(self,
                  num_qubits: int,
-                 state: str = "zero",
+                 state: str = 'zero',
                  state_vector: Optional[np.ndarray] = None,
                  circuit: Optional[QuantumCircuit] = None) -> None:
         """Constructor.
