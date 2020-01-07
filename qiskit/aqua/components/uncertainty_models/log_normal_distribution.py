@@ -18,8 +18,8 @@ The Univariate Log-Normal Distribution.
 
 from scipy.stats.distributions import lognorm
 import numpy as np
-from qiskit.aqua.utils.validation import validate
-from qiskit.aqua.components.uncertainty_models.univariate_distribution import UnivariateDistribution
+from qiskit.aqua.utils.validation import validate_min
+from .univariate_distribution import UnivariateDistribution
 
 
 class LogNormalDistribution(UnivariateDistribution):
@@ -27,49 +27,26 @@ class LogNormalDistribution(UnivariateDistribution):
     The Univariate Log-Normal Distribution.
     """
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'LogNormalDistribution_schema',
-        'type': 'object',
-        'properties': {
-            'num_target_qubits': {
-                'type': 'integer',
-                'default': 2,
-            },
-            'mu': {
-                'type': 'number',
-                'default': 0,
-            },
-            'sigma': {
-                'type': 'number',
-                'default': 1,
-            },
-            'low': {
-                'type': 'number',
-                'default': 0,
-            },
-            'high': {
-                'type': 'number',
-                'default': 1,
-            },
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, num_target_qubits, mu=0, sigma=1, low=0, high=1):
+    def __init__(self,
+                 num_target_qubits: int,
+                 mu: float = 0,
+                 sigma: float = 1,
+                 low: float = 0,
+                 high: float = 1) -> None:
         r"""
         Univariate lognormal distribution
 
         Args:
-            num_target_qubits (int): number of qubits it acts on
-            mu (float): expected value of considered normal distribution
-            sigma (float): standard deviation of considered normal distribution
-            low (float): lower bound, i.e., the value corresponding to \|0...0>
+            num_target_qubits: number of qubits it acts on,
+                has a min. value of 1.
+            mu: expected value of considered normal distribution
+            sigma: standard deviation of considered normal distribution
+            low: lower bound, i.e., the value corresponding to \|0...0>
                          (assuming an equidistant grid)
-            high (float): upper bound, i.e., the value corresponding to \|1...1>
+            high: upper bound, i.e., the value corresponding to \|1...1>
                           (assuming an equidistant grid)
         """
-        validate(locals(), self._INPUT_SCHEMA)
+        validate_min('num_target_qubits', num_target_qubits, 1)
         probabilities, _ = UnivariateDistribution.\
             pdf_to_probabilities(
                 lambda x: lognorm.pdf(x, s=sigma, scale=np.exp(mu)),
