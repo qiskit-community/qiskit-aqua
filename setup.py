@@ -31,7 +31,6 @@ requirements = [
     "sympy>=1.3",
     "numpy>=1.13",
     "psutil>=5",
-    "jsonschema>=2.6",
     "scikit-learn>=0.20.0",
     "cvxopt",
     "dlx",

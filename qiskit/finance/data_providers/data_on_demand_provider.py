@@ -14,6 +14,7 @@
 
 """ data on demand provider """
 
+from typing import Optional, Union, List
 import datetime
 from urllib.parse import urlencode
 import logging
@@ -21,7 +22,7 @@ import json
 import certifi
 import urllib3
 
-from qiskit.finance.data_providers import (BaseDataProvider, DataType,
+from qiskit.finance.data_providers import (BaseDataProvider,
                                            StockMarket, QiskitFinanceError)
 
 logger = logging.getLogger(__name__)
@@ -35,49 +36,21 @@ class DataOnDemandProvider(BaseDataProvider):
     for instructions on use, which involve obtaining a NASDAQ DOD access token.
     """
 
-    _INPUT_SCHEMA = {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "id": "dod_schema",
-        "type": "object",
-        "properties": {
-            "stockmarket": {
-                "type":
-                "string",
-                "default": StockMarket.NASDAQ.value,
-                "enum": [
-                    StockMarket.NASDAQ.value,
-                    StockMarket.NYSE.value,
-                ]
-            },
-            "datatype": {
-                "type":
-                "string",
-                "default": DataType.DAILYADJUSTED.value,
-                "enum": [
-                    DataType.DAILYADJUSTED.value,
-                    DataType.DAILY.value,
-                    DataType.BID.value,
-                    DataType.ASK.value,
-                ]
-            },
-        },
-    }
-
     def __init__(self,
-                 token,
-                 tickers,
-                 stockmarket=StockMarket.NASDAQ,
-                 start=datetime.datetime(2016, 1, 1),
-                 end=datetime.datetime(2016, 1, 30),
-                 verify=None):
+                 token: str,
+                 tickers: Union[str, List[str]],
+                 stockmarket: StockMarket = StockMarket.NASDAQ,
+                 start: datetime = datetime.datetime(2016, 1, 1),
+                 end: datetime = datetime.datetime(2016, 1, 30),
+                 verify: Optional[Union[str, bool]] = None) -> None:
         """
         Args:
-            token (str): quandl access token
-            tickers (str or list): tickers
-            stockmarket (StockMarket): NYSE or NASDAQ
-            start (datetime): first data point
-            end (datetime): last data point precedes this date
-            verify (None or str or boolean): if verify is None, certify certificates
+            token: quandl access token
+            tickers: tickers
+            stockmarket: NYSE or NASDAQ
+            start: first data point
+            end: last data point precedes this date
+            verify: if verify is None, certify certificates
                 will be used (default);
                 if this is False, no certificates will be checked; if this is a string,
                 it should be pointing
@@ -112,8 +85,6 @@ class DataOnDemandProvider(BaseDataProvider):
         self._start = start
         self._end = end
         self._verify = verify
-
-        # validate(locals(), self._INPUT_SCHEMA)
 
     def run(self):
         """

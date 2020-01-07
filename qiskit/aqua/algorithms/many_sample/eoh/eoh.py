@@ -40,7 +40,7 @@ class EOH(QuantumAlgorithm):
                  expansion_mode: str = 'trotter',
                  expansion_order: int = 1) -> None:
         validate_min('evo_time', evo_time, 0)
-        validate_min('num_time_slices', num_time_slices, 0)
+        validate_min('num_time_slices', num_time_slices, 1)
         validate_in_set('expansion_mode', expansion_mode, {'trotter', 'suzuki'})
         validate_min('expansion_order', expansion_order, 1)
         super().__init__()
