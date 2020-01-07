@@ -15,29 +15,18 @@
 """An approximate QFT."""
 
 from qiskit.aqua.circuits import FourierTransformCircuits as ftc
-from qiskit.aqua.utils.validation import validate
+from qiskit.aqua.utils.validation import validate_min
 from . import QFT
 
 
 class Approximate(QFT):
     """An approximate QFT."""
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'aqft_schema',
-        'type': 'object',
-        'properties': {
-            'degree': {
-                'type': 'integer',
-                'default': 0,
-                'minimum': 0
-            },
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, num_qubits, degree=0):
-        validate(locals(), self._INPUT_SCHEMA)
+    def __init__(self,
+                 num_qubits: int,
+                 degree: int = 0) -> None:
+        validate_min('num_qubits', num_qubits, 1)
+        validate_min('degree', degree, 0)
         super().__init__()
         self._num_qubits = num_qubits
         self._degree = degree

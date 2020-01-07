@@ -68,7 +68,7 @@ class UCCSD(VariationalForm):
         """Constructor.
 
         Args:
-            num_qubits: number of qubits.
+            num_qubits: number of qubits, has a min. value of 1.
             depth: number of replica of basic module, has a min. value of 1.
             num_orbitals: number of spin orbitals, has a min. value of 1.
             num_particles: number of particles, if it is a list,
@@ -96,7 +96,7 @@ class UCCSD(VariationalForm):
          Raises:
              ValueError: Computed qubits do not match actual value
         """
-        # basic parameters
+        validate_min('num_qubits', num_qubits, 1)
         validate_min('depth', depth, 1)
         validate_min('num_orbitals', num_orbitals, 1)
         if isinstance(num_particles, list) and len(num_particles) != 2:

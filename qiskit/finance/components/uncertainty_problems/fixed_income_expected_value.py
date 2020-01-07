@@ -16,8 +16,9 @@
 The Fixed Income Expected Value.
 """
 
+from typing import Optional, Union, List
 import numpy as np
-from qiskit.aqua.utils.validation import validate
+from qiskit.aqua.components.uncertainty_models import UncertaintyModel
 from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
 from qiskit.aqua.circuits.gates import cry  # pylint: disable=unused-import
 
@@ -31,65 +32,26 @@ class FixedIncomeExpectedValue(UncertaintyProblem):
     Evaluates a fixed income asset with uncertain interest rates.
     """
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'FIEV_schema',
-        'type': 'object',
-        'properties': {
-            'A': {
-                'type': 'array',
-                'default': [[1.0, 0.0], [0.0, 1.0]]
-            },
-            'b': {
-                'type': 'array',
-                'items': {
-                    'type': 'number'
-                },
-                'default': [0.0, 0.0]
-            },
-            'cash_flow': {
-                'type': 'array',
-                'items': {
-                    'type': 'number'
-                },
-                'default': [1.0, 2.0]
-            },
-            'c_approx': {
-                'type': 'number',
-                'default': 0.125
-            },
-            'i_state': {
-                'type': ['array', 'null'],
-                'items': {
-                    'type': 'integer'
-                },
-                'default': None
-            },
-            'i_objective': {
-                'type': ['integer', 'null'],
-                'default': None
-            }
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, uncertainty_model, A, b, cash_flow,
-                 c_approx, i_state=None, i_objective=None):
+    def __init__(self,
+                 uncertainty_model: UncertaintyModel,
+                 A: np.ndarray,
+                 b: int,
+                 cash_flow: List[float],
+                 c_approx: float,
+                 i_state: Optional[Union[List[int], np.ndarray]] = None,
+                 i_objective: Optional[int] = None) -> None:
         """
         Constructor.
 
         Args:
-            uncertainty_model (UncertaintyModel):  multivariate distribution
-            A (numpy.ndarray): PCA matrix for delta_r (changes in interest rates)
-            b (int): offset for interest rates (= initial interest rates)
-            cash_flow (list[float]): cash flow time series
-            c_approx (float): approximation scaling factor
-            i_state (Optional(Union(list, numpy.ndarray))): indices of qubits
-                                                            that represent the state
-            i_objective (Optional(int)): index of target qubit to apply the rotation to
+            uncertainty_model:  multivariate distribution
+            A: PCA matrix for delta_r (changes in interest rates)
+            b: offset for interest rates (= initial interest rates)
+            cash_flow: cash flow time series
+            c_approx: approximation scaling factor
+            i_state: indices of qubits that represent the state
+            i_objective: index of target qubit to apply the rotation to
         """
-        validate(locals(), self._INPUT_SCHEMA)
-
         if not isinstance(A, np.ndarray):
             A = np.asarray(A)
 

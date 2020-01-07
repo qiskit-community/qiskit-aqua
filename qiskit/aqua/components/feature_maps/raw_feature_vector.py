@@ -22,9 +22,9 @@ import numpy as np
 from qiskit import QuantumCircuit  # pylint: disable=unused-import
 
 from qiskit.aqua.utils.arithmetic import next_power_of_2_base
-from qiskit.aqua.components.feature_maps import FeatureMap
 from qiskit.aqua.circuits import StateVectorCircuit
-from qiskit.aqua.utils.validation import validate
+from qiskit.aqua.utils.validation import validate_min
+from .feature_map import FeatureMap
 
 logger = logging.getLogger(__name__)
 
@@ -34,27 +34,13 @@ class RawFeatureVector(FeatureMap):
     Using raw feature vector as the initial state vector
     """
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'raw_feature_vector_schema',
-        'type': 'object',
-        'properties': {
-            'feature_dimension': {
-                'type': 'integer',
-                'default': 2,
-                'minimum': 1
-            },
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, feature_dimension=2):
+    def __init__(self, feature_dimension: int = 2) -> None:
         """Constructor.
 
         Args:
-            feature_dimension (int): The feature dimension
+            feature_dimension: The feature dimension, has a min. value of 1.
         """
-        validate(locals(), self._INPUT_SCHEMA)
+        validate_min('feature_dimension', feature_dimension, 1)
         super().__init__()
         self._feature_dimension = feature_dimension
         self._num_qubits = next_power_of_2_base(feature_dimension)
