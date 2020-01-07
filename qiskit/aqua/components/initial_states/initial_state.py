@@ -32,7 +32,7 @@ class InitialState(ABC):
     """
 
     @abstractmethod
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     @abstractmethod

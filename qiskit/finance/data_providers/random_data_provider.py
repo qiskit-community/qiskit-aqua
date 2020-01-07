@@ -16,6 +16,7 @@
 Python implementation of provider of mock stock-market data, which are generated pseudo-randomly.
 """
 
+from typing import Optional, Union, List
 import datetime
 import logging
 import random
@@ -24,7 +25,6 @@ import numpy as np
 import pandas as pd
 
 from qiskit.finance.data_providers import (BaseDataProvider,
-                                           DataType,
                                            StockMarket,
                                            QiskitFinanceError)
 
@@ -37,37 +37,20 @@ class RandomDataProvider(BaseDataProvider):
     which are generated pseudo-randomly.
     """
 
-    _INPUT_SCHEMA = {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "id": "rnd_schema",
-        "type": "object",
-        "properties": {
-            "stockmarket": {
-                "type": "string",
-                "default": "RANDOM"
-            },
-            "datatype": {
-                "type": "string",
-                "default": DataType.DAILYADJUSTED.value,
-                "enum": [DataType.DAILYADJUSTED.value]
-            },
-        },
-    }
-
     def __init__(self,
-                 tickers=None,
-                 stockmarket=StockMarket.RANDOM,
-                 start=datetime.datetime(2016, 1, 1),
-                 end=datetime.datetime(2016, 1, 30),
-                 seed=None):
+                 tickers: Optional[Union[str, List[str]]] = None,
+                 stockmarket: StockMarket = StockMarket.RANDOM,
+                 start: datetime = datetime.datetime(2016, 1, 1),
+                 end: datetime = datetime.datetime(2016, 1, 30),
+                 seed: Optional[int] = None) -> None:
         """
         Initializer
         Args:
-            tickers (str or list): tickers
-            stockmarket (StockMarket): RANDOM
-            start (datetime): first data point
-            end (datetime): last data point precedes this date
-            seed (None or int): shall a seed be used?
+            tickers: tickers
+            stockmarket: RANDOM
+            start: first data point
+            end: last data point precedes this date
+            seed: shall a seed be used?
         Raises:
             QiskitFinanceError: provider doesn't support stock market value
         """
@@ -91,8 +74,6 @@ class RandomDataProvider(BaseDataProvider):
         self._start = start
         self._end = end
         self._seed = seed
-
-        # validate(locals(), self._INPUT_SCHEMA)
 
     def run(self):
         """

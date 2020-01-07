@@ -36,7 +36,7 @@ class HartreeFock(InitialState):
         """Constructor.
 
         Args:
-            num_qubits: number of qubits
+            num_qubits: number of qubits, has a min. value of 1.
             num_orbitals: number of spin orbitals, has a min. value of 1.
             num_particles: number of particles, if it is a list, the first number
                             is alpha and the second number if beta.
@@ -49,6 +49,7 @@ class HartreeFock(InitialState):
             ValueError: wrong setting in num_particles and num_orbitals.
             ValueError: wrong setting for computed num_qubits and supplied num_qubits.
         """
+        validate_min('num_qubits', num_qubits, 1)
         validate_min('num_orbitals', num_orbitals, 1)
         if isinstance(num_particles, list) and len(num_particles) != 2:
             raise ValueError('Num particles value {}. Number of values allowed is 2'.format(

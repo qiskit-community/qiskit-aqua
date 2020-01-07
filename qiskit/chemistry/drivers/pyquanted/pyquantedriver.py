@@ -47,6 +47,7 @@ class PyQuanteDriver(BaseDriver):
                  maxiters: int = 100) -> None:
         """
         Initializer
+
         Args:
             atoms: atoms list or string separated by semicolons or line breaks
             units: angstrom or bohr
@@ -56,7 +57,8 @@ class PyQuanteDriver(BaseDriver):
             hf_method: Hartree-Fock Method type
             tol: Convergence tolerance see pyquante2.scf hamiltonians and iterators
             maxiters: Convergence max iterations see pyquante2.scf hamiltonians and iterators,
-                        has a min. value of 1.
+                      has a min. value of 1.
+
         Raises:
             QiskitChemistryError: Invalid Input
         """
