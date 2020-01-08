@@ -14,13 +14,13 @@
 
 """Nakanishi-Fujii-Todo algorithm."""
 
+from typing import Optional
 import logging
 
 import numpy as np
 from scipy.optimize import minimize
 from scipy.optimize import OptimizeResult
-from qiskit.aqua.utils.validation import validate
-from qiskit.aqua.components.optimizers import Optimizer
+from .optimizer import Optimizer
 
 
 logger = logging.getLogger(__name__)
@@ -29,35 +29,14 @@ logger = logging.getLogger(__name__)
 class NFT(Optimizer):
     """Nakanishi-Fujii-Todo algorithm."""
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'nft_schema',
-        'type': 'object',
-        'properties': {
-            'maxiter': {
-                'type': ['integer', 'null'],
-                'default': None
-            },
-            'maxfev': {
-                'type': ['integer', 'null'],
-                'default': 1024
-            },
-            'reset_interval': {
-                'type': 'integer',
-                'default': 32
-            },
-            'disp': {
-                'type': 'boolean',
-                'default': False
-            },
-        },
-        'additionalProperties': False
-    }
-
     _OPTIONS = ['maxiter', 'maxfev', 'disp', 'reset_interval']
 
     # pylint: disable=unused-argument
-    def __init__(self, maxiter=None, maxfev=1024, disp=False, reset_interval=32):
+    def __init__(self,
+                 maxiter: Optional[int] = None,
+                 maxfev: int = 1024,
+                 disp: bool = False,
+                 reset_interval: int = 32) -> None:
         """
         Constructor.
 
@@ -65,10 +44,10 @@ class NFT(Optimizer):
         https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html.
 
         Args:
-            maxiter (int): Maximum number of iterations to perform.
-            maxfev (int): Maximum number of function evaluations to perform.
-            disp (bool): disp
-            reset_interval (int): The minimum estimates directly once
+            maxiter: Maximum number of iterations to perform.
+            maxfev: Maximum number of function evaluations to perform.
+            disp: disp
+            reset_interval: The minimum estimates directly once
                 in``reset_interval`` times.
         Notes:
             In this optimization method, the optimization function have to satisfy
@@ -78,7 +57,6 @@ class NFT(Optimizer):
             Sequential minimal optimization for quantum-classical hybrid algorithms.
             arXiv preprint arXiv:1903.12166.
         """
-        validate(locals(), self._INPUT_SCHEMA)
         super().__init__()
         for k, v in locals().items():
             if k in self._OPTIONS:
