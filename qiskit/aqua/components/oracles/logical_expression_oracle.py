@@ -25,7 +25,7 @@ from qiskit import QuantumCircuit, QuantumRegister
 
 from qiskit.aqua import AquaError
 from qiskit.aqua.circuits import CNF, DNF
-from qiskit.aqua.utils.validation import validate
+from qiskit.aqua.utils.validation import validate_in_set
 from .oracle import Oracle
 from .ast_utils import get_ast
 
@@ -33,53 +33,28 @@ logger = logging.getLogger(__name__)
 
 
 class LogicalExpressionOracle(Oracle):
-    """ LOgical expression Oracle """
+    """ Logical expression Oracle """
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'logical_expression_oracle_schema',
-        'type': 'object',
-        'properties': {
-            'expression': {
-                'type': ['string', 'null'],
-                'default': None
-            },
-            "optimization": {
-                "type": "boolean",
-                "default": False,
-            },
-            'mct_mode': {
-                'type': 'string',
-                'default': 'basic',
-                'enum': [
-                    'basic',
-                    'basic-dirty-ancilla',
-                    'advanced',
-                    'noancilla'
-                ]
-            },
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, expression=None, optimization=False, mct_mode='basic'):
+    def __init__(self,
+                 expression: str,
+                 optimization: bool = False,
+                 mct_mode: str = 'basic') -> None:
         """
         Constructor.
 
         Args:
-            expression (str): The string of the desired logical expression.
+            expression: The string of the desired logical expression.
                 It could be either in the DIMACS CNF format,
                 or a general boolean logical expression, such as 'a ^ b' and 'v[0] & (~v[1] | v[2])'
-            optimization (bool): Boolean flag for attempting logical expression optimization
-            mct_mode (str): The mode to use for building Multiple-Control Toffoli.
+            optimization: Boolean flag for attempting logical expression optimization
+            mct_mode: The mode to use for building Multiple-Control Toffoli.
         Raises:
             AquaError: invalid input
         """
-        validate(locals(), self._INPUT_SCHEMA)
+        validate_in_set('mct_mode', mct_mode,
+                        {'basic', 'basic-dirty-ancilla',
+                         'advanced', 'noancilla'})
         super().__init__()
-
-        if expression is None:
-            raise AquaError('Missing logical expression.')
 
         self._mct_mode = mct_mode.strip().lower()
         self._optimization = optimization

@@ -16,20 +16,24 @@
    Intended to be used programmatically only.
 """
 
+from typing import Union, List
+import numpy as np
 from qiskit.aqua import AquaError
+from qiskit.aqua.components.variational_forms import VariationalForm
 
 
 class VarFormBased:
     """An initial state derived from a variational form.
-       Intended to be used programmatically only.
     """
 
-    def __init__(self, var_form, params):
+    def __init__(self,
+                 var_form: VariationalForm,
+                 params: Union[List[float], np.ndarray]) -> None:
         """Constructor.
 
         Args:
-            var_form (VariationalForm): the variational form.
-            params (list or numpy.ndarray): parameter for the variational form.
+            var_form: the variational form.
+            params: parameter for the variational form.
         Raises:
             RuntimeError: invalid input
         """

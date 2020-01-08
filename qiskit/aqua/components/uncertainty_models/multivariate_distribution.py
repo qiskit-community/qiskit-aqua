@@ -16,6 +16,7 @@
 This module contains the definition of a base class for multivariate distributions.
 """
 
+from typing import Optional, List, Union, Dict
 from abc import ABC
 import numpy as np
 
@@ -29,15 +30,19 @@ class MultivariateDistribution(UncertaintyModel, ABC):
     (Interface for discrete bounded uncertainty models assuming an equidistant grid)
     """
 
-    def __init__(self, num_qubits, probabilities=None, low=None, high=None):
+    def __init__(self,
+                 num_qubits: Union[List[int], np.ndarray],
+                 probabilities: Optional[Dict] = None,
+                 low: Optional[Union[List[float], np.ndarray]] = None,
+                 high: Optional[Union[List[float], np.ndarray]] = None) -> None:
         """
         Constructor.
 
         Args:
-            num_qubits (Union(list, numpy.ndarray)): assigns qubits to dimensions
-            probabilities (map): map - maps index tuples to probabilities
-            low (Union(list, numpy.ndarray)): lowest value per dimension
-            high (Union(list, numpy.ndarray)): highest value per dimension
+            num_qubits: assigns qubits to dimensions
+            probabilities: map - maps index tuples to probabilities
+            low: lowest value per dimension
+            high: highest value per dimension
         """
 
         self._values = 0
