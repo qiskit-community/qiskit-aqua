@@ -15,43 +15,36 @@
 
 """TASP Ansatz described in https://journals.aps.org/pra/pdf/10.1103/PhysRevA.92.042303"""
 
+from typing import Optional, List
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
-from qiskit.aqua.utils.validation import validate
-from qiskit.aqua.components.variational_forms import VariationalForm
+from qiskit.aqua.utils.validation import validate_min
+from qiskit.aqua.components.initial_states import InitialState
+from qiskit.aqua.operators import WeightedPauliOperator
+from .variational_form import VariationalForm
 
 
 class TASP(VariationalForm):
     """Trotterized Adiabatic State Preparation.
     https://journals.aps.org/pra/pdf/10.1103/PhysRevA.92.042303"""
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'tasp_schema',
-        'type': 'object',
-        'properties': {
-            'depth': {
-                'type': 'integer',
-                'default': 1,
-                'minimum': 1
-            },
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, num_qubits, h_list, depth=1, initial_state=None):
+    def __init__(self,
+                 num_qubits: int,
+                 h_list: List[WeightedPauliOperator],
+                 depth: int = 1,
+                 initial_state: Optional[InitialState] = None) -> None:
         """Constructor.
 
         Args:
-            num_qubits (int) : number of qubits
-            depth (int) : number of TASP steps layers (corresponds to the variable S in
-                          equation 8 of the paper above)
-            h_list (WeightedPauliOperator) : list of Hamiltonians with which to evolve,
-                                             e.g. H_ex, H_hop, H_diag in the paper above.
-            initial_state (InitialState): an initial state object
+            num_qubits: number of qubits, has a min. value of 1.
+            h_list: list of Hamiltonians with which to evolve,
+                    e.g. H_ex, H_hop, H_diag in the paper above.
+            depth: number of TASP steps layers (corresponds to the variable S in
+                          equation 8 of the paper above), has a min. value of 1.
+            initial_state: an initial state object
         """
-
-        validate(locals(), self._INPUT_SCHEMA)
+        validate_min('num_qubits', num_qubits, 1)
+        validate_min('depth', depth, 1)
         super().__init__()
         self._num_qubits = num_qubits
         self._h_list = h_list
