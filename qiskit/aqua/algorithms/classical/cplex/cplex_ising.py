@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -19,12 +19,9 @@ import logging
 from math import fsum
 from timeit import default_timer
 from typing import Dict, List, Tuple, Any
-import importlib
 import numpy as np
 
-from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms.classical import ClassicalAlgorithm
-from qiskit.aqua.algorithms.classical.cplex.simple_cplex import SimpleCPLEX
 from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.aqua.utils.validation import validate_min, validate_range
 
@@ -42,7 +39,6 @@ class CPLEX_Ising(ClassicalAlgorithm):
         validate_min('timelimit', timelimit, 1)
         validate_min('thread', thread, 0)
         validate_range('display', display, 0, 5)
-        self._check_valid()
         super().__init__()
         self._ins = IsingInstance()
         self._ins.parse(operator.to_dict()['paulis'])
@@ -50,23 +46,6 @@ class CPLEX_Ising(ClassicalAlgorithm):
         self._thread = thread
         self._display = display
         self._sol = None
-
-    @staticmethod
-    def _check_valid():
-        err_msg = 'CPLEX is not installed. See ' \
-            'https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/' \
-            'ilog.odms.studio.help/Optimization_Studio/topics/COS_home.html'
-        try:
-            spec = importlib.util.find_spec('cplex.callbacks')
-            if spec is not None:
-                spec = importlib.util.find_spec('cplex.exceptions')
-                if spec is not None:
-                    return
-        except Exception as ex:  # pylint: disable=broad-except
-            logger.debug('%s %s', err_msg, str(ex))
-            raise AquaError(err_msg) from ex
-
-        raise AquaError(err_msg)
 
     def _run(self):
         model = IsingModel(self._ins, timelimit=self._timelimit,
@@ -84,6 +63,8 @@ class CPLEX_Ising(ClassicalAlgorithm):
 
 def new_cplex(timelimit=600, thread=1, display=2):
     """ new cplex """
+    # pylint: disable=import-outside-toplevel
+    from .simple_cplex import SimpleCPLEX
     cplex = SimpleCPLEX()
     cplex.parameters.timelimit.set(timelimit)
     cplex.parameters.threads.set(thread)
