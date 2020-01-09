@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -17,7 +17,7 @@
 from test.optimization.common import QiskitOptimizationTestCase
 import numpy as np
 
-from qiskit.aqua import AquaError, aqua_globals
+from qiskit.aqua import aqua_globals
 from qiskit.optimization.ising import max_cut
 from qiskit.optimization.ising.common import random_graph
 from qiskit.aqua.algorithms.classical.cplex.cplex_ising import CPLEX_Ising
@@ -43,5 +43,5 @@ class TestCplexIsing(QiskitOptimizationTestCase):
             np.testing.assert_array_equal(
                 max_cut.get_graph_solution(x), [1, 0, 1, 1])
             self.assertEqual(max_cut.max_cut_value(x, self.w), 24)
-        except AquaError as ex:
+        except NameError as ex:
             self.skipTest(str(ex))
