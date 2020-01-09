@@ -46,6 +46,7 @@ Local Optimizers
    SPSA
    TNC
    AQGD
+   NFT
 
 Global Optimizers
 =================
@@ -84,7 +85,11 @@ from .spsa import SPSA
 from .tnc import TNC
 from .aqgd import AQGD
 from .nft import NFT
-
+from .nlopts.crs import CRS
+from .nlopts.direct_l import DIRECT_L
+from .nlopts.direct_l_rand import DIRECT_L_RAND
+from .nlopts.esch import ESCH
+from .nlopts.isres import ISRES
 
 __all__ = ['Optimizer',
            'ADAM',
@@ -98,19 +103,5 @@ __all__ = ['Optimizer',
            'SPSA',
            'TNC',
            'AQGD',
-           'NFT']
-
-try:
-    import nlopt
-    import logging
-    logger = logging.getLogger(__name__)
-    logger.info('NLopt version: %s.%s.%s', nlopt.version_major(),
-                nlopt.version_minor(), nlopt.version_bugfix())
-    from .nlopts.crs import CRS
-    from .nlopts.direct_l import DIRECT_L
-    from .nlopts.direct_l_rand import DIRECT_L_RAND
-    from .nlopts.esch import ESCH
-    from .nlopts.isres import ISRES
-    __all__ += ['CRS', 'DIRECT_L', 'DIRECT_L_RAND', 'ESCH', 'ISRES']
-except ImportError:
-    pass
+           'NFT',
+           'CRS', 'DIRECT_L', 'DIRECT_L_RAND', 'ESCH', 'ISRES']
