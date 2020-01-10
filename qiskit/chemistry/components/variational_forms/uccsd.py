@@ -64,7 +64,7 @@ class UCCSD(VariationalForm):
                  method_doubles: str = 'ucc',
                  excitation_type: str = 'sd',
                  same_spin_doubles: bool = True,
-                 ignore_excitation_tapering: bool = False) -> None:
+                 skip_commute_test: bool = False) -> None:
         """Constructor.
 
         Args:
@@ -85,14 +85,16 @@ class UCCSD(VariationalForm):
                             sq_paulis, sq_list, tapering_values, and cliffords.
             method_singles: specify the single excitation considered. 'alpha', 'beta',
                                 'both' only alpha or beta spin-orbital single excitations or
-                                both (all of them)
+                                both (all of them).
             method_doubles: specify the single excitation considered. 'ucc' (conventional
                                 ucc), succ (singlet ucc), succ_full (singlet ucc full),
-                                pucc (pair ucc)
+                                pucc (pair ucc).
             excitation_type: specify the excitation type 'sd', 's', 'd' respectively
                                 for single and double, only single, only double excitations.
             same_spin_doubles: enable double excitations of the same spin.
-            ignore_excitation_tapering: keep all the excitation regardless if tapering is used.
+            skip_commute_test: when tapering excitation operators we test and exclude any that do
+                                not commute with symmetries. This test can be skipped to include
+                                all tapered excitation operators whether they commute or not.
 
 
          Raises:
@@ -147,7 +149,7 @@ class UCCSD(VariationalForm):
         self._method_doubles = method_doubles
         self._excitation_type = excitation_type
         self.same_spin_doubles = same_spin_doubles
-        self._ignore_excitation_tapering = ignore_excitation_tapering
+        self._skip_commute_test = skip_commute_test
 
         self._single_excitations, self._double_excitations = \
             UCCSD.compute_excitation_lists([self._num_alpha, self._num_beta], self._num_orbitals,
@@ -248,7 +250,7 @@ class UCCSD(VariationalForm):
                                task_args=(self._num_orbitals, self._num_particles,
                                           self._qubit_mapping, self._two_qubit_reduction,
                                           self._z2_symmetries,
-                                          self._ignore_excitation_tapering),
+                                          self._skip_commute_test),
                                num_processes=aqua_globals.num_processes)
         hopping_ops = []
         s_e_list = []
@@ -270,7 +272,7 @@ class UCCSD(VariationalForm):
     @staticmethod
     def _build_hopping_operator(index, num_orbitals, num_particles, qubit_mapping,
                                 two_qubit_reduction, z2_symmetries,
-                                ignore_excitation_tapering=False):
+                                skip_commute_test=False):
         """
         Builds a hopping operator given the list of indices (index) that is a single or a double
         excitation.
@@ -285,7 +287,10 @@ class UCCSD(VariationalForm):
                                         parity qubit mapping is used
             z2_symmetries (Z2Symmetries): class that contains the symmetries
                                           of hamiltonian for tapering
-            ignore_excitation_tapering (bool): prevent tapering from eliminating excitations
+            skip_commute_test (bool): when tapering excitation operators we test and exclude any
+                                that do not commute with symmetries. This test can be skipped to
+                                include all tapered excitation operators whether they commute
+                                or not.
         Returns:
             WeightedPauliOperator: qubit_op
             list: index
@@ -313,7 +318,7 @@ class UCCSD(VariationalForm):
                 symm_commuting = qubit_op.commute_with(symmetry_op)
                 if not symm_commuting:
                     break
-            if not ignore_excitation_tapering:
+            if not skip_commute_test:
                 qubit_op = z2_symmetries.taper(qubit_op) if symm_commuting else None
             else:
                 qubit_op = z2_symmetries.taper(qubit_op)
