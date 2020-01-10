@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -10,6 +10,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+# You can set this variable from the command line.
+SPHINXOPTS    =
 
 .PHONY: lint style test spell
 
@@ -24,3 +26,6 @@ test:
 
 spell:
 	pylint -rn --disable=all --enable=spelling --spelling-dict=en_US --spelling-private-dict-file=.pylintdict --ignore=gauopen qiskit/ml qiskit/aqua qiskit/chemistry qiskit/finance qiskit/optimization test
+
+html:
+	make -C docs html SPHINXOPTS=$(SPHINXOPTS)

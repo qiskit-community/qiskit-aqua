@@ -19,17 +19,20 @@ Also, for more information on the tapering see: https://arxiv.org/abs/1701.08213
 And for singlet q-UCCD (full) and pair q-UCCD see: https://arxiv.org/abs/1911.10864
 """
 
+from typing import Optional, Union, List
 import logging
 import sys
 import collections
 import copy
 
 import numpy as np
+from qiskit.aqua.utils.validation import validate_min, validate_in_set
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
 
 from qiskit.aqua import aqua_globals
+from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.operators import WeightedPauliOperator, Z2Symmetries
 from qiskit.aqua.components.variational_forms import VariationalForm
 from qiskit.chemistry.fermionic_operator import FermionicOperator
@@ -45,124 +48,68 @@ class UCCSD(VariationalForm):
     And for the singlet q-UCCD (full) and pair q-UCCD) see: https://arxiv.org/abs/1911.10864
     """
 
-    CONFIGURATION = {
-        'name': 'UCCSD',
-        'description': 'UCCSD Variational Form',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'uccsd_schema',
-            'type': 'object',
-            'properties': {
-                'depth': {
-                    'type': 'integer',
-                    'default': 1,
-                    'minimum': 1
-                },
-                'num_orbitals': {
-                    'type': 'integer',
-                    'default': 4,
-                    'minimum': 1
-                },
-                'num_particles': {
-                    'type': ['array', 'integer'],
-                    'default': [1, 1],
-                    'contains': {
-                        'type': 'integer'
-                    },
-                    'minItems': 2,
-                    'maxItems': 2
-                },
-                'active_occupied': {
-                    'type': ['array', 'null'],
-                    'default': None
-                },
-                'active_unoccupied': {
-                    'type': ['array', 'null'],
-                    'default': None
-                },
-                'qubit_mapping': {
-                    'type': 'string',
-                    'default': 'parity',
-                    'enum': ['jordan_wigner', 'parity', 'bravyi_kitaev']
-                },
-                'two_qubit_reduction': {
-                    'type': 'boolean',
-                    'default': True
-                },
-                'num_time_slices': {
-                    'type': 'integer',
-                    'default': 1,
-                    'minimum': 1
-                },
-                'method_singles': {
-                    'type': 'string',
-                    'default': 'both',
-                    'enum': ['both', 'alpha', 'beta']
-                },
-                'method_doubles': {
-                    'type': 'string',
-                    'default': 'ucc',
-                    'enum': ['ucc', 'pucc', 'succ', 'succ_full']
-                },
-                'excitation_type': {
-                    'type': 'string',
-                    'default': 'sd',
-                    'enum': ['sd', 's', 'd']
-                },
-            },
-            'additionalProperties': False
-        },
-        'depends': [
-            {
-                'pluggable_type': 'initial_state',
-                'default': {
-                    'name': 'HartreeFock',
-                }
-            },
-        ],
-    }
-
-    def __init__(self, num_qubits, depth, num_orbitals, num_particles,
-                 active_occupied=None, active_unoccupied=None, initial_state=None,
-                 qubit_mapping='parity', two_qubit_reduction=True, num_time_slices=1,
-                 shallow_circuit_concat=True, z2_symmetries=None,
-                 method_singles='both', method_doubles='ucc', excitation_type='sd',
-                 same_spin_doubles=True, ignore_excitation_tapering=False):
+    def __init__(self, num_qubits: int,
+                 depth: int,
+                 num_orbitals: int,
+                 num_particles: Union[List[int], int],
+                 active_occupied: Optional[List[int]] = None,
+                 active_unoccupied: Optional[List[int]] = None,
+                 initial_state: Optional[InitialState] = None,
+                 qubit_mapping: str = 'parity',
+                 two_qubit_reduction: bool = True,
+                 num_time_slices: int = 1,
+                 shallow_circuit_concat: bool = True,
+                 z2_symmetries: Optional[Z2Symmetries] = None,
+                 method_singles: str = 'both',
+                 method_doubles: str = 'ucc',
+                 excitation_type: str = 'sd',
+                 same_spin_doubles: bool = True,
+                 ignore_excitation_tapering: bool = False) -> None:
         """Constructor.
 
         Args:
-            num_qubits (int): number of qubits
-            depth (int): number of replica of basic module
-            num_orbitals (int): number of spin orbitals
-            num_particles (Union(list, int)): number of particles, if it is a list,
-                                        the first number is alpha and the second number if beta.
-            active_occupied (list): list of occupied orbitals to consider as active space
-            active_unoccupied (list): list of unoccupied orbitals to consider as active space
-            initial_state (InitialState): An initial state object.
-            qubit_mapping (str): qubit mapping type.
-            two_qubit_reduction (bool): two qubit reduction is applied or not.
-            num_time_slices (int): parameters for dynamics.
-            z2_symmetries (Z2Symmetries): represent the Z2 symmetries, including symmetries,
-                                          sq_paulis, sq_list, tapering_values, and cliffords
-            shallow_circuit_concat (bool): indicate whether to use shallow (cheap) mode for
-                                           circuit concatenation
-            method_singles (str): specify the single excitation considered. 'alpha', 'beta',
-                                  'both' only alpha or beta spin-orbital single excitations or
-                                  both (all of them)
-            method_doubles (str): specify the single excitation considered. 'ucc' (conventional
-                                  ucc), succ (singlet ucc), succ_full (singlet ucc full),
-                                  'pucc' (pair ucc)
-            excitation_type (str): specify the excitation type 'sd', 's', 'd' respectively
-                                   for single and double, only single, only double excitations.
-            same_spin_doubles (bool):, enable double excitations of the same spin.
-            ignore_excitation_tapering (bool): keep all the excitation regardless if tapering is
-            used.
+            num_qubits: number of qubits, has a min. value of 1.
+            depth: number of replica of basic module, has a min. value of 1.
+            num_orbitals: number of spin orbitals, has a min. value of 1.
+            num_particles: number of particles, if it is a list,
+                            the first number is alpha and the second number if beta.
+            active_occupied: list of occupied orbitals to consider as active space.
+            active_unoccupied: list of unoccupied orbitals to consider as active space.
+            initial_state: An initial state object.
+            qubit_mapping: qubit mapping type.
+            two_qubit_reduction: two qubit reduction is applied or not.
+            num_time_slices: parameters for dynamics, has a min. value of 1.
+            shallow_circuit_concat: indicate whether to use shallow (cheap) mode for
+                                           circuit concatenation.
+            z2_symmetries: represent the Z2 symmetries, including symmetries,
+                            sq_paulis, sq_list, tapering_values, and cliffords.
+            method_singles: specify the single excitation considered. 'alpha', 'beta',
+                                'both' only alpha or beta spin-orbital single excitations or
+                                both (all of them)
+            method_doubles: specify the single excitation considered. 'ucc' (conventional
+                                ucc), succ (singlet ucc), succ_full (singlet ucc full),
+                                pucc (pair ucc)
+            excitation_type: specify the excitation type 'sd', 's', 'd' respectively
+                                for single and double, only single, only double excitations.
+            same_spin_doubles: enable double excitations of the same spin.
+            ignore_excitation_tapering: keep all the excitation regardless if tapering is used.
+
 
          Raises:
              ValueError: Computed qubits do not match actual value
         """
-        # basic parameters
-        self.validate(locals())
+        validate_min('num_qubits', num_qubits, 1)
+        validate_min('depth', depth, 1)
+        validate_min('num_orbitals', num_orbitals, 1)
+        if isinstance(num_particles, list) and len(num_particles) != 2:
+            raise ValueError('Num particles value {}. Number of values allowed is 2'.format(
+                num_particles))
+        validate_in_set('qubit_mapping', qubit_mapping,
+                        {'jordan_wigner', 'parity', 'bravyi_kitaev'})
+        validate_min('num_time_slices', num_time_slices, 1)
+        validate_in_set('method_singles', method_singles, {'both', 'alpha', 'beta'})
+        validate_in_set('method_doubles', method_doubles, {'ucc', 'pucc', 'succ', 'succ_full'})
+        validate_in_set('excitation_type', excitation_type, {'sd', 's', 'd'})
         super().__init__()
 
         self._z2_symmetries = Z2Symmetries([], [], [], []) \

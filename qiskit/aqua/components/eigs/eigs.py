@@ -16,28 +16,20 @@
 This module contains the definition of a base class for eigenvalue estimators.
 """
 
-from abc import abstractmethod
-from qiskit.aqua import Pluggable
+from abc import ABC, abstractmethod
 
 
-class Eigenvalues(Pluggable):
+class Eigenvalues(ABC):
     """Base class for eigenvalue estimation.
 
-    This method should initialize the module and its configuration, and
-    use an exception if a component of the module is available.
+    This method should initialize the module and
+    use an exception if a component of the module is not available.
     """
 
     @abstractmethod
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self._inverse = None
-
-    @classmethod
-    def init_params(cls, params):
-        """ init params """
-        eigs_params = params.get(Pluggable.SECTION_KEY_EIGS)
-        args = {k: v for k, v in eigs_params.items() if k != 'name'}
-        return cls(**args)
 
     @abstractmethod
     def get_register_sizes(self):

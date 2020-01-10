@@ -13,53 +13,36 @@
 # that they have been altered from the originals.
 """The Exact Eigensolver algorithm."""
 
+from typing import List, Optional
 import logging
 
 import numpy as np
 from scipy import sparse as scisparse
 
-from qiskit.aqua.algorithms import QuantumAlgorithm
-from qiskit.aqua import AquaError, Pluggable
-from qiskit.aqua.operators import MatrixOperator, op_converter  # pylint: disable=unused-import
+from qiskit.aqua.algorithms.classical import ClassicalAlgorithm
+from qiskit.aqua.operators import op_converter
+from qiskit.aqua.operators import BaseOperator
+from qiskit.aqua.utils.validation import validate_min
 
 logger = logging.getLogger(__name__)
 
 # pylint: disable=invalid-name
 
 
-class ExactEigensolver(QuantumAlgorithm):
+class ExactEigensolver(ClassicalAlgorithm):
     """The Exact Eigensolver algorithm."""
 
-    CONFIGURATION = {
-        'name': 'ExactEigensolver',
-        'description': 'ExactEigensolver Algorithm',
-        'classical': True,
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'ExactEigensolver_schema',
-            'type': 'object',
-            'properties': {
-                'k': {
-                    'type': 'integer',
-                    'default': 1,
-                    'minimum': 1
-                }
-            },
-            'additionalProperties': False
-        },
-        'problems': ['energy', 'excited_states', 'ising']
-    }
-
-    def __init__(self, operator, k=1, aux_operators=None):
+    def __init__(self, operator: BaseOperator, k: int = 1,
+                 aux_operators: Optional[List[BaseOperator]] = None) -> None:
         """Constructor.
 
         Args:
-            operator (MatrixOperator): instance
-            k (int): How many eigenvalues are to be computed
-            aux_operators (list[MatrixOperator]): Auxiliary operators
+            operator: instance
+            k: How many eigenvalues are to be computed, has a min. value of 1.
+            aux_operators: Auxiliary operators
                         to be evaluated at each eigenvalue
         """
-        self.validate(locals())
+        validate_min('k', k, 1)
         super().__init__()
 
         self._operator = op_converter.to_matrix_operator(operator)
@@ -75,24 +58,6 @@ class ExactEigensolver(QuantumAlgorithm):
             self._k = self._operator.matrix.shape[0]
             logger.debug("WARNING: Asked for %s eigenvalues but max possible is %s.", k, self._k)
         self._ret = {}
-
-    @classmethod
-    def init_params(cls, params, algo_input):
-        """
-        Initialize via parameters dictionary and algorithm input instance
-        Args:
-            params (dict): parameters dictionary
-            algo_input (EnergyInput): instance
-        Returns:
-            ExactEigensolver: an instance of this class
-        Raises:
-            AquaError: invalid input
-        """
-        if algo_input is None:
-            raise AquaError("EnergyInput instance is required.")
-        ee_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
-        k = ee_params.get('k')
-        return cls(algo_input.qubit_op, k, algo_input.aux_ops)
 
     def _solve(self):
         if self._operator.dia_matrix is None:

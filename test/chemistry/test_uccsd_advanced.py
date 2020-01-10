@@ -297,7 +297,6 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
 
         return bool(len(list1) or len(list2) in [0])
 
-
     @staticmethod
     def group_excitation_lists_comparator(glist1, glist2):
         """

@@ -16,7 +16,9 @@
 The European Call Option Delta.
 """
 
+from typing import Optional, Union, List
 import numpy as np
+from qiskit.aqua.components.uncertainty_models import UnivariateDistribution
 from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
 from qiskit.aqua.circuits.fixed_value_comparator import FixedValueComparator
 
@@ -31,51 +33,19 @@ class EuropeanCallDelta(UncertaintyProblem):
     The payoff function is f(S, K) = max(0, S - K) for a spot price S and strike price K.
     """
 
-    CONFIGURATION = {
-        'name': 'EuropeanCallDelta',
-        'description': 'European Call Delta',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'ECD_schema',
-            'type': 'object',
-            'properties': {
-                'strike_price': {
-                    'type': 'number',
-                    'default': 0
-                },
-                'i_state': {
-                    'type': ['array', 'null'],
-                    'items': {
-                        'type': 'integer'
-                    },
-                    'default': None
-                },
-                'i_objective': {
-                    'type': ['integer', 'null'],
-                    'default': None
-                }
-            },
-            'additionalProperties': False
-        },
-        'depends': [
-            {
-                'pluggable_type': 'univariate_distribution',
-                'default': {
-                    'name': 'NormalDistribution'
-                }
-            },
-        ],
-    }
-
-    def __init__(self, uncertainty_model, strike_price, i_state=None, i_objective=None):
+    def __init__(self,
+                 uncertainty_model: UnivariateDistribution,
+                 strike_price: float,
+                 i_state: Optional[Union[List[int], np.ndarray]] = None,
+                 i_objective: Optional[int] = None) -> None:
         """
         Constructor.
 
         Args:
-            uncertainty_model (UnivariateDistribution): uncertainty model for spot price
-            strike_price (float): strike price of the European option
-            i_state (Union(list, numpy.ndarray)): indices of qubits representing the uncertainty
-            i_objective (int): index of qubit for objective function
+            uncertainty_model: uncertainty model for spot price
+            strike_price: strike price of the European option
+            i_state: indices of qubits representing the uncertainty
+            i_objective: index of qubit for objective function
         """
         super().__init__(uncertainty_model.num_target_qubits + 1)
 
@@ -88,8 +58,6 @@ class EuropeanCallDelta(UncertaintyProblem):
         if i_objective is None:
             i_objective = uncertainty_model.num_target_qubits
         self.i_objective = i_objective
-
-        super().validate(locals())
 
         # map strike price to {0, ..., 2^n-1}
         lb = uncertainty_model.low

@@ -13,77 +13,31 @@
 # that they have been altered from the originals.
 """The Exact LinearSystem algorithm."""
 
+from typing import List, Union
 import logging
 
 import numpy as np
 
-from qiskit.aqua.algorithms import QuantumAlgorithm
-from qiskit.aqua import AquaError
+from qiskit.aqua.algorithms.classical import ClassicalAlgorithm
 
 logger = logging.getLogger(__name__)
 
 
-class ExactLSsolver(QuantumAlgorithm):
+class ExactLSsolver(ClassicalAlgorithm):
     """The Exact LinearSystem algorithm."""
 
-    CONFIGURATION = {
-        'name': 'ExactLSsolver',
-        'description': 'ExactLSsolver Algorithm',
-        'classical': True,
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'ExactLSsolver_schema',
-            'type': 'object',
-            'properties': {
-            },
-            'additionalProperties': False
-        },
-        'problems': ['linear_system']
-    }
-
-    def __init__(self, matrix=None, vector=None):
+    def __init__(self, matrix: Union[List[List[float]], np.ndarray],
+                 vector: Union[List[float], np.ndarray]) -> None:
         """Constructor.
 
         Args:
-            matrix (array): the input matrix of linear system of equations
-            vector (array): the input vector of linear system of equations
+            matrix: the input matrix of linear system of equations
+            vector: the input vector of linear system of equations
         """
-        self.validate(locals())
         super().__init__()
         self._matrix = matrix
         self._vector = vector
         self._ret = {}
-
-    @classmethod
-    def init_params(cls, params, algo_input):  # pylint: disable=unused-argument
-        """
-        Initialize via parameters dictionary and algorithm input instance
-        Args:
-            params (dict): parameters dictionary
-            algo_input (LinearSystemInput): instance
-        Returns:
-            ExactLSsolver: an instance of this class
-        Raises:
-            AquaError: invalid input
-            ValueError: invalid input
-        """
-        if algo_input is None:
-            raise AquaError("LinearSystemInput instance is required.")
-
-        matrix = algo_input.matrix
-        vector = algo_input.vector
-        if not isinstance(matrix, np.ndarray):
-            matrix = np.asarray(matrix)
-        if not isinstance(vector, np.ndarray):
-            vector = np.asarray(vector)
-
-        if matrix.shape[0] != len(vector):
-            raise ValueError("Input vector dimension does not match input "
-                             "matrix dimension!")
-        if matrix.shape[0] != matrix.shape[1]:
-            raise ValueError("Input matrix must be square!")
-
-        return cls(matrix, vector)
 
     def _solve(self):
         self._ret['eigvals'] = np.linalg.eig(self._matrix)[0]

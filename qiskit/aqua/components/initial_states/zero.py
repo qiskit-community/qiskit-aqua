@@ -19,31 +19,20 @@ from qiskit import QuantumRegister, QuantumCircuit
 
 from qiskit.aqua import AquaError
 from qiskit.aqua.components.initial_states import InitialState
+from qiskit.aqua.utils.validation import validate_min
 
 
 class Zero(InitialState):
     """A zero (null/vacuum) state."""
 
-    CONFIGURATION = {
-        'name': 'ZERO',
-        'description': 'Zero initial state',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'zero_state_schema',
-            'type': 'object',
-            'properties': {
-            },
-            'additionalProperties': False
-        }
-    }
-
-    def __init__(self, num_qubits):
+    def __init__(self, num_qubits: int) -> None:
         """Constructor.
 
         Args:
-            num_qubits (int): number of qubits.
+            num_qubits: number of qubits, has a min. value of 1.
         """
         super().__init__()
+        validate_min('num_qubits', num_qubits, 1)
         self._num_qubits = num_qubits
 
     def construct_circuit(self, mode='circuit', register=None):

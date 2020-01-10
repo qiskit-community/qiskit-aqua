@@ -13,9 +13,8 @@ Finance, with both code and notebook examples available in the
 [qiskit-iqx-tutorials](https://github.com/Qiskit/qiskit-iqx-tutorials) and
 [qiskit-community-tutorials](https://github.com/Qiskit/qiskit-community-tutorials) GitHub Repositories.
 
-Aqua was designed to be extensible, and uses a pluggable framework where algorithms and support objects used
-by algorithms—such as optimizers, variational forms, and oracles—are derived from a defined base class for the type and
-discovered dynamically at run time.
+Aqua was designed to be extensible, and uses a framework where algorithms and support objects used
+by algorithms—such as optimizers, variational forms, and oracles—are derived from a defined base class for the type.
 
 ## Installation
 
@@ -121,6 +120,7 @@ Now that Qiskit Aqua is installed, it's time to begin working with it.  We are r
 ```python
 from qiskit.chemistry import FermionicOperator
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
+from qiskit.aqua.operators import Z2Symmetries
 
 # Use PySCF, a classical computational chemistry software
 # package, to compute the one-body and two-body integrals in
@@ -136,7 +136,7 @@ num_spin_orbitals = molecule.num_orbitals * 2
 ferOp = FermionicOperator(h1=molecule.one_body_integrals, h2=molecule.two_body_integrals)
 map_type = 'PARITY'
 qubitOp = ferOp.mapping(map_type)
-qubitOp = qubitOp.two_qubit_reduced_operator(num_particles)
+qubitOp = Z2Symmetries.two_qubit_reduction(qubitOp, num_particles)
 num_qubits = qubitOp.num_qubits
 
 # set the backend for the quantum computation
@@ -164,7 +164,7 @@ print(result['energy'])
 
 The program above uses a quantum computer to calculate the ground state energy of molecular Hydrogen,
 H<sub>2</sub>, where the two atoms are configured to be at a distance of 0.735 angstroms. The molecular
-configuration input is generated using PySCF. First, Qiskit Chemisrtry transparently executes PySCF,
+input is generated using PySCF. First, Qiskit Chemistry transparently executes PySCF,
 and extracts from it the one- and two-body molecular-orbital integrals; an inexpensive operation that scales
 well classically and does not require the use of a quantum computer. These integrals are then used to create
 a quantum fermionic-operator representation of the molecule. In this specific example, we use a parity mapping
@@ -181,8 +181,8 @@ which means that the backend will be executed with default parameters.
 To customize the backend, you can wrap it into a `QuantumInstance` object, and then pass that object to the
 `run` method of the QuantumAlgorithm, as explained above. The `QuantumInstance` API allows you to customize
 run-time properties of the backend, such as the number of shots, the maximum number of credits to use,
-a dictionary with the configuration settings for the simulator, a dictionary with the initial layout of qubits
-in the mapping, and the Terra `PassManager` that will handle the compilation of the circuits.
+settings for the simulator, initial layout of qubits
+in the mapping and the Terra `PassManager` that will handle the compilation of the circuits.
 For the full set of options, please refer to the documentation of the Aqua `QuantumInstance` API.
 
 
@@ -201,12 +201,6 @@ for more details.
 Qiskit Chemistry is a modular and extensible software framework that allows researchers to contribute new components to it
 and extend its functionality.  For this reason, Qiskit Chemistry exposes all the Application Programming Interfaces (APIs) 
 necessary to access its functionality programmatically.
-
-Those users who are interested in executing Qiskit as a tool should install
-[Qiskit Aqua Interfaces](https://github.com/Qiskit/qiskit-aqua-interfaces) via the pip tool.  This software package contains
-command-line and graphical user interfaces to easily configure an experiment and executing without having to write any
-line of code.  Both interfaces come with a schema-based configuration-correctness mechanism.  Furthermore, the
-Graphical User Interface (GUI) includes capabilities for automatic code generation.
 
 
 ## Contribution Guidelines

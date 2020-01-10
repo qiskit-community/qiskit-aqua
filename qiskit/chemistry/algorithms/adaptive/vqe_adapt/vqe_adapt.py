@@ -18,17 +18,22 @@ An adaptive VQE implementation.
 See https://arxiv.org/abs/1812.11173
 """
 
+from typing import Optional, List
 import logging
 import re
 import numpy as np
 
 from qiskit import ClassicalRegister
-from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
+from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms.adaptive.vq_algorithm import VQAlgorithm
 from qiskit.aqua.algorithms.adaptive.vqe.vqe import VQE
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.aqua.operators import TPBGroupedWeightedPauliOperator, WeightedPauliOperator
 from qiskit.aqua.utils.backend_utils import is_aer_statevector_backend
+from qiskit.aqua.operators import BaseOperator
+from qiskit.aqua.components.optimizers import Optimizer
+from qiskit.aqua.components.variational_forms import VariationalForm
+from qiskit.aqua.utils.validation import validate_min
 
 logger = logging.getLogger(__name__)
 
@@ -40,77 +45,34 @@ class VQEAdapt(VQAlgorithm):
     See https://arxiv.org/abs/1812.11173
     """
 
-    CONFIGURATION = {
-        'name': 'VQEAdapt',
-        'description': 'Adaptive VQE Algorithm',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'vqe_adapt_schema',
-            'type': 'object',
-            'properties': {
-                'initial_point': {
-                    'type': ['array', 'null'],
-                    "items": {
-                        "type": "number"
-                    },
-                    'default': None
-                },
-                'threshold': {
-                    'type': 'number',
-                    'minimum': 1e-15,  # limited by floating point precision
-                    'default': 1e-5
-
-                },
-                'delta': {
-                    'type': 'number',
-                    'minimum': 1e-5,
-                    'default': 1
-                },
-                'max_evals_grouped': {
-                    'type': 'integer',
-                    'default': 1
-                }
-            },
-            'additionalProperties': False
-        },
-        'problems': ['energy', 'ising'],
-        'depends': [
-            {
-                'pluggable_type': 'optimizer',
-                'default': {
-                    'name': 'L_BFGS_B'
-                },
-            },
-            {
-                'pluggable_type': 'variational_form',
-                'default': {
-                    'name': 'UCCSD'
-                },
-            },
-        ],
-    }
-
-    def __init__(self, operator, var_form_base, optimizer, initial_point=None,
-                 excitation_pool=None, threshold=1e-5, delta=1,
-                 max_evals_grouped=1, aux_operators=None):
+    def __init__(self, operator: BaseOperator,
+                 var_form_base: VariationalForm, optimizer: Optimizer,
+                 initial_point: Optional[np.ndarray] = None,
+                 excitation_pool: Optional[List[WeightedPauliOperator]] = None,
+                 threshold: float = 1e-5,
+                 delta: float = 1, max_evals_grouped: int = 1,
+                 aux_operators: Optional[List[BaseOperator]] = None) -> None:
         """Constructor.
 
         Args:
-            operator (BaseOperator): Qubit operator
-            var_form_base (VariationalForm): base parametrized variational form
-            optimizer (Optimizer): the classical optimizer algorithm
-            initial_point (numpy.ndarray): optimizer initial point
-            excitation_pool (list[WeightedPauliOperator]): list of excitation operators
-            threshold (double): absolute threshold value for gradients
-            delta (float): finite difference step size for gradient computation
-            max_evals_grouped (int): max number of evaluations performed simultaneously
-            aux_operators (list[BaseOperator]): Auxiliary operators to be evaluated
+            operator: Qubit operator
+            var_form_base: base parameterized variational form
+            optimizer: the classical optimizer algorithm
+            initial_point: optimizer initial point
+            excitation_pool: list of excitation operators
+            threshold: absolute threshold value for gradients, has a min. value of 1e-15.
+            delta: finite difference step size for gradient computation,
+                    has a min. value of 1e-5.
+            max_evals_grouped: max number of evaluations performed simultaneously
+            aux_operators: Auxiliary operators to be evaluated
                                                 at each eigenvalue
 
         Raises:
             ValueError: if var_form_base is not an instance of UCCSD.
             See also: qiskit/chemistry/components/variational_forms/uccsd_adapt.py
         """
+        validate_min('threshold', threshold, 1e-15)
+        validate_min('delta', delta, 1e-5)
         super().__init__(var_form=var_form_base,
                          optimizer=optimizer,
                          initial_point=initial_point)
@@ -134,48 +96,6 @@ class VQEAdapt(VQAlgorithm):
                 [aux_operators] if not isinstance(aux_operators, list) else aux_operators
             for aux_op in aux_operators:
                 self._aux_operators.append(aux_op)
-
-    @classmethod
-    def init_params(cls, params, algo_input):
-        """
-        Initialize via parameters dictionary and algorithm input instance.
-
-        Args:
-            params (dict): parameters dictionary
-            algo_input (EnergyInput): EnergyInput instance
-
-        Returns:
-            VQEAdapt: VQEAdapt object
-        Raises:
-            AquaError: invalid input
-        """
-        if algo_input is None:
-            raise AquaError("EnergyInput instance is required.")
-
-        operator = algo_input.qubit_op
-
-        vqe_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
-        initial_point = vqe_params.get('initial_point')
-        excitation_pool = vqe_params.get('excitation_pool')
-        threshold = vqe_params.get('threshold')
-        delta = vqe_params.get('delta')
-        max_evals_grouped = vqe_params.get('max_evals_grouped')
-
-        # Set up variational form, we need to add computed num qubits
-        # Pass all parameters so that Variational Form can create its dependents
-        var_form_params = params.get(Pluggable.SECTION_KEY_VAR_FORM)
-        var_form_params['num_qubits'] = operator.num_qubits
-        var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM,
-                                       var_form_params['name']).init_params(params)
-
-        # Set up optimizer
-        opt_params = params.get(Pluggable.SECTION_KEY_OPTIMIZER)
-        optimizer = get_pluggable_class(PluggableType.OPTIMIZER,
-                                        opt_params['name']).init_params(params)
-
-        return cls(operator, var_form, optimizer, excitation_pool=excitation_pool,
-                   initial_point=initial_point, threshold=threshold, delta=delta,
-                   max_evals_grouped=max_evals_grouped, aux_operators=algo_input.aux_ops)
 
     def _compute_gradients(self, excitation_pool, theta, delta,
                            var_form, operator, optimizer):

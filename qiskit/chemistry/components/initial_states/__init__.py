@@ -12,7 +12,25 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Initial State Packages """
+"""
+Initial States (:mod:`qiskit.chemistry.components.initial_states`)
+==================================================================
+These are chemistry specific Aqua Initial States where they inherit from
+Aqua :class:`InitialState`. As they rely on chemistry specific knowledge
+and/or functions they live here rather than in Aqua.
+
+.. currentmodule:: qiskit.chemistry.components.initial_states
+
+Initial States
+==============
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   HartreeFock
+
+"""
 
 from .hartree_fock import HartreeFock
 

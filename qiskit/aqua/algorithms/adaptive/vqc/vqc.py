@@ -12,8 +12,9 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" VQC algorithm """
+""" Variational Quantum Classifier algorithm """
 
+from typing import Optional, Callable, Dict
 import logging
 import math
 import numpy as np
@@ -22,11 +23,13 @@ from sklearn.utils import shuffle
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 from qiskit.circuit import ParameterVector
 
-from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class, AquaError
-from qiskit.aqua.utils import get_feature_dimension
+from qiskit.aqua import AquaError
 from qiskit.aqua.utils import map_label_to_class_name
 from qiskit.aqua.utils import split_dataset_to_data_and_labels
 from qiskit.aqua.algorithms.adaptive.vq_algorithm import VQAlgorithm
+from qiskit.aqua.components.optimizers import Optimizer
+from qiskit.aqua.components.feature_maps import FeatureMap
+from qiskit.aqua.components.variational_forms import VariationalForm
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +43,8 @@ def assign_label(measured_key, num_classes):
     - If even number of qubits we use parity
     Classes = 3
     - We use part-parity
-        {ex. for 2 qubits: [00], [01,10], [11] would be the three labels}
+      {ex. for 2 qubits: [00], [01,10], [11] would be the three labels}
+
     Args:
         measured_key (str): measured key
         num_classes (int): number of classes
@@ -82,6 +86,7 @@ def assign_label(measured_key, num_classes):
 def cost_estimate(probs, gt_labels, shots=None):  # pylint: disable=unused-argument
     """Calculate cross entropy
     # shots is kept since it may be needed in future.
+
     Args:
         shots (int): the number of shots used in quantum computing
         probs (numpy.ndarray): NxK array, N is the number of data and K is the number of class
@@ -124,6 +129,7 @@ def cost_estimate_sigmoid(shots, probs, gt_labels):
 
 def return_probabilities(counts, num_classes):
     """Return the probabilities of given measured counts
+
     Args:
         counts (list[dict]): N data and each with a dict recording the counts
         num_classes (int): number of classes
@@ -142,90 +148,42 @@ def return_probabilities(counts, num_classes):
 
 
 class VQC(VQAlgorithm):
-    """ VQC Algorithm """
-    CONFIGURATION = {
-        'name': 'VQC',
-        'description': 'Variational Quantum Classifier',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'vqc_schema',
-            'type': 'object',
-            'properties': {
-                'override_SPSA_params': {
-                    'type': 'boolean',
-                    'default': True
-                },
-                'max_evals_grouped': {
-                    'type': 'integer',
-                    'default': 1
-                },
-                'minibatch_size': {
-                    'type': 'integer',
-                    'default': -1
-                }
-            },
-            'additionalProperties': False
-        },
-        'problems': ['classification'],
-        'depends': [
-            {
-                'pluggable_type': 'optimizer',
-                'default': {
-                    'name': 'SPSA'
-                },
-            },
-            {
-                'pluggable_type': 'feature_map',
-                'default': {
-                    'name': 'SecondOrderExpansion',
-                    'depth': 2
-                },
-            },
-            {
-                'pluggable_type': 'variational_form',
-                'default': {
-                    'name': 'RYRZ',
-                    'depth': 3
-                },
-            },
-        ],
-    }
+    """ Variational Quantum Classifier algorithm """
 
     def __init__(
             self,
-            optimizer=None,
-            feature_map=None,
-            var_form=None,
-            training_dataset=None,
-            test_dataset=None,
-            datapoints=None,
-            max_evals_grouped=1,
-            minibatch_size=-1,
-            callback=None
-    ):
-        """Initialize the object
+            optimizer: Optimizer,
+            feature_map: FeatureMap,
+            var_form: VariationalForm,
+            training_dataset: Dict[str, np.ndarray],
+            test_dataset: Optional[Dict[str, np.ndarray]] = None,
+            datapoints: Optional[np.ndarray] = None,
+            max_evals_grouped: int = 1,
+            minibatch_size: int = -1,
+            callback: Optional[Callable[[int, np.ndarray, float, int], None]] = None
+    ) -> None:
+        """
+
         Args:
-            optimizer (Optimizer): The classical optimizer to use.
-            feature_map (FeatureMap): The FeatureMap instance to use.
-            var_form (VariationalForm): The variational form instance.
-            training_dataset (dict): The training dataset, in the format:
-                                    {'A': np.ndarray, 'B': np.ndarray, ...}.
-            test_dataset (dict): The test dataset, in same format as `training_dataset`.
-            datapoints (np.ndarray): NxD array, N is the number of data and D is data dimension.
-            max_evals_grouped (int): The maximum number of evaluations to perform simultaneously.
-            minibatch_size (int): The size of a mini-batch.
-            callback (Callable): a callback that can access the
+            optimizer: The classical optimizer to use.
+            feature_map: The FeatureMap instance to use.
+            var_form: The variational form instance.
+            training_dataset: The training dataset, in the format
+                {'A': np.ndarray, 'B': np.ndarray, ...}.
+            test_dataset: The test dataset, in same format as `training_dataset`.
+            datapoints: NxD array, N is the number of data and D is data dimension.
+            max_evals_grouped: The maximum number of evaluations to perform simultaneously.
+            minibatch_size: The size of a mini-batch.
+            callback: a callback that can access the
                 intermediate data during the optimization.
                 Internally, four arguments are provided as follows the index
                 of data batch, the index of evaluation,
                 parameters of variational form, evaluated value.
-        Notes:
+        Note:
             We use `label` to denotes numeric results and `class` the class names (str).
         Raises:
             AquaError: invalid input
         """
-
-        self.validate(locals())
         super().__init__(
             var_form=var_form,
             optimizer=optimizer,
@@ -270,45 +228,6 @@ class VQC(VQAlgorithm):
         self._var_form_params = ParameterVector('θ', self._var_form.num_parameters)
         self._feature_map_params = ParameterVector('x', self._feature_map.feature_dimension)
         self._parameterized_circuits = None
-
-    @classmethod
-    def init_params(cls, params, algo_input):
-        """ init params """
-        algo_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
-        override_spsa_params = algo_params.get('override_SPSA_params')
-        max_evals_grouped = algo_params.get('max_evals_grouped')
-        minibatch_size = algo_params.get('minibatch_size')
-
-        # Set up optimizer
-        opt_params = params.get(Pluggable.SECTION_KEY_OPTIMIZER)
-        # If SPSA then override SPSA params as reqd to our predetermined values
-        if opt_params['name'] == 'SPSA' and override_spsa_params:
-            opt_params['c0'] = 4.0
-            opt_params['c1'] = 0.1
-            opt_params['c2'] = 0.602
-            opt_params['c3'] = 0.101
-            opt_params['c4'] = 0.0
-            opt_params['skip_calibration'] = True
-        optimizer = get_pluggable_class(PluggableType.OPTIMIZER,
-                                        opt_params['name']).init_params(params)
-
-        # Set up feature map
-        fea_map_params = params.get(Pluggable.SECTION_KEY_FEATURE_MAP)
-        feature_dimension = get_feature_dimension(algo_input.training_dataset)
-        fea_map_params['feature_dimension'] = feature_dimension
-        feature_map = get_pluggable_class(PluggableType.FEATURE_MAP,
-                                          fea_map_params['name']).init_params(params)
-
-        # Set up variational form, we need to add computed num qubits
-        # Pass all parameters so that Variational Form can create its dependents
-        var_form_params = params.get(Pluggable.SECTION_KEY_VAR_FORM)
-        var_form_params['num_qubits'] = feature_map.num_qubits
-        var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM,
-                                       var_form_params['name']).init_params(params)
-
-        return cls(optimizer, feature_map, var_form, algo_input.training_dataset,
-                   algo_input.test_dataset, algo_input.datapoints, max_evals_grouped,
-                   minibatch_size)
 
     def construct_circuit(self, x, theta, measurement=False):
         """

@@ -16,6 +16,7 @@
 Quantum Generative Adversarial Network.
 """
 
+from typing import Optional
 import csv
 import os
 import logging
@@ -24,11 +25,13 @@ import numpy as np
 from scipy.stats import entropy
 
 from qiskit.aqua import AquaError, aqua_globals
-from qiskit.aqua import Pluggable, get_pluggable_class, PluggableType
 from qiskit.aqua.algorithms import QuantumAlgorithm
+from qiskit.aqua.components.neural_networks.discriminative_network import DiscriminativeNetwork
+from qiskit.aqua.components.neural_networks.generative_network import GenerativeNetwork
 from qiskit.aqua.components.neural_networks.quantum_generator import QuantumGenerator
 from qiskit.aqua.components.neural_networks.numpy_discriminator import NumpyDiscriminator
 from qiskit.aqua.utils.dataset_helper import discretize_and_truncate
+from qiskit.aqua.utils.validation import validate_min
 
 logger = logging.getLogger(__name__)
 
@@ -40,85 +43,36 @@ class QGAN(QuantumAlgorithm):
     Quantum Generative Adversarial Network.
 
     """
-    CONFIGURATION = {
-        'name': 'QGAN',
-        'description': 'Quantum Generative Adversarial Network',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'Qgan_schema',
-            'type': 'object',
-            'properties': {
-                'num_qubits': {
-                    'type': ['array', 'null'],
-                    'default': None
-                },
-                'batch_size': {
-                    'type': 'integer',
-                    'default': 500,
-                    'minimum': 1
-                },
-                'num_epochs': {
-                    'type': 'integer',
-                    'default': 3000
-                },
-                'seed': {
-                    'type': ['integer'],
-                    'default': 7
-                },
-                'tol_rel_ent': {
-                    'type': ['number', 'null'],
-                    'default': None
-                },
-                'snapshot_dir': {
-                    'type': ['string', 'null'],
-                    'default': None
-                }
-            },
-            'additionalProperties': False
-        },
-        'problems': ['distribution_learning_loading'],
-        'depends': [
-            {
-                'pluggable_type': 'generative_network',
-                'default': {
-                    'name': 'QuantumGenerator'
-                }
-            },
-            {
-                'pluggable_type': 'discriminative_network',
-                'default': {
-                    'name': 'NumpyDiscriminator'
-                }
-            },
-        ],
-    }
 
-    def __init__(self, data, bounds=None, num_qubits=None, batch_size=500, num_epochs=3000, seed=7,
-                 discriminator=None, generator=None, tol_rel_ent=None, snapshot_dir=None):
+    def __init__(self, data: np.ndarray, bounds: Optional[np.ndarray] = None,
+                 num_qubits: Optional[np.ndarray] = None, batch_size: int = 500,
+                 num_epochs: int = 3000, seed: int = 7,
+                 discriminator: Optional[DiscriminativeNetwork] = None,
+                 generator: Optional[GenerativeNetwork] = None,
+                 tol_rel_ent: Optional[float] = None, snapshot_dir: Optional[str] = None) -> None:
         """
-        Initialize qGAN.
+
         Args:
-            data (np.ndarray): training data of dimension k
-            bounds (np.ndarray):  k min/max data values [[min_0,max_0],...,[min_k-1,max_k-1]]
-                        if univariate data: [min_0,max_0]
-            num_qubits (np.ndarray): k numbers of qubits to determine representation resolution,
-                                    i.e. n qubits enable the representation of 2**n values
-                                    [num_qubits_0,..., num_qubits_k-1]
-            batch_size (int): batch size
-            num_epochs (int): number of training epochs
-            seed (int): seed
-            discriminator (NeuralNetwork): discriminates between real and fake data samples
-            generator (NeuralNetwork): generates 'fake' data samples
-            tol_rel_ent (Union(float, None)): Set tolerance level for relative entropy.
-                                     If the training achieves relative
-            entropy equal or lower than tolerance it finishes.
-            snapshot_dir (Union(str, None)): path or None, if path given store cvs file
-                                      with parameters to the directory
+            data: training data of dimension k
+            bounds: k min/max data values [[min_0,max_0],...,[min_k-1,max_k-1]]
+                if univariate data: [min_0,max_0]
+            num_qubits: k numbers of qubits to determine representation resolution,
+                i.e. n qubits enable the representation of 2**n values
+                [num_qubits_0,..., num_qubits_k-1]
+            batch_size: batch size, has a min. value of 1.
+            num_epochs: number of training epochs
+            seed: random number seed
+            discriminator: discriminates between real and fake data samples
+            generator: generates 'fake' data samples
+            tol_rel_ent: Set tolerance level for relative entropy.
+                If the training achieves relative
+                entropy equal or lower than tolerance it finishes.
+            snapshot_dir: path or None, if path given store cvs file
+                with parameters to the directory
         Raises:
             AquaError: invalid input
         """
-
-        self.validate(locals())
+        validate_min('batch_size', batch_size, 1)
         super().__init__()
         if data is None:
             raise AquaError('Training data not given.')
@@ -175,43 +129,6 @@ class QGAN(QuantumAlgorithm):
 
         self._ret = {}
 
-    @classmethod
-    def init_params(cls, params, algo_input):
-        """
-        Initialize qGAN via parameters dictionary and algorithm input instance.
-        Args:
-            params (dict): parameters dictionary
-            algo_input (AlgorithmInput): Input instance
-        Returns:
-            QGAN: qgan object
-        Raises:
-            AquaError: invalid input
-        """
-
-        if algo_input is None:
-            raise AquaError("Input instance not supported.")
-
-        qgan_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
-        num_qubits = qgan_params.get('num_qubits')
-        batch_size = qgan_params.get('batch_size')
-        num_epochs = qgan_params.get('num_epochs')
-        seed = qgan_params.get('seed')
-        tol_rel_ent = qgan_params.get('tol_rel_ent')
-        snapshot_dir = qgan_params.get('snapshot_dir')
-
-        discriminator_params = params.get(Pluggable.SECTION_KEY_DISCRIMINATIVE_NET)
-        generator_params = params.get(Pluggable.SECTION_KEY_GENERATIVE_NETWORK)
-        generator_params['num_qubits'] = num_qubits
-
-        discriminator = get_pluggable_class(PluggableType.DISCRIMINATIVE_NETWORK,
-                                            discriminator_params['name']).init_params(params)
-        generator = get_pluggable_class(PluggableType.GENERATIVE_NETWORK,
-                                        generator_params['name']).init_params(params)
-
-        return cls(algo_input.data, algo_input.bounds,
-                   num_qubits, batch_size, num_epochs, seed, discriminator,
-                   generator, tol_rel_ent, snapshot_dir)
-
     @property
     def seed(self):
         """ returns seed """
@@ -220,11 +137,11 @@ class QGAN(QuantumAlgorithm):
     @seed.setter
     def seed(self, s):
         """
+        Sets the random seed for QGAN and updates the aqua_globals seed
+        at the same time
+
         Args:
             s (int): random seed
-
-        Returns:
-
         """
         self._random_seed = s
         aqua_globals.random_seed = self._random_seed
@@ -239,6 +156,7 @@ class QGAN(QuantumAlgorithm):
     def tol_rel_ent(self, t):
         """
         Set tolerance for relative entropy
+
         Args:
             t (float): or None, Set tolerance level for relative entropy.
                 If the training achieves relative
@@ -256,9 +174,10 @@ class QGAN(QuantumAlgorithm):
                       generator_init_params=None, generator_optimizer=None):
         """
         Initialize generator.
+
         Args:
             generator_circuit (VariationalForm): parameterized quantum circuit which sets
-                                the structure of the quantum generator
+                the structure of the quantum generator
             generator_init_params(numpy.ndarray): initial parameters for the generator circuit
             generator_optimizer (Optimizer): optimizer to be used for the training of the generator
         """
@@ -380,8 +299,11 @@ class QGAN(QuantumAlgorithm):
     def _run(self):
         """
         Run qGAN training
-        Returns: dict, with generator(discriminator) parameters & loss, relative entropy
 
+        Returns:
+            dict: with generator(discriminator) parameters & loss, relative entropy
+        Raises:
+            AquaError: invalid backend
         """
         if self._quantum_instance.backend_name == ('unitary_simulator' or 'clifford_simulator'):
             raise AquaError(

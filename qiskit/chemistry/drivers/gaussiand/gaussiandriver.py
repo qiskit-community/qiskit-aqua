@@ -14,6 +14,7 @@
 
 """ Gaussian Driver """
 
+from typing import Union, List
 import sys
 import io
 import logging
@@ -43,27 +44,18 @@ class GaussianDriver(BaseDriver):
     output a MatrixElement file.
     """
 
-    CONFIGURATION = {
-        "name": "GAUSSIAN",
-        "description": "Gaussian 16 Driver",
-        "input_schema": {
-            "$schema": "http://json-schema.org/draft-07/schema#",
-            "id": "gaussian_schema",
-            "type": "string",
-            "default":
-                "# rhf/sto-3g scf(conventional)\n\n"
-                "h2 molecule\n\n0 1\nH   0.0  0.0    0.0\nH   0.0  0.0    0.735\n\n"
-        }
-    }
-
-    def __init__(self, config):
+    def __init__(self,
+                 config: Union[str, List[str]] =
+                 '# rhf/sto-3g scf(conventional)\n\n'
+                 'h2 molecule\n\n0 1\nH   0.0  0.0    0.0\nH   0.0  0.0    0.735\n\n') -> None:
         """
         Initializer
         Args:
-            config (str or list): driver configuration
+            config: driver configuration
         Raises:
             QiskitChemistryError: Invalid Input
         """
+        self._check_valid()
         if not isinstance(config, list) and not isinstance(config, str):
             raise QiskitChemistryError("Invalid input for Gaussian Driver '{}'".format(config))
 
@@ -74,31 +66,11 @@ class GaussianDriver(BaseDriver):
         self._config = config
 
     @staticmethod
-    def check_driver_valid():
+    def _check_valid():
         if G16PROG is None:
             raise QiskitChemistryError(
                 "Could not locate {} executable '{}'. Please check that it is installed correctly."
                 .format(GAUSSIAN_16_DESC, GAUSSIAN_16))
-
-    @classmethod
-    def init_from_input(cls, section):
-        """
-        Initialize via section dictionary.
-
-        Args:
-            section (dict): section dictionary
-
-        Returns:
-            GaussianDriver: Driver object
-        Raises:
-            QiskitChemistryError: Invalid or missing section
-        """
-        if not isinstance(section, str):
-            raise QiskitChemistryError('Invalid or missing section {}'.format(section))
-
-        kwargs = {'config': section}
-        logger.debug('init_from_input: %s', kwargs)
-        return cls(**kwargs)
 
     def run(self):
         cfg = self._config
@@ -129,7 +101,7 @@ class GaussianDriver(BaseDriver):
         except Exception:  # pylint: disable=broad-except
             logger.warning("Failed to remove MatrixElement file %s", fname)
 
-        q_mol.origin_driver_name = self.configuration['name']
+        q_mol.origin_driver_name = 'GAUSSIAN'
         q_mol.origin_driver_config = self._config
         return q_mol
 

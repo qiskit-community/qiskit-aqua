@@ -14,6 +14,7 @@
 
 """Controlled rotation for the HHL algorithm based on partial table lookup"""
 
+from typing import Optional
 import itertools
 import logging
 import numpy as np
@@ -21,6 +22,7 @@ import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.aqua.components.reciprocals import Reciprocal
 from qiskit.aqua.circuits.gates import mct  # pylint: disable=unused-import
+from qiskit.aqua.utils.validation import validate_range
 
 logger = logging.getLogger(__name__)
 
@@ -37,66 +39,26 @@ class LookupRotation(Reciprocal):
     Please refer to the HHL documentation for an explanation of this method.
     """
 
-    CONFIGURATION = {
-        'name': 'Lookup',
-        'description': 'approximate inversion for HHL based on table lookup',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'reciprocal_lookup_schema',
-            'type': 'object',
-            'properties': {
-                'pat_length': {
-                    'type': ['integer', 'null'],
-                    'default': None,
-                },
-                'subpat_length': {
-                    'type': ['integer', 'null'],
-                    'default': None,
-                },
-                'negative_evals': {
-                    'type': 'boolean',
-                    'default': False
-                },
-                'scale': {
-                    'type': 'number',
-                    'default': 0,
-                    'minimum': 0,
-                    'maximum': 1,
-                },
-                'evo_time': {
-                    'type': ['number', 'null'],
-                    'default': None
-                },
-                'lambda_min': {
-                    'type': ['number', 'null'],
-                    'default': None
-                }
-            },
-            'additionalProperties': False
-        },
-    }
-
     def __init__(
             self,
-            pat_length=None,
-            subpat_length=None,
-            scale=0,
-            negative_evals=False,
-            evo_time=None,
-            lambda_min=None
-    ):
+            pat_length: Optional[int] = None,
+            subpat_length: Optional[int] = None,
+            scale: float = 0,
+            negative_evals: bool = False,
+            evo_time: Optional[float] = None,
+            lambda_min: Optional[float] = None) -> None:
         """Constructor.
 
         Args:
-            pat_length (int, optional): the number of qubits used for binning pattern
-            subpat_length (int, optional): the number of qubits used for binning sub-pattern
-            scale (float, optional): the scale of rotation angle, corresponds to HHL constant C
-            negative_evals (bool, optional): indicate if negative eigenvalues need to be handled
-            evo_time (float, optional): the evolution time
-            lambda_min (float, optional): the smallest expected eigenvalue
+            pat_length: the number of qubits used for binning pattern
+            subpat_length: the number of qubits used for binning sub-pattern
+            scale: the scale of rotation angle, corresponds to HHL constant C,
+                     has values between 0 and 1.
+            negative_evals: indicate if negative eigenvalues need to be handled
+            evo_time: the evolution time
+            lambda_min: the smallest expected eigenvalue
         """
-
-        self.validate(locals())
+        validate_range('scale', scale, 0, 1)
         super().__init__()
         self._pat_length = pat_length
         self._subpat_length = subpat_length

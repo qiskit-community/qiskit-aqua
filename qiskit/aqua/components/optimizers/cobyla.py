@@ -14,11 +14,11 @@
 
 """Constrained Optimization By Linear Approximation algorithm."""
 
+from typing import Optional
 import logging
 
 from scipy.optimize import minimize
-
-from qiskit.aqua.components.optimizers import Optimizer
+from .optimizer import Optimizer
 
 logger = logging.getLogger(__name__)
 
@@ -30,44 +30,14 @@ class COBYLA(Optimizer):
     See https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
     """
 
-    CONFIGURATION = {
-        'name': 'COBYLA',
-        'description': 'COBYLA Optimizer',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'cobyla_schema',
-            'type': 'object',
-            'properties': {
-                'maxiter': {
-                    'type': 'integer',
-                    'default': 1000
-                },
-                'disp': {
-                    'type': 'boolean',
-                    'default': False
-                },
-                'rhobeg': {
-                    'type': 'number',
-                    'default': 1.0
-                },
-                'tol': {
-                    'type': ['number', 'null'],
-                    'default': None
-                }
-            },
-            'additionalProperties': False
-        },
-        'support_level': {
-            'gradient': Optimizer.SupportLevel.ignored,
-            'bounds': Optimizer.SupportLevel.ignored,
-            'initial_point': Optimizer.SupportLevel.required
-        },
-        'options': ['maxiter', 'disp', 'rhobeg'],
-        'optimizer': ['local']
-    }
+    _OPTIONS = ['maxiter', 'disp', 'rhobeg']
 
     # pylint: disable=unused-argument
-    def __init__(self, maxiter=1000, disp=False, rhobeg=1.0, tol=None):
+    def __init__(self,
+                 maxiter: int = 1000,
+                 disp: bool = False,
+                 rhobeg: float = 1.0,
+                 tol: Optional[float] = None) -> None:
         """
         Constructor.
 
@@ -75,18 +45,25 @@ class COBYLA(Optimizer):
         https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html.
 
         Args:
-            maxiter (int): Maximum number of function evaluations.
-            disp (bool): Set to True to print convergence messages.
-            rhobeg (float): Reasonable initial changes to the variables.
-            tol (float): Final accuracy in the optimization (not precisely guaranteed).
+            maxiter: Maximum number of function evaluations.
+            disp: Set to True to print convergence messages.
+            rhobeg: Reasonable initial changes to the variables.
+            tol: Final accuracy in the optimization (not precisely guaranteed).
                          This is a lower bound on the size of the trust region.
         """
-        self.validate(locals())
         super().__init__()
         for k, v in locals().items():
-            if k in self._configuration['options']:
+            if k in self._OPTIONS:
                 self._options[k] = v
         self._tol = tol
+
+    def get_support_level(self):
+        """ return support level dictionary """
+        return {
+            'gradient': Optimizer.SupportLevel.ignored,
+            'bounds': Optimizer.SupportLevel.ignored,
+            'initial_point': Optimizer.SupportLevel.required
+        }
 
     def optimize(self, num_vars, objective_function, gradient_function=None,
                  variable_bounds=None, initial_point=None):

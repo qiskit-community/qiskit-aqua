@@ -16,14 +16,13 @@ This module implements a molecular Hamiltonian operator, representing the
 energy of the electrons and nuclei in a molecule.
 """
 
+from typing import Optional, List
 import logging
 from enum import Enum
 
 import numpy as np
-
-from qiskit.aqua.input import EnergyInput
 from qiskit.aqua.operators import Z2Symmetries
-from qiskit.chemistry import ChemistryProblem, QMolecule
+from qiskit.chemistry import QMolecule
 from qiskit.chemistry.fermionic_operator import FermionicOperator
 from .chemistry_operator import ChemistryOperator
 
@@ -50,78 +49,24 @@ class Hamiltonian(ChemistryOperator):
     energy of the electrons and nuclei in a molecule.
     """
 
-    KEY_TRANSFORMATION = 'transformation'
-    KEY_QUBIT_MAPPING = 'qubit_mapping'
-    KEY_TWO_QUBIT_REDUCTION = 'two_qubit_reduction'
-    KEY_FREEZE_CORE = 'freeze_core'
-    KEY_ORBITAL_REDUCTION = 'orbital_reduction'
-
-    CONFIGURATION = {
-        'name': 'hamiltonian',
-        'description': 'Hamiltonian chemistry operator',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'hamiltonian_schema',
-            'type': 'object',
-            'properties': {
-                KEY_TRANSFORMATION: {
-                    'type': 'string',
-                    'default': TransformationType.FULL.value,
-                    'enum': [
-                        TransformationType.FULL.value,
-                        TransformationType.PARTICLE_HOLE.value,
-                    ]
-                },
-                KEY_QUBIT_MAPPING: {
-                    'type': 'string',
-                    'default': QubitMappingType.PARITY.value,
-                    'enum': [
-                        QubitMappingType.JORDAN_WIGNER.value,
-                        QubitMappingType.PARITY.value,
-                        QubitMappingType.BRAVYI_KITAEV.value,
-                    ]
-                },
-                KEY_TWO_QUBIT_REDUCTION: {
-                    'type': 'boolean',
-                    'default': True
-                },
-                KEY_FREEZE_CORE: {
-                    'type': 'boolean',
-                    'default': False
-                },
-                KEY_ORBITAL_REDUCTION: {
-                    'default': [],
-                    'type': 'array',
-                    'items': {
-                        'type': 'number'
-                    }
-                }
-            },
-            "additionalProperties": False
-        },
-        'problems': [ChemistryProblem.ENERGY.value, ChemistryProblem.EXCITED_STATES.value]
-    }
-
     def __init__(self,
-                 transformation=TransformationType.FULL,
-                 qubit_mapping=QubitMappingType.PARITY,
-                 two_qubit_reduction=True,
-                 freeze_core=False,
-                 orbital_reduction=None):
+                 transformation: TransformationType = TransformationType.FULL,
+                 qubit_mapping: QubitMappingType = QubitMappingType.PARITY,
+                 two_qubit_reduction: bool = True,
+                 freeze_core: bool = False,
+                 orbital_reduction: Optional[List[int]] = None) -> None:
         """
-        Initializer
         Args:
-            transformation (TransformationType): full or particle_hole
-            qubit_mapping (QubitMappingType): jordan_wigner, parity or bravyi_kitaev
-            two_qubit_reduction (bool): Whether two qubit reduction should be used,
+            transformation: full or particle_hole
+            qubit_mapping: jordan_wigner, parity or bravyi_kitaev
+            two_qubit_reduction: Whether two qubit reduction should be used,
                                         when parity mapping only
-            freeze_core (bool): Whether to freeze core orbitals when possible
-            orbital_reduction (list): Orbital list to be frozen or removed
+            freeze_core: Whether to freeze core orbitals when possible
+            orbital_reduction: Orbital list to be frozen or removed
         """
         transformation = transformation.value
         qubit_mapping = qubit_mapping.value
         orbital_reduction = orbital_reduction if orbital_reduction is not None else []
-        self.validate(locals())
         super().__init__()
         self._transformation = transformation
         self._qubit_mapping = qubit_mapping
@@ -145,32 +90,6 @@ class Hamiltonian(ChemistryOperator):
         self._ph_x_dipole_shift = 0.0
         self._ph_y_dipole_shift = 0.0
         self._ph_z_dipole_shift = 0.0
-
-    @classmethod
-    def init_params(cls, params):
-        """
-        Initialize via parameters dictionary.
-
-        Args:
-            params (dict): parameters dictionary
-
-        Returns:
-            Hamiltonian: hamiltonian object
-        """
-        kwargs = {}
-        for k, v in params.items():
-            if k == 'name':
-                continue
-
-            if k == Hamiltonian.KEY_TRANSFORMATION:
-                v = TransformationType(v)
-            elif k == Hamiltonian.KEY_QUBIT_MAPPING:
-                v = QubitMappingType(v)
-
-            kwargs[k] = v
-
-        logger.debug('init_params: %s', kwargs)
-        return cls(**kwargs)
 
     def run(self, qmolecule):
         logger.debug('Processing started...')
@@ -256,13 +175,14 @@ class Hamiltonian(ChemistryOperator):
                                                                 self._two_qubit_reduction)
 
         logger.debug('  num paulis: %s, num qubits: %s', len(qubit_op.paulis), qubit_op.num_qubits)
-        algo_input = EnergyInput(qubit_op)
+
+        aux_ops = []
 
         def _add_aux_op(aux_op):
-            algo_input.add_aux_op(
+            aux_ops.append(
                 Hamiltonian._map_fermionic_operator_to_qubit(aux_op, self._qubit_mapping, new_nel,
                                                              self._two_qubit_reduction))
-            logger.debug('  num paulis: %s', len(algo_input.aux_ops[-1].paulis))
+            logger.debug('  num paulis: %s', len(aux_ops[-1].paulis))
 
         logger.debug('Creating aux op for Number of Particles')
         _add_aux_op(fer_op.total_particle_number())
@@ -299,9 +219,9 @@ class Hamiltonian(ChemistryOperator):
             op_dipole_z, self._z_dipole_shift, self._ph_z_dipole_shift = \
                 _dipole_op(qmolecule.z_dipole_integrals, 'z')
 
-            algo_input.add_aux_op(op_dipole_x)
-            algo_input.add_aux_op(op_dipole_y)
-            algo_input.add_aux_op(op_dipole_z)
+            aux_ops.append(op_dipole_x)
+            aux_ops.append(op_dipole_y)
+            aux_ops.append(op_dipole_z)
 
         logger.info('Molecule num electrons: %s, remaining for processing: %s',
                     [num_alpha, num_beta], new_nel)
@@ -317,7 +237,7 @@ class Hamiltonian(ChemistryOperator):
                                 if self._qubit_mapping == 'parity' else False)
 
         logger.debug('Processing complete ready to run algorithm')
-        return algo_input.qubit_op, algo_input.aux_ops
+        return qubit_op, aux_ops
 
     # Called by public superclass method process_algorithm_result to complete specific processing
     def _process_algorithm_result(self, algo_result):

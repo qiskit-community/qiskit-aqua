@@ -16,17 +16,15 @@
 
 from enum import IntEnum
 import logging
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 import numpy as np
-
-from qiskit.aqua import Pluggable
 
 logger = logging.getLogger(__name__)
 
 # pylint: disable=invalid-name
 
 
-class Optimizer(Pluggable):
+class Optimizer(ABC):
     """Base class for optimization algorithm."""
 
     class SupportLevel(IntEnum):
@@ -35,15 +33,6 @@ class Optimizer(Pluggable):
         ignored = 1        # Feature can be passed as non None but will be ignored
         supported = 2      # Feature is supported
         required = 3       # Feature is required and must be given, None is invalid
-
-    DEFAULT_CONFIGURATION = {
-        'support_level': {
-            'gradient': SupportLevel.not_supported,
-            'bounds': SupportLevel.not_supported,
-            'initial_point': SupportLevel.not_supported
-        },
-        'options': []
-    }
 
     @abstractmethod
     def __init__(self):
@@ -54,36 +43,16 @@ class Optimizer(Pluggable):
         _initial_point_support_level, and empty options.
 
         """
-        super().__init__()
-        if 'support_level' not in self._configuration:
-            self._configuration['support_level'] = self.DEFAULT_CONFIGURATION['support_level']
-        if 'options' not in self._configuration:
-            self._configuration['options'] = self.DEFAULT_CONFIGURATION['options']
-        self._gradient_support_level = self._configuration['support_level']['gradient']
-        self._bounds_support_level = self._configuration['support_level']['bounds']
-        self._initial_point_support_level = self._configuration['support_level']['initial_point']
+        self._gradient_support_level = self.get_support_level()['gradient']
+        self._bounds_support_level = self.get_support_level()['bounds']
+        self._initial_point_support_level = self.get_support_level()['initial_point']
         self._options = {}
         self._max_evals_grouped = 1
 
-    @classmethod
-    def init_params(cls, params):
-        """Initialize with a params dictionary.
-
-        A dictionary of config params as per the configuration object. Some of these params get
-        passed to scipy optimizers in an options dictionary. We can specify an options array of
-        names in config dictionary to have the options dictionary automatically populated. All
-        other config items, excluding name, will be passed to init_args
-
-        Args:
-            params (dict): configuration dict
-        Returns:
-            Optimizer: instance of this class
-        """
-        opt_params = params.get(Pluggable.SECTION_KEY_OPTIMIZER)
-        logger.debug('init_params: %s', opt_params)
-        args = {k: v for k, v in opt_params.items() if k != 'name'}
-        optimizer = cls(**args)
-        return optimizer
+    @abstractmethod
+    def get_support_level(self):
+        """ return support level dictionary """
+        raise NotImplementedError
 
     def set_options(self, **kwargs):
         """
@@ -168,10 +137,10 @@ class Optimizer(Pluggable):
     @property
     def setting(self):
         """ return setting """
-        ret = "Optimizer: {}\n".format(self._configuration['name'])
+        ret = "Optimizer: {}\n".format(self.__class__.__name__)
         params = ""
         for key, value in self.__dict__.items():
-            if key != "_configuration" and key[0] == "_":
+            if key[0] == "_":
                 params += "-- {}: {}\n".format(key[1:], value)
         ret += "{}".format(params)
         return ret
@@ -222,15 +191,15 @@ class Optimizer(Pluggable):
         if gradient_function is not None and self.is_gradient_ignored:
             logger.debug(
                 'WARNING: %s does not support gradient function. It will be ignored.',
-                self.configuration['name'])
+                self.__class__.__name__)
         if has_bounds and self.is_bounds_ignored:
             logger.debug(
                 'WARNING: %s does not support bounds. It will be ignored.',
-                self.configuration['name'])
+                self.__class__.__name__)
         if initial_point is not None and self.is_initial_point_ignored:
             logger.debug(
                 'WARNING: %s does not support initial point. It will be ignored.',
-                self.configuration['name'])
+                self.__class__.__name__)
         pass
 
     @property

@@ -12,7 +12,36 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" gates packages """
+"""
+Gates (:mod:`qiskit.aqua.circuits.gates`)
+=========================================
+A collection of useful gates that may be used to build quantum algorithms
+and components. These gates are created and *monkey patched* to Terra
+QuantumCircuit class such that can be used similarly to the gates that are
+supplied by Terra e.g. `qc.mcu1(theta, controls_list, target)`.
+
+.. currentmodule:: qiskit.aqua.circuits.gates
+
+Gates
+=====
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+    mcu1
+    mcrx
+    mcry
+    mcrz
+    mct
+    mcmt
+    logical_and
+    logical_or
+    cry
+    rccx
+    rcccx
+
+"""
 
 from .multi_control_u1_gate import mcu1
 from .multi_control_rotation_gates import mcrx, mcry, mcrz
