@@ -70,7 +70,7 @@ matrix:
     env: TEST_TYPE=lint
     python: 3.7
     script:
-        make spell && make style && make lint && make html
+        make spell && make style && make lint && make html SPHINXOPTS=-W
   - name: "Test Aqua 1"
     script: stestr --test-path test/aqua run --blacklist-file selection.txt
   - name: "Test Aqua 2"
