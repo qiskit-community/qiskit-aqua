@@ -161,8 +161,9 @@ after_success:
   - |
     if [[ "$TEST_TYPE" =~ ^(aqua|chemistry|finance|ml|optimization)$ ]]; then
       coverage combine || true
+      coverage report || true
       # coveralls || true
       coverage xml || true
       pip install diff-cover || true
-      diff-cover --compare-branch master coverage.xml || true
+      diff-cover coverage.xml || true
     fi
