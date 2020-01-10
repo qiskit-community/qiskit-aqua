@@ -48,14 +48,16 @@ class NFT(Optimizer):
             maxfev: Maximum number of function evaluations to perform.
             disp: disp
             reset_interval: The minimum estimates directly once
-                in``reset_interval`` times.
+                            in``reset_interval`` times.
+
         Notes:
             In this optimization method, the optimization function have to satisfy
-        three conditions written in [1].
+            three conditions written in [1]_.
+
         References:
             .. [1] K. M. Nakanishi, K. Fujii, and S. Todo. 2019.
-            Sequential minimal optimization for quantum-classical hybrid algorithms.
-            arXiv preprint arXiv:1903.12166.
+                Sequential minimal optimization for quantum-classical hybrid algorithms.
+                arXiv preprint arXiv:1903.12166.
         """
         super().__init__()
         for k, v in locals().items():
