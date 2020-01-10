@@ -186,7 +186,7 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
                          shallow_circuit_concat=False,
                          method_doubles='ucc',
                          excitation_type='sd',
-                         force_no_tap_excitation=True)
+                         skip_commute_test=True)
 
         algo = VQE(self.the_tapered_op, var_form, optimizer)
 
@@ -218,7 +218,7 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
                          shallow_circuit_concat=False,
                          method_doubles='succ',
                          excitation_type='d',
-                         force_no_tap_excitation=True)
+                         skip_commute_test=True)
 
         double_excitations_singlet = var_form._double_excitations
         res = TestUCCSDHartreeFock.excitation_lists_comparator(
@@ -238,7 +238,7 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
                          shallow_circuit_concat=False,
                          method_doubles='succ_full',
                          excitation_type='d',
-                         force_no_tap_excitation=True)
+                         skip_commute_test=True)
 
         double_excitations_singlet_grouped = var_form._double_excitations_grouped
         res_groups = TestUCCSDHartreeFock.group_excitation_lists_comparator(
