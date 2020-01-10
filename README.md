@@ -120,6 +120,7 @@ Now that Qiskit Aqua is installed, it's time to begin working with it.  We are r
 ```python
 from qiskit.chemistry import FermionicOperator
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
+from qiskit.aqua.operators import Z2Symmetries
 
 # Use PySCF, a classical computational chemistry software
 # package, to compute the one-body and two-body integrals in
@@ -135,7 +136,7 @@ num_spin_orbitals = molecule.num_orbitals * 2
 ferOp = FermionicOperator(h1=molecule.one_body_integrals, h2=molecule.two_body_integrals)
 map_type = 'PARITY'
 qubitOp = ferOp.mapping(map_type)
-qubitOp = qubitOp.two_qubit_reduced_operator(num_particles)
+qubitOp = Z2Symmetries.two_qubit_reduction(qubitOp, num_particles)
 num_qubits = qubitOp.num_qubits
 
 # set the backend for the quantum computation
