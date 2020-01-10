@@ -72,15 +72,19 @@ matrix:
     script:
         make spell && make style && make lint && make html SPHINXOPTS=-W
   - name: "Test Aqua 1"
+    env: TEST_TYPE=aqua
     script: stestr --test-path test/aqua run --blacklist-file selection.txt
   - name: "Test Aqua 2"
+    env: TEST_TYPE=aqua
     script: stestr --test-path test/aqua run --whitelist-file selection.txt
   - name: "Test Chemistry"
     env: TEST_TYPE=chemistry
     script: export OPENBLAS_NUM_THREADS=1 && stestr --test-path test/chemistry run
   - name: "Test Finance"
+    env: TEST_TYPE=finance
     script: stestr --test-path test/finance run
   - name: "Test Optimization"
+    env: TEST_TYPE=optimization
     script: stestr --test-path test/optimization run
 
   - if: tag IS present
@@ -147,3 +151,18 @@ before_install:
   # install Aqua and Aqua dev. requirements
   - pip install -e $TRAVIS_BUILD_DIR --progress-bar off
   - pip install -U -c constraints.txt -r requirements-dev.txt --progress-bar off
+  - |
+    if [[ "$TEST_TYPE" =~ ^(aqua|chemistry|finance|ml|optimization)$ ]]; then
+      pip install -U coveralls -c constraints.txt
+      export PYTHON="coverage run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --parallel-mode"
+    fi
+
+after_success:
+  - |
+    if [[ "$TEST_TYPE" =~ ^(aqua|chemistry|finance|ml|optimization)$ ]]; then
+      coverage combine || true
+      # coveralls || true
+      coverage xml || true
+      pip install diff-cover || true
+      diff-cover --compare-branch master coverage.xml || true
+    fi
