@@ -16,7 +16,7 @@ This trial wavefunction is a Unitary Coupled-Cluster Single and Double excitatio
 variational form.
 For more information, see https://arxiv.org/abs/1805.04340
 Also, for more information on the tapering see: https://arxiv.org/abs/1701.08213
-And for singlet q-UCCD (full) and paired q-UCCD see: https://arxiv.org/abs/1911.10864
+And for singlet q-UCCD (full) and pair q-UCCD see: https://arxiv.org/abs/1911.10864
 """
 
 import logging
@@ -42,7 +42,7 @@ class UCCSD(VariationalForm):
     This trial wavefunction is a Unitary Coupled-Cluster Single and Double excitations
     variational form.
     For more information, see https://arxiv.org/abs/1805.04340
-    And for the singlet q-UCCD (full) and paired q-UCCD) see: https://arxiv.org/abs/1911.10864
+    And for the singlet q-UCCD (full) and pair q-UCCD) see: https://arxiv.org/abs/1911.10864
     """
 
     CONFIGURATION = {
@@ -127,7 +127,7 @@ class UCCSD(VariationalForm):
                  qubit_mapping='parity', two_qubit_reduction=True, num_time_slices=1,
                  shallow_circuit_concat=True, z2_symmetries=None,
                  method_singles='both', method_doubles='ucc', excitation_type='sd',
-                 same_spin_doubles=True, force_no_tap_excitation=False):
+                 same_spin_doubles=True, ignore_excitation_tapering=False):
         """Constructor.
 
         Args:
@@ -150,11 +150,13 @@ class UCCSD(VariationalForm):
                                   'both' only alpha or beta spin-orbital single excitations or
                                   both (all of them)
             method_doubles (str): specify the single excitation considered. 'ucc' (conventional
-                                  ucc), succ (singlet ucc), succ_full (singlet ucc full)
+                                  ucc), succ (singlet ucc), succ_full (singlet ucc full),
+                                  'pucc' (pair ucc)
             excitation_type (str): specify the excitation type 'sd', 's', 'd' respectively
                                    for single and double, only single, only double excitations.
             same_spin_doubles (bool):, enable double excitations of the same spin.
-            force_no_tap_excitation (bool): keep all the excitation regardless if tapering is used.
+            ignore_excitation_tapering (bool): keep all the excitation regardless if tapering is
+            used.
 
          Raises:
              ValueError: Computed qubits do not match actual value
@@ -198,7 +200,7 @@ class UCCSD(VariationalForm):
         self._method_doubles = method_doubles
         self._excitation_type = excitation_type
         self.same_spin_doubles = same_spin_doubles
-        self._force_no_tap_excitation = force_no_tap_excitation
+        self._ignore_excitation_tapering = ignore_excitation_tapering
 
         self._single_excitations, self._double_excitations = \
             UCCSD.compute_excitation_lists([self._num_alpha, self._num_beta], self._num_orbitals,
@@ -299,7 +301,7 @@ class UCCSD(VariationalForm):
                                task_args=(self._num_orbitals, self._num_particles,
                                           self._qubit_mapping, self._two_qubit_reduction,
                                           self._z2_symmetries,
-                                          self._force_no_tap_excitation),
+                                          self._ignore_excitation_tapering),
                                num_processes=aqua_globals.num_processes)
         hopping_ops = []
         s_e_list = []
@@ -320,7 +322,8 @@ class UCCSD(VariationalForm):
 
     @staticmethod
     def _build_hopping_operator(index, num_orbitals, num_particles, qubit_mapping,
-                                two_qubit_reduction, z2_symmetries, force_no_tap_excitation=False):
+                                two_qubit_reduction, z2_symmetries,
+                                ignore_excitation_tapering=False):
         """
         Builds a hopping operator given the list of indices (index) that is a single or a double
         excitation.
@@ -335,7 +338,7 @@ class UCCSD(VariationalForm):
                                         parity qubit mapping is used
             z2_symmetries (Z2Symmetries): class that contains the symmetries
                                           of hamiltonian for tapering
-            force_no_tap_excitation (bool): prevent tapering from eliminating excitations
+            ignore_excitation_tapering (bool): prevent tapering from eliminating excitations
         Returns:
             WeightedPauliOperator: qubit_op
             list: index
@@ -363,7 +366,7 @@ class UCCSD(VariationalForm):
                 symm_commuting = qubit_op.commute_with(symmetry_op)
                 if not symm_commuting:
                     break
-            if not force_no_tap_excitation:
+            if not ignore_excitation_tapering:
                 qubit_op = z2_symmetries.taper(qubit_op) if symm_commuting else None
             else:
                 qubit_op = z2_symmetries.taper(qubit_op)
@@ -517,7 +520,8 @@ class UCCSD(VariationalForm):
                                    alpha or beta spin-orbital single excitations or both (all
                                    single excitations)
             method_doubles (str): choose method for double excitations 'ucc' (conventional ucc),
-                                  'succ' (singlet ucc), 'succ_full' (singlet ucc full)
+                                  'succ' (singlet ucc), 'succ_full' (singlet ucc full),
+                                  'pucc' (pair ucc)
 
         Returns:
             list: Single excitation list
