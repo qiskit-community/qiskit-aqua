@@ -14,7 +14,7 @@
 # Note that each qiskit element uses its own mailmap so it may be necessary to
 # propagate changes in other repos for consistency.
 
-Abdón Rodríguez Davila <a@abdonrd.com> <a@abdonrd.com>
+Abdón Rodríguez Davila <a@abdonrd.com>
 Ali Javadi-Abhari <ali.javadi@ibm.com> <ajavadia@users.noreply.github.com>
 Ali Javadi-Abhari <ali.javadi@ibm.com> <ajavadia@princeton.edu>
 Albert Frisch <albert.frisch@de.ibm.com>
@@ -25,11 +25,11 @@ Anna Phan <9410731+attp@users.noreply.github.com> <annaphan@au.ibm.com>
 Christa Zoufal <ouf@zurich.ibm.com>
 Christian Clauss <cclauss@bluewin.ch>
 Antonio Mezzacapo <30698465+antoniomezzacapo@users.noreply.github.com> <amezzac@us.ibm.com>
-Donny Greenberg <dongreenberg2@gmail.com>
+Donny Greenberg <dongreenberg2@gmail.com> 
 Donny Greenberg <dongreenberg2@gmail.com> <donny@ibm.com>
 Ikko Hamamura <ikkoham@users.noreply.github.com>
 Isabel Haide <isabel.haide@ibm.com>
-Jan Müggenburg <jan.mueggenburg@ibm.com>
+Jan Müggenburg <jan.mueggenburg@ibm.com> 
 Jan Müggenburg <jan.mueggenburg@ibm.com> <jan@oc6058543760.ibm.com>
 Jay M. Gambetta <jay.gambetta@us.ibm.com>
 Juan Cruz-Benito <juan.cruz@ibm.com>
@@ -41,11 +41,11 @@ Max Rossmanek <rmax@ethz.ch>
 Panagiotis Barkoutsos <bpa@zurich.ibm.com>
 Panagiotis Barkoutsos <bpa@zurich.ibm.com> <pbarkoutsos@gmail.com>
 Peng Liu <34400304+liupibm@users.noreply.github.com>
-Shaohan Hu <shaohan.hu@ibm.com>
+Shaohan Hu <shaohan.hu@ibm.com> 
 Shaohan Hu <shaohan.hu@ibm.com> <Shaohan.Hu@ibm.com>
 Stefan Woerner <41292468+stefan-woerner@users.noreply.github.com> <stefan@swoerner.de>
-Stefan Woerner <41292468+stefan-woerner@users.noreply.github.com> <41292468+stefan-woerner@users.noreply.github.com>
-Stephen Wood <40241007+woodsp-ibm@users.noreply.github.com>
+Stefan Woerner <41292468+stefan-woerner@users.noreply.github.com> <41292468+stefan-woerner@users.noreply.github.com> 
 Stephen Wood <40241007+woodsp-ibm@users.noreply.github.com> <woodsp@us.ibm.com>
 Vivek Krishnan <krishnan.vivek@gmail.com>
 Yael Ben-Haim <yaelbh@il.ibm.com>
+Yotam Vaknin <Yotam.Vaknin@Ibm.com> <yotamvak@lnx-quantum.openstack.haifa.ibm.com>
