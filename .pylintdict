@@ -16,6 +16,7 @@ ansatz
 ansatzes
 anticommute
 ao
+AOs
 ap
 api
 appfactory
@@ -39,6 +40,7 @@ bitstr
 bitstring
 bitstrings
 bksf
+blockspin
 bohr
 bool
 boolean
@@ -144,6 +146,7 @@ et
 ev
 eval
 evals
+exc
 excitations
 expr
 factr
@@ -167,6 +170,7 @@ gaussian
 gaussiand
 gcc
 gcd
+gde
 geq
 getattr
 getter
@@ -198,6 +202,7 @@ ijkm
 ikmj
 imag
 implicants
+indice
 indices
 indvar
 init
@@ -296,6 +301,7 @@ nevals
 nfev
 nk
 nlopt
+nmo
 nlopts
 nn
 noint
@@ -309,6 +315,7 @@ nxd
 nxk
 nxn
 objval
+occ
 oe
 ok
 oneee
@@ -341,6 +348,7 @@ prepend
 probs
 programmatically
 proj
+pucc
 px
 py
 pyquante
@@ -409,6 +417,7 @@ scf
 scikit
 schemas
 scipy
+sd
 sdg
 sdk
 seeley
@@ -434,6 +443,7 @@ subdirectories
 subgraph
 subpattern
 subspaces
+succ
 sudo
 superclass
 suzuki
@@ -519,3 +529,7 @@ zv
 ZZ
 äguivalenzverbot
 über
+ucc
+uccd
+UCCS
+vir
