@@ -63,6 +63,7 @@ Fixed
 -   Bug where `UCCSD` might generate an empty operator and try to evolve it. (#680)
 -   Decompose causes DAG failure using feature maps. (#719)
 -   Error when only using a subset of qubits in measurement error mitigation. (#748)
+-   Line #132 the if condition was ignored and it caused the while loop to break (#768)
 
 Removed
 -------
