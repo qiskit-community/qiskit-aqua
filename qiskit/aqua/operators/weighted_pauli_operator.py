@@ -858,8 +858,6 @@ class WeightedPauliOperator(BaseOperator):
         """
         if self.is_empty():
             raise AquaError("Operator is empty, can not evolve.")
-            
-
         if state_in is not None and quantum_registers is not None:
             if not state_in.has_register(quantum_registers):
                 raise AquaError("quantum_registers must be in the provided state_in circuit.")           
