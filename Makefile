@@ -57,7 +57,7 @@ html:
 	make -C docs html SPHINXOPTS=$(SPHINXOPTS)
 	
 coverage:
-	coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization -m unittest discover -s test -q
+	coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* -m unittest discover -s test -q
 	coverage3 report
 
 coverage_erase:
