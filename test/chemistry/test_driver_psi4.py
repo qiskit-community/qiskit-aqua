@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -33,6 +33,8 @@ class TestDriverPSI4(QiskitChemistryTestCase, TestDriver):
                 '  0 1',
                 '  H  0.0 0.0 0.0',
                 '  H  0.0 0.0 0.735',
+                '  no_com',
+                '  no_reorient',
                 '}',
                 '',
                 'set {',
@@ -42,14 +44,6 @@ class TestDriverPSI4(QiskitChemistryTestCase, TestDriver):
         except QiskitChemistryError:
             self.skipTest('PSI4 driver does not appear to be installed')
         self.qmolecule = driver.run()
-
-    def test_driver_atom_xyz(self):
-        """ driver atom xyz test """
-        self.skipTest('Test fails on later PSI4 driver versions.')
-
-    def test_driver_dipole_integrals(self):
-        """ driver dipole integrals test """
-        self.skipTest('Test fails on later PSI4 driver versions.')
 
 
 if __name__ == '__main__':
