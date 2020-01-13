@@ -17,7 +17,6 @@
 import numpy as np
 
 from qiskit.aqua.utils import CircuitFactory
-from qiskit.aqua.circuits.gates import cry  # pylint: disable=unused-import
 
 
 class LinearRotation(CircuitFactory):

@@ -20,7 +20,6 @@ from typing import Optional, Union, List
 import numpy as np
 from qiskit.aqua.components.uncertainty_models import UncertaintyModel
 from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
-from qiskit.aqua.circuits.gates import cry  # pylint: disable=unused-import
 
 # pylint: disable=invalid-name
 
