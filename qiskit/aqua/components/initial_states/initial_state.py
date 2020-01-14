@@ -17,7 +17,13 @@ initial states. An initial state might be used by a variational
 form or in eoh as a trial state to evolve
 """
 
-from typing import Optional, NoReturn
+from typing import Optional
+# below to allow it for python 3.6.1
+try:
+    from typing import NoReturn
+except ImportError:
+    from typing import Any as NoReturn
+
 from abc import ABC, abstractmethod
 from qiskit.circuit import QuantumRegister
 from qiskit.aqua import AquaError  # pylint: disable=unused-import
