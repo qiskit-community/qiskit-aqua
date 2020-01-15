@@ -165,6 +165,14 @@ jobs:
           name: finance
           paths: finance.dat
       script: stestr --test-path test/finance run && coverage combine && mv .coverage finance.dat
+    - name: "Test Machine Learning"
+      <<: *stage_test
+      if: tag IS blank
+      workspaces:
+        create:
+          name: ml
+          paths: ml.dat
+      script: stestr --test-path test/ml run && coverage combine && mv .coverage ml.dat
     - name: "Test Optimization"
       <<: *stage_test
       if: tag IS blank
@@ -182,11 +190,12 @@ jobs:
           - aqua2
           - chemistry
           - finance
+          - ml
           - optimization
       install:
         - pip install -U coverage coveralls diff-cover
       script:
-        - coverage combine aqua1.dat aqua2.dat chemistry.dat finance.dat optimization.dat
+        - coverage combine aqua1.dat aqua2.dat chemistry.dat finance.dat ml.dat optimization.dat
         - coveralls || true
         - coverage xml
         - diff-cover --compare-branch master coverage.xml || true
