@@ -12,3 +12,5 @@ jupyter-sphinx
 reno>=2.11.0
 matplotlib>=2.1
 stestr>=2.5.0
+coverage>=4.4.0
+torch; sys_platform != 'win32'
