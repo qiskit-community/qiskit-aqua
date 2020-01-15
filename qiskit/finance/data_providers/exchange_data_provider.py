@@ -14,11 +14,12 @@
 
 """ exchange data provider """
 
+from typing import Union, List
 import datetime
 import importlib
 import logging
 
-from qiskit.finance.data_providers import (BaseDataProvider, DataType,
+from qiskit.finance.data_providers import (BaseDataProvider,
                                            StockMarket, QiskitFinanceError)
 
 logger = logging.getLogger(__name__)
@@ -31,47 +32,20 @@ class ExchangeDataProvider(BaseDataProvider):
     for instructions on use, which involve obtaining a Quandl access token.
     """
 
-    _INPUT_SCHEMA = {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "id": "edi_schema",
-        "type": "object",
-        "properties": {
-            "stockmarket": {
-                "type":
-                "string",
-                "default": StockMarket.LONDON.value,
-                "enum": [
-                    StockMarket.LONDON.value,
-                    StockMarket.EURONEXT.value,
-                    StockMarket.SINGAPORE.value,
-                ]
-            },
-            "datatype": {
-                "type":
-                "string",
-                "default": DataType.DAILYADJUSTED.value,
-                "enum": [
-                    DataType.DAILYADJUSTED.value,
-                    DataType.DAILY.value,
-                ]
-            },
-        },
-    }
-
     def __init__(self,
-                 token,
-                 tickers,
-                 stockmarket=StockMarket.LONDON,
-                 start=datetime.datetime(2016, 1, 1),
-                 end=datetime.datetime(2016, 1, 30)):
+                 token: str,
+                 tickers: Union[str, List[str]],
+                 stockmarket: StockMarket = StockMarket.LONDON,
+                 start: datetime = datetime.datetime(2016, 1, 1),
+                 end: datetime = datetime.datetime(2016, 1, 30)) -> None:
         """
         Initializer
         Args:
-            token (str): quandl access token
-            tickers (str or list): tickers
-            stockmarket (StockMarket): LONDON, EURONEXT, or SINGAPORE
-            start (datetime): first data point
-            end (datetime): last data point precedes this date
+            token: quandl access token
+            tickers: tickers
+            stockmarket: LONDON, EURONEXT, or SINGAPORE
+            start: first data point
+            end: last data point precedes this date
         Raises:
             QiskitFinanceError: provider doesn't support stock market
         """
@@ -97,8 +71,6 @@ class ExchangeDataProvider(BaseDataProvider):
         self._tickers = tickers
         self._start = start
         self._end = end
-
-        # validate(locals(), self._INPUT_SCHEMA)
 
     @staticmethod
     def _check_provider_valid():

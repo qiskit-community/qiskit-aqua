@@ -14,6 +14,7 @@
 
 """ Gaussian Driver """
 
+from typing import Union, List
 import sys
 import io
 import logging
@@ -43,18 +44,18 @@ class GaussianDriver(BaseDriver):
     output a MatrixElement file.
     """
 
-    def __init__(self, config=None):
+    def __init__(self,
+                 config: Union[str, List[str]] =
+                 '# rhf/sto-3g scf(conventional)\n\n'
+                 'h2 molecule\n\n0 1\nH   0.0  0.0    0.0\nH   0.0  0.0    0.735\n\n') -> None:
         """
         Initializer
         Args:
-            config (str or list): driver configuration
+            config: driver configuration
         Raises:
             QiskitChemistryError: Invalid Input
         """
         self._check_valid()
-        if config is None:
-            config = "# rhf/sto-3g scf(conventional)\n\n" \
-                "h2 molecule\n\n0 1\nH   0.0  0.0    0.0\nH   0.0  0.0    0.735\n\n"
         if not isinstance(config, list) and not isinstance(config, str):
             raise QiskitChemistryError("Invalid input for Gaussian Driver '{}'".format(config))
 

@@ -18,6 +18,7 @@ An adaptive VQE implementation.
 See https://arxiv.org/abs/1812.11173
 """
 
+from typing import Optional, List
 import logging
 import re
 import numpy as np
@@ -29,6 +30,10 @@ from qiskit.aqua.algorithms.adaptive.vqe.vqe import VQE
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.aqua.operators import TPBGroupedWeightedPauliOperator, WeightedPauliOperator
 from qiskit.aqua.utils.backend_utils import is_aer_statevector_backend
+from qiskit.aqua.operators import BaseOperator
+from qiskit.aqua.components.optimizers import Optimizer
+from qiskit.aqua.components.variational_forms import VariationalForm
+from qiskit.aqua.utils.validation import validate_min
 
 logger = logging.getLogger(__name__)
 
@@ -40,58 +45,34 @@ class VQEAdapt(VQAlgorithm):
     See https://arxiv.org/abs/1812.11173
     """
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'vqe_adapt_schema',
-        'type': 'object',
-        'properties': {
-            'initial_point': {
-                'type': ['array', 'null'],
-                "items": {
-                    "type": "number"
-                },
-                'default': None
-            },
-            'threshold': {
-                'type': 'number',
-                'minimum': 1e-15,  # limited by floating point precision
-                'default': 1e-5
-
-            },
-            'delta': {
-                'type': 'number',
-                'minimum': 1e-5,
-                'default': 1
-            },
-            'max_evals_grouped': {
-                'type': 'integer',
-                'default': 1
-            }
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, operator, var_form_base, optimizer, initial_point=None,
-                 excitation_pool=None, threshold=1e-5, delta=1,
-                 max_evals_grouped=1, aux_operators=None):
+    def __init__(self, operator: BaseOperator,
+                 var_form_base: VariationalForm, optimizer: Optimizer,
+                 initial_point: Optional[np.ndarray] = None,
+                 excitation_pool: Optional[List[WeightedPauliOperator]] = None,
+                 threshold: float = 1e-5,
+                 delta: float = 1, max_evals_grouped: int = 1,
+                 aux_operators: Optional[List[BaseOperator]] = None) -> None:
         """Constructor.
 
         Args:
-            operator (BaseOperator): Qubit operator
-            var_form_base (VariationalForm): base parametrized variational form
-            optimizer (Optimizer): the classical optimizer algorithm
-            initial_point (numpy.ndarray): optimizer initial point
-            excitation_pool (list[WeightedPauliOperator]): list of excitation operators
-            threshold (double): absolute threshold value for gradients
-            delta (float): finite difference step size for gradient computation
-            max_evals_grouped (int): max number of evaluations performed simultaneously
-            aux_operators (list[BaseOperator]): Auxiliary operators to be evaluated
+            operator: Qubit operator
+            var_form_base: base parameterized variational form
+            optimizer: the classical optimizer algorithm
+            initial_point: optimizer initial point
+            excitation_pool: list of excitation operators
+            threshold: absolute threshold value for gradients, has a min. value of 1e-15.
+            delta: finite difference step size for gradient computation,
+                    has a min. value of 1e-5.
+            max_evals_grouped: max number of evaluations performed simultaneously
+            aux_operators: Auxiliary operators to be evaluated
                                                 at each eigenvalue
 
         Raises:
             ValueError: if var_form_base is not an instance of UCCSD.
             See also: qiskit/chemistry/components/variational_forms/uccsd_adapt.py
         """
+        validate_min('threshold', threshold, 1e-15)
+        validate_min('delta', delta, 1e-5)
         super().__init__(var_form=var_form_base,
                          optimizer=optimizer,
                          initial_point=initial_point)

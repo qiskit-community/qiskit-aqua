@@ -222,8 +222,6 @@ jac
 jacobian
 jordan
 jozsa
-json
-jsonfile
 jt
 jth
 jw
@@ -320,7 +318,6 @@ optim
 optimizer's
 optimizers
 org
-parametrized
 params
 parentname
 pauli
