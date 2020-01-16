@@ -21,12 +21,12 @@ from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.aqua.components.variational_forms import RY
 from qiskit.aqua.components.optimizers import AQGD
-from qiskit.aqua.components.initial_states import Zero
 from qiskit.aqua.algorithms import VQE
 
 
 class TestAQGD(QiskitAquaTestCase):
     """ Test AQGD optimizer using RY for analytic gradient with VQE """
+
     def setUp(self):
         super().setUp()
         self.seed = 50
@@ -42,6 +42,8 @@ class TestAQGD(QiskitAquaTestCase):
         self.qubit_op = WeightedPauliOperator.from_dict(pauli_dict)
 
     def test_aqgd(self):
+        """ test AQGD optimizer by using it """
+
         result = VQE(self.qubit_op,
                      RY(self.qubit_op.num_qubits),
                      AQGD(momentum=0.0)).run(
