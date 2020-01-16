@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,39 +12,44 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Shared functionality and helpers for the unit tests."""
+"""Base Shared functionality and helpers for the unit tests."""
 
-from enum import Enum
+from typing import Optional
+from abc import ABC, abstractmethod
+import warnings
 import inspect
 import logging
 import os
 import unittest
 import time
 
-from qiskit.aqua import __path__ as qiskit_aqua_path
+
+# disable deprecation warnings that can cause log output overflow
+# pylint: disable=unused-argument
 
 
-class Path(Enum):
-    """Helper with paths commonly used during the tests."""
-    # Main SDK path:    qiskit/aqua/
-    SDK = qiskit_aqua_path[0]
-    # test.python path: test/aqua
-    TEST = os.path.dirname(__file__)
+def _noop(*args, **kargs):
+    pass
 
 
-class QiskitAquaTestCase(unittest.TestCase):
-    """Helper class that contains common functionality."""
+warnings.warn = _noop
 
-    def setUp(self):
+
+class QiskitBaseTestCase(unittest.TestCase, ABC):
+    """Base Helper class that contains common functionality."""
+
+    @abstractmethod
+    def setUp(self) -> None:
         self._started_at = time.time()
+        self._class_location = __file__
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         elapsed = time.time() - self._started_at
         if elapsed > 5.0:
             print('({:.2f}s)'.format(round(elapsed, 2)), flush=True)
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls) -> None:
         cls.moduleName = os.path.splitext(inspect.getfile(cls))[0]
         cls.log = logging.getLogger(cls.__name__)
 
@@ -68,41 +73,17 @@ class QiskitAquaTestCase(unittest.TestCase):
                                              logging.INFO)
             cls.log.setLevel(level)
 
-    @staticmethod
-    def _get_resource_path(filename, path=Path.TEST):
+    def get_resource_path(self,
+                          filename: str,
+                          path: Optional[str] = None) -> str:
         """ Get the absolute path to a resource.
         Args:
-            filename (string): filename or relative path to the resource.
-            path (Path): path used as relative to the filename.
+            filename: filename or relative path to the resource.
+            path: path used as relative to the filename.
         Returns:
             str: the absolute path to the resource.
         """
-        return os.path.normpath(os.path.join(path.value, filename))
+        if path is None:
+            path = os.path.dirname(self._class_location)
 
-    def assertNoLogs(self, logger=None, level=None):
-        """The opposite to assertLogs.
-        """
-        # pylint: disable=invalid-name
-        return _AssertNoLogsContext(self, logger, level)
-
-
-class _AssertNoLogsContext(unittest.case._AssertLogsContext):
-    """A context manager used to implement TestCase.assertNoLogs()."""
-
-    LOGGING_FORMAT = "%(levelname)s:%(name)s:%(message)s"
-
-    # pylint: disable=inconsistent-return-statements
-    def __exit__(self, exc_type, exc_value, tb):
-        """
-        This is a modified version of unittest.case._AssertLogsContext.__exit__(...)
-        """
-        self.logger.handlers = self.old_handlers
-        self.logger.propagate = self.old_propagate
-        self.logger.setLevel(self.old_level)
-        if exc_type is not None:
-            # let unexpected exceptions pass through
-            return False
-        for record in self.watcher.records:
-            self._raiseFailure(
-                "Something was logged in the logger %s by %s:%i" %
-                (record.name, record.pathname, record.lineno))
+        return os.path.normpath(os.path.join(path, filename))
