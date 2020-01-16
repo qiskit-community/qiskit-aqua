@@ -16,7 +16,7 @@
 
 import unittest
 
-from test.chemistry.common import QiskitChemistryTestCase
+from test.chemistry import QiskitChemistryTestCase
 from test.chemistry.test_driver import TestDriver
 from qiskit.chemistry.drivers import PSI4Driver
 from qiskit.chemistry import QiskitChemistryError
