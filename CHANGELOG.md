@@ -63,6 +63,7 @@ Fixed
 -   Bug where `UCCSD` might generate an empty operator and try to evolve it. (#680)
 -   Decompose causes DAG failure using feature maps. (#719)
 -   Error when only using a subset of qubits in measurement error mitigation. (#748)
+-   The AQGD optimizer if condition in func converged was ignored. That kept breaking the wile loop for training.(#770)
 
 Removed
 -------
