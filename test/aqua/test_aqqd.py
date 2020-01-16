@@ -14,7 +14,7 @@
 
 """ Test of AQGD optimizer """
 
-from test.aqua.common import QiskitAquaTestCase
+from test.aqua import QiskitAquaTestCase
 from qiskit import BasicAer
 
 from qiskit.aqua import QuantumInstance, aqua_globals

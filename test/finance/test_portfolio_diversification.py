@@ -15,7 +15,7 @@
 """ Test Portfolio Optimization """
 
 import math
-from test.finance.common import QiskitFinanceTestCase
+from test.finance import QiskitFinanceTestCase
 
 import numpy as np
 from qiskit.quantum_info import Pauli

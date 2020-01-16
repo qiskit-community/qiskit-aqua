@@ -14,7 +14,7 @@
 
 """ Test of SWAPRZ from core aqua """
 
-from test.chemistry.common import QiskitChemistryTestCase
+from test.chemistry import QiskitChemistryTestCase
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms import VQE
@@ -42,7 +42,7 @@ class TestSwapRZ(QiskitChemistryTestCase):
     def test_swaprz(self):
         """ SwapRZ variational form test """
 
-        driver = HDF5Driver(self._get_resource_path('test_driver_hdf5.hdf5'))
+        driver = HDF5Driver(self.get_resource_path('test_driver_hdf5.hdf5'))
         qmolecule = driver.run()
         operator = Hamiltonian(qubit_mapping=QubitMappingType.JORDAN_WIGNER,
                                two_qubit_reduction=False)
