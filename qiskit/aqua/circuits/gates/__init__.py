@@ -37,7 +37,6 @@ Gates
     mcmt
     logical_and
     logical_or
-    cry
     rccx
     rcccx
 
@@ -48,7 +47,6 @@ from .multi_control_rotation_gates import mcrx, mcry, mcrz
 from .multi_control_toffoli_gate import mct
 from .multi_control_multi_target_gate import mcmt
 from .boolean_logical_gates import logical_and, logical_or
-from .controlled_ry_gate import cry
 from .relative_phase_toffoli import rccx, rcccx
 
 __all__ = [
@@ -60,7 +58,6 @@ __all__ = [
     'mcmt',
     'logical_and',
     'logical_or',
-    'cry',
     'rccx',
     'rcccx'
 ]
