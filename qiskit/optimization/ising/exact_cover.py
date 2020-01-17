@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -15,7 +15,6 @@
 """ exact cover """
 
 import logging
-import warnings
 
 import numpy as np
 
@@ -122,46 +121,3 @@ def check_solution_satisfiability(sol, list_of_subsets):
                 return False
 
     return True
-
-
-def random_number_list(n, weight_range=100, savefile=None):
-    """ random number list """
-    # pylint: disable=import-outside-toplevel
-    from .common import random_number_list as redirect_func
-    warnings.warn("random_number_list function has been moved to "
-                  "qiskit.optimization.ising.common, "
-                  "the method here will be removed after Aqua 0.7+",
-                  DeprecationWarning)
-    return redirect_func(n=n, weight_range=weight_range, savefile=savefile)
-
-
-def read_numbers_from_file(filename):
-    """ read numbers from file """
-    # pylint: disable=import-outside-toplevel
-    from .common import read_numbers_from_file as redirect_func
-    warnings.warn("read_numbers_from_file function has been moved to "
-                  "qiskit.optimization.ising.common, "
-                  "the method here will be removed after Aqua 0.7+",
-                  DeprecationWarning)
-    return redirect_func(filename)
-
-
-def sample_most_likely(n=None, state_vector=None):
-    """ sample most likely """
-    # pylint: disable=import-outside-toplevel
-    from .common import sample_most_likely as redirect_func
-    if n is not None:
-        warnings.warn("n argument is not need and it will be removed after Aqua 0.7+",
-                      DeprecationWarning)
-    warnings.warn("sample_most_likely function has been moved to qiskit.aqua.ising.common, "
-                  "the method here will be removed after Aqua 0.7+",
-                  DeprecationWarning)
-    return redirect_func(state_vector=state_vector)
-
-
-def get_exact_cover_qubitops(list_of_subsets):
-    """ get exact cover qubit ops """
-    warnings.warn("get_exact_cover_qubitops function has been changed to get_operator"
-                  "the method here will be removed after Aqua 0.7+",
-                  DeprecationWarning)
-    return get_operator(list_of_subsets)
