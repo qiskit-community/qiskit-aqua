@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -14,7 +14,7 @@
 
 """ Test Partition """
 
-from test.optimization.common import QiskitOptimizationTestCase
+from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 from qiskit import BasicAer
 from qiskit.aqua import aqua_globals, QuantumInstance
@@ -30,7 +30,7 @@ class TestSetPacking(QiskitOptimizationTestCase):
 
     def setUp(self):
         super().setUp()
-        input_file = self._get_resource_path('sample.partition')
+        input_file = self.get_resource_path('sample.partition')
         number_list = read_numbers_from_file(input_file)
         self.qubit_op, _ = partition.get_operator(number_list)
 
