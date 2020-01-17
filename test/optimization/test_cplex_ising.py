@@ -14,7 +14,7 @@
 
 """ Test Cplex Ising """
 
-from test.optimization.common import QiskitOptimizationTestCase
+from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 
 from qiskit.aqua import aqua_globals
