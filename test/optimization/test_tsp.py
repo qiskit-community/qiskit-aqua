@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Test TSP (Travelling Saleman Problem) """
+""" Test TSP (Traveling Salesman Problem) """
 
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
@@ -33,21 +33,6 @@ class TestTSP(QiskitOptimizationTestCase):
         self.num_nodes = 3
         self.ins = tsp.random_tsp(self.num_nodes)
         self.qubit_op, self.offset = tsp.get_operator(self.ins)
-        # TestTSP._plot(self.num_nodes, self.ins)  # To visualize test graph if wanted
-
-    # @staticmethod
-    # def _plot(num_nodes, ins):
-    #     import matplotlib.pyplot as plt
-    #     import networkx as nx
-    #
-    #     graph = nx.Graph()
-    #     graph.add_nodes_from(np.arange(0, num_nodes, 1))
-    #     colors = ['r' for node in graph.nodes()]
-    #     pos = {k: v for k, v in enumerate(ins.coord)}
-    #     default_axes = plt.axes(frameon=True)
-    #     nx.draw_networkx(graph, node_color=colors, node_size=600, alpha=.8,
-    #                      ax=default_axes, pos=pos)
-    #     plt.show()
 
     def test_tsp(self):
         """ TSP test """
