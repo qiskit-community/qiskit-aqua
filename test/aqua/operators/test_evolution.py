@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -16,7 +16,7 @@
 
 import itertools
 import os
-from test.aqua.common import QiskitAquaTestCase
+from test.aqua import QiskitAquaTestCase
 from qiskit import BasicAer
 from qiskit.quantum_info import Pauli
 from qiskit.aqua import aqua_globals, QuantumInstance
@@ -53,7 +53,7 @@ class TestEvolution(QiskitAquaTestCase):
         weights = [0.2 + -1j * 0.8, 0.6 + -1j * 0.6, 0.8 + -1j * 0.2,
                    -0.2 + -1j * 0.8, -0.6 - -1j * 0.6, -0.8 - -1j * 0.2]
         op = WeightedPauliOperator.from_list(paulis, weights)
-        file_path = self._get_resource_path('temp_op.json')
+        file_path = self.get_resource_path('temp_op.json')
         op.to_file(file_path)
         self.assertTrue(os.path.exists(file_path))
 
