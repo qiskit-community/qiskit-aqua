@@ -57,8 +57,8 @@ def random_unitary(N):  # pylint: disable=invalid-name
     Returns:
         np.ndarray: a 2-D matrix with np.complex data type.
     """
-    x = (np.random.random(size=(N, N))*N + 1j *
-         np.random.random(size=(N, N))*N) / np.sqrt(2)
+    x = (aqua_globals.random.random_sample(size=(N, N))*N + 1j *
+         aqua_globals.random.random_sample(size=(N, N))*N) / np.sqrt(2)
     q, r = np.linalg.qr(x)
     r = np.diag(np.divide(np.diag(r), abs(np.diag(r))))
     unitary_matrix = np.dot(q, r)
@@ -108,7 +108,7 @@ def random_h2_body(N, M):  # pylint: disable=invalid-name
         r_i = aqua_globals.random.randint(N // 2, size=(4))
         i, j, l, m = r_i[0], r_i[1], r_i[2], r_i[3]
         if i != l and j != m and h_2[i, j, l, m] == 0:
-            h_2[i, j, l, m] = 1 - 2 * aqua_globals.random.random(1)
+            h_2[i, j, l, m] = 1 - 2 * aqua_globals.random.random_sample(1)
             element_count += 4
             # In the chemists notation h2bodys(i,j,l,m) refers to
             # a^dag_i a^dag_l a_m a_j
