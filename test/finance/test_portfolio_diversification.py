@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Test Portfolio Optimization """
+""" Test Portfolio Diversification Optimization """
 
 import math
 from test.finance import QiskitFinanceTestCase
@@ -118,10 +118,10 @@ class ClassicalOptimizer:
 
 
 # To run only this test, issue:
-# python -m unittest test.test_portfoliodiversification.TestPortfolioDiversification
+# python -m unittest test.finance_portfoliodiversification.TestPortfolioDiversification
 
 class TestPortfolioDiversification(QiskitFinanceTestCase):
-    """Tests vehicle routing Ising translator."""
+    """Tests Portfolio Diversification Ising translator."""
 
     def setUp(self):
         super().setUp()
