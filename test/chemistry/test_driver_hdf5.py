@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -15,7 +15,7 @@
 """ Test Driver HDF5 """
 
 import unittest
-from test.chemistry.common import QiskitChemistryTestCase
+from test.chemistry import QiskitChemistryTestCase
 from test.chemistry.test_driver import TestDriver
 from qiskit.chemistry.drivers import HDF5Driver
 
@@ -25,7 +25,7 @@ class TestDriverHDF5(QiskitChemistryTestCase, TestDriver):
 
     def setUp(self):
         super().setUp()
-        driver = HDF5Driver(hdf5_input=self._get_resource_path('test_driver_hdf5.hdf5'))
+        driver = HDF5Driver(hdf5_input=self.get_resource_path('test_driver_hdf5.hdf5'))
         self.qmolecule = driver.run()
 
 

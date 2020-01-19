@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -15,7 +15,7 @@
 """ Test Fixed Value Comparator """
 
 import unittest
-from test.aqua.common import QiskitAquaTestCase
+from test.aqua import QiskitAquaTestCase
 from parameterized import parameterized
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit, BasicAer, execute

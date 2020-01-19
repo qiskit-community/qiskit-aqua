@@ -15,7 +15,7 @@
 """ Test Data Providers """
 
 import datetime
-from test.finance.common import QiskitFinanceTestCase
+from test.finance import QiskitFinanceTestCase
 import warnings
 import numpy as np
 from qiskit.finance.data_providers import (RandomDataProvider,
