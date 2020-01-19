@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -57,7 +57,8 @@ def random_unitary(N):  # pylint: disable=invalid-name
     Returns:
         np.ndarray: a 2-D matrix with np.complex data type.
     """
-    x = (np.random.random(size=(N, N))*N + 1j*np.random.random(size=(N, N))*N) / np.sqrt(2)
+    x = (aqua_globals.random.random(size=(N, N))*N + 1j *
+         aqua_globals.random.random(size=(N, N))*N) / np.sqrt(2)
     q, r = np.linalg.qr(x)
     r = np.diag(np.divide(np.diag(r), abs(np.diag(r))))
     unitary_matrix = np.dot(q, r)
