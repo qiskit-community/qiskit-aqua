@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -17,8 +17,6 @@ Converts vehicle routing instances into a list of Paulis,
 and provides some related routines (extracting a solution,
 checking its objective function value).
 """
-
-import warnings
 
 import numpy as np
 from qiskit.quantum_info import Pauli
@@ -192,12 +190,3 @@ def get_vehiclerouting_solution(instance, n, K, result):  # pylint: disable=inva
     x_sol = np.flip(x_sol, axis=0)
 
     return x_sol
-
-
-def get_vehiclerouting_qubitops(instance, n, K):
-    """ get vehicle routing qubit ops """
-    # pylint: disable=invalid-name
-    warnings.warn("get_vehiclerouting_qubitops function has been changed to get_operator"
-                  "the method here will be removed after Aqua 0.7+",
-                  DeprecationWarning)
-    return get_operator(instance, n, K)

@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -15,7 +15,6 @@
 """
 Convert portfolio optimization instances into Pauli list
 """
-import warnings
 
 import numpy as np
 from sklearn.datasets import make_spd_matrix
@@ -100,21 +99,3 @@ def portfolio_expected_value(x, mu):  # pylint: disable=invalid-name
 def portfolio_variance(x, sigma):
     """ returns portfolio variance """
     return np.dot(x, np.dot(sigma, x))
-
-
-def sample_most_likely(state_vector):
-    """ sample most likely """
-    # pylint: disable=import-outside-toplevel
-    from qiskit.optimization.ising.common import sample_most_likely as redirect_func
-    warnings.warn("sample_most_likely function has been moved to qiskit.aqua.ising.common, "
-                  "the method here will be removed after Aqua 0.7+",
-                  DeprecationWarning)
-    return redirect_func(state_vector=state_vector)
-
-
-def get_portfolio_qubitops(mu, sigma, q, budget, penalty):  # pylint: disable=invalid-name
-    """ returns portfolio qubit ops """
-    warnings.warn("get_portfolio_qubitops function has been changed to get_operator"
-                  "the method here will be removed after Aqua 0.7+",
-                  DeprecationWarning)
-    return get_operator(mu, sigma, q, budget, penalty)
