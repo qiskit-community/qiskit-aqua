@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -21,7 +21,7 @@ os: linux
 dist: xenial
 
 language: python
-python: 3.6
+python: 3.7
 
 env:
   global:
@@ -94,15 +94,37 @@ before_script:
 
 matrix:
   include:
-  - name: "Lint and Style check and Test Chemistry"
+  - name: "Lint and Style check and Test Chemistry Python 3.7"
+    if: tag IS blank
     env: TEST_DIR=chemistry
     script:
         make spell && make style && make lint && export OPENBLAS_NUM_THREADS=1 && stestr --test-path test/chemistry run
-  - name: "Test Aqua"
+  - name: Test Chemistry Python 3.8"
+    if: tag IS blank
+    env: TEST_DIR=chemistry
+    python: 3.8
+    script:
+        export OPENBLAS_NUM_THREADS=1 && stestr --test-path test/chemistry run
+  - name: "Test Aqua Python 3.7"
+    if: tag IS blank
     script: stestr --test-path test run --blacklist-file blacklist.txt
-  - name: "Test Aqua 2"
+  - name: "Test Aqua Python 3.8"
+    if: tag IS blank
+    python: 3.8
+    script: stestr --test-path test run --blacklist-file blacklist.txt
+  - name: "Test Aqua 2 Python 3.7"
+    if: tag IS blank
     script: stestr --test-path test run --whitelist-file selection.txt
-  - name: "Test Aqua 3"
+  - name: "Test Aqua 2 Python 3.8"
+    if: tag IS blank
+    python: 3.8
+    script: stestr --test-path test run --whitelist-file selection.txt
+  - name: "Test Aqua 3 Python 3.7"
+    if: tag IS blank
+    script: stestr --test-path test run --whitelist-file selection2.txt
+  - name: "Test Aqua 3 Python 3.8"
+    if: tag IS blank
+    python: 3.8
     script: stestr --test-path test run --whitelist-file selection2.txt
 
   - if: tag IS present
@@ -115,7 +137,8 @@ matrix:
       - twine upload dist/qiskit*
 
 before_install:
-  - pip install --upgrade pip setuptools wheel
+  - pip install -U 'pip<20.0.0'
+  - pip install -U setuptools wheel
   - |
     if [ -f $INIT_FILE ]; then
       # stops travis if __init__.py exists under qiskit
