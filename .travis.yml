@@ -21,7 +21,7 @@ os: linux
 dist: xenial
 
 language: python
-python: 3.6
+python: 3.7
 
 env:
   global:
@@ -66,21 +66,16 @@ stage_dependencies: &stage_dependencies
         # back to current repo directory
         cd $TRAVIS_BUILD_DIR
       fi
-    # install Aqua and Aqua dev. requirements
-    - pip install -e $TRAVIS_BUILD_DIR --progress-bar off
-    - pip install -U -c constraints.txt -r requirements-dev.txt --progress-bar off
-
-stage_test: &stage_test
-  <<: *stage_dependencies
-  before_script:
     - |
       if [ ! "$(ls -A .stestr)" ]; then
           rm -rf .stestr
       fi
-    - export PYTHON="coverage run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
+    # install Aqua and Aqua dev. requirements
+    - pip install -e $TRAVIS_BUILD_DIR --progress-bar off
+    - pip install -U -c constraints.txt -r requirements-dev.txt --progress-bar off
 
 stage_test_aqua: &stage_test_aqua
-  <<: *stage_test
+  <<: *stage_dependencies
   install:
     - |
       cat > selection.txt <<EOF
@@ -119,31 +114,44 @@ jobs:
       <<: *stage_dependencies
       name: "Spell, Style, Lint, Docs check"
       if: tag IS blank
-      python: 3.7
       install:
         # install spell check libraries
         - sudo apt-get -y install python3-enchant
         - sudo apt-get -y install hunspell-en-us
         - pip install pyenchant
       script: make spell && make style && make lint && make html SPHINXOPTS=-W
-    - name: "Test Aqua 1"
+    - name: "Coverage Aqua 1"
       <<: *stage_test_aqua
       if: tag IS blank
       workspaces:
         create:
           name: aqua1
           paths: aqua1.dat
+      before_script:
+        - export PYTHON="coverage run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script: stestr --test-path test/aqua run --blacklist-file selection.txt && coverage combine && mv .coverage aqua1.dat
-    - name: "Test Aqua 2"
+    - name: "Test Aqua 1"
+      <<: *stage_test_aqua
+      if: tag IS blank
+      python: 3.8
+      script: stestr --test-path test/aqua run --blacklist-file selection.txt
+    - name: "Coverage Aqua 2"
       <<: *stage_test_aqua
       if: tag IS blank
       workspaces:
         create:
           name: aqua2
           paths: aqua2.dat
+      before_script:
+        - export PYTHON="coverage run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script: stestr --test-path test/aqua run --whitelist-file selection.txt && coverage combine && mv .coverage aqua2.dat
-    - name: "Test Chemistry"
-      <<: *stage_test
+    - name: "Test Aqua 2"
+      <<: *stage_test_aqua
+      if: tag IS blank
+      python: 3.8
+      script: stestr --test-path test/aqua run --whitelist-file selection.txt
+    - name: "Coverage Chemistry"
+      <<: *stage_dependencies
       if: tag IS blank
       env: OPENBLAS_NUM_THREADS=1
       workspaces:
@@ -156,33 +164,68 @@ jobs:
         - unzip /tmp/pyquante2.zip -d /tmp/
         # Install local PyQuante
         - pip install -e /tmp/pyquante2-master --progress-bar off
+      before_script:
+        - export PYTHON="coverage run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script: stestr --test-path test/chemistry run && coverage combine && mv .coverage chemistry.dat
-    - name: "Test Finance"
-      <<: *stage_test
+    - name: "Test Chemistry"
+      <<: *stage_dependencies
+      if: tag IS blank
+      python: 3.8
+      env: OPENBLAS_NUM_THREADS=1
+      install:
+        # download PyQuante master and unzip it
+        - wget https://codeload.github.com/rpmuller/pyquante2/zip/master -O /tmp/pyquante2.zip
+        - unzip /tmp/pyquante2.zip -d /tmp/
+        # Install local PyQuante
+        - pip install -e /tmp/pyquante2-master --progress-bar off
+      script: stestr --test-path test/chemistry
+    - name: "Coverage Finance"
+      <<: *stage_dependencies
       if: tag IS blank
       workspaces:
         create:
           name: finance
           paths: finance.dat
+      before_script:
+        - export PYTHON="coverage run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script: stestr --test-path test/finance run && coverage combine && mv .coverage finance.dat
-    - name: "Test Machine Learning"
-      <<: *stage_test
+    - name: "Test Finance"
+      <<: *stage_dependencies
+      if: tag IS blank
+      python: 3.8
+      script: stestr --test-path test/finance run
+    - name: "Coverage Machine Learning"
+      <<: *stage_dependencies
       if: tag IS blank
       workspaces:
         create:
           name: ml
           paths: ml.dat
+      before_script:
+        - export PYTHON="coverage run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script: stestr --test-path test/ml run && coverage combine && mv .coverage ml.dat
-    - name: "Test Optimization"
-      <<: *stage_test
+    - name: "Test Machine Learning"
+      <<: *stage_dependencies
+      if: tag IS blank
+      python: 3.8
+      script: stestr --test-path test/ml run
+    - name: "Coverage Optimization"
+      <<: *stage_dependencies
       if: tag IS blank
       workspaces:
         create:
           name: optimization
           paths: optimization.dat
+      before_script:
+        - export PYTHON="coverage run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script: stestr --test-path test/optimization run && coverage combine && mv .coverage optimization.dat
+    - name: "Test Optimization"
+      <<: *stage_dependencies
+      if: tag IS blank
+      python: 3.8
+      script: stestr --test-path test/optimization run
     - stage: Coverage
-      name: "Combine all coverages and report"
+      name: "Combine all coverages and upload to Coveralls"
       if: tag IS blank
       workspaces:
         use:
