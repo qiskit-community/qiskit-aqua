@@ -30,7 +30,8 @@ env:
 
 stage_dependencies: &stage_dependencies
   before_install:
-    - pip install -U pip setuptools wheel
+    - pip install -U 'pip<20.0.0'
+    - pip install -U setuptools wheel
     - |
       if [ -f $INIT_FILE ]; then
         # stops travis if __init__.py exists under qiskit
@@ -120,7 +121,7 @@ jobs:
         - sudo apt-get -y install hunspell-en-us
         - pip install pyenchant
       script: make spell && make style && make lint && make html SPHINXOPTS=-W
-    - name: "Coverage Aqua 1"
+    - name: "Test Aqua 1 Python 3.7"
       <<: *stage_test_aqua
       if: tag IS blank
       workspaces:
@@ -130,12 +131,12 @@ jobs:
       before_script:
         - export PYTHON="coverage run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script: stestr --test-path test/aqua run --blacklist-file selection.txt && coverage combine && mv .coverage aqua1.dat
-    - name: "Test Aqua 1"
+    - name: "Test Aqua 1 Python 3.8"
       <<: *stage_test_aqua
       if: tag IS blank
       python: 3.8
       script: stestr --test-path test/aqua run --blacklist-file selection.txt
-    - name: "Coverage Aqua 2"
+    - name: "Test Aqua 2 Python 3.7"
       <<: *stage_test_aqua
       if: tag IS blank
       workspaces:
@@ -145,12 +146,12 @@ jobs:
       before_script:
         - export PYTHON="coverage run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script: stestr --test-path test/aqua run --whitelist-file selection.txt && coverage combine && mv .coverage aqua2.dat
-    - name: "Test Aqua 2"
+    - name: "Test Aqua 2 Python 3.8"
       <<: *stage_test_aqua
       if: tag IS blank
       python: 3.8
       script: stestr --test-path test/aqua run --whitelist-file selection.txt
-    - name: "Coverage Chemistry"
+    - name: "Test Chemistry Python 3.7"
       <<: *stage_dependencies
       if: tag IS blank
       env: OPENBLAS_NUM_THREADS=1
@@ -167,7 +168,7 @@ jobs:
       before_script:
         - export PYTHON="coverage run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script: stestr --test-path test/chemistry run && coverage combine && mv .coverage chemistry.dat
-    - name: "Test Chemistry"
+    - name: "Test Chemistry Python 3.8"
       <<: *stage_dependencies
       if: tag IS blank
       python: 3.8
@@ -178,8 +179,8 @@ jobs:
         - unzip /tmp/pyquante2.zip -d /tmp/
         # Install local PyQuante
         - pip install -e /tmp/pyquante2-master --progress-bar off
-      script: stestr --test-path test/chemistry
-    - name: "Coverage Finance"
+      script: stestr --test-path test/chemistry run
+    - name: "Test Finance Python 3.7"
       <<: *stage_dependencies
       if: tag IS blank
       workspaces:
@@ -189,12 +190,12 @@ jobs:
       before_script:
         - export PYTHON="coverage run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script: stestr --test-path test/finance run && coverage combine && mv .coverage finance.dat
-    - name: "Test Finance"
+    - name: "Test Finance Python 3.8"
       <<: *stage_dependencies
       if: tag IS blank
       python: 3.8
       script: stestr --test-path test/finance run
-    - name: "Coverage Machine Learning"
+    - name: "Test Machine Learning Python 3.7"
       <<: *stage_dependencies
       if: tag IS blank
       workspaces:
@@ -204,12 +205,12 @@ jobs:
       before_script:
         - export PYTHON="coverage run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script: stestr --test-path test/ml run && coverage combine && mv .coverage ml.dat
-    - name: "Test Machine Learning"
+    - name: "Test Machine Learning Python 3.8"
       <<: *stage_dependencies
       if: tag IS blank
       python: 3.8
       script: stestr --test-path test/ml run
-    - name: "Coverage Optimization"
+    - name: "Test Optimization Python 3.7"
       <<: *stage_dependencies
       if: tag IS blank
       workspaces:
@@ -219,7 +220,7 @@ jobs:
       before_script:
         - export PYTHON="coverage run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script: stestr --test-path test/optimization run && coverage combine && mv .coverage optimization.dat
-    - name: "Test Optimization"
+    - name: "Test Optimization Python 3.8"
       <<: *stage_dependencies
       if: tag IS blank
       python: 3.8
