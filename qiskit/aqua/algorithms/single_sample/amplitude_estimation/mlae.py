@@ -42,7 +42,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     class in named MaximumLikelihoodAmplitudeEstimation.
     """
 
-    def __init__(self, log_max_evals: int,
+    def __init__(self, m: int,
                  a_factory: Optional[CircuitFactory] = None,
                  q_factory: Optional[CircuitFactory] = None,
                  i_objective: Optional[int] = None,
@@ -51,8 +51,8 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         Initializer.
 
         Args:
-            log_max_evals: base-2-logarithm of the maximal number of evaluations. The resulting
-                evaluation schedule will be [0, Q^2^0, ..., Q^2^{max_evals_log-1}].
+            m: base-2-logarithm of the maximal number of evaluations. The resulting
+                evaluation schedule will be [0, Q^2^0, ..., Q^2^{m-1}].
                 Has a minimum value of 1.
             a_factory: the CircuitFactory subclass object representing the problem unitary
             q_factory: the CircuitFactory subclass object representing
@@ -62,18 +62,17 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             likelihood_evals: the number of gridpoints for the maximum search of the likelihood 
                 function
         """
-        validate_min('log_max_evals', log_max_evals, 1)
+        validate_min('m', m, 1)
         super().__init__(a_factory, q_factory, i_objective)
 
         # get parameters
-        self._log_max_evals = log_max_evals
-        self._evaluation_schedule = [0] + [2**j for j in range(log_max_evals)]
+        self._evaluation_schedule = [0] + [2**j for j in range(m)]
 
         self._likelihood_evals = likelihood_evals
-        # default number of evaluations is max(10^5, pi/2 * 10^3 * 2^(log_max_evals))
+        # default number of evaluations is max(10^5, pi/2 * 10^3 * 2^(m))
         if likelihood_evals is None:
             default = 10000
-            self._likelihood_evals = np.maximum(default, int(np.pi / 2 * 1000 * 2 ** log_max_evals))
+            self._likelihood_evals = np.maximum(default, int(np.pi / 2 * 1000 * 2 ** m))
 
         self._circuits = []
         self._ret = {}
