@@ -11,11 +11,9 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""
-The Maximum Likelihood Amplitude Estimation algorithm.
-"""
+"""The Maximum Likelihood Amplitude Estimation algorithm."""
 
-from typing import Optional
+from typing import Optional, List, Union, Tuple
 import logging
 import numpy as np
 from scipy.optimize import brute
@@ -33,7 +31,8 @@ logger = logging.getLogger(__name__)
 
 
 class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
-    """
+    """The Maximum Likelihood Amplitude Estimation algorithm.
+
     This class implements the an quantum amplitude estimation (QAE) algorithm without phase
     estimation, according to https://arxiv.org/abs/1904.10246. In comparison to the original
     QAE algorithm (https://arxiv.org/abs/quant-ph/0005055), this implementation relies solely
@@ -47,8 +46,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                  q_factory: Optional[CircuitFactory] = None,
                  i_objective: Optional[int] = None,
                  likelihood_evals: Optional[int] = None) -> None:
-        """
-        Initializer.
+        """Initializer.
 
         Args:
             m: base-2-logarithm of the maximal number of evaluations. The resulting
@@ -78,12 +76,11 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         self._ret = {}
 
     @property
-    def _num_qubits(self):
-        """
-        Return the number of qubits needed in the circuit.
+    def _num_qubits(self) -> int:
+        """Return the number of qubits needed in the circuit.
 
         Returns:
-            int: the total number of qubits
+            The total number of qubits.
         """
         if self.a_factory is None:  # if A factory is not set, no qubits are specified
             return 0
@@ -93,16 +90,14 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         return num_qubits
 
-    def construct_circuits(self, measurement=False):
-        """
-        Construct the Amplitude Estimation w/o QPE quantum circuits.
+    def construct_circuits(self, measurement: bool = False) -> List[QuantumCircuit]:
+        """Construct the Amplitude Estimation w/o QPE quantum circuits.
 
         Args:
-            measurement (bool): Boolean flag to indicate if measurement
-                should be included in the circuits.
+            measurement: Boolean flag to indicate if measurement should be included in the circuits.
 
         Returns:
-            list: a list with the QuantumCircuit objects for the algorithm
+            A list with the QuantumCircuit objects for the algorithm.
         """
         # keep track of the Q-oracle queries
         self._ret['num_oracle_queries'] = 0
@@ -142,15 +137,16 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         return self._circuits
 
-    def _evaluate_statevectors(self, statevectors):
-        """
-        For each statevector, compute the probability that |1> is measured in the objective qubit.
+    def _evaluate_statevectors(self,
+                               statevectors: Union[List[List[complex]], List[np.ndarray]]
+                               ) -> List[float]:
+        """For each statevector compute the probability that |1> is measured in the objective qubit.
 
         Args:
-            statevectors (Union(list[list[complex]], list[numpy.array]): a list of statevectors
+            statevectors: A list of statevectors.
 
         Returns:
-            list[float]: the corresponding probabilities
+            The corresponding probabilities.
         """
         probabilities = []
         for sv in statevectors:
@@ -164,15 +160,14 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         return probabilities
 
-    def _get_hits(self):
-        """
-        Get the good and total counts
+    def _get_hits(self) -> Tuple[List[int], List[int]]:
+        """Get the good and total counts.
 
         Returns:
-            tuple(list, list): a pair of two lists,
-                ([1-counts per experiment], [shots per experiment])
+            A pair of two lists, ([1-counts per experiment], [shots per experiment]).
+
         Raises:
-            AquaError: if self.run() has not been called yet
+            AquaError: If self.run() has not been called yet.
         """
         one_hits = []  # h_k: how often 1 has been measured, for a power Q^(m_k)
         all_hits = []  # N_k: how often has been measured at a power Q^(m_k)
@@ -192,36 +187,49 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         return one_hits, all_hits
 
     def _safe_min(self, array, default=0):
-        """
+        """Find the minimal element, but if the array is empty return `default`.
+
+        Args:
+            array: The input array.
+            default: The default value.
+
         Returns:
-            float: default if array is empty, otherwise numpy.max(array)
+            `default` if `array` is empty, otherwise `numpy.min(array)`.
         """
         if len(array) == 0:
             return default
         return np.min(array)
 
     def _safe_max(self, array, default=(np.pi / 2)):
-        """
+        """Find the maximal element, but if the array is empty return `default`.
+
+        Args:
+            array: The input array.
+            default: The default value.
+
         Returns:
-            float: default if array is empty, otherwise numpy.max(array)
+            `default` if `array` is empty, otherwise `numpy.max(array)`.
         """
         if len(array) == 0:
             return default
         return np.max(array)
 
-    def _compute_fisher_information(self, a=None, num_sum_terms=None, observed=False):
-        """
-        Compute the Fisher information.
+    def _compute_fisher_information(self, a: Optional[float] = None,
+                                    num_sum_terms: Optional[int] = None,
+                                    observed: bool = False) -> float:
+        """Compute the Fisher information.
 
         Args:
-            a (float): a
-            num_sum_terms (int): num sum terms
-            observed (bool): If True, compute the observed Fisher information,
-                otherwise the theoretical one
+            a: The amplitude `a`. Can be omitted if `run` was called already, then the estimate
+                of the algorithm is used.
+            num_sum_terms: The number of sum terms to be included in the calculation of the
+                Fisher information. By default all values are included.
+            observed: If True, compute the observed Fisher information, otherwise the theoretical
+                one.
 
         Returns:
-            float: The computed Fisher information, or np.inf if statevector
-            simulation was used.
+            The computed Fisher information, or np.inf if statevector simulation was used.
+
         Raises:
             KeyError: Call run() first!
         """
@@ -230,7 +238,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             try:
                 a = self._ret['value']
             except KeyError:
-                raise KeyError("Call run() first!")
+                raise KeyError('Call run() first!')
 
         # Corresponding angle to the value a (only use real part of 'a')
         theta_a = np.arcsin(np.sqrt(np.real(a)))
@@ -265,13 +273,12 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         return fisher_information
 
-    def _fisher_confint(self, alpha=0.05, observed=False):
-        """
-        Compute the alpha confidence interval based on the Fisher information
+    def _fisher_confint(self, alpha: float = 0.05, observed: bool = False) -> List[float]:
+        """Compute the `alpha` confidence interval based on the Fisher information.
 
         Args:
-            alpha (float): The level of the confidence interval (< 0.5)
-            observed (bool): If True, use observed Fisher information
+            alpha: The level of the confidence interval (must be <= 0.5), default to 0.05.
+            observed: If True, use observed Fisher information.
 
         Returns:
             float: The alpha confidence interval based on the Fisher information
@@ -294,17 +301,17 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         mapped_confint = [self.a_factory.value_to_estimation(bound) for bound in confint]
         return mapped_confint
 
-    def _likelihood_ratio_confint(self, alpha=0.05, nevals=None):
-        """
-        Compute the likelihood-ratio confidence interval.
+    def _likelihood_ratio_confint(self, alpha: float = 0.05,
+                                  nevals: Optional[int] = None) -> List[float]:
+        """Compute the likelihood-ratio confidence interval.
 
         Args:
-            alpha (float): the level of the confidence interval (< 0.5)
-            nevals (int): the number of evaluations to find the
-                intersection with the loglikelihood function
+            alpha: The level of the confidence interval (< 0.5), defaults to 0.05.
+            nevals: The number of evaluations to find the intersection with the loglikelihood
+                function. Defaults to an adaptive value based on the maximal power of Q.
 
         Returns:
-            float: The alpha-likelihood-ratio confidence interval.
+            The alpha-likelihood-ratio confidence interval.
         """
         if nevals is None:
             nevals = self._likelihood_evals
@@ -340,10 +347,24 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         return mapped_confint
 
-    def confidence_interval(self, alpha, kind='fisher'):
-        """
-        Proxy calling the correct method to compute the confidence interval,
-        according to the value of `kind`
+    def confidence_interval(self, alpha: float, kind: str = 'fisher') -> List[float]:
+        """Compute the `alpha` confidence interval using the method `kind`.
+
+        The confidence level is (1 - `alpha`) and supported kinds are 'fisher',
+        'likelihood_ratio' and 'observed_fisher' with shorthand notations 'fi', 'lr' and 'oi',
+        respectively.
+
+        Args:
+            alpha: The confidence level.
+            kind: The method to compute the confidence interval. Defaults to 'fisher', which
+                computes the theoretical Fisher information.
+
+        Returns:
+            The specified confidence interval.
+
+        Raises:
+            AquaError: If `run()` hasn't been called yet.
+            NotImplementedError: If the method `kind` is not supported.
         """
         # check if AE did run already
         if 'estimation' not in self._ret.keys():
@@ -365,9 +386,9 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         raise NotImplementedError('CI `{}` is not implemented.'.format(kind))
 
     def _compute_mle_safe(self):
-        """
-        Compute the MLE via a grid-search. This is a stable approach if
-        sufficient gridpoints are used (usually > 10'000).
+        """Compute the MLE via a grid-search.
+
+        This is a stable approach if sufficient gridpoints are used.
         """
         one_hits, all_hits = self._get_hits()
 
@@ -386,18 +407,16 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         est_theta = brute(loglikelihood, [search_range], Ns=self._likelihood_evals)[0]
         return est_theta
 
-    def _run_mle(self):
-        """
-        Compute the maximum likelihood estimator (MLE) for the angle theta, based on which the
-        final result of this algorithm is computed.
+    def _run_mle(self) -> float:
+        """Compute the maximum likelihood estimator (MLE) for the angle theta.
 
         Returns:
-            float: the MLE for the angle theta, related to the amplitude a via a = sin^2(theta)
+            The MLE for the angle theta, related to the amplitude a via a = sin^2(theta)
         """
         # TODO implement a **reliable**, fast method to find the maximum of the likelihood function
         return self._compute_mle_safe()
 
-    def _run(self):
+    def _run(self) -> dict:
         # check if A factory has been set
         if self.a_factory is None:
             raise AquaError("a_factory must be set!")
