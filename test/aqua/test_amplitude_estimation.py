@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Test Amplitude Estimation """
+"""Test the quantum amplitude estimation algorithm."""
 
 import unittest
 from test.aqua import QiskitAquaTestCase
@@ -33,9 +33,9 @@ from qiskit.aqua.algorithms.single_sample.amplitude_estimation.q_factory import 
 
 
 class BernoulliAFactory(UncertaintyProblem):
-    """
-    Circuit Factory representing the operator A.
-    A is used to initialize the state as well as to construct Q.
+    r"""Circuit Factory representing the operator A in a Bernoulli problem.
+
+    Given a probability $p$, the operator A prepares the state $\sqrt{1 - p}|0> + \sqrt{p}|1>$.
     """
 
     def __init__(self, probability=0.5):
@@ -54,12 +54,11 @@ class BernoulliAFactory(UncertaintyProblem):
 
 
 class BernoulliQFactory(QFactory):
-    """
-    Circuit Factory representing the operator Q.
-    This implementation exploits the fact that powers of Q
-    can be implemented efficiently by just multiplying the angle.
-    (amplitude estimation only requires controlled powers of Q,
-    thus, only this method is overridden.)
+    """Circuit Factory representing the operator Q in a Bernoulli problem.
+
+    This implementation exploits the fact that powers of Q can be implemented efficiently by just 
+    multiplying the angle. Note, that since amplitude estimation only requires controlled powers of 
+    Q only that method is overridden.
     """
 
     def __init__(self, bernoulli_expected_value):
@@ -84,8 +83,7 @@ class BernoulliQFactory(QFactory):
 
 
 class SineIntegralAFactory(UncertaintyProblem):
-    r"""
-    Construct the A operator to approximate the integral
+    r"""Construct the A operator to approximate the integral
 
         \int_0^1 \sin^2(x) d x
 
@@ -113,8 +111,9 @@ class SineIntegralAFactory(UncertaintyProblem):
 
 
 class TestBernoulli(QiskitAquaTestCase):
-    """
-    Tests based on the Bernoulli A operator. This class tests
+    """Tests based on the Bernoulli A operator. 
+
+    This class tests
         * the estimation result
         * the constructed circuits
     """
@@ -315,7 +314,7 @@ class TestBernoulli(QiskitAquaTestCase):
 
 
 class TestProblemSetting(QiskitAquaTestCase):
-    """ Test the setting and getting of the A and Q operator and the objective qubit index """
+    """Test the setting and getting of the A and Q operator and the objective qubit index."""
 
     def setUp(self):
         super().setUp()
@@ -372,7 +371,7 @@ class TestProblemSetting(QiskitAquaTestCase):
         [MaximumLikelihoodAmplitudeEstimation(3)],
     ])
     def test_a_factory_update(self, ae):
-        """ Test if the Q factory is updated if the a_factory changes -- except set manually """
+        """Test if the Q factory is updated if the a_factory changes -- except set manually."""
         # Case 1: Set to BernoulliAFactory with default Q operator
         ae.a_factory = self.a_bernoulli
         self.assertIsInstance(ae.q_factory.a_factory, BernoulliAFactory)
@@ -397,8 +396,9 @@ class TestProblemSetting(QiskitAquaTestCase):
 
 
 class TestSineIntegral(QiskitAquaTestCase):
-    """
-    Tests based on the A operator to integrate sin^2(x). This class tests
+    """Tests based on the A operator to integrate sin^2(x). 
+
+    This class tests
         * the estimation result
         * the confidence intervals
     """
@@ -438,7 +438,7 @@ class TestSineIntegral(QiskitAquaTestCase):
         [3, 1000, IterativeAmplitudeEstimation(0.01, 0.01), {'estimation': 0.271790}],
     ])
     def test_qasm(self, n, shots, ae, expect):
-        """ QASM end-to-end test """
+        """QASM simulator end-to-end test."""
         # construct factories for A and Q
         ae.a_factory = SineIntegralAFactory(n)
 
@@ -460,11 +460,11 @@ class TestSineIntegral(QiskitAquaTestCase):
           'observed_fisher': [0.2659279996107888, 0.2722627773954454]}],
     ])
     def test_confidence_intervals(self, ae, key, expect):
-        """ End-to-end test for all confidence intervals """
+        """End-to-end test for all confidence intervals."""
         n = 3
         ae.a_factory = SineIntegralAFactory(n)
 
-        # statevector
+        # statevector simulator
         result = ae.run(self._statevector)
         methods = ['lr', 'fi', 'oi']  # short for likelihood_ratio, fisher, observed_fisher
         alphas = [0.1, 0.00001, 0.9]  # alpha shouldn't matter in statevector
@@ -474,7 +474,7 @@ class TestSineIntegral(QiskitAquaTestCase):
             self.assertAlmostEqual(confint[1] - confint[0], 0.0)
             self.assertAlmostEqual(confint[0], result[key])
 
-        # qasm
+        # qasm simulator
         shots = 100
         alpha = 0.01
         result = ae.run(self._qasm(shots))
@@ -484,19 +484,19 @@ class TestSineIntegral(QiskitAquaTestCase):
             self.assertTrue(confint[0] <= result[key] <= confint[1])
 
     def test_iqae_confidence_intervals(self):
-        """ End-to-end test for the IQAE confidence interval """
+        """End-to-end test for the IQAE confidence interval."""
         n = 3
         ae = IterativeAmplitudeEstimation(0.1, 0.01, a_factory=SineIntegralAFactory(n))
         expected_confint = [0.19840508760087738, 0.35110155403424115]
 
-        # statevector
+        # statevector simulator
         result = ae.run(self._statevector)
         confint = result['confidence_interval']
         # confidence interval based on statevector should be empty, as we are sure of the result
         self.assertAlmostEqual(confint[1] - confint[0], 0.0)
         self.assertAlmostEqual(confint[0], result['estimation'])
 
-        # qasm
+        # qasm simulator
         shots = 100
         result = ae.run(self._qasm(shots))
         confint = result['confidence_interval']
@@ -505,7 +505,8 @@ class TestSineIntegral(QiskitAquaTestCase):
 
 
 class TestCreditRiskAnalysis(QiskitAquaTestCase):
-    """ Test Credit Risk Analysis """
+    """Test a more difficult example, motived from Credit Risk Analysis."""
+
     @parameterized.expand([
         'statevector_simulator'
     ])
@@ -549,7 +550,6 @@ class TestCreditRiskAnalysis(QiskitAquaTestCase):
             agg.num_sum_qubits,
             0,
             2 ** agg.num_sum_qubits - 1,  # max value that can be reached by the qubit register
-                                          # (will not always be reached)
             breakpoints,
             slopes,
             offsets,
