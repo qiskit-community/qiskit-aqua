@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -16,8 +16,16 @@ This module contains the definition of a base class for
 variational forms. Several types of commonly used ansatz.
 """
 
-from abc import ABC, abstractmethod
+from typing import Optional, Union, List
+# below to allow it for python 3.6.1
+try:
+    from typing import NoReturn
+except ImportError:
+    from typing import Any as NoReturn
 
+from abc import ABC, abstractmethod
+import numpy as np
+from qiskit import QuantumRegister
 from qiskit.aqua.utils import get_entangler_map, validate_entangler_map
 
 
@@ -31,7 +39,7 @@ class VariationalForm(ABC):
     """
 
     @abstractmethod
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self._num_parameters = 0
         self._num_qubits = 0
@@ -40,12 +48,14 @@ class VariationalForm(ABC):
         pass
 
     @abstractmethod
-    def construct_circuit(self, parameters, q=None):
+    def construct_circuit(self,
+                          parameters: Union[List[float], np.ndarray],
+                          q: Optional[QuantumRegister] = None) -> NoReturn:
         """Construct the variational form, given its parameters.
 
         Args:
-            parameters (numpy.ndarray[float]): circuit parameters.
-            q (QuantumRegister): Quantum Register for the circuit.
+            parameters: circuit parameters.
+            q: Quantum Register for the circuit.
 
         Returns:
             QuantumCircuit: A quantum circuit.

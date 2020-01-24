@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -31,9 +31,8 @@ requirements = [
     "sympy>=1.3",
     "numpy>=1.13",
     "psutil>=5",
-    "jsonschema>=2.6",
     "scikit-learn>=0.20.0",
-    "cvxopt",
+    "cvxopt; python_version < '3.8' or sys_platform != 'win32'",
     "dlx",
     "docplex",
     "fastdtw",
@@ -41,7 +40,7 @@ requirements = [
     "setuptools>=40.1.0",
     "h5py",
     "networkx>=2.2",
-    "pyscf; sys_platform != 'win32'",
+    "pyscf; sys_platform == 'linux' or (python_version < '3.8' and sys_platform != 'win32')",
 ]
 
 if not hasattr(setuptools, 'find_namespace_packages') or not inspect.ismethod(setuptools.find_namespace_packages):
@@ -71,9 +70,11 @@ setuptools.setup(
         "Operating System :: Microsoft :: Windows",
         "Operating System :: MacOS",
         "Operating System :: POSIX :: Linux",
+        "Programming Language :: Python :: 3 :: Only",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
         "Topic :: Scientific/Engineering"
     ),
     keywords='qiskit sdk quantum aqua',
@@ -82,7 +83,7 @@ setuptools.setup(
     include_package_data=True,
     python_requires=">=3.5",
     extras_require={
-        'torch': ["torch; sys_platform != 'win32'"],
+        'torch': ["torch; sys_platform == 'linux' or (python_version < '3.8' and sys_platform != 'win32')"],
     },
     zip_safe=False
 )

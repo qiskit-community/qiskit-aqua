@@ -26,28 +26,10 @@ class BernoulliDistribution(UnivariateDistribution):
     The Univariate Bernoulli Distribution.
     """
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'BernoulliDistribution_schema',
-        'type': 'object',
-        'properties': {
-            'p': {
-                'type': 'number',
-                'default': 0.5,
-            },
-            'low': {
-                'type': 'number',
-                'default': 0,
-            },
-            'high': {
-                'type': 'number',
-                'default': 1,
-            },
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, p, low=0, high=1):
+    def __init__(self,
+                 p: float,
+                 low: float = 0,
+                 high: float = 1):
         probabilities = np.array([1-p, p])
         super().__init__(1, probabilities, low, high)
         self._p = p

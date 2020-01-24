@@ -1,6 +1,6 @@
 # Qiskit Aqua
 
-[![License](https://img.shields.io/github/license/Qiskit/qiskit-aqua.svg?style=popout-square)](https://opensource.org/licenses/Apache-2.0)[![Build Status](https://img.shields.io/travis/Qiskit/qiskit-aqua/master.svg?style=popout-square)](https://travis-ci.org/Qiskit/qiskit-aqua)[![](https://img.shields.io/github/release/Qiskit/qiskit-aqua.svg?style=popout-square)](https://github.com/Qiskit/qiskit-aqua/releases)[![](https://img.shields.io/pypi/dm/qiskit-aqua.svg?style=popout-square)](https://pypi.org/project/qiskit-aqua/)
+[![License](https://img.shields.io/github/license/Qiskit/qiskit-aqua.svg?style=popout-square)](https://opensource.org/licenses/Apache-2.0)[![Build Status](https://img.shields.io/travis/Qiskit/qiskit-aqua/master.svg?style=popout-square)](https://travis-ci.org/Qiskit/qiskit-aqua)[![](https://img.shields.io/github/release/Qiskit/qiskit-aqua.svg?style=popout-square)](https://github.com/Qiskit/qiskit-aqua/releases)[![](https://img.shields.io/pypi/dm/qiskit-aqua.svg?style=popout-square)](https://pypi.org/project/qiskit-aqua/)[![Coverage Status](https://coveralls.io/repos/github/Qiskit/qiskit-aqua/badge.svg?branch=master)](https://coveralls.io/github/Qiskit/qiskit-aqua?branch=master)
 
 **Qiskit** is an open-source framework for working with noisy quantum computers at the level of pulses, circuits, and algorithms.
 
@@ -120,6 +120,7 @@ Now that Qiskit Aqua is installed, it's time to begin working with it.  We are r
 ```python
 from qiskit.chemistry import FermionicOperator
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
+from qiskit.aqua.operators import Z2Symmetries
 
 # Use PySCF, a classical computational chemistry software
 # package, to compute the one-body and two-body integrals in
@@ -135,7 +136,7 @@ num_spin_orbitals = molecule.num_orbitals * 2
 ferOp = FermionicOperator(h1=molecule.one_body_integrals, h2=molecule.two_body_integrals)
 map_type = 'PARITY'
 qubitOp = ferOp.mapping(map_type)
-qubitOp = qubitOp.two_qubit_reduced_operator(num_particles)
+qubitOp = Z2Symmetries.two_qubit_reduction(qubitOp, num_particles)
 num_qubits = qubitOp.num_qubits
 
 # set the backend for the quantum computation

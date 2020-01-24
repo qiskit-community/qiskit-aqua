@@ -21,15 +21,15 @@ import functools
 import numpy as np
 
 
-def self_product(x):
+def self_product(x: np.ndarray) -> float:
     """
     Define a function map from R^n to R.
 
     Args:
-        x (np.ndarray): data
+        x: data
 
     Returns:
-        double: the mapped value
+        float: the mapped value
     """
     coeff = x[0] if len(x) == 1 else \
         functools.reduce(lambda m, n: m * n, np.pi - x)

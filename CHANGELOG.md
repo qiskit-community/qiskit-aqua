@@ -18,6 +18,18 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 [UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.2...HEAD)
 ========================================================================
 
+Changed
+-------
+
+-   Remove declarative api (#758) (#759) (#760) (#762) (#763)
+
+Deprecated
+----------
+
+-   Python 3.5 support in qiskit-aqua is deprecated. Support will be
+    removed on the upstream python community's end of life date for the version,
+    which is 09/13/2020.
+
 [0.6.2](https://github.com/Qiskit/qiskit-aqua/compare/0.6.1...0.6.2) - 2019-12-17
 =================================================================================
 
@@ -58,11 +70,13 @@ Fixed
 -   Bug where `UCCSD` might generate an empty operator and try to evolve it. (#680)
 -   Decompose causes DAG failure using feature maps. (#719)
 -   Error when only using a subset of qubits in measurement error mitigation. (#748)
+-   The AQGD optimizer if condition in func converged was ignored. That kept breaking the wile loop for training.(#770)
 
 Removed
 -------
 
 -   The `CircuitCache` class is removed, use parameterized circuits as an alternative. (#693)
+
 
 [0.6.1](https://github.com/Qiskit/qiskit-aqua/compare/0.6.0...0.6.1) - 2019-10-16
 =================================================================================

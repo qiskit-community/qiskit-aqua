@@ -17,6 +17,7 @@ This module contains the definition of a base class for
 feature map. Several types of commonly used approaches.
 """
 
+from typing import Optional, Callable, List
 import itertools
 import logging
 
@@ -26,8 +27,9 @@ from qiskit.quantum_info import Pauli
 from qiskit.qasm import pi
 
 from qiskit.aqua.operators import evolution_instruction
-from qiskit.aqua.components.feature_maps import FeatureMap, self_product
-from qiskit.aqua.utils.validation import validate
+from qiskit.aqua.utils.validation import validate_min, validate_in_set
+from .feature_map import FeatureMap
+from .data_mapping import self_product
 
 logger = logging.getLogger(__name__)
 
@@ -40,57 +42,33 @@ class PauliExpansion(FeatureMap):
     Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
     """
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'Pauli_Expansion_schema',
-        'type': 'object',
-        'properties': {
-            'depth': {
-                'type': 'integer',
-                'default': 2,
-                'minimum': 1
-            },
-            'entangler_map': {
-                'type': ['array', 'null'],
-                'default': None
-            },
-            'entanglement': {
-                'type': 'string',
-                'default': 'full',
-                'enum': ['full', 'linear']
-            },
-            'paulis': {
-                'type': ['array', 'null'],
-                'items': {
-                    'type': 'string'
-                },
-                'default': None
-            }
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, feature_dimension, depth=2, entangler_map=None,
-                 entanglement='full', paulis=None, data_map_func=self_product):
+    def __init__(self,
+                 feature_dimension: int,
+                 depth: int = 2,
+                 entangler_map: Optional[List[List[int]]] = None,
+                 entanglement: str = 'full',
+                 paulis: Optional[List[str]] = None,
+                 data_map_func: Callable[[np.ndarray], float] = self_product) -> None:
         """Constructor.
 
         Args:
-            feature_dimension (int): number of features
-            depth (Optional(int)): the number of repeated circuits. Defaults to 2
-            entangler_map (Optional(list[list])): describe the connectivity of qubits,
-                                        each list describes
+            feature_dimension: number of features
+            depth: the number of repeated circuits. Defaults to 2,
+                        has a min. value of 1.
+            entangler_map: describe the connectivity of qubits, each list describes
                                         [source, target], or None for full entanglement.
                                         Note that the order is the list is the order of
                                         applying the two-qubit gate.
-            entanglement (Optional((str)): ['full', 'linear'], generate the qubit
+            entanglement: ['full', 'linear'], generate the qubit
                                           connectivity by predefined topology.
                                           Defaults to full
-            paulis (Optional(list[str])): a list of strings for to-be-used paulis.
+            paulis: a list of strings for to-be-used paulis.
                                     Defaults to None. If None, ['Z', 'ZZ'] will be used.
-            data_map_func (Optional(Callable)): a mapping function for data x
+            data_map_func: a mapping function for data x
         """
         paulis = paulis if paulis is not None else ['Z', 'ZZ']
-        validate(locals(), self._INPUT_SCHEMA)
+        validate_min('depth', depth, 1)
+        validate_in_set('entanglement', entanglement, {'full', 'linear'})
         super().__init__()
         self._num_qubits = self._feature_dimension = feature_dimension
         self._depth = depth

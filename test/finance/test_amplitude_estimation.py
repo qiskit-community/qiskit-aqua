@@ -15,7 +15,7 @@
 """ Test Amplitude Estimation """
 
 import unittest
-from test.finance.common import QiskitFinanceTestCase
+from test.finance import QiskitFinanceTestCase
 import numpy as np
 from parameterized import parameterized
 from qiskit import BasicAer

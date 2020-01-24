@@ -17,8 +17,15 @@ initial states. An initial state might be used by a variational
 form or in eoh as a trial state to evolve
 """
 
+from typing import Optional
+# below to allow it for python 3.6.1
+try:
+    from typing import NoReturn
+except ImportError:
+    from typing import Any as NoReturn
+
 from abc import ABC, abstractmethod
-from qiskit.circuit import QuantumRegister  # pylint: disable=unused-import
+from qiskit.circuit import QuantumRegister
 from qiskit.aqua import AquaError  # pylint: disable=unused-import
 
 
@@ -31,19 +38,21 @@ class InitialState(ABC):
     """
 
     @abstractmethod
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     @abstractmethod
-    def construct_circuit(self, mode='circuit', register=None):
+    def construct_circuit(self,
+                          mode: str = 'circuit',
+                          register: Optional[QuantumRegister] = None) -> NoReturn:
         """
         Construct the statevector of desired initial state.
 
         Args:
-            mode (string): `vector` or `circuit`. The `vector` mode produces the vector.
-                            While the `circuit` constructs the quantum circuit corresponding that
-                            vector.
-            register (QuantumRegister): qubits for circuit construction.
+            mode: `vector` or `circuit`. The `vector` mode produces the vector.
+                  While the `circuit` constructs the quantum circuit corresponding that
+                  vector.
+            register: qubits for circuit construction.
 
         Returns:
             QuantumCircuit or numpy.ndarray: statevector.
