@@ -4,70 +4,78 @@
 
 **Qiskit** is an open-source framework for working with noisy quantum computers at the level of pulses, circuits, and algorithms.
 
-Qiskit is made up elements that work together to enable quantum computing. This element is **Aqua**.
-Aqua provides a library of cross-domain algorithms upon which domain-specific applications can be
-built. Qiskit Chemistry has
-been created to utilize Aqua for quantum chemistry computations. Aqua is also showcased for other
-domains, such as Optimization, Machine Learning, and
-Finance, with both code and notebook examples available in the
-[qiskit-iqx-tutorials](https://github.com/Qiskit/qiskit-iqx-tutorials) and
-[qiskit-community-tutorials](https://github.com/Qiskit/qiskit-community-tutorials) GitHub Repositories.
+Qiskit is made up elements that work together to enable quantum computing. This element is **Aqua**
+(Algorithms for QUantum computing Applications) providing a library of cross-domain algorithms
+upon which domain-specific applications can be built.
+ 
+* [Aqua](#aqua)
+ 
+Aqua includes domain application support for:
+
+* [Chemistry](#chemistry)
+* [Finance](#finance)
+* [Machine Learning](#machine-learning)
+* [Optimization](#optimization)
+
+_**Note**: the Chemistry application stack was the first domain worked on. At the time of writing
+the other domains have some logic in them but are not as fully realised. Future work is expected to
+build out functionality in all application areas._ 
 
 Aqua was designed to be extensible, and uses a framework where algorithms and support objects used
-by algorithms—such as optimizers, variational forms, and oracles—are derived from a defined base class for the type.
+by algorithms, such as optimizers, variational forms, and oracles etc,. are derived from a defined 
+base class for the type. These along with other building blocks provide a means for end-users and
+developers alike to have flexibility and facilitate building and experimenting with different
+configurations and capability.
+
+Note: Aqua provides some classical algorithms that take the same input data as quantum algorithms
+solving the same problem. For instance a Hamiltonian operator input to VQE can be used as an input
+to the ExactEigensolver. This allows near-term experiments, that can still be solved classically,
+for their outcome to be compared and used as reference etc.
 
 ## Installation
 
-Qiskit Aqua is part of the Qiskit software framework.  We encourage installing Qiskit Aqua as part of Qiskit via the pip tool
-(a python package manager):
+We encourage installing Qiskit via the pip tool (a python package manager), which installs all
+Qiskit elements, including Aqua.
 
 ```bash
 pip install qiskit
 ```
 
-pip will handle all dependencies automatically for you, including the other Qiskit elements upon which
-Aqua is built, such as [Qiskit Terra](https://github.com/Qiskit/qiskit-terra/),
-and you will always install the latest (and well-tested) version.
+**pip** will handle all dependencies automatically and you will always install the latest
+(and well-tested) version.
 
-To run chemistry experiments using Qiskit Chemistry, it is recommended that you to install a classical
-computation chemistry software program interfaced by Qiskit Chemistry.
-Several such programs are supported, and while logic to
-interface these programs is supplied by Qiskit Chemistry via the above pip installation,
-the dependent programs themselves need to be installed separately because they are not part of the Qiskit
-Chemistry installation bundle.
-Qiskit Chemistry comes with prebuilt support to interface the following classical computational chemistry
-software programs:
+If you want to work on the very latest work-in-progress versions, either to try features ahead of
+their official release or if you want to to contribute to Aqua, then you can install from source.
+To do this follow the instructions in the
+ [documentation](https://qiskit.org/documentation/contributing_to_qiskit.html#installing-from-source).
 
-1. [Gaussian 16&trade;](https://qiskit.org/documentation/aqua/chemistry/qiskit_chemistry_drivers.html#gaussian-16), a commercial chemistry program
-2. [PSI4](https://qiskit.org/documentation/aqua/chemistry/qiskit_chemistry_drivers.html#psi4), a chemistry program that exposes a Python interface allowing for accessing internal objects
-3. [PySCF](https://qiskit.org/documentation/aqua/chemistry/qiskit_chemistry_drivers.html#pyscf), an open-source Python chemistry program
-4. [PyQuante](https://qiskit.org/documentation/aqua/chemistry/qiskit_chemistry_drivers.html#pyquante), a pure cross-platform open-source Python chemistry program
+Note: there some optional packages that can be installed such as IBM CPLEX for Aqua and ab-initio
+chemistry libraries/programs. Refer to Optional Install information in the sections below. _Optional
+install links are currently pointing to the source documentation in the code. At the time of writing
+documentation is being reworked and these links will be redone once the documentation is published
+on qiskit.org that includes this material._ 
 
-Except for the Windows platform, PySCF is installed automatically as a dependency by the pip tool whenever Qiskit Chemistry is
-installed.  The other classical computational chemistry software programs will have to be installed separately, even though
-Qiskit Chemistry includes the code for interfacing all of them.
-Please refer to the [Qiskit Chemistry drivers installation instructions](https://qiskit.org/documentation/aqua/chemistry/qiskit_chemistry_drivers.html)
-for details on how to integrate these drivers into Qiskit Chemistry.
+----------------------------------------------------------------------------------------------------
 
-A useful functionality integrated into Qiskit Chemistry is its ability to serialize a file in Hierarchical Data
-Format 5 (HDF5) format representing all the data extracted from one of the drivers listed above when
-executing an experiment.  Qiskit Chemistry can then use that data to initiate the conversion of that
-data into a fermionic operator and then a qubit operator, which can then be used as an input to a quantum
-algorithm.  Therefore, even without installing one of the drivers above, it is still possible to run
-chemistry experiments as long as you have a Hierarchical Data Format 5 (HDF5) file that has been previously
-created.  Qiskit Chemistry's built-in
-[HDF5 driver](https://qiskit.org/documentation/aqua/chemistry/qiskit_chemistry_drivers.html#hdf5) accepts such such HDF5 files
-as input.  
-A few sample HDF5 files for different are provided in the 
-[chemistry folder](https://github.com/Qiskit/qiskit-tutorials/tree/master/qiskit/chemistry) of the
-[Qiskit Tutorials](https://github.com/Qiskit/qiskit-tutorials) repository.
+## Aqua
 
-To install from source, follow the instructions in the [contribution guidelines](./CONTRIBUTING.md).
+The `qiskit.aqua` package contains the core cross-domain algorithms and supporting logic to run
+these on a quantum backend, whether a real device or simulator. 
 
+#### Optional Installs
 
-## Creating Your First Quantum Program in Qiskit Aqua
+* **IBM CPLEX** may be [installed](https://github.com/Qiskit/qiskit-aqua/blob/master/qiskit/aqua/algorithms/classical/cplex/__init__.py) 
+  to allow use of the `CPLEX_Ising` classical solver algorithm.
+* **PyTorch**, may be installed either using command `pip install qiskit-aqua[torch]` to install the
+  package or refer to PyTorch [getting started](https://pytorch.org/get-started/locally/). PyTorch
+  being installed will enable the neural networks `PyTorchDiscriminator` component to be used with
+  the QGAN algorithm.  
+  
 
-Now that Qiskit Aqua is installed, it's time to begin working with it.  We are ready to try out an experiment using Qiskit Aqua:
+#### Creating Your First Quantum Program in Qiskit Aqua
+
+Now that Qiskit is installed, it's time to begin working with Aqua.
+Let's try an experiment using `Grover`'s algorithm that is supplied with Aqua:
 
 ```
 $ python
@@ -109,13 +117,73 @@ Form (CNF):
 (&not;<i>x</i><sub>1</sub> &or; <i>x</i><sub>2</sub> &or; <i>x</i><sub>3</sub>)
 
 The Python code above prints out one possible solution for this CNF.
-For example, output `1, -2, 3` indicates
-that logical expression (<i>x</i><sub>1</sub> &or; &not;<i>x</i><sub>2</sub> &or; <i>x</i><sub>3</sub>)
+For example, output `1, -2, 3` indicates that logical expression 
+(<i>x</i><sub>1</sub> &or; &not;<i>x</i><sub>2</sub> &or; <i>x</i><sub>3</sub>)
 satisfies the given CNF.
+
+#### Further examples
+
+Jupyter notebooks containing further examples, for Qiskit Aqua, may be found here in the following
+GitHub repositories at
+[qiskit-iqx-tutorials/qiskit/advanced/aqua](https://github.com/Qiskit/qiskit-iqx-tutorials/tree/master/qiskit/advanced/aqua)
+and
+[qiskit-community-tutorials/aqua](https://github.com/Qiskit/qiskit-community-tutorials/tree/master/aqua)
+.
+
+----------------------------------------------------------------------------------------------------
+
+## Chemistry
+
+The `qiskit.chemsitry` package supports problems including ground state energy computations,
+excited states and dipole moments of molecule, both open and closed-shell.  
+
+The `qiskit.chemistry` package contains chemistry drivers, which when provided with a molecular
+configuration will return one and two-body integrals as well as other data that is efficiently 
+computed classically which can then be used as input to the chemistry application stack that contains
+logic which is able to translate this into a form that is suitable for quantum algorithms. The
+conversion first creates a FermionicOperator which must then be mapped, e.g. by a Jordan Wigner mapping,
+to a qubit operator in readiness for the quantum computation. 
+
+#### Optional Installs
+
+To run chemistry experiments using Qiskit Chemistry, it is recommended that you to install a
+classical computation chemistry software program/library interfaced by Qiskit Chemistry. 
+Several, as listed below, are supported, and while logic to interface these programs is supplied by
+Qiskit Chemistry via the above pip installation, the dependent programs/libraries themselves need
+to be installed separately.
+
+Note: As `PySCF` can be installed via pip the installation of Qiskit (Aqua) will install PySCF
+where it's supported (MacOS and Linux x86). For other platforms see the PySCF information as to
+whether this might be possible manually. 
+
+1. [Gaussian 16&trade;](https://github.com/Qiskit/qiskit-aqua/blob/master/qiskit/chemistry/drivers/gaussiand/__init__.py), a commercial chemistry program
+2. [PSI4](https://github.com/Qiskit/qiskit-aqua/blob/master/qiskit/chemistry/drivers/psi4d/__init__.py), a chemistry program that exposes a Python interface allowing for accessing internal objects
+3. [PySCF](https://github.com/Qiskit/qiskit-aqua/blob/master/qiskit/chemistry/drivers/pyscfd/__init__.py), an open-source Python chemistry program
+4. [PyQuante](https://github.com/Qiskit/qiskit-aqua/blob/master/qiskit/chemistry/drivers/pyquanted/__init__.py), a pure cross-platform open-source Python chemistry program
+
+##### HDF5 Driver
+
+A useful functionality integrated into Qiskit Chemistry is its ability to serialize a file in Hierarchical Data
+Format 5 (HDF5) format representing all the data extracted from one of the drivers listed above when
+executing an experiment. 
+ 
+The [HDF5 driver](https://qiskit.org/documentation/aqua/chemistry/qiskit_chemistry_drivers.html#hdf5)
+accepts such such HDF5 files as input so molecular experiments can be run, albeit on the fixed data
+as stored in the file. As such if you have some pre-created HDF5 files from created from Qiskit
+Chemistry you can use these with the HDF5 driver even if you do not install one of the classical
+computation packages listed above.  
+
+A few sample HDF5 files for different are provided in the 
+[chemistry folder](https://github.com/Qiskit/qiskit-community-tutorials/tree/master/qiskit/chemistry) of the
+[Qiskit Community Tutorials](https://github.com/Qiskit/qiskit-community-tutorials) repository. This
+[HDF5 Driver tutorial](https://github.com/Qiskit/qiskit-community-tutorials/blob/master/chemistry/hdf5_files_and_driver.ipynb)
+contains further information.
 
 ## Creating Your First Qiskit Chemistry Programming Experiment
 
-Now that Qiskit Aqua is installed, it's time to begin working with it.  We are ready to try out an experiment using Qiskit Chemistry:
+Now that Qiskit is installed, it's time to begin working with Aqua.
+Let's try a chemistry application experiment using VQE (Variational Quantum Eigensolver) algorithm
+to compute the ground-state (minimum) energy of a molecule.  
 
 ```python
 from qiskit.chemistry import FermionicOperator
@@ -139,10 +207,6 @@ qubitOp = ferOp.mapping(map_type)
 qubitOp = Z2Symmetries.two_qubit_reduction(qubitOp, num_particles)
 num_qubits = qubitOp.num_qubits
 
-# set the backend for the quantum computation
-from qiskit import Aer
-backend = Aer.get_backend('statevector_simulator')
-
 # setup a classical optimizer for VQE
 from qiskit.aqua.components.optimizers import L_BFGS_B
 optimizer = L_BFGS_B()
@@ -158,85 +222,142 @@ var_form = RYRZ(num_qubits, initial_state=init_state)
 # setup and run VQE
 from qiskit.aqua.algorithms import VQE
 algorithm = VQE(qubitOp, var_form, optimizer)
+
+# set the backend for the quantum computation
+from qiskit import Aer
+backend = Aer.get_backend('statevector_simulator')
+
 result = algorithm.run(backend)
 print(result['energy'])
 ```
-
 The program above uses a quantum computer to calculate the ground state energy of molecular Hydrogen,
 H<sub>2</sub>, where the two atoms are configured to be at a distance of 0.735 angstroms. The molecular
-input is generated using PySCF. First, Qiskit Chemistry transparently executes PySCF,
-and extracts from it the one- and two-body molecular-orbital integrals; an inexpensive operation that scales
-well classically and does not require the use of a quantum computer. These integrals are then used to create
-a quantum fermionic-operator representation of the molecule. In this specific example, we use a parity mapping
-to generate a qubit operator from the fermionic one, with a unique precision-preserving optimization that
-allows for two qubits to be tapered off; a reduction in complexity that is particularly advantageous for NISQ
-computers. The qubit operator is then passed as an input to the Variational Quantum Eigensolver (VQE) algorithm,
-instantiated with a Limited-memory Broyden-Fletcher-Goldfarb-Shanno Bound (L-BFGS-B) classical optimizer and
-the RyRz variational form. The Hartree-Fock state is utilized to initialize the variational form.
-This example emphasizes the use of Qiskit Aqua and Qiskit Chemistry's programmatic interface by illustrating
-the constructor calls that initialize the VQE `QuantumAlgorithm`, along with its supporting
-components—consisting of the L-BFGS-B `Optimizer`, RyRz `VariationalForm`, and Hartree-Fock `InitialState`.
-The Aer statevector simulator backend is passed as a parameter to the `run` method of the VQE algorithm object,
-which means that the backend will be executed with default parameters.
-To customize the backend, you can wrap it into a `QuantumInstance` object, and then pass that object to the
-`run` method of the QuantumAlgorithm, as explained above. The `QuantumInstance` API allows you to customize
-run-time properties of the backend, such as the number of shots, the maximum number of credits to use,
-settings for the simulator, initial layout of qubits
-in the mapping and the Terra `PassManager` that will handle the compilation of the circuits.
-For the full set of options, please refer to the documentation of the Aqua `QuantumInstance` API.
+input specification is processed by PySCF driver and data is output that includes one- and
+two-body molecular-orbital integrals. From the output a fermionic-operator is created which is then
+parity mapped to generate a qubit operator. Parity mappings allow a precision-preserving optimization 
+that two qubits can be tapered off; a reduction in complexity that is particularly advantageous for NISQ
+computers.
+ 
+The qubit operator is then passed as an input to the Variational Quantum Eigensolver (VQE) algorithm,
+instantiated with a classical optimizer and an RyRz variational form (ansatz). A Hartree-Fock 
+initial state is used as a starting point for the variational form.
 
+The VQE algorithm is then run, in this case on the Qiskit Aer statevector simulator backend.
+Here we pass a backend but it can be wrapped into a `QuantumInstance`, and that passed to the
+`run` instead. The `QuantumInstance` API allows you to customize run-time properties of the backend,
+such as the number of shots, the maximum number of credits to use, settings for the simulator,
+initial layout of qubits in the mapping and the Terra `PassManager` that will handle the compilation
+of the circuits. By passing in a backend as is done above it is internally wrapped into a 
+`QuantumInstance` and is a convenience when default setting suffice.
 
-## Using Real Device
+#### Further examples
+
+Jupyter notebooks containing further examples, for Qiskit Chemistry, may be found here in the following
+GitHub repositories at
+[qiskit-iqx-tutorials/qiskit/advanced/aqua/chemistry](https://github.com/Qiskit/qiskit-iqx-tutorials/tree/master/qiskit/advanced/aqua/chemistry)
+and
+[qiskit-community-tutorials/chemistry](https://github.com/Qiskit/qiskit-community-tutorials/tree/master/chemistry)
+.
+
+----------------------------------------------------------------------------------------------------
+
+## Finance
+
+The `qiskit.finance` package contains.... 
+
+#### Further examples
+
+Jupyter notebooks containing further examples, for Qiskit Finance, may be found here in the following
+GitHub repositories at
+[qiskit-iqx-tutorials/qiskit/advanced/aqua/finance](https://github.com/Qiskit/qiskit-iqx-tutorials/tree/master/qiskit/advanced/aqua/finance)
+and
+[qiskit-community-tutorials/finance](https://github.com/Qiskit/qiskit-community-tutorials/tree/master/finance)
+.
+
+----------------------------------------------------------------------------------------------------
+ 
+## Machine Learning
+
+The `qiskit.ml` package contains only sample datasets at present. `qiskit.aqua` does have some
+classification algorithms such as QSVM and VQC (Variational Quantum Classifier). There is also  
+
+#### Further examples
+
+Jupyter notebooks containing further examples, for Qiskit Finance, may be found here in the following
+GitHub repositories at
+[qiskit-iqx-tutorials/qiskit/advanced/aqua/machine_learning](https://github.com/Qiskit/qiskit-iqx-tutorials/tree/master/qiskit/advanced/aqua/machine_learning)
+and
+[qiskit-iqx-tutorials/qiskit/advanced/aqua/finance/machine_learning](https://github.com/Qiskit/qiskit-iqx-tutorials/tree/master/qiskit/advanced/aqua/finance/machine_learning)
+and
+[qiskit-community-tutorials/machine_learning](https://github.com/Qiskit/qiskit-community-tutorials/tree/master/machine_learning)
+.
+
+----------------------------------------------------------------------------------------------------
+
+## Optimization
+
+The `qiskit.optimization` package contains.... 
+
+#### Further examples
+
+Jupyter notebooks containing further examples, for Qiskit Finance, may be found here in the following
+GitHub repositories at
+[qiskit-iqx-tutorials/qiskit/advanced/aqua/optimization](https://github.com/Qiskit/qiskit-iqx-tutorials/tree/master/qiskit/advanced/aqua/optimization)
+and
+[qiskit-iqx-tutorials/qiskit/advanced/aqua/finance/optimization](https://github.com/Qiskit/qiskit-iqx-tutorials/tree/master/qiskit/advanced/aqua/finance/optimization)
+and
+[qiskit-community-tutorials/optimization](https://github.com/Qiskit/qiskit-community-tutorials/tree/master/optimization)
+.
+
+----------------------------------------------------------------------------------------------------
+
+## Using a Real Device
 
 You can also use Qiskit to execute your code on a **real quantum chip**.
 In order to do so, you need to configure Qiskit to use the credentials in
-your [IBM Q](https://quantum-computing.ibm.com) account.
-Please consult the relevant instructions in the
+your [IBM Quantum Experience](https://quantum-computing.ibm.com) account.
+For more detailed information refer to the relevant instructions in the
 [Qiskit Terra GitHub repository](https://github.com/Qiskit/qiskit-terra/blob/master/README.md#executing-your-code-on-a-real-quantum-chip)
-for more details.
-
-
-## Qiskit Chemistry Wizard and Command-line Interfaces
-
-Qiskit Chemistry is a modular and extensible software framework that allows researchers to contribute new components to it
-and extend its functionality.  For this reason, Qiskit Chemistry exposes all the Application Programming Interfaces (APIs) 
-necessary to access its functionality programmatically.
-
+.
 
 ## Contribution Guidelines
 
 If you'd like to contribute to Qiskit, please take a look at our
-[contribution guidelines](./CONTRIBUTING.md). This project adheres to Qiskit's [code of conduct](./CODE_OF_CONDUCT.md). By participating, you are expected to uphold to this code. Please also follow the [style guidelines](./CONTRIBUTING.md/#Style-guide).
+[contribution guidelines](./CONTRIBUTING.md).
+This project adheres to Qiskit's [code of conduct](./CODE_OF_CONDUCT.md).
+By participating, you are expected to uphold to this code.
 
 We use [GitHub issues](https://github.com/Qiskit/qiskit-aqua/issues) for tracking requests and bugs. Please
-[join the Qiskit Slack community](https://join.slack.com/t/qiskit/shared_invite/enQtNDc2NjUzMjE4Mzc0LTMwZmE0YTM4ZThiNGJmODkzN2Y2NTNlMDIwYWNjYzA2ZmM1YTRlZGQ3OGM0NjcwMjZkZGE0MTA4MGQ1ZTVmYzk)
-and use the [Aqua Slack channel](https://qiskit.slack.com/messages/aqua)
-for discussion and simple questions.
+[join the Qiskit Slack community](https://join.slack.com/t/qiskit/shared_invite/enQtODQ2NTIyOTgwMTQ3LTI0NzM2NzkzZjJhNDgzZjY5MTQzNDY3MGNiZGQzNTNkZTE4Nzg1MjMwMmFjY2UwZTgyNDlmYWQwYmZjMjE1ZTM)
+and use the [Aqua Slack channel](https://qiskit.slack.com/messages/aqua) for discussion and simple questions.
 For questions that are more suited for a forum, we use the **Qiskit** tag in [Stack Overflow](https://stackoverflow.com/questions/tagged/qiskit).
 
 ## Next Steps
 
-Now you're set up and ready to check out some of the other examples from the
-[qiskit/aqua](https://github.com/Qiskit/qiskit-tutorials/tree/master/qiskit/aqua)
-and [community/aqua](https://github.com/Qiskit/qiskit-tutorials/tree/master/community/aqua)
-and [qiskit/chemistry](https://github.com/Qiskit/qiskit-tutorials/tree/master/qiskit/chemistry)
-and [community/chemistry](https://github.com/Qiskit/qiskit-tutorials/tree/master/community/chemistry)
-folders of the [qiskit-tutorials GitHub Repository](https://github.com/Qiskit/qiskit-tutorials).
+Now you're set up and ready to check out some of the other examples from the 
+[Qiskit Tutorials](https://github.com/Qiskit/qiskit-iqx-tutorials) repository, that are used for the
+IBM Quantum Experience, and from the 
+[Qiskit Community Tutorials](https://github.com/Qiskit/qiskit-community-tutorials). 
+
 
 ## Authors and Citation
 
 Aqua was inspired, authored and brought about by the collective work of a team of researchers.
-Aqua continues to grow with the help and work of [many people](./CONTRIBUTORS.md), who contribute
-to the project at different levels. If you use Qiskit, please cite as per the included [BibTeX file](https://github.com/Qiskit/qiskit/blob/master/Qiskit.bib).
+Aqua continues to grow with the help and work of 
+[many people](https://github.com/Qiskit/qiskit-aqua/graphs/contributors), who contribute
+to the project at different levels. 
+If you use Qiskit, please cite as per the included [BibTeX file](https://github.com/Qiskit/qiskit/blob/master/Qiskit.bib).
+
+Please note that if you do not like the way your name is cited in the BibTex file then consult
+the information found in the [.mailmap](https://github.com/Qiskit/qiskit-aqua/blob/master/.mailmap)
+file. 
 
 ## License
 
 This project uses the [Apache License 2.0](LICENSE.txt).
 
-Some of the code embedded in Qiskit Chemistry to interface some of the computational chemistry
-software drivers requires additional licensing:
-* The [Gaussian 16 driver](qiskit/chemistry/drivers/gaussiand) contains work licensed under the
-[Gaussian Open-Source Public License](qiskit/chemistry/drivers/gaussiand/gauopen/LICENSE.txt).
+However there is some code that is included under other licensing as follows:
 
-
-
+* The [Gaussian 16 driver](qiskit/chemistry/drivers/gaussiand) in `qiskit.chemistry`
+  contains work licensed under the
+  [Gaussian Open-Source Public License](qiskit/chemistry/drivers/gaussiand/gauopen/LICENSE.txt).
