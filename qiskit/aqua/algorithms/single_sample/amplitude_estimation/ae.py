@@ -54,7 +54,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
                  i_objective: Optional[int] = None,
                  q_factory: Optional[CircuitFactory] = None,
                  iqft: Optional[IQFT] = None) -> None:
-        """
+        r"""
         Initializer.
 
         Args:

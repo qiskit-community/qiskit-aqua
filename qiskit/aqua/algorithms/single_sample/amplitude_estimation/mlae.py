@@ -47,7 +47,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                  q_factory: Optional[CircuitFactory] = None,
                  i_objective: Optional[int] = None,
                  likelihood_evals: Optional[int] = None) -> None:
-        """
+        r"""
         Initializer.
 
         Args:

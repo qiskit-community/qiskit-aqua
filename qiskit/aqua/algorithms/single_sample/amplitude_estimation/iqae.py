@@ -159,7 +159,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         return int(k), upper_half_circle
 
     def construct_circuit(self, k, measurement=False):
-        """
+        r"""
         Construct the circuit Q^k A \|0>, with the A operator specifying the QAE problem and
         the Grover operator Q.
 
