@@ -401,7 +401,8 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
             # construct probabilities
             y_probabilities = {}
             a_probabilities = {}
-            shots = sum(ret.get_counts().values())
+            shots = self._quantum_instance._run_config.shots
+
             for state, counts in ret.get_counts().items():
                 y = int(state.replace(' ', '')[:self._m][::-1], 2)
                 p = counts / shots
@@ -442,6 +443,9 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 self._ret['max_probability'] = prob
                 self._ret['estimation'] = est
                 self._ret['value'] = val
+
+        # count the number of Q-oracle calls
+        self._ret['num_oracle_queries'] = self._M - 1
 
         # get MLE
         self._run_mle()

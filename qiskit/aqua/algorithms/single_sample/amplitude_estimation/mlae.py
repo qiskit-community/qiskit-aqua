@@ -104,10 +104,12 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         Returns:
             list: a list with the QuantumCircuit objects for the algorithm
         """
+        # keep track of the Q-oracle queries
+        self._ret['num_oracle_queries'] = 0
+
         # construct first part of circuit
         q = QuantumRegister(self.a_factory.num_target_qubits, 'q')
-
-        qc_a = QuantumCircuit(q, name='qc_a')
+        qc_0 = QuantumCircuit(q, name='qc_a')  # 0 applications of Q, only a single A operator
 
         # get number of ancillas
         num_ancillas = np.maximum(self.a_factory.required_ancillas(),
@@ -117,18 +119,18 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         # pylint: disable=comparison-with-callable
         if num_ancillas > 0:
             q_aux = QuantumRegister(num_ancillas, 'aux')
-            qc_a.add_register(q_aux)
+            qc_0.add_register(q_aux)
 
         # add classical register if needed
         if measurement:
             c = ClassicalRegister(1)
-            qc_a.add_register(c)
+            qc_0.add_register(c)
 
-        self.a_factory.build(qc_a, q, q_aux)
+        self.a_factory.build(qc_0, q, q_aux)
 
         self._circuits = []
         for k in self._evaluation_schedule:
-            qc_k = qc_a.copy(name='qc_a_q_%s' % k)
+            qc_k = qc_0.copy(name='qc_a_q_%s' % k)
 
             if k != 0:
                 self.q_factory.build_power(qc_k, q, k, q_aux)
@@ -410,6 +412,9 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             statevectors = [np.asarray(ret.get_statevector(circuit)) for circuit in self._circuits]
             self._ret['statevectors'] = statevectors
 
+            # to count the number of Q-oracle calls (don't count shots)
+            shots = 1
+
         else:
             # run circuit on QASM simulator
             self.construct_circuits(measurement=True)
@@ -418,11 +423,15 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             # get counts and construct MLE input
             self._ret['counts'] = [ret.get_counts(circuit) for circuit in self._circuits]
 
+            # to count the number of Q-oracle calls
+            shots = self._quantum_instance._run_config.shots
+
         # run maximum likelihood estimation and construct results
         self._ret['theta'] = self._run_mle()
         self._ret['value'] = np.sin(self._ret['theta'])**2
         self._ret['estimation'] = self.a_factory.value_to_estimation(self._ret['value'])
         self._ret['fisher_information'] = self._compute_fisher_information()
+        self._ret['num_oracle_queries'] = shots * sum(k for k in self._evaluation_schedule)
 
         confidence_interval = self._fisher_confint(alpha=0.05)
         self._ret['95%_confidence_interval'] = confidence_interval

@@ -302,7 +302,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
             theta_i_interval = [np.arccos(1 - 2 * a_i) / 2 / np.pi for a_i in a_confidence_interval]
             theta_intervals.append(theta_i_interval)
-            num_oracle_queries = 1
+            num_oracle_queries = 0  # no Q-oracle call, only a single one to A
 
         else:
             num_iterations = 0  # keep track of the number of iterations
