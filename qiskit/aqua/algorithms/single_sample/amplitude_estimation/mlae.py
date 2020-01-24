@@ -58,7 +58,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             q_factory: the CircuitFactory subclass object representing
                 an amplitude estimation sample (based on a_factory)
             i_objective: the index of the objective qubit, i.e. the qubit marking 'good' solutions
-                with the state |1> and 'bad' solutions with the state |0>
+                with the state \|1> and 'bad' solutions with the state \|0>
             likelihood_evals: the number of gridpoints for the maximum search of the likelihood
                 function
         """

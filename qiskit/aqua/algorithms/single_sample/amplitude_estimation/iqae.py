@@ -160,7 +160,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
     def construct_circuit(self, k, measurement=False):
         """
-        Construct the circuit Q^k A |0>, with the A operator specifying the QAE problem and
+        Construct the circuit Q^k A \|0>, with the A operator specifying the QAE problem and
         the Grover operator Q.
 
         Args:
@@ -169,7 +169,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 circuits
 
         Returns:
-            QuantumCircuit: the circuit Q^k A |0>
+            QuantumCircuit: the circuit Q^k A \|0>
         """
         # set up circuit
         q = QuantumRegister(self.a_factory.num_target_qubits, 'q')
