@@ -56,8 +56,8 @@ class BernoulliAFactory(UncertaintyProblem):
 class BernoulliQFactory(QFactory):
     """Circuit Factory representing the operator Q in a Bernoulli problem.
 
-    This implementation exploits the fact that powers of Q can be implemented efficiently by just 
-    multiplying the angle. Note, that since amplitude estimation only requires controlled powers of 
+    This implementation exploits the fact that powers of Q can be implemented efficiently by just
+    multiplying the angle. Note, that since amplitude estimation only requires controlled powers of
     Q only that method is overridden.
     """
 
@@ -111,7 +111,7 @@ class SineIntegralAFactory(UncertaintyProblem):
 
 
 class TestBernoulli(QiskitAquaTestCase):
-    """Tests based on the Bernoulli A operator. 
+    """Tests based on the Bernoulli A operator.
 
     This class tests
         * the estimation result
@@ -396,7 +396,7 @@ class TestProblemSetting(QiskitAquaTestCase):
 
 
 class TestSineIntegral(QiskitAquaTestCase):
-    """Tests based on the A operator to integrate sin^2(x). 
+    """Tests based on the A operator to integrate sin^2(x).
 
     This class tests
         * the estimation result
