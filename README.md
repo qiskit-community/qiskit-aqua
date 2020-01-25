@@ -66,7 +66,7 @@ these on a quantum backend, whether a real device or simulator.
 
 ### Optional Installs
 
-* **IBM CPLEX** may be [installed](https://github.com/Qiskit/qiskit-aqua/blob/master/qiskit/aqua/algorithms/classical/cplex/__init__.py) 
+* **IBM CPLEX** may be [installed](qiskit/aqua/algorithms/classical/cplex/__init__.py) 
   to allow use of the `CPLEX_Ising` classical solver algorithm.
 * **PyTorch**, may be installed either using command `pip install qiskit-aqua[torch]` to install the
   package or refer to PyTorch [getting started](https://pytorch.org/get-started/locally/). PyTorch
@@ -157,17 +157,17 @@ Note: As `PySCF` can be installed via pip the installation of Qiskit (Aqua) will
 where it's supported (MacOS and Linux x86). For other platforms see the PySCF information as to
 whether this might be possible manually. 
 
-1. [Gaussian 16&trade;](https://github.com/Qiskit/qiskit-aqua/blob/master/qiskit/chemistry/drivers/gaussiand/__init__.py), a commercial chemistry program
-2. [PSI4](https://github.com/Qiskit/qiskit-aqua/blob/master/qiskit/chemistry/drivers/psi4d/__init__.py), a chemistry program that exposes a Python interface allowing for accessing internal objects
-3. [PySCF](https://github.com/Qiskit/qiskit-aqua/blob/master/qiskit/chemistry/drivers/pyscfd/__init__.py), an open-source Python chemistry program
-4. [PyQuante](https://github.com/Qiskit/qiskit-aqua/blob/master/qiskit/chemistry/drivers/pyquanted/__init__.py), a pure cross-platform open-source Python chemistry program
+1. [Gaussian 16&trade;](qiskit/chemistry/drivers/gaussiand/__init__.py), a commercial chemistry program
+2. [PSI4](qiskit/chemistry/drivers/psi4d/__init__.py), a chemistry program that exposes a Python interface allowing for accessing internal objects
+3. [PySCF](qiskit/chemistry/drivers/pyscfd/__init__.py), an open-source Python chemistry program
+4. [PyQuante](qiskit/chemistry/drivers/pyquanted/__init__.py), a pure cross-platform open-source Python chemistry program
 
 ### HDF5 Driver
 
 A useful functionality integrated into Qiskit Chemistry is its ability to serialize a file in
 Hierarchical Data Format 5 (HDF5) format representing all the output data from a chemistry driver.
  
-The [HDF5 driver](https://github.com/Qiskit/qiskit-aqua/blob/master/qiskit/chemistry/drivers/hdf5d/hdf5driver.py)
+The [HDF5 driver](qiskit/chemistry/drivers/hdf5d/hdf5driver.py)
 accepts such such HDF5 files as input so molecular experiments can be run, albeit on the fixed data
 as stored in the file. As such, if you have some pre-created HDF5 files from created from Qiskit
 Chemistry, you can use these with the HDF5 driver even if you do not install one of the classical
@@ -357,5 +357,5 @@ This project uses the [Apache License 2.0](LICENSE.txt).
 However there is some code that is included under other licensing as follows:
 
 * The [Gaussian 16 driver](qiskit/chemistry/drivers/gaussiand) in `qiskit.chemistry`
-  contains [work]((qiskit/chemistry/drivers/gaussiand/gauopen)) licensed under the
+  contains [work](qiskit/chemistry/drivers/gaussiand/gauopen)) licensed under the
   [Gaussian Open-Source Public License](qiskit/chemistry/drivers/gaussiand/gauopen/LICENSE.txt).
