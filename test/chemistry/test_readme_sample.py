@@ -19,7 +19,9 @@ the issue then ensure changes are made to readme too.
 """
 
 import unittest
+
 from test.chemistry import QiskitChemistryTestCase
+from qiskit.chemistry import QiskitChemistryError
 
 
 class TestReadmeSample(QiskitChemistryTestCase):
@@ -29,17 +31,14 @@ class TestReadmeSample(QiskitChemistryTestCase):
         super().setUp()
         try:
             # pylint: disable=import-outside-toplevel
-            from qiskit.chemistry.drivers import PySCFDriver, UnitsType
-            driver = PySCFDriver(atom='Li .0 .0 .0; H .0 .0 1.6',
-                                 unit=UnitsType.ANGSTROM,
-                                 charge=0,
-                                 spin=0,
-                                 basis='sto3g')
+            from qiskit.chemistry.drivers import PySCFDriver
+            PySCFDriver(atom='Li .0 .0 .0; H .0 .0 1.6')
         except QiskitChemistryError:
             self.skipTest('PYSCF driver does not appear to be installed')
 
         try:
             # pylint: disable=import-outside-toplevel
+            # pylint: disable=unused-import
             from qiskit import Aer
         except Exception as ex:  # pylint: disable=broad-except
             self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(ex)))
@@ -66,11 +65,11 @@ class TestReadmeSample(QiskitChemistryTestCase):
         num_spin_orbitals = molecule.num_orbitals * 2
 
         # Build the qubit operator, which is the input to the VQE algorithm in Aqua
-        ferOp = FermionicOperator(h1=molecule.one_body_integrals, h2=molecule.two_body_integrals)
+        ferm_op = FermionicOperator(h1=molecule.one_body_integrals, h2=molecule.two_body_integrals)
         map_type = 'PARITY'
-        qubitOp = ferOp.mapping(map_type)
-        qubitOp = Z2Symmetries.two_qubit_reduction(qubitOp, num_particles)
-        num_qubits = qubitOp.num_qubits
+        qubit_op = ferm_op.mapping(map_type)
+        qubit_op = Z2Symmetries.two_qubit_reduction(qubit_op, num_particles)
+        num_qubits = qubit_op.num_qubits
 
         # setup a classical optimizer for VQE
         from qiskit.aqua.components.optimizers import L_BFGS_B
@@ -86,7 +85,7 @@ class TestReadmeSample(QiskitChemistryTestCase):
 
         # setup and run VQE
         from qiskit.aqua.algorithms import VQE
-        algorithm = VQE(qubitOp, var_form, optimizer)
+        algorithm = VQE(qubit_op, var_form, optimizer)
 
         # set the backend for the quantum computation
         from qiskit import Aer

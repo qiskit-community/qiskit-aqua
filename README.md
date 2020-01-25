@@ -66,7 +66,7 @@ these on a quantum backend, whether a real device or simulator.
 
 ### Optional Installs
 
-* **IBM CPLEX** may be [installed](qiskit/aqua/algorithms/classical/cplex/__init__.py) 
+* **IBM CPLEX** may be [installed](qiskit/aqua/algorithms/classical/cplex/__init__.py#L16) 
   to allow use of the `CPLEX_Ising` classical solver algorithm.
 * **PyTorch**, may be installed either using command `pip install qiskit-aqua[torch]` to install the
   package or refer to PyTorch [getting started](https://pytorch.org/get-started/locally/). PyTorch
@@ -157,17 +157,17 @@ Note: As `PySCF` can be installed via pip the installation of Qiskit (Aqua) will
 where it's supported (MacOS and Linux x86). For other platforms see the PySCF information as to
 whether this might be possible manually. 
 
-1. [Gaussian 16&trade;](qiskit/chemistry/drivers/gaussiand/__init__.py), a commercial chemistry program
-2. [PSI4](qiskit/chemistry/drivers/psi4d/__init__.py), a chemistry program that exposes a Python interface allowing for accessing internal objects
-3. [PySCF](qiskit/chemistry/drivers/pyscfd/__init__.py), an open-source Python chemistry program
-4. [PyQuante](qiskit/chemistry/drivers/pyquanted/__init__.py), a pure cross-platform open-source Python chemistry program
+1. [Gaussian 16&trade;](qiskit/chemistry/drivers/gaussiand/__init__.py#L16), a commercial chemistry program
+2. [PSI4](qiskit/chemistry/drivers/psi4d/__init__.py#L16), a chemistry program that exposes a Python interface allowing for accessing internal objects
+3. [PySCF](qiskit/chemistry/drivers/pyscfd/__init__.py#L16), an open-source Python chemistry program
+4. [PyQuante](qiskit/chemistry/drivers/pyquanted/__init__.py#L16), a pure cross-platform open-source Python chemistry program
 
 ### HDF5 Driver
 
 A useful functionality integrated into Qiskit Chemistry is its ability to serialize a file in
 Hierarchical Data Format 5 (HDF5) format representing all the output data from a chemistry driver.
  
-The [HDF5 driver](qiskit/chemistry/drivers/hdf5d/hdf5driver.py)
+The [HDF5 driver](qiskit/chemistry/drivers/hdf5d/hdf5driver.py#L25)
 accepts such such HDF5 files as input so molecular experiments can be run, albeit on the fixed data
 as stored in the file. As such, if you have some pre-created HDF5 files from created from Qiskit
 Chemistry, you can use these with the HDF5 driver even if you do not install one of the classical
@@ -182,7 +182,7 @@ contains further information about creating and using such HDF5 files.
 
 ### Creating Your First Qiskit Chemistry Programming Experiment
 
-Now that Qiskit is installed, it's time to begin working with Aqua.
+Now that Qiskit is installed, it's time to begin working with Chemistry.
 Let's try a chemistry application experiment using VQE (Variational Quantum Eigensolver) algorithm
 to compute the ground-state (minimum) energy of a molecule.  
 
@@ -195,18 +195,18 @@ from qiskit.aqua.operators import Z2Symmetries
 # package, to compute the one-body and two-body integrals in
 # molecular-orbital basis, necessary to form the Fermionic operator
 driver = PySCFDriver(atom='H .0 .0 .0; H .0 .0 0.735',
-                    unit=UnitsType.ANGSTROM,
-                    basis='sto3g')
+                     unit=UnitsType.ANGSTROM,
+                     basis='sto3g')
 molecule = driver.run()
 num_particles = molecule.num_alpha + molecule.num_beta
 num_spin_orbitals = molecule.num_orbitals * 2
 
 # Build the qubit operator, which is the input to the VQE algorithm in Aqua
-ferOp = FermionicOperator(h1=molecule.one_body_integrals, h2=molecule.two_body_integrals)
+ferm_op = FermionicOperator(h1=molecule.one_body_integrals, h2=molecule.two_body_integrals)
 map_type = 'PARITY'
-qubitOp = ferOp.mapping(map_type)
-qubitOp = Z2Symmetries.two_qubit_reduction(qubitOp, num_particles)
-num_qubits = qubitOp.num_qubits
+qubit_op = ferm_op.mapping(map_type)
+qubit_op = Z2Symmetries.two_qubit_reduction(qubit_op, num_particles)
+num_qubits = qubit_op.num_qubits
 
 # setup a classical optimizer for VQE
 from qiskit.aqua.components.optimizers import L_BFGS_B
@@ -222,7 +222,7 @@ var_form = RYRZ(num_qubits, initial_state=init_state)
 
 # setup and run VQE
 from qiskit.aqua.algorithms import VQE
-algorithm = VQE(qubitOp, var_form, optimizer)
+algorithm = VQE(qubit_op, var_form, optimizer)
 
 # set the backend for the quantum computation
 from qiskit import Aer
@@ -263,7 +263,9 @@ and
 
 ## Finance
 
-The `qiskit.finance` package contains.... 
+The `qiskit.finance` package contains uncertainty components for stock/securities problems,
+Ising translators for portfolio optimizations and data providers to source real or random data to
+finance experiments.   
 
 ### Further examples
 
@@ -277,8 +279,10 @@ and
  
 ## Machine Learning
 
-The `qiskit.ml` package contains only sample datasets at present. `qiskit.aqua` does have some
-classification algorithms such as QSVM and VQC (Variational Quantum Classifier). There is also  
+The `qiskit.ml` package simply contains sample datasets at present. `qiskit.aqua` has some
+classification algorithms such as QSVM and VQC (Variational Quantum Classifier), where this data
+can be used for experiments, and there is also QGAN (Quantum Generative Adversarial Network)
+algorithm.  
 
 ### Further examples
 
@@ -294,7 +298,69 @@ and
 
 ## Optimization
 
-The `qiskit.optimization` package contains.... 
+The `qiskit.optimization` package contains Ising translators for various optimization problems such 
+as Max-Cut, Traveling Salesman and Vehicle Routing. It also has a has an automatic Ising
+generator for a problem model specified by the user as a model in
+[docplex](qiskit/optimization/ising/docplex.py#L16). 
+
+### Creating Your First Qiskit Optimization Programming Experiment
+
+Now that Qiskit is installed, it's time to begin working with Optimization.
+Let's try a optimization experiment using QAOA (Quantum Approximate Optimization Algorithm)
+to compute the solution of a [Max-Cut](https://en.wikipedia.org/wiki/Maximum_cut) problem.  
+
+```python
+import networkx as nx
+import numpy as np
+from docplex.mp.model import Model
+
+from qiskit import BasicAer
+from qiskit.aqua import aqua_globals, QuantumInstance
+from qiskit.aqua.algorithms import QAOA
+from qiskit.aqua.components.optimizers import SPSA
+from qiskit.optimization.ising import docplex, max_cut
+from qiskit.optimization.ising.common import sample_most_likely
+
+# Generate a graph of 4 nodes
+n = 4
+graph = nx.Graph()
+graph.add_nodes_from(np.arange(0, n, 1))
+elist = [(0, 1, 1.0), (0, 2, 1.0), (0, 3, 1.0), (1, 2, 1.0), (2, 3, 1.0)]
+graph.add_weighted_edges_from(elist)
+# Compute the weight matrix from the graph
+w = np.zeros([n, n])
+for i in range(n):
+    for j in range(n):
+        temp = graph.get_edge_data(i, j, default=0)
+        if temp != 0:
+            w[i, j] = temp['weight']
+
+# Create an Ising Hamiltonian with docplex.
+mdl = Model(name='max_cut')
+mdl.node_vars = mdl.binary_var_list(list(range(n)), name='node')
+maxcut_func = mdl.sum(w[i, j] * mdl.node_vars[i] * (1 - mdl.node_vars[j])
+                      for i in range(n) for j in range(n))
+mdl.maximize(maxcut_func)
+qubit_op, offset = docplex.get_operator(mdl)
+
+# Run quantum algorithm QAOA on qasm simulator
+seed = 40598
+aqua_globals.random_seed = seed
+
+spsa = SPSA(max_trials=250)
+qaoa = QAOA(qubit_op, spsa, p=5)
+backend = BasicAer.get_backend('qasm_simulator')
+quantum_instance = QuantumInstance(backend, shots=1024, seed_simulator=seed,
+                                   seed_transpiler=seed)
+result = qaoa.run(quantum_instance)
+
+x = sample_most_likely(result['eigvecs'][0])
+print('energy:', result['energy'])
+print('time:', result['eval_time'])
+print('max-cut objective:', result['energy'] + offset)
+print('solution:', max_cut.get_graph_solution(x))
+print('solution objective:', max_cut.max_cut_value(x, w))
+```
 
 ### Further examples
 
@@ -357,5 +423,5 @@ This project uses the [Apache License 2.0](LICENSE.txt).
 However there is some code that is included under other licensing as follows:
 
 * The [Gaussian 16 driver](qiskit/chemistry/drivers/gaussiand) in `qiskit.chemistry`
-  contains [work](qiskit/chemistry/drivers/gaussiand/gauopen)) licensed under the
+  contains [work](qiskit/chemistry/drivers/gaussiand/gauopen) licensed under the
   [Gaussian Open-Source Public License](qiskit/chemistry/drivers/gaussiand/gauopen/LICENSE.txt).
