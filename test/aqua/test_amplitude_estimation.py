@@ -56,8 +56,8 @@ class BernoulliAFactory(UncertaintyProblem):
 class BernoulliQFactory(QFactory):
     """Circuit Factory representing the operator Q in a Bernoulli problem.
 
-    This implementation exploits the fact that powers of Q can be implemented efficiently by just 
-    multiplying the angle. Note, that since amplitude estimation only requires controlled powers of 
+    This implementation exploits the fact that powers of Q can be implemented efficiently by just
+    multiplying the angle. Note, that since amplitude estimation only requires controlled powers of
     Q only that method is overridden.
     """
 
@@ -111,7 +111,7 @@ class SineIntegralAFactory(UncertaintyProblem):
 
 
 class TestBernoulli(QiskitAquaTestCase):
-    """Tests based on the Bernoulli A operator. 
+    """Tests based on the Bernoulli A operator.
 
     This class tests
         * the estimation result
@@ -122,8 +122,10 @@ class TestBernoulli(QiskitAquaTestCase):
         super().setUp()
 
         self._statevector = QuantumInstance(backend=BasicAer.get_backend('statevector_simulator'),
-                                            seed_simulator=2,
-                                            seed_transpiler=2)
+                                            seed_simulator=2, seed_transpiler=2)
+
+        self._unitary = QuantumInstance(backend=BasicAer.get_backend('unitary_simulator'), shots=1,
+                                        seed_simulator=42, seed_transpiler=91)
 
         def qasm(shots=100):
             return QuantumInstance(backend=BasicAer.get_backend('qasm_simulator'), shots=shots,
@@ -184,9 +186,11 @@ class TestBernoulli(QiskitAquaTestCase):
         [True], [False]
     ])
     def test_qae_circuit(self, efficient_circuit):
-        """ Test circuits resulting from canonical amplitude estimation """
+        """Test circuits resulting from canonical amplitude estimation.
+
+        Build the circuit manually and from the algorithm and compare the resulting unitaries.
+        """
         prob = 0.5
-        basis_gates = ['u1', 'u2', 'u3', 'cx']
 
         for m in range(2, 7):
             qae = AmplitudeEstimation(m, a_factory=BernoulliAFactory(prob))
@@ -207,7 +211,7 @@ class TestBernoulli(QiskitAquaTestCase):
             if efficient_circuit:
                 qae.q_factory = BernoulliQFactory(qae.a_factory)
                 for power in range(m):
-                    circuit.cry(2 ** power * angle, q_ancilla[power], q_objective[0])
+                    circuit.cry(2 * 2 ** power * angle, q_ancilla[power], q_objective[0])
 
             else:
                 q_factory = QFactory(qae.a_factory, i_objective=0)
@@ -218,20 +222,23 @@ class TestBernoulli(QiskitAquaTestCase):
             # fourier transform
             iqft = Standard(m)
             circuit = iqft.construct_circuit(qubits=q_ancilla, circuit=circuit, do_swaps=False)
-            expected_transpiled = transpile(circuit, basis_gates=basis_gates)
+            expected_unitary = self._unitary.execute(circuit).get_unitary()
 
             actual_circuit = qae.construct_circuit(measurement=False)
-            actual_transpiled = transpile(actual_circuit, basis_gates=basis_gates)
+            actual_unitary = self._unitary.execute(actual_circuit).get_unitary()
 
-            self.assertEqual(expected_transpiled, actual_transpiled)
+            diff = np.sum(np.abs(actual_unitary - expected_unitary))
+            self.assertAlmostEqual(diff, 0)
 
     @parameterized.expand([
         [True], [False]
     ])
     def test_iqae_circuits(self, efficient_circuit):
-        """ Test the circuits constructed for IQAE """
+        """Test circuits resulting from iterative amplitude estimation.
+
+        Build the circuit manually and from the algorithm and compare the resulting unitaries.
+        """
         prob = 0.5
-        basis_gates = ['u1', 'u2', 'u3', 'cx']
 
         for k in range(2, 7):
             qae = IterativeAmplitudeEstimation(0.01, 0.05, a_factory=BernoulliAFactory(prob))
@@ -248,22 +255,20 @@ class TestBernoulli(QiskitAquaTestCase):
                 qae.q_factory = BernoulliQFactory(qae.a_factory)
                 # for power in range(k):
                 #    circuit.ry(2 ** power * angle, q_objective[0])
-                circuit.ry(2 * 2**k * angle, q_objective[0])
+                circuit.ry(2 * k * angle, q_objective[0])
 
             else:
                 q_factory = QFactory(qae.a_factory, i_objective=0)
-                for _ in range(2**k):
+                for _ in range(k):
                     q_factory.build(circuit, q_objective)
 
-            expected_transpiled = transpile(circuit, basis_gates=basis_gates)
+            expected_unitary = self._unitary.execute(circuit).get_unitary()
 
             actual_circuit = qae.construct_circuit(k, measurement=False)
-            actual_transpiled = transpile(actual_circuit, basis_gates=basis_gates)
+            actual_unitary = self._unitary.execute(actual_circuit).get_unitary()
 
-            print(actual_transpiled)
-            print(expected_transpiled)
-
-            self.assertEqual(expected_transpiled, actual_transpiled)
+            diff = np.sum(np.abs(actual_unitary - expected_unitary))
+            self.assertAlmostEqual(diff, 0)
 
     @parameterized.expand([
         [True], [False]
@@ -271,7 +276,6 @@ class TestBernoulli(QiskitAquaTestCase):
     def test_mlae_circuits(self, efficient_circuit):
         """ Test the circuits constructed for MLAE """
         prob = 0.5
-        basis_gates = ['u1', 'u2', 'u3', 'cx']
 
         for k in range(1, 7):
             qae = MaximumLikelihoodAmplitudeEstimation(k, a_factory=BernoulliAFactory(prob))
@@ -307,11 +311,10 @@ class TestBernoulli(QiskitAquaTestCase):
             actual_circuits = qae.construct_circuits(measurement=False)
 
             for actual, expected in zip(actual_circuits, circuits):
-                self.assertEqual(actual, expected)
-                expected_transpiled = transpile(expected, basis_gates=basis_gates)
-                actual_transpiled = transpile(actual, basis_gates=basis_gates)
-
-                self.assertEqual(expected_transpiled, actual_transpiled)
+                expected_unitary = self._unitary.execute(expected).get_unitary()
+                actual_unitary = self._unitary.execute(actual).get_unitary()
+                diff = np.sum(np.abs(actual_unitary - expected_unitary))
+                self.assertAlmostEqual(diff, 0)
 
 
 class TestProblemSetting(QiskitAquaTestCase):
@@ -397,7 +400,7 @@ class TestProblemSetting(QiskitAquaTestCase):
 
 
 class TestSineIntegral(QiskitAquaTestCase):
-    """Tests based on the A operator to integrate sin^2(x). 
+    """Tests based on the A operator to integrate sin^2(x).
 
     This class tests
         * the estimation result
