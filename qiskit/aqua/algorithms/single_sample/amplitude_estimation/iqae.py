@@ -229,7 +229,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
     def _chernoff_confint(self, value: float, shots: int, max_rounds: int, alpha: float
                           ) -> Tuple[float, float]:
-        """Compute the Chernoff confidence interval for iid. Bernoulli trials with `shots` samples.
+        """Compute the Chernoff confidence interval for `shots` i.i.d. Bernoulli trials.
 
         The confidence interval is
 
@@ -253,7 +253,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
     def _clopper_pearson_confint(self, counts: int, shots: int, alpha: float
                                  ) -> Tuple[float, float]:
-        """Compute the Clopper-Pearson confidence interval for iid. Bernoulli trials.
+        """Compute the Clopper-Pearson confidence interval for `shots` i.i.d. Bernoulli trials.
 
         Args:
             counts: The number of positive counts.

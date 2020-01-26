@@ -121,11 +121,11 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         probabilities that the measurements y/gridpoints a are the best estimate.
 
         Args:
-            probabilities: The probabilities obtained from the statevector simulation, 
+            probabilities: The probabilities obtained from the statevector simulation,
                 i.e. real(statevector * statevector.conj())[0]
 
         Returns:
-            Dictionaries containing the a gridpoints with respective probabilities and 
+            Dictionaries containing the a gridpoints with respective probabilities and
                 y measurements with respective probabilities, in this order.
         """
         # map measured results to estimates
@@ -273,7 +273,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         Args:
             alpha: Confidence level: compute the (1 - alpha) confidence interval.
-            kind: The method to compute the confidence interval, can be 'fisher', 'observed_fisher' 
+            kind: The method to compute the confidence interval, can be 'fisher', 'observed_fisher'
                 or 'likelihood_ratio' (default)
 
         Returns:
@@ -308,7 +308,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         Returns:
             The MLE for the previous AE run.
 
-        Note: 
+        Note:
             Before calling this method, call the method `run` of the AmplitudeEstimation instance.
         """
         M = self._M

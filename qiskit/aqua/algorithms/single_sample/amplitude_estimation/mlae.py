@@ -50,8 +50,8 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         Args:
             num_oracle_circuits: The number of circuits applying different powers of the Grover
-                oracle Q. The (`num_oracle_circuits` + 1) executed circuits will be 
-                `[id, Q^2^0, ..., Q^2^{num_oracle_circuits-1}] A |0>`, where A is the problem 
+                oracle Q. The (`num_oracle_circuits` + 1) executed circuits will be
+                `[id, Q^2^0, ..., Q^2^{num_oracle_circuits-1}] A |0>`, where A is the problem
                 unitary encoded in the argument `a_factory`.
                 Has a minimum value of 1.
             a_factory: The CircuitFactory subclass object representing the problem unitary.
@@ -351,11 +351,12 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         return mapped_confint
 
     def confidence_interval(self, alpha: float, kind: str = 'fisher') -> List[float]:
+        # pylint: disable=wrong-spelling-in-docstring
         """Compute the `alpha` confidence interval using the method `kind`.
 
         The confidence level is (1 - `alpha`) and supported kinds are 'fisher',
-        'likelihood_ratio' and 'observed_fisher' with shorthand notations 'fi', 'lr' and 'oi',
-        respectively.
+        'likelihood_ratio' and 'observed_fisher' with shorthand
+        notations 'fi', 'lr' and 'oi', respectively.
 
         Args:
             alpha: The confidence level.
