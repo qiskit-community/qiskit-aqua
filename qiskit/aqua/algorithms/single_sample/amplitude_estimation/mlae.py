@@ -41,7 +41,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     class in named MaximumLikelihoodAmplitudeEstimation.
     """
 
-    def __init__(self, m: int,
+    def __init__(self, num_oracle_circuits: int,
                  a_factory: Optional[CircuitFactory] = None,
                  q_factory: Optional[CircuitFactory] = None,
                  i_objective: Optional[int] = None,
@@ -49,28 +49,31 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         """Initializer.
 
         Args:
-            m: base-2-logarithm of the maximal number of evaluations. The resulting
-                evaluation schedule will be [0, Q^2^0, ..., Q^2^{m-1}].
+            num_oracle_circuits: The number of circuits applying different powers of the Grover
+                oracle Q. The (`num_oracle_circuits` + 1) executed circuits will be 
+                `[id, Q^2^0, ..., Q^2^{num_oracle_circuits-1}] A |0>`, where A is the problem 
+                unitary encoded in the argument `a_factory`.
                 Has a minimum value of 1.
-            a_factory: the CircuitFactory subclass object representing the problem unitary
-            q_factory: the CircuitFactory subclass object representing
+            a_factory: The CircuitFactory subclass object representing the problem unitary.
+            q_factory: The CircuitFactory subclass object representing.
                 an amplitude estimation sample (based on a_factory)
-            i_objective: the index of the objective qubit, i.e. the qubit marking 'good' solutions
-                with the state |1> and 'bad' solutions with the state |0>
-            likelihood_evals: the number of gridpoints for the maximum search of the likelihood
-                function
+            i_objective: The index of the objective qubit, i.e. the qubit marking 'good' solutions
+                with the state |1> and 'bad' solutions with the state |0>.
+            likelihood_evals: The number of gridpoints for the maximum search of the likelihood
+                function.
         """
-        validate_min('m', m, 1)
+        validate_min('num_oracle_circuits', num_oracle_circuits, 1)
         super().__init__(a_factory, q_factory, i_objective)
 
         # get parameters
-        self._evaluation_schedule = [0] + [2**j for j in range(m)]
+        self._evaluation_schedule = [0] + [2**j for j in range(num_oracle_circuits)]
 
         self._likelihood_evals = likelihood_evals
         # default number of evaluations is max(10^5, pi/2 * 10^3 * 2^(m))
         if likelihood_evals is None:
             default = 10000
-            self._likelihood_evals = np.maximum(default, int(np.pi / 2 * 1000 * 2 ** m))
+            self._likelihood_evals = np.maximum(default,
+                                                int(np.pi / 2 * 1000 * 2 ** num_oracle_circuits))
 
         self._circuits = []
         self._ret = {}
