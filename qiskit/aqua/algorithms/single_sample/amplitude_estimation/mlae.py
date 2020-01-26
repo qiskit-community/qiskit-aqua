@@ -190,29 +190,11 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         return one_hits, all_hits
 
     def _safe_min(self, array, default=0):
-        """Find the minimal element, but if the array is empty return `default`.
-
-        Args:
-            array: The input array.
-            default: The default value.
-
-        Returns:
-            `default` if `array` is empty, otherwise `numpy.min(array)`.
-        """
         if len(array) == 0:
             return default
         return np.min(array)
 
     def _safe_max(self, array, default=(np.pi / 2)):
-        """Find the maximal element, but if the array is empty return `default`.
-
-        Args:
-            array: The input array.
-            default: The default value.
-
-        Returns:
-            `default` if `array` is empty, otherwise `numpy.max(array)`.
-        """
         if len(array) == 0:
             return default
         return np.max(array)

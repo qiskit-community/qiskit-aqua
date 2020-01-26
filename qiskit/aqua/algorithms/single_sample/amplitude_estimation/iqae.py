@@ -154,7 +154,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         # if we do not find a feasible k, return the old one
         return int(k), upper_half_circle
 
-    def construct_circuit(self, k, measurement=False):
+    def construct_circuit(self, k: int, measurement: bool = False) -> QuantumCircuit:
         r"""Construct the circuit Q^k A \|0>.
 
         The A operator is the unitary specifying the QAE problem and Q the associated Grover

@@ -18,7 +18,7 @@ import unittest
 from test.aqua import QiskitAquaTestCase
 import numpy as np
 from parameterized import parameterized
-from qiskit import QuantumRegister, QuantumCircuit, BasicAer, execute, transpile
+from qiskit import QuantumRegister, QuantumCircuit, BasicAer, execute
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.components.iqfts import Standard
 from qiskit.aqua.components.uncertainty_models import GaussianConditionalIndependenceModel as GCI
