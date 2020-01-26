@@ -145,13 +145,13 @@ class TestBernoulli(QiskitAquaTestCase):
         [0.82, IterativeAmplitudeEstimation(0.00001, 0.05), {'estimation': 0.82}],
         [0.49, IterativeAmplitudeEstimation(0.001, 0.01), {'estimation': 0.49}]
     ])
-    def test_statevector(self, prob, ae, expect):
+    def test_statevector(self, prob, qae, expect):
         """ statevector test """
         # construct factories for A and Q
-        ae.a_factory = BernoulliAFactory(prob)
-        ae.q_factory = BernoulliQFactory(ae.a_factory)
+        qae.a_factory = BernoulliAFactory(prob)
+        qae.q_factory = BernoulliQFactory(qae.a_factory)
 
-        result = ae.run(self._statevector)
+        result = qae.run(self._statevector)
 
         for key, value in expect.items():
             self.assertAlmostEqual(value, result[key], places=3,
@@ -168,13 +168,13 @@ class TestBernoulli(QiskitAquaTestCase):
         [0.4, 1000, IterativeAmplitudeEstimation(0.001, 0.05), {'estimation': 0.400071}],
         [0.8, 10, IterativeAmplitudeEstimation(0.1, 0.05), {'estimation': 0.811711}]
     ])
-    def test_qasm(self, prob, shots, ae, expect):
+    def test_qasm(self, prob, shots, qae, expect):
         """ qasm test """
         # construct factories for A and Q
-        ae.a_factory = BernoulliAFactory(prob)
-        ae.q_factory = BernoulliQFactory(ae.a_factory)
+        qae.a_factory = BernoulliAFactory(prob)
+        qae.q_factory = BernoulliQFactory(qae.a_factory)
 
-        result = ae.run(self._qasm(shots))
+        result = qae.run(self._qasm(shots))
 
         for key, value in expect.items():
             self.assertAlmostEqual(value, result[key], places=3,
@@ -183,13 +183,13 @@ class TestBernoulli(QiskitAquaTestCase):
     @parameterized.expand([
         [True], [False]
     ])
-    def test_ae_circuit(self, efficient_circuit):
+    def test_qae_circuit(self, efficient_circuit):
         """ Test circuits resulting from canonical amplitude estimation """
         prob = 0.5
         basis_gates = ['u1', 'u2', 'u3', 'cx']
 
         for m in range(2, 7):
-            ae = AmplitudeEstimation(m, a_factory=BernoulliAFactory(prob))
+            qae = AmplitudeEstimation(m, a_factory=BernoulliAFactory(prob))
             angle = 2 * np.arcsin(np.sqrt(prob))
 
             # manually set up the inefficient AE circuit
@@ -205,12 +205,12 @@ class TestBernoulli(QiskitAquaTestCase):
             circuit.ry(angle, q_objective)
 
             if efficient_circuit:
-                ae.q_factory = BernoulliQFactory(ae.a_factory)
+                qae.q_factory = BernoulliQFactory(qae.a_factory)
                 for power in range(m):
                     circuit.cry(2 ** power * angle, q_ancilla[power], q_objective[0])
 
             else:
-                q_factory = QFactory(ae.a_factory, i_objective=0)
+                q_factory = QFactory(qae.a_factory, i_objective=0)
                 for power in range(m):
                     for _ in range(2**power):
                         q_factory.build_controlled(circuit, q_objective, q_ancilla[power])
@@ -218,13 +218,12 @@ class TestBernoulli(QiskitAquaTestCase):
             # fourier transform
             iqft = Standard(m)
             circuit = iqft.construct_circuit(qubits=q_ancilla, circuit=circuit, do_swaps=False)
-            expected_ops = transpile(circuit, basis_gates=basis_gates).count_ops()
+            expected_transpiled = transpile(circuit, basis_gates=basis_gates)
 
-            actual_circuit = ae.construct_circuit(measurement=False)
-            actual_ops = transpile(actual_circuit, basis_gates=basis_gates).count_ops()
+            actual_circuit = qae.construct_circuit(measurement=False)
+            actual_transpiled = transpile(actual_circuit, basis_gates=basis_gates)
 
-            for key in expected_ops.keys():
-                self.assertEqual(expected_ops[key], actual_ops[key])
+            self.assertEqual(expected_transpiled, actual_transpiled)
 
     @parameterized.expand([
         [True], [False]
@@ -235,7 +234,7 @@ class TestBernoulli(QiskitAquaTestCase):
         basis_gates = ['u1', 'u2', 'u3', 'cx']
 
         for k in range(2, 7):
-            ae = IterativeAmplitudeEstimation(0.01, 0.05, a_factory=BernoulliAFactory(prob))
+            qae = IterativeAmplitudeEstimation(0.01, 0.05, a_factory=BernoulliAFactory(prob))
             angle = 2 * np.arcsin(np.sqrt(prob))
 
             # manually set up the inefficient AE circuit
@@ -246,23 +245,25 @@ class TestBernoulli(QiskitAquaTestCase):
             circuit.ry(angle, q_objective)
 
             if efficient_circuit:
-                ae.q_factory = BernoulliQFactory(ae.a_factory)
+                qae.q_factory = BernoulliQFactory(qae.a_factory)
                 # for power in range(k):
                 #    circuit.ry(2 ** power * angle, q_objective[0])
                 circuit.ry(2 * 2**k * angle, q_objective[0])
 
             else:
-                q_factory = QFactory(ae.a_factory, i_objective=0)
+                q_factory = QFactory(qae.a_factory, i_objective=0)
                 for _ in range(2**k):
                     q_factory.build(circuit, q_objective)
 
-            expected_ops = transpile(circuit, basis_gates=basis_gates).count_ops()
+            expected_transpiled = transpile(circuit, basis_gates=basis_gates)
 
-            actual_circuit = ae.construct_circuit(k, measurement=False)
-            actual_ops = transpile(actual_circuit, basis_gates=basis_gates).count_ops()
+            actual_circuit = qae.construct_circuit(k, measurement=False)
+            actual_transpiled = transpile(actual_circuit, basis_gates=basis_gates)
 
-            for key in expected_ops.keys():
-                self.assertEqual(expected_ops[key], actual_ops[key])
+            print(actual_transpiled)
+            print(expected_transpiled)
+
+            self.assertEqual(expected_transpiled, actual_transpiled)
 
     @parameterized.expand([
         [True], [False]
@@ -273,7 +274,7 @@ class TestBernoulli(QiskitAquaTestCase):
         basis_gates = ['u1', 'u2', 'u3', 'cx']
 
         for k in range(1, 7):
-            ae = MaximumLikelihoodAmplitudeEstimation(k, a_factory=BernoulliAFactory(prob))
+            qae = MaximumLikelihoodAmplitudeEstimation(k, a_factory=BernoulliAFactory(prob))
             angle = 2 * np.arcsin(np.sqrt(prob))
 
             # compute all the circuits used for MLAE
@@ -295,22 +296,22 @@ class TestBernoulli(QiskitAquaTestCase):
 
                 # Q^(2^j) operator
                 if efficient_circuit:
-                    ae.q_factory = BernoulliQFactory(ae.a_factory)
+                    qae.q_factory = BernoulliQFactory(qae.a_factory)
                     circuit.ry(2 * 2 ** power * angle, q_objective[0])
 
                 else:
-                    q_factory = QFactory(ae.a_factory, i_objective=0)
+                    q_factory = QFactory(qae.a_factory, i_objective=0)
                     for _ in range(2**power):
                         q_factory.build(circuit, q_objective)
 
-            actual_circuits = ae.construct_circuits(measurement=False)
+            actual_circuits = qae.construct_circuits(measurement=False)
 
             for actual, expected in zip(actual_circuits, circuits):
-                actual_ops = transpile(actual, basis_gates=basis_gates).count_ops()
-                expected_ops = transpile(expected, basis_gates=basis_gates).count_ops()
+                self.assertEqual(actual, expected)
+                expected_transpiled = transpile(expected, basis_gates=basis_gates)
+                actual_transpiled = transpile(actual, basis_gates=basis_gates)
 
-                for key in expected_ops.keys():
-                    self.assertEqual(expected_ops[key], actual_ops[key])
+                self.assertEqual(expected_transpiled, actual_transpiled)
 
 
 class TestProblemSetting(QiskitAquaTestCase):
@@ -332,67 +333,67 @@ class TestProblemSetting(QiskitAquaTestCase):
         [IterativeAmplitudeEstimation(0.1, 0.001)],
         [MaximumLikelihoodAmplitudeEstimation(3)],
     ])
-    def test_operators(self, ae):
+    def test_operators(self, qae):
         """ Test if A/Q operator + i_objective set correctly """
-        self.assertIsNone(ae.a_factory)
-        self.assertIsNone(ae.q_factory)
-        self.assertIsNone(ae.i_objective)
-        self.assertIsNone(ae._a_factory)
-        self.assertIsNone(ae._q_factory)
-        self.assertIsNone(ae._i_objective)
+        self.assertIsNone(qae.a_factory)
+        self.assertIsNone(qae.q_factory)
+        self.assertIsNone(qae.i_objective)
+        self.assertIsNone(qae._a_factory)
+        self.assertIsNone(qae._q_factory)
+        self.assertIsNone(qae._i_objective)
 
-        ae.a_factory = self.a_bernoulli
-        self.assertIsNotNone(ae.a_factory)
-        self.assertIsNotNone(ae.q_factory)
-        self.assertIsNotNone(ae.i_objective)
-        self.assertIsNotNone(ae._a_factory)
-        self.assertIsNone(ae._q_factory)
-        self.assertIsNone(ae._i_objective)
+        qae.a_factory = self.a_bernoulli
+        self.assertIsNotNone(qae.a_factory)
+        self.assertIsNotNone(qae.q_factory)
+        self.assertIsNotNone(qae.i_objective)
+        self.assertIsNotNone(qae._a_factory)
+        self.assertIsNone(qae._q_factory)
+        self.assertIsNone(qae._i_objective)
 
-        ae.q_factory = self.q_bernoulli
-        self.assertIsNotNone(ae.a_factory)
-        self.assertIsNotNone(ae.q_factory)
-        self.assertIsNotNone(ae.i_objective)
-        self.assertIsNotNone(ae._a_factory)
-        self.assertIsNotNone(ae._q_factory)
-        self.assertIsNone(ae._i_objective)
+        qae.q_factory = self.q_bernoulli
+        self.assertIsNotNone(qae.a_factory)
+        self.assertIsNotNone(qae.q_factory)
+        self.assertIsNotNone(qae.i_objective)
+        self.assertIsNotNone(qae._a_factory)
+        self.assertIsNotNone(qae._q_factory)
+        self.assertIsNone(qae._i_objective)
 
-        ae.i_objective = self.i_bernoulli
-        self.assertIsNotNone(ae.a_factory)
-        self.assertIsNotNone(ae.q_factory)
-        self.assertIsNotNone(ae.i_objective)
-        self.assertIsNotNone(ae._a_factory)
-        self.assertIsNotNone(ae._q_factory)
-        self.assertIsNotNone(ae._i_objective)
+        qae.i_objective = self.i_bernoulli
+        self.assertIsNotNone(qae.a_factory)
+        self.assertIsNotNone(qae.q_factory)
+        self.assertIsNotNone(qae.i_objective)
+        self.assertIsNotNone(qae._a_factory)
+        self.assertIsNotNone(qae._q_factory)
+        self.assertIsNotNone(qae._i_objective)
 
     @parameterized.expand([
         [AmplitudeEstimation(2)],
         [IterativeAmplitudeEstimation(0.1, 0.001)],
         [MaximumLikelihoodAmplitudeEstimation(3)],
     ])
-    def test_a_factory_update(self, ae):
+    def test_a_factory_update(self, qae):
         """Test if the Q factory is updated if the a_factory changes -- except set manually."""
         # Case 1: Set to BernoulliAFactory with default Q operator
-        ae.a_factory = self.a_bernoulli
-        self.assertIsInstance(ae.q_factory.a_factory, BernoulliAFactory)
-        self.assertEqual(ae.i_objective, self.i_bernoulli)
+        qae.a_factory = self.a_bernoulli
+        self.assertIsInstance(qae.q_factory.a_factory, BernoulliAFactory)
+        self.assertEqual(qae.i_objective, self.i_bernoulli)
 
         # Case 2: Change to SineIntegralAFactory with default Q operator
-        ae.a_factory = self.a_integral
-        self.assertIsInstance(ae.q_factory.a_factory, SineIntegralAFactory)
-        self.assertEqual(ae.i_objective, self.i_intergal)
+        qae.a_factory = self.a_integral
+        self.assertIsInstance(qae.q_factory.a_factory, SineIntegralAFactory)
+        self.assertEqual(qae.i_objective, self.i_intergal)
 
         # Case 3: Set to BernoulliAFactory with special Q operator
-        ae.a_factory = self.a_bernoulli
-        ae.q_factory = self.q_bernoulli
-        self.assertIsInstance(ae.q_factory, BernoulliQFactory)
-        self.assertEqual(ae.i_objective, self.i_bernoulli)
+        qae.a_factory = self.a_bernoulli
+        qae.q_factory = self.q_bernoulli
+        self.assertIsInstance(qae.q_factory, BernoulliQFactory)
+        self.assertEqual(qae.i_objective, self.i_bernoulli)
 
         # Case 4: Set to SineIntegralAFactory, and do not set Q. Then the old Q operator
         # should remain
-        ae.a_factory = self.a_integral
-        self.assertIsInstance(ae.q_factory, BernoulliQFactory)
-        self.assertEqual(ae.i_objective, self.i_bernoulli)
+        qae.a_factory = self.a_integral
+        self.assertIsInstance(qae.q_factory, BernoulliQFactory)
+        self.assertEqual(qae.i_objective, self.i_bernoulli)
 
 
 class TestSineIntegral(QiskitAquaTestCase):
@@ -421,12 +422,12 @@ class TestSineIntegral(QiskitAquaTestCase):
         [4, MaximumLikelihoodAmplitudeEstimation(4), {'estimation': 0.272675}],
         [3, IterativeAmplitudeEstimation(0.1, 0.1), {'estimation': 0.272082}],
     ])
-    def test_statevector(self, n, ae, expect):
+    def test_statevector(self, n, qae, expect):
         """ Statevector end-to-end test """
         # construct factories for A and Q
-        ae.a_factory = SineIntegralAFactory(n)
+        qae.a_factory = SineIntegralAFactory(n)
 
-        result = ae.run(self._statevector)
+        result = qae.run(self._statevector)
 
         for key, value in expect.items():
             self.assertAlmostEqual(value, result[key], places=3,
@@ -437,12 +438,12 @@ class TestSineIntegral(QiskitAquaTestCase):
         [3, 10, MaximumLikelihoodAmplitudeEstimation(2), {'estimation': 0.256878}],
         [3, 1000, IterativeAmplitudeEstimation(0.01, 0.01), {'estimation': 0.271790}],
     ])
-    def test_qasm(self, n, shots, ae, expect):
+    def test_qasm(self, n, shots, qae, expect):
         """QASM simulator end-to-end test."""
         # construct factories for A and Q
-        ae.a_factory = SineIntegralAFactory(n)
+        qae.a_factory = SineIntegralAFactory(n)
 
-        result = ae.run(self._qasm(shots))
+        result = qae.run(self._qasm(shots))
 
         for key, value in expect.items():
             self.assertAlmostEqual(value, result[key], places=3,
@@ -459,17 +460,17 @@ class TestSineIntegral(QiskitAquaTestCase):
           'fisher': [0.2584889015125656, 0.2797018754936686],
           'observed_fisher': [0.2659279996107888, 0.2722627773954454]}],
     ])
-    def test_confidence_intervals(self, ae, key, expect):
+    def test_confidence_intervals(self, qae, key, expect):
         """End-to-end test for all confidence intervals."""
         n = 3
-        ae.a_factory = SineIntegralAFactory(n)
+        qae.a_factory = SineIntegralAFactory(n)
 
         # statevector simulator
-        result = ae.run(self._statevector)
+        result = qae.run(self._statevector)
         methods = ['lr', 'fi', 'oi']  # short for likelihood_ratio, fisher, observed_fisher
         alphas = [0.1, 0.00001, 0.9]  # alpha shouldn't matter in statevector
         for alpha, method in zip(alphas, methods):
-            confint = ae.confidence_interval(alpha, method)
+            confint = qae.confidence_interval(alpha, method)
             # confidence interval based on statevector should be empty, as we are sure of the result
             self.assertAlmostEqual(confint[1] - confint[0], 0.0)
             self.assertAlmostEqual(confint[0], result[key])
@@ -477,20 +478,20 @@ class TestSineIntegral(QiskitAquaTestCase):
         # qasm simulator
         shots = 100
         alpha = 0.01
-        result = ae.run(self._qasm(shots))
+        result = qae.run(self._qasm(shots))
         for method, expected_confint in expect.items():
-            confint = ae.confidence_interval(alpha, method)
+            confint = qae.confidence_interval(alpha, method)
             self.assertEqual(confint, expected_confint)
             self.assertTrue(confint[0] <= result[key] <= confint[1])
 
     def test_iqae_confidence_intervals(self):
         """End-to-end test for the IQAE confidence interval."""
         n = 3
-        ae = IterativeAmplitudeEstimation(0.1, 0.01, a_factory=SineIntegralAFactory(n))
+        qae = IterativeAmplitudeEstimation(0.1, 0.01, a_factory=SineIntegralAFactory(n))
         expected_confint = [0.19840508760087738, 0.35110155403424115]
 
         # statevector simulator
-        result = ae.run(self._statevector)
+        result = qae.run(self._statevector)
         confint = result['confidence_interval']
         # confidence interval based on statevector should be empty, as we are sure of the result
         self.assertAlmostEqual(confint[1] - confint[0], 0.0)
@@ -498,7 +499,7 @@ class TestSineIntegral(QiskitAquaTestCase):
 
         # qasm simulator
         shots = 100
-        result = ae.run(self._qasm(shots))
+        result = qae.run(self._qasm(shots))
         confint = result['confidence_interval']
         self.assertEqual(confint, expected_confint)
         self.assertTrue(confint[0] <= result['estimation'] <= confint[1])
