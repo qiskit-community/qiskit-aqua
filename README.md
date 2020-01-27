@@ -77,7 +77,8 @@ these on a quantum backend, whether a real device or simulator.
 ### Creating Your First Quantum Program in Qiskit Aqua
 
 Now that Qiskit is installed, it's time to begin working with Aqua.
-Let's try an experiment using `Grover`'s algorithm that is supplied with Aqua:
+Let's try an experiment using `Grover`'s algorithm to find a solution for a
+Satisfiability (SAT) problem. 
 
 ```
 $ python
@@ -267,6 +268,40 @@ The `qiskit.finance` package contains uncertainty components for stock/securitie
 Ising translators for portfolio optimizations and data providers to source real or random data to
 finance experiments.   
 
+### Creating Your First Qiskit Chemistry Programming Experiment
+
+Now that Qiskit is installed, it's time to begin working with Finance.
+Let's try a experiment using Amplitude Estimation algorithm to
+evaluate a fixed income asset with uncertain interest rates.
+
+```python
+import numpy as np
+from qiskit import BasicAer
+from qiskit.aqua.algorithms.single_sample.amplitude_estimation.ae import AmplitudeEstimation
+from qiskit.aqua.components.uncertainty_models import MultivariateNormalDistribution
+from qiskit.finance.components.uncertainty_problems import FixedIncomeExpectedValue
+
+# Create a suitable multivariate distribution
+mvnd = MultivariateNormalDistribution(num_qubits=[2, 2],
+                                      low=[0, 0], high=[0.12, 0.24],
+                                      mu=[0.12, 0.24], sigma=0.01 * np.eye(2))
+
+# Create fixed income component
+fixed_income = FixedIncomeExpectedValue(mvnd, np.eye(2), np.zeros(2),
+                                        cash_flow=[1.0, 2.0], c_approx=0.125)
+
+# Set number of evaluation qubits (samples)
+num_eval_qubits = 5
+
+# Construct and run amplitude estimation
+algo = AmplitudeEstimation(num_eval_qubits, fixed_income)
+result = algo.run(BasicAer.get_backend('statevector_simulator'))
+
+print('Estimated value:\t%.4f' % result['estimation'])
+print('Probability:    \t%.4f' % result['max_probability'])
+```
+When running the above the estimated value result should be 2.46 and probability 0.8487.
+
 ### Further examples
 
 Jupyter notebooks containing further examples, for Qiskit Finance, may be found here in the following
@@ -307,7 +342,8 @@ generator for a problem model specified by the user as a model in
 
 Now that Qiskit is installed, it's time to begin working with Optimization.
 Let's try a optimization experiment using QAOA (Quantum Approximate Optimization Algorithm)
-to compute the solution of a [Max-Cut](https://en.wikipedia.org/wiki/Maximum_cut) problem.  
+to compute the solution of a [Max-Cut](https://en.wikipedia.org/wiki/Maximum_cut) problem using
+a docplex model to create the Ising Hamiltonian operator for QAOA.  
 
 ```python
 import networkx as nx
