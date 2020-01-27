@@ -35,13 +35,13 @@ endif
 # You can set this variable from the command line.
 SPHINXOPTS    =
 
-.PHONY: lint style test test_ci spell
+.PHONY: lint style test test_ci spell copyright
 
 lint:
-	pylint -rn --ignore=gauopen qiskit/aqua qiskit/chemistry qiskit/finance qiskit/ml qiskit/optimization test
+	pylint -rn --ignore=gauopen qiskit/aqua qiskit/chemistry qiskit/finance qiskit/ml qiskit/optimization test tools
 
 style:
-	pycodestyle --max-line-length=100 --exclude=gauopen qiskit/aqua qiskit/chemistry qiskit/finance qiskit/ml qiskit/optimization test
+	pycodestyle --max-line-length=100 --exclude=gauopen qiskit/aqua qiskit/chemistry qiskit/finance qiskit/ml qiskit/optimization test tools
 
 test:
 	python -m unittest discover -v test
@@ -51,7 +51,10 @@ test_ci:
 	stestr run --concurrency $(CONCURRENCY)
 
 spell:
-	pylint -rn --disable=all --enable=spelling --spelling-dict=en_US --spelling-private-dict-file=.pylintdict --ignore=gauopen qiskit/aqua qiskit/chemistry qiskit/finance qiskit/ml qiskit/optimization test
+	pylint -rn --disable=all --enable=spelling --spelling-dict=en_US --spelling-private-dict-file=.pylintdict --ignore=gauopen qiskit/aqua qiskit/chemistry qiskit/finance qiskit/ml qiskit/optimization test tools
+
+copyright:
+	python tools/check_copyright_year.py
 
 html:
 	make -C docs html SPHINXOPTS=$(SPHINXOPTS)
