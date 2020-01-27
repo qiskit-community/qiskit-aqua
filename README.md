@@ -31,7 +31,7 @@ Note: Aqua provides some classical algorithms that take the same input data as q
 solving the same problem. For instance a Hamiltonian operator input to VQE can be used as an input
 to the ExactEigensolver. This may be useful for near-term quantum experiments, for problems
 that can still be solved classically, as their outcome can be easily compared against a classical
-equivalent as the same input data can be used.
+equivalent since the same input data can be used.
 
 ## Installation
 
