@@ -268,7 +268,7 @@ The `qiskit.finance` package contains uncertainty components for stock/securitie
 Ising translators for portfolio optimizations and data providers to source real or random data to
 finance experiments.   
 
-### Creating Your First Qiskit Chemistry Programming Experiment
+### Creating Your First Qiskit Finance Programming Experiment
 
 Now that Qiskit is installed, it's time to begin working with Finance.
 Let's try a experiment using Amplitude Estimation algorithm to
