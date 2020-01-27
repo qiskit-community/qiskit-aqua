@@ -254,8 +254,8 @@ of the circuits. By passing in a backend as is done above it is internally wrapp
 
 ### Further examples
 
-Jupyter notebooks containing further examples, for Qiskit Chemistry, may be found here in the following
-Qiskit GitHub repositories at
+Jupyter notebooks containing further examples, for Qiskit Chemistry, may be found in the
+following Qiskit GitHub repositories at
 [qiskit-iqx-tutorials/qiskit/advanced/aqua/chemistry](https://github.com/Qiskit/qiskit-iqx-tutorials/tree/master/qiskit/advanced/aqua/chemistry)
 and
 [qiskit-community-tutorials/chemistry](https://github.com/Qiskit/qiskit-community-tutorials/tree/master/chemistry).
@@ -304,8 +304,8 @@ When running the above the estimated value result should be 2.46 and probability
 
 ### Further examples
 
-Jupyter notebooks containing further examples, for Qiskit Finance, may be found here in the following
-Qiskit GitHub repositories at
+Jupyter notebooks containing further examples, for Qiskit Finance, may be found in the
+following Qiskit GitHub repositories at
 [qiskit-iqx-tutorials/qiskit/advanced/aqua/finance](https://github.com/Qiskit/qiskit-iqx-tutorials/tree/master/qiskit/advanced/aqua/finance)
 and
 [qiskit-community-tutorials/finance](https://github.com/Qiskit/qiskit-community-tutorials/tree/master/finance).
@@ -319,10 +319,47 @@ classification algorithms such as QSVM and VQC (Variational Quantum Classifier),
 can be used for experiments, and there is also QGAN (Quantum Generative Adversarial Network)
 algorithm.  
 
+### Creating Your First Qiskit Machine Learning Programming Experiment
+
+Now that Qiskit is installed, it's time to begin working with Machine Learning.
+Let's try a experiment using VQC (Variational Quantum Classified) algorithm to
+train and test samples from a data set to see how accurately the test set can
+be classified. 
+
+```python
+from qiskit import BasicAer
+from qiskit.aqua import QuantumInstance, aqua_globals
+from qiskit.aqua.algorithms import VQC
+from qiskit.aqua.components.optimizers import COBYLA
+from qiskit.aqua.components.feature_maps import RawFeatureVector
+from qiskit.aqua.components.variational_forms import RYRZ
+from qiskit.ml.datasets import wine
+
+seed = 1376
+aqua_globals.random_seed = seed
+
+# Use Wine data set for training and test data
+feature_dim = 4  # dimension of each data point
+_, training_input, test_input, _ = wine(training_size=12,
+                                        test_size=4,
+                                        n=feature_dim)
+
+feature_map = RawFeatureVector(feature_dimension=feature_dim)
+vqc = VQC(COBYLA(maxiter=100),
+          feature_map,
+          RYRZ(feature_map.num_qubits, depth=3),
+          training_input,
+          test_input)
+result = vqc.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                 shots=1024, seed_simulator=seed, seed_transpiler=seed))
+
+print('Testing accuracy: {:0.2f}'.format(result['testing_accuracy']))
+```
+
 ### Further examples
 
-Jupyter notebooks containing further examples, for Qiskit Finance, may be found here in the following
-Qiskit GitHub repositories at
+Jupyter notebooks containing further examples, for Qiskit Machine Learning, may be found in the
+following Qiskit GitHub repositories at
 [qiskit-iqx-tutorials/qiskit/advanced/aqua/machine_learning](https://github.com/Qiskit/qiskit-iqx-tutorials/tree/master/qiskit/advanced/aqua/machine_learning)
 and
 [qiskit-iqx-tutorials/qiskit/advanced/aqua/finance/machine_learning](https://github.com/Qiskit/qiskit-iqx-tutorials/tree/master/qiskit/advanced/aqua/finance/machine_learning)
@@ -400,8 +437,8 @@ print('solution objective:', max_cut.max_cut_value(x, w))
 
 ### Further examples
 
-Jupyter notebooks containing further examples, for Qiskit Finance, may be found here in the following
-Qiskit GitHub repositories at
+Jupyter notebooks containing further examples, for Qiskit Optimization, may be found in the
+following Qiskit GitHub repositories at
 [qiskit-iqx-tutorials/qiskit/advanced/aqua/optimization](https://github.com/Qiskit/qiskit-iqx-tutorials/tree/master/qiskit/advanced/aqua/optimization)
 and
 [qiskit-iqx-tutorials/qiskit/advanced/aqua/finance/optimization](https://github.com/Qiskit/qiskit-iqx-tutorials/tree/master/qiskit/advanced/aqua/finance/optimization)
