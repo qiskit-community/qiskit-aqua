@@ -87,5 +87,6 @@ class TestReadmeSample(QiskitOptimizationTestCase):
         self.assertListEqual(max_cut.get_graph_solution(x).tolist(), [1, 0, 1, 0])
         self.assertAlmostEqual(max_cut.max_cut_value(x, w), 4.0)
 
+
 if __name__ == '__main__':
     unittest.main()
