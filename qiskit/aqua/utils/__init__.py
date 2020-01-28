@@ -36,7 +36,7 @@ Utilities
    summarize_circuits
    get_subsystem_density_matrix
    get_subsystems_counts
-   get_subsystems_counts_post_selected
+   get_subsystems_post_selected
    get_entangler_map
    validate_entangler_map
    get_feature_dimension
