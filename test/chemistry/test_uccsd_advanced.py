@@ -20,6 +20,7 @@ from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import Z2Symmetries
 from qiskit.aqua.algorithms import VQE, ExactEigensolver
 from qiskit.aqua.components.optimizers import SLSQP
+from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.components.initial_states import HartreeFock
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
@@ -33,47 +34,49 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
 
     def setUp(self):
         super().setUp()
-        self.molecule = "H 0.000000 0.000000 0.735000;H 0.000000 0.000000 0.000000"
-        self.driver = PySCFDriver(atom=self.molecule,
-                                  unit=UnitsType.ANGSTROM,
-                                  charge=0,
-                                  spin=0,
-                                  basis='631g')
-        self.qmolecule = self.driver.run()
-        self.core = Hamiltonian(transformation=TransformationType.FULL,
-                                qubit_mapping=QubitMappingType.PARITY,
-                                two_qubit_reduction=True,
-                                freeze_core=True,
-                                orbital_reduction=[])
-        self.qubit_op, _ = self.core.run(self.qmolecule)
+        try:
+            self.molecule = "H 0.000000 0.000000 0.735000;H 0.000000 0.000000 0.000000"
+            self.driver = PySCFDriver(atom=self.molecule,
+                                      unit=UnitsType.ANGSTROM,
+                                      charge=0,
+                                      spin=0,
+                                      basis='631g')
+            self.qmolecule = self.driver.run()
+            self.core = Hamiltonian(transformation=TransformationType.FULL,
+                                    qubit_mapping=QubitMappingType.PARITY,
+                                    two_qubit_reduction=True,
+                                    freeze_core=True,
+                                    orbital_reduction=[])
+            self.qubit_op, _ = self.core.run(self.qmolecule)
 
-        z2_symmetries = Z2Symmetries.find_Z2_symmetries(self.qubit_op)
-        tapered_ops = z2_symmetries.taper(self.qubit_op)
-        smallest_eig_value = 99999999999999
-        smallest_idx = -1
-        for idx, _ in enumerate(tapered_ops):
-            ee = ExactEigensolver(tapered_ops[idx], k=1)
-            curr_value = ee.run()['energy']
-            if curr_value < smallest_eig_value:
-                smallest_eig_value = curr_value
-                smallest_idx = idx
-        self.the_tapered_op = tapered_ops[smallest_idx]
+            z2_symmetries = Z2Symmetries.find_Z2_symmetries(self.qubit_op)
+            tapered_ops = z2_symmetries.taper(self.qubit_op)
+            smallest_eig_value = 99999999999999
+            smallest_idx = -1
+            for idx, _ in enumerate(tapered_ops):
+                ee = ExactEigensolver(tapered_ops[idx], k=1)
+                curr_value = ee.run()['energy']
+                if curr_value < smallest_eig_value:
+                    smallest_eig_value = curr_value
+                    smallest_idx = idx
+            self.the_tapered_op = tapered_ops[smallest_idx]
 
-        self.reference_energy_pUCCD = -1.1434447924298028
-        self.reference_energy_UCCD0 = -1.1476045878481704
-        self.reference_energy_UCCD0full = -1.1515491334334347
-        # reference energy of UCCSD/VQE with tapering everywhere
-        self.reference_energy_UCCSD = -1.1516142309717594
-        # reference energy of UCCSD/VQE when no tapering on excitations is used
-        self.reference_energy_UCCSD_no_tap_exc = -1.1516142309717594
-        # excitations for succ
-        self.reference_singlet_double_excitations = [[0, 1, 4, 5], [0, 1, 4, 6], [0, 1, 4, 7],
-                                                     [0, 2, 4, 6], [0, 2, 4, 7], [0, 3, 4, 7]]
-        # groups for succ_full
-        self.reference_singlet_groups = [[[0, 1, 4, 5]], [[0, 1, 4, 6], [0, 2, 4, 5]],
-                                         [[0, 1, 4, 7], [0, 3, 4, 5]], [[0, 2, 4, 6]],
-                                         [[0, 2, 4, 7], [0, 3, 4, 6]], [[0, 3, 4, 7]]]
-        pass
+            self.reference_energy_pUCCD = -1.1434447924298028
+            self.reference_energy_UCCD0 = -1.1476045878481704
+            self.reference_energy_UCCD0full = -1.1515491334334347
+            # reference energy of UCCSD/VQE with tapering everywhere
+            self.reference_energy_UCCSD = -1.1516142309717594
+            # reference energy of UCCSD/VQE when no tapering on excitations is used
+            self.reference_energy_UCCSD_no_tap_exc = -1.1516142309717594
+            # excitations for succ
+            self.reference_singlet_double_excitations = [[0, 1, 4, 5], [0, 1, 4, 6], [0, 1, 4, 7],
+                                                         [0, 2, 4, 6], [0, 2, 4, 7], [0, 3, 4, 7]]
+            # groups for succ_full
+            self.reference_singlet_groups = [[[0, 1, 4, 5]], [[0, 1, 4, 6], [0, 2, 4, 5]],
+                                             [[0, 1, 4, 7], [0, 3, 4, 5]], [[0, 2, 4, 6]],
+                                             [[0, 2, 4, 7], [0, 3, 4, 6]], [[0, 3, 4, 7]]]
+        except QiskitChemistryError:
+            self.skipTest('PYSCF driver does not appear to be installed')
 
     def test_uccsd_hf_qpUCCD(self):
         """ paired uccd test """
