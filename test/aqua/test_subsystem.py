@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -32,7 +32,7 @@ class TestSubsystem(QiskitAquaTestCase):
         self.assertDictEqual(result[1], {'010': 1, '011': 2})
 
     def test_get_subsystems_post_selected(self):
-        """Test subsystems counts postselected"""
+        """Test subsystems counts post selected"""
         complete_system_counts = {'11 010': 1, '01 011': 1, '11 011': 1}
         result = get_subsystems_post_selected(complete_system_counts, 0, '11')
 
