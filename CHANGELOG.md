@@ -24,7 +24,7 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 Changed
 -------
 
--  Add install checks for cvxopt, torch, pyscf. Add python 3.8 support.
+-  Add install checks for cvxopt, torch, pyscf. Add python 3.8 support. (#795)
 
 Deprecated
 ----------
