@@ -25,7 +25,6 @@ python: 3.7
 
 env:
   global:
-    - DEPENDENCY_BRANCH=$(if [[ "$TRAVIS_BRANCH" == stable* ]]; then echo "stable"; else echo "master"; fi)
     - INIT_FILE="$TRAVIS_BUILD_DIR/qiskit/__init__.py"
 
 before_script:
@@ -96,35 +95,45 @@ matrix:
   include:
   - name: "Lint and Style check and Test Chemistry Python 3.7"
     if: tag IS blank
-    env: TEST_DIR=chemistry
+    env:
+      - DEPENDENCY_BRANCH=$(if [[ "$TRAVIS_BRANCH" == stable* ]]; then echo "stable"; else echo "master"; fi)
+      - TEST_DIR=chemistry
     script:
-        make spell && make style && make lint && export OPENBLAS_NUM_THREADS=1 && stestr --test-path test/chemistry run
+        make spell && make style && make lint && export OPENBLAS_NUM_THREADS=1 && python -m unittest discover -v test/chemistry
   - name: Test Chemistry Python 3.8"
     if: tag IS blank
-    env: TEST_DIR=chemistry
+    env:
+      - DEPENDENCY_BRANCH=master
+      - TEST_DIR=chemistry
     python: 3.8
     script:
-        export OPENBLAS_NUM_THREADS=1 && stestr --test-path test/chemistry run
+        export OPENBLAS_NUM_THREADS=1 && python -m unittest discover -v test/chemistry
   - name: "Test Aqua Python 3.7"
     if: tag IS blank
+    env: DEPENDENCY_BRANCH=$(if [[ "$TRAVIS_BRANCH" == stable* ]]; then echo "stable"; else echo "master"; fi)
     script: stestr --test-path test run --blacklist-file blacklist.txt
   - name: "Test Aqua Python 3.8"
     if: tag IS blank
     python: 3.8
+    env: DEPENDENCY_BRANCH=master
     script: stestr --test-path test run --blacklist-file blacklist.txt
   - name: "Test Aqua 2 Python 3.7"
     if: tag IS blank
+    env: DEPENDENCY_BRANCH=$(if [[ "$TRAVIS_BRANCH" == stable* ]]; then echo "stable"; else echo "master"; fi)
     script: stestr --test-path test run --whitelist-file selection.txt
   - name: "Test Aqua 2 Python 3.8"
     if: tag IS blank
     python: 3.8
+    env: DEPENDENCY_BRANCH=master
     script: stestr --test-path test run --whitelist-file selection.txt
   - name: "Test Aqua 3 Python 3.7"
     if: tag IS blank
+    env: DEPENDENCY_BRANCH=$(if [[ "$TRAVIS_BRANCH" == stable* ]]; then echo "stable"; else echo "master"; fi)
     script: stestr --test-path test run --whitelist-file selection2.txt
   - name: "Test Aqua 3 Python 3.8"
     if: tag IS blank
     python: 3.8
+    env: DEPENDENCY_BRANCH=master
     script: stestr --test-path test run --whitelist-file selection2.txt
 
   - if: tag IS present
@@ -145,13 +154,13 @@ before_install:
       echo "File '$INIT_FILE' found. It should not exist, since this repo extends qiskit namespace.";
       travis_terminate 1;
     fi
-  # install Qiskit Aer build dependencies
-  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-  - sudo apt-get -y update
-  - sudo apt-get -y install g++-7
-  - sudo apt-get -y install libopenblas-dev
   - |
     if [ "$DEPENDENCY_BRANCH" == "master" ]; then
+      # install Qiskit Aer build dependencies
+      sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+      sudo apt-get -y update
+      sudo apt-get -y install g++-7
+      sudo apt-get -y install libopenblas-dev
       # Download github Terra
       wget https://codeload.github.com/Qiskit/qiskit-terra/zip/$DEPENDENCY_BRANCH -O /tmp/qiskit-terra.zip
       unzip /tmp/qiskit-terra.zip -d /tmp/
