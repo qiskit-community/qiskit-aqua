@@ -15,13 +15,21 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 > -   **Fixed**: for any bug fixes.
 > -   **Security**: in case of vulnerabilities.
 
-[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.2...HEAD)
+[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.3...HEAD)
 ========================================================================
 
 Changed
 -------
 
 -   Remove declarative api (#758) (#759) (#760) (#762) (#763)
+
+[0.6.3](https://github.com/Qiskit/qiskit-aqua/compare/0.6.2...0.6.3) - 2020-01-29
+=================================================================================
+
+Changed
+-------
+
+-  Add install checks for cvxopt, torch, pyscf. Add python 3.8 support. (#795)
 
 Deprecated
 ----------
