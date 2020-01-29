@@ -12,11 +12,9 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""
-The Iterative Quantum Amplitude Estimation Algorithm.
-"""
+"""The Iterative Quantum Amplitude Estimation Algorithm."""
 
-from typing import Optional
+from typing import Optional, Union, List, Tuple
 import logging
 import numpy as np
 from scipy.stats import beta
@@ -32,8 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
-    """
-    The Iterative Amplitude Estimation Algorithm.
+    """The Iterative Amplitude Estimation algorithm.
 
     This class implements the Iterative Quantum Amplitude Estimation (QAE) algorithm, proposed
     in https://arxiv.org/abs/1912.05559. The output of the algorithm is an estimate that,
@@ -47,22 +44,21 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     """
 
     def __init__(self, epsilon: float, alpha: float,
-                 ci_method: str = 'beta', min_ratio: float = 2,
+                 confint_method: str = 'beta', min_ratio: float = 2,
                  a_factory: Optional[CircuitFactory] = None,
                  q_factory: Optional[CircuitFactory] = None,
                  i_objective: Optional[int] = None) -> None:
-        """
+        """Initializer.
+
         The output of the algorithm is an estimate for the amplitude `a`, that with at least
         probability 1 - alpha has an error of epsilon. The number of A operator calls scales
         linearly in 1/epsilon (up to a logarithmic factor).
 
         Args:
-            epsilon: target precision for estimation target `a`,
-                        has values between 0 and 0.5.
-            alpha: confidence level, the target probability is 1 - alpha,
-                    has values between 0 and 1.
-            ci_method: statistical method used to estimate the confidence intervals in each
-                iteration, can be 'chernoff' for the Chernoff intervals or 'beta' for the
+            epsilon: target precision for estimation target `a`, has values between 0 and 0.5
+            alpha: confidence level, the target probability is 1 - alpha, has values between 0 and 1
+            confint_method: statistical method used to estimate the confidence intervals in
+                each iteration, can be 'chernoff' for the Chernoff intervals or 'beta' for the
                 Clopper-Pearson intervals (default)
             min_ratio: minimal q-ratio (K_{i+1} / K_i) for FindNextK
             a_factory: the A operator, specifying the QAE problem
@@ -73,83 +69,83 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         Raises:
             AquaError: if the method to compute the confidence intervals is not supported
         """
+        # validate ranges of input arguments
         validate_range('epsilon', epsilon, 0, 0.5)
         validate_range('alpha', alpha, 0, 1)
-        validate_in_set('ci_method', ci_method, {'chernoff', 'beta'})
+        validate_in_set('confint_method', confint_method, {'chernoff', 'beta'})
+
         super().__init__(a_factory, q_factory, i_objective)
 
         # store parameters
         self._epsilon = epsilon
         self._alpha = alpha
         self._min_ratio = min_ratio
-        self._ci_method = ci_method
+        self._confint_method = confint_method
 
         # results dictionary
         self._ret = {}
 
     @property
-    def precision(self):
-        """
-        Returns the target precision `epsilon` of the algorithm
+    def precision(self) -> float:
+        """Returns the target precision `epsilon` of the algorithm.
 
         Returns:
-            float: target precision
+            The target precision (which is half the width of the confidence interval).
         """
         return self._epsilon
 
     @precision.setter
-    def precision(self, epsilon):
-        """
-        Set the target precision of the algorithm.
+    def precision(self, epsilon: float) -> None:
+        """Set the target precision of the algorithm.
 
         Args:
-            epsilon (float): target precision for estimation target a
+            epsilon: Target precision for estimation target `a`.
         """
         self._epsilon = epsilon
 
-    def _find_next_k(self, k, upper_half_circle, theta_interval, min_ratio=2):
-        """
-        Find the largest integer k, such that the scaled interval (4k + 2)*theta_interval
+    def _find_next_k(self, k: int, upper_half_circle: bool, theta_interval: Tuple[float, float],
+                     min_ratio: int = 2) -> Tuple[int, bool]:
+        """Find the largest integer k_next, such that the interval (4 * k_next + 2)*theta_interval
         lies completely in [0, pi] or [pi, 2pi], for theta_interval = (theta_lower, theta_upper).
 
         Args:
-            k (int): current power of the Q operator
-            upper_half_circle (bool): boolean flag of whether theta lies in upper half-circle or not
-            theta_interval (tuple(float, float)): current confidence interval for the angle
-                theta, i.e. (theta_lower, theta_upper)
-            min_ratio (float): minimal ratio K/K_i allowed in the algorithm
+            k: The current power of the Q operator.
+            upper_half_circle: Boolean flag of whether theta_interval lies in the
+                upper half-circle [0, pi] or in the lower one [pi, 2pi].
+            theta_interval: The current confidence interval for the angle theta,
+                i.e. (theta_lower, theta_upper).
+            min_ratio: Minimal ratio K/K_next allowed in the algorithm.
 
         Returns:
-            tuple(int, bool): next power k, and boolean flag for the extrapolated interval
+            The next power k, and boolean flag for the extrapolated interval.
 
         Raises:
             AquaError: if min_ratio is smaller or equal to 1
         """
         if min_ratio <= 1:
-            raise AquaError('min_ratio must be larger than 1: '
-                            'the next k should not be smaller than the previous one')
+            raise AquaError('min_ratio must be larger than 1 to ensure convergence')
 
         # initialize variables
         theta_l, theta_u = theta_interval
-        old_scaling = 4 * k + 2  # current K_i factor
+        old_scaling = 4 * k + 2  # current scaling factor, called K := (4k + 2)
 
-        # the largest feasible K cannot be larger than K_max, which is bounded by the length of
-        # the current confidence interval
+        # the largest feasible scaling factor K cannot be larger than K_max,
+        # which is bounded by the length of the current confidence interval
         max_scaling = int(1 / (2 * (theta_u - theta_l)))
-        scaling = max_scaling - (max_scaling - 2) % 4
+        scaling = max_scaling - (max_scaling - 2) % 4  # bring into the form 4 * k_max + 2
 
-        # find next feasible K = 4k+2
+        # find the largest feasible scaling factor K_next, and thus k_next
         while scaling >= min_ratio * old_scaling:
             theta_min = scaling * theta_l - int(scaling * theta_l)
             theta_max = scaling * theta_u - int(scaling * theta_u)
 
             if theta_min <= theta_max <= 0.5 and theta_min <= 0.5:
-                # if extrapolated theta is in upper half-circle
+                # the extrapolated theta interval is in the upper half-circle
                 upper_half_circle = True
                 return int((scaling - 2) / 4), upper_half_circle
 
             elif theta_max >= 0.5 and theta_max >= theta_min >= 0.5:
-                # if extrapolated theta is in lower half-circle
+                # the extrapolated theta interval is in the upper half-circle
                 upper_half_circle = False
                 return int((scaling - 2) / 4), upper_half_circle
 
@@ -158,18 +154,19 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         # if we do not find a feasible k, return the old one
         return int(k), upper_half_circle
 
-    def construct_circuit(self, k, measurement=False):
-        r"""
-        Construct the circuit Q^k A \|0>, with the A operator specifying the QAE problem and
-        the Grover operator Q.
+    def construct_circuit(self, k: int, measurement: bool = False) -> QuantumCircuit:
+        r"""Construct the circuit Q^k A \|0>.
+
+        The A operator is the unitary specifying the QAE problem and Q the associated Grover
+        operator.
 
         Args:
-            k (int): the power of Q operator
-            measurement (bool): boolean flag to indicate if measurements should be included in the
-                circuits
+            k: The power of the Q operator.
+            measurement: Boolean flag to indicate if measurements should be included in the
+                circuits.
 
         Returns:
-            QuantumCircuit: the circuit Q^k A \|0>
+            The circuit Q^k A \|0>.
         """
         # set up circuit
         q = QuantumRegister(self.a_factory.num_target_qubits, 'q')
@@ -194,7 +191,8 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         self.a_factory.build(circuit, q, q_aux)
 
         # add Q^k
-        self.q_factory.build_power(circuit, q, k, q_aux)
+        if k != 0:
+            self.q_factory.build_power(circuit, q, k, q_aux)
 
         # add optional measurement
         if measurement:
@@ -202,18 +200,18 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         return circuit
 
-    def _probability_to_measure_one(self, counts_or_statevector):
-        """
-        Convenient function to get the probability to measure '1' in the last qubit
+    def _probability_to_measure_one(self,
+                                    counts_or_statevector: Union[dict, List[complex], np.ndarray]
+                                    ) -> Union[Tuple[int, float], float]:
+        """Get the probability to measure '1' in the last qubit.
 
         Args:
-            counts_or_statevector (Union(dict, numpy.array, list)): either the counts dictionary
-                returned from the qasm_simulator (with one measured qubit only!) or the statevector
-                returned from the statevector_simulator
+            counts_or_statevector: Either a counts-dictionary (with one measured qubit only!) or
+                the statevector returned from the statevector_simulator.
 
         Returns:
-            Union(tuple(int, float), float): if a dict is given, it returns
-                (#one-counts, #one-counts/#all-counts), otherwise Pr(measure '1' in the last qubit)
+            If a dict is given, return (#one-counts, #one-counts/#all-counts),
+            otherwise Pr(measure '1' in the last qubit).
         """
         if isinstance(counts_or_statevector, dict):
             one_counts = counts_or_statevector.get('1', 0)
@@ -230,29 +228,42 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
             return prob
 
-    def _chernoff_confint(self, value, shots, max_rounds, alpha):
-        """
-        Compute the Chernoff confidence interval for i.i.d. Bernoulli trials with `shots` samples:
+    def _chernoff_confint(self, value: float, shots: int, max_rounds: int, alpha: float
+                          ) -> Tuple[float, float]:
+        """Compute the Chernoff confidence interval for `shots` i.i.d. Bernoulli trials.
+
+        The confidence interval is
 
             [value - eps, value + eps], where eps = sqrt(3 * log(2 * max_rounds/ alpha) / shots)
 
         but at most [0, 1].
 
         Args:
-            value (float): the current estimate
-            shots (int): the number of shots
-            max_rounds (int): the maximum number of rounds, used to compute epsilon_a
-            alpha (float): the confidence level, used to compute epsilon_a
+            value: The current estimate.
+            shots: The number of shots.
+            max_rounds: The maximum number of rounds, used to compute epsilon_a.
+            alpha: The confidence level, used to compute epsilon_a.
 
         Returns:
-            tuple(float, float): the Chernoff confidence interval
+            The Chernoff confidence interval.
         """
         eps = np.sqrt(3 * np.log(2 * max_rounds / alpha) / shots)
         lower = np.maximum(0, value - eps)
         upper = np.minimum(1, value + eps)
         return lower, upper
 
-    def _clopper_pearson_confint(self, counts, shots, alpha):
+    def _clopper_pearson_confint(self, counts: int, shots: int, alpha: float
+                                 ) -> Tuple[float, float]:
+        """Compute the Clopper-Pearson confidence interval for `shots` i.i.d. Bernoulli trials.
+
+        Args:
+            counts: The number of positive counts.
+            shots: The number of shots.
+            alpha: The confidence level for the confidence interval.
+
+        Returns:
+            The Clopper-Pearson confidence interval.
+        """
         lower, upper = 0, 1
 
         # if counts == 0, the beta quantile returns nan
@@ -265,7 +276,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         return lower, upper
 
-    def _run(self):
+    def _run(self) -> dict:
         # check if A factory has been set
         if self.a_factory is None:
             raise AquaError("a_factory must be set!")
@@ -279,8 +290,8 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         num_one_shots = []
 
         # maximum number of rounds
-        max_rounds = int(np.log(self._min_ratio * np.pi / 8
-                                / self._epsilon) / np.log(self._min_ratio)) + 1
+        max_rounds = int(np.log(self._min_ratio * np.pi / 8 /
+                                self._epsilon) / np.log(self._min_ratio)) + 1
         upper_half_circle = True  # initially theta is in the upper half-circle
 
         # for statevector we can directly return the probability to measure 1
@@ -301,7 +312,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
             theta_i_interval = [np.arccos(1 - 2 * a_i) / 2 / np.pi for a_i in a_confidence_interval]
             theta_intervals.append(theta_i_interval)
-            num_oracle_queries = 1
+            num_oracle_queries = 0  # no Q-oracle call, only a single one to A
 
         else:
             num_iterations = 0  # keep track of the number of iterations
@@ -346,7 +357,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                         round_one_counts += num_one_shots[-j]
 
                 # compute a_min_i, a_max_i
-                if self._ci_method == 'chernoff':
+                if self._confint_method == 'chernoff':
                     a_i_min, a_i_max = self._chernoff_confint(prob, round_shots, max_rounds,
                                                               self._alpha)
                 else:  # 'beta'
