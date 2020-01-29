@@ -25,13 +25,14 @@ from qiskit.aqua.components.uncertainty_models import (LogNormalDistribution,
 from qiskit.finance.components.uncertainty_problems import \
     (EuropeanCallDelta, FixedIncomeExpectedValue)
 from qiskit.aqua.components.uncertainty_problems import \
-                        UnivariatePiecewiseLinearObjective as PwlObjective
+    UnivariatePiecewiseLinearObjective as PwlObjective
 from qiskit.aqua.components.uncertainty_problems import UnivariateProblem
 from qiskit.aqua.algorithms import AmplitudeEstimation, MaximumLikelihoodAmplitudeEstimation
 
 
 class TestEuropeanCallOption(QiskitFinanceTestCase):
     """ Test European Call Option """
+
     def setUp(self):
         super().setUp()
 
@@ -110,7 +111,7 @@ class TestEuropeanCallOption(QiskitFinanceTestCase):
         ['statevector', MaximumLikelihoodAmplitudeEstimation(5),
          {'estimation': 0.16330976193204114}],
         ['qasm', MaximumLikelihoodAmplitudeEstimation(3),
-         {'estimation': 0.1027255930905642}],
+         {'estimation': 0.09784548904622023}],
     ])
     def test_expected_value(self, simulator, a_e, expect):
         """ expected value test """
@@ -151,6 +152,7 @@ class TestEuropeanCallOption(QiskitFinanceTestCase):
 
 class TestFixedIncomeAssets(QiskitFinanceTestCase):
     """ Test Fixed Income Assets """
+
     def setUp(self):
         super().setUp()
 
@@ -168,9 +170,9 @@ class TestFixedIncomeAssets(QiskitFinanceTestCase):
         ['qasm', AmplitudeEstimation(5),
          {'estimation': 2.4600, 'mle': 2.3632087675061726}],
         ['statevector', MaximumLikelihoodAmplitudeEstimation(5),
-         {'estimation': 2.340361798381051}],
+         {'estimation': 2.340228883624973}],
         ['qasm', MaximumLikelihoodAmplitudeEstimation(5),
-         {'estimation': 2.317921060790118}]
+         {'estimation': 2.3174630932734077}]
     ])
     def test_expected_value(self, simulator, a_e, expect):
         """ expected value test """
