@@ -11,7 +11,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""The Amplitude Estimation Algorithm."""
+"""The Quantum Phase Estimation-based Amplitude Estimation algorithm."""
 
 from typing import Optional, Union, List, Tuple
 import logging
@@ -35,9 +35,9 @@ logger = logging.getLogger(__name__)
 
 
 class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
-    r"""The Amplitude Estimation algorithm.
+    r"""The Quantum Phase Estimation-based Amplitude Estimation algorithm.
 
-    This class implements the Quantum Amplitude Estimation (QAE) algorithm, introduced by
+    This class implements the original Quantum Amplitude Estimation (QAE) algorithm, introduced by
     https://arxiv.org/abs/quant-ph/0005055. This (original) version uses quantum phase
     estimation along with a set of m ancilla qubits to find an estimate, that is restricted
     to the grid
