@@ -15,8 +15,23 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 > -   **Fixed**: for any bug fixes.
 > -   **Security**: in case of vulnerabilities.
 
-[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.2...HEAD)
+[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.3...HEAD)
 ========================================================================
+
+[0.6.3](https://github.com/Qiskit/qiskit-aqua/compare/0.6.2...0.6.3) - 2020-01-29
+=================================================================================
+
+Changed
+-------
+
+-  Add install checks for cvxopt, torch, pyscf. Add python 3.8 support. (#795)
+
+Deprecated
+----------
+
+-   Python 3.5 support in qiskit-aqua is deprecated. Support will be
+    removed on the upstream python community's end of life date for the version,
+    which is 09/13/2020.
 
 [0.6.2](https://github.com/Qiskit/qiskit-aqua/compare/0.6.1...0.6.2) - 2019-12-17
 =================================================================================

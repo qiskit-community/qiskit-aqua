@@ -10,3 +10,4 @@ sphinx-tabs>=1.1.11
 sphinx-automodapi
 matplotlib>=2.1
 stestr>=2.5.0
+torch; sys_platform == 'linux' or (python_version < '3.8' and sys_platform != 'win32')
