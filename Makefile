@@ -35,7 +35,9 @@ endif
 # You can set this variable from the command line.
 SPHINXOPTS    =
 
-.PHONY: lint style test test_ci spell copyright
+.PHONY: lint style test test_ci spell copyright html coverage coverage_erase
+
+all_check: spell style lint copyright
 
 lint:
 	pylint -rn --ignore=gauopen qiskit/aqua qiskit/chemistry qiskit/finance qiskit/ml qiskit/optimization test tools
