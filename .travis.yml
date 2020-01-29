@@ -140,6 +140,7 @@ matrix:
     python: 3.6
     env:
       - TWINE_USERNAME=qiskit
+      - DEPENDENCY_BRANCH=$(if [[ "$TRAVIS_BRANCH" == stable* ]]; then echo "stable"; else echo "master"; fi)
     install: pip install -U twine
     script:
       - python3 setup.py sdist bdist_wheel
