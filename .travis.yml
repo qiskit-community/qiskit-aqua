@@ -145,13 +145,13 @@ before_install:
       echo "File '$INIT_FILE' found. It should not exist, since this repo extends qiskit namespace.";
       travis_terminate 1;
     fi
+  # install Qiskit Aer build dependencies
+  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+  - sudo apt-get -y update
+  - sudo apt-get -y install g++-7
+  - sudo apt-get -y install libopenblas-dev
   - |
     if [ "$DEPENDENCY_BRANCH" == "master" ]; then
-      # install Qiskit Aer build dependencies
-      sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-      sudo apt-get -y update
-      sudo apt-get -y install g++-7
-      sudo apt-get -y install libopenblas-dev
       # Download github Terra
       wget https://codeload.github.com/Qiskit/qiskit-terra/zip/$DEPENDENCY_BRANCH -O /tmp/qiskit-terra.zip
       unzip /tmp/qiskit-terra.zip -d /tmp/
