@@ -49,9 +49,9 @@ class PhaseEstimationCircuit:
 
         Args:
             operator (WeightedPauliOperator): the hamiltonian Operator object
-            state_in (InitialState): the InitialState pluggable component
+            state_in (InitialState): the InitialState component
             representing the initial quantum state
-            iqft (IQFT): the Inverse Quantum Fourier Transform pluggable component
+            iqft (IQFT): the Inverse Quantum Fourier Transform component
             num_time_slices (int): the number of time slices
             num_ancillae (int): the number of ancillary qubits to use for the measurement
             expansion_mode (str): the expansion mode (trotter|suzuki)
@@ -197,10 +197,9 @@ class PhaseEstimationCircuit:
                     if self._shallow_circuit_concat:
                         qc_evolutions = QuantumCircuit(q, a)
                         qc_evolutions.append(qc_evolutions_inst, qargs=list(q) + [a[i]])
-                        qc.data += qc_evolutions.decompose().data
+                        qc.data += qc_evolutions.data
                     else:
                         qc.append(qc_evolutions_inst, qargs=list(q) + [a[i]])
-                        qc = qc.decompose()
                     # global phase shift for the ancilla due to the identity pauli term
                     qc.u1(self._evo_time * self._ancilla_phase_coef * (2 ** i), a[i])
 

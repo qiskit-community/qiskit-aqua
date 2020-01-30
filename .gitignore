@@ -95,6 +95,11 @@ instance/
 # Scrapy stuff:
 .scrapy
 
+# Sphinx documentation
+docs/_build/
+docs/api/*
+docs/stubs/*
+
 # PyBuilder
 target/
 
@@ -131,3 +136,6 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# stestr repostiory
+.stestr/

@@ -21,6 +21,7 @@ import numpy as np
 from qiskit.quantum_info import Pauli  # pylint: disable=unused-import
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.qasm import pi
+from qiskit.circuit import Parameter, ParameterExpression
 
 from qiskit.aqua import AquaError
 
@@ -30,12 +31,14 @@ logger = logging.getLogger(__name__)
 def pauli_measurement(circuit, pauli, qr, cr, barrier=False):
     """
     Add the proper post-rotation gate on the circuit.
+
     Args:
         circuit (QuantumCircuit): the circuit to be modified.
         pauli (Pauli): the pauli will be added.
         qr (QuantumRegister): the quantum register associated with the circuit.
         cr (ClassicalRegister): the classical register associated with the circuit.
         barrier (bool, optional): whether or not add barrier before measurement.
+
     Returns:
         QuantumCircuit: the original circuit object with post-rotation gate
     """
@@ -186,6 +189,7 @@ def suzuki_expansion_slice_pauli_list(pauli_list, lam_coef, expansion_order):
         lam_coef (float): The parameter lambda as defined in said paper,
                           adjusted for the evolution time and the number of time slices
         expansion_order (int): The order for suzuki expansion
+
     Returns:
         list: slice pauli list
     """
@@ -227,24 +231,27 @@ def check_commutativity(op_1, op_2, anti=False):
 
 def evolution_instruction(pauli_list, evo_time, num_time_slices,
                           controlled=False, power=1,
-                          use_basis_gates=True, shallow_slicing=False):
+                          use_basis_gates=True, shallow_slicing=False,
+                          barrier=False):
     """
     Construct the evolution circuit according to the supplied specification.
 
     Args:
         pauli_list (list([[complex, Pauli]])): The list of pauli terms corresponding
-                            to a single time slice to be evolved
-        evo_time (Union(complex, float)): The evolution time
+                                               to a single time slice to be evolved
+        evo_time (Union(complex, float, Parameter, ParameterExpression)): The evolution time
         num_time_slices (int): The number of time slices for the expansion
         controlled (bool, optional): Controlled circuit or not
         power (int, optional): The power to which the unitary operator is to be raised
         use_basis_gates (bool, optional): boolean flag for indicating only using basis
-                                    gates when building circuit.
+                                          gates when building circuit.
         shallow_slicing (bool, optional): boolean flag for indicating using shallow
-                                    qc.data reference repetition for slicing
+                                          qc.data reference repetition for slicing
+        barrier (bool, optional): whether or not add barrier for every slice
 
     Returns:
-        InstructionSet: The InstructionSet corresponding to specified evolution.
+        Instruction: The Instruction corresponding to specified evolution.
+
     Raises:
         AquaError: power must be an integer and greater or equal to 1
         ValueError: Unrecognized pauli
@@ -313,15 +320,24 @@ def evolution_instruction(pauli_list, evo_time, num_time_slices,
 
         # insert Rz gate
         if top_xyz_pauli_indices[pauli_idx] >= 0:
-            lam = (2.0 * pauli[0] * evo_time / num_time_slices).real
-            if not controlled:
 
+            # Because Parameter does not support complexity number operation; thus, we do
+            # the following tricks to generate parameterized instruction.
+            # We assume the coefficient in the pauli is always real. and can not do imaginary time
+            # evolution
+            if isinstance(evo_time, (Parameter, ParameterExpression)):
+                lam = 2.0 * pauli[0] / num_time_slices
+                lam = lam.real if lam.imag == 0 else lam
+                lam = lam * evo_time
+            else:
+                lam = (2.0 * pauli[0] * evo_time / num_time_slices).real
+
+            if not controlled:
                 if use_basis_gates:
                     qc_slice.u1(lam, state_registers[top_xyz_pauli_indices[pauli_idx]])
                 else:
                     qc_slice.rz(lam, state_registers[top_xyz_pauli_indices[pauli_idx]])
             else:
-                # unitary_power = (2 ** ctl_idx) if unitary_power is None else unitary_power
                 if use_basis_gates:
                     qc_slice.u1(lam / 2, state_registers[top_xyz_pauli_indices[pauli_idx]])
                     qc_slice.cx(ancillary_registers[0],
@@ -357,31 +373,36 @@ def evolution_instruction(pauli_list, evo_time, num_time_slices,
         logger.info('Under shallow slicing mode, the qc.data reference is repeated shallowly. '
                     'Thus, changing gates of one slice of the output circuit might affect '
                     'other slices.')
-        qc_slice.barrier(state_registers)
+        if barrier:
+            qc_slice.barrier(state_registers)
         qc_slice.data *= (num_time_slices * power)
         qc = qc_slice
     else:
         qc = QuantumCircuit(name=inst_name)
         for _ in range(num_time_slices * power):
             qc += qc_slice
-            qc.barrier(state_registers)
+            if barrier:
+                qc.barrier(state_registers)
     return qc.to_instruction()
 
 
 def commutator(op_a, op_b, op_c=None, threshold=1e-12):
-    """
-    Compute commutator of op_a and op_b or the symmetric double commutator of op_a, op_b and op_c.
+    r"""
+    Compute commutator of `op_a` and `op_b` or
+    the symmetric double commutator of `op_a`, `op_b` and `op_c`.
 
     See McWeeny chapter 13.6 Equation of motion methods (page 479)
 
-    If only op_a and op_b are provided: result = A*B - B*A;
-    If three operator are provided:
-        result = 0.5 * (2*A*B*C + 2*C*B*A - B*A*C - C*A*B - A*C*B - B*C*A)
+    | If only `op_a` and `op_b` are provided:
+    |     result = A\*B - B\*A;
+    |
+    | If `op_a`, `op_b` and `op_c` are provided:
+    |     result = 0.5 \* (2\*A\*B\*C + 2\*C\*B\*A - B\*A\*C - C\*A\*B - A\*C\*B - B\*C\*A)
 
     Args:
         op_a (WeightedPauliOperator): operator a
         op_b (WeightedPauliOperator): operator b
-        op_c (WeightedPauliOperator): operator c
+        op_c (Optional(WeightedPauliOperator)): operator c
         threshold (float): the truncation threshold
 
     Returns:

@@ -86,6 +86,7 @@ def get_controlled_circuit(circuit, ctl_qubit, tgt_circuit=None, use_basis_gates
     Raises:
         RuntimeError: unexpected operation
     """
+    # pylint: disable=import-outside-toplevel
     from qiskit import BasicAer
     if tgt_circuit is not None:
         qc = tgt_circuit
@@ -132,7 +133,9 @@ def get_controlled_circuit(circuit, ctl_qubit, tgt_circuit=None, use_basis_gates
             apply_ccx(qc, ctl_qubit, *op[1], use_basis_gates=use_basis_gates)
         elif op[0].name == 'measure':
             qc.measure(op[1], op[2])
+        elif op[0].name == 'barrier':
+            qc.barrier(op[1])
         else:
-            raise RuntimeError('Unexpected operation {}.'.format(op['name']))
+            raise RuntimeError('Unexpected operation {}.'.format(op[0].name))
 
     return qc

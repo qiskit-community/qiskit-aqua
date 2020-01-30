@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -14,70 +14,40 @@
 
 """Layers of Swap+Z rotations followed by entangling gates."""
 
+from typing import Optional, List
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
-
-from qiskit.aqua.components.variational_forms import VariationalForm
+from qiskit.aqua.utils.validation import validate_min, validate_in_set
+from qiskit.aqua.components.initial_states import InitialState
+from .variational_form import VariationalForm
 
 
 class SwapRZ(VariationalForm):
     """Layers of Swap+Z rotations followed by entangling gates."""
 
-    CONFIGURATION = {
-        'name': 'SWAPRZ',
-        'description': 'SWAPRZ Variational Form',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'swaprz_schema',
-            'type': 'object',
-            'properties': {
-                'depth': {
-                    'type': 'integer',
-                    'default': 3,
-                    'minimum': 1
-                },
-                'entanglement': {
-                    'type': 'string',
-                    'default': 'full',
-                    'enum': ['full', 'linear']
-                },
-                'entangler_map': {
-                    'type': ['array', 'null'],
-                    'default': None
-                },
-                'skip_unentangled_qubits': {
-                    'type': 'boolean',
-                    'default': False
-                }
-            },
-            'additionalProperties': False
-        },
-        'depends': [
-            {
-                'pluggable_type': 'initial_state',
-                'default': {
-                    'name': 'ZERO',
-                }
-            },
-        ],
-    }
-
-    def __init__(self, num_qubits, depth=3, entangler_map=None,
-                 entanglement='full', initial_state=None, skip_unentangled_qubits=False):
+    def __init__(self,
+                 num_qubits: int,
+                 depth: int = 3,
+                 entangler_map: Optional[List[List[int]]] = None,
+                 entanglement: str = 'full',
+                 initial_state: Optional[InitialState] = None,
+                 skip_unentangled_qubits: bool = False) -> None:
         """Constructor.
 
         Args:
-            num_qubits (int) : number of qubits
-            depth (int) : number of rotation layers
-            entangler_map (list[list]): describe the connectivity of qubits, each list describes
+            num_qubits: number of qubits, has a min. value of 1.
+            depth: number of rotation layers, has a min. value of 1.
+            entangler_map: describe the connectivity of qubits, each list describes
                                         [source, target], or None for full entanglement.
                                         Note that the order is the list is the order of
                                         applying the two-qubit gate.
-            entanglement (str): 'full' or 'linear'
-            initial_state (InitialState): an initial state object
-            skip_unentangled_qubits (bool): skip the qubits not in the entangler_map
+            entanglement: 'full' or 'linear'
+            initial_state: an initial state object
+            skip_unentangled_qubits: skip the qubits not in the entangler_map
         """
-        self.validate(locals())
+        validate_min('num_qubits', num_qubits, 1)
+        validate_min('depth', depth, 1)
+        validate_in_set('entanglement', entanglement, {'full', 'linear'})
         super().__init__()
         self._num_qubits = num_qubits
         self._depth = depth
@@ -100,13 +70,14 @@ class SwapRZ(VariationalForm):
         # for repeated block
         self._num_parameters += (len(self._entangled_qubits) + len(self._entangler_map)) * depth
         self._bounds = [(-np.pi, np.pi)] * self._num_parameters
+        self._support_parameterized_circuit = True
 
     def construct_circuit(self, parameters, q=None):
         """
         Construct the variational form, given its parameters.
 
         Args:
-            parameters (numpy.ndarray): circuit parameters
+            parameters (Union(numpy.ndarray, list[Parameter], ParameterVector)): circuit parameters
             q (QuantumRegister): Quantum Register for the circuit.
 
         Returns:

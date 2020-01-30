@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -19,52 +19,26 @@ import logging
 from math import fsum
 from timeit import default_timer
 from typing import Dict, List, Tuple, Any
-import importlib
 import numpy as np
 
-from qiskit.aqua import QuantumAlgorithm, Pluggable, AquaError
-from qiskit.aqua.algorithms.classical.cplex.simple_cplex import SimpleCPLEX
+from qiskit.aqua.algorithms.classical import ClassicalAlgorithm
+from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.aqua.utils.validation import validate_min, validate_range
 
 logger = logging.getLogger(__name__)
 
 # pylint: disable=invalid-name
 
 
-class CPLEX_Ising(QuantumAlgorithm):
+class CPLEX_Ising(ClassicalAlgorithm):
     """ CPLEX Ising algorithm """
-    CONFIGURATION = {
-        'name': 'CPLEX.Ising',
-        'description': 'CPLEX backend for Ising Hamiltonian',
-        'classical': True,
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'CPLEX_schema',
-            'type': 'object',
-            'properties': {
-                'timelimit': {
-                    'type': 'integer',
-                    'default': 600,
-                    'minimum': 1
-                },
-                'thread': {
-                    'type': 'integer',
-                    'default': 1,
-                    'minimum': 0
-                },
-                'display': {
-                    'type': 'integer',
-                    'default': 2,
-                    'minimum': 0,
-                    'maximum': 5
-                }
-            },
-            'additionalProperties': False
-        },
-        'problems': ['ising']
-    }
 
-    def __init__(self, operator, timelimit=600, thread=1, display=2):
-        self.validate(locals())
+    def __init__(self, operator: WeightedPauliOperator,
+                 timelimit: int = 600, thread: int = 1,
+                 display: int = 2) -> None:
+        validate_min('timelimit', timelimit, 1)
+        validate_min('thread', thread, 0)
+        validate_range('display', display, 0, 5)
         super().__init__()
         self._ins = IsingInstance()
         self._ins.parse(operator.to_dict()['paulis'])
@@ -72,35 +46,6 @@ class CPLEX_Ising(QuantumAlgorithm):
         self._thread = thread
         self._display = display
         self._sol = None
-
-    @classmethod
-    def init_params(cls, params, algo_input):
-        """ init params """
-        if algo_input is None:
-            raise AquaError("EnergyInput instance is required.")
-        algo_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
-        timelimit = algo_params['timelimit']
-        thread = algo_params['thread']
-        display = algo_params['display']
-        return cls(algo_input.qubit_op, timelimit, thread, display)
-
-    @staticmethod
-    def check_pluggable_valid():
-        """ check pluggable valid """
-        err_msg = 'CPLEX is not installed. See ' \
-            'https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/' \
-            'ilog.odms.studio.help/Optimization_Studio/topics/COS_home.html'
-        try:
-            spec = importlib.util.find_spec('cplex.callbacks')
-            if spec is not None:
-                spec = importlib.util.find_spec('cplex.exceptions')
-                if spec is not None:
-                    return
-        except Exception as ex:  # pylint: disable=broad-except
-            logger.debug('%s %s', err_msg, str(ex))
-            raise AquaError(err_msg) from ex
-
-        raise AquaError(err_msg)
 
     def _run(self):
         model = IsingModel(self._ins, timelimit=self._timelimit,
@@ -118,6 +63,8 @@ class CPLEX_Ising(QuantumAlgorithm):
 
 def new_cplex(timelimit=600, thread=1, display=2):
     """ new cplex """
+    # pylint: disable=import-outside-toplevel
+    from .simple_cplex import SimpleCPLEX
     cplex = SimpleCPLEX()
     cplex.parameters.timelimit.set(timelimit)
     cplex.parameters.threads.set(thread)

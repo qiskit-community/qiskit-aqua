@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -19,6 +19,7 @@ It finds the reciprocal with long division method and rotates the ancillary
 qubit by C/lambda. This is a first order approximation of arcsin(C/lambda).
 """
 
+from typing import Optional
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.aqua.components.reciprocals import Reciprocal
@@ -35,59 +36,23 @@ class LongDivision(Reciprocal):
     qubit by C/lambda. This is a first order approximation of arcsin(C/lambda).
     """
 
-    CONFIGURATION = {
-        'name': 'LongDivision',
-        'description':
-            'reciprocal computation with long division and rotation of the ancilla qubit',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'reciprocal_long_division_schema',
-            'type': 'object',
-            'properties': {
-                'negative_evals': {
-                    'type': 'boolean',
-                    'default': False
-                },
-                'scale': {
-                    'type': 'number',
-                    'default': 0,
-                },
-                'precision': {
-                    'type': ['integer', 'null'],
-                    'default': None,
-                },
-                'evo_time': {
-                    'type': ['number', 'null'],
-                    'default': None
-                },
-                'lambda_min': {
-                    'type': ['number', 'null'],
-                    'default': None
-                }
-            },
-            'additionalProperties': False
-        },
-    }
-
     def __init__(
             self,
-            scale=0,
-            precision=None,
-            negative_evals=False,
-            evo_time=None,
-            lambda_min=None
-    ):
+            scale: float = 0,
+            precision: Optional[int] = None,
+            negative_evals: bool = False,
+            evo_time: Optional[float] = None,
+            lambda_min: Optional[float] = None) -> None:
         """Constructor.
 
         Args:
-            scale (float, optional): the scale of rotation angle, corresponds to HHL constant C
-            precision (int, optional): number of qubits that defines the precision of long division
-            negative_evals (bool, optional): indicate if negative eigenvalues need to be handled
-            evo_time (float, optional): the evolution time
-            lambda_min (float, optional): the smallest expected eigenvalue
+            scale: the scale of rotation angle, corresponds to HHL constant C
+            precision: number of qubits that defines the precision of long division
+            negative_evals: indicate if negative eigenvalues need to be handled
+            evo_time: the evolution time
+            lambda_min: the smallest expected eigenvalue
         """
 
-        self.validate(locals())
         super().__init__()
         self._negative_evals = negative_evals
         self._scale = scale

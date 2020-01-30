@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -15,16 +15,19 @@
 The HHL algorithm.
 """
 
+from typing import Optional
 import logging
 from copy import deepcopy
 import numpy as np
 
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.aqua.algorithms import QuantumAlgorithm
-from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.ignis.verification.tomography import state_tomography_circuits, \
     StateTomographyFitter
 from qiskit.converters import circuit_to_dag
+from qiskit.aqua.components.initial_states import InitialState
+from qiskit.aqua.components.reciprocals import Reciprocal
+from qiskit.aqua.components.eigs import Eigenvalues
 
 logger = logging.getLogger(__name__)
 
@@ -41,89 +44,37 @@ class HHL(QuantumAlgorithm):
     state tomography or calculated from the statevector (statevector_simulator).
     """
 
-    CONFIGURATION = {
-        'name': 'HHL',
-        'description': 'The HHL Algorithm for Solving Linear Systems of '
-                       'equations',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'hhl_schema',
-            'type': 'object',
-            'properties': {
-                'truncate_powerdim': {
-                    'type': 'boolean',
-                    'default': False
-                },
-                'truncate_hermitian': {
-                    'type': 'boolean',
-                    'default': False
-                },
-                'orig_size': {
-                    'type': ['integer', 'null'],
-                    'default': None
-                }
-            },
-            'additionalProperties': False
-        },
-        'problems': ['linear_system'],
-        'depends': [
-            {
-                'pluggable_type': 'initial_state',
-                'default': {
-                    'name': 'CUSTOM',
-                },
-            },
-            {
-                'pluggable_type': 'eigs',
-                'default': {
-                    'name': 'EigsQPE',
-                    'num_ancillae': 6,
-                    'num_time_slices': 50,
-                    'expansion_mode': 'suzuki',
-                    'expansion_order': 2
-                },
-            },
-            {
-                'pluggable_type': 'reciprocal',
-                'default': {
-                    'name': 'Lookup'
-                },
-            },
-        ],
-    }
-
     def __init__(
             self,
-            matrix=None,
-            vector=None,
-            truncate_powerdim=False,
-            truncate_hermitian=False,
-            eigs=None,
-            init_state=None,
-            reciprocal=None,
-            num_q=0,
-            num_a=0,
-            orig_size=None
-    ):
+            matrix: np.ndarray,
+            vector: np.ndarray,
+            truncate_powerdim: bool = False,
+            truncate_hermitian: bool = False,
+            eigs: Optional[Eigenvalues] = None,
+            init_state: Optional[InitialState] = None,
+            reciprocal: Optional[Reciprocal] = None,
+            num_q: int = 0,
+            num_a: int = 0,
+            orig_size: Optional[int] = None
+    ) -> None:
         """
         Constructor.
 
         Args:
-            matrix (np.array): the input matrix of linear system of equations
-            vector (np.array): the input vector of linear system of equations
-            truncate_powerdim (bool): flag indicating expansion to 2**n matrix to be truncated
-            truncate_hermitian (bool): flag indicating expansion to hermitian matrix to be truncated
-            eigs (Eigenvalues): the eigenvalue estimation instance
-            init_state (InitialState): the initial quantum state preparation
-            reciprocal (Reciprocal): the eigenvalue reciprocal and controlled rotation instance
-            num_q (int): number of qubits required for the matrix Operator instance
-            num_a (int): number of ancillary qubits for Eigenvalues instance
-            orig_size (int): The original dimension of the problem (if truncate_powerdim)
+            matrix: the input matrix of linear system of equations
+            vector: the input vector of linear system of equations
+            truncate_powerdim: flag indicating expansion to 2**n matrix to be truncated
+            truncate_hermitian: flag indicating expansion to hermitian matrix to be truncated
+            eigs: the eigenvalue estimation instance
+            init_state: the initial quantum state preparation
+            reciprocal: the eigenvalue reciprocal and controlled rotation instance
+            num_q: number of qubits required for the matrix Operator instance
+            num_a: number of ancillary qubits for Eigenvalues instance
+            orig_size: The original dimension of the problem (if truncate_powerdim)
         Raises:
             ValueError: invalid input
         """
         super().__init__()
-        super().validate(locals())
         if matrix.shape[0] != matrix.shape[1]:
             raise ValueError("Input matrix must be square!")
         if matrix.shape[0] != len(vector):
@@ -154,24 +105,18 @@ class HHL(QuantumAlgorithm):
         self._original_dimension = orig_size
         self._ret = {}
 
-    @classmethod
-    def init_params(cls, params, algo_input):
-        """Initialize via parameters dictionary and algorithm input instance
+    @staticmethod
+    def matrix_resize(matrix, vector):
+        """Resizes matrix if necessary
 
         Args:
-            params (dict): parameters dictionary
-            algo_input (LinearSystemInput): LinearSystemInput instance
+            matrix (np.array): the input matrix of linear system of equations
+            vector (np.array): the input vector of linear system of equations
         Returns:
-            HHL: an instance of this class
+            tuple: new matrix, vector, truncate_powerdim, truncate_hermitian
         Raises:
-            AquaError: invalid input
             ValueError: invalid input
         """
-        if algo_input is None:
-            raise AquaError("LinearSystemInput instance is required.")
-
-        matrix = algo_input.matrix
-        vector = algo_input.vector
         if not isinstance(matrix, np.ndarray):
             matrix = np.asarray(matrix)
         if not isinstance(vector, np.ndarray):
@@ -183,10 +128,9 @@ class HHL(QuantumAlgorithm):
             raise ValueError("Input vector dimension does not match input "
                              "matrix dimension!")
 
-        hhl_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
-        truncate_powerdim = hhl_params.get('truncate_powerdim')
-        truncate_hermitian = hhl_params.get('truncate_hermitian')
-        orig_size = hhl_params.get('orig_size')
+        truncate_powerdim = False
+        truncate_hermitian = False
+        orig_size = None
         if orig_size is None:
             orig_size = len(vector)
 
@@ -194,39 +138,17 @@ class HHL(QuantumAlgorithm):
         if not is_powerdim:
             logger.warning("Input matrix does not have dimension 2**n. It "
                            "will be expanded automatically.")
-            matrix, vector = cls.expand_to_powerdim(matrix, vector)
+            matrix, vector = HHL.expand_to_powerdim(matrix, vector)
             truncate_powerdim = True
 
         is_hermitian = np.allclose(matrix, matrix.conj().T)
         if not is_hermitian:
             logger.warning("Input matrix is not hermitian. It will be "
                            "expanded to a hermitian matrix automatically.")
-            matrix, vector = cls.expand_to_hermitian(matrix, vector)
+            matrix, vector = HHL.expand_to_hermitian(matrix, vector)
             truncate_hermitian = True
 
-        # Initialize eigenvalue finding module
-        eigs_params = params.get(Pluggable.SECTION_KEY_EIGS)
-        eigs = get_pluggable_class(PluggableType.EIGENVALUES,
-                                   eigs_params['name']).init_params(params, matrix)
-        num_q, num_a = eigs.get_register_sizes()
-
-        # Initialize initial state module
-        tmpvec = vector
-        init_state_params = params.get(Pluggable.SECTION_KEY_INITIAL_STATE)
-        init_state_params["num_qubits"] = num_q
-        init_state_params["state_vector"] = tmpvec
-        init_state = get_pluggable_class(PluggableType.INITIAL_STATE,
-                                         init_state_params['name']).init_params(params)
-
-        # Initialize reciprocal rotation module
-        reciprocal_params = params.get(Pluggable.SECTION_KEY_RECIPROCAL)
-        reciprocal_params["negative_evals"] = eigs._negative_evals
-        reciprocal_params["evo_time"] = eigs._evo_time
-        reci = get_pluggable_class(PluggableType.RECIPROCAL,
-                                   reciprocal_params['name']).init_params(params)
-
-        return cls(matrix, vector, truncate_powerdim, truncate_hermitian, eigs,
-                   init_state, reci, num_q, num_a, orig_size)
+        return (matrix, vector, truncate_powerdim, truncate_hermitian)
 
     def construct_circuit(self, measurement=False):
         """Construct the HHL circuit.

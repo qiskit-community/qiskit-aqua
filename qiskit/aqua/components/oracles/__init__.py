@@ -12,7 +12,35 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" oracles packages """
+"""
+Oracles (:mod:`qiskit.aqua.components.oracles`)
+===================================================================
+Oracles are used by :class:`Grover` and :class:`DeutschJosza` algorithms
+for example.
+
+.. currentmodule:: qiskit.aqua.components.oracles
+
+Oracle Base Class
+=================
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   Oracle
+
+Oracles
+=======
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   TruthTableOracle
+   LogicalExpressionOracle
+   CustomCircuitOracle
+
+"""
 
 from .oracle import Oracle
 from .truth_table_oracle import TruthTableOracle

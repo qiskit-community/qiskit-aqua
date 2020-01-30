@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -16,7 +16,7 @@
 
 import unittest
 import time
-from test.aqua.common import QiskitAquaTestCase
+from test.aqua import QiskitAquaTestCase
 import numpy as np
 from qiskit.ignis.mitigation.measurement import CompleteMeasFitter
 from qiskit.aqua.components.oracles import LogicalExpressionOracle
@@ -30,7 +30,7 @@ class TestMeasurementErrorMitigation(QiskitAquaTestCase):
     def setUp(self):
         super().setUp()
         try:
-            from qiskit import Aer  # pylint: disable=unused-import
+            from qiskit import Aer  # pylint: disable=unused-import,import-outside-toplevel
         except Exception as ex:  # pylint: disable=broad-except
             self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(ex)))
             return
@@ -38,6 +38,7 @@ class TestMeasurementErrorMitigation(QiskitAquaTestCase):
     def test_measurement_error_mitigation(self):
         """ measurement error mitigation test """
         try:
+            # pylint: disable=import-outside-toplevel
             from qiskit import Aer
             from qiskit.providers.aer import noise
         except Exception as ex:  # pylint: disable=broad-except
@@ -77,6 +78,7 @@ class TestMeasurementErrorMitigation(QiskitAquaTestCase):
     def test_measurement_error_mitigation_auto_refresh(self):
         """ measurement error mitigation auto refresh test """
         try:
+            # pylint: disable=import-outside-toplevel
             from qiskit import Aer
             from qiskit.providers.aer import noise
         except Exception as ex:  # pylint: disable=broad-except
@@ -116,6 +118,7 @@ class TestMeasurementErrorMitigation(QiskitAquaTestCase):
 
     def test_measurement_error_mitigation_with_dedicated_shots(self):
         """ measurement error mitigation with dedicated shots test """
+        # pylint: disable=import-outside-toplevel
         from qiskit import Aer
         from qiskit.providers.aer import noise
 

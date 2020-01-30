@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -14,11 +14,11 @@
 
 """Powell algorithm."""
 
+from typing import Optional
 import logging
 
 from scipy.optimize import minimize
-
-from qiskit.aqua.components.optimizers import Optimizer
+from .optimizer import Optimizer
 
 logger = logging.getLogger(__name__)
 
@@ -30,48 +30,15 @@ class POWELL(Optimizer):
     See https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
     """
 
-    CONFIGURATION = {
-        'name': 'POWELL',
-        'description': 'POWELL Optimizer',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'powell_schema',
-            'type': 'object',
-            'properties': {
-                'maxiter': {
-                    'type': ['integer', 'null'],
-                    'default': None
-                },
-                'maxfev': {
-                    'type': ['integer', 'null'],
-                    'default': 1000
-                },
-                'disp': {
-                    'type': 'boolean',
-                    'default': False
-                },
-                'xtol': {
-                    'type': 'number',
-                    'default': 0.0001
-                },
-                'tol': {
-                    'type': ['number', 'null'],
-                    'default': None
-                }
-            },
-            'additionalProperties': False
-        },
-        'support_level': {
-            'gradient': Optimizer.SupportLevel.ignored,
-            'bounds': Optimizer.SupportLevel.ignored,
-            'initial_point': Optimizer.SupportLevel.required
-        },
-        'options': ['maxiter', 'maxfev', 'disp', 'xtol'],
-        'optimizer': ['local']
-    }
+    _OPTIONS = ['maxiter', 'maxfev', 'disp', 'xtol']
 
     # pylint: disable=unused-argument
-    def __init__(self, maxiter=None, maxfev=1000, disp=False, xtol=0.0001, tol=None):
+    def __init__(self,
+                 maxiter: Optional[int] = None,
+                 maxfev: int = 1000,
+                 disp: bool = False,
+                 xtol: float = 0.0001,
+                 tol: Optional[float] = None) -> None:
         """
         Constructor.
 
@@ -79,20 +46,27 @@ class POWELL(Optimizer):
         https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html.
 
         Args:
-            maxiter (int): Maximum allowed number of iterations. If both maxiter and maxfev
+            maxiter: Maximum allowed number of iterations. If both maxiter and maxfev
                            are set, minimization will stop at the first reached.
-            maxfev (int): Maximum allowed number of function evaluations. If both maxiter and
+            maxfev: Maximum allowed number of function evaluations. If both maxiter and
                           maxfev are set, minimization will stop at the first reached.
-            disp (bool): Set to True to print convergence messages.
-            xtol (float): Relative error in solution xopt acceptable for convergence.
-            tol (float or None): Tolerance for termination.
+            disp: Set to True to print convergence messages.
+            xtol: Relative error in solution xopt acceptable for convergence.
+            tol: Tolerance for termination.
         """
-        self.validate(locals())
         super().__init__()
         for k, v in locals().items():
-            if k in self._configuration['options']:
+            if k in self._OPTIONS:
                 self._options[k] = v
         self._tol = tol
+
+    def get_support_level(self):
+        """ return support level dictionary """
+        return {
+            'gradient': Optimizer.SupportLevel.ignored,
+            'bounds': Optimizer.SupportLevel.ignored,
+            'initial_point': Optimizer.SupportLevel.required
+        }
 
     def optimize(self, num_vars, objective_function, gradient_function=None,
                  variable_bounds=None, initial_point=None):

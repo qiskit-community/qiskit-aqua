@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -18,11 +18,12 @@ Reference: https://arxiv.org/abs/1412.1183
 Dependency between individual risk variables and latent variable is approximated linearly.
 """
 
+from typing import Optional, List, Union
 import numpy as np
 from scipy.stats.distributions import norm
-from qiskit.aqua.components.uncertainty_models import MultivariateDistribution
-from qiskit.aqua.components.uncertainty_models import NormalDistribution
 from qiskit.aqua.circuits.linear_rotation import LinearRotation
+from .multivariate_distribution import MultivariateDistribution
+from .normal_distribution import NormalDistribution
 
 # pylint: disable=invalid-name
 
@@ -34,52 +35,13 @@ class GaussianConditionalIndependenceModel(MultivariateDistribution):
     Dependency between individual risk variables and latent variable is approximated linearly.
     """
 
-    CONFIGURATION = {
-        'name': 'GaussianConditionalIndependenceModel',
-        'description': 'Gaussian Conditional Independence Model',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'GaussianConditionalIndependenceModel_schema',
-            'type': 'object',
-            'properties': {
-                'n_normal': {
-                    'type': 'number'
-                },
-                'normal_max_value': {
-                    "type": "number"
-                },
-                'p_zeros': {
-                    'type': ['array'],
-                    "items": {
-                        "type": "number"
-                    }
-                },
-                'rhos': {
-                    'type': ['array'],
-                    "items": {
-                        "type": "number"
-                    }
-                },
-                'i_normal': {
-                    'type': ['array', 'null'],
-                    "items": {
-                        "type": "number"
-                    },
-                    'default': None
-                },
-                'i_ps': {
-                    'type': ['array', 'null'],
-                    "items": {
-                        "type": "number"
-                    },
-                    'default': None
-                }
-            },
-            'additionalProperties': False
-        }
-    }
-
-    def __init__(self, n_normal, normal_max_value, p_zeros, rhos, i_normal=None, i_ps=None):
+    def __init__(self,
+                 n_normal: int,
+                 normal_max_value: float,
+                 p_zeros: Union[List[float], np.ndarray],
+                 rhos: Union[List[float], np.ndarray],
+                 i_normal: Optional[Union[List[float], np.ndarray]] = None,
+                 i_ps: Optional[Union[List[float], np.ndarray]] = None) -> None:
         """
         Constructor.
 
@@ -87,13 +49,13 @@ class GaussianConditionalIndependenceModel(MultivariateDistribution):
         Reference: https://arxiv.org/abs/1412.1183
 
         Args:
-            n_normal (int): number of qubits to represent the latent normal random variable Z
-            normal_max_value (float): min/max value to truncate the latent normal random variable Z
-            p_zeros (Union(list, numpy.ndarray)): standard default probabilities for each asset
-            rhos (Union(list, numpy.ndarray)): sensitivities of default probability of assets
+            n_normal: number of qubits to represent the latent normal random variable Z
+            normal_max_value: min/max value to truncate the latent normal random variable Z
+            p_zeros: standard default probabilities for each asset
+            rhos: sensitivities of default probability of assets
                                     with respect to latent variable Z
-            i_normal (Union(list, numpy.ndarray)): indices of qubits to represent normal variable
-            i_ps (Union(list, numpy.ndarray)): indices of qubits to represent asset defaults
+            i_normal: indices of qubits to represent normal variable
+            i_ps: indices of qubits to represent asset defaults
         """
         self.n_normal = n_normal
         self.normal_max_value = normal_max_value

@@ -11,13 +11,49 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+"""
+==============================================================
+Chemistry application stack for Aqua (:mod:`qiskit.chemistry`)
+==============================================================
+This is the chemistry domain logic....
 
-"""Main public functionality."""
+.. currentmodule:: qiskit.chemistry
+
+Chemistry Error
+===============
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   QiskitChemistryError
+
+Chemistry Classes
+==================
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   FermionicOperator
+   QMolecule
+   MP2Info
+
+Submodules
+==========
+
+.. autosummary::
+   :toctree:
+
+   algorithms
+   components
+   core
+   drivers
+
+"""
 
 from .qiskit_chemistry_error import QiskitChemistryError
 from .qmolecule import QMolecule
-from .qiskit_chemistry_problem import ChemistryProblem
-from .qiskit_chemistry import (QiskitChemistry, run_experiment, run_driver_to_json)
 from .fermionic_operator import FermionicOperator
 from .mp2info import MP2Info
 from ._logging import (get_logging_level,
@@ -28,10 +64,6 @@ from ._logging import (get_logging_level,
 
 __all__ = ['QiskitChemistryError',
            'QMolecule',
-           'ChemistryProblem',
-           'QiskitChemistry',
-           'run_experiment',
-           'run_driver_to_json',
            'FermionicOperator',
            'MP2Info',
            'get_logging_level',

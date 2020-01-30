@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -14,10 +14,11 @@
 
 """ The Multivariate Variational Distribution. """
 
+from typing import Optional, List, Union
 import numpy as np
 
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
-from qiskit.aqua import Pluggable, get_pluggable_class, PluggableType
+from qiskit.aqua.components.variational_forms import VariationalForm
 from .multivariate_distribution import MultivariateDistribution
 
 # pylint: disable=invalid-name
@@ -27,56 +28,13 @@ class MultivariateVariationalDistribution(MultivariateDistribution):
     """
     The Multivariate Variational Distribution.
     """
-    CONFIGURATION = {
-        'name': 'MultivariateVariationalDistribution',
-        'description': 'Multivariate Variational Distribution',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'MultivariateVariationalDistribution_schema',
-            'type': 'object',
-            'properties': {
-                'num_qubits': {
-                    'type': 'array',
-                    "items": {
-                        "type": "number"
-                    }
-                },
 
-                'params': {
-                    'type': 'array',
-                    "items": {
-                        "type": "number"
-                    }
-                },
-                'low': {
-                    'type': ['array', 'null'],
-                    "items": {
-                        "type": "number"
-                    },
-                    'default': None
-                },
-                'high': {
-                    'type': ['array', 'null'],
-                    "items": {
-                        "type": "number"
-                    },
-                    'default': None
-                },
-            },
-            'additionalProperties': False
-        },
-        'depends': [
-            {
-                'pluggable_type': 'variational_form',
-                'default': {
-                    'name': 'RY'
-                }
-            }
-
-        ],
-    }
-
-    def __init__(self, num_qubits, var_form, params, low=None, high=None):
+    def __init__(self,
+                 num_qubits: Union[List[int], np.ndarray],
+                 var_form: VariationalForm,
+                 params: Union[List[float], np.ndarray],
+                 low: Optional[Union[List[float], np.ndarray]] = None,
+                 high: Optional[Union[List[float], np.ndarray]] = None) -> None:
         if low is None:
             low = np.zeros(len(num_qubits))
         if high is None:
@@ -88,28 +46,6 @@ class MultivariateVariationalDistribution(MultivariateDistribution):
         super().__init__(num_qubits, probabilities, low, high)
         self._var_form = var_form
         self.params = params
-
-    @classmethod
-    def init_params(cls, params):
-        """
-        Initialize via parameters dictionary.
-        Args:
-            params (dict): parameters dictionary
-        Returns:
-            MultivariateVariationalDistribution: An object instance of this class
-        """
-
-        multi_var_params_params = params.get(Pluggable.SECTION_KEY_UNIVARIATE_DIST)
-        num_qubits = multi_var_params_params.get('num_qubits')
-        params = multi_var_params_params.get('params')
-        low = multi_var_params_params.get('low')
-        high = multi_var_params_params.get('high')
-
-        var_form_params = params.get(Pluggable.SECTION_KEY_VAR_FORM)
-        var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM,
-                                       var_form_params['name']).init_params(params)
-
-        return cls(num_qubits, var_form, params, low, high)
 
     def build(self, qc, q, q_ancillas=None, params=None):
         circuit_var_form = self._var_form.construct_circuit(self.params)

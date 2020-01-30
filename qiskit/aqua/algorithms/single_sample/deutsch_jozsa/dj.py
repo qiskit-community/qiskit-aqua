@@ -21,9 +21,9 @@ import numpy as np
 
 from qiskit import ClassicalRegister, QuantumCircuit
 
-from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.utils import get_subsystem_density_matrix
+from qiskit.aqua.components.oracles import Oracle
 
 logger = logging.getLogger(__name__)
 
@@ -33,47 +33,12 @@ logger = logging.getLogger(__name__)
 class DeutschJozsa(QuantumAlgorithm):
     """The Deutsch-Jozsa algorithm."""
 
-    CONFIGURATION = {
-        'name': 'DeutschJozsa',
-        'description': 'Deutsch Jozsa',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'dj_schema',
-            'type': 'object',
-            'properties': {
-            },
-            'additionalProperties': False
-        },
-        'problems': ['functionevaluation'],
-        'depends': [
-            {
-                'pluggable_type': 'oracle',
-                'default': {
-                    'name': 'TruthTableOracle',
-                },
-            },
-        ],
-    }
-
-    def __init__(self, oracle):
-        self.validate(locals())
+    def __init__(self, oracle: Oracle) -> None:
         super().__init__()
 
         self._oracle = oracle
         self._circuit = None
         self._ret = {}
-
-    @classmethod
-    def init_params(cls, params, algo_input):
-        """ init params """
-        if algo_input is not None:
-            raise AquaError("Input instance not supported.")
-
-        oracle_params = params.get(Pluggable.SECTION_KEY_ORACLE)
-        oracle = get_pluggable_class(
-            PluggableType.ORACLE,
-            oracle_params['name']).init_params(params)
-        return cls(oracle)
 
     def construct_circuit(self, measurement=False):
         """

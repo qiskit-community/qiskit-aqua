@@ -18,8 +18,6 @@ a quantum algorithm
 """
 from abc import ABC, abstractmethod
 import logging
-import copy
-from qiskit.aqua.parser import JSONSchema
 
 logger = logging.getLogger(__name__)
 
@@ -28,60 +26,18 @@ class ChemistryOperator(ABC):
     """
     Base class for ChemistryOperator.
 
-        This method should initialize the module and its configuration, and
-        use an exception if a component of the module is
+        This method should initialize the module and
+        use an exception if a component of the module is not
         available.
     """
 
-    CONFIGURATION = None
     INFO_NUM_PARTICLES = 'num_particles'
     INFO_NUM_ORBITALS = 'num_orbitals'
     INFO_TWO_QUBIT_REDUCTION = 'two_qubit_reduction'
 
     @abstractmethod
     def __init__(self):
-        self._configuration = copy.deepcopy(self.CONFIGURATION)
         self._molecule_info = {}
-
-    @property
-    def configuration(self):
-        """ returns configuration """
-        return self._configuration
-
-    @staticmethod
-    def check_chemistry_operator_valid():
-        """Checks if Chemistry Operator is ready for use. Throws an exception if not"""
-        pass
-
-    def validate(self, args_dict):
-        """ schema input validation """
-        schema_dict = self.CONFIGURATION.get('input_schema', None)
-        if schema_dict is None:
-            return
-
-        json_schema = JSONSchema(schema_dict)
-        schema_property_names = json_schema.get_default_section_names()
-        json_dict = {}
-        for property_name in schema_property_names:
-            if property_name in args_dict:
-                json_dict[property_name] = args_dict[property_name]
-
-        json_schema.validate(json_dict)
-
-    @classmethod
-    def init_params(cls, params):
-        """
-        Initialize via parameters dictionary.
-
-        Args:
-            params (dict): parameters dictionary
-
-        Returns:
-            ChemistryOperator: Chemistry Operator object
-        """
-        kwargs = {k: v for k, v in params.items() if k != 'name'}
-        logger.debug('init_params: %s', kwargs)
-        return cls(**kwargs)
 
     @abstractmethod
     def run(self, qmolecule):

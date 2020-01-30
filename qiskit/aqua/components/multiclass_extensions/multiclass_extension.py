@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -14,28 +14,20 @@
 
 """ Base class for multiclass extension """
 
-from abc import abstractmethod
-from qiskit.aqua import Pluggable
+from abc import ABC, abstractmethod
 
 
-class MulticlassExtension(Pluggable):
+class MulticlassExtension(ABC):
     """
         Base class for multiclass extension.
 
-        This method should initialize the module and its configuration, and
-        use an exception if a component of the module is available.
+        This method should initialize the module and
+        use an exception if a component of the module is not available.
     """
 
     @abstractmethod
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-
-    @classmethod
-    def init_params(cls, params):
-        """ init params """
-        multiclass_extension_params = params.get(Pluggable.SECTION_KEY_MULTICLASS_EXT)
-        args = {k: v for k, v in multiclass_extension_params.items() if k != 'name'}
-        return cls(**args)
 
     @abstractmethod
     def train(self, x, y):
