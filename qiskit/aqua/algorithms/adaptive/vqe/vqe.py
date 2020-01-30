@@ -337,12 +337,8 @@ class VQE(VQAlgorithm):
         start_time = time()
         result = self._quantum_instance.execute(to_be_simulated_circuits,
                                                 self._parameterized_circuits is not None)
-        end_time = time()
-        logger.info('Circuits execution - %.5f (ms)',
-                    (end_time - start_time) * 1000)
 
         for idx, _ in enumerate(parameter_sets):
-            start_time = time()
             mean, std = self._operator.evaluate_with_result(
                 result=result, statevector_mode=self._quantum_instance.is_statevector,
                 use_simulator_snapshot_mode=self._use_simulator_snapshot_mode,
@@ -353,8 +349,16 @@ class VQE(VQAlgorithm):
             self._eval_count += 1
             if self._callback is not None:
                 self._callback(self._eval_count, parameter_sets[idx], np.real(mean), np.real(std))
-            logger.info('Energy evaluation %s returned %s - %.5f (ms)',
-                        self._eval_count, np.real(mean), (end_time - start_time) * 1000)
+
+            # If there is more than one parameter set then the calculation of the
+            # evaluation time has to be done more carefully,
+            # therefore we do not calculate it
+            if len(parameter_sets) == 1:
+                logger.info('Energy evaluation %s returned %s - %.5f (ms)',
+                            self._eval_count, np.real(mean), (end_time - start_time) * 1000)
+            else:
+                logger.info('Energy evaluation %s returned %s',
+                            self._eval_count, np.real(mean))
 
         return mean_energy if len(mean_energy) > 1 else mean_energy[0]
 
