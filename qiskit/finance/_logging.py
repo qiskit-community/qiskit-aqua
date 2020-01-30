@@ -38,4 +38,4 @@ def set_qiskit_finance_logging(level: int, filepath: Optional[str] = None) -> No
         level: minimum severity of the messages that are displayed.
         filepath: file to receive logging data
     """
-    set_logging_level(level, QiskitLogDomains.DOMAIN_FINANCE, filepath)
+    set_logging_level(level, [QiskitLogDomains.DOMAIN_FINANCE], filepath)

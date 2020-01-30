@@ -38,4 +38,4 @@ def set_qiskit_chemistry_logging(level: int, filepath: Optional[str] = None) -> 
         level: minimum severity of the messages that are displayed.
         filepath: file to receive logging data
     """
-    set_logging_level(level, QiskitLogDomains.DOMAIN_CHEMISTRY, filepath)
+    set_logging_level(level, [QiskitLogDomains.DOMAIN_CHEMISTRY], filepath)

@@ -136,4 +136,4 @@ def set_qiskit_aqua_logging(level: int, filepath: Optional[str] = None) -> None:
         level: logging level
         filepath: file to receive logging data
     """
-    set_logging_level(level, QiskitLogDomains.DOMAIN_AQUA, filepath)
+    set_logging_level(level, [QiskitLogDomains.DOMAIN_AQUA], filepath)
