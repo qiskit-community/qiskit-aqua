@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -17,7 +17,7 @@
 import unittest
 import itertools
 import os
-from test.aqua.common import QiskitAquaTestCase
+from test.aqua import QiskitAquaTestCase
 import numpy as np
 from parameterized import parameterized
 from qiskit import BasicAer, QuantumCircuit, QuantumRegister
@@ -57,7 +57,7 @@ class TestWeightedPauliOperator(QiskitAquaTestCase):
         weights = [0.2 + -1j * 0.8, 0.6 + -1j * 0.6, 0.8 + -1j * 0.2,
                    -0.2 + -1j * 0.8, -0.6 - -1j * 0.6, -0.8 - -1j * 0.2]
         op = WeightedPauliOperator.from_list(paulis, weights)
-        file_path = self._get_resource_path('temp_op.json')
+        file_path = self.get_resource_path('temp_op.json')
         op.to_file(file_path)
         self.assertTrue(os.path.exists(file_path))
 
@@ -497,6 +497,7 @@ class TestWeightedPauliOperator(QiskitAquaTestCase):
     def test_evaluate_with_aer_mode(self):
         """ evaluate with aer mode test """
         try:
+            # pylint: disable=import-outside-toplevel
             from qiskit import Aer
         except Exception as ex:  # pylint: disable=broad-except
             self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(ex)))
@@ -514,16 +515,11 @@ class TestWeightedPauliOperator(QiskitAquaTestCase):
             result=quantum_instance_statevector.execute(circuits), statevector_mode=True)
 
         circuits = self.qubit_op.construct_evaluation_circuit(
-            wave_function=wave_function, statevector_mode=True, use_simulator_operator_mode=True)
-        extra_args = {
-            'expectation': {
-                'params': [self.qubit_op.aer_paulis],
-                'num_qubits': self.qubit_op.num_qubits}
-        }
+            wave_function=wave_function, statevector_mode=True, use_simulator_snapshot_mode=True)
         actual_value = self.qubit_op.evaluate_with_result(
-            result=quantum_instance_statevector.execute(circuits, **extra_args),
+            result=quantum_instance_statevector.execute(circuits),
             statevector_mode=True,
-            use_simulator_operator_mode=True)
+            use_simulator_snapshot_mode=True)
         self.assertAlmostEqual(reference[0], actual_value[0], places=10)
 
     @parameterized.expand([

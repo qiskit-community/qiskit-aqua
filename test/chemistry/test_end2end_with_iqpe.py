@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -15,7 +15,7 @@
 """ Test IQPE """
 
 import unittest
-from test.chemistry.common import QiskitChemistryTestCase
+from test.chemistry import QiskitChemistryTestCase
 import numpy as np
 from parameterized import parameterized
 import qiskit
@@ -26,7 +26,7 @@ from qiskit.aqua.algorithms.classical import ExactEigensolver
 from qiskit.aqua.operators import Z2Symmetries
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry import FermionicOperator, QiskitChemistryError
-from qiskit.chemistry.aqua_extensions.components.initial_states import HartreeFock
+from qiskit.chemistry.components.initial_states import HartreeFock
 
 
 class TestIQPE(QiskitChemistryTestCase):

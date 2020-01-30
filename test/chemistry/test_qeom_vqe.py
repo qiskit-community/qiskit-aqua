@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -16,7 +16,7 @@
 
 import unittest
 
-from test.aqua.common import QiskitAquaTestCase
+from test.aqua import QiskitAquaTestCase
 import numpy as np
 from qiskit import BasicAer
 
@@ -25,11 +25,12 @@ from qiskit.aqua.components.variational_forms import RY
 from qiskit.aqua.components.optimizers import COBYLA, SPSA
 from qiskit.aqua.algorithms import ExactEigensolver
 from qiskit.aqua.operators import Z2Symmetries
-from qiskit.chemistry.aqua_extensions.algorithms import QEomVQE
+from qiskit.chemistry import QiskitChemistryError
+from qiskit.chemistry.algorithms import QEomVQE
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
-from qiskit.chemistry.aqua_extensions.components.variational_forms import UCCSD
-from qiskit.chemistry.aqua_extensions.components.initial_states import HartreeFock
+from qiskit.chemistry.components.variational_forms import UCCSD
+from qiskit.chemistry.components.initial_states import HartreeFock
 
 
 class TestEomVQE(QiskitAquaTestCase):
@@ -37,20 +38,23 @@ class TestEomVQE(QiskitAquaTestCase):
     def setUp(self):
         """Setup."""
         super().setUp()
-        aqua_globals.random_seed = 0
-        atom = 'H .0 .0 .7414; H .0 .0 .0'
-        pyscf_driver = PySCFDriver(atom=atom,
-                                   unit=UnitsType.ANGSTROM, charge=0, spin=0, basis='sto3g')
-        self.molecule = pyscf_driver.run()
-        core = Hamiltonian(transformation=TransformationType.FULL,
-                           qubit_mapping=QubitMappingType.PARITY,
-                           two_qubit_reduction=True,
-                           freeze_core=False,
-                           orbital_reduction=[])
-        qubit_op, _ = core.run(self.molecule)
-        exact_eigensolver = ExactEigensolver(qubit_op, k=2 ** qubit_op.num_qubits)
-        result = exact_eigensolver.run()
-        self.reference = result['eigvals'].real
+        try:
+            aqua_globals.random_seed = 0
+            atom = 'H .0 .0 .7414; H .0 .0 .0'
+            pyscf_driver = PySCFDriver(atom=atom,
+                                       unit=UnitsType.ANGSTROM, charge=0, spin=0, basis='sto3g')
+            self.molecule = pyscf_driver.run()
+            core = Hamiltonian(transformation=TransformationType.FULL,
+                               qubit_mapping=QubitMappingType.PARITY,
+                               two_qubit_reduction=True,
+                               freeze_core=False,
+                               orbital_reduction=[])
+            qubit_op, _ = core.run(self.molecule)
+            exact_eigensolver = ExactEigensolver(qubit_op, k=2 ** qubit_op.num_qubits)
+            result = exact_eigensolver.run()
+            self.reference = result['eigvals'].real
+        except QiskitChemistryError:
+            self.skipTest('PYSCF driver does not appear to be installed')
 
     def test_h2_two_qubits_statevector(self):
         """Test H2 with parity mapping and statevector backend."""

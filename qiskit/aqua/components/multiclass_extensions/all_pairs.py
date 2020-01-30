@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -16,12 +16,14 @@
 The multiclass extension based on the all-pairs algorithm.
 """
 
+from typing import Optional, List, Callable
 import logging
 
 import numpy as np
 from sklearn.utils.multiclass import _ovr_decision_function
 
-from qiskit.aqua.components.multiclass_extensions import MulticlassExtension
+from .estimator import Estimator
+from .multiclass_extension import MulticlassExtension
 
 logger = logging.getLogger(__name__)
 
@@ -33,20 +35,9 @@ class AllPairs(MulticlassExtension):
     The multiclass extension based on the all-pairs algorithm.
     """
 
-    CONFIGURATION = {
-        'name': 'AllPairs',
-        'description': 'AllPairs extension',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'allpairs_schema',
-            'type': 'object',
-            'properties': {
-            },
-            'additionalProperties': False
-        }
-    }
-
-    def __init__(self, estimator_cls, params=None):
+    def __init__(self,
+                 estimator_cls: Callable[[List], Estimator],
+                 params: Optional[List] = None) -> None:
         super().__init__()
         self.estimator_cls = estimator_cls
         self.params = params if params is not None else []

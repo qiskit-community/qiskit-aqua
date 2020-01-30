@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -18,17 +18,23 @@ The Variational Quantum Eigensolver algorithm.
 See https://arxiv.org/abs/1304.3061
 """
 
+from typing import Optional, List, Callable
 import logging
 import functools
 
 import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit
+from qiskit.circuit import ParameterVector
 
 from qiskit.aqua.algorithms.adaptive.vq_algorithm import VQAlgorithm
-from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
+from qiskit.aqua import AquaError
 from qiskit.aqua.operators import (TPBGroupedWeightedPauliOperator, WeightedPauliOperator,
                                    MatrixOperator, op_converter)
-from qiskit.aqua.utils.backend_utils import is_aer_statevector_backend, is_statevector_backend
+from qiskit.aqua.utils.backend_utils import (is_statevector_backend,
+                                             is_aer_provider)
+from qiskit.aqua.operators import BaseOperator
+from qiskit.aqua.components.optimizers import Optimizer
+from qiskit.aqua.components.variational_forms import VariationalForm
 
 logger = logging.getLogger(__name__)
 
@@ -40,77 +46,41 @@ class VQE(VQAlgorithm):
     See https://arxiv.org/abs/1304.3061
     """
 
-    CONFIGURATION = {
-        'name': 'VQE',
-        'description': 'VQE Algorithm',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'vqe_schema',
-            'type': 'object',
-            'properties': {
-                'initial_point': {
-                    'type': ['array', 'null'],
-                    "items": {
-                        "type": "number"
-                    },
-                    'default': None
-                },
-                'max_evals_grouped': {
-                    'type': 'integer',
-                    'default': 1
-                }
-            },
-            'additionalProperties': False
-        },
-        'problems': ['energy', 'ising'],
-        'depends': [
-            {
-                'pluggable_type': 'optimizer',
-                'default': {
-                    'name': 'L_BFGS_B'
-                },
-            },
-            {
-                'pluggable_type': 'variational_form',
-                'default': {
-                    'name': 'RYRZ'
-                },
-            },
-        ],
-    }
-
-    def __init__(self, operator, var_form, optimizer,
-                 initial_point=None, max_evals_grouped=1, aux_operators=None, callback=None,
-                 auto_conversion=True):
-        """Constructor.
+    def __init__(self, operator: BaseOperator, var_form: VariationalForm, optimizer: Optimizer,
+                 initial_point: Optional[np.ndarray] = None, max_evals_grouped: int = 1,
+                 aux_operators: Optional[List[BaseOperator]] = None,
+                 callback: Optional[Callable[[int, np.ndarray, float, float], None]] = None,
+                 auto_conversion: bool = True) -> None:
+        """
 
         Args:
-            operator (BaseOperator): Qubit operator
-            var_form (VariationalForm): parametrized variational form.
-            optimizer (Optimizer): the classical optimization algorithm.
-            initial_point (numpy.ndarray): optimizer initial point.
-            max_evals_grouped (int): max number of evaluations performed simultaneously
-            aux_operators (list[BaseOperator]): Auxiliary operators to be evaluated
+            operator: Qubit operator
+            var_form: parameterized variational form.
+            optimizer: the classical optimization algorithm.
+            initial_point: optimizer initial point.
+            max_evals_grouped: max number of evaluations performed simultaneously
+            aux_operators: Auxiliary operators to be evaluated
                                                 at each eigenvalue
-            callback (Callable): a callback that can access the intermediate data
-                                 during the optimization.
+            callback: a callback that can access the intermediate
+                                 data during the optimization.
                                  Internally, four arguments are provided as follows
                                  the index of evaluation, parameters of variational form,
                                  evaluated mean, evaluated standard deviation.
-            auto_conversion (bool): an automatic conversion for operator and aux_operators into
-                                    the type which is
-                                    most suitable for the backend.
-                                    - non-aer statevector_simulator: MatrixOperator
-                                    - aer statevector_simulator: WeightedPauliOperator
-                                    - qasm simulator or real backend:
-                                        TPBGroupedWeightedPauliOperator
+            auto_conversion: an automatic conversion for operator and aux_operators
+                into the type which is most suitable for the backend.
+
+                - for *non-Aer statevector simulator:*
+                  :class:`~qiskit.aqua.operators.MatrixOperator`
+                - for *Aer statevector simulator:*
+                  :class:`~qiskit.aqua.operators.WeightedPauliOperator`
+                - for *qasm simulator or real backend:*
+                  :class:`~qiskit.aqua.operators.TPBGroupedWeightedPauliOperator`
         """
-        self.validate(locals())
         super().__init__(var_form=var_form,
                          optimizer=optimizer,
                          cost_fn=self._energy_evaluation,
                          initial_point=initial_point)
-        self._use_simulator_operator_mode = None
+        self._use_simulator_snapshot_mode = None
         self._ret = None
         self._eval_time = None
         self._optimizer.set_max_evals_grouped(max_evals_grouped)
@@ -127,53 +97,17 @@ class VQE(VQAlgorithm):
                 self._aux_operators.append(aux_op)
         self._auto_conversion = auto_conversion
         logger.info(self.print_settings())
+        self._var_form_params = ParameterVector('θ', self._var_form.num_parameters)
 
-    @classmethod
-    def init_params(cls, params, algo_input):
-        """
-        Initialize via parameters dictionary and algorithm input instance.
-
-        Args:
-            params (dict): parameters dictionary
-            algo_input (EnergyInput): EnergyInput instance
-
-        Returns:
-            VQE: vqe object
-        Raises:
-            AquaError: invalid input
-        """
-        if algo_input is None:
-            raise AquaError("EnergyInput instance is required.")
-
-        operator = algo_input.qubit_op
-
-        vqe_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
-        initial_point = vqe_params.get('initial_point')
-        max_evals_grouped = vqe_params.get('max_evals_grouped')
-
-        # Set up variational form, we need to add computed num qubits
-        # Pass all parameters so that Variational Form can create its dependents
-        var_form_params = params.get(Pluggable.SECTION_KEY_VAR_FORM)
-        var_form_params['num_qubits'] = operator.num_qubits
-        var_form = get_pluggable_class(PluggableType.VARIATIONAL_FORM,
-                                       var_form_params['name']).init_params(params)
-
-        # Set up optimizer
-        opt_params = params.get(Pluggable.SECTION_KEY_OPTIMIZER)
-        optimizer = get_pluggable_class(PluggableType.OPTIMIZER,
-                                        opt_params['name']).init_params(params)
-
-        return cls(operator, var_form, optimizer,
-                   initial_point=initial_point, max_evals_grouped=max_evals_grouped,
-                   aux_operators=algo_input.aux_ops)
+        self._parameterized_circuits = None
 
     @property
     def setting(self):
         """Prepare the setting of VQE as a string."""
-        ret = "Algorithm: {}\n".format(self._configuration['name'])
+        ret = "Algorithm: {}\n".format(self.__class__.__name__)
         params = ""
         for key, value in self.__dict__.items():
-            if key != "_configuration" and key[0] == "_":
+            if key[0] == "_":
                 if "initial_point" in key and value is None:
                     params += "-- {}: {}\n".format(key[1:], "Random seed")
                 else:
@@ -190,7 +124,7 @@ class VQE(VQAlgorithm):
         """
         ret = "\n"
         ret += "==================== Setting of {} ============================\n".format(
-            self.configuration['name'])
+            self.__class__.__name__)
         ret += "{}".format(self.setting)
         ret += "===============================================================\n"
         ret += "{}".format(self._var_form.setting)
@@ -207,7 +141,9 @@ class VQE(VQAlgorithm):
             return operator
 
         ret_op = operator
-        if not is_statevector_backend(backend):  # assume qasm, should use grouped paulis.
+        if not is_statevector_backend(backend) and not (
+                is_aer_provider(backend)
+                and self._quantum_instance.run_config.shots == 1):
             if isinstance(operator, (WeightedPauliOperator, MatrixOperator)):
                 logger.debug("When running with Qasm simulator, grouped pauli can "
                              "save number of measurements. "
@@ -215,7 +151,7 @@ class VQE(VQAlgorithm):
                 ret_op = op_converter.to_tpb_grouped_weighted_pauli_operator(
                     operator, TPBGroupedWeightedPauliOperator.sorted_grouping)
         else:
-            if not is_aer_statevector_backend(backend):
+            if not is_aer_provider(backend):
                 if not isinstance(operator, MatrixOperator):
                     logger.info("When running with non-Aer statevector simulator, "
                                 "represent operator as a matrix could "
@@ -224,7 +160,7 @@ class VQE(VQAlgorithm):
                     ret_op = op_converter.to_matrix_operator(operator)
             else:
                 if not isinstance(operator, WeightedPauliOperator):
-                    logger.info("When running with Aer statevector simulator, "
+                    logger.info("When running with Aer simulator, "
                                 "represent operator as weighted paulis could "
                                 "achieve the better performance. We convert "
                                 "the operator to weighted paulis.")
@@ -232,13 +168,13 @@ class VQE(VQAlgorithm):
         return ret_op
 
     def construct_circuit(self, parameter, statevector_mode=False,
-                          use_simulator_operator_mode=False, circuit_name_prefix=''):
+                          use_simulator_snapshot_mode=False, circuit_name_prefix=''):
         """Generate the circuits.
 
         Args:
             parameter (numpy.ndarray): parameters for variational form.
             statevector_mode (bool, optional): indicate which type of simulator are going to use.
-            use_simulator_operator_mode (bool, optional): is backend from AerProvider,
+            use_simulator_snapshot_mode (bool, optional): is backend from AerProvider,
                             if True and mode is paulis, single circuit is generated.
             circuit_name_prefix (str, optional): a prefix of circuit name
 
@@ -248,7 +184,7 @@ class VQE(VQAlgorithm):
         wave_function = self._var_form.construct_circuit(parameter)
         circuits = self._operator.construct_evaluation_circuit(
             wave_function, statevector_mode,
-            use_simulator_operator_mode=use_simulator_operator_mode,
+            use_simulator_snapshot_mode=use_simulator_snapshot_mode,
             circuit_name_prefix=circuit_name_prefix)
         return circuits
 
@@ -265,10 +201,8 @@ class VQE(VQAlgorithm):
                 circuit = operator.construct_evaluation_circuit(
                     wave_function=temp_circuit,
                     statevector_mode=self._quantum_instance.is_statevector,
-                    use_simulator_operator_mode=self._use_simulator_operator_mode,
+                    use_simulator_snapshot_mode=self._use_simulator_snapshot_mode,
                     circuit_name_prefix=str(idx))
-                if self._use_simulator_operator_mode:
-                    params.append(operator.aer_paulis)
             else:
                 circuit = None
             circuits.append(circuit)
@@ -276,17 +210,7 @@ class VQE(VQAlgorithm):
         if circuits:
             to_be_simulated_circuits = \
                 functools.reduce(lambda x, y: x + y, [c for c in circuits if c is not None])
-            if self._use_simulator_operator_mode:
-                extra_args = {
-                    'expectation':
-                        {
-                            'params': params,
-                            'num_qubits': self._operator.num_qubits
-                        }
-                }
-            else:
-                extra_args = {}
-            result = self._quantum_instance.execute(to_be_simulated_circuits, **extra_args)
+            result = self._quantum_instance.execute(to_be_simulated_circuits)
 
             for idx, operator in enumerate(self._aux_operators):
                 if operator.is_empty():
@@ -294,7 +218,7 @@ class VQE(VQAlgorithm):
                 else:
                     mean, std = operator.evaluate_with_result(
                         result=result, statevector_mode=self._quantum_instance.is_statevector,
-                        use_simulator_operator_mode=self._use_simulator_operator_mode,
+                        use_simulator_snapshot_mode=self._use_simulator_snapshot_mode,
                         circuit_name_prefix=str(idx))
 
                 mean = mean.real if abs(mean.real) > threshold else 0.0
@@ -332,9 +256,12 @@ class VQE(VQAlgorithm):
                             "auto_conversion or use the proper "
                             "combination between operator and backend.")
 
-        self._use_simulator_operator_mode = \
-            is_aer_statevector_backend(self._quantum_instance.backend) \
-            and isinstance(self._operator, (WeightedPauliOperator, TPBGroupedWeightedPauliOperator))
+        self._use_simulator_snapshot_mode = (
+            is_aer_provider(self._quantum_instance.backend)
+            and self._quantum_instance.run_config.shots == 1
+            and not self._quantum_instance.noise_config
+            and isinstance(self._operator,
+                           (WeightedPauliOperator, TPBGroupedWeightedPauliOperator)))
 
         self._quantum_instance.circuit_summary = True
 
@@ -355,9 +282,11 @@ class VQE(VQAlgorithm):
         self._ret['eigvals'] = np.asarray([self.get_optimal_cost()])
         self._ret['eigvecs'] = np.asarray([self.get_optimal_vector()])
         self._eval_aux_ops()
+
+        self.cleanup_parameterized_circuits()
         return self._ret
 
-    # This is the objective function to be passed to the optimizer that is uses for evaluation
+    # This is the objective function to be passed to the optimizer that is used for evaluation
     def _energy_evaluation(self, parameters):
         """
         Evaluate energy at given parameters for the variational form.
@@ -369,37 +298,48 @@ class VQE(VQAlgorithm):
             Union(float, list[float]): energy of the hamiltonian of each parameter.
         """
         num_parameter_sets = len(parameters) // self._var_form.num_parameters
-        circuits = []
         parameter_sets = np.split(parameters, num_parameter_sets)
         mean_energy = []
         std_energy = []
 
-        for idx, _ in enumerate(parameter_sets):
-            parameter = parameter_sets[idx]
-            circuit = self.construct_circuit(
-                parameter,
-                statevector_mode=self._quantum_instance.is_statevector,
-                use_simulator_operator_mode=self._use_simulator_operator_mode,
-                circuit_name_prefix=str(idx))
-            circuits.append(circuit)
+        def _build_parameterized_circuits():
+            if self._var_form.support_parameterized_circuit and \
+                    self._parameterized_circuits is None:
+                parameterized_circuits = self.construct_circuit(
+                    self._var_form_params,
+                    statevector_mode=self._quantum_instance.is_statevector,
+                    use_simulator_snapshot_mode=self._use_simulator_snapshot_mode)
 
-        to_be_simulated_circuits = functools.reduce(lambda x, y: x + y, circuits)
-        if self._use_simulator_operator_mode:
-            extra_args = {
-                'expectation':
-                    {
-                        'params': [self._operator.aer_paulis],
-                        'num_qubits': self._operator.num_qubits
-                    }
-            }
+                self._parameterized_circuits = \
+                    self._quantum_instance.transpile(parameterized_circuits)
+        _build_parameterized_circuits()
+        circuits = []
+        # binding parameters here since the circuits had been transpiled
+        if self._parameterized_circuits is not None:
+            for idx, parameter in enumerate(parameter_sets):
+                curr_param = {self._var_form_params: parameter}
+                for qc in self._parameterized_circuits:
+                    tmp = qc.bind_parameters(curr_param)
+                    tmp.name = str(idx) + tmp.name
+                    circuits.append(tmp)
+            to_be_simulated_circuits = circuits
         else:
-            extra_args = {}
-        result = self._quantum_instance.execute(to_be_simulated_circuits, **extra_args)
+            for idx, parameter in enumerate(parameter_sets):
+                circuit = self.construct_circuit(
+                    parameter,
+                    statevector_mode=self._quantum_instance.is_statevector,
+                    use_simulator_snapshot_mode=self._use_simulator_snapshot_mode,
+                    circuit_name_prefix=str(idx))
+                circuits.append(circuit)
+            to_be_simulated_circuits = functools.reduce(lambda x, y: x + y, circuits)
+
+        result = self._quantum_instance.execute(to_be_simulated_circuits,
+                                                self._parameterized_circuits is not None)
 
         for idx, _ in enumerate(parameter_sets):
             mean, std = self._operator.evaluate_with_result(
                 result=result, statevector_mode=self._quantum_instance.is_statevector,
-                use_simulator_operator_mode=self._use_simulator_operator_mode,
+                use_simulator_snapshot_mode=self._use_simulator_snapshot_mode,
                 circuit_name_prefix=str(idx))
             mean_energy.append(np.real(mean))
             std_energy.append(np.real(std))
@@ -423,6 +363,7 @@ class VQE(VQAlgorithm):
         return self._var_form.construct_circuit(self._ret['opt_params'])
 
     def get_optimal_vector(self):
+        # pylint: disable=import-outside-toplevel
         from qiskit.aqua.utils.run_circuits import find_regs_by_name
 
         if 'opt_params' not in self._ret:
@@ -438,10 +379,7 @@ class VQE(VQAlgorithm):
             qc.add_register(c)
             qc.barrier(q)
             qc.measure(q, c)
-            tmp_cache = self._quantum_instance.circuit_cache
-            self._quantum_instance._circuit_cache = None
             ret = self._quantum_instance.execute(qc)
-            self._quantum_instance._circuit_cache = tmp_cache
             self._ret['min_vector'] = ret.get_counts(qc)
         return self._ret['min_vector']
 

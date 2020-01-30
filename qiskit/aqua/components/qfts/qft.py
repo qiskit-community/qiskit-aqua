@@ -15,19 +15,19 @@
 This module contains the definition of a base class for quantum fourier transforms.
 """
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
 from qiskit import QuantumRegister, QuantumCircuit  # pylint: disable=unused-import
 
-from qiskit.aqua import Pluggable, AquaError
+from qiskit.aqua import AquaError
 
 
-class QFT(Pluggable):
+class QFT(ABC):
 
     """Base class for QFT.
 
-        This method should initialize the module and its configuration, and
-        use an exception if a component of the module is
+        This method should initialize the module and
+        use an exception if a component of the module is not
         available.
 
         Args:
@@ -38,13 +38,6 @@ class QFT(Pluggable):
     @abstractmethod
     def __init__(self, *args, **kwargs):
         super().__init__()
-
-    @classmethod
-    def init_params(cls, params):
-        """ init params """
-        qft_params = params.get(Pluggable.SECTION_KEY_QFT)
-        kwargs = {k: v for k, v in qft_params.items() if k != 'name'}
-        return cls(**kwargs)
 
     @abstractmethod
     def _build_matrix(self):

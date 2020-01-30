@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -15,7 +15,7 @@
 """ Test Initial State Custom """
 
 import unittest
-from test.aqua.common import QiskitAquaTestCase
+from test.aqua import QiskitAquaTestCase
 
 import numpy as np
 
@@ -70,7 +70,7 @@ class TestInitialStateCustom(QiskitAquaTestCase):
         cct = custom.construct_circuit('circuit')
         self.assertEqual(cct.qasm(),
                          'OPENQASM 2.0;\ninclude "qelib1.inc";\nqreg q[2];\n'
-                         'u2(0.0,3.14159265358979) q[0];\nu2(0.0,3.14159265358979) q[1];\n')
+                         'u2(0.0,3.141592653589793) q[0];\nu2(0.0,3.141592653589793) q[1];\n')
 
     def test_qubits_2_random_vector(self):
         """ qubits 2 random vector test """

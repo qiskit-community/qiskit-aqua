@@ -176,7 +176,7 @@ def _parse_molecule(val, units, charge, multiplicity):
         raise QiskitChemistryError('Molecule format error: ' + val)
 
     try:
-        from pyquante2 import molecule  # pylint: disable=import-error
+        from pyquante2 import molecule  # pylint: disable=import-error,import-outside-toplevel
         return molecule(geom, units=units, charge=charge, multiplicity=multiplicity)
     except Exception as exc:
         raise QiskitChemistryError('Failed to create molecule') from exc

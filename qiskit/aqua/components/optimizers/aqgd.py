@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -17,8 +17,8 @@
 import logging
 from copy import deepcopy
 from numpy import pi, absolute, array, zeros
-
-from qiskit.aqua.components.optimizers import Optimizer
+from qiskit.aqua.utils.validation import validate_range_exclusive_max
+from .optimizer import Optimizer
 
 logger = logging.getLogger(__name__)
 
@@ -32,67 +32,31 @@ class AQGD(Optimizer):
     the objective function.
     """
 
-    CONFIGURATION = {
-        'name': 'AQGD',
-        'description': 'Analytic Quantum Gradient Descent Optimizer',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'aqgd_schema',
-            'type': 'object',
-            'properties': {
-                'maxiter': {
-                    'type': 'integer',
-                    'default': 1000
-                },
-                'eta': {
-                    'type': 'number',
-                    'default': 3.0
-                },
-                'tol': {
-                    'type': 'number',
-                    'default': 1e-6
-                },
-                'disp': {
-                    'type': 'boolean',
-                    'default': False
-                },
-                'momentum': {
-                    'type': 'number',
-                    'default': 0.25,
-                    'minimum': 0,
-                    'maximum': 1.0,
-                    'exclusiveMaximum': True
-                }
-            },
-            'additionalProperties': False
-        },
-        'support_level': {
-            'gradient': Optimizer.SupportLevel.ignored,
-            'bounds': Optimizer.SupportLevel.ignored,
-            'initial_point': Optimizer.SupportLevel.required
-        },
-        'options': ['maxiter', 'eta', 'tol', 'disp'],
-        'optimizer': ['local']
-    }
+    _OPTIONS = ['maxiter', 'eta', 'tol', 'disp']
 
-    def __init__(self, maxiter=1000, eta=3.0, tol=1e-6, disp=False, momentum=0.25):
+    def __init__(self,
+                 maxiter: int = 1000,
+                 eta: float = 3.0,
+                 tol: float = 1e-6,
+                 disp: bool = False,
+                 momentum: float = 0.25) -> None:
         """
         Constructor.
 
         Performs Analytical Quantum Gradient Descent (AQGD).
 
         Args:
-            maxiter (int): Maximum number of iterations, each iteration evaluation gradient.
-            eta (float): The coefficient of the gradient update. Increasing this value
+            maxiter: Maximum number of iterations, each iteration evaluation gradient.
+            eta: The coefficient of the gradient update. Increasing this value
                          results in larger step sizes: param = previous_param - eta * deriv
-            tol (float): The convergence criteria that must be reached before stopping.
+            tol: The convergence criteria that must be reached before stopping.
                          Optimization stops when: absolute(loss - previous_loss) < tol
-            disp (bool): Set to true to display convergence messages.
-            momentum (float): Bias towards the previous gradient momentum in current update.
+            disp: Set to true to display convergence messages.
+            momentum: Bias towards the previous gradient momentum in current update.
                               Must be within the bounds: [0,1)
 
         """
-        self.validate(locals())
+        validate_range_exclusive_max('momentum', momentum, 0, 1)
         super().__init__()
 
         self._eta = eta
@@ -101,6 +65,14 @@ class AQGD(Optimizer):
         self._disp = disp
         self._momentum_coeff = momentum
         self._previous_loss = None
+
+    def get_support_level(self):
+        """ return support level dictionary """
+        return {
+            'gradient': Optimizer.SupportLevel.ignored,
+            'bounds': Optimizer.SupportLevel.ignored,
+            'initial_point': Optimizer.SupportLevel.required
+        }
 
     def deriv(self, j, params, obj):
         """
@@ -112,7 +84,6 @@ class AQGD(Optimizer):
             params (array): Current value of the parameters to evaluate
                             the objective function at.
             obj (callable): Objective function.
-
         Returns:
             float: The derivative of the objective function w.r.t. j
         """
@@ -158,7 +129,7 @@ class AQGD(Optimizer):
         Returns:
             bool: Whether or not the optimization has converged.
         """
-        if not hasattr(self, '_previous_loss'):
+        if self._previous_loss is None:
             self._previous_loss = [objval + 2 * self._tol] * n
 
         if all([absolute(objval - prev) < self._tol for prev in self._previous_loss]):

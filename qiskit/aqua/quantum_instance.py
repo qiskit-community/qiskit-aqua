@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -17,18 +17,18 @@
 import copy
 import logging
 import time
-import os
 
 from qiskit.assembler.run_config import RunConfig
+from qiskit import compiler
 
 from .aqua_error import AquaError
-from .utils import CircuitCache
 from .utils.backend_utils import (is_ibmq_provider,
                                   is_statevector_backend,
                                   is_simulator_backend,
                                   is_local_backend,
                                   is_aer_qasm,
                                   support_backend_options)
+from .utils.circuit_utils import summarize_circuits
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +61,6 @@ class QuantumInstance:
                  # job
                  timeout=None, wait=5,
                  # others
-                 circuit_caching=False, cache_file=None, skip_qobj_deepcopy=False,
                  skip_qobj_validation=True,
                  measurement_error_mitigation_cls=None, cals_matrix_refresh_period=30,
                  measurement_error_mitigation_shots=None,
@@ -89,10 +88,6 @@ class QuantumInstance:
                                                                                       for simulator
             timeout (float, optional): seconds to wait for job. If None, wait indefinitely.
             wait (float, optional): seconds between queries to result
-            circuit_caching (bool, optional): Use CircuitCache when calling compile_and_run_circuits
-            cache_file(str, optional): filename into which to store the cache as a pickle file
-            skip_qobj_deepcopy (bool, optional): Reuses the same Qobj object
-                                                 over and over to avoid deepcopying
             skip_qobj_validation (bool, optional): Bypass Qobj validation to
                                                     decrease submission time
             measurement_error_mitigation_cls (Callable, optional): the approach to mitigate
@@ -199,23 +194,6 @@ class QuantumInstance:
                         "and re-build it after that.", self._cals_matrix_refresh_period)
 
         # setup others
-        # TODO: allow an external way to overwrite the setting circuit cache temporally
-        # when either setup cache via environment variable or constructor,
-        # the optimization level will be change to 0 to assure cache works.
-        circuit_cache = None
-        if os.environ.get('QISKIT_AQUA_CIRCUIT_CACHE', False) or circuit_caching:
-            if optimization_level is None or optimization_level == 0:
-                self._compile_config['optimization_level'] = 0
-                skip_qobj_deepcopy = True if os.environ.get('QISKIT_AQUA_CIRCUIT_CACHE', False) \
-                    else skip_qobj_deepcopy
-                circuit_cache = CircuitCache(skip_qobj_deepcopy=skip_qobj_deepcopy,
-                                             cache_file=cache_file)
-            else:
-                logger.warning('CircuitCache cannot be used with optimization_level %s. '
-                               'Caching has been disabled. To re-enable, please set '
-                               'optimization_level = 0 or None.', optimization_level)
-
-        self._circuit_cache = circuit_cache
         if is_ibmq_provider(self._backend):
             if skip_qobj_validation:
                 logger.warning("The skip Qobj validation does not work "
@@ -232,6 +210,7 @@ class QuantumInstance:
         Returns:
             str: the info of the object.
         """
+        # pylint: disable=import-outside-toplevel
         from qiskit import __version__ as terra_version
 
         info = "\nQiskit Terra version: {}\n".format(terra_version)
@@ -242,28 +221,54 @@ class QuantumInstance:
 
         return info
 
-    def execute(self, circuits, **kwargs):
+    def transpile(self, circuits):
+        """
+        A wrapper to transpile circuits to allow algorithm access the transpiled circuits.
+        Args:
+            circuits (QuantumCircuit or list[QuantumCircuit]): circuits to transpile
+        Returns:
+            list[QuantumCircuit]: the transpiled circuits, it is always a list even though
+                                  the length is one.
+        """
+        transpiled_circuits = compiler.transpile(circuits, self._backend, **self._backend_config,
+                                                 **self._compile_config)
+        if not isinstance(transpiled_circuits, list):
+            transpiled_circuits = [transpiled_circuits]
+
+        if logger.isEnabledFor(logging.DEBUG) and self._circuit_summary:
+            logger.debug("==== Before transpiler ====")
+            logger.debug(summarize_circuits(circuits))
+            if transpiled_circuits is not None:
+                logger.debug("====  After transpiler ====")
+                logger.debug(summarize_circuits(transpiled_circuits))
+
+        return transpiled_circuits
+
+    def execute(self, circuits, had_transpiled=False):
         """
         A wrapper to interface with quantum backend.
 
         Args:
             circuits (QuantumCircuit or list[QuantumCircuit]): circuits to execute
-            kwargs (list): additional parameters
+            had_transpiled (bool, optional): whether or not circuits had been transpiled
 
         Returns:
             Result: Result object
+
+        TODO: Maybe we can combine the circuits for the main ones and calibration circuits before
+              assembling to the qobj.
         """
-        from .utils.run_circuits import (run_qobj,
-                                         compile_circuits)
+        # pylint: disable=import-outside-toplevel
+        from .utils.run_circuits import run_qobj
 
         from .utils.measurement_error_mitigation import (get_measured_qubits_from_qobj,
                                                          build_measurement_error_mitigation_qobj)
+        # maybe compile
+        if not had_transpiled:
+            circuits = self.transpile(circuits)
 
-        qobj = compile_circuits(circuits, self._backend, self._backend_config,
-                                self._compile_config, self._run_config,
-                                show_circuit_summary=self._circuit_summary,
-                                circuit_cache=self._circuit_cache,
-                                **kwargs)
+        # assemble
+        qobj = compiler.assemble(circuits, **self._run_config.to_dict())
 
         if self._meas_error_mitigation_cls is not None:
             qubit_index = get_measured_qubits_from_qobj(qobj)
@@ -319,6 +324,7 @@ class QuantumInstance:
                                       self._backend_options, self._noise_config,
                                       self._skip_qobj_validation, self._job_callback)
                 else:
+                    # insert the calibration circuit into main qobj if the shots are the same
                     qobj.experiments[0:0] = cals_qobj.experiments
                     result = run_qobj(qobj, self._backend, self._qjob_config,
                                       self._backend_options, self._noise_config,
@@ -484,16 +490,6 @@ class QuantumInstance:
         return is_local_backend(self._backend)
 
     @property
-    def circuit_cache(self):
-        """ returns circuit cache """
-        return self._circuit_cache
-
-    @property
-    def has_circuit_caching(self):
-        """ checks if it has circuit cache """
-        return self._circuit_cache is not None
-
-    @property
     def skip_qobj_validation(self):
         """ checks if skip qobj validation """
         return self._skip_qobj_validation
@@ -524,7 +520,7 @@ class QuantumInstance:
         Get the stored calibration matrices and its timestamp.
 
         Args:
-            qubit_index (int): the qubit index of corresponding calibration matrix.
+            qubit_index (list[int]): the qubit index of corresponding calibration matrix.
             If None, return all stored calibration matrices.
 
         Returns:

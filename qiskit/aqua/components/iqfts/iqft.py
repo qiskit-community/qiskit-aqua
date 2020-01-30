@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -15,19 +15,19 @@
 This module contains the definition of a base class for inverse quantum fourier transforms.
 """
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
 from qiskit import QuantumRegister, QuantumCircuit  # pylint: disable=unused-import
 
-from qiskit.aqua import Pluggable, AquaError
+from qiskit.aqua import AquaError
 
 
-class IQFT(Pluggable):
+class IQFT(ABC):
 
     """Base class for Inverse QFT.
 
-        This method should initialize the module and its configuration, and
-        use an exception if a component of the module is
+        This method should initialize the module and
+        use an exception if a component of the module is not
         available.
 
         Args:
@@ -36,15 +36,8 @@ class IQFT(Pluggable):
     """
 
     @abstractmethod
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__()
-
-    @classmethod
-    def init_params(cls, params):
-        """ init params """
-        iqft_params = params.get(Pluggable.SECTION_KEY_IQFT)
-        kwargs = {k: v for k, v in iqft_params.items() if k != 'name'}
-        return cls(**kwargs)
 
     @abstractmethod
     def _build_matrix(self):

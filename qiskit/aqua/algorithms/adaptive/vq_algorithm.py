@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -25,6 +25,7 @@ this infrastructure but still meet the
 interface requirements.
 """
 
+from typing import Optional, Callable
 import time
 import logging
 from abc import abstractmethod
@@ -32,6 +33,8 @@ import numpy as np
 
 from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms import QuantumAlgorithm
+from qiskit.aqua.components.optimizers import Optimizer
+from qiskit.aqua.components.variational_forms import VariationalForm
 
 logger = logging.getLogger(__name__)
 
@@ -44,10 +47,10 @@ class VQAlgorithm(QuantumAlgorithm):
     """
 
     def __init__(self,
-                 var_form=None,
-                 optimizer=None,
-                 cost_fn=None,
-                 initial_point=None):
+                 var_form: VariationalForm,
+                 optimizer: Optimizer,
+                 cost_fn: Optional[Callable] = None,
+                 initial_point: Optional[np.ndarray] = None) -> None:
         super().__init__()
         if var_form is None:
             raise AquaError('Missing variational form.')
@@ -59,6 +62,8 @@ class VQAlgorithm(QuantumAlgorithm):
 
         self._cost_fn = cost_fn
         self._initial_point = initial_point
+
+        self._parameterized_circuits = None
 
     @abstractmethod
     def get_optimal_cost(self):
@@ -196,3 +201,7 @@ class VQAlgorithm(QuantumAlgorithm):
     def optimizer(self):
         """ returns optimizer """
         return self._optimizer
+
+    def cleanup_parameterized_circuits(self):
+        """ set parameterized circuits to None """
+        self._parameterized_circuits = None

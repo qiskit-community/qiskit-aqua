@@ -12,20 +12,44 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" uncertainty problems packages """
+"""
+Uncertainty Problems (:mod:`qiskit.aqua.components.uncertainty_problems`)
+=========================================================================
+Uncertainty Problems
+
+.. currentmodule:: qiskit.aqua.components.uncertainty_problems
+
+Uncertainty Problem Base Classes
+================================
+:class:`UncertaintyProblem` is the base class from which further
+base classes for univariate and multivariate problems are
+derived
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   UncertaintyProblem
+   UnivariateProblem
+   MultivariateProblem
+
+Univariate Problems
+===================
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+    UnivariatePiecewiseLinearObjective
+
+"""
 
 from .uncertainty_problem import UncertaintyProblem
-from .european_call_delta import EuropeanCallDelta
-from .european_call_expected_value import EuropeanCallExpectedValue
-from .fixed_income_expected_value import FixedIncomeExpectedValue
 from .multivariate_problem import MultivariateProblem
 from .univariate_problem import UnivariateProblem
 from .univariate_piecewise_linear_objective import UnivariatePiecewiseLinearObjective
 
 __all__ = ['UncertaintyProblem',
-           'EuropeanCallDelta',
-           'EuropeanCallExpectedValue',
-           'FixedIncomeExpectedValue',
            'MultivariateProblem',
            'UnivariateProblem',
            'UnivariatePiecewiseLinearObjective']

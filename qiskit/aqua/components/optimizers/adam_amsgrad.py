@@ -3,7 +3,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -23,14 +23,15 @@ Sashank J. Reddi and Satyen Kale and Sanjiv Kumar. (2018).
 On the Convergence of Adam and Beyond. International Conference on Learning Representations.
 """
 
+from typing import Optional
 import logging
 import os
 
 import csv
 import numpy as np
-
-from qiskit.aqua.components.optimizers import Optimizer
 from qiskit.aqua import aqua_globals
+from .optimizer import Optimizer
+
 logger = logging.getLogger(__name__)
 
 # pylint: disable=invalid-name
@@ -39,93 +40,48 @@ logger = logging.getLogger(__name__)
 class ADAM(Optimizer):
 
     """
-    Adam
-    Kingma, Diederik & Ba, Jimmy. (2014).
-    Adam: A Method for Stochastic Optimization.
-          International Conference on Learning Representations.
+    Adam and AMSGRAD Optimizer
 
-    AMSGRAD
-    Sashank J. Reddi and Satyen Kale and Sanjiv Kumar. (2018).
-    On the Convergence of Adam and Beyond. International Conference on Learning Representations.
+    | **Adam**
+    | *Kingma, Diederik & Ba, Jimmy. (2014).*
+    | Adam: A Method for Stochastic Optimization. \
+    International Conference on Learning Representations.
+
+    | **AMSGRAD**
+    | *Sashank J. Reddi and Satyen Kale and Sanjiv Kumar. (2018).*
+    | On the Convergence of Adam and Beyond. International Conference on Learning Representations.
     """
-    CONFIGURATION = {
-        'name': 'ADAM',
-        'description': 'ADAM Optimizer',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'adam_schema',
-            'type': 'object',
-            'properties': {
-                'maxiter': {
-                    'type': 'integer',
-                    'default': 10000
-                },
-                'tol': {
-                    'type': 'number',
-                    'default': 1e-06
-                },
-                'lr': {
-                    'type': 'number',
-                    'default': 1e-03
-                },
-                'beta_1': {
-                    'type': 'number',
-                    'default': 0.9
-                },
-                'beta_2': {
-                    'type': 'number',
-                    'default': 0.99
-                },
-                'noise_factor': {
-                    'type': 'number',
-                    'default': 1e-08
-                },
-                'eps': {
-                    'type': 'number',
-                    'default': 1e-10
-                },
-                'amsgrad': {
-                    'type': 'boolean',
-                    'default': False
-                },
-                'snapshot_dir': {
-                    'type': ['string', 'null'],
-                    'default': None
-                }
-            },
-            'additionalProperties': False
-        },
-        'support_level': {
-            'gradient': Optimizer.SupportLevel.supported,
-            'bounds': Optimizer.SupportLevel.ignored,
-            'initial_point': Optimizer.SupportLevel.supported
-        },
-        'options': ['maxiter', 'tol', 'lr', 'beta_1', 'beta_2', 'noise_factor', 'eps',
-                    'amsgrad', 'snapshot_dir'],
-        'optimizer': ['local']
-    }
 
-    def __init__(self, maxiter=10000, tol=1e-6, lr=1e-3, beta_1=0.9, beta_2=0.99, noise_factor=1e-8,
-                 eps=1e-10, amsgrad=False, snapshot_dir=None):
-        """
-        Constructor.
+    _OPTIONS = ['maxiter', 'tol', 'lr', 'beta_1', 'beta_2',
+                'noise_factor', 'eps', 'amsgrad', 'snapshot_dir']
 
-        maxiter: int, Maximum number of iterations
-        tol: float, Tolerance for termination
-        lr: float >= 0, Learning rate.
-        beta_1: float, 0 < beta < 1, Generally close to 1.
-        beta_2: float, 0 < beta < 1, Generally close to 1.
-        noise_factor: float >= 0, Noise factor
-        eps: float >=0, Epsilon to be used for finite differences if no analytic
-                        gradient method is given.
-        amsgrad: Boolean, use AMSGRAD or not
-        snapshot_dir: str or None, if not None save the optimizer's parameter
-                        after every step to the given directory
+    def __init__(self,
+                 maxiter: int = 10000,
+                 tol: float = 1e-6,
+                 lr: float = 1e-3,
+                 beta_1: float = 0.9,
+                 beta_2: float = 0.99,
+                 noise_factor: float = 1e-8,
+                 eps: float = 1e-10,
+                 amsgrad: bool = False,
+                 snapshot_dir: Optional[str] = None) -> None:
         """
-        self.validate(locals())
+        Args:
+            maxiter: Maximum number of iterations
+            tol: Tolerance for termination
+            lr: Value >= 0, Learning rate.
+            beta_1: Value in range 0 to 1, Generally close to 1.
+            beta_2: Value in range 0 to 1, Generally close to 1.
+            noise_factor: Value >= 0, Noise factor
+            eps : Value >=0, Epsilon to be used for finite differences if no analytic
+                gradient method is given.
+            amsgrad: True to use AMSGRAD, False if not
+            snapshot_dir: If not None save the optimizer's parameter
+                after every step to the given directory
+        """
         super().__init__()
         for k, v in locals().items():
-            if k in self._configuration['options']:
+            if k in self._OPTIONS:
                 self._options[k] = v
         self._maxiter = maxiter
         self._snapshot_dir = snapshot_dir
@@ -151,6 +107,14 @@ class ADAM(Optimizer):
                     fieldnames = ['v', 'm', 't']
                 writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
                 writer.writeheader()
+
+    def get_support_level(self):
+        """ return support level dictionary """
+        return {
+            'gradient': Optimizer.SupportLevel.supported,
+            'bounds': Optimizer.SupportLevel.ignored,
+            'initial_point': Optimizer.SupportLevel.supported
+        }
 
     def save_params(self, snapshot_dir):
         """ save params """
@@ -227,6 +191,7 @@ class ADAM(Optimizer):
                  initial_point=None):
         """
         Perform optimization.
+
         Args:
             num_vars (int) : number of parameters to be optimized.
             objective_function (callable) : handle to a function that
@@ -236,11 +201,12 @@ class ADAM(Optimizer):
                 None if not available.
             variable_bounds (list[(float, float)]) : deprecated
             initial_point (numpy.ndarray[float]) : initial point.
+
         Returns:
-            tuple(numpy.ndarray, float, int):
-               point: is a 1D numpy.ndarray[float] containing the solution
-               value: is a float with the objective function value
-               nfev: number of objective function calls made if available or None
+            tuple(numpy.ndarray, float, int): tuple has (point, value, nfev) where\n
+                point: is a 1D numpy.ndarray[float] containing the solution\n
+                value: is a float with the objective function value\n
+                nfev: number of objective function calls made if available or None
         """
         super().optimize(num_vars, objective_function, gradient_function,
                          variable_bounds, initial_point)
