@@ -16,7 +16,7 @@
 
 from typing import Optional
 from abc import ABC, abstractmethod
-import warnings
+# import warnings
 import inspect
 import logging
 import os
@@ -32,7 +32,8 @@ def _noop(*args, **kargs):
     pass
 
 
-warnings.warn = _noop
+# disable warning messages
+# warnings.warn = _noop
 
 
 class QiskitBaseTestCase(unittest.TestCase, ABC):
