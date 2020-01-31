@@ -17,7 +17,6 @@
 import unittest
 
 from test.chemistry import QiskitChemistryTestCase
-from test.chemistry.test_driver import TestDriver
 from qiskit.chemistry.drivers import GaussianDriver
 
 
@@ -25,7 +24,7 @@ from qiskit.chemistry.drivers import GaussianDriver
 # an internal method to check G16 installed. We need to replace that with
 # the following dummy for things to work and we do it for each test so the
 # class ends up as it was
-def _check_valid(self):
+def _check_valid():
     pass
 
 
@@ -42,6 +41,7 @@ class TestDriverGaussianExtra(QiskitChemistryTestCase):
         GaussianDriver._check_valid = self.good_check
 
     def test_cfg_augment(self):
+        """ test input configuration augmentation """
         cfg = '# rhf/sto-3g scf(conventional)\n\n' \
               'h2 molecule\n\n0 1\nH   0.0  0.0    0.0\nH   0.0  0.0    0.735\n\n'
         g16 = GaussianDriver(cfg)

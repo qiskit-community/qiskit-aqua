@@ -91,9 +91,9 @@ scf_type unknown
 }
 """
         driver = PSI4Driver(bad_cfg)
-        with self.assertRaises(QiskitChemistryError) as cm:
+        with self.assertRaises(QiskitChemistryError) as ctxmgr:
             _ = driver.run()
-        self.assertTrue(str(cm.exception).startswith("'psi4 process return code"))
+        self.assertTrue(str(ctxmgr.exception).startswith("'psi4 process return code"))
 
 
 if __name__ == '__main__':
