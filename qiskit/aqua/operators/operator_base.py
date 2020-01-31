@@ -74,7 +74,6 @@ class OperatorBase(ABC):
 
 # Equality
 
-    @abstractmethod
     def __eq__(self, other):
         """ Overload == operation """
         raise self.equals(other)
@@ -86,7 +85,6 @@ class OperatorBase(ABC):
 
 # Scalar Multiplication
 
-    @abstractmethod
     def __mul__(self, other):
         """ Overload * """
         return self.mul(other)
@@ -152,9 +150,4 @@ class OperatorBase(ABC):
     @abstractmethod
     def print_details(self):
         """ print details """
-        raise NotImplementedError
-
-    @abstractmethod
-    def chop(self, threshold, copy=False):
-        """ chop """
         raise NotImplementedError
