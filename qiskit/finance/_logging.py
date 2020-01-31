@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Utilities for Chemistry logging."""
+"""Utilities for Finance logging."""
 
 from typing import Optional
 from qiskit.aqua import (QiskitLogDomains,
@@ -20,22 +20,22 @@ from qiskit.aqua import (QiskitLogDomains,
                          set_logging_level)
 
 
-def get_qiskit_chemistry_logging() -> int:
+def get_qiskit_finance_logging() -> int:
     """
-    Returns the current Qiskit Chemistry logging level
+    Returns the current Qiskit Finance logging level
 
     Returns:
         int: logging level
     """
-    return get_logging_level(QiskitLogDomains.DOMAIN_CHEMISTRY)
+    return get_logging_level(QiskitLogDomains.DOMAIN_FINANCE)
 
 
-def set_qiskit_chemistry_logging(level: int, filepath: Optional[str] = None) -> None:
+def set_qiskit_finance_logging(level: int, filepath: Optional[str] = None) -> None:
     """
-    Updates the Qiskit Chemistry logging with the appropriate logging level
+    Updates the Qiskit Finance logging with the appropriate logging level
 
     Args:
         level: minimum severity of the messages that are displayed.
         filepath: file to receive logging data
     """
-    set_logging_level(level, [QiskitLogDomains.DOMAIN_CHEMISTRY], filepath)
+    set_logging_level(level, [QiskitLogDomains.DOMAIN_FINANCE], filepath)
