@@ -15,7 +15,6 @@
 """ Base Operator """
 
 from abc import ABC, abstractmethod
-from collections.abc import Iterable
 
 
 class OperatorBase(ABC):
