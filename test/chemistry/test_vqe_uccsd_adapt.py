@@ -15,7 +15,7 @@
 """ Test of the Adaptive VQE implementation with the adaptive UCCSD variational form """
 
 import unittest
-from test.aqua import QiskitAquaTestCase
+from test.chemistry import QiskitChemistryTestCase
 
 from qiskit import Aer
 from qiskit.aqua import aqua_globals
@@ -29,7 +29,7 @@ from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 
 
-class TestVQEAdaptUCCSD(QiskitAquaTestCase):
+class TestVQEAdaptUCCSD(QiskitChemistryTestCase):
     """ Test Adaptive VQE with UCCSD"""
     def setUp(self):
         super().setUp()
