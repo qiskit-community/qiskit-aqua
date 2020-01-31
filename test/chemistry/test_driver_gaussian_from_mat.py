@@ -18,6 +18,7 @@ import unittest
 
 from test.chemistry import QiskitChemistryTestCase
 from test.chemistry.test_driver import TestDriver
+from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import GaussianDriver
 
 
@@ -41,7 +42,10 @@ class TestDriverGaussianFromMat(QiskitChemistryTestCase, TestDriver):
         # parsing of it into the qmolecule is correct.
         g16 = GaussianDriver()
         matfile = self.get_resource_path('test_driver_gaussian_from_mat.mat')
-        self.qmolecule = g16._parse_matrix_file(matfile)
+        try:
+            self.qmolecule = g16._parse_matrix_file(matfile)
+        except QiskitChemistryError:
+            self.skipTest('GAUSSIAN qcmatrixio not found')
 
     def tearDown(self):
         GaussianDriver._check_valid = self.good_check
