@@ -36,7 +36,7 @@ class TestDriverGaussianExtra(QiskitChemistryTestCase):
         super().setUp()
         self.good_check = GaussianDriver._check_valid
         GaussianDriver._check_valid = _check_valid
-        # We can now create a driver without the installed (check_valid) test failing
+        # We can now create a driver without the installed (check valid) test failing
 
     def tearDown(self):
         GaussianDriver._check_valid = self.good_check

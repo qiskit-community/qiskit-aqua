@@ -25,7 +25,7 @@ from qiskit.chemistry.drivers import GaussianDriver
 # an internal method to check G16 installed. We need to replace that with
 # the following dummy for things to work and we do it for each test so the
 # class ends up as it was
-def _check_valid(self):
+def _check_valid():
     pass
 
 
@@ -36,7 +36,7 @@ class TestDriverGaussianFromMat(QiskitChemistryTestCase, TestDriver):
         super().setUp()
         self.good_check = GaussianDriver._check_valid
         GaussianDriver._check_valid = _check_valid
-        # We can now create a driver without the installed (check_valid) test failing
+        # We can now create a driver without the installed (check valid) test failing
         # and create a qmolecule from the saved output matrix file. This will test the
         # parsing of it into the qmolecule is correct.
         g16 = GaussianDriver()

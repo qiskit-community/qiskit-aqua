@@ -32,7 +32,7 @@ class TestDriverPSI4Extra(QiskitChemistryTestCase):
             self.skipTest('PSI4 driver does not appear to be installed')
 
     def test_input_format_list(self):
-        """ input cfg as a list"""
+        """ input as a list"""
         driver = PSI4Driver([
             'molecule h2 {',
             '  0 1',
@@ -50,7 +50,7 @@ class TestDriverPSI4Extra(QiskitChemistryTestCase):
         self.assertAlmostEqual(qmolecule.hf_energy, -1.117, places=3)
 
     def test_input_format_string(self):
-        """ input cfg as a multiline string """
+        """ input as a multi line string """
         cfg = """
 molecule h2 {
 0 1
@@ -75,7 +75,7 @@ scf_type pk
             _ = PSI4Driver(1.000)
 
     def test_psi4_failure(self):
-        """ check we catch psi4 failures (bad scf_type used here) """
+        """ check we catch psi4 failures (bad scf type used here) """
         bad_cfg = """
 molecule h2 {
 0 1
