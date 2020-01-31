@@ -55,7 +55,7 @@ class GaussianDriver(BaseDriver):
         Raises:
             QiskitChemistryError: Invalid Input
         """
-        self._check_valid()
+        GaussianDriver._check_valid()
         if not isinstance(config, list) and not isinstance(config, str):
             raise QiskitChemistryError("Invalid input for Gaussian Driver '{}'".format(config))
 
