@@ -26,6 +26,7 @@ from qiskit.chemistry.algorithms.adaptive import VQEAdapt
 from qiskit.chemistry.components.initial_states import HartreeFock
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
+from qiskit.chemistry import QiskitChemistryError
 
 
 class TestVQEAdaptUCCSD(QiskitChemistryTestCase):
@@ -35,9 +36,14 @@ class TestVQEAdaptUCCSD(QiskitChemistryTestCase):
         # np.random.seed(50)
         self.seed = 50
         aqua_globals.random_seed = self.seed
-        driver = PySCFDriver(atom='H .0 .0 .0; H .0 .0 0.735',
-                             unit=UnitsType.ANGSTROM,
-                             basis='sto3g')
+        try:
+            driver = PySCFDriver(atom='H .0 .0 .0; H .0 .0 0.735',
+                                 unit=UnitsType.ANGSTROM,
+                                 basis='sto3g')
+        except QiskitChemistryError:
+            self.skipTest('PYSCF driver does not appear to be installed')
+            return
+
         molecule = driver.run()
         self.num_particles = molecule.num_alpha + molecule.num_beta
         self.num_spin_orbitals = molecule.num_orbitals * 2
