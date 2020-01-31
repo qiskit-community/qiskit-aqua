@@ -16,7 +16,7 @@
 
 import unittest
 from test.aqua import QiskitAquaTestCase
-from qiskit.aqua.utils.subsystem import get_subsystems_counts, get_subsystems_post_selected
+from qiskit.aqua.utils.subsystem import get_subsystems_counts
 
 
 class TestSubsystem(QiskitAquaTestCase):
@@ -32,9 +32,9 @@ class TestSubsystem(QiskitAquaTestCase):
         self.assertDictEqual(result[1], {'010': 1, '011': 2})
 
     def test_get_subsystems_post_selected(self):
-        """Test subsystems counts post selected"""
+        """Test subsystems counts with a post selection condition"""
         complete_system_counts = {'11 010': 1, '01 011': 1, '11 011': 1}
-        result = get_subsystems_post_selected(complete_system_counts, 0, '11')
+        result = get_subsystems_counts(complete_system_counts, 0, '11')
 
         self.assertDictEqual(result[0], {'11': 2})
         self.assertDictEqual(result[1], {'010': 1, '011': 1})

@@ -36,7 +36,6 @@ Utilities
    summarize_circuits
    get_subsystem_density_matrix
    get_subsystems_counts
-   get_subsystems_post_selected
    get_entangler_map
    validate_entangler_map
    get_feature_dimension
@@ -57,8 +56,7 @@ from .random_matrix_generator import (random_unitary, random_h2_body,
                                       random_non_hermitian)
 from .decimal_to_binary import decimal_to_binary
 from .circuit_utils import summarize_circuits
-from .subsystem import (get_subsystem_density_matrix, get_subsystems_counts,
-                        get_subsystems_post_selected)
+from .subsystem import get_subsystem_density_matrix, get_subsystems_counts
 from .entangler_map import get_entangler_map, validate_entangler_map
 from .dataset_helper import (get_feature_dimension, get_num_classes,
                              split_dataset_to_data_and_labels,
@@ -78,7 +76,6 @@ __all__ = [
     'summarize_circuits',
     'get_subsystem_density_matrix',
     'get_subsystems_counts',
-    'get_subsystems_post_selected',
     'get_entangler_map',
     'validate_entangler_map',
     'get_feature_dimension',
