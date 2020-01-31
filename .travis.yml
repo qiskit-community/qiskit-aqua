@@ -179,6 +179,9 @@ jobs:
           name: chemistry
           paths: chemistry.dat
       install:
+        # install gaussian dependency libgfortran 5
+        - sudo apt-get -y update
+        - sudo apt-get -y install libgfortran5
         # download PyQuante master and unzip it
         - wget https://codeload.github.com/rpmuller/pyquante2/zip/master -O /tmp/pyquante2.zip
         - unzip /tmp/pyquante2.zip -d /tmp/
@@ -193,6 +196,9 @@ jobs:
       python: 3.8
       env: OPENBLAS_NUM_THREADS=1
       install:
+        # install gaussian dependency libgfortran 5
+        - sudo apt-get -y update
+        - sudo apt-get -y install libgfortran5
         # download PyQuante master and unzip it
         - wget https://codeload.github.com/rpmuller/pyquante2/zip/master -O /tmp/pyquante2.zip
         - unzip /tmp/pyquante2.zip -d /tmp/
