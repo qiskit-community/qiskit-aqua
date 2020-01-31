@@ -17,7 +17,6 @@
 import unittest
 from test.chemistry import QiskitChemistryTestCase
 
-from qiskit import Aer
 from qiskit.aqua import aqua_globals
 from qiskit.aqua.components.optimizers import L_BFGS_B
 from qiskit.aqua.operators.op_converter import to_weighted_pauli_operator
@@ -63,6 +62,13 @@ class TestVQEAdaptUCCSD(QiskitChemistryTestCase):
 
     def test_vqe_adapt(self):
         """ VQEAdapt test """
+        try:
+            # pylint: disable=import-outside-toplevel
+            from qiskit import Aer
+        except Exception as ex:  # pylint: disable=broad-except
+            self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(ex)))
+            return
+
         self.var_form_base = UCCSD(self.num_qubits, 1, self.num_spin_orbitals,
                                    self.num_particles, initial_state=self.init_state)
         backend = Aer.get_backend('statevector_simulator')
