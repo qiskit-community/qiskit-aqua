@@ -20,6 +20,7 @@ from test.chemistry import QiskitChemistryTestCase
 from qiskit.aqua import QiskitLogDomains
 from qiskit.chemistry import get_qiskit_chemistry_logging, set_qiskit_chemistry_logging
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
+from qiskit.chemistry import QiskitChemistryError
 
 
 class TestLogging(QiskitChemistryTestCase):
@@ -37,9 +38,14 @@ class TestLogging(QiskitChemistryTestCase):
     def test_logging_emit(self):
         """ logging emit test """
         with self.assertLogs(QiskitLogDomains.DOMAIN_CHEMISTRY.value, level='INFO') as log:
-            driver = PySCFDriver(atom='H .0 .0 .0; H .0 .0 0.735',
-                                 unit=UnitsType.ANGSTROM,
-                                 basis='sto3g')
+            try:
+                driver = PySCFDriver(atom='H .0 .0 .0; H .0 .0 0.735',
+                                     unit=UnitsType.ANGSTROM,
+                                     basis='sto3g')
+            except QiskitChemistryError:
+                self.skipTest('PYSCF driver does not appear to be installed')
+                return
+
             _ = driver.run()
             self.assertIn('PySCF', log.output[0])
 
