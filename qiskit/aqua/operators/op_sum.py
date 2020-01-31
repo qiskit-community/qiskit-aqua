@@ -16,5 +16,49 @@
 
 from .base_operator import BaseOperator
 
+
 class OpSum(BaseOperator):
 
+    def add(self, other, inplace=True):
+        """ Addition """
+        raise NotImplementedError
+
+    def neg(self):
+        """ Negate """
+        raise NotImplementedError
+
+    def equals(self, other):
+        """ Evaluate Equality """
+        raise NotImplementedError
+
+    def mul(self, scalar):
+        """ Scalar multiply """
+        raise NotImplementedError
+
+    def kron(self, other):
+        """ Kron """
+        raise NotImplementedError
+
+    def kronpower(self, other):
+        """ Kron with Self Multiple Times """
+        raise NotImplementedError
+
+    def compose(self, other):
+        """ Operator Composition (Circuit-style, left to right) """
+        raise NotImplementedError
+
+    def dot(self, other):
+        """ Operator Composition (Linear algebra-style, right to left) """
+        raise NotImplementedError
+
+    def power(self, other):
+        """ Compose with Self Multiple Times """
+        raise NotImplementedError
+
+    def __str__(self):
+        """Overload str() """
+        raise NotImplementedError
+
+    def print_details(self):
+        """ print details """
+        raise NotImplementedError
