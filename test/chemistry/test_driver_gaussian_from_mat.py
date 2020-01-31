@@ -45,6 +45,7 @@ class TestDriverGaussianFromMat(QiskitChemistryTestCase, TestDriver):
         try:
             self.qmolecule = g16._parse_matrix_file(matfile)
         except QiskitChemistryError:
+            self.tearDown()
             self.skipTest('GAUSSIAN qcmatrixio not found')
 
     def tearDown(self):
