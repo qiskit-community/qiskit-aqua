@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -21,6 +21,7 @@ See https://arxiv.org/abs/1304.3061
 from typing import Optional, List, Callable
 import logging
 import functools
+from time import time
 
 import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit
@@ -333,6 +334,7 @@ class VQE(VQAlgorithm):
                 circuits.append(circuit)
             to_be_simulated_circuits = functools.reduce(lambda x, y: x + y, circuits)
 
+        start_time = time()
         result = self._quantum_instance.execute(to_be_simulated_circuits,
                                                 self._parameterized_circuits is not None)
 
@@ -341,12 +343,22 @@ class VQE(VQAlgorithm):
                 result=result, statevector_mode=self._quantum_instance.is_statevector,
                 use_simulator_snapshot_mode=self._use_simulator_snapshot_mode,
                 circuit_name_prefix=str(idx))
+            end_time = time()
             mean_energy.append(np.real(mean))
             std_energy.append(np.real(std))
             self._eval_count += 1
             if self._callback is not None:
                 self._callback(self._eval_count, parameter_sets[idx], np.real(mean), np.real(std))
-            logger.info('Energy evaluation %s returned %s', self._eval_count, np.real(mean))
+
+            # If there is more than one parameter set then the calculation of the
+            # evaluation time has to be done more carefully,
+            # therefore we do not calculate it
+            if len(parameter_sets) == 1:
+                logger.info('Energy evaluation %s returned %s - %.5f (ms)',
+                            self._eval_count, np.real(mean), (end_time - start_time) * 1000)
+            else:
+                logger.info('Energy evaluation %s returned %s',
+                            self._eval_count, np.real(mean))
 
         return mean_energy if len(mean_energy) > 1 else mean_energy[0]
 
