@@ -21,6 +21,7 @@ import numpy as np
 
 from qiskit.aqua.algorithms import ExactEigensolver
 from qiskit.aqua.operators import Z2Symmetries
+from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
 from qiskit.chemistry.algorithms import QEomEE
@@ -31,19 +32,22 @@ class TestEomEE(QiskitAquaTestCase):
     def setUp(self):
         """Setup."""
         super().setUp()
-        atom = 'H .0 .0 .7414; H .0 .0 .0'
-        pyscf_driver = PySCFDriver(atom=atom,
-                                   unit=UnitsType.ANGSTROM, charge=0, spin=0, basis='sto3g')
-        self.molecule = pyscf_driver.run()
-        core = Hamiltonian(transformation=TransformationType.FULL,
-                           qubit_mapping=QubitMappingType.PARITY,
-                           two_qubit_reduction=True,
-                           freeze_core=False,
-                           orbital_reduction=[])
-        qubit_op, _ = core.run(self.molecule)
-        exact_eigensolver = ExactEigensolver(qubit_op, k=2 ** qubit_op.num_qubits)
-        result = exact_eigensolver.run()
-        self.reference = result['eigvals'].real
+        try:
+            atom = 'H .0 .0 .7414; H .0 .0 .0'
+            pyscf_driver = PySCFDriver(atom=atom,
+                                       unit=UnitsType.ANGSTROM, charge=0, spin=0, basis='sto3g')
+            self.molecule = pyscf_driver.run()
+            core = Hamiltonian(transformation=TransformationType.FULL,
+                               qubit_mapping=QubitMappingType.PARITY,
+                               two_qubit_reduction=True,
+                               freeze_core=False,
+                               orbital_reduction=[])
+            qubit_op, _ = core.run(self.molecule)
+            exact_eigensolver = ExactEigensolver(qubit_op, k=2 ** qubit_op.num_qubits)
+            result = exact_eigensolver.run()
+            self.reference = result['eigvals'].real
+        except QiskitChemistryError:
+            self.skipTest('PYSCF driver does not appear to be installed')
 
     def test_h2_four_qubits(self):
         """Test H2 with jordan wigner."""
