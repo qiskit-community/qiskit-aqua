@@ -68,14 +68,20 @@ stage_dependencies: &stage_dependencies
         sudo apt-get -y update
         sudo apt-get -y install g++-7
         sudo apt-get -y install libopenblas-dev
-        # Download github Qiskit Aer
-        wget https://codeload.github.com/Qiskit/qiskit-aer/zip/$DEPENDENCY_BRANCH -O /tmp/qiskit-aer.zip
-        unzip /tmp/qiskit-aer.zip -d /tmp/
-        # Install Qiskit Aer requirements.
-        pip install -U -r /tmp/qiskit-aer-$DEPENDENCY_BRANCH/requirements-dev.txt --progress-bar off
-        # build Qiskit Aer
+        # Clone Qiskit Aer
+        git clone --recurse-submodules https://github.com/Qiskit/qiskit-aer.git /tmp/qiskit-aer-$DEPENDENCY_BRANCH
         cd /tmp/qiskit-aer-$DEPENDENCY_BRANCH
-        python setup.py bdist_wheel -- -DCMAKE_CXX_COMPILER=g++-7 -- -j4
+        git checkout $DEPENDENCY_BRANCH
+        # Install Qiskit Aer requirements.
+        pip install -U -r requirements-dev.txt --progress-bar off
+        # Install Thrust headers
+        pushd src/third-party/headers
+        git clone --depth 1 --branch 1.9.5 https://github.com/thrust/thrust.git thrust
+        popd
+        # Move thrust headers into build path
+        cp -r src/third-party/headers/thrust/thrust src/thrust
+        # Build Qiskit Aer with Thrust OpenMP CPU backend
+        python setup.py bdist_wheel -- -DCMAKE_CXX_COMPILER=g++-7 -DAER_THRUST_BACKEND=OMP -- -j4
         pip install dist/qiskit_aer*whl
         # back to current repo directory
         cd $TRAVIS_BUILD_DIR
