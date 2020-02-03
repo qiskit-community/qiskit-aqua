@@ -64,5 +64,3 @@ class TestOpPrimitive(QiskitAquaTestCase):
         # from qiskit import BasicAer, QuantumCircuit, execute
         # unitary = execute(qc, BasicAer.get_backend('unitary_simulator')).result().get_unitary()
         # np.testing.assert_array_almost_equal(new_op.primitive.to_matrix(), unitary)
-
-

@@ -72,12 +72,13 @@ class OpPrimitive(OperatorBase):
     # TODO change to *other to efficiently handle lists?
     def add(self, other):
         """ Addition """
-        try:
-            if isinstance(self.primitive, type(other.primitive)) and self.primitive == other.primitive:
-                return OpPrimitive(self.primitive, coeff=self.coeff + other.coeff)
-            else:
-                return self.primitive.add(other.primitive)
-        except(NotImplementedError):
+        if isinstance(self.primitive, type(other.primitive)) and self.primitive == other.primitive:
+            return OpPrimitive(self.primitive, coeff=self.coeff + other.coeff)
+        # Covers MatrixOperator, custom,
+        elif isinstance(self.primitive, type(other.primitive)) and hasattr(self.primitive, 'add')
+            return self.primitive.add(other.primitive)
+        # True for Paulis and Circuits
+        else:
             return OpSum([self.primitive, other.primitive])
 
     def neg(self):
@@ -194,9 +195,46 @@ class OpPrimitive(OperatorBase):
             temp = temp.compose(self)
         return temp
 
+    def to_matrix(self, massive=False):
+        """ Return numpy matrix of operator, warn if more than 16 qubits to force the user to set massive=True if
+        they want such a large matrix. Generally big methods like this should require the use of a converter,
+        but in this case a convenience method for quick hacking and access to classical tools is appropriate. """
+
+        if self.num_qubits > 16 and not massive:
+            # TODO figure out sparse matrices?
+            raise ValueError('to_matrix will return an exponentially large matrix, in this case {0}x{0} elements.'
+                             ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
+
+        # Pauli
+        if isinstance(self.primitive, Pauli):
+            return self.primitive.to_matrix() * self.coeff
+
+        # Matrix
+        elif isinstance(self.primitive, MatrixOperator):
+            return self.primitive.data * self.coeff
+
+        # Both Instructions/Circuits
+        elif isinstance(self.primitive, Instruction):
+            qc = QuantumCircuit(self.primitive.num_qubits)
+            qc.append(self.primitive)
+            from qiskit import BasicAer, QuantumCircuit, execute
+            unitary = execute(qc, BasicAer.get_backend('unitary_simulator')).result().get_unitary()
+            return unitary * self.coeff
+
+        # User custom matrix-able primitive
+        elif hasattr(self.primitive, 'to_matrix'):
+            return self.primitive.to_matrix() * self.coeff
+
+        else:
+            raise NotImplementedError
+
     def __str__(self):
         """Overload str() """
-        return str(self.primitive)
+        return "{} * {}".format(self.coeff, str(self.primitive))
+
+    def __repr__(self):
+        """Overload str() """
+        return "OpPrimitive({}, coeff={}".format(repr(self.primitive), self.coeff)
 
     def print_details(self):
         """ print details """
