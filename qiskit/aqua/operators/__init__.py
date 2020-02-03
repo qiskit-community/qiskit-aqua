@@ -51,6 +51,8 @@ Operator support
     Z2Symmetries
 
 """
+from qiskit.quantum_info import Pauli
+from qiskit.extensions.standard import CnotGate, SGate, TGate, HGate
 
 from .common import (evolution_instruction, suzuki_expansion_slice_pauli_list, pauli_measurement,
                      measure_pauli_z, covariance, row_echelon_F2,
@@ -60,6 +62,19 @@ from .base_operator import BaseOperator
 from .weighted_pauli_operator import WeightedPauliOperator, Z2Symmetries
 from .tpb_grouped_weighted_pauli_operator import TPBGroupedWeightedPauliOperator
 from .matrix_operator import MatrixOperator
+from .op_primitive import OpPrimitive
+
+# Paulis
+X = OpPrimitive(Pauli.from_label('X'))
+Y = OpPrimitive(Pauli.from_label('Y'), coeff=1.j)
+Z = OpPrimitive(Pauli.from_label('Z'))
+I = OpPrimitive(Pauli.from_label('I'))
+
+# Clifford+T
+CX = OpPrimitive(CnotGate())
+S = OpPrimitive(SGate())
+H = OpPrimitive(HGate())
+T = OpPrimitive(TGate())
 
 __all__ = [
     'evolution_instruction',

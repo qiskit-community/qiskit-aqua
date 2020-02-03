@@ -15,12 +15,11 @@
 """ Test OpSum """
 
 import unittest
-import itertools
-import os
 from test.aqua import QiskitAquaTestCase
+from qiskit.quantum_info.operators import Operator, Pauli
+
 import numpy as np
-from parameterized import parameterized
-from qiskit.quantum_info import Pauli
+from qiskit.aqua.operators import X, Y, Z, I
 
 
 class TestSingletons(QiskitAquaTestCase):
@@ -28,4 +27,34 @@ class TestSingletons(QiskitAquaTestCase):
 
     def test_paulis(self):
         """ from to file test """
-        from qiskit.aqua.operators import X, Y, Z, I
+        newop = X^Y^Z^I
+        self.assertEqual(newop.primitive, Pauli(label='XYZI'))
+
+        # Check immutability
+        self.assertEqual(X.primitive, Pauli(label='X'))
+        self.assertEqual(Y.primitive, Pauli(label='Y'))
+        self.assertEqual(Z.primitive, Pauli(label='Z'))
+        self.assertEqual(I.primitive, Pauli(label='I'))
+
+    def test_io_consistency(self):
+        new_op = X^Y^I
+        label = "XYI"
+        # label = new_op.primitive.to_label()
+        self.assertEqual(str(new_op), label)
+        np.testing.assert_array_almost_equal(new_op.primitive.to_matrix(), Operator.from_label(label).data)
+        self.assertEqual(new_op.primitive, Pauli(label=label))
+
+        x_mat = X.primitive.to_matrix()
+        y_mat = Y.primitive.to_matrix()
+        i_mat = np.eye(2, 2)
+        np.testing.assert_array_almost_equal(new_op.primitive.to_matrix(), np.kron(np.kron(x_mat, y_mat), i_mat))
+
+        # TODO make sure this works given endianness mayhem
+        # qc = QuantumCircuit(3)
+        # qc.x(2)
+        # qc.y(1)
+        # from qiskit import BasicAer, QuantumCircuit, execute
+        # unitary = execute(qc, BasicAer.get_backend('unitary_simulator')).result().get_unitary()
+        # np.testing.assert_array_almost_equal(new_op.primitive.to_matrix(), unitary)
+
+

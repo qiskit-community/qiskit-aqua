@@ -16,8 +16,9 @@
 
 import logging
 import numpy as np
+import copy
 
-from qiskit import QuantumCircuit, Instruction
+from qiskit.circuit import QuantumCircuit, Instruction
 from qiskit.quantum_info import Pauli, Operator
 
 from .operator_base import OperatorBase
@@ -40,6 +41,7 @@ class OpPrimitive(OperatorBase):
             primtive (Gate, Pauli, [[complex]], np.ndarray, QuantumCircuit, Instruction): The operator primitive being
             wrapped.
             name (str, optional): the name of operator.
+            coeff (float, complex): A coefficient multiplying the primitive
         """
         if isinstance(primitive, QuantumCircuit):
             primitive = primitive.to_instruction()
@@ -85,20 +87,28 @@ class OpPrimitive(OperatorBase):
 
     # TODO change to *other to handle lists?
     def kron(self, other):
-        """ Kron """
+        """ Kron
+        Note: You must be conscious of Qiskit's big-endian bit printing convention. Meaning, X.kron(Y)
+        produces an X on qubit 0 and an Y on qubit 1, or X⨂Y, but would produce a QuantumCircuit which looks like
+        -[Y]-
+        -[X]-
+        Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
+        """
         # TODO accept primitives in addition to OpPrimitive?
         try:
             if not isinstance(self.primitive, type(other.primitive)):
                 return OpKron([self.primitive, other.primitive])
             elif isinstance(self.primitive, Pauli):
-                return OpPrimitive(self.primitive.kron(other.primitive), coeff=self.coeff * other.coeff)
+                # TODO change Pauli kron in Terra to have optional inplace and
+                op_copy = Pauli(x=other.primitive.x, z=other.primitive.z)
+                return OpPrimitive(op_copy.kron(self.primitive), coeff=self.coeff * other.coeff)
                 # TODO double check coeffs logic for paulis
             elif isinstance(self.primitive, Operator):
                 return OpPrimitive(self.primitive.tensor(other.primitive), coeff=self.coeff * other.coeff)
             elif isinstance(self.primitive, Instruction):
-                new_qc = QuantumCircuit(inst1.num_qubits+inst2.num_qubits)
-                new_qc.append(inst1, new_qc.qubits[0:inst1.num_qubits])
-                new_qc.append(inst2, new_qc.qubits[inst1.num_qubits:])
+                new_qc = QuantumCircuit(self.primitive.num_qubits+other.primitive.num_qubits)
+                new_qc.append(self.primitive, new_qc.qubits[0:self.primitive.num_qubits])
+                new_qc.append(other.primitive, new_qc.qubits[other.primitive.num_qubits:])
                 # TODO fix because converting to dag just to append is nuts
                 return OpPrimitive(new_qc.decompose().to_instruction(), coeff=self.coeff * other.coeff)
             else:
@@ -134,9 +144,3 @@ class OpPrimitive(OperatorBase):
     def print_details(self):
         """ print details """
         raise NotImplementedError
-
-
-X = OpPrimitive(Pauli.from_label('X'))
-Y = OpPrimitive(Pauli.from_label('Y'))
-Z = OpPrimitive(Pauli.from_label('Z'))
-I = OpPrimitive(Pauli.from_label('I'))
