@@ -42,6 +42,8 @@ class TestOpPrimitive(QiskitAquaTestCase):
         self.assertEqual(Z.primitive, Pauli(label='Z'))
         self.assertEqual(I.primitive, Pauli(label='I'))
 
+        # TODO Check coeffs
+
     def test_io_consistency(self):
         new_op = X^Y^I
         label = "XYI"

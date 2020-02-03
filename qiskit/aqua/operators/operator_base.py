@@ -111,17 +111,13 @@ class OperatorBase(ABC):
 
     @abstractmethod
     def compose(self, other):
-        """ Operator Composition (Circuit-style, left to right) """
+        """ Operator Composition (Linear Algebra-style, right-to-left) """
         raise NotImplementedError
 
-    def __rmatmul__(self, other):
-        """ Overload @ for compose"""
-        return self.dot(other)
-
-    @abstractmethod
-    def dot(self, other):
-        """ Operator Composition (Linear algebra-style, right to left) """
-        raise NotImplementedError
+    # TODO this is fun, but figure out if it's insane
+    def __call__(self, other):
+        """ Overload A(B) for compose"""
+        return self.compose(other)
 
     @abstractmethod
     def power(self, other):
