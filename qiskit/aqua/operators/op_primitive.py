@@ -16,7 +16,6 @@
 
 import logging
 import numpy as np
-import copy
 
 from qiskit import QuantumCircuit, Instruction
 from qiskit.quantum_info import Pauli, Operator
@@ -28,7 +27,12 @@ logger = logging.getLogger(__name__)
 
 
 class OpPrimitive(OperatorBase):
-    """ Class for Wrapping Operator Primitives """
+    """ Class for Wrapping Operator Primitives
+
+    Note that all mathematical methods are not in-place, meaning that they return a new object, but the underlying
+    primitives are not copied.
+
+    """
 
     def __init__(self, primitive, name=None, coeff=1.0):
         """
@@ -53,7 +57,7 @@ class OpPrimitive(OperatorBase):
     def coeff(self):
         return self._coeff
 
-    def add(self, other, inplace=True):
+    def add(self, other):
         """ Addition """
         if self.equals(other):
             return OpPrimitive(self.primitive, coeff=self.coeff + other.coeff)
@@ -66,6 +70,7 @@ class OpPrimitive(OperatorBase):
         """ Negate """
         return self.mul(-1.0)
 
+    # TODO change to *other to handle lists?
     def equals(self, other):
         """ Evaluate Equality """
         if not isinstance(self.primitive, type(other.primitive)) \

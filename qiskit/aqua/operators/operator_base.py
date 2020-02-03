@@ -34,32 +34,24 @@ class OperatorBase(ABC):
 
     def __add__(self, other):
         """ Overload + operation """
-        return self.add(other, inplace=True)
-
-    def __iadd__(self, other):
-        """ Overload += operation """
-        self.add(other, inplace=False)
+        return self.add(other)
 
     def __radd__(self, other):
         """ Overload right + operation """
-        return self.add(other, inplace=True)
+        return self.add(other)
 
     @abstractmethod
-    def add(self, other, inplace=True):
+    def add(self, other):
         """ Addition """
         raise NotImplementedError
 
     def __sub__(self, other):
         """ Overload + operation """
-        return self.add(-other, inplace=False)
-
-    def __isub__(self, other):
-        """ Overload += operation """
-        self.add(-other, inplace=True)
+        return self.add(-other)
 
     def __rsub__(self, other):
         """ Overload right + operation """
-        return self.neg().add(other, inplace=False)
+        return self.neg().add(other)
 
 # Negation
 
