@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -17,31 +17,28 @@
 import numpy as np
 
 from qiskit.aqua.utils import CircuitFactory
-from qiskit.aqua.circuits.gates import cry  # pylint: disable=unused-import
 
 
 class LinearRotation(CircuitFactory):
-    """
+    r"""
     Linearly-controlled X, Y or Z rotation.
-    For a register of state qubits |x> and a target qubit |0> this operator acts as:
+    For a register of state qubits \|x> and a target qubit \|0> this operator acts as:
 
-        |x>|0> --> |x>( cos(slope * x + offset)|0> + sin(slope * x + offset)|1> )
+        \|x>\|0> --> \|x>( cos(slope * x + offset)\|0> + sin(slope * x + offset)\|1> )
 
     """
 
     def __init__(self, slope, offset, num_state_qubits, basis='Y', i_state=None, i_target=None):
         """
-        Constructor.
-
-        Construct linear rotation circuit factory
         Args:
             slope (float): slope of the controlled rotation
             offset (float): offset of the controlled rotation
             num_state_qubits (int): number of qubits representing the state
             basis (str): type of Pauli rotation ('X', 'Y', 'Z')
             i_state (Optional(Union(list, numpy.ndarray))): indices of the state qubits
-                    (least significant to most significant)
+                (least significant to most significant)
             i_target (Optional(int)): index of target qubit
+
         Raises:
             ValueError: invalid input
         """

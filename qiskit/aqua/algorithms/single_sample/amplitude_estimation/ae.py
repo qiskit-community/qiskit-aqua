@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -11,22 +11,22 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""
-The Amplitude Estimation Algorithm.
-"""
+"""The Quantum Phase Estimation-based Amplitude Estimation algorithm."""
 
+from typing import Optional, Union, List, Tuple
 import logging
 from collections import OrderedDict
 import numpy as np
 from scipy.stats import chi2, norm
 from scipy.optimize import bisect
 
+from qiskit import QuantumCircuit
 from qiskit.aqua import AquaError
-from qiskit.aqua import Pluggable, PluggableType, get_pluggable_class
+from qiskit.aqua.utils import CircuitFactory
 from qiskit.aqua.circuits import PhaseEstimationCircuit
-from qiskit.aqua.components.iqfts import Standard
-
-from .ae_base import AmplitudeEstimationBase
+from qiskit.aqua.components.iqfts import IQFT, Standard
+from qiskit.aqua.utils.validation import validate_min
+from .ae_algorithm import AmplitudeEstimationAlgorithm
 from .ae_utils import pdf_a, derivative_log_pdf_a, bisect_max
 
 logger = logging.getLogger(__name__)
@@ -34,60 +34,39 @@ logger = logging.getLogger(__name__)
 # pylint: disable=invalid-name
 
 
-class AmplitudeEstimation(AmplitudeEstimationBase):
-    """
-    The Amplitude Estimation algorithm.
+class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
+    r"""The Quantum Phase Estimation-based Amplitude Estimation algorithm.
+
+    This class implements the original Quantum Amplitude Estimation (QAE) algorithm, introduced by
+    https://arxiv.org/abs/quant-ph/0005055. This (original) version uses quantum phase
+    estimation along with a set of m ancilla qubits to find an estimate, that is restricted
+    to the grid
+
+        \{sin^2(\pi  y / 2^m) : y = 0, ..., 2^{m-1}\}.
+
+    Using a maximum likelihood post processing, this grid constraint can be circumvented.
+    This improved estimator is implemented as well, see https://arxiv.org/abs/1912.05559 Appendix A
+    for more detail.
     """
 
-    CONFIGURATION = {
-        'name': 'AmplitudeEstimation',
-        'description': 'Amplitude Estimation Algorithm',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'AmplitudeEstimation_schema',
-            'type': 'object',
-            'properties': {
-                'num_eval_qubits': {
-                    'type': 'integer',
-                    'default': 5,
-                    'minimum': 1
-                }
-            },
-            'additionalProperties': False
-        },
-        'problems': ['uncertainty'],
-        'depends': [
-            {
-                'pluggable_type': 'uncertainty_problem',
-                'default': {
-                    'name': 'EuropeanCallDelta'
-                }
-            },
-            {
-                'pluggable_type': 'iqft',
-                'default': {
-                    'name': 'STANDARD',
-                }
-            },
-        ],
-    }
-
-    def __init__(self, num_eval_qubits, a_factory=None,
-                 i_objective=None, q_factory=None, iqft=None):
-        """
-        Constructor.
+    def __init__(self, num_eval_qubits: int,
+                 a_factory: Optional[CircuitFactory] = None,
+                 q_factory: Optional[CircuitFactory] = None,
+                 i_objective: Optional[int] = None,
+                 iqft: Optional[IQFT] = None) -> None:
+        r"""Initializer.
 
         Args:
-            num_eval_qubits (int): number of evaluation qubits
-            a_factory (CircuitFactory): the CircuitFactory subclass object representing
-                                        the problem unitary
-            i_objective (int): i objective
-            q_factory (CircuitFactory): the CircuitFactory subclass object representing an
-                                        amplitude estimation sample (based on a_factory)
-            iqft (IQFT): the Inverse Quantum Fourier Transform pluggable component,
-                            defaults to using a standard iqft when None
+            num_eval_qubits: Number of evaluation qubits, has a min. value of 1.
+            a_factory: The CircuitFactory subclass object representing the problem unitary.
+            q_factory: The CircuitFactory subclass object representing an amplitude estimation
+                sample (based on a_factory).
+            i_objective: The index of the objective qubit, i.e. the qubit marking 'good' solutions
+                with the state \|1> and 'bad' solutions with the state \|0>.
+            iqft: the Inverse Quantum Fourier Transform component, defaults to using a standard IQFT
+                when None
         """
-        self.validate(locals())
+        validate_min('num_eval_qubits', num_eval_qubits, 1)
         super().__init__(a_factory, q_factory, i_objective)
 
         # get parameters
@@ -101,60 +80,29 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
         self._circuit = None
         self._ret = {}
 
-    @classmethod
-    def init_params(cls, params, algo_input):
-        """
-        Initialize via parameters dictionary and algorithm input instance
-        Args:
-            params (dict): parameters dictionary
-            algo_input (AlgorithmInput): Input instance
-        Returns:
-            AmplitudeEstimation: instance of this class
-        Raises:
-            AquaError: Input instance not supported
-        """
-        if algo_input is not None:
-            raise AquaError('Input instance not supported.')
-
-        ae_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
-        num_eval_qubits = ae_params.get('num_eval_qubits')
-
-        # Set up uncertainty problem. The params can include an uncertainty model
-        # type dependent on the uncertainty problem and is this its responsibility
-        # to create for itself from the complete params set that is passed to it.
-        uncertainty_problem_params = params.get(
-            Pluggable.SECTION_KEY_UNCERTAINTY_PROBLEM)
-        uncertainty_problem = get_pluggable_class(
-            PluggableType.UNCERTAINTY_PROBLEM,
-            uncertainty_problem_params['name']).init_params(params)
-
-        # Set up iqft, we need to add num qubits to params which is our num_ancillae bits here
-        iqft_params = params.get(Pluggable.SECTION_KEY_IQFT)
-        iqft_params['num_qubits'] = num_eval_qubits
-        iqft = get_pluggable_class(
-            PluggableType.IQFT, iqft_params['name']).init_params(params)
-
-        return cls(num_eval_qubits, uncertainty_problem, q_factory=None, iqft=iqft)
-
     @property
-    def _num_qubits(self):
-        self.check_factories()  # ensure that A/Q factories are set
+    def _num_qubits(self) -> int:
+        """Return the number of qubits needed in the circuit.
+
+        Returns:
+            The total number of qubits.
+        """
+        if self.a_factory is None:  # if A factory is not set, no qubits are specified
+            return 0
 
         num_ancillas = self.q_factory.required_ancillas_controlled()
         num_qubits = self.a_factory.num_target_qubits + self._m + num_ancillas
 
         return num_qubits
 
-    def construct_circuit(self, measurement=False):
-        """
-        Construct the Amplitude Estimation quantum circuit.
+    def construct_circuit(self, measurement: bool = False) -> QuantumCircuit:
+        """Construct the Amplitude Estimation quantum circuit.
 
         Args:
-            measurement (bool): Boolean flag to indicate if measurement
-                should be included in the circuit.
+            measurement: Boolean flag to indicate if measurements should be included in the circuit.
 
         Returns:
-            QuantumCircuit: the QuantumCircuit object for the constructed circuit
+            The QuantumCircuit object for the constructed circuit.
         """
         pec = PhaseEstimationCircuit(
             iqft=self._iqft, num_ancillae=self._m,
@@ -165,7 +113,21 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
         self._circuit = pec.construct_circuit(measurement=measurement)
         return self._circuit
 
-    def _evaluate_statevector_results(self, probabilities):
+    def _evaluate_statevector_results(self, probabilities: Union[List[float], np.ndarray]
+                                      ) -> Tuple[OrderedDict, OrderedDict]:
+        """Evaluate the results from statevector simulation.
+
+        Given the probabilities from statevector simulation of the QAE circuit, compute the
+        probabilities that the measurements y/gridpoints a are the best estimate.
+
+        Args:
+            probabilities: The probabilities obtained from the statevector simulation,
+                i.e. real(statevector * statevector.conj())[0]
+
+        Returns:
+            Dictionaries containing the a gridpoints with respective probabilities and
+                y measurements with respective probabilities, in this order.
+        """
         # map measured results to estimates
         y_probabilities = OrderedDict()
         for i, probability in enumerate(probabilities):
@@ -177,16 +139,27 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
         for y, probability in y_probabilities.items():
             if y >= int(self._M / 2):
                 y = self._M - y
+            # due to the finite accuracy of the sine, we round the result to 7 decimals
             a = np.round(np.power(np.sin(y * np.pi / 2 ** self._m), 2),
                          decimals=7)
             a_probabilities[a] = a_probabilities.get(a, 0) + probability
 
         return a_probabilities, y_probabilities
 
-    def _compute_fisher_information(self, observed=False):
+    def _compute_fisher_information(self, observed: bool = False) -> float:
+        """Computes the Fisher information for the output of the previous run.
+
+        Args:
+            observed: If True, the observed Fisher information is returned, otherwise
+                the expected Fisher information.
+
+        Returns:
+            The Fisher information.
+        """
         fisher_information = None
         mlv = self._ret['ml_value']  # MLE in [0,1]
         m = self._m
+
         if observed:
             ai = np.asarray(self._ret['values'])
             pi = np.asarray(self._ret['probabilities'])
@@ -203,25 +176,54 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
 
         return fisher_information
 
-    def _fisher_ci(self, alpha, observed=False):
+    def _fisher_confint(self, alpha: float, observed: bool = False) -> List[float]:
+        """Compute the Fisher information confidence interval for the MLE of the previous run.
+
+        Args:
+            alpha: Specifies the (1 - alpha) confidence level (0 < alpha < 1).
+            observed: If True, the observed Fisher information is used to construct the
+                confidence interval, otherwise the expected Fisher information.
+
+        Returns:
+            The Fisher information confidence interval.
+        """
         shots = self._ret['shots']
         mle = self._ret['ml_value']
 
+        # approximate the standard deviation of the MLE and construct the confidence interval
         std = np.sqrt(shots * self._compute_fisher_information(observed))
         ci = mle + norm.ppf(1 - alpha / 2) / std * np.array([-1, 1])
 
+        # transform the confidence interval from [0, 1] to the target interval
         return [self.a_factory.value_to_estimation(bound) for bound in ci]
 
-    def _likelihood_ratio_ci(self, alpha):
+    def _likelihood_ratio_confint(self, alpha: float) -> List[float]:
+        """Compute the likelihood ratio confidence interval for the MLE of the previous run.
+
+        Args:
+            alpha: Specifies the (1 - alpha) confidence level (0 < alpha < 1).
+
+        Returns:
+            The likelihood ratio confidence interval.
+        """
         # Compute the two intervals in which we the look for values above
         # the likelihood ratio: the two bubbles next to the QAE estimate
         M = 2**self._m
         qae = self._ret['value']
-        y = M * np.arcsin(np.sqrt(qae)) / np.pi
-        left_of_qae = np.sin(np.pi * (y - 1) / M)**2
-        right_of_qae = np.sin(np.pi * (y + 1) / M)**2
 
-        bubbles = [left_of_qae, qae, right_of_qae]
+        y = int(np.round(M * np.arcsin(np.sqrt(qae)) / np.pi))
+        if y == 0:
+            right_of_qae = np.sin(np.pi * (y + 1) / M)**2
+            bubbles = [qae, right_of_qae]
+
+        elif y == int(M / 2):  # remember, M = 2^m is a power of 2
+            left_of_qae = np.sin(np.pi * (y - 1) / M)**2
+            bubbles = [left_of_qae, qae]
+
+        else:
+            left_of_qae = np.sin(np.pi * (y - 1) / M)**2
+            right_of_qae = np.sin(np.pi * (y + 1) / M)**2
+            bubbles = [left_of_qae, qae, right_of_qae]
 
         # likelihood function
         ai = np.asarray(self._ret['values'])
@@ -241,6 +243,9 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
             return loglikelihood(x) - thres
 
         # Store the boundaries of the confidence interval
+        # It's valid to start off with the zero-width confidence interval, since the maximum
+        # of the likelihood function is guaranteed to be over the threshold, and if alpha = 0
+        # that's the valid interval
         lower = upper = self._ret['ml_value']
 
         # Check the two intervals/bubbles: check if they surpass the
@@ -263,33 +268,48 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
         ci = [lower, upper]
         return [self.a_factory.value_to_estimation(bound) for bound in ci]
 
-    def confidence_interval(self, alpha, kind='likelihood_ratio'):
-        """ confidence interval """
+    def confidence_interval(self, alpha: float, kind: str = 'likelihood_ratio') -> List[float]:
+        """Compute the (1 - alpha) confidence interval.
+
+        Args:
+            alpha: Confidence level: compute the (1 - alpha) confidence interval.
+            kind: The method to compute the confidence interval, can be 'fisher', 'observed_fisher'
+                or 'likelihood_ratio' (default)
+
+        Returns:
+            The (1 - alpha) confidence interval of the specified kind.
+
+        Raises:
+            AquaError: If 'mle' is not in self._ret.keys() (i.e. `run` was not called yet).
+            NotImplementedError: If the confidence interval method `kind` is not implemented.
+        """
         # check if AE did run already
         if 'mle' not in self._ret.keys():
             raise AquaError('Call run() first!')
 
         # if statevector simulator the estimate is exact
         if self._quantum_instance.is_statevector:
-            return 2 * [self._ret['estimation']]
+            return 2 * [self._ret['mle']]
 
         if kind in ['likelihood_ratio', 'lr']:
-            return self._likelihood_ratio_ci(alpha)
+            return self._likelihood_ratio_confint(alpha)
 
         if kind in ['fisher', 'fi']:
-            return self._fisher_ci(alpha, observed=False)
+            return self._fisher_confint(alpha, observed=False)
 
         if kind in ['observed_fisher', 'observed_information', 'oi']:
-            return self._fisher_ci(alpha, observed=True)
+            return self._fisher_confint(alpha, observed=True)
 
         raise NotImplementedError('CI `{}` is not implemented.'.format(kind))
 
-    def _run_mle(self):
-        """
-        @brief Compute the Maximum Likelihood Estimator (MLE)
-        @return The MLE for the previous AE run
-        @note Before calling this method, call the method `run` of the
-              AmplitudeEstimation instance
+    def _run_mle(self) -> None:
+        """Compute the Maximum Likelihood Estimator (MLE).
+
+        Returns:
+            The MLE for the previous AE run.
+
+        Note:
+            Before calling this method, call the method `run` of the AmplitudeEstimation instance.
         """
         M = self._M
         qae = self._ret['value']
@@ -310,12 +330,11 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
         # Compute the two intervals in which are candidates for containing
         # the maximum of the log-likelihood function: the two bubbles next to
         # the QAE estimate
-        bubbles = None
         if y == 0:
             right_of_qae = np.sin(np.pi * (y + 1) / M)**2
             bubbles = [qae, right_of_qae]
 
-        elif y == int(M / 2):
+        elif y == int(M / 2):  # remember, M = 2^m is a power of 2
             left_of_qae = np.sin(np.pi * (y - 1) / M)**2
             bubbles = [left_of_qae, qae]
 
@@ -340,10 +359,10 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
         self._ret['ml_value'] = a_opt
         self._ret['mle'] = val_opt
 
-    def _run(self):
-        # check if A/Q operators have been set and set Q operator if
-        # it hasn't been set manually
-        self.check_factories()
+    def _run(self) -> dict:
+        # check if A factory has been set
+        if self.a_factory is None:
+            raise AquaError("a_factory must be set!")
 
         if self._quantum_instance.is_statevector:
             self.construct_circuit(measurement=False)
@@ -374,7 +393,8 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
             # construct probabilities
             y_probabilities = {}
             a_probabilities = {}
-            shots = sum(ret.get_counts().values())
+            shots = self._quantum_instance._run_config.shots
+
             for state, counts in ret.get_counts().items():
                 y = int(state.replace(' ', '')[:self._m][::-1], 2)
                 p = counts / shots
@@ -416,12 +436,15 @@ class AmplitudeEstimation(AmplitudeEstimationBase):
                 self._ret['estimation'] = est
                 self._ret['value'] = val
 
+        # count the number of Q-oracle calls
+        self._ret['num_oracle_queries'] = self._M - 1
+
         # get MLE
         self._run_mle()
 
         # get 95% confidence interval
         alpha = 0.05
-        kind = "likelihood_ratio"  # empirically the most precise kind
+        kind = 'likelihood_ratio'  # empirically the most precise kind
         self._ret['95%_confidence_interval'] = self.confidence_interval(alpha, kind)
 
         return self._ret

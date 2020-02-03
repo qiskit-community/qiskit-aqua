@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -16,14 +16,12 @@
 
 import unittest
 import os
-from test.aqua.common import QiskitAquaTestCase
-import warnings
+from test.aqua import QiskitAquaTestCase
 import numpy as np
 from parameterized import parameterized
 from qiskit import BasicAer
 
-from qiskit.aqua import run_algorithm, QuantumInstance, aqua_globals
-from qiskit.aqua.input import EnergyInput
+from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.aqua.components.variational_forms import RY, RYRZ
 from qiskit.aqua.components.optimizers import L_BFGS_B, COBYLA, SPSA, SLSQP
@@ -35,9 +33,6 @@ class TestVQE(QiskitAquaTestCase):
     """ Test VQE """
     def setUp(self):
         super().setUp()
-        warnings.filterwarnings("ignore", message=aqua_globals.CONFIG_DEPRECATION_MSG,
-                                category=DeprecationWarning)
-        # np.random.seed(50)
         self.seed = 50
         aqua_globals.random_seed = self.seed
         pauli_dict = {
@@ -50,20 +45,16 @@ class TestVQE(QiskitAquaTestCase):
         }
         self.qubit_op = WeightedPauliOperator.from_dict(pauli_dict)
 
-    def test_vqe_via_run_algorithm(self):
-        """ VQE Via Run Algorithm test """
-        coupling_map = [[0, 1]]
-        basis_gates = ['u1', 'u2', 'u3', 'cx', 'id']
-
-        params = {
-            'problem': {'random_seed': self.seed},
-            'algorithm': {'name': 'VQE'},
-            'backend': {'name': 'statevector_simulator',
-                        'provider': 'qiskit.BasicAer',
-                        'coupling_map': coupling_map,
-                        'basis_gates': basis_gates},
-        }
-        result = run_algorithm(params, EnergyInput(self.qubit_op))
+    def test_vqe(self):
+        """ VQE test """
+        result = VQE(self.qubit_op,
+                     RYRZ(self.qubit_op.num_qubits),
+                     L_BFGS_B()).run(
+                         QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                         basis_gates=['u1', 'u2', 'u3', 'cx', 'id'],
+                                         coupling_map=[[0, 1]],
+                                         seed_simulator=aqua_globals.random_seed,
+                                         seed_transpiler=aqua_globals.random_seed))
         self.assertAlmostEqual(result['energy'], -1.85727503)
         np.testing.assert_array_almost_equal(result['eigvals'], [-1.85727503], 5)
         ref_opt_params = [-0.58294401, -1.86141794, -1.97209632, -0.54796022,
@@ -162,12 +153,12 @@ class TestVQE(QiskitAquaTestCase):
     def test_vqe_callback(self):
         """ VQE Callback test """
         tmp_filename = 'vqe_callback_test.csv'
-        is_file_exist = os.path.exists(self._get_resource_path(tmp_filename))
+        is_file_exist = os.path.exists(self.get_resource_path(tmp_filename))
         if is_file_exist:
-            os.remove(self._get_resource_path(tmp_filename))
+            os.remove(self.get_resource_path(tmp_filename))
 
         def store_intermediate_result(eval_count, parameters, mean, std):
-            with open(self._get_resource_path(tmp_filename), 'a') as file:
+            with open(self.get_resource_path(tmp_filename), 'a') as file:
                 content = "{},{},{:.5f},{:.5f}".format(eval_count, parameters, mean, std)
                 print(content, file=file, flush=True)
 
@@ -185,7 +176,7 @@ class TestVQE(QiskitAquaTestCase):
                                            seed_simulator=50)
         algo.run(quantum_instance)
 
-        is_file_exist = os.path.exists(self._get_resource_path(tmp_filename))
+        is_file_exist = os.path.exists(self.get_resource_path(tmp_filename))
         self.assertTrue(is_file_exist, "Does not store content successfully.")
 
         # check the content
@@ -200,7 +191,7 @@ class TestVQE(QiskitAquaTestCase):
                         '-0.82829', '0.01529']
                        ]
         try:
-            with open(self._get_resource_path(tmp_filename)) as file:
+            with open(self.get_resource_path(tmp_filename)) as file:
                 idx = 0
                 for record in file.readlines():
                     eval_count, parameters, mean, std = record.split(",")
@@ -211,7 +202,7 @@ class TestVQE(QiskitAquaTestCase):
                     idx += 1
         finally:
             if is_file_exist:
-                os.remove(self._get_resource_path(tmp_filename))
+                os.remove(self.get_resource_path(tmp_filename))
 
 
 if __name__ == '__main__':

@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,52 +12,55 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Automatically generate Ising Hamiltonians from general models of optimization problems.
+"""
+Automatically generate Ising Hamiltonians from general models of optimization problems.
 This program converts general models of optimization problems into Ising Hamiltonian.
 To write models of optimization problems, DOcplex (Python library for optimization problems)
 is used in the program.
 (https://cdn.rawgit.com/IBMDecisionOptimization/docplex-doc/master/docs/index.html)
 
 It supports models that consist of the following elements now.
+
 - Binary variables.
 - Linear or quadratic object function.
 - Equality constraints.
-  * Symbols in constrains have to be equal (==). Inequality constrains (e.g. x+y <= 5) are
-    not allowed.
 
+    - Symbols in constraints have to be equal (==).
+    - Inequality constraints (e.g. x+y <= 5) are not allowed.
 
 The following is an example of use.
----
-# Create an instance of a model and variables with DOcplex.
-mdl = Model(name='tsp')
-x = {(i,p): mdl.binary_var(name='x_{0}_{1}'.format(i,p)) for i in range(num_node)
-            for p in range(num_node)}
 
-# Object function
-tsp_func = mdl.sum(ins.w[i,j] * x[(i,p)] * x[(j,(p+1)%num_node)] for i in range(num_node)
-                        for j in range(num_node) for p in range(num_node))
-mdl.minimize(tsp_func)
+.. code-block:: python
 
-# Constrains
-for i in range(num_node):
-    mdl.add_constraint(mdl.sum(x[(i,p)] for p in range(num_node)) == 1)
-for p in range(num_node):
-    mdl.add_constraint(mdl.sum(x[(i,p)] for i in range(num_node)) == 1)
+    # Create an instance of a model and variables with DOcplex.
+    mdl = Model(name='tsp')
+    x = {(i,p): mdl.binary_var(name='x_{0}_{1}'.format(i,p)) for i in range(num_node)
+               for p in range(num_node)}
 
-# Call the method to convert the model into Ising Hamiltonian.
-qubitOp, offset = get_operator(mdl)
+    # Object function
+    tsp_func = mdl.sum(ins.w[i,j] * x[(i,p)] * x[(j,(p+1)%num_node)] for i in range(num_node)
+                            for j in range(num_node) for p in range(num_node))
+    mdl.minimize(tsp_func)
 
-# Calculate with the generated Ising Hamiltonian.
-ee = ExactEigensolver(qubitOp, k=1)
-result = ee.run()
-print('get_operator')
-print('tsp objective:', result['energy'] + offset)
----
+    # Constraints
+    for i in range(num_node):
+        mdl.add_constraint(mdl.sum(x[(i,p)] for p in range(num_node)) == 1)
+    for p in range(num_node):
+        mdl.add_constraint(mdl.sum(x[(i,p)] for i in range(num_node)) == 1)
+
+    # Call the method to convert the model into Ising Hamiltonian.
+    qubitOp, offset = get_operator(mdl)
+
+    # Calculate with the generated Ising Hamiltonian.
+    ee = ExactEigensolver(qubitOp, k=1)
+    result = ee.run()
+    print('get_operator')
+    print('tsp objective:', result['energy'] + offset)
+
 """
 
 import logging
 from math import fsum
-import warnings
 
 import numpy as np
 from docplex.mp.constants import ComparisonType
@@ -71,7 +74,8 @@ logger = logging.getLogger(__name__)
 
 
 def get_operator(mdl, auto_penalty=True, default_penalty=1e5):
-    """ Generate Ising Hamiltonian from a model of DOcplex.
+    """
+    Generate Ising Hamiltonian from a model of DOcplex.
 
     Args:
         mdl (docplex.mp.model.Model): A model of DOcplex for a optimization problem.
@@ -204,10 +208,12 @@ def get_operator(mdl, auto_penalty=True, default_penalty=1e5):
 
 
 def _validate_input_model(mdl):
-    """ Check whether an input model is valid. If not, raise an AquaError
+    """
+    Check whether an input model is valid. If not, raise an AquaError
 
     Args:
          mdl (docplex.mp.model.Model): A model of DOcplex for a optimization problem.
+
     Raises:
         AquaError: Unsupported input model
     """
@@ -235,7 +241,8 @@ def _validate_input_model(mdl):
 
 
 def _auto_define_penalty(mdl, default_penalty=1e5):
-    """ Automatically define the penalty coefficient.
+    """
+    Automatically define the penalty coefficient.
     This returns object function's (upper bound - lower bound + 1).
 
 
@@ -267,21 +274,3 @@ def _auto_define_penalty(mdl, default_penalty=1e5):
     penalties.extend(abs(i[1]) for i in mdl.get_objective_expr().iter_quads())
 
     return fsum(penalties)
-
-
-def sample_most_likely(state_vector):
-    """ sample most likely """
-    # pylint: disable=import-outside-toplevel
-    from .common import sample_most_likely as redirect_func
-    warnings.warn("sample_most_likely function has been moved to qiskit.optimization.ising.common, "
-                  "the method here will be removed after Aqua 0.7+",
-                  DeprecationWarning)
-    return redirect_func(state_vector=state_vector)
-
-
-def get_qubitops(mdl, auto_penalty=True, default_penalty=1e5):
-    """ get qubit ops """
-    warnings.warn("get_qubitops function has been changed to get_operator."
-                  " The method here will be removed after Aqua 0.7+",
-                  DeprecationWarning)
-    return get_operator(mdl, auto_penalty, default_penalty)

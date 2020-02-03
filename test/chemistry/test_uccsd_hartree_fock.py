@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -14,7 +14,7 @@
 
 """ Test of UCCSD and HartreeFock Aqua extensions """
 
-from test.chemistry.common import QiskitChemistryTestCase
+from test.chemistry import QiskitChemistryTestCase
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import VQE
@@ -30,23 +30,12 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
 
     def setUp(self):
         super().setUp()
-        self.config = {'driver': {'name': 'HDF5'},
-                       'hdf5': {'hdf5_input': self._get_resource_path('test_driver_hdf5.hdf5')},
-                       'operator': {'name': 'hamiltonian',
-                                    'qubit_mapping': 'parity',
-                                    'two_qubit_reduction': True},
-                       'algorithm': {'name': 'VQE'},
-                       'optimizer': {'name': 'SLSQP', 'maxiter': 100},
-                       'variational_form': {'name': 'UCCSD'},
-                       'initial_state': {'name': 'HartreeFock'},
-                       'backend': {'provider': 'qiskit.BasicAer', 'name': 'statevector_simulator'}}
         self.reference_energy = -1.1373060356951838
-        pass
 
     def test_uccsd_hf(self):
         """ uccsd hf test """
 
-        driver = HDF5Driver(self._get_resource_path('test_driver_hdf5.hdf5'))
+        driver = HDF5Driver(self.get_resource_path('test_driver_hdf5.hdf5'))
         qmolecule = driver.run()
         operator = Hamiltonian(qubit_mapping=QubitMappingType.PARITY,
                                two_qubit_reduction=True)

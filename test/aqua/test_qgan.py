@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -16,7 +16,7 @@
 """ Test QGAN """
 
 import unittest
-from test.aqua.common import QiskitAquaTestCase
+from test.aqua import QiskitAquaTestCase
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.aqua.components.uncertainty_models import (UniformDistribution,
                                                        UnivariateVariationalDistribution)
@@ -24,7 +24,7 @@ from qiskit.aqua.components.variational_forms import RY
 from qiskit.aqua.algorithms.adaptive.qgan.qgan import QGAN
 from qiskit.aqua import aqua_globals, QuantumInstance
 from qiskit.aqua.components.initial_states import Custom
-from qiskit.aqua.components.neural_networks import NumpyDiscriminator
+from qiskit.aqua.components.neural_networks import NumpyDiscriminator, PyTorchDiscriminator
 from qiskit import BasicAer
 
 
@@ -110,8 +110,6 @@ class TestQGAN(QiskitAquaTestCase):
     def test_qgan_training_run_algo_torch(self):
         """ qgan training run algo torch test """
         try:
-            # pylint: disable=import-outside-toplevel
-            from qiskit.aqua.components.neural_networks import ClassicalDiscriminator
             # Set number of qubits per data dimension as list of k qubit values[#q_0,...,#q_k-1]
             num_qubits = [2]
             # Batch size
@@ -123,7 +121,7 @@ class TestQGAN(QiskitAquaTestCase):
                          num_qubits,
                          batch_size,
                          num_epochs,
-                         discriminator=ClassicalDiscriminator(n_features=len(num_qubits)),
+                         discriminator=PyTorchDiscriminator(n_features=len(num_qubits)),
                          snapshot_dir=None)
             _qgan.seed = self.seed
             _qgan.set_generator()
@@ -137,7 +135,7 @@ class TestQGAN(QiskitAquaTestCase):
             self.assertAlmostEqual(trained_qasm['rel_entr'],
                                    trained_statevector['rel_entr'], delta=0.1)
         except Exception as ex:  # pylint: disable=broad-except
-            self.skipTest("Torch may not be installed: '{}'".format(str(ex)))
+            self.skipTest(str(ex))
 
     def test_qgan_training_run_algo_numpy(self):
         """ qgan training run algo numpy test """

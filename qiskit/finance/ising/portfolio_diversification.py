@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -13,8 +13,6 @@
 # that they have been altered from the originals.
 
 """ portfolio diversification """
-
-import warnings
 
 import numpy as np
 from qiskit.quantum_info import Pauli
@@ -246,11 +244,3 @@ def get_portfoliodiversification_value(rho, n, q, x_state):   # pylint: disable=
         return np.dot(np.around(x), np.dot(Q, np.around(x))) + np.dot(g, np.around(x)) + c
 
     return fun(x_state)
-
-
-def get_portfoliodiversification_qubitops(rho, n, q):  # pylint: disable=invalid-name
-    """ get portfolio diversification qubit ops """
-    warnings.warn("get_portfoliodiversification_qubitops function has been changed to get_operator"
-                  "the method here will be removed after Aqua 0.7+",
-                  DeprecationWarning)
-    return get_operator(rho, n, q)

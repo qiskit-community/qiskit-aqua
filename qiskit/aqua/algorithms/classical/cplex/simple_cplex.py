@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -20,8 +20,10 @@ from sys import stdout
 
 logger = logging.getLogger(__name__)
 
+_HAS_CPLEX = False
 try:
     from cplex import Cplex, SparsePair, SparseTriple
+    _HAS_CPLEX = True
 except ImportError:
     logger.info('CPLEX is not installed. See https://www.ibm.com/support/knowledgecenter/'
                 'SSSA5P_12.8.0/ilog.odms.studio.help/Optimization_Studio/topics/COS_home.html')
@@ -32,16 +34,16 @@ except ImportError:
 class SimpleCPLEX:
     """Simple Python Wrapper for CPLEX"""
     def __init__(self, cplex=None):
-        try:
-            if cplex:
-                self._model = Cplex(cplex._model)
-            else:
-                self._model = Cplex()
-        except NameError:
+        if not _HAS_CPLEX:
             raise NameError('CPLEX is not installed. '
                             'See https://www.ibm.com/support/knowledgecenter/'
                             'SSSA5P_12.8.0/ilog.odms.studio.help/Optimization_Studio/'
                             'topics/COS_home.html')
+
+        if cplex:
+            self._model = Cplex(cplex._model)
+        else:
+            self._model = Cplex()
 
         self._init_lin()
         # to avoid a variable with index 0

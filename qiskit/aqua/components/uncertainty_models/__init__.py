@@ -12,7 +12,54 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" uncertainty models packages """
+"""
+Uncertainty Models (:mod:`qiskit.aqua.components.uncertainty_models`)
+=====================================================================
+Uncertainty Models
+
+.. currentmodule:: qiskit.aqua.components.uncertainty_models
+
+Uncertainty Model Base Classes
+==============================
+:class:`UncertaintyModel` is the base class from which further
+base classes for univariate and multivariate distributions are
+derived
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   UncertaintyModel
+   UnivariateDistribution
+   MultivariateDistribution
+
+Univariate Distributions
+========================
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+    NormalDistribution
+    LogNormalDistribution
+    BernoulliDistribution
+    UniformDistribution
+    UnivariateVariationalDistribution
+
+Multivariate Distributions
+==========================
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+    MultivariateNormalDistribution
+    MultivariateLogNormalDistribution
+    MultivariateUniformDistribution
+    MultivariateVariationalDistribution
+    GaussianConditionalIndependenceModel
+
+"""
 
 from .uncertainty_model import UncertaintyModel
 from .univariate_distribution import UnivariateDistribution

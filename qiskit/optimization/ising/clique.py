@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -18,7 +18,6 @@ Deal with Gset format. See https://web.stanford.edu/~yyye/yyye/Gset/
 """
 
 import logging
-import warnings
 
 import numpy as np
 from qiskit.quantum_info import Pauli
@@ -30,30 +29,22 @@ logger = logging.getLogger(__name__)
 
 def get_operator(weight_matrix, K):  # pylint: disable=invalid-name
     r"""
-    Generate Hamiltonian for the clique
+    Generate Hamiltonian for the clique.
 
-    Args:
-        weight_matrix (numpy.ndarray) : adjacency matrix.
-        K (numpy.ndarray): K
+    The goals is can we find a complete graph of size K?
 
-    Returns:
-        tuple(WeightedPauliOperator, float): operator for the Hamiltonian and a
-        constant shift for the obj function.
+    To build the Hamiltonian the following logic is applied.
 
-    Goals:
-        can we find a complete graph of size K?
+    | Suppose Xv denotes whether v should appear in the clique (Xv=1 or 0)\n
+    | H = Ha + Hb\n
+    | Ha = (K-sum_{v}{Xv})\^2
+    | Hb = K(K−1)/2 - sum_{(u,v)\in E}{XuXv}
 
-    Hamiltonian:
-    suppose Xv denotes whether v should appear in the clique (Xv=1 or 0)
-    H = Ha + Hb
-    Ha = (K-sum_{v}{Xv})^2
-    Hb = K(K−1)/2 􏰏- sum_{(u,v)\in E}{XuXv}
+    | Besides, Xv = (Zv+1)/2
+    | By replacing Xv with Zv and simplifying it, we get what we want below.
 
-    Besides, Xv = (Zv+1)/2
-    By replacing Xv with Zv and simplifying it, we get what we want below.
+    Note: in practice, we use H = A\*Ha + Bb, where A is a large constant such as 1000.
 
-    Note: in practice, we use H = A*Ha + Bb,
-        where A is a large constant such as 1000.
     A is like a huge penality over the violation of Ha,
     which forces Ha to be 0, i.e., you have exact K vertices selected.
     Under this assumption, Hb = 0 starts to make sense,
@@ -61,7 +52,15 @@ def get_operator(weight_matrix, K):  # pylint: disable=invalid-name
     Note the lowest possible value of Hb is 0.
 
     Without the above assumption, Hb may be negative (say you select all).
-    In this case, one needs to use Hb^2 in the hamiltonian to minimize the difference.
+    In this case, one needs to use Hb\^2 in the hamiltonian to minimize the difference.
+
+    Args:
+        weight_matrix (numpy.ndarray) : adjacency matrix.
+        K (numpy.ndarray): K
+
+    Returns:
+        tuple(WeightedPauliOperator, float):
+            The operator for the Hamiltonian and a constant shift for the obj function.
     """
     # pylint: disable=invalid-name
     num_nodes = len(weight_matrix)
@@ -142,59 +141,3 @@ def get_graph_solution(x):
         numpy.ndarray: graph solution as binary numpy array.
     """
     return 1 - x
-
-
-def random_graph(n, weight_range=10, edge_prob=0.3, savefile=None, seed=None):
-    """ random graph """
-    # pylint: disable=import-outside-toplevel
-    from .common import random_graph as redirect_func
-    warnings.warn("random_graph function has been moved to "
-                  "qiskit.optimization.ising.common, "
-                  "the method here will be removed after Aqua 0.7+",
-                  DeprecationWarning)
-    return redirect_func(n=n, weight_range=weight_range, edge_prob=edge_prob,
-                         savefile=savefile, seed=seed)
-
-
-def parse_gset_format(filename):
-    """ parse gset format """
-    # pylint: disable=import-outside-toplevel
-    from .common import parse_gset_format as redirect_func
-    warnings.warn("parse_gset_format function has been moved to "
-                  "qiskit.optimization.ising.common, "
-                  "the method here will be removed after Aqua 0.7+",
-                  DeprecationWarning)
-    return redirect_func(filename)
-
-
-def sample_most_likely(n=None, state_vector=None):
-    """ sample most likely """
-    # pylint: disable=import-outside-toplevel
-    from .common import sample_most_likely as redirect_func
-    if n is not None:
-        warnings.warn("n argument is not need and it will be removed after Aqua 0.7+",
-                      DeprecationWarning)
-    warnings.warn("sample_most_likely function has been moved to "
-                  "qiskit.optimization.ising.common, "
-                  "the method here will be removed after Aqua 0.7+",
-                  DeprecationWarning)
-    return redirect_func(state_vector=state_vector)
-
-
-def get_gset_result(x):
-    """ get gset result """
-    # pylint: disable=import-outside-toplevel
-    from .common import get_gset_result as redirect_func
-    warnings.warn("get_gset_result function has been moved to "
-                  "qiskit.optimization.ising.common, "
-                  "the method here will be removed after Aqua 0.7+",
-                  DeprecationWarning)
-    return redirect_func(x)
-
-
-def get_clique_qubitops(weight_matrix, K):  # pylint: disable=invalid-name
-    """ get clique qubit ops """
-    warnings.warn("get_clique_qubitops function has been changed to get_operator"
-                  "the method here will be removed after Aqua 0.7+",
-                  DeprecationWarning)
-    return get_operator(weight_matrix, K)
