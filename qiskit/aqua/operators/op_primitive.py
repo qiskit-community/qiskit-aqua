@@ -18,8 +18,9 @@ import logging
 import numpy as np
 import copy
 
-from qiskit.circuit import QuantumCircuit, Instruction
-from qiskit.quantum_info import Pauli, Operator
+from qiskit.circuit import QuantumCircuit, Instruction, Gate
+from qiskit.quantum_info import Pauli
+from qiskit.quantum_info import Operator as MatrixOperator
 
 from .operator_base import OperatorBase
 from .op_sum import OpSum
@@ -35,22 +36,20 @@ class OpPrimitive(OperatorBase):
 
     """
 
-    def __init__(self, primitive, name=None, coeff=1.0):
+    def __init__(self, primitive, coeff=1.0):
         """
         Args:
             primtive (Gate, Pauli, [[complex]], np.ndarray, QuantumCircuit, Instruction): The operator primitive being
             wrapped.
-            name (str, optional): the name of operator.
             coeff (float, complex): A coefficient multiplying the primitive
         """
         if isinstance(primitive, QuantumCircuit):
             primitive = primitive.to_instruction()
         elif isinstance(primitive, (list, np.ndarray)):
-            primitive = Operator(primitive)
+            primitive = MatrixOperator(primitive)
             if not primitive.input_dims() == primitive.output_dims():
                 raise ValueError('Cannot handle non-square matrices yet.')
         self._primitive = primitive
-        self._name = name
         self._coeff = coeff
 
     @property
@@ -64,7 +63,7 @@ class OpPrimitive(OperatorBase):
     # TODO replace with proper alphabets later?
     @property
     def num_qubits(self):
-        if isinstance(self.primitive, Operator):
+        if isinstance(self.primitive, MatrixOperator):
             return self.primitive.input_dims()
         else:
             # Works for Pauli, Instruction, or user custom primitive
@@ -117,7 +116,7 @@ class OpPrimitive(OperatorBase):
             # TODO double check coeffs logic for paulis
 
         # Both Matrices
-        elif isinstance(self.primitive, Operator) and isinstance(other.primitive, Operator):
+        elif isinstance(self.primitive, MatrixOperator) and isinstance(other.primitive, MatrixOperator):
             return OpPrimitive(self.primitive.tensor(other.primitive), coeff=self.coeff * other.coeff)
 
         # Both Instructions/Circuits
@@ -146,47 +145,54 @@ class OpPrimitive(OperatorBase):
             temp = temp.kron(self)
         return temp
 
+    # TODO change to *other to efficiently handle lists?
     def compose(self, other):
         """ Operator Composition (Linear algebra-style, right-to-left)
 
         Note: You must be conscious of Quantum Circuit vs. Linear Algebra ordering conventions. Meaning, X.compose(Y)
         produces an X∘Y on qubit 0, but would produce a QuantumCircuit which looks like
         -[Y]-[X]-
-        Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
+        Because Terra prints circuits with the initial state at the left side of the circuit.
         """
         # TODO accept primitives directly in addition to OpPrimitive?
 
+        if not self.num_qubits == other.num_qubits:
+            raise ValueError('Composition is not defined over Operators of different dimension')
+
         # Both Paulis
         if isinstance(self.primitive, Pauli) and isinstance(other.primitive, Pauli):
-            # TODO change Pauli kron in Terra to have optional inplace
-            op_copy = Pauli(x=other.primitive.x, z=other.primitive.z)
-            return OpPrimitive(op_copy.kron(self.primitive), coeff=self.coeff * other.coeff)
+            return OpPrimitive(self.primitive * other.primitive, coeff=self.coeff * other.coeff)
             # TODO double check coeffs logic for paulis
 
         # Both Matrices
-        elif isinstance(self.primitive, Operator) and isinstance(other.primitive, Operator):
-            return OpPrimitive(self.primitive.tensor(other.primitive), coeff=self.coeff * other.coeff)
+        elif isinstance(self.primitive, MatrixOperator) and isinstance(other.primitive, MatrixOperator):
+            return OpPrimitive(self.primitive.compose(other.primitive, front=True), coeff=self.coeff * other.coeff)
 
         # Both Instructions/Circuits
         elif isinstance(self.primitive, Instruction) and isinstance(other.primitive, Instruction):
-            new_qc = QuantumCircuit(self.primitive.num_qubits+other.primitive.num_qubits)
-            new_qc.append(self.primitive, new_qc.qubits[0:self.primitive.num_qubits])
-            new_qc.append(other.primitive, new_qc.qubits[other.primitive.num_qubits:])
+            new_qc = QuantumCircuit(self.primitive.num_qubits)
+            new_qc.append(other.primitive)
+            new_qc.append(self.primitive)
             # TODO Fix because converting to dag just to append is nuts
             # TODO Figure out what to do with cbits?
             return OpPrimitive(new_qc.decompose().to_instruction(), coeff=self.coeff * other.coeff)
 
-        # User custom kron-able primitive - Identical to Pauli above for now, but maybe remove deepcopy later
-        elif isinstance(self.primitive, type(other.primitive)) and hasattr(self.primitive, 'kron'):
+        # User custom compose-able primitive
+        elif isinstance(self.primitive, type(other.primitive)) and hasattr(self.primitive, 'compose'):
             op_copy = copy.deepcopy(other.primitive)
-            return OpPrimitive(op_copy.kron(self.primitive), coeff=self.coeff * other.coeff)
+            return OpPrimitive(op_copy.compose(self.primitive), coeff=self.coeff * other.coeff)
 
         else:
-            return OpKron([self.primitive, other.primitive])
+            return OpCompose([self.primitive, other.primitive])
 
     def power(self, other):
         """ Compose with Self Multiple Times """
-        raise NotImplementedError
+        if not isinstance(other, int) or other <= 0:
+            raise TypeError('power can only take positive int arguments')
+        temp = OpPrimitive(self.primitive, coeff=self.coeff)
+        for i in range(other - 1):
+            temp = temp.compose(self)
+        return temp
 
     def __str__(self):
         """Overload str() """
