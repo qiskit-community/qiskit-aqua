@@ -75,7 +75,7 @@ class OpPrimitive(OperatorBase):
         if isinstance(self.primitive, type(other.primitive)) and self.primitive == other.primitive:
             return OpPrimitive(self.primitive, coeff=self.coeff + other.coeff)
         # Covers MatrixOperator, custom,
-        elif isinstance(self.primitive, type(other.primitive)) and hasattr(self.primitive, 'add')
+        elif isinstance(self.primitive, type(other.primitive)) and hasattr(self.primitive, 'add'):
             return self.primitive.add(other.primitive)
         # True for Paulis and Circuits
         else:

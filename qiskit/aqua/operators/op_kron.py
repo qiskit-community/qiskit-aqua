@@ -12,12 +12,12 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Eager Operator Sum Container """
+""" Eager Operator Kron Container """
 
 from .operator_base import OperatorBase
 
 
-class OpSum(OperatorBase):
+class OpKron(OperatorBase):
 
     def __init__(self, ops):
         pass

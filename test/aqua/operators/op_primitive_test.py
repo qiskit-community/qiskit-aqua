@@ -19,13 +19,13 @@ from test.aqua import QiskitAquaTestCase
 from qiskit.quantum_info.operators import Operator, Pauli
 
 import numpy as np
-from qiskit.aqua.operators import X, Y, Z, I
+from qiskit.aqua.operators import X, Y, Z, I, CX, T, H, S
 
 
 class TestOpPrimitive(QiskitAquaTestCase):
     """Singleton tests."""
 
-    def test_pauli_singletons(self):
+    def test_pauli_primitives(self):
         """ from to file test """
         newop = X^Y^Z^I
         self.assertEqual(newop.primitive, Pauli(label='XYZI'))
@@ -43,6 +43,14 @@ class TestOpPrimitive(QiskitAquaTestCase):
         self.assertEqual(I.primitive, Pauli(label='I'))
 
         # TODO Check coeffs
+
+    def test_circuit_primitives(self):
+        hads = H^I
+        evo = hads(CX(hads))
+        print(evo.to_matrix())
+
+    def test_matrix_primitives(self):
+        pass
 
     def test_io_consistency(self):
         new_op = X^Y^I
