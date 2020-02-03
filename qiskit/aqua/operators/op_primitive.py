@@ -85,7 +85,7 @@ class OpPrimitive(OperatorBase):
         """ Scalar multiply """
         return OpPrimitive(self.primitive, coeff=self.coeff * scalar)
 
-    # TODO change to *other to handle lists?
+    # TODO change to *other to handle lists? How aggressively to handle pairwise business?
     def kron(self, other):
         """ Kron
         Note: You must be conscious of Qiskit's big-endian bit printing convention. Meaning, X.kron(Y)
@@ -118,10 +118,10 @@ class OpPrimitive(OperatorBase):
 
     def kronpower(self, other):
         """ Kron with Self Multiple Times """
-        if not isinstance(other, int):
-            raise TypeError('Kronpower can only take int arguments')
+        if not isinstance(other, int) or other <= 0:
+            raise TypeError('Kronpower can only take positive int arguments')
         temp = OpPrimitive(self.primitive, coeff=self.coeff)
-        for i in range(other):
+        for i in range(other-1):
             temp = temp.kron(self)
         return temp
 

@@ -22,13 +22,19 @@ import numpy as np
 from qiskit.aqua.operators import X, Y, Z, I
 
 
-class TestSingletons(QiskitAquaTestCase):
+class TestOpPrimitive(QiskitAquaTestCase):
     """Singleton tests."""
 
-    def test_paulis(self):
+    def test_pauli_singletons(self):
         """ from to file test """
         newop = X^Y^Z^I
         self.assertEqual(newop.primitive, Pauli(label='XYZI'))
+
+        kpower_op = (Y^5)^(I^3)
+        self.assertEqual(kpower_op.primitive, Pauli(label='YYYYYIII'))
+
+        kpower_op2 = (Y^I)^4
+        self.assertEqual(kpower_op2.primitive, Pauli(label='YIYIYIYI'))
 
         # Check immutability
         self.assertEqual(X.primitive, Pauli(label='X'))
