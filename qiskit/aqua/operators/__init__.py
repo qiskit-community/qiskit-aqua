@@ -52,7 +52,7 @@ Operator support
 
 """
 from qiskit.quantum_info import Pauli
-from qiskit.extensions.standard import CnotGate, SGate, TGate, HGate, IdGate
+from qiskit.extensions.standard import CnotGate, SGate, TGate, HGate
 
 from .common import (evolution_instruction, suzuki_expansion_slice_pauli_list, pauli_measurement,
                      measure_pauli_z, covariance, row_echelon_F2,
@@ -80,7 +80,6 @@ S = OpPrimitive(SGate())
 H = OpPrimitive(HGate())
 T = OpPrimitive(TGate())
 # TODO figure out what to do about gate/pauli overlap, especially I and Id
-Id = OpPrimitive(IdGate())
 
 __all__ = [
     'evolution_instruction',

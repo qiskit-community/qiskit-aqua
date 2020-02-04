@@ -30,6 +30,10 @@ class OpSum(OperatorBase):
         """ Negate """
         raise NotImplementedError
 
+    def adjoint(self):
+        """ Adjoint """
+        raise NotImplementedError
+
     def equals(self, other):
         """ Evaluate Equality """
         raise NotImplementedError

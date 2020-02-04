@@ -21,7 +21,7 @@ from qiskit.extensions.standard import CzGate
 
 import numpy as np
 
-from qiskit.aqua.operators import X, Y, Z, I, CX, T, H, S, Id, OpPrimitive
+from qiskit.aqua.operators import X, Y, Z, I, CX, T, H, S, OpPrimitive
 
 
 class TestOpPrimitive(QiskitAquaTestCase):
@@ -47,7 +47,7 @@ class TestOpPrimitive(QiskitAquaTestCase):
         # TODO Check coeffs
 
     def test_circuit_primitives(self):
-        hads = Id^H
+        hads = I^H
         cz = hads(CX(hads))
 
         ref_cz_mat = OpPrimitive(CzGate()).to_matrix()

@@ -12,19 +12,26 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Weighted Pauli Operator """
-
 import logging
 import numpy as np
 import copy
 
 from qiskit import QuantumCircuit, BasicAer, execute
-from qiskit.circuit import Instruction, Gate
+from qiskit.circuit import Instruction
 from qiskit.quantum_info import Pauli
 from qiskit.quantum_info import Operator as MatrixOperator
 
 # from .operator_base import OperatorBase
 from . import OperatorBase, OpSum, OpKron, OpComposition
+
+# Hack to reconcile Gate/Pauli overlap issues.
+from qiskit.extensions.standard import XGate, YGate, ZGate, IdGate
+_pauli_to_gate_mapping = {
+    'X': XGate(),
+    'Y': YGate(),
+    'Z': ZGate(),
+    'I': IdGate()
+}
 
 logger = logging.getLogger(__name__)
 
@@ -66,19 +73,41 @@ class OpPrimitive(OperatorBase):
     def num_qubits(self):
         if isinstance(self.primitive, MatrixOperator):
             return self.primitive.input_dims()
+        if isinstance(self.primitive, Pauli):
+            return len(self.primitive)
         else:
-            # Works for Pauli, Instruction, or user custom primitive
+            # Works for Instruction, or user custom primitive
             return self.primitive.num_qubits
+
+    # TODO maybe change to converter later
+    def interopt_pauli_and_gate(self, other):
+        """ Helper to resolve the overlap between the Terra Pauli classes and Gate classes. First checks if the
+        one of the operands are a Pauli and the other is an Instruction, and if so, converts the Pauli to an
+        Instruction."""
+
+        def pauli_to_gate(pauli):
+            qc = QuantumCircuit(len(pauli))
+            for q, p in enumerate(pauli.to_label()):
+                gate = _pauli_to_gate_mapping[p]
+                qc.append(gate, qargs=[q])
+            return qc.to_instruction()
+
+        if isinstance(self.primitive, Instruction) and isinstance(other.primitive, Pauli):
+            return self, OpPrimitive(pauli_to_gate(other.primitive), coeff=other.coeff)
+        elif isinstance(self.primitive, Pauli) and isinstance(other.primitive, Instruction):
+            return OpPrimitive(pauli_to_gate(self.primitive), coeff=self.coeff), other
+
+
 
     # TODO change to *other to efficiently handle lists?
     def add(self, other):
         """ Addition. Overloaded by + in OperatorBase. """
         if isinstance(self.primitive, type(other.primitive)) and self.primitive == other.primitive:
             return OpPrimitive(self.primitive, coeff=self.coeff + other.coeff)
-        # Covers MatrixOperator, custom,
+        # Covers MatrixOperator and custom.
         elif isinstance(self.primitive, type(other.primitive)) and hasattr(self.primitive, 'add'):
             return self.primitive.add(other.primitive)
-        # True for Paulis and Circuits
+        # Covers Paulis, Circuits, and all else.
         else:
             return OpSum([self.primitive, other.primitive])
 
@@ -118,11 +147,13 @@ class OpPrimitive(OperatorBase):
         # Will return NotImplementedError if not supported
 
     def mul(self, scalar):
-        """ Scalar multiply. Overloaded by * in OperatorBase. """
+        """ Scalar multiply. Overloaded by * in OperatorBase.
+
+        Doesn't multiply MatrixOperator until to_matrix() is called to keep things lazy and avoid big copies.
+        TODO figure out if this is a bad idea.
+         """
         if not isinstance(scalar, (float, complex)):
             raise ValueError('Operators can only be scalar multiplied by float or complex.')
-        # Doesn't multiply MatrixOperator until to_matrix() is called to keep things lazy and avoid big copies.
-        # TODO figure out if this is a bad idea.
         return OpPrimitive(self.primitive, coeff=self.coeff * scalar)
 
     # TODO change to *other to handle lists? How aggressively to handle pairwise business?
@@ -135,6 +166,8 @@ class OpPrimitive(OperatorBase):
         Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
         """
         # TODO accept primitives directly in addition to OpPrimitive?
+
+        self, other = self.interopt_pauli_and_gate(other)
 
         # Both Paulis
         if isinstance(self.primitive, Pauli) and isinstance(other.primitive, Pauli):
