@@ -17,7 +17,7 @@
 import numpy as np
 from functools import reduce, partial
 
-from . import OpCombo, OpPrimitive
+from .op_combo_base import OpCombo
 
 
 class OpComposition(OpCombo):

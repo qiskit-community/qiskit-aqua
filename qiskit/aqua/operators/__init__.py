@@ -63,6 +63,7 @@ from .weighted_pauli_operator import WeightedPauliOperator, Z2Symmetries
 from .tpb_grouped_weighted_pauli_operator import TPBGroupedWeightedPauliOperator
 from .matrix_operator import MatrixOperator
 
+# New Operators
 from .operator_base import OperatorBase
 from .op_kron import OpKron
 from .op_composition import OpComposition
