@@ -29,6 +29,10 @@ class OpComposition(OpCombo):
         """
         super().__init__(oplist, coeff=coeff, combo_fn=np.dot)
 
+    @property
+    def num_qubits(self):
+        return self.oplist[0].num_qubits
+
     def kron(self, other):
         """ Kron. We only need to Kron to the last element in the composition. """
         return OpComposition(self.oplist[:-1] + [self.oplist[-1].kron(other)], coeff=self.coeff)
