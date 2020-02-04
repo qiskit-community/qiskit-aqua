@@ -100,7 +100,7 @@ matrix:
       - TEST_DIR=chemistry
     script:
         make spell && make style && make lint && export OPENBLAS_NUM_THREADS=1 && python -m unittest discover -v test/chemistry
-  - name: Test Chemistry Python 3.8"
+  - name: "Test Chemistry Python 3.8"
     if: tag IS blank
     env:
       - DEPENDENCY_BRANCH=master

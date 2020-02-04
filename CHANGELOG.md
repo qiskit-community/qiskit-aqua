@@ -24,13 +24,13 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 Changed
 -------
 
--  Fix weighted_pauli_operator expectation value mode for Aer 0.4 release.
--  Update python 3.6 Gaussian driver.
+-  Fix weighted_pauli_operator expectation value mode for Aer 0.4 release. (#808)
+-  Update python 3.6 Gaussian driver. (#808)
 
 Added
 -------
 
--  Python 3.8 Gaussian drivers.
+-  Python 3.8 Gaussian drivers. (#808)
 
 [0.6.3](https://github.com/Qiskit/qiskit-aqua/compare/0.6.2...0.6.3) - 2020-01-29
 =================================================================================
