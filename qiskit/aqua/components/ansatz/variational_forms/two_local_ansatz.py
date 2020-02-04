@@ -38,15 +38,15 @@ class TwoLocalAnsatz(Ansatz):
     """
 
     def __init__(self,
-                 num_qubits: int,
-                 rotation_gates: Union[str, List[str], type, List[type]],
-                 entanglement_gates: Union[str, List[str], type, List[type]],
+                 num_qubits: Optional[int] = None,
+                 rotation_gates: Optional[Union[str, List[str], type, List[type]]] = None,
+                 entanglement_gates: Optional[Union[str, List[str], type, List[type]]] = None,
                  entanglement: Union[str, List[List[int]], callable] = 'full',
-                 reps: Optional[int] = 3,
+                 reps: int = 3,
                  parameter_prefix: str = '_',
                  insert_barriers: bool = False,
                  skip_unentangled_qubits: bool = False,
-                 skip_final_rotation_layer: bool = True) -> None:
+                 skip_final_rotation_layer: bool = False) -> None:
         """Initializer. Assumes that the type hints are obeyed for now.
 
         Args:
@@ -106,12 +106,16 @@ class TwoLocalAnsatz(Ansatz):
             TODO: circuit diagram
         """
         # initialize Ansatz
-        super().__init__(num_qubits, insert_barriers=insert_barriers)
+        super().__init__(insert_barriers=insert_barriers)
+
+        self._num_qubits = num_qubits
 
         # store arguments needing no pre-processing
         self._entanglement = entanglement
         self._parameter_prefix = parameter_prefix
         self._skip_unentangled_qubits = skip_unentangled_qubits
+        self._skip_final_rotation_layer = skip_final_rotation_layer
+        self._reps = reps
 
         # handle the single- and two-qubit gate specifications
         if rotation_gates is None:
@@ -127,20 +131,6 @@ class TwoLocalAnsatz(Ansatz):
             self._entanglement_gates = [entanglement_gates]
         else:
             self._entanglement_gates = entanglement_gates
-
-        for block_num in range(reps):
-            if insert_barriers and block_num > 0:
-                self.append(Barrier(self.num_qubits))
-            self.append(self._get_rotation_layer(block_num))
-
-            if insert_barriers:
-                self.append(Barrier(self.num_qubits))
-            self.append(self._get_entanglement_layer(block_num))
-
-        if not skip_final_rotation_layer:
-            if insert_barriers and reps > 0:
-                self.append(Barrier(self.num_qubits))
-            self.append(self._get_rotation_layer(reps))
 
     def _get_rotation_layer(self, block_num: int) -> Gate:
         """Get the rotation layer for the current block.
@@ -170,7 +160,7 @@ class TwoLocalAnsatz(Ansatz):
             if not self._skip_unentangled_qubits or qubit in entangled_qubits:
 
                 # apply the gates
-                for gate, num_params in self.single_qubit_gate:
+                for gate, num_params in self.rotation_gates:
                     if num_params == 0:
                         circuit.append(gate(), [qubit], [])
                     else:
@@ -207,7 +197,7 @@ class TwoLocalAnsatz(Ansatz):
 
         for src, tgt in self.get_entangler_map(block_num):
             # apply the gates
-            for gate, num_params in self.two_qubit_gate:
+            for gate, num_params in self.entanglement_gates:
                 if num_params == 0:
                     circuit.append(gate(), [src, tgt], [])
                 else:
@@ -220,10 +210,27 @@ class TwoLocalAnsatz(Ansatz):
 
         return circuit.to_gate()
 
+    def to_circuit(self, n):
+
+        for block_num in range(self._reps):
+            if self._insert_barriers and block_num > 0:
+                self.append(Barrier(self.num_qubits))
+            self.append(self._get_rotation_layer(block_num))
+
+            if self._insert_barriers:
+                self.append(Barrier(self.num_qubits))
+            self.append(self._get_entanglement_layer(block_num))
+
+        if not self._skip_final_rotation_layer:
+            print('adding final')
+            if self._insert_barriers and self._reps > 0:
+                print('inserting last barrier')
+                self.append(Barrier(self.num_qubits))
+            self.append(self._get_rotation_layer(self._reps))
+
     @property
     def rotation_gates(self):
-        """
-        Return a the single qubit gate (or gates) in tuples of callable and number of parameters.
+        """Return a the single qubit gate (or gates) in tuples of callable and number of parameters.
 
         The reason this is implemented as separate function is that the user can set up a class
         with special single and two qubit gates, for cases we do not cover in identify gate.

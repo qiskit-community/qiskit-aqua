@@ -34,7 +34,7 @@ class RY(TwoLocalAnsatz):
                  parameter_prefix: str = '_',
                  insert_barriers: bool = False,
                  skip_unentangled_qubits: bool = False,
-                 skip_final_rotation_layer: bool = True) -> None:
+                 skip_final_rotation_layer: bool = False) -> None:
         """Initializer. Assumes that the type hints are obeyed for now.
 
         Args:

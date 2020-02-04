@@ -12,11 +12,13 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-# from .ansatz_gate_derived import Ansatz
+from .ansatz_factory import Ansatz
 from .variational_forms import TwoLocalAnsatz, RY
+from .feature_maps import PauliExpansion
 
 __all__ = [
     'Ansatz',
     'TwoLocalAnsatz',
+    'PauliExpansion',
     'RY',
 ]
