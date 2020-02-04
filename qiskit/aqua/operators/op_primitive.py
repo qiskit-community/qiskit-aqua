@@ -101,6 +101,9 @@ class OpPrimitive(OperatorBase):
     # TODO change to *other to efficiently handle lists?
     def add(self, other):
         """ Addition. Overloaded by + in OperatorBase. """
+        if not self.num_qubits == other.num_qubits:
+            raise ValueError('Sum over operators with different numbers of qubits, {} and {}, is not well '
+                             'defined'.format(self.num_qubits, other.num_qubits))
         if isinstance(self.primitive, type(other.primitive)) and self.primitive == other.primitive:
             return OpPrimitive(self.primitive, coeff=self.coeff + other.coeff)
         # Covers MatrixOperator and custom.
@@ -136,7 +139,6 @@ class OpPrimitive(OperatorBase):
         else:
             raise NotImplementedError
 
-    # TODO change to *other to efficiently handle lists?
     def equals(self, other):
         """ Evaluate Equality. Overloaded by == in OperatorBase. """
         if not isinstance(self.primitive, type(other.primitive)) \
