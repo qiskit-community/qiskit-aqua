@@ -40,13 +40,15 @@ class OpSum(OpCombo):
         if self == other:
             return self.mul(2.0)
         elif isinstance(other, OpSum):
-            return OpSum(self.ops + other.oplist)
+            self_new_ops = [op.mul(self.coeff) for op in self.oplist]
+            other_new_ops = [op.mul(other.coeff) for op in other.oplist]
+            return OpSum(self_new_ops + other_new_ops)
         elif other in self.oplist:
             new_oplist = copy.copy(self.oplist)
             other_index = self.oplist.index(other)
             new_oplist[other_index] = new_oplist[other_index] + other
-            return OpSum(new_oplist)
-        return OpSum(self.ops + [other])
+            return OpSum(new_oplist, coeff=self.coeff)
+        return OpSum(self.ops + [other], coeff=self.coeff)
 
     # TODO implement override, given permutation invariance?
     # def equals(self, other):

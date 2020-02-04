@@ -14,50 +14,32 @@
 
 """ Eager Operator Composition Container """
 
-from .operator_base import OperatorBase
+import numpy as np
+
+from . import OpCombo, OpPrimitive
+from functools import reduce, partial
 
 
-class OpComposition(OperatorBase):
+class OpComposition(OpCombo):
 
-    def __init__(self, ops):
-        pass
-
-    def add(self, other, inplace=True):
-        """ Addition """
-        raise NotImplementedError
-
-    def neg(self):
-        """ Negate """
-        raise NotImplementedError
-
-    def equals(self, other):
-        """ Evaluate Equality """
-        raise NotImplementedError
-
-    def mul(self, scalar):
-        """ Scalar multiply """
-        raise NotImplementedError
+    def __init__(self, oplist, coeff=1.0):
+        """
+        Args:
+            oplist (list(OperatorBase)): The operators being summed.
+        """
+        super().__init__(oplist, coeff=coeff, combo_fn=np.dot)
 
     def kron(self, other):
-        """ Kron """
-        raise NotImplementedError
+        """ Kron. We only need to Kron to the last element in the composition. """
+        return OpComposition(self.oplist[:-1] + [self.oplist[-1].kron(other)], coeff=self.coeff)
 
-    def kronpower(self, other):
-        """ Kron with Self Multiple Times """
-        raise NotImplementedError
+    # TODO take advantage of the mixed product property, kronpower each element in the composition
+    # def kronpower(self, other):
+    #     """ Kron with Self Multiple Times """
+    #     raise NotImplementedError
 
     def compose(self, other):
         """ Operator Composition (Circuit-style, left to right) """
-        raise NotImplementedError
-
-    def power(self, other):
-        """ Compose with Self Multiple Times """
-        raise NotImplementedError
-
-    def __str__(self):
-        """Overload str() """
-        raise NotImplementedError
-
-    def print_details(self):
-        """ print details """
-        raise NotImplementedError
+            if isinstance(other, OpComposition):
+                return OpComposition(self.ops + other.oplist, coeff=self.coeff*other.coeff)
+            return OpComposition(self.ops + [other], coeff=self.coeff)
