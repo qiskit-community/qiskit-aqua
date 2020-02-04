@@ -20,7 +20,7 @@ import numpy as np
 import copy
 import itertools
 
-from . import OperatorBase, OpPrimitive, OpSum, OpKron, OpComposition, OpVec
+from .operator_base import OperatorBase
 
 
 class OpCombo(OperatorBase):
@@ -58,6 +58,8 @@ class OpCombo(OperatorBase):
         # if eager and isinstance(other, OpPrimitive):
         #     return self.__class__([op.add(other) for op in self.oplist], coeff=self.coeff)
 
+        # Avoid circular dependency
+        from .op_sum import OpSum
         return OpSum([self, other])
 
     def neg(self):
@@ -102,12 +104,17 @@ class OpCombo(OperatorBase):
         # if eager and isinstance(other, OpPrimitive):
         #     return self.__class__([op.kron(other) for op in self.oplist], coeff=self.coeff)
 
+        # Avoid circular dependency
+        from .op_kron import OpKron
         return OpKron([self, other])
 
     def kronpower(self, other):
         """ Kron with Self Multiple Times """
         if not isinstance(other, int) or other <= 0:
             raise TypeError('Kronpower can only take positive int arguments')
+
+        # Avoid circular dependency
+        from .op_kron import OpKron
         return OpKron([self]*other)
 
     # TODO change to *other to efficiently handle lists?
@@ -124,13 +131,18 @@ class OpCombo(OperatorBase):
         # if eager and isinstance(other, OpPrimitive):
         #     return self.__class__([op.compose(other) for op in self.oplist], coeff=self.coeff)
 
+        # Avoid circular dependency
+        from .op_composition import OpComposition
         return OpComposition([self, other])
 
     def power(self, other):
         """ Compose with Self Multiple Times """
         if not isinstance(other, int) or other <= 0:
             raise TypeError('power can only take positive int arguments')
-        temp = OpComposition([self]*other)
+
+        # Avoid circular dependency
+        from .op_composition import OpComposition
+        return OpComposition([self]*other)
 
     def to_matrix(self, massive=False):
         """ Return numpy matrix of operator, warn if more than 16 qubits to force the user to set massive=True if

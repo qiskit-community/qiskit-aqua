@@ -18,7 +18,7 @@ import numpy as np
 import copy
 import itertools
 
-from . import OperatorBase, OpCombo, OpPrimitive, OpKron, OpComposition, OpVec
+from .op_combo_base import OpCombo
 
 
 class OpSum(OpCombo):

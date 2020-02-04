@@ -22,7 +22,11 @@ from qiskit.quantum_info import Pauli
 from qiskit.quantum_info import Operator as MatrixOperator
 
 # from .operator_base import OperatorBase
-from . import OperatorBase, OpSum, OpKron, OpComposition
+from .operator_base import OperatorBase
+from .op_sum import OpSum
+from .op_kron import OpKron
+from .op_composition import OpComposition
+from .op_vec import OpVec
 
 # Hack to reconcile Gate/Pauli overlap issues.
 from qiskit.extensions.standard import XGate, YGate, ZGate, IdGate
