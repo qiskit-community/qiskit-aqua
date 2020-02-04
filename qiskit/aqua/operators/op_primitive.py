@@ -154,7 +154,8 @@ class OpPrimitive(OperatorBase):
         TODO figure out if this is a bad idea.
          """
         if not isinstance(scalar, (float, complex)):
-            raise ValueError('Operators can only be scalar multiplied by float or complex.')
+            raise ValueError('Operators can only be scalar multiplied by float or complex, not '
+                             '{} of type {}.'.format(scalar, type(scalar)))
         return OpPrimitive(self.primitive, coeff=self.coeff * scalar)
 
     # TODO change to *other to handle lists? How aggressively to handle pairwise business?

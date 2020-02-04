@@ -67,6 +67,7 @@ from .op_sum import OpSum
 from .op_kron import OpKron
 from .op_composition import OpComposition
 from .op_primitive import OpPrimitive
+from .op_vec import OpVec
 
 # Paulis
 X = OpPrimitive(Pauli.from_label('X'))
@@ -101,5 +102,6 @@ __all__ = [
     'OpPrimitive'
     'OpSum',
     'OpKron',
-    'OpComposition'
+    'OpComposition',
+    'OpVec'
 ]
