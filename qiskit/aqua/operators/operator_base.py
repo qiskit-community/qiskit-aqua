@@ -30,6 +30,11 @@ class OperatorBase(ABC):
         """ sets name """
         self._name = new_value
 
+    # TODO replace with proper alphabets later?
+    @abstractmethod
+    def num_qubits(self):
+        raise NotImplementedError
+
 # Addition / Subtraction
 
     def __add__(self, other):
