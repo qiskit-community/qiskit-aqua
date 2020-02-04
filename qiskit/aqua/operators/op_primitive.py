@@ -122,19 +122,19 @@ class OpPrimitive(OperatorBase):
 
         # Pauli
         if isinstance(self.primitive, Pauli):
-            return self
+            return OpPrimitive(self.primitive, coeff=np.conj(self.coeff))
 
         # Matrix
         elif isinstance(self.primitive, MatrixOperator):
-            return OpPrimitive(self.primitive.conjugate().transpose(), coeff=self.coeff)
+            return OpPrimitive(self.primitive.conjugate().transpose(), coeff=np.conj(self.coeff))
 
         # Both Instructions/Circuits
         elif isinstance(self.primitive, Instruction):
-            return OpPrimitive(self.primitive.inverse(), self.coeff)
+            return OpPrimitive(self.primitive.inverse(), coeff=np.conj(self.coeff))
 
         # User custom adjoint-able primitive
         elif hasattr(self.primitive, 'adjoint'):
-            return OpPrimitive(self.primitive.adjoint(), coeff=self.coeff)
+            return OpPrimitive(self.primitive.adjoint(), coeff=np.conj(self.coeff))
 
         else:
             raise NotImplementedError
