@@ -78,7 +78,7 @@ class TestOpPrimitive(QiskitAquaTestCase):
         # np.testing.assert_array_almost_equal(new_op.primitive.to_matrix(), unitary)
 
     def test_get_primitives(self):
-        my_op = (((Y+H)*.5)^X)(H^I)
+        my_op = (((Y+H)*.5)^X)(H^I) + OpPrimitive(Operator.from_label('+r'))
         print(my_op.to_matrix())
         print(my_op)
         print(my_op.get_primitives())

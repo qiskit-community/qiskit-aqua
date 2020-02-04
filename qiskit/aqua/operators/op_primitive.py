@@ -73,8 +73,11 @@ class OpPrimitive(OperatorBase):
         return self._coeff
 
     def get_primitives(self):
+        """ Return a set of primitives in the Operator """
         if isinstance(self.primitive, Instruction):
             return {'Instruction'}
+        elif isinstance(self.primitive, MatrixOperator):
+            return {'Matrix'}
         else:
             return {self.primitive.__class__.__name__}
 
@@ -82,7 +85,7 @@ class OpPrimitive(OperatorBase):
     @property
     def num_qubits(self):
         if isinstance(self.primitive, MatrixOperator):
-            return self.primitive.input_dims()
+            return len(self.primitive.input_dims())
         if isinstance(self.primitive, Pauli):
             return len(self.primitive)
         else:

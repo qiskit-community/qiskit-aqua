@@ -15,11 +15,8 @@
 """ Eager Operator Combo Base """
 
 
-from abc import abstractmethod
 import numpy as np
-import string
-import copy
-import itertools
+from functools import reduce
 
 from .operator_base import OperatorBase
 
@@ -51,9 +48,8 @@ class OpCombo(OperatorBase):
         return self._coeff
 
     def get_primitives(self):
-        from functools import reduce
+        """ Return a set of primitives in the Operator """
         return reduce(set.union, [op.get_primitives() for op in self.oplist])
-        # return list({op for op in self.oplist for prim in op.get_primitives()})
 
     # TODO change to *other to efficiently handle lists?
     def add(self, other):

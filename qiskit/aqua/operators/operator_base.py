@@ -35,6 +35,11 @@ class OperatorBase(ABC):
     def num_qubits(self):
         raise NotImplementedError
 
+    @abstractmethod
+    def get_primitives(self):
+        """ Return a set of primitives in the Operator """
+        raise NotImplementedError
+
 # Addition / Subtraction
 
     def __add__(self, other):
@@ -84,7 +89,7 @@ class OperatorBase(ABC):
 
     def __eq__(self, other):
         """ Overload == operation """
-        raise self.equals(other)
+        return self.equals(other)
 
     @abstractmethod
     def equals(self, other):
