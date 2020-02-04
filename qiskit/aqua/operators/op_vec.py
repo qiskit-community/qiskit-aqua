@@ -14,54 +14,23 @@
 
 """ Eager Operator Vec Container """
 
-from . import OperatorBase
+from .op_combo_base import OpCombo
 
 
-class OpVec(OperatorBase):
+class OpVec(OpCombo):
 
-    def __init__(self, ops):
-        pass
+    def __init__(self, oplist, coeff=1.0):
+        """
+        Args:
+            oplist (list(OperatorBase)): The operators being summed.
+            coeff (float, complex): A coefficient multiplying the primitive
 
-    def add(self, other, inplace=True):
-        """ Addition """
-        raise NotImplementedError
+            Note that the "recombination function" below is the identity - it takes a list of operators,
+            and is supposed to return a list of operators.
+        """
+        super().__init__(oplist, combo_fn=lambda x: x, coeff=coeff)
 
-    def neg(self):
-        """ Negate """
-        raise NotImplementedError
-
-    def equals(self, other):
-        """ Evaluate Equality """
-        raise NotImplementedError
-
-    def mul(self, scalar):
-        """ Scalar multiply """
-        raise NotImplementedError
-
-    def kron(self, other):
-        """ Kron """
-        raise NotImplementedError
-
-    def kronpower(self, other):
-        """ Kron with Self Multiple Times """
-        raise NotImplementedError
-
-    def compose(self, other):
-        """ Operator Composition (Circuit-style, left to right) """
-        raise NotImplementedError
-
-    def dot(self, other):
-        """ Operator Composition (Linear algebra-style, right to left) """
-        raise NotImplementedError
-
-    def power(self, other):
-        """ Compose with Self Multiple Times """
-        raise NotImplementedError
-
-    def __str__(self):
-        """Overload str() """
-        raise NotImplementedError
-
-    def print_details(self):
-        """ print details """
-        raise NotImplementedError
+    # For now, follow tensor convention that each Operator in the vec is a separate "system"
+    @property
+    def num_qubits(self):
+        return sum([op.num_qubits for op in self.oplist])

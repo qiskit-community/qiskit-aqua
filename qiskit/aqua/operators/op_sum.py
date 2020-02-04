@@ -27,6 +27,7 @@ class OpSum(OpCombo):
         """
         Args:
             oplist (list(OperatorBase)): The operators being summed.
+            coeff (float, complex): A coefficient multiplying the primitive
         """
         super().__init__(oplist, coeff=coeff, combo_fn=sum)
 

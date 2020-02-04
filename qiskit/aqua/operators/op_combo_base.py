@@ -29,7 +29,8 @@ class OpCombo(OperatorBase):
         """
         Args:
             oplist (list(OperatorBase)): The operators being summed.
-            combo_fn (callable): The recombination function to reduce combination lists when available (e.g. sum)
+            combo_fn (callable): The recombination function to reduce classical operators when available (e.g. sum)
+            coeff (float, complex): A coefficient multiplying the primitive
         """
         self._oplist = oplist
         # TODO use "combo_fn" or abstractmethod?
