@@ -47,8 +47,8 @@ class ExpectationBase():
                 return MatmulExpectation(state=state,
                                         operator=operator,
                                         backend=backend)
-        else:
-
+        elif isinstance(operator, (OpSum, OpVec)):
+            pass
 
     @abstractmethod
     def compute_expectation(self):
