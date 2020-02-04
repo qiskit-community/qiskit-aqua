@@ -52,7 +52,7 @@ Operator support
 
 """
 from qiskit.quantum_info import Pauli
-from qiskit.extensions.standard import CnotGate, SGate, TGate, HGate
+from qiskit.extensions.standard import CnotGate, SGate, TGate, HGate, IdGate
 
 from .common import (evolution_instruction, suzuki_expansion_slice_pauli_list, pauli_measurement,
                      measure_pauli_z, covariance, row_echelon_F2,
@@ -62,6 +62,10 @@ from .base_operator import BaseOperator
 from .weighted_pauli_operator import WeightedPauliOperator, Z2Symmetries
 from .tpb_grouped_weighted_pauli_operator import TPBGroupedWeightedPauliOperator
 from .matrix_operator import MatrixOperator
+from .operator_base import OperatorBase
+from .op_sum import OpSum
+from .op_kron import OpKron
+from .op_composition import OpComposition
 from .op_primitive import OpPrimitive
 
 # Paulis
@@ -75,6 +79,8 @@ CX = OpPrimitive(CnotGate())
 S = OpPrimitive(SGate())
 H = OpPrimitive(HGate())
 T = OpPrimitive(TGate())
+# TODO figure out what to do about gate/pauli overlap, especially I and Id
+Id = OpPrimitive(IdGate())
 
 __all__ = [
     'evolution_instruction',
@@ -91,5 +97,10 @@ __all__ = [
     'WeightedPauliOperator',
     'Z2Symmetries',
     'TPBGroupedWeightedPauliOperator',
-    'MatrixOperator'
+    'MatrixOperator',
+    'OperatorBase'
+    'OpPrimitive'
+    'OpSum',
+    'OpKron',
+    'OpComposition'
 ]

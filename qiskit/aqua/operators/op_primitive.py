@@ -18,12 +18,13 @@ import logging
 import numpy as np
 import copy
 
-from qiskit.circuit import QuantumCircuit, Instruction, Gate
+from qiskit import QuantumCircuit, BasicAer, execute
+from qiskit.circuit import Instruction, Gate
 from qiskit.quantum_info import Pauli
 from qiskit.quantum_info import Operator as MatrixOperator
 
-from .operator_base import OperatorBase
-from .op_sum import OpSum
+# from .operator_base import OperatorBase
+from . import OperatorBase, OpSum, OpKron, OpComposition
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +72,7 @@ class OpPrimitive(OperatorBase):
 
     # TODO change to *other to efficiently handle lists?
     def add(self, other):
-        """ Addition """
+        """ Addition. Overloaded by + in OperatorBase. """
         if isinstance(self.primitive, type(other.primitive)) and self.primitive == other.primitive:
             return OpPrimitive(self.primitive, coeff=self.coeff + other.coeff)
         # Covers MatrixOperator, custom,
@@ -82,12 +83,34 @@ class OpPrimitive(OperatorBase):
             return OpSum([self.primitive, other.primitive])
 
     def neg(self):
-        """ Negate """
+        """ Negate. Overloaded by - in OperatorBase. """
         return self.mul(-1.0)
+
+    def adjoint(self):
+        """ Return operator adjoint (conjugate transpose). Overloaded by ~ in OperatorBase. """
+
+        # Pauli
+        if isinstance(self.primitive, Pauli):
+            return self
+
+        # Matrix
+        elif isinstance(self.primitive, MatrixOperator):
+            return OpPrimitive(self.primitive.conjugate().transpose(), coeff=self.coeff)
+
+        # Both Instructions/Circuits
+        elif isinstance(self.primitive, Instruction):
+            return OpPrimitive(self.primitive.inverse(), self.coeff)
+
+        # User custom adjoint-able primitive
+        elif hasattr(self.primitive, 'adjoint'):
+            return OpPrimitive(self.primitive.adjoint(), coeff=self.coeff)
+
+        else:
+            raise NotImplementedError
 
     # TODO change to *other to efficiently handle lists?
     def equals(self, other):
-        """ Evaluate Equality """
+        """ Evaluate Equality. Overloaded by == in OperatorBase. """
         if not isinstance(self.primitive, type(other.primitive)) \
                 or not self.coeff == other.coeff:
             return False
@@ -95,7 +118,11 @@ class OpPrimitive(OperatorBase):
         # Will return NotImplementedError if not supported
 
     def mul(self, scalar):
-        """ Scalar multiply """
+        """ Scalar multiply. Overloaded by * in OperatorBase. """
+        if not isinstance(scalar, (float, complex)):
+            raise ValueError('Operators can only be scalar multiplied by float or complex.')
+        # Doesn't multiply MatrixOperator until to_matrix() is called to keep things lazy and avoid big copies.
+        # TODO figure out if this is a bad idea.
         return OpPrimitive(self.primitive, coeff=self.coeff * scalar)
 
     # TODO change to *other to handle lists? How aggressively to handle pairwise business?
@@ -172,8 +199,8 @@ class OpPrimitive(OperatorBase):
         # Both Instructions/Circuits
         elif isinstance(self.primitive, Instruction) and isinstance(other.primitive, Instruction):
             new_qc = QuantumCircuit(self.primitive.num_qubits)
-            new_qc.append(other.primitive)
-            new_qc.append(self.primitive)
+            new_qc.append(other.primitive, qargs=range(self.primitive.num_qubits))
+            new_qc.append(self.primitive, qargs=range(self.primitive.num_qubits))
             # TODO Fix because converting to dag just to append is nuts
             # TODO Figure out what to do with cbits?
             return OpPrimitive(new_qc.decompose().to_instruction(), coeff=self.coeff * other.coeff)
@@ -184,7 +211,7 @@ class OpPrimitive(OperatorBase):
             return OpPrimitive(op_copy.compose(self.primitive), coeff=self.coeff * other.coeff)
 
         else:
-            return OpCompose([self.primitive, other.primitive])
+            return OpComposition([self.primitive, other.primitive])
 
     def power(self, other):
         """ Compose with Self Multiple Times """
@@ -216,8 +243,7 @@ class OpPrimitive(OperatorBase):
         # Both Instructions/Circuits
         elif isinstance(self.primitive, Instruction):
             qc = QuantumCircuit(self.primitive.num_qubits)
-            qc.append(self.primitive)
-            from qiskit import BasicAer, QuantumCircuit, execute
+            qc.append(self.primitive, qargs=range(self.primitive.num_qubits))
             unitary = execute(qc, BasicAer.get_backend('unitary_simulator')).result().get_unitary()
             return unitary * self.coeff
 

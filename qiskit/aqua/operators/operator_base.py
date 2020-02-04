@@ -61,10 +61,21 @@ class OperatorBase(ABC):
 
     @abstractmethod
     def neg(self):
-        """ Negate """
+        """ Return operator negation """
         raise NotImplementedError
 
-# Equality
+# Adjoint
+
+    def __invert__(self):
+        """ Overload unary ~ """
+        return self.adjoint()
+
+    @abstractmethod
+    def adjoint(self):
+        """ Return operator adjoint """
+        raise NotImplementedError
+
+    # Equality
 
     def __eq__(self, other):
         """ Overload == operation """

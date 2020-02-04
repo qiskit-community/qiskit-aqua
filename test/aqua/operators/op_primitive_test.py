@@ -17,9 +17,11 @@
 import unittest
 from test.aqua import QiskitAquaTestCase
 from qiskit.quantum_info.operators import Operator, Pauli
+from qiskit.extensions.standard import CzGate
 
 import numpy as np
-from qiskit.aqua.operators import X, Y, Z, I, CX, T, H, S
+
+from qiskit.aqua.operators import X, Y, Z, I, CX, T, H, S, Id, OpPrimitive
 
 
 class TestOpPrimitive(QiskitAquaTestCase):
@@ -45,18 +47,20 @@ class TestOpPrimitive(QiskitAquaTestCase):
         # TODO Check coeffs
 
     def test_circuit_primitives(self):
-        hads = H^I
-        evo = hads(CX(hads))
-        print(evo.to_matrix())
+        hads = Id^H
+        cz = hads(CX(hads))
+
+        ref_cz_mat = OpPrimitive(CzGate()).to_matrix()
+        np.testing.assert_array_almost_equal(cz.to_matrix(), ref_cz_mat)
 
     def test_matrix_primitives(self):
         pass
 
     def test_io_consistency(self):
         new_op = X^Y^I
-        label = "XYI"
+        label = 'XYI'
         # label = new_op.primitive.to_label()
-        self.assertEqual(str(new_op), label)
+        self.assertEqual(str(new_op.primitive), label)
         np.testing.assert_array_almost_equal(new_op.primitive.to_matrix(), Operator.from_label(label).data)
         self.assertEqual(new_op.primitive, Pauli(label=label))
 
