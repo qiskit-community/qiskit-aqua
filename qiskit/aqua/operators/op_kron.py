@@ -14,50 +14,26 @@
 
 """ Eager Operator Kron Container """
 
-from .operator_base import OperatorBase
+from .op_combo_base import OpCombo
+from functools import reduce, partial
 
 
-class OpKron(OperatorBase):
+class OpKron(OpCombo):
+    # TODO
 
-    def __init__(self, ops):
-        pass
+    def __init__(self, oplist, coeff=1.0):
+        """
+        Args:
+            oplist (list(OperatorBase)): The operators being summed.
+        """
+        super().__init__(oplist, combo_fn=partial(reduce, np.kron), coeff=coeff)
 
-    def add(self, other, inplace=True):
-        """ Addition """
-        raise NotImplementedError
-
-    def neg(self):
-        """ Negate """
-        raise NotImplementedError
-
-    def equals(self, other):
-        """ Evaluate Equality """
-        raise NotImplementedError
-
-    def mul(self, scalar):
-        """ Scalar multiply """
-        raise NotImplementedError
+    @property
+    def num_qubits(self):
+        return sum([op.num_qubits for op in self.oplist])
 
     def kron(self, other):
         """ Kron """
-        raise NotImplementedError
-
-    def kronpower(self, other):
-        """ Kron with Self Multiple Times """
-        raise NotImplementedError
-
-    def compose(self, other):
-        """ Operator Composition (Circuit-style, left to right) """
-        raise NotImplementedError
-
-    def power(self, other):
-        """ Compose with Self Multiple Times """
-        raise NotImplementedError
-
-    def __str__(self):
-        """Overload str() """
-        raise NotImplementedError
-
-    def print_details(self):
-        """ print details """
-        raise NotImplementedError
+        if isinstance(other, OpKron):
+            return OpKron(self.oplist + other.oplist, coeff=self.coeff * other.coeff)
+        return OpKron(self.oplist + [other], coeff=self.coeff)

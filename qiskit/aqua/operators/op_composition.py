@@ -15,9 +15,9 @@
 """ Eager Operator Composition Container """
 
 import numpy as np
+from functools import reduce, partial
 
 from . import OpCombo, OpPrimitive
-from functools import reduce, partial
 
 
 class OpComposition(OpCombo):
@@ -27,7 +27,7 @@ class OpComposition(OpCombo):
         Args:
             oplist (list(OperatorBase)): The operators being summed.
         """
-        super().__init__(oplist, coeff=coeff, combo_fn=np.dot)
+        super().__init__(oplist, combo_fn=partial(reduce, np.dot), coeff=coeff)
 
     @property
     def num_qubits(self):
@@ -44,6 +44,6 @@ class OpComposition(OpCombo):
 
     def compose(self, other):
         """ Operator Composition (Circuit-style, left to right) """
-            if isinstance(other, OpComposition):
-                return OpComposition(self.ops + other.oplist, coeff=self.coeff*other.coeff)
-            return OpComposition(self.ops + [other], coeff=self.coeff)
+        if isinstance(other, OpComposition):
+            return OpComposition(self.oplist + other.oplist, coeff=self.coeff*other.coeff)
+        return OpComposition(self.oplist + [other], coeff=self.coeff)
