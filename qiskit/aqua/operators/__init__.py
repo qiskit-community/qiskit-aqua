@@ -63,11 +63,12 @@ from .weighted_pauli_operator import WeightedPauliOperator, Z2Symmetries
 from .tpb_grouped_weighted_pauli_operator import TPBGroupedWeightedPauliOperator
 from .matrix_operator import MatrixOperator
 from .operator_base import OperatorBase
+from .op_combo_base import OpCombo
 from .op_sum import OpSum
 from .op_kron import OpKron
 from .op_composition import OpComposition
-from .op_primitive import OpPrimitive
 from .op_vec import OpVec
+from .op_primitive import OpPrimitive
 
 # Paulis
 X = OpPrimitive(Pauli.from_label('X'))
