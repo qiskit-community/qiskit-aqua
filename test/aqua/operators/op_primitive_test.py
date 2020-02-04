@@ -47,8 +47,8 @@ class TestOpPrimitive(QiskitAquaTestCase):
         # TODO Check coeffs
 
     def test_circuit_primitives(self):
-        hads = I^H
-        cz = hads(CX(hads))
+        hadq2 = I^H
+        cz = hadq2(CX(hadq2))
 
         ref_cz_mat = OpPrimitive(CzGate()).to_matrix()
         np.testing.assert_array_almost_equal(cz.to_matrix(), ref_cz_mat)

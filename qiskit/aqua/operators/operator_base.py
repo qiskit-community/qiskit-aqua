@@ -109,6 +109,7 @@ class OperatorBase(ABC):
         """ Kron """
         raise NotImplementedError
 
+    # TODO add lazy option?
     @abstractmethod
     def kronpower(self, other):
         """ Kron with Self Multiple Times """
