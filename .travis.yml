@@ -172,20 +172,20 @@ before_install:
       unzip /tmp/qiskit-ignis.zip -d /tmp/
       # Install local Qiskit Ignis
       pip install -e /tmp/qiskit-ignis-$DEPENDENCY_BRANCH --progress-bar off
-      # Download github Qiskit Aer
-      wget https://codeload.github.com/Qiskit/qiskit-aer/zip/$DEPENDENCY_BRANCH -O /tmp/qiskit-aer.zip
-      unzip /tmp/qiskit-aer.zip -d /tmp/
-      # Install Qiskit Aer requirements.
-      pip install -U -r /tmp/qiskit-aer-$DEPENDENCY_BRANCH/requirements-dev.txt --progress-bar off
-      # build Qiskit Aer
+      # Clone Qiskit Aer
+      git clone --recurse-submodules https://github.com/Qiskit/qiskit-aer.git /tmp/qiskit-aer-$DEPENDENCY_BRANCH
       cd /tmp/qiskit-aer-$DEPENDENCY_BRANCH
-      python setup.py bdist_wheel -- -DCMAKE_CXX_COMPILER=g++-7 -- -j4
+      # Install Qiskit Aer requirements.
+      pip install -U -r requirements-dev.txt --progress-bar off
+      # Build Qiskit Aer with Thrust OpenMP CPU backend
+      python setup.py bdist_wheel -- -DCMAKE_CXX_COMPILER=g++-7 -DAER_THRUST_BACKEND=OMP -- -j4
       pip install dist/qiskit_aer*whl
       # back to current repo directory
       cd $TRAVIS_BUILD_DIR
     fi
   - |
     if [ "$TEST_DIR" == "chemistry" ]; then
+      sudo apt-get -y install libgfortran5
       # download PyQuante master and unzip it
       wget https://codeload.github.com/rpmuller/pyquante2/zip/master -O /tmp/pyquante2.zip
       unzip /tmp/pyquante2.zip -d /tmp/
