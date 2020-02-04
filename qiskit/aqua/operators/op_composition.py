@@ -50,10 +50,6 @@ class OpComposition(OperatorBase):
         """ Operator Composition (Circuit-style, left to right) """
         raise NotImplementedError
 
-    def dot(self, other):
-        """ Operator Composition (Linear algebra-style, right to left) """
-        raise NotImplementedError
-
     def power(self, other):
         """ Compose with Self Multiple Times """
         raise NotImplementedError
