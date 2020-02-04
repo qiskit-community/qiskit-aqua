@@ -16,6 +16,7 @@
 
 from .op_combo_base import OpCombo
 from functools import reduce, partial
+import numpy as np
 
 
 class OpKron(OpCombo):

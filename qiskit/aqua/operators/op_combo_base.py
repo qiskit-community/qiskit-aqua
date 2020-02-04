@@ -17,6 +17,7 @@
 
 from abc import abstractmethod
 import numpy as np
+import string
 import copy
 import itertools
 
@@ -48,6 +49,11 @@ class OpCombo(OperatorBase):
     @property
     def coeff(self):
         return self._coeff
+
+    def get_primitives(self):
+        from functools import reduce
+        return reduce(set.union, [op.get_primitives() for op in self.oplist])
+        # return list({op for op in self.oplist for prim in op.get_primitives()})
 
     # TODO change to *other to efficiently handle lists?
     def add(self, other):
@@ -160,7 +166,10 @@ class OpCombo(OperatorBase):
 
     def __str__(self):
         """Overload str() """
-        return "{} * {} of {}".format(self.coeff, self.__class__.__name__, [str(op) for op in self.oplist])
+        if self.coeff == 1.0:
+            return "{}[{}]".format(self.__class__.__name__, ', '.join([str(op) for op in self.oplist]))
+        else:
+            return "{} * {}[{}]".format(self.coeff, self.__class__.__name__, ', '.join([str(op) for op in self.oplist]))
 
     def __repr__(self):
         """Overload str() """

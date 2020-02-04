@@ -72,6 +72,12 @@ class OpPrimitive(OperatorBase):
     def coeff(self):
         return self._coeff
 
+    def get_primitives(self):
+        if isinstance(self.primitive, Instruction):
+            return {'Instruction'}
+        else:
+            return {self.primitive.__class__.__name__}
+
     # TODO replace with proper alphabets later?
     @property
     def num_qubits(self):
@@ -115,7 +121,7 @@ class OpPrimitive(OperatorBase):
             return self.primitive.add(other.primitive)
         # Covers Paulis, Circuits, and all else.
         else:
-            return OpSum([self.primitive, other.primitive])
+            return OpSum([self, other])
 
     def neg(self):
         """ Negate. Overloaded by - in OperatorBase. """
@@ -201,7 +207,7 @@ class OpPrimitive(OperatorBase):
             return OpPrimitive(op_copy.kron(self_primitive), coeff=self.coeff * other.coeff)
 
         else:
-            return OpKron([self_primitive, other_primitive])
+            return OpKron([self, other])
 
     def kronpower(self, other):
         """ Kron with Self Multiple Times """
@@ -252,7 +258,7 @@ class OpPrimitive(OperatorBase):
             return OpPrimitive(op_copy.compose(self_primitive), coeff=self.coeff * other.coeff)
 
         else:
-            return OpComposition([self_primitive, other_primitive])
+            return OpComposition([self, other])
 
     def power(self, other):
         """ Compose with Self Multiple Times """
@@ -295,10 +301,17 @@ class OpPrimitive(OperatorBase):
         else:
             raise NotImplementedError
 
-    # TODO print Instructions as drawn circuits
+    # TODO print Instructions nicely...
     def __str__(self):
         """Overload str() """
-        return "{} * {}".format(self.coeff, str(self.primitive))
+        if isinstance(self.primitive, Instruction):
+            prim_str = self.primitive.__class__.__name__
+        else:
+            prim_str = str(self.primitive)
+        if self.coeff == 1.0:
+            return prim_str
+        else:
+            return "{} * {}".format(self.coeff, prim_str)
 
     def __repr__(self):
         """Overload str() """

@@ -97,6 +97,10 @@ class OperatorBase(ABC):
         """ Overload * """
         return self.mul(other)
 
+    def __rmul__(self, other):
+        """ Overload * """
+        return self.mul(other)
+
     @abstractmethod
     def mul(self, scalar):
         """ Scalar multiply """
