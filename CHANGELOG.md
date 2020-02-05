@@ -18,7 +18,7 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 [UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.4...HEAD)
 ========================================================================
 
-[0.6.4](https://github.com/Qiskit/qiskit-aqua/compare/0.6.3...0.6.4) - 2020-02-04
+[0.6.4](https://github.com/Qiskit/qiskit-aqua/compare/0.6.3...0.6.4) - 2020-02-06
 =================================================================================
 
 Changed
