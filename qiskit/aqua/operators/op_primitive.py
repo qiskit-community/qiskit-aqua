@@ -322,6 +322,9 @@ class OpPrimitive(OperatorBase):
         """ A square binary Operator can be defined as a function over two binary strings of equal length. This
         method returns the value of that function for a given pair of binary strings. For more information,
         see the eval method in operator_base.py.
+
+        Notice that Pauli evals will always return 0 for Paulis with X or Y terms if val1 == val2. This is why we must
+        convert to a {Z,I}^n Pauli basis to take "averaging" style expectations (e.g. PauliExpectation).
         """
 
         # Pauli

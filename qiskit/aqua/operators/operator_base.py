@@ -44,6 +44,7 @@ class OperatorBase(ABC):
         """ Return a set of primitives in the Operator """
         raise NotImplementedError
 
+    # TODO allow massive argument to decide whether to perform to_matrix?
     @abstractmethod
     def eval(self, val1, val2):
         """ A square binary Operator can be defined as a function over two binary strings of equal length. This
