@@ -320,25 +320,8 @@ class OpPrimitive(OperatorBase):
 
     def eval(self, val1, val2):
         """ A square binary Operator can be defined as a function over two binary strings of equal length. This
-        method returns the value of that function for a given pair of binary strings. Note that by using
-        functools.partial, a function over a single binary string is returned, which is equivalent to a state
-        function.
-
-        A brute force way to evaluate an expectation for some **positive real** state function sf would be:
-            sampled_strings = sf.sample(shots=1000)
-            sum([op.eval(bstr, bstr) for bstr in sampled_strings])
-        or, exactly:
-            sum([op.eval(bstr, bstr) * sf.eval(bstr) for bstr in sampled_strings])
-
-        However, for a quantum state function, i.e. a complex state function, this would need to be:
-            sampled_strings = sf.sample(shots=1000)
-            sum([op.eval(bstr, bstr) * np.sign(sf.eval(bstr)) for bstr in sampled_strings])
-        or, exactly:
-            sum([op.eval(bstr, bstr) * np.conj(sf.eval(bstr)) * sf.eval(bstr) for bstr in sampled_strings])
-
-        Note that for a quantum statefunction, we do not generally have efficient classical access to sf.sample or
-        sf.eval.
-
+        method returns the value of that function for a given pair of binary strings. For more information,
+        see the eval method in operator_base.py.
         """
 
         # Pauli

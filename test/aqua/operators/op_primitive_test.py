@@ -113,8 +113,8 @@ class TestOpPrimitive(QiskitAquaTestCase):
         # unitary = execute(qc, BasicAer.get_backend('unitary_simulator')).result().get_unitary()
         # np.testing.assert_array_almost_equal(new_op.primitive.to_matrix(), unitary)
 
-    def test_get_primitives(self):
+    def test_to_matrix(self):
         my_op = (.5*(Y+H)).kron(X).compose(H^I) + OpPrimitive(Operator.from_label('+r'))
-        print(my_op.to_matrix())
-        print(my_op)
-        print(my_op.get_primitives())
+        # print(my_op.to_matrix())
+        # print(my_op)
+        # print(my_op.get_primitives())

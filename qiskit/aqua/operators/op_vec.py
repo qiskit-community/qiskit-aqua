@@ -171,6 +171,18 @@ class OpVec(OperatorBase):
         # Combination function must be able to handle classical values
         return self.combo_fn([op.to_matrix() for op in self.oplist])
 
+    def eval(self, val1, val2):
+        """ A square binary Operator can be defined as a function over two binary strings of equal length. This
+        method returns the value of that function for a given pair of binary strings. For more information,
+        see the eval method in operator_base.py.
+
+        OpVec's eval recursively evaluates each Operator in self.oplist's eval, and returns a value based on the
+        recombination function.
+
+        """
+        # TODO Do we need to use partial(np.sum, axis=0) as OpSum combo to be able to handle vector returns correctly?
+        return self.combo_fn([op.eval(val1, val2) for op in self.oplist])
+
     def __str__(self):
         """Overload str() """
         if self.coeff == 1.0:
