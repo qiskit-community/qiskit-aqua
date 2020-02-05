@@ -68,7 +68,6 @@ from .operator_base import OperatorBase
 from .op_kron import OpKron
 from .op_composition import OpComposition
 from .op_vec import OpVec
-from .op_combo_base import OpCombo
 from .op_primitive import OpPrimitive
 from .op_sum import OpSum
 

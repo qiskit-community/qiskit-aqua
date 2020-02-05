@@ -17,10 +17,10 @@
 import numpy as np
 from functools import reduce, partial
 
-from .op_combo_base import OpCombo
+from .op_vec import OpVec
 
 
-class OpComposition(OpCombo):
+class OpComposition(OpVec):
 
     def __init__(self, oplist, coeff=1.0):
         """

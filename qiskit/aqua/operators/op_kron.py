@@ -14,12 +14,13 @@
 
 """ Eager Operator Kron Container """
 
-from .op_combo_base import OpCombo
 from functools import reduce, partial
 import numpy as np
 
+from .op_vec import OpVec
 
-class OpKron(OpCombo):
+
+class OpKron(OpVec):
 
     def __init__(self, oplist, coeff=1.0):
         """

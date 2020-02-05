@@ -26,7 +26,7 @@ from .operator_base import OperatorBase
 from .op_sum import OpSum
 from .op_kron import OpKron
 from .op_composition import OpComposition
-from .op_vec import OpVec
+from .op_vec import OpVec_dep
 
 # Hack to reconcile Gate/Pauli overlap issues.
 from qiskit.extensions.standard import XGate, YGate, ZGate, IdGate

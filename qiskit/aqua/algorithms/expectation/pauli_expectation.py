@@ -18,7 +18,7 @@ import logging
 import numpy as np
 
 from .expectation_base import ExpectationBase
-from qiskit.aqua.operators import OpCombo, OpPrimitive
+from qiskit.aqua.operators import OpVec, OpPrimitive
 
 logger = logging.getLogger(__name__)
 
@@ -49,4 +49,3 @@ class PauliExpectation(ExpectationBase):
 
         if self._primitives_cache is None:
             self._extract_primitives()
-

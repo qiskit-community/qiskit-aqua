@@ -18,10 +18,10 @@ import numpy as np
 import copy
 import itertools
 
-from .op_combo_base import OpCombo
+from .op_vec import OpVec
 
 
-class OpSum(OpCombo):
+class OpSum(OpVec):
 
     def __init__(self, oplist, coeff=1.0):
         """
@@ -29,7 +29,7 @@ class OpSum(OpCombo):
             oplist (list(OperatorBase)): The operators being summed.
             coeff (float, complex): A coefficient multiplying the primitive
         """
-        super().__init__(oplist, coeff=coeff, combo_fn=sum)
+        super().__init__(oplist, combo_fn=sum, coeff=coeff)
 
     @property
     def num_qubits(self):
@@ -49,7 +49,7 @@ class OpSum(OpCombo):
             other_index = self.oplist.index(other)
             new_oplist[other_index] = new_oplist[other_index] + other
             return OpSum(new_oplist, coeff=self.coeff)
-        return OpSum(self.ops + [other], coeff=self.coeff)
+        return OpSum(self.oplist + [other], coeff=self.coeff)
 
     # TODO implement override, given permutation invariance?
     # def equals(self, other):
