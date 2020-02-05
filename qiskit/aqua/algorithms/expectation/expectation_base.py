@@ -20,7 +20,7 @@ from abc import abstractmethod
 
 from qiskit import BasicAer
 from qiskit.aqua import AquaError, QuantumAlgorithm
-from qiskit.aqua.operators import OpVec, OpPrimitive, OpSum, OpVec_dep
+from qiskit.aqua.operators import OpVec, OpPrimitive, OpSum
 
 from qiskit.aqua.utils.backend_utils import (is_statevector_backend,
                                              is_aer_qasm,
@@ -32,7 +32,9 @@ logger = logging.getLogger(__name__)
 class ExpectationBase():
     """ A base for Expectation Value algorithms. An expectation value algorithm takes an operator Observable,
     a backend, and a state distribution function, and computes the expected value of that observable over the
-    distribution. """
+    distribution.
+
+    """
 
     @staticmethod
     def factory(operator, backend=None, state=None):
@@ -106,11 +108,11 @@ class ExpectationBase():
     def compute_expectation(self, state=None):
 
     def reduce_to_opsum_or_vec(self, operator):
-        """ Takes an operator of Pauli primtives and rearranges it to be an OpVec_dep of OpSums of Pauli primitives.
+        """ Takes an operator of Pauli primtives and rearranges it to be an OpVec of OpSums of Pauli primitives.
         Recursively traverses the operator to check that for each node in the tree, either:
         1) node is a Pauli primitive.
         2) node is an OpSum containing only Pauli primtiives.
-        3) node is an OpVec_dep containing only OpSums.
+        3) node is an OpVec containing only OpSums.
 
         If these three conditions are true for all nodes, the expectation can proceed. If not, the following must
         happen:
@@ -118,5 +120,5 @@ class ExpectationBase():
         2) If node is an OpSum containing non-Pauli primitive subnodes:
             a) If subnode is
         """
-        if isinstance(operator, OpVec_dep) and all([isinstance(op, OpSum) for op in operator.oplist]):
+        if isinstance(operator, OpVec) and all([isinstance(op, OpSum) for op in operator.oplist]):
             return

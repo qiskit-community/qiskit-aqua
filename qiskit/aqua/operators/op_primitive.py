@@ -26,16 +26,10 @@ from .operator_base import OperatorBase
 from .op_sum import OpSum
 from .op_kron import OpKron
 from .op_composition import OpComposition
-from .op_vec import OpVec_dep
 
 # Hack to reconcile Gate/Pauli overlap issues.
 from qiskit.extensions.standard import XGate, YGate, ZGate, IdGate
-_pauli_to_gate_mapping = {
-    'X': XGate(),
-    'Y': YGate(),
-    'Z': ZGate(),
-    'I': IdGate()
-}
+_pauli_to_gate_mapping = {'X': XGate(), 'Y': YGate(), 'Z': ZGate(), 'I': IdGate()}
 
 logger = logging.getLogger(__name__)
 

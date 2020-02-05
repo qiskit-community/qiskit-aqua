@@ -18,7 +18,11 @@ from abc import ABC, abstractmethod
 
 
 class OperatorBase(ABC):
-    """Operators relevant for quantum applications."""
+    """ An square binary Operator can be defined in a two equivalent ways:
+        1) A functional, taking a complex function over a binary alphabet of values to another binary function
+        2) A complex function over two values of a binary alphabet
+
+    """
 
     @property
     def name(self):
