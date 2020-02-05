@@ -44,7 +44,33 @@ class TestOpPrimitive(QiskitAquaTestCase):
         self.assertEqual(Z.primitive, Pauli(label='Z'))
         self.assertEqual(I.primitive, Pauli(label='I'))
 
-        # TODO Check coeffs
+        # Test eval
+        self.assertEqual(Z.eval('0', '0'), 1)
+        self.assertEqual(Z.eval('1', '0'), 0)
+        self.assertEqual(Z.eval('0', '1'), 0)
+        self.assertEqual(Z.eval('1', '1'), -1)
+        self.assertEqual(X.eval('0', '0'), 0)
+        self.assertEqual(X.eval('1', '0'), 1)
+        self.assertEqual(X.eval('0', '1'), 1)
+        self.assertEqual(X.eval('1', '1'), 0)
+        self.assertEqual(Y.eval('0', '0'), 0)
+        self.assertEqual(Y.eval('1', '0'), -1j)
+        self.assertEqual(Y.eval('0', '1'), 1j)
+        self.assertEqual(Y.eval('1', '1'), 0)
+
+        # Check that Pauli logic eval returns same as matrix logic
+        self.assertEqual(OpPrimitive(Z.to_matrix()).eval('0', '0'), 1)
+        self.assertEqual(OpPrimitive(Z.to_matrix()).eval('1', '0'), 0)
+        self.assertEqual(OpPrimitive(Z.to_matrix()).eval('0', '1'), 0)
+        self.assertEqual(OpPrimitive(Z.to_matrix()).eval('1', '1'), -1)
+        self.assertEqual(OpPrimitive(X.to_matrix()).eval('0', '0'), 0)
+        self.assertEqual(OpPrimitive(X.to_matrix()).eval('1', '0'), 1)
+        self.assertEqual(OpPrimitive(X.to_matrix()).eval('0', '1'), 1)
+        self.assertEqual(OpPrimitive(X.to_matrix()).eval('1', '1'), 0)
+        self.assertEqual(OpPrimitive(Y.to_matrix()).eval('0', '0'), 0)
+        self.assertEqual(OpPrimitive(Y.to_matrix()).eval('1', '0'), -1j)
+        self.assertEqual(OpPrimitive(Y.to_matrix()).eval('0', '1'), 1j)
+        self.assertEqual(OpPrimitive(Y.to_matrix()).eval('1', '1'), 0)
 
     def test_circuit_primitives(self):
         hadq2 = I^H

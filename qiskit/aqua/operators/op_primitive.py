@@ -317,3 +317,56 @@ class OpPrimitive(OperatorBase):
     def print_details(self):
         """ print details """
         raise NotImplementedError
+
+    def eval(self, val1, val2):
+        """ A square binary Operator can be defined as a function over two binary strings of equal length. This
+        method returns the value of that function for a given pair of binary strings. Note that by using
+        functools.partial, a function over a single binary string is returned, which is equivalent to a state
+        function.
+
+        A brute force way to evaluate an expectation for some **positive real** state function sf would be:
+            sampled_strings = sf.sample(shots=1000)
+            sum([op.eval(bstr, bstr) for bstr in sampled_strings])
+        or, exactly:
+            sum([op.eval(bstr, bstr) * sf.eval(bstr) for bstr in sampled_strings])
+
+        However, for a quantum state function, i.e. a complex state function, this would need to be:
+            sampled_strings = sf.sample(shots=1000)
+            sum([op.eval(bstr, bstr) * np.sign(sf.eval(bstr)) for bstr in sampled_strings])
+        or, exactly:
+            sum([op.eval(bstr, bstr) * np.conj(sf.eval(bstr)) * sf.eval(bstr) for bstr in sampled_strings])
+
+        Note that for a quantum statefunction, we do not generally have efficient classical access to sf.sample or
+        sf.eval.
+
+        """
+
+        # Pauli
+        if isinstance(self.primitive, Pauli):
+            bitstr1 = np.asarray(list(val1)).astype(np.bool)
+            bitstr2 = np.asarray(list(val2)).astype(np.bool)
+
+            x_factor = np.logical_xor(bitstr1, bitstr2) == self.primitive.x
+            z_factor = 1 - 2*np.logical_and(bitstr1, self.primitive.z)
+            y_factor = np.sqrt(1 - 2*np.logical_and(self.primitive.z, self.primitive.x) + 0j)
+            return self.coeff * np.product(x_factor*z_factor*y_factor)
+
+        # Matrix
+        elif isinstance(self.primitive, MatrixOperator):
+            index1 = int(val1, 2)
+            index2 = int(val2, 2)
+            return self.primitive.data[index2, index1] * self.coeff
+
+        # User custom eval
+        elif hasattr(self.primitive, 'eval'):
+            return self.primitive.eval(val1, val2) * self.coeff
+
+        # Both Instructions/Circuits
+        elif isinstance(self.primitive, Instruction) or hasattr(self.primitive, 'to_matrix'):
+            mat = self.to_matrix()
+            index1 = int(val1, 2)
+            index2 = int(val2, 2)
+            return mat[index2, index1] * self.coeff
+
+        else:
+            raise NotImplementedError

@@ -73,7 +73,7 @@ from .op_sum import OpSum
 
 # Paulis
 X = OpPrimitive(Pauli.from_label('X'))
-Y = OpPrimitive(Pauli.from_label('Y'), coeff=1.j)
+Y = OpPrimitive(Pauli.from_label('Y'))
 Z = OpPrimitive(Pauli.from_label('Z'))
 I = OpPrimitive(Pauli.from_label('I'))
 
