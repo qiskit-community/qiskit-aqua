@@ -48,7 +48,7 @@ class TestOpPrimitive(QiskitAquaTestCase):
 
     def test_circuit_primitives(self):
         hadq2 = I^H
-        cz = hadq2(CX(hadq2))
+        cz = hadq2.compose(CX).compose(hadq2)
 
         ref_cz_mat = OpPrimitive(CzGate()).to_matrix()
         np.testing.assert_array_almost_equal(cz.to_matrix(), ref_cz_mat)
@@ -78,7 +78,7 @@ class TestOpPrimitive(QiskitAquaTestCase):
         # np.testing.assert_array_almost_equal(new_op.primitive.to_matrix(), unitary)
 
     def test_get_primitives(self):
-        my_op = (((Y+H)*.5)^X)(H^I) + OpPrimitive(Operator.from_label('+r'))
+        my_op = (.5*(Y+H)).kron(X).compose(H^I) + OpPrimitive(Operator.from_label('+r'))
         print(my_op.to_matrix())
         print(my_op)
         print(my_op.get_primitives())

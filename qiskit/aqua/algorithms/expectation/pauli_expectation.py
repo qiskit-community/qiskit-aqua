@@ -16,29 +16,37 @@
 
 import logging
 import numpy as np
-from abc import abstractmethod
 
 from .expectation_base import ExpectationBase
-from qiskit.aqua import AquaError, QuantumAlgorithm
 from qiskit.aqua.operators import OpCombo, OpPrimitive
 
 logger = logging.getLogger(__name__)
 
 
 class PauliExpectation(ExpectationBase):
-    """ A base for Expectation Value algorithms """
+    """ An Expectation Value algorithm for taking expectations of quantum states specified by circuits over
+    observables specified by Pauli Operators. Flow:
 
-    def __init__(self, state=None, operator=None, backend=None):
+    """
+
+    def __init__(self, operator=None, backend=None, state=None):
         """
         Args:
 
         """
+        self._operator = operator
+        self._backend = backend
+        self._state = state
+        self._primitives_cache = None
 
-        if isinstance(operator, OpPrimitive):
-            if isinstance(operator.primitive, Pauli):
-                return PauliExpectation()
-            elif isinstance(operator.primitive, Instruction)
+    def _extract_primitives(self):
+        self._primitives_cache = []
+        if isinstance(self._operator, OpVec):
+            self._primitives_cache += [op for op in self._operator.oplist]
 
-    @abstractmethod
-    def compute_expectation(self):
-        raise NotImplementedError
+    def compute_expectation_for_primitives(self, state=None, primitives=None):
+        state = state or self._state
+
+        if self._primitives_cache is None:
+            self._extract_primitives()
+
