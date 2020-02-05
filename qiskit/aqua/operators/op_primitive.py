@@ -346,9 +346,13 @@ class OpPrimitive(OperatorBase):
             bitstr1 = np.asarray(list(val1)).astype(np.bool)
             bitstr2 = np.asarray(list(val2)).astype(np.bool)
 
-            x_factor = np.logical_xor(bitstr1, bitstr2) == self.primitive.x
-            z_factor = 1 - 2*np.logical_and(bitstr1, self.primitive.z)
-            y_factor = np.sqrt(1 - 2*np.logical_and(self.primitive.z, self.primitive.x) + 0j)
+            # fix_endianness
+            corrected_x_bits = self.primitive.x[::-1]
+            corrected_z_bits = self.primitive.z[::-1]
+
+            x_factor = np.logical_xor(bitstr1, bitstr2) == corrected_x_bits
+            z_factor = 1 - 2*np.logical_and(bitstr1, corrected_z_bits)
+            y_factor = np.sqrt(1 - 2*np.logical_and(corrected_x_bits, corrected_z_bits) + 0j)
             return self.coeff * np.product(x_factor*z_factor*y_factor)
 
         # Matrix

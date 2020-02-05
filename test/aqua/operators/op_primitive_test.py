@@ -15,6 +15,7 @@
 """ Test OpSum """
 
 import unittest
+import itertools
 from test.aqua import QiskitAquaTestCase
 from qiskit.quantum_info.operators import Operator, Pauli
 from qiskit.extensions.standard import CzGate
@@ -44,6 +45,8 @@ class TestOpPrimitive(QiskitAquaTestCase):
         self.assertEqual(Z.primitive, Pauli(label='Z'))
         self.assertEqual(I.primitive, Pauli(label='I'))
 
+    def test_pauli_evals(self):
+
         # Test eval
         self.assertEqual(Z.eval('0', '0'), 1)
         self.assertEqual(Z.eval('1', '0'), 0)
@@ -71,6 +74,13 @@ class TestOpPrimitive(QiskitAquaTestCase):
         self.assertEqual(OpPrimitive(Y.to_matrix()).eval('1', '0'), -1j)
         self.assertEqual(OpPrimitive(Y.to_matrix()).eval('0', '1'), 1j)
         self.assertEqual(OpPrimitive(Y.to_matrix()).eval('1', '1'), 0)
+
+        pauli_op = Z^I^X^Y
+        mat_op = OpPrimitive(pauli_op.to_matrix())
+        full_basis = list(map(''.join, itertools.product('01', repeat=pauli_op.num_qubits)))
+        for bstr1, bstr2 in itertools.product(full_basis, full_basis):
+            # print('{} {} {} {}'.format(bstr1, bstr2, pauli_op.eval(bstr1, bstr2), mat_op.eval(bstr1, bstr2)))
+            self.assertEqual(pauli_op.eval(bstr1, bstr2), mat_op.eval(bstr1, bstr2))
 
     def test_circuit_primitives(self):
         hadq2 = I^H
