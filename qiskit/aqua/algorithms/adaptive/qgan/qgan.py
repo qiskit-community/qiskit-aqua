@@ -16,7 +16,6 @@
 Quantum Generative Adversarial Network.
 `Quantum Generative Adversarial Networks for learning and loading random distributions
     <https://www.nature.com/articles/s41534-019-0223-2>`_
-.. _QGAN:
 """
 
 from typing import Optional
@@ -44,9 +43,10 @@ logger = logging.getLogger(__name__)
 class QGAN(QuantumAlgorithm):
     """
     Quantum Generative Adversarial Network.
-    This adaptive algorithm uses the interplay of a generative :ref:`GenerativeNN`and a
-    discriminative :ref:`DiscriminativeNN` network to learn the probability distribution
-    underlying given training data.
+    This adaptive algorithm uses the interplay of a generative
+    :class:`~qiskit.aqua.components.neural_networks.GenerativeNetwork`and a
+    discriminative :class:`~qiskit.aqua.components.neural_networks.DiscriminativeNetwork`
+    network to learn the probability distribution underlying given training data.
 
 
     """
