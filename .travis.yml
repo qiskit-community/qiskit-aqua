@@ -86,10 +86,6 @@ stage_dependencies: &stage_dependencies
         # back to current repo directory
         cd $TRAVIS_BUILD_DIR
       fi
-    - |
-      if [ ! "$(ls -A .stestr)" ]; then
-          rm -rf .stestr
-      fi
     # install Aqua and Aqua dev. requirements
     - pip install -e $TRAVIS_BUILD_DIR --progress-bar off
     - pip install -U -c constraints.txt -r requirements-dev.txt --progress-bar off
@@ -275,13 +271,13 @@ jobs:
         - coverage xml
         - diff-cover --compare-branch master coverage.xml || true
     - stage: Deploy
-      <<: *stage_dependencies
       name: "Deploy to Pypi"
       if: tag IS present
-      python: 3.6
+      python: 3.7
       env:
         - TWINE_USERNAME=qiskit
-      install: pip install -U twine
+      install:
+        - pip install -U twine pip setuptools virtualenv wheel
       script:
         - python3 setup.py sdist bdist_wheel
         - twine upload dist/qiskit*
