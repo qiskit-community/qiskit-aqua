@@ -44,8 +44,9 @@ logger = logging.getLogger(__name__)
 class QGAN(QuantumAlgorithm):
     """
     Quantum Generative Adversarial Network.
-    This adaptive algorithm uses the interplay of a generative :ref:`GenerativeNN`and a discriminative
-    :ref:`DiscriminativeNN` network to learn the probability distribution underlying given training data.
+    This adaptive algorithm uses the interplay of a generative :ref:`GenerativeNN`and a
+    discriminative :ref:`DiscriminativeNN` network to learn the probability distribution
+    underlying given training data.
 
 
     """
