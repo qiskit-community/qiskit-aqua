@@ -137,7 +137,7 @@ class QGAN(QuantumAlgorithm):
 
     @property
     def seed(self):
-        """ returns seed """
+        """ returns random seed """
         return self._random_seed
 
     @seed.setter
@@ -212,21 +212,21 @@ class QGAN(QuantumAlgorithm):
 
     @property
     def g_loss(self):
-        """ returns g loss """
+        """ returns generator loss """
         return self._g_loss
 
     @property
     def d_loss(self):
-        """ returns d loss """
+        """ returns discriminator loss """
         return self._d_loss
 
     @property
     def rel_entr(self):
-        """ returns relative entropy """
+        """ returns relative entropy between target and trained distribution """
         return self._rel_entr
 
     def get_rel_entr(self):
-        """ get relative entropy """
+        """ get relative entropy between target and trained distribution """
         samples_gen, prob_gen = self._generator.get_output(self._quantum_instance)
         temp = np.zeros(len(self._grid_elements))
         for j, sample in enumerate(samples_gen):
