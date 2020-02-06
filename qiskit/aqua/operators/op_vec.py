@@ -32,7 +32,7 @@ class OpVec(OperatorBase):
         Args:
             oplist (list(OperatorBase)): The operators being summed.
             combo_fn (callable): The recombination function to reduce classical operators when available (e.g. sum)
-            coeff (float, complex): A coefficient multiplying the primitive
+            coeff (int, float, complex): A coefficient multiplying the primitive
 
             Note that the default "recombination function" lambda above is the identity - it takes a list of operators,
             and is supposed to return a list of operators.
@@ -103,7 +103,7 @@ class OpVec(OperatorBase):
 
     def mul(self, scalar):
         """ Scalar multiply. Overloaded by * in OperatorBase. """
-        if not isinstance(scalar, (float, complex)):
+        if not isinstance(scalar, (int, float, complex)):
             raise ValueError('Operators can only be scalar multiplied by float or complex, not '
                              '{} of type {}.'.format(scalar, type(scalar)))
         # return self.__class__([op.mul(scalar) for op in self.oplist])
@@ -173,7 +173,7 @@ class OpVec(OperatorBase):
                              ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
 
         # Combination function must be able to handle classical values
-        return self.combo_fn([op.to_matrix() for op in self.oplist])
+        return self.combo_fn([op.to_matrix() for op in self.oplist]) * self.coeff
 
     def eval(self, val1, val2):
         """ A square binary Operator can be defined as a function over two binary strings of equal length. This
@@ -185,7 +185,7 @@ class OpVec(OperatorBase):
 
         """
         # TODO Do we need to use partial(np.sum, axis=0) as OpSum combo to be able to handle vector returns correctly?
-        return self.combo_fn([op.eval(val1, val2) for op in self.oplist])
+        return self.combo_fn([op.eval(val1, val2) for op in self.oplist]) * self.coeff
 
     def __str__(self):
         """Overload str() """

@@ -21,7 +21,7 @@ from functools import partial, reduce
 from qiskit.quantum_info import Pauli
 from qiskit import QuantumCircuit
 
-from .. import OperatorBase, OpPrimitive, OpComposition, H, S, CX
+from .. import OpPrimitive, OpComposition, H, S
 
 logger = logging.getLogger(__name__)
 
@@ -32,17 +32,18 @@ class PauliChangeOfBasis():
     hardware, the Pauli can be replaced by a composition of a change of basis circuit and a Pauli composed of only Z
     and I terms, which can be evolved or sampled natively on gate-based Quantum hardware. """
 
-    def __init__(self, destination_basis=None, measure=True, traverse=True, change_back=True):
+    def __init__(self, destination_basis=None, traverse=True):
         """ Args:
             destination_basis(Pauli): The Pauli into the basis of which the operators will be converted. If None is
             specified, the destination basis will be the {I,Z}^n basis requiring only single qubit rotations.
+            travers(bool): If true and the operator passed into convert is an OpVec, traverse the OpVec,
+            applying the conversion to every applicable operator within the oplist.
         """
         if destination_basis is not None and not isinstance(destination_basis, Pauli):
             raise TypeError('PauliChangeOfBasis can only convert into Pauli bases, '
                             'not {}.'.format(type(destination_basis)))
         self._destination = destination_basis
         self._traverse = traverse
-        self._change_back = change_back
 
     # TODO see whether we should make this performant by handling OpVecs of Paulis later.
     def convert(self, operator):
@@ -64,8 +65,10 @@ class PauliChangeOfBasis():
     def get_cob_circuit(self, pauli):
         # If no destination specified, assume nearest Pauli in {Z,I}^n basis
         destination = self._destination or Pauli(z=pauli.z)
-        # TODO be smarter about connectivity
+
+        # TODO be smarter about connectivity and actual distance between pauli and destination
         # TODO be smarter in general
+
         kronall = partial(reduce, lambda x, y: x.kron(y))
 
         # Construct single-qubit changes to {Z, I)^n

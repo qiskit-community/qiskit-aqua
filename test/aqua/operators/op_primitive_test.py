@@ -45,7 +45,7 @@ class TestOpPrimitive(QiskitAquaTestCase):
         self.assertEqual(Z.primitive, Pauli(label='Z'))
         self.assertEqual(I.primitive, Pauli(label='I'))
 
-    def test_pauli_evals(self):
+    def test_evals(self):
 
         # Test eval
         self.assertEqual(Z.eval('0', '0'), 1)
@@ -82,15 +82,12 @@ class TestOpPrimitive(QiskitAquaTestCase):
             # print('{} {} {} {}'.format(bstr1, bstr2, pauli_op.eval(bstr1, bstr2), mat_op.eval(bstr1, bstr2)))
             self.assertEqual(pauli_op.eval(bstr1, bstr2), mat_op.eval(bstr1, bstr2))
 
-    def test_circuit_primitives(self):
+    def test_circuit_construction(self):
         hadq2 = I^H
         cz = hadq2.compose(CX).compose(hadq2)
 
         ref_cz_mat = OpPrimitive(CzGate()).to_matrix()
         np.testing.assert_array_almost_equal(cz.to_matrix(), ref_cz_mat)
-
-    def test_matrix_primitives(self):
-        pass
 
     def test_io_consistency(self):
         new_op = X^Y^I
@@ -105,7 +102,21 @@ class TestOpPrimitive(QiskitAquaTestCase):
         i_mat = np.eye(2, 2)
         np.testing.assert_array_almost_equal(new_op.primitive.to_matrix(), np.kron(np.kron(x_mat, y_mat), i_mat))
 
-        # TODO make sure this works given endianness mayhem
+        hi = np.kron(H.to_matrix(), I.to_matrix())
+        hi2 = Operator.from_label('HI').data
+        hi3 = (H^I).to_matrix()
+        np.testing.assert_array_almost_equal(hi, hi2)
+        np.testing.assert_array_almost_equal(hi2, hi3)
+
+        # Check if numpy array instantiation is the same as from Operator
+        matrix_op = Operator.from_label('+r')
+        np.testing.assert_array_almost_equal(OpPrimitive(matrix_op).to_matrix(),
+                                             OpPrimitive(matrix_op.data).to_matrix())
+        # Ditto list of lists
+        np.testing.assert_array_almost_equal(OpPrimitive(matrix_op.data.tolist()).to_matrix(),
+                                             OpPrimitive(matrix_op.data).to_matrix())
+
+        # TODO make sure this works once we resolve endianness mayhem
         # qc = QuantumCircuit(3)
         # qc.x(2)
         # qc.y(1)
@@ -114,7 +125,28 @@ class TestOpPrimitive(QiskitAquaTestCase):
         # np.testing.assert_array_almost_equal(new_op.primitive.to_matrix(), unitary)
 
     def test_to_matrix(self):
-        my_op = (.5*(Y+H)).kron(X).compose(H^I) + OpPrimitive(Operator.from_label('+r'))
-        # print(my_op.to_matrix())
-        # print(my_op)
-        # print(my_op.get_primitives())
+        np.testing.assert_array_equal(X.to_matrix(), Operator.from_label('X').data)
+        np.testing.assert_array_equal(Y.to_matrix(), Operator.from_label('Y').data)
+        np.testing.assert_array_equal(Z.to_matrix(), Operator.from_label('Z').data)
+
+        op1 = Y+H
+        np.testing.assert_array_almost_equal(op1.to_matrix(), Y.to_matrix() + H.to_matrix())
+
+        op2 = op1*.5
+        np.testing.assert_array_almost_equal(op2.to_matrix(), op1.to_matrix()*.5)
+
+        op3 = (4 - .6j) * op2
+        np.testing.assert_array_almost_equal(op3.to_matrix(), op2.to_matrix() * (4 - .6j))
+
+        op4 = op3.kron(X)
+        np.testing.assert_array_almost_equal(op4.to_matrix(), np.kron(op3.to_matrix(), X.to_matrix()))
+
+        op5 = op4.compose(H^I)
+        np.testing.assert_array_almost_equal(op5.to_matrix(), np.dot(op4.to_matrix(), (H^I).to_matrix()))
+
+        op6 = op5 + OpPrimitive(Operator.from_label('+r').data)
+        np.testing.assert_array_almost_equal(op6.to_matrix(), op5.to_matrix() + Operator.from_label('+r').data)
+
+    def test_adjoint(self):
+        gnarly = 3 * (H^I^Y).compose(X^X^Z).kron(T^Z)
+        np.testing.assert_array_almost_equal(np.conj(np.transpose(gnarly.to_matrix())), gnarly.adjoint().to_matrix())

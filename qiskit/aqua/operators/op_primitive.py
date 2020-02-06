@@ -47,7 +47,7 @@ class OpPrimitive(OperatorBase):
         Args:
             primtive (Gate, Pauli, [[complex]], np.ndarray, QuantumCircuit, Instruction): The operator primitive being
             wrapped.
-            coeff (float, complex): A coefficient multiplying the primitive
+            coeff (int, float, complex): A coefficient multiplying the primitive
         """
         if isinstance(primitive, QuantumCircuit):
             primitive = primitive.to_instruction()
@@ -148,7 +148,8 @@ class OpPrimitive(OperatorBase):
 
     def equals(self, other):
         """ Evaluate Equality. Overloaded by == in OperatorBase. """
-        if not isinstance(self.primitive, type(other.primitive)) \
+        if not isinstance(other, OpPrimitive) \
+                or not isinstance(self.primitive, type(other.primitive)) \
                 or not self.coeff == other.coeff:
             return False
         return self.primitive == other.primitive
@@ -160,7 +161,7 @@ class OpPrimitive(OperatorBase):
         Doesn't multiply MatrixOperator until to_matrix() is called to keep things lazy and avoid big copies.
         TODO figure out if this is a bad idea.
          """
-        if not isinstance(scalar, (float, complex)):
+        if not isinstance(scalar, (int, float, complex)):
             raise ValueError('Operators can only be scalar multiplied by float or complex, not '
                              '{} of type {}.'.format(scalar, type(scalar)))
         return OpPrimitive(self.primitive, coeff=self.coeff * scalar)
@@ -189,7 +190,7 @@ class OpPrimitive(OperatorBase):
         elif isinstance(self_primitive, Instruction) and isinstance(other_primitive, Instruction):
             new_qc = QuantumCircuit(self_primitive.num_qubits+other_primitive.num_qubits)
             new_qc.append(self_primitive, new_qc.qubits[0:self_primitive.num_qubits])
-            new_qc.append(other_primitive, new_qc.qubits[other_primitive.num_qubits:])
+            new_qc.append(other_primitive, new_qc.qubits[self_primitive.num_qubits:])
             # TODO Fix because converting to dag just to append is nuts
             # TODO Figure out what to do with cbits?
             return OpPrimitive(new_qc.decompose().to_instruction(), coeff=self.coeff * other.coeff)
@@ -287,7 +288,8 @@ class OpPrimitive(OperatorBase):
         # Both Instructions/Circuits
         elif isinstance(self.primitive, Instruction):
             qc = QuantumCircuit(self.primitive.num_qubits)
-            qc.append(self.primitive, qargs=range(self.primitive.num_qubits))
+            # NOTE: reversing qubits!!
+            qc.append(self.primitive, qargs=range(self.primitive.num_qubits)[::-1])
             unitary = execute(qc, BasicAer.get_backend('unitary_simulator')).result().get_unitary()
             return unitary * self.coeff
 

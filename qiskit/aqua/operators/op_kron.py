@@ -26,7 +26,7 @@ class OpKron(OpVec):
         """
         Args:
             oplist (list(OperatorBase)): The operators being summed.
-            coeff (float, complex): A coefficient multiplying the primitive
+            coeff (int, float, complex): A coefficient multiplying the primitive
         """
         super().__init__(oplist, combo_fn=partial(reduce, np.kron), coeff=coeff)
 
