@@ -25,8 +25,8 @@ import numpy as np
 from qiskit.aqua.operators import X, Y, Z, I, CX, T, H, S, OpPrimitive, OpSum
 
 
-class TestOpPrimitive(QiskitAquaTestCase):
-    """Singleton tests."""
+class TestOpConstruction(QiskitAquaTestCase):
+    """Operator Construction tests."""
 
     def test_pauli_primitives(self):
         """ from to file test """
@@ -157,6 +157,5 @@ class TestOpPrimitive(QiskitAquaTestCase):
 
     def test_adjoint(self):
         gnarly_op = 3 * (H^I^Y).compose(X^X^Z).kron(T^Z) + OpPrimitive(Operator.from_label('+r0IX').data)
-        np.testing.assert_array_almost_equal(np.conj(np.transpose(gnarly_op.to_matrix())), gnarly_op.adjoint(
-
-        ).to_matrix())
+        np.testing.assert_array_almost_equal(np.conj(np.transpose(gnarly_op.to_matrix())),
+                                             gnarly_op.adjoint().to_matrix())

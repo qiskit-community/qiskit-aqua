@@ -21,7 +21,7 @@ from functools import partial, reduce
 from qiskit.quantum_info import Pauli
 from qiskit import QuantumCircuit
 
-from .. import OpPrimitive, OpComposition, H, S
+from .. import OpPrimitive, OpComposition, H, S, I
 
 logger = logging.getLogger(__name__)
 
@@ -63,8 +63,12 @@ class PauliChangeOfBasis():
         return OpComposition([cob_instruction, new_pauli], coeff=coeff)
 
     def get_cob_circuit(self, pauli):
+        if hasattr(pauli, 'primitive') and isinstance(pauli.primitive, Pauli):
+            pauli = pauli.primitive
+
         # If no destination specified, assume nearest Pauli in {Z,I}^n basis
-        destination = self._destination or Pauli(z=pauli.z)
+        pauli_ones = np.logical_or(pauli.x, pauli.z)
+        destination = self._destination or Pauli(z=pauli_ones, x=[False]*len(pauli.z))
 
         # TODO be smarter about connectivity and actual distance between pauli and destination
         # TODO be smarter in general
@@ -72,23 +76,27 @@ class PauliChangeOfBasis():
         kronall = partial(reduce, lambda x, y: x.kron(y))
 
         # Construct single-qubit changes to {Z, I)^n
-        y_to_x_pauli = kronall([S.adjoint() if has_y else I for has_y in np.logical_and(pauli.x, pauli.z)])
+        y_to_x_pauli = kronall([S if has_y else I for has_y in np.logical_and(pauli.x, pauli.z)]).adjoint()
         x_to_z_pauli = kronall([H if has_x else I for has_x in pauli.x])
+        cob_instruction = y_to_x_pauli.compose(x_to_z_pauli)
 
         # Construct CNOT chain, assuming full connectivity...
-        pauli_ones = np.logical_or(pauli.x, pauli.z)
         destination_ones = np.logical_or(destination.x, destination.z)
-        lowest_one_dest = min(range(destination_ones * len(pauli.z)))
-        cnots = QuantumCircuit(len(pauli.z))
-        for i, val in enumerate(np.logical_xor(pauli_ones, destination_ones)):
-            if val:
-                cnots.cx(i, lowest_one_dest)
-        cnot_op = OpPrimitive(cnots.to_instruction())
+        lowest_one_dest = min(destination_ones * range(len(pauli.z)))
 
-        # Construct single-qubit changes from {Z, I)^n
-        z_to_x_dest = kronall([H if has_x else I for has_x in destination.x]).adjoint()
-        x_to_y_dest = kronall([S if has_y else I for has_y in np.logical_and(destination.x, destination.z)]).adjoint()
+        non_equal_z_bits = np.logical_xor(pauli_ones, destination_ones)
+        if any(non_equal_z_bits):
+            cnots = QuantumCircuit(len(pauli.z))
+            for i, val in enumerate(non_equal_z_bits):
+                if val:
+                    cnots.cx(i, lowest_one_dest)
+            cnot_op = OpPrimitive(cnots.to_instruction())
+            cob_instruction = cob_instruction.compose(cnot_op)
 
-        cob_instruction = y_to_x_pauli.compose(x_to_z_pauli).compose(cnot_op).compose(z_to_x_dest).compose(x_to_y_dest)
+        if any(destination.x):
+            # Construct single-qubit changes from {Z, I)^n
+            z_to_x_dest = kronall([H if has_x else I for has_x in destination.x]).adjoint()
+            x_to_y_dest = kronall([S if has_y else I for has_y in np.logical_and(destination.x, destination.z)])
+            cob_instruction = cob_instruction.compose(z_to_x_dest).compose(x_to_y_dest)
 
-        return cob_instruction, destination
+        return cob_instruction, OpPrimitive(destination)
