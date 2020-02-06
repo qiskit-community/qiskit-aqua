@@ -22,7 +22,7 @@ from qiskit.extensions.standard import CzGate
 
 import numpy as np
 
-from qiskit.aqua.operators import X, Y, Z, I, CX, T, H, S, OpPrimitive
+from qiskit.aqua.operators import X, Y, Z, I, CX, T, H, S, OpPrimitive, OpSum
 
 
 class TestOpPrimitive(QiskitAquaTestCase):
@@ -81,6 +81,14 @@ class TestOpPrimitive(QiskitAquaTestCase):
         for bstr1, bstr2 in itertools.product(full_basis, full_basis):
             # print('{} {} {} {}'.format(bstr1, bstr2, pauli_op.eval(bstr1, bstr2), mat_op.eval(bstr1, bstr2)))
             self.assertEqual(pauli_op.eval(bstr1, bstr2), mat_op.eval(bstr1, bstr2))
+
+        gnarly_op = OpSum([(H ^ I ^ Y).compose(X ^ X ^ Z).kron(Z),
+                          OpPrimitive(Operator.from_label('+r0I')),
+                          3*(X^CX^T)], coeff=3+.2j)
+        gnarly_mat_op = OpPrimitive(gnarly_op.to_matrix())
+        full_basis = list(map(''.join, itertools.product('01', repeat=gnarly_op.num_qubits)))
+        for bstr1, bstr2 in itertools.product(full_basis, full_basis):
+            self.assertEqual(gnarly_op.eval(bstr1, bstr2), gnarly_mat_op.eval(bstr1, bstr2))
 
     def test_circuit_construction(self):
         hadq2 = I^H
@@ -148,5 +156,7 @@ class TestOpPrimitive(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(op6.to_matrix(), op5.to_matrix() + Operator.from_label('+r').data)
 
     def test_adjoint(self):
-        gnarly = 3 * (H^I^Y).compose(X^X^Z).kron(T^Z)
-        np.testing.assert_array_almost_equal(np.conj(np.transpose(gnarly.to_matrix())), gnarly.adjoint().to_matrix())
+        gnarly_op = 3 * (H^I^Y).compose(X^X^Z).kron(T^Z) + OpPrimitive(Operator.from_label('+r0IX').data)
+        np.testing.assert_array_almost_equal(np.conj(np.transpose(gnarly_op.to_matrix())), gnarly_op.adjoint(
+
+        ).to_matrix())

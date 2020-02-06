@@ -358,7 +358,8 @@ class OpPrimitive(OperatorBase):
             mat = self.to_matrix()
             index1 = int(val1, 2)
             index2 = int(val2, 2)
-            return mat[index2, index1] * self.coeff
+            # Don't multiply by coeff because to_matrix() already does
+            return mat[index2, index1]
 
         else:
             raise NotImplementedError
