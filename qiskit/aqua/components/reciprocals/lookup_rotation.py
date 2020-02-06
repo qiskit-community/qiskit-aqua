@@ -1,29 +1,32 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2020.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
 """Controlled rotation for the HHL algorithm based on partial table lookup"""
 
+from typing import Optional
 import itertools
 import logging
 import numpy as np
+
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.aqua.components.reciprocals import Reciprocal
+from qiskit.aqua.circuits.gates import mct  # pylint: disable=unused-import
+from qiskit.aqua.utils.validation import validate_range
 
 logger = logging.getLogger(__name__)
+
+# pylint: disable=invalid-name
 
 
 class LookupRotation(Reciprocal):
@@ -36,66 +39,26 @@ class LookupRotation(Reciprocal):
     Please refer to the HHL documentation for an explanation of this method.
     """
 
-    CONFIGURATION = {
-        'name': 'Lookup',
-        'description': 'approximate inversion for HHL based on table lookup',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
-            'id': 'reciprocal_lookup_schema',
-            'type': 'object',
-            'properties': {
-                'pat_length': {
-                    'type': ['integer', 'null'],
-                    'default': None,
-                },
-                'subpat_length': {
-                    'type': ['integer', 'null'],
-                    'default': None,
-                },
-                'negative_evals': {
-                    'type': 'boolean',
-                    'default': False
-                },
-                'scale': {
-                    'type': 'number',
-                    'default': 0,
-                    'minimum': 0,
-                    'maximum': 1,
-                },
-                'evo_time': {
-                    'type': ['number', 'null'],
-                    'default': None
-                },
-                'lambda_min': {
-                    'type': ['number', 'null'],
-                    'default': None
-                }
-            },
-            'additionalProperties': False
-        },
-    }
-
     def __init__(
             self,
-            pat_length=None,
-            subpat_length=None,
-            scale=0,
-            negative_evals=False,
-            evo_time=None,
-            lambda_min=None
-    ):
+            pat_length: Optional[int] = None,
+            subpat_length: Optional[int] = None,
+            scale: float = 0,
+            negative_evals: bool = False,
+            evo_time: Optional[float] = None,
+            lambda_min: Optional[float] = None) -> None:
         """Constructor.
 
         Args:
-            pat_length (int, optional): the number of qubits used for binning pattern
-            subpat_length (int, optional): the number of qubits used for binning sub-pattern
-            scale (float, optional): the scale of rotation angle, corresponds to HHL constant C
-            negative_evals (bool, optional): indicate if negative eigenvalues need to be handled
-            evo_time (float, optional): the evolution time
-            lambda_min (float, optional): the smallest expected eigenvalue
+            pat_length: the number of qubits used for binning pattern
+            subpat_length: the number of qubits used for binning sub-pattern
+            scale: the scale of rotation angle, corresponds to HHL constant C,
+                     has values between 0 and 1.
+            negative_evals: indicate if negative eigenvalues need to be handled
+            evo_time: the evolution time
+            lambda_min: the smallest expected eigenvalue
         """
-
-        self.validate(locals())
+        validate_range('scale', scale, 0, 1)
         super().__init__()
         self._pat_length = pat_length
         self._subpat_length = subpat_length
@@ -115,6 +78,7 @@ class LookupRotation(Reciprocal):
         vec = statevector[half:half + 2 ** num_q]
         return vec
 
+    @staticmethod
     def _classic_approx(k, n, m, negative_evals=False):
         """Approximate arcsin(1/x) for controlled-rotation.
 
@@ -128,7 +92,7 @@ class LookupRotation(Reciprocal):
             negative_evals (bool): flag for using first qubit as sign bit
 
         Returns:
-            Dictionary containing values of approximated and binned values.
+            dict: Dictionary containing values of approximated and binned values.
         """
 
         def bin_to_num(binary):
@@ -144,7 +108,7 @@ class LookupRotation(Reciprocal):
                                                         k + 1)])
                 return bin_to_num(pattern)+remainder/2
             return bin_to_num(pattern)
-
+        # pylint: disable=import-outside-toplevel
         from collections import OrderedDict
         output = OrderedDict()
         fo = None
@@ -194,7 +158,7 @@ class LookupRotation(Reciprocal):
                 pattern = list(pattern_ + appendpat).copy()
                 if '1' not in pattern and (not negative_evals):
                     continue
-                elif '1' not in pattern and negative_evals:
+                if '1' not in pattern and negative_evals:
                     e_l = 0.5
                 else:
                     vec[last_fo - n:last_fo] = list(pattern)
@@ -225,6 +189,8 @@ class LookupRotation(Reciprocal):
             fo_pos (int): position of first-one bit
             last_iteration (bool): switch which is set for numbers where only the
                         last n bits is different from 0 in the binary string
+        Raises:
+            RuntimeError: invalid input
         """
         qc = self._circuit
         ev = [ev_reg[i] for i in range(len(ev_reg))]
@@ -289,21 +255,23 @@ class LookupRotation(Reciprocal):
             if i == '0':
                 qc.x(self._ev[int(c + offset)])
 
-    def construct_circuit(self, mode, inreg):
+    def construct_circuit(self, mode, inreg):  # pylint: disable=arguments-differ
 
         """Construct the Lookup Rotation circuit.
 
         Args:
-            mode (str): consctruction mode, 'vector' not supported
+            mode (str): construction mode, 'matrix' not supported
             inreg (QuantumRegister): input register, typically output register of Eigenvalues
 
         Returns:
-            QuantumCircuit containing the Lookup Rotation circuit.
+            QuantumCircuit: containing the Lookup Rotation circuit.
+         Raises:
+            NotImplementedError: mode not supported
         """
 
         # initialize circuit
-        if mode == 'vector':
-            raise NotImplementedError('vector mode not supported')
+        if mode == 'matrix':
+            raise NotImplementedError('The matrix mode is not supported.')
         if self._lambda_min:
             self._scale = self._lambda_min/2/np.pi*self._evo_time
         if self._scale == 0:
@@ -383,13 +351,13 @@ class LookupRotation(Reciprocal):
 
                     # rotation is happening here
                     # 1. rotate by half angle
-                    qc.mcu3(theta / 2, 0, 0, [self._workq[0], self._msq[0]],
-                            self._anc[0])
+                    qc.mcry(theta / 2, [self._workq[0], self._msq[0]],
+                            self._anc[0], None, mode='noancilla')
                     # 2. mct gate to reverse rotation direction
                     self._set_bit_pattern(subpattern, self._anc[0], offset)
                     # 3. rotate by inverse of halfangle to uncompute / complete
-                    qc.mcu3(-theta / 2, 0, 0, [self._workq[0], self._msq[0]],
-                            self._anc[0])
+                    qc.mcry(-theta / 2, [self._workq[0], self._msq[0]],
+                            self._anc[0], None, mode='noancilla')
                     # 4. mct gate to uncompute first mct gate
                     self._set_bit_pattern(subpattern, self._anc[0], offset)
                 # uncompute m-bit pattern

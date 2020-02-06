@@ -1,49 +1,40 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2020.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
+
 """
 This module contains the definition of a base class for
 feature map. Several types of commonly used approaches.
 """
-from qiskit.aqua import Pluggable
-from abc import abstractmethod
+
+from abc import ABC, abstractmethod
 from qiskit.aqua.utils import get_entangler_map, validate_entangler_map
 
 
-class FeatureMap(Pluggable):
+class FeatureMap(ABC):
 
     """Base class for FeatureMap.
 
-        This method should initialize the module and its configuration, and
-        use an exception if a component of the module is
+        This method should initialize the module and
+        use an exception if a component of the module is not
         available.
-
-        Args:
-            configuration (dict): configuration dictionary
     """
 
     @abstractmethod
-    def __init__(self):
-        super().__init__()
-
-    @classmethod
-    def init_params(cls, params):
-        feat_map__params = params.get(Pluggable.SECTION_KEY_FEATURE_MAP)
-        args = {k: v for k, v in feat_map__params.items() if k != 'name'}
-        return cls(**args)
+    def __init__(self) -> None:
+        self._num_qubits = 0
+        self._feature_dimension = 0
+        self._support_parameterized_circuit = False
 
     @abstractmethod
     def construct_circuit(self, x, qr=None, inverse=False):
@@ -51,7 +42,7 @@ class FeatureMap(Pluggable):
 
         Args:
             x (numpy.ndarray[float]): 1-D array, data
-            qr (QauntumRegister): the QuantumRegister object for the circuit, if None,
+            qr (QuantumRegister): the QuantumRegister object for the circuit, if None,
                                   generate new registers with name q.
             inverse (bool): whether or not inverse the circuit
 
@@ -62,12 +53,30 @@ class FeatureMap(Pluggable):
 
     @staticmethod
     def get_entangler_map(map_type, num_qubits):
+        """ get entangle map """
         return get_entangler_map(map_type, num_qubits)
 
     @staticmethod
     def validate_entangler_map(entangler_map, num_qubits):
+        """ validate entangler map """
         return validate_entangler_map(entangler_map, num_qubits)
 
     @property
+    def feature_dimension(self):
+        """ returns feature dimension """
+        return self._feature_dimension
+
+    @property
     def num_qubits(self):
+        """ returns number of qubits """
         return self._num_qubits
+
+    @property
+    def support_parameterized_circuit(self):
+        """ returns whether or not the sub-class support parameterized circuit """
+        return self._support_parameterized_circuit
+
+    @support_parameterized_circuit.setter
+    def support_parameterized_circuit(self, new_value):
+        """ set whether or not the sub-class support parameterized circuit """
+        self._support_parameterized_circuit = new_value

@@ -1,137 +1,100 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2020.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 """
-The Grover Quantum algorithm.
+The Grover's Search algorithm.
 """
 
+from typing import Optional
 import logging
-import numpy as np
 import operator
+import numpy as np
 
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 from qiskit.qasm import pi
 
-from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
+from qiskit.aqua import AquaError
 from qiskit.aqua.utils import get_subsystem_density_matrix
+from qiskit.aqua.utils.validation import validate_min, validate_in_set
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.components.initial_states import Custom
-
+from qiskit.aqua.components.oracles import Oracle
+from qiskit.aqua.components.initial_states import InitialState
+from qiskit.aqua.circuits.gates import mct  # pylint: disable=unused-import
 
 logger = logging.getLogger(__name__)
+
+# pylint: disable=invalid-name
 
 
 class Grover(QuantumAlgorithm):
     """
-    The Grover Quantum algorithm.
+    The Grover's Search algorithm.
 
-    If the `num_iterations` param is specified, the amplitude amplification iteration will be built as specified.
+    If the `num_iterations` param is specified, the amplitude amplification
+    iteration will be built as specified.
 
-    If the `incremental` mode is specified, which indicates that the optimal `num_iterations` isn't known in advance,
+    If the `incremental` mode is specified, which indicates that the optimal
+    `num_iterations` isn't known in advance,
     a multi-round schedule will be followed with incremental trial `num_iterations` values.
     The implementation follows Section 4 of Boyer et al. <https://arxiv.org/abs/quant-ph/9605034>
     """
 
-    PROP_INCREMENTAL = 'incremental'
-    PROP_NUM_ITERATIONS = 'num_iterations'
-    PROP_MCT_MODE = 'mct_mode'
-
-    CONFIGURATION = {
-        'name': 'Grover',
-        'description': 'Grover',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
-            'id': 'grover_schema',
-            'type': 'object',
-            'properties': {
-                PROP_INCREMENTAL: {
-                    'type': 'boolean',
-                    'default': False
-                },
-                PROP_NUM_ITERATIONS: {
-                    'type': 'integer',
-                    'default': 1,
-                    'minimum': 1
-                },
-                PROP_MCT_MODE: {
-                    'type': 'string',
-                    'default': 'basic',
-                    'oneOf': [
-                        {
-                            'enum': [
-                                'basic',
-                                'advanced',
-                                'noancilla',
-                            ]
-                        }
-                    ]
-                },
-            },
-            'additionalProperties': False
-        },
-        'problems': ['search'],
-        'depends': [
-            {
-                'pluggable_type': 'initial_state',
-                'default': {
-                    'name': 'CUSTOM',
-                    'state': 'uniform'
-                }
-            },
-            {
-                'pluggable_type': 'oracle',
-                'default': {
-                     'name': 'LogicExpressionOracle',
-                },
-            },
-        ],
-    }
-
-    def __init__(self, oracle, init_state=None, incremental=False, num_iterations=1, mct_mode='basic'):
+    def __init__(self, oracle: Oracle, init_state: Optional[InitialState] = None,
+                 incremental: bool = False, num_iterations: int = 1,
+                 mct_mode: str = 'basic') -> None:
         """
         Constructor.
 
         Args:
-            oracle (Oracle): the oracle pluggable component
-            init_state (InitialState): the initial quantum state preparation
-            incremental (bool): boolean flag for whether to use incremental search mode or not
-            num_iterations (int): the number of iterations to use for amplitude amplification
+            oracle: the oracle component
+            init_state: the initial quantum state preparation
+            incremental: boolean flag for whether to use incremental search mode or not
+            num_iterations: the number of iterations to use for amplitude amplification,
+                            has a min. value of 1.
+            mct_mode: mct mode
+        Raises:
+            AquaError: evaluate_classically() missing from the input oracle
         """
-        self.validate(locals())
+        validate_min('num_iterations', num_iterations, 1)
+        validate_in_set('mct_mode', mct_mode,
+                        {'basic', 'basic-dirty-ancilla',
+                         'advanced', 'noancilla'})
         super().__init__()
+
+        if not callable(getattr(oracle, "evaluate_classically", None)):
+            raise AquaError(
+                'Missing the evaluate_classically() method from the provided oracle instance.'
+            )
+
         self._oracle = oracle
         self._mct_mode = mct_mode
-        self._init_state = init_state if init_state else Custom(len(oracle.variable_register), state='uniform')
-        self._init_state_circuit = self._init_state.construct_circuit(mode='circuit', register=oracle.variable_register)
-        self._init_state_circuit_inverse = self._init_state_circuit.copy()
-        self._init_state_circuit_inverse.data = [
-            g.inverse() for g in reversed(
-                self._init_state_circuit_inverse.data
-            )
-        ]
+        self._init_state = \
+            init_state if init_state else Custom(len(oracle.variable_register), state='uniform')
+        self._init_state_circuit = \
+            self._init_state.construct_circuit(mode='circuit', register=oracle.variable_register)
+        self._init_state_circuit_inverse = self._init_state_circuit.inverse()
+
         self._diffusion_circuit = self._construct_diffusion_circuit()
         self._max_num_iterations = np.ceil(2 ** (len(oracle.variable_register) / 2))
         self._incremental = incremental
         self._num_iterations = num_iterations if not incremental else 1
-        self.validate(locals())
         if incremental:
             logger.debug('Incremental mode specified, ignoring "num_iterations".')
         else:
             if num_iterations > self._max_num_iterations:
-                logger.warning('The specified value {} for "num_iterations" might be too high.'.format(num_iterations))
+                logger.warning('The specified value %s for "num_iterations" '
+                               'might be too high.', num_iterations)
         self._ret = {}
         self._qc_aa_iteration = None
         self._qc_amplitude_amplification = None
@@ -141,20 +104,21 @@ class Grover(QuantumAlgorithm):
         qc = QuantumCircuit(self._oracle.variable_register)
         num_variable_qubits = len(self._oracle.variable_register)
         num_ancillae_needed = 0
-        if self._mct_mode == 'basic':
+        if self._mct_mode == 'basic' or self._mct_mode == 'basic-dirty-ancilla':
             num_ancillae_needed = max(0, num_variable_qubits - 2)
         elif self._mct_mode == 'advanced' and num_variable_qubits >= 5:
             num_ancillae_needed = 1
 
         # check oracle's existing ancilla and add more if necessary
-        num_oracle_ancillae = len(self._oracle.ancillary_register) if self._oracle.ancillary_register else 0
+        num_oracle_ancillae = \
+            len(self._oracle.ancillary_register) if self._oracle.ancillary_register else 0
         num_additional_ancillae = num_ancillae_needed - num_oracle_ancillae
         if num_additional_ancillae > 0:
             extra_ancillae = QuantumRegister(num_additional_ancillae, name='a_e')
             qc.add_register(extra_ancillae)
-            ancilla = [q for q in extra_ancillae]
+            ancilla = list(extra_ancillae)
             if num_oracle_ancillae > 0:
-                ancilla += [q for q in self._oracle.ancillary_register]
+                ancilla += list(self._oracle.ancillary_register)
         else:
             ancilla = self._oracle.ancillary_register
 
@@ -176,37 +140,9 @@ class Grover(QuantumAlgorithm):
         qc.barrier(self._oracle.variable_register)
         return qc
 
-    @classmethod
-    def init_params(cls, params, algo_input):
-        """
-        Initialize via parameters dictionary and algorithm input instance
-        Args:
-            params: parameters dictionary
-            algo_input: input instance
-        """
-        if algo_input is not None:
-            raise AquaError("Unexpected Input instance.")
-
-        grover_params = params.get(Pluggable.SECTION_KEY_ALGORITHM)
-        incremental = grover_params.get(Grover.PROP_INCREMENTAL)
-        num_iterations = grover_params.get(Grover.PROP_NUM_ITERATIONS)
-        mct_mode = grover_params.get(Grover.PROP_MCT_MODE)
-
-        oracle_params = params.get(Pluggable.SECTION_KEY_ORACLE)
-        oracle = get_pluggable_class(PluggableType.ORACLE,
-                                     oracle_params['name']).init_params(params)
-
-        # Set up initial state, we need to add computed num qubits to params
-        init_state_params = params.get(Pluggable.SECTION_KEY_INITIAL_STATE)
-        init_state_params['num_qubits'] = len(oracle.variable_register)
-        init_state = get_pluggable_class(PluggableType.INITIAL_STATE,
-                                         init_state_params['name']).init_params(params)
-
-        return cls(oracle, init_state=init_state,
-                   incremental=incremental, num_iterations=num_iterations, mct_mode=mct_mode)
-
     @property
     def qc_amplitude_amplification_iteration(self):
+        """ qc amplitude amplification iteration """
         if self._qc_aa_iteration is None:
             self._qc_aa_iteration = QuantumCircuit()
             self._qc_aa_iteration += self._oracle.circuit
@@ -214,8 +150,8 @@ class Grover(QuantumAlgorithm):
         return self._qc_aa_iteration
 
     def _run_with_existing_iterations(self):
-        qc = self.construct_circuit()
         if self._quantum_instance.is_statevector:
+            qc = self.construct_circuit(measurement=False)
             result = self._quantum_instance.execute(qc)
             complete_state_vec = result.get_statevector(qc)
             variable_register_density_matrix = get_subsystem_density_matrix(
@@ -228,12 +164,11 @@ class Grover(QuantumAlgorithm):
                 variable_register_density_matrix_diag.max(),
                 key=abs
             )
-            max_amplitude_idx = np.where(variable_register_density_matrix_diag == max_amplitude)[0][0]
+            max_amplitude_idx = \
+                np.where(variable_register_density_matrix_diag == max_amplitude)[0][0]
             top_measurement = np.binary_repr(max_amplitude_idx, len(self._oracle.variable_register))
         else:
-            measurement_cr = ClassicalRegister(len(self._oracle.variable_register), name='m')
-            qc.add_register(measurement_cr)
-            qc.measure(self._oracle.variable_register, measurement_cr)
+            qc = self.construct_circuit(measurement=True)
             measurement = self._quantum_instance.execute(qc).get_counts(qc)
             self._ret['measurement'] = measurement
             top_measurement = max(measurement.items(), key=operator.itemgetter(1))[0]
@@ -242,20 +177,31 @@ class Grover(QuantumAlgorithm):
         oracle_evaluation, assignment = self._oracle.evaluate_classically(top_measurement)
         return assignment, oracle_evaluation
 
-    def construct_circuit(self):
+    def construct_circuit(self, measurement=False):
         """
         Construct the quantum circuit
 
+        Args:
+            measurement (bool): Boolean flag to indicate if
+                measurement should be included in the circuit.
+
         Returns:
-            the QuantumCircuit object for the constructed circuit
+            QuantumCircuit: the QuantumCircuit object for the constructed circuit
         """
         if self._qc_amplitude_amplification is None:
-            self._qc_amplitude_amplification = QuantumCircuit() + self.qc_amplitude_amplification_iteration
+            self._qc_amplitude_amplification = \
+                QuantumCircuit() + self.qc_amplitude_amplification_iteration
         qc = QuantumCircuit(self._oracle.variable_register, self._oracle.output_register)
         qc.u3(pi, 0, pi, self._oracle.output_register)  # x
         qc.u2(0, pi, self._oracle.output_register)  # h
         qc += self._init_state_circuit
         qc += self._qc_amplitude_amplification
+
+        if measurement:
+            measurement_cr = ClassicalRegister(len(self._oracle.variable_register), name='m')
+            qc.add_register(measurement_cr)
+            qc.measure(self._oracle.variable_register, measurement_cr)
+
         self._ret['circuit'] = qc
         return qc
 
@@ -264,7 +210,7 @@ class Grover(QuantumAlgorithm):
             current_max_num_iterations, lam = 1, 6 / 5
 
             def _try_current_max_num_iterations():
-                target_num_iterations = np.random.randint(current_max_num_iterations) + 1
+                target_num_iterations = self.random.randint(current_max_num_iterations) + 1
                 self._qc_amplitude_amplification = QuantumCircuit()
                 for _ in range(target_num_iterations):
                     self._qc_amplitude_amplification += self.qc_amplitude_amplification_iteration
@@ -274,10 +220,11 @@ class Grover(QuantumAlgorithm):
                 assignment, oracle_evaluation = _try_current_max_num_iterations()
                 if oracle_evaluation:
                     break
-                current_max_num_iterations = min(lam * current_max_num_iterations, self._max_num_iterations)
+                current_max_num_iterations = \
+                    min(lam * current_max_num_iterations, self._max_num_iterations)
         else:
             self._qc_amplitude_amplification = QuantumCircuit()
-            for i in range(self._num_iterations):
+            for _ in range(self._num_iterations):
                 self._qc_amplitude_amplification += self.qc_amplitude_amplification_iteration
             assignment, oracle_evaluation = self._run_with_existing_iterations()
 

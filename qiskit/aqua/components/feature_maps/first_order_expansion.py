@@ -1,25 +1,26 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2020.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 """
 This module contains the definition of a base class for
 feature map. Several types of commonly used approaches.
 """
 
-from qiskit.aqua.components.feature_maps import PauliZExpansion, self_product
+from typing import Callable
+import numpy as np
+from qiskit.aqua.utils.validation import validate_min
+from .pauli_z_expansion import PauliZExpansion
+from .data_mapping import self_product
 
 
 class FirstOrderExpansion(PauliZExpansion):
@@ -29,31 +30,16 @@ class FirstOrderExpansion(PauliZExpansion):
     Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
     """
 
-    CONFIGURATION = {
-        'name': 'FirstOrderExpansion',
-        'description': 'First order expansion for feature map',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
-            'id': 'First_Order_Expansion_schema',
-            'type': 'object',
-            'properties': {
-                'depth': {
-                    'type': 'integer',
-                    'default': 2,
-                    'minimum': 1
-                }
-            },
-            'additionalProperties': False
-        }
-    }
-
-    def __init__(self, num_qubits, depth=2, data_map_func=self_product):
+    def __init__(self,
+                 feature_dimension: int,
+                 depth: int = 2,
+                 data_map_func: Callable[[np.ndarray], float] = self_product) -> None:
         """Constructor.
 
         Args:
-            num_qubits (int): number of qubits
-            depth (int): the number of repeated circuits
-            data_map_func (Callable): a mapping function for data x
+            feature_dimension: number of features
+            depth: the number of repeated circuits, has a min. value of 1.
+            data_map_func: a mapping function for data x
         """
-        self.validate(locals())
-        super().__init__(num_qubits, depth, z_order=1, data_map_func=data_map_func)
+        validate_min('depth', depth, 1)
+        super().__init__(feature_dimension, depth, z_order=1, data_map_func=data_map_func)

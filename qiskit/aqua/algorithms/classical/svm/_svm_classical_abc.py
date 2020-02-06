@@ -1,23 +1,26 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
+
+"""
+abstract base class for the binary classifier and the multiclass classifier
+"""
 
 from abc import ABC, abstractmethod
 
 from qiskit.aqua.utils import split_dataset_to_data_and_labels
+
+# pylint: disable=invalid-name
 
 
 class _SVM_Classical_ABC(ABC):
@@ -45,12 +48,15 @@ class _SVM_Classical_ABC(ABC):
 
     @abstractmethod
     def run(self):
+        """ run """
         raise NotImplementedError("Should have implemented this")
 
     @property
     def ret(self):
+        """ return result """
         return self._ret
 
     @ret.setter
     def ret(self, new_ret):
+        """ sets result """
         self._ret = new_ret

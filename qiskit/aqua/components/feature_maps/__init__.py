@@ -1,19 +1,56 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2019.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
+
+"""
+Feature Maps (:mod:`qiskit.aqua.components.feature_maps`)
+=========================================================
+Feature Maps...
+
+.. currentmodule:: qiskit.aqua.components.feature_maps
+
+Feature Map Base Class
+======================
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   FeatureMap
+
+Feature Maps
+============
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   PauliExpansion
+   PauliZExpansion
+   FirstOrderExpansion
+   SecondOrderExpansion
+   RawFeatureVector
+
+Feature Map Utility
+===================
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   self_product
+
+"""
 
 from .feature_map import FeatureMap
 from .data_mapping import self_product
@@ -21,11 +58,13 @@ from .pauli_expansion import PauliExpansion
 from .pauli_z_expansion import PauliZExpansion
 from .first_order_expansion import FirstOrderExpansion
 from .second_order_expansion import SecondOrderExpansion
+from .raw_feature_vector import RawFeatureVector
 
 __all__ = ['FeatureMap',
            'self_product',
            'PauliExpansion',
            'PauliZExpansion',
            'FirstOrderExpansion',
-           'SecondOrderExpansion'
+           'SecondOrderExpansion',
+           'RawFeatureVector'
            ]

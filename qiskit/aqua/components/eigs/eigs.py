@@ -1,53 +1,44 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 IBM.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2018, 2020.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
+
 """
 This module contains the definition of a base class for eigenvalue estimators.
 """
-from qiskit.aqua import Pluggable
-from qiskit import QuantumCircuit
-from abc import abstractmethod
+
+from abc import ABC, abstractmethod
 
 
-class Eigenvalues(Pluggable):
+class Eigenvalues(ABC):
     """Base class for eigenvalue estimation.
 
-    This method should initialize the module and its configuration, and
-    use an exception if a component of the module is available.
-
-    Args:
-        params (dict): configuration dictionary
+    This method should initialize the module and
+    use an exception if a component of the module is not available.
     """
-    
-    @abstractmethod
-    def __init__(self):
-        super().__init__()
 
-    @classmethod
-    def init_params(cls, params):
-        eigs_params = params.get(Pluggable.SECTION_KEY_EIGS)
-        args = {k: v for k, v in eigs_params.items() if k != 'name'}
-        return cls(**args)
-    
+    @abstractmethod
+    def __init__(self) -> None:
+        super().__init__()
+        self._inverse = None
+
     @abstractmethod
     def get_register_sizes(self):
+        """ get register sizes """
         raise NotImplementedError()
 
     @abstractmethod
     def get_scaling(self):
+        """ get scaling """
         raise NotImplementedError()
 
     @abstractmethod
@@ -55,35 +46,36 @@ class Eigenvalues(Pluggable):
         """Construct the eigenvalue estimation quantum circuit.
 
         Args:
-            mode (str): 'vector' or 'circuit'
+            mode (str): 'matrix' or 'circuit'
             register (QuantumRegister): register for circuit construction
                         where eigenvalues will be stored.
 
         Returns:
-            QuantumCircuit object for the eigenvalue estimation circuit.
+            QuantumCircuit: object for the eigenvalue estimation circuit.
+        Raises:
+            NotImplementedError: not implemented
         """
         raise NotImplementedError()
 
-    def construct_inverse(self, mode, circuit, inreg, outreg):
+    def construct_inverse(self, mode, circuit):
         """Construct the inverse eigenvalue estimation quantum circuit.
 
         Args:
-            mode (str): consctruction mode, 'vector' not supported
+            mode (str): construction mode, 'matrix' not supported
             circuit (QuantumCircuit): the quantum circuit to invert
-            inreg (QuantumRegister): the input quantum register
-            outreg (QuantumRegister): the output quantum register
 
         Returns:
-            QuantumCircuit object for of the inverted eigenvalue estimation
-            circuit.
+            QuantumCircuit: object for of the inverted eigenvalue estimation
+                            circuit.
+        Raises:
+            NotImplementedError: not implemented for matrix mode
+            ValueError: Circuit was not constructed beforehand
         """
-        if mode == 'vector':
-            raise NotImplementedError('Mode vector not supported.')
+        if mode == 'matrix':
+            raise NotImplementedError('The matrix mode is not supported.')
         if circuit is None:
             raise ValueError('Circuit was not constructed beforehand.')
-        qc = QuantumCircuit(inreg, outreg)
-        for gate in reversed(circuit.data):
-            gate.reapply(qc)
-            qc.data[-1].inverse()
-        self._inverse = qc
+        # TODO: need to check if circuit is empty, now, it enforce to put a barrier in evolution
+        # instruction
+        self._inverse = circuit.inverse()
         return self._inverse
