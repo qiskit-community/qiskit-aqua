@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -75,7 +75,9 @@ from .aqua_error import AquaError
 from .aqua_globals import aqua_globals
 from .quantum_instance import QuantumInstance
 from .algorithms import QuantumAlgorithm
-from ._logging import (get_logging_level,
+from ._logging import (QiskitLogDomains,
+                       get_logging_level,
+                       set_logging_level,
                        build_logging_config,
                        set_logging_config,
                        get_qiskit_aqua_logging,
@@ -86,7 +88,9 @@ __all__ = ['__version__',
            'QuantumAlgorithm',
            'QuantumInstance',
            'aqua_globals',
+           'QiskitLogDomains',
            'get_logging_level',
+           'set_logging_level',
            'build_logging_config',
            'set_logging_config',
            'get_qiskit_aqua_logging',

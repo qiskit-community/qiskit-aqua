@@ -35,6 +35,7 @@ barkoutsos
 basebackend
 baseoperator
 bb
+bergholm
 bfgs
 bitstr
 bitstring
@@ -162,6 +163,7 @@ formatter
 fortran
 fourier
 ftol
+fujii
 fullname
 func
 gambetta
@@ -174,6 +176,7 @@ gde
 geq
 getattr
 getter
+gogolin
 gfortran
 globals
 graycode
@@ -223,6 +226,7 @@ isinstance
 iso
 isub
 iteratively
+izaac
 jac
 jacobian
 jordan
@@ -231,8 +235,10 @@ jt
 jth
 jw
 kaicher
+killoran
 kingma
 kitaev
+kitagawa
 kronecker
 kth
 kumar
@@ -273,6 +279,7 @@ minibatches
 minibatching
 mintert
 minwidth
+mitarai
 mle
 moc
 mohij
@@ -296,6 +303,7 @@ ncx
 nd
 ndarray
 ndarray's
+negoro
 nelder
 nevals
 nfev
@@ -390,6 +398,7 @@ randgiven
 rbf
 rcccx
 rccx
+readme
 reala
 reddi
 renormalize
@@ -416,6 +425,7 @@ sca
 scf
 scikit
 schemas
+schuld
 scipy
 sd
 sdg

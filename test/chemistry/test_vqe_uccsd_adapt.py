@@ -15,9 +15,8 @@
 """ Test of the Adaptive VQE implementation with the adaptive UCCSD variational form """
 
 import unittest
-from test.aqua import QiskitAquaTestCase
+from test.chemistry import QiskitChemistryTestCase
 
-from qiskit import Aer
 from qiskit.aqua import aqua_globals
 from qiskit.aqua.components.optimizers import L_BFGS_B
 from qiskit.aqua.operators.op_converter import to_weighted_pauli_operator
@@ -27,18 +26,24 @@ from qiskit.chemistry.algorithms.adaptive import VQEAdapt
 from qiskit.chemistry.components.initial_states import HartreeFock
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
+from qiskit.chemistry import QiskitChemistryError
 
 
-class TestVQEAdaptUCCSD(QiskitAquaTestCase):
+class TestVQEAdaptUCCSD(QiskitChemistryTestCase):
     """ Test Adaptive VQE with UCCSD"""
     def setUp(self):
         super().setUp()
         # np.random.seed(50)
         self.seed = 50
         aqua_globals.random_seed = self.seed
-        driver = PySCFDriver(atom='H .0 .0 .0; H .0 .0 0.735',
-                             unit=UnitsType.ANGSTROM,
-                             basis='sto3g')
+        try:
+            driver = PySCFDriver(atom='H .0 .0 .0; H .0 .0 0.735',
+                                 unit=UnitsType.ANGSTROM,
+                                 basis='sto3g')
+        except QiskitChemistryError:
+            self.skipTest('PYSCF driver does not appear to be installed')
+            return
+
         molecule = driver.run()
         self.num_particles = molecule.num_alpha + molecule.num_beta
         self.num_spin_orbitals = molecule.num_orbitals * 2
@@ -63,6 +68,13 @@ class TestVQEAdaptUCCSD(QiskitAquaTestCase):
 
     def test_vqe_adapt(self):
         """ VQEAdapt test """
+        try:
+            # pylint: disable=import-outside-toplevel
+            from qiskit import Aer
+        except Exception as ex:  # pylint: disable=broad-except
+            self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(ex)))
+            return
+
         self.var_form_base = UCCSD(self.num_qubits, 1, self.num_spin_orbitals,
                                    self.num_particles, initial_state=self.init_state)
         backend = Aer.get_backend('statevector_simulator')
