@@ -141,6 +141,7 @@ matrix:
 before_install:
   - pip install -U 'pip<20.0.0'
   - pip install -U setuptools wheel
+  - pip install -U numpy
   - |
     if [ -f $INIT_FILE ]; then
       # stops travis if __init__.py exists under qiskit
