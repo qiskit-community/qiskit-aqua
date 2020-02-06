@@ -26,6 +26,7 @@ python: 3.7
 env:
   global:
     - INIT_FILE="$TRAVIS_BUILD_DIR/qiskit/__init__.py"
+    - DEPENDENCY_BRANCH=$(if [[ "$TRAVIS_BRANCH" == stable* ]]; then echo "stable"; else echo "master"; fi)
 
 before_script:
   - |
@@ -96,51 +97,42 @@ matrix:
   - name: "Lint and Style check and Test Chemistry Python 3.7"
     if: tag IS blank
     env:
-      - DEPENDENCY_BRANCH=$(if [[ "$TRAVIS_BRANCH" == stable* ]]; then echo "stable"; else echo "master"; fi)
       - TEST_DIR=chemistry
     script:
         make spell && make style && make lint && export OPENBLAS_NUM_THREADS=1 && python -m unittest discover -v test/chemistry
-  - name: Test Chemistry Python 3.8"
+  - name: "Test Chemistry Python 3.8"
     if: tag IS blank
     env:
-      - DEPENDENCY_BRANCH=master
       - TEST_DIR=chemistry
     python: 3.8
     script:
         export OPENBLAS_NUM_THREADS=1 && python -m unittest discover -v test/chemistry
   - name: "Test Aqua Python 3.7"
     if: tag IS blank
-    env: DEPENDENCY_BRANCH=$(if [[ "$TRAVIS_BRANCH" == stable* ]]; then echo "stable"; else echo "master"; fi)
     script: stestr --test-path test run --blacklist-file blacklist.txt
   - name: "Test Aqua Python 3.8"
     if: tag IS blank
     python: 3.8
-    env: DEPENDENCY_BRANCH=master
     script: stestr --test-path test run --blacklist-file blacklist.txt
   - name: "Test Aqua 2 Python 3.7"
     if: tag IS blank
-    env: DEPENDENCY_BRANCH=$(if [[ "$TRAVIS_BRANCH" == stable* ]]; then echo "stable"; else echo "master"; fi)
     script: stestr --test-path test run --whitelist-file selection.txt
   - name: "Test Aqua 2 Python 3.8"
     if: tag IS blank
     python: 3.8
-    env: DEPENDENCY_BRANCH=master
     script: stestr --test-path test run --whitelist-file selection.txt
   - name: "Test Aqua 3 Python 3.7"
     if: tag IS blank
-    env: DEPENDENCY_BRANCH=$(if [[ "$TRAVIS_BRANCH" == stable* ]]; then echo "stable"; else echo "master"; fi)
     script: stestr --test-path test run --whitelist-file selection2.txt
   - name: "Test Aqua 3 Python 3.8"
     if: tag IS blank
     python: 3.8
-    env: DEPENDENCY_BRANCH=master
     script: stestr --test-path test run --whitelist-file selection2.txt
 
   - if: tag IS present
     python: 3.6
     env:
       - TWINE_USERNAME=qiskit
-      - DEPENDENCY_BRANCH=$(if [[ "$TRAVIS_BRANCH" == stable* ]]; then echo "stable"; else echo "master"; fi)
     install: pip install -U twine
     script:
       - python3 setup.py sdist bdist_wheel
@@ -149,6 +141,7 @@ matrix:
 before_install:
   - pip install -U 'pip<20.0.0'
   - pip install -U setuptools wheel
+  - pip install -U numpy
   - |
     if [ -f $INIT_FILE ]; then
       # stops travis if __init__.py exists under qiskit
@@ -172,20 +165,20 @@ before_install:
       unzip /tmp/qiskit-ignis.zip -d /tmp/
       # Install local Qiskit Ignis
       pip install -e /tmp/qiskit-ignis-$DEPENDENCY_BRANCH --progress-bar off
-      # Download github Qiskit Aer
-      wget https://codeload.github.com/Qiskit/qiskit-aer/zip/$DEPENDENCY_BRANCH -O /tmp/qiskit-aer.zip
-      unzip /tmp/qiskit-aer.zip -d /tmp/
-      # Install Qiskit Aer requirements.
-      pip install -U -r /tmp/qiskit-aer-$DEPENDENCY_BRANCH/requirements-dev.txt --progress-bar off
-      # build Qiskit Aer
+      # Clone Qiskit Aer
+      git clone --recurse-submodules https://github.com/Qiskit/qiskit-aer.git /tmp/qiskit-aer-$DEPENDENCY_BRANCH
       cd /tmp/qiskit-aer-$DEPENDENCY_BRANCH
-      python setup.py bdist_wheel -- -DCMAKE_CXX_COMPILER=g++-7 -- -j4
+      # Install Qiskit Aer requirements.
+      pip install -U -r requirements-dev.txt --progress-bar off
+      # Build Qiskit Aer with Thrust OpenMP CPU backend
+      python setup.py bdist_wheel -- -DCMAKE_CXX_COMPILER=g++-7 -DAER_THRUST_BACKEND=OMP -- -j4
       pip install dist/qiskit_aer*whl
       # back to current repo directory
       cd $TRAVIS_BUILD_DIR
     fi
   - |
     if [ "$TEST_DIR" == "chemistry" ]; then
+      sudo apt-get -y install libgfortran5
       # download PyQuante master and unzip it
       wget https://codeload.github.com/rpmuller/pyquante2/zip/master -O /tmp/pyquante2.zip
       unzip /tmp/pyquante2.zip -d /tmp/
