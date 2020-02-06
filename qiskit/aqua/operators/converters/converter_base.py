@@ -30,6 +30,6 @@ class ConverterBase(ABC):
     exponential time or space unless a clever trick is known (such as the use of sparse matrices). """
 
     @abstractmethod
-    def convert(self, operator):
+    def convert(self, operator, traverse=False):
         """ Accept the Operator and return the converted Operator """
         raise NotImplementedError

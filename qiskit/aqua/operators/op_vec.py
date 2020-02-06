@@ -89,6 +89,10 @@ class OpVec(OperatorBase):
         # TODO do this lazily? Basically rebuilds the entire tree, and ops and adjoints almost always come in pairs.
         return self.__class__([op.adjoint() for op in self.oplist], coeff=np.conj(self.coeff))
 
+    def traverse(self, convert_fn, coeff=None):
+        """ Apply the convert_fn to each node in the oplist. """
+        return self.__class__([convert_fn(op) for op in self.oplist], coeff=coeff or self.coeff)
+
     def equals(self, other):
         """ Evaluate Equality. Overloaded by == in OperatorBase. """
         if not isinstance(other, type(self)) or not len(self.oplist) == len(other.oplist):
