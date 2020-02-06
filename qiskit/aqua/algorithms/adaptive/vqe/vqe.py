@@ -41,10 +41,38 @@ logger = logging.getLogger(__name__)
 
 
 class VQE(VQAlgorithm):
-    """
+    r"""
     The Variational Quantum Eigensolver algorithm.
 
-    See https://arxiv.org/abs/1304.3061
+    `VQE <https://arxiv.org/abs/1304.3061>`__ is a hybrid algorithm that uses a
+    variational technique and interleaves quantum and classical computations in order to find
+    the minimum eigenvalue of the Hamiltonian :math:`H` of a given system.
+
+    An instance of VQE requires defining two algorithmic sub-components:
+    a trial state (ansatz) from Aqua's :mod:`~qiskit.aqua.components.variational_forms`, and one
+    of the classical :mod:`~qiskit.aqua.components.optimizers`. The ansatz is varied, via its set
+    of parameters, by the optimizer, such that it works towards a state, as determined by the
+    parameters applied to the variational form, that will result in the minimum expectation value
+    being measured of the input operator (Hamiltonian).
+
+    An optional list of ``float`` values, via the ``initial_point``, may be provided as the
+    starting point for the search of the minimum eigenvalue. This feature is particularly useful
+    such as when there are reasons to believe that the solution point is close to a particular
+    point.  As an example, when building the dissociation profile of a molecule,
+    it is likely that using the previous computed optimal solution as the starting
+    initial point for the next interatomic distance is going to reduce the number of iterations
+    necessary for the variational algorithm to converge.  Aqua provides an
+    `initial point tutorial <https://github.com/Qiskit/qiskit-tutorials-community/blob/master
+    /chemistry/h2_vqe_initial_point.ipynb>`__ detailing this use case.
+
+    The length of the ``initial_point`` list value must match the number of the parameters
+    expected by the variational form being used. If the ``initial_point`` is left at the default
+    of None, then VQE will look to the variational form for a preferred value, based on its
+    given initial state. If the variational form returns ``None``,
+    then a random point will be generated within the parameter bounds set, as per above.
+    If the variational form provides ``None`` as the lower bound, then VQE
+    will default it to :math:`-2\pi`; similarly, if the variational form returns ``None``
+    as the upper bound, the default value will be :math:`2\pi`.
     """
 
     def __init__(self, operator: BaseOperator, var_form: VariationalForm, optimizer: Optimizer,
@@ -55,20 +83,30 @@ class VQE(VQAlgorithm):
         """
 
         Args:
-            operator: Qubit operator
-            var_form: parameterized variational form.
-            optimizer: the classical optimization algorithm.
-            initial_point: optimizer initial point.
-            max_evals_grouped: max number of evaluations performed simultaneously
-            aux_operators: Auxiliary operators to be evaluated
-                                                at each eigenvalue
-            callback: a callback that can access the intermediate
-                                 data during the optimization.
-                                 Internally, four arguments are provided as follows
-                                 the index of evaluation, parameters of variational form,
-                                 evaluated mean, evaluated standard deviation.
-            auto_conversion: an automatic conversion for operator and aux_operators
-                into the type which is most suitable for the backend.
+            operator: Qubit operator of the Hamiltonian
+            var_form: A parameterized variational form (ansatz).
+            optimizer: A classical optimizer.
+            initial_point: An optional initial point (i.e. initial parameter values)
+                for the optimizer. If ``None`` then VQE will look to the variational form for a
+                preferred point and if not will simply compute a random one.
+            max_evals_grouped: Max number of evaluations performed simultaneously. Signals the
+                given optimizer that more than one set of parameters can be supplied so that
+                potentially the expectation values can be computed in parallel. Typically this is
+                possible when a finite difference gradient is used by the optimizer such that
+                multiple points to compute the gradient can be passed and if computed in parallel
+                improve overall execution time.
+            aux_operators: Optional list of auxiliary operators to be evaluated with the eigenstate
+                of the minimum eigenvalue main result and their expectation values returned.
+                For instance in chemistry these can be dipole operators, total particle count
+                operators so we can get values for these at the ground state.
+            callback: a callback that can access the intermediate data during the optimization.
+                Four parameter values are passed to the callback as follows during each evaluation
+                by the optimizer for its current set of parameters as it works towards the minimum.
+                These are in: the evaluation count, the optimizer parameters for the
+                variational form, the evaluated mean and the evaluated standard deviation.
+            auto_conversion: When ``True`` allows an automatic conversion for operator and
+                aux_operators into the type which is most suitable for the backend on which the
+                algorithm is run.
 
                 - for *non-Aer statevector simulator:*
                   :class:`~qiskit.aqua.operators.MatrixOperator`

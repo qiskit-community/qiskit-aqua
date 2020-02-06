@@ -33,7 +33,28 @@ class QAOA(VQE):
     """
     The Quantum Approximate Optimization Algorithm.
 
-    See https://arxiv.org/abs/1411.4028
+    `QAOA <https://arxiv.org/abs/1411.4028>`__ is a well-known algorithm for finding approximate
+    solutions to combinatorial-optimization problems.
+    The QAOA implementation in Aqua directly extends :class:`VQE` and inherits VQE's
+    general hybrid optimization structure.
+    However, unlike VQE, which can be configured with arbitrary variational forms,
+    QAOA uses its own fine-tuned variational form, which comprises :math:`p` parameterized global
+    :math:`x` rotations and :math:`p` different parameterizations of the problem hamiltonian.
+    QAOA is thus principally configured  by the single integer parameter, ``p``,
+    which dictates the depth of the variational form, and thus affects the approximation quality.
+
+    An optional list of :math:`2p` ``float`` values may be provided as the starting
+    ``beta`` and ``gamma`` parameters, i.e. ``initial_point``  (as identically named in the
+    original `QAOA paper <https://arxiv.org/abs/1411.4028>`__) for the QAOA variational form.
+
+    An optional ``Operator`` may be provided as a custom mixer Hamiltonian. This allows,
+    as discussed in `this paper <https://doi.org/10.1103/PhysRevApplied.5.034007>`__
+    for quantum annealing, and in `this paper <https://arxiv.org/abs/1709.03489>`__ for QAOA,
+    to run constrained optimization problems where the mixer constrains
+    the evolution to a feasible subspace of the full Hilbert space.
+
+    An initial state from Aqua's :mod:`~qiskit.aqua.components.initial_states` may optionally
+    be supplied.
     """
 
     def __init__(self, operator: BaseOperator, optimizer: Optimizer, p: int = 1,
@@ -45,24 +66,32 @@ class QAOA(VQE):
         """
         Args:
             operator: Qubit operator
-            optimizer: The classical optimizer to use.
+            optimizer: A classical optimizer.
             p: the integer parameter p as specified in https://arxiv.org/abs/1411.4028,
-                has a min. value of 1.
-            initial_state: the initial state to prepend the QAOA circuit with
-            mixer: the mixer Hamiltonian to evolve with. Allows support of
-                   optimizations in constrained subspaces
-                   as per https://arxiv.org/abs/1709.03489
-            optimizer: the classical optimization algorithm.
-            initial_point: optimizer initial point.
-            max_evals_grouped: max number of evaluations to be performed simultaneously.
-            aux_operators: aux operators
-            callback: a callback that can access the intermediate
-                                 data during the optimization.
-                                 Internally, four arguments are provided as follows
-                                 the index of evaluation, parameters of variational form,
-                                 evaluated mean, evaluated standard deviation.
-            auto_conversion: an automatic conversion for operator and aux_operators
-                into the type which is most suitable for the backend.
+                Has a minimum valid value of 1.
+            initial_state: An optional initial state to prepend the QAOA circuit with
+            mixer: the mixer Hamiltonian to evolve with. Allows support of optimizations in
+                constrained subspaces as per https://arxiv.org/abs/1709.03489
+            initial_point: An optional initial point (i.e. initial parameter values)
+                for the optimizer. If ``None`` then it will simply compute a random one.
+            max_evals_grouped: Max number of evaluations performed simultaneously. Signals the
+                given optimizer that more than one set of parameters can be supplied so that
+                potentially the expectation values can be computed in parallel. Typically this is
+                possible when a finite difference gradient is used by the optimizer such that
+                multiple points to compute the gradient can be passed and if computed in parallel
+                improve overall execution time.
+            aux_operators: Optional list of auxiliary operators to be evaluated with the eigenstate
+                of the minimum eigenvalue main result and their expectation values returned.
+                For instance in chemistry these can be dipole operators, total particle count
+                operators so we can get values for these at the ground state.
+            callback: a callback that can access the intermediate data during the optimization.
+                Four parameter values are passed to the callback as follows during each evaluation
+                by the optimizer for its current set of parameters as it works towards the minimum.
+                These are in: the evaluation count, the optimizer parameters for the
+                variational form, the evaluated mean and the evaluated standard deviation.
+            auto_conversion: When ``True`` allows an automatic conversion for operator and
+                aux_operators into the type which is most suitable for the backend on which the
+                algorithm is run.
 
                 - for *non-Aer statevector simulator:*
                   :class:`~qiskit.aqua.operators.MatrixOperator`
