@@ -26,6 +26,7 @@ python: 3.7
 env:
   global:
     - INIT_FILE="$TRAVIS_BUILD_DIR/qiskit/__init__.py"
+    - DEPENDENCY_BRANCH=$(if [[ "$TRAVIS_BRANCH" == stable* ]]; then echo "stable"; else echo "master"; fi)
 
 before_script:
   - |
@@ -96,44 +97,36 @@ matrix:
   - name: "Lint and Style check and Test Chemistry Python 3.7"
     if: tag IS blank
     env:
-      - DEPENDENCY_BRANCH=$(if [[ "$TRAVIS_BRANCH" == stable* ]]; then echo "stable"; else echo "master"; fi)
       - TEST_DIR=chemistry
     script:
         make spell && make style && make lint && export OPENBLAS_NUM_THREADS=1 && python -m unittest discover -v test/chemistry
   - name: "Test Chemistry Python 3.8"
     if: tag IS blank
     env:
-      - DEPENDENCY_BRANCH=master
       - TEST_DIR=chemistry
     python: 3.8
     script:
         export OPENBLAS_NUM_THREADS=1 && python -m unittest discover -v test/chemistry
   - name: "Test Aqua Python 3.7"
     if: tag IS blank
-    env: DEPENDENCY_BRANCH=$(if [[ "$TRAVIS_BRANCH" == stable* ]]; then echo "stable"; else echo "master"; fi)
     script: stestr --test-path test run --blacklist-file blacklist.txt
   - name: "Test Aqua Python 3.8"
     if: tag IS blank
     python: 3.8
-    env: DEPENDENCY_BRANCH=master
     script: stestr --test-path test run --blacklist-file blacklist.txt
   - name: "Test Aqua 2 Python 3.7"
     if: tag IS blank
-    env: DEPENDENCY_BRANCH=$(if [[ "$TRAVIS_BRANCH" == stable* ]]; then echo "stable"; else echo "master"; fi)
     script: stestr --test-path test run --whitelist-file selection.txt
   - name: "Test Aqua 2 Python 3.8"
     if: tag IS blank
     python: 3.8
-    env: DEPENDENCY_BRANCH=master
     script: stestr --test-path test run --whitelist-file selection.txt
   - name: "Test Aqua 3 Python 3.7"
     if: tag IS blank
-    env: DEPENDENCY_BRANCH=$(if [[ "$TRAVIS_BRANCH" == stable* ]]; then echo "stable"; else echo "master"; fi)
     script: stestr --test-path test run --whitelist-file selection2.txt
   - name: "Test Aqua 3 Python 3.8"
     if: tag IS blank
     python: 3.8
-    env: DEPENDENCY_BRANCH=master
     script: stestr --test-path test run --whitelist-file selection2.txt
 
   - if: tag IS present
