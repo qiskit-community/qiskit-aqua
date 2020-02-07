@@ -40,11 +40,11 @@ class QAOA(VQE):
     However, unlike VQE, which can be configured with arbitrary variational forms,
     QAOA uses its own fine-tuned variational form, which comprises :math:`p` parameterized global
     :math:`x` rotations and :math:`p` different parameterizations of the problem hamiltonian.
-    QAOA is thus principally configured  by the single integer parameter, ``p``,
+    QAOA is thus principally configured  by the single integer parameter, *p*,
     which dictates the depth of the variational form, and thus affects the approximation quality.
 
-    An optional list of :math:`2p` ``float`` values may be provided as the starting
-    ``beta`` and ``gamma`` parameters, i.e. ``initial_point``  (as identically named in the
+    An optional array of :math:`2p` parameter values, as the *initial_point*, may be provided as the
+    starting **beta** and **gamma** parameters (as identically named in the
     original `QAOA paper <https://arxiv.org/abs/1411.4028>`__) for the QAOA variational form.
 
     An optional ``Operator`` may be provided as a custom mixer Hamiltonian. This allows,

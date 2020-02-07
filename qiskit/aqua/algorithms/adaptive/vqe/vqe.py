@@ -55,7 +55,7 @@ class VQE(VQAlgorithm):
     parameters applied to the variational form, that will result in the minimum expectation value
     being measured of the input operator (Hamiltonian).
 
-    An optional list of ``float`` values, via the ``initial_point``, may be provided as the
+    An optional array of parameter values, via the *initial_point*, may be provided as the
     starting point for the search of the minimum eigenvalue. This feature is particularly useful
     such as when there are reasons to believe that the solution point is close to a particular
     point.  As an example, when building the dissociation profile of a molecule,
@@ -65,9 +65,9 @@ class VQE(VQAlgorithm):
     `initial point tutorial <https://github.com/Qiskit/qiskit-tutorials-community/blob/master
     /chemistry/h2_vqe_initial_point.ipynb>`__ detailing this use case.
 
-    The length of the ``initial_point`` list value must match the number of the parameters
-    expected by the variational form being used. If the ``initial_point`` is left at the default
-    of None, then VQE will look to the variational form for a preferred value, based on its
+    The length of the *initial_point* list value must match the number of the parameters
+    expected by the variational form being used. If the *initial_point* is left at the default
+    of ``None``, then VQE will look to the variational form for a preferred value, based on its
     given initial state. If the variational form returns ``None``,
     then a random point will be generated within the parameter bounds set, as per above.
     If the variational form provides ``None`` as the lower bound, then VQE
