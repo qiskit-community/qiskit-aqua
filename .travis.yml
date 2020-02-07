@@ -169,11 +169,8 @@ jobs:
         # install gaussian dependency libgfortran 5
         - sudo apt-get -y update
         - sudo apt-get -y install libgfortran5
-        # download PyQuante master and unzip it
-        - wget https://codeload.github.com/rpmuller/pyquante2/zip/master -O /tmp/pyquante2.zip
-        - unzip /tmp/pyquante2.zip -d /tmp/
-        # Install local PyQuante
-        - pip install -e /tmp/pyquante2-master --progress-bar off
+        # Installing pyquante2 master branch...
+        - pip install https://github.com/rpmuller/pyquante2/archive/master.zip --progress-bar off
       before_script:
         - export PYTHON="coverage run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script: stestr --test-path test/chemistry run && coverage combine && mv .coverage chemistry.dat
@@ -186,11 +183,8 @@ jobs:
         # install gaussian dependency libgfortran 5
         - sudo apt-get -y update
         - sudo apt-get -y install libgfortran5
-        # download PyQuante master and unzip it
-        - wget https://codeload.github.com/rpmuller/pyquante2/zip/master -O /tmp/pyquante2.zip
-        - unzip /tmp/pyquante2.zip -d /tmp/
-        # Install local PyQuante
-        - pip install -e /tmp/pyquante2-master --progress-bar off
+        # Installing pyquante2 master branch...
+        - pip install https://github.com/rpmuller/pyquante2/archive/master.zip --progress-bar off
       script: stestr --test-path test/chemistry run
     - name: "Test Finance Python 3.7"
       <<: *stage_dependencies
