@@ -46,8 +46,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                  q_factory: Optional[CircuitFactory] = None,
                  i_objective: Optional[int] = None,
                  likelihood_evals: Optional[int] = None) -> None:
-        r"""Initializer.
-
+        r"""
         Args:
             num_oracle_circuits: The number of circuits applying different powers of the Grover
                 oracle Q. The (`num_oracle_circuits` + 1) executed circuits will be
@@ -57,9 +56,9 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             a_factory: The CircuitFactory subclass object representing the problem unitary.
             q_factory: The CircuitFactory subclass object representing.
                 an amplitude estimation sample (based on a_factory)
-            i_objective: the index of the objective qubit, i.e. the qubit marking 'good' solutions
+            i_objective: The index of the objective qubit, i.e. the qubit marking 'good' solutions
                 with the state \|1> and 'bad' solutions with the state \|0>
-            likelihood_evals: the number of gridpoints for the maximum search of the likelihood
+            likelihood_evals: The number of gridpoints for the maximum search of the likelihood
                 function
         """
         validate_min('num_oracle_circuits', num_oracle_circuits, 1)
