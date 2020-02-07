@@ -42,19 +42,26 @@ class Shor(QuantumAlgorithm):
     """
     The Shor's Factoring algorithm.
 
+    Shor's Factoring algorithm is one of the most well-known quantum algorithms and finds the
+    prime factors for input integer :math:`N` in polynomial time.
+
+    The input integer ``N`` to be factored is expected to be odd and greater than 2.
+    Even though this implementation is general, its capability will be limited by the
+    capacity of the simulator/hardware. Another input integer ``a`` can also be supplied,
+    which needs to be a coprime smaller than ``N``.
+
     Adapted from https://github.com/ttlion/ShorAlgQiskit
+
+    See also https://arxiv.org/abs/quant-ph/0205095
     """
 
     def __init__(self, N: int = 15, a: int = 2) -> None:
         """
-        Constructor.
-
         Args:
             N: The integer to be factored, has a min. value of 3.
-            a: A random integer a that satisfies a < N and gcd(a, N) = 1,
-                has a min. value of 2.
+            a: A random integer that satisfies a < N and gcd(a, N) = 1, has a min. value of 2.
          Raises:
-            ValueError: invalid input
+            ValueError: Invalid input
         """
         validate_min('N', N, 3)
         validate_min('a', a, 2)
