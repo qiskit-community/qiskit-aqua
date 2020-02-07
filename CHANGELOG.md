@@ -15,13 +15,27 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 > -   **Fixed**: for any bug fixes.
 > -   **Security**: in case of vulnerabilities.
 
-[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.3...HEAD)
+[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.4...HEAD)
 ========================================================================
 
 Changed
 -------
 
 -   Remove declarative api (#758) (#759) (#760) (#762) (#763)
+
+[0.6.4](https://github.com/Qiskit/qiskit-aqua/compare/0.6.3...0.6.4) - 2020-02-06
+=================================================================================
+
+Changed
+-------
+
+-  Fix weighted_pauli_operator expectation value mode for Aer 0.4 release. (#808)
+-  Update python 3.6 Gaussian driver. (#808)
+
+Added
+-------
+
+-  Python 3.8 Gaussian drivers. (#808)
 
 [0.6.3](https://github.com/Qiskit/qiskit-aqua/compare/0.6.2...0.6.3) - 2020-01-29
 =================================================================================
