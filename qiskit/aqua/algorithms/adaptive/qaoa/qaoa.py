@@ -87,7 +87,7 @@ class QAOA(VQE):
             callback: a callback that can access the intermediate data during the optimization.
                 Four parameter values are passed to the callback as follows during each evaluation
                 by the optimizer for its current set of parameters as it works towards the minimum.
-                These are in: the evaluation count, the optimizer parameters for the
+                These are: the evaluation count, the optimizer parameters for the
                 variational form, the evaluated mean and the evaluated standard deviation.
             auto_conversion: When ``True`` allows an automatic conversion for operator and
                 aux_operators into the type which is most suitable for the backend on which the
