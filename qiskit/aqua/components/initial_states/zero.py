@@ -26,7 +26,7 @@ class Zero(InitialState):
     """
     The zero (null/vacuum) state.
 
-    This is suitable for those situations in which the all-zeroes state is the
+    This is suitable for those situations in which the all-zeros state is the
     desired state. This is the case for a *vacuum state* in physics or chemistry
     """
 
