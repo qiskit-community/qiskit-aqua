@@ -18,7 +18,7 @@ from typing import Union, Optional, List
 
 import numbers
 import numpy
-from qiskit import QuantumCircuit, QiskitError
+from qiskit import QuantumCircuit, QiskitError, transpile
 from qiskit.circuit import Gate, Instruction, Parameter, ParameterVector
 from qiskit.aqua import AquaError
 
@@ -155,29 +155,37 @@ class Ansatz:
         # build the circuit if it has not been constructed yet
         if self._circuit is None:
             if self.num_qubits == 0:
-                print('creating empty')
                 circuit = QuantumCircuit()
 
             else:
-                print('creating proper')
                 circuit = QuantumCircuit(self._num_qubits)
 
-                # the first gate (separately so barriers can be inserted in the for-loop)
-                idx = self._reps[0]
-                circuit.append(self._gates[idx], self._qargs[idx])
+                # add the gates, if they are specified
+                if len(self._reps) > 0:
+                    # the first gate (separately so barriers can be inserted in the for-loop)
+                    idx = self._reps[0]
+                    circuit.append(self._gates[idx], self._qargs[idx])
 
-                for idx in self._reps[1:]:
-                    if self._insert_barriers:  # insert barrier, if necessary
-                        circuit.barrier()
-                    circuit.append(self._gates[idx], self._qargs[idx])  # add next layer
+                    for idx in self._reps[1:]:
+                        if self._insert_barriers:  # insert barrier, if necessary
+                            circuit.barrier()
+                        circuit.append(self._gates[idx], self._qargs[idx])  # add next layer
 
                 # store the circuit
             self._circuit = circuit
 
         return self._circuit
 
-    def __repr__(self):
-        return self._circuit.decompose().draw().single_string()
+    def __repr__(self) -> str:
+        """Draw this Ansatz in circuit format using the standard gates.
+
+        Returns:
+            A single string representing this Ansatz.
+        """
+        basis_gates = ['id', 'x', 'y', 'z', 'h', 's', 't', 'sdg', 'tdg', 'rx', 'ry', 'rz',
+                       'cnot', 'cy', 'cz', 'ch', 'crx', 'cry', 'crz', 'swap', 'cswap',
+                       'toffoli']
+        return transpile(self.to_circuit(), basis_gates=basis_gates).draw().single_string()
 
     @property
     def insert_barriers(self) -> bool:

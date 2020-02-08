@@ -134,36 +134,3 @@ class PauliExpansion(Ansatz):
         where_non_i = np.where(np.asarray(list(pauli[::-1])) != 'I')[0]
         x = np.asarray(x)
         return x[where_non_i]
-
-    def construct_circuit(self, x, qr=None, inverse=False):
-        """
-        Construct the second order expansion based on given data.
-
-        Args:
-            x (Union(numpy.ndarray, list[Parameter], ParameterVector)): 1-D to-be-transformed data.
-            qr (QuantumRegister, optional): the QuantumRegister object for the circuit, if None,
-                                  generate new registers with name q.
-            inverse (bool, optional): whether or not inverse the circuit
-
-        Returns:
-            QuantumCircuit: a quantum circuit transform data x.
-        Raises:
-            TypeError: invalid input
-            ValueError: invalid input
-        """
-        if len(x) != self._num_qubits:
-            raise ValueError("number of qubits and data dimension must be the same.")
-
-        if qr is None:
-            qr = QuantumRegister(self._num_qubits, name='q')
-
-        qc = QuantumCircuit(qr)
-        for _ in range(self._depth):
-            for i in range(self._num_qubits):
-                qc.u2(0, pi, qr[i])
-            for pauli in self._pauli_strings:
-                coeff = self._data_map_func(self._extract_data_for_rotation(pauli, x))
-                p = Pauli.from_label(pauli)
-                inst = evolution_instruction([[1, p]], coeff, 1)
-                qc.append(inst, qr)
-        return qc

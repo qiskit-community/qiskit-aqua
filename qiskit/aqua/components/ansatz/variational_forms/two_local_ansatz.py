@@ -83,27 +83,48 @@ class TwoLocalAnsatz(Ansatz):
             >>> ansatz = TwoLocalAnsatz(3, 'ry', 'cx', 'linear', reps=2, insert_barriers=True)
             >>> qc = QuantumCircuit(3)  # create a circuit and append the Ansatz
             >>> qc += ansatz.to_circuit()
-            >>> qc.draw()
-            TODO: circuit diagram
+            >>> qc.decompose().draw()  # decompose the layers into standard gates
+                    ┌────────┐ ░            ░ ┌────────┐ ░            ░ ┌────────┐
+            q_0: |0>┤ Ry(_0) ├─░───■────────░─┤ Ry(_3) ├─░───■────────░─┤ Ry(_6) ├
+                    ├────────┤ ░ ┌─┴─┐      ░ ├────────┤ ░ ┌─┴─┐      ░ ├────────┤
+            q_1: |0>┤ Ry(_1) ├─░─┤ X ├──■───░─┤ Ry(_4) ├─░─┤ X ├──■───░─┤ Ry(_7) ├
+                    ├────────┤ ░ └───┘┌─┴─┐ ░ ├────────┤ ░ └───┘┌─┴─┐ ░ ├────────┤
+            q_2: |0>┤ Ry(_2) ├─░──────┤ X ├─░─┤ Ry(_5) ├─░──────┤ X ├─░─┤ Ry(_8) ├
+                    └────────┘ ░      └───┘ ░ └────────┘ ░      └───┘ ░ └────────┘
 
-            >>> ansatz = TwoLocalAnsatz(3, ['ry', 'rz'], 'cz', 'full', reps=2, insert_barriers=True)
-            >>> ansatz.to_circuit().draw()  # quick way of plotting the Ansatz
-            TODO: circuit diagram
+            >>> ansatz = TwoLocalAnsatz(3, ['ry', 'rz'], 'cz', 'full', reps=1, insert_barriers=True)
+            >>> print(ansatz)  # quick way of plotting the Ansatz
+                    ┌────────┐┌────────┐ ░           ░  ┌────────┐ ┌────────┐
+            q_0: |0>┤ Ry(_0) ├┤ Rz(_1) ├─░──■──■─────░──┤ Ry(_6) ├─┤ Rz(_7) ├
+                    ├────────┤├────────┤ ░  │  │     ░  ├────────┤ ├────────┤
+            q_1: |0>┤ Ry(_2) ├┤ Rz(_3) ├─░──■──┼──■──░──┤ Ry(_8) ├─┤ Rz(_9) ├
+                    ├────────┤├────────┤ ░     │  │  ░ ┌┴────────┤┌┴────────┤
+            q_2: |0>┤ Ry(_4) ├┤ Rz(_5) ├─░─────■──■──░─┤ Ry(_10) ├┤ Rz(_11) ├
+                    └────────┘└────────┘ ░           ░ └─────────┘└─────────┘
 
             >>> entangler_map = [[0, 1], [1, 2], [2, 0]]  # circular entanglement for 3 qubits
-            >>> ansatz = TwoLocalAnsatz(3, 'x', 'crx', entangler_map, reps=2)
-            >>> ansatz.to_circuit().draw()
-            TODO: circuit diagram
+            >>> ansatz = TwoLocalAnsatz(3, 'x', 'crx', entangler_map, reps=1)
+            >>> print(ansatz)  # note: no barriers inserted this time!
+                    ┌───┐                         ┌────────┐┌───┐
+            q_0: |0>┤ X ├────■────────────────────┤ Rx(_2) ├┤ X ├
+                    ├───┤┌───┴────┐          ┌───┐└───┬────┘└───┘
+            q_1: |0>┤ X ├┤ Rx(_0) ├────■─────┤ X ├────┼──────────
+                    ├───┤└────────┘┌───┴────┐└───┘    │     ┌───┐
+            q_2: |0>┤ X ├──────────┤ Rx(_1) ├─────────■─────┤ X ├
+                    └───┘          └────────┘               └───┘
 
-            >>> entangler_map = [[0, 3], [3, 0]]  # entangle the first and last two-way
-            >>> ansatz = TwoLocalAnsatz(4, [], 'cry', entangler_map, reps=2)
+            >>> entangler_map = [[0, 3], [0, 2]]  # entangle the first and last two-way
+            >>> ansatz = TwoLocalAnsatz(4, [], 'cry', entangler_map, reps=1)
             >>> circuit = ansatz.to_circuit() + ansatz.to_circuit()  # add two Ansaetze
-            >>> circuit.draw()
-            TODO: circuit diagram
-
-            >>> ansatz = TwoLocalAnsatz(3, 'ry', 'cx', 'linear', final_rotation_layer=False)
-            >>> ansatz.to_circuit().draw()
-            TODO: circuit diagram
+            >>> circuit.decompose().draw()  # note, that the parameters are the same!
+            q_0: |0>────■─────────■─────────■─────────■─────
+                        │         │         │         │
+            q_1: |0>────┼─────────┼─────────┼─────────┼─────
+                        │     ┌───┴────┐    │     ┌───┴────┐
+            q_2: |0>────┼─────┤ Ry(_1) ├────┼─────┤ Ry(_1) ├
+                    ┌───┴────┐└────────┘┌───┴────┐└────────┘
+            q_3: |0>┤ Ry(_0) ├──────────┤ Ry(_0) ├──────────
+                    └────────┘          └────────┘
         """
         # initialize Ansatz
         super().__init__(insert_barriers=insert_barriers)
@@ -115,7 +136,6 @@ class TwoLocalAnsatz(Ansatz):
         self._parameter_prefix = parameter_prefix
         self._skip_unentangled_qubits = skip_unentangled_qubits
         self._skip_final_rotation_layer = skip_final_rotation_layer
-        self._reps = reps
 
         # handle the single- and two-qubit gate specifications
         if rotation_gates is None:
@@ -131,6 +151,30 @@ class TwoLocalAnsatz(Ansatz):
             self._entanglement_gates = [entanglement_gates]
         else:
             self._entanglement_gates = entanglement_gates
+
+        # define the blocks of this Ansatz
+        for block_num in range(reps):
+            # insert barrier, if specified (but don't insert one before the first layer)
+            if self._insert_barriers and block_num > 0:
+                self.append(Barrier(self.num_qubits))
+
+            # append a rotation layer, if entanglement gates are specified
+            if len(self._rotation_gates) > 0:
+                self.append(self._get_rotation_layer(block_num))
+
+            # insert barrier, if specified
+            if self._insert_barriers:
+                self.append(Barrier(self.num_qubits))
+
+            # append an entanglement layer, if entanglement gates are specified
+            if len(self._entanglement_gates) > 0:
+                self.append(self._get_entanglement_layer(block_num))
+
+        # add a final rotation layer, if not specified otherwise
+        if not self._skip_final_rotation_layer and len(self._rotation_gates) > 0:
+            if self._insert_barriers and reps > 0:
+                self.append(Barrier(self.num_qubits))
+            self.append(self._get_rotation_layer(reps))
 
     def _get_rotation_layer(self, block_num: int) -> Gate:
         """Get the rotation layer for the current block.
@@ -210,26 +254,8 @@ class TwoLocalAnsatz(Ansatz):
 
         return circuit.to_gate()
 
-    def to_circuit(self, n):
-
-        for block_num in range(self._reps):
-            if self._insert_barriers and block_num > 0:
-                self.append(Barrier(self.num_qubits))
-            self.append(self._get_rotation_layer(block_num))
-
-            if self._insert_barriers:
-                self.append(Barrier(self.num_qubits))
-            self.append(self._get_entanglement_layer(block_num))
-
-        if not self._skip_final_rotation_layer:
-            print('adding final')
-            if self._insert_barriers and self._reps > 0:
-                print('inserting last barrier')
-                self.append(Barrier(self.num_qubits))
-            self.append(self._get_rotation_layer(self._reps))
-
     @property
-    def rotation_gates(self):
+    def rotation_gates(self) -> List[Tuple[type, int]]:
         """Return a the single qubit gate (or gates) in tuples of callable and number of parameters.
 
         The reason this is implemented as separate function is that the user can set up a class
@@ -245,7 +271,7 @@ class TwoLocalAnsatz(Ansatz):
         return gate_param_list
 
     @property
-    def entanglement_gates(self):
+    def entanglement_gates(self) -> List[Tuple[type, int]]:
         """
         Return a the twos qubit gate(or gates) in form of callable(s).
 
