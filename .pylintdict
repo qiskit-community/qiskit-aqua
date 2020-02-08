@@ -42,6 +42,7 @@ bitstring
 bitstrings
 bksf
 blockspin
+bmod
 bohr
 bool
 boolean
@@ -53,6 +54,7 @@ ccphase
 cct
 ccx
 cdf
+cdot
 ceil
 chernoff
 circ
@@ -99,6 +101,7 @@ dataset
 datetime
 dcs
 debye
+deconvoluted
 deepcopy
 deepcopying
 deregisters
@@ -176,6 +179,7 @@ gde
 geq
 getattr
 getter
+github
 gogolin
 gfortran
 globals
@@ -191,6 +195,7 @@ hamiltonian
 hamiltonians
 hardcoded
 hartree
+hassidim
 hb
 hhl
 hk
@@ -215,6 +220,7 @@ innerproduct
 inreg
 instantiations
 intelvem
+interatomic
 ints
 ip
 iprint
@@ -245,6 +251,7 @@ kumar
 kwargs
 labelled
 len
+leq
 lhs
 lih
 lijh
@@ -256,6 +263,7 @@ lognormal
 lr
 lst
 majorana
+mathsf
 matrixoperator
 maxcut
 maxdepth
@@ -305,6 +313,7 @@ ndarray
 ndarray's
 negoro
 nelder
+neq
 nevals
 nfev
 nk
@@ -312,6 +321,7 @@ nlopt
 nmo
 nlopts
 nn
+noancilla
 noint
 noqa
 norbs
@@ -329,6 +339,7 @@ ok
 oneee
 online
 onwards
+oplus
 optim
 optimizer's
 optimizers
@@ -345,6 +356,7 @@ penality
 ph
 piecewise
 plesset
+pmatrix
 polynomially
 postoracle
 powell
@@ -410,6 +422,7 @@ retval
 rhf
 rhobeg
 rhs
+rightarrow
 rohf
 rosen
 rsgtu
@@ -475,6 +488,7 @@ tgt
 th
 tiajb
 tibja
+timelimit
 timestamp
 tnc
 toctree
@@ -497,6 +511,7 @@ unary
 uncompiled
 uncompute
 uncomputed
+uncomputing
 unitaries
 unittest
 univariate
@@ -517,6 +532,7 @@ vertices
 visualisation
 vqc
 vqe
+vqe's
 wavefunction
 wavefunctions
 weightedpaulioperator

@@ -42,13 +42,22 @@ logger = logging.getLogger(__name__)
 
 class QGAN(QuantumAlgorithm):
     """
-    Quantum Generative Adversarial Network.
+    The Quantum Generative Adversarial Network algorithm.
+
+    `qGAN <https://arxiv.org/abs/1904.00043>`__ is a hybrid quantum-classical algorithm used
+    for generative modeling tasks.
+
     This adaptive algorithm uses the interplay of a generative
-    :class:`~qiskit.aqua.components.neural_networks.GenerativeNetwork`and a
+    :class:`~qiskit.aqua.components.neural_networks.GenerativeNetwork` and a
     discriminative :class:`~qiskit.aqua.components.neural_networks.DiscriminativeNetwork`
     network to learn the probability distribution underlying given training data.
 
-
+    These networks are trained in alternating optimization steps, where the discriminator tries to
+    differentiate between training data samples and data samples from the generator and the
+    generator aims at generating samples which the discriminator classifies as training data
+    samples. Eventually, the quantum generator learns the training data's underlying probability
+    distribution. The trained quantum generator loads a quantum state which is a model of the
+    target distribution.
     """
 
     def __init__(self, data: np.ndarray, bounds: Optional[np.ndarray] = None,
@@ -60,22 +69,21 @@ class QGAN(QuantumAlgorithm):
         """
 
         Args:
-            data: training data of dimension k
+            data: Training data of dimension k
             bounds: k min/max data values [[min_0,max_0],...,[min_k-1,max_k-1]]
                 if univariate data: [min_0,max_0]
             num_qubits: k numbers of qubits to determine representation resolution,
                 i.e. n qubits enable the representation of 2**n values
                 [num_qubits_0,..., num_qubits_k-1]
-            batch_size: batch size, has a min. value of 1.
-            num_epochs: number of training epochs
-            seed: random number seed
-            discriminator: discriminates between real and fake data samples
-            generator: generates 'fake' data samples
+            batch_size: Batch size, has a min. value of 1.
+            num_epochs: Number of training epochs
+            seed: Random number seed
+            discriminator: Discriminates between real and fake data samples
+            generator: Generates 'fake' data samples
             tol_rel_ent: Set tolerance level for relative entropy.
-                If the training achieves relative
-                entropy equal or lower than tolerance it finishes.
-            snapshot_dir: path or None, if path given store cvs file
-                with parameters to the directory
+                If the training achieves relative entropy equal or lower than tolerance it finishes.
+            snapshot_dir: Directory in to which to store cvs file with parameters,
+                if None (default) then no cvs file is created.
         Raises:
             AquaError: invalid input
         """
@@ -138,7 +146,7 @@ class QGAN(QuantumAlgorithm):
 
     @property
     def seed(self):
-        """ returns random seed """
+        """ Returns random seed """
         return self._random_seed
 
     @seed.setter
@@ -156,7 +164,7 @@ class QGAN(QuantumAlgorithm):
 
     @property
     def tol_rel_ent(self):
-        """ returns tolerance for relative entropy """
+        """ Returns tolerance for relative entropy """
         return self._tol_rel_ent
 
     @tol_rel_ent.setter
@@ -173,7 +181,7 @@ class QGAN(QuantumAlgorithm):
 
     @property
     def generator(self):
-        """ returns generator """
+        """ Returns generator """
         return self._generator
 
     # pylint: disable=unused-argument
@@ -194,7 +202,7 @@ class QGAN(QuantumAlgorithm):
 
     @property
     def discriminator(self):
-        """ returns discriminator """
+        """ Returns discriminator """
         return self._discriminator
 
     def set_discriminator(self, discriminator=None):
@@ -213,21 +221,21 @@ class QGAN(QuantumAlgorithm):
 
     @property
     def g_loss(self):
-        """ returns generator loss """
+        """ Returns generator loss """
         return self._g_loss
 
     @property
     def d_loss(self):
-        """ returns discriminator loss """
+        """ Returns discriminator loss """
         return self._d_loss
 
     @property
     def rel_entr(self):
-        """ returns relative entropy between target and trained distribution """
+        """ Returns relative entropy between target and trained distribution """
         return self._rel_entr
 
     def get_rel_entr(self):
-        """ get relative entropy between target and trained distribution """
+        """ Get relative entropy between target and trained distribution """
         samples_gen, prob_gen = self._generator.get_output(self._quantum_instance)
         temp = np.zeros(len(self._grid_elements))
         for j, sample in enumerate(samples_gen):

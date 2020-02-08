@@ -43,8 +43,34 @@ class QSVM(QuantumAlgorithm):
     """
     Quantum SVM algorithm.
 
-    Internally, it will run the binary classification or multiclass classification
-    based on how many classes the data has.
+    A key concept in classification methods is that of a kernel. Data cannot typically be
+    separated by a hyperplane in its original space. A common technique used to find such a
+    hyperplane consists on applying a non-linear transformation function to the data.
+    This function is called a *feature map*, as it transforms the raw features, or measurable
+    properties, of the phenomenon or subject under study. Classifying in this new feature space
+    – and, as a matter of fact, also in any other space, including the raw original one – is
+    nothing more than seeing how close data points are to each other. This is the same as
+    computing the inner product for each pair of data in the set. In fact we do not need to
+    compute the non-linear feature map for each datum, but only the inner product of each pair
+    of data points in the new feature space. This collection of inner products is called the
+    **kernel** and it is perfectly possible to have feature maps that are hard to compute but
+    whose kernels are not.
+
+    The QSVM algorithm applies to classification problems that require a feature map for which
+    computing the kernel is not efficient classically. This means that the required computational
+    resources are expected to scale exponentially with the size of the problem.
+    QSVM uses a Quantum processor to solve this problem by a direct estimation of the kernel in
+    the feature space. The method used falls in the category of what is called
+    **supervised learning**, consisting of a **training phase** (where the kernel is calculated
+    and the support vectors obtained) and a **test or classification phase** (where new data
+    without labels is classified according to the solution found in the training phase).
+
+    Internally, QSVM will run the binary classification or multiclass classification
+    based on how many classes the data has. If the data has more than 2 classes then a
+    *multiclass_extension* is required to be supplied. Aqua provides several
+    :mod:`~qiskit.aqua.components.multiclass_extensions`.
+
+    See also https://arxiv.org/abs/1804.11326
     """
 
     BATCH_SIZE = 1000
@@ -55,17 +81,16 @@ class QSVM(QuantumAlgorithm):
                  datapoints: Optional[np.ndarray] = None,
                  multiclass_extension: Optional[MulticlassExtension] = None) -> None:
         """
-
         Args:
-            feature_map: feature map module, used to transform data
-            training_dataset: training dataset.
-            test_dataset: testing dataset.
-            datapoints: prediction dataset.
-            multiclass_extension: if number of classes > 2 then
-                a multiclass scheme is needed.
+            feature_map: Feature map module, used to transform data
+            training_dataset: Training dataset.
+            test_dataset: Testing dataset.
+            datapoints: Prediction dataset.
+            multiclass_extension: If number of classes is greater than 2 then a multiclass scheme
+                must be supplied, in the form of a multiclass extension.
 
         Raises:
-            AquaError: Using binary classifier when number of classes > 2
+            AquaError: Multiclass extension not supplied when number of classes > 2
         """
         super().__init__()
         # check the validity of provided arguments if possible
