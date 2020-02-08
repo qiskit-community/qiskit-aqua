@@ -45,7 +45,7 @@ class QGAN(QuantumAlgorithm):
     The Quantum Generative Adversarial Network algorithm.
 
     `qGAN <https://arxiv.org/abs/1904.00043>`__ is a hybrid quantum-classical algorithm used
-    for generative modelling tasks.
+    for generative modeling tasks.
 
     This adaptive algorithm uses the interplay of a generative
     :class:`~qiskit.aqua.components.neural_networks.GenerativeNetwork` and a

@@ -48,7 +48,7 @@ class Shor(QuantumAlgorithm):
     The input integer ``N`` to be factored is expected to be odd and greater than 2.
     Even though this implementation is general, its capability will be limited by the
     capacity of the simulator/hardware. Another input integer ``a`` can also be supplied,
-    which needs to be a coprime smaller than ``N``.
+    which needs to be a co-prime smaller than ``N``.
 
     Adapted from https://github.com/ttlion/ShorAlgQiskit
 

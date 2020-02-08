@@ -35,7 +35,7 @@ class CPLEX_Ising(ClassicalAlgorithm):
     The CPLEX Ising algorithm.
 
     This algorithm uses the `IBM ILOG CPLEX Optimization Studio` along with its separately
-    installed `Python API` to solve optimization problems modelled as an Ising Hamiltonian.
+    installed `Python API` to solve optimization problems modeled as an Ising Hamiltonian.
 
     See these :mod:`installation instructions <qiskit.aqua.algorithms.classical.cplex>`
     if you need more information in that regard.
@@ -52,7 +52,7 @@ class CPLEX_Ising(ClassicalAlgorithm):
                 number of threads to allocate, but this may not be ideal for small problems for
                 which the default of 1 is more suitable.
             display: Decides what CPLEX reports to the screen and records in a log during
-                mixed integer optimization (MIP). This value must be between 0 and 5 where the
+                mixed integer optimization. This value must be between 0 and 5 where the
                 amount of information displayed increases with increasing values of this parameter.
         """
         validate_min('timelimit', timelimit, 1)
