@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -29,9 +29,24 @@ from qiskit.aqua.components.oracles import Oracle
 
 
 class Simon(QuantumAlgorithm):
-    """The Simon algorithm."""
+    r"""
+    The Simon algorithm.
+
+    The Simon algorithm finds a hidden integer :math:`s \in \{0,1\}^n` from an oracle :math:`f_s`
+    that satisfies :math:`f_s(x) = f_s(y)` if and only if :math:`y=x \oplus s` for all
+    :math:`x \in \{0,1\}^n`. Thus, if :math:`s = 0\ldots 0`, i.e., the all-zero bitstring,
+    then :math:`f_s` is a 1-to-1 (or, permutation) function. Otherwise, if
+    :math:`s \neq 0\ldots 0`, then :math:`f_s` is a 2-to-1 function.
+
+    Note: the :class:`~qiskit.aqua.components.oracles.TruthTableOracle` may be the easiest to use
+    to create one that can be used with the Simon algorithm.
+    """
 
     def __init__(self, oracle: Oracle) -> None:
+        """
+        Args:
+            oracle: The oracle component
+        """
         super().__init__()
 
         self._oracle = oracle
