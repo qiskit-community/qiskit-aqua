@@ -37,6 +37,7 @@ baseoperator
 bb
 bergholm
 bfgs
+binom
 bitstr
 bitstring
 bitstrings
@@ -263,6 +264,7 @@ lognormal
 lr
 lst
 majorana
+mathbb
 mathsf
 matrixoperator
 maxcut
@@ -344,6 +346,7 @@ optim
 optimizer's
 optimizers
 org
+overfit
 params
 parentname
 pauli
@@ -553,6 +556,7 @@ zi
 zmatrix
 zv
 ZZ
+zzz
 äguivalenzverbot
 über
 ucc
