@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""CPLEX Ising algorithm; uses IBM CPLEX backend for Ising Hamiltonian solution"""
+"""The CPLEX Ising algorithm. Uses IBM CPLEX backend for Ising Hamiltonian solution"""
 
 import csv
 import logging
@@ -31,11 +31,30 @@ logger = logging.getLogger(__name__)
 
 
 class CPLEX_Ising(ClassicalAlgorithm):
-    """ CPLEX Ising algorithm """
+    """
+    The CPLEX Ising algorithm.
+
+    This algorithm uses the `IBM ILOG CPLEX Optimization Studio` along with its separately
+    installed `Python API` to solve optimization problems modelled as an Ising Hamiltonian.
+
+    See these :mod:`installation instructions <qiskit.aqua.algorithms.classical.cplex>`
+    if you need more information in that regard.
+    """
 
     def __init__(self, operator: WeightedPauliOperator,
                  timelimit: int = 600, thread: int = 1,
                  display: int = 2) -> None:
+        """
+        Args:
+            operator: The Ising Hamiltonian as an Operator
+            timelimit: A time limit in seconds for the execution
+            thread: The number of threads that CPLEX uses. Setting this 0 lets CPLEX decide the
+                number of threads to allocate, but this may not be ideal for small problems for
+                which the default of 1 is more suitable.
+            display: Decides what CPLEX reports to the screen and records in a log during
+                mixed integer optimization (MIP). This value must be between 0 and 5 where the
+                amount of information displayed increases with increasing values of this parameter.
+        """
         validate_min('timelimit', timelimit, 1)
         validate_min('thread', thread, 0)
         validate_range('display', display, 0, 5)
