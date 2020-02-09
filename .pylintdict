@@ -50,6 +50,7 @@ boolean
 bpa
 brassard
 bravyi
+broyden
 cargs
 ccphase
 cct
@@ -183,6 +184,7 @@ getattr
 getter
 github
 gogolin
+goldfarb
 gfortran
 globals
 graycode
@@ -289,6 +291,7 @@ minibatch
 minibatched
 minibatches
 minibatching
+minima
 mintert
 minwidth
 mitarai
@@ -319,6 +322,7 @@ negoro
 nelder
 neq
 nevals
+newtons's
 nfev
 nk
 nlopt
@@ -448,9 +452,11 @@ scipy
 sd
 sdg
 sdk
+seealso
 seeley
 setia
 sgn
+shanno
 shor
 shor's
 sigmoid
