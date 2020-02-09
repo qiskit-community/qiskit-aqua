@@ -130,6 +130,7 @@ dj
 dnf
 docplex
 dp
+ecc
 ee
 eigen
 eigensolver
@@ -251,6 +252,7 @@ kth
 kumar
 kwargs
 labelled
+ldots
 len
 leq
 lhs
