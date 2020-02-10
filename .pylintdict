@@ -167,6 +167,7 @@ filepath
 fm
 fock
 formatter
+formulae
 fortran
 fourier
 ftol
@@ -527,6 +528,7 @@ uncompiled
 uncompute
 uncomputed
 uncomputing
+unentangled
 unitaries
 unittest
 univariate
