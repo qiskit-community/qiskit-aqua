@@ -47,6 +47,10 @@ class PauliChangeOfBasis():
 
     # TODO see whether we should make this performant by handling OpVecs of Paulis later.
     def convert(self, operator):
+        """ Given an Operator with Paulis, converts each Pauli into the basis specified by self._destination. More
+        specifically, each Pauli p will be replaced by the composition of a Change-of-basis Clifford c with the
+        destination Pauli d, such that p == c·d·c†, up to global phase. """
+
         if isinstance(operator, Pauli):
             pauli = operator
             coeff = 1.0
@@ -60,13 +64,14 @@ class PauliChangeOfBasis():
                             'Paulis, not {}'.format(type(operator)))
 
         cob_instruction, new_pauli = self.get_cob_circuit(pauli)
-        return OpComposition([cob_instruction, new_pauli], coeff=coeff)
+        return OpComposition([new_pauli, cob_instruction], coeff=coeff)
 
     def get_cob_circuit(self, pauli):
+        # If pauli is an OpPrimitive, extract the Pauli
         if hasattr(pauli, 'primitive') and isinstance(pauli.primitive, Pauli):
             pauli = pauli.primitive
 
-        # If no destination specified, assume nearest Pauli in {Z,I}^n basis
+        # If no destination specified, assume nearest Pauli in {Z,I}^n basis, the standard CoB for expectation
         pauli_ones = np.logical_or(pauli.x, pauli.z)
         destination = self._destination or Pauli(z=pauli_ones, x=[False]*len(pauli.z))
 
@@ -78,7 +83,7 @@ class PauliChangeOfBasis():
         # Construct single-qubit changes to {Z, I)^n
         y_to_x_pauli = kronall([S if has_y else I for has_y in np.logical_and(pauli.x, pauli.z)]).adjoint()
         x_to_z_pauli = kronall([H if has_x else I for has_x in pauli.x])
-        cob_instruction = y_to_x_pauli.compose(x_to_z_pauli)
+        cob_instruction = x_to_z_pauli.compose(y_to_x_pauli)
 
         # Construct CNOT chain, assuming full connectivity...
         destination_ones = np.logical_or(destination.x, destination.z)
@@ -91,12 +96,13 @@ class PauliChangeOfBasis():
                 if val:
                     cnots.cx(i, lowest_one_dest)
             cnot_op = OpPrimitive(cnots.to_instruction())
-            cob_instruction = cob_instruction.compose(cnot_op)
+            cob_instruction = cnot_op.compose(cob_instruction)
 
         if any(destination.x):
             # Construct single-qubit changes from {Z, I)^n
             z_to_x_dest = kronall([H if has_x else I for has_x in destination.x]).adjoint()
             x_to_y_dest = kronall([S if has_y else I for has_y in np.logical_and(destination.x, destination.z)])
-            cob_instruction = cob_instruction.compose(z_to_x_dest).compose(x_to_y_dest)
+            cob_instruction = x_to_y_dest.compose(z_to_x_dest).compose(cob_instruction)
+            # cob_instruction = cob_instruction.compose(z_to_x_dest).compose(x_to_y_dest)
 
         return cob_instruction, OpPrimitive(destination)

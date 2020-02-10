@@ -183,6 +183,8 @@ class OpVec(OperatorBase):
         OpVec's eval recursively evaluates each Operator in self.oplist's eval, and returns a value based on the
         recombination function.
 
+
+        # TODO this doesn't work for compositions and krons! Needs to be to_matrix.
         """
         # TODO Do we need to use partial(np.sum, axis=0) as OpSum combo to be able to handle vector returns correctly?
         return self.combo_fn([op.eval(val1, val2) for op in self.oplist]) * self.coeff

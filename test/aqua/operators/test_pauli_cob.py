@@ -26,14 +26,37 @@ from qiskit import QuantumCircuit
 class TestPauliCoB(QiskitAquaTestCase):
     """Pauli Change of Basis Converter tests."""
 
-    def test_pauli_cob(self):
+    def test_pauli_cob_singles(self):
         """ from to file test """
-        pauli = X
-        converter = PauliChangeOfBasis()
-        inst, dest = converter.get_cob_circuit(pauli.primitive)
-        cob = converter.convert(pauli)
+        singles = [I, X, Y, Z]
+        for pauli in singles:
+            # print(pauli)
+            converter = PauliChangeOfBasis()
+            inst, dest = converter.get_cob_circuit(pauli.primitive)
+            cob = converter.convert(pauli)
+            np.testing.assert_array_almost_equal(pauli.to_matrix(),
+                                                 inst.adjoint().to_matrix() @ dest.to_matrix() @ inst.to_matrix())
+            np.testing.assert_array_almost_equal(pauli.to_matrix(), inst.adjoint().to_matrix() @ cob.to_matrix())
+            np.testing.assert_array_almost_equal(inst.compose(pauli).compose(inst.adjoint()).to_matrix(),
+                                                 dest.to_matrix())
+
+    def test_pauli_cob_multiqubit(self):
+        multis = [Y^X, I^Z^Y^X^Y^Z^I]
+        for pauli in multis:
+            print(pauli)
+            converter = PauliChangeOfBasis()
+            inst, dest = converter.get_cob_circuit(pauli.primitive)
+            cob = converter.convert(pauli)
+            print(pauli.to_matrix())
+            print(np.round(inst.adjoint().to_matrix() @ cob.to_matrix()))
+            np.testing.assert_array_almost_equal(pauli.to_matrix(),
+                                                 inst.adjoint().to_matrix() @ dest.to_matrix() @ inst.to_matrix())
+            np.testing.assert_array_almost_equal(pauli.to_matrix(), inst.adjoint().to_matrix() @ cob.to_matrix())
+            np.testing.assert_array_almost_equal(inst.compose(pauli).compose(inst.adjoint()).to_matrix(),
+                                                 dest.to_matrix())
+
         # np.testing.assert_array_almost_equal(pauli.to_matrix() @ cob.compose(inst.adjoint()).adjoint().to_matrix())
-        print(np.round(pauli.to_matrix() @ cob.compose(inst.adjoint()).to_matrix()))
+        # print(np.round(pauli.to_matrix() @ cob.compose(inst.adjoint()).to_matrix()))
 
         # print((H).compose(Z).compose(H).to_matrix())
         # print(pauli.to_matrix())
