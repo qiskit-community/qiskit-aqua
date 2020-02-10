@@ -37,6 +37,7 @@ baseoperator
 bb
 bergholm
 bfgs
+binom
 bitstr
 bitstring
 bitstrings
@@ -49,6 +50,7 @@ boolean
 bpa
 brassard
 bravyi
+broyden
 cargs
 ccphase
 cct
@@ -122,6 +124,7 @@ discretization
 discretize
 discretized
 discriminative
+disjoined
 disjunction
 disp
 distro
@@ -129,6 +132,7 @@ dj
 dnf
 docplex
 dp
+ecc
 ee
 eigen
 eigensolver
@@ -163,6 +167,7 @@ filepath
 fm
 fock
 formatter
+formulae
 fortran
 fourier
 ftol
@@ -181,6 +186,7 @@ getattr
 getter
 github
 gogolin
+goldfarb
 gfortran
 globals
 graycode
@@ -250,6 +256,7 @@ kth
 kumar
 kwargs
 labelled
+ldots
 len
 leq
 lhs
@@ -257,12 +264,15 @@ lih
 lijh
 lin
 lmin
+lnot
 loglikelihood
 logn
 lognormal
+lor
 lr
 lst
 majorana
+mathbb
 mathsf
 matrixoperator
 maxcut
@@ -285,6 +295,7 @@ minibatch
 minibatched
 minibatches
 minibatching
+minima
 mintert
 minwidth
 mitarai
@@ -315,6 +326,7 @@ negoro
 nelder
 neq
 nevals
+newtons's
 nfev
 nk
 nlopt
@@ -344,6 +356,7 @@ optim
 optimizer's
 optimizers
 org
+overfit
 params
 parentname
 pauli
@@ -427,6 +440,7 @@ rohf
 rosen
 rsgtu
 rtype
+runarsson
 RunConfig
 ry
 rz
@@ -443,9 +457,11 @@ scipy
 sd
 sdg
 sdk
+seealso
 seeley
 setia
 sgn
+shanno
 shor
 shor's
 sigmoid
@@ -512,6 +528,7 @@ uncompiled
 uncompute
 uncomputed
 uncomputing
+unentangled
 unitaries
 unittest
 univariate
@@ -544,15 +561,18 @@ xatol
 xc
 xixj
 xopt
+xor
 xtol
 xuxv
 xyz
+yao
 yc
 yy
 zi
 zmatrix
 zv
 ZZ
+zzz
 äguivalenzverbot
 über
 ucc

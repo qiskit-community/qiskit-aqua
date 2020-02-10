@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""A custom initial state."""
+"""The custom initial state."""
 
 from typing import Optional
 import logging
@@ -32,20 +32,46 @@ logger = logging.getLogger(__name__)
 
 
 class Custom(InitialState):
-    """A custom initial state."""
+    """
+    The custom initial state.
+
+    A custom initial state can be created with this component. It allows a state to be defined
+    in the form of custom probability distribution with the *state_vector*, or by providing a
+    desired *circuit* to set the state.
+
+    Also *state* can be used having a few pre-defined initial states for convenience:
+
+    - 'zero': configures the state vector with the zero probability distribution, and is
+      effectively equivalent to the :class:`Zero` initial state.
+
+    - 'uniform': This setting configures the state vector with the uniform probability distribution.
+      All the qubits are set in superposition, each of them being initialized with a Hadamard gate,
+      which means that a measurement will have equal probabilities to become :math:`1` or :math:`0`.
+
+    - 'random': This setting assigns the elements of the state vector according to a random
+      probability distribution.
+
+    The custom initial state will be set from the *circuit*, the *state_vector*, or
+    *state*, in that order. For *state_vector* the provided custom probability distribution
+    will be internally normalized so the total probability represented is :math:`1.0`.
+
+    """
 
     def __init__(self,
                  num_qubits: int,
                  state: str = 'zero',
                  state_vector: Optional[np.ndarray] = None,
                  circuit: Optional[QuantumCircuit] = None) -> None:
-        """Constructor.
-
+        """
         Args:
-            num_qubits: number of qubits, has a min. value of 1.
-            state: `zero`, `uniform` or `random`
-            state_vector: customized vector
-            circuit: the actual custom circuit for the desired initial state
+            num_qubits: Number of qubits, has a minimum value of 1.
+            state: Use a predefined state of ('zero' | 'uniform' | 'random')
+            state_vector: An optional vector of ``complex`` or ``float`` representing the state as
+                a probability distribution which will be normalized to a total probability of 1
+                when initializing the qubits. The length of the vector must be :math:`2^q`, where
+                :math:`q` is the *num_qubits* value. When provided takes precedence over *state*.
+            circuit: A quantum circuit for the desired initial state. When provided takes
+                precedence over both *state_vector* and *state*.
         Raises:
             AquaError: invalid input
         """
