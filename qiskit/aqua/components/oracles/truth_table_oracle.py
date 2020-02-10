@@ -53,7 +53,7 @@ class TruthTableOracle(Oracle):
     =====  =====  =============
        Inputs        Output
     ------------  -------------
-    ``A``  ``B``  ``A xor B``
+      A      B       A xor B
     =====  =====  =============
       0      0       0
       0      1       1

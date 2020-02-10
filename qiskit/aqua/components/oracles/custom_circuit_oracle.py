@@ -25,8 +25,8 @@ class CustomCircuitOracle(Oracle):
     """
     The Custom Circuit-based Quantum Oracle.
 
-    A helper class to in essence 'wrap' a user-supplied quantum circuit such that becomes
-    ot type :class:`Oracle` and hence cam used by algorithms taking oracles as input.
+    A helper class to, in essence, 'wrap' a user-supplied quantum circuit such that it becomes
+    of type :class:`Oracle` and hence can be used by algorithms taking an oracle as input.
 
     This class is provided for easy creation of oracles using custom circuits.
     It is geared towards programmatically experimenting with oracles, where a user directly

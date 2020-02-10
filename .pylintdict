@@ -124,6 +124,7 @@ discretization
 discretize
 discretized
 discriminative
+disjoined
 disjunction
 disp
 distro
@@ -262,9 +263,11 @@ lih
 lijh
 lin
 lmin
+lnot
 loglikelihood
 logn
 lognormal
+lor
 lr
 lst
 majorana
@@ -556,6 +559,7 @@ xatol
 xc
 xixj
 xopt
+xor
 xtol
 xuxv
 xyz
