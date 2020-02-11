@@ -15,10 +15,12 @@
 from .ansatz_factory import Ansatz
 from .variational_forms import TwoLocalAnsatz, RY
 from .feature_maps import PauliExpansion
+from .operator_ansatz import OperatorAnsatz
 
 __all__ = [
     'Ansatz',
-    'TwoLocalAnsatz',
+    'OperatorAnsatz',
     'PauliExpansion',
     'RY',
+    'TwoLocalAnsatz',
 ]

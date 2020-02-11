@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -23,12 +23,15 @@ import logging
 
 import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister
+from qiskit.circuit import ParameterVector
 from qiskit.quantum_info import Pauli
 from qiskit.qasm import pi
 
+from qiskit.aqua import AquaError
 from qiskit.aqua.operators import evolution_instruction
 from qiskit.aqua.utils.validation import validate_min, validate_in_set
 from qiskit.aqua.components.ansatz import Ansatz
+from qiskit.aqua.utils import get_entangler_map, validate_entangler_map
 
 from .data_mapping import self_product
 
@@ -50,29 +53,29 @@ class PauliExpansion(Ansatz):
                  entanglement: Union[str, List[List[int]], callable] = 'full',
                  reps: int = 2,
                  data_map_func: Callable[[np.ndarray], float] = self_product,
-                 insert_barriers=False) -> None:
+                 insert_barriers: bool = False) -> None:
         """Constructor.
 
         Args:
-            feature_dimension: number of features
-            depth: the number of repeated circuits. Defaults to 2,
-                        has a min. value of 1.
-            entangler_map: describe the connectivity of qubits, each list describes
-                                        [source, target], or None for full entanglement.
-                                        Note that the order is the list is the order of
-                                        applying the two-qubit gate.
+            feature_dimension: Number of features.
+            reps: The number of repeated circuits. Defaults to 2, has a min. value of 1.
             entanglement: ['full', 'linear'], generate the qubit
                                           connectivity by predefined topology.
                                           Defaults to full
             paulis: a list of strings for to-be-used paulis.
                                     Defaults to None. If None, ['Z', 'ZZ'] will be used.
             data_map_func: a mapping function for data x
+            insert_barriers: If True, barriers are inserted in between the evolution instructions
+                and hadamard layers.
         """
         paulis = paulis if paulis is not None else ['Z', 'ZZ']
         validate_min('reps', reps, 1)
         validate_in_set('entanglement', entanglement, {'full', 'linear'})
-        super().__init__(num_qubits=feature_dimension)
 
+        super().__init__(insert_barriers=insert_barriers)
+
+        self._num_qubits = feature_dimension
+        self._entanglement = entanglement
         self._pauli_strings = self._build_subset_paulis_string(paulis)
         self._data_map_func = data_map_func
 
@@ -81,6 +84,9 @@ class PauliExpansion(Ansatz):
         for i in range(self.num_qubits):
             hadamards.h(i)
         hadamard_layer = hadamards.to_gate()
+
+        # set the parameters
+        x = ParameterVector('x', length=feature_dimension)
 
         # iterate over the layers
         for _ in range(reps):
@@ -119,7 +125,7 @@ class PauliExpansion(Ansatz):
             else:
                 is_valid = True
                 for src, targ in itertools.combinations(where_z, 2):
-                    if [src, targ] not in self._entangler_map:
+                    if [src, targ] not in self.get_entangler_map():
                         is_valid = False
                         break
                 if is_valid:
@@ -134,3 +140,28 @@ class PauliExpansion(Ansatz):
         where_non_i = np.where(np.asarray(list(pauli[::-1])) != 'I')[0]
         x = np.asarray(x)
         return x[where_non_i]
+
+    # TODO duplicate in TwoLocalAnsatz, move this somewhere else
+    def get_entangler_map(self, offset: int = 0) -> List[List[int]]:
+        """Return the specified entangler map, if self._entangler_map if it has been set previously.
+
+        Args:
+            offset (int): Some entanglements allow an offset argument, since the entangler map might
+                differ per entanglement block (e.g. for 'sca' entanglement). This is the block
+                index.
+
+        Returns:
+            A list of [src, tgt] pairs specifying entanglements, also known as entangler map.
+
+        Raises:
+            AquaError: Unsupported format of entanglement, if self._entanglement has the wrong
+                format.
+        """
+        if isinstance(self._entanglement, str):
+            return get_entangler_map(self._entanglement, self.num_qubits, offset)
+        elif callable(self._entanglement):
+            return validate_entangler_map(self._entanglement(offset), self.num_qubits)
+        elif isinstance(self._entanglement, list):
+            return validate_entangler_map(self._entanglement, self.num_qubits)
+        else:
+            raise AquaError('Unsupported format of entanglement!')
