@@ -183,8 +183,8 @@ class Ansatz:
             A single string representing this Ansatz.
         """
         basis_gates = ['id', 'x', 'y', 'z', 'h', 's', 't', 'sdg', 'tdg', 'rx', 'ry', 'rz',
-                       'cnot', 'cy', 'cz', 'ch', 'crx', 'cry', 'crz', 'swap', 'cswap',
-                       'toffoli']
+                       'cx', 'cy', 'cz', 'ch', 'crx', 'cry', 'crz', 'swap', 'cswap',
+                       'toffoli', 'u1', 'u2', 'u3']
         return transpile(self.to_circuit(), basis_gates=basis_gates).draw().single_string()
 
     @property
@@ -256,6 +256,7 @@ class Ansatz:
         # In the latter case we have to add an according offset to the qubit indices.
 
         self._qargs += [qubit_indices or list(range(gate.num_qubits))]
+        print('qargs:', self._qargs[-1])
 
         # modify the circuit accordingly
         if self._circuit is None:
