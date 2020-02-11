@@ -91,8 +91,12 @@ class TestOpConstruction(QiskitAquaTestCase):
             self.assertEqual(gnarly_op.eval(bstr1, bstr2), gnarly_mat_op.eval(bstr1, bstr2))
 
     def test_circuit_construction(self):
-        hadq2 = I^H
+        hadq2 = H^I
         cz = hadq2.compose(CX).compose(hadq2)
+        from qiskit import QuantumCircuit
+        qc = QuantumCircuit(2)
+        qc.append(cz.primitive, qargs=range(2))
+        print(qc.decompose().draw())
 
         ref_cz_mat = OpPrimitive(CzGate()).to_matrix()
         np.testing.assert_array_almost_equal(cz.to_matrix(), ref_cz_mat)

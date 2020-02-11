@@ -183,14 +183,16 @@ class OpPrimitive(OperatorBase):
         if isinstance(self_primitive, Pauli) and isinstance(other_primitive, Pauli):
             # TODO change Pauli kron in Terra to have optional inplace
             op_copy = Pauli(x=other_primitive.x, z=other_primitive.z)
+            # NOTE!!! REVERSING QISKIT ENDIANNESS HERE
             return OpPrimitive(op_copy.kron(self_primitive), coeff=self.coeff * other.coeff)
             # TODO double check coeffs logic for paulis
 
         # Both Instructions/Circuits
         elif isinstance(self_primitive, Instruction) and isinstance(other_primitive, Instruction):
             new_qc = QuantumCircuit(self_primitive.num_qubits+other_primitive.num_qubits)
-            new_qc.append(self_primitive, new_qc.qubits[0:self_primitive.num_qubits])
-            new_qc.append(other_primitive, new_qc.qubits[self_primitive.num_qubits:])
+            # NOTE!!! REVERSING QISKIT ENDIANNESS HERE
+            new_qc.append(other_primitive, new_qc.qubits[0:other_primitive.num_qubits])
+            new_qc.append(self_primitive, new_qc.qubits[other_primitive.num_qubits:])
             # TODO Fix because converting to dag just to append is nuts
             # TODO Figure out what to do with cbits?
             return OpPrimitive(new_qc.decompose().to_instruction(), coeff=self.coeff * other.coeff)
@@ -288,8 +290,8 @@ class OpPrimitive(OperatorBase):
         # Both Instructions/Circuits
         elif isinstance(self.primitive, Instruction):
             qc = QuantumCircuit(self.primitive.num_qubits)
-            # NOTE: reversing qubits!!
-            qc.append(self.primitive, qargs=range(self.primitive.num_qubits)[::-1])
+            # NOTE: not reversing qubits!!
+            qc.append(self.primitive, qargs=range(self.primitive.num_qubits))
             unitary = execute(qc, BasicAer.get_backend('unitary_simulator')).result().get_unitary()
             return unitary * self.coeff
 
