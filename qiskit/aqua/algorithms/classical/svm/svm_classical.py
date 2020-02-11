@@ -13,7 +13,7 @@
 # that they have been altered from the originals.
 
 """
-Classical SVM algorithm.
+The Classical SVM algorithm.
 """
 
 from typing import Dict, Optional
@@ -33,10 +33,15 @@ logger = logging.getLogger(__name__)
 
 class SVM_Classical(ClassicalAlgorithm):
     """
-    Classical SVM algorithm.
+    The Classical SVM algorithm.
 
-    Internally, it will run the binary classification or multiclass classification
-    based on how many classes the data has.
+    SVM Classical uses a classical approach to experiment with feature map classification
+    problems. See also the quantum classifier :class:`QSVM`.
+
+    Internally, SVM Classical will run the binary classification or multiclass classification
+    based on how many classes the data has. If the data has more than 2 classes then a
+    *multiclass_extension* is required to be supplied. Aqua provides several
+    :mod:`~qiskit.aqua.components.multiclass_extensions`.
     """
 
     def __init__(self, training_dataset: Dict[str, np.ndarray],
@@ -46,20 +51,19 @@ class SVM_Classical(ClassicalAlgorithm):
                  multiclass_extension: Optional[MulticlassExtension] = None) -> None:
         # pylint: disable=line-too-long
         """
-
         Args:
-            training_dataset: training dataset.
-            test_dataset: testing dataset.
-            datapoints: prediction dataset.
-            gamma: Used as input for sklearn rbf_kernel internally. See
+            training_dataset: Training dataset.
+            test_dataset: Testing dataset.
+            datapoints: Prediction dataset.
+            gamma: Used as input for sklearn rbf_kernel which is used internally. See
                 `sklearn.metrics.pairwise.rbf_kernel
                 <https://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.rbf_kernel.html>`_
                 for more information about gamma.
-            multiclass_extension: if number of classes > 2 then
-                a multiclass scheme is needed.
+            multiclass_extension: If number of classes is greater than 2 then a multiclass scheme
+                must be supplied, in the form of a multiclass extension.
 
         Raises:
-            AquaError: If using binary classifier where num classes >= 3
+            AquaError: Multiclass extension not supplied when number of classes > 2
         """
         super().__init__()
         if training_dataset is None:
