@@ -92,9 +92,10 @@ class OpPrimitive(OperatorBase):
         one of the operands are a Pauli and the other is an Instruction, and if so, converts the Pauli to an
         Instruction."""
 
+        # Note: Reversing endian-ness!!
         def pauli_to_gate(pauli):
             qc = QuantumCircuit(len(pauli))
-            for q, p in enumerate(pauli.to_label()):
+            for q, p in enumerate(reversed(pauli.to_label())):
                 gate = _pauli_to_gate_mapping[p]
                 qc.append(gate, qargs=[q])
             return qc.to_instruction()
@@ -291,6 +292,7 @@ class OpPrimitive(OperatorBase):
         elif isinstance(self.primitive, Instruction):
             qc = QuantumCircuit(self.primitive.num_qubits)
             # NOTE: not reversing qubits!!
+            # qc.append(self.primitive, qargs=range(self.primitive.num_qubits)[::-1])
             qc.append(self.primitive, qargs=range(self.primitive.num_qubits))
             unitary = execute(qc, BasicAer.get_backend('unitary_simulator')).result().get_unitary()
             return unitary * self.coeff

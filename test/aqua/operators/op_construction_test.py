@@ -120,6 +120,12 @@ class TestOpConstruction(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(hi, hi2)
         np.testing.assert_array_almost_equal(hi2, hi3)
 
+        xy = np.kron(X.to_matrix(), Y.to_matrix())
+        xy2 = Operator.from_label('XY').data
+        xy3 = (X ^ Y).to_matrix()
+        np.testing.assert_array_almost_equal(xy, xy2)
+        np.testing.assert_array_almost_equal(xy2, xy3)
+
         # Check if numpy array instantiation is the same as from Operator
         matrix_op = Operator.from_label('+r')
         np.testing.assert_array_almost_equal(OpPrimitive(matrix_op).to_matrix(),

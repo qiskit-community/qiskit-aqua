@@ -39,6 +39,8 @@ class PauliChangeOfBasis():
             travers(bool): If true and the operator passed into convert is an OpVec, traverse the OpVec,
             applying the conversion to every applicable operator within the oplist.
         """
+        if destination_basis is not None and isinstance(destination_basis, OpPrimitive):
+            destination_basis = destination_basis.primitive
         if destination_basis is not None and not isinstance(destination_basis, Pauli):
             raise TypeError('PauliChangeOfBasis can only convert into Pauli bases, '
                             'not {}.'.format(type(destination_basis)))
@@ -81,8 +83,9 @@ class PauliChangeOfBasis():
         kronall = partial(reduce, lambda x, y: x.kron(y))
 
         # Construct single-qubit changes to {Z, I)^n
-        y_to_x_pauli = kronall([S if has_y else I for has_y in np.logical_and(pauli.x, pauli.z)]).adjoint()
-        x_to_z_pauli = kronall([H if has_x else I for has_x in pauli.x])
+        y_to_x_pauli = kronall([S if has_y else I for has_y in reversed(np.logical_and(pauli.x, pauli.z))]).adjoint()
+        # Note, underlying Pauli bits are in Qiskit endian-ness!!
+        x_to_z_pauli = kronall([H if has_x else I for has_x in reversed(pauli.x)])
         cob_instruction = x_to_z_pauli.compose(y_to_x_pauli)
 
         # Construct CNOT chain, assuming full connectivity...
@@ -92,7 +95,8 @@ class PauliChangeOfBasis():
         non_equal_z_bits = np.logical_xor(pauli_ones, destination_ones)
         if any(non_equal_z_bits):
             cnots = QuantumCircuit(len(pauli.z))
-            for i, val in enumerate(non_equal_z_bits):
+            # Note: Reversing Pauli bit endian-ness!
+            for i, val in enumerate(reversed(non_equal_z_bits)):
                 if val:
                     cnots.cx(i, lowest_one_dest)
             cnot_op = OpPrimitive(cnots.to_instruction())
@@ -100,8 +104,9 @@ class PauliChangeOfBasis():
 
         if any(destination.x):
             # Construct single-qubit changes from {Z, I)^n
-            z_to_x_dest = kronall([H if has_x else I for has_x in destination.x]).adjoint()
-            x_to_y_dest = kronall([S if has_y else I for has_y in np.logical_and(destination.x, destination.z)])
+            z_to_x_dest = kronall([H if has_x else I for has_x in reversed(destination.x)]).adjoint()
+            x_to_y_dest = kronall([S if has_y else I for has_y in reversed(np.logical_and(destination.x,
+                                                                                          destination.z))])
             cob_instruction = x_to_y_dest.compose(z_to_x_dest).compose(cob_instruction)
             # cob_instruction = cob_instruction.compose(z_to_x_dest).compose(x_to_y_dest)
 
