@@ -48,23 +48,22 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                  a_factory: Optional[CircuitFactory] = None,
                  q_factory: Optional[CircuitFactory] = None,
                  i_objective: Optional[int] = None) -> None:
-        """Initializer.
-
+        """
         The output of the algorithm is an estimate for the amplitude `a`, that with at least
         probability 1 - alpha has an error of epsilon. The number of A operator calls scales
         linearly in 1/epsilon (up to a logarithmic factor).
 
         Args:
-            epsilon: target precision for estimation target `a`, has values between 0 and 0.5
-            alpha: confidence level, the target probability is 1 - alpha, has values between 0 and 1
-            confint_method: statistical method used to estimate the confidence intervals in
+            epsilon: Target precision for estimation target `a`, has values between 0 and 0.5
+            alpha: Confidence level, the target probability is 1 - alpha, has values between 0 and 1
+            confint_method: Statistical method used to estimate the confidence intervals in
                 each iteration, can be 'chernoff' for the Chernoff intervals or 'beta' for the
                 Clopper-Pearson intervals (default)
-            min_ratio: minimal q-ratio (K_{i+1} / K_i) for FindNextK
-            a_factory: the A operator, specifying the QAE problem
-            q_factory: the Q operator (Grover operator), constructed from the
+            min_ratio: Minimal q-ratio (K_{i+1} / K_i) for FindNextK
+            a_factory: The A operator, specifying the QAE problem
+            q_factory: The Q operator (Grover operator), constructed from the
                 A operator
-            i_objective: index of the objective qubit, that marks the 'good/bad' states
+            i_objective: Index of the objective qubit, that marks the 'good/bad' states
 
         Raises:
             AquaError: if the method to compute the confidence intervals is not supported

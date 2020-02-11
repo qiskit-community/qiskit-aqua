@@ -24,6 +24,10 @@ from .multivariate_distribution import MultivariateDistribution
 class MultivariateUniformDistribution(MultivariateDistribution):
     """
     The Multivariate Uniform Distribution.
+
+    Although this just results in a Hadamard gate on all involved qubits, the lower and upper
+    bounds and the assignment of the qubits to the different dimensions is important if used in
+    a particular application.
     """
 
     def __init__(self,
@@ -32,11 +36,9 @@ class MultivariateUniformDistribution(MultivariateDistribution):
                  high: Optional[Union[List[float], np.ndarray]] = None) -> None:
         """
         Args:
-            num_qubits: list with the number of qubits per dimension
-            low: list with the lower bounds per dimension,
-                    set to 0 for each dimension if None
-            high: list with the upper bounds per dimension,
-                    set to 1 for each dimension if None
+            num_qubits: List with the number of qubits per dimension
+            low: List with the lower bounds per dimension, set to 0 for each dimension if None
+            high: List with the upper bounds per dimension, set to 1 for each dimension if None
         """
         if low is None:
             low = np.zeros(num_qubits)

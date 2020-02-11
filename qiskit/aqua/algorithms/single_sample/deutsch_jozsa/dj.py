@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -31,9 +31,25 @@ logger = logging.getLogger(__name__)
 
 
 class DeutschJozsa(QuantumAlgorithm):
-    """The Deutsch-Jozsa algorithm."""
+    r"""
+    The Deutsch-Jozsa algorithm.
+
+    The Deutsch-Jozsa algorithm was one of the first known quantum algorithms that showed an
+    exponential speedup compared to a deterministic (non-probabilistic) classical algorithm,
+    given a black box oracle function. The algorithm determines whether the given function
+    :math:`f:\{0,1\}^n \rightarrow \{0,1\}` is constant or balanced. A constant function maps all
+    inputs to 0 or 1, and a balanced function maps half of its inputs to 0 and the other half to 1.
+
+    Note: the :class:`~qiskit.aqua.components.oracles.TruthTableOracle` facilitates creating
+    a constant or balanced function but any oracle can be used as long as the boolean function
+    implemented by the oracle indeed satisfies the constraint of being either constant or balanced.
+    """
 
     def __init__(self, oracle: Oracle) -> None:
+        """
+        Args:
+            oracle: The oracle component
+        """
         super().__init__()
 
         self._oracle = oracle
