@@ -40,11 +40,12 @@ class PauliChangeOfBasis():
             applying the conversion to every applicable operator within the oplist.
         """
         if destination_basis is not None and isinstance(destination_basis, OpPrimitive):
-            destination_basis = destination_basis.primitive
-        if destination_basis is not None and not isinstance(destination_basis, Pauli):
+            self._destination = destination_basis.primitive
+        else:
+            self._destination = destination_basis
+        if self._destination is not None and not isinstance(self._destination, Pauli):
             raise TypeError('PauliChangeOfBasis can only convert into Pauli bases, '
                             'not {}.'.format(type(destination_basis)))
-        self._destination = destination_basis
         self._traverse = traverse
 
     # TODO see whether we should make this performant by handling OpVecs of Paulis later.
@@ -77,6 +78,12 @@ class PauliChangeOfBasis():
         pauli_ones = np.logical_or(pauli.x, pauli.z)
         destination = self._destination or Pauli(z=pauli_ones, x=[False]*len(pauli.z))
 
+        if not any(pauli.x + pauli.z) or not any(destination.x + destination.z):
+            if not any(pauli.x + pauli.z + destination.x + destination.z):
+                return OpPrimitive(pauli), OpPrimitive(destination)
+            else:
+                raise ValueError('Cannot change to or from a fully Identity Pauli.')
+
         # TODO be smarter about connectivity and actual distance between pauli and destination
         # TODO be smarter in general
 
@@ -90,14 +97,15 @@ class PauliChangeOfBasis():
 
         # Construct CNOT chain, assuming full connectivity...
         destination_ones = np.logical_or(destination.x, destination.z)
-        lowest_one_dest = min(destination_ones * range(len(pauli.z)))
+        # Note: Selecting lowest common one bit, indexed in reverse endian-ness
+        lowest_one_dest = min(destination_ones * range(len(pauli.z))[::-1])
 
         non_equal_z_bits = np.logical_xor(pauli_ones, destination_ones)
         if any(non_equal_z_bits):
             cnots = QuantumCircuit(len(pauli.z))
             # Note: Reversing Pauli bit endian-ness!
             for i, val in enumerate(reversed(non_equal_z_bits)):
-                if val:
+                if val and not i == lowest_one_dest:
                     cnots.cx(i, lowest_one_dest)
             cnot_op = OpPrimitive(cnots.to_instruction())
             cob_instruction = cnot_op.compose(cob_instruction)
