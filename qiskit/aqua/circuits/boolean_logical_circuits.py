@@ -304,14 +304,16 @@ class CNF(BooleanLogicNormalForm):
         elif self._depth == 1:
             lits = [l[1] for l in self._ast[1:]]
             flags = BooleanLogicNormalForm._lits_to_flags(lits)
-            circuit.AND(
-                self._variable_register,
-                self._output_register[0],
-                self._ancillary_register,
-                flags=flags,
-                mct_mode=mct_mode
-            )
+            if flags is not None:
+                circuit.AND(
+                    self._variable_register,
+                    self._output_register[0],
+                    self._ancillary_register,
+                    flags=flags,
+                    mct_mode=mct_mode
+                )
         else:  # self._depth == 2:
+            active_clause_indices = []
             # compute all clauses
             for clause_index, clause_expr in enumerate(self._ast[1:]):
                 if clause_expr[0] == 'or':
@@ -324,17 +326,19 @@ class CNF(BooleanLogicNormalForm):
                             clause_expr[0], clause_index, self._ast)
                     )
                 flags = BooleanLogicNormalForm._lits_to_flags(lits)
-                circuit.OR(
-                    self._variable_register,
-                    self._clause_register[clause_index],
-                    self._ancillary_register,
-                    flags=flags,
-                    mct_mode=mct_mode
-                )
+                if flags is not None:
+                    active_clause_indices.append(clause_index)
+                    circuit.OR(
+                        self._variable_register,
+                        self._clause_register[clause_index],
+                        self._ancillary_register,
+                        flags=flags,
+                        mct_mode=mct_mode
+                    )
 
             # collect results from all clauses
             circuit.mct(
-                self._clause_register,
+                [self._clause_register[i] for i in active_clause_indices],
                 self._output_register[self._output_idx],
                 self._ancillary_register,
                 mode=mct_mode
@@ -347,13 +351,14 @@ class CNF(BooleanLogicNormalForm):
                 else:  # clause_expr[0] == 'lit':
                     lits = [clause_expr[1]]
                 flags = BooleanLogicNormalForm._lits_to_flags(lits)
-                circuit.OR(
-                    self._variable_register,
-                    self._clause_register[clause_index],
-                    self._ancillary_register,
-                    flags=flags,
-                    mct_mode=mct_mode
-                )
+                if flags is not None:
+                    circuit.OR(
+                        self._variable_register,
+                        self._clause_register[clause_index],
+                        self._ancillary_register,
+                        flags=flags,
+                        mct_mode=mct_mode
+                    )
 
         return circuit
 
@@ -404,13 +409,16 @@ class DNF(BooleanLogicNormalForm):
         elif self._depth == 1:
             lits = [l[1] for l in self._ast[1:]]
             flags = BooleanLogicNormalForm._lits_to_flags(lits)
-            circuit.OR(
-                self._variable_register,
-                self._output_register[0],
-                self._ancillary_register,
-                flags=flags,
-                mct_mode=mct_mode
-            )
+            if flags is not None:
+                circuit.OR(
+                    self._variable_register,
+                    self._output_register[0],
+                    self._ancillary_register,
+                    flags=flags,
+                    mct_mode=mct_mode
+                )
+            else:
+                circuit.u3(pi, 0, pi, self._output_register[0])
         else:  # self._depth == 2
             # compute all clauses
             for clause_index, clause_expr in enumerate(self._ast[1:]):
@@ -424,13 +432,16 @@ class DNF(BooleanLogicNormalForm):
                             clause_expr[0], clause_index, self._ast)
                     )
                 flags = BooleanLogicNormalForm._lits_to_flags(lits)
-                circuit.AND(
-                    self._variable_register,
-                    self._clause_register[clause_index],
-                    self._ancillary_register,
-                    flags=flags,
-                    mct_mode=mct_mode
-                )
+                if flags is not None:
+                    circuit.AND(
+                        self._variable_register,
+                        self._clause_register[clause_index],
+                        self._ancillary_register,
+                        flags=flags,
+                        mct_mode=mct_mode
+                    )
+                else:
+                    circuit.u3(pi, 0, pi, self._clause_register[clause_index])
 
             # init the output qubit to 1
             circuit.u3(pi, 0, pi, self._output_register[self._output_idx])
@@ -449,16 +460,19 @@ class DNF(BooleanLogicNormalForm):
             for clause_index, clause_expr in enumerate(self._ast[1:]):
                 if clause_expr[0] == 'and':
                     lits = [l[1] for l in clause_expr[1:]]
-                else:  # clause_expr[0] == 'lit':
+                elif clause_expr[0] == 'lit':
                     lits = [clause_expr[1]]
                 flags = BooleanLogicNormalForm._lits_to_flags(lits)
-                circuit.AND(
-                    self._variable_register,
-                    self._clause_register[clause_index],
-                    self._ancillary_register,
-                    flags=flags,
-                    mct_mode=mct_mode
-                )
+                if flags is not None:
+                    circuit.AND(
+                        self._variable_register,
+                        self._clause_register[clause_index],
+                        self._ancillary_register,
+                        flags=flags,
+                        mct_mode=mct_mode
+                    )
+                else:
+                    circuit.u3(pi, 0, pi, self._clause_register[clause_index])
         return circuit
 
 

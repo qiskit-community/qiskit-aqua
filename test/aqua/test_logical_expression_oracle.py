@@ -52,11 +52,16 @@ DIMAC_TESTS = [
     [
         'x ^ y',
         [(True, False), (False, True)]
+    ],
+
+    [
+        '(x & y) | (~x & ~y)',
+        [(True, True), (False, False)]
     ]
 ]
 
 MCT_MODES = ['basic', 'basic-dirty-ancilla', 'advanced', 'noancilla']
-OPTIMIZATIONS = [True, False]
+OPTIMIZATIONS = [False, True]
 
 
 class TestLogicalExpressionOracle(QiskitAquaTestCase):
