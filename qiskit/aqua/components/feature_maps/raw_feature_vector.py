@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,8 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 """
-This module contains the definition of a base class for
-feature map. Several types of commonly used approaches.
+Raw Feature Vector feature map.
 """
 
 import logging
@@ -22,39 +21,29 @@ import numpy as np
 from qiskit import QuantumCircuit  # pylint: disable=unused-import
 
 from qiskit.aqua.utils.arithmetic import next_power_of_2_base
-from qiskit.aqua.components.feature_maps import FeatureMap
 from qiskit.aqua.circuits import StateVectorCircuit
-from qiskit.aqua.utils.validation import validate
+from qiskit.aqua.utils.validation import validate_min
+from .feature_map import FeatureMap
 
 logger = logging.getLogger(__name__)
 
 
 class RawFeatureVector(FeatureMap):
     """
-    Using raw feature vector as the initial state vector
+    Raw Feature Vector feature map.
+
+    The Raw Feature Vector can be directly used as a feature map, where the raw feature vectors
+    will be automatically padded with ending 0s as necessary, to make sure vector length
+    is a power of 2, and normalized such that it can be treated and used
+    as an initial quantum state vector.
     """
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'raw_feature_vector_schema',
-        'type': 'object',
-        'properties': {
-            'feature_dimension': {
-                'type': 'integer',
-                'default': 2,
-                'minimum': 1
-            },
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, feature_dimension=2):
-        """Constructor.
-
-        Args:
-            feature_dimension (int): The feature dimension
+    def __init__(self, feature_dimension: int = 2) -> None:
         """
-        validate(locals(), self._INPUT_SCHEMA)
+        Args:
+            feature_dimension: The feature dimension, has a minimum value of 1.
+        """
+        validate_min('feature_dimension', feature_dimension, 1)
         super().__init__()
         self._feature_dimension = feature_dimension
         self._num_qubits = next_power_of_2_base(feature_dimension)

@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -36,12 +36,52 @@ logger = logging.getLogger(__name__)
 
 class HHL(QuantumAlgorithm):
 
-    """The HHL algorithm.
+    r"""
+    The HHL algorithm.
 
-    The quantum circuit for this algorithm is returned by `generate_circuit`.
+    The HHL algorithm (after the author's surnames Harrow-Hassidim-Lloyd) is a quantum algorithm
+    to solve systems of linear equations :math:`A\overrightarrow{x}=\overrightarrow{b}`.
+    Using Quantum Phase Estimation, the linear system is transformed into diagonal form in which
+    the matrix :math:`A` is easily invertible. The inversion is achieved by rotating an ancillary
+    qubit by an angle :math:`\arcsin{ \frac{C}{\lambda_\mathrm{i}}}` around the y-axis where
+    :math:`\lambda_\mathrm{i}` are the eigenvalues of :math:`A`. After uncomputing the register
+    storing the eigenvalues using the inverse QPE, one measures the ancillary qubit. A measurement
+    of 1 indicates that the matrix inversion succeeded. This leaves the system in a state
+    proportional to the solution vector :math:`|x\rangle`. In many cases one is not interested in
+    the single vector elements of :math:`|x\rangle` but only on certain properties. These are
+    accessible by using problem-specific operators. Another use-case is the implementation in a
+    larger quantum program.
+
+    When using non-hermitian matrices and matrices with dimensions other than :math:`2^{n}`
+    the must be converted to an hermitian matrix and next higher dimension :math:`2^{n}`,
+    respectively. The *truncate_hermitian*, *truncate_powerdim* flags and *orig_size* are used
+    to indicate conversion and the returned result of the HHL algorithm for expanded matrices will
+    be truncated. The :meth:`matrix_resize` method is provided for convenience to do this but
+    any method of your choice can be used.
+
+    To further explain *truncate_hermitian* indicates whether or not to truncate matrix and
+    result vector to half the dimension by simply cutting off entries with other indices after
+    the input matrix was expanded to be hermitian following
+
+    .. math::
+
+       \begin{pmatrix}
+       0 & A^\mathsf{H}\\
+       A & 0
+       \end{pmatrix}
+
+    where the conjugate transpose of matrix :math:`A` is denoted by :math:`A^\mathsf{H}`.
+    The truncation of the result vector is done by simply cutting off entries of the upper half.
+
+    *truncate_powerdim* indicates whether to truncate matrix and result vector from
+    dimension :math:`2^{n}` to dimension given by *orig_size* by simply cutting off entries with
+    larger indices.
+
     Running the algorithm will execute the circuit and return the result
     vector, measured (real hardware backend) or derived (qasm_simulator) via
     state tomography or calculated from the statevector (statevector_simulator).
+
+    See also https://arxiv.org/abs/0811.3171
     """
 
     def __init__(
@@ -58,21 +98,19 @@ class HHL(QuantumAlgorithm):
             orig_size: Optional[int] = None
     ) -> None:
         """
-        Constructor.
-
         Args:
-            matrix: the input matrix of linear system of equations
-            vector: the input vector of linear system of equations
-            truncate_powerdim: flag indicating expansion to 2**n matrix to be truncated
-            truncate_hermitian: flag indicating expansion to hermitian matrix to be truncated
-            eigs: the eigenvalue estimation instance
-            init_state: the initial quantum state preparation
-            reciprocal: the eigenvalue reciprocal and controlled rotation instance
-            num_q: number of qubits required for the matrix Operator instance
-            num_a: number of ancillary qubits for Eigenvalues instance
+            matrix: The input matrix of linear system of equations
+            vector: The input vector of linear system of equations
+            truncate_powerdim: Flag indicating expansion to 2**n matrix to be truncated
+            truncate_hermitian: Flag indicating expansion to hermitian matrix to be truncated
+            eigs: The eigenvalue estimation instance
+            init_state: The initial quantum state preparation
+            reciprocal: The eigenvalue reciprocal and controlled rotation instance
+            num_q: Number of qubits required for the matrix Operator instance
+            num_a: Number of ancillary qubits for Eigenvalues instance
             orig_size: The original dimension of the problem (if truncate_powerdim)
         Raises:
-            ValueError: invalid input
+            ValueError: Invalid input
         """
         super().__init__()
         if matrix.shape[0] != matrix.shape[1]:

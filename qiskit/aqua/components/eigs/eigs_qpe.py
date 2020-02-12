@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,95 +12,62 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" PhaseEstimationCircuit for getting the eigenvalues of a matrix. """
+""" Quantum Phase Estimation for getting the eigenvalues of a matrix. """
 
+from typing import Optional, List
 import numpy as np
 from qiskit import QuantumRegister
 
-from qiskit.aqua.components.eigs import Eigenvalues
 from qiskit.aqua.circuits import PhaseEstimationCircuit
-from qiskit.aqua.operators import op_converter
-from qiskit.aqua.utils.validation import validate
+from qiskit.aqua.operators import op_converter, BaseOperator
+from qiskit.aqua.components.iqfts import IQFT
+from qiskit.aqua.utils.validation import validate_min, validate_in_set
+from .eigs import Eigenvalues
 
 # pylint: disable=invalid-name
 
 
 class EigsQPE(Eigenvalues):
+    """
+    Eigenvalues using Quantum Phase Estimation
 
-    """ This class embeds a PhaseEstimationCircuit for getting the eigenvalues of a matrix.
-
-    Specifically, this class is based on PhaseEstimationCircuit with no measurements and additional
-    handling of negative eigenvalues, e.g. for HHL. It uses many parameters
-    known from plain QPE. It depends on QFT and IQFT.
+    Specifically, this class is based on PhaseEstimationCircuit with no measurements and
+    has additional handling of negative eigenvalues, e.g. for :class:`~qiskit.aqua.algorithms.HHL`.
+    It depends on :mod:`QFT <qiskit.aqua.components.qfts>` and
+    :mod:`IQFT <qiskit.aqua.components.iqfts>` components.
     """
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'eigsqpe_schema',
-        'type': 'object',
-        'properties': {
-            'num_time_slices': {
-                'type': 'integer',
-                'default': 1,
-                'minimum': 0
-            },
-            'expansion_mode': {
-                'type': 'string',
-                'default': 'trotter',
-                'enum': [
-                    'suzuki',
-                    'trotter'
-                ]
-            },
-            'expansion_order': {
-                'type': 'integer',
-                'default': 1,
-                'minimum': 1
-            },
-            'num_ancillae': {
-                'type': 'integer',
-                'default': 1,
-                'minimum': 1
-            },
-            'evo_time': {
-                'type': ['number', 'null'],
-                'default': None
-            },
-            'negative_evals': {
-                'type': 'boolean',
-                'default': False
-            },
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(
-            self, operator, iqft,
-            num_time_slices=1,
-            num_ancillae=1,
-            expansion_mode='trotter',
-            expansion_order=1,
-            evo_time=None,
-            negative_evals=False,
-            ne_qfts=None
-    ):
-        """Constructor.
-
+    def __init__(self,
+                 operator: BaseOperator,
+                 iqft: IQFT,
+                 num_time_slices: int = 1,
+                 num_ancillae: int = 1,
+                 expansion_mode: str = 'trotter',
+                 expansion_order: int = 1,
+                 evo_time: Optional[float] = None,
+                 negative_evals: bool = False,
+                 ne_qfts: Optional[List] = None) -> None:
+        """
         Args:
-            operator (BaseOperator): the hamiltonian Operator object
-            iqft (IQFT): the Inverse Quantum Fourier Transform component
-            num_time_slices (int, optional): the number of time slices
-            num_ancillae (int, optional): the number of ancillary qubits to use for the measurement
-            expansion_mode (str, optional): the expansion mode (trotter|suzuki)
-            expansion_order (int, optional): the suzuki expansion order
-            evo_time (float, optional): the evolution time
-            negative_evals (bool, optional): indicate if negative eigenvalues need to be handled
-            ne_qfts (Union([QFT, IQFT], optional)): the QFT and IQFT components for
-                                            handling negative eigenvalues
+            operator: The Hamiltonian Operator object
+            iqft: The Inverse Quantum Fourier Transform component
+            num_time_slices: The number of time slices, has a minimum value of 1.
+            num_ancillae: The number of ancillary qubits to use for the measurement,
+                has a minimum value of 1.
+            expansion_mode: The expansion mode ('trotter' | 'suzuki')
+            expansion_order: The suzuki expansion order, has a minimum value of 1.
+            evo_time: An optional evolution time which should scale the eigenvalue onto the range
+                :math:`(0,1]` (or :math:`(-0.5,0.5]` for negative eigenvalues). Defaults to
+                ``None`` in which case a suitably estimated evolution time is internally computed.
+            negative_evals: Set ``True`` to indicate negative eigenvalues need to be handled
+            ne_qfts: The QFT and IQFT components for handling negative eigenvalues
         """
         super().__init__()
         ne_qfts = ne_qfts if ne_qfts is not None else [None, None]
-        validate(locals(), self._INPUT_SCHEMA)
+        validate_min('num_time_slices', num_time_slices, 1)
+        validate_min('num_ancillae', num_ancillae, 1)
+        validate_in_set('expansion_mode', expansion_mode, {'trotter', 'suzuki'})
+        validate_min('expansion_order', expansion_order, 1)
         self._operator = op_converter.to_weighted_pauli_operator(operator)
         self._iqft = iqft
         self._num_ancillae = num_ancillae

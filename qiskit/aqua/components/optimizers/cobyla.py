@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,67 +12,45 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Constrained Optimization By Linear Approximation algorithm."""
+"""Constrained Optimization By Linear Approximation optimizer."""
 
+from typing import Optional
 import logging
 
 from scipy.optimize import minimize
-from qiskit.aqua.utils.validation import validate
-from qiskit.aqua.components.optimizers import Optimizer
+from .optimizer import Optimizer
 
 logger = logging.getLogger(__name__)
 
 
 class COBYLA(Optimizer):
-    """Constrained Optimization By Linear Approximation algorithm.
-
-    Uses scipy.optimize.minimize COBYLA
-    See https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
     """
+    Constrained Optimization By Linear Approximation optimizer.
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'cobyla_schema',
-        'type': 'object',
-        'properties': {
-            'maxiter': {
-                'type': 'integer',
-                'default': 1000
-            },
-            'disp': {
-                'type': 'boolean',
-                'default': False
-            },
-            'rhobeg': {
-                'type': 'number',
-                'default': 1.0
-            },
-            'tol': {
-                'type': ['number', 'null'],
-                'default': None
-            }
-        },
-        'additionalProperties': False
-    }
+    COBYLA is a numerical optimization method for constrained problems
+    where the derivative of the objective function is not known.
+
+    Uses scipy.optimize.minimize COBYLA.
+    For further detail, please refer to
+    https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
+    """
 
     _OPTIONS = ['maxiter', 'disp', 'rhobeg']
 
     # pylint: disable=unused-argument
-    def __init__(self, maxiter=1000, disp=False, rhobeg=1.0, tol=None):
+    def __init__(self,
+                 maxiter: int = 1000,
+                 disp: bool = False,
+                 rhobeg: float = 1.0,
+                 tol: Optional[float] = None) -> None:
         """
-        Constructor.
-
-        For details, please refer to
-        https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html.
-
         Args:
-            maxiter (int): Maximum number of function evaluations.
-            disp (bool): Set to True to print convergence messages.
-            rhobeg (float): Reasonable initial changes to the variables.
-            tol (float): Final accuracy in the optimization (not precisely guaranteed).
-                         This is a lower bound on the size of the trust region.
+            maxiter: Maximum number of function evaluations.
+            disp: Set to True to print convergence messages.
+            rhobeg: Reasonable initial changes to the variables.
+            tol: Final accuracy in the optimization (not precisely guaranteed).
+                 This is a lower bound on the size of the trust region.
         """
-        validate(locals(), self._INPUT_SCHEMA)
         super().__init__()
         for k, v in locals().items():
             if k in self._OPTIONS:
@@ -80,7 +58,7 @@ class COBYLA(Optimizer):
         self._tol = tol
 
     def get_support_level(self):
-        """ return support level dictionary """
+        """ Return support level dictionary """
         return {
             'gradient': Optimizer.SupportLevel.ignored,
             'bounds': Optimizer.SupportLevel.ignored,

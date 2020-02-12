@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -19,71 +19,57 @@ It finds the reciprocal with long division method and rotates the ancillary
 qubit by C/lambda. This is a first order approximation of arcsin(C/lambda).
 """
 
+from typing import Optional
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.aqua.components.reciprocals import Reciprocal
 from qiskit.aqua.circuits.gates import mct  # pylint: disable=unused-import
-from qiskit.aqua.utils.validation import validate
 
 # pylint: disable=invalid-name
 
 
 class LongDivision(Reciprocal):
 
-    """The Long Division Rotation for Reciprocals.
+    """
+    The Long Division Rotation for Reciprocals.
+
+    This method calculates inverse of eigenvalues using binary long division and performs the
+    corresponding rotation. Long division is implemented as a sequence of subtraction (utilizing
+    ripple carry adder module) and bit shifting. The method allows for adjusting of the reciprocal
+    precision by changing number of iterations. The method was optimized for register conventions
+    used in HHL algorithm (i.e. eigenvalues rescaled to values between 0 and 1).
+
+    The rotation value is always scaled down additionally to the normal scale parameter by 0.5 to
+    get the angle into the linear part of the arcsin(x).
 
     It finds the reciprocal with long division method and rotates the ancillary
     qubit by C/lambda. This is a first order approximation of arcsin(C/lambda).
     """
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'reciprocal_long_division_schema',
-        'type': 'object',
-        'properties': {
-            'negative_evals': {
-                'type': 'boolean',
-                'default': False
-            },
-            'scale': {
-                'type': 'number',
-                'default': 0,
-            },
-            'precision': {
-                'type': ['integer', 'null'],
-                'default': None,
-            },
-            'evo_time': {
-                'type': ['number', 'null'],
-                'default': None
-            },
-            'lambda_min': {
-                'type': ['number', 'null'],
-                'default': None
-            }
-        },
-        'additionalProperties': False
-    }
-
     def __init__(
             self,
-            scale=0,
-            precision=None,
-            negative_evals=False,
-            evo_time=None,
-            lambda_min=None
-    ):
-        """Constructor.
-
+            scale: float = 0,
+            precision: Optional[int] = None,
+            negative_evals: bool = False,
+            evo_time: Optional[float] = None,
+            lambda_min: Optional[float] = None) -> None:
+        r"""
         Args:
-            scale (float, optional): the scale of rotation angle, corresponds to HHL constant C
-            precision (int, optional): number of qubits that defines the precision of long division
-            negative_evals (bool, optional): indicate if negative eigenvalues need to be handled
-            evo_time (float, optional): the evolution time
-            lambda_min (float, optional): the smallest expected eigenvalue
+            scale: The scale of rotation angle, corresponds to HHL constant C. This parameter is
+                used to scale the reciprocals such that for a scale C, the rotation is performed
+                by an angle :math:`\arcsin{\frac{C}{\lambda}}`. If neither the `scale` nor the
+                `evo_time` and `lambda_min` parameters are specified, the smallest resolvable
+                Eigenvalue is used.
+            precision: Number of qubits that defines the precision of long division. The parameter
+                sets minimum desired bit precision for the reciprocal. Due to shifting some of
+                reciprocals, however, are effectively estimated with higher than this minimum
+                specified precision.
+            negative_evals: Indicate if negative eigenvalues need to be handled
+            evo_time: The evolution time.  This parameter scales the Eigenvalues in the phase
+                estimation onto the range (0,1] ( (-0.5,0.5] for negative Eigenvalues ).
+            lambda_min: The smallest expected eigenvalue
         """
 
-        validate(locals(), self._INPUT_SCHEMA)
         super().__init__()
         self._negative_evals = negative_evals
         self._scale = scale

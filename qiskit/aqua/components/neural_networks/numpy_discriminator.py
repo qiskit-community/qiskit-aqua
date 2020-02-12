@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -206,31 +206,14 @@ class DiscriminatorNet():
 
 class NumpyDiscriminator(DiscriminativeNetwork):
     """
-    Discriminator based on numpy
+    Discriminator based on NumPy
     """
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'discriminator_schema',
-        'type': 'object',
-        'properties': {
-            'n_features': {
-                'type': 'integer',
-                'default': 1
-            },
-            'n_out': {
-                'type': 'integer',
-                'default': 1
-            }
 
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, n_features=1, n_out=1):
+    def __init__(self, n_features: int = 1, n_out: int = 1) -> None:
         """
         Args:
-            n_features (int): Dimension of input data vector.
-            n_out (int): Dimension of the discriminator's output vector.
+            n_features: Dimension of input data vector.
+            n_out: Dimension of the discriminator's output vector.
         """
         super().__init__()
         self._n_features = n_features

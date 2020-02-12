@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -16,6 +16,7 @@ The Quantum Phase Estimation Algorithm.
 """
 
 import logging
+from typing import Optional
 
 import numpy as np
 from qiskit.quantum_info import Pauli
@@ -36,28 +37,41 @@ logger = logging.getLogger(__name__)
 
 
 class QPE(QuantumAlgorithm):
-    """The Quantum Phase Estimation algorithm."""
+    """The Quantum Phase Estimation algorithm.
+
+    QPE (also sometimes abbreviated as PEA, for Phase Estimation Algorithm), has two quantum
+    registers, **control** and **target**, where the control consists of several qubits initially
+    put in uniform superposition, and the target a set of qubits prepared in an eigenstate
+    (often a guess of the eigenstate) of the unitary operator of a quantum system.
+    QPE then evolves the target under the control using dynamics on the unitary operator.
+    The information of the corresponding eigenvalue is then 'kicked-back' into the phases of the
+    control register, which can then be deconvoluted by an Inverse Quantum Fourier Transform (IQFT),
+    and measured for read-out in binary decimal format. QPE also requires a reasonably good
+    estimate of the eigen wave function to start the process. For example, when estimating
+    molecular ground energies in chemistry, the Hartree-Fock method could be used to provide such
+    trial eigen wave functions.
+    """
 
     def __init__(
-            self, operator: BaseOperator, state_in: InitialState,
+            self, operator: BaseOperator, state_in: Optional[InitialState],
             iqft: IQFT, num_time_slices: int = 1,
             num_ancillae: int = 1, expansion_mode: str = 'trotter',
-            expansion_order: int = 1, shallow_circuit_concat: bool = False
-    ) -> None:
+            expansion_order: int = 1, shallow_circuit_concat: bool = False) -> None:
         """
 
         Args:
-            operator: the hamiltonian Operator object
-            state_in: the InitialState component
-                representing the initial quantum state
-            iqft: the Inverse Quantum Fourier Transform component
-            num_time_slices: the number of time slices, has a min. value of 1.
-            num_ancillae: the number of ancillary qubits to use for the measurement,
-                            has a min. value of 1.
-            expansion_mode: the expansion mode (trotter|suzuki)
-            expansion_order: the suzuki expansion order, has a min. value of 1.
-            shallow_circuit_concat: indicate whether to use shallow
-                (cheap) mode for circuit concatenation
+            operator: The Hamiltonian Operator
+            state_in: An optional InitialState component representing an initial quantum state.
+                ``None`` may be supplied.
+            iqft: A Inverse Quantum Fourier Transform component
+            num_time_slices: The number of time slices, has a minimum value of 1.
+            num_ancillae: The number of ancillary qubits to use for the measurement,
+                has a min. value of 1.
+            expansion_mode: The expansion mode ('trotter'|'suzuki')
+            expansion_order: The suzuki expansion order, has a min. value of 1.
+            shallow_circuit_concat: Set True to use shallow (cheap) mode for circuit concatenation
+                of evolution slices. By default this is False.
+                See :meth:`qiskit.aqua.operators.common.evolution_instruction` for more information.
         """
         validate_min('num_time_slices', num_time_slices, 1)
         validate_min('num_ancillae', num_ancillae, 1)

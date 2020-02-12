@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -13,10 +13,10 @@
 # that they have been altered from the originals.
 
 """
-This module contains the definition of a base class for
-feature map. Several types of commonly used approaches.
+The Pauli Expansion feature map.
 """
 
+from typing import Optional, Callable, List
 import itertools
 import logging
 
@@ -26,8 +26,9 @@ from qiskit.quantum_info import Pauli
 from qiskit.qasm import pi
 
 from qiskit.aqua.operators import evolution_instruction
-from qiskit.aqua.components.feature_maps import FeatureMap, self_product
-from qiskit.aqua.utils.validation import validate
+from qiskit.aqua.utils.validation import validate_min, validate_in_set
+from .feature_map import FeatureMap
+from .data_mapping import self_product
 
 logger = logging.getLogger(__name__)
 
@@ -35,62 +36,56 @@ logger = logging.getLogger(__name__)
 
 
 class PauliExpansion(FeatureMap):
+    r"""
+    The Pauli Expansion feature map.
+
+    Refer to https://arxiv.org/abs/1804.11326 for details.
+
+    The Pauli Expansion feature map transforms data :math:`\vec{x} \in \mathbb{R}^n`
+    according to the following equation, and then duplicate the same circuit with depth
+    :math:`d` times, where :math:`d` is the depth of the circuit:
+
+    :math:`U_{\Phi(\vec{x})}=\exp\left(i\sum_{S\subseteq [n]}
+    \phi_S(\vec{x})\prod_{i\in S} P_i\right)`
+
+    where :math:`S \in \{\binom{n}{k}\ combinations,\ k = 1,... n \}, \phi_S(\vec{x}) = x_i` if
+    :math:`k=1`, otherwise :math:`\phi_S(\vec{x}) = \prod_S(\pi - x_j)`, where :math:`j \in S`, and
+    :math:`P_i \in \{ I, X, Y, Z \}`
+
+    Please refer to :class:`FirstOrderExpansion` for the case
+    :math:`k = 1`, :math:`P_0 = Z`
+    and to :class:`SecondOrderExpansion` for the case
+    :math:`k = 2`, :math:`P_0 = Z\ and\ P_1 P_0 = ZZ`.
     """
-    Mapping data with the second order expansion followed by entangling gates.
-    Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
-    """
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'Pauli_Expansion_schema',
-        'type': 'object',
-        'properties': {
-            'depth': {
-                'type': 'integer',
-                'default': 2,
-                'minimum': 1
-            },
-            'entangler_map': {
-                'type': ['array', 'null'],
-                'default': None
-            },
-            'entanglement': {
-                'type': 'string',
-                'default': 'full',
-                'enum': ['full', 'linear']
-            },
-            'paulis': {
-                'type': ['array', 'null'],
-                'items': {
-                    'type': 'string'
-                },
-                'default': None
-            }
-        },
-        'additionalProperties': False
-    }
-
-    def __init__(self, feature_dimension, depth=2, entangler_map=None,
-                 entanglement='full', paulis=None, data_map_func=self_product):
-        """Constructor.
-
+    def __init__(self,
+                 feature_dimension: int,
+                 depth: int = 2,
+                 entangler_map: Optional[List[List[int]]] = None,
+                 entanglement: str = 'full',
+                 paulis: Optional[List[str]] = None,
+                 data_map_func: Callable[[np.ndarray], float] = self_product) -> None:
+        """
         Args:
-            feature_dimension (int): number of features
-            depth (Optional(int)): the number of repeated circuits. Defaults to 2
-            entangler_map (Optional(list[list])): describe the connectivity of qubits,
-                                        each list describes
-                                        [source, target], or None for full entanglement.
-                                        Note that the order is the list is the order of
-                                        applying the two-qubit gate.
-            entanglement (Optional((str)): ['full', 'linear'], generate the qubit
-                                          connectivity by predefined topology.
-                                          Defaults to full
-            paulis (Optional(list[str])): a list of strings for to-be-used paulis.
-                                    Defaults to None. If None, ['Z', 'ZZ'] will be used.
-            data_map_func (Optional(Callable)): a mapping function for data x
+            feature_dimension: The number of features
+            depth: The number of repeated circuits. Defaults to 2, has a minimum value of 1.
+            entangler_map: Describes the connectivity of qubits, each list in the overall list
+                describes [source, target]. Defaults to ``None`` where the map is created as per
+                *entanglement* parameter.
+                Note that the order in the list is the order of applying the two-qubit gate.
+            entanglement: ('full' | 'linear'), generate the qubit connectivity by a predefined
+                topology. Defaults to full which connects every qubit to each other. Linear
+                connects each qubit to the next.
+            paulis: a list of strings for to-be-used paulis (a pauli is a any combination
+                of I, X, Y ,Z). Note that the order of pauli label is counted from
+                right to left as the notation used in Pauli class in Qiskit Terra.
+                Defaults to ``None`` whereupon ['Z', 'ZZ'] will be used.
+            data_map_func: A mapping function for data x which can be supplied to override the
+                default mapping from :meth:`self_product`.
         """
         paulis = paulis if paulis is not None else ['Z', 'ZZ']
-        validate(locals(), self._INPUT_SCHEMA)
+        validate_min('depth', depth, 1)
+        validate_in_set('entanglement', entanglement, {'full', 'linear'})
         super().__init__()
         self._num_qubits = self._feature_dimension = feature_dimension
         self._depth = depth

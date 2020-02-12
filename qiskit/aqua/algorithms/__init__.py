@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -15,7 +15,20 @@
 """
 Algorithms (:mod:`qiskit.aqua.algorithms`)
 ==========================================
-Quantum Algorithms...
+Aqua contains a collection of quantum algorithms, for use with quantum computers, to
+carry out research and investigate how to solve problems in different domains on
+near-term quantum devices with short depth circuits.
+
+Algorithms configuration includes the use of :mod:`~qiskit.aqua.components` which
+were designed to be swappable sub-parts of an algorithm. Any component and may be exchanged for
+a different implementation of the same component type in order to potentially alter the behavior
+and outcome of the algorithm.
+
+Algorithms are run via a :class:`~qiskit.aqua.QuantumInstance` which must be set with the desired
+backend where the algorithm's circuits will be executed and be configured with a number of compile
+and runtime parameters controlling circuit compilation and execution. Aqua ultimately uses
+`Terra <https://www.qiskit.org/terra>`__ for the actual compilation and execution of the quantum
+circuits created by the algorithm and its components.
 
 .. currentmodule:: qiskit.aqua.algorithms
 
@@ -85,12 +98,13 @@ and its Python API to be installed. See the following for more information:
 
 from .quantum_algorithm import QuantumAlgorithm
 from .adaptive import VQE, QAOA, VQC, QGAN
-from .classical import ClassicalAlgorithm, ExactEigensolver, ExactLSsolver, \
-    SVM_Classical
+from .classical import (ClassicalAlgorithm, ExactEigensolver, ExactLSsolver,
+                        SVM_Classical, CPLEX_Ising)
 from .many_sample import EOH, QSVM
-from .single_sample import Grover, IQPE, QPE, AmplitudeEstimation, \
-    Simon, DeutschJozsa, BernsteinVazirani, HHL, Shor, \
-    IterativeAmplitudeEstimation, MaximumLikelihoodAmplitudeEstimation
+from .single_sample import (Grover, IQPE, QPE, AmplitudeEstimation,
+                            Simon, DeutschJozsa, BernsteinVazirani, HHL, Shor,
+                            IterativeAmplitudeEstimation,
+                            MaximumLikelihoodAmplitudeEstimation)
 
 
 __all__ = [
@@ -103,6 +117,7 @@ __all__ = [
     'ExactEigensolver',
     'ExactLSsolver',
     'SVM_Classical',
+    'CPLEX_Ising',
     'EOH',
     'QSVM',
     'Grover',
@@ -117,9 +132,3 @@ __all__ = [
     'HHL',
     'Shor',
 ]
-
-try:
-    from .classical import CPLEX_Ising
-    __all__ += ['CPLEX_Ising']
-except ImportError:
-    pass

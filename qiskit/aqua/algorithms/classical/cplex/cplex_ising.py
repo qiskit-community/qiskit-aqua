@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,19 +12,16 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""CPLEX Ising algorithm; uses IBM CPLEX backend for Ising Hamiltonian solution"""
+"""The CPLEX Ising algorithm. Uses IBM CPLEX backend for Ising Hamiltonian solution"""
 
 import csv
 import logging
 from math import fsum
 from timeit import default_timer
 from typing import Dict, List, Tuple, Any
-import importlib
 import numpy as np
 
-from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms.classical import ClassicalAlgorithm
-from qiskit.aqua.algorithms.classical.cplex.simple_cplex import SimpleCPLEX
 from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.aqua.utils.validation import validate_min, validate_range
 
@@ -34,15 +31,33 @@ logger = logging.getLogger(__name__)
 
 
 class CPLEX_Ising(ClassicalAlgorithm):
-    """ CPLEX Ising algorithm """
+    """
+    The CPLEX Ising algorithm.
+
+    This algorithm uses the `IBM ILOG CPLEX Optimization Studio` along with its separately
+    installed `Python API` to solve optimization problems modeled as an Ising Hamiltonian.
+
+    See these :mod:`installation instructions <qiskit.aqua.algorithms.classical.cplex>`
+    if you need more information in that regard.
+    """
 
     def __init__(self, operator: WeightedPauliOperator,
                  timelimit: int = 600, thread: int = 1,
                  display: int = 2) -> None:
+        """
+        Args:
+            operator: The Ising Hamiltonian as an Operator
+            timelimit: A time limit in seconds for the execution
+            thread: The number of threads that CPLEX uses. Setting this 0 lets CPLEX decide the
+                number of threads to allocate, but this may not be ideal for small problems for
+                which the default of 1 is more suitable.
+            display: Decides what CPLEX reports to the screen and records in a log during
+                mixed integer optimization. This value must be between 0 and 5 where the
+                amount of information displayed increases with increasing values of this parameter.
+        """
         validate_min('timelimit', timelimit, 1)
         validate_min('thread', thread, 0)
         validate_range('display', display, 0, 5)
-        self._check_valid()
         super().__init__()
         self._ins = IsingInstance()
         self._ins.parse(operator.to_dict()['paulis'])
@@ -50,23 +65,6 @@ class CPLEX_Ising(ClassicalAlgorithm):
         self._thread = thread
         self._display = display
         self._sol = None
-
-    @staticmethod
-    def _check_valid():
-        err_msg = 'CPLEX is not installed. See ' \
-            'https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/' \
-            'ilog.odms.studio.help/Optimization_Studio/topics/COS_home.html'
-        try:
-            spec = importlib.util.find_spec('cplex.callbacks')
-            if spec is not None:
-                spec = importlib.util.find_spec('cplex.exceptions')
-                if spec is not None:
-                    return
-        except Exception as ex:  # pylint: disable=broad-except
-            logger.debug('%s %s', err_msg, str(ex))
-            raise AquaError(err_msg) from ex
-
-        raise AquaError(err_msg)
 
     def _run(self):
         model = IsingModel(self._ins, timelimit=self._timelimit,
@@ -84,6 +82,8 @@ class CPLEX_Ising(ClassicalAlgorithm):
 
 def new_cplex(timelimit=600, thread=1, display=2):
     """ new cplex """
+    # pylint: disable=import-outside-toplevel
+    from .simple_cplex import SimpleCPLEX
     cplex = SimpleCPLEX()
     cplex.parameters.timelimit.set(timelimit)
     cplex.parameters.threads.set(thread)

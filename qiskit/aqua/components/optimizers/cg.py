@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,72 +12,49 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Conjugate Gradient algorithm."""
+"""Conjugate Gradient optimizer."""
 
+from typing import Optional
 import logging
 
 from scipy.optimize import minimize
-from qiskit.aqua.utils.validation import validate
-from qiskit.aqua.components.optimizers import Optimizer
+from .optimizer import Optimizer
 
 
 logger = logging.getLogger(__name__)
 
 
 class CG(Optimizer):
-    """Conjugate Gradient algorithm.
+    """Conjugate Gradient optimizer.
 
-    Uses scipy.optimize.minimize CG
-    See https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
+    CG is an algorithm for the numerical solution of systems of linear equations whose matrices are
+    symmetric and positive-definite. It is an *iterative algorithm* in that it uses an initial
+    guess to generate a sequence of improving approximate solutions for a problem,
+    in which each approximation is derived from the previous ones.  It is often used to solve
+    unconstrained optimization problems, such as energy minimization.
+
+    Uses scipy.optimize.minimize CG.
+    For further detail, please refer to
+    https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
     """
-
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'cg_schema',
-        'type': 'object',
-        'properties': {
-            'maxiter': {
-                'type': 'integer',
-                'default': 20
-            },
-            'disp': {
-                'type': 'boolean',
-                'default': False
-            },
-            'gtol': {
-                'type': 'number',
-                'default': 1e-05
-            },
-            'tol': {
-                'type': ['number', 'null'],
-                'default': None
-            },
-            'eps': {
-                'type': 'number',
-                'default': 1.4901161193847656e-08
-            }
-        },
-        'additionalProperties': False
-    }
 
     _OPTIONS = ['maxiter', 'disp', 'gtol', 'eps']
 
     # pylint: disable=unused-argument
-    def __init__(self, maxiter=20, disp=False, gtol=1e-5, tol=None, eps=1.4901161193847656e-08):
+    def __init__(self,
+                 maxiter: int = 20,
+                 disp: bool = False,
+                 gtol: float = 1e-5,
+                 tol: Optional[float] = None,
+                 eps: float = 1.4901161193847656e-08) -> None:
         """
-        Constructor.
-
-        For details, please refer to
-        https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html.
-
         Args:
-            maxiter (int): Maximum number of iterations to perform.
-            disp (bool): Set to True to print convergence messages.
-            gtol (float): Gradient norm must be less than gtol before successful termination.
-            tol (float or None): Tolerance for termination.
-            eps (float): If jac is approximated, use this value for the step size.
+            maxiter: Maximum number of iterations to perform.
+            disp: Set to True to print convergence messages.
+            gtol: Gradient norm must be less than gtol before successful termination.
+            tol: Tolerance for termination.
+            eps: If jac is approximated, use this value for the step size.
         """
-        validate(locals(), self._INPUT_SCHEMA)
         super().__init__()
         for k, v in locals().items():
             if k in self._OPTIONS:
@@ -85,7 +62,7 @@ class CG(Optimizer):
         self._tol = tol
 
     def get_support_level(self):
-        """ return support level dictionary """
+        """ Return support level dictionary """
         return {
             'gradient': Optimizer.SupportLevel.supported,
             'bounds': Optimizer.SupportLevel.ignored,

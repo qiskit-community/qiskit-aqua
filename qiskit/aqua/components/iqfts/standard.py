@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,26 +12,27 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""A normal standard IQFT."""
+"""The Standard IQFT."""
 
 from scipy import linalg
 
+from qiskit.aqua.utils.validation import validate_min
 from .approximate import Approximate
 
 
 class Standard(Approximate):
-    """A normal standard IQFT."""
+    """
+    The Standard IQFT.
 
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'std_iqft_schema',
-        'type': 'object',
-        'properties': {
-        },
-        'additionalProperties': False
-    }
+    The standard version of the IQFT is simply the inverse of a plain QFT.
+    """
 
-    def __init__(self, num_qubits):
+    def __init__(self, num_qubits: int) -> None:
+        """
+        Args:
+            num_qubits: The number of qubits
+        """
+        validate_min('num_qubits', num_qubits, 1)
         super().__init__(num_qubits, degree=0)
 
     def _build_matrix(self):

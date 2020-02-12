@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -30,17 +30,35 @@ logger = logging.getLogger(__name__)
 class EOH(QuantumAlgorithm):
     """
     The Quantum EOH (Evolution of Hamiltonian) algorithm.
+
+    EOH provides the lower-level building blocks for simulating
+    universal quantum systems. For any given quantum system that can be
+    decomposed into local interactions (for example, a global hamiltonian as
+    the weighted sum of several Pauli spin operators), the local
+    interactions can then be used to approximate the global quantum system
+    via, for example, Lloyd’s method or Trotter-Suzuki decomposition.
     """
 
     def __init__(self, operator: BaseOperator,
                  initial_state: InitialState,
                  evo_operator: BaseOperator,
-                 evo_time: int = 1,
+                 evo_time: float = 1,
                  num_time_slices: int = 1,
                  expansion_mode: str = 'trotter',
                  expansion_order: int = 1) -> None:
+        """
+        Args:
+            operator: Operator to evaluate
+            initial_state: Initial state for evolution
+            evo_operator: Operator to evolve
+            evo_time: Evolution time, has min value of 0
+            num_time_slices: Number of time slices, has minimum value of 1
+            expansion_mode: Either ``"trotter"`` (Lloyd's method) or ``"suzuki"``
+                (for Trotter-Suzuki expansion)
+            expansion_order: The Trotter-Suzuki expansion order.
+        """
         validate_min('evo_time', evo_time, 0)
-        validate_min('num_time_slices', num_time_slices, 0)
+        validate_min('num_time_slices', num_time_slices, 1)
         validate_in_set('expansion_mode', expansion_mode, {'trotter', 'suzuki'})
         validate_min('expansion_order', expansion_order, 1)
         super().__init__()

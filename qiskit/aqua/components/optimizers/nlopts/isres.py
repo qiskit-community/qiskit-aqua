@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,69 +12,30 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" ISRES (Improved Stochastic Ranking Evolution Strategy). """
+""" Improved Stochastic Ranking Evolution Strategy optimizer. """
 
-import logging
-from qiskit.aqua.components.optimizers import Optimizer
-from qiskit.aqua.utils.validation import validate
-from ._nloptimizer import minimize
-from ._nloptimizer import check_nlopt_valid
-
-logger = logging.getLogger(__name__)
-
-try:
-    import nlopt
-except ImportError:
-    logger.info('nlopt is not installed. Please install it if you want to use them.')
+from .nloptimizer import NLoptOptimizer, NLoptOptimizerType
 
 
-class ISRES(Optimizer):
-    """ISRES (Improved Stochastic Ranking Evolution Strategy).
+class ISRES(NLoptOptimizer):
+    """
+    Improved Stochastic Ranking Evolution Strategy optimizer.
 
-    NLopt global optimizer, derivative-free
+    Improved Stochastic Ranking Evolution Strategy (ISRES) is an algorithm for
+    non-linearly constrained global optimization. It has heuristics to escape local optima,
+    even though convergence to a global optima is not guaranteed. The evolution strategy is based
+    on a combination of a mutation rule and differential variation. The fitness ranking is simply
+    via the objective function for problems without nonlinear constraints. When nonlinear
+    constraints are included, the `stochastic ranking proposed by Runarsson and Yao
+    <https://notendur.hi.is/tpr/software/sres/Tec311r.pdf>`__
+    is employed. This method supports arbitrary nonlinear inequality and equality constraints, in
+    addition to the bound constraints.
+
+    NLopt global optimizer, derivative-free.
+    For further detail, please refer to
     http://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#isres-improved-stochastic-ranking-evolution-strategy
     """
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'isres_schema',
-        'type': 'object',
-        'properties': {
-            'max_evals': {
-                'type': 'integer',
-                'default': 1000
-            }
-        },
-        'additionalProperties': False
-    }
 
-    _OPTIONS = ['max_evals']
-
-    def __init__(self, max_evals=1000):  # pylint: disable=unused-argument
-        """
-        Constructor.
-
-        Args:
-            max_evals (int): Maximum allowed number of function evaluations.
-        """
-        validate(locals(), self._INPUT_SCHEMA)
-        check_nlopt_valid('ISRES')
-        super().__init__()
-        for k, v in locals().items():
-            if k in self._OPTIONS:
-                self._options[k] = v
-
-    def get_support_level(self):
-        """ return support level dictionary """
-        return {
-            'gradient': Optimizer.SupportLevel.ignored,
-            'bounds': Optimizer.SupportLevel.supported,
-            'initial_point': Optimizer.SupportLevel.required
-        }
-
-    def optimize(self, num_vars, objective_function, gradient_function=None,
-                 variable_bounds=None, initial_point=None):
-        super().optimize(num_vars, objective_function, gradient_function,
-                         variable_bounds, initial_point)
-
-        return minimize(nlopt.GN_ISRES, objective_function,
-                        variable_bounds, initial_point, **self._options)
+    def get_nlopt_optimizer(self) -> NLoptOptimizerType:
+        """ Return NLopt optimizer type """
+        return NLoptOptimizerType.GN_ISRES

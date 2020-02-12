@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -16,6 +16,7 @@
 This module contains the definition of a base class for multivariate distributions.
 """
 
+from typing import Optional, List, Union, Dict
 from abc import ABC
 import numpy as np
 
@@ -29,15 +30,17 @@ class MultivariateDistribution(UncertaintyModel, ABC):
     (Interface for discrete bounded uncertainty models assuming an equidistant grid)
     """
 
-    def __init__(self, num_qubits, probabilities=None, low=None, high=None):
+    def __init__(self,
+                 num_qubits: Union[List[int], np.ndarray],
+                 probabilities: Optional[Dict] = None,
+                 low: Optional[Union[List[float], np.ndarray]] = None,
+                 high: Optional[Union[List[float], np.ndarray]] = None) -> None:
         """
-        Constructor.
-
         Args:
-            num_qubits (Union(list, numpy.ndarray)): assigns qubits to dimensions
-            probabilities (map): map - maps index tuples to probabilities
-            low (Union(list, numpy.ndarray)): lowest value per dimension
-            high (Union(list, numpy.ndarray)): highest value per dimension
+            num_qubits: Assigns qubits to dimensions
+            probabilities: Map - maps index tuples to probabilities
+            low: Lowest value per dimension
+            high: Highest value per dimension
         """
 
         self._values = 0

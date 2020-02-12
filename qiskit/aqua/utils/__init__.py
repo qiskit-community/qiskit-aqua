@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -27,8 +27,6 @@ Utilities
    :nosignatures:
 
    tensorproduct
-   convert_dict_to_json
-   convert_json_to_dict
    random_unitary
    random_h2_body
    random_h1_body
@@ -53,7 +51,6 @@ Utilities
 """
 
 from .tensor_product import tensorproduct
-from .json_utils import convert_dict_to_json, convert_json_to_dict
 from .random_matrix_generator import (random_unitary, random_h2_body,
                                       random_h1_body, random_hermitian,
                                       random_non_hermitian)
@@ -70,8 +67,6 @@ from .backend_utils import has_ibmq, has_aer
 
 __all__ = [
     'tensorproduct',
-    'convert_dict_to_json',
-    'convert_json_to_dict',
     'random_unitary',
     'random_h2_body',
     'random_h1_body',

@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -17,7 +17,13 @@ initial states. An initial state might be used by a variational
 form or in eoh as a trial state to evolve
 """
 
-from typing import Optional, NoReturn
+from typing import Optional
+# below to allow it for python 3.6.1
+try:
+    from typing import NoReturn
+except ImportError:
+    from typing import Any as NoReturn
+
 from abc import ABC, abstractmethod
 from qiskit.circuit import QuantumRegister
 from qiskit.aqua import AquaError  # pylint: disable=unused-import
@@ -32,7 +38,7 @@ class InitialState(ABC):
     """
 
     @abstractmethod
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     @abstractmethod

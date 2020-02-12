@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -22,7 +22,6 @@ Note that the weights are symmetric, i.e., w[j, i] = x always holds.
 """
 
 import logging
-import warnings
 from collections import namedtuple
 
 import numpy as np
@@ -267,22 +266,3 @@ def get_tsp_solution(x):
                 assert len(z) == p__
                 z.append(i)
     return z
-
-
-def sample_most_likely(state_vector):
-    """ sample most likely """
-    # pylint: disable=import-outside-toplevel
-    from .common import sample_most_likely as redirect_func
-    warnings.warn("sample_most_likely function has been moved to "
-                  "qiskit.optimization.ising.common, "
-                  "the method here will be removed after Aqua 0.7+",
-                  DeprecationWarning)
-    return redirect_func(state_vector=state_vector)
-
-
-def get_tsp_qubitops(ins, penalty=1e5):
-    """ get tsp qubit ops """
-    warnings.warn("get_tsp_qubitops function has been changed to get_operator"
-                  "the method here will be removed after Aqua 0.7+",
-                  DeprecationWarning)
-    return get_operator(ins, penalty)

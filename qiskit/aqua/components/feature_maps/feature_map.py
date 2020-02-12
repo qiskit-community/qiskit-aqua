@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -23,15 +23,16 @@ from qiskit.aqua.utils import get_entangler_map, validate_entangler_map
 
 class FeatureMap(ABC):
 
-    """Base class for FeatureMap.
+    """
+    Base class for FeatureMap.
 
-        This method should initialize the module and
-        use an exception if a component of the module is not
-        available.
+    This method should initialize the module and
+    use an exception if a component of the module is not
+    available.
     """
 
     @abstractmethod
-    def __init__(self):
+    def __init__(self) -> None:
         self._num_qubits = 0
         self._feature_dimension = 0
         self._support_parameterized_circuit = False

@@ -141,3 +141,17 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
             return self.a_factory.num_target_qubits - 1
 
         return None
+
+    @i_objective.setter
+    def i_objective(self, i_objective):
+        """
+        Set the index of the objective qubit, i.e. the qubit deciding between 'good/bad' states.
+
+        Args:
+            i_objective (int): the index
+
+        Note:
+            No checks about the validity of the index are performed, since i_objective could also
+            be set before the A/Q operators and in that case checks cannot be done.
+        """
+        self._i_objective = i_objective

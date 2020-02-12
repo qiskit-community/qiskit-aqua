@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,96 +12,61 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Truncated Newton (TNC) algorithm. """
+"""Truncated Newton (TNC) optimizer. """
 
+from typing import Optional
 import logging
 
 from scipy.optimize import minimize
-from qiskit.aqua.utils.validation import validate
-from qiskit.aqua.components.optimizers import Optimizer
+from .optimizer import Optimizer
 
 logger = logging.getLogger(__name__)
 
 
 class TNC(Optimizer):
-    """Truncated Newton (TNC) algorithm.
+    """
+    Truncated Newton (TNC) optimizer.
+
+    TNC uses a truncated Newton algorithm to minimize a function with variables subject to bounds.
+    This algorithm uses gradient information; it is also called Newton Conjugate-Gradient.
+    It differs from the :class:`CG` method as it wraps a C implementation and allows each variable
+    to be given upper and lower bounds.
 
     Uses scipy.optimize.minimize TNC
+    For further detail, please refer to
     See https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
     """
-
-    _INPUT_SCHEMA = {
-        '$schema': 'http://json-schema.org/draft-07/schema#',
-        'id': 'tnc_schema',
-        'type': 'object',
-        'properties': {
-            'maxiter': {
-                'type': 'integer',
-                'default': 100
-            },
-            'disp': {
-                'type': 'boolean',
-                'default': False
-            },
-            'accuracy': {
-                'type': 'number',
-                'default': 0
-            },
-            'ftol': {
-                'type': 'number',
-                'default': -1
-            },
-            'xtol': {
-                'type': 'number',
-                'default': -1
-            },
-            'gtol': {
-                'type': 'number',
-                'default': -1
-            },
-            'tol': {
-                'type': ['number', 'null'],
-                'default': None
-            },
-            'eps': {
-                'type': 'number',
-                'default': 1e-08
-            }
-        },
-        'additionalProperties': False
-    }
 
     _OPTIONS = ['maxiter', 'disp', 'accuracy', 'ftol', 'xtol', 'gtol', 'eps']
 
     # pylint: disable=unused-argument
-    def __init__(self, maxiter=100, disp=False, accuracy=0, ftol=-1, xtol=-1,
-                 gtol=-1, tol=None, eps=1e-08):
+    def __init__(self,
+                 maxiter: int = 100,
+                 disp: bool = False,
+                 accuracy: float = 0,
+                 ftol: float = -1,
+                 xtol: float = -1,
+                 gtol: float = -1,
+                 tol: Optional[float] = None,
+                 eps: float = 1e-08) -> None:
         """
-        Constructor.
-
-        For details, please refer to
-        https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html.
-
         Args:
-            maxiter (int): Maximum number of function evaluation.
-            disp (bool): Set to True to print convergence messages.
-            accuracy (float): Relative precision for finite difference calculations.
-                              If <= machine_precision, set to sqrt(machine_precision).
-                              Defaults to 0.
-            ftol (float): Precision goal for the value of f in the stopping criterion.
-                          If ftol < 0.0, ftol is set to 0.0 defaults to -1.
-            xtol (float): Precision goal for the value of x in the stopping criterion
-                          (after applying x scaling factors).
-                          If xtol < 0.0, xtol is set to sqrt(machine_precision).
-                          Defaults to -1.
-            gtol (float): Precision goal for the value of the projected gradient in
-                          the stopping criterion (after applying x scaling factors).
-                          If gtol < 0.0, gtol is set to 1e-2 * sqrt(accuracy).
-                          Setting it to 0.0 is not recommended. Defaults to -1.
-            tol (float or None): Tolerance for termination.
-            eps (float): Step size used for numerical approximation of the jacobian.
+            maxiter: Maximum number of function evaluation.
+            disp: Set to True to print convergence messages.
+            accuracy: Relative precision for finite difference calculations.
+                If <= machine_precision, set to sqrt(machine_precision). Defaults to 0.
+            ftol: Precision goal for the value of f in the stopping criterion.
+                If ftol < 0.0, ftol is set to 0.0 defaults to -1.
+            xtol: Precision goal for the value of x in the stopping criterion
+                (after applying x scaling factors).
+                If xtol < 0.0, xtol is set to sqrt(machine_precision). Defaults to -1.
+            gtol: Precision goal for the value of the projected gradient in
+                the stopping criterion (after applying x scaling factors).
+                If gtol < 0.0, gtol is set to 1e-2 * sqrt(accuracy).
+                Setting it to 0.0 is not recommended. Defaults to -1.
+            tol: Tolerance for termination.
+            eps: Step size used for numerical approximation of the Jacobian.
         """
-        validate(locals(), self._INPUT_SCHEMA)
         super().__init__()
         for k, v in locals().items():
             if k in self._OPTIONS:
