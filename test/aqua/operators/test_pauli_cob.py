@@ -19,7 +19,7 @@ from test.aqua import QiskitAquaTestCase
 import numpy as np
 import itertools
 
-from qiskit.aqua.operators import X, Y, Z, I, CX, T, H, S, OpPrimitive, OpSum
+from qiskit.aqua.operators import X, Y, Z, I, CX, T, H, S, OpPrimitive, OpSum, OpComposition
 from qiskit.aqua.operators.converters import PauliChangeOfBasis
 from qiskit import QuantumCircuit
 
@@ -63,10 +63,7 @@ class TestPauliCoB(QiskitAquaTestCase):
             converter = PauliChangeOfBasis(destination_basis=dest)
             inst, dest = converter.get_cob_circuit(pauli.primitive)
             cob = converter.convert(pauli)
-            # qc = QuantumCircuit(pauli.num_qubits)
-            # qc.append(inst.primitive, range(pauli.num_qubits))
-            # qc = qc.decompose()
-            # print(qc.draw())
+            # print(inst)
             # print(pauli.to_matrix())
             # print(np.round(inst.adjoint().to_matrix() @ cob.to_matrix()))
             np.testing.assert_array_almost_equal(pauli.to_matrix(),
@@ -74,3 +71,31 @@ class TestPauliCoB(QiskitAquaTestCase):
             np.testing.assert_array_almost_equal(pauli.to_matrix(), inst.adjoint().to_matrix() @ cob.to_matrix())
             np.testing.assert_array_almost_equal(inst.compose(pauli).compose(inst.adjoint()).to_matrix(),
                                                  dest.to_matrix())
+
+    def test_pauli_cob_traverse(self):
+        # Helpful prints for debugging commented out below.
+        multis = [(X^Y) + (I^Z) + (Z^Z), (Y^X^I^I) + (I^Z^Y^X)]
+        dests = [Y^Y, I^I^I^Z]
+        for pauli, dest in zip(multis, dests):
+            # print(pauli)
+            # print(dest)
+            converter = PauliChangeOfBasis(destination_basis=dest, traverse=True)
+
+            cob = converter.convert(pauli)
+            self.assertIsInstance(cob, OpSum)
+            inst = [None] * len(pauli.oplist)
+            ret_dest = [None] * len(pauli.oplist)
+            cob_mat = [None] * len(pauli.oplist)
+            for i in range(len(pauli.oplist)):
+                print(ret_dest)
+                inst[i], ret_dest[i] = converter.get_cob_circuit(pauli.oplist[i].primitive)
+                self.assertEqual(dest, ret_dest[i])
+
+                # print(inst[i])
+                # print(pauli.oplist[i].to_matrix())
+                # print(np.round(inst[i].adjoint().to_matrix() @ cob.oplist[i].to_matrix()))
+                self.assertIsInstance(cob.oplist[i], OpComposition)
+
+                cob_mat[i] = inst[i].adjoint().to_matrix() @ cob.oplist[i].to_matrix()
+                np.testing.assert_array_almost_equal(pauli.oplist[i].to_matrix(), cob_mat[i])
+            np.testing.assert_array_almost_equal(pauli.to_matrix(), sum(cob_mat))

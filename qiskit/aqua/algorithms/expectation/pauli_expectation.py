@@ -47,5 +47,7 @@ class PauliExpectation(ExpectationBase):
     def compute_expectation_for_primitives(self, state=None, primitives=None):
         state = state or self._state
 
+
+
         if self._primitives_cache is None:
             self._extract_primitives()

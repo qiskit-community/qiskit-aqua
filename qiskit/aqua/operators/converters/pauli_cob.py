@@ -21,7 +21,7 @@ from functools import partial, reduce
 from qiskit.quantum_info import Pauli
 from qiskit import QuantumCircuit
 
-from .. import OpPrimitive, OpComposition, H, S, I
+from .. import OpPrimitive, OpComposition, OpVec, H, S, I
 
 logger = logging.getLogger(__name__)
 
