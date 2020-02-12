@@ -42,36 +42,35 @@ class TestPauliCoB(QiskitAquaTestCase):
             np.testing.assert_array_almost_equal(inst.compose(pauli).compose(inst.adjoint()).to_matrix(),
                                                  dest.to_matrix())
 
-    def test_pauli_cob_multiqubit(self):
-        multis = [Y^X^I^I, I^Z^Y^X, I^I^I^Z]
+    def test_pauli_cob_two_qubit(self):
+        multis = [Y^X, Z^Y, I^Z, Z^I, X^X, I^X]
         for pauli, dest in itertools.product(multis, reversed(multis)):
-            print(pauli)
             converter = PauliChangeOfBasis(destination_basis=dest)
             inst, dest = converter.get_cob_circuit(pauli.primitive)
             cob = converter.convert(pauli)
-            qc = QuantumCircuit(pauli.num_qubits)
-            qc.append(inst.primitive, range(pauli.num_qubits))
-            qc = qc.decompose()
-            print(qc.draw())
-            print(pauli.to_matrix())
-            print(np.round(inst.adjoint().to_matrix() @ cob.to_matrix()))
             np.testing.assert_array_almost_equal(pauli.to_matrix(),
                                                  inst.adjoint().to_matrix() @ dest.to_matrix() @ inst.to_matrix())
             np.testing.assert_array_almost_equal(pauli.to_matrix(), inst.adjoint().to_matrix() @ cob.to_matrix())
             np.testing.assert_array_almost_equal(inst.compose(pauli).compose(inst.adjoint()).to_matrix(),
                                                  dest.to_matrix())
 
-        # np.testing.assert_array_almost_equal(pauli.to_matrix() @ cob.compose(inst.adjoint()).adjoint().to_matrix())
-        # print(np.round(pauli.to_matrix() @ cob.compose(inst.adjoint()).to_matrix()))
-
-        # print((H).compose(Z).compose(H).to_matrix())
-        # print(pauli.to_matrix())
-        # print(np.round(cob.compose(inst.adjoint()).to_matrix()))
-        # print(inst.to_matrix())
-        # print(dest.to_matrix())
-        # # print(OpPrimitive(dest).to_matrix())
-        # print(np.round(cob.compose(inst).to_matrix()))
-        # qc = QuantumCircuit(2)
-        # qc.append(inst.primitive, range(2))
-        # qc = qc.decompose()
-        # print(qc.draw())
+    def test_pauli_cob_multiqubit(self):
+        # Helpful prints for debugging commented out below.
+        multis = [Y^X^I^I, I^Z^Y^X, X^Y^I^Z, I^I^I^X, X^X^X^X]
+        for pauli, dest in itertools.product(multis, reversed(multis)):
+            # print(pauli)
+            # print(dest)
+            converter = PauliChangeOfBasis(destination_basis=dest)
+            inst, dest = converter.get_cob_circuit(pauli.primitive)
+            cob = converter.convert(pauli)
+            # qc = QuantumCircuit(pauli.num_qubits)
+            # qc.append(inst.primitive, range(pauli.num_qubits))
+            # qc = qc.decompose()
+            # print(qc.draw())
+            # print(pauli.to_matrix())
+            # print(np.round(inst.adjoint().to_matrix() @ cob.to_matrix()))
+            np.testing.assert_array_almost_equal(pauli.to_matrix(),
+                                                 inst.adjoint().to_matrix() @ dest.to_matrix() @ inst.to_matrix())
+            np.testing.assert_array_almost_equal(pauli.to_matrix(), inst.adjoint().to_matrix() @ cob.to_matrix())
+            np.testing.assert_array_almost_equal(inst.compose(pauli).compose(inst.adjoint()).to_matrix(),
+                                                 dest.to_matrix())

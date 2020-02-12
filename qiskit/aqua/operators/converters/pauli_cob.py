@@ -69,19 +69,43 @@ class PauliChangeOfBasis():
         cob_instruction, new_pauli = self.get_cob_circuit(pauli)
         return OpComposition([new_pauli, cob_instruction], coeff=coeff)
 
-    def get_cob_circuit(self, pauli):
+    def get_cob_circuit(self, origin):
+        """ The goal of this module is to construct a circuit which maps the +1 and -1 eigenvectors of the origin
+        pauli to the +1 and -1 eigenvectors of the destination pauli. It does so by
+            1) converting any |i+⟩ or |i+⟩ eigenvector bits in the origin to |+⟩ and |-⟩ with S†s, then
+            2) converting any |+⟩ or |+⟩ eigenvector bits in the converted origin to |0⟩ and |1⟩ with Hs, then
+            3) writing the parity of the significant (Z-measured, rather than I) bits in the origin to a single
+            "origin anchor bit," using cnots, which will hold the parity of these bits,
+            4) swapping the parity of the pauli anchor bit into a destination anchor bit using a swap gate (only if
+            they are different, if there are any bits which are significant in both origin and dest, we set both
+            anchors to one of these bits to avoid a swap).
+            5) flipping the state (parity) of the destination anchor if the parity of the number of pauli significant
+            bits is different from the parity of the number of destination significant bits (to be flipped back in
+            step 7)
+            6) writing the parity of the destination anchor bit into the other significant bits of the destination,
+            7) flipping back the parity of the destination anchor if we flipped it in step 5)
+            8) converting the |0⟩ and |1⟩ significant eigenvector bits to |+⟩ and |-⟩ eigenvector bits in the
+            destination where the destination demands it (e.g. pauli.x == true for a bit), using Hs
+            8) converting the |+⟩ and |-⟩ significant eigenvector bits to |i+⟩ and |i-⟩ eigenvector bits in the
+            destination where the destination demands it (e.g. pauli.x == true and pauli.z == true for a bit), using Ss
+        """
+
         # If pauli is an OpPrimitive, extract the Pauli
-        if hasattr(pauli, 'primitive') and isinstance(pauli.primitive, Pauli):
-            pauli = pauli.primitive
+        if hasattr(origin, 'primitive') and isinstance(origin.primitive, Pauli):
+            origin = origin.primitive
 
         # If no destination specified, assume nearest Pauli in {Z,I}^n basis, the standard CoB for expectation
-        pauli_ones = np.logical_or(pauli.x, pauli.z)
-        destination = self._destination or Pauli(z=pauli_ones, x=[False]*len(pauli.z))
+        origin_sig_bits = np.logical_or(origin.x, origin.z)
+        destination = self._destination or Pauli(z=origin_sig_bits, x=[False]*len(origin.z))
+        destination_sig_bits = np.logical_or(destination.x, destination.z)
+        num_qubits = max([len(origin.z), len(destination.z)])
 
-        if not any(pauli.x + pauli.z) or not any(destination.x + destination.z):
-            if not any(pauli.x + pauli.z + destination.x + destination.z):
-                return OpPrimitive(pauli), OpPrimitive(destination)
+        if not any(origin_sig_bits) or not any(destination_sig_bits):
+            if not (any(origin_sig_bits) or any(destination_sig_bits)):
+                # Both all Identity, just return Identities
+                return OpPrimitive(origin), OpPrimitive(destination)
             else:
+                # One is Identity, one is not
                 raise ValueError('Cannot change to or from a fully Identity Pauli.')
 
         # TODO be smarter about connectivity and actual distance between pauli and destination
@@ -90,29 +114,67 @@ class PauliChangeOfBasis():
         kronall = partial(reduce, lambda x, y: x.kron(y))
 
         # Construct single-qubit changes to {Z, I)^n
-        y_to_x_pauli = kronall([S if has_y else I for has_y in reversed(np.logical_and(pauli.x, pauli.z))]).adjoint()
         # Note, underlying Pauli bits are in Qiskit endian-ness!!
-        x_to_z_pauli = kronall([H if has_x else I for has_x in reversed(pauli.x)])
-        cob_instruction = x_to_z_pauli.compose(y_to_x_pauli)
+        # Step 1)
+        y_to_x_origin = kronall([S if has_y else I for has_y in reversed(np.logical_and(origin.x, origin.z))]).adjoint()
+        # Step 2)
+        x_to_z_origin = kronall([H if has_x else I for has_x in reversed(origin.x)])
+        cob_instruction = x_to_z_origin.compose(y_to_x_origin)
 
-        # Construct CNOT chain, assuming full connectivity...
-        destination_ones = np.logical_or(destination.x, destination.z)
-        # Note: Selecting lowest common one bit, indexed in reverse endian-ness
-        lowest_one_dest = min(destination_ones * range(len(pauli.z))[::-1])
+        # Construct CNOT chain, assuming full connectivity... - Steps 3)-7)
+        equal_sig_bits = np.logical_and(origin_sig_bits, destination_sig_bits)
+        non_equal_sig_bits = np.logical_not(origin_sig_bits == destination_sig_bits)
+        # Equivalent to np.logical_xor(origin_sig_bits, destination_sig_bits)
 
-        non_equal_z_bits = np.logical_xor(pauli_ones, destination_ones)
-        if any(non_equal_z_bits):
-            cnots = QuantumCircuit(len(pauli.z))
-            # Note: Reversing Pauli bit endian-ness!
-            for i, val in enumerate(reversed(non_equal_z_bits)):
-                if val and not i == lowest_one_dest:
-                    cnots.cx(i, lowest_one_dest)
+        if any(non_equal_sig_bits):
+            # I am deeply sorry for this code, but I don't know another way to do it.
+            sig_in_origin_only_indices = np.extract(np.logical_and(non_equal_sig_bits, origin_sig_bits),
+                                                    np.arange(num_qubits))
+            sig_in_dest_only_indices = np.extract(np.logical_and(non_equal_sig_bits, destination_sig_bits),
+                                                  np.arange(num_qubits))
+
+            if len(sig_in_origin_only_indices) and len(sig_in_dest_only_indices):
+                origin_anchor_bit = min(sig_in_origin_only_indices)
+                dest_anchor_bit = min(sig_in_dest_only_indices)
+            else:
+                # Set to lowest equal bit
+                origin_anchor_bit = min(np.extract(equal_sig_bits, np.arange(num_qubits)))
+                dest_anchor_bit = origin_anchor_bit
+
+            cnots = QuantumCircuit(num_qubits)
+            # Step 3) Take the indices of bits which are sig_bits in pauli but but not in dest, and cnot them to the
+            # pauli anchor.
+            for i in sig_in_origin_only_indices:
+                if not i == origin_anchor_bit:
+                    cnots.cx(i, origin_anchor_bit)
+
+            # Step 4)
+            if not origin_anchor_bit == dest_anchor_bit:
+                cnots.swap(origin_anchor_bit, dest_anchor_bit)
+
+            # # Step 5)
+            # if not len(sig_in_origin_only_indices) % 2 == len(sig_in_dest_only_indices) % 2:
+            #     cnots.x(dest_anchor_bit)
+
+            cnots.iden(0)
+
+            # Step 6)
+            for i in sig_in_dest_only_indices:
+                if not i == dest_anchor_bit:
+                    cnots.cx(i, dest_anchor_bit)
+
+            # # Step 7)
+            # if not len(sig_in_origin_only_indices) % 2 == len(sig_in_dest_only_indices) % 2:
+            #     cnots.x(dest_anchor_bit)
+
             cnot_op = OpPrimitive(cnots.to_instruction())
             cob_instruction = cnot_op.compose(cob_instruction)
 
+        # Construct single-qubit changes from {Z, I)^n
         if any(destination.x):
-            # Construct single-qubit changes from {Z, I)^n
-            z_to_x_dest = kronall([H if has_x else I for has_x in reversed(destination.x)]).adjoint()
+            # Step 8)
+            z_to_x_dest = kronall([H if has_x else I for has_x in reversed(destination.x)])
+            # Step 9)
             x_to_y_dest = kronall([S if has_y else I for has_y in reversed(np.logical_and(destination.x,
                                                                                           destination.z))])
             cob_instruction = x_to_y_dest.compose(z_to_x_dest).compose(cob_instruction)

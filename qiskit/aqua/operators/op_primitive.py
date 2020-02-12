@@ -97,6 +97,7 @@ class OpPrimitive(OperatorBase):
             qc = QuantumCircuit(len(pauli))
             for q, p in enumerate(reversed(pauli.to_label())):
                 gate = _pauli_to_gate_mapping[p]
+                # if not p == 'I':
                 qc.append(gate, qargs=[q])
             return qc.to_instruction()
 
@@ -247,7 +248,8 @@ class OpPrimitive(OperatorBase):
             new_qc.append(self_primitive, qargs=range(self_primitive.num_qubits))
             # TODO Fix because converting to dag just to append is nuts
             # TODO Figure out what to do with cbits?
-            return OpPrimitive(new_qc.decompose().to_instruction(), coeff=self.coeff * other.coeff)
+            new_qc = new_qc.decompose()
+            return OpPrimitive(new_qc.to_instruction(), coeff=self.coeff * other.coeff)
 
         # Both Matrices
         elif isinstance(self_primitive, MatrixOperator) and isinstance(other_primitive, MatrixOperator):
@@ -294,7 +296,8 @@ class OpPrimitive(OperatorBase):
             # NOTE: not reversing qubits!!
             # qc.append(self.primitive, qargs=range(self.primitive.num_qubits)[::-1])
             qc.append(self.primitive, qargs=range(self.primitive.num_qubits))
-            unitary = execute(qc, BasicAer.get_backend('unitary_simulator')).result().get_unitary()
+            unitary_backend = BasicAer.get_backend('unitary_simulator')
+            unitary = execute(qc, unitary_backend, optimization_level=0).result().get_unitary()
             return unitary * self.coeff
 
         # User custom matrix-able primitive
@@ -308,7 +311,11 @@ class OpPrimitive(OperatorBase):
     def __str__(self):
         """Overload str() """
         if isinstance(self.primitive, Instruction):
-            prim_str = self.primitive.__class__.__name__
+            qc = QuantumCircuit(self.num_qubits)
+            qc.append(self.primitive, range(self.num_qubits))
+            qc = qc.decompose()
+            prim_str = str(qc.draw(output='text'))
+            # prim_str = self.primitive.__class__.__name__
         else:
             prim_str = str(self.primitive)
         if self.coeff == 1.0:
