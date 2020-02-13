@@ -21,7 +21,7 @@ import re
 
 from sympy.parsing.sympy_parser import parse_expr
 from sympy.logic import simplify_logic
-from sympy.logic.boolalg import to_cnf, is_cnf, is_dnf, BooleanTrue, BooleanFalse
+from sympy.logic.boolalg import is_cnf, is_dnf, BooleanTrue, BooleanFalse
 from qiskit import QuantumCircuit, QuantumRegister
 
 from qiskit.aqua import AquaError
