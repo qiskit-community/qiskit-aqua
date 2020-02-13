@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Test OpSum """
+""" Test Operator construction, including OpPrimitives and singletons. """
 
 import unittest
 import itertools
