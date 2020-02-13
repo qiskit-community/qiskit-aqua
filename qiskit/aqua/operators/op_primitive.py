@@ -27,10 +27,6 @@ from .op_sum import OpSum
 from .op_kron import OpKron
 from .op_composition import OpComposition
 
-# Hack to reconcile Gate/Pauli overlap issues.
-from qiskit.extensions.standard import XGate, YGate, ZGate, IdGate
-_pauli_to_gate_mapping = {'X': XGate(), 'Y': YGate(), 'Z': ZGate(), 'I': IdGate()}
-
 logger = logging.getLogger(__name__)
 
 
@@ -42,7 +38,7 @@ class OpPrimitive(OperatorBase):
 
     """
 
-    def __init__(self, primitive, coeff=1.0):
+    def __init__(self, primitive, coeff=1.0, allow_conversions=True):
         """
         Args:
             primtive (Gate, Pauli, [[complex]], np.ndarray, QuantumCircuit, Instruction): The operator primitive being
@@ -57,6 +53,7 @@ class OpPrimitive(OperatorBase):
                 raise ValueError('Cannot handle non-square matrices yet.')
         self._primitive = primitive
         self._coeff = coeff
+        self._allow_conversions = allow_conversions
 
     @property
     def primitive(self):
@@ -92,19 +89,12 @@ class OpPrimitive(OperatorBase):
         one of the operands are a Pauli and the other is an Instruction, and if so, converts the Pauli to an
         Instruction."""
 
-        # Note: Reversing endian-ness!!
-        def pauli_to_gate(pauli):
-            qc = QuantumCircuit(len(pauli))
-            for q, p in enumerate(reversed(pauli.to_label())):
-                gate = _pauli_to_gate_mapping[p]
-                # if not p == 'I':
-                qc.append(gate, qargs=[q])
-            return qc.to_instruction()
-
         if isinstance(self.primitive, Instruction) and isinstance(other.primitive, Pauli):
-            return self.primitive, pauli_to_gate(other.primitive)
+            from qiskit.aqua.operators.converters import PaulitoInstruction
+            return self.primitive, PaulitoInstruction().convert_pauli(other.primitive)
         elif isinstance(self.primitive, Pauli) and isinstance(other.primitive, Instruction):
-            return pauli_to_gate(self.primitive), other.primitive
+            from qiskit.aqua.operators.converters import PaulitoInstruction
+            return PaulitoInstruction().convert_pauli(self.primitive), other.primitive
         return self.primitive, other.primitive
 
     # TODO change to *other to efficiently handle lists?

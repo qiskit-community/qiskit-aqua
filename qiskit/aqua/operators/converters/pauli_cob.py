@@ -60,6 +60,7 @@ class PauliChangeOfBasis():
         elif hasattr(operator, 'primitive') and isinstance(operator.primitive, Pauli):
             pauli = operator.primitive
             coeff = operator.coeff
+        # TODO allow parameterized OpVec to be returned to save circuit copying.
         elif isinstance(operator, OpVec) and self._traverse and 'Pauli' in operator.get_primitives():
             return operator.traverse(self.convert)
         else:
@@ -156,6 +157,7 @@ class PauliChangeOfBasis():
             # if not len(sig_in_origin_only_indices) % 2 == len(sig_in_dest_only_indices) % 2:
             #     cnots.x(dest_anchor_bit)
 
+            # Need to do this or a Terra bug sometimes flips cnots. No time to investigate.
             cnots.iden(0)
 
             # Step 6)
@@ -178,6 +180,5 @@ class PauliChangeOfBasis():
             x_to_y_dest = kronall([S if has_y else I for has_y in reversed(np.logical_and(destination.x,
                                                                                           destination.z))])
             cob_instruction = x_to_y_dest.compose(z_to_x_dest).compose(cob_instruction)
-            # cob_instruction = cob_instruction.compose(z_to_x_dest).compose(x_to_y_dest)
 
         return cob_instruction, OpPrimitive(destination)
