@@ -12,13 +12,19 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
-Expectation Value algorithms - Algorithms for approximating the value of some function over a probability
-distribution, or in the quantum case, algorithms for approximating the value of some observable over a statefunction.
+""" Test PauliExpectation """
 
-"""
+from test.aqua import QiskitAquaTestCase
 
-from .expectation_base import ExpectationBase
-from .aer_pauli_expectation import AerPauliExpectation
-from .pauli_expectation import PauliExpectation
-from .matrix_expectation import MatrixExpectation
+import numpy as np
+import itertools
+
+from qiskit.aqua.operators import X, Y, Z, I, CX, T, H, S, OpPrimitive, OpSum, OpComposition
+from qiskit.aqua.algorithms.expectation import
+from qiskit import QuantumCircuit
+
+
+class TestPauliCoB(QiskitAquaTestCase):
+    """Pauli Change of Basis Converter tests."""
+
+    def test_pauli_cob_singles(self):

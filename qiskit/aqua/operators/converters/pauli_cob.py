@@ -181,4 +181,5 @@ class PauliChangeOfBasis():
                                                                                           destination.z))])
             cob_instruction = x_to_y_dest.compose(z_to_x_dest).compose(cob_instruction)
 
-        return cob_instruction, OpPrimitive(destination)
+        # Set allow_conversions to False so Pauli is not composed with circuit by accident
+        return cob_instruction, OpPrimitive(destination, allow_conversions=False)

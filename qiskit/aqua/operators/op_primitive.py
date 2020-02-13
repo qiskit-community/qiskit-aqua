@@ -70,6 +70,7 @@ class OpPrimitive(OperatorBase):
         elif isinstance(self.primitive, MatrixOperator):
             return {'Matrix'}
         else:
+            # Includes 'Pauli'
             return {self.primitive.__class__.__name__}
 
     # TODO replace with proper alphabets later?
@@ -89,6 +90,8 @@ class OpPrimitive(OperatorBase):
         one of the operands are a Pauli and the other is an Instruction, and if so, converts the Pauli to an
         Instruction."""
 
+        if not self._allow_conversions:
+            return self.primitive, other.primitive
         if isinstance(self.primitive, Instruction) and isinstance(other.primitive, Pauli):
             from qiskit.aqua.operators.converters import PaulitoInstruction
             return self.primitive, PaulitoInstruction().convert_pauli(other.primitive)
