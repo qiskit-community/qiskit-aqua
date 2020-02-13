@@ -112,6 +112,7 @@ class ExpectationBase():
         raise NotImplementedError
 
     def compute_expectation(self, state=None):
+        pass
 
     def reduce_to_opsum_or_vec(self, operator):
         """ Takes an operator of Pauli primtives and rearranges it to be an OpVec of OpSums of Pauli primitives.
@@ -127,4 +128,4 @@ class ExpectationBase():
             a) If subnode is
         """
         if isinstance(operator, OpVec) and all([isinstance(op, OpSum) for op in operator.oplist]):
-            return
+            return 0

@@ -20,7 +20,7 @@ import numpy as np
 import itertools
 
 from qiskit.aqua.operators import X, Y, Z, I, CX, T, H, S, OpPrimitive, OpSum, OpComposition
-from qiskit.aqua.algorithms.expectation import
+from qiskit.aqua.algorithms.expectation import ExpectationBase
 from qiskit import QuantumCircuit
 
 
@@ -28,3 +28,4 @@ class TestPauliCoB(QiskitAquaTestCase):
     """Pauli Change of Basis Converter tests."""
 
     def test_pauli_cob_singles(self):
+        pass
