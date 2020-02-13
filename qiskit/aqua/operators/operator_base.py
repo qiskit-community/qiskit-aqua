@@ -46,7 +46,7 @@ class OperatorBase(ABC):
 
     # TODO allow massive argument to decide whether to perform to_matrix?
     @abstractmethod
-    def eval(self, val1, val2):
+    def eval(self, val1=None, val2=None):
         """ A square binary Operator can be defined as a function over two binary strings of equal length. This
         method returns the value of that function for a given pair of binary strings. Note that by using
         functools.partial, a function over a single binary string is returned, which is equivalent to a state

@@ -175,7 +175,7 @@ class OpVec(OperatorBase):
         # Combination function must be able to handle classical values
         return self.combo_fn([op.to_matrix() for op in self.oplist]) * self.coeff
 
-    def eval(self, val1, val2):
+    def eval(self, val1=None, val2=None):
         """ A square binary Operator can be defined as a function over two binary strings of equal length. This
         method returns the value of that function for a given pair of binary strings. For more information,
         see the eval method in operator_base.py.
