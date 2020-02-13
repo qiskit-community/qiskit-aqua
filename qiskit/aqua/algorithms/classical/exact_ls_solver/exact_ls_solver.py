@@ -24,15 +24,23 @@ logger = logging.getLogger(__name__)
 
 
 class ExactLSsolver(ClassicalAlgorithm):
-    """The Exact LinearSystem algorithm."""
+    r"""
+    The Exact LinearSystem algorithm.
+
+    This linear system solver computes the eigenvalues of a complex-valued square
+    matrix :math:`A` of dimension :math:`n \times n` and the solution to the systems of linear
+    equations defined by :math:`A\overrightarrow{x}=\overrightarrow{b}` with input vector
+    :math:`\overrightarrow{b}`.
+
+    This is a classical counterpart to the :class:`HHL` algorithm.
+    """
 
     def __init__(self, matrix: Union[List[List[float]], np.ndarray],
                  vector: Union[List[float], np.ndarray]) -> None:
-        """Constructor.
-
+        """
         Args:
-            matrix: the input matrix of linear system of equations
-            vector: the input vector of linear system of equations
+            matrix: The input matrix of linear system of equations
+            vector: The input vector of linear system of equations
         """
         super().__init__()
         self._matrix = matrix

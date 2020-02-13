@@ -20,7 +20,7 @@ import numpy as np
 from parameterized import parameterized
 from qiskit import (QuantumRegister, QuantumCircuit, execute, BasicAer)
 from qiskit.aqua.components.reciprocals.lookup_rotation import LookupRotation
-from qiskit.quantum_info import (state_fidelity, basis_state)
+from qiskit.quantum_info import (state_fidelity, Statevector)
 
 
 class TestLookupRotation(QiskitAquaTestCase):
@@ -37,7 +37,7 @@ class TestLookupRotation(QiskitAquaTestCase):
         ref_sv = np.zeros(ref_dim, dtype=complex)
         ref_sv[int(ref_dim/2)+1] = ref_sv_ampl+0j
         ref_sv[1] = np.sqrt(1-ref_sv_ampl**2)+0j
-        state = basis_state('1', reg_size)
+        state = Statevector.from_label('0'*(reg_size-1) + '1').data
         q_a = QuantumRegister(reg_size, name='a')
         init_circuit = QuantumCircuit(q_a)
         init_circuit.initialize(state, q_a)
@@ -62,7 +62,7 @@ class TestLookupRotation(QiskitAquaTestCase):
         ref_sv = np.zeros(ref_dim, dtype=complex)
         ref_sv[int(ref_dim/2)+1] = -ref_sv_ampl+0j
         ref_sv[1] = -np.sqrt(1-ref_sv_ampl**2)+0j
-        state = basis_state('1', reg_size)
+        state = Statevector.from_label('0'*(reg_size-1) + '1').data
         q_a = QuantumRegister(reg_size, name='a')
         init_circuit = QuantumCircuit(q_a)
         init_circuit.initialize(state, q_a)

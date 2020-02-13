@@ -38,31 +38,68 @@ logger = logging.getLogger(__name__)
 
 
 class Grover(QuantumAlgorithm):
-    """
+    r"""
     The Grover's Search algorithm.
 
-    If the `num_iterations` param is specified, the amplitude amplification
-    iteration will be built as specified.
+    Grover’s Search is a well known quantum algorithm for searching through
+    unstructured collections of records for particular targets with quadratic
+    speedup compared to classical algorithms.
 
-    If the `incremental` mode is specified, which indicates that the optimal
-    `num_iterations` isn't known in advance,
-    a multi-round schedule will be followed with incremental trial `num_iterations` values.
-    The implementation follows Section 4 of Boyer et al. <https://arxiv.org/abs/quant-ph/9605034>
+    Given a set :math:`X` of :math:`N` elements :math:`X=\{x_1,x_2,\ldots,x_N\}`
+    and a boolean function :math:`f : X \rightarrow \{0,1\}`, the goal of an
+    unstructured-search problem is to find an element :math:`x^* \in X` such
+    that :math:`f(x^*)=1`.
+
+    Unstructured search is often alternatively formulated as a database search
+    problem, in which, given a database, the goal is to find in it an item that
+    meets some specification.
+
+    The search is called *unstructured* because there are no guarantees as to how
+    the database is ordered.  On a sorted database, for instance, one could perform
+    binary search to find an element in :math:`\mathbb{O}(\log N)` worst-case time.
+    Instead, in an unstructured-search problem, there is no prior knowledge about
+    the contents of the database. With classical circuits, there is no alternative
+    but to perform a linear number of queries to find the target element.
+    Conversely, Grover's Search algorithm allows to solve the unstructured-search
+    problem on a quantum computer in :math:`\mathcal{O}(\sqrt{N})` queries.
+
+    All that is needed for carrying out a search is an oracle from Aqua's
+    :mod:`~qiskit.aqua.components.oracles` module for specifying the search criterion,
+    which basically indicates a hit or miss for any given record.  More formally, an
+    oracle :math:`O_f` is an object implementing a boolean function
+    :math:`f` as specified above.  Given an input :math:`x \in X`,
+    :math:`O_f` implements :math:`f(x)`.  The details of how :math:`O_f` works are
+    unimportant; Grover's search algorithm treats the oracle as a black box.
+
+    For example the :class:`~qiskit.aqua.components.oracles.LogicalExpressionOracle`
+    can take as input a SAT problem in
+    `DIMACS CNF format <http://www.satcompetition.org/2009/format-benchmarks2009.html>`__
+    and be used with Grover algorithm to find a satisfiable assignment.
     """
 
     def __init__(self, oracle: Oracle, init_state: Optional[InitialState] = None,
                  incremental: bool = False, num_iterations: int = 1,
                  mct_mode: str = 'basic') -> None:
-        """
-        Constructor.
-
+        r"""
         Args:
-            oracle: the oracle component
-            init_state: the initial quantum state preparation
-            incremental: boolean flag for whether to use incremental search mode or not
-            num_iterations: the number of iterations to use for amplitude amplification,
-                            has a min. value of 1.
-            mct_mode: mct mode
+            oracle: The oracle component
+            init_state: An optional initial quantum state. If None (default) then Grover's Search
+                 by default uses uniform superposition to initialize its quantum state. However,
+                 an initial state may be supplied, if useful, for example, if the user has some
+                 prior knowledge regarding where the search target(s) might be located.
+            incremental: Whether to use incremental search mode (True) or not (False).
+                 Supplied *num_iterations* is ignored when True and instead the search task will
+                 be carried out in successive rounds, using circuits built with incrementally
+                 higher number of iterations for the repetition of the amplitude amplification
+                 until a target is found or the maximal number :math:`\log N` (:math:`N` being the
+                 total number of elements in the set from the oracle used) of iterations is
+                 reached. The implementation follows Section 4 of Boyer et al.
+                 <https://arxiv.org/abs/quant-ph/9605034>
+            num_iterations: How many times the marking and reflection phase sub-circuit is
+                repeated to amplify the amplitude(s) of the target(s). Has a minimum value of 1.
+            mct_mode: Multi-Control Toffoli mode ('basic' | 'basic-dirty-ancilla' |
+                'advanced' | 'noancilla')
+
         Raises:
             AquaError: evaluate_classically() missing from the input oracle
         """

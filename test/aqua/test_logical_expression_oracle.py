@@ -52,6 +52,11 @@ DIMAC_TESTS = [
     [
         'x ^ y',
         [(True, False), (False, True)]
+    ],
+
+    [
+        '(x & y) | (~x & ~y)',
+        [(True, True), (False, False)]
     ]
 ]
 

@@ -30,17 +30,25 @@ logger = logging.getLogger(__name__)
 
 
 class ExactEigensolver(ClassicalAlgorithm):
-    """The Exact Eigensolver algorithm."""
+    r"""
+    The Exact Eigensolver algorithm.
+
+    Exact Eigensolver computes up to the first :math:`k` eigenvalues of a complex-valued square
+    matrix of dimension :math:`n \times n`, with :math:`k \leq n`.
+
+    Note:
+        Operators are automatically converted to :class:`~qiskit.aqua.operators.MatrixOperator`
+        as needed and this conversion can be costly in terms of memory and performance as the
+        operator size, mostly in terms of number of qubits it represents, gets larger.
+    """
 
     def __init__(self, operator: BaseOperator, k: int = 1,
                  aux_operators: Optional[List[BaseOperator]] = None) -> None:
-        """Constructor.
-
+        """
         Args:
-            operator: instance
+            operator: Operator instance
             k: How many eigenvalues are to be computed, has a min. value of 1.
-            aux_operators: Auxiliary operators
-                        to be evaluated at each eigenvalue
+            aux_operators: Auxiliary operators to be evaluated at each eigenvalue
         """
         validate_min('k', k, 1)
         super().__init__()

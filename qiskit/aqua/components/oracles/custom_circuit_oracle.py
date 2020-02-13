@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -23,14 +23,20 @@ from .oracle import Oracle
 
 class CustomCircuitOracle(Oracle):
     """
-    The helper class for creating oracles from user-supplied quantum circuits
+    The Custom Circuit-based Quantum Oracle.
+
+    A helper class to, in essence, 'wrap' a user-supplied quantum circuit such that it becomes
+    of type :class:`Oracle` and hence can be used by algorithms taking an oracle as input.
+
+    This class is provided for easy creation of oracles using custom circuits.
+    It is geared towards programmatically experimenting with oracles, where a user directly
+    provides a `QuantumCircuit` object, corresponding to the intended oracle function,
+    together with the various `QuantumRegister` objects involved.
     """
 
     def __init__(self, variable_register=None, output_register=None,
                  ancillary_register=None, circuit=None, evaluate_classically_callback=None):
         """
-        Constructor.
-
         Args:
             variable_register (QuantumRegister): The register holding variable qubit(s) for
                     the oracle function
@@ -40,9 +46,10 @@ class CustomCircuitOracle(Oracle):
             circuit (QuantumCircuit): The quantum circuit corresponding to the
                     intended oracle function
             evaluate_classically_callback (function): The classical callback function for
-                    evaluating the oracle, for example, to use with Grover's search
+                    evaluating the oracle, for example, to use with
+                    :class:`~qiskit.aqua.algorithms.Grover`'s search
         Raises:
-            AquaError: invalid input
+            AquaError: Invalid input
         """
 
         super().__init__()

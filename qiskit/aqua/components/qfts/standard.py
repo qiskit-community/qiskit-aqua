@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""A normal standard QFT."""
+"""The Standard QFT."""
 
 from scipy import linalg
 
@@ -21,9 +21,17 @@ from .approximate import Approximate
 
 
 class Standard(Approximate):
-    """A normal standard QFT."""
+    """
+    The Standard QFT.
+
+    This is a standard Quantum Fourier Transform
+    """
 
     def __init__(self, num_qubits: int) -> None:
+        """
+        Args:
+            num_qubits: The number of qubits
+        """
         validate_min('num_qubits', num_qubits, 1)
         super().__init__(num_qubits, degree=0)
 

@@ -54,8 +54,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
                  q_factory: Optional[CircuitFactory] = None,
                  i_objective: Optional[int] = None,
                  iqft: Optional[IQFT] = None) -> None:
-        r"""Initializer.
-
+        r"""
         Args:
             num_eval_qubits: Number of evaluation qubits, has a min. value of 1.
             a_factory: The CircuitFactory subclass object representing the problem unitary.
@@ -63,7 +62,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 sample (based on a_factory).
             i_objective: The index of the objective qubit, i.e. the qubit marking 'good' solutions
                 with the state \|1> and 'bad' solutions with the state \|0>.
-            iqft: the Inverse Quantum Fourier Transform component, defaults to using a standard IQFT
+            iqft: The Inverse Quantum Fourier Transform component, defaults to using a standard IQFT
                 when None
         """
         validate_min('num_eval_qubits', num_eval_qubits, 1)
