@@ -54,14 +54,14 @@ Operator support
 from qiskit.quantum_info import Pauli
 from qiskit.extensions.standard import CnotGate, SGate, TGate, HGate, SwapGate
 
-from .common import (evolution_instruction, suzuki_expansion_slice_pauli_list, pauli_measurement,
-                     measure_pauli_z, covariance, row_echelon_F2,
-                     kernel_F2, commutator, check_commutativity)
-from .pauli_graph import PauliGraph
-from .base_operator import BaseOperator
-from .weighted_pauli_operator import WeightedPauliOperator, Z2Symmetries
-from .tpb_grouped_weighted_pauli_operator import TPBGroupedWeightedPauliOperator
-from .matrix_operator import MatrixOperator
+from qiskit.aqua.operators.legacy.common import (evolution_instruction, suzuki_expansion_slice_pauli_list, pauli_measurement,
+                                                 measure_pauli_z, covariance, row_echelon_F2,
+                                                 kernel_F2, commutator, check_commutativity)
+from qiskit.aqua.operators.legacy.pauli_graph import PauliGraph
+from qiskit.aqua.operators.legacy.base_operator import BaseOperator
+from qiskit.aqua.operators.legacy.weighted_pauli_operator import WeightedPauliOperator, Z2Symmetries
+from qiskit.aqua.operators.legacy.tpb_grouped_weighted_pauli_operator import TPBGroupedWeightedPauliOperator
+from qiskit.aqua.operators.legacy.matrix_operator import MatrixOperator
 
 # New Operators
 from .operator_base import OperatorBase

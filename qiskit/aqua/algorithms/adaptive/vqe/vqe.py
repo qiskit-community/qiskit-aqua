@@ -29,7 +29,8 @@ from qiskit.circuit import ParameterVector
 from qiskit.aqua.algorithms.adaptive.vq_algorithm import VQAlgorithm
 from qiskit.aqua import AquaError
 from qiskit.aqua.operators import (TPBGroupedWeightedPauliOperator, WeightedPauliOperator,
-                                   MatrixOperator, op_converter)
+                                   MatrixOperator)
+from qiskit.aqua.operators.legacy import op_converter
 from qiskit.aqua.utils.backend_utils import (is_statevector_backend,
                                              is_aer_provider)
 from qiskit.aqua.operators import BaseOperator

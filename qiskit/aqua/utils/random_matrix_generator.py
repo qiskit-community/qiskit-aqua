@@ -229,7 +229,7 @@ def limit_paulis(mat, n=5, sparsity=None):
     """
     # pylint: disable=import-outside-toplevel
     from qiskit.aqua.operators import MatrixOperator
-    from qiskit.aqua.operators.op_converter import to_weighted_pauli_operator
+    from qiskit.aqua.operators.legacy.op_converter import to_weighted_pauli_operator
     # Bringing matrix into form 2**Nx2**N
     __l = mat.shape[0]
     if np.log2(__l) % 1 != 0:

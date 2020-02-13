@@ -21,10 +21,9 @@ import logging
 import numpy as np
 from scipy import sparse as scisparse
 from scipy import linalg as scila
-from qiskit import QuantumCircuit  # pylint: disable=unused-import
 
 from qiskit.aqua import AquaError
-from .base_operator import BaseOperator
+from qiskit.aqua.operators.legacy.base_operator import BaseOperator
 
 logger = logging.getLogger(__name__)
 

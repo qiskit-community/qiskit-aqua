@@ -16,8 +16,8 @@
 
 import copy
 
-from .pauli_graph import PauliGraph
-from .weighted_pauli_operator import WeightedPauliOperator
+from qiskit.aqua.operators.legacy.pauli_graph import PauliGraph
+from qiskit.aqua.operators.legacy.weighted_pauli_operator import WeightedPauliOperator
 
 
 def _post_format_conversion(grouped_paulis):

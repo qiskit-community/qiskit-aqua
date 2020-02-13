@@ -20,7 +20,7 @@ import logging
 import numpy as np
 from qiskit.quantum_info import Pauli
 
-from qiskit.aqua.operators import op_converter
+from qiskit.aqua.operators.legacy import op_converter
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.circuits import PhaseEstimationCircuit

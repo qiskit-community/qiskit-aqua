@@ -20,7 +20,8 @@ import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.quantum_info import Pauli
 
-from qiskit.aqua.operators import WeightedPauliOperator, op_converter
+from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.aqua.operators.legacy import op_converter
 from qiskit.aqua.components.variational_forms import VariationalForm
 
 # pylint: disable=invalid-name

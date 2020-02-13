@@ -23,8 +23,8 @@ from qiskit import BasicAer
 from qiskit.aqua import aqua_globals, QuantumInstance
 from qiskit.aqua.components.variational_forms import RYRZ
 from qiskit.aqua.operators import (WeightedPauliOperator,
-                                   TPBGroupedWeightedPauliOperator,
-                                   op_converter)
+                                   TPBGroupedWeightedPauliOperator)
+from qiskit.aqua.operators.legacy import op_converter
 
 
 class TestTPBGroupedWeightedPauliOperator(QiskitAquaTestCase):

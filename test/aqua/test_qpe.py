@@ -20,7 +20,8 @@ import numpy as np
 from parameterized import parameterized
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.operators import MatrixOperator, WeightedPauliOperator, op_converter
+from qiskit.aqua.operators import MatrixOperator, WeightedPauliOperator
+from qiskit.aqua.operators.legacy import op_converter
 from qiskit.aqua.utils import decimal_to_binary
 from qiskit.aqua.algorithms import ExactEigensolver
 from qiskit.aqua.algorithms import QPE

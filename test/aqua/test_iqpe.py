@@ -23,7 +23,8 @@ from qiskit.aqua import QuantumInstance
 from qiskit.aqua.utils import decimal_to_binary
 from qiskit.aqua.algorithms import IQPE
 from qiskit.aqua.algorithms import ExactEigensolver
-from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator, op_converter
+from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator
+from qiskit.aqua.operators.legacy import op_converter
 from qiskit.aqua.components.initial_states import Custom
 
 

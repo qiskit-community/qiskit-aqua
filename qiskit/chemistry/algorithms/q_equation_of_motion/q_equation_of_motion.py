@@ -30,7 +30,8 @@ from qiskit.aqua.operators import (BaseOperator,
                                    WeightedPauliOperator,
                                    Z2Symmetries,
                                    TPBGroupedWeightedPauliOperator,
-                                   op_converter, commutator)
+                                   commutator)
+from qiskit.aqua.operators.legacy import op_converter
 
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry import FermionicOperator

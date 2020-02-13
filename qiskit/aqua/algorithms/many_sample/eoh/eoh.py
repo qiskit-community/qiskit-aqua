@@ -19,7 +19,7 @@ import logging
 
 from qiskit import QuantumRegister
 from qiskit.aqua.algorithms import QuantumAlgorithm
-from qiskit.aqua.operators import op_converter
+from qiskit.aqua.operators.legacy import op_converter
 from qiskit.aqua.operators import BaseOperator
 from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.utils.validation import validate_min, validate_in_set

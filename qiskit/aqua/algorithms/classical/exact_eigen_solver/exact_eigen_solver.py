@@ -20,7 +20,7 @@ import numpy as np
 from scipy import sparse as scisparse
 
 from qiskit.aqua.algorithms.classical import ClassicalAlgorithm
-from qiskit.aqua.operators import op_converter
+from qiskit.aqua.operators.legacy import op_converter
 from qiskit.aqua.operators import BaseOperator
 from qiskit.aqua.utils.validation import validate_min
 
