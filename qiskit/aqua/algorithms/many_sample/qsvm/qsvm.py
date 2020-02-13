@@ -27,12 +27,13 @@ from qiskit.circuit import ParameterVector
 from qiskit.aqua import aqua_globals
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua import AquaError
-from qiskit.aqua.algorithms.many_sample.qsvm._qsvm_binary import _QSVM_Binary
-from qiskit.aqua.algorithms.many_sample.qsvm._qsvm_multiclass import _QSVM_Multiclass
 from qiskit.aqua.utils.dataset_helper import get_num_classes
 from qiskit.aqua.utils import split_dataset_to_data_and_labels
 from qiskit.aqua.components.feature_maps import FeatureMap
 from qiskit.aqua.components.multiclass_extensions import MulticlassExtension
+from ._qsvm_estimator import _QSVM_Estimator
+from ._qsvm_binary import _QSVM_Binary
+from ._qsvm_multiclass import _QSVM_Multiclass
 
 logger = logging.getLogger(__name__)
 
@@ -122,6 +123,7 @@ class QSVM(QuantumAlgorithm):
         if multiclass_extension is None:
             qsvm_instance = _QSVM_Binary(self)
         else:
+            multiclass_extension.set_estimator(_QSVM_Estimator, [feature_map])
             qsvm_instance = _QSVM_Multiclass(self, multiclass_extension)
 
         self.instance = qsvm_instance

@@ -21,7 +21,6 @@ from qiskit.aqua.algorithms import SVM_Classical
 from qiskit.aqua.components.multiclass_extensions import (OneAgainstRest,
                                                           AllPairs,
                                                           ErrorCorrectingCode)
-from qiskit.aqua.algorithms.classical.svm import _RBF_SVC_Estimator
 
 
 class TestSVMClassical(QiskitAquaTestCase):
@@ -207,7 +206,7 @@ class TestSVMClassical(QiskitAquaTestCase):
         result = SVM_Classical(training_input,
                                test_input,
                                total_array,
-                               multiclass_extension=OneAgainstRest(_RBF_SVC_Estimator)).run()
+                               multiclass_extension=OneAgainstRest()).run()
 
         self.assertEqual(result['testing_accuracy'], 1.0)
         self.assertEqual(result['predicted_classes'],
@@ -315,7 +314,7 @@ class TestSVMClassical(QiskitAquaTestCase):
         result = SVM_Classical(training_input,
                                test_input,
                                total_array,
-                               multiclass_extension=AllPairs(_RBF_SVC_Estimator)).run()
+                               multiclass_extension=AllPairs()).run()
 
         self.assertEqual(result['testing_accuracy'], 1.0)
         self.assertEqual(result['predicted_classes'],
@@ -423,8 +422,7 @@ class TestSVMClassical(QiskitAquaTestCase):
         result = SVM_Classical(training_input,
                                test_input,
                                total_array,
-                               multiclass_extension=ErrorCorrectingCode(_RBF_SVC_Estimator,
-                                                                        code_size=5)).run()
+                               multiclass_extension=ErrorCorrectingCode(code_size=5)).run()
 
         self.assertEqual(result['testing_accuracy'], 1.0)
         self.assertEqual(result['predicted_classes'],

@@ -18,8 +18,8 @@ import logging
 
 import numpy as np
 
-from qiskit.aqua.algorithms.classical.svm import _SVM_Classical_ABC
 from qiskit.aqua.utils import map_label_to_class_name
+from ._svm_classical_abc import _SVM_Classical_ABC
 
 logger = logging.getLogger(__name__)
 

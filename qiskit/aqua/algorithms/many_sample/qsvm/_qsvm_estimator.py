@@ -15,7 +15,7 @@
 """The estimator that uses the quantum kernel."""
 
 from qiskit.aqua.components.multiclass_extensions import Estimator
-from qiskit.aqua.algorithms.many_sample.qsvm._qsvm_binary import _QSVM_Binary
+from ._qsvm_binary import _QSVM_Binary
 
 # pylint: disable=invalid-name
 

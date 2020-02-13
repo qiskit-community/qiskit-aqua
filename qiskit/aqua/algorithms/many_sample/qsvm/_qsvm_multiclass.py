@@ -17,8 +17,8 @@
 import logging
 import numpy as np
 
-from qiskit.aqua.algorithms.many_sample.qsvm._qsvm_abc import _QSVM_ABC
 from qiskit.aqua.utils import map_label_to_class_name
+from ._qsvm_abc import _QSVM_ABC
 
 logger = logging.getLogger(__name__)
 
