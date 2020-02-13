@@ -47,7 +47,7 @@ class QAOA(VQE):
     starting **beta** and **gamma** parameters (as identically named in the
     original `QAOA paper <https://arxiv.org/abs/1411.4028>`__) for the QAOA variational form.
 
-    An optional ``Operator`` may be provided as a custom mixer Hamiltonian. This allows,
+    An operator may optionally also be provided as a custom `mixer` Hamiltonian. This allows,
     as discussed in `this paper <https://doi.org/10.1103/PhysRevApplied.5.034007>`__
     for quantum annealing, and in `this paper <https://arxiv.org/abs/1709.03489>`__ for QAOA,
     to run constrained optimization problems where the mixer constrains
