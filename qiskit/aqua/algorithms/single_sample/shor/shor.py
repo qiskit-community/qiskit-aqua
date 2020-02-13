@@ -45,10 +45,10 @@ class Shor(QuantumAlgorithm):
     Shor's Factoring algorithm is one of the most well-known quantum algorithms and finds the
     prime factors for input integer :math:`N` in polynomial time.
 
-    The input integer ``N`` to be factored is expected to be odd and greater than 2.
+    The input integer :math:`N` to be factored is expected to be odd and greater than 2.
     Even though this implementation is general, its capability will be limited by the
-    capacity of the simulator/hardware. Another input integer ``a`` can also be supplied,
-    which needs to be a co-prime smaller than ``N``.
+    capacity of the simulator/hardware. Another input integer :math:`a`  can also be supplied,
+    which needs to be a co-prime smaller than :math:`N` .
 
     Adapted from https://github.com/ttlion/ShorAlgQiskit
 
