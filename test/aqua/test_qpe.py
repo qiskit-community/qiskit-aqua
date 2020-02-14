@@ -17,7 +17,7 @@
 import unittest
 from test.aqua import QiskitAquaTestCase
 import numpy as np
-from parameterized import parameterized
+from ddt import ddt, idata, unpack
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import MatrixOperator, WeightedPauliOperator, op_converter
@@ -55,14 +55,16 @@ PAULI_DICT_ZZ = {
 QUBIT_OP_ZZ = WeightedPauliOperator.from_dict(PAULI_DICT_ZZ)
 
 
+@ddt
 class TestQPE(QiskitAquaTestCase):
     """QPE tests."""
 
-    @parameterized.expand([
+    @idata([
         [QUBIT_OP_SIMPLE, 'qasm_simulator', 1, 5],
         [QUBIT_OP_ZZ, 'statevector_simulator', 1, 1],
         [QUBIT_OP_H2_WITH_2_QUBIT_REDUCTION, 'statevector_simulator', 1, 6],
     ])
+    @unpack
     def test_qpe(self, qubit_op, simulator, num_time_slices, n_ancillae):
         """ QPE test """
         self.log.debug('Testing QPE')

@@ -17,7 +17,7 @@
 import unittest
 from test.aqua import QiskitAquaTestCase
 import numpy as np
-from parameterized import parameterized
+from ddt import ddt, idata, data, unpack
 from qiskit import QuantumRegister, QuantumCircuit, BasicAer, execute
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.components.iqfts import Standard
@@ -110,6 +110,7 @@ class SineIntegralAFactory(UncertaintyProblem):
             qc.cry(2 * 2**i / 2**n, q_i, q_objective)
 
 
+@ddt
 class TestBernoulli(QiskitAquaTestCase):
     """Tests based on the Bernoulli A operator.
 
@@ -133,7 +134,7 @@ class TestBernoulli(QiskitAquaTestCase):
 
         self._qasm = qasm
 
-    @parameterized.expand([
+    @idata([
         [0.2, AmplitudeEstimation(2), {'estimation': 0.5, 'mle': 0.2}],
         [0.4, AmplitudeEstimation(4), {'estimation': 0.30866, 'mle': 0.4}],
         [0.82, AmplitudeEstimation(5), {'estimation': 0.85355, 'mle': 0.82}],
@@ -147,6 +148,7 @@ class TestBernoulli(QiskitAquaTestCase):
         [0.82, IterativeAmplitudeEstimation(0.00001, 0.05), {'estimation': 0.82}],
         [0.49, IterativeAmplitudeEstimation(0.001, 0.01), {'estimation': 0.49}]
     ])
+    @unpack
     def test_statevector(self, prob, qae, expect):
         """ statevector test """
         # construct factories for A and Q
@@ -159,7 +161,7 @@ class TestBernoulli(QiskitAquaTestCase):
             self.assertAlmostEqual(value, result[key], places=3,
                                    msg="estimate `{}` failed".format(key))
 
-    @parameterized.expand([
+    @idata([
         [0.2, 100, AmplitudeEstimation(4), {'estimation': 0.14644, 'mle': 0.193888}],
         [0.0, 1000, AmplitudeEstimation(2), {'estimation': 0.0, 'mle': 0.0}],
         [0.8, 10, AmplitudeEstimation(7), {'estimation': 0.79784, 'mle': 0.801612}],
@@ -170,6 +172,7 @@ class TestBernoulli(QiskitAquaTestCase):
         [0.4, 1000, IterativeAmplitudeEstimation(0.001, 0.05), {'estimation': 0.400071}],
         [0.8, 10, IterativeAmplitudeEstimation(0.1, 0.05), {'estimation': 0.811711}]
     ])
+    @unpack
     def test_qasm(self, prob, shots, qae, expect):
         """ qasm test """
         # construct factories for A and Q
@@ -182,9 +185,10 @@ class TestBernoulli(QiskitAquaTestCase):
             self.assertAlmostEqual(value, result[key], places=3,
                                    msg="estimate `{}` failed".format(key))
 
-    @parameterized.expand([
+    @idata([
         [True], [False]
     ])
+    @unpack
     def test_qae_circuit(self, efficient_circuit):
         """Test circuits resulting from canonical amplitude estimation.
 
@@ -230,9 +234,10 @@ class TestBernoulli(QiskitAquaTestCase):
             diff = np.sum(np.abs(actual_unitary - expected_unitary))
             self.assertAlmostEqual(diff, 0)
 
-    @parameterized.expand([
+    @idata([
         [True], [False]
     ])
+    @unpack
     def test_iqae_circuits(self, efficient_circuit):
         """Test circuits resulting from iterative amplitude estimation.
 
@@ -270,9 +275,10 @@ class TestBernoulli(QiskitAquaTestCase):
             diff = np.sum(np.abs(actual_unitary - expected_unitary))
             self.assertAlmostEqual(diff, 0)
 
-    @parameterized.expand([
+    @idata([
         [True], [False]
     ])
+    @unpack
     def test_mlae_circuits(self, efficient_circuit):
         """ Test the circuits constructed for MLAE """
         prob = 0.5
@@ -317,6 +323,7 @@ class TestBernoulli(QiskitAquaTestCase):
                 self.assertAlmostEqual(diff, 0)
 
 
+@ddt
 class TestProblemSetting(QiskitAquaTestCase):
     """Test the setting and getting of the A and Q operator and the objective qubit index."""
 
@@ -331,11 +338,12 @@ class TestProblemSetting(QiskitAquaTestCase):
         self.q_intergal = QFactory(self.a_integral, num_qubits)
         self.i_intergal = num_qubits
 
-    @parameterized.expand([
+    @idata([
         [AmplitudeEstimation(2)],
         [IterativeAmplitudeEstimation(0.1, 0.001)],
         [MaximumLikelihoodAmplitudeEstimation(3)],
     ])
+    @unpack
     def test_operators(self, qae):
         """ Test if A/Q operator + i_objective set correctly """
         self.assertIsNone(qae.a_factory)
@@ -369,11 +377,12 @@ class TestProblemSetting(QiskitAquaTestCase):
         self.assertIsNotNone(qae._q_factory)
         self.assertIsNotNone(qae._i_objective)
 
-    @parameterized.expand([
+    @idata([
         [AmplitudeEstimation(2)],
         [IterativeAmplitudeEstimation(0.1, 0.001)],
         [MaximumLikelihoodAmplitudeEstimation(3)],
     ])
+    @unpack
     def test_a_factory_update(self, qae):
         """Test if the Q factory is updated if the a_factory changes -- except set manually."""
         # Case 1: Set to BernoulliAFactory with default Q operator
@@ -399,6 +408,7 @@ class TestProblemSetting(QiskitAquaTestCase):
         self.assertEqual(qae.i_objective, self.i_bernoulli)
 
 
+@ddt
 class TestSineIntegral(QiskitAquaTestCase):
     """Tests based on the A operator to integrate sin^2(x).
 
@@ -420,11 +430,12 @@ class TestSineIntegral(QiskitAquaTestCase):
 
         self._qasm = qasm
 
-    @parameterized.expand([
+    @idata([
         [2, AmplitudeEstimation(2), {'estimation': 0.5, 'mle': 0.270290}],
         [4, MaximumLikelihoodAmplitudeEstimation(4), {'estimation': 0.272675}],
         [3, IterativeAmplitudeEstimation(0.1, 0.1), {'estimation': 0.272082}],
     ])
+    @unpack
     def test_statevector(self, n, qae, expect):
         """ Statevector end-to-end test """
         # construct factories for A and Q
@@ -436,11 +447,12 @@ class TestSineIntegral(QiskitAquaTestCase):
             self.assertAlmostEqual(value, result[key], places=3,
                                    msg="estimate `{}` failed".format(key))
 
-    @parameterized.expand([
+    @idata([
         [4, 10, AmplitudeEstimation(2), {'estimation': 0.5, 'mle': 0.333333}],
         [3, 10, MaximumLikelihoodAmplitudeEstimation(2), {'estimation': 0.256878}],
         [3, 1000, IterativeAmplitudeEstimation(0.01, 0.01), {'estimation': 0.271790}],
     ])
+    @unpack
     def test_qasm(self, n, shots, qae, expect):
         """QASM simulator end-to-end test."""
         # construct factories for A and Q
@@ -452,7 +464,7 @@ class TestSineIntegral(QiskitAquaTestCase):
             self.assertAlmostEqual(value, result[key], places=3,
                                    msg="estimate `{}` failed".format(key))
 
-    @parameterized.expand([
+    @idata([
         [AmplitudeEstimation(3), 'mle',
          {'likelihood_ratio': [0.24947346406470136, 0.3003771197734433],
           'fisher': [0.24861769995820207, 0.2999286066724035],
@@ -463,6 +475,7 @@ class TestSineIntegral(QiskitAquaTestCase):
           'fisher': [0.2584889015125656, 0.2797018754936686],
           'observed_fisher': [0.2659279996107888, 0.2722627773954454]}],
     ])
+    @unpack
     def test_confidence_intervals(self, qae, key, expect):
         """End-to-end test for all confidence intervals."""
         n = 3
@@ -508,12 +521,11 @@ class TestSineIntegral(QiskitAquaTestCase):
         self.assertTrue(confint[0] <= result['estimation'] <= confint[1])
 
 
+@ddt
 class TestCreditRiskAnalysis(QiskitAquaTestCase):
     """Test a more difficult example, motived from Credit Risk Analysis."""
 
-    @parameterized.expand([
-        'statevector_simulator'
-    ])
+    @data('statevector_simulator')
     def test_conditional_value_at_risk(self, simulator):
         """ conditional value at risk test """
         # define backend to be used

@@ -18,7 +18,7 @@ import unittest
 import itertools
 import math
 from test.aqua import QiskitAquaTestCase
-from parameterized import parameterized
+from ddt import ddt, idata, unpack
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.components.oracles import TruthTableOracle
@@ -30,11 +30,11 @@ OPTIMIZATIONS = [True, False]
 SIMULATORS = ['statevector_simulator', 'qasm_simulator']
 
 
+@ddt
 class TestBernsteinVazirani(QiskitAquaTestCase):
     """ Test Bernstein Vazirani """
-    @parameterized.expand(
-        itertools.product(BITMAPS, MCT_MODES, OPTIMIZATIONS, SIMULATORS)
-    )
+    @idata(itertools.product(BITMAPS, MCT_MODES, OPTIMIZATIONS, SIMULATORS))
+    @unpack
     def test_bernstein_vazirani(self, bv_input, mct_mode, optimization, simulator):
         """ Bernstein Vazirani test """
         nbits = int(math.log(len(bv_input), 2))

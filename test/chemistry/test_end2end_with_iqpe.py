@@ -17,7 +17,7 @@
 import unittest
 from test.chemistry import QiskitChemistryTestCase
 import numpy as np
-from parameterized import parameterized
+from ddt import ddt, idata, unpack
 import qiskit
 from qiskit.aqua.utils import decimal_to_binary
 from qiskit.aqua import QuantumInstance
@@ -29,14 +29,16 @@ from qiskit.chemistry import FermionicOperator, QiskitChemistryError
 from qiskit.chemistry.components.initial_states import HartreeFock
 
 
+@ddt
 class TestIQPE(QiskitChemistryTestCase):
     """IQPE tests."""
 
-    @parameterized.expand([
+    @idata([
         [0.5],
         [0.735],
         [1],
     ])
+    @unpack
     def test_iqpe(self, distance):
         """ iqpe test """
         self.log.debug('Testing End-to-End with IQPE on H2 with '

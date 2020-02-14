@@ -18,7 +18,7 @@ import unittest
 from test.optimization import QiskitOptimizationTestCase
 
 import numpy as np
-from parameterized import parameterized
+from ddt import ddt, idata, unpack
 from qiskit import BasicAer
 
 from qiskit.optimization.ising import max_cut
@@ -54,12 +54,14 @@ M2 = None
 S2 = {'1011', '0100'}
 
 
+@ddt
 class TestQAOA(QiskitOptimizationTestCase):
     """Test QAOA with MaxCut."""
-    @parameterized.expand([
+    @idata([
         [W1, P1, M1, S1],
         [W2, P2, M2, S2],
     ])
+    @unpack
     def test_qaoa(self, w, prob, m, solutions):
         """ QAOA test """
         seed = 0
