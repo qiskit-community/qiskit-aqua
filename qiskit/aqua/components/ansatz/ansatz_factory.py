@@ -12,8 +12,14 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""The Ansatz class."""
+"""The Ansatz class.
 
+TODO
+    * store ccts instead of gates?
+        - Reverting to ccts in future anyways
+"""
+
+from __future__ import annotations  # to use the type hint 'Ansatz' in the class itself
 from typing import Union, Optional, List
 
 import numbers
@@ -48,15 +54,29 @@ class Ansatz:
             insert_barriers: If True, barriers are inserted in between each layer/gate. If False,
                 no barriers are inserted.
 
+        Raises:
+            TypeError: If `gates` contains an unsupported object.
+
         Examples:
             todo
         """
 
         # get gates in the right format
-        if isinstance(gates, Gate):  # convert gates to a list if necessary (or use hasattr)
-            self._gates = [gates]
-        elif gates is None:
-            self._gates = []
+        if gates is None:
+            gates = []
+
+        # TODO cannot do check for __len__ since a single QC also has a __len__ attribute
+        if isinstance(gates, Instruction) or hasattr(gates, 'to_instruction'):
+            gates = [gates]
+
+        self._gates = []
+        for gate in gates:
+            if isinstance(gate, Instruction):
+                self._gates += [gate]
+            elif hasattr(gate, 'to_instruction'):
+                self._gates += [gate.to_instruction()]
+            else:
+                raise TypeError('Appending objects of type {} is not supported.'.format(type(gate)))
 
         # get reps in the right format
         if reps is None:  # if reps is None, set it to [0, .., len(num_gates) - 1]
@@ -75,7 +95,7 @@ class Ansatz:
             self._qargs = qubit_indices
 
         # maximum number of qubits
-        self._num_qubits = numpy.max(self._qargs) if len(self._qargs) > 0 else 0
+        self._num_qubits = int(numpy.max(self._qargs) + 1 if len(self._qargs) > 0 else 0)
 
         # insert barriers?
         self._insert_barriers = insert_barriers
@@ -90,7 +110,7 @@ class Ansatz:
         Returns:
             The number of qubits.
         """
-        return self._num_qubits
+        return int(self._num_qubits)
 
     @property
     def params(self) -> Union[List[float], List[Parameter]]:
@@ -158,7 +178,7 @@ class Ansatz:
                 circuit = QuantumCircuit()
 
             else:
-                circuit = QuantumCircuit(self._num_qubits)
+                circuit = QuantumCircuit(self.num_qubits)
 
                 # add the gates, if they are specified
                 if len(self._reps) > 0:
@@ -175,6 +195,22 @@ class Ansatz:
             self._circuit = circuit
 
         return self._circuit
+
+    def __add__(self, other: Union[Ansatz, Instruction, QuantumCircuit]) -> Ansatz:
+        """Overloading + for convenience.
+
+        This presumes list(range(other.num_qubits)) as qubit indices and calls self.append().
+
+        Args:
+            other: The object to append.
+
+        Raises:
+            TypeError: If the added type is unsupported.
+
+        Returns:
+            self
+        """
+        return self.append(other)
 
     def __repr__(self) -> str:
         """Draw this Ansatz in circuit format using the standard gates.
@@ -203,7 +239,7 @@ class Ansatz:
         Args:
             insert_barriers: If True, barriers are inserted, if False not.
         """
-        # if insert_barriers changes, we have to invalide the circuit definition,
+        # if insert_barriers changes, we have to invalidate the circuit definition,
         # if it is the same as before we can leave the Ansatz instance as it is
         if insert_barriers is not self._insert_barriers:
             self._circuit = None
@@ -220,7 +256,7 @@ class Ansatz:
     def to_gate(self) -> Gate:
         """Convert this Ansatz into a Gate, if possible.
 
-        If the Ansatz contains only unitary operations (i.e. neither measurements nor barriers)
+        If the Ansatz contains only unitary operations(i.e. neither measurements nor barriers)
         return this Ansatz as a Gate.
 
         Returns:
@@ -232,34 +268,58 @@ class Ansatz:
         try:
             return self.to_circuit().to_gate()
         except QiskitError:
-            raise AquaError('The Ansatz contains non-unitary operations (e.g. barriers or '
+            raise AquaError('The Ansatz contains non-unitary operations (e.g. barriers, resets or '
                             'measurements) and cannot be converted to a Gate!')
 
-    def append(self, gate: Gate, qubit_indices: Optional[List[int]] = None) -> None:
-        """Append another gate to the Ansatz.
+    def append(self,
+               other: Union[Ansatz, Instruction, QuantumCircuit],
+               qubit_indices: Optional[List[int]] = None
+               ) -> Ansatz:
+        """Append another layer to the Ansatz.
 
         Args:
-            gate: The gate to append.
-            qubit_indices: The qubit indices where to append the gate to.
-                Defaults to the first `n` qubits, where `n` is the number of qubits the gate acts
+            other: The layer to append, can be another Ansatz, an Instruction(hence also a Gate),
+                or a QuantumCircuit.
+            qubit_indices: The qubit indices where to append the layer to.
+                Defaults to the first `n` qubits, where `n` is the number of qubits the layer acts
                 on.
 
-        Note:
-            TODO make it work if the width of gate exceeds the current num qubits
+        Returns:
+            self, such that chained appends are possible.
+
+        Raises:
+            TypeError: If `other` is not compatible, i.e. is no Instruction and does not have a
+                `to_instruction` method.
         """
-        # keep track of the input
-        self._gates += [gate]
+        # add other to the list of gates
+        if isinstance(other, Instruction):
+            self._gates += [other]
+        elif hasattr(other, 'to_instruction'):
+            self._gates += [other.to_instruction()]
+        else:
+            raise TypeError('Appending objects of type {} is not supported.'.format(type(other)))
+
+        # keep track of which gates to add to the Ansatz
         self._reps += [len(self._gates) - 1]
+
+        # define the the qubit indices
+        self._qargs += [qubit_indices or list(range(self._gates[-1].num_qubits))]
+
+        # retrieve number of qubits
+        num_qubits = max(self._qargs[-1]) + 1
 
         # We can have two cases: the appended gate fits onto the current Ansatz (i.e. has
         # less of equal number of qubits), or exceeds the number of qubits.
         # In the latter case we have to add an according offset to the qubit indices.
-
-        self._qargs += [qubit_indices or list(range(gate.num_qubits))]
-        print('qargs:', self._qargs[-1])
+        # Since we cannot append a circuit of larger size to an existing circuit we have to rebuild
+        if num_qubits > self.num_qubits:
+            self._num_qubits = num_qubits
+            self._circuit = None  # rebuild circuit
 
         # modify the circuit accordingly
         if self._circuit is None:
             _ = self.to_circuit()  # automatically constructed
         else:
             self._circuit.append(self._gates[-1], self._qargs[-1], [])  # append gate
+
+        return self
