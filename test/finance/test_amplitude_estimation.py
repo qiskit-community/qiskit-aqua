@@ -153,6 +153,7 @@ class TestEuropeanCallOption(QiskitFinanceTestCase):
                                    msg="estimate `{}` failed".format(key))
 
 
+@ddt
 class TestFixedIncomeAssets(QiskitFinanceTestCase):
     """ Test Fixed Income Assets """
 
