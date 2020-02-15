@@ -320,6 +320,8 @@ class Ansatz:
         if self._circuit is None:
             _ = self.to_circuit()  # automatically constructed
         else:
+            if self._insert_barriers and len(self._reps) > 1:
+                self._circuit.barrier()
             self._circuit.append(self._gates[-1], self._qargs[-1], [])  # append gate
 
         return self
