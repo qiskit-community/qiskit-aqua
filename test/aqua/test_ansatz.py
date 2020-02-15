@@ -21,8 +21,10 @@ from ddt import ddt, data, unpack
 from qiskit import QuantumCircuit, transpile
 from qiskit.circuit.random.utils import random_circuit
 from qiskit.extensions.standard import XGate, RXGate, CrxGate
+from qiskit.quantum_info import Pauli
 
-from qiskit.aqua.components.ansatz import Ansatz
+from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator
+from qiskit.aqua.components.ansatz import Ansatz, OperatorAnsatz
 
 from test.aqua import QiskitAquaTestCase
 
@@ -34,6 +36,7 @@ class TestAnsatz(QiskitAquaTestCase):
         super().setUp()
 
     def assertCircuitEqual(self, a, b, visual=False, verbosity=0, transpiled=True):
+        """An equality test specialized to circuits."""
         basis_gates = ['id', 'u1', 'u3', 'cx']
         a_transpiled = transpile(a, basis_gates=basis_gates)
         b_transpiled = transpile(b, basis_gates=basis_gates)
@@ -162,6 +165,33 @@ class TestAnsatz(QiskitAquaTestCase):
             new_ansatz = ansatz + other
             with self.subTest(msg='type: {}'.format(type(other))):
                 self.assertCircuitEqual(new_ansatz.to_circuit(), reference, verbosity=2)
+
+
+class TestRY(QiskitAquaTestCase):
+    pass
+
+
+@ddt
+class TestOperatorAnsatz(QiskitAquaTestCase):
+    @data(['X'], ['ZXX', 'XYX', 'ZII'])
+    def test_from_pauli_operator(self, pauli_labels):
+        paulis = [Pauli.from_label(label) for label in pauli_labels]
+        op = WeightedPauliOperator.from_list(paulis)
+        num_qubits = len(pauli_labels[0])
+        ansatz = OperatorAnsatz(num_qubits, op)
+        print(ansatz)
+
+    def test_multiple_operators(self):
+        pauli_labels = ['ZXX', 'XYX', 'ZII']
+        ops = [WeightedPauliOperator.from_list([Pauli.from_label(label)]) for label in pauli_labels]
+        num_qubits = len(pauli_labels[0])
+        ansatz = OperatorAnsatz(num_qubits, ops, insert_barriers=True)
+        print('barriers?', ansatz._insert_barriers)
+        print('layers:', len(ansatz._gates))
+        print(ansatz)
+
+    def test_matrix_operator(self):
+        pass
 
 
 if __name__ == '__main__':
