@@ -881,7 +881,8 @@ class WeightedPauliOperator(BaseOperator):
         return qc
 
     def evolve_instruction(self, evo_time=0, num_time_slices=1,
-                           expansion_mode='trotter', expansion_order=1):
+                           expansion_mode='trotter', expansion_order=1,
+                           use_basis_gates=True):
         """
         Carry out the eoh evolution for the operator under supplied specifications.
 
@@ -894,6 +895,8 @@ class WeightedPauliOperator(BaseOperator):
                 and 'suzuki', which corresponds to the discussion in
                 https://arxiv.org/pdf/quant-ph/0508139.pdf
             expansion_order (int): The order for suzuki expansion
+            use_basis_gates (bool): If True, use U1/U2/U3 gates for the evolution instruction,
+                otherwise use the Pauli/Clifford gates
 
         Returns:
             QuantumCircuit: The constructed QuantumCircuit.
@@ -925,7 +928,8 @@ class WeightedPauliOperator(BaseOperator):
                     1,
                     expansion_order
                 )
-        instruction = evolution_instruction(slice_pauli_list, evo_time, num_time_slices)
+        instruction = evolution_instruction(slice_pauli_list, evo_time, num_time_slices,
+                                            use_basis_gates=use_basis_gates)
         return instruction
 
 
