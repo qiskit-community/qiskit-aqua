@@ -45,8 +45,6 @@ class RY(TwoLocalAnsatz):
                 If a list of gates is provided, all gates are applied to each qubit in the provided
                 order.
                 See the Examples section for more detail.
-            entanglement_gates: The gates used in the entanglement layer. Can be specified in
-                the same format as `rotation_gates`.
             entanglement: Specifies the entanglement structure. Can be a string ('full', 'linear'
                 or 'sca'), a list of integer-pairs specifying the indices of qubits
                 entangled with one another, or a callable returning such a list provided with
@@ -68,30 +66,29 @@ class RY(TwoLocalAnsatz):
                 ansatz. If False, no rotation layer is added. Defaults to True.
 
         Examples:
-            >>> ansatz = TwoLocalAnsatz(3, 'ry', 'cx', 'linear', reps=2, insert_barriers=True)
-            >>> qc = QuantumCircuit(3)  # create a circuit and append the Ansatz
-            >>> qc += ansatz.to_circuit()
+            >>> ry = RY(3)  # create the variational form on 3 qubits
+            >>> print(ry)  # show the circuit
+            TODO: circuit diagram
+
+            >>> ry = RY(3, entanglement='linear', reps=2, insert_barriers=True)
+            >>> qc = QuantumCircuit(3)  # create a circuit and append the RY variational form
+            >>> qc += ry.to_circuit()
             >>> qc.draw()
             TODO: circuit diagram
 
-            >>> ansatz = TwoLocalAnsatz(3, ['ry', 'rz'], 'cz', 'full', reps=2, insert_barriers=True)
-            >>> ansatz.to_circuit().draw()  # quick way of plotting the Ansatz
+            >>> rycrx = RY(2, entanglement_gate='crx', 'sca', reps=2, insert_barriers=True)
+            >>> print(rycrx)
             TODO: circuit diagram
 
             >>> entangler_map = [[0, 1], [1, 2], [2, 0]]  # circular entanglement for 3 qubits
-            >>> ansatz = TwoLocalAnsatz(3, 'x', 'crx', entangler_map, reps=2)
-            >>> ansatz.to_circuit().draw()
+            >>> ry = RY(3, 'cx', entangler_map, reps=2)
+            >>> print(ry)
             TODO: circuit diagram
 
-            >>> entangler_map = [[0, 3], [3, 0]]  # entangle the first and last two-way
-            >>> ansatz = TwoLocalAnsatz(4, [], 'cry', entangler_map, reps=2)
-            >>> circuit = ansatz.to_circuit() + ansatz.to_circuit()  # add two Ansaetze
-            >>> circuit.draw()
-            TODO: circuit diagram
-
-            >>> ansatz = TwoLocalAnsatz(3, 'ry', 'cx', 'linear', final_rotation_layer=False)
-            >>> ansatz.to_circuit().draw()
-            TODO: circuit diagram
+            >>> ry_linear = RY(2, entanglement='linear', reps=1)
+            >>> ry_full = RY(2, entanglement='full', reps=1)
+            >>> my_ry = ry_linear + ry_full
+            >>> print(my_ry)
         """
         super().__init__(num_qubits,
                          rotation_gates=RYGate,
