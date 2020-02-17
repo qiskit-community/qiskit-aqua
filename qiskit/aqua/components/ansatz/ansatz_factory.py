@@ -17,10 +17,13 @@
 TODO
     * store ccts instead of gates?
         - Reverting to ccts in future anyways
+    * add transpile feature?
+    * add params argument to to_circuit?
+    * copy input layers? probably we should
 """
 
 from __future__ import annotations  # to use the type hint 'Ansatz' in the class itself
-from typing import Union, Optional, List
+from typing import Union, Optional, List, Any
 
 import numbers
 import numpy
@@ -29,10 +32,54 @@ from qiskit.circuit import Gate, Instruction, Parameter, ParameterVector
 from qiskit.aqua import AquaError
 
 
+def _extract_parameter_list(circuit: QuantumCircuit) -> List[Parameter]:
+    """Fully unroll the circuit and extract a list of every single parameter.
+
+    Args:
+        circuit: The circuit from which to extract the parameter list from.
+
+    Returns:
+        A list of all parameters, including duplicates.
+    """
+
+    basis_gates = ['id', 'x', 'y', 'z', 'h', 's', 't', 'sdg', 'tdg', 'rx', 'ry', 'rz',
+                   'cx', 'cy', 'cz', 'ch', 'crx', 'cry', 'crz', 'swap', 'cswap',
+                   'toffoli', 'u1', 'u2', 'u3']
+    decomposed = transpile(circuit, basis_gates=basis_gates, optimization_level=0)
+
+    params = []
+    for instruction, _, _ in decomposed.data:
+        if len(instruction.params) > 0:
+            params += instruction.params
+
+    return params
+
+
+def _inject_parameter_list(circuit: QuantumCircuit,
+                           parameters: Union[List[float], List[Parameter], ParameterVector]
+                           ) -> None:
+    """Set the parameters."""
+
+    basis_gates = ['id', 'x', 'y', 'z', 'h', 's', 't', 'sdg', 'tdg', 'rx', 'ry', 'rz',
+                   'cx', 'cy', 'cz', 'ch', 'crx', 'cry', 'crz', 'swap', 'cswap',
+                   'toffoli', 'u1', 'u2', 'u3']
+    decomposed = transpile(circuit, basis_gates=basis_gates, optimization_level=0)
+
+    counter = 0
+    for instruction, _, _ in decomposed.data:
+        if len(instruction.params) > 0:
+            instruction.params = [parameters[counter]]
+            counter += 1
+
+    return decomposed
+
+
 class Ansatz:
     """The Ansatz class.
 
-    TODO
+    Attributes:
+        blocks: The single building blocks of the Ansatz.
+        params: The parameters of the Ansatz.
     """
 
     def __init__(self,
@@ -60,23 +107,19 @@ class Ansatz:
         Examples:
             todo
         """
+        # insert barriers?
+        self._insert_barriers = insert_barriers
 
         # get gates in the right format
         if gates is None:
             gates = []
 
-        # TODO cannot do check for __len__ since a single QC also has a __len__ attribute
-        if isinstance(gates, Instruction) or hasattr(gates, 'to_instruction'):
+        if not isinstance(gates, (list, numpy.ndarray)):
             gates = [gates]
 
         self._gates = []
         for gate in gates:
-            if isinstance(gate, Instruction):
-                self._gates += [gate]
-            elif hasattr(gate, 'to_instruction'):
-                self._gates += [gate.to_instruction()]
-            else:
-                raise TypeError('Appending objects of type {} is not supported.'.format(type(gate)))
+            self._gates += [self._convert_to_block(gate)]
 
         # get reps in the right format
         if reps is None:  # if reps is None, set it to [0, .., len(num_gates) - 1]
@@ -97,11 +140,32 @@ class Ansatz:
         # maximum number of qubits
         self._num_qubits = int(numpy.max(self._qargs) + 1 if len(self._qargs) > 0 else 0)
 
-        # insert barriers?
-        self._insert_barriers = insert_barriers
+        # set the parameters
+        self._params = []
+        for idx in self._reps:
+            self._params += self._gates[idx].params
 
         # keep track of the circuit
         self._circuit = None
+
+    def _convert_to_block(self, layer: Any) -> Instruction:
+        """Try to convert `layer` to an Instruction.
+
+        Args:
+            layer: The object to be converted to an Ansatz block / Instruction.
+
+        Raises:
+            TypeError: If the input cannot be converted to an Instruction.
+
+        Returns:
+            The layer converted to an Instruction.
+        """
+        if isinstance(layer, Instruction):
+            return layer
+        elif hasattr(layer, 'to_instruction'):
+            return layer.to_instruction()
+        else:
+            raise TypeError('Adding a {} to an Ansatz is not supported.'.format(type(layer)))
 
     @property
     def num_qubits(self) -> int:
@@ -119,13 +183,10 @@ class Ansatz:
         Returns:
             A list containing the parameters.
         """
-        if self._circuit is None:
-            return []
-
-        return list(self._circuit.parameters)
+        return self._params
 
     @params.setter
-    def params(self, params: Union[List[float], List[Parameter], ParameterVector]) -> None:
+    def params(self, params: Union[dict, List[float], List[Parameter], ParameterVector]) -> None:
         """Set the parameters of the Ansatz.
 
         Args:
@@ -136,23 +197,41 @@ class Ansatz:
                 parameters of the Ansatz.
             TypeError: If the type of `params` is not supported.
         """
-        if len(params) != len(self.params):
+        # TODO figure out whether it is more efficient to iterate over the list and check for
+        # values in the dictionary, or iterate over the dictionary and find the according value
+        # in the list. Random access via element should be much faster in the dictionary, probably.
+        if isinstance(params, dict):
+            new_params = self._params
+            for i, current_param in enumerate(self._params):
+                # try to get the new value, if there is none, use the current value
+                new_params[i] = params.get(current_param, self._params[i])
+        else:
+            new_params = params
+
+        if len(new_params) != len(self._params):
             raise ValueError('Mismatching number of parameters!')
 
-        # if the provided parameters are real values, bind them
-        if all(isinstance(param, numbers.Real) for param in params):
-            param_dict = dict(zip(self.params, params))
-            self._circuit = self._circuit.bind_parameters(param_dict)
+        self._update_parameter_list(new_params)
 
-        # if they are new parameters, replace them in the circuit
-        elif all(isinstance(param, Parameter) for param in params) \
-                or isinstance(params, ParameterVector):
-            param_dict = dict(zip(self.params, params))
-            self._circuit._substitute_parameters(param_dict)
+    def _update_parameter_list(self, params):
+        """Updates the parameter list and propagates the changes down to the circuit.
 
-        # otherwise the input type is not supported
-        else:
-            raise TypeError('Unsupported type of `params`.')
+        Assumes that the input list equals the length of the parameters in the Ansatz.
+        """
+        self._params = params
+
+        # update the parameters in the blocks
+        count = 0
+        for gate in self._gates:
+            gate.params = params[count:count + len(gate.params)]
+            count += len(gate.params)
+
+        # update the parameters in the circuit
+        if self._circuit is not None:
+            count = 0
+            for instruction, _, _ in self._circuit.data:
+                instruction.params = params[count:count + len(instruction.params)]
+                count += len(instruction.params)
 
     @property
     def num_parameters(self) -> int:
@@ -162,6 +241,19 @@ class Ansatz:
             The number of parameters.
         """
         return len(self.params)
+
+    def construct_circuit(self, params: Union[List[float], List[Parameter], ParameterVector]
+                          ) -> QuantumCircuit:
+        """Deprecated, use `to_circuit()` -- supporting backward compatibility.
+
+        Args:
+            params: The parameters for the Ansatz.
+
+        Returns:
+            The Ansatz as circuit.
+        """
+        self.params = params
+        return self.to_circuit()
 
     def to_circuit(self) -> QuantumCircuit:
         """Convert the Ansatz into a circuit.
@@ -292,12 +384,9 @@ class Ansatz:
                 `to_instruction` method.
         """
         # add other to the list of gates
-        if isinstance(other, Instruction):
-            self._gates += [other]
-        elif hasattr(other, 'to_instruction'):
-            self._gates += [other.to_instruction()]
-        else:
-            raise TypeError('Appending objects of type {} is not supported.'.format(type(other)))
+        block = self._convert_to_block(other)
+        self._gates += [block]
+        self._params += block.params
 
         # keep track of which gates to add to the Ansatz
         self._reps += [len(self._gates) - 1]
