@@ -23,7 +23,10 @@ from qiskit.aqua.operators.op_converter import to_weighted_pauli_operator
 
 
 class OperatorAnsatz(Ansatz):
-    """TODO"""
+    """The operator ansatz.
+
+    TODO Dedicated to QAOA etc.
+    """
 
     def __init__(self,
                  operators: Union[BaseOperator, List[BaseOperator]],
@@ -63,7 +66,7 @@ class OperatorAnsatz(Ansatz):
         for param, operator in zip(params, operators):
             evolution_layers += [self._get_evolution_layer(operator, param)]
 
-        super().__init__(gates=evolution_layers,
+        super().__init__(blocks=evolution_layers,
                          qubit_indices=qubit_indices,
                          insert_barriers=insert_barriers)
 

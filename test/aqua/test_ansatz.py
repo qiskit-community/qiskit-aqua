@@ -16,9 +16,11 @@
 
 
 import unittest
+import numpy as np
 from ddt import ddt, data, unpack
 
 from qiskit import QuantumCircuit, transpile
+from qiskit.circuit import Parameter
 from qiskit.circuit.random.utils import random_circuit
 from qiskit.extensions.standard import XGate, RXGate, CrxGate
 from qiskit.quantum_info import Pauli
@@ -31,6 +33,8 @@ from test.aqua import QiskitAquaTestCase
 
 @ddt
 class TestAnsatz(QiskitAquaTestCase):
+    """Tests for the Ansatz class."""
+
     def setUp(self):
         pass
         super().setUp()
@@ -70,13 +74,14 @@ class TestAnsatz(QiskitAquaTestCase):
             self.assertEqual(a, b)
 
     def test_empty_ansatz(self):
+        """Test the creation of an empty Ansatz."""
         ansatz = Ansatz()
         self.assertEqual(ansatz.num_qubits, 0)
         self.assertEqual(ansatz.num_parameters, 0)
 
         self.assertEqual(ansatz.to_circuit(), QuantumCircuit())
 
-        for attribute in [ansatz._gates, ansatz._qargs, ansatz._reps]:
+        for attribute in [ansatz._blocks, ansatz._qargs, ansatz._reps]:
             self.assertEqual(len(attribute), 0)
 
     @data(
@@ -85,6 +90,7 @@ class TestAnsatz(QiskitAquaTestCase):
         [(RXGate(0.2), [2]), (CrxGate(-0.2), [1, 3])],
     )
     def test_append_gates_to_empty_ansatz(self, gate_data):
+        """Test appending gates to an empty ansatz."""
         ansatz = Ansatz()
 
         max_num_qubits = 0
@@ -102,6 +108,7 @@ class TestAnsatz(QiskitAquaTestCase):
         [5, 3], [1, 5], [1, 1], [5, 1], [1, 2],
     )
     def test_append_circuit(self, num_qubits):
+        """Test appending circuits to an ansatz."""
         # fixed depth of 3 gates per circuit
         depth = 3
 
@@ -126,6 +133,7 @@ class TestAnsatz(QiskitAquaTestCase):
         [5, 3], [1, 5], [1, 1], [5, 1], [1, 2],
     )
     def test_append_ansatz(self, num_qubits):
+        """Test appending an ansatz to an ansatz."""
         # fixed depth of 3 gates per circuit
         depth = 3
 
@@ -147,6 +155,7 @@ class TestAnsatz(QiskitAquaTestCase):
         self.assertCircuitEqual(ansatz.to_circuit(), reference)
 
     def test_add_overload(self):
+        """Test the overloaded + operator."""
         num_qubits, depth = 2, 2
 
         # construct two circuits for adding
@@ -164,34 +173,68 @@ class TestAnsatz(QiskitAquaTestCase):
             ansatz = Ansatz(first_circuit)
             new_ansatz = ansatz + other
             with self.subTest(msg='type: {}'.format(type(other))):
-                self.assertCircuitEqual(new_ansatz.to_circuit(), reference, verbosity=2)
+                self.assertCircuitEqual(new_ansatz.to_circuit(), reference, verbosity=0)
+
+    def test_parameter_getter_and_setter(self):
+        """Test getting and setting of the ansatz parameters."""
+        a, b = Parameter('a'), Parameter('b')
+        circuit = QuantumCircuit(2)
+        circuit.ry(a, 0)
+        circuit.crx(b, 0, 1)
+
+        # repeat circuit and check that parameters are duplicated
+        reps = 3
+        ansatz = Ansatz(circuit, reps=reps)
+        expected_params = reps * [a, b]
+        self.assertEqual(expected_params, ansatz.params)
+
+
+class TestBackwardCompatibility(QiskitAquaTestCase):
+    """Tests to ensure that the variational forms and feature maps are backwards compatible."""
+
+    def test_varforms(self):
+        """Test the variational forms are backwards compatible."""
+        self.assertTrue(False)
+
+    def test_featmaps(self):
+        """Test the feature maps are backwards compatible."""
+        self.assertTrue(False)
 
 
 class TestRY(QiskitAquaTestCase):
-    pass
+    """Tests for the RY Ansatz."""
+
+    def test_circuit_diagrams(self):
+        """Test the resulting circuits via diagrams."""
+        self.assertTrue(False)
 
 
 @ddt
 class TestOperatorAnsatz(QiskitAquaTestCase):
+    """Tests for the operator ansatz."""
+
     @data(['X'], ['ZXX', 'XYX', 'ZII'])
     def test_from_pauli_operator(self, pauli_labels):
+        """Test creation of the operator ansatz from a single weighted pauli operator."""
         paulis = [Pauli.from_label(label) for label in pauli_labels]
         op = WeightedPauliOperator.from_list(paulis)
-        num_qubits = len(pauli_labels[0])
-        ansatz = OperatorAnsatz(num_qubits, op)
+        ansatz = OperatorAnsatz(op)
         print(ansatz)
 
     def test_multiple_operators(self):
+        """Test creation of the operator ansatz from multiple weighted pauli operators."""
         pauli_labels = ['ZXX', 'XYX', 'ZII']
         ops = [WeightedPauliOperator.from_list([Pauli.from_label(label)]) for label in pauli_labels]
-        num_qubits = len(pauli_labels[0])
-        ansatz = OperatorAnsatz(num_qubits, ops, insert_barriers=True)
-        print('barriers?', ansatz._insert_barriers)
-        print('layers:', len(ansatz._gates))
+        ansatz = OperatorAnsatz(ops, insert_barriers=True)
         print(ansatz)
 
     def test_matrix_operator(self):
-        pass
+        """Test the creation of the operator ansatz from a matrix operator."""
+        matrix_1 = np.array([[1, 1], [1, -1]]) / np.sqrt(2)
+        matrix_2 = np.array([[0, 1], [1, 0]])
+        op_1, op_2 = MatrixOperator(matrix_1), MatrixOperator(matrix_2)
+        ansatz = OperatorAnsatz([op_1, op_2])
+        print(ansatz)
 
 
 if __name__ == '__main__':

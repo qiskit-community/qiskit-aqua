@@ -83,26 +83,26 @@ class Ansatz:
     """
 
     def __init__(self,
-                 gates: Optional[Union[Gate, List[Gate]]] = None,
+                 blocks: Optional[Union[Gate, List[Gate]]] = None,
                  qubit_indices: Optional[Union[List[int], List[List[int]]]] = None,
                  reps: Optional[Union[int, List[int]]] = None,
                  insert_barriers: bool = False) -> None:
         """Initializer. Assumes that the type hints are obeyed for now.
 
         Args:
-            gates: The input gates. Can be a single gate, a list of gates, (or circuits?)
-            qubit_indices: The indices specifying on which qubits the input gates act. If None, for
-                each gate this is set to the first `n` qubits, where `n` is the number of qubits the
-                gate acts on.
-            reps: Specifies how the input gates are repeated. If an integer, all input gates
+            blocks: The input blocks. Can be a single gate, a list of gates, (or circuits?)
+            qubit_indices: The indices specifying on which qubits the input blocks act. If None, for
+                each block this is set to the first `n` qubits, where `n` is the number of qubits the
+                block acts on.
+            reps: Specifies how the input blocks are repeated. If an integer, all input blocks
                 are repeated `reps` times (in the provided order). If a list of
                 integers, `reps` determines the order of the layers in Ansatz using the elements
                 of `reps` as index. See the Examples section for more detail.
-            insert_barriers: If True, barriers are inserted in between each layer/gate. If False,
+            insert_barriers: If True, barriers are inserted in between each layer/block. If False,
                 no barriers are inserted.
 
         Raises:
-            TypeError: If `gates` contains an unsupported object.
+            TypeError: If `blocks` contains an unsupported object.
 
         Examples:
             todo
@@ -110,28 +110,28 @@ class Ansatz:
         # insert barriers?
         self._insert_barriers = insert_barriers
 
-        # get gates in the right format
-        if gates is None:
-            gates = []
+        # get blocks in the right format
+        if blocks is None:
+            blocks = []
 
-        if not isinstance(gates, (list, numpy.ndarray)):
-            gates = [gates]
+        if not isinstance(blocks, (list, numpy.ndarray)):
+            blocks = [blocks]
 
-        self._gates = []
-        for gate in gates:
-            self._gates += [self._convert_to_block(gate)]
+        self._blocks = []
+        for block in blocks:
+            self._blocks += [self._convert_to_block(block)]
 
         # get reps in the right format
-        if reps is None:  # if reps is None, set it to [0, .., len(num_gates) - 1]
-            self._reps = list(range(len(self._gates)))
-        elif isinstance(reps, int):  # if reps is an int, set it to reps * [0, ..., len(gates) - 1]
-            self._reps = reps * list(range(len(self._gates)))
+        if reps is None:  # if reps is None, set it to [0, .., len(num_blocks) - 1]
+            self._reps = list(range(len(self._blocks)))
+        elif isinstance(reps, int):  # if reps is an int, set it to reps * [0, ..., len(blocks) - 1]
+            self._reps = reps * list(range(len(self._blocks)))
         else:  # right format
             self._reps = reps
 
         # get qubit_indices in the right format (i.e. list of lists)
         if qubit_indices is None:
-            self._qargs = [list(range(gate.num_qubits)) for gate in self._gates]
+            self._qargs = [list(range(block.num_qubits)) for block in self._blocks]
         elif not isinstance(qubit_indices[0], list):
             self._qargs = [qubit_indices]
         else:  # right format
@@ -143,7 +143,7 @@ class Ansatz:
         # set the parameters
         self._params = []
         for idx in self._reps:
-            self._params += self._gates[idx].params
+            self._params += self._blocks[idx].params
 
         # keep track of the circuit
         self._circuit = None
@@ -222,9 +222,9 @@ class Ansatz:
 
         # update the parameters in the blocks
         count = 0
-        for gate in self._gates:
-            gate.params = params[count:count + len(gate.params)]
-            count += len(gate.params)
+        for block in self._blocks:
+            block.params = params[count:count + len(block.params)]
+            count += len(block.params)
 
         # update the parameters in the circuit
         if self._circuit is not None:
@@ -272,16 +272,16 @@ class Ansatz:
             else:
                 circuit = QuantumCircuit(self.num_qubits)
 
-                # add the gates, if they are specified
+                # add the blocks, if they are specified
                 if len(self._reps) > 0:
-                    # the first gate (separately so barriers can be inserted in the for-loop)
+                    # the first block (separately so barriers can be inserted in the for-loop)
                     idx = self._reps[0]
-                    circuit.append(self._gates[idx], self._qargs[idx])
+                    circuit.append(self._blocks[idx], self._qargs[idx])
 
                     for idx in self._reps[1:]:
                         if self._insert_barriers:  # insert barrier, if necessary
                             circuit.barrier()
-                        circuit.append(self._gates[idx], self._qargs[idx])  # add next layer
+                        circuit.append(self._blocks[idx], self._qargs[idx])  # add next layer
 
                 # store the circuit
             self._circuit = circuit
@@ -383,21 +383,21 @@ class Ansatz:
             TypeError: If `other` is not compatible, i.e. is no Instruction and does not have a
                 `to_instruction` method.
         """
-        # add other to the list of gates
+        # add other to the list of blocks
         block = self._convert_to_block(other)
-        self._gates += [block]
+        self._blocks += [block]
         self._params += block.params
 
-        # keep track of which gates to add to the Ansatz
-        self._reps += [len(self._gates) - 1]
+        # keep track of which blocks to add to the Ansatz
+        self._reps += [len(self._blocks) - 1]
 
         # define the the qubit indices
-        self._qargs += [qubit_indices or list(range(self._gates[-1].num_qubits))]
+        self._qargs += [qubit_indices or list(range(self._blocks[-1].num_qubits))]
 
         # retrieve number of qubits
         num_qubits = max(self._qargs[-1]) + 1
 
-        # We can have two cases: the appended gate fits onto the current Ansatz (i.e. has
+        # We can have two cases: the appended block fits onto the current Ansatz (i.e. has
         # less of equal number of qubits), or exceeds the number of qubits.
         # In the latter case we have to add an according offset to the qubit indices.
         # Since we cannot append a circuit of larger size to an existing circuit we have to rebuild
@@ -411,6 +411,6 @@ class Ansatz:
         else:
             if self._insert_barriers and len(self._reps) > 1:
                 self._circuit.barrier()
-            self._circuit.append(self._gates[-1], self._qargs[-1], [])  # append gate
+            self._circuit.append(self._blocks[-1], self._qargs[-1], [])  # append block
 
         return self
