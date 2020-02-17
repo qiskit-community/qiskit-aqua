@@ -50,7 +50,6 @@ class SwapRZ(TwoLocalAnsatz):
 
     def __init__(self,
                  num_qubits: int,
-                 entanglement_gates: Union[str, List[str], type, List[type]] = CzGate,
                  entanglement: Union[str, List[List[int]], callable] = 'full',
                  reps: Optional[int] = 3,
                  parameter_prefix: str = '_',
@@ -61,12 +60,6 @@ class SwapRZ(TwoLocalAnsatz):
 
         Args:
             num_qubits: The number of qubits of the Ansatz.
-            entanglement_gates: The gates used in the entanglement layer. Can be specified via the
-                name of a gate (e.g. 'cx') or the gate type itself (e.g. CnotGate).
-                If only one gate is provided, the gate same gate is applied to each qubit.
-                If a list of gates is provided, all gates are applied to each qubit in the provided
-                order.
-                See the Examples section for more detail.
             entanglement: Specifies the entanglement structure. Can be a string ('full', 'linear'
                 or 'sca'), a list of integer-pairs specifying the indices of qubits
                 entangled with one another, or a callable returning such a list provided with
@@ -88,28 +81,24 @@ class SwapRZ(TwoLocalAnsatz):
                 ansatz. If False, no rotation layer is added. Defaults to True.
 
         Examples:
-            >>> ry = RYRZ(3)  # create the variational form on 3 qubits
-            >>> print(ryrz)  # show the circuit
+            >>> swaprz = SwapRZ(3)  # create the variational form on 3 qubits
+            >>> print(swaprz)  # show the circuit
             TODO: circuit diagram
 
-            >>> ryrz = RYRZ(4, entanglement='full', reps=1)
+            >>> swaprz = SwapRZ(4, entanglement='full', reps=1)
             >>> qc = QuantumCircuit(3)  # create a circuit and append the RY variational form
-            >>> qc += ryrz.to_circuit()
+            >>> qc += swaprz.to_circuit()
             >>> qc.draw()
             TODO: circuit diagram
 
-            >>> ryrz_crx = RYRZ(2, entanglement_gate='crx', 'sca', reps=1, insert_barriers=True)
-            >>> print(ryrz_crx)
-            TODO: circuit diagram
-
             >>> entangler_map = [[0, 1], [1, 2], [2, 0]]  # circular entanglement for 3 qubits
-            >>> ry = RYRZ(3, 'cx', entangler_map, reps=2)
-            >>> print(ryrz)
+            >>> ry = SwapRZ(3, entangler_map, reps=2)
+            >>> print(swaprz)
             TODO: circuit diagram
 
-            >>> ryrz = RYRZ(2, entanglement='linear', reps=1)
+            >>> swaprz = SwapRZ(2, entanglement='linear', reps=1)
             >>> ry = RY(2, entanglement='full', reps=1)
-            >>> my_varform = ryrz + ry
+            >>> my_varform = swaprz + ry
             >>> print(my_varform)
         """
         super().__init__(num_qubits,

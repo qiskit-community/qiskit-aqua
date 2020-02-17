@@ -66,7 +66,7 @@ class RYRZ(TwoLocalAnsatz):
                 ansatz. If False, no rotation layer is added. Defaults to True.
 
         Examples:
-            >>> ry = RYRZ(3)  # create the variational form on 3 qubits
+            >>> ryrz = RYRZ(3)  # create the variational form on 3 qubits
             >>> print(ryrz)  # show the circuit
             TODO: circuit diagram
 
