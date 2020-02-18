@@ -19,9 +19,11 @@ TODO
 * test if this actually coincides with the current SwapRZ varform
 """
 
-from typing import Union, Optional, List, Tuple
+from typing import Union, Optional, List
 
 from qiskit.extensions.standard import RZGate, RXXGate, RYYGate
+from qiskit.aqua.components.initial_states import InitialState
+
 from .two_local_ansatz import TwoLocalAnsatz
 
 
@@ -39,8 +41,8 @@ class SwapRZ(TwoLocalAnsatz):
 
     .. math::
 
-        R_{XX+YY}(\theta) = e^{-i \theta (X \otimes X + Y \otimes Y)}
-                          \approx e^{-i \theta X \otimes X} e^{-i \theta Y \otimes Y }
+        R_{XX+YY}(\theta) = e^{-i \theta / 2 (X \otimes X + Y \otimes Y)}
+                          \approx e^{-i \theta / 2 X \otimes X} e^{-i \theta /2 Y \otimes Y }
                           = R_{XX}(\theta) R_{YY}(\theta)
 
     where the approximation used comes from the Trotter expansion of the sum in the exponential.
@@ -55,7 +57,9 @@ class SwapRZ(TwoLocalAnsatz):
                  parameter_prefix: str = '_',
                  insert_barriers: bool = False,
                  skip_unentangled_qubits: bool = False,
-                 skip_final_rotation_layer: bool = False) -> None:
+                 skip_final_rotation_layer: bool = False,
+                 initial_state: Optional[InitialState] = None,
+                 ) -> None:
         """Initializer. Assumes that the type hints are obeyed for now.
 
         Args:
@@ -79,6 +83,9 @@ class SwapRZ(TwoLocalAnsatz):
                 to each qubit in the Ansatz. Defaults to False.
             skip_final_rotation_layer: If True, a rotation layer is added at the end of the
                 ansatz. If False, no rotation layer is added. Defaults to True.
+            initial_state: An `InitialState` object to prepent to the Ansatz.
+                TODO deprecate this feature in favour of prepend or overloading __add__ in
+                the initial state class
 
         Examples:
             >>> swaprz = SwapRZ(3)  # create the variational form on 3 qubits
@@ -109,4 +116,5 @@ class SwapRZ(TwoLocalAnsatz):
                          parameter_prefix=parameter_prefix,
                          insert_barriers=insert_barriers,
                          skip_unentangled_qubits=skip_unentangled_qubits,
-                         skip_final_rotation_layer=skip_final_rotation_layer)
+                         skip_final_rotation_layer=skip_final_rotation_layer,
+                         initial_state=initial_state)
