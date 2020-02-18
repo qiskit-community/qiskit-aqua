@@ -282,7 +282,7 @@ class Ansatz:
             A single string representing this Ansatz.
         """
         basis_gates = ['id', 'x', 'y', 'z', 'h', 's', 't', 'sdg', 'tdg', 'rx', 'ry', 'rz',
-                       'cx', 'cy', 'cz', 'ch', 'crx', 'cry', 'crz', 'swap', 'cswap',
+                       'rxx', 'ryy', 'cx', 'cy', 'cz', 'ch', 'crx', 'cry', 'crz', 'swap', 'cswap',
                        'toffoli', 'u1', 'u2', 'u3']
         return transpile(self.to_circuit(), basis_gates=basis_gates).draw().single_string()
 
@@ -355,9 +355,7 @@ class Ansatz:
                 `to_instruction` method.
         """
         # add other to the list of blocks
-        block = self._convert_to_block(other)
-        self._blocks += [block]
-        self._params += block.params
+        self._blocks += [self._convert_to_block(other)]
 
         # keep track of which blocks to add to the Ansatz
         self._reps += [len(self._blocks) - 1]
