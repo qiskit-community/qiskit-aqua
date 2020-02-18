@@ -22,11 +22,13 @@ from typing import Union, Optional, List, Tuple
 from qiskit import QuantumCircuit
 from qiskit.circuit import Gate, Parameter
 from qiskit.extensions.standard import (IdGate, XGate, YGate, ZGate, HGate, TGate, SGate, TdgGate,
-                                        SdgGate, RXGate, RYGate, RZGate, SwapGate, Barrier,
-                                        CnotGate, CyGate, CzGate, CHGate, CrxGate, CryGate, CrzGate)
+                                        SdgGate, RXGate, RXXGate, RYGate, RYYGate, RZGate, SwapGate,
+                                        CnotGate, CyGate, CzGate, CHGate, CrxGate, CryGate, CrzGate,
+                                        Barrier,)
 
 from qiskit.aqua import AquaError
 from qiskit.aqua.utils import get_entangler_map, validate_entangler_map
+from qiskit.aqua.components.initial_states import InitialState
 
 from qiskit.aqua.components.ansatz import Ansatz
 
@@ -46,7 +48,9 @@ class TwoLocalAnsatz(Ansatz):
                  parameter_prefix: str = '_',
                  insert_barriers: bool = False,
                  skip_unentangled_qubits: bool = False,
-                 skip_final_rotation_layer: bool = False) -> None:
+                 skip_final_rotation_layer: bool = False,
+                 initial_state: Optional[InitialState] = None
+                 ) -> None:
         """Initializer. Assumes that the type hints are obeyed for now.
 
         Args:
@@ -78,6 +82,9 @@ class TwoLocalAnsatz(Ansatz):
                 to each qubit in the Ansatz. Defaults to False.
             skip_final_rotation_layer: If True, a rotation layer is added at the end of the
                 ansatz. If False, no rotation layer is added. Defaults to True.
+            initial_state: An `InitialState` object to prepent to the Ansatz.
+                TODO deprecate this feature in favour of prepend or overloading __add__ in
+                the initial state class
 
         Examples:
             >>> ansatz = TwoLocalAnsatz(3, 'ry', 'cx', 'linear', reps=2, insert_barriers=True)
@@ -127,7 +134,7 @@ class TwoLocalAnsatz(Ansatz):
                     └────────┘          └────────┘
         """
         # initialize Ansatz
-        super().__init__(insert_barriers=insert_barriers)
+        super().__init__(insert_barriers=insert_barriers, initial_state=initial_state)
 
         self._num_qubits = num_qubits
 
@@ -154,17 +161,9 @@ class TwoLocalAnsatz(Ansatz):
 
         # define the blocks of this Ansatz
         for block_num in range(reps):
-            # insert barrier, if specified (but don't insert one before the first layer)
-            if self._insert_barriers and block_num > 0:
-                self.append(Barrier(self.num_qubits))
-
             # append a rotation layer, if entanglement gates are specified
             if len(self._rotation_gates) > 0:
                 self.append(self._get_rotation_layer(block_num))
-
-            # insert barrier, if specified
-            if self._insert_barriers:
-                self.append(Barrier(self.num_qubits))
 
             # append an entanglement layer, if entanglement gates are specified
             if len(self._entanglement_gates) > 0:
@@ -172,8 +171,6 @@ class TwoLocalAnsatz(Ansatz):
 
         # add a final rotation layer, if not specified otherwise
         if not self._skip_final_rotation_layer and len(self._rotation_gates) > 0:
-            if self._insert_barriers and reps > 0:
-                self.append(Barrier(self.num_qubits))
             self.append(self._get_rotation_layer(reps))
 
     def _get_rotation_layer(self, block_num: int) -> Gate:
@@ -306,26 +303,28 @@ class TwoLocalAnsatz(Ansatz):
         # this could be a lot easier if the standard gates would have `name` and `num_params`
         # as static types, which might be something they should have anyways
         valid_gates = {
-            'iden': (IdGate, 0),
-            'x': (XGate, 0),
-            'y': (YGate, 0),
-            'z': (ZGate, 0),
-            'h': (HGate, 0),
-            't': (TGate, 0),
-            'tdg': (TdgGate, 0),
-            's': (SGate, 0),
-            'sdg': (SdgGate, 0),
-            'rx': (RXGate, 1),
-            'ry': (RYGate, 1),
-            'rz': (RZGate, 1),
-            'swap': (SwapGate, 0),
+            'ch': (CHGate, 0),
             'cx': (CnotGate, 0),
             'cy': (CyGate, 0),
             'cz': (CzGate, 0),
-            'ch': (CHGate, 0),
             'crx': (CrxGate, 1),
             'cry': (CryGate, 1),
             'crz': (CrzGate, 1),
+            'h': (HGate, 0),
+            'iden': (IdGate, 0),
+            'rx': (RXGate, 1),
+            'rxx': (RXXGate, 1),
+            'ry': (RYGate, 1),
+            'ryy': (RYYGate, 1),
+            'rz': (RZGate, 1),
+            's': (SGate, 0),
+            'sdg': (SdgGate, 0),
+            'swap': (SwapGate, 0),
+            'x': (XGate, 0),
+            'y': (YGate, 0),
+            'z': (ZGate, 0),
+            't': (TGate, 0),
+            'tdg': (TdgGate, 0),
         }
 
         if isinstance(gate, str):  # pylint-disable: no-else-raise
