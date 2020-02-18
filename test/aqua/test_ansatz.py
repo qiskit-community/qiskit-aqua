@@ -17,7 +17,7 @@
 
 import unittest
 import numpy as np
-from ddt import ddt, data, unpack
+from ddt import ddt, data
 
 from qiskit import QuantumCircuit, transpile
 from qiskit.circuit import Parameter, ParameterVector, ParameterExpression
@@ -26,7 +26,7 @@ from qiskit.extensions.standard import XGate, RXGate, CrxGate
 from qiskit.quantum_info import Pauli
 
 from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator
-from qiskit.aqua.components.ansatz import Ansatz, OperatorAnsatz
+from qiskit.aqua.components.ansatz import Ansatz, OperatorAnsatz, SwapRZ, RY, RYRZ
 
 from test.aqua import QiskitAquaTestCase
 
@@ -39,39 +39,39 @@ class TestAnsatz(QiskitAquaTestCase):
         pass
         super().setUp()
 
-    def assertCircuitEqual(self, a, b, visual=False, verbosity=0, transpiled=True):
+    def assertCircuitEqual(self, qc1, qc2, visual=False, verbosity=0, transpiled=True):
         """An equality test specialized to circuits."""
         basis_gates = ['id', 'u1', 'u3', 'cx']
-        a_transpiled = transpile(a, basis_gates=basis_gates)
-        b_transpiled = transpile(b, basis_gates=basis_gates)
+        qc1_transpiled = transpile(qc1, basis_gates=basis_gates)
+        qc2_transpiled = transpile(qc2, basis_gates=basis_gates)
 
         if verbosity > 0:
-            print('-- circuit a:')
-            print(a)
-            print('-- circuit b:')
-            print(b)
-            print('-- transpiled circuit a:')
-            print(a_transpiled)
-            print('-- transpiled circuit b:')
-            print(b_transpiled)
+            print('-- circuit 1:')
+            print(qc1)
+            print('-- circuit 2:')
+            print(qc2)
+            print('-- transpiled circuit 1:')
+            print(qc1_transpiled)
+            print('-- transpiled circuit 2:')
+            print(qc2_transpiled)
 
         if verbosity > 1:
             print('-- dict:')
-            for key in a.__dict__.keys():
+            for key in qc1.__dict__.keys():
                 if key == '_data':
                     print(key)
-                    print(a.__dict__[key])
-                    print(b.__dict__[key])
+                    print(qc1.__dict__[key])
+                    print(qc2.__dict__[key])
                 else:
-                    print(key, a.__dict__[key], b.__dict__[key])
+                    print(key, qc1.__dict__[key], qc2.__dict__[key])
 
         if transpiled:
-            a, b = a_transpiled, b_transpiled
+            qc1, qc2 = qc1_transpiled, qc2_transpiled
 
         if visual:
-            self.assertEqual(a.draw(), b.draw())
+            self.assertEqual(qc1.draw(), qc2.draw())
         else:
-            self.assertEqual(a, b)
+            self.assertEqual(qc1, qc2)
 
     def test_empty_ansatz(self):
         """Test the creation of an empty Ansatz."""
@@ -248,21 +248,35 @@ class TestBackwardCompatibility(QiskitAquaTestCase):
     @unittest.skip('TODO')
     def test_varforms(self):
         """Test the variational forms are backwards compatible."""
-        self.assertTrue(False)
+        self.assertTrue(False)  # pylint: disable=redundant-unittest-assert
 
     @unittest.skip('TODO')
     def test_featmaps(self):
         """Test the feature maps are backwards compatible."""
-        self.assertTrue(False)
+        self.assertTrue(False)  # pylint: disable=redundant-unittest-assert
 
 
 class TestRY(QiskitAquaTestCase):
     """Tests for the RY Ansatz."""
 
-    @unittest.skip('TODO')
     def test_circuit_diagrams(self):
         """Test the resulting circuits via diagrams."""
-        self.assertTrue(False)
+        with self.subTest(msg='Test linear entanglement'):
+            ry = RY(3, entanglement='linear', reps=1)
+            print(ry)
+
+        with self.subTest(msg='Test barriers'):
+            ry = RY(2, reps=1, insert_barriers=True)
+            print(ry)
+
+
+class TestSwapRZ(QiskitAquaTestCase):
+    """Tests for the SwapRZ Ansatz."""
+
+    def test_circuit_diagram(self):
+        """Test the circuit diagram for SwapRZ."""
+        swaprz = SwapRZ(3, insert_barriers=True)
+        print(swaprz)
 
 
 @ddt
