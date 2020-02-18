@@ -14,8 +14,12 @@
 
 from .two_local_ansatz import TwoLocalAnsatz
 from .ry import RY
+from .ryrz import RYRZ
+from .swaprz import SwapRZ
 
 __all__ = [
     'TwoLocalAnsatz',
     'RY',
+    'RYRZ',
+    'SwapRZ',
 ]

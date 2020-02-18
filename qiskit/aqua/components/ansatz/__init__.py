@@ -13,7 +13,7 @@
 # that they have been altered from the originals.
 
 from .ansatz_factory import Ansatz
-from .variational_forms import TwoLocalAnsatz, RY
+from .variational_forms import TwoLocalAnsatz, RY, RYRZ, SwapRZ
 from .feature_maps import PauliExpansion
 from .operator_ansatz import OperatorAnsatz
 
@@ -22,5 +22,7 @@ __all__ = [
     'OperatorAnsatz',
     'PauliExpansion',
     'RY',
+    'RYRZ',
+    'SwapRZ',
     'TwoLocalAnsatz',
 ]
