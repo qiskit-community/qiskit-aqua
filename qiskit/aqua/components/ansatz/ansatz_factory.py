@@ -32,6 +32,7 @@ import numpy
 from qiskit import QuantumCircuit, QiskitError, transpile
 from qiskit.circuit import Gate, Instruction, Parameter, ParameterVector, ParameterExpression
 from qiskit.aqua import AquaError
+from qiskit.aqua.components.initial_states import InitialState
 
 
 class Ansatz:
@@ -46,7 +47,8 @@ class Ansatz:
                  blocks: Optional[Union[Gate, List[Gate]]] = None,
                  qubit_indices: Optional[Union[List[int], List[List[int]]]] = None,
                  reps: Optional[Union[int, List[int]]] = None,
-                 insert_barriers: bool = False) -> None:
+                 insert_barriers: bool = False,
+                 initial_state: Optional[InitialState] = None) -> None:
         """Initializer. Assumes that the type hints are obeyed for now.
 
         Args:
@@ -60,6 +62,9 @@ class Ansatz:
                 of `reps` as index. See the Examples section for more detail.
             insert_barriers: If True, barriers are inserted in between each layer/block. If False,
                 no barriers are inserted.
+            initial_state: An `InitialState` object to prepent to the Ansatz.
+                TODO deprecate this feature in favour of prepend or overloading __add__ in
+                the initial state class
 
         Raises:
             TypeError: If `blocks` contains an unsupported object.
@@ -100,10 +105,20 @@ class Ansatz:
         # maximum number of qubits
         self._num_qubits = int(numpy.max(self._qargs) + 1 if len(self._qargs) > 0 else 0)
 
-        # set the parameters
-        self._params = []
-        for idx in self._reps:
-            self._params += self._blocks[idx].params
+        # if there is an initial state object, check that the number of qubits is compatible
+        # construct the circuit immediately since we need the number of qubits
+        # alternate solution: add num_qubits as attribute to the InitialState
+        self._initial_state_circuit = None
+        if initial_state is not None:
+            # construct the circuit
+            self._initial_state_circuit = initial_state.construct_circuit(mode='circuit')
+
+            # the initial state dictates the number of qubits since we do not have information
+            # about on which qubits the initial state acts
+            if self._initial_state_circuit.n_qubits < self._num_qubits:
+                raise ValueError('The provided initial state has less qubits than the Ansatz.')
+
+            self._num_qubits = self._initial_state_circuit.n_qubits > self._num_qubits
 
         # keep track of the circuit
         self._circuit = None
@@ -225,7 +240,8 @@ class Ansatz:
                 circuit = QuantumCircuit()
 
             else:
-                circuit = QuantumCircuit(self.num_qubits)
+                # use the initial state circuit if it is not None
+                circuit = self._initial_state_circuit or QuantumCircuit(self.num_qubits)
 
                 # add the blocks, if they are specified
                 if len(self._reps) > 0:
