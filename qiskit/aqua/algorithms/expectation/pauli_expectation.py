@@ -36,6 +36,7 @@ class PauliExpectation(ExpectationBase):
         Args:
 
         """
+        super().__init__()
         self._operator = operator
         self._backend = backend
         self._state = state
@@ -50,6 +51,7 @@ class PauliExpectation(ExpectationBase):
             self._primitives_cache += [op for op in self._operator.oplist]
 
     def compute_expectation(self, state=None, primitives=None):
+        # TODO allow user to set state in constructor and then only pass params to execute.
         state = state or self._state
 
         if not self._converted_operator:
