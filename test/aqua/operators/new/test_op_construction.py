@@ -48,6 +48,7 @@ class TestOpConstruction(QiskitAquaTestCase):
     def test_evals(self):
 
         # Test eval
+        # TODO: Think about eval names
         self.assertEqual(Z.eval('0', '0'), 1)
         self.assertEqual(Z.eval('1', '0'), 0)
         self.assertEqual(Z.eval('0', '1'), 0)

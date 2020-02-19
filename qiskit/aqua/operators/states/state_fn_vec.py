@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,13 +12,17 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
-Expectation Value algorithms - Algorithms for approximating the value of some function over a probability
-distribution, or in the quantum case, algorithms for approximating the value of some observable over a statefunction.
+""" An Object to represent State Functions constructed from sums of State Function primitives """
 
-"""
 
-from .expectation_base import ExpectationBase
-from .aer_pauli_expectation import AerPauliExpectation
-from .pauli_expectation import PauliExpectation
-from .matrix_expectation import MatrixExpectation
+import numpy as np
+from functools import reduce
+from abc import abstractmethod
+
+from qiskit.aqua.operators.op_primitive import OpPrimitive
+
+
+class StateFnVec(OpVec):
+
+    def __init__(self, primitive, coeff=1.0, fixed_param=None, allow_conversions=True):
+        super().__init__(primitive=primitive, coeff=coeff, allow_conversions=allow_conversions)

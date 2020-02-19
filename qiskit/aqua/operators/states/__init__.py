@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -13,12 +13,8 @@
 # that they have been altered from the originals.
 
 """
-Expectation Value algorithms - Algorithms for approximating the value of some function over a probability
-distribution, or in the quantum case, algorithms for approximating the value of some observable over a statefunction.
+State Functions
 
 """
 
-from .expectation_base import ExpectationBase
-from .aer_pauli_expectation import AerPauliExpectation
-from .pauli_expectation import PauliExpectation
-from .matrix_expectation import MatrixExpectation
+from .state_fn import StateFn

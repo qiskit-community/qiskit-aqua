@@ -70,6 +70,7 @@ from .op_composition import OpComposition
 from .op_vec import OpVec
 from .op_primitive import OpPrimitive
 from .op_sum import OpSum
+from .states import StateFn
 
 # Paulis
 X = OpPrimitive(Pauli.from_label('X'))
@@ -83,6 +84,11 @@ S = OpPrimitive(SGate())
 H = OpPrimitive(HGate())
 T = OpPrimitive(TGate())
 Swap = OpPrimitive(SwapGate())
+
+Zero = StateFn('0')
+One = StateFn('1')
+Plus = H.compose(Zero)
+Minus = H.compose(One)
 # TODO figure out what to do about gate/pauli overlap, especially I and Id
 
 __all__ = [
