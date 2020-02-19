@@ -21,10 +21,11 @@ import logging
 import numpy as np
 from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms.classical import ClassicalAlgorithm
-from qiskit.aqua.algorithms.classical.svm import (_SVM_Classical_Binary,
-                                                  _SVM_Classical_Multiclass)
 from qiskit.aqua.utils import get_num_classes
 from qiskit.aqua.components.multiclass_extensions import MulticlassExtension
+from ._svm_classical_binary import _SVM_Classical_Binary
+from ._svm_classical_multiclass import _SVM_Classical_Multiclass
+from ._rbf_svc_estimator import _RBF_SVC_Estimator
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +83,7 @@ class SVM_Classical(ClassicalAlgorithm):
         if multiclass_extension is None:
             svm_instance = _SVM_Classical_Binary(training_dataset, test_dataset, datapoints, gamma)
         else:
+            multiclass_extension.set_estimator(_RBF_SVC_Estimator, [])
             svm_instance = _SVM_Classical_Multiclass(
                 training_dataset, test_dataset, datapoints, gamma, multiclass_extension)
 

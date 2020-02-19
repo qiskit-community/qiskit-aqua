@@ -18,7 +18,7 @@ import unittest
 
 from test.aqua import QiskitAquaTestCase
 
-from parameterized import parameterized
+from ddt import ddt, idata, unpack
 
 import numpy as np
 
@@ -26,10 +26,11 @@ from qiskit import QuantumRegister, QuantumCircuit, BasicAer, execute
 from qiskit.aqua.circuits import WeightedSumOperator
 
 
+@ddt
 class TestWeightedSumOperator(QiskitAquaTestCase):
     """ weighted sum operator test """
 
-    @parameterized.expand([
+    @idata([
         # n, weights, x, sum
         [1, [1], [0], 0],
         [1, [1], [1], 1],
@@ -42,6 +43,7 @@ class TestWeightedSumOperator(QiskitAquaTestCase):
         [3, [1, 2, 3], [0, 1, 1], 5],
         [3, [1, 2, 3], [1, 1, 1], 6]
     ])
+    @unpack
     def test_weighted_sum_operator(self, num_state_qubits, weights, input_x, result):
         """ weighted sum operator test """
         # initialize weighted sum operator factory

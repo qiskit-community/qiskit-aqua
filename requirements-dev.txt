@@ -1,6 +1,6 @@
 qiskit-aer
 discover
-parameterized
+ddt>=1.2.0
 pycodestyle
 pylint>=2.4.3
 pylintfileheader>=0.0.2

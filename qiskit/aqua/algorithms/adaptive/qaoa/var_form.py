@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -14,6 +14,7 @@
 
 """Global X phases and parameterized problem hamiltonian."""
 
+from typing import Optional
 from functools import reduce
 
 import numpy as np
@@ -23,6 +24,7 @@ from qiskit.quantum_info import Pauli
 from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.aqua.operators.legacy import op_converter
 from qiskit.aqua.components.variational_forms import VariationalForm
+from qiskit.aqua.components.initial_states import InitialState
 
 # pylint: disable=invalid-name
 
@@ -30,22 +32,23 @@ from qiskit.aqua.components.variational_forms import VariationalForm
 class QAOAVarForm(VariationalForm):
     """Global X phases and parameterized problem hamiltonian."""
 
-    def __init__(self, cost_operator, p, initial_state=None, mixer_operator=None):
+    def __init__(self, cost_operator: WeightedPauliOperator,
+                 p: int,
+                 initial_state: Optional[InitialState] = None,
+                 mixer_operator: Optional[WeightedPauliOperator] = None):
         """
         Constructor, following the QAOA paper https://arxiv.org/abs/1411.4028
 
         Args:
-            cost_operator (WeightedPauliOperator): The operator representing the cost of
-                                                   the optimization problem,
-                                                   denoted as U(B, gamma) in the original paper.
-            p (int): The integer parameter p, which determines the depth of the circuit,
-                     as specified in the original paper.
-            initial_state (InitialState, optional): An optional initial state to use.
-            mixer_operator (WeightedPauliOperator, optional): An optional custom mixer operator
-                                                              to use instead of
-                                                              the global X-rotations,
-                                                              denoted as U(B, beta)
-                                                              in the original paper.
+            cost_operator: The operator representing the cost of
+                            the optimization problem,
+                            denoted as U(B, gamma) in the original paper.
+            p: The integer parameter p, which determines the depth of the circuit,
+                as specified in the original paper.
+            initial_state: An optional initial state to use.
+            mixer_operator: An optional custom mixer operator to use instead of
+                            the global X-rotations,
+                            denoted as U(B, beta) in the original paper.
         Raises:
             TypeError: invalid input
         """

@@ -19,7 +19,7 @@ from test.aqua import QiskitAquaTestCase
 from itertools import combinations, chain, product
 from math import pi
 
-from parameterized import parameterized
+from ddt import ddt, idata, unpack
 import numpy as np
 
 from qiskit import QuantumCircuit, QuantumRegister, execute, BasicAer
@@ -30,15 +30,17 @@ NUM_CONTROLS_BASIC = [[i + 1] for i in range(4)]
 USE_BASIS_GATES_VALS = [True, False]
 
 
+@ddt
 class TestMCR(QiskitAquaTestCase):
     """ Test MCR """
     def setUp(self):
         super().setUp()
         aqua_globals.random_seed = 10598
 
-    @parameterized.expand(
+    @idata(
         product(NUM_CONTROLS, USE_BASIS_GATES_VALS)
     )
+    @unpack
     def test_mcrx(self, num_controls, use_basis_gates):
         """ mcrx test """
         num_controls = num_controls[0]
@@ -70,9 +72,10 @@ class TestMCR(QiskitAquaTestCase):
             mat_groundtruth[pos:pos + 2, pos:pos + 2] = rot_mat
             self.assertTrue(np.allclose(mat_mcu, mat_groundtruth))
 
-    @parameterized.expand(
+    @idata(
         product(NUM_CONTROLS, USE_BASIS_GATES_VALS)
     )
+    @unpack
     def test_mcry(self, num_controls, use_basis_gates):
         """ mcry test """
         num_controls = num_controls[0]
@@ -103,9 +106,10 @@ class TestMCR(QiskitAquaTestCase):
             mat_groundtruth[pos:pos + 2, pos:pos + 2] = rot_mat
             self.assertTrue(np.allclose(mat_mcu, mat_groundtruth))
 
-    @parameterized.expand(
+    @idata(
         product(NUM_CONTROLS_BASIC, USE_BASIS_GATES_VALS)
     )
+    @unpack
     def test_mcry_basic(self, num_controls, use_basis_gates):
         """ mcry basic test """
         num_controls = num_controls[0]
@@ -147,9 +151,10 @@ class TestMCR(QiskitAquaTestCase):
             mat_groundtruth[pos:pos + 2, pos:pos + 2] = rot_mat
             self.assertTrue(np.allclose(mat_mcu, mat_groundtruth))
 
-    @parameterized.expand(
+    @idata(
         product(NUM_CONTROLS, USE_BASIS_GATES_VALS)
     )
+    @unpack
     def test_mcrz(self, num_controls, use_basis_gates):
         """ mcrz test """
         num_controls = num_controls[0]

@@ -16,7 +16,8 @@
 The Custom Circuit-based Quantum Oracle.
 """
 
-from qiskit import QuantumCircuit, QuantumRegister  # pylint: disable=unused-import
+from typing import Optional, Callable, List, Tuple
+from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.aqua import AquaError
 from .oracle import Oracle
 
@@ -34,18 +35,22 @@ class CustomCircuitOracle(Oracle):
     together with the various `QuantumRegister` objects involved.
     """
 
-    def __init__(self, variable_register=None, output_register=None,
-                 ancillary_register=None, circuit=None, evaluate_classically_callback=None):
+    def __init__(self, variable_register: Optional[QuantumRegister] = None,
+                 output_register: Optional[QuantumRegister] = None,
+                 ancillary_register: Optional[QuantumRegister] = None,
+                 circuit: Optional[QuantumCircuit] = None,
+                 evaluate_classically_callback:
+                 Optional[Callable[[str], Tuple[bool, List[int]]]] = None):
         """
         Args:
-            variable_register (QuantumRegister): The register holding variable qubit(s) for
+            variable_register: The register holding variable qubit(s) for
                     the oracle function
-            output_register (QuantumRegister): The register holding output qubit(s)
+            output_register: The register holding output qubit(s)
                     for the oracle function
-            ancillary_register (QuantumRegister): The register holding ancillary qubit(s)
-            circuit (QuantumCircuit): The quantum circuit corresponding to the
+            ancillary_register: The register holding ancillary qubit(s)
+            circuit: The quantum circuit corresponding to the
                     intended oracle function
-            evaluate_classically_callback (function): The classical callback function for
+            evaluate_classically_callback: The classical callback function for
                     evaluating the oracle, for example, to use with
                     :class:`~qiskit.aqua.algorithms.Grover`'s search
         Raises:

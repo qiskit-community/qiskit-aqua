@@ -17,7 +17,7 @@
 import itertools
 import unittest
 from test.aqua import QiskitAquaTestCase
-from parameterized import parameterized
+from ddt import ddt, idata, unpack
 from qiskit import execute as q_execute
 from qiskit import QuantumCircuit, ClassicalRegister
 from qiskit import BasicAer
@@ -64,11 +64,13 @@ MCT_MODES = ['basic', 'basic-dirty-ancilla', 'advanced', 'noancilla']
 OPTIMIZATIONS = [True, False]
 
 
+@ddt
 class TestLogicalExpressionOracle(QiskitAquaTestCase):
     """ Test Logical Expression Oracle """
-    @parameterized.expand(
+    @idata(
         [x[0] + list(x[1:]) for x in list(itertools.product(DIMAC_TESTS, MCT_MODES, OPTIMIZATIONS))]
     )
+    @unpack
     def test_logic_expr_oracle(self, dimacs_str, sols, mct_mode, optimization):
         """ Logic Expr oracle test """
         num_shots = 1024
