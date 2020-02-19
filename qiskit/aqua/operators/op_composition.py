@@ -34,6 +34,7 @@ class OpComposition(OpVec):
     def num_qubits(self):
         return self.oplist[0].num_qubits
 
+    # TODO: need to kron all others with identity so dims are right? Maybe just delete this.
     def kron(self, other):
         """ Kron. We only need to Kron to the last element in the composition. """
         return OpComposition(self.oplist[:-1] + [self.oplist[-1].kron(other)], coeff=self.coeff)

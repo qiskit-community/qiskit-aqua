@@ -40,11 +40,12 @@ class OpPrimitive(OperatorBase):
 
     def __init__(self, primitive, coeff=1.0, allow_conversions=True):
         """
-        Args:
-            primtive (Gate, Pauli, [[complex]], np.ndarray, QuantumCircuit, Instruction): The operator primitive being
-            wrapped.
-            coeff (int, float, complex): A coefficient multiplying the primitive
-        """
+                Args:
+                    primtive (Gate, Pauli, [[complex]], np.ndarray, QuantumCircuit, Instruction): The operator primitive being
+                    wrapped.
+                    coeff (int, float, complex): A coefficient multiplying the primitive
+                """
+        # TODO remove allow_conversions?
         if isinstance(primitive, QuantumCircuit):
             primitive = primitive.to_instruction()
         elif isinstance(primitive, (list, np.ndarray)):
@@ -106,14 +107,15 @@ class OpPrimitive(OperatorBase):
         if not self.num_qubits == other.num_qubits:
             raise ValueError('Sum over operators with different numbers of qubits, {} and {}, is not well '
                              'defined'.format(self.num_qubits, other.num_qubits))
-        if isinstance(self.primitive, type(other.primitive)) and self.primitive == other.primitive:
-            return OpPrimitive(self.primitive, coeff=self.coeff + other.coeff)
-        # Covers MatrixOperator and custom.
-        elif isinstance(self.primitive, type(other.primitive)) and hasattr(self.primitive, 'add'):
-            return self.primitive.add(other.primitive)
+        if isinstance(other, OpPrimitive):
+            if isinstance(self.primitive, type(other.primitive)) and self.primitive == other.primitive:
+                return OpPrimitive(self.primitive, coeff=self.coeff + other.coeff)
+            # Covers MatrixOperator and custom.
+            elif isinstance(self.primitive, type(other.primitive)) and hasattr(self.primitive, 'add'):
+                return self.primitive.add(other.primitive)
+
         # Covers Paulis, Circuits, and all else.
-        else:
-            return OpSum([self, other])
+        return OpSum([self, other])
 
     def neg(self):
         """ Negate. Overloaded by - in OperatorBase. """
@@ -180,7 +182,6 @@ class OpPrimitive(OperatorBase):
             op_copy = Pauli(x=other_primitive.x, z=other_primitive.z)
             # NOTE!!! REVERSING QISKIT ENDIANNESS HERE
             return OpPrimitive(op_copy.kron(self_primitive), coeff=self.coeff * other.coeff)
-            # TODO double check coeffs logic for paulis
 
         # Both Instructions/Circuits
         elif isinstance(self_primitive, Instruction) and isinstance(other_primitive, Instruction):
@@ -196,10 +197,10 @@ class OpPrimitive(OperatorBase):
         elif isinstance(self_primitive, MatrixOperator) and isinstance(other_primitive, MatrixOperator):
             return OpPrimitive(self_primitive.tensor(other_primitive), coeff=self.coeff * other.coeff)
 
-        # User custom kron-able primitive - Identical to Pauli above for now, but maybe remove deepcopy later
+        # User custom kron-able primitive
         elif isinstance(self_primitive, type(other_primitive)) and hasattr(self_primitive, 'kron'):
             op_copy = copy.deepcopy(other_primitive)
-            return OpPrimitive(op_copy.kron(self_primitive), coeff=self.coeff * other.coeff)
+            return OpPrimitive(self_primitive.kron(op_copy), coeff=self.coeff * other.coeff)
 
         else:
             return OpKron([self, other])

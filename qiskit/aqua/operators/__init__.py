@@ -70,7 +70,7 @@ from .op_composition import OpComposition
 from .op_vec import OpVec
 from .op_primitive import OpPrimitive
 from .op_sum import OpSum
-from .states import StateFn
+from .state_fn import StateFn
 
 # Paulis
 X = OpPrimitive(Pauli.from_label('X'))
