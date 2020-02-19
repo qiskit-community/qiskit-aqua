@@ -203,7 +203,7 @@ class TwoLocalAnsatz(Ansatz):
                 # apply the gates
                 for gate, num_params in self.rotation_gates:
                     if num_params == 0:
-                        circuit.append(gate(), [qubit], [])
+                        circuit.append(gate, [qubit], [])
                     else:
                         # define the new parameters, named '_{}', where {} gets
                         # replaced by the number of the parameter
@@ -214,7 +214,8 @@ class TwoLocalAnsatz(Ansatz):
                                   for i in range(num_params)]
 
                         # add the gate
-                        circuit.append(gate(*params), [qubit], [])
+                        gate.params = params
+                        circuit.append(gate, [qubit], [])
 
         return circuit.to_gate()
 
@@ -240,14 +241,15 @@ class TwoLocalAnsatz(Ansatz):
             # apply the gates
             for gate, num_params in self.entanglement_gates:
                 if num_params == 0:
-                    circuit.append(gate(), [src, tgt], [])
+                    circuit.append(gate, [src, tgt], [])
                 else:
                     param_count = self.num_parameters + len(circuit.parameters)
                     params = [Parameter('{}{}'.format(self._parameter_prefix, param_count + i))
                               for i in range(num_params)]
 
                     # add the gate
-                    circuit.append(gate(*params), [src, tgt], [])
+                    gate.params = params
+                    circuit.append(gate, [src, tgt], [])
 
         return circuit.to_gate()
 
@@ -280,7 +282,7 @@ class TwoLocalAnsatz(Ansatz):
         return gate_param_list
 
     @staticmethod
-    def identify_gate(gate: Union[str, type]) -> Tuple[type, int]:
+    def identify_gate(gate: Union[str, type, QuantumCircuit]) -> Tuple[type, int]:
         """For a gate provided as str (e.g. 'ry') or type (e.g. RYGate) this function returns the
         according gate type along with the number of parameters (e.g. (RYGate, 1)).
 
@@ -299,50 +301,53 @@ class TwoLocalAnsatz(Ansatz):
             Outlook: If gates knew their number of parameters as static property, we could also
             allow custom gate types.
         """
+        if isinstance(gate, QuantumCircuit):
+            return (gate.to_gate(), len(gate.parameters))
+
         # check the list of valid gates
         # this could be a lot easier if the standard gates would have `name` and `num_params`
         # as static types, which might be something they should have anyways
+        theta = Parameter('θ')
         valid_gates = {
-            'ch': (CHGate, 0),
-            'cx': (CnotGate, 0),
-            'cy': (CyGate, 0),
-            'cz': (CzGate, 0),
-            'crx': (CrxGate, 1),
-            'cry': (CryGate, 1),
-            'crz': (CrzGate, 1),
-            'h': (HGate, 0),
-            'iden': (IdGate, 0),
-            'rx': (RXGate, 1),
-            'rxx': (RXXGate, 1),
-            'ry': (RYGate, 1),
-            'ryy': (RYYGate, 1),
-            'rz': (RZGate, 1),
-            's': (SGate, 0),
-            'sdg': (SdgGate, 0),
-            'swap': (SwapGate, 0),
-            'x': (XGate, 0),
-            'y': (YGate, 0),
-            'z': (ZGate, 0),
-            't': (TGate, 0),
-            'tdg': (TdgGate, 0),
+            'ch': (CHGate(), 0),
+            'cx': (CnotGate(), 0),
+            'cy': (CyGate(), 0),
+            'cz': (CzGate(), 0),
+            'crx': (CrxGate(theta), 1),
+            'cry': (CryGate(theta), 1),
+            'crz': (CrzGate(theta), 1),
+            'h': (HGate(), 0),
+            'iden': (IdGate(), 0),
+            'rx': (RXGate(theta), 1),
+            'rxx': (RXXGate(theta), 1),
+            'ry': (RYGate(theta), 1),
+            'ryy': (RYYGate(theta), 1),
+            'rz': (RZGate(theta), 1),
+            's': (SGate(), 0),
+            'sdg': (SdgGate(), 0),
+            'swap': (SwapGate(), 0),
+            'x': (XGate(), 0),
+            'y': (YGate(), 0),
+            'z': (ZGate(), 0),
+            't': (TGate(), 0),
+            'tdg': (TdgGate(), 0),
         }
 
-        if isinstance(gate, str):  # pylint-disable: no-else-raise
+        if isinstance(gate, str):
             # iterate over the gate names and look for the specified gate
-            for identifier, (gate_type, num_params) in valid_gates.items():
+            for identifier, (standard_gate, num_params) in valid_gates.items():
                 if gate == identifier:
-                    return (gate_type, num_params)
+                    return (standard_gate, num_params)
             raise AquaError('Unknown gate name `{}`.'.format(gate))
 
-        elif isinstance(gate, type):
+        if isinstance(gate, type):
             # iterate over the gate types and look for the specified gate
-            for _, (gate_type, num_params) in valid_gates.items():
-                if gate == gate_type:
-                    return (gate_type, num_params)
+            for _, (standard_gate, num_params) in valid_gates.items():
+                if isinstance(standard_gate, gate):
+                    return (standard_gate, num_params)
             raise AquaError('Unknown gate type`{}`.'.format(gate))
 
-        else:
-            raise AquaError('Invalid input, `gate` must be a str.')
+        raise AquaError('Invalid input, `gate` must be a str.')
 
     def get_entangler_map(self, offset: int = 0) -> List[List[int]]:
         """Return the specified entangler map, if self._entangler_map if it has been set previously.

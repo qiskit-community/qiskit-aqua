@@ -25,7 +25,7 @@ TODO
 """
 
 from __future__ import annotations  # to use the type hint 'Ansatz' in the class itself
-from typing import Union, Optional, List, Any
+from typing import Union, Optional, List, Any, Tuple
 
 import numbers
 import numpy
@@ -35,12 +35,21 @@ from qiskit.aqua import AquaError
 from qiskit.aqua.components.initial_states import InitialState
 
 
+def parameters(block: Union[QuantumCircuit, Instruction]) -> List[Parameter]:
+    """Return the list of Parameters inside block."""
+    if isinstance(block, QuantumCircuit):
+        return list(block.parameters)
+    else:
+        return [p for p in block.params if isinstance(p, ParameterExpression)]
+
+
 class Ansatz:
     """The Ansatz class.
 
     Attributes:
         blocks: The single building blocks of the Ansatz.
         params: The parameters of the Ansatz.
+        num_qubits: The number of qubits in the Ansatz.
     """
 
     def __init__(self,
@@ -68,9 +77,11 @@ class Ansatz:
 
         Raises:
             TypeError: If `blocks` contains an unsupported object.
+            ValueError: If the initial state has less qubits than specified via the blocks or
+                qubit indices.
 
         Examples:
-            todo
+            TODO
         """
         # insert barriers?
         self._insert_barriers = insert_barriers
@@ -123,6 +134,18 @@ class Ansatz:
         # keep track of the circuit
         self._circuit = None
 
+        # set up the base parameters
+        num_parameters = sum(len(parameters(self._blocks[idx])) for idx in self._reps)
+        self._base_params = [Parameter('θ{}'.format(i)) for i in range(num_parameters)]
+
+        # set up the surface parameters
+        self._surface_params = []
+        for idx in self._reps:
+            self._surface_params += parameters(self._blocks[idx])
+
+        # parameter bounds
+        self._bounds = None
+
     def _convert_to_block(self, layer: Any) -> Instruction:
         """Try to convert `layer` to an Instruction.
 
@@ -143,6 +166,35 @@ class Ansatz:
             raise TypeError('Adding a {} to an Ansatz is not supported.'.format(type(layer)))
 
     @property
+    def setting(self):
+        """TODO Deprecate.
+
+        Returns information about the setting.
+        """
+        ret = "variational form: {}\n".format(self.__class__.__name__)
+        params = ""
+        for key, value in self.__dict__.items():
+            if key[0] == "_":
+                params += "-- {}: {}\n".format(key[1:], value)
+        ret += "{}".format(params)
+        return ret
+
+    @property
+    def preferred_init_points(self):
+        """TODO Deprecate.
+
+        Returns preferred init points."""
+        return None
+
+    @property
+    def support_parameterized_circuit(self):
+        """TODO Deprecate.
+
+        Whether it is supported to bind parameters in this circuit.
+        """
+        return True
+
+    @property
     def num_qubits(self) -> int:
         """Returns the number of qubits in this Ansatz.
 
@@ -152,13 +204,35 @@ class Ansatz:
         return int(self._num_qubits)
 
     @property
+    def parameter_bounds(self) -> List[Tuple[float, float]]:
+        """Parameter bounds.
+
+        TODO change to return (-np.inf, np.inf) as unbounded?
+
+        Returns:
+            A list of pairs indicating the bounds, as (lower, upper).
+            None indicates an unbounded parameter in the corresponding direction.
+            If None is returned, problem is fully unbounded.
+        """
+        return self._bounds
+
+    @parameter_bounds.setter
+    def parameter_bounds(self, bounds: List[Tuple[float, float]]) -> None:
+        """Set the parameter bounds.
+
+        Args:
+            bounds: The new parameter bounds.
+        """
+        self._bounds = bounds
+
+    @property
     def params(self) -> Union[List[float], List[Parameter]]:
         """Get the parameters of the Ansatz.
 
         Returns:
             A list containing the parameters.
         """
-        return list(self.to_circuit().parameters)
+        return self._surface_params
 
     @params.setter
     def params(self, params: Union[dict, List[float], List[Parameter], ParameterVector]) -> None:
@@ -180,28 +254,38 @@ class Ansatz:
             for i, current_param in enumerate(self.params):
                 # try to get the new value, if there is none, use the current value
                 new_params[i] = params.get(current_param, self.params[i])
+            self._surface_params = new_params
+
+        # if a list is provided, just assign if the sizes match
         else:
-            if len(params) != len(self.params):
-                raise ValueError('Mismatching number of parameters!')
-            new_params = params
+            if len(params) != self.num_parameters:
+                raise ValueError('Mismatching number of parameters! '
+                                 'Provided: {}, required: {}'
+                                 ''.format(len(params), self.num_parameters))
+            self._surface_params = params
 
-        if self._circuit is not None:
-            self._bind_circuit_parameters(new_params)
-
-    def _bind_circuit_parameters(self, params):
+    def bind_parameters(self, params: Union[List[float], List[Parameter], ParameterVector]
+                        ) -> QuantumCircuit:
         """Bind the params to the underlying circuit."""
         if all(isinstance(param, numbers.Real) for param in params):
-            param_dict = dict(zip(self.params, params))
-            self._circuit = self._circuit.bind_parameters(param_dict)
+            param_dict = dict(zip(self._base_params, params))
+            print('binding', param_dict)
+            circuit_copy = self._circuit.bind_parameters(param_dict)
+            print('params:', circuit_copy.parameters)
+            print('transpiled:', transpile(circuit_copy,
+                                           basis_gates=['u1', 'u2', 'u3', 'cx']).parameters)
 
         # if they are new parameters, replace them in the circuit
         elif all(isinstance(param, Parameter) for param in params):
-            param_dict = dict(zip(self.params, params))
-            self._circuit._substitute_parameters(param_dict)
+            param_dict = dict(zip(self._base_params, params))
+            circuit_copy = self._circuit.copy()
+            circuit_copy._substitute_parameters(param_dict)
 
         # otherwise the input type is not supported
         else:
-            raise TypeError('Unsupported type of `params`, {}'.type(params))
+            raise TypeError('Unsupported type of `params`, {}'.format(type(params)))
+
+        return circuit_copy
 
     @property
     def num_parameters(self) -> int:
@@ -210,7 +294,7 @@ class Ansatz:
         Returns:
             The number of parameters.
         """
-        return len(self.params)
+        return len(self._base_params)
 
     def construct_circuit(self, params: Union[List[float], List[Parameter], ParameterVector]
                           ) -> QuantumCircuit:
@@ -224,6 +308,31 @@ class Ansatz:
         """
         self.params = params
         return self.to_circuit()
+
+    def _parametrize_block(self, block: Instruction, count: int) -> Tuple[QuantumCircuit, int]:
+        """Temporary function while Instructions are not able to propagate parameter change.
+
+        Converts the block to a circuit and binds the next `n` base parameters (starting from
+        index `count`), where `n` is the number of parameters of the block.
+
+        Args:
+            block: The instruction to which the base parameters are bound.
+            count: The start index for the base parameters.
+
+        Returns:
+            A tuple of the instruction converted to a circuit and the `count + n`.
+        """
+        block_params = [p for p in block.params if isinstance(p, ParameterExpression)]
+        num_block_params = len(block_params)
+        new_block_params = self._base_params[count:count + num_block_params]
+        count += num_block_params
+        replacement_table = dict(zip(block_params, new_block_params))
+
+        as_circuit = QuantumCircuit(block.num_qubits)
+        as_circuit.append(block, list(range(block.num_qubits)))
+        as_circuit._substitute_parameters(replacement_table)
+
+        return as_circuit, count
 
     def to_circuit(self) -> QuantumCircuit:
         """Convert the Ansatz into a circuit.
@@ -247,17 +356,27 @@ class Ansatz:
                 if len(self._reps) > 0:
                     # the first block (separately so barriers can be inserted in the for-loop)
                     idx = self._reps[0]
-                    circuit.append(self._blocks[idx], self._qargs[idx])
+                    count = 0
+                    parametrized_block, count = self._parametrize_block(self._blocks[idx], count)
+                    circuit.append(parametrized_block, self._qargs[idx])
 
                     for idx in self._reps[1:]:
-                        if self._insert_barriers:  # insert barrier, if necessary
+                        if self._insert_barriers:
                             circuit.barrier()
-                        circuit.append(self._blocks[idx], self._qargs[idx])  # add next layer
+                        parametrized_block, count = self._parametrize_block(self._blocks[idx],
+                                                                            count)
+                        circuit.append(parametrized_block, self._qargs[idx])
 
             # store the circuit
             self._circuit = circuit
 
-        return self._circuit
+        # TODO make this on parameter change only?
+        print('base:', self._base_params)
+        print('surface:', self._surface_params)
+        circuit_copy = self.bind_parameters(self._surface_params)
+        print('providing:')
+        print(circuit_copy.decompose())
+        return circuit_copy
 
     def __add__(self, other: Union[Ansatz, Instruction, QuantumCircuit]) -> Ansatz:
         """Overloading + for convenience.
@@ -355,7 +474,8 @@ class Ansatz:
                 `to_instruction` method.
         """
         # add other to the list of blocks
-        self._blocks += [self._convert_to_block(other)]
+        block = self._convert_to_block(other)
+        self._blocks += [block]
 
         # keep track of which blocks to add to the Ansatz
         self._reps += [len(self._blocks) - 1]
@@ -374,102 +494,20 @@ class Ansatz:
             self._num_qubits = num_qubits
             self._circuit = None  # rebuild circuit
 
+        # update the parameters
+        count = self.num_parameters
+        new_base_params = [Parameter('θ{}'.format(count + i))
+                           for i in range(len(parameters(block)))]
+        self._base_params += new_base_params
+        self._surface_params += parameters(block)
+
         # modify the circuit accordingly
         if self._circuit is None:
             _ = self.to_circuit()  # automatically constructed
         else:
             if self._insert_barriers and len(self._reps) > 1:
                 self._circuit.barrier()
-            self._circuit.append(self._blocks[-1], self._qargs[-1], [])  # append block
+            parametrized_block, _ = self._parametrize_block(block, count)
+            self._circuit.append(parametrized_block, self._qargs[-1], [])  # append block
 
         return self
-
-#
-# Experimental parameter setting functionality
-#
-# def _bind_instruction_parameters(instruction, new_parameters):
-#     basis_gates = ['id', 'x', 'y', 'z', 'h', 's', 't', 'sdg', 'tdg', 'rx', 'ry', 'rz',
-#                    'cx', 'cy', 'cz', 'ch', 'crx', 'cry', 'crz', 'swap', 'cswap',
-#                    'toffoli', 'u1', 'u2', 'u3']
-#
-#     instruction_params = [p for p in instruction.params if isinstance(p, ParameterExpression)]
-#
-#     if not isinstance(new_parameters, dict):
-#         replacement_table = dict(zip(instruction_params, new_parameters))
-#     else:
-#         replacement_table = new_parameters
-#
-#     ops = [(instruction, None, None)]
-#     decomposed = []
-#     while len(ops) > 0:
-#         op = ops.pop()[0]  # returns and removes the last element
-#         if op.name in ['barrier', 'reset', 'measure']:
-#             continue
-#         elif op.name in basis_gates:
-#             decomposed += [op]
-#         else:
-#             ops += op.definition
-#
-#     for op in decomposed:
-#         if len(op.params) > 0:
-#             for param in op.params:
-#                 if param in replacement_table.keys():
-#                     replacement = replacement_table[param]
-#                     if isinstance(replacement, ParameterExpression):
-#                         param.subs({param: replacement})
-#                     else:
-#                         param.bind({param: replacement})
-#
-#
-# def _bind_circuit_parameters(circuit, params, experimental):
-#     """Propagates the changes down to the circuit."""
-#     count = 0
-#     for block, _, _ in circuit.data:
-#         if isinstance(params, dict):
-#             block_params = params
-#         else:
-#             block_params = params[count:count + len(block.params)]
-#             count += len(block_params)
-#         _bind_instruction_parameters(block, block_params)
-#
-#
-# def _extract_parameter_list(circuit: QuantumCircuit) -> List[Parameter]:
-#     """Fully unroll the circuit and extract a list of every single parameter.
-#
-#     Args:
-#         circuit: The circuit from which to extract the parameter list from.
-#
-#     Returns:
-#         A list of all parameters, including duplicates.
-#     """
-#
-#     basis_gates = ['id', 'x', 'y', 'z', 'h', 's', 't', 'sdg', 'tdg', 'rx', 'ry', 'rz',
-#                    'cx', 'cy', 'cz', 'ch', 'crx', 'cry', 'crz', 'swap', 'cswap',
-#                    'toffoli', 'u1', 'u2', 'u3']
-#     decomposed = transpile(circuit, basis_gates=basis_gates, optimization_level=0)
-#
-#     params = []
-#     for instruction, _, _ in decomposed.data:
-#         if len(instruction.params) > 0:
-#             params += instruction.params
-#
-#     return params
-#
-#
-# def _inject_parameter_list(circuit: QuantumCircuit,
-#                            parameters: Union[List[float], List[Parameter], ParameterVector]
-#                            ) -> None:
-#     """Set the parameters."""
-#
-#     basis_gates = ['id', 'x', 'y', 'z', 'h', 's', 't', 'sdg', 'tdg', 'rx', 'ry', 'rz',
-#                    'cx', 'cy', 'cz', 'ch', 'crx', 'cry', 'crz', 'swap', 'cswap',
-#                    'toffoli', 'u1', 'u2', 'u3']
-#     decomposed = transpile(circuit, basis_gates=basis_gates, optimization_level=0)
-#
-#     counter = 0
-#     for instruction, _, _ in decomposed.data:
-#         if len(instruction.params) > 0:
-#             instruction.params = [parameters[counter]]
-#             counter += 1
-#
-#     return decomposed

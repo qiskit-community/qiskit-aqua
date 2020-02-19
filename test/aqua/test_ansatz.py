@@ -102,7 +102,7 @@ class TestAnsatz(QiskitAquaTestCase):
             ansatz.append(gate, indices)
             reference.append(gate, indices)
 
-        self.assertEqual(ansatz.to_circuit(), reference)
+        self.assertCircuitEqual(ansatz.to_circuit(), reference, verbosity=0)
 
     @data(
         [5, 3], [1, 5], [1, 1], [5, 1], [1, 2],
@@ -175,7 +175,7 @@ class TestAnsatz(QiskitAquaTestCase):
             with self.subTest(msg='type: {}'.format(type(other))):
                 self.assertCircuitEqual(new_ansatz.to_circuit(), reference, verbosity=0)
 
-    @unittest.skip('Parameters for automatic repetition not yet decided on')
+    # @unittest.skip('Parameters for automatic repetition not yet decided on')
     def test_parameter_getter_from_automatic_repetition(self):
         """Test getting and setting of the ansatz parameters."""
         a, b = Parameter('a'), Parameter('b')
@@ -189,7 +189,7 @@ class TestAnsatz(QiskitAquaTestCase):
         expected_params = reps * [a, b]
         self.assertEqual(expected_params, ansatz.params)
 
-    @unittest.skip('Parameters for automatic repetition not yet decided on')
+    # @unittest.skip('Parameters for automatic repetition not yet decided on')
     @data(list(range(6)), ParameterVector('θ', length=6), [0, 1, Parameter('θ'), 3, 4, 5])
     def test_parameter_setter_from_automatic_repetition(self, params):
         """Test getting and setting of the ansatz parameters."""

@@ -19,8 +19,11 @@ TODO
 * test if this actually coincides with the current SwapRZ varform
 """
 
-from typing import Union, Optional, List
+from typing import Union, Optional, List, Tuple
+import numpy as np
 
+from qiskit import QuantumCircuit
+from qiskit.circuit import Parameter
 from qiskit.extensions.standard import RZGate, RXXGate, RYYGate
 from qiskit.aqua.components.initial_states import InitialState
 
@@ -108,9 +111,15 @@ class SwapRZ(TwoLocalAnsatz):
             >>> my_varform = swaprz + ry
             >>> print(my_varform)
         """
+
+        circuit = QuantumCircuit(2)
+        theta = Parameter('θ')
+        circuit.rxx(theta, 0, 1)
+        circuit.ryy(theta, 0, 1)
+
         super().__init__(num_qubits,
                          rotation_gates=RZGate,
-                         entanglement_gates=[RXXGate, RYYGate],
+                         entanglement_gates=circuit,
                          entanglement=entanglement,
                          reps=reps,
                          parameter_prefix=parameter_prefix,
@@ -118,3 +127,12 @@ class SwapRZ(TwoLocalAnsatz):
                          skip_unentangled_qubits=skip_unentangled_qubits,
                          skip_final_rotation_layer=skip_final_rotation_layer,
                          initial_state=initial_state)
+
+    @property
+    def parameter_bounds(self) -> List[Tuple[float, float]]:
+        """Return the parameter bounds.
+
+        Returns:
+            The parameter bounds.
+        """
+        return self.num_parameters * [(-np.pi, np.pi)]

@@ -16,6 +16,7 @@
 
 from typing import Union, Optional, List, Tuple
 
+import numpy as np
 from qiskit.extensions.standard import RYGate, CzGate
 from .two_local_ansatz import TwoLocalAnsatz
 
@@ -99,3 +100,12 @@ class RY(TwoLocalAnsatz):
                          insert_barriers=insert_barriers,
                          skip_unentangled_qubits=skip_unentangled_qubits,
                          skip_final_rotation_layer=skip_final_rotation_layer)
+
+    @property
+    def parameter_bounds(self) -> List[Tuple[float, float]]:
+        """Return the parameter bounds.
+
+        Returns:
+            The parameter bounds.
+        """
+        return self.num_parameters * [(-np.pi, np.pi)]
