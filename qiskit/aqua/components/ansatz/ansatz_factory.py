@@ -53,7 +53,8 @@ class Ansatz:
     """
 
     def __init__(self,
-                 blocks: Optional[Union[Gate, List[Gate]]] = None,
+                 blocks: Optional[Union[QuantumCircuit, List[QuantumCircuit],
+                                        Instruction, List[Instruction]]] = None,
                  qubit_indices: Optional[Union[List[int], List[List[int]]]] = None,
                  reps: Optional[Union[int, List[int]]] = None,
                  insert_barriers: bool = False,
@@ -107,7 +108,7 @@ class Ansatz:
 
         # get qubit_indices in the right format (i.e. list of lists)
         if qubit_indices is None:
-            self._qargs = [list(range(block.num_qubits)) for block in self._blocks]
+            self._qargs = [list(range(block.n_qubits)) for block in self._blocks]
         elif not isinstance(qubit_indices[0], list):
             self._qargs = [qubit_indices]
         else:  # right format
@@ -119,7 +120,7 @@ class Ansatz:
         # if there is an initial state object, check that the number of qubits is compatible
         # construct the circuit immediately since we need the number of qubits
         # alternate solution: add num_qubits as attribute to the InitialState
-        self._initial_state_circuit = None
+        self._initial_state_cQircuit = None
         if initial_state is not None:
             # construct the circuit
             self._initial_state_circuit = initial_state.construct_circuit(mode='circuit')
@@ -146,8 +147,8 @@ class Ansatz:
         # parameter bounds
         self._bounds = None
 
-    def _convert_to_block(self, layer: Any) -> Instruction:
-        """Try to convert `layer` to an Instruction.
+    def _convert_to_block(self, layer: Any) -> QuantumCircuit:
+        """Try to convert `layer` to a QuantumCircuit.
 
         Args:
             layer: The object to be converted to an Ansatz block / Instruction.
@@ -158,10 +159,13 @@ class Ansatz:
         Returns:
             The layer converted to an Instruction.
         """
-        if isinstance(layer, Instruction):
+        if isinstance(layer, QuantumCircuit):
             return layer
-        elif hasattr(layer, 'to_instruction'):
-            return layer.to_instruction()
+        elif isinstance(layer, Instruction) or (hasattr(layer, 'to_instruction') and
+                                                hasattr(layer, 'num_qubits')):
+            circuit = QuantumCircuit(layer.num_qubits)
+            circuit.append(layer, list(range(layer.num_qubits)))
+            return circuit
         else:
             raise TypeError('Adding a {} to an Ansatz is not supported.'.format(type(layer)))
 
@@ -322,14 +326,14 @@ class Ansatz:
         Returns:
             A tuple of the instruction converted to a circuit and the `count + n`.
         """
-        block_params = [p for p in block.params if isinstance(p, ParameterExpression)]
+        block_params = parameters(block)
         num_block_params = len(block_params)
         new_block_params = self._base_params[count:count + num_block_params]
         count += num_block_params
         replacement_table = dict(zip(block_params, new_block_params))
 
-        as_circuit = QuantumCircuit(block.num_qubits)
-        as_circuit.append(block, list(range(block.num_qubits)))
+        as_circuit = QuantumCircuit(block.n_qubits)
+        as_circuit.append(block, list(range(block.n_qubits)))
         as_circuit._substitute_parameters(replacement_table)
 
         return as_circuit, count
@@ -358,14 +362,14 @@ class Ansatz:
                     idx = self._reps[0]
                     count = 0
                     parametrized_block, count = self._parametrize_block(self._blocks[idx], count)
-                    circuit.append(parametrized_block, self._qargs[idx])
+                    circuit.extend(parametrized_block.decompose())
 
                     for idx in self._reps[1:]:
                         if self._insert_barriers:
                             circuit.barrier()
                         parametrized_block, count = self._parametrize_block(self._blocks[idx],
                                                                             count)
-                        circuit.append(parametrized_block, self._qargs[idx])
+                        circuit.extend(parametrized_block.decompose())
 
             # store the circuit
             self._circuit = circuit
@@ -375,7 +379,7 @@ class Ansatz:
         print('surface:', self._surface_params)
         circuit_copy = self.bind_parameters(self._surface_params)
         print('providing:')
-        print(circuit_copy.decompose())
+        print(circuit_copy.draw())
         return circuit_copy
 
     def __add__(self, other: Union[Ansatz, Instruction, QuantumCircuit]) -> Ansatz:
@@ -481,7 +485,7 @@ class Ansatz:
         self._reps += [len(self._blocks) - 1]
 
         # define the the qubit indices
-        self._qargs += [qubit_indices or list(range(self._blocks[-1].num_qubits))]
+        self._qargs += [qubit_indices or list(range(self._blocks[-1].n_qubits))]
 
         # retrieve number of qubits
         num_qubits = max(self._qargs[-1]) + 1
@@ -508,6 +512,15 @@ class Ansatz:
             if self._insert_barriers and len(self._reps) > 1:
                 self._circuit.barrier()
             parametrized_block, _ = self._parametrize_block(block, count)
-            self._circuit.append(parametrized_block, self._qargs[-1], [])  # append block
+            self._circuit.append(parametrized_block.decompose(),
+                                 self._qargs[-1], [])  # append block
 
         return self
+
+
+qc = QuantumCircuit(1)
+p = Parameter('p')
+qc.ry(p, 0)
+
+ansatz = Ansatz(qc, reps=2)
+print(ansatz)
