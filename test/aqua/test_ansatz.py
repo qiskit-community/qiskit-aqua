@@ -175,7 +175,6 @@ class TestAnsatz(QiskitAquaTestCase):
             with self.subTest(msg='type: {}'.format(type(other))):
                 self.assertCircuitEqual(new_ansatz.to_circuit(), reference, verbosity=0)
 
-    # @unittest.skip('Parameters for automatic repetition not yet decided on')
     def test_parameter_getter_from_automatic_repetition(self):
         """Test getting and setting of the ansatz parameters."""
         a, b = Parameter('a'), Parameter('b')
@@ -189,10 +188,12 @@ class TestAnsatz(QiskitAquaTestCase):
         expected_params = reps * [a, b]
         self.assertEqual(expected_params, ansatz.params)
 
-    # @unittest.skip('Parameters for automatic repetition not yet decided on')
-    @data(list(range(6)), ParameterVector('θ', length=6), [0, 1, Parameter('θ'), 3, 4, 5])
+    @data(list(range(6)), ParameterVector('θ', length=6))
     def test_parameter_setter_from_automatic_repetition(self, params):
-        """Test getting and setting of the ansatz parameters."""
+        """Test getting and setting of the ansatz parameters.
+
+        TODO Test the input ``[0, 1, Parameter('θ'), 3, 4, 5]`` once that's supported.
+        """
         a, b = Parameter('a'), Parameter('b')
         circuit = QuantumCircuit(2)
         circuit.ry(a, 0)
@@ -211,7 +212,7 @@ class TestAnsatz(QiskitAquaTestCase):
             self.assertEqual(ansatz.to_circuit().parameters, param_set)
 
         with self.subTest(msg='Test the parameters of the transpiled circuit'):
-            basis_gates = ['u1', 'u2', 'u3', 'cx']
+            basis_gates = ['id', 'u1', 'u2', 'u3', 'cx']
             transpiled_circuit = transpile(ansatz.to_circuit(), basis_gates=basis_gates)
             self.assertEqual(transpiled_circuit.parameters, param_set)
 
@@ -237,9 +238,37 @@ class TestAnsatz(QiskitAquaTestCase):
             self.assertEqual(ansatz.to_circuit().parameters, param_set)
 
         with self.subTest(msg='Test the parameters of the transpiled circuit'):
-            basis_gates = ['u1', 'u2', 'u3', 'cx']
+            basis_gates = ['id', 'u1', 'u2', 'u3', 'cx']
             transpiled_circuit = transpile(ansatz.to_circuit(), basis_gates=basis_gates)
             self.assertEqual(transpiled_circuit.parameters, param_set)
+
+    def test_repetetive_parameter_setting(self):
+        """Test alternate setting of parameters and circuit construction."""
+
+        p = Parameter('p')
+        circuit = QuantumCircuit(1)
+        circuit.rx(p, 0)
+
+        ansatz = Ansatz(circuit, reps=[0, 0, 0], insert_barriers=True)
+        with self.subTest(msg='immediately after initialization'):
+            self.assertEqual(ansatz.params, [p, p, p])
+
+        with self.subTest(msg='after circuit construction'):
+            as_circuit = ansatz.to_circuit()
+            self.assertEqual(ansatz.params, [p, p, p])
+
+        ansatz.params = [0, -1, 0]
+        with self.subTest(msg='setting parameter to numbers'):
+            as_circuit = ansatz.to_circuit()
+            self.assertEqual(ansatz.params, [0, -1, 0])
+            self.assertEqual(as_circuit.parameters, set())
+
+        q = Parameter('q')
+        ansatz.params = [p, q, q]
+        with self.subTest(msg='setting parameter to Parameter objects'):
+            as_circuit = ansatz.to_circuit()
+            self.assertEqual(ansatz.params, [p, q, q])
+            self.assertEqual(as_circuit.parameters, set([p, q]))
 
 
 class TestBackwardCompatibility(QiskitAquaTestCase):

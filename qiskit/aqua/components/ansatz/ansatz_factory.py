@@ -273,7 +273,7 @@ class Ansatz:
             circuit_copy = self._circuit.bind_parameters(param_dict)
             print('params:', circuit_copy.parameters)
             print('transpiled:', transpile(circuit_copy,
-                                           basis_gates=['u1', 'u2', 'u3', 'cx']).parameters)
+                                           basis_gates=['id', 'u1', 'u2', 'u3', 'cx']).parameters)
 
         # if they are new parameters, replace them in the circuit
         elif all(isinstance(param, Parameter) for param in params):
