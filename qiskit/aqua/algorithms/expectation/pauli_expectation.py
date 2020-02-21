@@ -40,24 +40,25 @@ class PauliExpectation(ExpectationBase):
         self._operator = operator
         self._backend = backend
         self._state = state
-        self._primitives_cache = None
         self._converted_operator = None
+        self._reduced_expect_op = None
 
     # TODO setters which wipe state
 
-    def _extract_primitives(self):
-        self._primitives_cache = []
-        if isinstance(self._operator, OpVec):
-            self._primitives_cache += [op for op in self._operator.oplist]
-
-    def compute_expectation(self, state=None, primitives=None):
+    def compute_expectation(self, state=None):
         # TODO allow user to set state in constructor and then only pass params to execute.
         state = state or self._state
 
         if not self._converted_operator:
-            self._converted_operator = PauliChangeOfBasis().convert(self._operator)
+            # Construct measurement from operator
+            self._reduced_expect_op = None
+            meas = self._operator.as_measurement()
+            # Convert the measurement into a classical basis (PauliChangeOfBasis chooses this basis by default).
+            self._converted_operator = PauliChangeOfBasis().convert(meas)
 
-        expec_op = self._converted_operator.compose(state)
+        if not self._reduced_expect_op:
+            expec_op = self._converted_operator.compose(state)
+            # TODO to_quantum_runnable converter?
+            self._reduced_expect_op = self._converted_operator.reduce()
 
-        if self._primitives_cache is None:
-            self._extract_primitives()
+        if circuit_sampler

@@ -38,7 +38,7 @@ class TestPauliCoB(QiskitAquaTestCase):
             cob = converter.convert(pauli)
             np.testing.assert_array_almost_equal(pauli.to_matrix(),
                                                  inst.adjoint().to_matrix() @ dest.to_matrix() @ inst.to_matrix())
-            np.testing.assert_array_almost_equal(pauli.to_matrix(), inst.adjoint().to_matrix() @ cob.to_matrix())
+            np.testing.assert_array_almost_equal(pauli.to_matrix(), cob.to_matrix())
             np.testing.assert_array_almost_equal(inst.compose(pauli).compose(inst.adjoint()).to_matrix(),
                                                  dest.to_matrix())
 
@@ -50,7 +50,7 @@ class TestPauliCoB(QiskitAquaTestCase):
             cob = converter.convert(pauli)
             np.testing.assert_array_almost_equal(pauli.to_matrix(),
                                                  inst.adjoint().to_matrix() @ dest.to_matrix() @ inst.to_matrix())
-            np.testing.assert_array_almost_equal(pauli.to_matrix(), inst.adjoint().to_matrix() @ cob.to_matrix())
+            np.testing.assert_array_almost_equal(pauli.to_matrix(), cob.to_matrix())
             np.testing.assert_array_almost_equal(inst.compose(pauli).compose(inst.adjoint()).to_matrix(),
                                                  dest.to_matrix())
 
@@ -68,7 +68,7 @@ class TestPauliCoB(QiskitAquaTestCase):
             # print(np.round(inst.adjoint().to_matrix() @ cob.to_matrix()))
             np.testing.assert_array_almost_equal(pauli.to_matrix(),
                                                  inst.adjoint().to_matrix() @ dest.to_matrix() @ inst.to_matrix())
-            np.testing.assert_array_almost_equal(pauli.to_matrix(), inst.adjoint().to_matrix() @ cob.to_matrix())
+            np.testing.assert_array_almost_equal(pauli.to_matrix(), cob.to_matrix())
             np.testing.assert_array_almost_equal(inst.compose(pauli).compose(inst.adjoint()).to_matrix(),
                                                  dest.to_matrix())
 
@@ -95,6 +95,6 @@ class TestPauliCoB(QiskitAquaTestCase):
                 # print(np.round(inst[i].adjoint().to_matrix() @ cob.oplist[i].to_matrix()))
 
                 self.assertIsInstance(cob.oplist[i], OpComposition)
-                cob_mat[i] = inst[i].adjoint().to_matrix() @ cob.oplist[i].to_matrix()
+                cob_mat[i] = cob.oplist[i].to_matrix()
                 np.testing.assert_array_almost_equal(pauli.oplist[i].to_matrix(), cob_mat[i])
             np.testing.assert_array_almost_equal(pauli.to_matrix(), sum(cob_mat))

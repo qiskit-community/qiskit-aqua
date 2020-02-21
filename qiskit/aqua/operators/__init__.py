@@ -71,6 +71,7 @@ from .op_vec import OpVec
 from .op_sum import OpSum
 from .op_primitive import OpPrimitive
 from .state_fn import StateFn
+from .measurement import Measurement
 
 # Paulis
 X = OpPrimitive(Pauli.from_label('X'))

@@ -27,25 +27,18 @@ from qiskit.aqua.operators.operator_base import OperatorBase
 
 
 class StateFn(OperatorBase):
-    """ A class for representing state functions over binary strings, which are equally defined to be
-    1) A complex function over a single binary string (as compared to an operator, which is defined as a function
-    over two binary strings).
-    2) An Operator with one parameter of its evaluation function always fixed. For example, if we fix one parameter in
-    the eval function of a Matrix-defined operator to be '000..0', the state function is defined by the vector which
-    is the first column of the matrix (or rather, an index function over this vector). A circuit-based operator with
-    one parameter fixed at '000...0' can be interpreted simply as the quantum state prepared by composing the
-    circuit with the |000...0⟩ state.
+    """ A class for representing state functions, which are defined to be complex functions over a single binary
+    strings (as compared to an operator, which is defined as a function over two binary strings,
+    or a function taking a binary function to another binary function). This function may be called by the eval()
+    method.
 
     NOTE: This state function is not restricted to wave functions, as there is no requirement of normalization.
-
-    This object is essentially defined by the operators it holds in the primitive property.
     """
 
     # TODO maybe break up into different classes for different fn definition primitives
-    # NOTE: We call this density but we don't enforce normalization!!
+    # NOTE: We don't enforce normalization!!
     # TODO allow normalization somehow?
     def __init__(self, primitive, coeff=1.0):
-        # TODO change name from primitive to something else
         """
         Args:
             primitive(str, dict, OperatorBase, np.ndarray, list)
@@ -248,7 +241,7 @@ class StateFn(OperatorBase):
     def to_matrix(self, massive=False):
         """
         NOTE: THIS DOES NOT RETURN A DENSITY MATRIX, IT RETURNS A CLASSICAL MATRIX CONTAINING THE QUANTUM OR CLASSICAL
-        VECTOR REPRESENTING THE EVALUATION OF THE STATE FUNCTION ON EACH BASIS STATE. DO NOT ASSUME THIS IS
+        VECTOR REPRESENTING THE EVALUATION OF THE STATE FUNCTION ON EACH BINARY BASIS STATE. DO NOT ASSUME THIS IS
         IS A NORMALIZED QUANTUM OR CLASSICAL PROBABILITY VECTOR. If we allowed this to return a density matrix,
         then we would need to change the definition of composition to be ~Op @ StateFn @ Op for those cases,
         whereas by this methodology we can ensure that composition always means Op @ StateFn.

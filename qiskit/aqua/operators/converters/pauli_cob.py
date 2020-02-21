@@ -21,23 +21,31 @@ from functools import partial, reduce
 from qiskit.quantum_info import Pauli
 from qiskit import QuantumCircuit
 
-from .. import OpPrimitive, OpComposition, OpVec, H, S, I
+from .. import OpPrimitive, OpComposition, OpVec, H, S, I, Measurement, StateFn
+from . import ConverterBase
 
 logger = logging.getLogger(__name__)
 
 
-class PauliChangeOfBasis():
+class PauliChangeOfBasis(ConverterBase):
     """ Converter for changing Paulis into other bases. By default, Pauli {Z,I}^n is used as the destination basis.
     Meaning, if a Pauli containing X or Y terms is passed in, which cannot be sampled or evolved natively on Quantum
     hardware, the Pauli can be replaced by a composition of a change of basis circuit and a Pauli composed of only Z
     and I terms, which can be evolved or sampled natively on gate-based Quantum hardware. """
 
-    def __init__(self, destination_basis=None, traverse=True):
+    def __init__(self, destination_basis=None, traverse=True, replacement_fn=None):
         """ Args:
             destination_basis(Pauli): The Pauli into the basis of which the operators will be converted. If None is
             specified, the destination basis will be the {I,Z}^n basis requiring only single qubit rotations.
             travers(bool): If true and the operator passed into convert is an OpVec, traverse the OpVec,
             applying the conversion to every applicable operator within the oplist.
+            replacement_fn(callable): A function specifying what to do with the CoB instruction and destination
+            Pauli when converting an Operator and replacing converted values. By default, this will be
+                1) For StateFns (or Measurements): replacing the StateFn with OpComposition(StateFn(d), c) where c
+                is the conversion circuit and d is the destination Pauli, so the overall beginning and
+                ending operators are equivalent.
+                2) For non-StateFn Operators: replacing the origin p with c·d·c†, where c is the conversion circuit
+                and d is the destination, so the overall beginning and ending operators are equivalent.
         """
         if destination_basis is not None and isinstance(destination_basis, OpPrimitive):
             self._destination = destination_basis.primitive
@@ -47,6 +55,7 @@ class PauliChangeOfBasis():
             raise TypeError('PauliChangeOfBasis can only convert into Pauli bases, '
                             'not {}.'.format(type(destination_basis)))
         self._traverse = traverse
+        self._replacement_fn = replacement_fn
 
     # TODO see whether we should make this performant by handling OpVecs of Paulis later.
     def convert(self, operator):
@@ -54,10 +63,12 @@ class PauliChangeOfBasis():
         specifically, each Pauli p will be replaced by the composition of a Change-of-basis Clifford c with the
         destination Pauli d, such that p == c·d·c†, up to global phase. """
 
-        if isinstance(operator, Pauli):
+        if isinstance(operator, (Pauli, OpPrimitive)):
             pauli = operator
             coeff = 1.0
-        elif hasattr(operator, 'primitive') and isinstance(operator.primitive, Pauli):
+        elif isinstance(operator, (StateFn, Measurement)) and \
+                isinstance(operator.primitive, OpPrimitive) and \
+                isinstance(operator.primitive, Pauli):
             pauli = operator.primitive
             coeff = operator.coeff
         # TODO allow parameterized OpVec to be returned to save circuit copying.
@@ -67,8 +78,15 @@ class PauliChangeOfBasis():
             raise TypeError('PauliChangeOfBasis can only accept OperatorBase objects or '
                             'Paulis, not {}'.format(type(operator)))
 
-        cob_instruction, new_pauli = self.get_cob_circuit(pauli)
-        return OpComposition([new_pauli, cob_instruction], coeff=coeff)
+        cob_instr_op, dest_pauli_op = self.get_cob_circuit(pauli)
+        if self._replacement_fn:
+            return self._replacement_fn(cob_instr_op, dest_pauli_op)
+        elif isinstance(operator, Measurement):
+            return OpComposition([Measurement(dest_pauli_op), cob_instr_op], coeff=coeff)
+        elif isinstance(operator, StateFn):
+            return OpComposition([cob_instr_op.adjoint(), StateFn(dest_pauli_op)], coeff=coeff)
+        else:
+            return OpComposition([cob_instr_op.adjoint(), dest_pauli_op, cob_instr_op], coeff=coeff)
 
     def get_cob_circuit(self, origin):
         """ The goal of this module is to construct a circuit which maps the +1 and -1 eigenvectors of the origin
@@ -92,8 +110,15 @@ class PauliChangeOfBasis():
         """
 
         # If pauli is an OpPrimitive, extract the Pauli
-        if hasattr(origin, 'primitive') and isinstance(origin.primitive, Pauli):
-            origin = origin.primitive
+        if isinstance(origin, OpPrimitive):
+            if isinstance(origin.primitive, Pauli):
+                coeff = origin.coeff
+                origin = origin.primitive
+            else:
+                raise TypeError('PauliCoB can only convert Pauli-based OpPrimitives, not {}'.format(type(
+                    OpPrimitive.primitive)))
+        else:
+            coeff = 1.0
 
         # If no destination specified, assume nearest Pauli in {Z,I}^n basis, the standard CoB for expectation
         origin_sig_bits = np.logical_or(origin.x, origin.z)
@@ -182,4 +207,4 @@ class PauliChangeOfBasis():
             cob_instruction = x_to_y_dest.compose(z_to_x_dest).compose(cob_instruction)
 
         # Set allow_conversions to False so Pauli is not composed with circuit by accident
-        return cob_instruction, OpPrimitive(destination, allow_conversions=False)
+        return cob_instruction, OpPrimitive(destination, coeff=coeff)

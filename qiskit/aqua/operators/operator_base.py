@@ -47,10 +47,12 @@ class OperatorBase(ABC):
     # TODO allow massive argument to decide whether to perform to_matrix?
     @abstractmethod
     def eval(self, front=None, back=None):
-        """ A square binary Operator can be defined as a function over two binary strings of equal length. This
-        method returns the value of that function for a given pair of binary strings. Note that by using
-        functools.partial, a function over a single binary string is returned, which is equivalent to a state
-        function.
+        """ A square binary Operator can be defined as a function over two binary strings of equal length,
+        or equivalently, a function taking a binary function to another binary function. This method returns the
+        value of that function for a given pair of binary strings if both front and back are supplied, or returns a
+        StateFn if only front is provided. Note that providing both values is simply a shorthand for
+        op.eval(front).eval(back) if back is a binary string, or back.eval(op.eval(front)) if back
+        is a Measurement (front can be a StateFn or binary string in either case).
 
         A brute force way to evaluate an expectation for some **positive real** state function sf would be:
             sampled_strings = sf.sample(shots=1000)
