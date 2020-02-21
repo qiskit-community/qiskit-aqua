@@ -21,6 +21,7 @@ from functools import reduce
 import itertools
 
 from qiskit.quantum_info import Statevector
+from qiskit.result import Result
 
 from qiskit.aqua.operators.operator_base import OperatorBase
 
@@ -59,7 +60,16 @@ class StateFn(OperatorBase):
         elif isinstance(primitive, (dict, OperatorBase, Statevector)):
             self._primitive = primitive
 
-        # TODO accept Qiskit results object (to extract counts or sv), reverse if necessary
+        # NOTE:
+        # 1) This is not the same as passing in the counts dict directly, as this will convert the shot numbers to
+        # probabilities, whereas passing in the counts dict will not.
+        # 2) This will extract counts for both shot and statevector simulations. To use the statevector,
+        # simply pass in the statevector.
+        # 3) This will only extract the first result.
+        if isinstance(primitive, Result):
+            counts = primitive.get_counts()
+            self._primitive = {bstr: shots/sum(counts.values()) for (bstr, shots) in counts.items()}
+            # self._primitive = {bstr[::-1]: shots/sum(counts.values()) for (bstr, shots) in counts.items()}
 
         # TODO: Should we only allow correctly shaped vectors, e.g. vertical? Should we reshape to make contrast with
         #  measurement more accurate?
@@ -203,7 +213,7 @@ class StateFn(OperatorBase):
         """ Compose with Self Multiple Times, undefined for StateFns. """
         raise ValueError('Composition with a Statefunctions in the first operand is not defined.')
 
-    def to_matrix(self, massive=False):
+    def to_density_matrix(self, massive=False):
         """ Return numpy matrix of density operator, warn if more than 16 qubits to force the user to set
         massive=True if they want such a large matrix. Generally big methods like this should require the use of a
         converter, but in this case a convenience method for quick hacking and access to classical tools is
@@ -216,12 +226,7 @@ class StateFn(OperatorBase):
 
         # Dict
         if isinstance(self.primitive, dict):
-            shots = sum(self.primitive.values())
-            states = int(2 ** len(list(self.primitive.keys())[0]))
-            probs = np.zeros(states)
-            for k, v in self.primitive.items():
-                probs[int(k, 2)] = v / shots
-            return probs * np.eye(states) * self.coeff
+            return self.to_matrix() * np.eye(states) * self.coeff
 
         # Operator
         elif isinstance(self.primitive, OperatorBase):
@@ -238,8 +243,15 @@ class StateFn(OperatorBase):
         else:
             raise NotImplementedError
 
-    def to_vector(self, massive=False):
-        """ Return numpy vector of state vector, warn if more than 16 qubits to force the user to set
+    def to_matrix(self, massive=False):
+        """
+        NOTE: THIS DOES NOT RETURN A DENSITY MATRIX, IT RETURNS A CLASSICAL MATRIX CONTAINING THE QUANTUM OR CLASSICAL
+        VECTOR REPRESENTING THE EVALUATION OF THE STATE FUNCTION ON EACH BASIS STATE. DO NOT ASSUME THIS IS
+        IS A NORMALIZED QUANTUM OR CLASSICAL PROBABILITY VECTOR. If we allowed this to return a density matrix,
+        then we would need to change the definition of composition to be ~Op @ StateFn @ Op for those cases,
+        whereas by this methodology we can ensure that composition always means Op @ StateFn.
+
+        Return numpy vector of state vector, warn if more than 16 qubits to force the user to set
         massive=True if they want such a large vector. Generally big methods like this should require the use of a
         converter, but in this case a convenience method for quick hacking and access to classical tools is
         appropriate. """
@@ -251,11 +263,12 @@ class StateFn(OperatorBase):
 
         # Dict - return diagonal (real values, not complex), not rank 1 decomposition!
         if isinstance(self.primitive, dict):
-            shots = sum(self.primitive.values())
-            states = int(2 ** len(list(self.primitive.keys())[0]))
+            states = int(2 ** self.num_qubits)
             probs = np.zeros(states)
             for k, v in self.primitive.items():
-                probs[int(k, 2)] = v / shots
+                probs[int(k, 2)] = v
+                # probs[int(k[::-1], 2)] = v
+                # Note, we need to reverse the bitstring to extract an int ordering
             return probs * self.coeff
 
         # Operator - return diagonal (real values, not complex), not rank 1 decomposition!
@@ -263,13 +276,12 @@ class StateFn(OperatorBase):
             return np.diag(self.primitive.to_matrix()) * self.coeff
 
         # Statevector - Return complex values, not reals
-        # TODO is this awful...?
         elif isinstance(self.primitive, Statevector):
             return self.primitive.data * self.coeff
 
         # User custom matrix-able primitive
-        elif hasattr(self.primitive, 'to_vector'):
-            return self.primitive.to_vector() * self.coeff
+        elif hasattr(self.primitive, 'to_matrix'):
+            return self.primitive.to_matrix() * self.coeff
 
         else:
             raise NotImplementedError
@@ -291,34 +303,34 @@ class StateFn(OperatorBase):
         """ print details """
         raise NotImplementedError
 
-    def eval(self, val1=None, val2=None):
+    def eval(self, front=None, back=None):
         # Validate bitstring: re.fullmatch(rf'[01]{{{0}}}', val1)
 
         # TODO decide whether to allow val2 to be used / default to val2 = val1 if None, or throw an error if it's
         #  provided, or return 0 if not val1 == val2 for diagonal types.
-        if not val2:
-            val2 = val1
+        if not back:
+            back = front
 
         # If the primitive is lookup of bitstrings, we define all missing strings to have a function value of
         # zero.
         elif isinstance(self.primitive, dict):
-            if val1 == val2:
-                return self.primitive.get(val1, 0) * self.coeff
+            if front == back:
+                return self.primitive.get(front, 0) * self.coeff
             else:
                 return 0
 
         elif isinstance(self.primitive, OperatorBase):
-            return self.primitive.eval(val1=val1, val2=val2) * self.coeff
+            return self.primitive.eval(val1=front, val2=back) * self.coeff
 
         elif isinstance(self.primitive, Statevector):
-            if val1 == val2:
-                index1 = int(val1, 2)
+            if front == back:
+                index1 = int(front, 2)
                 return self.primitive.data[index1] * self.coeff
             else:
                 return 0
 
         elif hasattr(self.primitive, 'eval'):
-            return self.primitive.eval(val1=val1, val2=val2)
+            return self.primitive.eval(val1=front, val2=back)
 
     # TODO
     def sample(self, shots):
