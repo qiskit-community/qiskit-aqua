@@ -20,14 +20,14 @@ import numpy as np
 import itertools
 
 from qiskit.aqua.operators import X, Y, Z, I, CX, T, H, S, OpPrimitive, OpSum, OpComposition
-from qiskit.aqua.operators import StateFn, Zero
+from qiskit.aqua.operators import StateFn, Zero, Plus, Minus
 
 from qiskit.aqua.algorithms.expectation import ExpectationBase, PauliExpectation
 from qiskit import QuantumCircuit, BasicAer
 
 
 class TestPauliExpectation(QiskitAquaTestCase):
-    """Pauli Change of Basis Converter tests."""
+    """Pauli Change of Basis Expectation tests."""
 
     def test_pauli_expect_single(self):
         op = (Z ^ Z)
@@ -35,6 +35,15 @@ class TestPauliExpectation(QiskitAquaTestCase):
         backend = BasicAer.get_backend('qasm_simulator')
         expect = PauliExpectation(operator=op, backend=backend)
         # wf = (Pl^Pl) + (Ze^Ze)
-        wf = CX @ (H^I) @ (Zero^2)
+        wf = CX @ (H^I) @ Zero
         mean = expect.compute_expectation(wf)
+        self.assertAlmostEqual(mean, 0)
+
+        op = X
+        expect = PauliExpectation(operator=op, backend=backend)
+        mean = expect.compute_expectation(Plus)
+        self.assertAlmostEqual(mean, 1)
+        mean = expect.compute_expectation(Minus)
+        self.assertAlmostEqual(mean, -1)
+        mean = expect.compute_expectation(Plus+Minus)
         self.assertAlmostEqual(mean, 0)
