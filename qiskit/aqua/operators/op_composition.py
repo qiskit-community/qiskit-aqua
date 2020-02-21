@@ -66,7 +66,6 @@ class OpComposition(OpVec):
         # return self.oplist[0].eval(front_holder, back)
 
         comp_mat_or_vec = self.combo_fn([op.to_matrix() for op in self.oplist])
-        print(comp_mat_or_vec.shape)
         if len(comp_mat_or_vec.shape) == 2 and comp_mat_or_vec.shape[0] == comp_mat_or_vec.shape[1]:
             from . import OpPrimitive
             comp_mat = OpPrimitive(comp_mat_or_vec, coeff=self.coeff)
