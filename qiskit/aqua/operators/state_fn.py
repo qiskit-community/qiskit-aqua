@@ -304,7 +304,7 @@ class StateFn(OperatorBase):
             raise ValueError('to_vector will return an exponentially large vector, in this case {0} elements.'
                              ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
 
-        # Dict - return diagonal (real values, not complex), not rank 1 decomposition!
+        # Dict
         if isinstance(self.primitive, dict):
             states = int(2 ** self.num_qubits)
             probs = np.zeros(states)
@@ -312,22 +312,25 @@ class StateFn(OperatorBase):
                 probs[int(k, 2)] = v
                 # probs[int(k[::-1], 2)] = v
                 # Note, we need to reverse the bitstring to extract an int ordering
-            return probs * self.coeff
+            vec = probs * self.coeff
 
         # Operator - return diagonal (real values, not complex), not rank 1 decomposition!
         elif isinstance(self.primitive, OperatorBase):
-            return np.diag(self.primitive.to_matrix()) * self.coeff
+            vec = np.diag(self.primitive.to_matrix()) * self.coeff
 
         # Statevector - Return complex values, not reals
         elif isinstance(self.primitive, Statevector):
-            return self.primitive.data * self.coeff
+            vec = self.primitive.data * self.coeff
 
         # User custom matrix-able primitive
         elif hasattr(self.primitive, 'to_matrix'):
-            return self.primitive.to_matrix() * self.coeff
+            vec = self.primitive.to_matrix() * self.coeff
 
         else:
             raise NotImplementedError
+
+        # Reshape for measurements so np.dot still works for composition.
+        return vec if not self.is_measurement else vec.reshape(1, -1)
 
     def __str__(self):
         """Overload str() """
