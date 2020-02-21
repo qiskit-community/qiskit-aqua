@@ -31,34 +31,46 @@ class PauliExpectation(ExpectationBase):
 
     """
 
-    def __init__(self, operator=None, backend=None, state=None):
+    def __init__(self, operator=None, state=None, backend=None):
         """
         Args:
 
         """
         super().__init__()
         self._operator = operator
-        self._backend = backend
         self._state = state
+        self.set_backend(backend)
         self._converted_operator = None
         self._reduced_expect_op = None
 
     # TODO setters which wipe state
 
     def compute_expectation(self, state=None):
+        if state or not self._reduced_expect_op:
+            self._reduced_expect_op = self.expectation_op(state=state)
+            # TODO to_quantum_runnable converter?
+
+        if 'Instruction' in self._reduced_expect_op.get_primtives():
+            # TODO check if params have been sufficiently provided.
+            if self._circuit_sampler:
+                measured_op = self._circuit_sampler.run_circuits(self._reduced_expect_op)
+                return measured_op.eval()
+            else:
+                raise ValueError('Unable to compute expectation of functions containing circuits without a backend '
+                                 'set. Set a backend for the Expectation algorithm to compute the expectation, '
+                                 'or convert Instructions to other types which do not require a backend.')
+        else:
+            return self._reduced_expect_op.eval()
+
+    def expectation_op(self, state=None):
         # TODO allow user to set state in constructor and then only pass params to execute.
         state = state or self._state
 
         if not self._converted_operator:
             # Construct measurement from operator
-            self._reduced_expect_op = None
             meas = self._operator.as_measurement()
             # Convert the measurement into a classical basis (PauliChangeOfBasis chooses this basis by default).
             self._converted_operator = PauliChangeOfBasis().convert(meas)
 
-        if not self._reduced_expect_op:
-            expec_op = self._converted_operator.compose(state)
-            # TODO to_quantum_runnable converter?
-            self._reduced_expect_op = self._converted_operator.reduce()
-
-        if circuit_sampler
+        expec_op = self._converted_operator.compose(state)
+        return expec_op.reduce()

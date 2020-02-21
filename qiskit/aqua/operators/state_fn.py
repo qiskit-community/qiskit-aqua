@@ -27,23 +27,32 @@ from qiskit.aqua.operators.operator_base import OperatorBase
 
 
 class StateFn(OperatorBase):
-    """ A class for representing state functions, which are defined to be complex functions over a single binary
-    strings (as compared to an operator, which is defined as a function over two binary strings,
-    or a function taking a binary function to another binary function). This function may be called by the eval()
-    method.
+    """ A class for representing state functions and measurements.
 
-    NOTE: This state function is not restricted to wave functions, as there is no requirement of normalization.
+    State functions are defined to be complex functions over a single binary string (as compared to an operator,
+    which is defined as a function over two binary strings, or a function taking a binary function to another
+    binary function). This function may be called by the eval() method.
+
+    Measurements are defined to be functionals over StateFns, taking them to real values. Generally, this real value
+    is interpreted to represent the probability of some classical state (binary string) being observed from a
+    probabilistic or quantum system represented by a StateFn. This leads to the equivalent definition, which is that
+    a measurement m is a function over binary strings producing StateFns, such that the probability of measuring
+    a given binary string b from a system with StateFn f is equal to the inner product between f and m(b).
+
+    NOTE: State functions here are not restricted to wave functions, as there is no requirement of normalization.
     """
 
     # TODO maybe break up into different classes for different fn definition primitives
     # NOTE: We don't enforce normalization!!
     # TODO allow normalization somehow?
-    def __init__(self, primitive, coeff=1.0):
+    def __init__(self, primitive, coeff=1.0, is_measurement=False):
         """
         Args:
             primitive(str, dict, OperatorBase, np.ndarray, list)
             coeff(int, float, complex): A coefficient by which to multiply the state
         """
+        self._is_measurement = is_measurement
+
         # If the initial density is a string, treat this as a density dict with only a single basis state.
         if isinstance(primitive, str):
             self._primitive = {primitive: 1}
@@ -83,6 +92,10 @@ class StateFn(OperatorBase):
     def coeff(self):
         return self._coeff
 
+    @property
+    def is_measurement(self):
+        return self._is_measurement
+
     def get_primitives(self):
         """ Return a set of primitives in the StateFn """
         if isinstance(self.primitive, dict):
@@ -116,7 +129,9 @@ class StateFn(OperatorBase):
         if isinstance(other, StateFn):
             if isinstance(self.primitive, type(other.primitive)) and \
                     self.primitive == other.primitive:
-                return StateFn(self.primitive, coeff=self.coeff + other.coeff)
+                return StateFn(self.primitive,
+                               coeff=self.coeff + other.coeff,
+                               is_measurement=self.is_measurement)
             # Covers MatrixOperator and custom.
             elif isinstance(self.primitive, type(other.primitive)) and \
                     hasattr(self.primitive, 'add'):
@@ -130,9 +145,17 @@ class StateFn(OperatorBase):
         return self.mul(-1.0)
 
     def adjoint(self):
-        # TODO
-        # return Measurement(self)
-        pass
+        if isinstance(self.primitive, Statevector):
+            prim_adjoint = self.primitive.conjugate()
+        elif isinstance(self.primitive, OperatorBase):
+            prim_adjoint = self.primitive.adjoint()
+        elif isinstance(self.primitive, dict):
+            prim_adjoint = {b: np.conj(v) for (b, v) in self.primitive.items()}
+        else:
+            prim_adjoint = self.primitive
+        return StateFn(prim_adjoint,
+                       coeff=self.coeff,
+                       is_measurement=(not self.is_measurement))
 
     def equals(self, other):
         """ Evaluate Equality. Overloaded by == in OperatorBase. """
@@ -153,7 +176,9 @@ class StateFn(OperatorBase):
         if not isinstance(scalar, (int, float, complex)):
             raise ValueError('Operators can only be scalar multiplied by float or complex, not '
                              '{} of type {}.'.format(scalar, type(scalar)))
-        return StateFn(self.primitive, coeff=self.coeff * scalar)
+        return StateFn(self.primitive,
+                       coeff=self.coeff * scalar,
+                       is_measurement=self.is_measurement)
 
     def kron(self, other):
         """ Kron
@@ -169,21 +194,29 @@ class StateFn(OperatorBase):
         if isinstance(self.primitive, dict) and isinstance(other.primitive, dict):
             new_dict = {k1+k2: v1*v2 for ((k1, v1,), (k2, v2)) in
                         itertools.product(self.primitive.items(), other.primitive.items())}
-            return StateFn(new_dict, coeff=self.coeff * other.coeff)
+            return StateFn(new_dict,
+                           coeff=self.coeff * other.coeff,
+                           is_measurement=self.is_measurement)
             # TODO double check coeffs logic
 
         # Both Operators
         elif isinstance(self.primitive, OperatorBase) and isinstance(other.primitive, OperatorBase):
-            return StateFn(self.primitive.kron(other.primitive), coeff=self.coeff * other.coeff)
+            return StateFn(self.primitive.kron(other.primitive),
+                           coeff=self.coeff * other.coeff,
+                           is_measurement=self.is_measurement)
 
         # Both Statevectors
         elif isinstance(self_primitive, Statevector) and isinstance(other_primitive, Statevector):
-            return StateFn(self.primitive.tensor(other.primitive), coeff=self.coeff * other.coeff)
+            return StateFn(self.primitive.tensor(other.primitive),
+                           coeff=self.coeff * other.coeff,
+                           is_measurement=self.is_measurement)
 
         # User custom kron-able primitive - Identical to Pauli above for now, but maybe remove deepcopy later
         elif isinstance(self.primitive, type(other.primitive)) and hasattr(self.primitive, 'kron'):
             sf_copy = copy.deepcopy(other.primitive)
-            return StateFn(self.primitive.kron(sf_copy), coeff=self.coeff * other.coeff)
+            return StateFn(self.primitive.kron(sf_copy),
+                           coeff=self.coeff * other.coeff,
+                           is_measurement=self.is_measurement)
 
         else:
             from . import OpKron
@@ -193,7 +226,9 @@ class StateFn(OperatorBase):
         """ Kron with Self Multiple Times """
         if not isinstance(other, int) or other <= 0:
             raise TypeError('Kronpower can only take positive int arguments')
-        temp = StateFn(self.primitive, coeff=self.coeff)
+        temp = StateFn(self.primitive,
+                       coeff=self.coeff,
+                       is_measurement=self.is_measurement)
         for i in range(other-1):
             temp = temp.kron(self)
         return temp
@@ -287,44 +322,71 @@ class StateFn(OperatorBase):
         if self.coeff == 1.0:
             return prim_str
         else:
-            return "{} * |{}⟩".format(self.coeff, prim_str)
+            return "{}: {} * {}".format('StateFunction' if not self.is_measurement else 'Measurement',
+                                        self.coeff,
+                                        prim_str)
 
     def __repr__(self):
         """Overload str() """
-        return "StateFn({}, coeff={}".format(repr(self.primitive), self.coeff)
+        return "StateFn({}, coeff={}, is_measurement={}".format(repr(self.primitive), self.coeff, self.is_measurement)
 
     def print_details(self):
         """ print details """
         raise NotImplementedError
 
-    def eval(self, front=None, back=None):
+    def eval(self, other=None):
         # Validate bitstring: re.fullmatch(rf'[01]{{{0}}}', val1)
 
-        # TODO decide whether to allow val2 to be used / default to val2 = val1 if None, or throw an error if it's
-        #  provided, or return 0 if not val1 == val2 for diagonal types.
-        if not back:
-            back = front
+        if isinstance(other, str):
+            other = {str: 1}
 
-        # If the primitive is lookup of bitstrings, we define all missing strings to have a function value of
+        # If the primitive is a lookup of bitstrings, we define all missing strings to have a function value of
         # zero.
-        elif isinstance(self.primitive, dict):
-            if front == back:
-                return self.primitive.get(front, 0) * self.coeff
-            else:
-                return 0
+        if isinstance(self.primitive, dict) and isinstance(other, dict):
+            return sum([v * other.get(b, 0) for (b, v) in self.primitive.items()]) * self.coeff
 
-        elif isinstance(self.primitive, OperatorBase):
-            return self.primitive.eval(val1=front, val2=back) * self.coeff
+        if not self.is_measurement and isinstance(other, OperatorBase):
+            raise ValueError('Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '
+                             'sf.adjoint() first to convert to measurement.')
+
+        # All remaining possibilities only apply when self.is_measurement is True
+
+        if isinstance(other, StateFn):
+            if isinstance(other.primitive, OperatorBase):
+                if isinstance(self.primitive, OperatorBase):
+                    # Both are density matrices, need to compose and trace
+                    return np.trace(self.to_matrix() @ other.to_matrix())
+                else:
+                    return self.eval(other.primitive).eval(self.adjoint()) * self.coeff
+            elif isinstance(other.primitive, (Statevector, dict)):
+                return self.eval(other.primitive) * other.coeff
+
+        if isinstance(self.primitive, dict):
+            if isinstance(other, Statevector):
+                return sum([v * other.data[int(b, 2)] for (b, v) in self.primitive.items()]) * self.coeff
+            if isinstance(other, OperatorBase):
+                return other.eval(self.primitive).adjoint()
+
+        # State or Measurement is specified as Density matrix.
+        if isinstance(self.primitive, OperatorBase):
+            if isinstance(other, OperatorBase):
+                # Compose the other Operator to self's measurement density matrix
+                return StateFn(other.adjoint().compose(self.primitive).compose(other),
+                               coeff=self.coeff,
+                                is_measurement=True)
+            else:
+                # Written this way to be able to handle many types of other (at least dict and Statevector).
+                return self.primitive.eval(other).adjoint().eval(other) * self.coeff
 
         elif isinstance(self.primitive, Statevector):
-            if front == back:
-                index1 = int(front, 2)
-                return self.primitive.data[index1] * self.coeff
-            else:
-                return 0
+            if isinstance(other, dict):
+                return sum([v * self.primitive.data[int(b, 2)] for (b, v) in other.items()]) * self.coeff
+            elif isinstance(other, Statevector):
+                return np.dot(self.primitive.data, other.data) * self.coeff
 
-        elif hasattr(self.primitive, 'eval'):
-            return self.primitive.eval(val1=front, val2=back)
+        # TODO figure out what to actually do here.
+        else:
+            return self.sample(1024)
 
     # TODO
     def sample(self, shots):

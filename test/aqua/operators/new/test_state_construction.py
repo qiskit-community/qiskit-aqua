@@ -21,7 +21,7 @@ import numpy as np
 from qiskit import QuantumCircuit, BasicAer, execute, ClassicalRegister
 
 from test.aqua import QiskitAquaTestCase
-from qiskit.aqua.operators import StateFn, Zero, One, Plus, Minus, OpPrimitive, H, I
+from qiskit.aqua.operators import StateFn, Zero, One, Plus, Minus, OpPrimitive, H, I, Z
 
 
 class TestStateConstruction(QiskitAquaTestCase):
@@ -66,3 +66,10 @@ class TestStateConstruction(QiskitAquaTestCase):
 
         np.testing.assert_array_almost_equal(((I^I^H)@Zero).to_matrix(), [.5**.5, .5**.5, 0, 0, 0, 0, 0, 0])
         np.testing.assert_array_almost_equal((qc_op@Zero).to_matrix(), [.5**.5, .5**.5, 0, 0, 0, 0, 0, 0])
+
+    def test_state_meas_composition(self):
+        print((~Zero^4).eval(Zero^4))
+        print((~One^4).eval(Zero^4))
+        print((~One ^ 4).eval(One ^ 4))
+
+        # print(StateFn(I^Z, is_measurement=True).eval(One^2))
