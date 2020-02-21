@@ -373,3 +373,7 @@ class OpPrimitive(OperatorBase):
 
         else:
             raise NotImplementedError
+
+    # Nothing to collapse here.
+    def reduce(self):
+        return self

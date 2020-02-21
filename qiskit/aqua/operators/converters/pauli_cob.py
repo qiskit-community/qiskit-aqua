@@ -66,9 +66,10 @@ class PauliChangeOfBasis(ConverterBase):
         if isinstance(operator, (Pauli, OpPrimitive)):
             pauli = operator
             coeff = 1.0
-        elif isinstance(operator, (StateFn, Measurement)) and \
+        # Yes I see that this looks dumb.
+        elif isinstance(operator, StateFn) and \
                 isinstance(operator.primitive, OpPrimitive) and \
-                isinstance(operator.primitive, Pauli):
+                isinstance(operator.primitive.primitive, Pauli):
             pauli = operator.primitive
             coeff = operator.coeff
         # TODO allow parameterized OpVec to be returned to save circuit copying.

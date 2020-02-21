@@ -16,7 +16,7 @@
 
 import numpy as np
 import copy
-import itertools
+from functools import reduce
 
 from .op_vec import OpVec
 
@@ -60,15 +60,12 @@ class OpSum(OpVec):
     #     # Should be sorting invariant, if not done stupidly
     #     return set(self.oplist) == set(other.oplist)
 
-    # Maybe not necessary, given parent and clean combination function.
-    # def to_matrix(self, massive=False):
-    #     """ Return numpy matrix of operator, warn if more than 16 qubits to force the user to set massive=True if
-    #     they want such a large matrix. Generally big methods like this should require the use of a converter,
-    #     but in this case a convenience method for quick hacking and access to classical tools is appropriate. """
-    #
-    #     if self.num_qubits > 16 and not massive:
-    #         # TODO figure out sparse matrices?
-    #         raise ValueError('to_matrix will return an exponentially large matrix, in this case {0}x{0} elements.'
-    #                          ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
-    #
-    #     return sum([op.to_matrix() for op in self.oplist])
+    # Try collapsing list or trees of Sums.
+    # TODO be smarter about the fact that any two ops in oplist could be evaluated for sum.
+    def reduce(self):
+        reduced_ops = [op.reduce() for op in self.oplist]
+        reduced_ops = reduce(lambda x, y: x.add(y), reduced_ops)
+        if isinstance(reduced_ops, OpSum) and len(reduced_ops.oplist) > 1:
+            return reduced_ops
+        else:
+            return reduced_ops[0]

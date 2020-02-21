@@ -72,6 +72,12 @@ class OperatorBase(ABC):
         """
         raise NotImplementedError
 
+    @abstractmethod
+    def reduce(self):
+        """ Try collapsing the Operator structure, usually after some time of processing. E.g. a conversion,
+        some operators in an OpComposition can now be directly composed. At worst, just returns self."""
+        raise NotImplementedError
+
 # Addition / Subtraction
 
     def __add__(self, other):

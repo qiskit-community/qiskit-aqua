@@ -132,8 +132,8 @@ class StateFn(OperatorBase):
                                is_measurement=self._is_measurement)
             elif isinstance(self.primitive, dict) and isinstance(other.primitive):
                 new_dict = {b: (v * self.coeff) + (other.primitive.get(b, 0) * other.coeff)
-                            for (b, v) in self.primitive.items())}
-                new_dict.update({b, v*other.coeff for (b, v) in other.primitive.items() if b not in self.primitive})
+                            for (b, v) in self.primitive.items()}
+                new_dict.update({b: v*other.coeff for (b, v) in other.primitive.items() if b not in self.primitive})
                 return StateFn(new_dict, is_measurement=self._is_measurement)
 
         from . import OpSum
@@ -408,3 +408,8 @@ class StateFn(OperatorBase):
     def sample(self, shots):
         """ Sample the statefunction as a normalized probability distribution."""
         raise NotImplementedError
+
+    # Try collapsing primitives where possible. Nothing to collapse here.
+    def reduce(self):
+        # TODO replace IZ paulis with dict here?
+        return self

@@ -37,6 +37,6 @@ class TestPauliExpectation(QiskitAquaTestCase):
         # wf = (Pl^Pl) + (Ze^Ze)
         wf = CX @ (I^H) @ (Zero^2)
         # wf = (I^H) @ (Zero^2)
-        print(wf.to_matrix())
+        # print(wf.to_matrix())
         mean = expect.compute_expectation(wf)
-        self.assertEqual(mean, 0)
+        self.assertAlmostEqual(mean, (2**.5))

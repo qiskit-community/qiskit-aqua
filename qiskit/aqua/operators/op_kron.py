@@ -50,3 +50,13 @@ class OpKron(OpVec):
 
         kron_mat_op = OpPrimitive(self.combo_fn([op.to_matrix() for op in self.oplist]), coeff=self.coeff)
         return kron_mat_op.eval(front=front, back=back)
+
+    # Try collapsing list or trees of krons.
+    # TODO do this smarter
+    def reduce(self):
+        reduced_ops = [op.reduce() for op in self.oplist]
+        reduced_ops = reduce(lambda x, y: x.kron(y), reduced_ops)
+        if isinstance(reduced_ops, OpKron) and len(reduced_ops.oplist) > 1:
+            return reduced_ops
+        else:
+            return reduced_ops[0]

@@ -19,7 +19,7 @@ import numpy as np
 
 from .expectation_base import ExpectationBase
 
-from qiskit.aqua.operators import OpVec, OpPrimitive
+from qiskit.aqua.operators import OpVec, OpPrimitive, StateFn
 from qiskit.aqua.operators.converters import PauliChangeOfBasis
 
 logger = logging.getLogger(__name__)
@@ -50,7 +50,7 @@ class PauliExpectation(ExpectationBase):
             self._reduced_expect_op = self.expectation_op(state=state)
             # TODO to_quantum_runnable converter?
 
-        if 'Instruction' in self._reduced_expect_op.get_primtives():
+        if 'Instruction' in self._reduced_expect_op.get_primitives() and False:
             # TODO check if params have been sufficiently provided.
             if self._circuit_sampler:
                 measured_op = self._circuit_sampler.run_circuits(self._reduced_expect_op)
@@ -68,7 +68,7 @@ class PauliExpectation(ExpectationBase):
 
         if not self._converted_operator:
             # Construct measurement from operator
-            meas = self._operator.as_measurement()
+            meas = StateFn(self._operator, is_measurement=True)
             # Convert the measurement into a classical basis (PauliChangeOfBasis chooses this basis by default).
             self._converted_operator = PauliChangeOfBasis().convert(meas)
 

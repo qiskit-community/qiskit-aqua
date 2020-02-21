@@ -65,5 +65,25 @@ class OpComposition(OpVec):
         #     front_holder = op.eval(front=front_holder)
         # return self.oplist[0].eval(front_holder, back)
 
-        comp_mat_op = OpPrimitive(self.combo_fn([op.to_matrix() for op in self.oplist]), coeff=self.coeff)
-        return comp_mat_op.eval(front=front, back=back)
+        comp_mat_or_vec = self.combo_fn([op.to_matrix() for op in self.oplist])
+        print(comp_mat_or_vec.shape)
+        if len(comp_mat_or_vec.shape) == 2 and comp_mat_or_vec.shape[0] == comp_mat_or_vec.shape[1]:
+            from . import OpPrimitive
+            comp_mat = OpPrimitive(comp_mat_or_vec, coeff=self.coeff)
+            return comp_mat.eval(front=front, back=back)
+        elif comp_mat_or_vec.shape == (1,):
+            return comp_mat_or_vec[0]
+        else:
+            from . import StateFn
+            meas = not len(comp_mat_or_vec.shape) == 1
+            comp_mat = StateFn(comp_mat_or_vec, coeff=self.coeff, is_measurement=meas)
+            return comp_mat.eval(other=front)
+
+    # Try collapsing list or trees of compositions into a single <Measurement | Op | State>.
+    def reduce(self):
+        reduced_ops = [op.reduce() for op in self.oplist]
+        reduced_ops = reduce(lambda x, y: x.compose(y), reduced_ops)
+        if isinstance(reduced_ops, OpComposition) and len(reduced_ops.oplist) > 1:
+            return reduced_ops
+        else:
+            return reduced_ops[0]

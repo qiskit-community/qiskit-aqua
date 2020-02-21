@@ -203,3 +203,7 @@ class OpVec(OperatorBase):
     def print_details(self):
         """ print details """
         raise NotImplementedError
+
+    # Try collapsing oplist. Right now does nothing, but will need to be more clever when parameters are introduced.
+    def reduce(self):
+        return self
