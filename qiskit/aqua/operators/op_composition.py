@@ -35,9 +35,9 @@ class OpComposition(OpVec):
         return self.oplist[0].num_qubits
 
     # TODO: need to kron all others with identity so dims are right? Maybe just delete this.
-    def kron(self, other):
-        """ Kron. We only need to Kron to the last element in the composition. """
-        return OpComposition(self.oplist[:-1] + [self.oplist[-1].kron(other)], coeff=self.coeff)
+    # def kron(self, other):
+    #     """ Kron. We only need to Kron to the last element in the composition. """
+    #     return OpComposition(self.oplist[:-1] + [self.oplist[-1].kron(other)], coeff=self.coeff)
 
     # TODO take advantage of the mixed product property, kronpower each element in the composition
     # def kronpower(self, other):
@@ -49,3 +49,20 @@ class OpComposition(OpVec):
         if isinstance(other, OpComposition):
             return OpComposition(self.oplist + other.oplist, coeff=self.coeff*other.coeff)
         return OpComposition(self.oplist + [other], coeff=self.coeff)
+
+    def eval(self, front=None, back=None):
+        """ A square binary Operator can be defined as a function over two binary strings of equal length. This
+        method returns the value of that function for a given pair of binary strings. For more information,
+        see the eval method in operator_base.py.
+
+
+        """
+        # TODO do this for real later. Requires allowing Ops to take a state and return another. Can't do this yet.
+        # front_holder = front
+        # # Start from last op, and stop before op 0, then eval op 0 with back
+        # for op in self.oplist[-1:0:-1]:
+        #     front_holder = op.eval(front=front_holder)
+        # return self.oplist[0].eval(front_holder, back)
+
+        comp_mat_op = OpPrimitive(self.combo_fn([op.to_matrix() for op in self.oplist]), coeff=self.coeff)
+        return comp_mat_op.eval(front=front, back=back)

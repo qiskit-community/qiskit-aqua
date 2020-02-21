@@ -23,9 +23,9 @@ from qiskit.quantum_info import Operator as MatrixOperator
 
 # from .operator_base import OperatorBase
 from .operator_base import OperatorBase
-from .op_sum import OpSum
-from .op_kron import OpKron
-from .op_composition import OpComposition
+from . import OpSum
+from . import OpComposition
+from . import OpKron
 
 logger = logging.getLogger(__name__)
 
@@ -325,7 +325,7 @@ class OpPrimitive(OperatorBase):
         """ print details """
         raise NotImplementedError
 
-    def eval(self, val1=None, val2=None):
+    def eval(self, front=None, back=None):
         """ A square binary Operator can be defined as a function over two binary strings of equal length. This
         method returns the value of that function for a given pair of binary strings. For more information,
         see the eval method in operator_base.py.
@@ -336,8 +336,8 @@ class OpPrimitive(OperatorBase):
 
         # Pauli
         if isinstance(self.primitive, Pauli):
-            bitstr1 = np.asarray(list(val1)).astype(np.bool)
-            bitstr2 = np.asarray(list(val2)).astype(np.bool)
+            bitstr1 = np.asarray(list(front)).astype(np.bool)
+            bitstr2 = np.asarray(list(back)).astype(np.bool)
 
             # fix_endianness
             corrected_x_bits = self.primitive.x[::-1]
@@ -350,19 +350,19 @@ class OpPrimitive(OperatorBase):
 
         # Matrix
         elif isinstance(self.primitive, MatrixOperator):
-            index1 = int(val1, 2)
-            index2 = int(val2, 2)
+            index1 = int(front, 2)
+            index2 = int(back, 2)
             return self.primitive.data[index2, index1] * self.coeff
 
         # User custom eval
         elif hasattr(self.primitive, 'eval'):
-            return self.primitive.eval(val1, val2) * self.coeff
+            return self.primitive.eval(front, back) * self.coeff
 
         # Both Instructions/Circuits
         elif isinstance(self.primitive, Instruction) or hasattr(self.primitive, 'to_matrix'):
             mat = self.to_matrix()
-            index1 = int(val1, 2)
-            index2 = int(val2, 2)
+            index1 = int(front, 2)
+            index2 = int(back, 2)
             # Don't multiply by coeff because to_matrix() already does
             return mat[index2, index1]
 

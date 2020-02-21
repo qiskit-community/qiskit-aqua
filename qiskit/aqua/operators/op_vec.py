@@ -175,7 +175,7 @@ class OpVec(OperatorBase):
         # Combination function must be able to handle classical values
         return self.combo_fn([op.to_matrix() for op in self.oplist]) * self.coeff
 
-    def eval(self, val1=None, val2=None):
+    def eval(self, front=None, back=None):
         """ A square binary Operator can be defined as a function over two binary strings of equal length. This
         method returns the value of that function for a given pair of binary strings. For more information,
         see the eval method in operator_base.py.
@@ -187,7 +187,7 @@ class OpVec(OperatorBase):
         # TODO this doesn't work for compositions and krons! Needs to be to_matrix.
         """
         # TODO Do we need to use partial(np.sum, axis=0) as OpSum combo to be able to handle vector returns correctly?
-        return self.combo_fn([op.eval(val1, val2) for op in self.oplist]) * self.coeff
+        return self.combo_fn([op.eval(front, back) for op in self.oplist]) * self.coeff
 
     def __str__(self):
         """Overload str() """
