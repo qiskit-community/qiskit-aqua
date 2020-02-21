@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -15,12 +15,12 @@
 """ Test MCU1 """
 
 import unittest
-from test.aqua.common import QiskitAquaTestCase
+from test.aqua import QiskitAquaTestCase
 from itertools import combinations, chain
 from math import pi
 
 import numpy as np
-from parameterized import parameterized
+from ddt import ddt, idata, unpack
 
 from qiskit import QuantumCircuit, QuantumRegister, execute, BasicAer
 
@@ -29,11 +29,13 @@ from qiskit.aqua import aqua_globals
 NUM_CONTROLS = [[i + 1] for i in range(6)]
 
 
+@ddt
 class TestMCU1(QiskitAquaTestCase):
     """ Test MCU1 """
-    @parameterized.expand(
+    @idata(
         NUM_CONTROLS
     )
+    @unpack
     def test_mcu1(self, num_controls):
         """ mcu1 test """
         c = QuantumRegister(num_controls, name='c')

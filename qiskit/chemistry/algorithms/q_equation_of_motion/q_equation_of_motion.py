@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -264,7 +264,8 @@ class QEquationOfMotion:
                 TextProgressBar(sys.stderr)
             results = parallel_map(QEquationOfMotion._build_commutator_rountine,
                                    to_be_computed_list,
-                                   task_args=(self._untapered_op, self._z2_symmetries))
+                                   task_args=(self._untapered_op, self._z2_symmetries),
+                                   num_processes=aqua_globals.num_processes)
             for result in results:
                 m_u, n_u, q_mat_op, w_mat_op, m_mat_op, v_mat_op = result
                 q_commutators[m_u][n_u] = op_converter.to_tpb_grouped_weighted_pauli_operator(

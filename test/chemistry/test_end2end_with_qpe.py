@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -15,9 +15,9 @@
 """ Test End to End with QPE """
 
 import unittest
-from test.chemistry.common import QiskitChemistryTestCase
+from test.chemistry import QiskitChemistryTestCase
 import numpy as np
-from parameterized import parameterized
+from ddt import ddt, idata, unpack
 import qiskit
 from qiskit.aqua.utils import decimal_to_binary
 from qiskit.aqua import QuantumInstance
@@ -30,14 +30,16 @@ from qiskit.chemistry import FermionicOperator, QiskitChemistryError
 from qiskit.chemistry.components.initial_states import HartreeFock
 
 
+@ddt
 class TestEnd2EndWithQPE(QiskitChemistryTestCase):
     """QPE tests."""
 
-    @parameterized.expand([
+    @idata([
         [0.5],
         [0.735],
         [1],
     ])
+    @unpack
     def test_qpe(self, distance):
         """ qpe test """
         self.log.debug('Testing End-to-End with QPE on '

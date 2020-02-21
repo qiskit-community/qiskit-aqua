@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -15,7 +15,7 @@
 """ Test MP2 Info """
 
 import unittest
-from test.chemistry.common import QiskitChemistryTestCase
+from test.chemistry import QiskitChemistryTestCase
 import numpy as np
 from qiskit.chemistry import QiskitChemistryError, MP2Info
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType

@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -35,6 +35,14 @@ class MultivariateVariationalDistribution(MultivariateDistribution):
                  params: Union[List[float], np.ndarray],
                  low: Optional[Union[List[float], np.ndarray]] = None,
                  high: Optional[Union[List[float], np.ndarray]] = None) -> None:
+        """
+        Args:
+            num_qubits:  List with the number of qubits per dimension
+            var_form: Variational form
+            params: Parameters for variational form
+            low: List with the lower bounds per dimension, set to 0 for each dimension if None
+            high:  List with the upper bounds per dimension, set to 1 for each dimension if None
+        """
         if low is None:
             low = np.zeros(len(num_qubits))
         if high is None:

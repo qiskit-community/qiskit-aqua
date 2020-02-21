@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -35,14 +35,12 @@ class MultivariateLogNormalDistribution(MultivariateDistribution):
                  mu: Optional[Union[List[float], np.ndarray]] = None,
                  cov: Optional[Union[List[float], np.ndarray]] = None) -> None:
         """
-        Circuit Factory to build a circuit that represents a multivariate log-normal distribution.
-
         Args:
-            num_qubits: representing number of qubits per dimension
-            low: representing lower bounds per dimension
-            high: representing upper bounds per dimension
-            mu: representing expected values
-            cov: representing co-variance matrix
+            num_qubits: Number of qubits per dimension
+            low: Lower bounds per dimension
+            high: Upper bounds per dimension
+            mu: Expected values
+            cov: Co-variance matrix
         """
 
         dimension = len(num_qubits)

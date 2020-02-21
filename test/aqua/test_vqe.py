@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -16,9 +16,9 @@
 
 import unittest
 import os
-from test.aqua.common import QiskitAquaTestCase
+from test.aqua import QiskitAquaTestCase
 import numpy as np
-from parameterized import parameterized
+from ddt import ddt, idata, unpack
 from qiskit import BasicAer
 
 from qiskit.aqua import QuantumInstance, aqua_globals
@@ -29,6 +29,7 @@ from qiskit.aqua.components.initial_states import Zero
 from qiskit.aqua.algorithms import VQE
 
 
+@ddt
 class TestVQE(QiskitAquaTestCase):
     """ Test VQE """
     def setUp(self):
@@ -65,12 +66,13 @@ class TestVQE(QiskitAquaTestCase):
         self.assertIn('eval_count', result)
         self.assertIn('eval_time', result)
 
-    @parameterized.expand([
+    @idata([
         [SLSQP, 5, 4],
         [SLSQP, 5, 1],
         [SPSA, 3, 2],  # max_evals_grouped=n is considered as max_evals_grouped=2 if n>2
         [SPSA, 3, 1]
     ])
+    @unpack
     def test_vqe_optimizers(self, optimizer_cls, places, max_evals_grouped):
         """ VQE Optimizers test """
         result = VQE(self.qubit_op,
@@ -83,10 +85,11 @@ class TestVQE(QiskitAquaTestCase):
 
         self.assertAlmostEqual(result['energy'], -1.85727503, places=places)
 
-    @parameterized.expand([
+    @idata([
         [RY, 5],
         [RYRZ, 5]
     ])
+    @unpack
     def test_vqe_var_forms(self, var_form_cls, places):
         """ VQE Var Forms test """
         result = VQE(self.qubit_op,
@@ -153,12 +156,12 @@ class TestVQE(QiskitAquaTestCase):
     def test_vqe_callback(self):
         """ VQE Callback test """
         tmp_filename = 'vqe_callback_test.csv'
-        is_file_exist = os.path.exists(self._get_resource_path(tmp_filename))
+        is_file_exist = os.path.exists(self.get_resource_path(tmp_filename))
         if is_file_exist:
-            os.remove(self._get_resource_path(tmp_filename))
+            os.remove(self.get_resource_path(tmp_filename))
 
         def store_intermediate_result(eval_count, parameters, mean, std):
-            with open(self._get_resource_path(tmp_filename), 'a') as file:
+            with open(self.get_resource_path(tmp_filename), 'a') as file:
                 content = "{},{},{:.5f},{:.5f}".format(eval_count, parameters, mean, std)
                 print(content, file=file, flush=True)
 
@@ -176,7 +179,7 @@ class TestVQE(QiskitAquaTestCase):
                                            seed_simulator=50)
         algo.run(quantum_instance)
 
-        is_file_exist = os.path.exists(self._get_resource_path(tmp_filename))
+        is_file_exist = os.path.exists(self.get_resource_path(tmp_filename))
         self.assertTrue(is_file_exist, "Does not store content successfully.")
 
         # check the content
@@ -191,7 +194,7 @@ class TestVQE(QiskitAquaTestCase):
                         '-0.82829', '0.01529']
                        ]
         try:
-            with open(self._get_resource_path(tmp_filename)) as file:
+            with open(self.get_resource_path(tmp_filename)) as file:
                 idx = 0
                 for record in file.readlines():
                     eval_count, parameters, mean, std = record.split(",")
@@ -202,7 +205,7 @@ class TestVQE(QiskitAquaTestCase):
                     idx += 1
         finally:
             if is_file_exist:
-                os.remove(self._get_resource_path(tmp_filename))
+                os.remove(self.get_resource_path(tmp_filename))
 
 
 if __name__ == '__main__':

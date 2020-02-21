@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -36,13 +36,11 @@ class MultivariateDistribution(UncertaintyModel, ABC):
                  low: Optional[Union[List[float], np.ndarray]] = None,
                  high: Optional[Union[List[float], np.ndarray]] = None) -> None:
         """
-        Constructor.
-
         Args:
-            num_qubits: assigns qubits to dimensions
-            probabilities: map - maps index tuples to probabilities
-            low: lowest value per dimension
-            high: highest value per dimension
+            num_qubits: Assigns qubits to dimensions
+            probabilities: Map - maps index tuples to probabilities
+            low: Lowest value per dimension
+            high: Highest value per dimension
         """
 
         self._values = 0

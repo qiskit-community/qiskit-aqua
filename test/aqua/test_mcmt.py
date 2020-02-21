@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -16,9 +16,9 @@
 
 import unittest
 import itertools
-from test.aqua.common import QiskitAquaTestCase
+from test.aqua import QiskitAquaTestCase
 import numpy as np
-from parameterized import parameterized
+from ddt import ddt, idata, unpack
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit import execute as q_execute
 from qiskit.quantum_info import state_fidelity
@@ -29,11 +29,12 @@ NUM_TARGETS = [i + 1 for i in range(5)]
 SINGLE_QUBIT_GATES = [QuantumCircuit.ch, QuantumCircuit.cz]
 
 
+@ddt
 class TestMCMTGate(QiskitAquaTestCase):
     """ Test MCMT Gate """
-    @parameterized.expand(
-        itertools.product(NUM_CONTROLS, NUM_TARGETS, SINGLE_QUBIT_GATES)
-    )
+
+    @idata(itertools.product(NUM_CONTROLS, NUM_TARGETS, SINGLE_QUBIT_GATES))
+    @unpack
     def test_mcmt(self, num_controls, num_targets,
                   single_control_gate_function):
         """ MCMT test """

@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,8 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 """
-This module contains the definition of a base class for
-feature map. Several types of commonly used approaches.
+Raw Feature Vector feature map.
 """
 
 import logging
@@ -31,14 +30,18 @@ logger = logging.getLogger(__name__)
 
 class RawFeatureVector(FeatureMap):
     """
-    Using raw feature vector as the initial state vector
+    Raw Feature Vector feature map.
+
+    The Raw Feature Vector can be directly used as a feature map, where the raw feature vectors
+    will be automatically padded with ending 0s as necessary, to make sure vector length
+    is a power of 2, and normalized such that it can be treated and used
+    as an initial quantum state vector.
     """
 
     def __init__(self, feature_dimension: int = 2) -> None:
-        """Constructor.
-
+        """
         Args:
-            feature_dimension: The feature dimension, has a min. value of 1.
+            feature_dimension: The feature dimension, has a minimum value of 1.
         """
         validate_min('feature_dimension', feature_dimension, 1)
         super().__init__()

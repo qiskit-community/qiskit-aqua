@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -15,16 +15,17 @@
 """ Test Fixed Value Comparator """
 
 import unittest
-from test.aqua.common import QiskitAquaTestCase
-from parameterized import parameterized
+from test.aqua import QiskitAquaTestCase
+from ddt import ddt, idata, unpack
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit, BasicAer, execute
 from qiskit.aqua.circuits import FixedValueComparator as Comparator
 
 
+@ddt
 class TestFixedValueComparator(QiskitAquaTestCase):
     """ Text Fixed Value Comparator """
-    @parameterized.expand([
+    @idata([
         # n, value, geq
         [1, 0, True],
         [1, 1, True],
@@ -37,6 +38,7 @@ class TestFixedValueComparator(QiskitAquaTestCase):
         [3, 5, True],
         [4, 6, False]
     ])
+    @unpack
     def test_fixed_value_comparator(self, num_state_qubits, value, geq):
         """ fixed value comparator test """
         # initialize weighted sum operator factory

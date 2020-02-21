@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -21,8 +21,9 @@ long_description = """<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Aqua
  modular, open-source library of quantum computing algorithms.
  Researchers can experiment with Aqua algorithms, on near-term quantum devices and simulators,
  and can also get involved by contributing new algorithms and algorithm-supporting objects,
- such as optimizers and variational forms. Qiskit Aqua is used by Qiskit Aqua Chemistry,
- Qiskit Aqua Machine Learning, and Qiskit Aqua Optimization to experiment with real-world applications to quantum computing."""
+ such as optimizers and variational forms.
+ Qiskit Aqua also contains application domain support in the form of Qiskit Chemistry,
+ Qiskit Finance, Qiskit Machine Learning and Qiskit Optimization to experiment with real-world applications to quantum computing."""
 
 requirements = [
     "qiskit-terra>=0.11.0",
@@ -32,7 +33,7 @@ requirements = [
     "numpy>=1.13",
     "psutil>=5",
     "scikit-learn>=0.20.0",
-    "cvxopt",
+    "cvxopt; python_version < '3.8' or sys_platform != 'win32'",
     "dlx",
     "docplex",
     "fastdtw",
@@ -40,7 +41,7 @@ requirements = [
     "setuptools>=40.1.0",
     "h5py",
     "networkx>=2.2",
-    "pyscf; sys_platform != 'win32'",
+    "pyscf; sys_platform == 'linux' or (python_version < '3.8' and sys_platform != 'win32')",
 ]
 
 if not hasattr(setuptools, 'find_namespace_packages') or not inspect.ismethod(setuptools.find_namespace_packages):
@@ -70,9 +71,11 @@ setuptools.setup(
         "Operating System :: Microsoft :: Windows",
         "Operating System :: MacOS",
         "Operating System :: POSIX :: Linux",
+        "Programming Language :: Python :: 3 :: Only",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
         "Topic :: Scientific/Engineering"
     ),
     keywords='qiskit sdk quantum aqua',
@@ -81,7 +84,7 @@ setuptools.setup(
     include_package_data=True,
     python_requires=">=3.5",
     extras_require={
-        'torch': ["torch; sys_platform != 'win32'"],
+        'torch': ["torch; sys_platform == 'linux' or (python_version < '3.8' and sys_platform != 'win32')"],
     },
     zip_safe=False
 )

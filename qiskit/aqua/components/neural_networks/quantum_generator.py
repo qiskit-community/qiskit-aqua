@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -13,7 +13,7 @@
 # that they have been altered from the originals.
 
 """
-Generator
+Quantum Generator
 """
 
 from typing import Optional, List, Union
@@ -37,7 +37,15 @@ from qiskit.aqua.components.initial_states import Custom
 
 class QuantumGenerator(GenerativeNetwork):
     """
-    Quantum Generator
+    Quantum Generator.
+
+    The quantum generator is a parametrized quantum circuit which can be trained with the
+    :class:`~qiskit.aqua.algorithms.QGAN` algorithm
+    to generate a quantum state which approximates the probability
+    distribution of given training data. At the beginning of the training the parameters will
+    be set randomly, thus, the output will is random. Throughout the training the quantum
+    generator learns to represent the target distribution.
+    Eventually, the trained generator can be used for state preparation e.g. in QAE.
     """
 
     def __init__(self,
@@ -53,10 +61,9 @@ class QuantumGenerator(GenerativeNetwork):
             bounds: k min/max data values [[min_1,max_1],...,[min_k,max_k]],
                 given input data dim k
             num_qubits: k numbers of qubits to determine representation resolution,
-            i.e. n qubits enable the representation of 2**n values [n_1,..., n_k]
-            generator_circuit: a
-                :class:`UnivariateVariationalDistribution` for univariate data,
-                a :class:`MultivariateVariationalDistribution` for multivariate data,
+                i.e. n qubits enable the representation of 2**n values [n_1,..., n_k]
+            generator_circuit: a UnivariateVariationalDistribution for univariate data,
+                a MultivariateVariationalDistribution for multivariate data,
                 or a QuantumCircuit implementing the generator.
             init_params: 1D numpy array or list, Initialization for
                 the generator's parameters.
@@ -178,7 +185,7 @@ class QuantumGenerator(GenerativeNetwork):
 
     def set_discriminator(self, discriminator):
         """
-        Set discriminator
+        Set discriminator network.
 
         Args:
             discriminator (Discriminator): Discriminator used to compute the loss function.
@@ -211,7 +218,11 @@ class QuantumGenerator(GenerativeNetwork):
 
     def get_output(self, quantum_instance, qc_state_in=None, params=None, shots=None):
         """
-        Get data samples from the generator.
+        Get classical data samples from the generator.
+        Running the quantum generator circuit results in a quantum state.
+        To train this generator with a classical discriminator, we need to sample classical outputs
+        by measuring the quantum state and mapping them to feature space defined by the training
+        data.
 
         Args:
             quantum_instance (QuantumInstance): Quantum Instance, used to run the generator
@@ -279,7 +290,7 @@ class QuantumGenerator(GenerativeNetwork):
 
     def loss(self, x, weights):  # pylint: disable=arguments-differ
         """
-        Loss function
+        Loss function for training the generator's parameters.
 
         Args:
             x (numpy.ndarray): sample label (equivalent to discriminator output)

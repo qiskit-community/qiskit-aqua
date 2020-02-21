@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -30,9 +30,20 @@ logger = logging.getLogger(__name__)
 
 
 class BernsteinVazirani(QuantumAlgorithm):
-    """The Bernstein-Vazirani algorithm."""
+    r"""
+    The Bernstein-Vazirani algorithm.
+
+    The Bernstein-Vazirani algorithm is an extension / restriction of the Deutsch-Jozsa algorithm.
+    The goal of the algorithm is to determine a secret string :math:`s \in \{0,1\}^n`,
+    given a black box oracle function, that maps :math:`f:\{0,1\}^n \rightarrow \{0,1\}` such that
+    :math:`f(x)=s \cdot x (\bmod 2)`.
+    """
 
     def __init__(self, oracle: Oracle) -> None:
+        """
+        Args:
+            oracle: The oracle component
+        """
         super().__init__()
 
         self._oracle = oracle

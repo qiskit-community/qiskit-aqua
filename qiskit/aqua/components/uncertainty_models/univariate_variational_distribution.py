@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -33,9 +33,17 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
     def __init__(self,
                  num_qubits: int,
                  var_form: VariationalForm,
-                 params: [Union[List[float], np.ndarray]],
+                 params: Union[List[float], np.ndarray],
                  low: float = 0,
                  high: float = 1) -> None:
+        """
+        Args:
+            num_qubits: Number of qubits
+            var_form: Variational form
+            params: Parameters for variational form
+            low: Lower bound
+            high: Upper bound
+        """
         validate_min('num_qubits', num_qubits, 1)
         self._num_qubits = num_qubits
         self._var_form = var_form

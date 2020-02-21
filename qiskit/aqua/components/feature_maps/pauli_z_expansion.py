@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,8 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 """
-This module contains the definition of a base class for
-feature map. Several types of commonly used approaches.
+The Pauli Z Expansion feature map.
 """
 
 from typing import Optional, Callable, List
@@ -25,9 +24,12 @@ from .data_mapping import self_product
 
 class PauliZExpansion(PauliExpansion):
     """
-    Mapping data with the second order expansion followed by entangling gates.
+    The Pauli Z Expansion feature map.
 
-    Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
+    This is a sub-class of the general :class:`PauliExpansion` but where the pauli string is fixed
+    to only contain Z and where *paulis* is now created for the superclass as per the given
+    *z_order*. So with default of 2 this creates ['Z', 'ZZ'] which also happens to be the default
+    of the superclass. A *z_order* of 3 would be ['Z', 'ZZ', 'ZZZ'] and so on.
     """
 
     def __init__(self,
@@ -37,19 +39,22 @@ class PauliZExpansion(PauliExpansion):
                  entanglement: str = 'full',
                  z_order: int = 2,
                  data_map_func: Callable[[np.ndarray], float] = self_product) -> None:
-        """Constructor.
-
+        """
         Args:
-            feature_dimension: number of features
-            depth: the number of repeated circuits, has a min. value of 1.
-            entangler_map : describe the connectivity of qubits, each list describes
-                                        [source, target], or None for full entanglement.
-                                        Note that the order is the list is the order of
-                                        applying the two-qubit gate.
-            entanglement: ['full', 'linear'], generate the qubit connectivity by predefined
-                                topology
-            z_order: z order, has a min. value of 1.
-            data_map_func: a mapping function for data x
+            feature_dimension: The number of features
+            depth: The number of repeated circuits. Defaults to 2, has a minimum value of 1.
+            entangler_map: Describes the connectivity of qubits, each list in the overall list
+                describes [source, target]. Defaults to ``None`` where the map is created as per
+                *entanglement* parameter.
+                Note that the order in the list is the order of applying the two-qubit gate.
+            entanglement: ('full' | 'linear'), generate the qubit connectivity by a predefined
+                topology. Defaults to full which connects every qubit to each other. Linear
+                connects each qubit to the next.
+            z_order: z order, has a min. value of 1. Creates *paulis* for superclass based on
+                 the z order value, e.g. 3 would result in ['Z', 'ZZ', 'ZZZ'] where the paulis
+                 contains strings of Z up to length of *z_order*
+            data_map_func: A mapping function for data x which can be supplied to override the
+                default mapping from :meth:`self_product`.
         """
         validate_min('depth', depth, 1)
         validate_in_set('entanglement', entanglement, {'full', 'linear'})

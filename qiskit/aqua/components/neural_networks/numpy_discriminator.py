@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -206,7 +206,7 @@ class DiscriminatorNet():
 
 class NumpyDiscriminator(DiscriminativeNetwork):
     """
-    Discriminator based on numpy
+    Discriminator based on NumPy
     """
 
     def __init__(self, n_features: int = 1, n_out: int = 1) -> None:

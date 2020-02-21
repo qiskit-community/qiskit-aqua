@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -38,7 +38,12 @@ class IQPE(QuantumAlgorithm):
     """
     The Iterative Quantum Phase Estimation algorithm.
 
-    See https://arxiv.org/abs/quant-ph/0610214
+    IQPE, as its name suggests, iteratively computes the phase so as to require fewer qubits.
+    It takes has the same set of parameters as :class:`QPE`, except for the number of
+    ancillary qubits *num_ancillae*, being replaced by *num_iterations* and that
+    an Inverse Quantum Fourier Transform (IQFT) is not used for IQPE.
+
+    See also https://arxiv.org/abs/quant-ph/0610214
     """
 
     def __init__(self, operator: BaseOperator, state_in: InitialState,
@@ -48,15 +53,14 @@ class IQPE(QuantumAlgorithm):
         """
 
         Args:
-            operator: the hamiltonian Operator object
-            state_in: the InitialState component representing
-                    the initial quantum state
-            num_time_slices: the number of time slices, has a min. value of 1.
-            num_iterations: the number of iterations, has a min. value of 1.
-            expansion_mode: the expansion mode (trotter|suzuki)
-            expansion_order: the suzuki expansion order, has a min. value of 1.
-            shallow_circuit_concat: indicate whether to use shallow (cheap)
-                    mode for circuit concatenation
+            operator: The hamiltonian Operator
+            state_in: An InitialState component representing an initial quantum state.
+            num_time_slices: The number of time slices, has a minimum value of 1.
+            num_iterations: The number of iterations, has a minimum value of 1.
+            expansion_mode: The expansion mode ('trotter'|'suzuki')
+            expansion_order: The suzuki expansion order, has a min. value of 1.
+            shallow_circuit_concat: Set True to use shallow (cheap) mode for circuit concatenation
+                of evolution slices. By default this is False.
         """
         validate_min('num_time_slices', num_time_slices, 1)
         validate_min('num_iterations', num_iterations, 1)

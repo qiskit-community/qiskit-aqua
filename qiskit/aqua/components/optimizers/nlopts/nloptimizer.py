@@ -14,7 +14,13 @@
 
 """ Minimize using objective function """
 
-from typing import List, Optional, Tuple, Callable, NoReturn
+from typing import List, Optional, Tuple, Callable
+# below to allow it for python 3.6.1
+try:
+    from typing import NoReturn
+except ImportError:
+    from typing import Any as NoReturn
+
 from enum import Enum
 from abc import abstractmethod
 import logging
@@ -30,7 +36,7 @@ try:
                 nlopt.version_minor(), nlopt.version_bugfix())
     _HAS_NLOPT = True
 except ImportError:
-    logger.info('nlopt is not installed. Please install it if you want to use them.')
+    logger.info('NLopt is not installed. Please install it to use these global optimizers.')
 
 
 class NLoptOptimizerType(Enum):
@@ -55,7 +61,7 @@ class NLoptOptimizer(Optimizer):
             max_evals: Maximum allowed number of function evaluations.
 
         Raises:
-            NameError: nlopt library not installed.
+            NameError: NLopt library not installed.
         """
         if not _HAS_NLOPT:
             raise NameError("Unable to instantiate '{}', nlopt is not installed. "

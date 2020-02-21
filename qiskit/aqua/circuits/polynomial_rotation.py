@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -21,7 +21,7 @@ from sympy.ntheory.multinomial import multinomial_coefficients
 import numpy as np
 
 from qiskit.aqua.utils import CircuitFactory
-from qiskit.aqua.circuits.gates import cry, mcrx, mcry, mcrz  # pylint: disable=unused-import
+from qiskit.aqua.circuits.gates import mcrx, mcry, mcrz  # pylint: disable=unused-import
 
 # pylint: disable=invalid-name
 

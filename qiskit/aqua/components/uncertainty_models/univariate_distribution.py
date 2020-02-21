@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -38,16 +38,14 @@ class UnivariateDistribution(UncertaintyModel, ABC):
                  low: float = 0,
                  high: float = 1):
         r"""
-        Abstract univariate distribution class
-
         Args:
-            num_target_qubits: number of qubits it acts on,
+            num_target_qubits: Number of qubits it acts on,
                 has a min. value of 1.
-            probabilities:  probabilities for different states
-            low: lower bound, i.e., the value corresponding to \|0...0>
-                         (assuming an equidistant grid)
-            high: upper bound, i.e., the value corresponding to \|1...1>
-                          (assuming an equidistant grid)
+            probabilities: Probabilities for different states
+            low: Lower bound, i.e., the value corresponding to \|0...0>
+                (assuming an equidistant grid)
+            high: Upper bound, i.e., the value corresponding to \|1...1>
+                (assuming an equidistant grid)
         Raises:
             AquaError: num qubits and length of probabilities vector do not match
         """
