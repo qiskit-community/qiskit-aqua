@@ -39,3 +39,14 @@ class OpKron(OpVec):
         if isinstance(other, OpKron):
             return OpKron(self.oplist + other.oplist, coeff=self.coeff * other.coeff)
         return OpKron(self.oplist + [other], coeff=self.coeff)
+
+    # TODO Kron eval should partial trace the input into smaller StateFns each of size
+    #  op.num_qubits for each op in oplist. Right now just works through matmul like OpComposition.
+    def eval(self, front=None, back=None):
+        """ A square binary Operator can be defined as a function over two binary strings of equal length. This
+        method returns the value of that function for a given pair of binary strings. For more information,
+        see the eval method in operator_base.py.
+        """
+
+        kron_mat_op = OpPrimitive(self.combo_fn([op.to_matrix() for op in self.oplist]), coeff=self.coeff)
+        return kron_mat_op.eval(front=front, back=back)

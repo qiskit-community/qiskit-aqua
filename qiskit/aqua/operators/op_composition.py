@@ -57,8 +57,6 @@ class OpComposition(OpVec):
         """ A square binary Operator can be defined as a function over two binary strings of equal length. This
         method returns the value of that function for a given pair of binary strings. For more information,
         see the eval method in operator_base.py.
-
-
         """
         # TODO do this for real later. Requires allowing Ops to take a state and return another. Can't do this yet.
         # front_holder = front
