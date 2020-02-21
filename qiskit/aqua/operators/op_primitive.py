@@ -65,7 +65,7 @@ class OpPrimitive(OperatorBase):
         return self._coeff
 
     def get_primitives(self):
-        """ Return a set of primitives in the Operator """
+        """ Return a set of strings describing the primitives contained in the Operator """
         if isinstance(self.primitive, Instruction):
             return {'Instruction'}
         elif isinstance(self.primitive, MatrixOperator):
@@ -112,7 +112,7 @@ class OpPrimitive(OperatorBase):
                 return OpPrimitive(self.primitive, coeff=self.coeff + other.coeff)
             # Covers MatrixOperator and custom.
             elif isinstance(self.primitive, type(other.primitive)) and hasattr(self.primitive, 'add'):
-                return self.primitive.add(other.primitive)
+                return OpPrimitive((self.coeff * self.primitive).add(other.primitive * other.coeff))
 
         # Covers Paulis, Circuits, and all else.
         return OpSum([self, other])

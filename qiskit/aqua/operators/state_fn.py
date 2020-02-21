@@ -43,15 +43,15 @@ class StateFn(OperatorBase):
     """
 
     # TODO maybe break up into different classes for different fn definition primitives
-    # NOTE: We don't enforce normalization!!
     # TODO allow normalization somehow?
     def __init__(self, primitive, coeff=1.0, is_measurement=False):
         """
         Args:
-            primitive(str, dict, OperatorBase, np.ndarray, list)
+            primitive(str, dict, OperatorBase, Result, np.ndarray, list)
             coeff(int, float, complex): A coefficient by which to multiply the state
         """
         self._is_measurement = is_measurement
+        self._coeff = coeff
 
         # If the initial density is a string, treat this as a density dict with only a single basis state.
         if isinstance(primitive, str):
@@ -71,18 +71,13 @@ class StateFn(OperatorBase):
         if isinstance(primitive, Result):
             counts = primitive.get_counts()
             self._primitive = {bstr: shots/sum(counts.values()) for (bstr, shots) in counts.items()}
-            # self._primitive = {bstr[::-1]: shots/sum(counts.values()) for (bstr, shots) in counts.items()}
 
-        # TODO: Should we only allow correctly shaped vectors, e.g. vertical? Should we reshape to make contrast with
-        #  measurement more accurate?
+        # Lists and Numpy arrays representing statevectors are stored in Statevector objects for easier handling.
         elif isinstance(primitive, (np.ndarray, list)):
             self._primitive = Statevector(primitive)
 
         # TODO figure out custom callable later
         # if isinstance(self.primitive, callable):
-        #     self._fixed_param = '0'
-
-        self._coeff = coeff
 
     @property
     def primitive(self):
@@ -97,7 +92,7 @@ class StateFn(OperatorBase):
         return self._is_measurement
 
     def get_primitives(self):
-        """ Return a set of primitives in the StateFn """
+        """ Return a set of strings describing the primitives contained in the Operator """
         if isinstance(self.primitive, dict):
             return {'Dict'}
         elif isinstance(self.primitive, Statevector):
@@ -105,13 +100,10 @@ class StateFn(OperatorBase):
         if isinstance(self.primitive, OperatorBase):
             return self.primitive.get_primitives()
         else:
-            # Includes 'Pauli'
             return {self.primitive.__class__.__name__}
 
     @property
     def num_qubits(self):
-        # If the primitive is lookup of bitstrings, we define all missing strings to have a function value of
-        # zero.
         if isinstance(self.primitive, dict):
             return len(list(self.primitive.keys())[0])
 
@@ -127,15 +119,21 @@ class StateFn(OperatorBase):
             raise ValueError('Sum over statefns with different numbers of qubits, {} and {}, is not well '
                              'defined'.format(self.num_qubits, other.num_qubits))
         if isinstance(other, StateFn):
-            if isinstance(self.primitive, type(other.primitive)) and \
-                    self.primitive == other.primitive:
+            if isinstance(self.primitive, type(other.primitive)) and self.primitive == other.primitive:
                 return StateFn(self.primitive,
                                coeff=self.coeff + other.coeff,
                                is_measurement=self.is_measurement)
-            # Covers MatrixOperator and custom.
+            # Covers MatrixOperator, Statevector and custom.
             elif isinstance(self.primitive, type(other.primitive)) and \
                     hasattr(self.primitive, 'add'):
-                return self.primitive.add(other.primitive)
+                # Also assumes scalar multiplication is available
+                return StateFn((self.coeff * self.primitive).add(other.primitive * other.coeff),
+                               is_measurement=self._is_measurement)
+            elif isinstance(self.primitive, dict) and isinstance(other.primitive):
+                new_dict = {b: (v * self.coeff) + (other.primitive.get(b, 0) * other.coeff)
+                            for (b, v) in self.primitive.items())}
+                new_dict.update({b, v*other.coeff for (b, v) in other.primitive.items() if b not in self.primitive})
+                return StateFn(new_dict, is_measurement=self._is_measurement)
 
         from . import OpSum
         return OpSum([self, other])

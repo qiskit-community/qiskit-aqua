@@ -41,7 +41,7 @@ class OperatorBase(ABC):
 
     @abstractmethod
     def get_primitives(self):
-        """ Return a set of primitives in the Operator """
+        """ Return a set of strings describing the primitives contained in the Operator """
         raise NotImplementedError
 
     # TODO allow massive argument to decide whether to perform to_matrix?

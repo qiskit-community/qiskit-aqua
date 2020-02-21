@@ -54,7 +54,7 @@ class OpVec(OperatorBase):
         return self._coeff
 
     def get_primitives(self):
-        """ Return a set of primitives in the Operator """
+        """ Return a set of strings describing the primitives contained in the Operator """
         return reduce(set.union, [op.get_primitives() for op in self.oplist])
 
     @property
