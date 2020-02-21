@@ -21,7 +21,7 @@ from functools import partial, reduce
 from qiskit.quantum_info import Pauli
 from qiskit import QuantumCircuit
 
-from .. import OpPrimitive, OpComposition, OpVec, H, S, I, Measurement, StateFn
+from .. import OpPrimitive, OpComposition, OpVec, H, S, I, StateFn
 from . import ConverterBase
 
 logger = logging.getLogger(__name__)
@@ -81,10 +81,9 @@ class PauliChangeOfBasis(ConverterBase):
         cob_instr_op, dest_pauli_op = self.get_cob_circuit(pauli)
         if self._replacement_fn:
             return self._replacement_fn(cob_instr_op, dest_pauli_op)
-        elif isinstance(operator, Measurement):
-            return OpComposition([Measurement(dest_pauli_op), cob_instr_op], coeff=coeff)
         elif isinstance(operator, StateFn):
-            return OpComposition([cob_instr_op.adjoint(), StateFn(dest_pauli_op)], coeff=coeff)
+            new_sf = OpComposition([cob_instr_op.adjoint(), StateFn(dest_pauli_op)], coeff=coeff)
+            return new_sf.adjoint() if operator.is_measurement else new_sf
         else:
             return OpComposition([cob_instr_op.adjoint(), dest_pauli_op, cob_instr_op], coeff=coeff)
 
