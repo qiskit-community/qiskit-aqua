@@ -118,7 +118,8 @@ class StateFn(OperatorBase):
         if not self.num_qubits == other.num_qubits:
             raise ValueError('Sum over statefns with different numbers of qubits, {} and {}, is not well '
                              'defined'.format(self.num_qubits, other.num_qubits))
-        if isinstance(other, StateFn):
+        # Right now doesn't make sense to add a StateFn to a Measurement
+        if isinstance(other, StateFn) and self.is_measurement == other.is_measurement:
             if isinstance(self.primitive, type(other.primitive)) and self.primitive == other.primitive:
                 return StateFn(self.primitive,
                                coeff=self.coeff + other.coeff,
@@ -232,10 +233,24 @@ class StateFn(OperatorBase):
         return temp
 
     def compose(self, other):
-        """ State composition (Linear algebra-style, right-to-left) is not well defined in the binary function model.
+        """ Composition (Linear algebra-style, right-to-left) is not well defined for States in the binary function
+        model. However, it is well defined for measurements.
         """
         # TODO maybe allow outers later to produce density operators or projectors, but not yet.
-        raise ValueError('Composition with a Statefunctions in the first operand is not defined.')
+        if not self.is_measurement:
+            raise ValueError('Composition with a Statefunctions in the first operand is not defined.')
+        # TODO: Handle this for measurement @ something else.
+
+        new_self = self
+        if not self.num_qubits == other.num_qubits:
+            if self.primitive == StateFn({'0': 1}, is_measurement=True):
+                # Zero is special - we'll expand it to the correct qubit number.
+                new_self = StateFn('0' * self.num_qubits, is_measurement=True)
+            else:
+                raise ValueError('Composition is not defined over Operators of different dimension')
+
+        from . import OpComposition
+        return OpComposition([new_self, other])
 
     def power(self, other):
         """ Compose with Self Multiple Times, undefined for StateFns. """
