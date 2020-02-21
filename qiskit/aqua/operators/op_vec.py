@@ -85,7 +85,7 @@ class OpVec(OperatorBase):
 
         Works for OpSum, OpCompose, OpVec, OpKron, at least. New combos must check whether they need to overload this.
         """
-        # TODO test this a lot...
+        # TODO test this a lot... probably different for OpKron.
         # TODO do this lazily? Basically rebuilds the entire tree, and ops and adjoints almost always come in pairs.
         return self.__class__([op.adjoint() for op in self.oplist], coeff=np.conj(self.coeff))
 

@@ -44,6 +44,9 @@ class OpComposition(OpVec):
     #     """ Kron with Self Multiple Times """
     #     raise NotImplementedError
 
+    def adjoint(self):
+        return OpComposition([op.adjoint() for op in reversed(self.oplist)], coeff=self.coeff)
+
     def compose(self, other):
         """ Operator Composition (Circuit-style, left to right) """
         if isinstance(other, OpComposition):
