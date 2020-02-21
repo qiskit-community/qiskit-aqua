@@ -286,7 +286,6 @@ class StateFn(OperatorBase):
         else:
             raise NotImplementedError
 
-    # TODO print Instructions nicely...
     def __str__(self):
         """Overload str() """
         prim_str = str(self.primitive)

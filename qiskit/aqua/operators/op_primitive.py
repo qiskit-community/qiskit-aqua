@@ -226,7 +226,13 @@ class OpPrimitive(OperatorBase):
         # TODO accept primitives directly in addition to OpPrimitive?
 
         if not self.num_qubits == other.num_qubits:
-            raise ValueError('Composition is not defined over Operators of different dimension')
+            from . import Zero
+            if other == Zero:
+                # Zero is special - we'll expand it to the correct qubit number.
+                from . import StateFn
+                other = StateFn('0' * self.num_qubits)
+            else:
+                raise ValueError('Composition is not defined over Operators of different dimension')
 
         self_primitive, other_primitive = self.interopt_pauli_and_gate(other)
 
@@ -301,7 +307,6 @@ class OpPrimitive(OperatorBase):
         else:
             raise NotImplementedError
 
-    # TODO print Instructions nicely...
     def __str__(self):
         """Overload str() """
         if isinstance(self.primitive, Instruction):
