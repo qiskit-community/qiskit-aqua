@@ -129,6 +129,7 @@ class StateFn(OperatorBase):
                     hasattr(self.primitive, 'add'):
                 return self.primitive.add(other.primitive)
 
+        from . import OpSum
         return OpSum([self, other])
 
     def neg(self):
@@ -192,6 +193,7 @@ class StateFn(OperatorBase):
             return StateFn(self.primitive.kron(sf_copy), coeff=self.coeff * other.coeff)
 
         else:
+            from . import OpKron
             return OpKron([self, other])
 
     def kronpower(self, other):
