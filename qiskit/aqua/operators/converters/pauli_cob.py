@@ -65,13 +65,19 @@ class PauliChangeOfBasis(ConverterBase):
 
         if isinstance(operator, (Pauli, OpPrimitive)):
             pauli = operator
+            # Don't need to set coeff for OpPrimitive because converter below will set it in dest_pauli if available
             coeff = 1.0
-        # Yes I see that this looks dumb.
-        elif isinstance(operator, StateFn) and \
-                isinstance(operator.primitive, OpPrimitive) and \
-                isinstance(operator.primitive.primitive, Pauli):
-            pauli = operator.primitive
-            coeff = operator.coeff
+        elif isinstance(operator, StateFn) and 'Pauli' in operator.get_primitives():
+            # If the StateFn/Meas only contains a Pauli, use it directly.
+            if isinstance(operator.primitive, OpPrimitive):
+                pauli = operator.primitive
+                coeff = operator.coeff
+            # TODO make a cononical "distribute" or graph swap as method in OperatorBase
+            elif operator.primitive.distributive:
+                sf_list = [StateFn(op, is_measurement=operator.is_measurement) for op in operator.primitive.oplist]
+                opvec_of_statefns = operator.primitive.__class__(oplist= sf_list, coeff=operator.coeff)
+                return opvec_of_statefns.traverse(self.convert)
+
         # TODO allow parameterized OpVec to be returned to save circuit copying.
         elif isinstance(operator, OpVec) and self._traverse and 'Pauli' in operator.get_primitives():
             return operator.traverse(self.convert)
@@ -88,6 +94,7 @@ class PauliChangeOfBasis(ConverterBase):
         else:
             return OpComposition([cob_instr_op.adjoint(), dest_pauli_op, cob_instr_op], coeff=coeff)
 
+    # TODO change to only accept OpPrimitive Pauli.
     def get_cob_circuit(self, origin):
         """ The goal of this module is to construct a circuit which maps the +1 and -1 eigenvectors of the origin
         pauli to the +1 and -1 eigenvectors of the destination pauli. It does so by

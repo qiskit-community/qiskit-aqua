@@ -45,6 +45,19 @@ class PauliExpectation(ExpectationBase):
 
     # TODO setters which wipe state
 
+    def expectation_op(self, state=None):
+        # TODO allow user to set state in constructor and then only pass params to execute.
+        state = state or self._state
+
+        if not self._converted_operator:
+            # Construct measurement from operator
+            meas = StateFn(self._operator, is_measurement=True)
+            # Convert the measurement into a classical basis (PauliChangeOfBasis chooses this basis by default).
+            self._converted_operator = PauliChangeOfBasis().convert(meas)
+
+        expec_op = self._converted_operator.compose(state)
+        return expec_op.reduce()
+
     def compute_expectation(self, state=None):
         if state or not self._reduced_expect_op:
             self._reduced_expect_op = self.expectation_op(state=state)
@@ -61,16 +74,3 @@ class PauliExpectation(ExpectationBase):
                                  'or convert Instructions to other types which do not require a backend.')
         else:
             return self._reduced_expect_op.eval()
-
-    def expectation_op(self, state=None):
-        # TODO allow user to set state in constructor and then only pass params to execute.
-        state = state or self._state
-
-        if not self._converted_operator:
-            # Construct measurement from operator
-            meas = StateFn(self._operator, is_measurement=True)
-            # Convert the measurement into a classical basis (PauliChangeOfBasis chooses this basis by default).
-            self._converted_operator = PauliChangeOfBasis().convert(meas)
-
-        expec_op = self._converted_operator.compose(state)
-        return expec_op.reduce()

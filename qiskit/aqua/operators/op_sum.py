@@ -35,6 +35,14 @@ class OpSum(OpVec):
     def num_qubits(self):
         return self.oplist[0].num_qubits
 
+    # TODO: Keep this property for evals or just enact distribution at composition time?
+    @property
+    def distributive(self):
+        """ Indicates whether the OpVec or subclass is distrubtive under composition. OpVec and OpSum are,
+        meaning that opv @ op = opv[0] @ op + opv[1] @ op +... (plus for OpSum, vec for OpVec, etc.),
+        while OpComposition and OpKron do not behave this way."""
+        return True
+
     # TODO change to *other to efficiently handle lists?
     def add(self, other):
         """ Addition. Overloaded by + in OperatorBase. """

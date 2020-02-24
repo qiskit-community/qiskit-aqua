@@ -49,6 +49,14 @@ class OpVec(OperatorBase):
     def combo_fn(self):
         return self._combo_fn
 
+    # TODO: Keep this property for evals or just enact distribution at composition time?
+    @property
+    def distributive(self):
+        """ Indicates whether the OpVec or subclass is distrubtive under composition. OpVec and OpSum are,
+        meaning that opv @ op = opv[0] @ op + opv[1] @ op +... (plus for OpSum, vec for OpVec, etc.),
+        while OpComposition and OpKron do not behave this way."""
+        return True
+
     @property
     def coeff(self):
         return self._coeff
@@ -59,8 +67,11 @@ class OpVec(OperatorBase):
 
     @property
     def num_qubits(self):
-        """ For now, follow tensor convention that each Operator in the vec is a separate "system" """
-        return sum([op.num_qubits for op in self.oplist])
+        """ For now, follow the convention that when one composes to a Vec, they are composing to each separate
+        system. """
+        # return sum([op.num_qubits for op in self.oplist])
+        # TODO maybe do some check here that they're the same?
+        return self.oplist[0].num_qubits
 
     # TODO change to *other to efficiently handle lists?
     def add(self, other):
@@ -173,7 +184,8 @@ class OpVec(OperatorBase):
                              ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
 
         # Combination function must be able to handle classical values
-        return self.combo_fn([op.to_matrix() for op in self.oplist]) * self.coeff
+        # TODO wrap combo function in np.array? Or just here to make sure broadcasting works?
+        return self.combo_fn([op.to_matrix()*self.coeff for op in self.oplist])
 
     def eval(self, front=None, back=None):
         """ A square binary Operator can be defined as a function over two binary strings of equal length. This
@@ -192,9 +204,10 @@ class OpVec(OperatorBase):
     def __str__(self):
         """Overload str() """
         if self.coeff == 1.0:
-            return "{}[{}]".format(self.__class__.__name__, ', '.join([str(op) for op in self.oplist]))
+            return "{}([{}])".format(self.__class__.__name__, ', '.join([str(op) for op in self.oplist]))
         else:
-            return "{} * {}[{}]".format(self.coeff, self.__class__.__name__, ', '.join([str(op) for op in self.oplist]))
+            return "{} * {}([{}])".format(self.coeff, self.__class__.__name__, ', '.join([str(op) for op in
+                                                                                         self.oplist]))
 
     def __repr__(self):
         """Overload str() """

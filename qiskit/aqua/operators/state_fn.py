@@ -247,7 +247,8 @@ class StateFn(OperatorBase):
                 # Zero is special - we'll expand it to the correct qubit number.
                 new_self = StateFn('0' * self.num_qubits, is_measurement=True)
             else:
-                raise ValueError('Composition is not defined over Operators of different dimension')
+                raise ValueError('Composition is not defined over Operators of different dimensions, {} and {}, '
+                                 'respectively.'.format(self.num_qubits, other.num_qubits))
 
         from . import OpComposition
         return OpComposition([new_self, other])
@@ -314,9 +315,14 @@ class StateFn(OperatorBase):
                 # Note, we need to reverse the bitstring to extract an int ordering
             vec = probs * self.coeff
 
-        # Operator - return diagonal (real values, not complex), not rank 1 decomposition!
+        # Operator - return diagonal (real values, not complex), not rank 1 decomposition (statevector)!
         elif isinstance(self.primitive, OperatorBase):
-            vec = np.diag(self.primitive.to_matrix()) * self.coeff
+            mat = self.primitive.to_matrix()
+            if isinstance(mat, list):
+                vec = [np.diag(op) * self.coeff for op in mat]
+            else:
+                vec = np.diag(mat) * self.coeff
+
 
         # Statevector - Return complex values, not reals
         elif isinstance(self.primitive, Statevector):
@@ -330,15 +336,17 @@ class StateFn(OperatorBase):
             raise NotImplementedError
 
         # Reshape for measurements so np.dot still works for composition.
+        if isinstance(vec, list):
+            return vec if not self.is_measurement else [op.reshape(1, -1) for op in vec]
         return vec if not self.is_measurement else vec.reshape(1, -1)
 
     def __str__(self):
         """Overload str() """
         prim_str = str(self.primitive)
         if self.coeff == 1.0:
-            return prim_str
+            return "{}({})".format('StateFunction' if not self.is_measurement else 'Measurement', self.coeff)
         else:
-            return "{}: {} * {}".format('StateFunction' if not self.is_measurement else 'Measurement',
+            return "{}({}) * {}".format('StateFunction' if not self.is_measurement else 'Measurement',
                                         self.coeff,
                                         prim_str)
 
@@ -413,3 +421,8 @@ class StateFn(OperatorBase):
     def reduce(self):
         # TODO replace IZ paulis with dict here?
         return self
+
+    # Recurse into StateFn's operator with a converter if primitive is an operator.
+    def traverse(self, convert_fn, coeff=None):
+        """ Apply the convert_fn to each node in the oplist. """
+        return StateFn(convert_fn(self.primitive), coeff=coeff or self.coeff, is_measurement=self.is_measurement)

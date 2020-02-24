@@ -19,7 +19,7 @@ from test.aqua import QiskitAquaTestCase
 import numpy as np
 import itertools
 
-from qiskit.aqua.operators import X, Y, Z, I, CX, T, H, S, OpPrimitive, OpSum, OpComposition
+from qiskit.aqua.operators import X, Y, Z, I, CX, T, H, S, OpPrimitive, OpSum, OpComposition, OpVec
 from qiskit.aqua.operators import StateFn, Zero, Plus, Minus
 
 from qiskit.aqua.algorithms.expectation import ExpectationBase, PauliExpectation
@@ -39,11 +39,28 @@ class TestPauliExpectation(QiskitAquaTestCase):
         mean = expect.compute_expectation(wf)
         self.assertAlmostEqual(mean, 0)
 
-        op = X
-        expect = PauliExpectation(operator=op, backend=backend)
-        mean = expect.compute_expectation(Plus)
-        self.assertAlmostEqual(mean, 1)
-        mean = expect.compute_expectation(Minus)
-        self.assertAlmostEqual(mean, -1)
-        mean = expect.compute_expectation(Plus+Minus)
-        self.assertAlmostEqual(mean, 0)
+        paulis_op = OpVec([X, Y, Z, I])
+
+        expect = PauliExpectation(operator=paulis_op, backend=backend)
+        plus_mean = expect.compute_expectation(Plus)
+        np.testing.assert_array_almost_equal(plus_mean, [1, -1j, 0, 2**.5])
+
+        minus_mean = expect.compute_expectation(Minus)
+        np.testing.assert_array_almost_equal(minus_mean, [-1, 1j, 2**.5, 0])
+
+        bellish_mean = expect.compute_expectation(Plus+Minus)
+        np.testing.assert_array_almost_equal(bellish_mean, [0, 0, 2**.5, 2**.5])
+        # TODO Fix Identity!
+
+        # plus_mat = Plus.to_matrix()
+        # minus_mat = Minus.to_matrix()
+        # bellish_mat = (Plus+Minus).to_matrix()
+        for i, op in enumerate(paulis_op.oplist):
+            print(op)
+            mat_op = op.to_matrix()
+            np.testing.assert_array_almost_equal(plus_mean[i],
+                                                 Plus.adjoint().to_matrix() @ mat_op @ Plus.to_matrix())
+            np.testing.assert_array_almost_equal(minus_mean[i],
+                                                 Minus.adjoint().to_matrix() @ mat_op @ Minus.to_matrix())
+            np.testing.assert_array_almost_equal(bellish_mean[i],
+                                                 (Plus+Minus).adjoint().to_matrix() @ mat_op @ (Plus+Minus).to_matrix())
