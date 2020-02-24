@@ -1,8 +1,8 @@
 .. module:: qiskit
 
-=================
-API Documentation
-=================
+=========================
+Qiskit Aqua API Reference
+=========================
 
 .. toctree::
     :maxdepth: 2
