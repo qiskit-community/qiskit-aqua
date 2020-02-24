@@ -41,20 +41,22 @@ class TwoLocalAnsatz(Ansatz):
 
     def __init__(self,
                  num_qubits: Optional[int] = None,
+                 reps: int = 3,
                  rotation_gates: Optional[Union[str, List[str], type, List[type]]] = None,
                  entanglement_gates: Optional[Union[str, List[str], type, List[type]]] = None,
                  entanglement: Union[str, List[List[int]], callable] = 'full',
-                 reps: int = 3,
-                 parameter_prefix: str = '_',
-                 insert_barriers: bool = False,
+                 initial_state: Optional[InitialState] = None,
                  skip_unentangled_qubits: bool = False,
                  skip_final_rotation_layer: bool = False,
-                 initial_state: Optional[InitialState] = None
+                 parameter_prefix: str = '_',
+                 insert_barriers: bool = False,
                  ) -> None:
         """Initializer. Assumes that the type hints are obeyed for now.
 
         Args:
             num_qubits: The number of qubits of the Ansatz.
+            reps: Specifies how often a block of consisting of a rotation layer and entanglement
+                layer is repeated.
             rotation_gates: The gates used in the rotation layer. Can be specified via the name of
                 a gate (e.g. 'ry') or the gate type itself (e.g. RYGate).
                 If only one gate is provided, the gate same gate is applied to each qubit.
@@ -69,22 +71,20 @@ class TwoLocalAnsatz(Ansatz):
                 the index of the entanglement layer.
                 Default to 'full' entanglement.
                 See the Examples section for more detail.
-            reps: Specifies how often a block of consisting of a rotation layer and entanglement
-                layer is repeated.
+            initial_state: An `InitialState` object to prepent to the Ansatz.
+                TODO deprecate this feature in favour of prepend or overloading __add__ in
+                the initial state class
+            skip_unentangled_qubits: If True, the single qubit gates are only applied to qubits
+                that are entangled with another qubit. If False, the single qubit gates are applied
+                to each qubit in the Ansatz. Defaults to False.
+            skip_final_rotation_layer: If True, a rotation layer is added at the end of the
+                ansatz. If False, no rotation layer is added. Defaults to True.
             parameter_prefix: The parameterized gates require a parameter to be defined, for which
                 we use instances of `qiskit.circuit.Parameter`. The name of each parameter is the
                 number of its occurrence with this specified prefix.
             insert_barriers: If True, barriers are inserted in between each layer. If False,
                 no barriers are inserted.
                 Defaults to False.
-            skip_unentangled_qubits: If True, the single qubit gates are only applied to qubits
-                that are entangled with another qubit. If False, the single qubit gates are applied
-                to each qubit in the Ansatz. Defaults to False.
-            skip_final_rotation_layer: If True, a rotation layer is added at the end of the
-                ansatz. If False, no rotation layer is added. Defaults to True.
-            initial_state: An `InitialState` object to prepent to the Ansatz.
-                TODO deprecate this feature in favour of prepend or overloading __add__ in
-                the initial state class
 
         Examples:
             >>> ansatz = TwoLocalAnsatz(3, 'ry', 'cx', 'linear', reps=2, insert_barriers=True)

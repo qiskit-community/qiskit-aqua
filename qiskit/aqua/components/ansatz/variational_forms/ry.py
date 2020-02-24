@@ -17,7 +17,7 @@
 from typing import Union, Optional, List, Tuple
 
 import numpy as np
-from qiskit.extensions.standard import RYGate, CzGate
+from qiskit.extensions.standard import RYGate, CZGate
 from qiskit.aqua.components.initial_states import InitialState
 from .two_local_ansatz import TwoLocalAnsatz
 
@@ -30,14 +30,15 @@ class RY(TwoLocalAnsatz):
 
     def __init__(self,
                  num_qubits: int,
-                 entanglement_gates: Union[str, List[str], type, List[type]] = CzGate,
-                 entanglement: Union[str, List[List[int]], callable] = 'full',
                  reps: Optional[int] = 3,
-                 parameter_prefix: str = '_',
-                 insert_barriers: bool = False,
+                 entanglement_gates: Union[str, List[str], type, List[type]] = CZGate,
+                 entanglement: Union[str, List[List[int]], callable] = 'full',
+                 initial_state: Optional[InitialState] = None,
                  skip_unentangled_qubits: bool = False,
                  skip_final_rotation_layer: bool = False,
-                 initial_state: Optional[InitialState] = None) -> None:
+                 parameter_prefix: str = '_',
+                 insert_barriers: bool = False
+                 ) -> None:
         """Initializer. Assumes that the type hints are obeyed for now.
 
         Args:
@@ -67,6 +68,9 @@ class RY(TwoLocalAnsatz):
                 to each qubit in the Ansatz. Defaults to False.
             skip_final_rotation_layer: If True, a rotation layer is added at the end of the
                 ansatz. If False, no rotation layer is added. Defaults to True.
+            initial_state: An `InitialState` object to prepent to the Ansatz.
+                TODO deprecate this feature in favour of prepend or overloading __add__ in
+                the initial state class
 
         Examples:
             >>> ry = RY(3)  # create the variational form on 3 qubits
@@ -94,15 +98,15 @@ class RY(TwoLocalAnsatz):
             >>> print(my_ry)
         """
         super().__init__(num_qubits,
+                         reps=reps,
                          rotation_gates=RYGate,
                          entanglement_gates=entanglement_gates,
                          entanglement=entanglement,
-                         reps=reps,
-                         parameter_prefix=parameter_prefix,
-                         insert_barriers=insert_barriers,
+                         initial_state=initial_state,
                          skip_unentangled_qubits=skip_unentangled_qubits,
                          skip_final_rotation_layer=skip_final_rotation_layer,
-                         initial_state=initial_state)
+                         parameter_prefix=parameter_prefix,
+                         insert_barriers=insert_barriers)
 
     @property
     def parameter_bounds(self) -> List[Tuple[float, float]]:

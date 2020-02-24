@@ -67,28 +67,28 @@ class SwapRZ(TwoLocalAnsatz):
 
         Args:
             num_qubits: The number of qubits of the Ansatz.
+            reps: Specifies how often a block of consisting of a rotation layer and entanglement
+                layer is repeated.
             entanglement: Specifies the entanglement structure. Can be a string ('full', 'linear'
                 or 'sca'), a list of integer-pairs specifying the indices of qubits
                 entangled with one another, or a callable returning such a list provided with
                 the index of the entanglement layer.
                 Default to 'full' entanglement.
                 See the Examples section for more detail.
-            reps: Specifies how often a block of consisting of a rotation layer and entanglement
-                layer is repeated.
+            initial_state: An `InitialState` object to prepent to the Ansatz.
+                TODO deprecate this feature in favour of prepend or overloading __add__ in
+                the initial state class
+            skip_unentangled_qubits: If True, the single qubit gates are only applied to qubits
+                that are entangled with another qubit. If False, the single qubit gates are applied
+                to each qubit in the Ansatz. Defaults to False.
+            skip_final_rotation_layer: If True, a rotation layer is added at the end of the
+                ansatz. If False, no rotation layer is added. Defaults to True.
             parameter_prefix: The parameterized gates require a parameter to be defined, for which
                 we use instances of `qiskit.circuit.Parameter`. The name of each parameter is the
                 number of its occurrence with this specified prefix.
             insert_barriers: If True, barriers are inserted in between each layer. If False,
                 no barriers are inserted.
                 Defaults to False.
-            skip_unentangled_qubits: If True, the single qubit gates are only applied to qubits
-                that are entangled with another qubit. If False, the single qubit gates are applied
-                to each qubit in the Ansatz. Defaults to False.
-            skip_final_rotation_layer: If True, a rotation layer is added at the end of the
-                ansatz. If False, no rotation layer is added. Defaults to True.
-            initial_state: An `InitialState` object to prepent to the Ansatz.
-                TODO deprecate this feature in favour of prepend or overloading __add__ in
-                the initial state class
 
         Examples:
             >>> swaprz = SwapRZ(3)  # create the variational form on 3 qubits
@@ -111,22 +111,21 @@ class SwapRZ(TwoLocalAnsatz):
             >>> my_varform = swaprz + ry
             >>> print(my_varform)
         """
-
         circuit = QuantumCircuit(2)
         theta = Parameter('θ')
         circuit.rxx(theta, 0, 1)
         circuit.ryy(theta, 0, 1)
 
         super().__init__(num_qubits,
+                         reps=reps,
                          rotation_gates=RZGate,
                          entanglement_gates=circuit,
                          entanglement=entanglement,
-                         reps=reps,
-                         parameter_prefix=parameter_prefix,
-                         insert_barriers=insert_barriers,
+                         initial_state=initial_state,
                          skip_unentangled_qubits=skip_unentangled_qubits,
                          skip_final_rotation_layer=skip_final_rotation_layer,
-                         initial_state=initial_state)
+                         parameter_prefix=parameter_prefix,
+                         insert_barriers=insert_barriers)
 
     @property
     def parameter_bounds(self) -> List[Tuple[float, float]]:
