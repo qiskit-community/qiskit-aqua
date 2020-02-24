@@ -43,6 +43,8 @@ class RY(TwoLocalAnsatz):
 
         Args:
             num_qubits: The number of qubits of the Ansatz.
+            reps: Specifies how often a block of consisting of a rotation layer and entanglement
+                layer is repeated.
             entanglement_gates: The gates used in the entanglement layer. Can be specified via the
                 name of a gate (e.g. 'cx') or the gate type itself (e.g. CnotGate).
                 If only one gate is provided, the gate same gate is applied to each qubit.
@@ -55,22 +57,20 @@ class RY(TwoLocalAnsatz):
                 the index of the entanglement layer.
                 Default to 'full' entanglement.
                 See the Examples section for more detail.
-            reps: Specifies how often a block of consisting of a rotation layer and entanglement
-                layer is repeated.
+            initial_state: An `InitialState` object to prepent to the Ansatz.
+                TODO deprecate this feature in favour of prepend or overloading __add__ in
+                the initial state class
+            skip_unentangled_qubits: If True, the single qubit gates are only applied to qubits
+                that are entangled with another qubit. If False, the single qubit gates are applied
+                to each qubit in the Ansatz. Defaults to False.
+            skip_final_rotation_layer: If True, a rotation layer is added at the end of the
+                ansatz. If False, no rotation layer is added. Defaults to True.
             parameter_prefix: The parameterized gates require a parameter to be defined, for which
                 we use instances of `qiskit.circuit.Parameter`. The name of each parameter is the
                 number of its occurrence with this specified prefix.
             insert_barriers: If True, barriers are inserted in between each layer. If False,
                 no barriers are inserted.
                 Defaults to False.
-            skip_unentangled_qubits: If True, the single qubit gates are only applied to qubits
-                that are entangled with another qubit. If False, the single qubit gates are applied
-                to each qubit in the Ansatz. Defaults to False.
-            skip_final_rotation_layer: If True, a rotation layer is added at the end of the
-                ansatz. If False, no rotation layer is added. Defaults to True.
-            initial_state: An `InitialState` object to prepent to the Ansatz.
-                TODO deprecate this feature in favour of prepend or overloading __add__ in
-                the initial state class
 
         Examples:
             >>> ry = RY(3)  # create the variational form on 3 qubits
