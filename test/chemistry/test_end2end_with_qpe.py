@@ -21,8 +21,7 @@ from ddt import ddt, idata, unpack
 import qiskit
 from qiskit.aqua.utils import decimal_to_binary
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.algorithms.single_sample import QPE
-from qiskit.aqua.algorithms.classical import ExactEigensolver
+from qiskit.aqua.algorithms import QPE, ExactEigensolver
 from qiskit.aqua.components.iqfts import Standard
 from qiskit.aqua.operators import Z2Symmetries
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType

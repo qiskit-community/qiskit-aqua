@@ -42,10 +42,8 @@ Chemistry Classical Algorithms
 
 """
 
-
-from .adaptive import VQEAdapt
-from .q_equation_of_motion.q_eom_vqe import QEomVQE
-from .q_equation_of_motion.q_eom_ee import QEomEE
+from .eigen_solvers import QEomVQE, QEomEE
+from .minimum_eigen_solvers import VQEAdapt
 
 __all__ = [
     'QEomVQE',
