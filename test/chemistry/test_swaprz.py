@@ -19,7 +19,8 @@ from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms import VQE
 from qiskit.aqua.components.optimizers import SLSQP
-from qiskit.aqua.components.variational_forms import SwapRZ
+# from qiskit.aqua.components.variational_forms import SwapRZ
+from qiskit.aqua.components.ansatz import SwapRZ
 from qiskit.chemistry.components.initial_states import HartreeFock
 from qiskit.chemistry.drivers import HDF5Driver
 from qiskit.chemistry.core import Hamiltonian, QubitMappingType
