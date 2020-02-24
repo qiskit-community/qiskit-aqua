@@ -28,7 +28,7 @@ from typing import Union, Optional, List, Any, Tuple
 
 import numbers
 import numpy
-from qiskit import QuantumCircuit, QiskitError, transpile
+from qiskit import QuantumCircuit, QiskitError, transpile, QuantumRegister
 from qiskit.circuit import Gate, Instruction, Parameter, ParameterVector, ParameterExpression
 from qiskit.aqua import AquaError
 from qiskit.aqua.components.initial_states import InitialState
@@ -49,6 +49,14 @@ class Ansatz:
         blocks: The single building blocks of the Ansatz.
         params: The parameters of the Ansatz.
         num_qubits: The number of qubits in the Ansatz.
+        num_parameters: The number of tuneable parameters in the Ansatz.
+        setting: Returns information about the class properties. To be deprecated.
+        support_parameterized_circuit: If True, the parameters can be set with Parameter objects.
+            To be deprecated, since it always should be True.
+        parameter_bounds: Suggested parameter bounds for the parameters that an optimizer may use.
+        preferred_init_points: The Ansatz can store preferred initial points for the paramter
+            values. To be deprecated?
+
     """
 
     def __init__(self,
@@ -58,7 +66,18 @@ class Ansatz:
                  reps: Optional[Union[int, List[int]]] = None,
                  insert_barriers: bool = False,
                  initial_state: Optional[InitialState] = None) -> None:
-        """Initializer. Assumes that the type hints are obeyed for now.
+        """Initializer. Constructs the blocks of the Ansatz from the input.
+
+        The structure of the Ansatz are repeated parameterized circuit-blocks (referred to as blocks
+        in the code). For every block, qubit indices indicate on which qubits the block acts on.
+        Which and how blocks are repeated is determined via the ``reps`` argument.
+        If the same block is supposed to be repeated several times with the same qubit indices,
+        it is only stored once.  On circuit construction, copies of the blocks are inserted in the
+        Ansatz with new, unique parameters.
+        These "base parameters" do not change. The user modifies "surface parameters" which are
+        bound to the circuit upon requesting the circuit.
+        If specified, barriers can be inserted in between every block.
+        If an initial state is provided, it is prepended to the Ansatz.
 
         Args:
             blocks: The input blocks. Can be a single gate, a list of gates, (or circuits?)
@@ -162,17 +181,17 @@ class Ansatz:
         # parameter bounds
         self._bounds = None
 
-    def _convert_to_block(self, layer: Any) -> QuantumCircuit:
-        """Try to convert `layer` to a QuantumCircuit.
+    def _convert_to_block(self, layer: Any) -> Instruction:
+        """Try to convert `layer` to an Instruction.
 
         Args:
             layer: The object to be converted to an Ansatz block / Instruction.
 
-        Raises:
-            TypeError: If the input cannot be converted to an Instruction.
-
         Returns:
             The layer converted to an Instruction.
+
+        Raises:
+            TypeError: If the input cannot be converted to an Instruction.
         """
         if isinstance(layer, Instruction):
             return layer
@@ -245,14 +264,20 @@ class Ansatz:
     def params(self) -> Union[List[float], List[Parameter]]:
         """Get the parameters of the Ansatz.
 
+        Only the so-called "surface parameters" of the Ansatz are subject to change, these
+        can be modified and re-assigned to new values. Below, the Ansatz keeps track of the
+        "base parameters" which remain unique.
+
         Returns:
-            A list containing the parameters.
+            A list containing the surface parameters.
         """
         return self._surface_params
 
     @params.setter
     def params(self, params: Union[dict, List[float], List[Parameter], ParameterVector]) -> None:
         """Set the parameters of the Ansatz.
+
+        This sets the surface parameters, not the base parameters.
 
         Args:
             The new parameters.
@@ -282,7 +307,17 @@ class Ansatz:
 
     def bind_parameters(self, params: Union[List[float], List[Parameter], ParameterVector]
                         ) -> QuantumCircuit:
-        """Bind the params to the underlying circuit."""
+        """Bind ``params`` to the underlying circuit of the Ansatz.
+
+        This method allows handling of both ``qiskit.circuit.Parameter`` objects and numbers.
+        It returns a copy of the internally stored circuit with the new specified parameters.
+
+        Returns:
+            A copy of the Ansatz circuit with the specified parameters.
+
+        Raises:
+            TypeError: If ``params`` contains an unsupported type.
+        """
         if all(isinstance(param, numbers.Real) for param in params):
             param_dict = dict(zip(self._base_params, params))
             circuit_copy = self._circuit.bind_parameters(param_dict)
@@ -306,27 +341,40 @@ class Ansatz:
         Returns:
             The number of parameters.
         """
-        return len(self._base_params)
+        return len(self._base_params)  # could also be len(self._surface_params)
 
-    def construct_circuit(self, params: Union[List[float], List[Parameter], ParameterVector]
+    def construct_circuit(self,
+                          params: Union[List[float], List[Parameter], ParameterVector],
+                          q: Optional[QuantumRegister] = None,
                           ) -> QuantumCircuit:
-        """Deprecated, use `to_circuit()` -- supporting backward compatibility.
+        """Deprecated, use `to_circuit()`.
 
         Args:
             params: The parameters for the Ansatz.
+            q: The qubit register to use to build the circuit. If None, a new register with the
+                name 'q' is created.
 
         Returns:
-            The Ansatz as circuit.
+            The Ansatz as circuit with the specified parameters.
+
+        Raises:
+            ValueError: If the qubit register is provided but the length does not coincide with the
+                number of qubits of the Ansatz.
         """
         self.params = params
-        return self.to_circuit()
+        if q is None:
+            q = QuantumRegister(self.num_qubits, name='q')
+        elif len(q) != self.num_qubits:
+            raise ValueError('The size of the register is not equal to the number of qubits.')
+
+        circuit = QuantumCircuit(q)
+        circuit += self.to_circuit()
+        return circuit
 
     def _parametrize_block(self, block: Instruction, qargs: List[int],
                            params: Optional[List[Parameter]]) -> QuantumCircuit:
-        """Temporary function while Instructions are not able to propagate parameter change.
-
-        Converts the block to a circuit and substitutes the provided parameters.
-        The block is copied, not added via reference.
+        """Convert ``block`` to a circuit of correct width and parameterized with the
+        specified parameters.
 
         Args:
             block: The instruction to which the base parameters are bound.
