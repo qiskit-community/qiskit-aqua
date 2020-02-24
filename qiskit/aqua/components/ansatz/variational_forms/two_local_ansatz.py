@@ -15,16 +15,16 @@
 """The two-local gate Ansatz.
 
 TODO
+    * remove the temporary param subst fix and move to ccts away from gates
 """
 
 from typing import Union, Optional, List, Tuple
 
 from qiskit import QuantumCircuit
-from qiskit.circuit import Gate, Parameter
-from qiskit.extensions.standard import (IdGate, XGate, YGate, ZGate, HGate, TGate, SGate, TdgGate,
+from qiskit.circuit import Gate, Parameter, ParameterExpression
+from qiskit.extensions.standard import (IGate, XGate, YGate, ZGate, HGate, TGate, SGate, TdgGate,
                                         SdgGate, RXGate, RXXGate, RYGate, RYYGate, RZGate, SwapGate,
-                                        CnotGate, CyGate, CzGate, CHGate, CrxGate, CryGate, CrzGate,
-                                        Barrier,)
+                                        CXGate, CYGate, CZGate, CHGate, CRXGate, CRYGate, CRZGate)
 
 from qiskit.aqua import AquaError
 from qiskit.aqua.utils import get_entangler_map, validate_entangler_map
@@ -213,9 +213,14 @@ class TwoLocalAnsatz(Ansatz):
                         params = [Parameter('{}{}'.format(self._parameter_prefix, param_count + i))
                                   for i in range(num_params)]
 
+                        # correctly replace the parameters
+                        sub_circuit = QuantumCircuit(self.num_qubits)
+                        sub_circuit.append(gate, [qubit], [])
+                        update = dict(zip(list(sub_circuit.parameters), params))
+                        sub_circuit._substitute_parameters(update)
+
                         # add the gate
-                        gate.params = params
-                        circuit.append(gate, [qubit], [])
+                        circuit.extend(sub_circuit)
 
         return circuit.to_gate()
 
@@ -247,9 +252,14 @@ class TwoLocalAnsatz(Ansatz):
                     params = [Parameter('{}{}'.format(self._parameter_prefix, param_count + i))
                               for i in range(num_params)]
 
+                    # correctly replace the parameters
+                    sub_circuit = QuantumCircuit(self.num_qubits)
+                    sub_circuit.append(gate, [src, tgt], [])
+                    update = dict(zip(list(sub_circuit.parameters), params))
+                    sub_circuit._substitute_parameters(update)
+
                     # add the gate
-                    gate.params = params
-                    circuit.append(gate, [src, tgt], [])
+                    circuit.extend(sub_circuit)
 
         return circuit.to_gate()
 
@@ -310,14 +320,16 @@ class TwoLocalAnsatz(Ansatz):
         theta = Parameter('θ')
         valid_gates = {
             'ch': (CHGate(), 0),
-            'cx': (CnotGate(), 0),
-            'cy': (CyGate(), 0),
-            'cz': (CzGate(), 0),
-            'crx': (CrxGate(theta), 1),
-            'cry': (CryGate(theta), 1),
-            'crz': (CrzGate(theta), 1),
+            'cx': (CXGate(), 0),
+            'cy': (CYGate(), 0),
+            'cz': (CZGate(), 0),
+            'crx': (CRXGate(theta), 1),
+            'cry': (CRYGate(theta), 1),
+            'crz': (CRZGate(theta), 1),
             'h': (HGate(), 0),
-            'iden': (IdGate(), 0),
+            'i': (IGate(), 0),
+            'id': (IGate(), 0),
+            'iden': (IGate(), 0),
             'rx': (RXGate(theta), 1),
             'rxx': (RXXGate(theta), 1),
             'ry': (RYGate(theta), 1),
@@ -347,7 +359,8 @@ class TwoLocalAnsatz(Ansatz):
                     return (standard_gate, num_params)
             raise AquaError('Unknown gate type`{}`.'.format(gate))
 
-        raise AquaError('Invalid input, `gate` must be a str.')
+        raise AquaError('Invalid input type {}. '.format(type(gate))
+                        + '`gate` must be a type, str or QuantumCircuit.')
 
     def get_entangler_map(self, offset: int = 0) -> List[List[int]]:
         """Return the specified entangler map, if self._entangler_map if it has been set previously.
