@@ -17,7 +17,7 @@
 import unittest
 from test.finance import QiskitFinanceTestCase
 import numpy as np
-from parameterized import parameterized
+from ddt import ddt, idata, unpack
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.components.uncertainty_models import (LogNormalDistribution,
@@ -25,13 +25,15 @@ from qiskit.aqua.components.uncertainty_models import (LogNormalDistribution,
 from qiskit.finance.components.uncertainty_problems import \
     (EuropeanCallDelta, FixedIncomeExpectedValue)
 from qiskit.aqua.components.uncertainty_problems import \
-                        UnivariatePiecewiseLinearObjective as PwlObjective
+    UnivariatePiecewiseLinearObjective as PwlObjective
 from qiskit.aqua.components.uncertainty_problems import UnivariateProblem
 from qiskit.aqua.algorithms import AmplitudeEstimation, MaximumLikelihoodAmplitudeEstimation
 
 
+@ddt
 class TestEuropeanCallOption(QiskitFinanceTestCase):
     """ Test European Call Option """
+
     def setUp(self):
         super().setUp()
 
@@ -102,7 +104,7 @@ class TestEuropeanCallOption(QiskitFinanceTestCase):
         self._qasm = QuantumInstance(backend=BasicAer.get_backend('qasm_simulator'), shots=100,
                                      seed_simulator=2, seed_transpiler=2)
 
-    @parameterized.expand([
+    @idata([
         ['statevector', AmplitudeEstimation(3),
          {'estimation': 0.45868536404797905, 'mle': 0.1633160}],
         ['qasm', AmplitudeEstimation(4),
@@ -110,8 +112,9 @@ class TestEuropeanCallOption(QiskitFinanceTestCase):
         ['statevector', MaximumLikelihoodAmplitudeEstimation(5),
          {'estimation': 0.16330976193204114}],
         ['qasm', MaximumLikelihoodAmplitudeEstimation(3),
-         {'estimation': 0.1027255930905642}],
+         {'estimation': 0.09784548904622023}],
     ])
+    @unpack
     def test_expected_value(self, simulator, a_e, expect):
         """ expected value test """
         # set A factory for amplitude estimation
@@ -125,7 +128,7 @@ class TestEuropeanCallOption(QiskitFinanceTestCase):
             self.assertAlmostEqual(result[key], value, places=4,
                                    msg="estimate `{}` failed".format(key))
 
-    @parameterized.expand([
+    @idata([
         ['statevector', AmplitudeEstimation(3),
          {'estimation': 0.8535534, 'mle': 0.8097974047170567}],
         ['qasm', AmplitudeEstimation(4),
@@ -135,6 +138,7 @@ class TestEuropeanCallOption(QiskitFinanceTestCase):
         ['qasm', MaximumLikelihoodAmplitudeEstimation(6),
          {'estimation': 0.8096123776923358}],
     ])
+    @unpack
     def test_delta(self, simulator, a_e, expect):
         """ delta test """
         # set A factory for amplitude estimation
@@ -149,8 +153,10 @@ class TestEuropeanCallOption(QiskitFinanceTestCase):
                                    msg="estimate `{}` failed".format(key))
 
 
+@ddt
 class TestFixedIncomeAssets(QiskitFinanceTestCase):
     """ Test Fixed Income Assets """
+
     def setUp(self):
         super().setUp()
 
@@ -162,16 +168,17 @@ class TestFixedIncomeAssets(QiskitFinanceTestCase):
                                      seed_simulator=2,
                                      seed_transpiler=2)
 
-    @parameterized.expand([
+    @idata([
         ['statevector', AmplitudeEstimation(5),
          {'estimation': 2.4600, 'mle': 2.3402315559106843}],
         ['qasm', AmplitudeEstimation(5),
          {'estimation': 2.4600, 'mle': 2.3632087675061726}],
         ['statevector', MaximumLikelihoodAmplitudeEstimation(5),
-         {'estimation': 2.340361798381051}],
+         {'estimation': 2.340228883624973}],
         ['qasm', MaximumLikelihoodAmplitudeEstimation(5),
-         {'estimation': 2.317921060790118}]
+         {'estimation': 2.3174630932734077}]
     ])
+    @unpack
     def test_expected_value(self, simulator, a_e, expect):
         """ expected value test """
         # can be used in case a principal component analysis

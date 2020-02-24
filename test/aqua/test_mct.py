@@ -18,7 +18,7 @@ import unittest
 import itertools
 from test.aqua import QiskitAquaTestCase
 import numpy as np
-from parameterized import parameterized
+from ddt import ddt, idata, unpack
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit import execute
 from qiskit.quantum_info import state_fidelity
@@ -30,11 +30,11 @@ CLEAN_ANCILLA_MODES = ['basic']
 DIRTY_ANCILLA_MODES = ['basic-dirty-ancilla', 'advanced', 'noancilla']
 
 
+@ddt
 class TestMCT(QiskitAquaTestCase):
     """ Test MCT """
-    @parameterized.expand(
-        itertools.product(NUM_CONTROLS, CLEAN_ANCILLA_MODES)
-    )
+    @idata(itertools.product(NUM_CONTROLS, CLEAN_ANCILLA_MODES))
+    @unpack
     def test_mct_with_clean_ancillae(self, num_controls, mode):
         """ MCT with Clean Ancillae test """
         c = QuantumRegister(num_controls, name='c')
@@ -68,9 +68,8 @@ class TestMCT(QiskitAquaTestCase):
         s_f = state_fidelity(vec_mct, vec_groundtruth)
         self.assertAlmostEqual(s_f, 1)
 
-    @parameterized.expand(
-        itertools.product(NUM_CONTROLS, DIRTY_ANCILLA_MODES)
-    )
+    @idata(itertools.product(NUM_CONTROLS, DIRTY_ANCILLA_MODES))
+    @unpack
     def test_mct_with_dirty_ancillae(self, num_controls, mode):
         """ MCT qith Dirty Ancillae test """
         c = QuantumRegister(num_controls, name='c')

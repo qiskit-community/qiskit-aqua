@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -21,8 +21,8 @@ import logging
 import numpy as np
 from sklearn.metrics.pairwise import rbf_kernel
 
-from qiskit.aqua.algorithms.classical.svm import _SVM_Classical_ABC
 from qiskit.aqua.utils import map_label_to_class_name, optimize_svm
+from ._svm_classical_abc import _SVM_Classical_ABC
 
 logger = logging.getLogger(__name__)
 
