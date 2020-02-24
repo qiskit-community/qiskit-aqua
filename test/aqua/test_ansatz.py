@@ -186,7 +186,7 @@ class TestAnsatz(QiskitAquaTestCase):
         reps = 3
         ansatz = Ansatz(circuit, reps=reps)
         expected_params = reps * [a, b]
-        self.assertEqual(expected_params, ansatz.params)
+        self.assertListEqual(expected_params, ansatz.params)
 
     @data(list(range(6)), ParameterVector('θ', length=6))
     def test_parameter_setter_from_automatic_repetition(self, params):
@@ -202,7 +202,7 @@ class TestAnsatz(QiskitAquaTestCase):
         # repeat circuit and check that parameters are duplicated
         reps = 3
         ansatz = Ansatz(circuit, reps=reps)
-        ansatz.to_circuit()
+        # ansatz.to_circuit()
         ansatz.params = params
 
         param_set = set(p for p in params if isinstance(p, ParameterExpression))
@@ -213,7 +213,9 @@ class TestAnsatz(QiskitAquaTestCase):
 
         with self.subTest(msg='Test the parameters of the transpiled circuit'):
             basis_gates = ['id', 'u1', 'u2', 'u3', 'cx']
+            print(ansatz.to_circuit())
             transpiled_circuit = transpile(ansatz.to_circuit(), basis_gates=basis_gates)
+            print(transpiled_circuit)
             self.assertEqual(transpiled_circuit.parameters, param_set)
 
     # TODO add as soon as supported by Terra: [0, 1, Parameter('θ'), 3, 4, 5])
