@@ -18,6 +18,7 @@ from typing import Union, Optional, List, Tuple
 
 import numpy as np
 from qiskit.extensions.standard import RYGate, CzGate
+from qiskit.aqua.components.initial_states import InitialState
 from .two_local_ansatz import TwoLocalAnsatz
 
 
@@ -35,7 +36,8 @@ class RY(TwoLocalAnsatz):
                  parameter_prefix: str = '_',
                  insert_barriers: bool = False,
                  skip_unentangled_qubits: bool = False,
-                 skip_final_rotation_layer: bool = False) -> None:
+                 skip_final_rotation_layer: bool = False,
+                 initial_state: Optional[InitialState] = None) -> None:
         """Initializer. Assumes that the type hints are obeyed for now.
 
         Args:
@@ -99,7 +101,8 @@ class RY(TwoLocalAnsatz):
                          parameter_prefix=parameter_prefix,
                          insert_barriers=insert_barriers,
                          skip_unentangled_qubits=skip_unentangled_qubits,
-                         skip_final_rotation_layer=skip_final_rotation_layer)
+                         skip_final_rotation_layer=skip_final_rotation_layer,
+                         initial_state=initial_state)
 
     @property
     def parameter_bounds(self) -> List[Tuple[float, float]]:
