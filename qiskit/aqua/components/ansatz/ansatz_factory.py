@@ -17,11 +17,10 @@
 TODO
     * store ccts instead of gates?
         - Reverting to ccts in future anyways
-    * add transpile feature?
+        - Performance difference?
+    * add transpile feature
     * add params argument to to_circuit?
-    * copy input layers? probably we should
-    * keep a separate list of parameters to ensure the same order and be able to change the
-        parameters w/o constructing the cct
+    * rename append to combine(after=True) with to support after/before
 """
 
 from __future__ import annotations  # to use the type hint 'Ansatz' in the class itself
@@ -84,7 +83,7 @@ class Ansatz:
         Examples:
             TODO
         """
-        # insert barriers?
+        # insert barriers in between the blocks?
         self._insert_barriers = insert_barriers
 
         # get blocks in the right format
@@ -94,35 +93,36 @@ class Ansatz:
         if not isinstance(blocks, (list, numpy.ndarray)):
             blocks = [blocks]
 
+        # convert all input blocks to the same type
         self._blocks = []
         for block in blocks:
             self._blocks += [self._convert_to_block(block)]
 
         # get reps in the right format
-        if reps is None:  # if reps is None, set it to [0, .., len(num_blocks) - 1]
+        if reps is None:  # if reps is None, set it to [0, ..., len(num_blocks) - 1]
             self._reps = list(range(len(self._blocks)))
         elif isinstance(reps, int):  # if reps is an int, set it to reps * [0, ..., len(blocks) - 1]
             self._reps = reps * list(range(len(self._blocks)))
-        else:  # right format
+        else:  # already in the right format
             self._reps = reps
 
         # get qubit_indices in the right format (i.e. list of lists)
-        if qubit_indices is None:
-            self._qargs = [list(range(block.n_qubits)) for block in self._blocks]
-        elif not isinstance(qubit_indices[0], list):
+        if qubit_indices is None:  # if None, set the indices to [0, ..., block.num_qubits - 1]
+            self._qargs = [list(range(block.num_qubits)) for block in self._blocks]
+        elif not isinstance(qubit_indices[0], list):  # user provided a flat, single list
             self._qargs = [qubit_indices]
         else:  # right format
             self._qargs = qubit_indices
 
-        # maximum number of qubits
+        # get the maximum number of qubits from the qubit indices
         self._num_qubits = int(numpy.max(self._qargs) + 1 if len(self._qargs) > 0 else 0)
 
-        # if there is an initial state object, check that the number of qubits is compatible
-        # construct the circuit immediately since we need the number of qubits
-        # alternate solution: add num_qubits as attribute to the InitialState
-        self._initial_state_cQircuit = None
+        # If there is an initial state object, check that the number of qubits is compatible
+        # construct the circuit immediately. If the InitialState could modify the number of qubits
+        # we could also do this later at circuit construction.
+        self._initial_state_circuit = None
         if initial_state is not None:
-            # construct the circuit
+            # construct the circuit of the initial state
             self._initial_state_circuit = initial_state.construct_circuit(mode='circuit')
 
             # the initial state dictates the number of qubits since we do not have information
@@ -135,14 +135,29 @@ class Ansatz:
         # keep track of the circuit
         self._circuit = None
 
-        # set up the base parameters
-        num_parameters = sum(len(parameters(self._blocks[idx])) for idx in self._reps)
-        self._base_params = [Parameter('θ{}'.format(i)) for i in range(num_parameters)]
+        # Set up the base and surface parameters:
+        # The surface parameters are the parameters the user has access to. The base parameters
+        # are the parameters used in the internally stored circuit. Keeping two separate lists
+        # of parameters allows us to bind and substitute values as the user specifies without
+        # loosing track of which parameters exist.
+        self._surface_params = []  # the parameters the user can access
+        self._base_params = []  # the internally used parameters
+        self._blockwise_base_params = []  # per block, used for convenience later on
 
-        # set up the surface parameters
-        self._surface_params = []
+        # fill the parameter lists
+        param_count = 0
         for idx in self._reps:
-            self._surface_params += parameters(self._blocks[idx])
+            block_params = parameters(self._blocks[idx])  # get the parameters per block
+            self._surface_params += block_params  # add them to the surface parameters
+
+            # set the base parameters per block
+            n = len(block_params)
+            block_base_params = [
+                Parameter('θ{}'.format(i)) for i in range(param_count, param_count + n)
+            ]
+            param_count += n
+            self._blockwise_base_params += [block_base_params]
+            self._base_params += block_base_params
 
         # parameter bounds
         self._bounds = None
@@ -159,13 +174,10 @@ class Ansatz:
         Returns:
             The layer converted to an Instruction.
         """
-        if isinstance(layer, QuantumCircuit):
+        if isinstance(layer, Instruction):
             return layer
-        elif isinstance(layer, Instruction) or (hasattr(layer, 'to_instruction') and
-                                                hasattr(layer, 'num_qubits')):
-            circuit = QuantumCircuit(layer.num_qubits)
-            circuit.append(layer, list(range(layer.num_qubits)))
-            return circuit
+        elif hasattr(layer, 'to_instruction'):
+            return layer.to_instruction()
         else:
             raise TypeError('Adding a {} to an Ansatz is not supported.'.format(type(layer)))
 
@@ -273,11 +285,7 @@ class Ansatz:
         """Bind the params to the underlying circuit."""
         if all(isinstance(param, numbers.Real) for param in params):
             param_dict = dict(zip(self._base_params, params))
-            print('binding', param_dict)
             circuit_copy = self._circuit.bind_parameters(param_dict)
-            print('params:', circuit_copy.parameters)
-            print('transpiled:', transpile(circuit_copy,
-                                           basis_gates=['id', 'u1', 'u2', 'u3', 'cx']).parameters)
 
         # if they are new parameters, replace them in the circuit
         elif all(isinstance(param, Parameter) for param in params):
@@ -313,30 +321,30 @@ class Ansatz:
         self.params = params
         return self.to_circuit()
 
-    def _parametrize_block(self, block: Instruction, count: int) -> Tuple[QuantumCircuit, int]:
+    def _parametrize_block(self, block: Instruction, qargs: List[int],
+                           params: Optional[List[Parameter]]) -> QuantumCircuit:
         """Temporary function while Instructions are not able to propagate parameter change.
 
-        Converts the block to a circuit and binds the next `n` base parameters (starting from
-        index `count`), where `n` is the number of parameters of the block.
+        Converts the block to a circuit and substitutes the provided parameters.
+        The block is copied, not added via reference.
 
         Args:
             block: The instruction to which the base parameters are bound.
-            count: The start index for the base parameters.
+            qargs: The indices for the block.
+            params: The parameters to bind to the block.
 
         Returns:
-            A tuple of the instruction converted to a circuit and the `count + n`.
+            The block as circuit of width ``self.num_qubits`` where the parameters have been
+            substituted as specified.
         """
-        block_params = parameters(block)
-        num_block_params = len(block_params)
-        new_block_params = self._base_params[count:count + num_block_params]
-        count += num_block_params
-        replacement_table = dict(zip(block_params, new_block_params))
+        circuit = QuantumCircuit(self.num_qubits)
+        circuit.append(block, qargs)
+        if params is not None:
+            update = dict(zip(list(circuit.parameters), params))
+            circuit = circuit.copy()
+            circuit._substitute_parameters(update)
 
-        as_circuit = QuantumCircuit(block.n_qubits)
-        as_circuit.append(block, list(range(block.n_qubits)))
-        as_circuit._substitute_parameters(replacement_table)
-
-        return as_circuit, count
+        return circuit
 
     def to_circuit(self) -> QuantumCircuit:
         """Convert the Ansatz into a circuit.
@@ -359,28 +367,23 @@ class Ansatz:
                 # add the blocks, if they are specified
                 if len(self._reps) > 0:
                     # the first block (separately so barriers can be inserted in the for-loop)
-                    idx = self._reps[0]
-                    count = 0
-                    parametrized_block, count = self._parametrize_block(self._blocks[idx], count)
-                    circuit.extend(parametrized_block.decompose())
+                    param_idx, idx = 0, self._reps[0]
+                    block, qargs = self._blocks[idx], self._qargs[idx]
+                    params = self._blockwise_base_params[param_idx]
+                    circuit.extend(self._parametrize_block(block, qargs, params))
 
-                    for idx in self._reps[1:]:
+                    for param_idx, idx in enumerate(self._reps[1:]):
                         if self._insert_barriers:
                             circuit.barrier()
-                        parametrized_block, count = self._parametrize_block(self._blocks[idx],
-                                                                            count)
-                        circuit.extend(parametrized_block.decompose())
+                        block, qargs = self._blocks[idx], self._qargs[idx]
+                        params = self._blockwise_base_params[param_idx + 1]
+                        circuit.extend(self._parametrize_block(block, qargs, params))
 
             # store the circuit
             self._circuit = circuit
 
         # TODO make this on parameter change only?
-        print('base:', self._base_params)
-        print('surface:', self._surface_params)
-        circuit_copy = self.bind_parameters(self._surface_params)
-        print('providing:')
-        print(circuit_copy.draw())
-        return circuit_copy
+        return self.bind_parameters(self._surface_params)
 
     def __add__(self, other: Union[Ansatz, Instruction, QuantumCircuit]) -> Ansatz:
         """Overloading + for convenience.
@@ -485,7 +488,7 @@ class Ansatz:
         self._reps += [len(self._blocks) - 1]
 
         # define the the qubit indices
-        self._qargs += [qubit_indices or list(range(self._blocks[-1].n_qubits))]
+        self._qargs += [qubit_indices or list(range(self._blocks[-1].num_qubits))]
 
         # retrieve number of qubits
         num_qubits = max(self._qargs[-1]) + 1
@@ -499,9 +502,9 @@ class Ansatz:
             self._circuit = None  # rebuild circuit
 
         # update the parameters
-        count = self.num_parameters
-        new_base_params = [Parameter('θ{}'.format(count + i))
+        new_base_params = [Parameter('θ{}'.format(self.num_parameters + i))
                            for i in range(len(parameters(block)))]
+        self._blockwise_base_params += [new_base_params]
         self._base_params += new_base_params
         self._surface_params += parameters(block)
 
@@ -511,16 +514,9 @@ class Ansatz:
         else:
             if self._insert_barriers and len(self._reps) > 1:
                 self._circuit.barrier()
-            parametrized_block, _ = self._parametrize_block(block, count)
-            self._circuit.append(parametrized_block.decompose(),
-                                 self._qargs[-1], [])  # append block
+
+            block, qargs = self._blocks[-1], self._qargs[-1]
+            params = self._blockwise_base_params[-1]
+            self._circuit.extend(self._parametrize_block(block, qargs, params))
 
         return self
-
-
-qc = QuantumCircuit(1)
-p = Parameter('p')
-qc.ry(p, 0)
-
-ansatz = Ansatz(qc, reps=2)
-print(ansatz)
