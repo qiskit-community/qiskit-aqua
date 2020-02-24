@@ -23,7 +23,7 @@ Changed
 
 -   Remove declarative api (#758) (#759) (#760) (#762) (#763)
 -   Refactor Multiclass Extensions to set Estimator internally (#822)
--   Refactor algorithms
+-   Refactor algorithms (#831)
 
 [0.6.4](https://github.com/Qiskit/qiskit-aqua/compare/0.6.3...0.6.4) - 2020-02-06
 =================================================================================
