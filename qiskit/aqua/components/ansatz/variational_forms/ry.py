@@ -18,6 +18,7 @@ from typing import Union, Optional, List, Tuple
 
 import numpy as np
 from qiskit.extensions.standard import RYGate, CZGate
+from qiskit.util import deprecate_arguments
 from qiskit.aqua.components.initial_states import InitialState
 from .two_local_ansatz import TwoLocalAnsatz
 
@@ -28,6 +29,9 @@ class RY(TwoLocalAnsatz):
     TODO
     """
 
+    @deprecate_arguments({'depth': 'reps',
+                          'entangler_map': 'entanglement',
+                          'skip_final_ry': 'skip_final_rotation_layer'})
     def __init__(self,
                  num_qubits: int,
                  reps: Optional[int] = 3,
@@ -37,7 +41,10 @@ class RY(TwoLocalAnsatz):
                  skip_unentangled_qubits: bool = False,
                  skip_final_rotation_layer: bool = False,
                  parameter_prefix: str = '_',
-                 insert_barriers: bool = False
+                 insert_barriers: bool = False,
+                 depth: Optional[int] = None,  # pylint: disable=unused-argument
+                 entangler_map: Optional[List[List[int]]] = None,  # pylint: disable=unused-argument
+                 skip_final_ry: Optional[bool] = None,  # pylint: disable=unused-argument
                  ) -> None:
         """Initializer. Assumes that the type hints are obeyed for now.
 
@@ -71,6 +78,10 @@ class RY(TwoLocalAnsatz):
             insert_barriers: If True, barriers are inserted in between each layer. If False,
                 no barriers are inserted.
                 Defaults to False.
+            depth: Deprecated, use `reps` instead.
+            entangler_map: Deprecated, use `entanglement` instead. This argument now also supports
+                entangler maps.
+            skip_final_ry: Deprecated, use `skip_final_rotation_layer` instead.
 
         Examples:
             >>> ry = RY(3)  # create the variational form on 3 qubits

@@ -22,7 +22,8 @@ from qiskit import BasicAer
 
 from qiskit.aqua import aqua_globals, QuantumInstance
 from qiskit.aqua.algorithms import VQE
-from qiskit.aqua.components.variational_forms import RY
+# from qiskit.aqua.components.variational_forms import RY
+from qiskit.aqua.components.ansatz import RY
 from qiskit.aqua.components.optimizers import L_BFGS_B
 from qiskit.aqua.operators import WeightedPauliOperator
 

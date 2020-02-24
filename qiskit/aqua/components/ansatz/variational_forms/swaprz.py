@@ -24,7 +24,8 @@ import numpy as np
 
 from qiskit import QuantumCircuit
 from qiskit.circuit import Parameter
-from qiskit.extensions.standard import RZGate, RXXGate, RYYGate
+from qiskit.extensions.standard import RZGate
+from qiskit.util import deprecate_arguments
 from qiskit.aqua.components.initial_states import InitialState
 
 from .two_local_ansatz import TwoLocalAnsatz
@@ -53,6 +54,8 @@ class SwapRZ(TwoLocalAnsatz):
     This variational form is used for TODO
     """
 
+    @deprecate_arguments({'depth': 'reps',
+                          'entangler_map': 'entanglement'})
     def __init__(self,
                  num_qubits: int,
                  entanglement: Union[str, List[List[int]], callable] = 'full',
@@ -62,6 +65,8 @@ class SwapRZ(TwoLocalAnsatz):
                  skip_unentangled_qubits: bool = False,
                  skip_final_rotation_layer: bool = False,
                  initial_state: Optional[InitialState] = None,
+                 depth: Optional[int] = None,  # pylint: disable=unused-argument
+                 entangler_map: Optional[List[List[int]]] = None,  # pylint: disable=unused-argument
                  ) -> None:
         """Initializer. Assumes that the type hints are obeyed for now.
 
@@ -89,6 +94,9 @@ class SwapRZ(TwoLocalAnsatz):
             insert_barriers: If True, barriers are inserted in between each layer. If False,
                 no barriers are inserted.
                 Defaults to False.
+            depth: Deprecated, use `reps` instead.
+            entangler_map: Deprecated, use `entanglement` instead. This argument now also supports
+                entangler maps.
 
         Examples:
             >>> swaprz = SwapRZ(3)  # create the variational form on 3 qubits

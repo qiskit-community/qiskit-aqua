@@ -63,9 +63,9 @@ class TestVQE(QiskitAquaTestCase):
                           -0.46945572, 2.60114794, -1.15637845, 1.40498879,
                           1.14479635, -0.48416694, -0.66608349, -1.1367579,
                           -2.67097002, 3.10214631, 3.10000313, 0.37235089]
-        # np.testing.assert_array_almost_equal(result['opt_params'], ref_opt_params, 5)
-        # self.assertIn('eval_count', result)
-        # self.assertIn('eval_time', result)
+        np.testing.assert_array_almost_equal(result['opt_params'], ref_opt_params, 5)
+        self.assertIn('eval_count', result)
+        self.assertIn('eval_time', result)
 
     @parameterized.expand([
         [SLSQP, 5, 4],
