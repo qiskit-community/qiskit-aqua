@@ -170,3 +170,10 @@ class TestOpConstruction(QiskitAquaTestCase):
         gnarly_op = 3 * (H^I^Y).compose(X^X^Z).kron(T^Z) + OpPrimitive(Operator.from_label('+r0IX').data)
         np.testing.assert_array_almost_equal(np.conj(np.transpose(gnarly_op.to_matrix())),
                                              gnarly_op.adjoint().to_matrix())
+
+    def test_get_primitives(self):
+        self.assertEqual(X.get_primitives(), {'Pauli'})
+
+        gnarly_op = 3 * (H ^ I ^ Y).compose(X ^ X ^ Z).kron(T ^ Z) + OpPrimitive(Operator.from_label('+r0IX').data)
+        self.assertEqual(gnarly_op.get_primitives(), {'Instruction', 'Matrix'})
+

@@ -72,16 +72,6 @@ class OpPrimitive(OperatorBase):
     def coeff(self):
         return self._coeff
 
-    def get_primitives(self):
-        """ Return a set of strings describing the primitives contained in the Operator """
-        if isinstance(self.primitive, Instruction):
-            return {'Instruction'}
-        elif isinstance(self.primitive, MatrixOperator):
-            return {'Matrix'}
-        else:
-            # Includes 'Pauli'
-            return {self.primitive.__class__.__name__}
-
     # TODO replace with proper alphabets later?
     @property
     def num_qubits(self):
