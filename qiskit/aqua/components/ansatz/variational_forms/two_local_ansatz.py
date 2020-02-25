@@ -16,12 +16,13 @@
 
 TODO
     * remove the temporary param subst fix and move to ccts away from gates
+    * if entanglement is not a callable, store only 2 blocks, not all of them
 """
 
 from typing import Union, Optional, List, Tuple
 
 from qiskit import QuantumCircuit
-from qiskit.circuit import Gate, Parameter, ParameterExpression
+from qiskit.circuit import Gate, Parameter
 from qiskit.extensions.standard import (IGate, XGate, YGate, ZGate, HGate, TGate, SGate, TdgGate,
                                         SdgGate, RXGate, RXXGate, RYGate, RYYGate, RZGate, SwapGate,
                                         CXGate, CYGate, CZGate, CHGate, CRXGate, CRYGate, CRZGate)
@@ -133,9 +134,6 @@ class TwoLocalAnsatz(Ansatz):
             q_3: |0>┤ Ry(_0) ├──────────┤ Ry(_0) ├──────────
                     └────────┘          └────────┘
         """
-        # initialize Ansatz
-        super().__init__(insert_barriers=insert_barriers, initial_state=initial_state)
-
         self._num_qubits = num_qubits
 
         # store arguments needing no pre-processing
@@ -159,19 +157,23 @@ class TwoLocalAnsatz(Ansatz):
         else:
             self._entanglement_gates = entanglement_gates
 
+        blocks = []
         # define the blocks of this Ansatz
         for block_num in range(reps):
             # append a rotation layer, if entanglement gates are specified
             if len(self._rotation_gates) > 0:
-                self.append(self._get_rotation_layer(block_num))
+                blocks += [self._get_rotation_layer(block_num)]
 
             # append an entanglement layer, if entanglement gates are specified
             if len(self._entanglement_gates) > 0:
-                self.append(self._get_entanglement_layer(block_num))
+                blocks += [self._get_entanglement_layer(block_num)]
 
         # add a final rotation layer, if not specified otherwise
         if not self._skip_final_rotation_layer and len(self._rotation_gates) > 0:
-            self.append(self._get_rotation_layer(reps))
+            blocks += [self._get_rotation_layer(reps)]
+
+        # initialize Ansatz
+        super().__init__(blocks, insert_barriers=insert_barriers, initial_state=initial_state)
 
     def _get_rotation_layer(self, block_num: int) -> Gate:
         """Get the rotation layer for the current block.
@@ -195,6 +197,7 @@ class TwoLocalAnsatz(Ansatz):
         circuit = QuantumCircuit(self.num_qubits)
 
         # iterate over all qubits
+        param_count = 0
         for qubit in range(self.num_qubits):
 
             # check if we need to apply the gate to the qubit
@@ -209,9 +212,12 @@ class TwoLocalAnsatz(Ansatz):
                         # replaced by the number of the parameter
                         # the list here is needed since a gate might take
                         # more than one parameter (e.g. a general rotation)
-                        param_count = self.num_parameters + len(circuit.parameters)
-                        params = [Parameter('{}{}'.format(self._parameter_prefix, param_count + i))
+                        # param_count = self.num_parameters + len(circuit.parameters)
+                        # params = [Parameter('{}{}'.format(self._parameter_prefix, param_count + i))
+                                #   for i in range(num_params)]
+                        params = [Parameter('{}'.format(param_count + i))
                                   for i in range(num_params)]
+                        param_count += num_params
 
                         # correctly replace the parameters
                         sub_circuit = QuantumCircuit(self.num_qubits)
@@ -242,15 +248,18 @@ class TwoLocalAnsatz(Ansatz):
 
         circuit = QuantumCircuit(self.num_qubits)
 
+        param_count = 0
         for src, tgt in self.get_entangler_map(block_num):
             # apply the gates
             for gate, num_params in self.entanglement_gates:
                 if num_params == 0:
                     circuit.append(gate, [src, tgt], [])
                 else:
-                    param_count = self.num_parameters + len(circuit.parameters)
-                    params = [Parameter('{}{}'.format(self._parameter_prefix, param_count + i))
-                              for i in range(num_params)]
+                    # param_count = self.num_parameters + len(circuit.parameters)
+                    # params = [Parameter('{}{}'.format(self._parameter_prefix, param_count + i))
+                    #           for i in range(num_params)]
+                    params = [Parameter('{}'.format(param_count + i)) for i in range(num_params)]
+                    param_count += num_params
 
                     # correctly replace the parameters
                     sub_circuit = QuantumCircuit(self.num_qubits)
