@@ -16,6 +16,7 @@
 
 import numpy as np
 from functools import reduce, partial
+from qiskit.quantum_info import Statevector
 
 from .op_vec import OpVec
 
@@ -67,39 +68,48 @@ class OpComposition(OpVec):
         see the eval method in operator_base.py.
         """
         # TODO do this for real later. Requires allowing Ops to take a state and return another. Can't do this yet.
-        # front_holder = front
-        # # Start from last op, and stop before op 0, then eval op 0 with back
+        # front_holder = front.eval(front=front)
+        # Start from last op, and stop before op 0, then eval op 0 with back
         # for op in self.oplist[-1:0:-1]:
         #     front_holder = op.eval(front=front_holder)
-        # return self.oplist[0].eval(front_holder, back)
+        # return self.oplist[0].eval(front=front_holder, back)
 
-        def tree_recursive_np_dot(l, r):
-            if isinstance(l, list):
-                return [tree_recursive_np_dot(l_op, r) for l_op in l]
-            elif isinstance(r, list):
-                return [tree_recursive_np_dot(l, r_op) for r_op in r]
+        def tree_recursive_eval(l, r):
+            # if isinstance(l, list):
+            #     return [tree_recursive_eval(l_op, r) for l_op in l]
+            if isinstance(r, list):
+                return [tree_recursive_eval(l, r_op) for r_op in r]
             else:
-                return np.dot(l, r)
-        op_matrices = [op.to_matrix() for op in self.oplist]
-        mat_composition_tree = reduce(tree_recursive_np_dot, op_matrices)
+                return l.eval(front=r)
 
-        coeff = self.coeff
-        def tree_eval(t):
-            if isinstance(t, list):
-                return [tree_eval(t_op) for t_op in t]
-            else:
-                if len(t.shape) == 2 and t.shape[0] == t.shape[1]:
-                    from . import OpPrimitive
-                    t_mat_op = OpPrimitive(t, coeff=coeff)
-                    return t_mat_op.eval(front=front, back=back)
-                elif t.shape == (1,):
-                    return t[0]
-                else:
-                    from . import StateFn
-                    meas = not len(t.shape) == 1
-                    comp_mat = StateFn(t, coeff=coeff, is_measurement=meas)
-                    return comp_mat.eval(other=front)
-        return tree_eval(mat_composition_tree)
+        eval_list = self.oplist
+        # Only one op needs to be multiplied, so just multiply the first.
+        eval_list[0] = eval_list[0] * self.coeff
+        eval_list = eval_list + [front] if front else eval_list
+        if isinstance(back, (str, dict, Statevector)):
+            from . import StateFn
+            back = StateFn(back)
+        eval_list = [back] + eval_list if back else eval_list
+
+        return reduce(tree_recursive_eval, eval_list)
+
+        # def tree_eval(t):
+        #     if isinstance(t, list):
+        #         return [tree_eval(t_op) for t_op in t]
+        #     else:
+        #         if len(t.shape) == 2 and t.shape[0] == t.shape[1]:
+        #             from . import OpPrimitive
+        #             t_mat_op = OpPrimitive(t, coeff=coeff)
+        #             return t_mat_op.eval(front=front, back=back)
+        #         elif t.shape == (1,):
+        #             return t[0]
+        #         else:
+        #             from . import StateFn
+        #             meas = not len(t.shape) == 1
+        #             comp_mat = StateFn(t, coeff=coeff, is_measurement=meas)
+        #             return comp_mat.eval(other=front)
+        # return tree_eval(mat_composition_tree)
+
         # comp_mat_or_vec = self.combo_fn([op.to_matrix() for op in self.oplist])
         # if len(comp_mat_or_vec.shape) == 2 and comp_mat_or_vec.shape[0] == comp_mat_or_vec.shape[1]:
         #     from . import OpPrimitive

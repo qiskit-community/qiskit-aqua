@@ -312,7 +312,7 @@ class StateFn(OperatorBase):
             for k, v in self.primitive.items():
                 probs[int(k, 2)] = v
                 # probs[int(k[::-1], 2)] = v
-                # Note, we need to reverse the bitstring to extract an int ordering
+                # TODO Remove comment: Note, we need to reverse the bitstring to extract an int ordering
             vec = probs * self.coeff
 
         # Operator - return diagonal (real values, not complex), not rank 1 decomposition (statevector)!
@@ -322,7 +322,6 @@ class StateFn(OperatorBase):
                 vec = [np.diag(op) * self.coeff for op in mat]
             else:
                 vec = np.diag(mat) * self.coeff
-
 
         # Statevector - Return complex values, not reals
         elif isinstance(self.primitive, Statevector):
@@ -387,17 +386,19 @@ class StateFn(OperatorBase):
 
         if isinstance(self.primitive, dict):
             if isinstance(other, Statevector):
-                return sum([v * other.data[int(b, 2)] for (b, v) in self.primitive.items()]) * self.coeff
+                return sum([v * other.data[int(b, 2)] * np.conj(other.data[int(b, 2)])
+                            for (b, v) in self.primitive.items()]) * self.coeff
             if isinstance(other, OperatorBase):
+                # TODO Wrong, need to eval from both sides
                 return other.eval(self.primitive).adjoint()
 
-        # State or Measurement is specified as Density matrix.
+        # Measurement is specified as Density matrix.
         if isinstance(self.primitive, OperatorBase):
             if isinstance(other, OperatorBase):
                 # Compose the other Operator to self's measurement density matrix
                 return StateFn(other.adjoint().compose(self.primitive).compose(other),
                                coeff=self.coeff,
-                                is_measurement=True)
+                               is_measurement=True)
             else:
                 # Written this way to be able to handle many types of other (at least dict and Statevector).
                 return self.primitive.eval(other).adjoint().eval(other) * self.coeff

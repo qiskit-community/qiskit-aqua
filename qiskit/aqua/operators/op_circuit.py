@@ -15,16 +15,14 @@
 import logging
 import numpy as np
 import copy
-import itertools
 
 from qiskit import QuantumCircuit, BasicAer, execute
 from qiskit.circuit import Instruction
 from qiskit.quantum_info import Pauli
-from qiskit.quantum_info import Operator as MatrixOperator, Statevector
+from qiskit.quantum_info import Operator as MatrixOperator
 
 # from .operator_base import OperatorBase
-from .operator_base import OperatorBase
-from .state_fn import StateFn
+from . import OpPrimitive
 from . import OpSum
 from . import OpComposition
 from . import OpKron
@@ -32,27 +30,13 @@ from . import OpKron
 logger = logging.getLogger(__name__)
 
 
-class OpPrimitive(OperatorBase):
-    """ Class for Wrapping Operator Primitives
+class OpCiruit(OpPrimitive):
+    """ Class for Wrapping Pauli Primitives
 
     Note that all mathematical methods are not in-place, meaning that they return a new object, but the underlying
     primitives are not copied.
 
     """
-
-    @staticmethod
-    def __new__(cls, primitive=None, coeff=1.0):
-        if not cls.__name__ == 'OpPrimitive':
-            return super().__new__(cls)
-        if isinstance(primitive, (Instruction, QuantumCircuit)):
-            from .op_circuit import OpCiruit
-            return OpCiruit.__new__(OpCiruit)
-        if isinstance(primitive, (list, np.ndarray, MatrixOperator)):
-            from .op_matrix import OpMatrix
-            return OpMatrix.__new__(OpMatrix)
-        if isinstance(primitive, Pauli):
-            from .op_pauli import OpPauli
-            return OpPauli.__new__(OpPauli)
 
     def __init__(self, primitive, coeff=1.0):
         """
@@ -61,8 +45,9 @@ class OpPrimitive(OperatorBase):
                     wrapped.
                     coeff (int, float, complex): A coefficient multiplying the primitive
                 """
-        self._primitive = primitive
-        self._coeff = coeff
+        if isinstance(primitive, QuantumCircuit):
+            primitive = primitive.to_instruction()
+        super().__init__(primitive, coeff=coeff)
 
     @property
     def primitive(self):
@@ -345,69 +330,25 @@ class OpPrimitive(OperatorBase):
         convert to a {Z,I}^n Pauli basis to take "averaging" style expectations (e.g. PauliExpectation).
         """
 
-        if isinstance(front, str):
-            front = {str: 1}
-        if isinstance(back, str):
-            front = {str: 1}
-
-        if not front and not back:
-            return self.to_matrix()
-        elif not front:
-            # Saves having to reimplement logic twice for front and back
-            return self.adjoint().eval(front=back, back=None).adjoint()
-
         # Pauli
         if isinstance(self.primitive, Pauli):
-            if isinstance(front, dict) and isinstance(back, dict):
-                sum = 0
-                for (str1, str2) in itertools.product(front.keys(), back.keys()):
-                    bitstr1 = np.asarray(list(str1)).astype(np.bool)
-                    bitstr2 = np.asarray(list(str2)).astype(np.bool)
+            bitstr1 = np.asarray(list(front)).astype(np.bool)
+            bitstr2 = np.asarray(list(back)).astype(np.bool)
 
-                    # fix_endianness
-                    corrected_x_bits = self.primitive.x[::-1]
-                    corrected_z_bits = self.primitive.z[::-1]
+            # fix_endianness
+            corrected_x_bits = self.primitive.x[::-1]
+            corrected_z_bits = self.primitive.z[::-1]
 
-                    x_factor = np.logical_xor(bitstr1, bitstr2) == corrected_x_bits
-                    z_factor = 1 - 2*np.logical_and(bitstr1, corrected_z_bits)
-                    y_factor = np.sqrt(1 - 2*np.logical_and(corrected_x_bits, corrected_z_bits) + 0j)
-                    sum += self.coeff * np.product(x_factor * z_factor * y_factor) * front[bitstr1] * back[bitstr1]
-                return sum
-            elif front and back:
-                return self.eval(back).adjoint().eval(front)
-            # From here on, assume back is None
-            if isinstance(front, StateFn):
-                if front.is_measurement:
-                    raise ValueError('Operator composed with a measurement is undefined.')
-                elif isinstance(front.primitive, Statevector):
-                    return self.eval(front.to_matrix()) * front.coeff
-                elif isinstance(front.primitive, dict):
-                    return self.eval(front.primitive) * front.coeff
-                elif isinstance(front.primitive, OperatorBase):
-                    return self.eval(front)
-
-            if isinstance(front, dict):
-                new_dict = {}
-                corrected_x_bits = self.primitive.x[::-1]
-                corrected_z_bits = self.primitive.z[::-1]
-
-                for bstr, v in front.items():
-                    bitstr = np.asarray(list(bstr)).astype(np.bool)
-                    new_str = np.logical_xor(bitstr, corrected_x_bits)
-                    z_factor = np.product(1 - 2*np.logical_and(bitstr, corrected_z_bits))
-                    y_factor = np.product(np.sqrt(1 - 2 * np.logical_and(corrected_x_bits, corrected_z_bits) + 0j))
-                    new_dict[new_str] += (v*z_factor*y_factor) + new_dict.get(new_str, 0)
-                return StateFn(new_dict, coeff=self.coeff)
-
+            x_factor = np.logical_xor(bitstr1, bitstr2) == corrected_x_bits
+            z_factor = 1 - 2*np.logical_and(bitstr1, corrected_z_bits)
+            y_factor = np.sqrt(1 - 2*np.logical_and(corrected_x_bits, corrected_z_bits) + 0j)
+            return self.coeff * np.product(x_factor*z_factor*y_factor)
 
         # Matrix
         elif isinstance(self.primitive, MatrixOperator):
-            if isinstance(front, dict):
-                index1 = int(front, 2)
-                index2 = int(back, 2)
-                return self.primitive.data[index2, index1] * self.coeff
-            if isinstance(back, dict):
-                pass
+            index1 = int(front, 2)
+            index2 = int(back, 2)
+            return self.primitive.data[index2, index1] * self.coeff
 
         # User custom eval
         elif hasattr(self.primitive, 'eval'):
@@ -416,8 +357,8 @@ class OpPrimitive(OperatorBase):
         # Both Instructions/Circuits
         elif isinstance(self.primitive, Instruction) or hasattr(self.primitive, 'to_matrix'):
             mat = self.to_matrix()
-            index1 = None if not front else int(front, 2)
-            index2 = None if not front else int(back, 2)
+            index1 = int(front, 2)
+            index2 = int(back, 2)
             # Don't multiply by coeff because to_matrix() already does
             return mat[index2, index1]
 

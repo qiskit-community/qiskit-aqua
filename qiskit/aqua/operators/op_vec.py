@@ -199,7 +199,7 @@ class OpVec(OperatorBase):
         # TODO this doesn't work for compositions and krons! Needs to be to_matrix.
         """
         # TODO Do we need to use partial(np.sum, axis=0) as OpSum combo to be able to handle vector returns correctly?
-        return self.combo_fn([op.eval(front, back) for op in self.oplist]) * self.coeff
+        return self.combo_fn([op.eval(front, back) * self.coeff for op in self.oplist])
 
     def __str__(self):
         """Overload str() """

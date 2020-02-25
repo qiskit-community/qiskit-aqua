@@ -61,7 +61,7 @@ class PauliChangeOfBasis(ConverterBase):
     def convert(self, operator):
         """ Given an Operator with Paulis, converts each Pauli into the basis specified by self._destination. More
         specifically, each Pauli p will be replaced by the composition of a Change-of-basis Clifford c with the
-        destination Pauli d, such that p == c·d·c†, up to global phase. """
+        destination Pauli d and c†, such that p == c·d·c†, up to global phase. """
 
         if isinstance(operator, (Pauli, OpPrimitive)):
             pauli = operator
@@ -75,7 +75,7 @@ class PauliChangeOfBasis(ConverterBase):
             # TODO make a cononical "distribute" or graph swap as method in OperatorBase
             elif operator.primitive.distributive:
                 sf_list = [StateFn(op, is_measurement=operator.is_measurement) for op in operator.primitive.oplist]
-                opvec_of_statefns = operator.primitive.__class__(oplist= sf_list, coeff=operator.coeff)
+                opvec_of_statefns = operator.primitive.__class__(oplist=sf_list, coeff=operator.coeff)
                 return opvec_of_statefns.traverse(self.convert)
 
         # TODO allow parameterized OpVec to be returned to save circuit copying.
@@ -213,5 +213,4 @@ class PauliChangeOfBasis(ConverterBase):
                                                                                           destination.z))])
             cob_instruction = x_to_y_dest.compose(z_to_x_dest).compose(cob_instruction)
 
-        # Set allow_conversions to False so Pauli is not composed with circuit by accident
         return cob_instruction, OpPrimitive(destination, coeff=coeff)

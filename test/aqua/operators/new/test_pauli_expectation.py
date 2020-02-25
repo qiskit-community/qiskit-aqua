@@ -43,12 +43,15 @@ class TestPauliExpectation(QiskitAquaTestCase):
 
         expect = PauliExpectation(operator=paulis_op, backend=backend)
         plus_mean = expect.compute_expectation(Plus)
+        print(np.around(plus_mean, decimals=3))
         np.testing.assert_array_almost_equal(plus_mean, [1, -1j, 0, 2**.5])
 
         minus_mean = expect.compute_expectation(Minus)
+        print(np.around(minus_mean, decimals=3))
         np.testing.assert_array_almost_equal(minus_mean, [-1, 1j, 2**.5, 0])
 
         bellish_mean = expect.compute_expectation(Plus+Minus)
+        print(np.around(bellish_mean, decimals=3))
         np.testing.assert_array_almost_equal(bellish_mean, [0, 0, 2**.5, 2**.5])
         # TODO Fix Identity!
 
