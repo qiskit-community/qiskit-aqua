@@ -27,20 +27,21 @@ import copy
 
 import numpy as np
 from qiskit.aqua.utils.validation import validate_min, validate_in_set
-from qiskit import QuantumRegister, QuantumCircuit
+from qiskit import QuantumCircuit
+from qiskit.circuit import Parameter
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
 
 from qiskit.aqua import aqua_globals
 from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.operators import WeightedPauliOperator, Z2Symmetries
-from qiskit.aqua.components.variational_forms import VariationalForm
+from qiskit.aqua.components.ansatz import Ansatz
 from qiskit.chemistry.fermionic_operator import FermionicOperator
 
 logger = logging.getLogger(__name__)
 
 
-class UCCSD(VariationalForm):
+class UCCSD(Ansatz):
     """
     This trial wavefunction is a Unitary Coupled-Cluster Single and Double excitations
     variational form.
@@ -112,7 +113,7 @@ class UCCSD(VariationalForm):
         validate_in_set('method_singles', method_singles, {'both', 'alpha', 'beta'})
         validate_in_set('method_doubles', method_doubles, {'ucc', 'pucc', 'succ', 'succ_full'})
         validate_in_set('excitation_type', excitation_type, {'sd', 's', 'd'})
-        super().__init__()
+        super().__init__(reps=depth, initial_state=initial_state)
 
         # self._z2_symmetries = Z2Symmetries([], [], [], []) \
         # if z2_symmetries is None else z2_symmetries
@@ -129,6 +130,7 @@ class UCCSD(VariationalForm):
         if self._num_qubits != num_qubits:
             raise ValueError('Computed num qubits {} does not match actual {}'
                              .format(self._num_qubits, num_qubits))
+
         if isinstance(num_particles, list):
             self._num_alpha = num_particles[0]
             self._num_beta = num_particles[1]
@@ -205,6 +207,9 @@ class UCCSD(VariationalForm):
             self._hopping_ops, self._num_parameters = self._build_hopping_operators()
 
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
+        self._base_params = [Parameter('u{}'.format(i)) for i in range(self._num_parameters)]
+        self._surface_params = self._base_params
+        # self._surface_params = self.[Parameter('u{}'.format(i)) for i in range(self._num_parameters)]
 
     @property
     def single_excitations(self):
@@ -360,29 +365,20 @@ class UCCSD(VariationalForm):
         self._num_parameters = len(self._hopping_ops) * self._depth
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
-    def construct_circuit(self, parameters, q=None):
+    @property
+    def num_parameters(self):
+        return self._num_parameters
+
+    def to_circuit(self):
         """
         Construct the variational form, given its parameters.
 
-        Args:
-            parameters (Union(numpy.ndarray, list[Parameter], ParameterVector)): circuit parameters
-            q (QuantumRegister, optional): Quantum Register for the circuit.
-
         Returns:
             QuantumCircuit: a quantum circuit with given `parameters`
-
-        Raises:
-            ValueError: the number of parameters is incorrect.
         """
-        if len(parameters) != self._num_parameters:
-            raise ValueError('The number of parameters has to be {}'.format(self._num_parameters))
-
-        if q is None:
-            q = QuantumRegister(self._num_qubits, name='q')
-        if self._initial_state is not None:
-            circuit = self._initial_state.construct_circuit('circuit', q)
-        else:
-            circuit = QuantumCircuit(q)
+        circuit = self._initial_state.construct_circuit(mode='circuit') \
+            or QuantumCircuit(self.num_qubits)
+        parameters = self.params
 
         if logger.isEnabledFor(logging.DEBUG) and self._logging_construct_circuit:
             logger.debug("Evolving hopping operators:")
@@ -406,27 +402,22 @@ class UCCSD(VariationalForm):
 
         results = parallel_map(UCCSD._construct_circuit_for_one_excited_operator,
                                list_excitation_operators,
-                               task_args=(q, self._num_time_slices),
+                               task_args=(self._num_time_slices,),
                                num_processes=aqua_globals.num_processes)
 
-        for qc in results:
-            if self._shallow_circuit_concat:
-                circuit.data += qc.data
-            else:
-                circuit += qc
+        for evolve_instr in results:
+            circuit.append(evolve_instr, list(range(self.num_qubits)))
 
         return circuit
 
     @staticmethod
-    def _construct_circuit_for_one_excited_operator(qubit_op_and_param, qr, num_time_slices):
+    def _construct_circuit_for_one_excited_operator(qubit_op_and_param, num_time_slices):
         qubit_op, param = qubit_op_and_param
         # TODO: need to put -1j in the coeff of pauli since the Parameter.
         # does not support complex number, but it can be removed if Parameter supports complex
         qubit_op = qubit_op * -1j
-        qc = qubit_op.evolve(state_in=None, evo_time=param,
-                             num_time_slices=num_time_slices,
-                             quantum_registers=qr)
-        return qc
+        instr = qubit_op.evolve_instruction(evo_time=param, num_time_slices=num_time_slices)
+        return instr
 
     @property
     def preferred_init_points(self):

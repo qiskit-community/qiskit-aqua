@@ -283,6 +283,20 @@ class TestBackwardCompatibility(QiskitAquaTestCase):
         """Test the feature maps are backwards compatible."""
         self.assertTrue(False)  # pylint: disable=redundant-unittest-assert
 
+    def test_parameter_order(self):
+        """Test that the parameter appearance is equal in the old and new variational forms."""
+        from qiskit.aqua.components.variational_forms.ry import RY as DeprecatedRY
+        num_qubits = 3
+        reps = 2
+
+        def varform_params(cls):
+            ry = cls(num_qubits, reps)
+            params = ParameterVector('_', length=9)
+            circuit_params = ry.construct_circuit(params).parameters
+            return list(circuit_params)
+
+        self.assertListEqual(varform_params(RY), varform_params(DeprecatedRY))
+
 
 class TestRY(QiskitAquaTestCase):
     """Tests for the RY Ansatz."""

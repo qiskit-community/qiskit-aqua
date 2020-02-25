@@ -47,13 +47,22 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
                                     operator.molecule_info['num_particles'],
                                     qubit_mapping=operator._qubit_mapping,
                                     two_qubit_reduction=operator._two_qubit_reduction)
+        print()
+        print('--- defining varform ---')
+        print()
         var_form = UCCSD(qubit_op.num_qubits, depth=1,
                          num_orbitals=operator.molecule_info['num_orbitals'],
                          num_particles=operator.molecule_info['num_particles'],
                          initial_state=initial_state,
                          qubit_mapping=operator._qubit_mapping,
                          two_qubit_reduction=operator._two_qubit_reduction)
+        print()
+        print('--- defining algorithm ---')
+        print()
         algo = VQE(qubit_op, var_form, optimizer)
+        print()
+        print('--- running algorithm ---')
+        print()
         result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
         _, result = operator.process_algorithm_result(result)
         self.assertAlmostEqual(result['energy'], self.reference_energy, places=6)

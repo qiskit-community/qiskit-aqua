@@ -17,7 +17,7 @@
 from typing import Optional, Union, List
 import logging
 import numpy as np
-from qiskit import QuantumRegister, QuantumCircuit
+from qiskit import QuantumCircuit
 from qiskit.aqua.utils.validation import validate_min, validate_in_set
 from qiskit.aqua.components.initial_states import InitialState
 
@@ -152,11 +152,12 @@ class HartreeFock(InitialState):
             return state
         elif mode == 'circuit':
             if register is None:
-                register = QuantumRegister(self._num_qubits, name='q')
-            quantum_circuit = QuantumCircuit(register)
+                quantum_circuit = QuantumCircuit(self._num_qubits)
+            else:
+                quantum_circuit = QuantumCircuit(register)
             for qubit_idx, bit in enumerate(self._bitstr[::-1]):
                 if bit:
-                    quantum_circuit.u3(np.pi, 0.0, np.pi, register[qubit_idx])
+                    quantum_circuit.u3(np.pi, 0.0, np.pi, qubit_idx)
             return quantum_circuit
         else:
             raise ValueError('Mode should be either "vector" or "circuit"')
