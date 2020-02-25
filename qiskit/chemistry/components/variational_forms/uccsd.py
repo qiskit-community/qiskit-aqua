@@ -114,17 +114,21 @@ class UCCSD(VariationalForm):
         validate_in_set('excitation_type', excitation_type, {'sd', 's', 'd'})
         super().__init__()
 
-        self._z2_symmetries = Z2Symmetries([], [], [], []) \
-            if z2_symmetries is None else z2_symmetries
+        # self._z2_symmetries = Z2Symmetries([], [], [], []) \
+        # if z2_symmetries is None else z2_symmetries
+        self._z2_symmetries = z2_symmetries or Z2Symmetries([], [], [], [])
 
-        self._num_qubits = num_orbitals if not two_qubit_reduction else num_orbitals - 2
-        self._num_qubits = self._num_qubits if self._z2_symmetries.is_empty() \
-            else self._num_qubits - len(self._z2_symmetries.sq_list)
+        # self._num_qubits = num_orbitals if not two_qubit_reduction else num_orbitals - 2
+        # self._num_qubits = self._num_qubits if self._z2_symmetries.is_empty() \
+        # else self._num_qubits - len(self._z2_symmetries.sq_list)
+        self._num_qubits = num_orbitals
+        self._num_qubits -= len(self._z2_symmetries.sq_list)  # subtract gain from Z2 symmetries
+        if two_qubit_reduction:
+            self._num_qubits -= 2
+
         if self._num_qubits != num_qubits:
             raise ValueError('Computed num qubits {} does not match actual {}'
                              .format(self._num_qubits, num_qubits))
-        self._depth = depth
-        self._num_orbitals = num_orbitals
         if isinstance(num_particles, list):
             self._num_alpha = num_particles[0]
             self._num_beta = num_particles[1]
@@ -135,56 +139,43 @@ class UCCSD(VariationalForm):
 
         self._num_particles = [self._num_alpha, self._num_beta]
 
-        if sum(self._num_particles) > self._num_orbitals:
+        if sum(self._num_particles) > num_orbitals:
             raise ValueError('# of particles must be less than or equal to # of orbitals.')
 
+        # store the parameters
+        self._depth = depth
+        self._num_orbitals = num_orbitals
         self._initial_state = initial_state
         self._qubit_mapping = qubit_mapping
         self._two_qubit_reduction = two_qubit_reduction
         self._num_time_slices = num_time_slices
         self._shallow_circuit_concat = shallow_circuit_concat
+        self._logging_construct_circuit = True
+        self._support_parameterized_circuit = True
+        self._excitation_pool = None
 
         # advanced parameters
-        self._method_singles = method_singles
-        self._method_doubles = method_doubles
-        self._excitation_type = excitation_type
-        self.same_spin_doubles = same_spin_doubles
+        # self._method_singles = method_singles   # not used anywhere but here
+        # self._method_doubles = method_doubles   # not used anywhere but here
+        # self._excitation_type = excitation_type  # not used anywhere but here
+        # self.same_spin_doubles = same_spin_double  # not used anywhere but here
         self._skip_commute_test = skip_commute_test
 
         self._single_excitations, self._double_excitations = \
-            UCCSD.compute_excitation_lists([self._num_alpha, self._num_beta], self._num_orbitals,
+            UCCSD.compute_excitation_lists(self._num_particles, self._num_orbitals,
                                            active_occupied, active_unoccupied,
-                                           same_spin_doubles=self.same_spin_doubles,
-                                           method_singles=self._method_singles,
-                                           method_doubles=self._method_doubles,
-                                           excitation_type=self._excitation_type,)
+                                           same_spin_doubles=same_spin_doubles,
+                                           method_singles=method_singles,
+                                           method_doubles=method_doubles,
+                                           excitation_type=excitation_type,)
 
-        self._hopping_ops, self._num_parameters = self._build_hopping_operators()
-        self._excitation_pool = None
-        self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
-
-        self._logging_construct_circuit = True
-        self._support_parameterized_circuit = True
-
-        self.uccd_singlet = False
-        if self._method_doubles == 'succ_full':
+        if method_doubles == 'succ_full':
             self.uccd_singlet = True
-            self._single_excitations, self._double_excitations = \
-                UCCSD.compute_excitation_lists([self._num_alpha, self._num_beta],
-                                               self._num_orbitals,
-                                               active_occupied, active_unoccupied,
-                                               same_spin_doubles=self.same_spin_doubles,
-                                               method_singles=self._method_singles,
-                                               method_doubles=self._method_doubles,
-                                               excitation_type=self._excitation_type,
-                                               )
+        else:
+            self.uccd_singlet = False
+
         if self.uccd_singlet:
             self._hopping_ops, _ = self._build_hopping_operators()
-        else:
-            self._hopping_ops, self._num_parameters = self._build_hopping_operators()
-            self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
-
-        if self.uccd_singlet:
             self._double_excitations_grouped = \
                 UCCSD.compute_excitation_lists_singlet(self._double_excitations, num_orbitals)
             self.num_groups = len(self._double_excitations_grouped)
@@ -193,7 +184,6 @@ class UCCSD(VariationalForm):
             logging.debug(self._double_excitations_grouped)
 
             self._num_parameters = self.num_groups
-            self._bounds = [(-np.pi, np.pi) for _ in range(self.num_groups)]
 
             # this will order the hopping operators
             self.labeled_double_excitations = []
@@ -211,8 +201,10 @@ class UCCSD(VariationalForm):
                 self._hopping_ops_doubles_temp.append(self._hopping_ops_doubles[i])
 
             self._hopping_ops[len(self._single_excitations):] = self._hopping_ops_doubles_temp
+        else:
+            self._hopping_ops, self._num_parameters = self._build_hopping_operators()
 
-        self._logging_construct_circuit = True
+        self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
     @property
     def single_excitations(self):
