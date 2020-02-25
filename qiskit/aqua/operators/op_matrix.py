@@ -44,8 +44,10 @@ class OpMatrix(OpPrimitive):
                 """
         if isinstance(primitive, (list, np.ndarray)):
             primitive = MatrixOperator(primitive)
+
         if not primitive.input_dims() == primitive.output_dims():
             raise ValueError('Cannot handle non-square matrices yet.')
+
         super().__init__(primitive, coeff=coeff)
 
     def get_primitives(self):
@@ -63,8 +65,10 @@ class OpMatrix(OpPrimitive):
         if not self.num_qubits == other.num_qubits:
             raise ValueError('Sum over operators with different numbers of qubits, {} and {}, is not well '
                              'defined'.format(self.num_qubits, other.num_qubits))
+
         if isinstance(other, OpMatrix):
             return OpMatrix((self.coeff * self.primitive).add(other.primitive * other.coeff))
+
         # Covers Paulis, Circuits, and all else.
         return OpSum([self, other])
 
@@ -78,6 +82,7 @@ class OpMatrix(OpPrimitive):
                 or not isinstance(self.primitive, type(other.primitive)) \
                 or not self.coeff == other.coeff:
             return False
+
         return self.primitive == other.primitive
         # Will return NotImplementedError if not supported
 
@@ -92,6 +97,7 @@ class OpMatrix(OpPrimitive):
         """
         if isinstance(other.primitive, MatrixOperator):
             return OpMatrix(self.primitive.tensor(other.primitive), coeff=self.coeff * other.coeff)
+
         return OpKron([self, other])
 
     # TODO change to *other to efficiently handle lists?

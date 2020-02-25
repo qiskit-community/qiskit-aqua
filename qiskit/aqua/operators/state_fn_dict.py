@@ -67,73 +67,39 @@ class StateFnDict(StateFn):
 
     def get_primitives(self):
         """ Return a set of strings describing the primitives contained in the Operator """
-        if isinstance(self.primitive, dict):
-            return {'Dict'}
-        elif isinstance(self.primitive, Statevector):
-            return {'Vector'}
-        if isinstance(self.primitive, OperatorBase):
-            return self.primitive.get_primitives()
-        else:
-            return {self.primitive.__class__.__name__}
+        return {'Dict'}
 
     @property
     def num_qubits(self):
-        if isinstance(self.primitive, dict):
-            return len(list(self.primitive.keys())[0])
-
-        elif isinstance(self.primitive, Statevector):
-            return len(self.primitive.dims())
-
-        elif isinstance(self.primitive, OperatorBase):
-            return self.primitive.num_qubits
+        return len(list(self.primitive.keys())[0])
 
     def add(self, other):
         """ Addition. Overloaded by + in OperatorBase. """
         if not self.num_qubits == other.num_qubits:
             raise ValueError('Sum over statefns with different numbers of qubits, {} and {}, is not well '
                              'defined'.format(self.num_qubits, other.num_qubits))
+
         # Right now doesn't make sense to add a StateFn to a Measurement
-        if isinstance(other, StateFn) and self.is_measurement == other.is_measurement:
-            if isinstance(self.primitive, type(other.primitive)) and self.primitive == other.primitive:
-                return StateFn(self.primitive,
-                               coeff=self.coeff + other.coeff,
-                               is_measurement=self.is_measurement)
-            # Covers MatrixOperator, Statevector and custom.
-            elif isinstance(self.primitive, type(other.primitive)) and \
-                    hasattr(self.primitive, 'add'):
-                # Also assumes scalar multiplication is available
-                return StateFn((self.coeff * self.primitive).add(other.primitive * other.coeff),
-                               is_measurement=self._is_measurement)
-            elif isinstance(self.primitive, dict) and isinstance(other.primitive):
+        if isinstance(other, StateFnDict) and self.is_measurement == other.is_measurement:
+            # TODO add compatability with vector and Operator?
+            if self.primitive == other.primitive:
+                return StateFnDict(self.primitive,
+                                   coeff=self.coeff + other.coeff,
+                                   is_measurement=self.is_measurement)
+            else:
                 new_dict = {b: (v * self.coeff) + (other.primitive.get(b, 0) * other.coeff)
                             for (b, v) in self.primitive.items()}
-                new_dict.update({b: v*other.coeff for (b, v) in other.primitive.items() if b not in self.primitive})
+                new_dict.update({b: v*other.coeff for (b, v) in other.primitive.items()
+                                 if b not in self.primitive})
                 return StateFn(new_dict, is_measurement=self._is_measurement)
 
         from . import OpSum
         return OpSum([self, other])
 
     def adjoint(self):
-        if isinstance(self.primitive, Statevector):
-            prim_adjoint = self.primitive.conjugate()
-        elif isinstance(self.primitive, OperatorBase):
-            prim_adjoint = self.primitive.adjoint()
-        elif isinstance(self.primitive, dict):
-            prim_adjoint = {b: np.conj(v) for (b, v) in self.primitive.items()}
-        else:
-            prim_adjoint = self.primitive
-        return StateFn(prim_adjoint,
-                       coeff=self.coeff,
-                       is_measurement=(not self.is_measurement))
-
-    def equals(self, other):
-        """ Evaluate Equality. Overloaded by == in OperatorBase. """
-        if not isinstance(other, StateFn) \
-                or not isinstance(self.primitive, type(other.primitive)) \
-                or not self.coeff == other.coeff:
-            return False
-        return self.primitive == other.primitive
-        # Will return NotImplementedError if not supported
+        return StateFnDict({b: np.conj(v) for (b, v) in self.primitive.items()},
+                           coeff=np.conj(self.coeff),
+                           is_measurement=(not self.is_measurement))
 
     def kron(self, other):
         """ Kron
@@ -146,57 +112,15 @@ class StateFnDict(StateFn):
         # TODO accept primitives directly in addition to OpPrimitive?
 
         # Both dicts
-        if isinstance(self.primitive, dict) and isinstance(other.primitive, dict):
+        if isinstance(other, StateFnDict):
             new_dict = {k1+k2: v1*v2 for ((k1, v1,), (k2, v2)) in
                         itertools.product(self.primitive.items(), other.primitive.items())}
             return StateFn(new_dict,
                            coeff=self.coeff * other.coeff,
                            is_measurement=self.is_measurement)
-            # TODO double check coeffs logic
 
-        # Both Operators
-        elif isinstance(self.primitive, OperatorBase) and isinstance(other.primitive, OperatorBase):
-            return StateFn(self.primitive.kron(other.primitive),
-                           coeff=self.coeff * other.coeff,
-                           is_measurement=self.is_measurement)
-
-        # Both Statevectors
-        elif isinstance(self_primitive, Statevector) and isinstance(other_primitive, Statevector):
-            return StateFn(self.primitive.tensor(other.primitive),
-                           coeff=self.coeff * other.coeff,
-                           is_measurement=self.is_measurement)
-
-        # User custom kron-able primitive - Identical to Pauli above for now, but maybe remove deepcopy later
-        elif isinstance(self.primitive, type(other.primitive)) and hasattr(self.primitive, 'kron'):
-            sf_copy = copy.deepcopy(other.primitive)
-            return StateFn(self.primitive.kron(sf_copy),
-                           coeff=self.coeff * other.coeff,
-                           is_measurement=self.is_measurement)
-
-        else:
-            from . import OpKron
-            return OpKron([self, other])
-
-    def compose(self, other):
-        """ Composition (Linear algebra-style, right-to-left) is not well defined for States in the binary function
-        model. However, it is well defined for measurements.
-        """
-        # TODO maybe allow outers later to produce density operators or projectors, but not yet.
-        if not self.is_measurement:
-            raise ValueError('Composition with a Statefunctions in the first operand is not defined.')
-        # TODO: Handle this for measurement @ something else.
-
-        new_self = self
-        if not self.num_qubits == other.num_qubits:
-            if self.primitive == StateFn({'0': 1}, is_measurement=True):
-                # Zero is special - we'll expand it to the correct qubit number.
-                new_self = StateFn('0' * self.num_qubits, is_measurement=True)
-            else:
-                raise ValueError('Composition is not defined over Operators of different dimensions, {} and {}, '
-                                 'respectively.'.format(self.num_qubits, other.num_qubits))
-
-        from . import OpComposition
-        return OpComposition([new_self, other])
+        from . import OpKron
+        return OpKron([self, other])
 
     def to_density_matrix(self, massive=False):
         """ Return numpy matrix of density operator, warn if more than 16 qubits to force the user to set
@@ -209,24 +133,8 @@ class StateFnDict(StateFn):
             raise ValueError('to_matrix will return an exponentially large matrix, in this case {0}x{0} elements.'
                              ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
 
-        # Dict
-        if isinstance(self.primitive, dict):
-            return self.to_matrix() * np.eye(states) * self.coeff
-
-        # Operator
-        elif isinstance(self.primitive, OperatorBase):
-            return self.primitive.to_matrix() * self.coeff
-
-        # Statevector
-        elif isinstance(self.primitive, Statevector):
-            return self.primitive.to_operator().data * self.coeff
-
-        # User custom matrix-able primitive
-        elif hasattr(self.primitive, 'to_matrix'):
-            return self.primitive.to_matrix() * self.coeff
-
-        else:
-            raise NotImplementedError
+        states = int(2 ** self.num_qubits)
+        return self.to_matrix() * np.eye(states) * self.coeff
 
     def to_matrix(self, massive=False):
         """
@@ -246,47 +154,24 @@ class StateFnDict(StateFn):
             raise ValueError('to_vector will return an exponentially large vector, in this case {0} elements.'
                              ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
 
-        # Dict
-        if isinstance(self.primitive, dict):
-            states = int(2 ** self.num_qubits)
-            probs = np.zeros(states)
-            for k, v in self.primitive.items():
-                probs[int(k, 2)] = v
-                # probs[int(k[::-1], 2)] = v
-                # TODO Remove comment: Note, we need to reverse the bitstring to extract an int ordering
-            vec = probs * self.coeff
-
-        # Operator - return diagonal (real values, not complex), not rank 1 decomposition (statevector)!
-        elif isinstance(self.primitive, OperatorBase):
-            mat = self.primitive.to_matrix()
-            if isinstance(mat, list):
-                vec = [np.diag(op) * self.coeff for op in mat]
-            else:
-                vec = np.diag(mat) * self.coeff
-
-        # Statevector - Return complex values, not reals
-        elif isinstance(self.primitive, Statevector):
-            vec = self.primitive.data * self.coeff
-
-        # User custom matrix-able primitive
-        elif hasattr(self.primitive, 'to_matrix'):
-            vec = self.primitive.to_matrix() * self.coeff
-
-        else:
-            raise NotImplementedError
+        states = int(2 ** self.num_qubits)
+        probs = np.zeros(states)
+        for k, v in self.primitive.items():
+            probs[int(k, 2)] = v
+            # probs[int(k[::-1], 2)] = v
+            # TODO Remove comment after more testing: Note, we need to reverse the bitstring to extract an int ordering
+        vec = probs * self.coeff
 
         # Reshape for measurements so np.dot still works for composition.
-        if isinstance(vec, list):
-            return vec if not self.is_measurement else [op.reshape(1, -1) for op in vec]
         return vec if not self.is_measurement else vec.reshape(1, -1)
 
     def __str__(self):
         """Overload str() """
         prim_str = str(self.primitive)
         if self.coeff == 1.0:
-            return "{}({})".format('StateFunction' if not self.is_measurement else 'Measurement', self.coeff)
+            return "{}({})".format('StateFnDict' if not self.is_measurement else 'MeasurementDict', self.coeff)
         else:
-            return "{}({}) * {}".format('StateFunction' if not self.is_measurement else 'Measurement',
+            return "{}({}) * {}".format('StateFnDict' if not self.is_measurement else 'MeasurementDict',
                                         self.coeff,
                                         prim_str)
 

@@ -45,6 +45,7 @@ class OpCircuit(OpPrimitive):
                 """
         if isinstance(primitive, QuantumCircuit):
             primitive = primitive.to_instruction()
+
         super().__init__(primitive, coeff=coeff)
 
     def get_primitives(self):
@@ -62,8 +63,10 @@ class OpCircuit(OpPrimitive):
         if not self.num_qubits == other.num_qubits:
             raise ValueError('Sum over operators with different numbers of qubits, {} and {}, is not well '
                              'defined'.format(self.num_qubits, other.num_qubits))
+
         if isinstance(other, OpCircuit) and self.primitive == other.primitive:
             return OpCircuit(self.primitive, coeff=self.coeff + other.coeff)
+
         # Covers all else.
         return OpSum([self, other])
 
@@ -77,6 +80,7 @@ class OpCircuit(OpPrimitive):
                 or not isinstance(self.primitive, type(other.primitive)) \
                 or not self.coeff == other.coeff:
             return False
+
         return self.primitive == other.primitive
         # Will return NotImplementedError if not supported
 

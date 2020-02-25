@@ -80,7 +80,7 @@ class OpComposition(OpVec):
             if isinstance(r, list):
                 return [tree_recursive_eval(l, r_op) for r_op in r]
             else:
-                return l.eval(front=r)
+                return l.eval(r)
 
         eval_list = self.oplist
         # Only one op needs to be multiplied, so just multiply the first.

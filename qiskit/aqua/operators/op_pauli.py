@@ -60,8 +60,10 @@ class OpPauli(OpPrimitive):
         if not self.num_qubits == other.num_qubits:
             raise ValueError('Sum over operators with different numbers of qubits, {} and {}, is not well '
                              'defined'.format(self.num_qubits, other.num_qubits))
+
         if isinstance(other, OpPauli) and self.primitive == other.primitive:
             return OpPauli(self.primitive, coeff=self.coeff + other.coeff)
+
         return OpSum([self, other])
 
     def adjoint(self):
@@ -72,6 +74,7 @@ class OpPauli(OpPrimitive):
         """ Evaluate Equality. Overloaded by == in OperatorBase. """
         if not isinstance(other, OpPauli) or not self.coeff == other.coeff:
             return False
+
         return self.primitive == other.primitive
 
     # TODO change to *other to handle lists? How aggressively to handle pairwise business?

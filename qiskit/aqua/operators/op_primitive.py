@@ -119,9 +119,10 @@ class OpPrimitive(OperatorBase):
             from . import Zero
             if other == Zero:
                 # Zero is special - we'll expand it to the correct qubit number.
-                other = StateFn('0' * self.num_qubits)
+                other = Zero.__class__('0' * self.num_qubits)
             else:
-                raise ValueError('Composition is not defined over Operators of different dimension')
+                raise ValueError('Composition is not defined over Operators of different dimensions, {} and {}, '
+                                 'respectively.'.format(self.num_qubits, other.num_qubits))
         return other
 
     def power(self, other):

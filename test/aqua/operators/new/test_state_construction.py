@@ -19,9 +19,10 @@ import itertools
 import numpy as np
 
 from qiskit import QuantumCircuit, BasicAer, execute, ClassicalRegister
+from qiskit.quantum_info import Statevector
 
 from test.aqua import QiskitAquaTestCase
-from qiskit.aqua.operators import StateFn, Zero, One, Plus, Minus, OpPrimitive, H, I, Z
+from qiskit.aqua.operators import StateFn, Zero, One, Plus, Minus, OpPrimitive, H, I, Z, X, Y
 
 
 class TestStateConstruction(QiskitAquaTestCase):
@@ -43,8 +44,14 @@ class TestStateConstruction(QiskitAquaTestCase):
         np.testing.assert_array_equal(One.to_matrix(), np.array([0, 1]))
         np.testing.assert_array_almost_equal(Plus.to_matrix(), (Zero.to_matrix() + One.to_matrix())/(np.sqrt(2)))
         np.testing.assert_array_almost_equal(Minus.to_matrix(), (Zero.to_matrix() - One.to_matrix())/(np.sqrt(2)))
-        # self.assertEqual((One ^ 5).primitive, {'11111': 1})
-        # self.assertEqual(((Zero ^ One) ^ 3).primitive, {'010101': 1})
+
+        # TODO Not a great test because doesn't test against validated values or test internal representation. Fix this.
+        gnarly_state = (One^Plus^Zero^Minus * .3) @ StateFn(Statevector.from_label('r0+l')) + (StateFn(X^Z^Y^I)*.1j)
+        gnarly_mat = gnarly_state.to_matrix()
+        gnarly_mat_separate = (One^Plus^Zero^Minus * .3).to_matrix()
+        gnarly_mat_separate = np.dot(gnarly_mat_separate, StateFn(Statevector.from_label('r0+l')).to_matrix())
+        gnarly_mat_separate = gnarly_mat_separate + (StateFn(X^Z^Y^I)*.1j).to_matrix()
+        np.testing.assert_array_almost_equal(gnarly_mat, gnarly_mat_separate)
 
     def test_qiskit_result_instantiation(self):
         qc = QuantumCircuit(3)
