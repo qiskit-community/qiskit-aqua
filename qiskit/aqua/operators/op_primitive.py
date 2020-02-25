@@ -14,20 +14,15 @@
 
 import logging
 import numpy as np
-import copy
 import itertools
 
-from qiskit import QuantumCircuit, BasicAer, execute
+from qiskit import QuantumCircuit
 from qiskit.circuit import Instruction
 from qiskit.quantum_info import Pauli
 from qiskit.quantum_info import Operator as MatrixOperator, Statevector
 
-# from .operator_base import OperatorBase
 from .operator_base import OperatorBase
 from .state_fn import StateFn
-from . import OpSum
-from . import OpComposition
-from . import OpKron
 
 logger = logging.getLogger(__name__)
 
@@ -124,7 +119,6 @@ class OpPrimitive(OperatorBase):
             from . import Zero
             if other == Zero:
                 # Zero is special - we'll expand it to the correct qubit number.
-                from . import StateFn
                 other = StateFn('0' * self.num_qubits)
             else:
                 raise ValueError('Composition is not defined over Operators of different dimension')

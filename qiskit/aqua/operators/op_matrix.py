@@ -14,14 +14,11 @@
 
 import logging
 import numpy as np
-import copy
 
-from qiskit import QuantumCircuit, BasicAer, execute
 from qiskit.circuit import Instruction
 from qiskit.quantum_info import Pauli
 from qiskit.quantum_info import Operator as MatrixOperator
 
-# from .operator_base import OperatorBase
 from . import OpPrimitive
 from . import OpSum
 from . import OpComposition
