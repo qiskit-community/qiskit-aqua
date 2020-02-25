@@ -194,7 +194,7 @@ class TwoLocalAnsatz(Ansatz):
             entangled_qubits = list(range(self.num_qubits))
 
         # build the circuit for this block
-        circuit = QuantumCircuit(self.num_qubits)
+        circuit = QuantumCircuit(self.num_qubits, name='rot{}'.format(block_num))
 
         # iterate over all qubits
         param_count = 0
@@ -206,7 +206,7 @@ class TwoLocalAnsatz(Ansatz):
                 # apply the gates
                 for gate, num_params in self.rotation_gates:
                     if num_params == 0:
-                        circuit.append(gate, [qubit], [])
+                        circuit.append(gate, [qubit], [])  # todo: use _append with register
                     else:
                         # define the new parameters, named '_{}', where {} gets
                         # replaced by the number of the parameter
@@ -246,7 +246,7 @@ class TwoLocalAnsatz(Ansatz):
             The entanglement layer as gate.
         """
 
-        circuit = QuantumCircuit(self.num_qubits)
+        circuit = QuantumCircuit(self.num_qubits, name='ent{}'.format(block_num))
 
         param_count = 0
         for src, tgt in self.get_entangler_map(block_num):
