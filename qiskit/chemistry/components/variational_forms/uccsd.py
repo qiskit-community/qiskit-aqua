@@ -113,7 +113,6 @@ class UCCSD(Ansatz):
         validate_in_set('method_singles', method_singles, {'both', 'alpha', 'beta'})
         validate_in_set('method_doubles', method_doubles, {'ucc', 'pucc', 'succ', 'succ_full'})
         validate_in_set('excitation_type', excitation_type, {'sd', 's', 'd'})
-        super().__init__(reps=depth, initial_state=initial_state)
 
         # self._z2_symmetries = Z2Symmetries([], [], [], []) \
         # if z2_symmetries is None else z2_symmetries
@@ -122,14 +121,15 @@ class UCCSD(Ansatz):
         # self._num_qubits = num_orbitals if not two_qubit_reduction else num_orbitals - 2
         # self._num_qubits = self._num_qubits if self._z2_symmetries.is_empty() \
         # else self._num_qubits - len(self._z2_symmetries.sq_list)
-        self._num_qubits = num_orbitals
-        self._num_qubits -= len(self._z2_symmetries.sq_list)  # subtract gain from Z2 symmetries
+        num_required_qubits = num_orbitals
+        num_required_qubits -= len(self._z2_symmetries.sq_list)  # subtract gain from Z2 symmetries
         if two_qubit_reduction:
-            self._num_qubits -= 2
+            num_required_qubits -= 2
 
-        if self._num_qubits != num_qubits:
+        # Change this to a log warning or info message or sth
+        if num_required_qubits != num_qubits:
             raise ValueError('Computed num qubits {} does not match actual {}'
-                             .format(self._num_qubits, num_qubits))
+                             .format(num_required_qubits, num_qubits))
 
         if isinstance(num_particles, list):
             self._num_alpha = num_particles[0]
@@ -147,7 +147,6 @@ class UCCSD(Ansatz):
         # store the parameters
         self._depth = depth
         self._num_orbitals = num_orbitals
-        self._initial_state = initial_state
         self._qubit_mapping = qubit_mapping
         self._two_qubit_reduction = two_qubit_reduction
         self._num_time_slices = num_time_slices
@@ -206,10 +205,41 @@ class UCCSD(Ansatz):
         else:
             self._hopping_ops, self._num_parameters = self._build_hopping_operators()
 
+        if logger.isEnabledFor(logging.DEBUG) and self._logging_construct_circuit:
+            logger.debug("Evolving hopping operators:")
+            TextProgressBar(sys.stderr)
+            self._logging_construct_circuit = False
+
+        num_excitations = len(self._hopping_ops)
+
+        print('num_parameters:', self._num_parameters)
+        parameters = [Parameter('u{}'.format(i)) for i in range(self._num_parameters)]
+        blockwise_parameters = []
+        if not self.uccd_singlet:
+            list_excitation_operators = [
+                (self._hopping_ops[index % num_excitations], parameters[index])
+                for index in range(self._depth * num_excitations)]
+            blockwise_parameters = [[p] for p in parameters]
+        else:
+            list_excitation_operators = []
+            counter = 0
+            for i in range(int(self._depth * self.num_groups)):
+                for _ in range(len(self._double_excitations_grouped[i % self.num_groups])):
+                    list_excitation_operators.append((self._hopping_ops[counter],
+                                                      parameters[i]))
+                    counter += 1
+                    blockwise_parameters += [[parameters[i]]]
+
+        results = parallel_map(UCCSD._construct_circuit_for_one_excited_operator,
+                               list_excitation_operators,
+                               task_args=(self._num_time_slices,),
+                               num_processes=aqua_globals.num_processes)
+
+        print('blocks:', len(results))
+
+        super().__init__(blocks=results, reps=depth, initial_state=initial_state,
+                         blockwise_parameters=blockwise_parameters)
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
-        self._base_params = [Parameter('u{}'.format(i)) for i in range(self._num_parameters)]
-        self._surface_params = self._base_params
-        # self._surface_params = self.[Parameter('u{}'.format(i)) for i in range(self._num_parameters)]
 
     @property
     def single_excitations(self):
@@ -365,50 +395,7 @@ class UCCSD(Ansatz):
         self._num_parameters = len(self._hopping_ops) * self._depth
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
-    @property
-    def num_parameters(self):
         return self._num_parameters
-
-    def to_circuit(self):
-        """
-        Construct the variational form, given its parameters.
-
-        Returns:
-            QuantumCircuit: a quantum circuit with given `parameters`
-        """
-        circuit = self._initial_state.construct_circuit(mode='circuit') \
-            or QuantumCircuit(self.num_qubits)
-        parameters = self.params
-
-        if logger.isEnabledFor(logging.DEBUG) and self._logging_construct_circuit:
-            logger.debug("Evolving hopping operators:")
-            TextProgressBar(sys.stderr)
-            self._logging_construct_circuit = False
-
-        num_excitations = len(self._hopping_ops)
-
-        if not self.uccd_singlet:
-            list_excitation_operators = [
-                (self._hopping_ops[index % num_excitations], parameters[index])
-                for index in range(self._depth * num_excitations)]
-        else:
-            list_excitation_operators = []
-            counter = 0
-            for i in range(int(self._depth * self.num_groups)):
-                for _ in range(len(self._double_excitations_grouped[i % self.num_groups])):
-                    list_excitation_operators.append((self._hopping_ops[counter],
-                                                      parameters[i]))
-                    counter += 1
-
-        results = parallel_map(UCCSD._construct_circuit_for_one_excited_operator,
-                               list_excitation_operators,
-                               task_args=(self._num_time_slices,),
-                               num_processes=aqua_globals.num_processes)
-
-        for evolve_instr in results:
-            circuit.append(evolve_instr, list(range(self.num_qubits)))
-
-        return circuit
 
     @staticmethod
     def _construct_circuit_for_one_excited_operator(qubit_op_and_param, num_time_slices):

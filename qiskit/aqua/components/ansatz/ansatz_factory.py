@@ -65,6 +65,7 @@ class Ansatz:
                  qubit_indices: Optional[Union[List[int], List[List[int]]]] = None,
                  reps: Optional[Union[int, List[int]]] = None,
                  insert_barriers: bool = False,
+                 blockwise_parameters: Optional[List[Parameter]] = None,
                  initial_state: Optional[InitialState] = None) -> None:
         """Initializer. Constructs the blocks of the Ansatz from the input.
 
@@ -90,6 +91,8 @@ class Ansatz:
                 of `reps` as index. See the Examples section for more detail.
             insert_barriers: If True, barriers are inserted in between each layer/block. If False,
                 no barriers are inserted.
+            parameter: The base parameters to be used. Can be used to couple the parameters
+                of certain blocks.
             initial_state: An `InitialState` object to prepent to the Ansatz.
                 TODO deprecate this feature in favour of prepend or overloading __add__ in
                 the initial state class
@@ -160,24 +163,34 @@ class Ansatz:
         # are the parameters used in the internally stored circuit. Keeping two separate lists
         # of parameters allows us to bind and substitute values as the user specifies without
         # loosing track of which parameters exist.
-        self._surface_params = []  # the parameters the user can access
-        self._base_params = []  # the internally used parameters
-        self._blockwise_base_params = []  # per block, used for convenience later on
+        if blockwise_parameters is None:
+            self._surface_params = []  # the parameters the user can access
+            self._base_params = []  # the internally used parameters
+            self._blockwise_base_params = []  # per block, used for convenience later on
+            # fill the parameter lists
+            param_count = 0
+            for idx in self._reps:
+                block_params = get_parameters(self._blocks[idx])  # get the parameters per block
+                self._surface_params += block_params  # add them to the surface parameters
 
-        # fill the parameter lists
-        param_count = 0
-        for idx in self._reps:
-            block_params = get_parameters(self._blocks[idx])  # get the parameters per block
-            self._surface_params += block_params  # add them to the surface parameters
-
-            # set the base parameters per block
-            n = len(block_params)
-            block_base_params = [
-                Parameter('θ{}'.format(i)) for i in range(param_count, param_count + n)
-            ]
-            param_count += n
-            self._blockwise_base_params += [block_base_params]
-            self._base_params += block_base_params
+                # set the base parameters per block
+                n = len(block_params)
+                block_base_params = [
+                    Parameter('θ{}'.format(i)) for i in range(param_count, param_count + n)
+                ]
+                param_count += n
+                self._blockwise_base_params += [block_base_params]
+                self._base_params += block_base_params
+        else:
+            print(blockwise_parameters)
+            if len(blockwise_parameters) != len(self._reps):
+                raise ValueError('Number of blockwise parameters does not fit the number of blocks')
+            self._blockwise_base_params = blockwise_parameters
+            all_parameters = []
+            for block_parameters in blockwise_parameters:
+                all_parameters += block_parameters
+            self._base_params = list(set(all_parameters))
+            self._surface_params = list(set(all_parameters))
 
         # parameter bounds
         self._bounds = None
@@ -320,8 +333,6 @@ class Ansatz:
         Raises:
             TypeError: If ``params`` contains an unsupported type.
         """
-        print('self_circuit', self._circuit.parameters)
-        print(self._circuit)
         if all(isinstance(param, numbers.Real) for param in params):
             param_dict = dict(zip(self._base_params, params))
             circuit_copy = self._circuit.bind_parameters(param_dict)
@@ -367,11 +378,12 @@ class Ansatz:
         """
         self.params = parameters
         if q is None:
-            q = QuantumRegister(self.num_qubits)
+            circuit = QuantumCircuit(self.num_qubits)
         elif len(q) != self.num_qubits:
             raise ValueError('The size of the register is not equal to the number of qubits.')
+        else:
+            circuit = QuantumCircuit(q)
 
-        circuit = QuantumCircuit(q)
         circuit += self.to_circuit()
         return circuit
 
