@@ -16,8 +16,8 @@
 
 from .eoh import EOH
 from .simon import Simon
-from .dj import DeutschJozsa
-from .bv import BernsteinVazirani
+from .deutsch_jozsa import DeutschJozsa
+from .bernstein_vazirani import BernsteinVazirani
 
 __all__ = ['EOH',
            'Simon',
