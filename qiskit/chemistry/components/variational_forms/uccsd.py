@@ -26,16 +26,16 @@ import collections
 import copy
 
 import numpy as np
-from qiskit.aqua.utils.validation import validate_min, validate_in_set
-from qiskit import QuantumCircuit
 from qiskit.circuit import Parameter
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
+from qiskit.util import deprecate_arguments
 
 from qiskit.aqua import aqua_globals
+from qiskit.aqua.components.ansatz import Ansatz
 from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.operators import WeightedPauliOperator, Z2Symmetries
-from qiskit.aqua.components.ansatz import Ansatz
+from qiskit.aqua.utils.validation import validate_min, validate_in_set
 from qiskit.chemistry.fermionic_operator import FermionicOperator
 
 logger = logging.getLogger(__name__)
@@ -49,8 +49,9 @@ class UCCSD(Ansatz):
     And for the singlet q-UCCD (full) and pair q-UCCD) see: https://arxiv.org/abs/1911.10864
     """
 
+    @deprecate_arguments({'depth': 'reps'})
     def __init__(self, num_qubits: int,
-                 depth: int,
+                 reps: int,
                  num_orbitals: int,
                  num_particles: Union[List[int], int],
                  active_occupied: Optional[List[int]] = None,
@@ -65,8 +66,9 @@ class UCCSD(Ansatz):
                  method_doubles: str = 'ucc',
                  excitation_type: str = 'sd',
                  same_spin_doubles: bool = True,
-                 skip_commute_test: bool = False) -> None:
-        """Constructor.
+                 skip_commute_test: bool = False,
+                 depth: Optional[int] = None) -> None:
+        """Initializer.
 
         Args:
             num_qubits: number of qubits, has a min. value of 1.
@@ -114,38 +116,41 @@ class UCCSD(Ansatz):
         validate_in_set('method_doubles', method_doubles, {'ucc', 'pucc', 'succ', 'succ_full'})
         validate_in_set('excitation_type', excitation_type, {'sd', 's', 'd'})
 
-        # self._z2_symmetries = Z2Symmetries([], [], [], []) \
-        # if z2_symmetries is None else z2_symmetries
+        # store the Z2 symmetries, or set to an empty Z2 symmetries object if not provided
         self._z2_symmetries = z2_symmetries or Z2Symmetries([], [], [], [])
 
-        # self._num_qubits = num_orbitals if not two_qubit_reduction else num_orbitals - 2
-        # self._num_qubits = self._num_qubits if self._z2_symmetries.is_empty() \
-        # else self._num_qubits - len(self._z2_symmetries.sq_list)
+        # compute the number of required qubits
         num_required_qubits = num_orbitals
         num_required_qubits -= len(self._z2_symmetries.sq_list)  # subtract gain from Z2 symmetries
         if two_qubit_reduction:
             num_required_qubits -= 2
 
-        # Change this to a log warning or info message or sth
+        # compare the number of required qubits to the number of qubits the user specified
+        # this exists only as safeguard to not lead to unexpected number of qubits, since the
+        # TODO change this to a log warning or info message or sth
         if num_required_qubits != num_qubits:
             raise ValueError('Computed num qubits {} does not match actual {}'
                              .format(num_required_qubits, num_qubits))
 
-        if isinstance(num_particles, list):
-            self._num_alpha = num_particles[0]
-            self._num_beta = num_particles[1]
-        else:
+        if hasattr(num_particles, '__len__'):
+            if len(num_particles) == 1:
+                num_alpha = num_beta = num_particles[0] // 2
+            elif len(num_particles) == 2:
+                # TODO should there be a safeguard that these are even numbers?
+                num_alpha, num_beta = num_particles
+            else:
+                raise ValueError('The length of ``num_particles`` must be 1 or 2.')
+        else:  # integer
             logger.info("We assume that the number of alphas and betas are the same.")
-            self._num_alpha = num_particles // 2
-            self._num_beta = num_particles // 2
+            num_alpha = num_beta = num_particles // 2
 
-        self._num_particles = [self._num_alpha, self._num_beta]
-
-        if sum(self._num_particles) > num_orbitals:
+        if num_alpha + num_beta  > num_orbitals:
             raise ValueError('# of particles must be less than or equal to # of orbitals.')
 
+        self._num_particles = [num_alpha, num_beta]
+
         # store the parameters
-        self._depth = depth
+        self._reps = reps
         self._num_orbitals = num_orbitals
         self._qubit_mapping = qubit_mapping
         self._two_qubit_reduction = two_qubit_reduction
@@ -218,12 +223,12 @@ class UCCSD(Ansatz):
         if not self.uccd_singlet:
             list_excitation_operators = [
                 (self._hopping_ops[index % num_excitations], parameters[index])
-                for index in range(self._depth * num_excitations)]
+                for index in range(reps * num_excitations)]
             blockwise_parameters = [[p] for p in parameters]
         else:
             list_excitation_operators = []
             counter = 0
-            for i in range(int(self._depth * self.num_groups)):
+            for i in range(int(reps * self.num_groups)):
                 for _ in range(len(self._double_excitations_grouped[i % self.num_groups])):
                     list_excitation_operators.append((self._hopping_ops[counter],
                                                       parameters[i]))
@@ -293,7 +298,7 @@ class UCCSD(Ansatz):
         self._single_excitations = s_e_list
         self._double_excitations = d_e_list
 
-        num_parameters = len(hopping_ops) * self._depth
+        num_parameters = len(hopping_ops) * self._reps
         return hopping_ops, num_parameters
 
     @staticmethod
@@ -366,14 +371,14 @@ class UCCSD(Ansatz):
         self._excitation_pool = self._hopping_ops.copy()
 
         # check depth parameter
-        if self._depth != 1:
+        if self._reps != 1:
             logger.warning('The depth of the variational form was not 1 but %i which does not work \
                     in the adaptive VQE algorithm. Thus, it has been reset to 1.')
-            self._depth = 1
+            self._reps = 1
 
         # reset internal excitation list to be empty
         self._hopping_ops = []
-        self._num_parameters = len(self._hopping_ops) * self._depth
+        self._num_parameters = len(self._hopping_ops) * self._reps
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
     def push_hopping_operator(self, excitation):
@@ -384,7 +389,7 @@ class UCCSD(Ansatz):
             excitation (WeightedPauliOperator): the new hopping operator to be added
         """
         self._hopping_ops.append(excitation)
-        self._num_parameters = len(self._hopping_ops) * self._depth
+        self._num_parameters = len(self._hopping_ops) * self._reps
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
     def pop_hopping_operator(self):
@@ -392,7 +397,7 @@ class UCCSD(Ansatz):
         Pops the hopping operator that was added last.
         """
         self._hopping_ops.pop()
-        self._num_parameters = len(self._hopping_ops) * self._depth
+        self._num_parameters = len(self._hopping_ops) * self._reps
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
         return self._num_parameters
