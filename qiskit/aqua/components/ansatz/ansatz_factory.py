@@ -34,7 +34,7 @@ from qiskit.aqua import AquaError
 from qiskit.aqua.components.initial_states import InitialState
 
 
-def parameters(block: Union[QuantumCircuit, Instruction]) -> List[Parameter]:
+def get_parameters(block: Union[QuantumCircuit, Instruction]) -> List[Parameter]:
     """Return the list of Parameters inside block."""
     if isinstance(block, QuantumCircuit):
         return list(block.parameters)
@@ -139,6 +139,7 @@ class Ansatz:
         # If there is an initial state object, check that the number of qubits is compatible
         # construct the circuit immediately. If the InitialState could modify the number of qubits
         # we could also do this later at circuit construction.
+        self._initial_state = initial_state
         self._initial_state_circuit = None
         if initial_state is not None:
             # construct the circuit of the initial state
@@ -149,7 +150,7 @@ class Ansatz:
             if self._initial_state_circuit.n_qubits < self._num_qubits:
                 raise ValueError('The provided initial state has less qubits than the Ansatz.')
 
-            self._num_qubits = self._initial_state_circuit.n_qubits > self._num_qubits
+            self._num_qubits = self._initial_state_circuit.n_qubits
 
         # keep track of the circuit
         self._circuit = None
@@ -166,7 +167,7 @@ class Ansatz:
         # fill the parameter lists
         param_count = 0
         for idx in self._reps:
-            block_params = parameters(self._blocks[idx])  # get the parameters per block
+            block_params = get_parameters(self._blocks[idx])  # get the parameters per block
             self._surface_params += block_params  # add them to the surface parameters
 
             # set the base parameters per block
@@ -306,6 +307,7 @@ class Ansatz:
             self._surface_params = params
 
     def bind_parameters(self, params: Union[List[float], List[Parameter], ParameterVector]
+
                         ) -> QuantumCircuit:
         """Bind ``params`` to the underlying circuit of the Ansatz.
 
@@ -318,6 +320,8 @@ class Ansatz:
         Raises:
             TypeError: If ``params`` contains an unsupported type.
         """
+        print('self_circuit', self._circuit.parameters)
+        print(self._circuit)
         if all(isinstance(param, numbers.Real) for param in params):
             param_dict = dict(zip(self._base_params, params))
             circuit_copy = self._circuit.bind_parameters(param_dict)
@@ -344,13 +348,13 @@ class Ansatz:
         return len(self._base_params)  # could also be len(self._surface_params)
 
     def construct_circuit(self,
-                          params: Union[List[float], List[Parameter], ParameterVector],
+                          parameters: Union[List[float], List[Parameter], ParameterVector],
                           q: Optional[QuantumRegister] = None,
                           ) -> QuantumCircuit:
         """Deprecated, use `to_circuit()`.
 
         Args:
-            params: The parameters for the Ansatz.
+            parameters: The parameters for the Ansatz.
             q: The qubit register to use to build the circuit. If None, a new register with the
                 name 'q' is created.
 
@@ -361,9 +365,9 @@ class Ansatz:
             ValueError: If the qubit register is provided but the length does not coincide with the
                 number of qubits of the Ansatz.
         """
-        self.params = params
+        self.params = parameters
         if q is None:
-            q = QuantumRegister(self.num_qubits, name='q')
+            q = QuantumRegister(self.num_qubits)
         elif len(q) != self.num_qubits:
             raise ValueError('The size of the register is not equal to the number of qubits.')
 
@@ -410,7 +414,10 @@ class Ansatz:
 
             else:
                 # use the initial state circuit if it is not None
-                circuit = self._initial_state_circuit or QuantumCircuit(self.num_qubits)
+                if self._initial_state:
+                    circuit = self._initial_state.construct_circuit(mode='circuit')
+                else:
+                    circuit = QuantumCircuit(self.num_qubits)
 
                 # add the blocks, if they are specified
                 if len(self._reps) > 0:
@@ -551,10 +558,10 @@ class Ansatz:
 
         # update the parameters
         new_base_params = [Parameter('θ{}'.format(self.num_parameters + i))
-                           for i in range(len(parameters(block)))]
+                           for i in range(len(get_parameters(block)))]
         self._blockwise_base_params += [new_base_params]
         self._base_params += new_base_params
-        self._surface_params += parameters(block)
+        self._surface_params += get_parameters(block)
 
         # modify the circuit accordingly
         if self._circuit is None:
