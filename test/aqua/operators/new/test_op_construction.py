@@ -176,4 +176,3 @@ class TestOpConstruction(QiskitAquaTestCase):
 
         gnarly_op = 3 * (H ^ I ^ Y).compose(X ^ X ^ Z).kron(T ^ Z) + OpPrimitive(Operator.from_label('+r0IX').data)
         self.assertEqual(gnarly_op.get_primitives(), {'Instruction', 'Matrix'})
-

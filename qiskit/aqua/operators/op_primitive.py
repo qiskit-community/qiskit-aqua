@@ -45,8 +45,8 @@ class OpPrimitive(OperatorBase):
         if not cls.__name__ == 'OpPrimitive':
             return super().__new__(cls)
         if isinstance(primitive, (Instruction, QuantumCircuit)):
-            from .op_circuit import OpCiruit
-            return OpCiruit.__new__(OpCiruit)
+            from .op_circuit import OpCircuit
+            return OpCircuit.__new__(OpCircuit)
         if isinstance(primitive, (list, np.ndarray, MatrixOperator)):
             from .op_matrix import OpMatrix
             return OpMatrix.__new__(OpMatrix)
@@ -72,81 +72,26 @@ class OpPrimitive(OperatorBase):
     def coeff(self):
         return self._coeff
 
-    # TODO replace with proper alphabets later?
-    @property
-    def num_qubits(self):
-        if isinstance(self.primitive, MatrixOperator):
-            return len(self.primitive.input_dims())
-        if isinstance(self.primitive, Pauli):
-            return len(self.primitive)
-        else:
-            # Works for Instruction, or user custom primitive
-            return self.primitive.num_qubits
-
-    # TODO maybe change to use converter later
-    def interopt_pauli_and_gate(self, other):
-        """ Helper to resolve the overlap between the Terra Pauli classes and Gate classes. First checks if the
-        one of the operands are a Pauli and the other is an Instruction, and if so, converts the Pauli to an
-        Instruction."""
-
-        if isinstance(self.primitive, Instruction) and isinstance(other.primitive, Pauli):
-            from qiskit.aqua.operators.converters import PaulitoInstruction
-            return self.primitive, PaulitoInstruction().convert_pauli(other.primitive)
-        elif isinstance(self.primitive, Pauli) and isinstance(other.primitive, Instruction):
-            from qiskit.aqua.operators.converters import PaulitoInstruction
-            return PaulitoInstruction().convert_pauli(self.primitive), other.primitive
-        return self.primitive, other.primitive
-
-    # TODO change to *other to efficiently handle lists?
-    def add(self, other):
-        """ Addition. Overloaded by + in OperatorBase. """
-        if not self.num_qubits == other.num_qubits:
-            raise ValueError('Sum over operators with different numbers of qubits, {} and {}, is not well '
-                             'defined'.format(self.num_qubits, other.num_qubits))
-        if isinstance(other, OpPrimitive):
-            if isinstance(self.primitive, type(other.primitive)) and self.primitive == other.primitive:
-                return OpPrimitive(self.primitive, coeff=self.coeff + other.coeff)
-            # Covers MatrixOperator and custom.
-            elif isinstance(self.primitive, type(other.primitive)) and hasattr(self.primitive, 'add'):
-                return OpPrimitive((self.coeff * self.primitive).add(other.primitive * other.coeff))
-
-        # Covers Paulis, Circuits, and all else.
-        return OpSum([self, other])
-
     def neg(self):
         """ Negate. Overloaded by - in OperatorBase. """
         return self.mul(-1.0)
 
-    def adjoint(self):
-        """ Return operator adjoint (conjugate transpose). Overloaded by ~ in OperatorBase. """
+    # @property
+    # def num_qubits(self):
+    #     raise NotImplementedError
 
-        # Pauli
-        if isinstance(self.primitive, Pauli):
-            return OpPrimitive(self.primitive, coeff=np.conj(self.coeff))
+    # def get_primitives(self):
+    #     raise NotImplementedError
 
-        # Matrix
-        elif isinstance(self.primitive, MatrixOperator):
-            return OpPrimitive(self.primitive.conjugate().transpose(), coeff=np.conj(self.coeff))
+    # def add(self, other):
+    #     raise NotImplementedError
 
-        # Both Instructions/Circuits
-        elif isinstance(self.primitive, Instruction):
-            return OpPrimitive(self.primitive.inverse(), coeff=np.conj(self.coeff))
+    # def adjoint(self):
+    #     """ Return operator adjoint (conjugate transpose). Overloaded by ~ in OperatorBase. """
+    #     raise NotImplementedError
 
-        # User custom adjoint-able primitive
-        elif hasattr(self.primitive, 'adjoint'):
-            return OpPrimitive(self.primitive.adjoint(), coeff=np.conj(self.coeff))
-
-        else:
-            raise NotImplementedError
-
-    def equals(self, other):
-        """ Evaluate Equality. Overloaded by == in OperatorBase. """
-        if not isinstance(other, OpPrimitive) \
-                or not isinstance(self.primitive, type(other.primitive)) \
-                or not self.coeff == other.coeff:
-            return False
-        return self.primitive == other.primitive
-        # Will return NotImplementedError if not supported
+    # def equals(self, other):
+    #     raise NotImplementedError
 
     def mul(self, scalar):
         """ Scalar multiply. Overloaded by * in OperatorBase.
@@ -157,49 +102,10 @@ class OpPrimitive(OperatorBase):
         if not isinstance(scalar, (int, float, complex)):
             raise ValueError('Operators can only be scalar multiplied by float or complex, not '
                              '{} of type {}.'.format(scalar, type(scalar)))
-        return OpPrimitive(self.primitive, coeff=self.coeff * scalar)
+        return self.__class__(self.primitive, coeff=self.coeff * scalar)
 
-    # TODO change to *other to handle lists? How aggressively to handle pairwise business?
-    def kron(self, other):
-        """ Kron
-        Note: You must be conscious of Qiskit's big-endian bit printing convention. Meaning, X.kron(Y)
-        produces an X on qubit 0 and an Y on qubit 1, or X⨂Y, but would produce a QuantumCircuit which looks like
-        -[Y]-
-        -[X]-
-        Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
-        """
-        # TODO accept primitives directly in addition to OpPrimitive?
-
-        self_primitive, other_primitive = self.interopt_pauli_and_gate(other)
-
-        # Both Paulis
-        if isinstance(self_primitive, Pauli) and isinstance(other_primitive, Pauli):
-            # TODO change Pauli kron in Terra to have optional inplace
-            op_copy = Pauli(x=other_primitive.x, z=other_primitive.z)
-            # NOTE!!! REVERSING QISKIT ENDIANNESS HERE
-            return OpPrimitive(op_copy.kron(self_primitive), coeff=self.coeff * other.coeff)
-
-        # Both Instructions/Circuits
-        elif isinstance(self_primitive, Instruction) and isinstance(other_primitive, Instruction):
-            new_qc = QuantumCircuit(self_primitive.num_qubits+other_primitive.num_qubits)
-            # NOTE!!! REVERSING QISKIT ENDIANNESS HERE
-            new_qc.append(other_primitive, new_qc.qubits[0:other_primitive.num_qubits])
-            new_qc.append(self_primitive, new_qc.qubits[other_primitive.num_qubits:])
-            # TODO Fix because converting to dag just to append is nuts
-            # TODO Figure out what to do with cbits?
-            return OpPrimitive(new_qc.decompose().to_instruction(), coeff=self.coeff * other.coeff)
-
-        # Both Matrices
-        elif isinstance(self_primitive, MatrixOperator) and isinstance(other_primitive, MatrixOperator):
-            return OpPrimitive(self_primitive.tensor(other_primitive), coeff=self.coeff * other.coeff)
-
-        # User custom kron-able primitive
-        elif isinstance(self_primitive, type(other_primitive)) and hasattr(self_primitive, 'kron'):
-            op_copy = copy.deepcopy(other_primitive)
-            return OpPrimitive(self_primitive.kron(op_copy), coeff=self.coeff * other.coeff)
-
-        else:
-            return OpKron([self, other])
+    # def kron(self, other):
+    #     raise NotImplementedError
 
     def kronpower(self, other):
         """ Kron with Self Multiple Times """
@@ -210,17 +116,10 @@ class OpPrimitive(OperatorBase):
             temp = temp.kron(self)
         return temp
 
-    # TODO change to *other to efficiently handle lists?
-    def compose(self, other):
-        """ Operator Composition (Linear algebra-style, right-to-left)
+    # def compose(self, other):
+    #     raise NotImplementedError
 
-        Note: You must be conscious of Quantum Circuit vs. Linear Algebra ordering conventions. Meaning, X.compose(Y)
-        produces an X∘Y on qubit 0, but would produce a QuantumCircuit which looks like
-        -[Y]-[X]-
-        Because Terra prints circuits with the initial state at the left side of the circuit.
-        """
-        # TODO accept primitives directly in addition to OpPrimitive?
-
+    def _check_zero_for_composition_and_expand(self, other):
         if not self.num_qubits == other.num_qubits:
             from . import Zero
             if other == Zero:
@@ -229,35 +128,7 @@ class OpPrimitive(OperatorBase):
                 other = StateFn('0' * self.num_qubits)
             else:
                 raise ValueError('Composition is not defined over Operators of different dimension')
-
-        self_primitive, other_primitive = self.interopt_pauli_and_gate(other)
-
-        # Both Paulis
-        if isinstance(self_primitive, Pauli) and isinstance(other_primitive, Pauli):
-            return OpPrimitive(self_primitive * other_primitive, coeff=self.coeff * other.coeff)
-            # TODO double check coeffs logic for paulis
-
-        # Both Instructions/Circuits
-        elif isinstance(self_primitive, Instruction) and isinstance(other_primitive, Instruction):
-            new_qc = QuantumCircuit(self_primitive.num_qubits)
-            new_qc.append(other_primitive, qargs=range(self_primitive.num_qubits))
-            new_qc.append(self_primitive, qargs=range(self_primitive.num_qubits))
-            # TODO Fix because converting to dag just to append is nuts
-            # TODO Figure out what to do with cbits?
-            new_qc = new_qc.decompose()
-            return OpPrimitive(new_qc.to_instruction(), coeff=self.coeff * other.coeff)
-
-        # Both Matrices
-        elif isinstance(self_primitive, MatrixOperator) and isinstance(other_primitive, MatrixOperator):
-            return OpPrimitive(self_primitive.compose(other_primitive, front=True), coeff=self.coeff * other.coeff)
-
-        # User custom compose-able primitive
-        elif isinstance(self_primitive, type(other_primitive)) and hasattr(self_primitive, 'compose'):
-            op_copy = copy.deepcopy(other_primitive)
-            return OpPrimitive(op_copy.compose(self_primitive), coeff=self.coeff * other.coeff)
-
-        else:
-            return OpComposition([self, other])
+        return other
 
     def power(self, other):
         """ Compose with Self Multiple Times """
@@ -268,55 +139,12 @@ class OpPrimitive(OperatorBase):
             temp = temp.compose(self)
         return temp
 
-    def to_matrix(self, massive=False):
-        """ Return numpy matrix of operator, warn if more than 16 qubits to force the user to set massive=True if
-        they want such a large matrix. Generally big methods like this should require the use of a converter,
-        but in this case a convenience method for quick hacking and access to classical tools is appropriate. """
+    # def to_matrix(self, massive=False):
+    #     raise NotImplementedError
 
-        if self.num_qubits > 16 and not massive:
-            # TODO figure out sparse matrices?
-            raise ValueError('to_matrix will return an exponentially large matrix, in this case {0}x{0} elements.'
-                             ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
-
-        # Pauli
-        if isinstance(self.primitive, Pauli):
-            return self.primitive.to_matrix() * self.coeff
-
-        # Matrix
-        elif isinstance(self.primitive, MatrixOperator):
-            return self.primitive.data * self.coeff
-
-        # Both Instructions/Circuits
-        elif isinstance(self.primitive, Instruction):
-            qc = QuantumCircuit(self.primitive.num_qubits)
-            # NOTE: not reversing qubits!!
-            # qc.append(self.primitive, qargs=range(self.primitive.num_qubits)[::-1])
-            qc.append(self.primitive, qargs=range(self.primitive.num_qubits))
-            unitary_backend = BasicAer.get_backend('unitary_simulator')
-            unitary = execute(qc, unitary_backend, optimization_level=0).result().get_unitary()
-            return unitary * self.coeff
-
-        # User custom matrix-able primitive
-        elif hasattr(self.primitive, 'to_matrix'):
-            return self.primitive.to_matrix() * self.coeff
-
-        else:
-            raise NotImplementedError
-
-    def __str__(self):
-        """Overload str() """
-        if isinstance(self.primitive, Instruction):
-            qc = QuantumCircuit(self.num_qubits)
-            qc.append(self.primitive, range(self.num_qubits))
-            qc = qc.decompose()
-            prim_str = str(qc.draw(output='text'))
-            # prim_str = self.primitive.__class__.__name__
-        else:
-            prim_str = str(self.primitive)
-        if self.coeff == 1.0:
-            return prim_str
-        else:
-            return "{} * {}".format(self.coeff, prim_str)
+    # def __str__(self):
+    #     """Overload str() """
+    #     raise NotImplementedError
 
     def __repr__(self):
         """Overload str() """
