@@ -155,11 +155,11 @@ class StateFnOperator(StateFn):
         """Overload str() """
         prim_str = str(self.primitive)
         if self.coeff == 1.0:
-            return "{}({})".format('StateFunction' if not self.is_measurement else 'Measurement', self.coeff)
+            return "{}({})".format('StateFunction' if not self.is_measurement else 'Measurement', prim_str)
         else:
             return "{}({}) * {}".format('StateFunction' if not self.is_measurement else 'Measurement',
-                                        self.coeff,
-                                        prim_str)
+                                        prim_str,
+                                        self.coeff)
 
     def eval(self, other=None):
         # Validate bitstring: re.fullmatch(rf'[01]{{{0}}}', val1)

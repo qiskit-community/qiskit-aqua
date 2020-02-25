@@ -80,3 +80,9 @@ class TestStateConstruction(QiskitAquaTestCase):
         print((~One ^ 4).eval(One ^ 4))
 
         # print(StateFn(I^Z, is_measurement=True).eval(One^2))
+
+    def test_add_direct(self):
+        wf = StateFn({'101010': .5, '111111': .3}) + (Zero^6)
+        self.assertEqual(wf.primitive, {'101010': 0.5, '111111': 0.3, '000000': 1.0})
+        wf = (4*StateFn({'101010': .5, '111111': .3})) + ((3+.1j)*(Zero ^ 6))
+        self.assertEqual(wf.primitive, {'000000': (3+0.1j), '101010': (2+0j), '111111': (1.2+0j)})

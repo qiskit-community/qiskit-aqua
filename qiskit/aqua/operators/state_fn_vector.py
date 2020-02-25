@@ -139,11 +139,11 @@ class StateFnVector(StateFn):
         """Overload str() """
         prim_str = str(self.primitive)
         if self.coeff == 1.0:
-            return "{}({})".format('StateFnVector' if not self.is_measurement else 'MeasurementVector', self.coeff)
+            return "{}({})".format('StateFnVector' if not self.is_measurement else 'MeasurementVector', prim_str)
         else:
             return "{}({}) * {}".format('StateFnVector' if not self.is_measurement else 'MeasurementVector',
-                                        self.coeff,
-                                        prim_str)
+                                        prim_str,
+                                        self.coeff)
 
     def eval(self, other=None):
         # Validate bitstring: re.fullmatch(rf'[01]{{{0}}}', val1)
