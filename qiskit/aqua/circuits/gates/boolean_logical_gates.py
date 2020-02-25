@@ -22,7 +22,6 @@ from qiskit.circuit import QuantumCircuit, QuantumRegister, Qubit
 from qiskit.qasm import pi
 
 from qiskit.aqua import AquaError
-from .multi_control_toffoli_gate import mct  # pylint: disable=unused-import
 
 logger = logging.getLogger(__name__)
 
