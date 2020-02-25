@@ -81,7 +81,7 @@ class TestAnsatz(QiskitAquaTestCase):
 
         self.assertEqual(ansatz.to_circuit(), QuantumCircuit())
 
-        for attribute in [ansatz._blocks, ansatz._qargs, ansatz._reps]:
+        for attribute in [ansatz._blocks, ansatz._qargs, ansatz._replist]:
             self.assertEqual(len(attribute), 0)
 
     @data(

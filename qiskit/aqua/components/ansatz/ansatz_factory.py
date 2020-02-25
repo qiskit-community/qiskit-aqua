@@ -91,8 +91,8 @@ class Ansatz:
                 of `reps` as index. See the Examples section for more detail.
             insert_barriers: If True, barriers are inserted in between each layer/block. If False,
                 no barriers are inserted.
-            parameter: The base parameters to be used. Can be used to couple the parameters
-                of certain blocks.
+            blockwise_parameter: The base parameters to be used. Can be used to couple the
+                parameters of certain blocks.
             initial_state: An `InitialState` object to prepent to the Ansatz.
                 TODO deprecate this feature in favour of prepend or overloading __add__ in
                 the initial state class
@@ -101,6 +101,8 @@ class Ansatz:
             TypeError: If `blocks` contains an unsupported object.
             ValueError: If the initial state has less qubits than specified via the blocks or
                 qubit indices.
+            ValueError: If the ``overwrite_block_parameters`` is set to a list of list of
+                Parameters but does not match the total number of blocks in the final circuit.
 
         Examples:
             TODO
@@ -122,11 +124,14 @@ class Ansatz:
 
         # get reps in the right format
         if reps is None:  # if reps is None, set it to [0, ..., len(num_blocks) - 1]
-            self._reps = list(range(len(self._blocks)))
+            self._reps = 1
+            self._replist = list(range(len(self._blocks)))
         elif isinstance(reps, int):  # if reps is an int, set it to reps * [0, ..., len(blocks) - 1]
-            self._reps = reps * list(range(len(self._blocks)))
-        else:  # already in the right format
             self._reps = reps
+            self._replist = reps * list(range(len(self._blocks)))
+        else:
+            self._reps = None
+            self._replist = reps
 
         # get qubit_indices in the right format (i.e. list of lists)
         if qubit_indices is None:  # if None, set the indices to [0, ..., block.num_qubits - 1]
@@ -169,7 +174,7 @@ class Ansatz:
             self._blockwise_base_params = []  # per block, used for convenience later on
             # fill the parameter lists
             param_count = 0
-            for idx in self._reps:
+            for idx in self._replist:
                 block_params = get_parameters(self._blocks[idx])  # get the parameters per block
                 self._surface_params += block_params  # add them to the surface parameters
 
@@ -183,7 +188,7 @@ class Ansatz:
                 self._base_params += block_base_params
         else:
             print(blockwise_parameters)
-            if len(blockwise_parameters) != len(self._reps):
+            if len(blockwise_parameters) != len(self._replist):
                 raise ValueError('Number of blockwise parameters does not fit the number of blocks')
             self._blockwise_base_params = blockwise_parameters
             all_parameters = []
@@ -432,14 +437,14 @@ class Ansatz:
                     circuit = QuantumCircuit(self.num_qubits)
 
                 # add the blocks, if they are specified
-                if len(self._reps) > 0:
+                if len(self._replist) > 0:
                     # the first block (separately so barriers can be inserted in the for-loop)
-                    param_idx, idx = 0, self._reps[0]
+                    param_idx, idx = 0, self._replist[0]
                     block, qargs = self._blocks[idx], self._qargs[idx]
                     params = self._blockwise_base_params[param_idx]
                     circuit.extend(self._parametrize_block(block, qargs, params))
 
-                    for param_idx, idx in enumerate(self._reps[1:]):
+                    for param_idx, idx in enumerate(self._replist[1:]):
                         if self._insert_barriers:
                             circuit.barrier()
                         block, qargs = self._blocks[idx], self._qargs[idx]
@@ -552,7 +557,7 @@ class Ansatz:
         self._blocks += [block]
 
         # keep track of which blocks to add to the Ansatz
-        self._reps += [len(self._blocks) - 1]
+        self._replist += [len(self._blocks) - 1]
 
         # define the the qubit indices
         self._qargs += [qubit_indices or list(range(self._blocks[-1].num_qubits))]
@@ -579,7 +584,7 @@ class Ansatz:
         if self._circuit is None:
             _ = self.to_circuit()  # automatically constructed
         else:
-            if self._insert_barriers and len(self._reps) > 1:
+            if self._insert_barriers and len(self._replist) > 1:
                 self._circuit.barrier()
 
             block, qargs = self._blocks[-1], self._qargs[-1]
