@@ -16,17 +16,16 @@
 
 
 import numpy as np
-import re
-from functools import reduce
 import itertools
 
 from qiskit.quantum_info import Statevector
 from qiskit.result import Result
 
-from qiskit.aqua.operators.operator_base import OperatorBase
+from . import StateFn
+from . import OperatorBase
 
 
-class StateFn(OperatorBase):
+class StateFnDict(StateFn):
     """ A class for representing state functions and measurements.
 
     State functions are defined to be complex functions over a single binary string (as compared to an operator,
@@ -42,20 +41,7 @@ class StateFn(OperatorBase):
     NOTE: State functions here are not restricted to wave functions, as there is no requirement of normalization.
     """
 
-    @staticmethod
-    def __new__(cls, primitive=None, coeff=1.0, is_measurement=False):
-        if not cls.__name__ == 'StateFn':
-            return super().__new__(cls)
-        if isinstance(primitive, (str, dict, Result)):
-            from . import StateFnDict
-            return StateFnDict.__new__(StateFnDict)
-        if isinstance(primitive, (list, np.ndarray, Statevector)):
-            from . import StateFnVector
-            return StateFnVector.__new__(StateFnVector)
-        if isinstance(primitive, OperatorBase):
-            from . import StateFnOperator
-            return StateFnOperator.__new__(StateFnOperator)
-
+    # TODO maybe break up into different classes for different fn definition primitives
     # TODO allow normalization somehow?
     def __init__(self, primitive, coeff=1.0, is_measurement=False):
         """
@@ -63,21 +49,21 @@ class StateFn(OperatorBase):
             primitive(str, dict, OperatorBase, Result, np.ndarray, list)
             coeff(int, float, complex): A coefficient by which to multiply the state
         """
-        self._primitive = primitive
-        self._is_measurement = is_measurement
-        self._coeff = coeff
+        # If the initial density is a string, treat this as a density dict with only a single basis state.
+        if isinstance(primitive, str):
+            primitive = {primitive: 1}
 
-    @property
-    def primitive(self):
-        return self._primitive
+        # NOTE:
+        # 1) This is not the same as passing in the counts dict directly, as this will convert the shot numbers to
+        # probabilities, whereas passing in the counts dict will not.
+        # 2) This will extract counts for both shot and statevector simulations. To use the statevector,
+        # simply pass in the statevector.
+        # 3) This will only extract the first result.
+        if isinstance(primitive, Result):
+            counts = primitive.get_counts()
+            primitive = {bstr: shots / sum(counts.values()) for (bstr, shots) in counts.items()}
 
-    @property
-    def coeff(self):
-        return self._coeff
-
-    @property
-    def is_measurement(self):
-        return self._is_measurement
+        super().__init__(primitive, coeff=coeff, is_measurement=is_measurement)
 
     def get_primitives(self):
         """ Return a set of strings describing the primitives contained in the Operator """
@@ -127,10 +113,6 @@ class StateFn(OperatorBase):
         from . import OpSum
         return OpSum([self, other])
 
-    def neg(self):
-        """ Negate. Overloaded by - in OperatorBase. """
-        return self.mul(-1.0)
-
     def adjoint(self):
         if isinstance(self.primitive, Statevector):
             prim_adjoint = self.primitive.conjugate()
@@ -152,20 +134,6 @@ class StateFn(OperatorBase):
             return False
         return self.primitive == other.primitive
         # Will return NotImplementedError if not supported
-
-    def mul(self, scalar):
-        """ Scalar multiply. Overloaded by * in OperatorBase.
-
-        Doesn't multiply Statevector until to_matrix() or to_vector() is called to keep things lazy and avoid big
-        copies.
-        TODO figure out if this is a bad idea.
-         """
-        if not isinstance(scalar, (int, float, complex)):
-            raise ValueError('Operators can only be scalar multiplied by float or complex, not '
-                             '{} of type {}.'.format(scalar, type(scalar)))
-        return StateFn(self.primitive,
-                       coeff=self.coeff * scalar,
-                       is_measurement=self.is_measurement)
 
     def kron(self, other):
         """ Kron
@@ -209,17 +177,6 @@ class StateFn(OperatorBase):
             from . import OpKron
             return OpKron([self, other])
 
-    def kronpower(self, other):
-        """ Kron with Self Multiple Times """
-        if not isinstance(other, int) or other <= 0:
-            raise TypeError('Kronpower can only take positive int arguments')
-        temp = StateFn(self.primitive,
-                       coeff=self.coeff,
-                       is_measurement=self.is_measurement)
-        for i in range(other-1):
-            temp = temp.kron(self)
-        return temp
-
     def compose(self, other):
         """ Composition (Linear algebra-style, right-to-left) is not well defined for States in the binary function
         model. However, it is well defined for measurements.
@@ -240,10 +197,6 @@ class StateFn(OperatorBase):
 
         from . import OpComposition
         return OpComposition([new_self, other])
-
-    def power(self, other):
-        """ Compose with Self Multiple Times, undefined for StateFns. """
-        raise ValueError('Composition power over Statefunctions or Measurements is not defined.')
 
     def to_density_matrix(self, massive=False):
         """ Return numpy matrix of density operator, warn if more than 16 qubits to force the user to set
@@ -337,14 +290,6 @@ class StateFn(OperatorBase):
                                         self.coeff,
                                         prim_str)
 
-    def __repr__(self):
-        """Overload str() """
-        return "StateFn({}, coeff={}, is_measurement={}".format(repr(self.primitive), self.coeff, self.is_measurement)
-
-    def print_details(self):
-        """ print details """
-        raise NotImplementedError
-
     def eval(self, other=None):
         # Validate bitstring: re.fullmatch(rf'[01]{{{0}}}', val1)
 
@@ -405,13 +350,3 @@ class StateFn(OperatorBase):
     def sample(self, shots):
         """ Sample the statefunction as a normalized probability distribution."""
         raise NotImplementedError
-
-    # Try collapsing primitives where possible. Nothing to collapse here.
-    def reduce(self):
-        # TODO replace IZ paulis with dict here?
-        return self
-
-    # Recurse into StateFn's operator with a converter if primitive is an operator.
-    def traverse(self, convert_fn, coeff=None):
-        """ Apply the convert_fn to each node in the oplist. """
-        return StateFn(convert_fn(self.primitive), coeff=coeff or self.coeff, is_measurement=self.is_measurement)
