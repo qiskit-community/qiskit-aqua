@@ -14,6 +14,7 @@
 
 import logging
 import numpy as np
+import itertools
 
 from qiskit import QuantumCircuit
 from qiskit.circuit import Instruction
@@ -170,37 +171,104 @@ class OpPauli(OpPrimitive):
         convert to a {Z,I}^n Pauli basis to take "averaging" style expectations (e.g. PauliExpectation).
         """
 
-        # Pauli
-        if isinstance(self.primitive, Pauli):
-            bitstr1 = np.asarray(list(front)).astype(np.bool)
-            bitstr2 = np.asarray(list(back)).astype(np.bool)
+        if not front and not back:
+            return self.to_matrix()
+        elif not front:
+            # Saves having to reimplement logic twice for front and back
+            return self.adjoint().eval(front=back, back=None).adjoint()
 
-            # fix_endianness
+        # For now, always do this. If it's not performant, we can be more granular.
+        from . import OperatorBase, StateFn, StateFnDict, StateFnVector, StateFnOperator
+        if not isinstance(front, OperatorBase):
+            front = StateFn(front, is_measurement=False)
+        if back and not isinstance(back, OperatorBase):
+            front = StateFn(front, is_measurement=True)
+
+        # Hack for speed
+        if isinstance(front, StateFnDict) and isinstance(back, StateFnDict):
+            sum = 0
+            for (str1, str2) in itertools.product(front.primitive.keys(), back.primitive.keys()):
+                bitstr1 = np.asarray(list(str1)).astype(np.bool)
+                bitstr2 = np.asarray(list(str2)).astype(np.bool)
+
+                # fix_endianness
+                corrected_x_bits = self.primitive.x[::-1]
+                corrected_z_bits = self.primitive.z[::-1]
+
+                x_factor = np.logical_xor(bitstr1, bitstr2) == corrected_x_bits
+                z_factor = 1 - 2 * np.logical_and(bitstr1, corrected_z_bits)
+                y_factor = np.sqrt(1 - 2 * np.logical_and(corrected_x_bits, corrected_z_bits) + 0j)
+                sum += self.coeff * \
+                       np.product(x_factor * z_factor * y_factor) * \
+                       front.primitive[str1] * front.coeff * \
+                       back.primitive[str2] * back.coeff
+            return sum
+
+        new_front = None
+        if isinstance(front, StateFnDict):
+            new_dict = {}
             corrected_x_bits = self.primitive.x[::-1]
             corrected_z_bits = self.primitive.z[::-1]
 
-            x_factor = np.logical_xor(bitstr1, bitstr2) == corrected_x_bits
-            z_factor = 1 - 2*np.logical_and(bitstr1, corrected_z_bits)
-            y_factor = np.sqrt(1 - 2*np.logical_and(corrected_x_bits, corrected_z_bits) + 0j)
-            return self.coeff * np.product(x_factor*z_factor*y_factor)
+            for bstr, v in front.primitive.items():
+                bitstr = np.asarray(list(bstr)).astype(np.bool)
+                new_b_str = np.logical_xor(bitstr, corrected_x_bits)
+                new_str = ''.join(map(str, 1 * new_b_str))
+                z_factor = np.product(1 - 2 * np.logical_and(bitstr, corrected_z_bits))
+                y_factor = np.product(np.sqrt(1 - 2 * np.logical_and(corrected_x_bits, corrected_z_bits) + 0j))
+                new_dict[new_str] = (v * z_factor * y_factor) + new_dict.get(new_str, 0)
+            new_front = StateFn(new_dict, coeff=self.coeff*front.coeff)
+        elif isinstance(front, StateFn):
+            if front.is_measurement:
+                raise ValueError('Operator composed with a measurement is undefined.')
+            elif isinstance(front, StateFnVector):
+                # new_front = self.eval(front.to_matrix())
+                new_front = StateFnVector(np.dot(self.to_matrix(), front.to_matrix()))
+            elif isinstance(front, StateFnOperator):
+                new_front = StateFnOperator(OpPrimitive(self.adjoint().to_matrix() @
+                                                        front.to_matrix() @
+                                                        self.to_matrix()))
+        elif isinstance(front, OperatorBase):
+            new_front = self.to_matrix() @ front.to_matrix()
 
-        # Matrix
-        elif isinstance(self.primitive, MatrixOperator):
-            index1 = int(front, 2)
-            index2 = int(back, 2)
-            return self.primitive.data[index2, index1] * self.coeff
-
-        # User custom eval
-        elif hasattr(self.primitive, 'eval'):
-            return self.primitive.eval(front, back) * self.coeff
-
-        # Both Instructions/Circuits
-        elif isinstance(self.primitive, Instruction) or hasattr(self.primitive, 'to_matrix'):
-            mat = self.to_matrix()
-            index1 = int(front, 2)
-            index2 = int(back, 2)
-            # Don't multiply by coeff because to_matrix() already does
-            return mat[index2, index1]
-
+        if back:
+            if not isinstance(back, StateFn):
+                back = StateFn(back, is_measurement=True)
+            return back.eval(new_front)
         else:
-            raise NotImplementedError
+            return new_front
+
+        # # Pauli
+        # if isinstance(self.primitive, Pauli):
+        #     bitstr1 = np.asarray(list(front)).astype(np.bool)
+        #     bitstr2 = np.asarray(list(back)).astype(np.bool)
+        #
+        #     # fix_endianness
+        #     corrected_x_bits = self.primitive.x[::-1]
+        #     corrected_z_bits = self.primitive.z[::-1]
+        #
+        #     x_factor = np.logical_xor(bitstr1, bitstr2) == corrected_x_bits
+        #     z_factor = 1 - 2*np.logical_and(bitstr1, corrected_z_bits)
+        #     y_factor = np.sqrt(1 - 2*np.logical_and(corrected_x_bits, corrected_z_bits) + 0j)
+        #     return self.coeff * np.product(x_factor*z_factor*y_factor)
+        #
+        # # Matrix
+        # elif isinstance(self.primitive, MatrixOperator):
+        #     index1 = int(front, 2)
+        #     index2 = int(back, 2)
+        #     return self.primitive.data[index2, index1] * self.coeff
+        #
+        # # User custom eval
+        # elif hasattr(self.primitive, 'eval'):
+        #     return self.primitive.eval(front, back) * self.coeff
+        #
+        # # Both Instructions/Circuits
+        # elif isinstance(self.primitive, Instruction) or hasattr(self.primitive, 'to_matrix'):
+        #     mat = self.to_matrix()
+        #     index1 = int(front, 2)
+        #     index2 = int(back, 2)
+        #     # Don't multiply by coeff because to_matrix() already does
+        #     return mat[index2, index1]
+        #
+        # else:
+        #     raise NotImplementedError

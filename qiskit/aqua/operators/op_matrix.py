@@ -19,6 +19,7 @@ from qiskit.circuit import Instruction
 from qiskit.quantum_info import Pauli
 from qiskit.quantum_info import Operator as MatrixOperator
 
+from . import OperatorBase
 from . import OpPrimitive
 from . import OpSum
 from . import OpComposition
@@ -147,37 +148,22 @@ class OpMatrix(OpPrimitive):
         convert to a {Z,I}^n Pauli basis to take "averaging" style expectations (e.g. PauliExpectation).
         """
 
-        # Pauli
-        if isinstance(self.primitive, Pauli):
-            bitstr1 = np.asarray(list(front)).astype(np.bool)
-            bitstr2 = np.asarray(list(back)).astype(np.bool)
+        if not front and not back:
+            return self.to_matrix()
+        elif not front:
+            # Saves having to reimplement logic twice for front and back
+            return self.adjoint().eval(front=back, back=None).adjoint()
+        # For now, always do this. If it's not performant, we can be more granular.
 
-            # fix_endianness
-            corrected_x_bits = self.primitive.x[::-1]
-            corrected_z_bits = self.primitive.z[::-1]
+        from . import StateFn
+        if not isinstance(front, OperatorBase):
+            front = StateFn(front, is_measurement=not self.is_measurement)
 
-            x_factor = np.logical_xor(bitstr1, bitstr2) == corrected_x_bits
-            z_factor = 1 - 2*np.logical_and(bitstr1, corrected_z_bits)
-            y_factor = np.sqrt(1 - 2*np.logical_and(corrected_x_bits, corrected_z_bits) + 0j)
-            return self.coeff * np.product(x_factor*z_factor*y_factor)
+        new_front = StateFn(self.to_matrix() @ front.to_matrix(), is_measurement=front.is_measurement)
 
-        # Matrix
-        elif isinstance(self.primitive, MatrixOperator):
-            index1 = int(front, 2)
-            index2 = int(back, 2)
-            return self.primitive.data[index2, index1] * self.coeff
-
-        # User custom eval
-        elif hasattr(self.primitive, 'eval'):
-            return self.primitive.eval(front, back) * self.coeff
-
-        # Both Instructions/Circuits
-        elif isinstance(self.primitive, Instruction) or hasattr(self.primitive, 'to_matrix'):
-            mat = self.to_matrix()
-            index1 = int(front, 2)
-            index2 = int(back, 2)
-            # Don't multiply by coeff because to_matrix() already does
-            return mat[index2, index1]
-
+        if back:
+            if not isinstance(back, StateFn):
+                back = StateFn(back, is_measurement=True)
+            return back.eval(new_front)
         else:
-            raise NotImplementedError
+            return new_front

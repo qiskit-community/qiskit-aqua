@@ -156,7 +156,9 @@ class StateFnDict(StateFn):
                              ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
 
         states = int(2 ** self.num_qubits)
-        probs = np.zeros(states)
+        # Convert vector to float.
+        # TODO just take abs instead?
+        probs = np.zeros(states) + 0.j
         for k, v in self.primitive.items():
             probs[int(k, 2)] = v
             # probs[int(k[::-1], 2)] = v
@@ -186,7 +188,7 @@ class StateFnDict(StateFn):
         # If the primitive is a lookup of bitstrings, we define all missing strings to have a function value of
         # zero.
         if isinstance(other, StateFnDict):
-            return sum([v * other.primitive.get(b, 0) for (b, v) in self.primitive.items()]) * self.coeff
+            return sum([v * other.primitive.get(b, 0) for (b, v) in self.primitive.items()]) * self.coeff * other.coeff
 
         # Only dict is allowed for eval with StateFn which is not measurement. After this self.is_measurement is
         # assumed to be true.
@@ -198,7 +200,9 @@ class StateFnDict(StateFn):
 
         from . import StateFnVector
         if isinstance(other, StateFnVector):
-            return sum([v * other.primitive.data[int(b, 2)] * np.conj(other.primitive.data[int(b, 2)])
+            # TODO does it need to be this way for measurement?
+            # return sum([v * other.primitive.data[int(b, 2)] * np.conj(other.primitive.data[int(b, 2)])
+            return sum([v * other.primitive.data[int(b, 2)]
                         for (b, v) in self.primitive.items()]) * self.coeff
 
         from . import StateFnOperator
@@ -209,7 +213,7 @@ class StateFnDict(StateFn):
             return other.adjoint().eval(self.adjoint().primitive).adjoint() * self.coeff
 
         # TODO figure out what to actually do here.
-        return self
+        return self.to_matrix()
 
     # TODO
     def sample(self, shots):

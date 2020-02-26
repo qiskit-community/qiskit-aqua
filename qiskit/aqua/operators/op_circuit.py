@@ -179,37 +179,11 @@ class OpCircuit(OpPrimitive):
         convert to a {Z,I}^n Pauli basis to take "averaging" style expectations (e.g. PauliExpectation).
         """
 
-        # Pauli
-        if isinstance(self.primitive, Pauli):
-            bitstr1 = np.asarray(list(front)).astype(np.bool)
-            bitstr2 = np.asarray(list(back)).astype(np.bool)
+        if not front and not back:
+            return self.to_matrix()
+        elif not front:
+            # Saves having to reimplement logic twice for front and back
+            return self.adjoint().eval(back).adjoint()
 
-            # fix_endianness
-            corrected_x_bits = self.primitive.x[::-1]
-            corrected_z_bits = self.primitive.z[::-1]
-
-            x_factor = np.logical_xor(bitstr1, bitstr2) == corrected_x_bits
-            z_factor = 1 - 2*np.logical_and(bitstr1, corrected_z_bits)
-            y_factor = np.sqrt(1 - 2*np.logical_and(corrected_x_bits, corrected_z_bits) + 0j)
-            return self.coeff * np.product(x_factor*z_factor*y_factor)
-
-        # Matrix
-        elif isinstance(self.primitive, MatrixOperator):
-            index1 = int(front, 2)
-            index2 = int(back, 2)
-            return self.primitive.data[index2, index1] * self.coeff
-
-        # User custom eval
-        elif hasattr(self.primitive, 'eval'):
-            return self.primitive.eval(front, back) * self.coeff
-
-        # Both Instructions/Circuits
-        elif isinstance(self.primitive, Instruction) or hasattr(self.primitive, 'to_matrix'):
-            mat = self.to_matrix()
-            index1 = int(front, 2)
-            index2 = int(back, 2)
-            # Don't multiply by coeff because to_matrix() already does
-            return mat[index2, index1]
-
-        else:
-            raise NotImplementedError
+        # For now, always do this. If it's not performant, we can be more granular.
+        return OpPrimitive(self.to_matrix()).eval(front=front, back=back)
