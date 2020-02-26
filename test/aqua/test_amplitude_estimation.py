@@ -29,7 +29,7 @@ from qiskit.aqua.components.uncertainty_problems import (MultivariateProblem,
 from qiskit.aqua.circuits import WeightedSumOperator
 from qiskit.aqua.algorithms import (AmplitudeEstimation, MaximumLikelihoodAmplitudeEstimation,
                                     IterativeAmplitudeEstimation)
-from qiskit.aqua.algorithms.single_sample.amplitude_estimation.q_factory import QFactory
+from qiskit.aqua.algorithms.amplitude_estimators.q_factory import QFactory
 
 
 class BernoulliAFactory(UncertaintyProblem):

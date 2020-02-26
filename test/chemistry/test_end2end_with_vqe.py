@@ -19,7 +19,7 @@ from test.chemistry import QiskitChemistryTestCase
 from ddt import ddt, idata, unpack
 import qiskit
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.algorithms.adaptive import VQE
+from qiskit.aqua.algorithms import VQE
 from qiskit.aqua.components.variational_forms import RYRZ
 from qiskit.aqua.components.optimizers import COBYLA, SPSA
 from qiskit.chemistry.drivers import HDF5Driver
