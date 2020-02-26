@@ -65,7 +65,7 @@ class Ansatz:
                  qubit_indices: Optional[Union[List[int], List[List[int]]]] = None,
                  reps: Optional[Union[int, List[int]]] = None,
                  insert_barriers: bool = False,
-                 blockwise_parameters: Optional[List[Parameter]] = None,
+                 overwrite_block_parameters: Union[bool, List[List[Parameter]]] = True,
                  initial_state: Optional[InitialState] = None) -> None:
         """Initializer. Constructs the blocks of the Ansatz from the input.
 
@@ -91,8 +91,9 @@ class Ansatz:
                 of `reps` as index. See the Examples section for more detail.
             insert_barriers: If True, barriers are inserted in between each layer/block. If False,
                 no barriers are inserted.
-            blockwise_parameter: The base parameters to be used. Can be used to couple the
-                parameters of certain blocks.
+            overwrite_block_parameters: If the parameters in the added blocks should be overwritten.
+                If a list of list of Parameters is passed, these Parameters are used to set the
+                parameters in the blocks.
             initial_state: An `InitialState` object to prepent to the Ansatz.
                 TODO deprecate this feature in favour of prepend or overloading __add__ in
                 the initial state class
@@ -168,11 +169,10 @@ class Ansatz:
         # are the parameters used in the internally stored circuit. Keeping two separate lists
         # of parameters allows us to bind and substitute values as the user specifies without
         # loosing track of which parameters exist.
-        if blockwise_parameters is None:
-            self._surface_params = []  # the parameters the user can access
-            self._base_params = []  # the internally used parameters
-            self._blockwise_base_params = []  # per block, used for convenience later on
-            # fill the parameter lists
+        self._surface_params = []  # the parameters the user can access
+        self._base_params = []  # the internally used parameters
+        self._blockwise_base_params = []  # per block, used for convenience later on
+        if overwrite_block_parameters is True:
             param_count = 0
             for idx in self._replist:
                 block_params = get_parameters(self._blocks[idx])  # get the parameters per block
@@ -186,16 +186,29 @@ class Ansatz:
                 param_count += n
                 self._blockwise_base_params += [block_base_params]
                 self._base_params += block_base_params
-        else:
-            print(blockwise_parameters)
-            if len(blockwise_parameters) != len(self._replist):
+
+        elif hasattr(overwrite_block_parameters, '__len__'):
+            if len(overwrite_block_parameters) != len(self._replist):
                 raise ValueError('Number of blockwise parameters does not fit the number of blocks')
-            self._blockwise_base_params = blockwise_parameters
+            self._blockwise_base_params = overwrite_block_parameters
+
+            # do not add duplicate parameters
             all_parameters = []
-            for block_parameters in blockwise_parameters:
+            for block_parameters in overwrite_block_parameters:
                 all_parameters += block_parameters
             self._base_params = list(set(all_parameters))
             self._surface_params = list(set(all_parameters))
+
+        else:  # do not overwrite blockwise parameters
+            all_parameters = []
+            for block in self._blocks:
+                block_params = get_parameters(block)  # get the parameters per block
+            self._base_params = list(set(all_parameters))
+            self._surface_params = list(set(all_parameters))
+
+            # None means that the block parameters will not be overwritten,
+            # this saves len(replist) parameter substitutions
+            self._blockwise_base_params = len(self._replist) * [None]
 
         # parameter bounds
         self._bounds = None
