@@ -169,14 +169,12 @@ class Ansatz:
         # are the parameters used in the internally stored circuit. Keeping two separate lists
         # of parameters allows us to bind and substitute values as the user specifies without
         # loosing track of which parameters exist.
-        self._surface_params = []  # the parameters the user can access
         self._base_params = []  # the internally used parameters
         self._blockwise_base_params = []  # per block, used for convenience later on
         if overwrite_block_parameters is True:
             param_count = 0
             for idx in self._replist:
                 block_params = get_parameters(self._blocks[idx])  # get the parameters per block
-                self._surface_params += block_params  # add them to the surface parameters
 
                 # set the base parameters per block
                 n = len(block_params)
@@ -197,18 +195,18 @@ class Ansatz:
             for block_parameters in overwrite_block_parameters:
                 all_parameters += block_parameters
             self._base_params = list(set(all_parameters))
-            self._surface_params = list(set(all_parameters))
 
         else:  # do not overwrite blockwise parameters
             all_parameters = []
             for block in self._blocks:
                 block_params = get_parameters(block)  # get the parameters per block
             self._base_params = list(set(all_parameters))
-            self._surface_params = list(set(all_parameters))
 
             # None means that the block parameters will not be overwritten,
             # this saves len(replist) parameter substitutions
             self._blockwise_base_params = len(self._replist) * [None]
+
+        self._surface_params = self._base_params.copy()  # the parameters the user can access
 
         # parameter bounds
         self._bounds = None
