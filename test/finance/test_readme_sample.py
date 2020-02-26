@@ -34,7 +34,7 @@ class TestReadmeSample(QiskitFinanceTestCase):
 
         import numpy as np
         from qiskit import BasicAer
-        from qiskit.aqua.algorithms.single_sample.amplitude_estimation.ae import AmplitudeEstimation
+        from qiskit.aqua.algorithms import AmplitudeEstimation
         from qiskit.aqua.components.uncertainty_models import MultivariateNormalDistribution
         from qiskit.finance.components.uncertainty_problems import FixedIncomeExpectedValue
 
