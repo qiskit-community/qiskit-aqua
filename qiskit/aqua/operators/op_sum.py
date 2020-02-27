@@ -72,7 +72,7 @@ class OpSum(OpVec):
     # TODO be smarter about the fact that any two ops in oplist could be evaluated for sum.
     def reduce(self):
         reduced_ops = [op.reduce() for op in self.oplist]
-        reduced_ops = reduce(lambda x, y: x.add(y), reduced_ops)
+        reduced_ops = reduce(lambda x, y: x.add(y), reduced_ops) * self.coeff
         if isinstance(reduced_ops, OpSum) and len(reduced_ops.oplist) > 1:
             return reduced_ops
         else:

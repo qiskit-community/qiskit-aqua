@@ -63,7 +63,7 @@ class OpKron(OpVec):
     # TODO do this smarter
     def reduce(self):
         reduced_ops = [op.reduce() for op in self.oplist]
-        reduced_ops = reduce(lambda x, y: x.kron(y), reduced_ops)
+        reduced_ops = reduce(lambda x, y: x.kron(y), reduced_ops) * self.coeff
         if isinstance(reduced_ops, OpKron) and len(reduced_ops.oplist) > 1:
             return reduced_ops
         else:

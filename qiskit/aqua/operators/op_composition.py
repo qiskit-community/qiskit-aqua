@@ -126,7 +126,7 @@ class OpComposition(OpVec):
     # Try collapsing list or trees of compositions into a single <Measurement | Op | State>.
     def reduce(self):
         reduced_ops = [op.reduce() for op in self.oplist]
-        reduced_ops = reduce(lambda x, y: x.compose(y), reduced_ops)
+        reduced_ops = reduce(lambda x, y: x.compose(y), reduced_ops) * self.coeff
         if isinstance(reduced_ops, OpComposition) and len(reduced_ops.oplist) > 1:
             return reduced_ops
         else:

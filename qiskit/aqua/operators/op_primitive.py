@@ -143,7 +143,7 @@ class OpPrimitive(OperatorBase):
 
     def __repr__(self):
         """Overload str() """
-        return "OpPrimitive({}, coeff={}".format(repr(self.primitive), self.coeff)
+        return "OpPrimitive({}, coeff={})".format(repr(self.primitive), self.coeff)
 
     def print_details(self):
         """ print details """

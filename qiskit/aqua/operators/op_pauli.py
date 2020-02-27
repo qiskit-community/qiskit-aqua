@@ -175,15 +175,14 @@ class OpPauli(OpPrimitive):
             return self.to_matrix()
         elif front is None:
             # Saves having to reimplement logic twice for front and back
-            return self.adjoint().eval(front=back, back=None).adjoint()
+            return self.adjoint().eval(front=back).adjoint()
 
         # For now, always do this. If it's not performant, we can be more granular.
         from . import OperatorBase, StateFn, StateFnDict, StateFnVector, StateFnOperator
         if not isinstance(front, OperatorBase):
-            print(front)
             front = StateFn(front, is_measurement=False)
-        if back and not isinstance(back, OperatorBase):
-            back = StateFn(front, is_measurement=True)
+        if back is not None and not isinstance(back, OperatorBase):
+            back = StateFn(back, is_measurement=True)
 
         # Hack for speed
         if isinstance(front, StateFnDict) and isinstance(back, StateFnDict):
@@ -232,7 +231,14 @@ class OpPauli(OpPrimitive):
         elif isinstance(front, OpPauli):
             new_front = np.diag(self.compose(front).to_matrix())
         elif isinstance(front, OperatorBase):
-            new_front = np.diag(self.to_matrix() @ front.to_matrix())
+            comp = self.to_matrix() @ front.to_matrix()
+            if len(comp.shape) == 1:
+                new_front = comp
+            elif len(comp.shape) == 2:
+                new_front = np.diag(comp)
+            else:
+                # Last ditch, TODO figure out what to actually do here.
+                new_front = self.compose(front).reduce.eval()
 
         if back:
             if not isinstance(back, StateFn):

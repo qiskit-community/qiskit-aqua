@@ -215,7 +215,7 @@ class StateFn(OperatorBase):
 
     def __repr__(self):
         """Overload str() """
-        return "StateFn({}, coeff={}, is_measurement={}".format(repr(self.primitive), self.coeff, self.is_measurement)
+        return "StateFn({}, coeff={}, is_measurement={})".format(repr(self.primitive), self.coeff, self.is_measurement)
 
     def print_details(self):
         """ print details """
