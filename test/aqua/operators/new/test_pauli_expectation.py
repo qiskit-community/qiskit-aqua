@@ -39,6 +39,8 @@ class TestPauliExpectation(QiskitAquaTestCase):
         mean = expect.compute_expectation(wf)
         self.assertAlmostEqual(mean, 0)
 
+    def test_pauli_expect_op_vector(self):
+        backend = BasicAer.get_backend('qasm_simulator')
         paulis_op = OpVec([X, Y, Z, I])
 
         expect = PauliExpectation(operator=paulis_op, backend=backend)

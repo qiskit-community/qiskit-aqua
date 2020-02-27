@@ -148,18 +148,18 @@ class OpMatrix(OpPrimitive):
         convert to a {Z,I}^n Pauli basis to take "averaging" style expectations (e.g. PauliExpectation).
         """
 
-        if not front and not back:
+        if front is None and back is None:
             return self.to_matrix()
-        elif not front:
+        elif front is None:
             # Saves having to reimplement logic twice for front and back
             return self.adjoint().eval(front=back, back=None).adjoint()
         # For now, always do this. If it's not performant, we can be more granular.
 
         from . import StateFn
         if not isinstance(front, OperatorBase):
-            front = StateFn(front, is_measurement=not self.is_measurement)
+            front = StateFn(front)
 
-        new_front = StateFn(self.to_matrix() @ front.to_matrix(), is_measurement=front.is_measurement)
+        new_front = StateFn(self.to_matrix() @ front.to_matrix())
 
         if back:
             if not isinstance(back, StateFn):

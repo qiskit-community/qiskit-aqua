@@ -148,12 +148,12 @@ class StateFnVector(StateFn):
     def eval(self, other=None):
         # Validate bitstring: re.fullmatch(rf'[01]{{{0}}}', val1)
 
-        if not isinstance(other, OperatorBase):
-            other = StateFn(other, is_measurement=not self.is_measurement)
-
         if not self.is_measurement and isinstance(other, OperatorBase):
             raise ValueError('Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '
                              'sf.adjoint() first to convert to measurement.')
+
+        if not isinstance(other, OperatorBase):
+            other = StateFn(other)
 
         from . import StateFnDict, StateFnOperator
         if isinstance(other, StateFnDict):

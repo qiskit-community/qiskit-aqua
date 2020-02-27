@@ -164,58 +164,25 @@ class StateFnOperator(StateFn):
     def eval(self, other=None):
         # Validate bitstring: re.fullmatch(rf'[01]{{{0}}}', val1)
 
-        if isinstance(other, str):
-            other = {str: 1}
-
-        # If the primitive is a lookup of bitstrings, we define all missing strings to have a function value of
-        # zero.
-        if isinstance(self.primitive, dict) and isinstance(other, dict):
-            return sum([v * other.get(b, 0) for (b, v) in self.primitive.items()]) * self.coeff
-
         if not self.is_measurement and isinstance(other, OperatorBase):
             raise ValueError('Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '
                              'sf.adjoint() first to convert to measurement.')
 
-        # All remaining possibilities only apply when self.is_measurement is True
 
-        if isinstance(other, StateFn):
-            if isinstance(other.primitive, OperatorBase):
-                if isinstance(self.primitive, OperatorBase):
-                    # Both are density matrices, need to compose and trace
-                    return np.trace(self.to_matrix() @ other.to_matrix())
-                else:
-                    return self.eval(other.primitive).eval(self.adjoint()) * self.coeff
-            elif isinstance(other.primitive, (Statevector, dict)):
-                return self.eval(other.primitive) * other.coeff
+        if not isinstance(other, OperatorBase):
+            other = StateFn(other)
 
-        if isinstance(self.primitive, dict):
-            if isinstance(other, Statevector):
-                return sum([v * other.data[int(b, 2)] * np.conj(other.data[int(b, 2)])
-                            for (b, v) in self.primitive.items()]) * self.coeff
-            if isinstance(other, OperatorBase):
-                # TODO Wrong, need to eval from both sides
-                return other.eval(self.primitive).adjoint()
-
-        # Measurement is specified as Density matrix.
-        if isinstance(self.primitive, OperatorBase):
-            if isinstance(other, OperatorBase):
-                # Compose the other Operator to self's measurement density matrix
-                return StateFn(other.adjoint().compose(self.primitive).compose(other),
-                               coeff=self.coeff,
-                               is_measurement=True)
+        if isinstance(other, StateFnOperator):
+            return np.trace(self.to_matrix() @ other.to_matrix())
+        elif isinstance(other, OperatorBase):
+            comp = other.adjoint().to_matrix() @ self.primitive.to_matrix() @ other.to_matrix()
+            if comp.shape == (1, ):
+                return comp[0]
             else:
-                # Written this way to be able to handle many types of other (at least dict and Statevector).
-                return self.primitive.eval(other).adjoint().eval(other) * self.coeff
-
-        elif isinstance(self.primitive, Statevector):
-            if isinstance(other, dict):
-                return sum([v * self.primitive.data[int(b, 2)] for (b, v) in other.items()]) * self.coeff
-            elif isinstance(other, Statevector):
-                return np.dot(self.primitive.data, other.data) * self.coeff
+                return np.diag(comp)
 
         # TODO figure out what to actually do here.
-        else:
-            return self.sample(1024)
+        return self.to_matrix()
 
     # TODO
     def sample(self, shots):

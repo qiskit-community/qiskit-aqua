@@ -183,7 +183,7 @@ class StateFnDict(StateFn):
 
         # For now, always do this. If it's not performant, we can be more granular.
         if not isinstance(other, OperatorBase):
-            other = StateFn(other, is_measurement=not self.is_measurement)
+            other = StateFn(other)
 
         # If the primitive is a lookup of bitstrings, we define all missing strings to have a function value of
         # zero.

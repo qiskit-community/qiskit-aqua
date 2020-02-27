@@ -163,9 +163,9 @@ class OpPrimitive(OperatorBase):
         if isinstance(back, str):
             front = {str: 1}
 
-        if not front and not back:
+        if front is None and back is None:
             return self.to_matrix()
-        elif not front:
+        elif front is None:
             # Saves having to reimplement logic twice for front and back
             return self.adjoint().eval(front=back, back=None).adjoint()
 

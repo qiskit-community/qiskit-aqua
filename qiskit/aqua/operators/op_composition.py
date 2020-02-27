@@ -74,7 +74,7 @@ class OpComposition(OpVec):
         #     front_holder = op.eval(front=front_holder)
         # return self.oplist[0].eval(front=front_holder, back)
 
-        def tree_recursive_eval(l, r):
+        def tree_recursive_eval(r, l):
             # if isinstance(l, list):
             #     return [tree_recursive_eval(l_op, r) for l_op in l]
             if isinstance(r, list):
@@ -91,7 +91,7 @@ class OpComposition(OpVec):
             back = StateFn(back)
         eval_list = [back] + eval_list if back else eval_list
 
-        return reduce(tree_recursive_eval, eval_list)
+        return reduce(tree_recursive_eval, reversed(eval_list))
 
         # def tree_eval(t):
         #     if isinstance(t, list):
