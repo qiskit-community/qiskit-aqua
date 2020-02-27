@@ -1,14 +1,6 @@
-.. module:: qiskit
+.. _qiskit-aqua:
 
-=========================
-Qiskit Aqua API Reference
-=========================
-
-.. toctree::
-    :maxdepth: 2
-
-    aqua
-    chemistry
-    finance
-    ml
-    optimization
+.. automodule:: qiskit.aqua
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
