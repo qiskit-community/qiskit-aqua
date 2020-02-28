@@ -21,6 +21,7 @@ TODO
     * add transpile feature
     * add params argument to to_circuit?
     * rename append to combine(after=True) with to support after/before
+    * use a manager for all updates?
 """
 
 from __future__ import annotations  # to use the type hint 'Ansatz' in the class itself
@@ -40,6 +41,40 @@ def get_parameters(block: Union[QuantumCircuit, Instruction]) -> List[Parameter]
         return list(block.parameters)
     else:
         return [p for p in block.params if isinstance(p, ParameterExpression)]
+
+
+def combine_parameterlists(first: List[Parameter], other: List[Parameter]) -> List[Parameter]:
+    """Add ``other`` to the ``first`` via name, not instance.
+
+    If the parameters in ``other`` already exists in the list, add the instance with the same
+    name at the end of the list. If the name does not exist in the list, add the parameter
+    in ``other``.
+    This prevents having different instances with the same name in the list of paramters,
+    which leads to naming conflict if a circuit is constructed with these parameters.
+
+    Args:
+        first: The list of parameters, where ``new_parameter`` is to be added.
+        other: The parameter list that should be added.
+
+    Returns:
+        The merged parameter list, where same names are the same instance.
+    """
+    for obj in [first, other]:
+        if isinstance(obj, ParameterExpression):
+            obj = [obj]
+
+    for new_param in other:
+        found = False
+        for existing_param in first:
+            if new_param.name == existing_param.name:
+                first.append(existing_param)
+                found = True
+                break
+
+        if not found:
+            first.append(new_param)
+
+    return first
 
 
 class Ansatz:
@@ -109,104 +144,38 @@ class Ansatz:
             TODO
         """
         # insert barriers in between the blocks?
+        self._num_qubits = None
         self._insert_barriers = insert_barriers
 
-        # get blocks in the right format
-        if blocks is None:
-            blocks = []
-
-        if not isinstance(blocks, (list, numpy.ndarray)):
-            blocks = [blocks]
-
-        # convert all input blocks to the same type
         self._blocks = []
-        for block in blocks:
-            self._blocks += [self._convert_to_block(block)]
+        self.blocks = blocks or []
+        self._surface_params = None
+        self._blockwise_base_params = None
+        self._base_params = None
 
         # get reps in the right format
-        if reps is None:  # if reps is None, set it to [0, ..., len(num_blocks) - 1]
-            self._reps = 1
-            self._replist = list(range(len(self._blocks)))
-        elif isinstance(reps, int):  # if reps is an int, set it to reps * [0, ..., len(blocks) - 1]
-            self._reps = reps
-            self._replist = reps * list(range(len(self._blocks)))
-        else:
-            self._reps = None
-            self._replist = reps
+        self._reps, self._replist = None, None
+        self.reps = reps or 1
 
         # get qubit_indices in the right format (i.e. list of lists)
-        if qubit_indices is None:  # if None, set the indices to [0, ..., block.num_qubits - 1]
-            self._qargs = [list(range(block.num_qubits)) for block in self._blocks]
-        elif not isinstance(qubit_indices[0], list):  # user provided a flat, single list
-            self._qargs = [qubit_indices]
-        else:  # right format
-            self._qargs = qubit_indices
+        self._qargs = []
+        self.qubit_indices = qubit_indices or \
+            [list(range(block.num_qubits)) for block in self._blocks]
 
-        # get the maximum number of qubits from the qubit indices
-        self._num_qubits = int(numpy.max(self._qargs) + 1 if len(self._qargs) > 0 else 0)
+        # set the initial state
+        self._initial_state, self._initial_state_circuit = None, None
+        if initial_state:
+            self.initial_state = initial_state
 
-        # If there is an initial state object, check that the number of qubits is compatible
-        # construct the circuit immediately. If the InitialState could modify the number of qubits
-        # we could also do this later at circuit construction.
-        self._initial_state = initial_state
-        self._initial_state_circuit = None
-        if initial_state is not None:
-            # construct the circuit of the initial state
-            self._initial_state_circuit = initial_state.construct_circuit(mode='circuit')
-
-            # the initial state dictates the number of qubits since we do not have information
-            # about on which qubits the initial state acts
-            if self._initial_state_circuit.n_qubits < self._num_qubits:
-                raise ValueError('The provided initial state has less qubits than the Ansatz.')
-
-            self._num_qubits = self._initial_state_circuit.n_qubits
+        # keep track of the parameters
+        if isinstance(overwrite_block_parameters, bool):
+            self._overwrite_block_parameters = overwrite_block_parameters
+        else:
+            self._overwrite_block_parameters = False
+            self._blockwise_base_params = overwrite_block_parameters
 
         # keep track of the circuit
         self._circuit = None
-
-        # Set up the base and surface parameters:
-        # The surface parameters are the parameters the user has access to. The base parameters
-        # are the parameters used in the internally stored circuit. Keeping two separate lists
-        # of parameters allows us to bind and substitute values as the user specifies without
-        # loosing track of which parameters exist.
-        self._base_params = []  # the internally used parameters
-        self._blockwise_base_params = []  # per block, used for convenience later on
-        if overwrite_block_parameters is True:
-            param_count = 0
-            for idx in self._replist:
-                block_params = get_parameters(self._blocks[idx])  # get the parameters per block
-
-                # set the base parameters per block
-                n = len(block_params)
-                block_base_params = [
-                    Parameter('θ{}'.format(i)) for i in range(param_count, param_count + n)
-                ]
-                param_count += n
-                self._blockwise_base_params += [block_base_params]
-                self._base_params += block_base_params
-
-        elif hasattr(overwrite_block_parameters, '__len__'):
-            if len(overwrite_block_parameters) != len(self._replist):
-                raise ValueError('Number of blockwise parameters does not fit the number of blocks')
-            self._blockwise_base_params = overwrite_block_parameters
-
-            # do not add duplicate parameters
-            all_parameters = []
-            for block_parameters in overwrite_block_parameters:
-                all_parameters += block_parameters
-            self._base_params = list(set(all_parameters))
-
-        else:  # do not overwrite blockwise parameters
-            all_parameters = []
-            for block in self._blocks:
-                block_params = get_parameters(block)  # get the parameters per block
-            self._base_params = list(set(all_parameters))
-
-            # None means that the block parameters will not be overwritten,
-            # this saves len(replist) parameter substitutions
-            self._blockwise_base_params = len(self._replist) * [None]
-
-        self._surface_params = self._base_params.copy()  # the parameters the user can access
 
         # parameter bounds
         self._bounds = None
@@ -263,10 +232,119 @@ class Ansatz:
     def num_qubits(self) -> int:
         """Returns the number of qubits in this Ansatz.
 
+        If the number of qubits has not been explicitely set via the setter or the initial state
+        (which dictates the number of qubits), infer the number of qubits from the qubit indices
+        of the blocks.
+
         Returns:
             The number of qubits.
         """
+        # get the maximum number of qubits from the qubit indices
+        if self._num_qubits is None:
+            if len(self._qargs) > 0:
+                return 1 + max(max(qarg) for qarg in self._qargs)
+            return 0
+
         return int(self._num_qubits)
+
+    @num_qubits.setter
+    def num_qubits(self, num_qubits):
+        """Set the number of qubits."""
+        if self._num_qubits != num_qubits:
+            # invalidate the circuit
+            self._circuit = None
+            self._num_qubits = num_qubits
+
+    @property
+    def blocks(self):
+        """Return blocks."""
+        return self._blocks
+
+    @blocks.setter
+    def blocks(self, blocks):
+        """Set the blocks.
+
+        Do this somehow via add blocks.
+        """
+        # cannot use hasattr(blocks, '__len__') because a circuit also has this attribute
+        if not isinstance(blocks, (list, numpy.ndarray)):
+            blocks = [blocks]
+
+        self._blocks = [self._convert_to_block(block) for block in blocks]
+
+    @property
+    def qubit_indices(self):
+        """Return the qubit indices per block."""
+        return self._qargs
+
+    @qubit_indices.setter
+    def qubit_indices(self, indices):
+        """Set the qubit indices per block."""
+        if len(indices) == 0:
+            self._qargs = []
+        elif not isinstance(indices[0], list):  # user provided a flat, single list
+            self._qargs = [indices] * len(self._blocks)
+        else:  # right format
+            if len(indices) != len(self._blocks):
+                raise ValueError('The number of indices must be equal to the number of blocks.')
+            self._qargs = indices
+
+        # TODO check if indices is the same if qargs, only then invalidate the definition
+        # but this setter is probably not really used anywhere except the initializer anyways
+        self._circuit = None
+
+    @property
+    def initial_state(self) -> InitialState:
+        """Return the initial state."""
+        return self._initial_state
+
+    @initial_state.setter
+    def initial_state(self, initial_state: InitialState) -> None:
+        """Set the initial state.
+
+        Note that this sets the number of qubits to the width of the initial state.
+
+        Args:
+            initial_state: The new initial state.
+
+        Raises:
+            ValueError: If the number of qubits has been set before and the initial state has
+                less qubits than this number of qubits.
+        """
+        # If there is an initial state object, check that the number of qubits is compatible
+        # construct the circuit immediately. If the InitialState could modify the number of qubits
+        # we could also do this later at circuit construction.
+        self._initial_state = initial_state
+
+        # construct the circuit of the initial state
+        self._initial_state_circuit = initial_state.construct_circuit(mode='circuit')
+
+        # the initial state dictates the number of qubits since we do not have information
+        # about on which qubits the initial state acts
+        if self._num_qubits is not None and self._initial_state_circuit.n_qubits < self._num_qubits:
+            raise ValueError('The provided initial state has less qubits than the Ansatz.')
+
+        self._num_qubits = self._initial_state_circuit.n_qubits
+        self._circuit = None
+
+    @property
+    def reps(self):
+        """Return reps as integer, or if not available, as list."""
+        return self._reps or self._replist
+
+    @reps.setter
+    def reps(self, repetitions):
+        """Set the repetitions."""
+        if isinstance(repetitions, (list, numpy.ndarray)):
+            if self._replist is None or not all(i == j for i, j in zip(repetitions, self._replist)):
+                self._circuit = None
+                self._reps = None
+                self._replist = repetitions
+        elif isinstance(repetitions, numbers.Integral):
+            if repetitions != self._reps:
+                self._circuit = None
+                self._reps = repetitions
+                self._replist = repetitions * list(range(len(self._blocks)))
 
     @property
     def parameter_bounds(self) -> List[Tuple[float, float]]:
@@ -291,7 +369,7 @@ class Ansatz:
         self._bounds = bounds
 
     @property
-    def params(self) -> Union[List[float], List[Parameter]]:
+    def parameters(self) -> Union[List[float], List[Parameter]]:
         """Get the parameters of the Ansatz.
 
         Only the so-called "surface parameters" of the Ansatz are subject to change, these
@@ -301,10 +379,20 @@ class Ansatz:
         Returns:
             A list containing the surface parameters.
         """
+        if self._surface_params is None:
+            if len(self._blocks) == 0 or len(self._replist) == 0:
+                return []
+            else:
+                surface_params = []
+                for i in self._replist:
+                    combine_parameterlists(surface_params, get_parameters(self._blocks[i]))
+                return surface_params
+
         return self._surface_params
 
-    @params.setter
-    def params(self, params: Union[dict, List[float], List[Parameter], ParameterVector]) -> None:
+    @parameters.setter
+    def parameters(self, params: Union[dict, List[float], List[Parameter], ParameterVector]
+                   ) -> None:
         """Set the parameters of the Ansatz.
 
         This sets the surface parameters, not the base parameters.
@@ -335,8 +423,63 @@ class Ansatz:
                                  ''.format(len(params), self.num_parameters))
             self._surface_params = params
 
-    def bind_parameters(self, params: Union[List[float], List[Parameter], ParameterVector]
+    @property
+    def blockwise_parameters(self) -> Union[List[List[Parameter]]]:
+        """Get the parameters of the Ansatz.
 
+        Only the so-called "surface parameters" of the Ansatz are subject to change, these
+        can be modified and re-assigned to new values. Below, the Ansatz keeps track of the
+        "base parameters" which remain unique.
+
+        Returns:
+            A list containing the surface parameters.
+        """
+        # if no blockwise base params have been generated, generate them
+        if self._blockwise_base_params is None:
+            # empty ansatz TODO remove this case since covered by the others?
+            if len(self._blocks) == 0 or len(self._replist) == 0:
+                self._blockwise_base_params = []
+                self._base_params = []
+            elif self._overwrite_block_parameters is True:
+                param_count = 0
+                self._blockwise_base_params = []
+                self._base_params = []
+                for i in self._replist:
+                    n = len(get_parameters(self._blocks[i]))
+                    replacement_parameters = [
+                        Parameter('θ{}'.format(i)) for i in range(param_count, param_count + n)
+                    ]
+                    param_count += n
+                    self._blockwise_base_params += [replacement_parameters]
+                    self._base_params += replacement_parameters
+            else:
+                self._blockwise_base_params = []
+                self._base_params = []
+                for i in self._replist:
+                    block_params = get_parameters(self._blocks[i])
+                    self._blockwise_base_params += [block_params]
+                    combine_parameterlists(self._base_params, block_params)
+
+        return self._blockwise_base_params
+
+    @blockwise_parameters.setter
+    def blockwise_parameters(self, params: List[List[Parameter]]) -> None:
+        """Set the parameters of the Ansatz.
+
+        This sets the surface parameters, not the base parameters.
+
+        Args:
+            The new parameters.
+
+        Raises:
+            ValueError: If the number of provided parameters does not match the number of
+                parameters of the Ansatz.
+            TypeError: If the type of `params` is not supported.
+        """
+        self._blockwise_base_params = params
+        self._circuit = None
+
+    def bind_parameters(self, params: Union[List[float], List[Parameter], ParameterVector]
                         ) -> QuantumCircuit:
         """Bind ``params`` to the underlying circuit of the Ansatz.
 
@@ -349,6 +492,9 @@ class Ansatz:
         Raises:
             TypeError: If ``params`` contains an unsupported type.
         """
+        if self._base_params is None:
+            _ = self.blockwise_parameters
+
         if all(isinstance(param, numbers.Real) for param in params):
             param_dict = dict(zip(self._base_params, params))
             circuit_copy = self._circuit.bind_parameters(param_dict)
@@ -372,7 +518,7 @@ class Ansatz:
         Returns:
             The number of parameters.
         """
-        return len(self._base_params)  # could also be len(self._surface_params)
+        return len(self.parameters)  # could also be len(self._surface_params)
 
     def construct_circuit(self,
                           parameters: Union[List[float], List[Parameter], ParameterVector],
@@ -426,6 +572,55 @@ class Ansatz:
 
         return circuit
 
+    def _configuration_is_valid(self) -> bool:
+        """Check if the configuration of the Ansatz class is valid.
+
+        Returns:
+            True, if the configuration is valid and the circuit can be constructed. Otherwise
+            an AquaError is raised.
+
+        Raises:
+            AquaError: If the blocks are not set.
+            AquaError: If the number of repetitions is not set.
+            AquaError: If the qubit indices are not set.
+            AquaError: If the number of qubit indices does not match the number of blocks.
+            AquaError: If the number of repetitions does not match the number of blockwise
+                parameters.
+            AquaError: If an index in the repetions list exceeds the number of blocks.
+            AquaError: If a specified qubit index is larger than the (manually set) number of
+                qubits.
+        """
+        # check no needed parameters are None
+        if self._blocks is None:
+            raise AquaError('The blocks are not set.')
+        if self._replist is None:
+            raise AquaError('The repetitions are not set, this must be a list of indices or int. '
+                            + 'Use Ansatz.reps to set this attribute.')
+        if self._qargs is None:
+            raise AquaError('The qubit indices for the blocks are not set.')
+
+        # check the compatibility of the attributes
+        if len(self._qargs) != len(self._blocks):
+            raise AquaError('The number of qubit indices does not match the number of blocks.')
+
+        if self._blockwise_base_params:
+            if len(self._replist) != len(self._blockwise_base_params):
+                raise AquaError('The number of repetitions ({}) does '.format(len(self._replist))
+                                + 'not match with the number of block parameters '
+                                + '({})'.format(len(self._blockwise_base_params)))
+
+        if len(self._replist) > 0:
+            if max(self._replist) >= len(self._blocks):
+                raise AquaError('Trying to add a non-existing block to the circuit.')
+
+        if self._num_qubits:
+            for qubit_indices in self._qargs:
+                if max(qubit_indices) >= self._num_qubits:
+                    raise AquaError('The manually set number of qubits is too small for the '
+                                    + 'blocks in the circuit.')
+
+        return True
+
     def to_circuit(self) -> QuantumCircuit:
         """Convert the Ansatz into a circuit.
 
@@ -436,7 +631,7 @@ class Ansatz:
             the number of qubits in this Ansatz.
         """
         # build the circuit if it has not been constructed yet
-        if self._circuit is None:
+        if self._circuit is None and self._configuration_is_valid():
             if self.num_qubits == 0:
                 circuit = QuantumCircuit()
 
@@ -449,24 +644,25 @@ class Ansatz:
 
                 # add the blocks, if they are specified
                 if len(self._replist) > 0:
+                    blockwise_parameters = self.blockwise_parameters
                     # the first block (separately so barriers can be inserted in the for-loop)
                     param_idx, idx = 0, self._replist[0]
                     block, qargs = self._blocks[idx], self._qargs[idx]
-                    params = self._blockwise_base_params[param_idx]
+                    params = blockwise_parameters[param_idx]
                     circuit.extend(self._parametrize_block(block, qargs, params))
 
                     for param_idx, idx in enumerate(self._replist[1:]):
                         if self._insert_barriers:
                             circuit.barrier()
                         block, qargs = self._blocks[idx], self._qargs[idx]
-                        params = self._blockwise_base_params[param_idx + 1]
+                        params = blockwise_parameters[param_idx + 1]
                         circuit.extend(self._parametrize_block(block, qargs, params))
 
             # store the circuit
             self._circuit = circuit
 
         # TODO make this on parameter change only?
-        return self.bind_parameters(self._surface_params)
+        return self.bind_parameters(self.parameters)
 
     def __add__(self, other: Union[Ansatz, Instruction, QuantumCircuit]) -> Ansatz:
         """Overloading + for convenience.
@@ -543,6 +739,33 @@ class Ansatz:
             raise AquaError('The Ansatz contains non-unitary operations (e.g. barriers, resets or '
                             'measurements) and cannot be converted to a Gate!')
 
+    def _append_block(self, block, qubit_indices=None, overwrite_block_parameters=True):
+        block = self._convert_to_block(block)
+        qubit_indices = qubit_indices or list(range(block.num_qubits))
+        if overwrite_block_parameters is True:
+            param_count = self.num_parameters
+            block_params = get_parameters(block)  # get the parameters per block
+            n = len(block_params)
+
+            # set the base parameters per block
+            block_base_params = [
+                Parameter('θ{}'.format(i)) for i in range(param_count, param_count + n)
+            ]
+            self._blockwise_base_params += [block_base_params]
+            self._base_params += block_base_params
+
+        else:
+            if hasattr(overwrite_block_parameters, '__len__'):
+                # if len(overwrite_block_parameters) != len(self._replist):
+                # raise ValueError('Number of blockwise parameters does not fit the number of blocks')
+                self._blockwise_base_params += [overwrite_block_parameters]
+            else:
+                self._blockwise_base_params += [get_parameters(block)]
+
+            # do not add duplicate parameters
+            combine_parameterlists(self._base_params, self._blockwise_base_params[-1])
+            # combine_parameterlists(self._surface_params, self._blockwise_base_params[-1])
+
     def append(self,
                other: Union[Ansatz, Instruction, QuantumCircuit],
                qubit_indices: Optional[List[int]] = None
@@ -581,25 +804,16 @@ class Ansatz:
         # In the latter case we have to add an according offset to the qubit indices.
         # Since we cannot append a circuit of larger size to an existing circuit we have to rebuild
         if num_qubits > self.num_qubits:
-            self._num_qubits = num_qubits
+            # self._num_qubits = num_qubits
             self._circuit = None  # rebuild circuit
 
-        # update the parameters
-        new_base_params = [Parameter('θ{}'.format(self.num_parameters + i))
-                           for i in range(len(get_parameters(block)))]
-        self._blockwise_base_params += [new_base_params]
-        self._base_params += new_base_params
-        self._surface_params += get_parameters(block)
-
         # modify the circuit accordingly
-        if self._circuit is None:
-            _ = self.to_circuit()  # automatically constructed
-        else:
+        if self._circuit:
             if self._insert_barriers and len(self._replist) > 1:
                 self._circuit.barrier()
 
             block, qargs = self._blocks[-1], self._qargs[-1]
-            params = self._blockwise_base_params[-1]
+            params = self.blockwise_parameters[-1]
             self._circuit.extend(self._parametrize_block(block, qargs, params))
 
         return self

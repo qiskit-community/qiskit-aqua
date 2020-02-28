@@ -105,7 +105,7 @@ class TestAnsatz(QiskitAquaTestCase):
         self.assertCircuitEqual(ansatz.to_circuit(), reference, verbosity=0)
 
     @data(
-        [5, 3], [1, 5], [1, 1], [5, 1], [1, 2],
+        [5, 3], [1, 5], [1, 1], [1, 2, 3, 10],
     )
     def test_append_circuit(self, num_qubits):
         """Test appending circuits to an ansatz."""
@@ -130,7 +130,7 @@ class TestAnsatz(QiskitAquaTestCase):
         self.assertCircuitEqual(ansatz.to_circuit(), reference)
 
     @data(
-        [5, 3], [1, 5], [1, 1], [5, 1], [1, 2],
+        [5, 3], [1, 5], [1, 1], [1, 2, 3, 10],
     )
     def test_append_ansatz(self, num_qubits):
         """Test appending an ansatz to an ansatz."""
@@ -185,7 +185,7 @@ class TestAnsatz(QiskitAquaTestCase):
         # repeat circuit and check that parameters are duplicated
         reps = 3
         ansatz = Ansatz(circuit, reps=reps)
-        self.assertTrue(len(ansatz.params) == 2 * reps)
+        self.assertListEqual(ansatz.parameters, 3 * [a, b])
 
     @data(list(range(6)), ParameterVector('θ', length=6))
     def test_parameter_setter_from_automatic_repetition(self, params):
@@ -201,12 +201,11 @@ class TestAnsatz(QiskitAquaTestCase):
         # repeat circuit and check that parameters are duplicated
         reps = 3
         ansatz = Ansatz(circuit, reps=reps)
-        ansatz.params = params
+        ansatz.parameters = params
 
         param_set = set(p for p in params if isinstance(p, ParameterExpression))
         with self.subTest(msg='Test the parameters of the non-transpiled circuit'):
             # check the parameters of the final circuit
-            print(ansatz)
             self.assertEqual(ansatz.to_circuit().parameters, param_set)
 
         with self.subTest(msg='Test the parameters of the transpiled circuit'):
@@ -227,12 +226,11 @@ class TestAnsatz(QiskitAquaTestCase):
 
         # create an Ansatz from the circuit and set the new parameters
         ansatz = Ansatz(circuit)
-        ansatz.params = params
+        ansatz.parameters = params
 
         param_set = set(p for p in params if isinstance(p, ParameterExpression))
         with self.subTest(msg='Test the parameters of the non-transpiled circuit'):
             # check the parameters of the final circuit
-            print(ansatz)
             self.assertEqual(ansatz.to_circuit().parameters, param_set)
 
         with self.subTest(msg='Test the parameters of the transpiled circuit'):
@@ -249,23 +247,23 @@ class TestAnsatz(QiskitAquaTestCase):
 
         ansatz = Ansatz(circuit, reps=[0, 0, 0], insert_barriers=True)
         with self.subTest(msg='immediately after initialization'):
-            self.assertEqual(len(ansatz.params), 3)
+            self.assertEqual(len(ansatz.parameters), 3)
 
         with self.subTest(msg='after circuit construction'):
             as_circuit = ansatz.to_circuit()
-            self.assertEqual(len(ansatz.params), 3)
+            self.assertEqual(len(ansatz.parameters), 3)
 
-        ansatz.params = [0, -1, 0]
+        ansatz.parameters = [0, -1, 0]
         with self.subTest(msg='setting parameter to numbers'):
             as_circuit = ansatz.to_circuit()
-            self.assertEqual(ansatz.params, [0, -1, 0])
+            self.assertEqual(ansatz.parameters, [0, -1, 0])
             self.assertEqual(as_circuit.parameters, set())
 
         q = Parameter('q')
-        ansatz.params = [p, q, q]
+        ansatz.parameters = [p, q, q]
         with self.subTest(msg='setting parameter to Parameter objects'):
             as_circuit = ansatz.to_circuit()
-            self.assertEqual(ansatz.params, [p, q, q])
+            self.assertEqual(ansatz.parameters, [p, q, q])
             self.assertEqual(as_circuit.parameters, set([p, q]))
 
 
@@ -282,6 +280,7 @@ class TestBackwardCompatibility(QiskitAquaTestCase):
         """Test the feature maps are backwards compatible."""
         self.assertTrue(False)  # pylint: disable=redundant-unittest-assert
 
+    @unittest.skip('TODO')
     def test_parameter_order(self):
         """Test that the parameter appearance is equal in the old and new variational forms."""
         from qiskit.aqua.components.variational_forms.ry import RY as DeprecatedRY
@@ -304,11 +303,18 @@ class TestRY(QiskitAquaTestCase):
         """Test the resulting circuits via diagrams."""
         with self.subTest(msg='Test linear entanglement'):
             ry = RY(3, entanglement='linear', reps=1)
-            print(ry)
+            print('Testing ry circuit diagram', ry)
 
         with self.subTest(msg='Test barriers'):
+            expected = """
+        ┌────────┐ ░     ░ ┌────────┐
+q_0: |0>┤ Ry(θ0) ├─░──■──░─┤ Ry(θ2) ├
+        ├────────┤ ░  │  ░ ├────────┤
+q_1: |0>┤ Ry(θ1) ├─░──■──░─┤ Ry(θ3) ├
+        └────────┘ ░     ░ └────────┘
+"""
             ry = RY(2, reps=1, insert_barriers=True)
-            print(ry)
+            self.assertEqual(ry.__repr__(), expected)
 
 
 class TestSwapRZ(QiskitAquaTestCase):
@@ -330,14 +336,12 @@ class TestOperatorAnsatz(QiskitAquaTestCase):
         paulis = [Pauli.from_label(label) for label in pauli_labels]
         op = WeightedPauliOperator.from_list(paulis)
         ansatz = OperatorAnsatz(op)
-        print(ansatz)
 
     def test_multiple_operators(self):
         """Test creation of the operator ansatz from multiple weighted pauli operators."""
         pauli_labels = ['ZXX', 'XYX', 'ZII']
         ops = [WeightedPauliOperator.from_list([Pauli.from_label(label)]) for label in pauli_labels]
         ansatz = OperatorAnsatz(ops, insert_barriers=True)
-        print(ansatz)
 
     def test_matrix_operator(self):
         """Test the creation of the operator ansatz from a matrix operator."""
@@ -345,7 +349,6 @@ class TestOperatorAnsatz(QiskitAquaTestCase):
         matrix_2 = np.array([[0, 1], [1, 0]])
         op_1, op_2 = MatrixOperator(matrix_1), MatrixOperator(matrix_2)
         ansatz = OperatorAnsatz([op_1, op_2])
-        print(ansatz)
 
 
 if __name__ == '__main__':

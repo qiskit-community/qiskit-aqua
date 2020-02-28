@@ -17,6 +17,8 @@
 TODO
     * remove the temporary param subst fix and move to ccts away from gates
     * if entanglement is not a callable, store only 2 blocks, not all of them
+    * let identify gate return a type if possible to avoid substitution, handle the circuit
+        case differently
 """
 
 from typing import Union, Optional, List, Tuple
@@ -134,46 +136,19 @@ class TwoLocalAnsatz(Ansatz):
             q_3: |0>┤ Ry(_0) ├──────────┤ Ry(_0) ├──────────
                     └────────┘          └────────┘
         """
-        self._num_qubits = num_qubits
+        # initialize Ansatz
+        super().__init__(insert_barriers=insert_barriers, initial_state=initial_state)
 
         # store arguments needing no pre-processing
+        self._num_qubits = num_qubits
         self._entanglement = entanglement
         self._parameter_prefix = parameter_prefix
         self._skip_unentangled_qubits = skip_unentangled_qubits
         self._skip_final_rotation_layer = skip_final_rotation_layer
 
         # handle the single- and two-qubit gate specifications
-        if rotation_gates is None:
-            self._rotation_gates = []
-        elif not isinstance(rotation_gates, list):
-            self._rotation_gates = [rotation_gates]
-        else:
-            self._rotation_gates = rotation_gates
-
-        if entanglement_gates is None:
-            self._entanglement_gates = []
-        elif not isinstance(entanglement_gates, list):
-            self._entanglement_gates = [entanglement_gates]
-        else:
-            self._entanglement_gates = entanglement_gates
-
-        blocks = []
-        # define the blocks of this Ansatz
-        for block_num in range(reps):
-            # append a rotation layer, if entanglement gates are specified
-            if len(self._rotation_gates) > 0:
-                blocks += [self._get_rotation_layer(block_num)]
-
-            # append an entanglement layer, if entanglement gates are specified
-            if len(self._entanglement_gates) > 0:
-                blocks += [self._get_entanglement_layer(block_num)]
-
-        # add a final rotation layer, if not specified otherwise
-        if not self._skip_final_rotation_layer and len(self._rotation_gates) > 0:
-            blocks += [self._get_rotation_layer(reps)]
-
-        # initialize Ansatz
-        super().__init__(blocks, insert_barriers=insert_barriers, initial_state=initial_state)
+        self.rotation_gates = rotation_gates or []
+        self.entanglement_gates = entanglement_gates or []
 
     def _get_rotation_layer(self, block_num: int) -> Gate:
         """Get the rotation layer for the current block.
@@ -288,6 +263,17 @@ class TwoLocalAnsatz(Ansatz):
         gate_param_list = [TwoLocalAnsatz.identify_gate(gate) for gate in self._rotation_gates]
         return gate_param_list
 
+    @rotation_gates.setter
+    def rotation_gates(self, gates):
+        """Set new rotation gates."""
+        # invalidate circuit definition
+        self._circuit = None
+
+        if not isinstance(gates, list):
+            self._rotation_gates = [gates]
+        else:
+            self._rotation_gates = gates
+
     @property
     def entanglement_gates(self) -> List[Tuple[type, int]]:
         """
@@ -299,6 +285,17 @@ class TwoLocalAnsatz(Ansatz):
         """
         gate_param_list = [TwoLocalAnsatz.identify_gate(gate) for gate in self._entanglement_gates]
         return gate_param_list
+
+    @entanglement_gates.setter
+    def entanglement_gates(self, gates):
+        """Set new entanglement gates."""
+        # invalidate circuit definition
+        self._circuit = None
+
+        if not isinstance(gates, list):
+            self._entanglement_gates = [gates]
+        else:
+            self._entanglement_gates = gates
 
     @staticmethod
     def identify_gate(gate: Union[str, type, QuantumCircuit]) -> Tuple[type, int]:
@@ -394,3 +391,37 @@ class TwoLocalAnsatz(Ansatz):
             return validate_entangler_map(self._entanglement, self.num_qubits)
         else:
             raise AquaError('Unsupported format of entanglement!')
+
+    def to_circuit(self):
+        """Construct the circuit."""
+        # the first time `to_circuit` is called we need to add the blocks
+        if len(self._blocks) == 0:
+            if self.num_qubits is None:
+                raise AquaError('The number of qubits has not been set!')
+
+            if self.rotation_gates is None:
+                raise AquaError('No rotation gates are specified.')
+
+            if self.entanglement_gates is None:
+                raise AquaError('No entanglement gates are specified.')
+
+            blocks = []
+            # define the blocks of this Ansatz
+            for block_num in range(self._reps):
+                # append a rotation layer, if entanglement gates are specified
+                if len(self._rotation_gates) > 0:
+                    blocks += [self._get_rotation_layer(block_num)]
+
+                # append an entanglement layer, if entanglement gates are specified
+                if len(self._entanglement_gates) > 0:
+                    blocks += [self._get_entanglement_layer(block_num)]
+
+            # add a final rotation layer, if not specified otherwise
+            if not self._skip_final_rotation_layer and len(self._rotation_gates) > 0:
+                blocks += [self._get_rotation_layer(self._reps)]
+
+            # TODO: allow adding a bunch of blocks at once
+            for block in blocks:
+                self.append(block)
+
+        return super().to_circuit()
