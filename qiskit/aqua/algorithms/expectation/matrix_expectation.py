@@ -18,7 +18,7 @@ import logging
 import numpy as np
 
 from .expectation_base import ExpectationBase
-from qiskit.aqua.operators import OpMatrix, StateFn
+from qiskit.aqua.operators import OpMatrix, StateFn, OpVec
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,16 @@ class MatrixExpectation(ExpectationBase):
     def compute_expectation(self, state=None):
         # Making the matrix into a measurement allows us to handle OpVec states, dicts, etc.
         if state or not self._matrix_op:
-            self._matrix_op = StateFn(OpMatrix(self._operator.to_matrix()), is_measurement=True)
+            mat_conversion = self._operator.to_matrix()
+            if isinstance(mat_conversion, list):
+                def recursive_opvec(t):
+                    if isinstance(t, list):
+                        return OpVec([recursive_opvec(t_op) for t_op in t])
+                    else:
+                        return StateFn(OpMatrix(t), is_measurement=True)
+                self._matrix_op = recursive_opvec(mat_conversion)
+            else:
+                self._matrix_op = StateFn(OpMatrix(mat_conversion), is_measurement=True)
             # TODO to_quantum_runnable converter?
 
         return self._matrix_op.eval(state)

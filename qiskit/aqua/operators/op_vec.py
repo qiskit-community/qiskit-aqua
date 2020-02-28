@@ -19,6 +19,7 @@ import numpy as np
 from functools import reduce
 
 from .operator_base import OperatorBase
+from .state_fn import StateFn
 
 
 class OpVec(OperatorBase):
@@ -202,7 +203,18 @@ class OpVec(OperatorBase):
         # TODO this doesn't work for compositions and krons! Needs to be to_matrix.
         """
         # TODO Do we need to use partial(np.sum, axis=0) as OpSum combo to be able to handle vector returns correctly?
-        return self.combo_fn([(self.coeff*op).eval(front, back) for op in self.oplist])
+        if back is not None and not isinstance(back, OperatorBase):
+            back = StateFn(back, is_measurement=True)
+
+        res = []
+        for op in self.oplist:
+            if isinstance(op, StateFn):
+                new_front = (self.coeff * op).eval(front)
+                res += [back.eval(new_front)] if back is not None else [new_front]
+            else:
+                res += [(self.coeff*op).eval(front, back)]
+
+        return self.combo_fn(res)
 
     def __str__(self):
         """Overload str() """
