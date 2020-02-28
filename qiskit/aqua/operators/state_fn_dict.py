@@ -22,7 +22,7 @@ from qiskit.quantum_info import Statevector
 from qiskit.result import Result
 
 from . import StateFn
-from . import OperatorBase
+from . import OperatorBase, OpVec
 
 
 
@@ -181,6 +181,13 @@ class StateFnDict(StateFn):
     def eval(self, other=None):
         # Validate bitstring: re.fullmatch(rf'[01]{{{0}}}', val1)
 
+        if not self.is_measurement and isinstance(other, OperatorBase):
+            raise ValueError('Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '
+                             'sf.adjoint() first to convert to measurement.')
+        if isinstance(other, list):
+            return [self.eval(front_elem) for front_elem in front]
+        if isinstance(other, OpVec) and other.distributive:
+            return other.combo_fn([self.eval(other.coeff * other_elem) for other_elem in other.oplist])
         # For now, always do this. If it's not performant, we can be more granular.
         if not isinstance(other, OperatorBase):
             other = StateFn(other)
@@ -189,12 +196,6 @@ class StateFnDict(StateFn):
         # zero.
         if isinstance(other, StateFnDict):
             return sum([v * other.primitive.get(b, 0) for (b, v) in self.primitive.items()]) * self.coeff * other.coeff
-
-        # Only dict is allowed for eval with StateFn which is not measurement. After this self.is_measurement is
-        # assumed to be true.
-        if not self.is_measurement:
-            raise ValueError('Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '
-                             'sf.adjoint() first to convert to measurement.')
 
         # All remaining possibilities only apply when self.is_measurement is True
 

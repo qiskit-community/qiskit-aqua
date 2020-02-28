@@ -19,9 +19,8 @@ import numpy as np
 import itertools
 
 from qiskit.quantum_info import Statevector
-from . import OperatorBase
-
 from . import StateFn
+from . import OperatorBase, OpVec
 
 
 class StateFnOperator(StateFn):
@@ -167,7 +166,10 @@ class StateFnOperator(StateFn):
         if not self.is_measurement and isinstance(other, OperatorBase):
             raise ValueError('Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '
                              'sf.adjoint() first to convert to measurement.')
-
+        if isinstance(other, list):
+            return [self.eval(front_elem) for front_elem in front]
+        if isinstance(other, OpVec) and other.distributive:
+            return other.combo_fn([self.eval(other.coeff * other_elem) for other_elem in other.oplist])
         if not isinstance(other, OperatorBase):
             other = StateFn(other)
 

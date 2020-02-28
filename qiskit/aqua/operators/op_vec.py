@@ -203,6 +203,9 @@ class OpVec(OperatorBase):
         # TODO this doesn't work for compositions and krons! Needs to be to_matrix.
         """
         # TODO Do we need to use partial(np.sum, axis=0) as OpSum combo to be able to handle vector returns correctly?
+        if isinstance(front, list):
+            return [self.eval(front_elem, back=back) for front_elem in front]
+
         if back is not None and not isinstance(back, OperatorBase):
             back = StateFn(back, is_measurement=True)
 
