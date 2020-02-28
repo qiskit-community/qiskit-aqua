@@ -67,7 +67,7 @@ these on a quantum backend, whether a real device or simulator.
 
 ### Optional Installs
 
-* **IBM CPLEX** may be [installed](qiskit/aqua/algorithms/classical/cplex/__init__.py#L16) 
+* **IBM CPLEX** may be [installed](qiskit/aqua/algorithms/minimum_eigen_solvers/cplex/__init__.py#L16) 
   to allow use of the `CPLEX_Ising` classical solver algorithm.
 * **PyTorch**, may be installed either using command `pip install qiskit-aqua[torch]` to install the
   package or refer to PyTorch [getting started](https://pytorch.org/get-started/locally/). PyTorch

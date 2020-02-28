@@ -22,7 +22,6 @@ from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.qasm import pi
 
 from qiskit.aqua import AquaError
-from .gates import mct  # pylint: disable=unused-import
 
 logger = logging.getLogger(__name__)
 
@@ -261,6 +260,7 @@ class CNF(BooleanLogicNormalForm):
     """
     Class for constructing circuits for Conjunctive Normal Forms
     """
+
     def construct_circuit(
             self,
             circuit=None,
@@ -367,6 +367,7 @@ class DNF(BooleanLogicNormalForm):
     """
     Class for constructing circuits for Disjunctive Normal Forms
     """
+
     def construct_circuit(
             self,
             circuit=None,
@@ -480,6 +481,7 @@ class ESOP(BooleanLogicNormalForm):
     """
     Class for constructing circuits for Exclusive Sum of Products
     """
+
     def construct_circuit(
             self,
             circuit=None,
