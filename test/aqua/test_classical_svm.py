@@ -12,19 +12,20 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Test SVM Classical """
+""" Test Classical SVM """
 
 from test.aqua import QiskitAquaTestCase
 import numpy as np
 from qiskit.aqua import aqua_globals
-from qiskit.aqua.algorithms import SVM_Classical
+from qiskit.aqua.algorithms import ClassicalSVM
 from qiskit.aqua.components.multiclass_extensions import (OneAgainstRest,
                                                           AllPairs,
                                                           ErrorCorrectingCode)
 
 
-class TestSVMClassical(QiskitAquaTestCase):
-    """ Test SVM Classical """
+class TestClassicalSVM(QiskitAquaTestCase):
+    """ Test Classical SVM """
+
     def setUp(self):
         super().setUp()
         aqua_globals.random_seed = 10598
@@ -98,7 +99,7 @@ class TestSVMClassical(QiskitAquaTestCase):
         total_array = np.concatenate(temp)
 
         try:
-            result = SVM_Classical(training_input, test_input, total_array).run()
+            result = ClassicalSVM(training_input, test_input, total_array).run()
             self.assertEqual(result['testing_accuracy'], 1.0)
             self.assertEqual(result['predicted_classes'],
                              ['A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A',
@@ -203,10 +204,10 @@ class TestSVMClassical(QiskitAquaTestCase):
         temp = [test_input[k] for k in sorted(test_input)]
         total_array = np.concatenate(temp)
 
-        result = SVM_Classical(training_input,
-                               test_input,
-                               total_array,
-                               multiclass_extension=OneAgainstRest()).run()
+        result = ClassicalSVM(training_input,
+                              test_input,
+                              total_array,
+                              multiclass_extension=OneAgainstRest()).run()
 
         self.assertEqual(result['testing_accuracy'], 1.0)
         self.assertEqual(result['predicted_classes'],
@@ -311,10 +312,10 @@ class TestSVMClassical(QiskitAquaTestCase):
         temp = [test_input[k] for k in sorted(test_input)]
         total_array = np.concatenate(temp)
 
-        result = SVM_Classical(training_input,
-                               test_input,
-                               total_array,
-                               multiclass_extension=AllPairs()).run()
+        result = ClassicalSVM(training_input,
+                              test_input,
+                              total_array,
+                              multiclass_extension=AllPairs()).run()
 
         self.assertEqual(result['testing_accuracy'], 1.0)
         self.assertEqual(result['predicted_classes'],
@@ -419,10 +420,10 @@ class TestSVMClassical(QiskitAquaTestCase):
         temp = [test_input[k] for k in sorted(test_input)]
         total_array = np.concatenate(temp)
 
-        result = SVM_Classical(training_input,
-                               test_input,
-                               total_array,
-                               multiclass_extension=ErrorCorrectingCode(code_size=5)).run()
+        result = ClassicalSVM(training_input,
+                              test_input,
+                              total_array,
+                              multiclass_extension=ErrorCorrectingCode(code_size=5)).run()
 
         self.assertEqual(result['testing_accuracy'], 1.0)
         self.assertEqual(result['predicted_classes'],

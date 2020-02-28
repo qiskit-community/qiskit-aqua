@@ -12,17 +12,17 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Test Exact Eigen solver """
+""" Test Classical Eigen solver """
 
 import unittest
 from test.aqua import QiskitAquaTestCase
 import numpy as np
-from qiskit.aqua.algorithms import ExactEigensolver
+from qiskit.aqua.algorithms import ClassicalEigensolver, ClassicalMinimumEigensolver
 from qiskit.aqua.operators import WeightedPauliOperator
 
 
-class TestExactEigensolver(QiskitAquaTestCase):
-    """ Test Exact Eigen solver """
+class TestClassicalEigensolver(QiskitAquaTestCase):
+    """ Test Classical Eigen solver """
     def setUp(self):
         super().setUp()
         pauli_dict = {
@@ -37,20 +37,17 @@ class TestExactEigensolver(QiskitAquaTestCase):
 
     def test_ee(self):
         """ ee test """
-        algo = ExactEigensolver(self.qubit_op, k=1, aux_operators=[])
+        algo = ClassicalMinimumEigensolver(self.qubit_op, aux_operators=[])
         result = algo.run()
-        self.assertAlmostEqual(result['energy'], -1.85727503)
-        np.testing.assert_array_almost_equal(result['energies'], [-1.85727503])
-        np.testing.assert_array_almost_equal(result['eigvals'], [-1.85727503 + 0j])
+        np.testing.assert_array_almost_equal(result.eigenvalue, -1.85727503 + 0j)
 
     def test_ee_k4(self):
         """ ee k4 test """
-        algo = ExactEigensolver(self.qubit_op, k=4, aux_operators=[])
+        algo = ClassicalEigensolver(self.qubit_op, k=4, aux_operators=[])
         result = algo.run()
-        self.assertAlmostEqual(result['energy'], -1.85727503)
-        self.assertEqual(len(result['eigvals']), 4)
-        self.assertEqual(len(result['eigvecs']), 4)
-        np.testing.assert_array_almost_equal(result['energies'],
+        self.assertEqual(len(result.eigenvalues), 4)
+        self.assertEqual(len(result.eigenstate), 4)
+        np.testing.assert_array_almost_equal(result.eigenvalues.real,
                                              [-1.85727503, -1.24458455, -0.88272215, -0.22491125])
 
 

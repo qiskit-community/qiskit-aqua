@@ -15,7 +15,7 @@
 """
 CPLEX Installation
 ==================
-The :class:`CPLEX_Ising` algorithm utilizes CPLEX from the `IBM ILOG CPLEX Optimization Studio
+The :class:`ClassicalCPLEX` algorithm utilizes CPLEX from the `IBM ILOG CPLEX Optimization Studio
 <https://www.ibm.com/support/knowledgecenter/SSSA5P_12.10.0/COS_KC_home.html>`__
 and this should be `installed
 <https://www.ibm.com/support/knowledgecenter/SSSA5P_12.10.0/ilog.odms.cplex.help/CPLEX/GettingStarted/topics/set_up/setup_synopsis.html>`__
@@ -31,6 +31,7 @@ to CPLEX for the algorithm to be operational.
 
 """
 
-from .cplex_ising import CPLEX_Ising
+from .classical_cplex import ClassicalCPLEX, CPLEX_Ising
 
-__all__ = ['CPLEX_Ising']
+__all__ = ['ClassicalCPLEX',
+           'CPLEX_Ising']
