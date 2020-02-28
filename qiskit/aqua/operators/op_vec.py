@@ -185,7 +185,10 @@ class OpVec(OperatorBase):
 
         # Combination function must be able to handle classical values
         # TODO wrap combo function in np.array? Or just here to make sure broadcasting works?
-        return self.combo_fn([op.to_matrix()*self.coeff for op in self.oplist])
+        if self.distributive:
+            return self.combo_fn([op.to_matrix()*self.coeff for op in self.oplist])
+        else:
+            return self.combo_fn([op.to_matrix() for op in self.oplist]) * self.coeff
 
     def eval(self, front=None, back=None):
         """ A square binary Operator can be defined as a function over two binary strings of equal length. This
@@ -199,7 +202,7 @@ class OpVec(OperatorBase):
         # TODO this doesn't work for compositions and krons! Needs to be to_matrix.
         """
         # TODO Do we need to use partial(np.sum, axis=0) as OpSum combo to be able to handle vector returns correctly?
-        return self.combo_fn([op.eval(front, back) * self.coeff for op in self.oplist])
+        return self.combo_fn([(self.coeff*op).eval(front, back) for op in self.oplist])
 
     def __str__(self):
         """Overload str() """

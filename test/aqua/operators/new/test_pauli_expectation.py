@@ -77,6 +77,15 @@ class TestPauliExpectation(QiskitAquaTestCase):
             np.testing.assert_array_almost_equal(sum_zero_mean[i],
                                                  sum_zero.adjoint().to_matrix() @ mat_op @ sum_zero.to_matrix())
 
+    def test_pauli_expect_state_vector(self):
+        backend = BasicAer.get_backend('qasm_simulator')
+        states_op = OpVec([One, Zero, Plus, Minus])
+
+        paulis_op = X
+        expect = PauliExpectation(operator=paulis_op, backend=backend)
+        means = expect.compute_expectation(states_op)
+        np.testing.assert_array_almost_equal(means, [0, 0, 1, -1])
+
     def test_pauli_expect_op_vector_state_vector(self):
         backend = BasicAer.get_backend('qasm_simulator')
         paulis_op = OpVec([X, Y, Z, I])
@@ -84,4 +93,8 @@ class TestPauliExpectation(QiskitAquaTestCase):
 
         expect = PauliExpectation(operator=paulis_op, backend=backend)
         means = expect.compute_expectation(states_op)
-        print(means)
+        valids = [[+0, 0, 1, -1],
+                  [+0, 0, 0,  0],
+                  [-1, 1, 0, -0],
+                  [+1, 1, 1,  1]]
+        np.testing.assert_array_almost_equal(means, valids)

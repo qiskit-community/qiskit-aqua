@@ -153,8 +153,13 @@ class OpMatrix(OpPrimitive):
         elif front is None:
             # Saves having to reimplement logic twice for front and back
             return self.adjoint().eval(front=back, back=None).adjoint()
-        # For now, always do this. If it's not performant, we can be more granular.
+        from . import OpVec
+        if isinstance(front, list):
+            return [self.eval(front_elem, back=back) for front_elem in front]
+        elif isinstance(front, OpVec) and front.distributive:
+            return front.combo_fn([self.eval(front.coeff * front_elem, back=back) for front_elem in front.oplist])
 
+        # For now, always do this. If it's not performant, we can be more granular.
         from . import StateFn
         if not isinstance(front, OperatorBase):
             front = StateFn(front)

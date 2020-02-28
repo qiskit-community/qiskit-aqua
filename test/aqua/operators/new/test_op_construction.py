@@ -81,7 +81,7 @@ class TestOpConstruction(QiskitAquaTestCase):
         full_basis = list(map(''.join, itertools.product('01', repeat=pauli_op.num_qubits)))
         for bstr1, bstr2 in itertools.product(full_basis, full_basis):
             # print('{} {} {} {}'.format(bstr1, bstr2, pauli_op.eval(bstr1, bstr2), mat_op.eval(bstr1, bstr2)))
-            self.assertEqual(pauli_op.eval(bstr1, bstr2), mat_op.eval(bstr1, bstr2))
+            np.testing.assert_array_almost_equal(pauli_op.eval(bstr1, bstr2), mat_op.eval(bstr1, bstr2))
 
         gnarly_op = OpSum([(H ^ I ^ Y).compose(X ^ X ^ Z).kron(Z),
                           OpPrimitive(Operator.from_label('+r0I')),
@@ -89,7 +89,7 @@ class TestOpConstruction(QiskitAquaTestCase):
         gnarly_mat_op = OpPrimitive(gnarly_op.to_matrix())
         full_basis = list(map(''.join, itertools.product('01', repeat=gnarly_op.num_qubits)))
         for bstr1, bstr2 in itertools.product(full_basis, full_basis):
-            self.assertEqual(gnarly_op.eval(bstr1, bstr2), gnarly_mat_op.eval(bstr1, bstr2))
+            np.testing.assert_array_almost_equal(gnarly_op.eval(bstr1, bstr2), gnarly_mat_op.eval(bstr1, bstr2))
 
     def test_circuit_construction(self):
         hadq2 = H^I

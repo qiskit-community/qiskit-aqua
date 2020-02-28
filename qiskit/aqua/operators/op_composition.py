@@ -78,7 +78,7 @@ class OpComposition(OpVec):
             # if isinstance(l, list):
             #     return [tree_recursive_eval(l_op, r) for l_op in l]
             if isinstance(r, list):
-                return [tree_recursive_eval(l, r_op) for r_op in r]
+                return [tree_recursive_eval(r_op, l) for r_op in r]
             else:
                 return l.eval(r)
 

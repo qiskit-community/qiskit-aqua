@@ -177,8 +177,13 @@ class OpPauli(OpPrimitive):
             # Saves having to reimplement logic twice for front and back
             return self.adjoint().eval(front=back).adjoint()
 
+        from . import OperatorBase, StateFn, StateFnDict, StateFnVector, StateFnOperator, OpVec
+        if isinstance(front, list):
+            return [self.eval(front_elem, back=back) for front_elem in front]
+        elif isinstance(front, OpVec) and front.distributive:
+            return front.combo_fn([self.eval(front.coeff * front_elem, back=back) for front_elem in front.oplist])
+
         # For now, always do this. If it's not performant, we can be more granular.
-        from . import OperatorBase, StateFn, StateFnDict, StateFnVector, StateFnOperator
         if not isinstance(front, OperatorBase):
             front = StateFn(front, is_measurement=False)
         if back is not None and not isinstance(back, OperatorBase):
@@ -230,6 +235,7 @@ class OpPauli(OpPrimitive):
                                                         self.to_matrix()))
         elif isinstance(front, OpPauli):
             new_front = np.diag(self.compose(front).to_matrix())
+
         elif isinstance(front, OperatorBase):
             comp = self.to_matrix() @ front.to_matrix()
             if len(comp.shape) == 1:

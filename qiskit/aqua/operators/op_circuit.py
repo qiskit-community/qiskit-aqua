@@ -184,6 +184,12 @@ class OpCircuit(OpPrimitive):
         elif front is None:
             # Saves having to reimplement logic twice for front and back
             return self.adjoint().eval(back).adjoint()
+        from . import OpVec
+        if isinstance(front, list):
+            return [self.eval(front_elem, back=back) for front_elem in front]
+        elif isinstance(front, OpVec) and front.distributive:
+            # In case front is an OpSum, we need to execute it's combination function to recombine the results.
+            return front.combo_fn([self.eval(front.coeff * front_elem, back=back) for front_elem in front.oplist])
 
         # For now, always do this. If it's not performant, we can be more granular.
         return OpPrimitive(self.to_matrix()).eval(front=front, back=back)

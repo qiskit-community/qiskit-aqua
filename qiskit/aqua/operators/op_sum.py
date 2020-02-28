@@ -16,7 +16,7 @@
 
 import numpy as np
 import copy
-from functools import reduce
+from functools import reduce, partial
 
 from .op_vec import OpVec
 
@@ -29,7 +29,7 @@ class OpSum(OpVec):
             oplist (list(OperatorBase)): The operators being summed.
             coeff (int, float, complex): A coefficient multiplying the primitive
         """
-        super().__init__(oplist, combo_fn=sum, coeff=coeff)
+        super().__init__(oplist, combo_fn=partial(reduce, lambda x, y: x+y), coeff=coeff)
 
     @property
     def num_qubits(self):
