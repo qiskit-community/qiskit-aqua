@@ -38,7 +38,7 @@ class MatrixExpectation(ExpectationBase):
 
     def compute_expectation(self, state=None):
         # Making the matrix into a measurement allows us to handle OpVec states, dicts, etc.
-        if state or not self._reduced_expect_op:
+        if state or not self._matrix_op:
             self._matrix_op = StateFn(OpMatrix(self._operator.to_matrix()), is_measurement=True)
             # TODO to_quantum_runnable converter?
 
