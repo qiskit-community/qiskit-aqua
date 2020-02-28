@@ -104,7 +104,7 @@ class UCCSD(Ansatz):
              ValueError: Computed qubits do not match actual value
         """
         validate_min('num_qubits', num_qubits, 1)
-        validate_min('depth', depth, 1)
+        validate_min('reps', reps, 1)
         validate_min('num_orbitals', num_orbitals, 1)
         if isinstance(num_particles, list) and len(num_particles) != 2:
             raise ValueError('Num particles value {}. Number of values allowed is 2'.format(
@@ -144,7 +144,7 @@ class UCCSD(Ansatz):
             logger.info("We assume that the number of alphas and betas are the same.")
             num_alpha = num_beta = num_particles // 2
 
-        if num_alpha + num_beta  > num_orbitals:
+        if num_alpha + num_beta > num_orbitals:
             raise ValueError('# of particles must be less than or equal to # of orbitals.')
 
         self._num_particles = [num_alpha, num_beta]
@@ -217,7 +217,6 @@ class UCCSD(Ansatz):
 
         num_excitations = len(self._hopping_ops)
 
-        print('num_parameters:', self._num_parameters)
         parameters = [Parameter('u{}'.format(i)) for i in range(self._num_parameters)]
         blockwise_parameters = []
         if not self.uccd_singlet:
@@ -240,10 +239,8 @@ class UCCSD(Ansatz):
                                task_args=(self._num_time_slices,),
                                num_processes=aqua_globals.num_processes)
 
-        print('blocks:', len(results))
-
         super().__init__(blocks=results, reps=depth, initial_state=initial_state,
-                         blockwise_parameters=blockwise_parameters)
+                         overwrite_block_parameters=blockwise_parameters)
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
     @property
