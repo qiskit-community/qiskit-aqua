@@ -31,7 +31,8 @@ class RY(TwoLocalAnsatz):
 
     @deprecate_arguments({'depth': 'reps',
                           'entangler_map': 'entanglement',
-                          'skip_final_ry': 'skip_final_rotation_layer'})
+                          'skip_final_ry': 'skip_final_rotation_layer',
+                          'entanglement_gate': 'entanglement_gates'})
     def __init__(self,
                  num_qubits: int,
                  reps: Optional[int] = 3,
@@ -45,6 +46,7 @@ class RY(TwoLocalAnsatz):
                  depth: Optional[int] = None,  # pylint: disable=unused-argument
                  entangler_map: Optional[List[List[int]]] = None,  # pylint: disable=unused-argument
                  skip_final_ry: Optional[bool] = None,  # pylint: disable=unused-argument
+                 entanglement_gate: Optional[str] = None,  # pylint: disable=unused-argument
                  ) -> None:
         """Initializer. Assumes that the type hints are obeyed for now.
 

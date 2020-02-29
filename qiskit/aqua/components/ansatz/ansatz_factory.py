@@ -29,10 +29,13 @@ from typing import Union, Optional, List, Any, Tuple
 
 import numbers
 import numpy
+import logging
 from qiskit import QuantumCircuit, QiskitError, transpile, QuantumRegister
 from qiskit.circuit import Gate, Instruction, Parameter, ParameterVector, ParameterExpression
 from qiskit.aqua import AquaError
 from qiskit.aqua.components.initial_states import InitialState
+
+logger = logging.getLogger(__name__)
 
 
 def get_parameters(block: Union[QuantumCircuit, Instruction]) -> List[Parameter]:
@@ -103,6 +106,7 @@ class Ansatz:
                  qubit_indices: Optional[Union[List[int], List[List[int]]]] = None,
                  reps: Optional[Union[int, List[int]]] = None,
                  insert_barriers: bool = False,
+                 parameter_prefix: str = 'θ',
                  overwrite_block_parameters: Union[bool, List[List[Parameter]]] = True,
                  initial_state: Optional[InitialState] = None) -> None:
         """Initializer. Constructs the blocks of the Ansatz from the input.
@@ -155,6 +159,8 @@ class Ansatz:
         self._surface_params = None
         self._blockwise_base_params = None
         self._base_params = None
+        self._parameter_prefix = parameter_prefix
+        self._default_parameters = []
 
         # get reps in the right format
         self._reps, self._replist = None, None
@@ -171,7 +177,7 @@ class Ansatz:
         # keep track of the parameters
         if isinstance(overwrite_block_parameters, bool):
             self._overwrite_block_parameters = overwrite_block_parameters
-        else:
+        else:  # user provided the blockwise parameters
             self._overwrite_block_parameters = False
             self.blockwise_parameters = overwrite_block_parameters
 
@@ -395,9 +401,7 @@ class Ansatz:
             #             combine_parameterlists(surface_params, get_parameters(self._blocks[i]),
             #                                 duplicate_existing=True)
             #     return surface_params
-            if self._base_params is None:
-                _ = self.blockwise_parameters
-            return self._base_params
+            return self.base_parameters
 
         return self._surface_params
 
@@ -435,6 +439,56 @@ class Ansatz:
             self._surface_params = params
 
     @property
+    def base_parameters(self):
+        """Base params."""
+        if self._base_params:
+            return self._base_params
+
+        base_params = []
+        for block in self.blockwise_parameters:
+            combine_parameterlists(base_params, block, duplicate_existing=False)
+
+        return base_params
+
+    @base_parameters.setter
+    def base_parameters(self, parameters):
+        """Set the base parameters."""
+        self._circuit._substitute_parameters(dict(zip(self._base_params, parameters)))
+        self._base_params = parameters
+
+    def _get_default_parameters(self, start: int, num: int) -> List[Parameter]:
+        """Get ``num`` default parameters. Returns the same instances if called repeatedly.
+
+        Args:
+            start: The first index of the parameters.
+            num: The number of required parameters.
+
+        Returns:
+            A list of ``num`` parameters, named ``self._parameter_prefix + i``, where the index
+            ``i`` runs from ``start`` to ``start + num``.
+
+        Note:
+            This method guarantees to return the same instances if the same indices are
+            requested, i.e.
+
+        Example:
+            >>> self._get_default_parameters(10, 2)[0] is self._get_default_parameters(10, 2)[0]
+            True
+
+        TODO:
+            Implement this more efficiently such that only the asked for params are created.
+            E.g. ``_get_default_parameters(1000, 1)`` should not create 1001 parameters, but 1.
+        """
+        num_default_parameters = len(self._default_parameters)
+        if num_default_parameters < start + num:
+            self._default_parameters += [
+                Parameter('{}{}'.format(self._parameter_prefix, num_default_parameters + i))
+                for i in range(start + num - num_default_parameters)
+            ]
+
+        return self._default_parameters[start:start + num]
+
+    @property
     def blockwise_parameters(self) -> Union[List[List[Parameter]]]:
         """Get the parameters of the Ansatz.
 
@@ -446,33 +500,23 @@ class Ansatz:
             A list containing the surface parameters.
         """
         # if no blockwise base params have been generated, generate them
-        if self._blockwise_base_params is None:
-            # empty ansatz TODO remove this case since covered by the others?
-            if len(self.blocks) == 0 or len(self.replist) == 0:
-                self._blockwise_base_params = []
-                self._base_params = []
-            elif self._overwrite_block_parameters is True:
-                param_count = 0
-                self._blockwise_base_params = []
-                self._base_params = []
-                for i in self.replist:
-                    n = len(get_parameters(self._blocks[i]))
-                    replacement_parameters = [
-                        Parameter('θ{}'.format(i)) for i in range(param_count, param_count + n)
-                    ]
-                    param_count += n
-                    self._blockwise_base_params += [replacement_parameters]
-                    self._base_params += replacement_parameters
-            else:
-                self._blockwise_base_params = []
-                self._base_params = []
-                for i in self.replist:
-                    block_params = get_parameters(self._blocks[i])
-                    self._blockwise_base_params += [block_params]
-                    combine_parameterlists(self._base_params, block_params,
-                                           duplicate_existing=False)
+        if self._blockwise_base_params:
+            return self._blockwise_base_params
 
-        return self._blockwise_base_params
+        blockwise_base_params = []
+        if self._overwrite_block_parameters is True:
+            param_count = 0
+            for i in self.replist:
+                n = len(get_parameters(self._blocks[i]))
+                replacement_parameters = self._get_default_parameters(param_count, n)
+                param_count += n
+                blockwise_base_params += [replacement_parameters]
+        else:
+            for i in self.replist:
+                block_params = get_parameters(self._blocks[i])
+                blockwise_base_params += [block_params]
+
+        return blockwise_base_params
 
     @blockwise_parameters.setter
     def blockwise_parameters(self, params: List[List[Parameter]]) -> None:
@@ -489,10 +533,6 @@ class Ansatz:
             TypeError: If the type of `params` is not supported.
         """
         self._blockwise_base_params = params
-        self._base_params = []
-        for block in params:
-            combine_parameterlists(self._base_params, block, duplicate_existing=False)
-
         self._circuit = None
 
     def bind_parameters(self, params: Union[List[float], List[Parameter], ParameterVector]
@@ -508,16 +548,13 @@ class Ansatz:
         Raises:
             TypeError: If ``params`` contains an unsupported type.
         """
-        if self._base_params is None:
-            _ = self.blockwise_parameters
-
         if all(isinstance(param, numbers.Real) for param in params):
-            param_dict = dict(zip(self._base_params, params))
+            param_dict = dict(zip(self.base_parameters, params))
             circuit_copy = self._circuit.bind_parameters(param_dict)
 
         # if they are new parameters, replace them in the circuit
         elif all(isinstance(param, Parameter) for param in params):
-            param_dict = dict(zip(self._base_params, params))
+            param_dict = dict(zip(self.base_parameters, params))
             circuit_copy = self._circuit.copy()
             circuit_copy._substitute_parameters(param_dict)
 
@@ -535,6 +572,14 @@ class Ansatz:
             The number of parameters.
         """
         return len(self.parameters)  # could also be len(self._surface_params)
+
+    @property
+    def _num_parameters(self) -> int:
+        """Deprecated, use the property ``num_qubits``."""
+        import warnings
+        warnings.warn('This private class member is deprecated and will be removed. '
+                      + 'Use the property num_parameters instead.')
+        return self.num_parameters
 
     def construct_circuit(self,
                           parameters: Union[List[float], List[Parameter], ParameterVector],
@@ -581,17 +626,10 @@ class Ansatz:
         """
         circuit = QuantumCircuit(self.num_qubits)
         circuit.append(block, qargs)
-        print('************')
-        print('parametrizing', list(circuit.parameters))
-        print(circuit.decompose())
         if params is not None:
             update = dict(zip(list(circuit.parameters), params))
-            print('update', update)
             circuit = circuit.copy()
             circuit._substitute_parameters(update)
-        print('to')
-        print(circuit.decompose())
-        print('***********')
 
         return circuit
 

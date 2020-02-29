@@ -140,12 +140,16 @@ class TwoLocalAnsatz(Ansatz):
         super().__init__(insert_barriers=insert_barriers, initial_state=initial_state)
 
         # store arguments needing no pre-processing
+        self._depth = reps
         self._num_qubits = num_qubits
         self._entanglement = entanglement
         self._parameter_prefix = parameter_prefix
-        self._param_count = 0
         self._skip_unentangled_qubits = skip_unentangled_qubits
         self._skip_final_rotation_layer = skip_final_rotation_layer
+
+        # internal variables
+        self._set_up = False  # have the entanglement/rotation layers been set up?
+        self._param_count = 0  # class-internal parameter count
 
         # handle the single- and two-qubit gate specifications
         self.rotation_gates = rotation_gates or []
@@ -210,10 +214,6 @@ class TwoLocalAnsatz(Ansatz):
                         # add the gate
                         circuit.extend(sub_circuit)
 
-        print('===========')
-        print('returning')
-        print(circuit)
-        print('===========')
         return circuit.to_gate()
 
     def _get_entanglement_layer(self, block_num: int) -> Gate:
@@ -279,6 +279,7 @@ class TwoLocalAnsatz(Ansatz):
         """Set new rotation gates."""
         # invalidate circuit definition
         self._circuit = None
+        self._set_up = False
 
         if not isinstance(gates, list):
             self._rotation_gates = [gates]
@@ -302,6 +303,7 @@ class TwoLocalAnsatz(Ansatz):
         """Set new entanglement gates."""
         # invalidate circuit definition
         self._circuit = None
+        self._set_up = False
 
         if not isinstance(gates, list):
             self._entanglement_gates = [gates]
@@ -422,7 +424,7 @@ class TwoLocalAnsatz(Ansatz):
         blocks = []
         self._param_count = 0
         # define the blocks of this Ansatz
-        for block_num in range(self._reps):
+        for block_num in range(self._depth):
             # append a rotation layer, if entanglement gates are specified
             if len(self._rotation_gates) > 0:
                 blocks += [self._get_rotation_layer(block_num)]
@@ -435,11 +437,26 @@ class TwoLocalAnsatz(Ansatz):
         if not self._skip_final_rotation_layer and len(self._rotation_gates) > 0:
             blocks += [self._get_rotation_layer(self._reps)]
 
-        # TODO: allow adding a bunch of blocks at once
+        self._set_up = True
+
         self._overwrite_block_parameters = False
         self.blocks = blocks
 
+    @property
+    def num_parameters(self):
+        """"""
+        if not self._set_up:
+            self._set_blocks()
+        return super().num_parameters
+
+    @property
+    def paramters(self):
+        if not self._set_up:
+            self._set_blocks()
+        return super().paramters
+
     def to_circuit(self):
         """Construct the circuit."""
-        self._set_blocks()
+        if not self._set_up:
+            self._set_blocks()
         return super().to_circuit()
