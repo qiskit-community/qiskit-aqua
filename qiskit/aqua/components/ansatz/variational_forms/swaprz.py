@@ -60,7 +60,7 @@ class SwapRZ(TwoLocalAnsatz):
                  num_qubits: int,
                  entanglement: Union[str, List[List[int]], callable] = 'full',
                  reps: Optional[int] = 3,
-                 parameter_prefix: str = '_',
+                 parameter_prefix: str = 'θ',
                  insert_barriers: bool = False,
                  skip_unentangled_qubits: bool = False,
                  skip_final_rotation_layer: bool = False,

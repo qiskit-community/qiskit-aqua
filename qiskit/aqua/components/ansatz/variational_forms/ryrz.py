@@ -39,7 +39,7 @@ class RYRZ(TwoLocalAnsatz):
                  initial_state: Optional[InitialState] = None,
                  skip_unentangled_qubits: bool = False,
                  skip_final_rotation_layer: bool = False,
-                 parameter_prefix: str = '_',
+                 parameter_prefix: str = 'θ',
                  insert_barriers: bool = False,
                  depth: Optional[int] = None,  # pylint: disable=unused-argument
                  entangler_map: Optional[List[List[int]]] = None,  # pylint: disable=unused-argument
