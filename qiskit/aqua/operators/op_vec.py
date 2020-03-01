@@ -218,6 +218,13 @@ class OpVec(OperatorBase):
                 res += [(self.coeff*op).eval(front, back)]
 
         return self.combo_fn(res)
+        # res = self.combo_fn([(self.coeff * op).eval(front) for op in self.oplist])
+        # if back is not None:
+        #     if not isinstance(back, StateFn):
+        #         back = StateFn(back, is_measurement=True)
+        #     res = back.eval(res)
+        #
+        # return res
 
     def __str__(self):
         """Overload str() """

@@ -180,14 +180,18 @@ class OpPauli(OpPrimitive):
         from . import OperatorBase, StateFn, StateFnDict, StateFnVector, StateFnOperator, OpVec
         if isinstance(front, list):
             return [self.eval(front_elem, back=back) for front_elem in front]
+
         elif isinstance(front, OpVec) and front.distributive:
             return front.combo_fn([self.eval(front.coeff * front_elem, back=back) for front_elem in front.oplist])
-
         # For now, always do this. If it's not performant, we can be more granular.
         if not isinstance(front, OperatorBase):
             front = StateFn(front, is_measurement=False)
-        if back is not None and not isinstance(back, OperatorBase):
-            back = StateFn(back, is_measurement=True)
+        # if back is not None and not isinstance(back, OperatorBase):
+        #     back = StateFn(back, is_measurement=True)
+        # if isinstance(front, OpVec) and front.distributive:
+        #     new_front = front.combo_fn([self.eval(front.coeff * front_elem) for front_elem in front.oplist])
+        #     if back is not None:
+        #         return back.eval(new_front)
 
         # Hack for speed
         if isinstance(front, StateFnDict) and isinstance(back, StateFnDict):

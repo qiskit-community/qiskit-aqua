@@ -60,12 +60,20 @@ class TestMatrixExpectation(QiskitAquaTestCase):
         zero_mean = expect.compute_expectation(Zero)
         np.testing.assert_array_almost_equal(zero_mean, [0, 0, 1, 1])
 
-        sum_zero = (Plus+Minus)*(.5**.5)
+        sum_plus = (Zero + One) * (.5 ** .5)
+        sum_plus_mean = expect.compute_expectation(sum_plus)
+        np.testing.assert_array_almost_equal(sum_plus_mean, [1, 0, 0, 1])
+
+        sum_zero = (Plus + Minus)*(.5**.5)
+        print(np.around(sum_zero.adjoint().to_matrix() @
+                        ((Z.to_matrix() @ Plus.to_matrix()) + (Z.to_matrix() @ One.to_matrix()))))
+        print(np.around(sum_zero.adjoint().to_matrix() @ Z.to_matrix() @ sum_zero.to_matrix()))
+        print(np.around(Zero.adjoint().to_matrix() @ Z.to_matrix() @ Zero.to_matrix()))
         sum_zero_mean = expect.compute_expectation(sum_zero)
         np.testing.assert_array_almost_equal(sum_zero_mean, [0, 0, 1, 1])
 
         for i, op in enumerate(paulis_op.oplist):
-            print(op)
+            # print(op)
             mat_op = op.to_matrix()
             np.testing.assert_array_almost_equal(plus_mean[i],
                                                  Plus.adjoint().to_matrix() @ mat_op @ Plus.to_matrix())
