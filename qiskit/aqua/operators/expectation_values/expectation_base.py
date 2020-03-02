@@ -77,14 +77,12 @@ class ExpectationBase():
             # Matrix operator and compute using matmul
             elif is_statevector_backend(backend):
                 from .matrix_expectation import MatrixExpectation
-                backend = BasicAer.get_backend('statevector_simulator')
                 if operator.num_qubits >= 16:
                     logging.warning('Note: Using a statevector_simulator with {} qubits can be very expensive. '
                                     'Consider using the Aer qasm_simulator instead to take advantage of Aer\'s '
                                     'built-in fast Pauli Expectation'.format(operator.num_qubits))
                 # TODO do this properly with converters
-                mat_operator = OpPrimitive(operator.to_matrix())
-                return MatrixExpectation(operator=mat_operator, backend=backend, state=state)
+                return MatrixExpectation(operator=operator, backend=backend, state=state)
 
             # All other backends, including IBMQ, BasicAer QASM, go here.
             else:
@@ -113,19 +111,3 @@ class ExpectationBase():
 
     def compute_expectation(self, state=None):
         pass
-
-    def reduce_to_opsum_or_vec(self, operator):
-        """ Takes an operator of Pauli primtives and rearranges it to be an OpVec of OpSums of Pauli primitives.
-        Recursively traverses the operator to check that for each node in the tree, either:
-        1) node is a Pauli primitive.
-        2) node is an OpSum containing only Pauli primtiives.
-        3) node is an OpVec containing only OpSums.
-
-        If these three conditions are true for all nodes, the expectation can proceed. If not, the following must
-        happen:
-        1) If node is a non-Pauli primitive, check if there is a converter for that primitive. If not, return an error.
-        2) If node is an OpSum containing non-Pauli primitive subnodes:
-            a) If subnode is
-        """
-        if isinstance(operator, OpVec) and all([isinstance(op, OpSum) for op in operator.oplist]):
-            return 0
