@@ -19,8 +19,9 @@ import numpy as np
 from abc import abstractmethod
 
 from qiskit import BasicAer
-from qiskit.aqua import AquaError, QuantumAlgorithm, QuantumInstance
+from qiskit.aqua import AquaError, QuantumAlgorithm
 from qiskit.aqua.operators import OpVec, OpPrimitive, OpSum
+from qiskit.aqua.operators.circuit_samplers import CircuitSampler
 
 from qiskit.aqua.utils.backend_utils import (is_statevector_backend,
                                              is_aer_qasm,
@@ -40,7 +41,7 @@ class ExpectationBase():
         self._circuit_sampler = None
 
     def set_backend(self, backend=None):
-        self._circuit_sampler = QuantumInstance(backend=backend)
+        self._circuit_sampler = CircuitSampler(backend=backend)
 
     @staticmethod
     def factory(operator, backend=None, state=None):

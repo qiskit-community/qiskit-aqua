@@ -124,6 +124,11 @@ class OpCircuit(OpPrimitive):
 
         other = self._check_zero_for_composition_and_expand(other)
 
+        from . import Zero
+        if other == Zero^self.num_qubits:
+            from . import StateFnCircuit
+            return StateFnCircuit(self.primitive, coeff=self.coeff)
+
         from . import OpPauli
         if isinstance(other, OpPauli):
             from qiskit.aqua.operators.converters import PaulitoInstruction

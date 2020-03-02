@@ -73,10 +73,15 @@ from .op_primitive import OpPrimitive
 from .op_pauli import OpPauli
 from .op_matrix import OpMatrix
 from .op_circuit import OpCircuit
-from .state_fn import StateFn
-from .state_fn_dict import StateFnDict
-from .state_fn_operator import StateFnOperator
-from .state_fn_vector import StateFnVector
+from qiskit.aqua.operators.state_functions.state_fn import StateFn
+from qiskit.aqua.operators.state_functions.state_fn_dict import StateFnDict
+from qiskit.aqua.operators.state_functions.state_fn_vector import StateFnVector
+from qiskit.aqua.operators.state_functions.state_fn_operator import StateFnOperator
+from qiskit.aqua.operators.state_functions.state_fn_circuit import StateFnCircuit
+
+# from .converters import PauliChangeOfBasis, PaulitoInstruction, ToMatrixOp
+# from .expectation_values import PauliExpectation, MatrixExpectation, AerPauliExpectation
+# from .circuit_samplers import LocalSimulatorSampler, IBMQSampler
 
 # Paulis
 X = OpPrimitive(Pauli.from_label('X'))

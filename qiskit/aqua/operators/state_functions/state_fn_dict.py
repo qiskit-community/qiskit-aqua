@@ -21,8 +21,8 @@ import itertools
 from qiskit.quantum_info import Statevector
 from qiskit.result import Result
 
-from . import StateFn
-from . import OperatorBase, OpVec
+from qiskit.aqua.operators import StateFn
+from qiskit.aqua.operators import OperatorBase, OpVec
 
 
 
@@ -94,7 +94,7 @@ class StateFnDict(StateFn):
                                  if b not in self.primitive})
                 return StateFn(new_dict, is_measurement=self._is_measurement)
 
-        from . import OpSum
+        from qiskit.aqua.operators import OpSum
         return OpSum([self, other])
 
     def adjoint(self):
@@ -120,7 +120,7 @@ class StateFnDict(StateFn):
                            coeff=self.coeff * other.coeff,
                            is_measurement=self.is_measurement)
 
-        from . import OpKron
+        from qiskit.aqua.operators import OpKron
         return OpKron([self, other])
 
     def to_density_matrix(self, massive=False):

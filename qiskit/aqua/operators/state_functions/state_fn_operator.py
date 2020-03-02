@@ -19,8 +19,8 @@ import numpy as np
 import itertools
 
 from qiskit.quantum_info import Statevector
-from . import StateFn
-from . import OperatorBase, OpVec, OpSum
+from qiskit.aqua.operators import StateFn
+from qiskit.aqua.operators import OperatorBase, OpVec, OpSum
 
 
 class StateFnOperator(StateFn):
@@ -185,7 +185,9 @@ class StateFnOperator(StateFn):
             return np.trace(self.primitive.to_matrix() @ other.to_matrix())
         elif isinstance(other, OperatorBase):
             comp = other.adjoint().to_matrix() @ self.primitive.to_matrix() @ other.to_matrix()
-            if comp.shape == (1, ):
+            if isinstance(comp, (int, float, complex)):
+                return comp
+            elif comp.shape == (1, ):
                 return comp[0]
             else:
                 return np.diag(comp)

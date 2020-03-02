@@ -19,7 +19,7 @@ import numpy as np
 from functools import reduce
 
 from .operator_base import OperatorBase
-from .state_fn import StateFn
+from qiskit.aqua.operators.state_functions.state_fn import StateFn
 
 
 class OpVec(OperatorBase):

@@ -22,6 +22,8 @@ import itertools
 
 from qiskit.quantum_info import Statevector
 from qiskit.result import Result
+from qiskit import QuantumCircuit
+from qiskit.circuit import Instruction
 
 from qiskit.aqua.operators.operator_base import OperatorBase
 
@@ -57,6 +59,10 @@ class StateFn(OperatorBase):
         if isinstance(primitive, (list, np.ndarray, Statevector)):
             from . import StateFnVector
             return StateFnVector.__new__(StateFnVector)
+
+        if isinstance(primitive, (QuantumCircuit, Instruction)):
+            from . import StateFnCircuit
+            return StateFnCircuit.__new__(StateFnCircuit)
 
         if isinstance(primitive, OperatorBase):
             from . import StateFnOperator
@@ -151,7 +157,7 @@ class StateFn(OperatorBase):
     def _check_zero_for_composition_and_expand(self, other):
         new_self = self
         if not self.num_qubits == other.num_qubits:
-            from . import Zero
+            from qiskit.aqua.operators import Zero
             if self == StateFn({'0': 1}, is_measurement=True):
                 # Zero is special - we'll expand it to the correct qubit number.
                 new_self = StateFn('0' * self.num_qubits, is_measurement=True)
@@ -175,7 +181,11 @@ class StateFn(OperatorBase):
         new_self, other = self._check_zero_for_composition_and_expand(other)
         # TODO maybe include some reduction here in the subclasses - vector and Op, op and Op, etc.
 
-        from . import OpComposition
+        from qiskit.aqua.operators import OpCircuit
+        if self.primitive == {'0'*self.num_qubits: 1.0} and isinstance(other, OpCircuit):
+            return StateFn(other.primitive, is_measurement=self.is_measurement, coeff=self.coeff * other.coeff)
+
+        from qiskit.aqua.operators import OpComposition
         return OpComposition([new_self, other])
 
     def power(self, other):

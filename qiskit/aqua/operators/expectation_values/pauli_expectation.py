@@ -63,10 +63,10 @@ class PauliExpectation(ExpectationBase):
             self._reduced_expect_op = self.expectation_op(state=state)
             # TODO to_quantum_runnable converter?
 
-        if 'Instruction' in self._reduced_expect_op.get_primitives() and False:
+        if 'Instruction' in self._reduced_expect_op.get_primitives():
             # TODO check if params have been sufficiently provided.
             if self._circuit_sampler:
-                measured_op = self._circuit_sampler.run_circuits(self._reduced_expect_op)
+                measured_op = self._circuit_sampler.convert(self._reduced_expect_op)
                 return measured_op.eval()
             else:
                 raise ValueError('Unable to compute expectation of functions containing circuits without a backend '

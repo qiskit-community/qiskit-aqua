@@ -20,8 +20,8 @@ import itertools
 
 from qiskit.quantum_info import Statevector
 
-from . import StateFn
-from . import OperatorBase, OpVec
+from qiskit.aqua.operators import StateFn
+from qiskit.aqua.operators import OperatorBase, OpVec
 
 
 class StateFnVector(StateFn):
