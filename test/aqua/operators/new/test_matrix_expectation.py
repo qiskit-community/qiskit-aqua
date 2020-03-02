@@ -22,7 +22,7 @@ import itertools
 from qiskit.aqua.operators import X, Y, Z, I, CX, T, H, S, OpPrimitive, OpSum, OpComposition, OpVec
 from qiskit.aqua.operators import StateFn, Zero, One, Plus, Minus
 
-from qiskit.aqua.algorithms.expectation import ExpectationBase, MatrixExpectation
+from qiskit.aqua.operators.expectation_values import ExpectationBase, MatrixExpectation
 from qiskit import BasicAer
 
 
