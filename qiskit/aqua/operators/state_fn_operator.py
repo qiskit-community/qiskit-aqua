@@ -182,7 +182,7 @@ class StateFnOperator(StateFn):
             return other.combo_fn([self.eval(other.coeff * other_elem) for other_elem in other.oplist])
 
         if isinstance(other, StateFnOperator):
-            return np.trace(self.to_matrix() @ other.to_matrix())
+            return np.trace(self.primitive.to_matrix() @ other.to_matrix())
         elif isinstance(other, OperatorBase):
             comp = other.adjoint().to_matrix() @ self.primitive.to_matrix() @ other.to_matrix()
             if comp.shape == (1, ):
