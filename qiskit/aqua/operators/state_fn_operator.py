@@ -20,7 +20,7 @@ import itertools
 
 from qiskit.quantum_info import Statevector
 from . import StateFn
-from . import OperatorBase, OpVec
+from . import OperatorBase, OpVec, OpSum
 
 
 class StateFnOperator(StateFn):
@@ -169,16 +169,14 @@ class StateFnOperator(StateFn):
         if isinstance(other, list):
             return [self.eval(front_elem) for front_elem in front]
 
-        if isinstance(other, OpVec) and other.distributive:
-            return other.combo_fn([self.eval(other.coeff * other_elem) for other_elem in other.oplist])
         if not isinstance(other, OperatorBase):
             other = StateFn(other)
-        # if not isinstance(other, OperatorBase):
-        #     other = StateFn(other)
-        # if isinstance(other, OpVec) and other.distributive:
-        #     # Need to do this in two steps to deal with the cross-terms
-        #     front_res = other.combo_fn([self.primitive.eval(other.coeff * other_elem) for other_elem in other.oplist])
-        #     return other.adjoint().eval(front_res)
+        if isinstance(other, OpSum):
+            # Need to do this in two steps to deal with the cross-terms
+            front_res = other.combo_fn([self.primitive.eval(other.coeff * other_elem) for other_elem in other.oplist])
+            return other.adjoint().eval(front_res)
+        elif isinstance(other, OpVec) and other.distributive:
+            return other.combo_fn([self.eval(other.coeff * other_elem) for other_elem in other.oplist])
 
         if isinstance(other, StateFnOperator):
             return np.trace(self.to_matrix() @ other.to_matrix())

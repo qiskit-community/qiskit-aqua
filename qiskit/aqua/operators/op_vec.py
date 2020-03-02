@@ -202,6 +202,10 @@ class OpVec(OperatorBase):
 
         # TODO this doesn't work for compositions and krons! Needs to be to_matrix.
         """
+        # The below code only works for distributive OpVecs, e.g. OpVec and OpSum
+        if not self.distributive:
+            return NotImplementedError
+
         # TODO Do we need to use partial(np.sum, axis=0) as OpSum combo to be able to handle vector returns correctly?
         if isinstance(front, list):
             return [self.eval(front_elem, back=back) for front_elem in front]
@@ -218,13 +222,6 @@ class OpVec(OperatorBase):
                 res += [(self.coeff*op).eval(front, back)]
 
         return self.combo_fn(res)
-        # res = self.combo_fn([(self.coeff * op).eval(front) for op in self.oplist])
-        # if back is not None:
-        #     if not isinstance(back, StateFn):
-        #         back = StateFn(back, is_measurement=True)
-        #     res = back.eval(res)
-        #
-        # return res
 
     def __str__(self):
         """Overload str() """
