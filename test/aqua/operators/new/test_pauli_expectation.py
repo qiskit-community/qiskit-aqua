@@ -36,7 +36,7 @@ class TestPauliExpectation(QiskitAquaTestCase):
         # wf = (Pl^Pl) + (Ze^Ze)
         wf = CX @ (H^I) @ Zero
         mean = expect.compute_expectation(wf)
-        self.assertAlmostEqual(mean, 0)
+        self.assertAlmostEqual(mean, 0, delta=.1)
 
     def test_pauli_expect_single(self):
         backend = BasicAer.get_backend('qasm_simulator')

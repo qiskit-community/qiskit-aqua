@@ -56,6 +56,8 @@ class LocalSimulatorSampler(CircuitSampler):
             elif isinstance(operator, OpVec):
                 for op in operator.oplist:
                     extract_statefncircuits(op)
+            else:
+                return operator
 
         extract_statefncircuits(reduced_op)
         sampled_statefn_dicts = self.sample_circuits(list(op_circuits.values()))
@@ -65,6 +67,8 @@ class LocalSimulatorSampler(CircuitSampler):
                 return sampled_statefn_dicts[str(operator)]
             elif isinstance(operator, OpVec):
                 return operator.traverse(replace_circuits_with_dicts)
+            else:
+                return operator
 
         return replace_circuits_with_dicts(reduced_op)
 
