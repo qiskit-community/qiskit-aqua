@@ -14,15 +14,13 @@
 
 import logging
 import numpy as np
-import itertools
 
 from qiskit import QuantumCircuit
 from qiskit.circuit import Instruction
 from qiskit.quantum_info import Pauli
-from qiskit.quantum_info import Operator as MatrixOperator, Statevector
+from qiskit.quantum_info import Operator as MatrixOperator
 
 from .operator_base import OperatorBase
-from .state_fn import StateFn
 
 logger = logging.getLogger(__name__)
 
