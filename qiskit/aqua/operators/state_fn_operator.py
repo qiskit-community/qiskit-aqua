@@ -171,6 +171,9 @@ class StateFnOperator(StateFn):
 
         if not isinstance(other, OperatorBase):
             other = StateFn(other)
+
+        # Need a carve-out here to deal with cross terms in sum. Unique to StateFnOperator working with OpSum,
+        # other measurements don't have this issue.
         if isinstance(other, OpSum):
             # Need to do this in two steps to deal with the cross-terms
             front_res = other.combo_fn([self.primitive.eval(other.coeff * other_elem) for other_elem in other.oplist])
