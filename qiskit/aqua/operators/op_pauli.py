@@ -124,6 +124,10 @@ class OpPauli(OpPrimitive):
 
         other = self._check_zero_for_composition_and_expand(other)
 
+        # If self is identity, just return other.
+        if not any(self.primitive.x + self.primitive.z):
+            return other
+
         # Both Paulis
         if isinstance(other, OpPauli):
             return OpPrimitive(self.primitive * other.primitive, coeff=self.coeff * other.coeff)
