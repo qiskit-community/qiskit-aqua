@@ -30,7 +30,7 @@ class LocalSimulatorSampler(CircuitSampler):
 
     """
 
-    def __init__(self, backend, hw_backend_to_emulate=None, kwargs={}):
+    def __init__(self, backend, kwargs={}, hw_backend_to_emulate=None):
         """
         Args:
             backend():
@@ -74,9 +74,13 @@ class LocalSimulatorSampler(CircuitSampler):
     def sample_circuits(self, op_circuits):
         """
         Args:
-            op_circuits(list): The list of circuits to sample
+            op_circuits(list): The list of circuits or StateFnCircuits to sample
         """
-        circuits = [op_c.to_circuit(meas=True) for op_c in op_circuits]
+        if all([isinstance(circ, StateFnCircuit) for circ in op_circuits]):
+            circuits = [op_c.to_circuit(meas=True) for op_c in op_circuits]
+        else:
+            circuits = op_circuits
+
         results = self._qi.execute(circuits)
         sampled_statefn_dicts = {}
         for (op_c, circuit) in zip(op_circuits, circuits):
