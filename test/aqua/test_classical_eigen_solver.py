@@ -17,7 +17,8 @@
 import unittest
 from test.aqua import QiskitAquaTestCase
 import numpy as np
-from qiskit.aqua.algorithms import ClassicalEigensolver, ClassicalMinimumEigensolver
+from qiskit.aqua import AquaError
+from qiskit.aqua.algorithms import ClassicalEigensolver
 from qiskit.aqua.operators import WeightedPauliOperator
 
 
@@ -35,20 +36,28 @@ class TestClassicalEigensolver(QiskitAquaTestCase):
         }
         self.qubit_op = WeightedPauliOperator.from_dict(pauli_dict)
 
-    def test_ee(self):
-        """ ee test """
-        algo = ClassicalMinimumEigensolver(self.qubit_op, aux_operators=[])
+    def test_ce(self):
+        """ Test basics """
+        algo = ClassicalEigensolver(self.qubit_op, aux_operators=[])
         result = algo.run()
-        np.testing.assert_array_almost_equal(result.eigenvalue, -1.85727503 + 0j)
+        self.assertEqual(len(result.eigenvalues), 1)
+        self.assertEqual(len(result.eigenstates), 1)
+        self.assertAlmostEqual(result.eigenvalues[0], -1.85727503 + 0j)
 
-    def test_ee_k4(self):
-        """ ee k4 test """
+    def test_ce_k4(self):
+        """ Test for k=4 eigenvalues """
         algo = ClassicalEigensolver(self.qubit_op, k=4, aux_operators=[])
         result = algo.run()
         self.assertEqual(len(result.eigenvalues), 4)
-        self.assertEqual(len(result.eigenstate), 4)
+        self.assertEqual(len(result.eigenstates), 4)
         np.testing.assert_array_almost_equal(result.eigenvalues.real,
                                              [-1.85727503, -1.24458455, -0.88272215, -0.22491125])
+
+    def test_ce_fail(self):
+        """ Test no operator """
+        algo = ClassicalEigensolver()
+        with self.assertRaises(AquaError):
+            _ = algo.run()
 
 
 if __name__ == '__main__':

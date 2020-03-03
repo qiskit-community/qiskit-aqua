@@ -50,7 +50,7 @@ class TestClassicalMinimumEigensolver(QiskitAquaTestCase):
                         WeightedPauliOperator.from_dict(aux_dict_2)]
 
     def test_cme(self):
-        """ cme test """
+        """ Basic test """
         algo = ClassicalMinimumEigensolver(self.qubit_op, aux_operators=self.aux_ops)
         result = algo.run()
         self.assertAlmostEqual(result.eigenvalue, -1.85727503 + 0j)
@@ -59,13 +59,13 @@ class TestClassicalMinimumEigensolver(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(result.aux_operator_eigenvalues[1], [0, 0])
 
     def test_cme_fail(self):
-        """ cme test, no operator """
+        """ Test no operator """
         algo = ClassicalMinimumEigensolver()
         with self.assertRaises(AquaError):
             _ = algo.run()
 
     def test_cme_reuse(self):
-        """ cme test, tests reuse """
+        """ Test reuse """
         # Start with no operator or aux_operators, give via compute method
         algo = ClassicalMinimumEigensolver()
         result = algo.compute_minimum_eigenvalue(self.qubit_op)

@@ -17,8 +17,8 @@
 from typing import List, Optional
 import logging
 import pprint
-import numpy as np
-from qiskit.aqua.algorithms import ClassicalEigensolver
+
+from qiskit.aqua.algorithms import ClassicalAlgorithm, ClassicalEigensolver
 from qiskit.aqua.operators import BaseOperator
 from .minimum_eigen_solver import MinimumEigensolver
 from .minimum_eigen_solver_result import MinimumEigensolverResult
@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 # pylint: disable=invalid-name
 
-class ClassicalMinimumEigensolver(ClassicalEigensolver, MinimumEigensolver):
+class ClassicalMinimumEigensolver(ClassicalAlgorithm, MinimumEigensolver):
     """
     The Classical Minimum Eigensolver algorithm.
     """
@@ -40,36 +40,27 @@ class ClassicalMinimumEigensolver(ClassicalEigensolver, MinimumEigensolver):
             operator: Operator instance
             aux_operators: Auxiliary operators to be evaluated at minimum eigenvalue
         """
-        super().__init__(operator, 1, aux_operators)
+        self._ces = ClassicalEigensolver(operator, 1, aux_operators)
+        self._ret = {}  # TODO remove
 
-    def _run(self) -> MinimumEigensolverResult:
-        """
-        Run the algorithm to compute up to the minimum eigenvalue.
-        Returns:
-            dict: Dictionary of results
-        """
-        super()._run()
+    @property
+    def operator(self) -> BaseOperator:
+        return self._ces.operator
 
-        logger.debug('ClassicalMinimumEigensolver _run result:\n%s',
-                     pprint.pformat(self._ret, indent=4))
-        result = MinimumEigensolverResult()
-        if 'eigvals' in self._ret and \
-                isinstance(self._ret['eigvals'], np.ndarray) and \
-                self._ret['eigvals'].size > 0:
-            result.eigenvalue = self._ret['eigvals'][0]
-        if 'eigvecs' in self._ret and \
-                isinstance(self._ret['eigvecs'], np.ndarray) and \
-                self._ret['eigvecs'].size > 0:
-            result.eigenstate = self._ret['eigvecs'][0]
-        if 'aux_ops' in self._ret and \
-                isinstance(self._ret['aux_ops'], np.ndarray) and \
-                self._ret['aux_ops'].size > 0:
-            result.aux_operator_eigenvalues = self._ret['aux_ops'][0]
+    @operator.setter
+    def operator(self, operator: BaseOperator) -> None:
+        self._ces.operator = operator
 
-        logger.debug('MinimumEigensolverResult dict:\n%s',
-                     pprint.pformat(result.data, indent=4))
+    @property
+    def aux_operators(self) -> List[BaseOperator]:
+        return self._ces.aux_operators
 
-        return result
+    @aux_operators.setter
+    def aux_operators(self, aux_operators: List[BaseOperator]) -> None:
+        self._ces.aux_operators = aux_operators
+
+    def supports_aux_operators(self) -> bool:
+        return self._ces.supports_aux_operators()
 
     def compute_minimum_eigenvalue(
             self, operator: BaseOperator = None,
@@ -77,5 +68,23 @@ class ClassicalMinimumEigensolver(ClassicalEigensolver, MinimumEigensolver):
         super().compute_minimum_eigenvalue(operator, aux_operators)
         return self._run()
 
-    def supports_aux_operators(self) -> bool:
-        return True
+    def _run(self) -> MinimumEigensolverResult:
+        """
+        Run the algorithm to compute up to the minimum eigenvalue.
+        Returns:
+            dict: Dictionary of results
+        """
+        result_ces = self._ces.run()
+        self._ret = self._ces._ret  # TODO remove
+
+        result = MinimumEigensolverResult()
+        result.eigenvalue = result_ces.eigenvalues[0]
+        result.eigenstate = result_ces.eigenstates[0]
+        if result_ces.aux_operator_eigenvalues is not None:
+            if len(result_ces.aux_operator_eigenvalues) > 0:
+                result.aux_operator_eigenvalues = result_ces.aux_operator_eigenvalues[0]
+
+        logger.debug('ClassicalMinimumEigensolver dict:\n%s',
+                     pprint.pformat(result.data, indent=4))
+
+        return result
