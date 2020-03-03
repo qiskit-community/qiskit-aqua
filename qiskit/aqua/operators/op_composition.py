@@ -58,8 +58,20 @@ class OpComposition(OpVec):
 
     def compose(self, other):
         """ Operator Composition (Circuit-style, left to right) """
+        # Try composing with last element in list
         if isinstance(other, OpComposition):
             return OpComposition(self.oplist + other.oplist, coeff=self.coeff*other.coeff)
+
+        # Try composing with last element of oplist. We only try this if that last element isn't itself an
+        # OpComposition, so we can tell whether composing the two elements directly worked. If it doesn't,
+        # continue to the final return statement below, appending other to the oplist.
+        if not isinstance(self.oplist[-1], OpComposition):
+            comp_with_last = self.oplist[-1].compose(other)
+            # Attempt successful
+            if not isinstance(comp_with_last, OpComposition):
+                new_oplist = self.oplist[0:-1] + [comp_with_last]
+                return OpComposition(new_oplist, coeff=self.coeff)
+
         return OpComposition(self.oplist + [other], coeff=self.coeff)
 
     def eval(self, front=None, back=None):
@@ -93,38 +105,8 @@ class OpComposition(OpVec):
 
         return reduce(tree_recursive_eval, reversed(eval_list))
 
-        # def tree_eval(t):
-        #     if isinstance(t, list):
-        #         return [tree_eval(t_op) for t_op in t]
-        #     else:
-        #         if len(t.shape) == 2 and t.shape[0] == t.shape[1]:
-        #             from . import OpPrimitive
-        #             t_mat_op = OpPrimitive(t, coeff=coeff)
-        #             return t_mat_op.eval(front=front, back=back)
-        #         elif t.shape == (1,):
-        #             return t[0]
-        #         else:
-        #             from . import StateFn
-        #             meas = not len(t.shape) == 1
-        #             comp_mat = StateFn(t, coeff=coeff, is_measurement=meas)
-        #             return comp_mat.eval(other=front)
-        # return tree_eval(mat_composition_tree)
-
-        # comp_mat_or_vec = self.combo_fn([op.to_matrix() for op in self.oplist])
-        # if len(comp_mat_or_vec.shape) == 2 and comp_mat_or_vec.shape[0] == comp_mat_or_vec.shape[1]:
-        #     from . import OpPrimitive
-        #     comp_mat = OpPrimitive(comp_mat_or_vec, coeff=self.coeff)
-        #     return comp_mat.eval(front=front, back=back)
-        # elif comp_mat_or_vec.shape == (1,):
-        #     return comp_mat_or_vec[0]
-        # else:
-        #     from . import StateFn
-        #     meas = not len(comp_mat_or_vec.shape) == 1
-        #     comp_mat = StateFn(comp_mat_or_vec, coeff=self.coeff, is_measurement=meas)
-        #     return comp_mat.eval(other=front)
-
     # Try collapsing list or trees of compositions into a single <Measurement | Op | State>.
-    def distribute_reduce(self):
+    def non_distributive_reduce(self):
         reduced_ops = [op.reduce() for op in self.oplist]
         reduced_ops = reduce(lambda x, y: x.compose(y), reduced_ops) * self.coeff
         if isinstance(reduced_ops, OpComposition) and len(reduced_ops.oplist) > 1:
