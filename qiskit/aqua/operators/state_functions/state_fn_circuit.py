@@ -67,7 +67,10 @@ class StateFnCircuit(StateFn):
                         qc.x(index)
                 sf_circuit = StateFnCircuit(qc, coeff=prob)
                 statefn_circuits += [sf_circuit]
-            return OpSum(statefn_circuits)
+            if len(statefn_circuits) == 1:
+                return statefn_circuits[0]
+            else:
+                return OpSum(statefn_circuits)
         else:
             sf_dict = StateFn(density_dict)
             return StateFnCircuit.from_vector(sf_dict.to_matrix())
@@ -186,6 +189,9 @@ class StateFnCircuit(StateFn):
             raise ValueError('to_vector will return an exponentially large vector, in this case {0} elements.'
                              ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
 
+        # Need to adjoint to get forward statevector and then reverse
+        if self.is_measurement:
+            return np.conj(self.adjoint().to_matrix())
         qc = self.to_circuit(meas=False)
         statevector_backend = BasicAer.get_backend('statevector_simulator')
         statevector = execute(qc, statevector_backend, optimization_level=0).result().get_statevector()
@@ -193,7 +199,10 @@ class StateFnCircuit(StateFn):
 
     def __str__(self):
         """Overload str() """
-        prim_str = str(self.primitive)
+        qc = QuantumCircuit(self.num_qubits)
+        qc.append(self.primitive, range(self.num_qubits))
+        qc = qc.decompose()
+        prim_str = str(qc.draw(output='text'))
         if self.coeff == 1.0:
             return "{}({})".format('StateFunction' if not self.is_measurement else 'Measurement', prim_str)
         else:
