@@ -161,6 +161,48 @@ class TwoLocalAnsatz(Ansatz):
         self._param_count += n
         return new_parameters
 
+    def _get_entanglement_layer(self, block_num: int) -> Gate:
+        """Get the entangler map for this block.
+
+        For some kinds of entanglement (e.g. 'sca') the entangler map is differs in different
+        blocks, therefore we query the entangler map every time. For constant schemata, such as
+        'linear', this is slightly inefficient, since the entangler map does not change.
+        However, the number of times get_entangler_map is called equals to `reps` which usually is
+        of O(10), and therefore most likely no bottleneck
+
+        Args:
+            block_num: The index of the current block.
+
+        Returns:
+            The entanglement layer as gate.
+        """
+
+        circuit = QuantumCircuit(self._num_qubits, name='ent{}'.format(block_num))
+
+        for src, tgt in self.get_entangler_map(block_num):
+            # apply the gates
+            for gate, num_params in self.entanglement_gates:
+                if num_params == 0:
+                    circuit.append(gate, [src, tgt], [])
+                else:
+                    # param_count = self.num_parameters + len(circuit.parameters)
+                    # params = [Parameter('{}{}'.format(self._parameter_prefix, param_count + i))
+                    #           for i in range(num_params)]
+                    # params = [Parameter('{}'.format(param_count + i)) for i in range(num_params)]
+                    # param_count += num_params
+                    params = self._get_new_parameters(num_params)
+
+                    # correctly replace the parameters
+                    sub_circuit = QuantumCircuit(self._num_qubits)
+                    sub_circuit.append(gate, [src, tgt], [])
+                    update = dict(zip(list(sub_circuit.parameters), params))
+                    sub_circuit._substitute_parameters(update)
+
+                    # add the gate
+                    circuit.extend(sub_circuit)
+
+        return circuit.to_gate()
+
     def _get_rotation_layer(self, block_num: int) -> Gate:
         """Get the rotation layer for the current block.
 
@@ -205,103 +247,6 @@ class TwoLocalAnsatz(Ansatz):
                         circuit.extend(sub_circuit)
 
         return circuit.to_gate()
-
-    def _get_entanglement_layer(self, block_num: int) -> Gate:
-        """Get the entangler map for this block.
-
-        For some kinds of entanglement (e.g. 'sca') the entangler map is differs in different
-        blocks, therefore we query the entangler map every time. For constant schemata, such as
-        'linear', this is slightly inefficient, since the entangler map does not change.
-        However, the number of times get_entangler_map is called equals to `reps` which usually is
-        of O(10), and therefore most likely no bottleneck
-
-        Args:
-            block_num: The index of the current block.
-
-        Returns:
-            The entanglement layer as gate.
-        """
-
-        circuit = QuantumCircuit(self._num_qubits, name='ent{}'.format(block_num))
-
-        for src, tgt in self.get_entangler_map(block_num):
-            # apply the gates
-            for gate, num_params in self.entanglement_gates:
-                if num_params == 0:
-                    circuit.append(gate, [src, tgt], [])
-                else:
-                    # param_count = self.num_parameters + len(circuit.parameters)
-                    # params = [Parameter('{}{}'.format(self._parameter_prefix, param_count + i))
-                    #           for i in range(num_params)]
-                    # params = [Parameter('{}'.format(param_count + i)) for i in range(num_params)]
-                    # param_count += num_params
-                    params = self._get_new_parameters(num_params)
-
-                    # correctly replace the parameters
-                    sub_circuit = QuantumCircuit(self._num_qubits)
-                    sub_circuit.append(gate, [src, tgt], [])
-                    update = dict(zip(list(sub_circuit.parameters), params))
-                    sub_circuit._substitute_parameters(update)
-
-                    # add the gate
-                    circuit.extend(sub_circuit)
-
-        return circuit.to_gate()
-
-    @property
-    def rotation_gates(self) -> List[Tuple[type, int]]:
-        """Return a the single qubit gate (or gates) in tuples of callable and number of parameters.
-
-        The reason this is implemented as separate function is that the user can set up a class
-        with special single and two qubit gates, for cases we do not cover in identify gate.
-        And this design "outsources" the identification of the gate from the main code that
-        builds the circuit, which makes the code more modular.
-
-        Returns:
-            list[tuple]: the single qubit gate(s) as tuples (QuantumCircuit.gate, num_parameters),
-                e.g. (QuantumCircuit.x, 0) or (QuantumCircuit.ry, 1)
-        """
-        gate_param_list = [TwoLocalAnsatz.identify_gate(gate) for gate in self._rotation_gates]
-        return gate_param_list
-
-    @rotation_gates.setter
-    def rotation_gates(self, gates):
-        """Set new rotation gates."""
-        # invalidate circuit definition
-        self._blocks = None
-
-        if not isinstance(gates, list):
-            self._rotation_gates = [gates]
-        else:
-            self._rotation_gates = gates
-
-    @property
-    def entanglement_gates(self) -> List[Tuple[type, int]]:
-        """
-        Return a the twos qubit gate(or gates) in form of callable(s).
-
-        Returns:
-            list[tuple]: the single qubit gate(s) as tuples (QuantumCircuit.gate, num_parameters),
-                e.g. (QuantumCircuit.cx, 0) or (QuantumCircuit.cry, 1)
-        """
-        gate_param_list = [TwoLocalAnsatz.identify_gate(gate) for gate in self._entanglement_gates]
-        return gate_param_list
-
-    @entanglement_gates.setter
-    def entanglement_gates(self, gates):
-        """Set new entanglement gates."""
-        # invalidate circuit definition
-        self._blocks = None
-
-        if not isinstance(gates, list):
-            self._entanglement_gates = [gates]
-        else:
-            self._entanglement_gates = gates
-
-    # @property
-    # def parameters(self):
-        # """Return the parameters."""
-        # return [Parameter('t{i}') for i in range(self.num_parameters)]
 
     @staticmethod
     def identify_gate(gate: Union[str, type, QuantumCircuit]) -> Tuple[type, int]:
@@ -374,38 +319,6 @@ class TwoLocalAnsatz(Ansatz):
         raise AquaError('Invalid input type {}. '.format(type(gate))
                         + '`gate` must be a type, str or QuantumCircuit.')
 
-    def get_entangler_map(self, offset: int = 0) -> List[List[int]]:
-        """Return the specified entangler map, if self._entangler_map if it has been set previously.
-
-        Args:
-            offset (int): Some entanglements allow an offset argument, since the entangler map might
-                differ per entanglement block (e.g. for 'sca' entanglement). This is the block
-                index.
-
-        Returns:
-            A list of [src, tgt] pairs specifying entanglements, also known as entangler map.
-
-        Raises:
-            AquaError: Unsupported format of entanglement, if self._entanglement has the wrong
-                format.
-        """
-        if isinstance(self._entanglement, str):
-            return get_entangler_map(self._entanglement, self._num_qubits, offset)
-        elif callable(self._entanglement):
-            return validate_entangler_map(self._entanglement(offset), self._num_qubits)
-        elif isinstance(self._entanglement, list):
-            return validate_entangler_map(self._entanglement, self._num_qubits)
-        else:
-            raise AquaError('Unsupported format of entanglement!')
-
-    # @Ansatz.num_qubits.setter
-    # def num_qubits(self, num_qubits):
-    #     """Set the number of qubits."""
-    #     print('called setter')
-    #     self._blocks = None
-    #     self._circuit = None
-    #     self._num_qubits = num_qubits
-
     @Ansatz.blocks.getter
     def blocks(self) -> List[Instruction]:  # pylint:disable=invalid-overridden-method
         """Set the blocks according to the current state.
@@ -442,3 +355,90 @@ class TwoLocalAnsatz(Ansatz):
 
         self._blocks = blocks
         return blocks
+
+    @Ansatz.num_qubits.setter
+    def num_qubits(self, num_qubits: int) -> None:
+        """Set the number of qubits.
+
+        Args:
+            num_qubits: The new number of qubits.
+
+        Additionally to invaliting the circuit (which is done in Ansatz.num_qubits), here we
+        need to invalidate the blocks, since they are dependent on the number of qubits.
+        """
+        self._blocks = None
+        super().num_qubits = num_qubits
+
+    @property
+    def entanglement_gates(self) -> List[Tuple[type, int]]:
+        """
+        Return a the twos qubit gate(or gates) in form of callable(s).
+
+        Returns:
+            list[tuple]: the single qubit gate(s) as tuples (QuantumCircuit.gate, num_parameters),
+                e.g. (QuantumCircuit.cx, 0) or (QuantumCircuit.cry, 1)
+        """
+        gate_param_list = [TwoLocalAnsatz.identify_gate(gate) for gate in self._entanglement_gates]
+        return gate_param_list
+
+    @entanglement_gates.setter
+    def entanglement_gates(self, gates):
+        """Set new entanglement gates."""
+        # invalidate circuit definition
+        self._blocks = None
+
+        if not isinstance(gates, list):
+            self._entanglement_gates = [gates]
+        else:
+            self._entanglement_gates = gates
+
+    @property
+    def rotation_gates(self) -> List[Tuple[type, int]]:
+        """Return a the single qubit gate (or gates) in tuples of callable and number of parameters.
+
+        The reason this is implemented as separate function is that the user can set up a class
+        with special single and two qubit gates, for cases we do not cover in identify gate.
+        And this design "outsources" the identification of the gate from the main code that
+        builds the circuit, which makes the code more modular.
+
+        Returns:
+            list[tuple]: the single qubit gate(s) as tuples (QuantumCircuit.gate, num_parameters),
+                e.g. (QuantumCircuit.x, 0) or (QuantumCircuit.ry, 1)
+        """
+        gate_param_list = [TwoLocalAnsatz.identify_gate(gate) for gate in self._rotation_gates]
+        return gate_param_list
+
+    @rotation_gates.setter
+    def rotation_gates(self, gates):
+        """Set new rotation gates."""
+        # invalidate circuit definition
+        self._blocks = None
+
+        if not isinstance(gates, list):
+            self._rotation_gates = [gates]
+        else:
+            self._rotation_gates = gates
+
+    def get_entangler_map(self, offset: int = 0) -> List[List[int]]:
+        """Return the specified entangler map, if self._entangler_map if it has been set previously.
+
+        Args:
+            offset (int): Some entanglements allow an offset argument, since the entangler map might
+                differ per entanglement block (e.g. for 'sca' entanglement). This is the block
+                index.
+
+        Returns:
+            A list of [src, tgt] pairs specifying entanglements, also known as entangler map.
+
+        Raises:
+            AquaError: Unsupported format of entanglement, if self._entanglement has the wrong
+                format.
+        """
+        if isinstance(self._entanglement, str):
+            return get_entangler_map(self._entanglement, self._num_qubits, offset)
+        elif callable(self._entanglement):
+            return validate_entangler_map(self._entanglement(offset), self._num_qubits)
+        elif isinstance(self._entanglement, list):
+            return validate_entangler_map(self._entanglement, self._num_qubits)
+        else:
+            raise AquaError('Unsupported format of entanglement!')

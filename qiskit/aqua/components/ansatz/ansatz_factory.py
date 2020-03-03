@@ -89,7 +89,7 @@ class Ansatz:
 
     Attributes:
         blocks: The single building blocks of the Ansatz.
-        params: The parameters of the Ansatz.
+        parameters: The parameters of the Ansatz.
         num_qubits: The number of qubits in the Ansatz.
         num_parameters: The number of tuneable parameters in the Ansatz.
         setting: Returns information about the class properties. To be deprecated.
@@ -189,6 +189,33 @@ class Ansatz:
         # parameter bounds
         self._bounds = None
 
+    def __add__(self, other: Union[Ansatz, Instruction, QuantumCircuit]) -> Ansatz:
+        """Overloading + for convenience.
+
+        This presumes list(range(other.num_qubits)) as qubit indices and calls self.append().
+
+        Args:
+            other: The object to append.
+
+        Raises:
+            TypeError: If the added type is unsupported.
+
+        Returns:
+            self
+        """
+        return self.append(other)
+
+    def __repr__(self) -> str:
+        """Draw this Ansatz in circuit format using the standard gates.
+
+        Returns:
+            A single string representing this Ansatz.
+        """
+        basis_gates = ['id', 'x', 'y', 'z', 'h', 's', 't', 'sdg', 'tdg', 'rx', 'ry', 'rz',
+                       'rxx', 'ryy', 'cx', 'cy', 'cz', 'ch', 'crx', 'cry', 'crz', 'swap', 'cswap',
+                       'toffoli', 'u1', 'u2', 'u3']
+        return transpile(self.to_circuit(), basis_gates=basis_gates).draw().single_string()
+
     def _convert_to_block(self, layer: Any) -> Instruction:
         """Try to convert `layer` to an Instruction.
 
@@ -207,6 +234,78 @@ class Ansatz:
             return layer.to_instruction()
         else:
             raise TypeError('Adding a {} to an Ansatz is not supported.'.format(type(layer)))
+
+    def _parametrize_block(self, block: Instruction, qargs: List[int],
+                           params: Optional[List[Parameter]]) -> QuantumCircuit:
+        """Convert ``block`` to a circuit of correct width and parameterized with the
+        specified parameters.
+
+        Args:
+            block: The instruction to which the base parameters are bound.
+            qargs: The indices for the block.
+            params: The parameters to bind to the block.
+
+        Returns:
+            The block as circuit of width ``self.num_qubits`` where the parameters have been
+            substituted as specified.
+        """
+        circuit = QuantumCircuit(self.num_qubits)
+        circuit.append(block, qargs)
+        if params is not None:
+            update = dict(zip(circuit.parameters, params))
+            circuit = circuit.copy()
+            circuit._substitute_parameters(update)
+
+        return circuit
+
+    def _configuration_is_valid(self) -> bool:
+        """Check if the configuration of the Ansatz class is valid.
+
+        Returns:
+            True, if the configuration is valid and the circuit can be constructed. Otherwise
+            an AquaError is raised.
+
+        Raises:
+            AquaError: If the blocks are not set.
+            AquaError: If the number of repetitions is not set.
+            AquaError: If the qubit indices are not set.
+            AquaError: If the number of qubit indices does not match the number of blocks.
+            AquaError: If the number of repetitions does not match the number of blockwise
+                parameters.
+            AquaError: If an index in the repetions list exceeds the number of blocks.
+            AquaError: If a specified qubit index is larger than the (manually set) number of
+                qubits.
+        """
+        # check no needed parameters are None
+        if self.blocks is None:
+            raise AquaError('The blocks are not set.')
+        # if self.replist is None:
+            # raise AquaError('The repetitions are not set, this must be a list of indices or int. '
+            # + 'Use Ansatz.reps to set this attribute.')
+        # if self._qargs is None:
+            # raise AquaError('The qubit indices for the blocks are not set.')
+
+        # check the compatibility of the attributes
+        if len(self.qubit_indices) != len(self._blocks):
+            raise AquaError('The number of qubit indices does not match the number of blocks.')
+
+        if self._blockwise_base_params and self._replist:
+            if len(self._replist) != len(self._blockwise_base_params):
+                raise AquaError('The number of repetitions ({}) does '.format(len(self._replist))
+                                + 'not match with the number of block parameters '
+                                + '({})'.format(len(self._blockwise_base_params)))
+
+        if self._replist and len(self._replist) > 0:
+            if max(self._replist) >= len(self._blocks):
+                raise AquaError('Trying to add a non-existing block to the circuit.')
+
+        if self._num_qubits:
+            for qubit_indices in self.qubit_indices:
+                if max(qubit_indices) >= self._num_qubits:
+                    raise AquaError('The manually set number of qubits is too small for the '
+                                    + 'blocks in the circuit.')
+
+        return True
 
     @property
     def setting(self):
@@ -238,31 +337,23 @@ class Ansatz:
         return True
 
     @property
-    def num_qubits(self) -> int:
-        """Returns the number of qubits in this Ansatz.
+    def base_parameters(self):
+        """Base params."""
 
-        If the number of qubits has not been explicitely set via the setter or the initial state
-        (which dictates the number of qubits), infer the number of qubits from the qubit indices
-        of the blocks.
+        if self._base_params:
+            return self._base_params
 
-        Returns:
-            The number of qubits.
-        """
-        # get the maximum number of qubits from the qubit indices
-        if self._num_qubits is None:
-            if len(self.qubit_indices) > 0:
-                return 1 + max(max(qarg) for qarg in self.qubit_indices)
-            return 0
+        base_params = []
+        for block in self.blockwise_parameters:
+            combine_parameterlists(base_params, block, duplicate_existing=False)
 
-        return int(self._num_qubits)
+        return base_params
 
-    @num_qubits.setter
-    def num_qubits(self, num_qubits):
-        """Set the number of qubits."""
-        if self._num_qubits != num_qubits:
-            # invalidate the circuit
-            self._circuit = None
-            self._num_qubits = num_qubits
+    @base_parameters.setter
+    def base_parameters(self, parameters):
+        """Set the base parameters."""
+        self._circuit._substitute_parameters(dict(zip(self._base_params, parameters)))
+        self._base_params = parameters
 
     @property
     def blocks(self):
@@ -338,27 +429,69 @@ class Ansatz:
         self._circuit = None
 
     @property
-    def reps(self):
-        """Return reps as integer, or if not available, as list."""
-        return self._reps or self._replist
+    def insert_barriers(self) -> bool:
+        """Check whether the Ansatz inserts barriers or not.
+
+        Returns:
+            True, if barriers are inserted in between the layers, False if not.
+        """
+        return self._insert_barriers
+
+    @insert_barriers.setter
+    def insert_barriers(self, insert_barriers: bool) -> None:
+        """Specify whether barriers should be inserted in between the layers or not.
+
+        Args:
+            insert_barriers: If True, barriers are inserted, if False not.
+        """
+        # if insert_barriers changes, we have to invalidate the circuit definition,
+        # if it is the same as before we can leave the Ansatz instance as it is
+        if insert_barriers is not self._insert_barriers:
+            self._circuit = None
+            self._insert_barriers = insert_barriers
 
     @property
-    def replist(self):
-        """Get the list of repetitions."""
-        return self._replist or self._reps * list(range(len(self.blocks)))
+    def num_parameters(self) -> int:
+        """Returns the number of parameters in the Ansatz.
 
-    @reps.setter
-    def reps(self, repetitions):
-        """Set the repetitions."""
-        if isinstance(repetitions, (list, numpy.ndarray)):
-            if self._replist is None or not all(i == j for i, j in zip(repetitions, self._replist)):
-                self._circuit = None
-                self._reps = None
-                self._replist = repetitions
-        elif isinstance(repetitions, numbers.Integral):
-            if repetitions != self._reps:
-                self._circuit = None
-                self._reps = repetitions
+        Returns:
+            The number of parameters.
+        """
+        return len(self.parameters)  # could also be len(self._surface_params)
+
+    @property
+    def _num_parameters(self) -> int:
+        """Deprecated, use the property ``num_parameters``."""
+        warnings.warn('This private class member is deprecated and will be removed. '
+                      + 'Use the property num_parameters instead.')
+        return self.num_parameters
+
+    @property
+    def num_qubits(self) -> int:
+        """Returns the number of qubits in this Ansatz.
+
+        If the number of qubits has not been explicitely set via the setter or the initial state
+        (which dictates the number of qubits), infer the number of qubits from the qubit indices
+        of the blocks.
+
+        Returns:
+            The number of qubits.
+        """
+        # get the maximum number of qubits from the qubit indices
+        if self._num_qubits is None:
+            if len(self.qubit_indices) > 0:
+                return 1 + max(max(qarg) for qarg in self.qubit_indices)
+            return 0
+
+        return int(self._num_qubits)
+
+    @num_qubits.setter
+    def num_qubits(self, num_qubits):
+        """Set the number of qubits."""
+        if self._num_qubits != num_qubits:
+            # invalidate the circuit
+            self._circuit = None
+            self._num_qubits = num_qubits
 
     @property
     def parameter_bounds(self) -> List[Tuple[float, float]]:
@@ -433,23 +566,27 @@ class Ansatz:
             self._surface_params = params
 
     @property
-    def base_parameters(self):
-        """Base params."""
+    def reps(self):
+        """Return reps as integer, or if not available, as list."""
+        return self._reps or self._replist
 
-        if self._base_params:
-            return self._base_params
+    @property
+    def replist(self):
+        """Get the list of repetitions."""
+        return self._replist or self._reps * list(range(len(self.blocks)))
 
-        base_params = []
-        for block in self.blockwise_parameters:
-            combine_parameterlists(base_params, block, duplicate_existing=False)
-
-        return base_params
-
-    @base_parameters.setter
-    def base_parameters(self, parameters):
-        """Set the base parameters."""
-        self._circuit._substitute_parameters(dict(zip(self._base_params, parameters)))
-        self._base_params = parameters
+    @reps.setter
+    def reps(self, repetitions):
+        """Set the repetitions."""
+        if isinstance(repetitions, (list, numpy.ndarray)):
+            if self._replist is None or not all(i == j for i, j in zip(repetitions, self._replist)):
+                self._circuit = None
+                self._reps = None
+                self._replist = repetitions
+        elif isinstance(repetitions, numbers.Integral):
+            if repetitions != self._reps:
+                self._circuit = None
+                self._reps = repetitions
 
     def _get_default_parameters(self, start: int, num: int) -> List[Parameter]:
         """Get ``num`` default parameters. Returns the same instances if called repeatedly.
@@ -530,295 +667,6 @@ class Ansatz:
         self._blockwise_base_params = params
         self._circuit = None
 
-    def bind_parameters(self, params: Union[List[float], List[Parameter], ParameterVector]
-                        ) -> QuantumCircuit:
-        """Bind ``params`` to the underlying circuit of the Ansatz.
-
-        This method allows handling of both ``qiskit.circuit.Parameter`` objects and numbers.
-        It returns a copy of the internally stored circuit with the new specified parameters.
-
-        Returns:
-            A copy of the Ansatz circuit with the specified parameters.
-
-        Raises:
-            TypeError: If ``params`` contains an unsupported type.
-        """
-        if all(isinstance(param, numbers.Real) for param in params):
-            param_dict = dict(zip(self.base_parameters, params))
-            circuit_copy = self._circuit.bind_parameters(param_dict)
-
-        # if they are new parameters, replace them in the circuit
-        elif all(isinstance(param, Parameter) for param in params):
-            param_dict = dict(zip(self.base_parameters, params))
-            circuit_copy = self._circuit.copy()
-            circuit_copy._substitute_parameters(param_dict)
-
-        # otherwise the input type is not supported
-        else:
-            raise TypeError('Unsupported type of `params`, {}'.format(type(params)))
-
-        return circuit_copy
-
-    @property
-    def num_parameters(self) -> int:
-        """Returns the number of parameters in the Ansatz.
-
-        Returns:
-            The number of parameters.
-        """
-        return len(self.parameters)  # could also be len(self._surface_params)
-
-    @property
-    def _num_parameters(self) -> int:
-        """Deprecated, use the property ``num_qubits``."""
-        warnings.warn('This private class member is deprecated and will be removed. '
-                      + 'Use the property num_parameters instead.')
-        return self.num_parameters
-
-    def construct_circuit(self,
-                          params: Union[List[float], List[Parameter], ParameterVector],
-                          q: Optional[QuantumRegister] = None,
-                          ) -> QuantumCircuit:
-        """Deprecated, use `to_circuit()`.
-
-        Args:
-            params: The parameters for the Ansatz.
-            q: The qubit register to use to build the circuit. If None, a new register with the
-                name 'q' is created.
-
-        Returns:
-            The Ansatz as circuit with the specified parameters.
-
-        Raises:
-            ValueError: If the qubit register is provided but the length does not coincide with the
-                number of qubits of the Ansatz.
-        """
-        self.parameters = params
-        if q is None:
-            circuit = QuantumCircuit(self.num_qubits)
-        elif len(q) != self.num_qubits:
-            raise ValueError('The size of the register is not equal to the number of qubits.')
-        else:
-            circuit = QuantumCircuit(q)
-
-        circuit += self.to_circuit()
-        return circuit
-
-    def _parametrize_block(self, block: Instruction, qargs: List[int],
-                           params: Optional[List[Parameter]]) -> QuantumCircuit:
-        """Convert ``block`` to a circuit of correct width and parameterized with the
-        specified parameters.
-
-        Args:
-            block: The instruction to which the base parameters are bound.
-            qargs: The indices for the block.
-            params: The parameters to bind to the block.
-
-        Returns:
-            The block as circuit of width ``self.num_qubits`` where the parameters have been
-            substituted as specified.
-        """
-        circuit = QuantumCircuit(self.num_qubits)
-        circuit.append(block, qargs)
-        if params is not None:
-            update = dict(zip(circuit.parameters, params))
-            circuit = circuit.copy()
-            circuit._substitute_parameters(update)
-
-        return circuit
-
-    def _configuration_is_valid(self) -> bool:
-        """Check if the configuration of the Ansatz class is valid.
-
-        Returns:
-            True, if the configuration is valid and the circuit can be constructed. Otherwise
-            an AquaError is raised.
-
-        Raises:
-            AquaError: If the blocks are not set.
-            AquaError: If the number of repetitions is not set.
-            AquaError: If the qubit indices are not set.
-            AquaError: If the number of qubit indices does not match the number of blocks.
-            AquaError: If the number of repetitions does not match the number of blockwise
-                parameters.
-            AquaError: If an index in the repetions list exceeds the number of blocks.
-            AquaError: If a specified qubit index is larger than the (manually set) number of
-                qubits.
-        """
-        # check no needed parameters are None
-        if self.blocks is None:
-            raise AquaError('The blocks are not set.')
-        # if self.replist is None:
-            # raise AquaError('The repetitions are not set, this must be a list of indices or int. '
-            # + 'Use Ansatz.reps to set this attribute.')
-        # if self._qargs is None:
-            # raise AquaError('The qubit indices for the blocks are not set.')
-
-        # check the compatibility of the attributes
-        if len(self.qubit_indices) != len(self._blocks):
-            raise AquaError('The number of qubit indices does not match the number of blocks.')
-
-        if self._blockwise_base_params and self._replist:
-            if len(self._replist) != len(self._blockwise_base_params):
-                raise AquaError('The number of repetitions ({}) does '.format(len(self._replist))
-                                + 'not match with the number of block parameters '
-                                + '({})'.format(len(self._blockwise_base_params)))
-
-        if self._replist and len(self._replist) > 0:
-            if max(self._replist) >= len(self._blocks):
-                raise AquaError('Trying to add a non-existing block to the circuit.')
-
-        if self._num_qubits:
-            for qubit_indices in self.qubit_indices:
-                if max(qubit_indices) >= self._num_qubits:
-                    raise AquaError('The manually set number of qubits is too small for the '
-                                    + 'blocks in the circuit.')
-
-        return True
-
-    def to_circuit(self) -> QuantumCircuit:
-        """Convert the Ansatz into a circuit.
-
-        If the Ansatz has not been defined, an empty quantum circuit is returned.
-
-        Returns:
-            A quantum circuit containing this Ansatz. The width of the circuit equals
-            the number of qubits in this Ansatz.
-        """
-        # build the circuit if it has not been constructed yet
-        if self._circuit is None and self._configuration_is_valid():
-            if self.num_qubits == 0:
-                circuit = QuantumCircuit()
-
-            else:
-                # use the initial state circuit if it is not None
-                if self._initial_state:
-                    circuit = self._initial_state.construct_circuit(mode='circuit')
-                else:
-                    circuit = QuantumCircuit(self.num_qubits)
-
-                # add the blocks, if they are specified
-                if len(self.replist) > 0:
-                    blockwise_parameters = self.blockwise_parameters
-                    # the first block (separately so barriers can be inserted in the for-loop)
-                    param_idx, i = 0, self.replist[0]
-                    block, qargs = self.blocks[i], self.qubit_indices[i]
-                    params = blockwise_parameters[param_idx]
-                    circuit.extend(self._parametrize_block(block, qargs, params))
-
-                    for param_idx, i in enumerate(self.replist[1:]):
-                        if self._insert_barriers:
-                            circuit.barrier()
-                        block, qargs = self.blocks[i], self.qubit_indices[i]
-                        params = blockwise_parameters[param_idx + 1]
-                        circuit.extend(self._parametrize_block(block, qargs, params))
-
-            # store the circuit
-            self._circuit = circuit
-
-        # TODO make this on parameter change only?
-        return self.bind_parameters(self.parameters)
-
-    def __add__(self, other: Union[Ansatz, Instruction, QuantumCircuit]) -> Ansatz:
-        """Overloading + for convenience.
-
-        This presumes list(range(other.num_qubits)) as qubit indices and calls self.append().
-
-        Args:
-            other: The object to append.
-
-        Raises:
-            TypeError: If the added type is unsupported.
-
-        Returns:
-            self
-        """
-        return self.append(other)
-
-    def __repr__(self) -> str:
-        """Draw this Ansatz in circuit format using the standard gates.
-
-        Returns:
-            A single string representing this Ansatz.
-        """
-        basis_gates = ['id', 'x', 'y', 'z', 'h', 's', 't', 'sdg', 'tdg', 'rx', 'ry', 'rz',
-                       'rxx', 'ryy', 'cx', 'cy', 'cz', 'ch', 'crx', 'cry', 'crz', 'swap', 'cswap',
-                       'toffoli', 'u1', 'u2', 'u3']
-        return transpile(self.to_circuit(), basis_gates=basis_gates).draw().single_string()
-
-    @property
-    def insert_barriers(self) -> bool:
-        """Check whether the Ansatz inserts barriers or not.
-
-        Returns:
-            True, if barriers are inserted in between the layers, False if not.
-        """
-        return self._insert_barriers
-
-    @insert_barriers.setter
-    def insert_barriers(self, insert_barriers: bool) -> None:
-        """Specify whether barriers should be inserted in between the layers or not.
-
-        Args:
-            insert_barriers: If True, barriers are inserted, if False not.
-        """
-        # if insert_barriers changes, we have to invalidate the circuit definition,
-        # if it is the same as before we can leave the Ansatz instance as it is
-        if insert_barriers is not self._insert_barriers:
-            self._circuit = None
-            self._insert_barriers = insert_barriers
-
-    def to_instruction(self) -> Instruction:
-        """Convert the Ansatz into an Instruction.
-
-        Returns:
-            An Instruction containing this Ansatz.
-        """
-        return self.to_circuit().to_instruction()
-
-    def to_gate(self) -> Gate:
-        """Convert this Ansatz into a Gate, if possible.
-
-        If the Ansatz contains only unitary operations(i.e. neither measurements nor barriers)
-        return this Ansatz as a Gate.
-
-        Returns:
-            A Gate containing this Ansatz.
-
-        Raises:
-            AquaError: If the Ansatz contains non-unitary operations.
-        """
-        try:
-            return self.to_circuit().to_gate()
-        except QiskitError:
-            raise AquaError('The Ansatz contains non-unitary operations (e.g. barriers, resets or '
-                            'measurements) and cannot be converted to a Gate!')
-
-    def _append_block(self, block, qubit_indices=None, overwrite_block_parameters=True):
-        block = self._convert_to_block(block)
-        qubit_indices = qubit_indices or list(range(block.num_qubits))
-        if overwrite_block_parameters is True:
-            param_count = self.num_parameters
-            block_params = get_parameters(block)  # get the parameters per block
-            n = len(block_params)
-
-            # set the base parameters per block
-            block_base_params = [
-                Parameter('θ{}'.format(i)) for i in range(param_count, param_count + n)
-            ]
-            self._blockwise_base_params += [block_base_params]
-            self._base_params += block_base_params
-
-        else:
-            if hasattr(overwrite_block_parameters, '__len__'):
-                self._blockwise_base_params += [overwrite_block_parameters]
-            else:
-                self._blockwise_base_params += [get_parameters(block)]
-
-            # do not add duplicate parameters
-            combine_parameterlists(self._base_params, self._blockwise_base_params[-1])
-            # combine_parameterlists(self._surface_params, self._blockwise_base_params[-1])
-
     def append(self,
                other: Union[Ansatz, Instruction, QuantumCircuit],
                qubit_indices: Optional[List[int]] = None
@@ -872,3 +720,130 @@ class Ansatz:
             self._circuit.extend(self._parametrize_block(block, qargs, params))
 
         return self
+
+    def bind_parameters(self, params: Union[List[float], List[Parameter], ParameterVector]
+                        ) -> QuantumCircuit:
+        """Bind ``params`` to the underlying circuit of the Ansatz.
+
+        This method allows handling of both ``qiskit.circuit.Parameter`` objects and numbers.
+        It returns a copy of the internally stored circuit with the new specified parameters.
+
+        Returns:
+            A copy of the Ansatz circuit with the specified parameters.
+
+        Raises:
+            TypeError: If ``params`` contains an unsupported type.
+        """
+        if all(isinstance(param, numbers.Real) for param in params):
+            param_dict = dict(zip(self.base_parameters, params))
+            circuit_copy = self._circuit.bind_parameters(param_dict)
+
+        # if they are new parameters, replace them in the circuit
+        elif all(isinstance(param, Parameter) for param in params):
+            param_dict = dict(zip(self.base_parameters, params))
+            circuit_copy = self._circuit.copy()
+            circuit_copy._substitute_parameters(param_dict)
+
+        # otherwise the input type is not supported
+        else:
+            raise TypeError('Unsupported type of `params`, {}'.format(type(params)))
+
+        return circuit_copy
+
+    def construct_circuit(self,
+                          params: Union[List[float], List[Parameter], ParameterVector],
+                          q: Optional[QuantumRegister] = None,
+                          ) -> QuantumCircuit:
+        """Deprecated, use `to_circuit()`.
+
+        Args:
+            params: The parameters for the Ansatz.
+            q: The qubit register to use to build the circuit. If None, a new register with the
+                name 'q' is created.
+
+        Returns:
+            The Ansatz as circuit with the specified parameters.
+
+        Raises:
+            ValueError: If the qubit register is provided but the length does not coincide with the
+                number of qubits of the Ansatz.
+        """
+        self.parameters = params
+        if q is None:
+            circuit = QuantumCircuit(self.num_qubits)
+        elif len(q) != self.num_qubits:
+            raise ValueError('The size of the register is not equal to the number of qubits.')
+        else:
+            circuit = QuantumCircuit(q)
+
+        circuit += self.to_circuit()
+        return circuit
+
+    def to_circuit(self) -> QuantumCircuit:
+        """Convert the Ansatz into a circuit.
+
+        If the Ansatz has not been defined, an empty quantum circuit is returned.
+
+        Returns:
+            A quantum circuit containing this Ansatz. The width of the circuit equals
+            the number of qubits in this Ansatz.
+        """
+        # build the circuit if it has not been constructed yet
+        if self._circuit is None and self._configuration_is_valid():
+            if self.num_qubits == 0:
+                circuit = QuantumCircuit()
+
+            else:
+                # use the initial state circuit if it is not None
+                if self._initial_state:
+                    circuit = self._initial_state.construct_circuit(mode='circuit')
+                else:
+                    circuit = QuantumCircuit(self.num_qubits)
+
+                # add the blocks, if they are specified
+                if len(self.replist) > 0:
+                    blockwise_parameters = self.blockwise_parameters
+                    # the first block (separately so barriers can be inserted in the for-loop)
+                    param_idx, i = 0, self.replist[0]
+                    block, qargs = self.blocks[i], self.qubit_indices[i]
+                    params = blockwise_parameters[param_idx]
+                    circuit.extend(self._parametrize_block(block, qargs, params))
+
+                    for param_idx, i in enumerate(self.replist[1:]):
+                        if self._insert_barriers:
+                            circuit.barrier()
+                        block, qargs = self.blocks[i], self.qubit_indices[i]
+                        params = blockwise_parameters[param_idx + 1]
+                        circuit.extend(self._parametrize_block(block, qargs, params))
+
+            # store the circuit
+            self._circuit = circuit
+
+        # TODO make this on parameter change only?
+        return self.bind_parameters(self.parameters)
+
+    def to_instruction(self) -> Instruction:
+        """Convert the Ansatz into an Instruction.
+
+        Returns:
+            An Instruction containing this Ansatz.
+        """
+        return self.to_circuit().to_instruction()
+
+    def to_gate(self) -> Gate:
+        """Convert this Ansatz into a Gate, if possible.
+
+        If the Ansatz contains only unitary operations(i.e. neither measurements nor barriers)
+        return this Ansatz as a Gate.
+
+        Returns:
+            A Gate containing this Ansatz.
+
+        Raises:
+            AquaError: If the Ansatz contains non-unitary operations.
+        """
+        try:
+            return self.to_circuit().to_gate()
+        except QiskitError:
+            raise AquaError('The Ansatz contains non-unitary operations (e.g. barriers, resets or '
+                            'measurements) and cannot be converted to a Gate!')
