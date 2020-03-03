@@ -18,10 +18,6 @@ import logging
 import numpy as np
 from functools import partial, reduce
 
-from qiskit import QuantumCircuit
-from qiskit.quantum_info import Pauli
-from qiskit.extensions.standard import XGate, YGate, ZGate, IdGate
-
 from qiskit.aqua.operators import OperatorBase, OpPrimitive, OpVec, StateFn, StateFnOperator
 from .converter_base import ConverterBase
 

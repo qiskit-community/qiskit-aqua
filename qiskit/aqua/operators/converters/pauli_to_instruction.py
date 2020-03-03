@@ -20,13 +20,13 @@ from functools import partial, reduce
 
 from qiskit import QuantumCircuit
 from qiskit.quantum_info import Pauli
-from qiskit.extensions.standard import XGate, YGate, ZGate, IdGate
+from qiskit.extensions.standard import XGate, YGate, ZGate, IGate
 
 from qiskit.aqua.operators import OpPrimitive, OpVec
 from .converter_base import ConverterBase
 
 logger = logging.getLogger(__name__)
-_pauli_to_gate_mapping = {'X': XGate(), 'Y': YGate(), 'Z': ZGate(), 'I': IdGate()}
+_pauli_to_gate_mapping = {'X': XGate(), 'Y': YGate(), 'Z': ZGate(), 'I': IGate()}
 
 
 class PaulitoInstruction(ConverterBase):

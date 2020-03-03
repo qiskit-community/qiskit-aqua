@@ -52,7 +52,7 @@ Operator support
 
 """
 from qiskit.quantum_info import Pauli
-from qiskit.extensions.standard import CnotGate, SGate, TGate, HGate, SwapGate
+from qiskit.extensions.standard import CXGate, SGate, TGate, HGate, SwapGate
 
 from qiskit.aqua.operators.legacy.common import (evolution_instruction, suzuki_expansion_slice_pauli_list, pauli_measurement,
                                                  measure_pauli_z, covariance, row_echelon_F2,
@@ -90,7 +90,7 @@ Z = OpPrimitive(Pauli.from_label('Z'))
 I = OpPrimitive(Pauli.from_label('I'))
 
 # Clifford+T
-CX = OpPrimitive(CnotGate())
+CX = OpPrimitive(CXGate())
 S = OpPrimitive(SGate())
 H = OpPrimitive(HGate())
 T = OpPrimitive(TGate())
