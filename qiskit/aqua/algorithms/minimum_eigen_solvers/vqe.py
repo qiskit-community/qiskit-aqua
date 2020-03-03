@@ -27,6 +27,8 @@ import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit
 from qiskit.circuit import ParameterVector
 
+from qiskit.aqua import QuantumInstance
+from qiskit.aqua.algorithms import MinEigenSolver
 from qiskit.aqua.algorithms import VQAlgorithm
 from qiskit.aqua import AquaError
 from qiskit.aqua.operators import (TPBGroupedWeightedPauliOperator, WeightedPauliOperator,
@@ -40,7 +42,7 @@ from qiskit.aqua.components.variational_forms import VariationalForm
 logger = logging.getLogger(__name__)
 
 
-class VQE(VQAlgorithm):
+class VQE(VQAlgorithm, MinEigenSolver):
     r"""
     The Variational Quantum Eigensolver algorithm.
 
@@ -75,11 +77,13 @@ class VQE(VQAlgorithm):
     as the upper bound, the default value will be :math:`2\pi`.
     """
 
-    def __init__(self, operator: BaseOperator, var_form: VariationalForm, optimizer: Optimizer,
+    def __init__(self, operator: Optional[BaseOperator] = None,
+                 var_form: Optional[VariationalForm] = None, optimizer: Optional[Optimizer] = None,
                  initial_point: Optional[np.ndarray] = None, max_evals_grouped: int = 1,
                  aux_operators: Optional[List[BaseOperator]] = None,
                  callback: Optional[Callable[[int, np.ndarray, float, float], None]] = None,
-                 auto_conversion: bool = True) -> None:
+                 auto_conversion: bool = True, quantum_instance: Optional[QuantumInstance] = None
+                 ) -> None:
         """
 
         Args:
@@ -115,16 +119,22 @@ class VQE(VQAlgorithm):
                 - for *qasm simulator or real backend:*
                   :class:`~qiskit.aqua.operators.TPBGroupedWeightedPauliOperator`
         """
+
+        # TODO add setter and remove this error
+        if optimizer is None:
+            raise ValueError('No optimizer provided.')
+
         super().__init__(var_form=var_form,
                          optimizer=optimizer,
                          cost_fn=self._energy_evaluation,
                          initial_point=initial_point)
+        self._quantum_instance = quantum_instance
         self._use_simulator_snapshot_mode = None
         self._ret = None
         self._eval_time = None
         self._optimizer.set_max_evals_grouped(max_evals_grouped)
         self._callback = callback
-        if initial_point is None:
+        if initial_point is None and var_form is not None:
             self._initial_point = var_form.preferred_init_points
         self._operator = operator
         self._eval_count = 0
@@ -136,9 +146,17 @@ class VQE(VQAlgorithm):
                 self._aux_operators.append(aux_op)
         self._auto_conversion = auto_conversion
         logger.info(self.print_settings())
-        self._var_form_params = ParameterVector('θ', self._var_form.num_parameters)
 
         self._parameterized_circuits = None
+
+    @property
+    def operator(self):
+        """Return the operator."""
+        return self._operator
+
+    @operator.setter
+    def operator(self, operator):
+        self._operator = operator
 
     @property
     def setting(self):
@@ -166,7 +184,10 @@ class VQE(VQAlgorithm):
             self.__class__.__name__)
         ret += "{}".format(self.setting)
         ret += "===============================================================\n"
-        ret += "{}".format(self._var_form.setting)
+        if self.var_form is not None:
+            ret += "{}".format(self._var_form.setting)
+        else:
+            ret += "var_form not set."
         ret += "===============================================================\n"
         ret += "{}".format(self._optimizer.setting)
         ret += "===============================================================\n"
@@ -269,6 +290,37 @@ class VQE(VQAlgorithm):
             aux_op_vals[0, :] = np.asarray(values)
             self._ret['aux_ops'] = aux_op_vals
 
+    def compute_min_eigenvalue(self, operator=None):
+        """Compute the minimal eigenvalue along with the eigenvector.
+
+        Args:
+            operator (BaseOperator): The operator of which to compute the minimal
+                eigenvalue + eigenvector.
+
+        Returns:
+            Union[Tuple[np.array, float], Tuple[dict, float]]: Eigenvector (either as np.array,
+             if statevector simulation is used or otherwise as dictionary) and the Eigenvalue.
+        """
+        # keep track of the current state of the operator
+        current_operator = self._operator
+
+        # if operator is None, set it to the one given in the initializer
+        # if it is still None, raise an error
+        operator = operator or self._operator
+        if operator is None:
+            raise AquaError('Provide an operator either in the initializer or this method.')
+
+        if self._quantum_instance is None:
+            raise AquaError('Provide a QuantumInstance or BaseBackend to the initializer!')
+
+        # run the algorithm with the operator passed in
+        # (bit hacky w/o the QuantumAlgorithm refactor)
+        self._operator = operator
+        ret = self.run(self._quantum_instance)
+        self._operator = current_operator
+
+        return ret['min_vector'], ret['min_val']
+
     def _run(self):
         """
         Run the algorithm to compute the minimum eigenvalue.
@@ -279,6 +331,9 @@ class VQE(VQAlgorithm):
         Raises:
             AquaError: wrong setting of operator and backend.
         """
+        if self.operator is None:
+            raise ValueError('The operator has not been set!')
+
         if self._auto_conversion:
             self._operator = \
                 self._config_the_best_mode(self._operator, self._quantum_instance.backend)

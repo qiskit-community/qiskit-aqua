@@ -17,6 +17,7 @@
 from typing import List, Callable, Optional
 import logging
 import numpy as np
+from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import BaseOperator
 from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.components.optimizers import Optimizer
@@ -57,12 +58,14 @@ class QAOA(VQE):
     be supplied.
     """
 
-    def __init__(self, operator: BaseOperator, optimizer: Optimizer, p: int = 1,
+    def __init__(self, operator: Optional[BaseOperator] = None,
+                 optimizer: Optional[Optimizer] = None, p: int = 1,
                  initial_state: Optional[InitialState] = None,
                  mixer: Optional[BaseOperator] = None, initial_point: Optional[np.ndarray] = None,
                  max_evals_grouped: int = 1, aux_operators: Optional[List[BaseOperator]] = None,
                  callback: Optional[Callable[[int, np.ndarray, float, float], None]] = None,
-                 auto_conversion: bool = True) -> None:
+                 auto_conversion: bool = True, quantum_instance: Optional[QuantumInstance] = None
+                 ) -> None:
         """
         Args:
             operator: Qubit operator
@@ -105,4 +108,16 @@ class QAOA(VQE):
                                mixer_operator=mixer)
         super().__init__(operator, var_form, optimizer, initial_point=initial_point,
                          max_evals_grouped=max_evals_grouped, aux_operators=aux_operators,
-                         callback=callback, auto_conversion=auto_conversion)
+                         callback=callback, auto_conversion=auto_conversion,
+                         quantum_instance=quantum_instance)
+
+    def compute_min_eigenvalue(self, operator=None):
+
+        if operator is None:
+            operator = self._operator
+
+        var_form = QAOAVarForm(operator.copy(), self._p, initial_state=self._initial_state,
+                               mixer_operator=self._mixer)
+        self.var_form = var_form
+
+        return super().compute_min_eigenvalue(operator)

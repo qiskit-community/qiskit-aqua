@@ -54,7 +54,7 @@ class VQAlgorithm(QuantumAlgorithm):
         super().__init__()
         if var_form is None:
             raise AquaError('Missing variational form.')
-        self._var_form = var_form
+        self.var_form = var_form
 
         if optimizer is None:
             raise AquaError('Missing optimizer.')
@@ -196,6 +196,7 @@ class VQAlgorithm(QuantumAlgorithm):
     def var_form(self, new_value):
         """ sets var forms """
         self._var_form = new_value
+        self._var_form_params = ParameterVector('θ', new_value.num_parameters)
 
     @property
     def optimizer(self):
