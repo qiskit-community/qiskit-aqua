@@ -124,10 +124,26 @@ class OpComposition(OpVec):
         #     return comp_mat.eval(other=front)
 
     # Try collapsing list or trees of compositions into a single <Measurement | Op | State>.
-    def reduce(self):
+    def distribute_reduce(self):
         reduced_ops = [op.reduce() for op in self.oplist]
         reduced_ops = reduce(lambda x, y: x.compose(y), reduced_ops) * self.coeff
         if isinstance(reduced_ops, OpComposition) and len(reduced_ops.oplist) > 1:
+            return reduced_ops
+        else:
+            return reduced_ops[0]
+
+    def reduce(self):
+        reduced_ops = [op.reduce() for op in self.oplist]
+
+        def distribute_compose(l, r):
+            if isinstance(l, OpVec) and l.distributive:
+                return OpVec([distribute_compose(l_op, r) for l_op in l.oplist])
+            elif isinstance(r, OpVec) and r.distributive:
+                return OpVec([distribute_compose(l, r_op) for r_op in r.oplist])
+            else:
+                return l.compose(r)
+        reduced_ops = reduce(lambda x, y: distribute_compose(x, y), reduced_ops) * self.coeff
+        if isinstance(reduced_ops, OpVec) and len(reduced_ops.oplist) > 1:
             return reduced_ops
         else:
             return reduced_ops[0]
