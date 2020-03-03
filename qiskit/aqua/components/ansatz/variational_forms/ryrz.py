@@ -32,8 +32,8 @@ class RYRZ(TwoLocalAnsatz):
     @deprecate_arguments({'depth': 'reps',
                           'entangler_map': 'entanglement'})
     def __init__(self,
-                 num_qubits: int,
-                 reps: Optional[int] = 3,
+                 num_qubits: Optional[int] = None,
+                 reps: int = 3,
                  entanglement_gates: Union[str, List[str], type, List[type]] = CZGate,
                  entanglement: Union[str, List[List[int]], callable] = 'full',
                  initial_state: Optional[InitialState] = None,

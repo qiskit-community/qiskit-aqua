@@ -57,9 +57,9 @@ class SwapRZ(TwoLocalAnsatz):
     @deprecate_arguments({'depth': 'reps',
                           'entangler_map': 'entanglement'})
     def __init__(self,
-                 num_qubits: int,
+                 num_qubits: Optional[int] = None,
+                 reps: int = 3,
                  entanglement: Union[str, List[List[int]], callable] = 'full',
-                 reps: Optional[int] = 3,
                  parameter_prefix: str = 'θ',
                  insert_barriers: bool = False,
                  skip_unentangled_qubits: bool = False,

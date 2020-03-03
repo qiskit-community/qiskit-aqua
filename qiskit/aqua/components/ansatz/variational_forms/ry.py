@@ -34,8 +34,8 @@ class RY(TwoLocalAnsatz):
                           'skip_final_ry': 'skip_final_rotation_layer',
                           'entanglement_gate': 'entanglement_gates'})
     def __init__(self,
-                 num_qubits: int,
-                 reps: Optional[int] = 3,
+                 num_qubits: Optional[int] = None,
+                 reps: int = 3,
                  entanglement_gates: Union[str, List[str], type, List[type]] = CZGate,
                  entanglement: Union[str, List[List[int]], callable] = 'full',
                  initial_state: Optional[InitialState] = None,
@@ -111,7 +111,7 @@ class RY(TwoLocalAnsatz):
             >>> my_ry = ry_linear + ry_full
             >>> print(my_ry)
         """
-        super().__init__(num_qubits,
+        super().__init__(num_qubits=num_qubits,
                          reps=reps,
                          rotation_gates=RYGate,
                          entanglement_gates=entanglement_gates,

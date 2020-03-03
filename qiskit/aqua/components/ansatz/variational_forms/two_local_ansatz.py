@@ -366,8 +366,10 @@ class TwoLocalAnsatz(Ansatz):
         Additionally to invaliting the circuit (which is done in Ansatz.num_qubits), here we
         need to invalidate the blocks, since they are dependent on the number of qubits.
         """
-        self._blocks = None
-        super().num_qubits = num_qubits
+        if num_qubits != self._num_qubits:
+            self._blocks = None
+            self._circuit = None
+            self._num_qubits = num_qubits
 
     @property
     def entanglement_gates(self) -> List[Tuple[type, int]]:
@@ -385,7 +387,7 @@ class TwoLocalAnsatz(Ansatz):
     def entanglement_gates(self, gates):
         """Set new entanglement gates."""
         # invalidate circuit definition
-        self._blocks = None
+        self._blocks, self._circuit = None, None
 
         if not isinstance(gates, list):
             self._entanglement_gates = [gates]
@@ -412,7 +414,7 @@ class TwoLocalAnsatz(Ansatz):
     def rotation_gates(self, gates):
         """Set new rotation gates."""
         # invalidate circuit definition
-        self._blocks = None
+        self._blocks, self._circuit = None, None
 
         if not isinstance(gates, list):
             self._rotation_gates = [gates]

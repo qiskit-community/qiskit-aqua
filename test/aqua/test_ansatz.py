@@ -329,21 +329,37 @@ class TestRY(QiskitAquaTestCase):
 
         ansatz.num_qubits = 2
         with self.subTest(msg='default circuit'):
-            expected = '\n'.join(['        ┌────────┐ ░     ░ ┌────────┐',
-                                  'q_0: |0>┤ Ry(θ0) ├─░──■──░─┤ Ry(θ2) ├',
-                                  '        ├────────┤ ░  │  ░ ├────────┤',
-                                  'q_1: |0>┤ Ry(θ1) ├─░──■──░─┤ Ry(θ3) ├',
-                                  '        └────────┘ ░     ░ └────────┘'])
-            ansatz = RY(2, reps=1, insert_barriers=True)
+            expected = '\n'.join(
+                ['        ┌────────┐   ┌────────┐   ┌────────┐   ┌────────┐',
+                 'q_0: |0>┤ Ry(θ0) ├─■─┤ Ry(θ2) ├─■─┤ Ry(θ4) ├─■─┤ Ry(θ6) ├',
+                 '        ├────────┤ │ ├────────┤ │ ├────────┤ │ ├────────┤',
+                 'q_1: |0>┤ Ry(θ1) ├─■─┤ Ry(θ3) ├─■─┤ Ry(θ5) ├─■─┤ Ry(θ7) ├',
+                 '        └────────┘   └────────┘   └────────┘   └────────┘']
+            )
             self.assertEqual(ansatz.__repr__(), expected)
 
         ansatz.reps = 1
         with self.subTest(msg='change reps to 1'):
-            pass
+            expected = '\n'.join(
+                ['        ┌────────┐   ┌────────┐',
+                 'q_0: |0>┤ Ry(θ0) ├─■─┤ Ry(θ2) ├',
+                 '        ├────────┤ │ ├────────┤',
+                 'q_1: |0>┤ Ry(θ1) ├─■─┤ Ry(θ3) ├',
+                 '        └────────┘   └────────┘']
+            )
+            self.assertEqual(ansatz.__repr__(), expected)
 
         ansatz.entanglement_gates = 'crx'
         with self.subTest(msg='change rotation gate to crx'):
-            pass
+            expected = '\n'.join(
+               ['        ┌────────┐          ┌────────┐',
+                'q_0: |0>┤ Ry(θ0) ├────■─────┤ Ry(θ3) ├',
+                '        ├────────┤┌───┴────┐├────────┤',
+                'q_1: |0>┤ Ry(θ1) ├┤ Rx(θ2) ├┤ Ry(θ4) ├',
+                '        └────────┘└────────┘└────────┘']
+            )
+            self.assertEqual(ansatz.__repr__(), expected)
+
 
         ansatz.rotation_gates = 'rx'
         with self.subTest(msg='interchange for rx gate'):
