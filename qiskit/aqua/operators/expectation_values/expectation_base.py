@@ -99,7 +99,6 @@ class ExpectationBase():
             return ProjectorOverlap(operator=operator, backend=backend, state=state)
 
         else:
-            # TODO do Pauli to Gate conversion?
             raise ValueError('Expectations of Mixed Operators not yet supported.')
 
     @abstractmethod

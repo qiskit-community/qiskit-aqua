@@ -102,3 +102,19 @@ class TestPauliExpectation(QiskitAquaTestCase):
                   [-1, 1, 0, -0],
                   [+1, 1, 1,  1]]
         np.testing.assert_array_almost_equal(means, valids, decimal=1)
+
+    def test_not_to_matrix_called(self):
+        """ 45 qubit calculation - literally will not work if to_matrix is somehow called (in addition to massive=False
+        throwing an error)"""
+
+        backend = BasicAer.get_backend('qasm_simulator')
+        qs = 45
+        states_op = OpVec([Zero^qs,
+                           One^qs,
+                           (Zero^qs) + (One^qs)])
+        paulis_op = OpVec([Z^qs,
+                           (I^Z^I)^int(qs/3)])
+        expect = PauliExpectation(operator=paulis_op, backend=backend)
+        means = expect.compute_expectation(states_op)
+        np.testing.assert_array_almost_equal(means, [[1, -1, 0],
+                                                     [1, -1, 0]])
