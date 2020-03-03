@@ -20,6 +20,7 @@ from .iqpe import IQPE
 from .qpe import QPE
 from .cplex import CPLEX_Ising
 from .exact_minimum_eigen_solver import ExactMinimumEigensolver
+from .min_eigen_solver import MinEigenSolver
 
 __all__ = [
     'VQE',
@@ -27,5 +28,6 @@ __all__ = [
     'IQPE',
     'QPE',
     'CPLEX_Ising',
-    'ExactMinimumEigensolver'
+    'ExactMinimumEigensolver',
+    'MinEigenSolver'
 ]

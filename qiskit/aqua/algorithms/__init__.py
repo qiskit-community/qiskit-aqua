@@ -109,7 +109,8 @@ from .distribution_learners import QGAN
 from .eigen_solvers import ExactEigensolver
 from .factorizers import Shor
 from .linear_solvers import HHL, ExactLSsolver
-from .minimum_eigen_solvers import VQE, QAOA, IQPE, QPE, CPLEX_Ising, ExactMinimumEigensolver
+from .minimum_eigen_solvers import (VQE, QAOA, IQPE, QPE, CPLEX_Ising, ExactMinimumEigensolver,
+                                    MinEigenSolver)
 from .education import EOH, Simon, DeutschJozsa, BernsteinVazirani
 
 __all__ = [
@@ -123,6 +124,7 @@ __all__ = [
     'ExactEigensolver',
     'ExactLSsolver',
     'ExactMinimumEigensolver',
+    'MinEigenSolver',
     'SVM_Classical',
     'CPLEX_Ising',
     'EOH',

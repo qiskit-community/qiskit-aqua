@@ -13,13 +13,13 @@
 # that they have been altered from the originals.
 """The Exact Eigensolver algorithm."""
 
-from typing import List, Optional
+from typing import List, Optional, Tuple
 import logging
 
 import numpy as np
 from scipy import sparse as scisparse
 
-from qiskit.aqua.algorithms import MinEigenSolver
+from qiskit.aqua.algorithms.minimum_eigen_solvers.min_eigen_solver import MinEigenSolver
 from qiskit.aqua.algorithms import ClassicalAlgorithm
 from qiskit.aqua.operators import MatrixOperator, op_converter  # pylint: disable=unused-import
 from qiskit.aqua.operators import BaseOperator
@@ -143,7 +143,7 @@ class ExactEigensolver(ClassicalAlgorithm, MinEigenSolver):
         # if it is still None, raise an error
         operator = operator or self._operator
         if operator is None:
-            raise AquaError('Provide an operator either in the initializer or this method.')
+            raise ValueError('Provide an operator either in the initializer or this method.')
 
         # run the algorithm with the operator passed in
         # (bit hacky w/o the QuantumAlgorithm refactor)

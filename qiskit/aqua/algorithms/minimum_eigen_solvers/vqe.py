@@ -28,7 +28,7 @@ from qiskit import ClassicalRegister, QuantumCircuit
 from qiskit.circuit import ParameterVector
 
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.algorithms import MinEigenSolver
+from qiskit.aqua.algorithms.minimum_eigen_solvers.min_eigen_solver import MinEigenSolver
 from qiskit.aqua.algorithms import VQAlgorithm
 from qiskit.aqua import AquaError
 from qiskit.aqua.operators import (TPBGroupedWeightedPauliOperator, WeightedPauliOperator,

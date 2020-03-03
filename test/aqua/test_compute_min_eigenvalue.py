@@ -15,16 +15,13 @@
 """ Test VQE """
 
 import unittest
-import os
-from test.aqua.common import QiskitAquaTestCase
-import numpy as np
-from parameterized import parameterized
+from test.aqua.aqua_test_case import QiskitAquaTestCase
 from qiskit import BasicAer
 
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator
 from qiskit.aqua.components.variational_forms import RY, RYRZ
-from qiskit.aqua.components.optimizers import L_BFGS_B, COBYLA, SPSA, SLSQP
+from qiskit.aqua.components.optimizers import L_BFGS_B, SPSA, SLSQP
 from qiskit.aqua.components.initial_states import Zero
 from qiskit.aqua.algorithms import VQE, ExactEigensolver
 

@@ -16,6 +16,8 @@
 
 from test.optimization.common import QiskitOptimizationTestCase
 import numpy as np
+from ddt import ddt, data
+
 from qiskit import BasicAer
 
 from qiskit.aqua import QuantumInstance
@@ -25,8 +27,6 @@ from qiskit.aqua.components.optimizers import COBYLA
 
 from qiskit.optimization.algorithms import MinEigenOptimizer, CplexOptimizer
 from qiskit.optimization.problems import OptimizationProblem
-
-from ddt import ddt, data
 
 
 @ddt

@@ -104,17 +104,25 @@ class QAOA(VQE):
                   :class:`~qiskit.aqua.operators.TPBGroupedWeightedPauliOperator`
         """
         validate_min('p', p, 1)
-        var_form = QAOAVarForm(operator.copy(), p, initial_state=initial_state,
-                               mixer_operator=mixer)
+        if operator:
+            var_form = QAOAVarForm(operator.copy(), p, initial_state=initial_state,
+                                   mixer_operator=mixer)
+        else:
+            var_form = None
         super().__init__(operator, var_form, optimizer, initial_point=initial_point,
                          max_evals_grouped=max_evals_grouped, aux_operators=aux_operators,
                          callback=callback, auto_conversion=auto_conversion,
                          quantum_instance=quantum_instance)
+        self._p = p
+        self._mixer = mixer
+        self._initial_state = initial_state
 
     def compute_min_eigenvalue(self, operator=None):
 
         if operator is None:
             operator = self._operator
+        if operator is None:
+            raise ValueError('Operator needs to be set in constructor, setter, or here!')
 
         var_form = QAOAVarForm(operator.copy(), self._p, initial_state=self._initial_state,
                                mixer_operator=self._mixer)
