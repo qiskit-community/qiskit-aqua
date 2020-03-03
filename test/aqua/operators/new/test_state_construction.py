@@ -75,10 +75,10 @@ class TestStateConstruction(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal((qc_op@Zero).to_matrix(), [.5**.5, .5**.5, 0, 0, 0, 0, 0, 0])
 
     def test_state_meas_composition(self):
-        print((~Zero^4).eval(Zero^4))
-        print((~One^4).eval(Zero^4))
-        print((~One ^ 4).eval(One ^ 4))
-
+        pass
+        # print((~Zero^4).eval(Zero^4))
+        # print((~One^4).eval(Zero^4))
+        # print((~One ^ 4).eval(One ^ 4))
         # print(StateFn(I^Z, is_measurement=True).eval(One^2))
 
     def test_add_direct(self):

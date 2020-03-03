@@ -52,8 +52,8 @@ class TestPauliExpectation(QiskitAquaTestCase):
     def test_pauli_expect_op_vector(self):
         backend = BasicAer.get_backend('qasm_simulator')
         paulis_op = OpVec([X, Y, Z, I])
-
         expect = PauliExpectation(operator=paulis_op, backend=backend)
+
         plus_mean = expect.compute_expectation(Plus)
         np.testing.assert_array_almost_equal(plus_mean, [1, 0, 0, 1], decimal=1)
 
@@ -63,21 +63,22 @@ class TestPauliExpectation(QiskitAquaTestCase):
         zero_mean = expect.compute_expectation(Zero)
         np.testing.assert_array_almost_equal(zero_mean, [0, 0, 1, 1], decimal=1)
 
+        # !!NOTE!!: Depolarizing channel (Sampling) means interference does not happen between circuits in sum,
+        # so expectation does not equal expectation for Zero!!
         sum_zero = (Plus+Minus)*(.5**.5)
         sum_zero_mean = expect.compute_expectation(sum_zero)
-        np.testing.assert_array_almost_equal(sum_zero_mean, [0, 0, 1, 1], decimal=1)
+        np.testing.assert_array_almost_equal(sum_zero_mean, [0, 0, 0, 2], decimal=1)
 
         for i, op in enumerate(paulis_op.oplist):
-            print(op)
             mat_op = op.to_matrix()
+            np.testing.assert_array_almost_equal(zero_mean[i],
+                                                 Zero.adjoint().to_matrix() @ mat_op @ Zero.to_matrix(),
+                                                 decimal=1)
             np.testing.assert_array_almost_equal(plus_mean[i],
                                                  Plus.adjoint().to_matrix() @ mat_op @ Plus.to_matrix(),
                                                  decimal=1)
             np.testing.assert_array_almost_equal(minus_mean[i],
                                                  Minus.adjoint().to_matrix() @ mat_op @ Minus.to_matrix(),
-                                                 decimal=1)
-            np.testing.assert_array_almost_equal(sum_zero_mean[i],
-                                                 sum_zero.adjoint().to_matrix() @ mat_op @ sum_zero.to_matrix(),
                                                  decimal=1)
 
     def test_pauli_expect_state_vector(self):

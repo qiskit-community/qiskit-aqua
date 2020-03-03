@@ -97,7 +97,6 @@ class TestOpConstruction(QiskitAquaTestCase):
         from qiskit import QuantumCircuit
         qc = QuantumCircuit(2)
         qc.append(cz.primitive, qargs=range(2))
-        print(qc.decompose().draw())
 
         ref_cz_mat = OpPrimitive(CzGate()).to_matrix()
         np.testing.assert_array_almost_equal(cz.to_matrix(), ref_cz_mat)
