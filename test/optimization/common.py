@@ -69,7 +69,7 @@ class QiskitOptimizationTestCase(unittest.TestCase):
             cls.log.setLevel(level)
 
     @staticmethod
-    def _get_resource_path(filename, path=Path.TEST):
+    def get_resource_path(filename, path=Path.TEST):
         """ Get the absolute path to a resource.
         Args:
             filename (string): filename or relative path to the resource.

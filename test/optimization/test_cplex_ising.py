@@ -18,8 +18,8 @@ from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 
 from qiskit.aqua import aqua_globals
-from qiskit.optimization.ising import max_cut
-from qiskit.optimization.ising.common import random_graph
+from qiskit.optimization.applications.ising import max_cut
+from qiskit.optimization.applications.ising.common import random_graph
 from qiskit.aqua.algorithms import CPLEX_Ising
 
 

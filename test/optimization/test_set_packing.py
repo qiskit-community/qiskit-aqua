@@ -18,8 +18,8 @@ import json
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 
-from qiskit.optimization.ising import set_packing
-from qiskit.optimization.ising.common import sample_most_likely
+from qiskit.optimization.applications.ising import set_packing
+from qiskit.optimization.applications.ising.common import sample_most_likely
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms import ExactEigensolver, VQE
 from qiskit.aqua.components.optimizers import SPSA
