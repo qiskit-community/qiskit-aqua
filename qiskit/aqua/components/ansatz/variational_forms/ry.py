@@ -41,7 +41,7 @@ class RY(TwoLocalAnsatz):
                  initial_state: Optional[InitialState] = None,
                  skip_unentangled_qubits: bool = False,
                  skip_final_rotation_layer: bool = False,
-                 parameter_prefix: str = '_',
+                 parameter_prefix: str = 'θ',
                  insert_barriers: bool = False,
                  depth: Optional[int] = None,  # pylint: disable=unused-argument
                  entangler_map: Optional[List[List[int]]] = None,  # pylint: disable=unused-argument
@@ -84,6 +84,7 @@ class RY(TwoLocalAnsatz):
             entangler_map: Deprecated, use `entanglement` instead. This argument now also supports
                 entangler maps.
             skip_final_ry: Deprecated, use `skip_final_rotation_layer` instead.
+            entanglement_gate: Deprecated, use `entanglement_gates` instead.
 
         Examples:
             >>> ry = RY(3)  # create the variational form on 3 qubits

@@ -12,10 +12,12 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""Aqua's Ansatz classes."""
+
 from .ansatz_factory import Ansatz
-from .variational_forms import TwoLocalAnsatz, RY, RYRZ, SwapRZ
 from .feature_maps import PauliExpansion
 from .operator_ansatz import OperatorAnsatz
+from .variational_forms import TwoLocalAnsatz, RY, RYRZ, SwapRZ
 
 __all__ = [
     'Ansatz',

@@ -25,11 +25,12 @@ TODO
 """
 
 from __future__ import annotations  # to use the type hint 'Ansatz' in the class itself
+import warnings
+import logging
 from typing import Union, Optional, List, Any, Tuple
 
 import numbers
 import numpy
-import logging
 from qiskit import QuantumCircuit, QiskitError, transpile, QuantumRegister
 from qiskit.circuit import Gate, Instruction, Parameter, ParameterVector, ParameterExpression
 from qiskit.aqua import AquaError
@@ -133,6 +134,7 @@ class Ansatz:
                 of `reps` as index. See the Examples section for more detail.
             insert_barriers: If True, barriers are inserted in between each layer/block. If False,
                 no barriers are inserted.
+            parameter_prefix: The prefix used if default parameters are generated.
             overwrite_block_parameters: If the parameters in the added blocks should be overwritten.
                 If a list of list of Parameters is passed, these Parameters are used to set the
                 parameters in the blocks.
@@ -391,16 +393,8 @@ class Ansatz:
         Returns:
             A list containing the surface parameters.
         """
+
         if self._surface_params is None:
-            # if len(self.blocks) == 0 or len(self.replist) == 0:
-            #     return []
-            # else:
-            #     surface_params = []
-            #     for i in self.replist:
-            #         if self._overwrite_block_parameters:
-            #             combine_parameterlists(surface_params, get_parameters(self._blocks[i]),
-            #                                 duplicate_existing=True)
-            #     return surface_params
             return self.base_parameters
 
         return self._surface_params
@@ -441,6 +435,7 @@ class Ansatz:
     @property
     def base_parameters(self):
         """Base params."""
+
         if self._base_params:
             return self._base_params
 
@@ -576,19 +571,18 @@ class Ansatz:
     @property
     def _num_parameters(self) -> int:
         """Deprecated, use the property ``num_qubits``."""
-        import warnings
         warnings.warn('This private class member is deprecated and will be removed. '
                       + 'Use the property num_parameters instead.')
         return self.num_parameters
 
     def construct_circuit(self,
-                          parameters: Union[List[float], List[Parameter], ParameterVector],
+                          params: Union[List[float], List[Parameter], ParameterVector],
                           q: Optional[QuantumRegister] = None,
                           ) -> QuantumCircuit:
         """Deprecated, use `to_circuit()`.
 
         Args:
-            parameters: The parameters for the Ansatz.
+            params: The parameters for the Ansatz.
             q: The qubit register to use to build the circuit. If None, a new register with the
                 name 'q' is created.
 
@@ -599,7 +593,7 @@ class Ansatz:
             ValueError: If the qubit register is provided but the length does not coincide with the
                 number of qubits of the Ansatz.
         """
-        self.parameters = parameters
+        self.parameters = params
         if q is None:
             circuit = QuantumCircuit(self.num_qubits)
         elif len(q) != self.num_qubits:
@@ -627,7 +621,7 @@ class Ansatz:
         circuit = QuantumCircuit(self.num_qubits)
         circuit.append(block, qargs)
         if params is not None:
-            update = dict(zip(list(circuit.parameters), params))
+            update = dict(zip(circuit.parameters, params))
             circuit = circuit.copy()
             circuit._substitute_parameters(update)
 
@@ -652,7 +646,7 @@ class Ansatz:
                 qubits.
         """
         # check no needed parameters are None
-        if self._blocks is None:
+        if self.blocks is None:
             raise AquaError('The blocks are not set.')
         # if self.replist is None:
             # raise AquaError('The repetitions are not set, this must be a list of indices or int. '
@@ -817,8 +811,6 @@ class Ansatz:
 
         else:
             if hasattr(overwrite_block_parameters, '__len__'):
-                # if len(overwrite_block_parameters) != len(self._replist):
-                # raise ValueError('Number of blockwise parameters does not fit the number of blocks')
                 self._blockwise_base_params += [overwrite_block_parameters]
             else:
                 self._blockwise_base_params += [get_parameters(block)]

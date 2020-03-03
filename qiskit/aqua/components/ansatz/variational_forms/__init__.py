@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""Variational forms."""
+
 from .two_local_ansatz import TwoLocalAnsatz
 from .ry import RY
 from .ryrz import RYRZ
