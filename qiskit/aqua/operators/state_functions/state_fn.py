@@ -182,7 +182,9 @@ class StateFn(OperatorBase):
         # TODO maybe include some reduction here in the subclasses - vector and Op, op and Op, etc.
 
         from qiskit.aqua.operators import OpCircuit
+
         if self.primitive == {'0'*self.num_qubits: 1.0} and isinstance(other, OpCircuit):
+            # Returning StateFnCircuit
             return StateFn(other.primitive, is_measurement=self.is_measurement, coeff=self.coeff * other.coeff)
 
         from qiskit.aqua.operators import OpComposition

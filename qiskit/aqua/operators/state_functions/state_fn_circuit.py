@@ -79,6 +79,32 @@ class StateFnCircuit(StateFn):
                               coeff=np.conj(self.coeff),
                               is_measurement=(not self.is_measurement))
 
+    def compose(self, other):
+        """ Composition (Linear algebra-style, right-to-left) is not well defined for States in the binary function
+        model. However, it is well defined for measurements.
+        """
+        # TODO maybe allow outers later to produce density operators or projectors, but not yet.
+        if not self.is_measurement:
+            raise ValueError('Composition with a Statefunctions in the first operand is not defined.')
+
+        new_self, other = self._check_zero_for_composition_and_expand(other)
+
+        from qiskit.aqua.operators import OpCircuit, OpPauli
+
+        if isinstance(other, (OpCircuit, OpPauli)):
+            op_circuit_self = OpCircuit(self.primitive)
+
+            # Avoid reimplementing compose logic
+            composed_op_circs = op_circuit_self.compose(other)
+
+            # Returning StateFnCircuit
+            return StateFnCircuit(composed_op_circs.primitive,
+                                  is_measurement=self.is_measurement,
+                                  coeff=self.coeff * other.coeff)
+
+        from qiskit.aqua.operators import OpComposition
+        return OpComposition([new_self, other])
+
     def kron(self, other):
         """ Kron
         Note: You must be conscious of Qiskit's big-endian bit printing convention. Meaning, Plus.kron(Zero)

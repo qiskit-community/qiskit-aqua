@@ -134,15 +134,20 @@ class OpCircuit(OpPrimitive):
             from qiskit.aqua.operators.converters import PaulitoInstruction
             other = OpCircuit(PaulitoInstruction().convert_pauli(other.primitive), coeff=other.coeff)
 
-        # Both Instructions/Circuits
-        if isinstance(other, OpCircuit):
+        from .state_functions import StateFnCircuit
+        if isinstance(other, (OpCircuit, StateFnCircuit)):
             new_qc = QuantumCircuit(self.num_qubits)
             new_qc.append(other.primitive, qargs=range(self.num_qubits))
             new_qc.append(self.primitive, qargs=range(self.num_qubits))
             # TODO Fix because converting to dag just to append is nuts
             # TODO Figure out what to do with cbits?
             new_qc = new_qc.decompose()
-            return OpCircuit(new_qc.to_instruction(), coeff=self.coeff * other.coeff)
+            if isinstance(other, StateFnCircuit):
+                return StateFnCircuit(new_qc.to_instruction(),
+                                      is_measurement=other.is_measurement,
+                                      coeff=self.coeff * other.coeff)
+            else:
+                return OpCircuit(new_qc.to_instruction(), coeff=self.coeff * other.coeff)
 
         return OpComposition([self, other])
 
