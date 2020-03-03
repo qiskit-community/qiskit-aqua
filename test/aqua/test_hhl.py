@@ -18,7 +18,7 @@ import unittest
 from test.aqua import QiskitAquaTestCase
 
 import numpy as np
-from parameterized import parameterized
+from ddt import ddt, idata, unpack
 from qiskit import BasicAer
 from qiskit.quantum_info import state_fidelity
 
@@ -33,6 +33,7 @@ from qiskit.aqua.components.iqfts import Standard as StandardIQFTS
 from qiskit.aqua.components.initial_states import Custom
 
 
+@ddt
 class TestHHL(QiskitAquaTestCase):
     """HHL tests."""
 
@@ -59,7 +60,8 @@ class TestHHL(QiskitAquaTestCase):
                        negative_evals=negative_evals,
                        ne_qfts=ne_qfts)
 
-    @parameterized.expand([[[0, 1]], [[1, 0]], [[1, 0.1]], [[1, 1]], [[1, 10]]])
+    @idata([[[0, 1]], [[1, 0]], [[1, 0.1]], [[1, 1]], [[1, 10]]])
+    @unpack
     def test_hhl_diagonal(self, vector):
         """ hhl diagonal test """
         self.log.debug('Testing HHL simple test in mode Lookup with statevector simulator')
@@ -103,7 +105,8 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('fidelity HHL to algebraic: %s', fidelity)
         self.log.debug('probability of result:     %s', hhl_result["probability_result"])
 
-    @parameterized.expand([[[-1, 0]], [[0, -1]], [[-1, -1]]])
+    @idata([[[-1, 0]], [[0, -1]], [[-1, -1]]])
+    @unpack
     def test_hhl_diagonal_negative(self, vector):
         """ hhl diagonal negative test """
         self.log.debug('Testing HHL simple test in mode Lookup with statevector simulator')
@@ -146,7 +149,8 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('fidelity HHL to algebraic: %s', fidelity)
         self.log.debug('probability of result:     %s', hhl_result["probability_result"])
 
-    @parameterized.expand([[[0, 1]], [[1, 0.1]], [[1, 1]]])
+    @idata([[[0, 1]], [[1, 0.1]], [[1, 1]]])
+    @unpack
     def test_hhl_diagonal_longdivison(self, vector):
         """ hhl diagonal long division test """
         self.log.debug('Testing HHL simple test in mode LongDivision and statevector simulator')
@@ -189,7 +193,8 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('fidelity HHL to algebraic: %s', fidelity)
         self.log.debug('probability of result:     %s', hhl_result["probability_result"])
 
-    @parameterized.expand([[[0, 1]], [[1, 0]], [[1, 0.1]], [[1, 1]], [[1, 10]]])
+    @idata([[[0, 1]], [[1, 0]], [[1, 0.1]], [[1, 1]], [[1, 10]]])
+    @unpack
     def test_hhl_diagonal_qasm(self, vector):
         """ hhl diagonal qasm test """
         self.log.debug('Testing HHL simple test with qasm simulator')
@@ -233,7 +238,8 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('fidelity HHL to algebraic: %s', fidelity)
         self.log.debug('probability of result:     %s', hhl_result["probability_result"])
 
-    @parameterized.expand([[3, 4], [5, 5]])
+    @idata([[3, 4], [5, 5]])
+    @unpack
     def test_hhl_diagonal_other_dim(self, n, num_ancillary):
         """ hhl diagonal other dim test """
         self.log.debug('Testing HHL with matrix dimension other than 2**n')

@@ -22,6 +22,9 @@ Changed
 -------
 
 -   Remove declarative api (#758) (#759) (#760) (#762) (#763)
+-   Refactor Multiclass Extensions to set Estimator internally (#822)
+-   Refactor algorithms (#831)
+-   Moved to Terra: multi-controlled Toffoli, U1 and Pauli rotations (including tests) (#833)
 
 [0.6.4](https://github.com/Qiskit/qiskit-aqua/compare/0.6.3...0.6.4) - 2020-02-06
 =================================================================================
@@ -60,7 +63,7 @@ Changed
 
 -   `VQE`, `VQC` and `QSVM` now use parameterized circuits when available to save time
     in transpilation. (#693)
--   Initial stage of ml, finance, and optimization refactor into separate application-specific directories. 
+-   Initial stage of ml, finance, and optimization refactor into separate application-specific directories.
     (#700) Among other changes:
     - qiskit/aqua/translators/data_providers/ moved to qiskit/finance/data_providers/
     - qiskit/aqua/translators/ising/portfolio.py and portfolio_diversification.py moved to qiskit/finance/ising/
@@ -73,12 +76,12 @@ Added
 
 -   Ability to create a `CustomCircuitOracle` object with a callback for `evaluate_classically`,
     which a `Grover` object will now check for, upon initialization, on its provided oracle.  (#681)
--   `VariationalForm` and `FeatureMap` have a new property called `support_parameterized_circuit` which 
-    indicates whether or not the circuit can be built with a Terra `Parameter` (or `ParameterVector`) object. 
+-   `VariationalForm` and `FeatureMap` have a new property called `support_parameterized_circuit` which
+    indicates whether or not the circuit can be built with a Terra `Parameter` (or `ParameterVector`) object.
     Further, the `evolution_instruction` method supports `Parameter` for the time parameter.  (#693)
--   `VQEAdapt`, an adaptive version of VQE for chemistry which dynamically selects the UCCSD excitations to 
+-   `VQEAdapt`, an adaptive version of VQE for chemistry which dynamically selects the UCCSD excitations to
     include in the ansatz. (#685)
--   Optionally split a qobj by max gates per job to better avoid "Payload is too large" errors when 
+-   Optionally split a qobj by max gates per job to better avoid "Payload is too large" errors when
     running on quantum hardware. (#694)
 -   An option in `evolution_instruction` to control whether to add a barrier between every slice. (#708)
 -   Added `VQE` snapshot mode for the Aer QasmSimulator when no noise model is specified and `shots==1`. (#715)
@@ -127,13 +130,13 @@ Added
       shell support
 -   Chemistry: UHF open-shell support
     - Supported for all drivers: Gaussian16, PyQuante, PySCF and PSI4
-    - QMolecule extended to include integrals, coefficients etc for separate beta   
+    - QMolecule extended to include integrals, coefficients etc for separate beta
 -   Chemistry: QMolecule extended with integrals in atomic orbital basis to facilitate common access
     to these for experimentation
     - Supported for all drivers: Gaussian16, PyQuante, PySCF and PSI4
 -   Chemistry: Additional PyQuante and PySCF driver configuration
     - Convergence tolerance and max convergence iteration controls.
-    - For PySCF initial guess choice   
+    - For PySCF initial guess choice
 -   Chemistry: Processing output added to debug log from PyQuante and PySCF computations (Gaussian16
     and PSI4 outputs were already added to debug log)
 -   Chemistry: Merged qiskit-chemistry to this repo. The old chemistry changelog is at
@@ -146,9 +149,9 @@ Added
 -   Amplitude Estimation: added maximum likelihood postprocessing and confidence interval computation.
 -   Maximum Likelihood Amplitude Estimation (MLAE): Implemented new algorithm for amplitude estimation based on
     maximum likelihood estimation, which reduces number of required qubits and circuit depth. (#642)
--   Added (piecewise) linearly and polynomially controlled Pauli-rotation circuits. (#642)  
+-   Added (piecewise) linearly and polynomially controlled Pauli-rotation circuits. (#642)
 -   Add `q_equation_of_motion` to study excited state of a molecule, and add two algorithms to prepare the reference
-    state. (#655)     
+    state. (#655)
 
 Changed
 -------
@@ -375,7 +378,7 @@ Added
 -   Amplitude Estimation algorithm
 -   Qiskit Optimization: New Ising models for optimization problems
     exact cover, set packing, vertex cover, clique, and graph partition
--   
+-
 
     Qiskit AI:
 
@@ -383,7 +386,7 @@ Added
             interface: `PauliExpansion` and `PauliZExpansion`
         -   Training model serialization/deserialization mechanism
 
--   
+-
 
     Qiskit Finance:
 
@@ -431,7 +434,7 @@ Added
 
 -   Updated for 0.6 Terra
 -   Enhanced backend settings
--   
+-
 
     Pluggable multiclass classifier extensions
 
@@ -444,7 +447,7 @@ Added
 -   SPSA calibration and control variables all configurable
 -   Step size configurable for optimizers with numerical approximation
     of the jacobian
--   
+-
 
     Z2 Symmetry tapering
 
@@ -455,7 +458,7 @@ Added
 -   UCCSD performance improvements
 -   Remote device/simulator job auto-recovery
 -   Algorithm concatenation: VQE-\>(I)QPE
--   
+-
 
     Operator improvements
 

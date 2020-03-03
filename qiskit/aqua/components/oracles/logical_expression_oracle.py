@@ -20,7 +20,8 @@ import logging
 import re
 
 from sympy.parsing.sympy_parser import parse_expr
-from sympy.logic.boolalg import to_cnf, BooleanTrue, BooleanFalse
+from sympy.logic import simplify_logic
+from sympy.logic.boolalg import is_cnf, is_dnf, BooleanTrue, BooleanFalse
 from qiskit import QuantumCircuit, QuantumRegister
 
 from qiskit.aqua import AquaError
@@ -171,14 +172,18 @@ class LogicalExpressionOracle(Oracle):
         self._num_vars = len(self._expr.binary_symbols)
         self._lit_to_var = [None] + sorted(self._expr.binary_symbols, key=str)
         self._var_to_lit = dict(zip(self._lit_to_var[1:], range(1, self._num_vars + 1)))
-        cnf = to_cnf(self._expr, simplify=self._optimization)
 
-        if isinstance(cnf, BooleanTrue):
+        if self._optimization or (not is_cnf(self._expr) and not is_dnf(self._expr)):
+            expr = simplify_logic(self._expr)
+        else:
+            expr = self._expr
+
+        if isinstance(expr, BooleanTrue):
             ast = 'const', 1
-        elif isinstance(cnf, BooleanFalse):
+        elif isinstance(expr, BooleanFalse):
             ast = 'const', 0
         else:
-            ast = get_ast(self._var_to_lit, cnf)
+            ast = get_ast(self._var_to_lit, expr)
 
         if ast[0] == 'or':
             self._nf = DNF(ast, num_vars=self._num_vars)
