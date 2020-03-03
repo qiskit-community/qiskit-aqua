@@ -16,13 +16,12 @@
 
 
 import numpy as np
-import itertools
 
 from qiskit import QuantumCircuit, BasicAer, execute
 from qiskit.circuit import Instruction
+from qiskit.extensions import Initialize
 
-from qiskit.quantum_info import Statevector
-from qiskit.aqua.operators import StateFn, OperatorBase, OpVec, OpSum
+from qiskit.aqua.operators import StateFn, OperatorBase, OpSum
 
 
 class StateFnCircuit(StateFn):
@@ -46,13 +45,40 @@ class StateFnCircuit(StateFn):
     def __init__(self, primitive, coeff=1.0, is_measurement=False):
         """
         Args:
-            primitive(str, dict, OperatorBase, Result, np.ndarray, list)
+            primitive(QuantumCircuit, Instruction)
             coeff(int, float, complex): A coefficient by which to multiply the state
         """
         if isinstance(primitive, QuantumCircuit):
             primitive = primitive.to_instruction()
 
         super().__init__(primitive, coeff=coeff, is_measurement=is_measurement)
+
+    @staticmethod
+    def from_dict(density_dict):
+        # If the dict is sparse (elements <= qubits), don't go building a statevector to pass to Qiskit's
+        # initializer, just create a sum.
+        if len(density_dict) <= len(list(density_dict.keys())[0]):
+            statefn_circuits = []
+            for bstr, prob in density_dict.items():
+                qc = QuantumCircuit(len(bstr))
+                # NOTE: Reversing endianness!!
+                for (index, bit) in enumerate(reversed(bstr)):
+                    if bit == '1':
+                        qc.x(index)
+                sf_circuit = StateFnCircuit(qc, coeff=prob)
+                statefn_circuits += [sf_circuit]
+            return OpSum(statefn_circuits)
+        else:
+            sf_dict = StateFn(density_dict)
+            return StateFnCircuit.from_vector(sf_dict.to_matrix())
+
+    @staticmethod
+    def from_vector(statevector):
+        normalization_coeff = np.linalg.norm(statevector)
+        normalized_sv = statevector / normalization_coeff
+        if not np.all(np.abs(statevector) == statevector):
+            raise ValueError('Qiskit circuit Initializer cannot handle non-positive statevectors.')
+        return StateFnCircuit(Initialize(normalized_sv), coeff=normalization_coeff)
 
     def get_primitives(self):
         """ Return a set of strings describing the primitives contained in the Operator """
@@ -193,7 +219,15 @@ class StateFnCircuit(StateFn):
             qc.append(self.primitive, qargs=range(self.primitive.num_qubits))
         return qc
 
-    # TODO
-    def sample(self, shots):
+    def sample(self, shots=1024):
         """ Sample the statefunction as a normalized probability distribution."""
-        raise NotImplementedError
+        if self.num_qubits > 16 and not massive:
+            # TODO figure out sparse matrices?
+            raise ValueError('to_vector will return an exponentially large vector, in this case {0} elements.'
+                             ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
+
+        qc = self.to_circuit(meas=True)
+        qasm_backend = BasicAer.get_backend('qasm_simulator')
+        counts = execute(qc, qasm_backend, optimization_level=0, shots=shots).result().get_counts()
+        scaled_dict = {bstr: np.sqrt((prob/shots))*self.coeff for (bstr, prob) in counts.items()}
+        return scaled_dict
