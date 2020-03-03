@@ -184,7 +184,13 @@ class StateFnOperator(StateFn):
         if isinstance(other, StateFnOperator):
             return np.trace(self.primitive.to_matrix() @ other.to_matrix())
         elif isinstance(other, OperatorBase):
-            comp = other.adjoint().to_matrix() @ self.primitive.to_matrix() @ other.to_matrix()
+            # If other is a dict, we can try to do this scalably, e.g. if self.primitive is an OpPauli
+            from . import StateFnDict
+            if isinstance(other, StateFnDict):
+                comp = self.primitive.eval(front=other, back=other.adjoint())
+            else:
+                comp = other.adjoint().to_matrix() @ self.primitive.to_matrix() @ other.to_matrix()
+
             if isinstance(comp, (int, float, complex)):
                 return comp
             elif comp.shape == (1, ):
