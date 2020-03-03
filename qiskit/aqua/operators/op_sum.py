@@ -73,7 +73,7 @@ class OpSum(OpVec):
     def reduce(self):
         reduced_ops = [op.reduce() for op in self.oplist]
         reduced_ops = reduce(lambda x, y: x.add(y), reduced_ops) * self.coeff
-        if isinstance(reduced_ops, OpSum) and len(reduced_ops.oplist) > 1:
-            return reduced_ops
+        if isinstance(reduced_ops, OpSum) and len(reduced_ops.oplist) == 1:
+            return reduced_ops.oplist[0]
         else:
-            return reduced_ops[0]
+            return reduced_ops

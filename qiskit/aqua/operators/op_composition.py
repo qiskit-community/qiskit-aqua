@@ -143,7 +143,7 @@ class OpComposition(OpVec):
             else:
                 return l.compose(r)
         reduced_ops = reduce(lambda x, y: distribute_compose(x, y), reduced_ops) * self.coeff
-        if isinstance(reduced_ops, OpVec) and len(reduced_ops.oplist) > 1:
-            return reduced_ops
+        if isinstance(reduced_ops, OpVec) and len(reduced_ops.oplist) == 1:
+            return reduced_ops.oplist[0]
         else:
-            return reduced_ops[0]
+            return reduced_ops
