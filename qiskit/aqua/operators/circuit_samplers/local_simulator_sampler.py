@@ -16,13 +16,11 @@
 
 import logging
 import numpy as np
-from abc import abstractmethod
-
-from qiskit import BasicAer
 
 from . import CircuitSampler
-from qiskit.aqua import AquaError, QuantumAlgorithm, QuantumInstance
+from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import OpVec, StateFn, StateFnCircuit
+from qiskit.aqua.operators.converters import DicttoCircuitSum
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +45,8 @@ class LocalSimulatorSampler(CircuitSampler):
 
     def convert(self, operator):
 
-        reduced_op = operator.reduce()
+        operator_dicts_replaced = DicttoCircuitSum().convert(operator)
+        reduced_op = operator_dicts_replaced.reduce()
         op_circuits = {}
 
         def extract_statefncircuits(operator):
@@ -80,8 +79,9 @@ class LocalSimulatorSampler(CircuitSampler):
         circuits = [op_c.to_circuit(meas=True) for op_c in op_circuits]
         results = self._qi.execute(circuits)
         sampled_statefn_dicts = {}
-        # TODO it's annoying that I can't just reuse the logic to create a StateFnDict from a results object here.
         for (op_c, circuit) in zip(op_circuits, circuits):
-            sampled_statefn_dicts[str(op_c)] = StateFn(results.get_counts(circuit)) * \
-                                               (1/self._qi._run_config.shots)
+            # Taking square root because we're replacing a statevector representation of probabilities.
+            sqrt_counts = {b: (v*op_c.coeff/self._qi._run_config.shots)**.5
+                           for (b, v) in results.get_counts(circuit).items()}
+            sampled_statefn_dicts[str(op_c)] = StateFn(sqrt_counts)
         return sampled_statefn_dicts
