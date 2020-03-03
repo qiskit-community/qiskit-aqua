@@ -22,7 +22,7 @@ from qiskit import QuantumCircuit, BasicAer, execute, ClassicalRegister
 from qiskit.quantum_info import Statevector
 
 from test.aqua import QiskitAquaTestCase
-from qiskit.aqua.operators import StateFn, Zero, One, Plus, Minus, OpPrimitive, H, I, Z, X, Y
+from qiskit.aqua.operators import StateFn, Zero, One, Plus, Minus, OpPrimitive, OpSum, H, I, Z, X, Y, StateFnCircuit
 
 
 class TestStateConstruction(QiskitAquaTestCase):
@@ -86,3 +86,34 @@ class TestStateConstruction(QiskitAquaTestCase):
         self.assertEqual(wf.primitive, {'101010': 0.5, '111111': 0.3, '000000': 1.0})
         wf = (4*StateFn({'101010': .5, '111111': .3})) + ((3+.1j)*(Zero ^ 6))
         self.assertEqual(wf.primitive, {'000000': (3+0.1j), '101010': (2+0j), '111111': (1.2+0j)})
+
+    def test_state_fn_circuit_from_dict_as_sum(self):
+        statedict = {'1010101': .5,
+                     '1000000': .1,
+                     '0000000': .2j,
+                     '1111111': 0.5j}
+        sfc_sum = StateFnCircuit.from_dict(statedict)
+        self.assertIsInstance(sfc_sum, OpSum)
+        for sfc_op in sfc_sum.oplist:
+            self.assertIsInstance(sfc_op, StateFnCircuit)
+            samples = sfc_op.sample()
+            self.assertIn(list(samples.keys())[0], statedict)
+            self.assertEqual(sfc_op.coeff, statedict[list(samples.keys())[0]])
+        np.testing.assert_array_almost_equal(StateFn(statedict).to_matrix(), sfc_sum.to_matrix())
+
+    def test_state_fn_circuit_from_dict_initialize(self):
+        statedict = {'101': .5,
+                     '100': .1,
+                     '000': .2,
+                     '111': .5}
+        sfc = StateFnCircuit.from_dict(statedict)
+        self.assertIsInstance(sfc, StateFnCircuit)
+        samples = sfc.sample()
+        np.testing.assert_array_almost_equal(StateFn(statedict).to_matrix(), np.round(sfc.to_matrix(), decimals=1))
+        for k, v in samples.items():
+            self.assertIn(k, statedict)
+            self.assertAlmostEqual(v, np.abs(statedict[k]), delta=.1)
+
+        # Follows same codepath as above, but testing to be thorough
+        sfc_vector = StateFnCircuit.from_vector(StateFn(statedict).to_matrix())
+        np.testing.assert_array_almost_equal(StateFn(statedict).to_matrix(), sfc_vector.to_matrix())
