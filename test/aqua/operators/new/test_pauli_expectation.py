@@ -47,7 +47,7 @@ class TestPauliExpectation(QiskitAquaTestCase):
             mean = expect.compute_expectation(state)
             matmulmean = state.adjoint().to_matrix() @ pauli.to_matrix() @ state.to_matrix()
             # print('{}, {}'.format(pauli.primitive, np.round(float(matmulmean[0]), decimals=3)))
-            np.testing.assert_array_almost_equal(mean, matmulmean)
+            np.testing.assert_array_almost_equal(mean, matmulmean, decimal=1)
 
     def test_pauli_expect_op_vector(self):
         backend = BasicAer.get_backend('qasm_simulator')
@@ -55,27 +55,30 @@ class TestPauliExpectation(QiskitAquaTestCase):
 
         expect = PauliExpectation(operator=paulis_op, backend=backend)
         plus_mean = expect.compute_expectation(Plus)
-        np.testing.assert_array_almost_equal(plus_mean, [1, 0, 0, 1])
+        np.testing.assert_array_almost_equal(plus_mean, [1, 0, 0, 1], decimal=1)
 
         minus_mean = expect.compute_expectation(Minus)
-        np.testing.assert_array_almost_equal(minus_mean, [-1, 0, 0, 1])
+        np.testing.assert_array_almost_equal(minus_mean, [-1, 0, 0, 1], decimal=1)
 
         zero_mean = expect.compute_expectation(Zero)
-        np.testing.assert_array_almost_equal(zero_mean, [0, 0, 1, 1])
+        np.testing.assert_array_almost_equal(zero_mean, [0, 0, 1, 1], decimal=1)
 
         sum_zero = (Plus+Minus)*(.5**.5)
         sum_zero_mean = expect.compute_expectation(sum_zero)
-        np.testing.assert_array_almost_equal(sum_zero_mean, [0, 0, 1, 1])
+        np.testing.assert_array_almost_equal(sum_zero_mean, [0, 0, 1, 1], decimal=1)
 
         for i, op in enumerate(paulis_op.oplist):
             print(op)
             mat_op = op.to_matrix()
             np.testing.assert_array_almost_equal(plus_mean[i],
-                                                 Plus.adjoint().to_matrix() @ mat_op @ Plus.to_matrix())
+                                                 Plus.adjoint().to_matrix() @ mat_op @ Plus.to_matrix(),
+                                                 decimal=1)
             np.testing.assert_array_almost_equal(minus_mean[i],
-                                                 Minus.adjoint().to_matrix() @ mat_op @ Minus.to_matrix())
+                                                 Minus.adjoint().to_matrix() @ mat_op @ Minus.to_matrix(),
+                                                 decimal=1)
             np.testing.assert_array_almost_equal(sum_zero_mean[i],
-                                                 sum_zero.adjoint().to_matrix() @ mat_op @ sum_zero.to_matrix())
+                                                 sum_zero.adjoint().to_matrix() @ mat_op @ sum_zero.to_matrix(),
+                                                 decimal=1)
 
     def test_pauli_expect_state_vector(self):
         backend = BasicAer.get_backend('qasm_simulator')
@@ -84,7 +87,7 @@ class TestPauliExpectation(QiskitAquaTestCase):
         paulis_op = X
         expect = PauliExpectation(operator=paulis_op, backend=backend)
         means = expect.compute_expectation(states_op)
-        np.testing.assert_array_almost_equal(means, [0, 0, 1, -1])
+        np.testing.assert_array_almost_equal(means, [0, 0, 1, -1], decimal=1)
 
     def test_pauli_expect_op_vector_state_vector(self):
         backend = BasicAer.get_backend('qasm_simulator')
@@ -97,4 +100,4 @@ class TestPauliExpectation(QiskitAquaTestCase):
                   [+0, 0, 0,  0],
                   [-1, 1, 0, -0],
                   [+1, 1, 1,  1]]
-        np.testing.assert_array_almost_equal(means, valids)
+        np.testing.assert_array_almost_equal(means, valids, decimal=1)
