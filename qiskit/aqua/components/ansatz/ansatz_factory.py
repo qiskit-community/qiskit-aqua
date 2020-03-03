@@ -21,7 +21,6 @@ TODO
     * add transpile feature
     * add params argument to to_circuit?
     * rename append to combine(after=True) with to support after/before
-    * use a manager for all updates?
 """
 
 from __future__ import annotations  # to use the type hint 'Ansatz' in the class itself
@@ -33,7 +32,7 @@ import numbers
 import numpy
 from qiskit import QuantumCircuit, QiskitError, transpile, QuantumRegister
 from qiskit.circuit import Gate, Instruction, Parameter, ParameterVector, ParameterExpression
-from qiskit.aqua import AquaError
+from qiskit.aqua.aqua_error import AquaError
 from qiskit.aqua.components.initial_states import InitialState
 
 logger = logging.getLogger(__name__)

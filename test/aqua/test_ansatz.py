@@ -27,6 +27,7 @@ from qiskit.quantum_info import Pauli
 
 from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator
 from qiskit.aqua.components.ansatz import Ansatz, OperatorAnsatz, SwapRZ, RY, RYRZ
+from qiskit.aqua.components.variational_forms.ry import RY as DeprecatedRY
 
 from test.aqua import QiskitAquaTestCase
 
@@ -284,19 +285,15 @@ class TestBackwardCompatibility(QiskitAquaTestCase):
     # @unittest.skip('TODO')
     def test_parameter_order(self):
         """Test that the parameter appearance is equal in the old and new variational forms."""
-        # from qiskit.aqua.components.variational_forms.ry import RY as DeprecatedRY
         num_qubits = 3
         reps = 2
+        params = ParameterVector('_', length=9)
 
-        def varform_params(cls):
-            ry = cls(num_qubits, reps)
-            params = ParameterVector('_', length=9)
-            circuit_params = ry.construct_circuit(params).parameters
-            return list(circuit_params)
+        def varform_params(cls, params):
+            varform = cls(num_qubits, reps)
+            return varform.construct_circuit(params).parameters
 
-        # old_params = varform_params(DeprecatedRY)
-        new_params = varform_params(RY)
-        # self.assertListEqual(varform_params(RY), varform_params(DeprecatedRY))
+        self.assertListEqual(varform_params(RY, params), varform_params(DeprecatedRY, params))
 
 
 class TestRY(QiskitAquaTestCase):
