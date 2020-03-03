@@ -119,9 +119,10 @@ class OpComposition(OpVec):
 
         def distribute_compose(l, r):
             if isinstance(l, OpVec) and l.distributive:
-                return OpVec([distribute_compose(l_op, r) for l_op in l.oplist])
-            elif isinstance(r, OpVec) and r.distributive:
-                return OpVec([distribute_compose(l, r_op) for r_op in r.oplist])
+                # Either OpVec or OpSum, returns correct type
+                return l.__class__([distribute_compose(l_op, r) for l_op in l.oplist])
+            if isinstance(r, OpVec) and r.distributive:
+                return r.__class__([distribute_compose(l, r_op) for r_op in r.oplist])
             else:
                 return l.compose(r)
         reduced_ops = reduce(lambda x, y: distribute_compose(x, y), reduced_ops) * self.coeff
