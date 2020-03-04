@@ -188,6 +188,9 @@ class Ansatz:
         # parameter bounds
         self._bounds = None
 
+        # temporary fix until UCCSD is rewritten
+        self._tmp_num_parameters = None
+
     def __iadd__(self, other: Union[Ansatz, Instruction, QuantumCircuit]) -> Ansatz:
         """Overloading += for convenience.
 
@@ -304,9 +307,9 @@ class Ansatz:
 
     def _reps_as_list(self):
         if isinstance(self._reps, int):
-            if self._blocks is None:
+            if self.blocks is None:
                 return []
-            return self._reps * list(range(len(self._blocks)))
+            return self._reps * list(range(len(self.blocks)))
         return self._reps
 
     @property
@@ -341,7 +344,6 @@ class Ansatz:
     @property
     def base_parameters(self):
         """Base params."""
-
         if self._base_params:
             return self._base_params
 
@@ -451,6 +453,8 @@ class Ansatz:
         Returns:
             The number of parameters.
         """
+        if self._tmp_num_parameters:
+            return self._tmp_num_parameters
         return len(self.parameters)  # could also be len(self._surface_params)
 
     @property
@@ -459,6 +463,13 @@ class Ansatz:
         warnings.warn('This private class member is deprecated and will be removed. '
                       + 'Use the property num_parameters instead.')
         return self.num_parameters
+
+    @_num_parameters.setter
+    def _num_parameters(self, num: int) -> None:
+        """Deprecated. Number of parameters is automatically inferred."""
+        warnings.warn('This private class member is deprecated and will be removed. '
+                      + 'Use the property num_parameters instead.')
+        self._tmp_num_parameters = num
 
     @property
     def num_qubits(self) -> int:
@@ -623,13 +634,13 @@ class Ansatz:
         if self._overwrite_block_parameters is True:
             param_count = 0
             for i in self._reps_as_list():
-                n = len(get_parameters(self._blocks[i]))
+                n = len(get_parameters(self.blocks[i]))
                 replacement_parameters = self._get_default_parameters(param_count, n)
                 param_count += n
                 blockwise_base_params += [replacement_parameters]
         else:
             for i in self._reps_as_list():
-                block_params = get_parameters(self._blocks[i])
+                block_params = get_parameters(self.blocks[i])
                 blockwise_base_params += [block_params]
 
         return blockwise_base_params

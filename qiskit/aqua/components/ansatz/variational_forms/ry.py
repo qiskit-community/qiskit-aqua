@@ -29,13 +29,12 @@ class RY(TwoLocalAnsatz):
     TODO
     """
 
-    @deprecate_arguments({'depth': 'reps',
-                          'entangler_map': 'entanglement',
+    @deprecate_arguments({'entangler_map': 'entanglement',
                           'skip_final_ry': 'skip_final_rotation_layer',
                           'entanglement_gate': 'entanglement_gates'})
     def __init__(self,
                  num_qubits: Optional[int] = None,
-                 reps: int = 3,
+                 depth: int = 3,
                  entanglement_gates: Union[str, List[str], type, List[type]] = CZGate,
                  entanglement: Union[str, List[List[int]], callable] = 'full',
                  initial_state: Optional[InitialState] = None,
@@ -43,7 +42,6 @@ class RY(TwoLocalAnsatz):
                  skip_final_rotation_layer: bool = False,
                  parameter_prefix: str = 'θ',
                  insert_barriers: bool = False,
-                 depth: Optional[int] = None,  # pylint: disable=unused-argument
                  entangler_map: Optional[List[List[int]]] = None,  # pylint: disable=unused-argument
                  skip_final_ry: Optional[bool] = None,  # pylint: disable=unused-argument
                  entanglement_gate: Optional[str] = None,  # pylint: disable=unused-argument
@@ -52,7 +50,7 @@ class RY(TwoLocalAnsatz):
 
         Args:
             num_qubits: The number of qubits of the Ansatz.
-            reps: Specifies how often a block of consisting of a rotation layer and entanglement
+            depth: Specifies how often the structure of a rotation layer followed by an entanglement
                 layer is repeated.
             entanglement_gates: The gates used in the entanglement layer. Can be specified via the
                 name of a gate (e.g. 'cx') or the gate type itself (e.g. CnotGate).
@@ -80,7 +78,6 @@ class RY(TwoLocalAnsatz):
             insert_barriers: If True, barriers are inserted in between each layer. If False,
                 no barriers are inserted.
                 Defaults to False.
-            depth: Deprecated, use `reps` instead.
             entangler_map: Deprecated, use `entanglement` instead. This argument now also supports
                 entangler maps.
             skip_final_ry: Deprecated, use `skip_final_rotation_layer` instead.
@@ -112,7 +109,7 @@ class RY(TwoLocalAnsatz):
             >>> print(my_ry)
         """
         super().__init__(num_qubits=num_qubits,
-                         reps=reps,
+                         depth=depth,
                          rotation_gates=RYGate,
                          entanglement_gates=entanglement_gates,
                          entanglement=entanglement,

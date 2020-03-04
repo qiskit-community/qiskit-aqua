@@ -29,11 +29,10 @@ class RYRZ(TwoLocalAnsatz):
     TODO
     """
 
-    @deprecate_arguments({'depth': 'reps',
-                          'entangler_map': 'entanglement'})
+    @deprecate_arguments({'entangler_map': 'entanglement'})
     def __init__(self,
                  num_qubits: Optional[int] = None,
-                 reps: int = 3,
+                 depth: int = 3,
                  entanglement_gates: Union[str, List[str], type, List[type]] = CZGate,
                  entanglement: Union[str, List[List[int]], callable] = 'full',
                  initial_state: Optional[InitialState] = None,
@@ -41,13 +40,14 @@ class RYRZ(TwoLocalAnsatz):
                  skip_final_rotation_layer: bool = False,
                  parameter_prefix: str = 'θ',
                  insert_barriers: bool = False,
-                 depth: Optional[int] = None,  # pylint: disable=unused-argument
                  entangler_map: Optional[List[List[int]]] = None,  # pylint: disable=unused-argument
                  ) -> None:
         """Initializer. Assumes that the type hints are obeyed for now.
 
         Args:
             num_qubits: The number of qubits of the Ansatz.
+            depth: Specifies how often the structure of a rotation layer followed by an entanglement
+                layer is repeated.
             entanglement_gates: The gates used in the entanglement layer. Can be specified via the
                 name of a gate (e.g. 'cx') or the gate type itself (e.g. CnotGate).
                 If only one gate is provided, the gate same gate is applied to each qubit.
@@ -68,15 +68,12 @@ class RYRZ(TwoLocalAnsatz):
                 to each qubit in the Ansatz. Defaults to False.
             skip_final_rotation_layer: If True, a rotation layer is added at the end of the
                 ansatz. If False, no rotation layer is added. Defaults to True.
-            reps: Specifies how often a block of consisting of a rotation layer and entanglement
-                layer is repeated.
             parameter_prefix: The parameterized gates require a parameter to be defined, for which
                 we use instances of `qiskit.circuit.Parameter`. The name of each parameter is the
                 number of its occurrence with this specified prefix.
             insert_barriers: If True, barriers are inserted in between each layer. If False,
                 no barriers are inserted.
                 Defaults to False.
-            depth: Deprecated, use `reps` instead.
             entangler_map: Deprecated, use `entanglement` instead. This argument now also supports
                 entangler maps.
 
@@ -105,8 +102,8 @@ class RYRZ(TwoLocalAnsatz):
             >>> my_varform = ryrz + ry
             >>> print(my_varform)
         """
-        super().__init__(num_qubits,
-                         reps=reps,
+        super().__init__(num_qubits=num_qubits,
+                         depth=depth,
                          rotation_gates=[RYGate, RZGate],
                          entanglement_gates=entanglement_gates,
                          entanglement=entanglement,

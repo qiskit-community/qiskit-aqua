@@ -54,25 +54,23 @@ class SwapRZ(TwoLocalAnsatz):
     This variational form is used for TODO
     """
 
-    @deprecate_arguments({'depth': 'reps',
-                          'entangler_map': 'entanglement'})
+    @deprecate_arguments({'entangler_map': 'entanglement'})
     def __init__(self,
                  num_qubits: Optional[int] = None,
-                 reps: int = 3,
+                 depth: int = 3,
                  entanglement: Union[str, List[List[int]], callable] = 'full',
                  parameter_prefix: str = 'θ',
                  insert_barriers: bool = False,
                  skip_unentangled_qubits: bool = False,
                  skip_final_rotation_layer: bool = False,
                  initial_state: Optional[InitialState] = None,
-                 depth: Optional[int] = None,  # pylint: disable=unused-argument
                  entangler_map: Optional[List[List[int]]] = None,  # pylint: disable=unused-argument
                  ) -> None:
         """Initializer. Assumes that the type hints are obeyed for now.
 
         Args:
             num_qubits: The number of qubits of the Ansatz.
-            reps: Specifies how often a block of consisting of a rotation layer and entanglement
+            depth: Specifies how often the structure of a rotation layer followed by an entanglement
                 layer is repeated.
             entanglement: Specifies the entanglement structure. Can be a string ('full', 'linear'
                 or 'sca'), a list of integer-pairs specifying the indices of qubits
@@ -124,8 +122,8 @@ class SwapRZ(TwoLocalAnsatz):
         circuit.rxx(theta, 0, 1)
         circuit.ryy(theta, 0, 1)
 
-        super().__init__(num_qubits,
-                         reps=reps,
+        super().__init__(num_qubits=num_qubits,
+                         depth=depth,
                          rotation_gates=RZGate,
                          entanglement_gates=circuit,
                          entanglement=entanglement,

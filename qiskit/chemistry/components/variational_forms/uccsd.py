@@ -29,7 +29,6 @@ import numpy as np
 from qiskit.circuit import Parameter
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
-from qiskit.util import deprecate_arguments
 
 from qiskit.aqua import aqua_globals
 from qiskit.aqua.components.ansatz import Ansatz
@@ -49,9 +48,8 @@ class UCCSD(Ansatz):
     And for the singlet q-UCCD (full) and pair q-UCCD) see: https://arxiv.org/abs/1911.10864
     """
 
-    @deprecate_arguments({'depth': 'reps'})
     def __init__(self, num_qubits: int,
-                 reps: int,
+                 depth: int,
                  num_orbitals: int,
                  num_particles: Union[List[int], int],
                  active_occupied: Optional[List[int]] = None,
@@ -66,8 +64,7 @@ class UCCSD(Ansatz):
                  method_doubles: str = 'ucc',
                  excitation_type: str = 'sd',
                  same_spin_doubles: bool = True,
-                 skip_commute_test: bool = False,
-                 depth: Optional[int] = None) -> None:
+                 skip_commute_test: bool = False) -> None:
         """Initializer.
 
         Args:
@@ -104,7 +101,7 @@ class UCCSD(Ansatz):
              ValueError: Computed qubits do not match actual value
         """
         validate_min('num_qubits', num_qubits, 1)
-        validate_min('reps', reps, 1)
+        validate_min('depth', depth, 1)
         validate_min('num_orbitals', num_orbitals, 1)
         if isinstance(num_particles, list) and len(num_particles) != 2:
             raise ValueError('Num particles value {}. Number of values allowed is 2'.format(
@@ -150,7 +147,7 @@ class UCCSD(Ansatz):
         self._num_particles = [num_alpha, num_beta]
 
         # store the parameters
-        self._reps = reps
+        self._depth = depth
         self._num_orbitals = num_orbitals
         self._qubit_mapping = qubit_mapping
         self._two_qubit_reduction = two_qubit_reduction
@@ -222,12 +219,12 @@ class UCCSD(Ansatz):
         if not self.uccd_singlet:
             list_excitation_operators = [
                 (self._hopping_ops[index % num_excitations], parameters[index])
-                for index in range(reps * num_excitations)]
+                for index in range(depth * num_excitations)]
             blockwise_parameters = [[p] for p in parameters]
         else:
             list_excitation_operators = []
             counter = 0
-            for i in range(int(reps * self.num_groups)):
+            for i in range(int(depth * self.num_groups)):
                 for _ in range(len(self._double_excitations_grouped[i % self.num_groups])):
                     list_excitation_operators.append((self._hopping_ops[counter],
                                                       parameters[i]))
@@ -239,7 +236,7 @@ class UCCSD(Ansatz):
                                task_args=(self._num_time_slices,),
                                num_processes=aqua_globals.num_processes)
 
-        super().__init__(blocks=results, reps=depth, initial_state=initial_state,
+        super().__init__(blocks=results, initial_state=initial_state,
                          overwrite_block_parameters=blockwise_parameters)
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
@@ -295,7 +292,7 @@ class UCCSD(Ansatz):
         self._single_excitations = s_e_list
         self._double_excitations = d_e_list
 
-        num_parameters = len(hopping_ops) * self._reps
+        num_parameters = len(hopping_ops) * self._depth
         return hopping_ops, num_parameters
 
     @staticmethod
@@ -368,14 +365,14 @@ class UCCSD(Ansatz):
         self._excitation_pool = self._hopping_ops.copy()
 
         # check depth parameter
-        if self._reps != 1:
+        if self._depth != 1:
             logger.warning('The depth of the variational form was not 1 but %i which does not work \
                     in the adaptive VQE algorithm. Thus, it has been reset to 1.')
-            self._reps = 1
+            self._depth = 1
 
         # reset internal excitation list to be empty
         self._hopping_ops = []
-        self._num_parameters = len(self._hopping_ops) * self._reps
+        self._num_parameters = len(self._hopping_ops) * self._depth
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
     def push_hopping_operator(self, excitation):
@@ -386,7 +383,7 @@ class UCCSD(Ansatz):
             excitation (WeightedPauliOperator): the new hopping operator to be added
         """
         self._hopping_ops.append(excitation)
-        self._num_parameters = len(self._hopping_ops) * self._reps
+        self._num_parameters = len(self._hopping_ops) * self._depth
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
     def pop_hopping_operator(self):
@@ -394,7 +391,7 @@ class UCCSD(Ansatz):
         Pops the hopping operator that was added last.
         """
         self._hopping_ops.pop()
-        self._num_parameters = len(self._hopping_ops) * self._reps
+        self._num_parameters = len(self._hopping_ops) * self._depth
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
         return self._num_parameters
