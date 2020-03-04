@@ -91,6 +91,14 @@ class WeightedPauliOperator(BaseOperator):
             weights = [1.0] * len(paulis)
         return cls(paulis=[[w, p] for w, p in zip(weights, paulis)], name=name)
 
+    def to_opflow(self):
+        from qiskit.aqua.operators import OpPrimitive
+
+        op_paulis = []
+        for [w, p] in self.paulis:
+            op_paulis += [OpPrimitive(p, coeff=w)]
+        return sum(op_paulis)
+
     @property
     def paulis(self):
         """ get paulis """

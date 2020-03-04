@@ -62,6 +62,10 @@ class MatrixOperator(BaseOperator):
         self._matrix = matrix
         self._atol = atol
 
+    def to_opflow(self):
+        from qiskit.aqua.operators import OpPrimitive
+        return OpPrimitive(self.dense_matrix)
+
     @property
     def atol(self):
         """ return atol """
