@@ -82,10 +82,18 @@ class OperatorBase(ABC):
 
     def __add__(self, other):
         """ Overload + operation """
+        # Hack to be able to use sum(list_of_ops) nicely, because sum adds 0 to the first element of the list.
+        if other == 0:
+            return self
+
         return self.add(other)
 
     def __radd__(self, other):
         """ Overload right + operation """
+        # Hack to be able to use sum(list_of_ops) nicely, because sum adds 0 to the first element of the list.
+        if other == 0:
+            return self
+
         return self.add(other)
 
     @abstractmethod

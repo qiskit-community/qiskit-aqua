@@ -36,6 +36,7 @@ class CircuitSampler(ConverterBase):
 
     """
 
+    # TODO maybe just change to CircuitSampler.factory() to more cleanly handle settings
     @staticmethod
     def __new__(cls, backend=None, kwargs=None):
         """ A factory method to produce the correct type of CircuitSampler subclass based on the primitive passed in."""
