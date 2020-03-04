@@ -30,13 +30,12 @@ class IBMQSampler(CircuitSampler):
 
     """
 
-    def __init__(self, backend, kwargs={}):
+    def __init__(self, backend=None, quantum_instance=None, kwargs={}):
         """
         Args:
             backend():
         """
-        self._backend = backend
-        self._qi = QuantumInstance(backend=backend, **kwargs)
+        self._qi = quantum_instance or QuantumInstance(backend=backend, **kwargs)
 
     def convert(self, operator):
 

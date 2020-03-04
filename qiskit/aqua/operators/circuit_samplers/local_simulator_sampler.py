@@ -22,6 +22,8 @@ from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import OpVec, StateFn, StateFnCircuit
 from qiskit.aqua.operators.converters import DicttoCircuitSum
 
+from qiskit.aqua.utils.backend_utils import is_aer_provider
+
 logger = logging.getLogger(__name__)
 
 
@@ -30,18 +32,18 @@ class LocalSimulatorSampler(CircuitSampler):
 
     """
 
-    def __init__(self, backend, kwargs={}, hw_backend_to_emulate=None):
+    def __init__(self, backend=None, quantum_instance=None, hw_backend_to_emulate=None, kwargs={}):
         """
         Args:
             backend():
             hw_backend_to_emulate():
         """
-        self._backend = backend
-        if hw_backend_to_emulate and has_aer and 'noise_model' not in kwargs:
+        if hw_backend_to_emulate and is_aer_provider(backend) and 'noise_model' not in kwargs:
             from qiskit.providers.aer.noise import NoiseModel
             # TODO figure out Aer versioning
             kwargs['noise_model'] = NoiseModel.from_backend(hw_backend_to_emulate)
-        self._qi = QuantumInstance(backend=backend, **kwargs)
+
+        self._qi = quantum_instance or QuantumInstance(backend=backend, **kwargs)
 
     def convert(self, operator):
 

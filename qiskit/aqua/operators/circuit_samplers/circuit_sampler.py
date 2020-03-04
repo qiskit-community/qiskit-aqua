@@ -34,22 +34,17 @@ class CircuitSampler(ConverterBase):
 
     """
 
-    # TODO maybe just change to CircuitSampler.factory() to more cleanly handle settings
     @staticmethod
-    def __new__(cls, backend=None, kwargs=None):
+    def factory(backend=None, quantum_instance=None):
         """ A factory method to produce the correct type of CircuitSampler subclass based on the primitive passed in."""
-
-        # Prevents infinite recursion when subclasses are created
-        if not cls.__name__ == 'CircuitSampler':
-            return super().__new__(cls)
 
         if is_local_backend(backend):
             from . import LocalSimulatorSampler
-            return LocalSimulatorSampler.__new__(LocalSimulatorSampler)
+            return LocalSimulatorSampler(backend=backend, quantum_instance=quantum_instance)
 
         if is_ibmq_provider(backend):
             from . import IBMQSampler
-            return IBMQSampler.__new__(IBMQSampler)
+            return IBMQSampler(backend=backend, quantum_instance=quantum_instance)
 
     @abstractmethod
     def convert(self, operator):
