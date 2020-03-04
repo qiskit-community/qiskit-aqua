@@ -24,6 +24,7 @@ from qiskit.aqua.operators.circuit_samplers import CircuitSampler
 from qiskit.aqua.utils.backend_utils import (is_statevector_backend,
                                              is_aer_qasm,
                                              has_aer)
+from qiskit.aqua import QuantumInstance
 
 logger = logging.getLogger(__name__)
 
@@ -47,41 +48,44 @@ class ExpectationBase():
         Args:
 
         """
-        primitives = operator.get_primtives()
+        backend_to_check = backend.backend if isinstance(backend, QuantumInstance) else backend
+
+        # TODO remove state from factory and inits?
+        primitives = operator.get_primitives()
         if primitives == {'Pauli'}:
 
-            if backend is None:
+            if backend_to_check is None:
                 # If user has Aer but didn't specify a backend, use the Aer fast expectation
                 if has_aer():
                     from qiskit import Aer
-                    backend = Aer.get_backend('qasm_simulator')
+                    backend_to_check = Aer.get_backend('qasm_simulator')
                 # If user doesn't have Aer, use statevector_simulator for < 16 qubits, and qasm with warning for more.
                 else:
                     if operator.num_qubits <= 16:
-                        backend = BasicAer.get_backend('statevector_simulator')
+                        backend_to_check = BasicAer.get_backend('statevector_simulator')
                     else:
                         logging.warning('{0} qubits is a very large expectation value. Consider installing Aer to use '
                                         'Aer\'s fast expectation, which will perform better here. We\'ll use '
                                         'the BasicAer qasm backend for this expectation to avoid having to '
                                         'construct the {1}x{1} operator matrix.'.format(operator.num_qubits,
                                                                                         2**operator.num_qubits))
-                        backend = BasicAer.get_backend('qasm_simulator')
+                        backend_to_check = BasicAer.get_backend('qasm_simulator')
 
             # If the user specified Aer qasm backend and is using a Pauli operator, use the Aer fast expectation
-            if is_aer_qasm(backend):
+            if is_aer_qasm(backend_to_check):
                 from .aer_pauli_expectation import AerPauliExpectation
                 return AerPauliExpectation(operator=operator, backend=backend, state=state)
 
             # If the user specified a statevector backend (either Aer or BasicAer), use a converter to produce a
             # Matrix operator and compute using matmul
-            elif is_statevector_backend(backend):
+            elif is_statevector_backend(backend_to_check):
                 from .matrix_expectation import MatrixExpectation
                 if operator.num_qubits >= 16:
                     logging.warning('Note: Using a statevector_simulator with {} qubits can be very expensive. '
                                     'Consider using the Aer qasm_simulator instead to take advantage of Aer\'s '
                                     'built-in fast Pauli Expectation'.format(operator.num_qubits))
                 # TODO do this properly with converters
-                return MatrixExpectation(operator=operator, backend=backend, state=state)
+                return MatrixExpectation(operator=operator, state=state)
 
             # All other backends, including IBMQ, BasicAer QASM, go here.
             else:
@@ -90,7 +94,7 @@ class ExpectationBase():
 
         elif primitives == {'Matrix'}:
             from .matrix_expectation import MatrixExpectation
-            return MatrixExpectation(operator=operator, backend=backend, state=state)
+            return MatrixExpectation(operator=operator, state=state)
 
         elif primitives == {'Instruction'}:
             from .projector_overlap import ProjectorOverlap
@@ -100,6 +104,10 @@ class ExpectationBase():
             raise ValueError('Expectations of Mixed Operators not yet supported.')
 
     @abstractmethod
+    def operator(self, operator):
+        raise NotImplementedError
+
+    @abstractmethod
     def compute_expectation_for_primitives(self, state=None, primitives=None):
         raise NotImplementedError
 
@@ -107,5 +115,6 @@ class ExpectationBase():
     def compute_variance(self, state=None):
         raise NotImplementedError
 
-    def compute_expectation(self, state=None):
+    @abstractmethod
+    def compute_expectation(self, state=None, params=None):
         pass

@@ -37,7 +37,24 @@ class MatrixExpectation(ExpectationBase):
         self._state = state
         self._matrix_op = None
 
-    def compute_expectation(self, state=None):
+    @property
+    def operator(self):
+        return self._operator
+
+    @operator.setter
+    def operator(self, operator):
+        self._operator = operator
+        self._matrix_op = None
+
+    @property
+    def state(self):
+        return self._state
+
+    @state.setter
+    def state(self, state):
+        self._state = state
+
+    def compute_expectation(self, state=None, params=None):
         # Making the matrix into a measurement allows us to handle OpVec states, dicts, etc.
         if state or not self._matrix_op:
             mat_conversion = self._operator.to_matrix()

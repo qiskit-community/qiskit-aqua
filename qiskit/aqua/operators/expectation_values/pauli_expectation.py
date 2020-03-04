@@ -41,9 +41,36 @@ class PauliExpectation(ExpectationBase):
         self._state = state
         self.set_backend(backend)
         self._converted_operator = None
-        self._reduced_expect_op = None
+        self._reduced_meas_op = None
 
     # TODO setters which wipe state
+
+    @property
+    def operator(self):
+        return self._operator
+
+    @operator.setter
+    def operator(self, operator):
+        self._operator = operator
+        self._converted_operator = None
+        self._reduced_meas_op = None
+
+    @property
+    def state(self):
+        return self._state
+
+    @state.setter
+    def state(self, state):
+        self._state = state
+        self._reduced_meas_op = None
+
+    @property
+    def quantum_instance(self):
+        return self._circuit_sampler.quantum_instance
+
+    @quantum_instance.setter
+    def quantum_instance(self, quantum_instance):
+        self._circuit_sampler.quantum_instance = quantum_instance
 
     def expectation_op(self, state=None):
         # TODO allow user to set state in constructor and then only pass params to execute.
@@ -58,19 +85,19 @@ class PauliExpectation(ExpectationBase):
         expec_op = self._converted_operator.compose(state)
         return expec_op.reduce()
 
-    def compute_expectation(self, state=None):
-        if state or not self._reduced_expect_op:
-            self._reduced_expect_op = self.expectation_op(state=state)
+    def compute_expectation(self, state=None, params=None):
+        if state or not self._reduced_meas_op:
+            self._reduced_meas_op = self.expectation_op(state=state)
             # TODO to_quantum_runnable converter?
 
-        if 'Instruction' in self._reduced_expect_op.get_primitives():
+        if 'Instruction' in self._reduced_meas_op.get_primitives():
             # TODO check if params have been sufficiently provided.
             if self._circuit_sampler:
-                measured_op = self._circuit_sampler.convert(self._reduced_expect_op)
+                measured_op = self._circuit_sampler.convert(self._reduced_meas_op, params=params)
                 return measured_op.eval()
             else:
                 raise ValueError('Unable to compute expectation of functions containing circuits without a backend '
                                  'set. Set a backend for the Expectation algorithm to compute the expectation, '
                                  'or convert Instructions to other types which do not require a backend.')
         else:
-            return self._reduced_expect_op.eval()
+            return self._reduced_meas_op.eval()

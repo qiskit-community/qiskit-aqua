@@ -28,19 +28,24 @@ class OpVec(OperatorBase):
     but also refers to the "vec" mathematical operation.
     """
 
-    def __init__(self, oplist, combo_fn=lambda x: x, coeff=1.0):
+    def __init__(self, oplist, combo_fn=lambda x: x, coeff=1.0, param_bindings=None):
         """
         Args:
             oplist (list(OperatorBase)): The operators being summed.
             combo_fn (callable): The recombination function to reduce classical operators when available (e.g. sum)
             coeff (int, float, complex): A coefficient multiplying the primitive
+            param_bindings(dict): A dictionary containing {param: list_of_bindings} mappings, such that each binding
+            should be treated as a new op in oplist for that parameterization. Keys can also be ParameterVectors,
+            or anything else that can be passed as a key in a Terra .bind_parameters call.
 
             Note that the default "recombination function" lambda above is the identity - it takes a list of operators,
             and is supposed to return a list of operators.
         """
+        # Create copies of the oplist *pointers* for each binding. This should be very cheap. We can fix it if it's not.
         self._oplist = oplist
         self._combo_fn = combo_fn
         self._coeff = coeff
+        self._param_bindings = param_bindings
 
     @property
     def oplist(self):
@@ -49,6 +54,16 @@ class OpVec(OperatorBase):
     @property
     def combo_fn(self):
         return self._combo_fn
+
+    @property
+    def param_bindings(self):
+        return self._param_bindings
+
+    def num_parameterizations(self):
+        return len(list(self._param_bindings.values())[0]) if self._param_bindings is not None else 1
+
+    def get_parameterization(self, i):
+        return {param: value_list[i] for (param, value_list) in self.param_bindings.items()}
 
     # TODO: Keep this property for evals or just enact distribution at composition time?
     @property
@@ -111,7 +126,7 @@ class OpVec(OperatorBase):
             return False
         # TODO test this a lot
         # Note, ordering matters here (i.e. different ordered lists will return False), maybe it shouldn't
-        return self.oplist == other.oplist
+        return self.oplist == other.oplist and self.param_bindings == other.param_bindings
 
     def mul(self, scalar):
         """ Scalar multiply. Overloaded by * in OperatorBase. """

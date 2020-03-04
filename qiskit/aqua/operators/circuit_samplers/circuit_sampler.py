@@ -23,6 +23,7 @@ from ..converters import ConverterBase
 from qiskit.aqua.utils.backend_utils import (is_ibmq_provider,
                                              is_local_backend,
                                              has_aer)
+from qiskit.aqua import QuantumInstance
 
 logger = logging.getLogger(__name__)
 
@@ -35,16 +36,18 @@ class CircuitSampler(ConverterBase):
     """
 
     @staticmethod
-    def factory(backend=None, quantum_instance=None):
+    def factory(backend=None):
         """ A factory method to produce the correct type of CircuitSampler subclass based on the primitive passed in."""
 
-        if is_local_backend(backend):
-            from . import LocalSimulatorSampler
-            return LocalSimulatorSampler(backend=backend, quantum_instance=quantum_instance)
+        backend_to_check = backend.backend if isinstance(backend, QuantumInstance) else backend
 
-        if is_ibmq_provider(backend):
+        if is_local_backend(backend_to_check):
+            from . import LocalSimulatorSampler
+            return LocalSimulatorSampler(backend=backend)
+
+        if is_ibmq_provider(backend_to_check):
             from . import IBMQSampler
-            return IBMQSampler(backend=backend, quantum_instance=quantum_instance)
+            return IBMQSampler(backend=backend)
 
     @abstractmethod
     def convert(self, operator):

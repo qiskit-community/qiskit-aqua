@@ -32,5 +32,5 @@ class ProjectorOverlap(ExpectationBase):
 
         """
 
-    def compute_expectation(self):
+    def compute_expectation(self, state=None, params=None):
         raise NotImplementedError

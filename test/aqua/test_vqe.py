@@ -106,7 +106,7 @@ class TestVQE(QiskitAquaTestCase):
         num_qubits = self.qubit_op.num_qubits
         var_form = RY(num_qubits, 3)
         optimizer = SPSA(max_trials=300, last_avg=5)
-        algo = VQE(self.qubit_op, var_form, optimizer, max_evals_grouped=1)
+        algo = VQE(self.qubit_op, var_form, optimizer)
         quantum_instance = QuantumInstance(backend, shots=10000,
                                            seed_simulator=self.seed,
                                            seed_transpiler=self.seed)

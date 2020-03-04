@@ -16,6 +16,7 @@
 
 import logging
 import numpy as np
+from functools import partial
 
 from . import CircuitSampler
 from qiskit.aqua import QuantumInstance
@@ -32,7 +33,7 @@ class LocalSimulatorSampler(CircuitSampler):
 
     """
 
-    def __init__(self, backend=None, quantum_instance=None, hw_backend_to_emulate=None, kwargs={}):
+    def __init__(self, backend=None, hw_backend_to_emulate=None, kwargs={}):
         """
         Args:
             backend():
@@ -43,51 +44,98 @@ class LocalSimulatorSampler(CircuitSampler):
             # TODO figure out Aer versioning
             kwargs['noise_model'] = NoiseModel.from_backend(hw_backend_to_emulate)
 
-        self._qi = quantum_instance or QuantumInstance(backend=backend, **kwargs)
+        self._qi = backend if isinstance(backend, QuantumInstance) else QuantumInstance(backend=backend, **kwargs)
+        self._reduced_op_cache = None
+        self._circuit_ops_cache = None
+        self._transpiled_circ_cache = None
 
-    def convert(self, operator):
+    @property
+    def quantum_instance(self):
+        return self._qi
 
-        operator_dicts_replaced = DicttoCircuitSum().convert(operator)
-        reduced_op = operator_dicts_replaced.reduce()
-        op_circuits = {}
+    @quantum_instance.setter
+    def quantum_instance(self, quantum_instance):
+        self._qi = quantum_instance
 
-        def extract_statefncircuits(operator):
+    def convert(self, operator, params=None):
+
+        if not self._reduced_op_cache:
+            operator_dicts_replaced = DicttoCircuitSum().convert(operator)
+            self._reduced_op_cache = operator_dicts_replaced.reduce()
+
+        if not self._circuit_ops_cache:
+            self._circuit_ops_cache = {}
+
+            def extract_statefncircuits(operator):
+                if isinstance(operator, StateFnCircuit):
+                    self._circuit_ops_cache[id(operator)] = operator
+                elif isinstance(operator, OpVec):
+                    for op in operator.oplist:
+                        extract_statefncircuits(op)
+                else:
+                    return operator
+
+            extract_statefncircuits(self._reduced_op_cache)
+
+        if params:
+            param_bindings = [{param: value_list[i] for (param, value_list) in params.items()}
+                              for i in range(len(params))]
+        else:
+            param_bindings = None
+
+        # Don't pass circuits if we have in the cache the sampling function knows to use the cache.
+        circs = list(self._circuit_ops_cache.values()) if not self._transpiled_circ_cache else None
+        sampled_statefn_dicts = self.sample_circuits(op_circuits=circs, param_bindings=param_bindings)
+
+        def replace_circuits_with_dicts(operator, param_index=0):
             if isinstance(operator, StateFnCircuit):
-                op_circuits[str(operator)] = operator
+                return sampled_statefn_dicts[id(operator)][param_index]
             elif isinstance(operator, OpVec):
-                for op in operator.oplist:
-                    extract_statefncircuits(op)
+                return operator.traverse(partial(replace_circuits_with_dicts, param_index=param_index))
             else:
                 return operator
 
-        extract_statefncircuits(reduced_op)
-        sampled_statefn_dicts = self.sample_circuits(list(op_circuits.values()))
+        if not param_bindings:
+            return replace_circuits_with_dicts(self._reduced_op_cache, param_index=0)
+        else:
+            return OpVec([replace_circuits_with_dicts(self._reduced_op_cache, param_index=i)
+                          for i in range(len(param_bindings))])
 
-        def replace_circuits_with_dicts(operator):
-            if isinstance(operator, StateFnCircuit):
-                return sampled_statefn_dicts[str(operator)]
-            elif isinstance(operator, OpVec):
-                return operator.traverse(replace_circuits_with_dicts)
-            else:
-                return operator
-
-        return replace_circuits_with_dicts(reduced_op)
-
-    def sample_circuits(self, op_circuits):
+    def sample_circuits(self, op_circuits=None, param_bindings=None):
         """
         Args:
             op_circuits(list): The list of circuits or StateFnCircuits to sample
         """
-        if all([isinstance(circ, StateFnCircuit) for circ in op_circuits]):
-            circuits = [op_c.to_circuit(meas=True) for op_c in op_circuits]
+        if op_circuits or not self._transpiled_circ_cache:
+            if all([isinstance(circ, StateFnCircuit) for circ in op_circuits]):
+                circuits = [op_c.to_circuit(meas=True) for op_c in op_circuits]
+            else:
+                circuits = op_circuits
+            self._transpiled_circ_cache = self._qi.transpile(circuits)
         else:
-            circuits = op_circuits
+            op_circuits = list(self._circuit_ops_cache.values())
 
-        results = self._qi.execute(circuits)
+        if param_bindings is not None:
+            ready_circs = [circ.bind_parameters(binding)
+                           for circ in self._transpiled_circ_cache for binding in param_bindings]
+        else:
+            ready_circs = self._transpiled_circ_cache
+
+        results = self._qi.execute(ready_circs, had_transpiled=True)
+
         sampled_statefn_dicts = {}
-        for (op_c, circuit) in zip(op_circuits, circuits):
+        for i, op_c in enumerate(op_circuits):
             # Taking square root because we're replacing a statevector representation of probabilities.
-            sqrt_counts = {b: (v*op_c.coeff/self._qi._run_config.shots)**.5
-                           for (b, v) in results.get_counts(circuit).items()}
-            sampled_statefn_dicts[str(op_c)] = StateFn(sqrt_counts)
+            if param_bindings is not None:
+                c_statefns = []
+                for j in range(len(param_bindings)):
+                    circ_index = (i*len(param_bindings)) + j
+                    sqrt_counts = {b: (v * op_c.coeff / self._qi._run_config.shots) ** .5
+                                   for (b, v) in results.get_counts(ready_circs[circ_index]).items()}
+                    c_statefns.append(StateFn(sqrt_counts))
+                sampled_statefn_dicts[id(op_c)] = c_statefns
+            else:
+                sqrt_counts = {b: (v*op_c.coeff/self._qi._run_config.shots)**.5
+                               for (b, v) in results.get_counts(ready_circs[i]).items()}
+                sampled_statefn_dicts[id(op_c)] = [StateFn(sqrt_counts)]
         return sampled_statefn_dicts
