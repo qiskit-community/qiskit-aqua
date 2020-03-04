@@ -262,47 +262,47 @@ class Ansatz:
 
         Returns:
             True, if the configuration is valid and the circuit can be constructed. Otherwise
-            an AquaError is raised.
+            an ValueError is raised.
 
         Raises:
-            AquaError: If the blocks are not set.
-            AquaError: If the number of repetitions is not set.
-            AquaError: If the qubit indices are not set.
-            AquaError: If the number of qubit indices does not match the number of blocks.
-            AquaError: If the number of repetitions does not match the number of blockwise
+            ValueError: If the blocks are not set.
+            ValueError: If the number of repetitions is not set.
+            ValueError: If the qubit indices are not set.
+            ValueError: If the number of qubit indices does not match the number of blocks.
+            ValueError: If the number of repetitions does not match the number of blockwise
                 parameters.
-            AquaError: If an index in the repetions list exceeds the number of blocks.
-            AquaError: If a specified qubit index is larger than the (manually set) number of
+            ValueError: If an index in the repetions list exceeds the number of blocks.
+            ValueError: If a specified qubit index is larger than the (manually set) number of
                 qubits.
         """
         # check no needed parameters are None
         if self.blocks is None:
-            raise AquaError('The blocks are not set.')
+            raise ValueError('The blocks are not set.')
         # if self.replist is None:
-            # raise AquaError('The repetitions are not set, this must be a list of indices or int. '
+            # raise ValueError('The repetitions are not set, this must be a list of indices or int. '
             # + 'Use Ansatz.reps to set this attribute.')
         # if self._qargs is None:
-            # raise AquaError('The qubit indices for the blocks are not set.')
+            # raise ValueError('The qubit indices for the blocks are not set.')
 
         # check the compatibility of the attributes
         if len(self.qubit_indices) != len(self._blocks):
-            raise AquaError('The number of qubit indices does not match the number of blocks.')
+            raise ValueError('The number of qubit indices does not match the number of blocks.')
 
         if self._blockwise_base_params and self._replist:
             if len(self._replist) != len(self._blockwise_base_params):
-                raise AquaError('The number of repetitions ({}) does '.format(len(self._replist))
-                                + 'not match with the number of block parameters '
-                                + '({})'.format(len(self._blockwise_base_params)))
+                raise ValueError('The number of repetitions ({}) does '.format(len(self._replist))
+                                 + 'not match with the number of block parameters '
+                                 + '({})'.format(len(self._blockwise_base_params)))
 
         if self._replist and len(self._replist) > 0:
             if max(self._replist) >= len(self._blocks):
-                raise AquaError('Trying to add a non-existing block to the circuit.')
+                raise ValueError('Trying to add a non-existing block to the circuit.')
 
         if self._num_qubits:
             for qubit_indices in self.qubit_indices:
                 if max(qubit_indices) >= self._num_qubits:
-                    raise AquaError('The manually set number of qubits is too small for the '
-                                    + 'blocks in the circuit.')
+                    raise ValueError('The manually set number of qubits is too small for the '
+                                     + 'blocks in the circuit.')
 
         return True
 
@@ -844,5 +844,7 @@ class Ansatz:
         try:
             return self.to_circuit().to_gate()
         except QiskitError:
+            # the QiskitError raised does not give a hint what the non-unitary operations can be
+            # therefore raise a more meaningful AquaError
             raise AquaError('The Ansatz contains non-unitary operations (e.g. barriers, resets or '
                             'measurements) and cannot be converted to a Gate!')

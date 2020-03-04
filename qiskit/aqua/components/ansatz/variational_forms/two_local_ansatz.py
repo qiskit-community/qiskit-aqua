@@ -29,7 +29,6 @@ from qiskit.extensions.standard import (IGate, XGate, YGate, ZGate, HGate, TGate
                                         SdgGate, RXGate, RXXGate, RYGate, RYYGate, RZGate, SwapGate,
                                         CXGate, CYGate, CZGate, CHGate, CRXGate, CRYGate, CRZGate)
 
-from qiskit.aqua import AquaError
 from qiskit.aqua.utils import get_entangler_map, validate_entangler_map
 from qiskit.aqua.components.initial_states import InitialState
 
@@ -260,9 +259,9 @@ class TwoLocalAnsatz(Ansatz):
             The specified gate with the required number of parameters.
 
         Raises:
-            AquaError: The type of `gate` is invalid.
-            AquaError: The type of `gate` is str but the name is unknown.
-            AquaError: The type of `gate` is type but the gate type is unknown.
+            ValueError: The type of `gate` is invalid.
+            ValueError: The type of `gate` is str but the name is unknown.
+            ValueError: The type of `gate` is type but the gate type is unknown.
 
         Note:
             Outlook: If gates knew their number of parameters as static property, we could also
@@ -307,17 +306,17 @@ class TwoLocalAnsatz(Ansatz):
             for identifier, (standard_gate, num_params) in valid_gates.items():
                 if gate == identifier:
                     return (standard_gate, num_params)
-            raise AquaError('Unknown gate name `{}`.'.format(gate))
+            raise ValueError('Unknown gate name `{}`.'.format(gate))
 
         if isinstance(gate, type):
             # iterate over the gate types and look for the specified gate
             for _, (standard_gate, num_params) in valid_gates.items():
                 if isinstance(standard_gate, gate):
                     return (standard_gate, num_params)
-            raise AquaError('Unknown gate type`{}`.'.format(gate))
+            raise ValueError('Unknown gate type`{}`.'.format(gate))
 
-        raise AquaError('Invalid input type {}. '.format(type(gate))
-                        + '`gate` must be a type, str or QuantumCircuit.')
+        raise ValueError('Invalid input type {}. '.format(type(gate))
+                         + '`gate` must be a type, str or QuantumCircuit.')
 
     @Ansatz.blocks.getter
     def blocks(self) -> List[Instruction]:  # pylint:disable=invalid-overridden-method
@@ -329,13 +328,13 @@ class TwoLocalAnsatz(Ansatz):
             return self._blocks
 
         if self._num_qubits is None:
-            raise AquaError('The number of qubits has not been set!')
+            raise ValueError('The number of qubits has not been set!')
 
         if self.rotation_gates is None:
-            raise AquaError('No rotation gates are specified.')
+            raise ValueError('No rotation gates are specified.')
 
         if self.entanglement_gates is None:
-            raise AquaError('No entanglement gates are specified.')
+            raise ValueError('No entanglement gates are specified.')
 
         blocks = []
         self._param_count = 0
@@ -468,7 +467,7 @@ class TwoLocalAnsatz(Ansatz):
             A list of [src, tgt] pairs specifying entanglements, also known as entangler map.
 
         Raises:
-            AquaError: Unsupported format of entanglement, if self._entanglement has the wrong
+            ValueError: Unsupported format of entanglement, if self._entanglement has the wrong
                 format.
         """
         if isinstance(self._entanglement, str):
@@ -478,4 +477,4 @@ class TwoLocalAnsatz(Ansatz):
         elif isinstance(self._entanglement, list):
             return validate_entangler_map(self._entanglement, self._num_qubits)
         else:
-            raise AquaError('Unsupported format of entanglement!')
+            raise ValueError('Unsupported format of entanglement!')
