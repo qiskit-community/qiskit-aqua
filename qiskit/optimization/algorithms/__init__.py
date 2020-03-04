@@ -28,5 +28,7 @@ from qiskit.optimization.algorithms.optimization_algorithm import OptimizationAl
 from qiskit.optimization.algorithms.cplex_optimizer import CplexOptimizer
 from qiskit.optimization.algorithms.cobyla_optimizer import CobylaOptimizer
 from qiskit.optimization.algorithms.min_eigen_optimizer import MinEigenOptimizer
+from qiskit.optimization.algorithms.recursive_min_eigen_optimizer import RecursiveMinEigenOptimizer
 
-__all__ = ["OptimizationAlgorithm", "CplexOptimizer", "CobylaOptimizer", "MinEigenOptimizer"]
+__all__ = ["OptimizationAlgorithm", "CplexOptimizer", "CobylaOptimizer", "MinEigenOptimizer",
+           "RecursiveMinEigenOptimizer"]
