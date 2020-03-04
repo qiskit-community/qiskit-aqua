@@ -17,7 +17,7 @@
 from typing import List, Optional
 
 from qiskit.aqua.algorithms import ExactEigensolver
-from qiskit.aqua.operators import BaseOperator
+from qiskit.aqua.operators import LegacyBaseOperator
 
 
 # pylint: disable=invalid-name
@@ -27,8 +27,8 @@ class ExactMinimumEigensolver(ExactEigensolver):
     The Exact Minimum Eigensolver algorithm.
     """
 
-    def __init__(self, operator: BaseOperator,
-                 aux_operators: Optional[List[BaseOperator]] = None) -> None:
+    def __init__(self, operator: LegacyBaseOperator,
+                 aux_operators: Optional[List[LegacyBaseOperator]] = None) -> None:
         """
         Args:
             operator: Operator instance
