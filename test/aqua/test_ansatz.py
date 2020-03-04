@@ -25,9 +25,10 @@ from qiskit.circuit.random.utils import random_circuit
 from qiskit.extensions.standard import XGate, RXGate, CrxGate
 from qiskit.quantum_info import Pauli
 
-from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator
+from qiskit.aqua.aqua_error import AquaError
 from qiskit.aqua.components.ansatz import Ansatz, OperatorAnsatz, SwapRZ, RY, RYRZ
 from qiskit.aqua.components.variational_forms.ry import RY as DeprecatedRY
+from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator
 
 from test.aqua import QiskitAquaTestCase
 
@@ -83,7 +84,7 @@ class TestAnsatz(QiskitAquaTestCase):
 
         self.assertEqual(ansatz.to_circuit(), QuantumCircuit())
 
-        for attribute in [ansatz.blocks, ansatz.qubit_indices, ansatz.replist]:
+        for attribute in [ansatz.blocks, ansatz.qubit_indices, ansatz._reps_as_list()]:
             self.assertEqual(len(attribute), 0)
 
     @data(
@@ -156,7 +157,7 @@ class TestAnsatz(QiskitAquaTestCase):
 
         self.assertCircuitEqual(ansatz.to_circuit(), reference)
 
-    def test_add_overload(self):
+    def test_iadd_overload(self):
         """Test the overloaded + operator."""
         num_qubits, depth = 2, 2
 
@@ -173,9 +174,9 @@ class TestAnsatz(QiskitAquaTestCase):
         # try adding each type
         for other in others:
             ansatz = Ansatz(first_circuit)
-            new_ansatz = ansatz + other
+            ansatz += other
             with self.subTest(msg='type: {}'.format(type(other))):
-                self.assertCircuitEqual(new_ansatz.to_circuit(), reference, verbosity=0)
+                self.assertCircuitEqual(ansatz.to_circuit(), reference, verbosity=0)
 
     def test_parameter_getter_from_automatic_repetition(self):
         """Test getting and setting of the ansatz parameters."""
@@ -325,7 +326,7 @@ class TestRY(QiskitAquaTestCase):
     def test_late_initialization(self):
         ansatz = RY()
         with self.subTest(msg='missing num qubits'):
-            self.assertRaises(AquaError, ansatz.to_circuit())  # missing num qubits
+            self.assertRaises(ValueError, ansatz.to_circuit)  # missing num qubits
 
         ansatz.num_qubits = 2
         with self.subTest(msg='default circuit'):
@@ -352,14 +353,13 @@ class TestRY(QiskitAquaTestCase):
         ansatz.entanglement_gates = 'crx'
         with self.subTest(msg='change rotation gate to crx'):
             expected = '\n'.join(
-               ['        ┌────────┐          ┌────────┐',
-                'q_0: |0>┤ Ry(θ0) ├────■─────┤ Ry(θ3) ├',
-                '        ├────────┤┌───┴────┐├────────┤',
-                'q_1: |0>┤ Ry(θ1) ├┤ Rx(θ2) ├┤ Ry(θ4) ├',
-                '        └────────┘└────────┘└────────┘']
+                ['        ┌────────┐          ┌────────┐',
+                 'q_0: |0>┤ Ry(θ0) ├────■─────┤ Ry(θ3) ├',
+                 '        ├────────┤┌───┴────┐├────────┤',
+                 'q_1: |0>┤ Ry(θ1) ├┤ Rx(θ2) ├┤ Ry(θ4) ├',
+                 '        └────────┘└────────┘└────────┘']
             )
             self.assertEqual(ansatz.__repr__(), expected)
-
 
         ansatz.rotation_gates = 'rx'
         with self.subTest(msg='interchange for rx gate'):

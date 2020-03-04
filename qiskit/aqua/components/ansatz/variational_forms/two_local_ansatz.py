@@ -43,7 +43,7 @@ class TwoLocalAnsatz(Ansatz):
 
     def __init__(self,
                  num_qubits: Optional[int] = None,
-                 reps: int = 3,
+                 depth: int = 3,
                  rotation_gates: Optional[Union[str, List[str], type, List[type]]] = None,
                  entanglement_gates: Optional[Union[str, List[str], type, List[type]]] = None,
                  entanglement: Union[str, List[List[int]], callable] = 'full',
@@ -139,7 +139,7 @@ class TwoLocalAnsatz(Ansatz):
         super().__init__(insert_barriers=insert_barriers, initial_state=initial_state)
 
         # store arguments needing no pre-processing
-        self._depth = reps
+        self._depth = depth
         self._num_qubits = num_qubits
         self._entanglement = entanglement
         self._parameter_prefix = parameter_prefix
@@ -368,6 +368,46 @@ class TwoLocalAnsatz(Ansatz):
         if num_qubits != self._num_qubits:
             self._blocks, self._circuit = None, None  # invalidate current setup
             self._num_qubits = num_qubits
+
+    @property
+    def depth(self) -> int:
+        """Return the depth of the two-local Ansatz.
+
+        The depth specifies how often the sequence of rotation and entanglement layer is
+        repeated. Additionally, a rotation layer is appended at the end (which can be
+        turned off using the attribute `skip_final_rotation_layer`).
+
+        Example:
+            >>> ansatz = TwoLocalAnsatz(2, 2, 'ry', 'cx')  # the second argument, depth, is 2
+            >>> ansatz
+                    ┌────────┐     ┌────────┐     ┌────────┐
+            q_0: |0>┤ Ry(θ0) ├──■──┤ Ry(θ2) ├──■──┤ Ry(θ4) ├
+                    ├────────┤┌─┴─┐├────────┤┌─┴─┐├────────┤
+            q_1: |0>┤ Ry(θ1) ├┤ X ├┤ Ry(θ3) ├┤ X ├┤ Ry(θ5) ├
+                    └────────┘└───┘└────────┘└───┘└────────┘
+            >>> ansatz.depth = 1
+            >>> ansatz
+                    ┌────────┐     ┌────────┐
+            q_0: |0>┤ Ry(θ0) ├──■──┤ Ry(θ2) ├
+                    ├────────┤┌─┴─┐├────────┤
+            q_1: |0>┤ Ry(θ1) ├┤ X ├┤ Ry(θ3) ├
+                    └────────┘└───┘└────────┘
+
+        Returns:
+            The depth.
+        """
+        return self._depth
+
+    @depth.setter
+    def depth(self, depth: int) -> None:
+        """Set the new depth.
+
+        Args:
+            depth: The new depth.
+        """
+        if depth != self._depth:
+            self._blocks, self._circuit = None, None
+            self._depth = depth
 
     @property
     def entanglement(self) -> Union[str, List[List[int]], callable]:

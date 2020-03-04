@@ -164,7 +164,7 @@ class Ansatz:
         self._default_parameters = []
 
         # get reps in the right format
-        self._reps, self._replist = None, None
+        self._reps = None
         self.reps = reps or 1
 
         # get qubit_indices in the right format (i.e. list of lists)
@@ -188,8 +188,8 @@ class Ansatz:
         # parameter bounds
         self._bounds = None
 
-    def __add__(self, other: Union[Ansatz, Instruction, QuantumCircuit]) -> Ansatz:
-        """Overloading + for convenience.
+    def __iadd__(self, other: Union[Ansatz, Instruction, QuantumCircuit]) -> Ansatz:
+        """Overloading += for convenience.
 
         This presumes list(range(other.num_qubits)) as qubit indices and calls self.append().
 
@@ -269,34 +269,30 @@ class Ansatz:
             ValueError: If the number of repetitions is not set.
             ValueError: If the qubit indices are not set.
             ValueError: If the number of qubit indices does not match the number of blocks.
+            ValueError: If an index in the repetions list exceeds the number of blocks.
             ValueError: If the number of repetitions does not match the number of blockwise
                 parameters.
-            ValueError: If an index in the repetions list exceeds the number of blocks.
             ValueError: If a specified qubit index is larger than the (manually set) number of
                 qubits.
         """
         # check no needed parameters are None
         if self.blocks is None:
             raise ValueError('The blocks are not set.')
-        # if self.replist is None:
-            # raise ValueError('The repetitions are not set, this must be a list of indices or int. '
-            # + 'Use Ansatz.reps to set this attribute.')
-        # if self._qargs is None:
-            # raise ValueError('The qubit indices for the blocks are not set.')
 
         # check the compatibility of the attributes
         if len(self.qubit_indices) != len(self._blocks):
             raise ValueError('The number of qubit indices does not match the number of blocks.')
 
-        if self._blockwise_base_params and self._replist:
-            if len(self._replist) != len(self._blockwise_base_params):
-                raise ValueError('The number of repetitions ({}) does '.format(len(self._replist))
-                                 + 'not match with the number of block parameters '
-                                 + '({})'.format(len(self._blockwise_base_params)))
+        if isinstance(self._reps, list):
+            if len(self._reps) > 0:
+                if max(self._reps) >= len(self._blocks):
+                    raise ValueError('Trying to add a non-existing block to the circuit.')
 
-        if self._replist and len(self._replist) > 0:
-            if max(self._replist) >= len(self._blocks):
-                raise ValueError('Trying to add a non-existing block to the circuit.')
+            if self._blockwise_base_params:
+                if len(self._reps) != len(self._blockwise_base_params):
+                    raise ValueError('The number of repetitions ({}) does '.format(len(self._reps))
+                                     + 'not match with the number of block parameters '
+                                     + '({})'.format(len(self._blockwise_base_params)))
 
         if self._num_qubits:
             for qubit_indices in self.qubit_indices:
@@ -305,6 +301,13 @@ class Ansatz:
                                      + 'blocks in the circuit.')
 
         return True
+
+    def _reps_as_list(self):
+        if isinstance(self._reps, int):
+            if self._blocks is None:
+                return []
+            return self._reps * list(range(len(self._blocks)))
+        return self._reps
 
     @property
     def setting(self):
@@ -379,14 +382,6 @@ class Ansatz:
     @qubit_indices.setter
     def qubit_indices(self, indices):
         """Set the qubit indices per block."""
-        # if len(indices) == 0:
-        #     self._qargs = []
-        # elif not isinstance(indices[0], list):  # user provided a flat, single list
-        #     self._qargs = [indices] * len(self._blocks)
-        # else:  # right format
-        #     if len(indices) != len(self._blocks):
-        #         raise ValueError('The number of indices must be equal to the number of blocks.')
-        #     self._qargs = indices
         self._qargs = indices
 
         # TODO check if indices is the same if qargs, only then invalidate the definition
@@ -567,25 +562,15 @@ class Ansatz:
     @property
     def reps(self):
         """Return reps as integer, or if not available, as list."""
-        return self._reps or self._replist
-
-    @property
-    def replist(self):
-        """Get the list of repetitions."""
-        return self._replist or self._reps * list(range(len(self.blocks)))
+        return self._reps
 
     @reps.setter
     def reps(self, repetitions):
         """Set the repetitions."""
-        if isinstance(repetitions, (list, numpy.ndarray)):
-            if self._replist is None or not all(i == j for i, j in zip(repetitions, self._replist)):
-                self._circuit = None
-                self._reps = None
-                self._replist = repetitions
-        elif isinstance(repetitions, numbers.Integral):
-            if repetitions != self._reps:
-                self._circuit = None
-                self._reps = repetitions
+
+        # TODO invalidate circuit only when reps changed
+        self._circuit = None
+        self._reps = repetitions
 
     def _get_default_parameters(self, start: int, num: int) -> List[Parameter]:
         """Get ``num`` default parameters. Returns the same instances if called repeatedly.
@@ -637,13 +622,13 @@ class Ansatz:
         blockwise_base_params = []
         if self._overwrite_block_parameters is True:
             param_count = 0
-            for i in self.replist:
+            for i in self._reps_as_list():
                 n = len(get_parameters(self._blocks[i]))
                 replacement_parameters = self._get_default_parameters(param_count, n)
                 param_count += n
                 blockwise_base_params += [replacement_parameters]
         else:
-            for i in self.replist:
+            for i in self._reps_as_list():
                 block_params = get_parameters(self._blocks[i])
                 blockwise_base_params += [block_params]
 
@@ -711,7 +696,7 @@ class Ansatz:
 
         # modify the circuit accordingly
         if self._circuit:
-            if self._insert_barriers and len(self.replist) > 1:
+            if self._insert_barriers and len(self._reps_as_list()) > 1:
                 self._circuit.barrier()
 
             block, qargs = self.blocks[-1], self.qubit_indices[-1]
@@ -800,15 +785,15 @@ class Ansatz:
                     circuit = QuantumCircuit(self.num_qubits)
 
                 # add the blocks, if they are specified
-                if len(self.replist) > 0:
+                if len(self._reps_as_list()) > 0:
                     blockwise_parameters = self.blockwise_parameters
                     # the first block (separately so barriers can be inserted in the for-loop)
-                    param_idx, i = 0, self.replist[0]
+                    param_idx, i = 0, self._reps_as_list()[0]
                     block, qargs = self.blocks[i], self.qubit_indices[i]
                     params = blockwise_parameters[param_idx]
                     circuit.extend(self._parametrize_block(block, qargs, params))
 
-                    for param_idx, i in enumerate(self.replist[1:]):
+                    for param_idx, i in enumerate(self._reps_as_list()[1:]):
                         if self._insert_barriers:
                             circuit.barrier()
                         block, qargs = self.blocks[i], self.qubit_indices[i]
