@@ -36,7 +36,7 @@ class OpCircuit(OpPrimitive):
     def __init__(self, primitive, coeff=1.0):
         """
                 Args:
-                    primtive (Gate, Pauli, [[complex]], np.ndarray, QuantumCircuit, Instruction): The operator primitive being
+                    primitive (Gate, Pauli, [[complex]], np.ndarray, QuantumCircuit, Instruction): The operator primitive being
                     wrapped.
                     coeff (int, float, complex): A coefficient multiplying the primitive
                 """

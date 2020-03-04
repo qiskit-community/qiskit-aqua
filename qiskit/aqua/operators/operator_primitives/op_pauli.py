@@ -38,7 +38,7 @@ class OpPauli(OpPrimitive):
     def __init__(self, primitive, coeff=1.0):
         """
                 Args:
-                    primtive (Gate, Pauli, [[complex]], np.ndarray, QuantumCircuit, Instruction): The operator primitive being
+                    primitive (Gate, Pauli, [[complex]], np.ndarray, QuantumCircuit, Instruction): The operator primitive being
                     wrapped.
                     coeff (int, float, complex): A coefficient multiplying the primitive
                 """
@@ -124,7 +124,7 @@ class OpPauli(OpPrimitive):
 
         # If self is identity, just return other.
         if not any(self.primitive.x + self.primitive.z):
-            return other
+            return (other*self.coeff)
 
         # Both Paulis
         if isinstance(other, OpPauli):
