@@ -137,7 +137,7 @@ class PauliChangeOfBasis(ConverterBase):
         if not any(origin_sig_bits) or not any(destination_sig_bits):
             if not (any(origin_sig_bits) or any(destination_sig_bits)):
                 # Both all Identity, just return Identities
-                return OpPrimitive(origin), OpPrimitive(destination)
+                return OpPrimitive(origin), OpPrimitive(destination, coeff=coeff)
             else:
                 # One is Identity, one is not
                 raise ValueError('Cannot change to or from a fully Identity Pauli.')
