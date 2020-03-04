@@ -20,8 +20,7 @@ import pprint
 
 from qiskit.aqua.algorithms import ClassicalAlgorithm, ClassicalEigensolver
 from qiskit.aqua.operators import BaseOperator
-from .minimum_eigen_solver import MinimumEigensolver
-from .minimum_eigen_solver_result import MinimumEigensolverResult
+from .minimum_eigen_solver import MinimumEigensolver, MinimumEigensolverResult
 
 logger = logging.getLogger(__name__)
 
