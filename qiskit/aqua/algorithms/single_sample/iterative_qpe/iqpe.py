@@ -26,7 +26,7 @@ from qiskit.aqua.operators import (WeightedPauliOperator, suzuki_expansion_slice
 from qiskit.aqua.operators.legacy import op_converter
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
-from qiskit.aqua.operators import BaseOperator
+from qiskit.aqua.operators import LegacyBaseOperator
 from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.utils.validation import validate_min, validate_in_set
 
@@ -47,7 +47,7 @@ class IQPE(QuantumAlgorithm):
     See also https://arxiv.org/abs/quant-ph/0610214
     """
 
-    def __init__(self, operator: BaseOperator, state_in: InitialState,
+    def __init__(self, operator: LegacyBaseOperator, state_in: InitialState,
                  num_time_slices: int = 1, num_iterations: int = 1,
                  expansion_mode: str = 'suzuki', expansion_order: int = 2,
                  shallow_circuit_concat: bool = False) -> None:

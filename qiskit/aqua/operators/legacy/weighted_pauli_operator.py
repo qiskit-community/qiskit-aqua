@@ -28,7 +28,7 @@ from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
 
 from qiskit.aqua import AquaError, aqua_globals
-from qiskit.aqua.operators.legacy.base_operator import BaseOperator
+from qiskit.aqua.operators.legacy.base_operator import LegacyBaseOperator
 from qiskit.aqua.operators.legacy.common import (measure_pauli_z, covariance, pauli_measurement,
                                                  kernel_F2, suzuki_expansion_slice_pauli_list,
                                                  check_commutativity, evolution_instruction)
@@ -37,7 +37,7 @@ from qiskit.aqua.operators.legacy.common import (measure_pauli_z, covariance, pa
 logger = logging.getLogger(__name__)
 
 
-class WeightedPauliOperator(BaseOperator):
+class WeightedPauliOperator(LegacyBaseOperator):
     """ Weighted Pauli Operator """
 
     def __init__(self, paulis, basis=None, z2_symmetries=None, atol=1e-12, name=None):

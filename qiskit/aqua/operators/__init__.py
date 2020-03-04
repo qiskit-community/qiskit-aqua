@@ -26,7 +26,7 @@ Operators
    :toctree: ../stubs/
    :nosignatures:
 
-   BaseOperator
+   LegacyBaseOperator
    WeightedPauliOperator
    TPBGroupedWeightedPauliOperator
    MatrixOperator
@@ -51,37 +51,26 @@ Operator support
     Z2Symmetries
 
 """
-from qiskit.quantum_info import Pauli
-from qiskit.extensions.standard import CXGate, SGate, TGate, HGate, SwapGate
 
 from qiskit.aqua.operators.legacy.common import (evolution_instruction, suzuki_expansion_slice_pauli_list, pauli_measurement,
                                                  measure_pauli_z, covariance, row_echelon_F2,
                                                  kernel_F2, commutator, check_commutativity)
-from qiskit.aqua.operators.legacy.pauli_graph import PauliGraph
-from qiskit.aqua.operators.legacy.base_operator import BaseOperator
-from qiskit.aqua.operators.legacy.weighted_pauli_operator import WeightedPauliOperator, Z2Symmetries
-from qiskit.aqua.operators.legacy.tpb_grouped_weighted_pauli_operator import TPBGroupedWeightedPauliOperator
-from qiskit.aqua.operators.legacy.matrix_operator import MatrixOperator
+from qiskit.aqua.operators.legacy import LegacyBaseOperator, WeightedPauliOperator, Z2Symmetries, \
+    TPBGroupedWeightedPauliOperator, MatrixOperator, PauliGraph
 
 # New Operators
 from .operator_base import OperatorBase
-from .op_kron import OpKron
-from .op_composition import OpComposition
-from .op_vec import OpVec
-from .op_sum import OpSum
-from .op_primitive import OpPrimitive
-from .op_pauli import OpPauli
-from .op_matrix import OpMatrix
-from .op_circuit import OpCircuit
-from qiskit.aqua.operators.state_functions.state_fn import StateFn
-from qiskit.aqua.operators.state_functions.state_fn_dict import StateFnDict
-from qiskit.aqua.operators.state_functions.state_fn_vector import StateFnVector
-from qiskit.aqua.operators.state_functions.state_fn_operator import StateFnOperator
-from qiskit.aqua.operators.state_functions.state_fn_circuit import StateFnCircuit
+
+from qiskit.aqua.operators.operator_primitives import OpPrimitive, OpPauli, OpMatrix, OpCircuit
+from qiskit.aqua.operators.state_functions import StateFn, StateFnDict, StateFnVector, StateFnCircuit, StateFnOperator
+from qiskit.aqua.operators.operator_combos import OpVec, OpSum, OpComposition, OpKron
 
 # from .converters import PauliChangeOfBasis, PaulitoInstruction, ToMatrixOp
 # from .expectation_values import PauliExpectation, MatrixExpectation, AerPauliExpectation
 # from .circuit_samplers import LocalSimulatorSampler, IBMQSampler
+
+from qiskit.quantum_info import Pauli
+from qiskit.extensions.standard import CXGate, SGate, TGate, HGate, SwapGate
 
 # Paulis
 X = OpPrimitive(Pauli.from_label('X'))
@@ -100,28 +89,19 @@ Zero = StateFn('0')
 One = StateFn('1')
 Plus = H.compose(Zero)
 Minus = H.compose(One)
-# TODO figure out what to do about gate/pauli overlap, especially I and Id
 
 __all__ = [
-    'evolution_instruction',
-    'suzuki_expansion_slice_pauli_list',
-    'pauli_measurement',
-    'measure_pauli_z',
-    'covariance',
-    'row_echelon_F2',
-    'kernel_F2',
-    'commutator',
-    'check_commutativity',
-    'PauliGraph',
-    'BaseOperator',
-    'WeightedPauliOperator',
-    'Z2Symmetries',
-    'TPBGroupedWeightedPauliOperator',
+    # Common
+    'evolution_instruction', 'suzuki_expansion_slice_pauli_list', 'pauli_measurement', 'measure_pauli_z',
+    'covariance', 'row_echelon_F2', 'kernel_F2', 'commutator', 'check_commutativity',
+    # Legacy
+    'PauliGraph', 'LegacyBaseOperator', 'WeightedPauliOperator', 'Z2Symmetries', 'TPBGroupedWeightedPauliOperator',
     'MatrixOperator',
+    # New
     'OperatorBase'
-    'OpPrimitive'
-    'OpSum',
-    'OpKron',
-    'OpComposition',
-    'OpVec'
+    'OpPrimitive', 'OpPauli', 'OpMatrix', 'OpCircuit',
+    'StateFn', 'StateFnDict', 'StateFnVector', 'StateFnCircuit', 'StateFnOperator',
+    'OpVec', 'OpSum', 'OpComposition', 'OpKron',
+    # Singletons
+    'X', 'Y', 'Z', 'I', 'CX', 'S', 'H', 'T', 'Swap', 'Zero', 'One', 'Plus', 'Minus'
 ]

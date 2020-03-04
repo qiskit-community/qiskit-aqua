@@ -18,7 +18,7 @@ from typing import List, Callable, Optional
 import logging
 import numpy as np
 from qiskit.aqua.algorithms.adaptive import VQE
-from qiskit.aqua.operators import BaseOperator
+from qiskit.aqua.operators import LegacyBaseOperator
 from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.components.optimizers import Optimizer
 from qiskit.aqua.utils.validation import validate_min
@@ -57,10 +57,10 @@ class QAOA(VQE):
     be supplied.
     """
 
-    def __init__(self, operator: BaseOperator, optimizer: Optimizer, p: int = 1,
+    def __init__(self, operator: LegacyBaseOperator, optimizer: Optimizer, p: int = 1,
                  initial_state: Optional[InitialState] = None,
-                 mixer: Optional[BaseOperator] = None, initial_point: Optional[np.ndarray] = None,
-                 max_evals_grouped: int = 1, aux_operators: Optional[List[BaseOperator]] = None,
+                 mixer: Optional[LegacyBaseOperator] = None, initial_point: Optional[np.ndarray] = None,
+                 max_evals_grouped: int = 1, aux_operators: Optional[List[LegacyBaseOperator]] = None,
                  callback: Optional[Callable[[int, np.ndarray, float, float], None]] = None,
                  auto_conversion: bool = True) -> None:
         """

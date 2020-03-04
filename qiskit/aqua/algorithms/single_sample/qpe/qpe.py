@@ -26,7 +26,7 @@ from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.circuits import PhaseEstimationCircuit
 from qiskit.aqua.operators import WeightedPauliOperator
-from qiskit.aqua.operators import BaseOperator
+from qiskit.aqua.operators import LegacyBaseOperator
 from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.components.iqfts import IQFT
 from qiskit.aqua.utils.validation import validate_min, validate_in_set
@@ -53,7 +53,7 @@ class QPE(QuantumAlgorithm):
     """
 
     def __init__(
-            self, operator: BaseOperator, state_in: Optional[InitialState],
+            self, operator: LegacyBaseOperator, state_in: Optional[InitialState],
             iqft: IQFT, num_time_slices: int = 1,
             num_ancillae: int = 1, expansion_mode: str = 'trotter',
             expansion_order: int = 1, shallow_circuit_concat: bool = False) -> None:

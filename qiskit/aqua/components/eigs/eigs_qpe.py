@@ -19,7 +19,7 @@ import numpy as np
 from qiskit import QuantumRegister
 
 from qiskit.aqua.circuits import PhaseEstimationCircuit
-from qiskit.aqua.operators import BaseOperator
+from qiskit.aqua.operators import LegacyBaseOperator
 from qiskit.aqua.operators.legacy import op_converter
 from qiskit.aqua.components.iqfts import IQFT
 from qiskit.aqua.utils.validation import validate_min, validate_in_set
@@ -39,7 +39,7 @@ class EigsQPE(Eigenvalues):
     """
 
     def __init__(self,
-                 operator: BaseOperator,
+                 operator: LegacyBaseOperator,
                  iqft: IQFT,
                  num_time_slices: int = 1,
                  num_ancillae: int = 1,

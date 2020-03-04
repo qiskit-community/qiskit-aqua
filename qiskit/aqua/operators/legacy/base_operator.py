@@ -17,7 +17,7 @@
 from abc import ABC, abstractmethod
 
 
-class BaseOperator(ABC):
+class LegacyBaseOperator(ABC):
     """Operators relevant for quantum applications."""
 
     @abstractmethod

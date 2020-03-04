@@ -30,7 +30,7 @@ from qiskit.aqua.algorithms.adaptive.vqe.vqe import VQE
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.aqua.operators import TPBGroupedWeightedPauliOperator, WeightedPauliOperator
 from qiskit.aqua.utils.backend_utils import is_aer_statevector_backend
-from qiskit.aqua.operators import BaseOperator
+from qiskit.aqua.operators import LegacyBaseOperator
 from qiskit.aqua.components.optimizers import Optimizer
 from qiskit.aqua.components.variational_forms import VariationalForm
 from qiskit.aqua.utils.validation import validate_min
@@ -45,13 +45,13 @@ class VQEAdapt(VQAlgorithm):
     See https://arxiv.org/abs/1812.11173
     """
 
-    def __init__(self, operator: BaseOperator,
+    def __init__(self, operator: LegacyBaseOperator,
                  var_form_base: VariationalForm, optimizer: Optimizer,
                  initial_point: Optional[np.ndarray] = None,
                  excitation_pool: Optional[List[WeightedPauliOperator]] = None,
                  threshold: float = 1e-5,
                  delta: float = 1, max_evals_grouped: int = 1,
-                 aux_operators: Optional[List[BaseOperator]] = None) -> None:
+                 aux_operators: Optional[List[LegacyBaseOperator]] = None) -> None:
         """Constructor.
 
         Args:
@@ -107,7 +107,7 @@ class VQEAdapt(VQAlgorithm):
             theta (list): list of (up to now) optimal parameters
             delta (float): finite difference step size (for gradient computation)
             var_form (VariationalForm): current variational form
-            operator (BaseOperator): system Hamiltonian
+            operator (LegacyBaseOperator): system Hamiltonian
             optimizer (Optimizer): classical optimizer algorithm
 
         Returns:

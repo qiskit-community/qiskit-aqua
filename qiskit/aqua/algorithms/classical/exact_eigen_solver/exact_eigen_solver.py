@@ -21,7 +21,7 @@ from scipy import sparse as scisparse
 
 from qiskit.aqua.algorithms.classical import ClassicalAlgorithm
 from qiskit.aqua.operators.legacy import op_converter
-from qiskit.aqua.operators import BaseOperator
+from qiskit.aqua.operators import LegacyBaseOperator
 from qiskit.aqua.utils.validation import validate_min
 
 logger = logging.getLogger(__name__)
@@ -42,8 +42,8 @@ class ExactEigensolver(ClassicalAlgorithm):
         operator size, mostly in terms of number of qubits it represents, gets larger.
     """
 
-    def __init__(self, operator: BaseOperator, k: int = 1,
-                 aux_operators: Optional[List[BaseOperator]] = None) -> None:
+    def __init__(self, operator: LegacyBaseOperator, k: int = 1,
+                 aux_operators: Optional[List[LegacyBaseOperator]] = None) -> None:
         """
         Args:
             operator: Operator instance

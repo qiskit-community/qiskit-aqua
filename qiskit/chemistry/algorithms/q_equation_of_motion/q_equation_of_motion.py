@@ -26,7 +26,7 @@ from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
 from qiskit.aqua import AquaError, aqua_globals
-from qiskit.aqua.operators import (BaseOperator,
+from qiskit.aqua.operators import (LegacyBaseOperator,
                                    WeightedPauliOperator,
                                    Z2Symmetries,
                                    TPBGroupedWeightedPauliOperator,
@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 
 class QEquationOfMotion:
     """ QEquationOfMotion algorithm """
-    def __init__(self, operator: BaseOperator,
+    def __init__(self, operator: LegacyBaseOperator,
                  num_orbitals: int,
                  num_particles: Union[List[int], int],
                  qubit_mapping: Optional[str] = None,
@@ -52,7 +52,7 @@ class QEquationOfMotion:
                  se_list: Optional[List[List[int]]] = None,
                  de_list: Optional[List[List[int]]] = None,
                  z2_symmetries: Optional[Z2Symmetries] = None,
-                 untapered_op: Optional[BaseOperator] = None) -> None:
+                 untapered_op: Optional[LegacyBaseOperator] = None) -> None:
         """Constructor.
 
         Args:

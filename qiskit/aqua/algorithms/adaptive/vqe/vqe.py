@@ -34,7 +34,7 @@ from qiskit.aqua.operators import (TPBGroupedWeightedPauliOperator, WeightedPaul
 from qiskit.aqua.operators.legacy import op_converter
 from qiskit.aqua.utils.backend_utils import (is_statevector_backend,
                                              is_aer_provider)
-from qiskit.aqua.operators import BaseOperator
+from qiskit.aqua.operators import LegacyBaseOperator
 from qiskit.aqua.components.optimizers import Optimizer
 from qiskit.aqua.components.variational_forms import VariationalForm
 
@@ -76,9 +76,9 @@ class VQE(VQAlgorithm):
     as the upper bound, the default value will be :math:`2\pi`.
     """
 
-    def __init__(self, operator: BaseOperator, var_form: VariationalForm, optimizer: Optimizer,
+    def __init__(self, operator: LegacyBaseOperator, var_form: VariationalForm, optimizer: Optimizer,
                  initial_point: Optional[np.ndarray] = None, max_evals_grouped: int = 1,
-                 aux_operators: Optional[List[BaseOperator]] = None,
+                 aux_operators: Optional[List[LegacyBaseOperator]] = None,
                  callback: Optional[Callable[[int, np.ndarray, float, float], None]] = None,
                  auto_conversion: bool = True) -> None:
         """
