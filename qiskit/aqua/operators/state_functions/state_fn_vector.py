@@ -20,8 +20,9 @@ import itertools
 
 from qiskit.quantum_info import Statevector
 
-from qiskit.aqua.operators import StateFn
-from qiskit.aqua.operators import OperatorBase, OpVec
+from qiskit.aqua.operators import OperatorBase
+from . import StateFn
+from ..operator_combos import OpVec
 
 
 class StateFnVector(StateFn):
@@ -74,7 +75,7 @@ class StateFnVector(StateFn):
             return StateFnVector((self.coeff * self.primitive).add(other.primitive * other.coeff),
                                  is_measurement=self._is_measurement)
 
-        from . import OpSum
+        from .. import OpSum
         return OpSum([self, other])
 
     def adjoint(self):
@@ -97,7 +98,7 @@ class StateFnVector(StateFn):
                            coeff=self.coeff * other.coeff,
                            is_measurement=self.is_measurement)
 
-        from . import OpKron
+        from .. import OpKron
         return OpKron([self, other])
 
     def to_density_matrix(self, massive=False):

@@ -16,14 +16,12 @@
 
 """
 
-from .state_fn import StateFn
-from .state_fn_dict import StateFnDict
-from .state_fn_operator import StateFnOperator
-from .state_fn_vector import StateFnVector
-from .state_fn_circuit import StateFnCircuit
+from .op_primitive import OpPrimitive
+from .op_pauli import OpPauli
+from .op_matrix import OpMatrix
+from .op_circuit import OpCircuit
 
-__all__ = ['StateFn',
-           'StateFnDict',
-           'StateFnVector',
-           'StateFnCircuit',
-           'StateFnOperator']
+__all__ = ['OpPrimitive',
+           'OpPauli',
+           'OpMatrix',
+           'OpCircuit']

@@ -16,14 +16,12 @@
 
 """
 
-from .state_fn import StateFn
-from .state_fn_dict import StateFnDict
-from .state_fn_operator import StateFnOperator
-from .state_fn_vector import StateFnVector
-from .state_fn_circuit import StateFnCircuit
+from .op_vec import OpVec
+from .op_sum import OpSum
+from .op_composition import OpComposition
+from .op_kron import OpKron
 
-__all__ = ['StateFn',
-           'StateFnDict',
-           'StateFnVector',
-           'StateFnCircuit',
-           'StateFnOperator']
+__all__ = ['OpVec',
+           'OpSum',
+           'OpKron',
+           'OpComposition']

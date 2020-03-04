@@ -22,9 +22,7 @@ from qiskit.quantum_info import Pauli
 from qiskit.quantum_info import Operator as MatrixOperator
 
 from . import OpPrimitive
-from . import OpSum
-from . import OpComposition
-from . import OpKron
+from ..operator_combos import OpSum, OpComposition, OpKron
 
 logger = logging.getLogger(__name__)
 
@@ -133,7 +131,8 @@ class OpPauli(OpPrimitive):
             return OpPrimitive(self.primitive * other.primitive, coeff=self.coeff * other.coeff)
             # TODO double check coeffs logic for paulis
 
-        from . import OpCircuit, StateFnCircuit
+        from . import OpCircuit
+        from .. import StateFnCircuit
         if isinstance(other, (OpCircuit, StateFnCircuit)):
             from qiskit.aqua.operators.converters import PaulitoInstruction
             converted_primitive = PaulitoInstruction().convert_pauli(self.primitive)
@@ -186,7 +185,7 @@ class OpPauli(OpPrimitive):
             # Saves having to reimplement logic twice for front and back
             return self.adjoint().eval(front=back).adjoint()
 
-        from . import OperatorBase, StateFn, StateFnDict, StateFnVector, StateFnOperator, OpVec
+        from .. import OperatorBase, StateFn, StateFnDict, StateFnVector, StateFnOperator, OpVec
         if isinstance(front, list):
             return [self.eval(front_elem, back=back) for front_elem in front]
 

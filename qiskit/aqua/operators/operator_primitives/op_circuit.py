@@ -18,12 +18,9 @@ import numpy as np
 from qiskit import QuantumCircuit, BasicAer, execute
 from qiskit.circuit import Instruction
 from qiskit.quantum_info import Pauli
-from qiskit.quantum_info import Operator as MatrixOperator
 
 from . import OpPrimitive
-from . import OpSum
-from . import OpComposition
-from . import OpKron
+from ..operator_combos import OpSum, OpComposition, OpKron
 
 logger = logging.getLogger(__name__)
 
@@ -124,9 +121,8 @@ class OpCircuit(OpPrimitive):
 
         other = self._check_zero_for_composition_and_expand(other)
 
-        from . import Zero
+        from .. import Zero, StateFnCircuit
         if other == Zero^self.num_qubits:
-            from . import StateFnCircuit
             return StateFnCircuit(self.primitive, coeff=self.coeff)
 
         from . import OpPauli
@@ -134,7 +130,6 @@ class OpCircuit(OpPrimitive):
             from qiskit.aqua.operators.converters import PaulitoInstruction
             other = OpCircuit(PaulitoInstruction().convert_pauli(other.primitive), coeff=other.coeff)
 
-        from .state_functions import StateFnCircuit
         if isinstance(other, (OpCircuit, StateFnCircuit)):
             new_qc = QuantumCircuit(self.num_qubits)
             new_qc.append(other.primitive, qargs=range(self.num_qubits))
@@ -194,7 +189,7 @@ class OpCircuit(OpPrimitive):
         elif front is None:
             # Saves having to reimplement logic twice for front and back
             return self.adjoint().eval(back).adjoint()
-        from . import OpVec
+        from .. import OpVec
         if isinstance(front, list):
             return [self.eval(front_elem, back=back) for front_elem in front]
         elif isinstance(front, OpVec) and front.distributive:

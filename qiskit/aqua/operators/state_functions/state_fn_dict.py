@@ -18,12 +18,11 @@
 import numpy as np
 import itertools
 
-from qiskit.quantum_info import Statevector
 from qiskit.result import Result
 
-from qiskit.aqua.operators import StateFn
-from qiskit.aqua.operators import OperatorBase, OpVec
-
+from qiskit.aqua.operators import OperatorBase
+from . import StateFn
+from ..operator_combos import OpVec
 
 
 class StateFnDict(StateFn):

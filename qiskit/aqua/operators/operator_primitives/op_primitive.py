@@ -20,7 +20,7 @@ from qiskit.circuit import Instruction
 from qiskit.quantum_info import Pauli
 from qiskit.quantum_info import Operator as MatrixOperator
 
-from .operator_base import OperatorBase
+from qiskit.aqua.operators.operator_base import OperatorBase
 
 logger = logging.getLogger(__name__)
 
@@ -114,7 +114,7 @@ class OpPrimitive(OperatorBase):
 
     def _check_zero_for_composition_and_expand(self, other):
         if not self.num_qubits == other.num_qubits:
-            from . import Zero
+            from .. import Zero
             if other == Zero:
                 # Zero is special - we'll expand it to the correct qubit number.
                 other = Zero.__class__('0' * self.num_qubits)

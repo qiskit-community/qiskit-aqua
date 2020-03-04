@@ -21,7 +21,9 @@ from qiskit import QuantumCircuit, BasicAer, execute
 from qiskit.circuit import Instruction
 from qiskit.extensions import Initialize
 
-from qiskit.aqua.operators import StateFn, OperatorBase, OpSum
+from qiskit.aqua.operators import OperatorBase
+from . import StateFn
+from ..operator_combos import OpSum
 
 
 class StateFnCircuit(StateFn):

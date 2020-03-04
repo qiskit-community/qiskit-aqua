@@ -19,11 +19,9 @@ from qiskit.circuit import Instruction
 from qiskit.quantum_info import Pauli
 from qiskit.quantum_info import Operator as MatrixOperator
 
-from . import OperatorBase
+from qiskit.aqua.operators import OperatorBase
 from . import OpPrimitive
-from . import OpSum
-from . import OpComposition
-from . import OpKron
+from ..operator_combos import OpSum, OpComposition, OpKron
 
 logger = logging.getLogger(__name__)
 
@@ -153,14 +151,14 @@ class OpMatrix(OpPrimitive):
         elif front is None:
             # Saves having to reimplement logic twice for front and back
             return self.adjoint().eval(front=back, back=None).adjoint()
-        from . import OpVec
+        from .. import OpVec
         if isinstance(front, list):
             return [self.eval(front_elem, back=back) for front_elem in front]
         elif isinstance(front, OpVec) and front.distributive:
             return front.combo_fn([self.eval(front.coeff * front_elem, back=back) for front_elem in front.oplist])
 
         # For now, always do this. If it's not performant, we can be more granular.
-        from . import StateFn
+        from .. import StateFn
         if not isinstance(front, OperatorBase):
             front = StateFn(front)
 

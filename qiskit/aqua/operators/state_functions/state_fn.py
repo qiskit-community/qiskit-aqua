@@ -16,9 +16,6 @@
 
 
 import numpy as np
-import re
-from functools import reduce
-import itertools
 
 from qiskit.quantum_info import Statevector
 from qiskit.result import Result
