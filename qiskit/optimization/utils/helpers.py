@@ -13,10 +13,12 @@
 # that they have been altered from the originals.
 
 
-from qiskit.optimization.utils import QiskitOptimizationError
-
 from collections.abc import Sequence
+from typing import Union, List, Tuple, Dict
 
+from cplex import SparsePair, SparseTriple
+
+from qiskit.optimization.utils import QiskitOptimizationError
 
 _defaultgetindex = {}
 
@@ -87,6 +89,33 @@ def convert(name, getindexfunc=_defaultgetindexfunc, cache=None):
         return name
 
 
+class NameIndexConverter:
+    def __init__(self):
+        self._cache = {}
+
+    def to_dict(self) -> Dict[str, int]:
+        return self._cache
+
+    def build(self, names: List[str]):
+        self._cache = {i: e for i, e in enumerate(names)}
+
+    def convert(self, names: Union[str, List[str]]) -> Union[int, List[int]]:
+        if isinstance(names, str):
+            return self._convert_str(names)
+        elif isinstance(names, Sequence):
+            return self._convert_seq(names)
+        else:
+            raise QiskitOptimizationError('Invalid argument: %s'.format(names))
+
+    def _convert_str(self, name: str) -> int:
+        if name not in self._cache:
+            self._cache[name] = len(self._cache)
+        return self._cache[name]
+
+    def _convert_seq(self, names: List[str]) -> List[int]:
+        return [self._convert_str(e) if isinstance(e, str) else e for e in names]
+
+
 def init_list_args(*args):
     """Initialize default arguments with empty lists if necessary."""
     return tuple([] if a is None else a for a in args)
@@ -121,7 +150,7 @@ else:
         pass
 
 
-def unpack_pair(item):
+def unpack_pair(item: Union[SparsePair, List, Tuple]) -> Tuple[List[int], List[float]]:
     """Extracts the indices and values from an object.
 
     The argument item can either be an instance of SparsePair or a
@@ -134,16 +163,19 @@ def unpack_pair(item):
     >>> lin_expr = [[], []]
     >>> ind, val = unpack_pair(lin_expr)
     """
-    try:
+    if isinstance(item, SparsePair):
         assert item.isvalid()
         ind, val = item.unpack()
-    except AttributeError:
+    elif isinstance(item, (tuple, list)):
         ind, val = item[0:2]
+    else:
+        raise QiskitOptimizationError('Invalid object for unpack_pair {}'.format(item))
     validate_arg_lengths([ind, val])
     return ind, val
 
 
-def unpack_triple(item):
+def unpack_triple(item: Union[SparseTriple, List, Tuple]) \
+        -> Tuple[List[int], List[int], List[float]]:
     """Extracts the indices and values from an object.
 
     The argument item can either be an instance of SparseTriple or a
@@ -156,10 +188,10 @@ def unpack_triple(item):
     >>> quad_expr = [[], [], []]
     >>> ind1, ind2, val = unpack_triple(quad_expr)
     """
-    try:
+    if isinstance(item, SparseTriple):
         assert item.isvalid()
         ind1, ind2, val = item.unpack()
-    except AttributeError:
+    elif isinstance(item, (list, tuple)):
         ind1, ind2, val = item[0:3]
     validate_arg_lengths([ind1, ind2, val])
     return ind1, ind2, val

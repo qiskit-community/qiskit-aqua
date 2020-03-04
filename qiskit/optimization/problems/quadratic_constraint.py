@@ -12,9 +12,10 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+from typing import List, Tuple, Dict
 from qiskit.optimization.utils.base import BaseInterface
 from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
-from qiskit.optimization.utils.helpers import unpack_pair, unpack_triple
+from qiskit.optimization.utils.helpers import unpack_pair, unpack_triple, NameIndexConverter
 from cplex import SparsePair, SparseTriple
 
 
@@ -29,8 +30,14 @@ class QuadraticConstraintInterface(BaseInterface):
         is not meant to be used externally.
         """
         super(QuadraticConstraintInterface, self).__init__()
+        self._rhs = []
+        self._senses = []
+        self._names = []
+        self._lin_expr = []
+        self._quad_expr = []
+        self._index = NameIndexConverter()
 
-    def get_num(self):
+    def get_num(self) -> int:
         """Returns the number of quadratic constraints.
 
         Example usage:
@@ -45,7 +52,7 @@ class QuadraticConstraintInterface(BaseInterface):
         >>> op.quadratic_constraints.get_num()
         10
         """
-        None
+        return len(self._names)
 
     def _add(self, lin_expr, quad_expr, sense, rhs, name):
         """non-public"""
@@ -104,6 +111,13 @@ class QuadraticConstraintInterface(BaseInterface):
         if quad_expr is None:
             quad_expr = SparseTriple([0], [0], [0.0])
         # We only ever create one quadratic constraint at a time.
+
+        if sense not in ['L', 'G', 'E']:
+            raise QiskitOptimizationError('Invalid sense: %s'.format(sense))
+        else:
+            self._senses.append(sense)
+        self._rhs.append(rhs)
+        self._names.append(name)
         return self._add_single(self.get_num, self._add,
                                 lin_expr, quad_expr, sense, rhs, name)
 
@@ -207,7 +221,7 @@ class QuadraticConstraintInterface(BaseInterface):
         >>> op.quadratic_constraints.get_rhs()
         [0.0, 1.5, 3.0, 4.5, 6.0, 7.5, 9.0, 10.5, 12.0, 13.5]
         """
-        return []
+        return self._rhs
 
     def get_senses(self, *args):
         """Returns the senses of a set of quadratic constraints.
@@ -251,7 +265,7 @@ class QuadraticConstraintInterface(BaseInterface):
         >>> op.quadratic_constraints.get_senses()
         ['G', 'G', 'L', 'L']
         """
-        return []
+        return self._senses
 
     def get_linear_num_nonzeros(self, *args):
         """Returns the number of nonzeros in the linear part of a set of quadratic constraints.
@@ -488,4 +502,4 @@ class QuadraticConstraintInterface(BaseInterface):
         >>> op.quadratic_constraints.get_names()
         ['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q8', 'q9', 'q10']
         """
-        None
+        self._names
