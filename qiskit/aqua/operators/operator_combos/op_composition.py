@@ -99,7 +99,7 @@ class OpComposition(OpVec):
         eval_list[0] = eval_list[0] * self.coeff
         eval_list = eval_list + [front] if front else eval_list
         if isinstance(back, (str, dict, Statevector)):
-            from . import StateFn
+            from .. import StateFn
             back = StateFn(back)
         eval_list = [back] + eval_list if back else eval_list
 
