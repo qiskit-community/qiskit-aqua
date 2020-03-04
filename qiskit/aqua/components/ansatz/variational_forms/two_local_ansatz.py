@@ -367,9 +367,44 @@ class TwoLocalAnsatz(Ansatz):
         need to invalidate the blocks, since they are dependent on the number of qubits.
         """
         if num_qubits != self._num_qubits:
-            self._blocks = None
-            self._circuit = None
+            self._blocks, self._circuit = None, None  # invalidate current setup
             self._num_qubits = num_qubits
+
+    @property
+    def entanglement(self) -> Union[str, List[List[int]], callable]:
+        """Return the current entanglement strategy.
+
+        Can be of type ``str``, a list of ``int`` or a ``callable``.
+        If the entanglement is a ``str`` it can be one of:
+        - ``'full'``: Entangle each qubit with every qubit (all-to-all).
+        - ``'linear'``: Entangle each qubit with its direct neighbour.
+        - ``'sca'``: Shifted-circular-alternating entanglement. Within every entanglement block,
+            the qubits are entangled circulary, i.e. linear but the first and last qubit are
+            also entangled. Shifted means that in the next block the (i+1)-th entanglement is the
+            i-th entanglement of the previous block (modulo ``num_qubits``). Alternating indicates
+            that the role of target and control qubit is swapped every other block.
+
+        If the entanglement is a list of lists of ``int``, the structure is specified as
+        ``[[control1, target1], [control2, target2], ...]``.
+
+        If the entanglement is a callable, it takes the number of the current entanglement block
+        as argument and returns the entanglement list for that particular block, i.e. returns
+        a list of lists of ``int``.
+
+        Returns:
+            The entanglement strategy.
+        """
+        return self._entanglement
+
+    @entanglement.setter
+    def entanglement(self, entanglement: Union[str, List[List[int]], callable]):
+        """Set the entanglement strategy.
+
+        Args:
+            entanglement: The entanglement strategy.
+        """
+        self._blocks, self._circuit = None, None  # invalidate current setup
+        self._entanglement = entanglement
 
     @property
     def entanglement_gates(self) -> List[Tuple[type, int]]:
