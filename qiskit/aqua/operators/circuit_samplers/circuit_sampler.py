@@ -18,8 +18,6 @@ import logging
 import numpy as np
 from abc import abstractmethod
 
-from qiskit import BasicAer
-from qiskit.aqua import AquaError, QuantumAlgorithm, QuantumInstance
 from ..converters import ConverterBase
 
 from qiskit.aqua.utils.backend_utils import (is_ibmq_provider,

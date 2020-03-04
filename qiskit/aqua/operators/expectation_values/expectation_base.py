@@ -19,8 +19,6 @@ import numpy as np
 from abc import abstractmethod
 
 from qiskit import BasicAer
-from qiskit.aqua import AquaError, QuantumAlgorithm
-from qiskit.aqua.operators import OpVec, OpPrimitive, OpSum
 from qiskit.aqua.operators.circuit_samplers import CircuitSampler
 
 from qiskit.aqua.utils.backend_utils import (is_statevector_backend,

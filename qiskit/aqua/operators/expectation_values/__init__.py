@@ -19,6 +19,11 @@ distribution, or in the quantum case, algorithms for approximating the value of 
 """
 
 from .expectation_base import ExpectationBase
-from .aer_pauli_expectation import AerPauliExpectation
 from .pauli_expectation import PauliExpectation
+from .aer_pauli_expectation import AerPauliExpectation
 from .matrix_expectation import MatrixExpectation
+
+__all__ = ['ExpectationBase',
+           'PauliExpectation',
+           'AerPauliExpectation',
+           'MatrixExpectation']

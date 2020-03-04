@@ -55,8 +55,8 @@ Operator support
 from qiskit.aqua.operators.legacy.common import (evolution_instruction, suzuki_expansion_slice_pauli_list, pauli_measurement,
                                                  measure_pauli_z, covariance, row_echelon_F2,
                                                  kernel_F2, commutator, check_commutativity)
-from qiskit.aqua.operators.legacy import LegacyBaseOperator, WeightedPauliOperator, Z2Symmetries, \
-    TPBGroupedWeightedPauliOperator, MatrixOperator, PauliGraph
+from qiskit.aqua.operators.legacy import (LegacyBaseOperator, WeightedPauliOperator, Z2Symmetries,
+                                          TPBGroupedWeightedPauliOperator, MatrixOperator, PauliGraph)
 
 # New Operators
 from .operator_base import OperatorBase
@@ -65,9 +65,11 @@ from qiskit.aqua.operators.operator_primitives import OpPrimitive, OpPauli, OpMa
 from qiskit.aqua.operators.state_functions import StateFn, StateFnDict, StateFnVector, StateFnCircuit, StateFnOperator
 from qiskit.aqua.operators.operator_combos import OpVec, OpSum, OpComposition, OpKron
 
-# from .converters import PauliChangeOfBasis, PaulitoInstruction, ToMatrixOp
-# from .expectation_values import PauliExpectation, MatrixExpectation, AerPauliExpectation
-# from .circuit_samplers import LocalSimulatorSampler, IBMQSampler
+from qiskit.aqua.operators.converters import (ConverterBase, PauliChangeOfBasis, PaulitoInstruction, ToMatrixOp,
+                                              DicttoCircuitSum)
+from qiskit.aqua.operators.expectation_values import (ExpectationBase, PauliExpectation, MatrixExpectation,
+                                                      AerPauliExpectation)
+from qiskit.aqua.operators.circuit_samplers import CircuitSampler, LocalSimulatorSampler, IBMQSampler
 
 from qiskit.quantum_info import Pauli
 from qiskit.extensions.standard import CXGate, SGate, TGate, HGate, SwapGate

@@ -21,7 +21,7 @@ from functools import partial, reduce
 from qiskit.quantum_info import Pauli
 from qiskit import QuantumCircuit
 
-from .. import OpPrimitive, OpComposition, OpVec, H, S, I, StateFn
+from .. import OpPrimitive, OpComposition, OpVec, StateFn
 from . import ConverterBase
 
 logger = logging.getLogger(__name__)
@@ -115,6 +115,7 @@ class PauliChangeOfBasis(ConverterBase):
             8) converting the |+⟩ and |-⟩ significant eigenvector bits to |i+⟩ and |i-⟩ eigenvector bits in the
             destination where the destination demands it (e.g. pauli.x == true and pauli.z == true for a bit), using Ss
         """
+        from .. import H, S, I
 
         # If pauli is an OpPrimitive, extract the Pauli
         if isinstance(origin, OpPrimitive):
