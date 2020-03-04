@@ -21,7 +21,6 @@ import numpy as np
 
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.aqua.components.reciprocals import Reciprocal
-from qiskit.aqua.circuits.gates import mct  # pylint: disable=unused-import
 from qiskit.aqua.utils.validation import validate_range
 
 logger = logging.getLogger(__name__)
@@ -274,7 +273,6 @@ class LookupRotation(Reciprocal):
                 qc.x(self._ev[int(c + offset)])
 
     def construct_circuit(self, mode, inreg):  # pylint: disable=arguments-differ
-
         """Construct the Lookup Rotation circuit.
 
         Args:
@@ -304,12 +302,12 @@ class LookupRotation(Reciprocal):
         if self._pat_length is None:
             if self._reg_size <= 6:
                 self._pat_length = self._reg_size - \
-                                   (2 if self._negative_evals else 1)
+                    (2 if self._negative_evals else 1)
             else:
                 self._pat_length = 5
         if self._reg_size <= self._pat_length:
             self._pat_length = self._reg_size - \
-                               (2 if self._negative_evals else 1)
+                (2 if self._negative_evals else 1)
         if self._subpat_length is None:
             self._subpat_length = int(np.ceil(self._pat_length/2))
         m = self._subpat_length

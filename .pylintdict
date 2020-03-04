@@ -157,6 +157,7 @@ evals
 exc
 excitations
 expr
+factorizers
 factr
 fcompiler
 fermionic
