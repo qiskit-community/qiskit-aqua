@@ -79,7 +79,7 @@ class MatrixExpectation(ExpectationBase):
             state = self.state
 
         if self._circuit_sampler:
-            state_mat = self._circuit_sampler.convert(state, params=params)
-            return self._matrix_op.eval(state_mat)
+            state_op_mat = self._circuit_sampler.convert(state, params=params)
+            return self._matrix_op.eval(state_op_mat)
         else:
             return self._matrix_op.eval(state)
