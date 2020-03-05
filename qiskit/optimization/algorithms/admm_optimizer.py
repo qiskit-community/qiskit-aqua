@@ -391,7 +391,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
                           lb=[0.] * binary_size,
                           ub=[1.] * binary_size)
 
-        # prepare and set quadratic objective. NOTE: The multiplication by 2 is needed for the solvers to parse the quadratic coefficients.
+        # prepare and set quadratic objective.
+        # NOTE: The multiplication by 2 is needed for the solvers to parse the quadratic coefficients.
         a0, b0 = self.get_a0_b0()
         quadratic_objective = 2 * (
                 self.get_q0() + self._factor_c / 2 * np.dot(a0.transpose(), a0) +
@@ -429,15 +430,17 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         # set quadratic objective coefficients for u variables
         if continuous_size:
-            q_u = 2 * (self.get_q1()) #NOTE: The multiplication by 2 is needed for the solvers to parse the quadratic coefficients.
+            # NOTE: The multiplication by 2 is needed for the solvers to parse the quadratic coefficients.
+            q_u = 2 * (self.get_q1())
             for i in range(continuous_size):
                 for j in range(i, continuous_size):
                     # todo: verify that we don't need both calls
                     op2.objective.set_quadratic_coefficients(i, j, q_u[i, j])
                     op2.objective.set_quadratic_coefficients(j, i, q_u[i, j])
 
-        # set quadratic objective coefficients for z variables. 
-        q_z = 2 * (self._state.rho / 2 * np.eye(binary_size)) # NOTE: The multiplication by 2 is needed for the solvers to parse the quadratic coefficients.
+        # set quadratic objective coefficients for z variables.
+        # NOTE: The multiplication by 2 is needed for the solvers to parse the quadratic coefficients.
+        q_z = 2 * (self._state.rho / 2 * np.eye(binary_size))
         for i in range(binary_size):
             for j in range(i, binary_size):
                 # todo: verify that we don't need both calls
@@ -459,23 +462,28 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # A1 z <= b1
         a1, b1 = self.get_a1_b1()
         constraint_count = a1.shape[0]
-        # in SparsePair val="something from numpy" causes an exception when saving a model via cplex method. rhs="something from numpy" is ok
+        # in SparsePair val="something from numpy" causes an exception when saving a model via cplex method.
+        # rhs="something from numpy" is ok
         # so, we convert every single value to python float, todo: consider removing this conversion
-        lin_expr = [SparsePair(ind=list(range(continuous_size, continuous_size + binary_size)), val=self._to_list(a1[i, :])) for i in range(constraint_count)]
+        lin_expr = [SparsePair(ind=list(range(continuous_size, continuous_size + binary_size)),
+                               val=self._to_list(a1[i, :])) for i in range(constraint_count)]
         op2.linear_constraints.add(lin_expr=lin_expr, senses=["L"] * constraint_count, rhs=list(b1))
 
         if continuous_size:
             # A2 z + A3 u <= b2
             a2, a3, b2 = self.get_a2_a3_b2()
             constraint_count = a2.shape[0]
-            lin_expr = [SparsePair(ind=list(range(continuous_size + binary_size)), val=self._to_list(a3[i, :]) + self._to_list(a2[i, :])) for i in range(constraint_count)]
+            lin_expr = [SparsePair(ind=list(range(continuous_size + binary_size)),
+                                   val=self._to_list(a3[i, :]) + self._to_list(a2[i, :]))
+                        for i in range(constraint_count)]
             op2.linear_constraints.add(lin_expr=lin_expr, senses=["L"] * constraint_count, rhs=self._to_list(b2))
 
         if continuous_size:
             # A4 u <= b3
             a4, b3 = self.get_a4_b3()
             constraint_count = a4.shape[0]
-            lin_expr = [SparsePair(ind=list(range(continuous_size)), val=self._to_list(a4[i, :])) for i in range(constraint_count)]
+            lin_expr = [SparsePair(ind=list(range(continuous_size)),
+                                   val=self._to_list(a4[i, :])) for i in range(constraint_count)]
             op2.linear_constraints.add(lin_expr=lin_expr, senses=["L"] * constraint_count, rhs=self._to_list(b3))
 
         return op2
@@ -487,7 +495,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
         op3.variables.add(names=["y_" + str(i + 1) for i in range(binary_size)],
                           types=["C"] * binary_size)
 
-        # set quadratic objective. NOTE: The multiplication by 2 is needed for the solvers to parse the quadratic coefficients.
+        # set quadratic objective.
+        # NOTE: The multiplication by 2 is needed for the solvers to parse the quadratic coefficients.
         q_y = 2 * (self._beta / 2 * np.eye(binary_size) + self._state.rho / 2 * np.eye(binary_size))
         for i in range(binary_size):
             for j in range(i, binary_size):
@@ -567,8 +576,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
         """
         Compute violation of the constraints of the original problem, as:
             * norm 1 of the body-rhs of the constraints A0 x0 - b0
-            * -1 * min(body - rhs, 0) for \geq constraints
-            * max(body - rhs, 0) for \leq constraints
+            * -1 * min(body - rhs, 0) for geq constraints
+            * max(body - rhs, 0) for leq constraints
         """
 
         # TODO: think whether a0, b0 should be saved somewhere.. Might move to state?
@@ -595,15 +604,16 @@ class ADMMOptimizer(OptimizationAlgorithm):
         """
         Computes the value of the objective function.
         """
-        quadr_form = lambda A, x, c: np.dot(x.T, np.dot(A, x)) + np.dot(c.T, x)
+        # quadr_form = lambda A, x, c: np.dot(x.T, np.dot(A, x)) + np.dot(c.T, x)
+        def quadratic_form(matrix, x, c): return np.dot(x.T, np.dot(matrix, x)) + np.dot(c.T, x)
 
         q0 = self.get_q0()
         q1 = self.get_q1()
         c0 = self.get_c0()
         c1 = self.get_c1()
 
-        obj_val = quadr_form(q0, self._state.x0, c0)
-        obj_val += quadr_form(q1, self._state.u, c1)
+        obj_val = quadratic_form(q0, self._state.x0, c0)
+        obj_val += quadratic_form(q1, self._state.u, c1)
 
         return obj_val
 
@@ -618,7 +628,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # debug
         # elements = np.asarray([x0[i] - z[i] + y[i] for i in self.range_x0_vars])
         r = pow(sum(e ** 2 for e in elements), 0.5)
-        if it>0:
+        if it > 0:
             elements_dual = self._state.z - self._state.z_saved[it-1]
         else:
             elements_dual = self._state.z - self._state.z_init
@@ -696,4 +706,3 @@ class ADMMOptimizer(OptimizationAlgorithm):
         print(b2)
         print("b2 shape")
         print(b2.shape)
-
