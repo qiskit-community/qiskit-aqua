@@ -141,8 +141,12 @@ class LocalSimulatorSampler(CircuitSampler):
             c_statefns = []
             for j in range(reps):
                 circ_index = (i*reps) + j
-                sqrt_counts = {b: (v * op_c.coeff / self._qi._run_config.shots) ** .5
-                               for (b, v) in results.get_counts(ready_circs[circ_index]).items()}
+                if self._statevector:
+                    sqrt_counts = {b: (v * op_c.coeff / self._qi._run_config.shots) ** .5
+                                   for (b, v) in results.get_statevector(ready_circs[circ_index]).items()}
+                else:
+                    sqrt_counts = {b: (v * op_c.coeff / self._qi._run_config.shots) ** .5
+                                   for (b, v) in results.get_counts(ready_circs[circ_index]).items()}
                 c_statefns.append(StateFn(sqrt_counts))
             sampled_statefn_dicts[id(op_c)] = c_statefns
         return sampled_statefn_dicts
