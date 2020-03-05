@@ -7,7 +7,7 @@ import os
 import sys
 import numpy as np
 
-from qiskit.optimization.algorithms.admm_optimizer import ADMMOptimizer
+from qiskit.optimization.algorithms.admm_optimizer import ADMMOptimizer, ADMMParameters
 from qiskit.optimization.problems import OptimizationProblem
 
 
@@ -342,8 +342,8 @@ class Bpp:
 
         self.op.write(self.lp_folder + "bpp.lp")
 
-
-        solver = ADMMOptimizer()
+        params = ADMMParameters(max_iter=1)
+        solver = ADMMOptimizer(params)
         solution = solver.solve(self.op)
 
         return solution

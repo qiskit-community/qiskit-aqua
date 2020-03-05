@@ -44,31 +44,34 @@ class ADMMParameters:
         self.tol = tol
         self.max_iter = max_iter
         self.factor_c = factor_c
-        # TODO: rho and beta should be moved into the state
-        self.rho = rho
         self.beta = beta
+        # TODO: rho should be moved into the state
+        self.rho = rho
 
 class ADMMState:
     def __init__(self, binary_size: int) -> None:
         """
-        These are the parameters that are updated in the ADMM iterations.
         :param binary_size: Number of binary decision variables of the original problem
         """
         super().__init__()
-        self.x0 = np.zeros(binary_size)
-        self.z = np.zeros(binary_size)
-        self.y = np.zeros(binary_size)
-        self.lambda_mult = np.zeros(binary_size)
+        # These are the parameters that are updated in the ADMM iterations.
+        self.x0: np.ndarray = np.zeros(binary_size)
+        self.z: np.ndarray = np.zeros(binary_size)
+        self.z_init: np.ndarray = self.z
+        self.y: np.ndarray = np.zeros(binary_size)
+        self.lambda_mult: np.ndarray = np.zeros(binary_size)
 
+        # The following structures store quantities obtained in each ADMM iteration.
         self.cost_iterates = []
         self.residuals = []
         self.dual_residuals = []
         self.cons_r = []
         self.merits = []
         self.lambdas = []
-        self.x0_saved = {}
-        self.z_saved = {}
-        self.y_saved = {}
+        self.x0_saved = []
+        self.u_saved = []
+        self.z_saved = []
+        self.y_saved = []
 
 
 class ADMMOptimizer(OptimizationAlgorithm):
@@ -95,7 +98,6 @@ class ADMMOptimizer(OptimizationAlgorithm):
         self._three_block = params.three_block
         self._mu = params.mu
         
-
         # internal state where we'll keep intermediate solution
         self._state = None
 
@@ -128,6 +130,14 @@ class ADMMOptimizer(OptimizationAlgorithm):
         return True
 
     def solve(self, problem: OptimizationProblem):
+        """
+
+        :param problem: The original optimization problem.
+        :return: result: It is an instance of OptimizationResult.
+        Note that result.x it is a list [x0, u], with x0
+        being the value of the binary variables in the ADMM solution,
+        and u is the value of the continuous variables in the ADMM solution.
+        """
         self._op = problem
 
         # parse problem and convert to an ADMM specific representation
@@ -155,7 +165,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
             # debug
             op1.write("op1.lp")
 
-            # TODO: qubo_solver and continuous_solver will be `solve` arguments later
+            # TODO: qubo_solver and continuous_solver will be `solve` arguments later, or what else?
             qubo_solver = CplexOptimizer()
             self._state.x0 = self.update_x0(qubo_solver, op1)
             # debug
@@ -165,8 +175,9 @@ class ADMMOptimizer(OptimizationAlgorithm):
             op2.write("op2.lp")
 
             continuous_solver = CplexOptimizer()
-            self._state.z = self.update_x1(continuous_solver, op2)
+            self._state.u, self._state.z = self.update_x1(continuous_solver, op2)
             # debug
+            print("u={}".format(self._state.u))
             print("z={}".format(self._state.z))
 
             if self._three_block:
@@ -184,20 +195,24 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
             r, s = self.get_sol_res(it)
 
-            merit = self.get_merit()
+            merit = self.get_merit(cost_iterate, cr)
+            # debug
+            print("cost_iterate, cr, merit", cost_iterate, cr, merit)
+
 
             # costs and merits are saved with their original sign
-            # TODO: obtain the sense
-            self._state.cost_iterates.append(sense * cost_iterate)
+            # TODO: obtain the sense, and update cost iterates and merits
+            self._state.cost_iterates.append(cost_iterate)
             self._state.residuals.append(r)
             self._state.dual_residuals.append(s)
             self._state.cons_r.append(cr)
-            self._state.merits.append(sense * merit)
+            self._state.merits.append(merit)
             self._state.lambdas.append(np.linalg.norm(lambda_mult))
 
-            self._state.x0_saved[it] = self._state.x0
-            self._state.z_saved[it] = self._state.z
-            self._state.z_saved[it] = self._state.y
+            self._state.x0_saved.append(self._state.x0)
+            self._state.u_saved.append(self._state.u)
+            self._state.z_saved.append(self._state.z)
+            self._state.z_saved.append(self._state.y)
 
             self.update_rho(r, s)
 
@@ -208,6 +223,9 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         # third parameter is our internal state of computations
         result = OptimizationResult(sol, sol_val, self._state)
+        # debug
+        print("sol={0}, sol_val={1}".format(sol, sol_val))
+        print("it {0}, state {1}".format(it, self._state))
         return result
 
     def _get_variable_indices(self, var_type: str) -> List[int]:
@@ -541,14 +559,18 @@ class ADMMOptimizer(OptimizationAlgorithm):
         print(b2.shape)
 
     def update_x0(self, qubo_solver: OptimizationAlgorithm, op1: OptimizationProblem) -> np.ndarray:
+        # TODO: Check output type of qubo_solver.solve(op1).x
         return np.asarray(qubo_solver.solve(op1).x)
 
-    def update_x1(self, continuous_solver: OptimizationAlgorithm, op2: OptimizationProblem) -> np.ndarray:
+    def update_x1(self, continuous_solver: OptimizationAlgorithm, op2: OptimizationProblem) -> (np.ndarray, np.ndarray):
         vars_op2 = continuous_solver.solve(op2).x
-        # TODO: Is there a more elegant way to access the number of cont vars below?
-        return np.asarray(vars_op2[len(self._continuous_indices):])  # Here, only z variables have to be obtained
+        # TODO: Check output type
+        u = np.asarray(vars_op2[:len(self._continuous_indices)])
+        z = np.asarray(vars_op2[len(self._continuous_indices):])
+        return u, z
 
     def update_y(self, continuous_solver, op3):
+        # TODO: Check output type
         return np.asarray(continuous_solver.solve(op3).x)
 
     def get_min_mer_sol(self):
@@ -558,7 +580,9 @@ class ADMMOptimizer(OptimizationAlgorithm):
         :return sol_val: Value of sol, according to the original objective
         """
         it_min_merits = self._state.merits.index(min(self._state.merits))
-        sol = self._state.x0_saved[it_min_merits]
+        x0 = self._state.x0_saved[it_min_merits]
+        u = self._state.u_saved[it_min_merits]
+        sol = [x0, u]
         sol_val = self._state.cost_iterates[it_min_merits]
         return sol, sol_val
     
@@ -590,7 +614,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
             - max(body - rhs, 0) for \leq constraints
         """
 
-        # TODO: think whether a0, b0 should be saved somewhere..
+        # TODO: think whether a0, b0 should be saved somewhere.. Might move to state?
         a0, b0 = self.get_a0_b0()
         cr0 = sum(np.abs(np.dot(a0, self._state.x0) - b0))
 
@@ -604,11 +628,11 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         return cr0+cr1+cr2
 
-    def get_merit(self):
+    def get_merit(self, cost_iterate, cr):
         """
         Compute merit value associated with the current iterate
         """
-        return self._state.cost_iterate + self._mu * self._state.cr
+        return cost_iterate + self._mu * cr
 
     def get_cost_val(self):
         """
@@ -643,7 +667,10 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # debug
         # elements = np.asarray([x0[i] - z[i] + y[i] for i in self.range_x0_vars])
         r = pow(sum(e ** 2 for e in elements), 0.5)
-        elements_dual = self._state.z - self._state.z_saved[it-1]
+        if it>0:
+            elements_dual = self._state.z - self._state.z_saved[it-1]
+        else:
+            elements_dual = self._state.z - self._state.z_init
         # debug
         # elements_dual = np.asarray([z[i] - z_old[i] for i in self.range_x0_vars])
         s = self._rho * pow(sum(e ** 2 for e in elements_dual), 0.5)
