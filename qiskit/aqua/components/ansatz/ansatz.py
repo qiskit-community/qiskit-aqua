@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2017, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -19,7 +19,6 @@ TODO
         - Reverting to ccts in future anyways
         - Performance difference?
     * add transpile feature
-    * add params argument to to_circuit?
     * rename append to combine(after=True) with to support after/before
 """
 
@@ -39,7 +38,10 @@ logger = logging.getLogger(__name__)
 
 
 def get_parameters(block: Union[QuantumCircuit, Instruction]) -> List[Parameter]:
-    """Return the list of Parameters inside block."""
+    """Return the list of Parameters inside block.
+
+    TODO This functionality will be moved to another location, this is just a helper.
+    """
     if isinstance(block, QuantumCircuit):
         return list(block.parameters)
     else:
@@ -49,6 +51,8 @@ def get_parameters(block: Union[QuantumCircuit, Instruction]) -> List[Parameter]
 def combine_parameterlists(first: List[Parameter], other: List[Parameter],
                            duplicate_existing: bool = True) -> List[Parameter]:
     """Add ``other`` to the ``first`` via name, not instance.
+
+    TODO This functionality will be moved to another location, this is just a helper.
 
     If the parameters in ``other`` already exists in the list, add the instance with the same
     name at the end of the list. If the name does not exist in the list, add the parameter
@@ -109,7 +113,7 @@ class Ansatz:
                  parameter_prefix: str = 'θ',
                  overwrite_block_parameters: Union[bool, List[List[Parameter]]] = True,
                  initial_state: Optional[InitialState] = None) -> None:
-        """Initializer. Constructs the blocks of the Ansatz from the input.
+        """Initializer.
 
         The structure of the Ansatz are repeated parameterized circuit-blocks (referred to as blocks
         in the code). For every block, qubit indices indicate on which qubits the block acts on.
@@ -305,7 +309,13 @@ class Ansatz:
 
         return True
 
-    def _reps_as_list(self):
+    def _reps_as_list(self) -> List[int]:
+        """Return the indicies of the blocks that go in the circuit.
+
+        Returns:
+            If ``reps`` has been set to a list, return that list. Otherwise, i.e. if ``reps`` is an
+            integer, return ``reps * list(range(num. of blocks))``.
+        """
         if isinstance(self._reps, int):
             if self.blocks is None:
                 return []
@@ -669,7 +679,7 @@ class Ansatz:
         """Append another layer to the Ansatz.
 
         Args:
-            other: The layer to append, can be another Ansatz, an Instruction(hence also a Gate),
+            other: The layer to append, can be another Ansatz, an Instruction or Gate,
                 or a QuantumCircuit.
             qubit_indices: The qubit indices where to append the layer to.
                 Defaults to the first `n` qubits, where `n` is the number of qubits the layer acts
@@ -695,14 +705,13 @@ class Ansatz:
         self._blocks += [block]
 
         # keep track of which blocks to add to the Ansatz
-        # self._replist += [len(self._blocks) - 1]
+        self._reps = self._reps_as_list() + [len(self._blocks) - 1]
 
         # We can have two cases: the appended block fits onto the current Ansatz (i.e. has
         # less of equal number of qubits), or exceeds the number of qubits.
         # In the latter case we have to add an according offset to the qubit indices.
         # Since we cannot append a circuit of larger size to an existing circuit we have to rebuild
         if num_qubits > self.num_qubits:
-            # self._num_qubits = num_qubits
             self._circuit = None  # rebuild circuit
 
         # modify the circuit accordingly

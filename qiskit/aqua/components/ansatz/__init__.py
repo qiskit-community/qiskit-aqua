@@ -14,7 +14,7 @@
 
 """Aqua's Ansatz classes."""
 
-from .ansatz_factory import Ansatz
+from .ansatz import Ansatz
 from .feature_maps import PauliExpansion
 from .operator_ansatz import OperatorAnsatz
 from .variational_forms import TwoLocalAnsatz, RY, RYRZ, SwapRZ

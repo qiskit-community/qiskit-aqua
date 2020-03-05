@@ -51,11 +51,6 @@ class TestVQE(QiskitAquaTestCase):
 
     def test_vqe(self):
         """ VQE test """
-        vf = RYRZ(self.qubit_op.num_qubits, insert_barriers=True)
-        print(vf)
-        print(vf.construct_circuit(list(range(vf.num_parameters))).decompose().decompose().decompose())
-        # vf = RYRZ(self.qubit_op.num_qubits)
-        # print(vf.construct_circuit(list(range(vf.num_parameters))))
         result = VQE(self.qubit_op,
                      RYRZ(self.qubit_op.num_qubits),
                      L_BFGS_B()).run(
@@ -110,7 +105,7 @@ class TestVQE(QiskitAquaTestCase):
         """ VQE QASM test """
         backend = BasicAer.get_backend('qasm_simulator')
         num_qubits = self.qubit_op.num_qubits
-        var_form = RY(num_qubits, reps=3)
+        var_form = RY(num_qubits, depth=3)
         optimizer = SPSA(max_trials=300, last_avg=5)
         algo = VQE(self.qubit_op, var_form, optimizer, max_evals_grouped=1)
         quantum_instance = QuantumInstance(backend, shots=10000,

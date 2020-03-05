@@ -311,7 +311,7 @@ class TestRY(QiskitAquaTestCase):
                                   'q_2: |0>┤ Ry(θ2) ├───────■─────┤ Ry(θ5) ├',
                                   '        └────────┘             └────────┘'])
 
-            ansatz = RY(3, entanglement='linear', reps=1)
+            ansatz = RY(3, entanglement='linear', depth=1)
             self.assertEqual(ansatz.__repr__(), expected)
 
         with self.subTest(msg='Test barriers'):
@@ -320,10 +320,11 @@ class TestRY(QiskitAquaTestCase):
                                   '        ├────────┤ ░  │  ░ ├────────┤',
                                   'q_1: |0>┤ Ry(θ1) ├─░──■──░─┤ Ry(θ3) ├',
                                   '        └────────┘ ░     ░ └────────┘'])
-            ansatz = RY(2, reps=1, insert_barriers=True)
+            ansatz = RY(2, depth=1, insert_barriers=True)
             self.assertEqual(ansatz.__repr__(), expected)
 
     def test_late_initialization(self):
+        """Test setting the attributes after the initialization."""
         ansatz = RY()
         with self.subTest(msg='missing num qubits'):
             self.assertRaises(ValueError, ansatz.to_circuit)  # missing num qubits
@@ -339,7 +340,7 @@ class TestRY(QiskitAquaTestCase):
             )
             self.assertEqual(ansatz.__repr__(), expected)
 
-        ansatz.reps = 1
+        ansatz.depth = 1
         with self.subTest(msg='change reps to 1'):
             expected = '\n'.join(
                 ['        ┌────────┐   ┌────────┐',
@@ -363,7 +364,14 @@ class TestRY(QiskitAquaTestCase):
 
         ansatz.rotation_gates = 'rx'
         with self.subTest(msg='interchange for rx gate'):
-            pass
+            expected = '\n'.join(
+                ['        ┌────────┐          ┌────────┐',
+                 'q_0: |0>┤ Rx(θ0) ├────■─────┤ Rx(θ3) ├',
+                 '        ├────────┤┌───┴────┐├────────┤',
+                 'q_1: |0>┤ Rx(θ1) ├┤ Rx(θ2) ├┤ Rx(θ4) ├',
+                 '        └────────┘└────────┘└────────┘']
+            )
+            self.assertEqual(ansatz.__repr__(), expected)
 
 
 class TestSwapRZ(QiskitAquaTestCase):

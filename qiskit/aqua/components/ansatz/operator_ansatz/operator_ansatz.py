@@ -16,7 +16,10 @@
 
 from typing import Union, List, Optional
 
-from qiskit.circuit import Instruction, Parameter, ParameterVector
+from qiskit.circuit import Instruction, Parameter
+from qiskit.tools import parallel_map
+
+from qiskit.aqua import aqua_globals
 from qiskit.aqua.operators import BaseOperator
 from qiskit.aqua.components.ansatz import Ansatz
 from qiskit.aqua.operators.op_converter import to_weighted_pauli_operator
@@ -25,7 +28,7 @@ from qiskit.aqua.operators.op_converter import to_weighted_pauli_operator
 class OperatorAnsatz(Ansatz):
     """The operator ansatz.
 
-    TODO Dedicated to QAOA etc.
+    TODO Dedicated to UCCSD, QAOA etc.
     """
 
     def __init__(self,
@@ -60,26 +63,39 @@ class OperatorAnsatz(Ansatz):
             operators = [operators]
 
         self._use_basis_gates = use_basis_gates
+        self._parameter_prefix = parameter_prefix
 
-        params = ParameterVector(parameter_prefix, length=len(operators))
-        evolution_layers = []
-        for param, operator in zip(params, operators):
-            evolution_layers += [self._get_evolution_layer(operator, param)]
+        params = [Parameter('{}{}'.format(self._parameter_prefix, i))
+                  for i in range(len(operators))]
+        evolution_layers = self._get_evolution_layers(operators, params)
 
         super().__init__(blocks=evolution_layers,
                          qubit_indices=qubit_indices,
                          insert_barriers=insert_barriers)
 
-    def _get_evolution_layer(self, operator: BaseOperator,
-                             param: Union[float, Parameter]) -> Instruction:
-        """Construct an evolution layer given an operator and parameter.
+    def _get_single_evolution_layer(self, operator_param_pair):
+        operator, param = operator_param_pair
+        pauli_op = to_weighted_pauli_operator(operator)
+        return pauli_op.evolve_instruction(evo_time=param,
+                                           use_basis_gates=self._use_basis_gates)
+
+    def _get_evolution_layers(self, operators: List[BaseOperator],
+                              params: Union[List[float], List[Parameter]]) -> List[Instruction]:
+        """Get the evolution layers given the list of operators and parameters.
+
+        Since computing the evolution layers can be parallelized, this calls a parallel map
+        with the function ``_get_single_evolution_layer``.
 
         Args:
-            operator: The operator for the evolution instruction.
-            param: The evolution time.
+            operators: The list of operators for the evolution instructions.
+            params: The evolution times.
 
         Returns:
-            The evolution instruction.
+            A list containing all evolution instructions.
         """
-        pauli_op = to_weighted_pauli_operator(operator)
-        return pauli_op.evolve_instruction(evo_time=param, use_basis_gates=self._use_basis_gates)
+
+        operator_param_pairs = list(zip(operators, params))
+        all_evolution_instructions = parallel_map(task=self._get_single_evolution_layer,
+                                                  values=operator_param_pairs,
+                                                  num_processes=aqua_globals.num_processes)
+        return all_evolution_instructions
