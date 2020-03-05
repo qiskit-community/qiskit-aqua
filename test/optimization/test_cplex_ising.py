@@ -20,7 +20,7 @@ import numpy as np
 from qiskit.aqua import aqua_globals
 from qiskit.optimization.ising import max_cut
 from qiskit.optimization.ising.common import random_graph
-from qiskit.aqua.algorithms.classical.cplex.cplex_ising import CPLEX_Ising
+from qiskit.aqua.algorithms import CPLEX_Ising
 
 
 class TestCplexIsing(QiskitOptimizationTestCase):

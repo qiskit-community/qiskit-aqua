@@ -18,7 +18,7 @@ from test.chemistry import QiskitChemistryTestCase
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import Z2Symmetries
-from qiskit.aqua.algorithms.adaptive import VQE
+from qiskit.aqua.algorithms import VQE
 from qiskit.aqua.components.optimizers import SLSQP
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType

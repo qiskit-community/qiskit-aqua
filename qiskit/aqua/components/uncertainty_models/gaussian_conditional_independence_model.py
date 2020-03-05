@@ -30,8 +30,10 @@ from .normal_distribution import NormalDistribution
 
 class GaussianConditionalIndependenceModel(MultivariateDistribution):
     """
-    The Gaussian Conditional Independence Model for Credit Risk
+    The Gaussian Conditional Independence Model for Credit Risk.
+
     Reference: https://arxiv.org/abs/1412.1183
+
     Dependency between individual risk variables and latent variable is approximated linearly.
     """
 
@@ -43,19 +45,13 @@ class GaussianConditionalIndependenceModel(MultivariateDistribution):
                  i_normal: Optional[Union[List[float], np.ndarray]] = None,
                  i_ps: Optional[Union[List[float], np.ndarray]] = None) -> None:
         """
-        Constructor.
-
-        The Gaussian Conditional Independence Model for Credit Risk
-        Reference: https://arxiv.org/abs/1412.1183
-
         Args:
-            n_normal: number of qubits to represent the latent normal random variable Z
-            normal_max_value: min/max value to truncate the latent normal random variable Z
-            p_zeros: standard default probabilities for each asset
-            rhos: sensitivities of default probability of assets
-                                    with respect to latent variable Z
-            i_normal: indices of qubits to represent normal variable
-            i_ps: indices of qubits to represent asset defaults
+            n_normal: Number of qubits to represent the latent normal random variable Z
+            normal_max_value: Min/max value to truncate the latent normal random variable Z
+            p_zeros: Standard default probabilities for each asset
+            rhos: Sensitivities of default probability of assets with respect to latent variable Z
+            i_normal: Indices of qubits to represent normal variable
+            i_ps: Indices of qubits to represent asset defaults
         """
         self.n_normal = n_normal
         self.normal_max_value = normal_max_value
