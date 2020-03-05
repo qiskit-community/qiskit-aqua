@@ -39,8 +39,6 @@ class MatrixExpectation(ExpectationBase):
         self._state = state
         if backend is not None:
             self.set_backend(backend)
-        else:
-            self.set_backend(BasicAer.get_backend('statevector_simulator'))
         self._matrix_op = None
 
     @property
@@ -62,7 +60,7 @@ class MatrixExpectation(ExpectationBase):
 
     def compute_expectation(self, state=None, params=None):
         # Making the matrix into a measurement allows us to handle OpVec states, dicts, etc.
-        if state or not self._matrix_op:
+        if not self._matrix_op:
             mat_conversion = self._operator.to_matrix()
             if isinstance(mat_conversion, list):
                 def recursive_opvec(t):
@@ -77,4 +75,11 @@ class MatrixExpectation(ExpectationBase):
             # TODO: switch to this
             # self._matrix_op = ToMatrixOp().convert(self._operator)
 
-        return self._matrix_op.eval(state)
+        if state is None:
+            state = self.state
+
+        if self._circuit_sampler:
+            state_mat = self._circuit_sampler.convert(state, params=params)
+            return self._matrix_op.eval(state_mat)
+        else:
+            return self._matrix_op.eval(state)

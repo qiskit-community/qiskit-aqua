@@ -22,7 +22,8 @@ from ..converters import ConverterBase
 
 from qiskit.aqua.utils.backend_utils import (is_ibmq_provider,
                                              is_local_backend,
-                                             has_aer)
+                                             has_aer,
+                                             is_statevector_backend)
 from qiskit.aqua import QuantumInstance
 
 logger = logging.getLogger(__name__)
@@ -43,7 +44,7 @@ class CircuitSampler(ConverterBase):
 
         if is_local_backend(backend_to_check):
             from . import LocalSimulatorSampler
-            return LocalSimulatorSampler(backend=backend)
+            return LocalSimulatorSampler(backend=backend, statevector=is_statevector_backend(backend_to_check))
 
         if is_ibmq_provider(backend_to_check):
             from . import IBMQSampler

@@ -119,7 +119,10 @@ class LocalSimulatorSampler(CircuitSampler):
         """
         if op_circuits or not self._transpiled_circ_cache:
             if all([isinstance(circ, StateFnCircuit) for circ in op_circuits]):
-                circuits = [op_c.to_circuit(meas=True) for op_c in op_circuits]
+                if self._statevector:
+                    circuits = [op_c.to_circuit(meas=False) for op_c in op_circuits]
+                else:
+                    circuits = [op_c.to_circuit(meas=True) for op_c in op_circuits]
             else:
                 circuits = op_circuits
             self._transpiled_circ_cache = self._qi.transpile(circuits)
@@ -142,11 +145,10 @@ class LocalSimulatorSampler(CircuitSampler):
             for j in range(reps):
                 circ_index = (i*reps) + j
                 if self._statevector:
-                    sqrt_counts = {b: (v * op_c.coeff / self._qi._run_config.shots) ** .5
-                                   for (b, v) in results.get_statevector(ready_circs[circ_index]).items()}
+                    result_sfn = op_c.coeff * results.get_statevector(ready_circs[circ_index])
                 else:
-                    sqrt_counts = {b: (v * op_c.coeff / self._qi._run_config.shots) ** .5
-                                   for (b, v) in results.get_counts(ready_circs[circ_index]).items()}
-                c_statefns.append(StateFn(sqrt_counts))
+                    result_sfn = {b: (v * op_c.coeff / self._qi._run_config.shots) ** .5
+                                  for (b, v) in results.get_counts(ready_circs[circ_index]).items()}
+                c_statefns.append(StateFn(result_sfn))
             sampled_statefn_dicts[id(op_c)] = c_statefns
         return sampled_statefn_dicts
