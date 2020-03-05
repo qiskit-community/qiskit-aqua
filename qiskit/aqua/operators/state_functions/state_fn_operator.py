@@ -168,7 +168,7 @@ class StateFnOperator(StateFn):
             raise ValueError('Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '
                              'sf.adjoint() first to convert to measurement.')
         if isinstance(other, list):
-            return [self.eval(front_elem) for front_elem in front]
+            return [self.eval(front_elem) for front_elem in other]
 
         if not isinstance(other, OperatorBase):
             other = StateFn(other)
