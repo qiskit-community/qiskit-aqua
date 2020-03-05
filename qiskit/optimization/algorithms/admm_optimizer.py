@@ -15,22 +15,27 @@ from qiskit.optimization.results.optimization_result import OptimizationResult
 class ADMMParameters:
     def __init__(self, rho_initial=10000, factor_c=100000, beta=1000, max_iter=10, tol=1.e-4, max_time=1800,
                  three_block=True, vary_rho=0, tau_incr=2, tau_decr=2, mu_res=10,
-                 mu=1000) -> None:
+                 mu=1000, qubo_solver_class: OptimizationAlgorithm = CplexOptimizer,
+                 continuous_solver_class: OptimizationAlgorithm = CplexOptimizer) -> None:
         """Defines parameters for ADMM optimizer and their default values.
-        :param rho_initial: Initial value of rho parameter of ADMM.
-        :param factor_c: Penalizing factor for equality constraints, when mapping to QUBO.
-        :param beta: Penalization for y decision variables.
-        :param max_iter: Maximum number of iterations for ADMM.
-        :param tol: Tolerance for the residual convergence.
-        :param max_time: Maximum running time (in seconds) for ADMM.
-        :param three_block: Boolean flag to select the 3-block ADMM implementation.
-        :param vary_rho: Flag to select the rule to update rho. 
-        If set to 0, then rho increases by 10% at each iteartion. 
-        If set to 1, then rho is modified according to primal and dual residuals.
-        :param tau_incr: Parameter used in the rho update.
-        :param tau_decr: Parameter used in the rho update.
-        :param mu_res: Parameter used in the rho update.
-        :param mu: Penalization for constraint residual. Used to compute the merit values.
+
+        Args:
+            rho_initial: Initial value of rho parameter of ADMM.
+            factor_c: Penalizing factor for equality constraints, when mapping to QUBO.
+            beta: Penalization for y decision variables.
+            max_iter: Maximum number of iterations for ADMM.
+            tol: Tolerance for the residual convergence.
+            max_time: Maximum running time (in seconds) for ADMM.
+            three_block: Boolean flag to select the 3-block ADMM implementation.
+            vary_rho: Flag to select the rule to update rho.
+            If set to 0, then rho increases by 10% at each iteartion.
+            If set to 1, then rho is modified according to primal and dual residuals.
+            tau_incr: Parameter used in the rho update.
+            tau_decr: Parameter used in the rho update.
+            mu_res: Parameter used in the rho update.
+            mu: Penalization for constraint residual. Used to compute the merit values.
+            qubo_solver_class: A subclass of OptimizationAlgorithm that can effectively solve QUBO problems
+            continuous_solver_class: A subclass of OptimizationAlgorithm that can solve continuous problems
         """
         super().__init__()
         self.mu = mu
@@ -45,15 +50,20 @@ class ADMMParameters:
         self.factor_c = factor_c
         self.beta = beta
         self.rho_initial = rho_initial
+        self.qubo_solver_class = qubo_solver_class
+        self.continuous_solver_class = continuous_solver_class
 
 
 class ADMMState:
     def __init__(self, binary_size: int, rho_initial: float) -> None:
-        """Internal computation state of the ADMM implementation. Here, various variables are stored that are
+        """
+        Internal computation state of the ADMM implementation. Here, various variables are stored that are
         being updated during problem solving. The values are relevant to the problem being solved.
         The state is recreated for each optimization problem.
-        :param binary_size: Number of binary decision variables of the original problem
-        :param rho_initial: Initial value of the rho parameter.
+
+        Args:
+            binary_size: Number of binary decision variables of the original problem
+            rho_initial: Initial value of the rho parameter.
         """
         super().__init__()
         # These are the parameters that are updated in the ADMM iterations.
@@ -86,6 +96,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         if params is None:
             # create default params
             params = ADMMParameters()
+        # todo: consider keeping params as an object instead of copying
         self._three_block = params.three_block
         self._max_time = params.max_time
         self._tol = params.tol
@@ -99,6 +110,10 @@ class ADMMOptimizer(OptimizationAlgorithm):
         self._three_block = params.three_block
         self._mu = params.mu
         self._rho_initial = params.rho_initial
+
+        # note, we create instances of the solvers here instead of keeping classes
+        self._qubo_solver = params.qubo_solver_class()
+        self._continuous_solver = params.continuous_solver_class()
 
         # internal state where we'll keep intermediate solution
         # here, we just declare the class variable
@@ -133,12 +148,18 @@ class ADMMOptimizer(OptimizationAlgorithm):
         return True
 
     def solve(self, problem: OptimizationProblem):
-        """
-        :param problem: The original optimization problem.
-        :return: result: It is an instance of OptimizationResult.
-        Note that result.x it is a list [x0, u], with x0
-        being the value of the binary variables in the ADMM solution,
-        and u is the value of the continuous variables in the ADMM solution.
+        """Tries to solves the given problem using ADMM algorithm.
+
+        Args:
+            problem: The problem to be solved.
+
+        Returns:
+            The result of the optimizer applied to the problem. Note that result.x it is a list [x0, u], with x0
+            being the value of the binary variables in the ADMM solution, and u is the value of the continuous
+            variables in the ADMM solution.
+
+        Raises:
+            QiskitOptimizationError: If the problem is incompatible with the optimizer.
         """
         self._op = problem
 
@@ -167,17 +188,14 @@ class ADMMOptimizer(OptimizationAlgorithm):
             # debug
             op1.write("op1.lp")
 
-            # TODO: qubo_solver and continuous_solver will be `solve` arguments later, or what else?
-            qubo_solver = CplexOptimizer()
-            self._state.x0 = self.update_x0(qubo_solver, op1)
+            self._state.x0 = self.update_x0(op1)
             # debug
             print("x0={}".format(self._state.x0))
 
             op2 = self._create_step2_problem()
             op2.write("op2.lp")
 
-            continuous_solver = CplexOptimizer()
-            self._state.u, self._state.z = self.update_x1(continuous_solver, op2)
+            self._state.u, self._state.z = self.update_x1(op2)
             # debug
             print("u={}".format(self._state.u))
             print("z={}".format(self._state.z))
@@ -185,7 +203,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
             if self._three_block:
                 op3 = self._create_step3_problem()
                 op3.write("op3.lp")
-                self._state.y = self.update_y(continuous_solver, op3)
+                self._state.y = self.update_y(op3)
                 # debug
                 print("y={}".format(self._state.y))
 
@@ -490,26 +508,31 @@ class ADMMOptimizer(OptimizationAlgorithm):
             out_list.append(float(el))
         return out_list
 
-    def update_x0(self, qubo_solver: OptimizationAlgorithm, op1: OptimizationProblem) -> np.ndarray:
+    def update_x0(self, op1: OptimizationProblem) -> np.ndarray:
         # TODO: Check output type of qubo_solver.solve(op1).x
-        return np.asarray(qubo_solver.solve(op1).x)
+        return np.asarray(self._qubo_solver.solve(op1).x)
 
-    def update_x1(self, continuous_solver: OptimizationAlgorithm, op2: OptimizationProblem) -> (np.ndarray, np.ndarray):
-        vars_op2 = continuous_solver.solve(op2).x
+    def update_x1(self, op2: OptimizationProblem) -> (np.ndarray, np.ndarray):
+        vars_op2 = self._continuous_solver.solve(op2).x
         # TODO: Check output type
         u = np.asarray(vars_op2[:len(self._continuous_indices)])
         z = np.asarray(vars_op2[len(self._continuous_indices):])
         return u, z
 
-    def update_y(self, continuous_solver, op3):
+    def update_y(self, op3):
         # TODO: Check output type
-        return np.asarray(continuous_solver.solve(op3).x)
+        return np.asarray(self._continuous_solver.solve(op3).x)
 
     def get_min_mer_sol(self):
         """
         The ADMM solution is that for which the merit value is the least
-        :return sol: Iterate with the least merit value
-        :return sol_val: Value of sol, according to the original objective
+            * sol: Iterate with the least merit value
+            * sol_val: Value of sol, according to the original objective
+
+        Returns:
+            A tuple of (sol, sol_val), where
+                * sol: Iterate with the least merit value
+                * sol_val: Value of sol, according to the original objective
         """
         it_min_merits = self._state.merits.index(min(self._state.merits))
         x0 = self._state.x0_saved[it_min_merits]
@@ -524,9 +547,10 @@ class ADMMOptimizer(OptimizationAlgorithm):
     def update_rho(self, r, s):
         """
         Updating the rho parameter in ADMM
-        :param r: primal residual
-        :param s: dual residual
-        :return: None
+
+        Args:
+            r: primal residual
+            s: dual residual
         """
 
         if self._vary_rho == 0:
@@ -540,10 +564,11 @@ class ADMMOptimizer(OptimizationAlgorithm):
                 self._state.rho = self._tau_decr * self._state.rho
 
     def get_cons_res(self):
-        """Compute violation of the constraints of the original problem, as:
-            - norm 1 of the body-rhs of the constraints A0 x0 - b0
-            - -1 * min(body - rhs, 0) for \geq constraints
-            - max(body - rhs, 0) for \leq constraints
+        """
+        Compute violation of the constraints of the original problem, as:
+            * norm 1 of the body-rhs of the constraints A0 x0 - b0
+            * -1 * min(body - rhs, 0) for \geq constraints
+            * max(body - rhs, 0) for \leq constraints
         """
 
         # TODO: think whether a0, b0 should be saved somewhere.. Might move to state?
@@ -569,9 +594,6 @@ class ADMMOptimizer(OptimizationAlgorithm):
     def get_cost_val(self):
         """
         Computes the value of the objective function.
-        :param x0:
-        :param u:
-        :return:
         """
         quadr_form = lambda A, x, c: np.dot(x.T, np.dot(A, x)) + np.dot(c.T, x)
 
@@ -589,11 +611,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
         """
         Compute primal and dual residual.
 
-        :param x0:
-        :param z:
-        :param y:
-        :param z_old:
-        :return:
+        Args:
+            it:
         """
         elements = self._state.x0 - self._state.z - self._state.y
         # debug
