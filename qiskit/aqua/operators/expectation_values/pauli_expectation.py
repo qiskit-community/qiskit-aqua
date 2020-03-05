@@ -86,7 +86,7 @@ class PauliExpectation(ExpectationBase):
 
     def compute_expectation(self, state=None, params=None):
         # Wipes caches in setter
-        if not state == self.state:
+        if state and not state == self.state:
             self.state = state
 
         if not self._reduced_meas_op:
