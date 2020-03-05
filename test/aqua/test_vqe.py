@@ -107,11 +107,12 @@ class TestVQE(QiskitAquaTestCase):
         var_form = RY(num_qubits, 3)
         optimizer = SPSA(max_trials=300, last_avg=5)
         algo = VQE(self.qubit_op, var_form, optimizer)
-        quantum_instance = QuantumInstance(backend, shots=10000,
+        # TODO benchmark this later.
+        quantum_instance = QuantumInstance(backend, shots=1000,
                                            seed_simulator=self.seed,
                                            seed_transpiler=self.seed)
         result = algo.run(quantum_instance)
-        self.assertAlmostEqual(result['energy'], -1.85727503, places=2)
+        self.assertAlmostEqual(result['energy'], -1.85727503, places=1)
 
     def test_vqe_statevector_snapshot_mode(self):
         """ VQE Aer statevector_simulator snapshot mode test """
