@@ -305,11 +305,7 @@ class Miskp:
         self.create_params()
         self.create_vars()
         self.create_obj()
-        start_time = time.time()
         self.create_cons()
-        constraints_time = time.time() - start_time
-        if self.verbose:
-            print ("Time to populate constraints:", constraints_time)
 
         # Save the model
         create_folder(self.lp_folder)

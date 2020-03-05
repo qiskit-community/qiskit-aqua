@@ -1,7 +1,10 @@
+import time
 from typing import List
 
 import numpy as np
 from cplex import SparsePair
+
+from qiskit.optimization.algorithms import CplexOptimizer
 from qiskit.optimization.algorithms.optimization_algorithm import OptimizationAlgorithm
 from qiskit.optimization.problems.optimization_problem import OptimizationProblem
 from qiskit.optimization.problems.variables import CPX_BINARY, CPX_CONTINUOUS
@@ -10,26 +13,62 @@ from qiskit.optimization.results.optimization_result import OptimizationResult
 
 
 class ADMMParameters:
-    def __init__(self, rho=10000, factor_c=100000, beta=1000) -> None:
+    def __init__(self, rho=10000, factor_c=100000, beta=1000, max_iter=10, tol=1.e-4, max_time=1800,
+                 three_block=True, vary_rho=0, tau_incr=2, tau_decr=2, mu_res=10,
+                 mu=1000) -> None:
         """
-        Defines parameter for ADMM.
+        Defines parameters for ADMM.
         :param rho: Rho parameter of ADMM.
         :param factor_c: Penalizing factor for equality constraints, when mapping to QUBO.
         :param beta: Penalization for y decision variables.
+        :param max_iter: Maximum number of iterations for ADMM.
+        :param tol: Tolerance for the residual convergence.
+        :param max_time: Maximum running time (in seconds) for ADMM.
+        :param three_block: Boolean flag to select the 3-block ADMM implementation.
+        :param vary_rho: Flag to select the rule to update rho. 
+        If set to 0, then rho increases by 10% at each iteartion. 
+        If set to 1, then rho is modified according to primal and dual residuals.
+        :param tau_incr: Parameter used in the rho update.
+        :param tau_decr: Parameter used in the rho update.
+        :param mu_res: Parameter used in the rho update.
+        :param mu: Penalization for constraint residual. Used to compute the merit values.
         """
         super().__init__()
+        self.mu = mu
+        self.mu_res = mu_res
+        self.tau_decr = tau_decr
+        self.tau_incr = tau_incr
+        self.vary_rho = vary_rho
+        self.three_block = three_block
+        self.max_time = max_time
+        self.tol = tol
+        self.max_iter = max_iter
         self.factor_c = factor_c
+        # TODO: rho and beta should be moved into the state
         self.rho = rho
         self.beta = beta
 
-
 class ADMMState:
     def __init__(self, binary_size: int) -> None:
+        """
+        These are the parameters that are updated in the ADMM iterations.
+        :param binary_size: Number of binary decision variables of the original problem
+        """
         super().__init__()
-        self.y = np.zeros(binary_size)
-        self.z = np.zeros(binary_size)
-        self.lambda_mult = np.zeros(binary_size)
         self.x0 = np.zeros(binary_size)
+        self.z = np.zeros(binary_size)
+        self.y = np.zeros(binary_size)
+        self.lambda_mult = np.zeros(binary_size)
+
+        self.cost_iterates = []
+        self.residuals = []
+        self.dual_residuals = []
+        self.cons_r = []
+        self.merits = []
+        self.lambdas = []
+        self.x0_saved = {}
+        self.z_saved = {}
+        self.y_saved = {}
 
 
 class ADMMOptimizer(OptimizationAlgorithm):
@@ -42,9 +81,20 @@ class ADMMOptimizer(OptimizationAlgorithm):
             # create default params
             params = ADMMParameters()
         # todo: keep parameters as ADMMParameters or copy to the class level?
+        self._three_block = params.three_block
+        self._max_time = params.max_time
+        self._tol = params.tol
+        self._max_iter = params.max_iter
         self._factor_c = params.factor_c
         self._rho = params.rho
         self._beta = params.beta
+        self._mu_res = params.mu_res
+        self._tau_decr = params.tau_decr
+        self._tau_incr = params.tau_incr
+        self._vary_rho = params.vary_rho
+        self._three_block = params.three_block
+        self._mu = params.mu
+        
 
         # internal state where we'll keep intermediate solution
         self._state = None
@@ -90,26 +140,74 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # debug
         # self.__dump_matrices_and_vectors()
 
-        op1 = self._create_step1_problem()
-        # debug
-        op1.write("op1.lp")
+        start_time = time.time()
 
-        op2 = self._create_step2_problem()
-        op2.write("op2.lp")
+        it = 0
+        r = 1.e+2
 
-        op3 = self._create_step3_problem()
-        op3.write("op3.lp")
+        # TODO: Handle objective sense. This has to be feed to the solvers of the subproblems.
 
-        # solve the problem
-        # ...
-        # prepare the solution
+        end_time = time.time() - start_time
 
-        # actual results
-        x = 0
-        # function value
-        fval = 0
+        while (it < self._max_iter and r > self._tol) and (end_time < self._max_time):
+
+            op1 = self._create_step1_problem()
+            # debug
+            op1.write("op1.lp")
+
+            # TODO: qubo_solver and continuous_solver will be `solve` arguments later
+            qubo_solver = CplexOptimizer()
+            self._state.x0 = self.update_x0(qubo_solver, op1)
+            # debug
+            print("x0={}".format(self._state.x0))
+
+            op2 = self._create_step2_problem()
+            op2.write("op2.lp")
+
+            continuous_solver = CplexOptimizer()
+            self._state.z = self.update_x1(continuous_solver, op2)
+            # debug
+            print("z={}".format(self._state.z))
+
+            if self._three_block:
+                op3 = self._create_step3_problem()
+                op3.write("op3.lp")
+                self._state.y = self.update_y(continuous_solver, op3)
+                # debug
+                print("y={}".format(self._state.y))
+
+            lambda_mult = self.update_lambda_mult()
+
+            cost_iterate = self.get_cost_val()
+
+            cr = self.get_cons_res()
+
+            r, s = self.get_sol_res(it)
+
+            merit = self.get_merit()
+
+            # costs and merits are saved with their original sign
+            # TODO: obtain the sense
+            self._state.cost_iterates.append(sense * cost_iterate)
+            self._state.residuals.append(r)
+            self._state.dual_residuals.append(s)
+            self._state.cons_r.append(cr)
+            self._state.merits.append(sense * merit)
+            self._state.lambdas.append(np.linalg.norm(lambda_mult))
+
+            self._state.x0_saved[it] = self._state.x0
+            self._state.z_saved[it] = self._state.z
+            self._state.z_saved[it] = self._state.y
+
+            self.update_rho(r, s)
+
+            it += 1
+            end_time = time.time() - start_time
+
+        sol, sol_val = self.get_min_mer_sol()
+
         # third parameter is our internal state of computations
-        result = OptimizationResult(x, fval, self._state)
+        result = OptimizationResult(sol, sol_val, self._state)
         return result
 
     def _get_variable_indices(self, var_type: str) -> List[int]:
@@ -121,9 +219,11 @@ class ADMMOptimizer(OptimizationAlgorithm):
         return indices
 
     def get_q0(self):
+        # TODO: Flip the sign, according to the optimization sense
         return self._get_q(self._binary_indices)
 
     def get_q1(self):
+        # TODO: Flip the sign, according to the optimization sense
         return self._get_q(self._continuous_indices)
 
     def _get_q(self, variable_indices: List[int]) -> np.ndarray:
@@ -141,9 +241,11 @@ class ADMMOptimizer(OptimizationAlgorithm):
         return c
 
     def get_c0(self):
+        # TODO: Flip the sign, according to the optimization sense
         return self._get_c(self._binary_indices)
 
     def get_c1(self):
+        # TODO: Flip the sign, according to the optimization sense
         return self._get_c(self._continuous_indices)
 
     def _assign_row_values(self, matrix: List[List[float]], vector: List[float], constraint_index, variable_indices):
@@ -275,8 +377,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         continuous_size = len(self._continuous_indices)
         binary_size = len(self._binary_indices)
-        lb = self._op.variables.get_lower_bounds(self._binary_indices)
-        ub = self._op.variables.get_upper_bounds(self._binary_indices)
+        lb = self._op.variables.get_lower_bounds(self._continuous_indices)
+        ub = self._op.variables.get_upper_bounds(self._continuous_indices)
         if continuous_size:
             # add u variables
             op2.variables.add(names=["u0_" + str(i + 1) for i in range(continuous_size)],
@@ -437,3 +539,115 @@ class ADMMOptimizer(OptimizationAlgorithm):
         print(b2)
         print("b2 shape")
         print(b2.shape)
+
+    def update_x0(self, qubo_solver: OptimizationAlgorithm, op1: OptimizationProblem) -> np.ndarray:
+        return np.asarray(qubo_solver.solve(op1).x)
+
+    def update_x1(self, continuous_solver: OptimizationAlgorithm, op2: OptimizationProblem) -> np.ndarray:
+        vars_op2 = continuous_solver.solve(op2).x
+        # TODO: Is there a more elegant way to access the number of cont vars below?
+        return np.asarray(vars_op2[len(self._continuous_indices):])  # Here, only z variables have to be obtained
+
+    def update_y(self, continuous_solver, op3):
+        return np.asarray(continuous_solver.solve(op3).x)
+
+    def get_min_mer_sol(self):
+        """
+        The ADMM solution is that for which the merit value is the least
+        :return sol: Iterate with the least merit value
+        :return sol_val: Value of sol, according to the original objective
+        """
+        it_min_merits = self._state.merits.index(min(self._state.merits))
+        sol = self._state.x0_saved[it_min_merits]
+        sol_val = self._state.cost_iterates[it_min_merits]
+        return sol, sol_val
+    
+    def update_lambda_mult(self):
+        return self._state.lambda_mult + self._rho * (self._state.x0 - self._state.z + self._state.y)
+    
+    def update_rho(self, r, s):
+        """
+        Updating the rho parameter in ADMM
+        :param r: primal residual
+        :param s: dual residual
+        :return: 
+        """
+
+        if self._vary_rho == 0:
+            # Increase rho, to aid convergence.
+            if self._rho < 1.e+10:
+                self._rho *= 1.1
+        elif self._vary_rho == 1:
+            if r > self._mu_res * s:
+                self._rho = self._tau_incr * self._rho
+            elif s > self._mu_res * r:
+                self._rho = self._tau_decr * self._rho
+
+    def get_cons_res(self):
+        """Compute violation of the constraints of the original problem, as:
+            - norm 1 of the body-rhs of the constraints A0 x0 - b0
+            - -1 * min(body - rhs, 0) for \geq constraints
+            - max(body - rhs, 0) for \leq constraints
+        """
+
+        # TODO: think whether a0, b0 should be saved somewhere..
+        a0, b0 = self.get_a0_b0()
+        cr0 = sum(np.abs(np.dot(a0, self._state.x0) - b0))
+
+        a1, b1 = self.get_a1_b1()
+        eq1 = np.dot(a1, self._state.x0) - b1
+        cr1 = sum(max(val, 0) for val in eq1)
+
+        a2, a3, b2 = self.get_a2_a3_b2()
+        eq2 = np.dot(a2, self._state.x0) + np.dot(a3, self._state.u) - b2
+        cr2 = sum(max(val, 0) for val in eq2)
+
+        return cr0+cr1+cr2
+
+    def get_merit(self):
+        """
+        Compute merit value associated with the current iterate
+        """
+        return self._state.cost_iterate + self._mu * self._state.cr
+
+    def get_cost_val(self):
+        """
+        Computes the value of the objective function.
+        :param x0:
+        :param u:
+        :return:
+        """
+        quadr_form = lambda A, x, c: np.dot(x.T, np.dot(A, x)) + np.dot(c.T, x)
+
+        q0 = self.get_q0()
+        q1 = self.get_q1()
+        c0 = self.get_c0()
+        c1 = self.get_c1()
+
+        obj_val = quadr_form(q0, self._state.x0, c0)
+        obj_val += quadr_form(q1, self._state.u, c1)
+
+        return obj_val
+
+    def get_sol_res(self, it):
+        """
+        Compute primal and dual residual.
+
+        :param x0:
+        :param z:
+        :param y:
+        :param z_old:
+        :return:
+        """
+        elements = self._state.x0 - self._state.z - self._state.y
+        # debug
+        # elements = np.asarray([x0[i] - z[i] + y[i] for i in self.range_x0_vars])
+        r = pow(sum(e ** 2 for e in elements), 0.5)
+        elements_dual = self._state.z - self._state.z_saved[it-1]
+        # debug
+        # elements_dual = np.asarray([z[i] - z_old[i] for i in self.range_x0_vars])
+        s = self._rho * pow(sum(e ** 2 for e in elements_dual), 0.5)
+
+        return r, s
+
+

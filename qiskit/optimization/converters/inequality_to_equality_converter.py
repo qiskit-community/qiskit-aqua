@@ -14,13 +14,16 @@
 
 
 import copy
+import math
 from typing import List, Tuple, Dict
 
 import numpy as np
+from cplex import SparsePair
 
-from qiskit.optimization.problems.optimization_problem import OptimizationProblem
-from qiskit.optimization.results.optimization_result import OptimizationResult
+from qiskit.optimization.problems import OptimizationProblem
+from qiskit.optimization.results import OptimizationResult
 from qiskit.optimization.utils import QiskitOptimizationError
+from qiskit.aqua import AquaError
 
 
 class InequalityToEqualityConverter:
@@ -41,15 +44,19 @@ class InequalityToEqualityConverter:
         self._src = None
         self._dst = None
         self._conv: Dict[str, List[Tuple[str, int]]] = {}
-        # e.g., self._conv = {'c1': [('s@1', 1), ('s@2', 2)]}
+        # e.g., self._conv = {'c1': [c1@slack_var]}
 
-    def encode(self, op: OptimizationProblem, name: str = None) -> OptimizationProblem:
+    def encode(self, op: OptimizationProblem, name: str = None, mode: str = 'auto') -> OptimizationProblem:
         """ Convert a problem with inequality constraints into new one with only equality
         constraints.
 
         Args:
             op: The problem to be solved, that may contain inequality constraints.
             name: The name of the converted problem.
+            mode: To chose the type of slack variables. There are 3 options for mode.
+                  - 'integer': All slack variables will be integer variables.
+                  - 'continuous': All slack variables will be continuous variables
+                  - 'auto': Try to use integer variables but if it's not possible, use continuous variables
 
         Returns:
             The converted problem, that contain only equality constraints.
@@ -108,77 +115,31 @@ class InequalityToEqualityConverter:
             # When the type of a constraint is L, make an equality constraint
             # with slack variables which represent [lb, ub] = [0, constant - the lower bound of lhs]
             elif senses[i] == 'L':
-                lhs_lb = 0
-                for ind, val in zip(rows[i].ind, rows[i].val):
-                    if self._dst.variables.get_types(ind) == 'B':
-                        ub = 1
-                    else:
-                        ub = self._dst.variables.get_upper_bounds(ind)
-                    lb = self._dst.variables.get_lower_bounds(ind)
-
-                    lhs_lb += min(lb * val, ub * val)
-
-                slack_vars = self._encode_var(name=name + '_slack', lb=0, ub=rhs[i] - lhs_lb)
-                self._dst.variables.add(names=[name for name, _ in slack_vars],
-                                        types='B' * len(slack_vars))
-                self._conv[names[i]] = slack_vars
-
-                new_ind = rows[i].ind
-                new_val = rows[i].val
-
-                for name, coef in slack_vars:
-                    new_ind.append(self._dst.variables._varsgetindex[name])
-                    new_val.append(coef)
-                self._dst.linear_constraints.add(lin_expr=[rows[i]], senses=['E'], rhs=[rhs[i]],
-                                                 names=[names[i]])
+                if mode == 'integer':
+                    self._add_int_slack_var_constraint(name=name, row=rows[i], rhs=rhs[i], sense=senses[i])
+                elif mode == 'continuous':
+                    self._add_continuous_slack_var_constraint(name=name, row=rows[i], rhs=rhs[i], sense=senses[i])
+                elif mode == 'auto':
+                    self._add_auto_slack_var_constraint(name=name, row=rows[i], rhs=rhs[i], sense=senses[i])
+                else:
+                    raise AquaError('Unsupported mode is selected' + mode)
 
             # When the type of a constraint is G, make an equality constraint
             # with slack variables which represent [lb, ub] = [0, the upper bound of lhs]
             elif senses[i] == 'G':
-                lhs_ub = 0
-                for ind, val in zip(rows[i].ind, rows[i].val):
-                    if self._dst.variables.get_types(ind) == 'B':
-                        ub = 1
-                    else:
-                        ub = self._dst.variables.get_upper_bounds(ind)
-                    lb = self._dst.variables.get_lower_bounds(ind)
-
-                    lhs_ub += max(lb * val, ub * val)
-                slack_vars = self._encode_var(name=name + '_slack', lb=0, ub=lhs_ub - rhs[i])
-                self._dst.variables.add(names=[name for name, _ in slack_vars],
-                                        types='B' * len(slack_vars))
-                self._conv[names[i]] = slack_vars
-
-                new_ind = rows[i].ind
-                new_val = rows[i].val
-
-                for name, coef in slack_vars:
-                    new_ind.append(self._dst.variables._varsgetindex[name])
-                    new_val.append(-1 * coef)
-                self._dst.linear_constraints.add(lin_expr=[rows[i]], senses=['E'], rhs=[rhs[i]],
-                                                 names=[names[i]])
+                if mode == 'integer':
+                    self._add_int_slack_var_constraint(name=name, row=rows[i], rhs=rhs[i], sense=senses[i])
+                elif mode == 'continuous':
+                    self._add_continuous_slack_var_constraint(name=name, row=rows[i], rhs=rhs[i], sense=senses[i])
+                elif mode == 'auto':
+                    self._add_auto_slack_var_constraint(name=name, row=rows[i], rhs=rhs[i], sense=senses[i])
+                else:
+                    raise AquaError('Unsupported mode is selected' + mode)
 
             else:
-                raise QiskitOptimizationError('Sense type not supported: ' + senses[i])
+                raise QiskitOptimizationError('The type of Sense in ' + name + 'is not supported')
 
         return self._dst
-
-    def _encode_var(self, name: str, lb: int, ub: int) -> List[Tuple[str, int]]:
-        # bounded-coefficient encoding proposed in arxiv:1706.01945 (Eq. (5))
-        var_range = ub - lb
-        power = int(np.log2(var_range))
-        bounded_coef = var_range - (2 ** power - 1)
-
-        lst = []
-        for i in range(power):
-            coef = 2 ** i
-            new_name = name + self._delimiter + str(i)
-            lst.append((new_name, coef))
-
-        new_name = name + self._delimiter + str(power)
-        lst.append((new_name, bounded_coef))
-
-        return lst
 
     def decode(self, result: OptimizationResult) -> OptimizationResult:
         """ Convert a result of a converted problem into that of the original problem.
@@ -214,3 +175,94 @@ class InequalityToEqualityConverter:
             else:
                 new_vals.append(sol[name])
         return new_vals
+
+    def _add_int_slack_var_constraint(self, name, row, rhs, sense):
+        # If a coefficient that is not integer exist, raise error
+        if any(isinstance(coef, float) and not coef.is_integer() for coef in row.val):
+            raise AquaError('Can not use a slack variable for ' + name)
+
+        slack_name = name + self._delimiter + 'int_slack'
+        lhs_lb, lhs_ub = self._calc_bounds(row)
+
+        # If rhs is float number, round up/down to the nearest integer.
+        if sense == 'L':
+            new_rhs = math.floor(rhs)
+        if sense == 'G':
+            new_rhs = math.ceil(rhs)
+
+        # Add a new integer variable.
+        if sense == 'L':
+            sign = 1
+            self._dst.variables.add(names=[slack_name],
+                                    lb=[0], ub=[new_rhs - lhs_lb], types=['I'])
+        elif sense == 'G':
+            sign = -1
+            self._dst.variables.add(names=[slack_name],
+                                    lb=[0], ub=[lhs_ub - new_rhs], types=['I'])
+        else:
+            raise QiskitOptimizationError('The type of Sense in ' + name + 'is not supported')
+
+        self._conv[name] = slack_name
+
+        new_ind = copy.deepcopy(row.ind)
+        new_val = copy.deepcopy(row.val)
+
+        new_ind.append(self._dst.variables._varsgetindex[slack_name])
+        new_val.append(sign)
+
+        # Add a new equality constraint.
+        self._dst.linear_constraints.add(lin_expr=[SparsePair(ind=new_ind, val=new_val)], senses=['E'],
+                                         rhs=[new_rhs], names=[name])
+
+    def _add_continuous_slack_var_constraint(self, name, row, rhs, sense):
+        slack_name = name + self._delimiter + 'continuous_slack'
+        lhs_lb, lhs_ub = self._calc_bounds(row)
+
+        if sense == 'L':
+            sign = 1
+            self._dst.variables.add(names=[slack_name],
+                                    lb=[0], ub=[rhs - lhs_lb], types=['C'])
+        elif sense == 'G':
+            sign = -1
+            print(lhs_ub - rhs)
+            self._dst.variables.add(names=[slack_name],
+                                    lb=[0], ub=[lhs_ub - rhs], types=['C'])
+        else:
+            raise QiskitOptimizationError('The type of Sense in ' + name + 'is not supported')
+
+        self._conv[name] = slack_name
+
+        new_ind = copy.deepcopy(row.ind)
+        new_val = copy.deepcopy(row.val)
+
+        new_ind.append(self._dst.variables._varsgetindex[slack_name])
+        new_val.append(sign)
+
+        # Add a new equality constraint.
+        self._dst.linear_constraints.add(lin_expr=[SparsePair(ind=new_ind, val=new_val)], senses=['E'],
+                                         rhs=[rhs], names=[name])
+
+    def _add_auto_slack_var_constraint(self, name, row, rhs, sense):
+        # If a coefficient that is not integer exist, use a continuous slack variable
+        if any(isinstance(coef, float) and not coef.is_integer() for coef in row.val):
+            self._add_continuous_slack_var_constraint(name=name, row=row, rhs=rhs,
+                                                      sense=sense)
+        # Else use an integer slack variable
+        else:
+            self._add_int_slack_var_constraint(name=name, row=row, rhs=rhs,
+                                               sense=sense)
+
+    def _calc_bounds(self, row):
+        lhs_lb = 0
+        lhs_ub = 0
+        for ind, val in zip(row.ind, row.val):
+            if self._dst.variables.get_types(ind) == 'B':
+                ub = 1
+            else:
+                ub = self._dst.variables.get_upper_bounds(ind)
+            lb = self._dst.variables.get_lower_bounds(ind)
+
+            lhs_lb += min(lb * val, ub * val)
+            lhs_ub += max(lb * val, ub * val)
+
+        return lhs_lb, lhs_ub
