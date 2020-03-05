@@ -254,6 +254,6 @@ class OpVec(OperatorBase):
         """ print details """
         raise NotImplementedError
 
-    # Try collapsing oplist. Right now does nothing, but will need to be more clever when parameters are introduced.
     def reduce(self):
-        return self
+        reduced_ops = [op.reduce() for op in self.oplist]
+        return self.__class__(reduced_ops, coeff=self.coeff)
