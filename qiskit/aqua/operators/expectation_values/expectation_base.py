@@ -85,7 +85,7 @@ class ExpectationBase():
                                     'Consider using the Aer qasm_simulator instead to take advantage of Aer\'s '
                                     'built-in fast Pauli Expectation'.format(operator.num_qubits))
                 # TODO do this properly with converters
-                return MatrixExpectation(operator=operator, state=state)
+                return MatrixExpectation(operator=operator, backend=backend, state=state)
 
             # All other backends, including IBMQ, BasicAer QASM, go here.
             else:
@@ -94,7 +94,7 @@ class ExpectationBase():
 
         elif primitives == {'Matrix'}:
             from .matrix_expectation import MatrixExpectation
-            return MatrixExpectation(operator=operator, state=state)
+            return MatrixExpectation(operator=operator, backend=backend, state=state)
 
         elif primitives == {'Instruction'}:
             from .projector_overlap import ProjectorOverlap

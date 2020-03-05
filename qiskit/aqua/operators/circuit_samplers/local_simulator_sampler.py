@@ -23,7 +23,7 @@ from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import OpVec, StateFn, StateFnCircuit
 from qiskit.aqua.operators.converters import DicttoCircuitSum
 
-from qiskit.aqua.utils.backend_utils import is_aer_provider
+from qiskit.aqua.utils.backend_utils import is_aer_provider, is_statevector_backend
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ class LocalSimulatorSampler(CircuitSampler):
 
     """
 
-    def __init__(self, backend=None, hw_backend_to_emulate=None, kwargs={}):
+    def __init__(self, backend=None, hw_backend_to_emulate=None, kwargs={}, statevector=False):
         """
         Args:
             backend():
@@ -45,9 +45,14 @@ class LocalSimulatorSampler(CircuitSampler):
             kwargs['noise_model'] = NoiseModel.from_backend(hw_backend_to_emulate)
 
         self._qi = backend if isinstance(backend, QuantumInstance) else QuantumInstance(backend=backend, **kwargs)
+        self._last_op = None
         self._reduced_op_cache = None
         self._circuit_ops_cache = None
         self._transpiled_circ_cache = None
+        self._statevector = statevector
+        if self._statevector and not is_statevector_backend(self._qi.backend):
+            raise ValueError('Statevector mode for circuit sampling requires statevector '
+                             'backend, not {}.'.format(backend))
 
     @property
     def quantum_instance(self):
@@ -58,6 +63,12 @@ class LocalSimulatorSampler(CircuitSampler):
         self._qi = quantum_instance
 
     def convert(self, operator, params=None):
+        if self._last_op is None or not operator == self._last_op:
+            # Clear caches
+            self._last_op = operator
+            self._reduced_op_cache = None
+            self._circuit_ops_cache = None
+            self._transpiled_circ_cache = None
 
         if not self._reduced_op_cache:
             operator_dicts_replaced = DicttoCircuitSum().convert(operator)
@@ -126,16 +137,12 @@ class LocalSimulatorSampler(CircuitSampler):
         sampled_statefn_dicts = {}
         for i, op_c in enumerate(op_circuits):
             # Taking square root because we're replacing a statevector representation of probabilities.
-            if param_bindings is not None:
-                c_statefns = []
-                for j in range(len(param_bindings)):
-                    circ_index = (i*len(param_bindings)) + j
-                    sqrt_counts = {b: (v * op_c.coeff / self._qi._run_config.shots) ** .5
-                                   for (b, v) in results.get_counts(ready_circs[circ_index]).items()}
-                    c_statefns.append(StateFn(sqrt_counts))
-                sampled_statefn_dicts[id(op_c)] = c_statefns
-            else:
-                sqrt_counts = {b: (v*op_c.coeff/self._qi._run_config.shots)**.5
-                               for (b, v) in results.get_counts(ready_circs[i]).items()}
-                sampled_statefn_dicts[id(op_c)] = [StateFn(sqrt_counts)]
+            reps = len(param_bindings) if param_bindings is not None else 1
+            c_statefns = []
+            for j in range(reps):
+                circ_index = (i*reps) + j
+                sqrt_counts = {b: (v * op_c.coeff / self._qi._run_config.shots) ** .5
+                               for (b, v) in results.get_counts(ready_circs[circ_index]).items()}
+                c_statefns.append(StateFn(sqrt_counts))
+            sampled_statefn_dicts[id(op_c)] = c_statefns
         return sampled_statefn_dicts

@@ -57,6 +57,7 @@ class TestPauliExpectation(QiskitAquaTestCase):
         plus_mean = expect.compute_expectation(Plus)
         np.testing.assert_array_almost_equal(plus_mean, [1, 0, 0, 1], decimal=1)
 
+        # Note! Also tests reuse of expectation.
         minus_mean = expect.compute_expectation(Minus)
         np.testing.assert_array_almost_equal(minus_mean, [-1, 0, 0, 1], decimal=1)
 

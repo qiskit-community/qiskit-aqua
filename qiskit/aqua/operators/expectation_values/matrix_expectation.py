@@ -17,6 +17,8 @@
 import logging
 import numpy as np
 
+from qiskit import BasicAer
+
 from .expectation_base import ExpectationBase
 from qiskit.aqua.operators import OpMatrix, StateFn, OpVec
 from qiskit.aqua.operators.converters import ToMatrixOp
@@ -27,7 +29,7 @@ logger = logging.getLogger(__name__)
 class MatrixExpectation(ExpectationBase):
     """ A base for Expectation Value algorithms """
 
-    def __init__(self, operator=None, state=None):
+    def __init__(self, operator=None, backend=None, state=None):
         """
         Args:
 
@@ -35,6 +37,10 @@ class MatrixExpectation(ExpectationBase):
         super().__init__()
         self._operator = operator
         self._state = state
+        if backend is not None:
+            self.set_backend(backend)
+        else:
+            self.set_backend(BasicAer.get_backend('statevector_simulator'))
         self._matrix_op = None
 
     @property

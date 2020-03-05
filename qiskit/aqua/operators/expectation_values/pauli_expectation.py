@@ -73,7 +73,6 @@ class PauliExpectation(ExpectationBase):
         self._circuit_sampler.quantum_instance = quantum_instance
 
     def expectation_op(self, state=None):
-        # TODO allow user to set state in constructor and then only pass params to execute.
         state = state or self._state
 
         if not self._converted_operator:
@@ -86,9 +85,12 @@ class PauliExpectation(ExpectationBase):
         return expec_op.reduce()
 
     def compute_expectation(self, state=None, params=None):
-        if state or not self._reduced_meas_op:
+        # Wipes caches in setter
+        if not state == self.state:
+            self.state = state
+
+        if not self._reduced_meas_op:
             self._reduced_meas_op = self.expectation_op(state=state)
-            # TODO to_quantum_runnable converter?
 
         if 'Instruction' in self._reduced_meas_op.get_primitives():
             # TODO check if params have been sufficiently provided.
