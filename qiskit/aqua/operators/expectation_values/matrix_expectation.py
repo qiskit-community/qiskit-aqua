@@ -83,3 +83,7 @@ class MatrixExpectation(ExpectationBase):
             return self._matrix_op.eval(state_op_mat)
         else:
             return self._matrix_op.eval(state)
+
+    def compute_standard_deviation(self):
+        # TODO is this right? This is what we already do today, but I'm not sure if it's correct.
+        return 0.0

@@ -223,11 +223,15 @@ class VQE(VQAlgorithm):
 
         start_time = time()
         means = np.real(self._expectation_value.compute_expectation(params=param_bindings))
-        # TODO compute stds
-        stds = []
 
-        self._eval_count += num_parameter_sets
         if self._callback is not None:
+            stds = np.real(self._expectation_value.compute_standard_deviation(params=param_bindings))
+            for i, param_set in enumerate(parameter_sets):
+                self._eval_count += 1
+                self._callback(self._eval_count, param_set, means[i], stds[i])
+        # TODO I would like to change the callback to the following, to allow one to access an accurate picture of
+        #  the evaluation steps, and to distinguish between single energy and gradient evaluations.
+        if self._callback is not None and False:
             self._callback(self._eval_count, parameter_sets, means, stds)
 
         end_time = time()
