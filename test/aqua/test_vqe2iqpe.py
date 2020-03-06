@@ -60,12 +60,12 @@ class TestVQE2IQPE(QiskitAquaTestCase):
 
         self.log.debug('VQE result: %s.', result)
 
-        ref_eigenval = -1.85727503
+        ref_eigenval = -1.85727503 + 0j
 
         num_time_slices = 1
         num_iterations = 6
 
-        state_in = VarFormBased(var_form, result['opt_params'])
+        state_in = VarFormBased(var_form, result.optimal_point)
         iqpe = IQPE(self.qubit_op, state_in, num_time_slices, num_iterations,
                     expansion_mode='suzuki', expansion_order=2, shallow_circuit_concat=True)
         quantum_instance = QuantumInstance(
@@ -73,21 +73,21 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         )
         result = iqpe.run(quantum_instance)
 
-        self.log.debug('top result str label:         %s', result['top_measurement_label'])
-        self.log.debug('top result in decimal:        %s', result['top_measurement_decimal'])
-        self.log.debug('stretch:                      %s', result['stretch'])
-        self.log.debug('translation:                  %s', result['translation'])
-        self.log.debug('final eigenvalue from QPE:    %s', result['energy'])
+        self.log.debug('top result str label:         %s', result.top_measurement_label)
+        self.log.debug('top result in decimal:        %s', result.top_measurement_decimal)
+        self.log.debug('stretch:                      %s', result.stretch)
+        self.log.debug('translation:                  %s', result.translation)
+        self.log.debug('final eigenvalue from QPE:    %s', result.eigenvalue)
         self.log.debug('reference eigenvalue:         %s', ref_eigenval)
         self.log.debug('ref eigenvalue (transformed): %s',
-                       (ref_eigenval + result['translation']) * result['stretch'])
+                       (ref_eigenval + result.translation) * result.stretch)
         self.log.debug('reference binary str label:   %s', decimal_to_binary(
-            (ref_eigenval + result['translation']) * result['stretch'],
+            (ref_eigenval .real + result.translation) * result.stretch,
             max_num_digits=num_iterations + 3,
             fractional_part_only=True
         ))
 
-        np.testing.assert_approx_equal(result['energy'], ref_eigenval, significant=2)
+        np.testing.assert_approx_equal(result.eigenvalue.real, ref_eigenval.real, significant=2)
 
 
 if __name__ == '__main__':

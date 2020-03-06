@@ -86,22 +86,21 @@ class TestIQPE(QiskitAquaTestCase):
         quantum_instance = QuantumInstance(backend, shots=100)
 
         result = iqpe.run(quantum_instance)
-
-        self.log.debug('top result str label:         %s', result['top_measurement_label'])
-        self.log.debug('top result in decimal:        %s', result['top_measurement_decimal'])
-        self.log.debug('stretch:                      %s', result['stretch'])
-        self.log.debug('translation:                  %s', result['translation'])
-        self.log.debug('final eigenvalue from IQPE:   %s', result['energy'])
+        self.log.debug('top result str label:         %s', result.top_measurement_label)
+        self.log.debug('top result in decimal:        %s', result.top_measurement_decimal)
+        self.log.debug('stretch:                      %s', result.stretch)
+        self.log.debug('translation:                  %s', result.translation)
+        self.log.debug('final eigenvalue from IQPE:   %s', result.eigenvalue)
         self.log.debug('reference eigenvalue:         %s', ref_eigenval)
         self.log.debug('ref eigenvalue (transformed): %s',
-                       (ref_eigenval + result['translation']) * result['stretch'])
+                       (ref_eigenval.real + result.translation) * result.stretch)
         self.log.debug('reference binary str label:   %s', decimal_to_binary(
-            (ref_eigenval.real + result['translation']) * result['stretch'],
+            (ref_eigenval.real + result.translation) * result.stretch,
             max_num_digits=num_iterations + 3,
             fractional_part_only=True
         ))
 
-        np.testing.assert_approx_equal(result['energy'], ref_eigenval.real, significant=2)
+        np.testing.assert_approx_equal(result.eigenvalue.real, ref_eigenval.real, significant=2)
         self.assertEqual(tmp_qubit_op, qubit_op, "Operator is modified after IQPE.")
 
 
