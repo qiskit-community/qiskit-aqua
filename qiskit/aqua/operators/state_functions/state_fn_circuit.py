@@ -133,6 +133,10 @@ class StateFnCircuit(StateFn):
                                   is_measurement=self.is_measurement,
                                   coeff=self.coeff * other.coeff)
 
+        if isinstance(other, StateFnCircuit) and self.is_measurement:
+            from .. import Zero
+            return self.compose(OpCircuit(other.primitive, other.coeff)).compose(Zero^self.num_qubits)
+
         from qiskit.aqua.operators import OpComposition
         return OpComposition([new_self, other])
 

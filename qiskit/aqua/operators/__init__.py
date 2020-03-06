@@ -65,12 +65,6 @@ from qiskit.aqua.operators.operator_primitives import OpPrimitive, OpPauli, OpMa
 from qiskit.aqua.operators.state_functions import StateFn, StateFnDict, StateFnVector, StateFnCircuit, StateFnOperator
 from qiskit.aqua.operators.operator_combos import OpVec, OpSum, OpComposition, OpKron
 
-from qiskit.aqua.operators.converters import (ConverterBase, PauliChangeOfBasis, PaulitoInstruction, ToMatrixOp,
-                                              DicttoCircuitSum)
-from qiskit.aqua.operators.expectation_values import (ExpectationBase, PauliExpectation, MatrixExpectation,
-                                                      AerPauliExpectation)
-from qiskit.aqua.operators.circuit_samplers import CircuitSampler, LocalSimulatorSampler, IBMQSampler
-
 from qiskit.quantum_info import Pauli
 from qiskit.extensions.standard import CXGate, SGate, TGate, HGate, SwapGate
 
@@ -91,6 +85,13 @@ Zero = StateFn('0')
 One = StateFn('1')
 Plus = H.compose(Zero)
 Minus = H.compose(One)
+
+from qiskit.aqua.operators.converters import (ConverterBase, PauliChangeOfBasis, PaulitoInstruction, ToMatrixOp,
+                                              DicttoCircuitSum)
+from qiskit.aqua.operators.expectation_values import (ExpectationBase, PauliExpectation, MatrixExpectation,
+                                                      AerPauliExpectation)
+from qiskit.aqua.operators.circuit_samplers import CircuitSampler, LocalSimulatorSampler, IBMQSampler
+
 
 __all__ = [
     # Common

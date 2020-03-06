@@ -20,10 +20,10 @@ from functools import partial
 
 from . import CircuitSampler
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.operators import OpVec, StateFn, StateFnCircuit
+from qiskit.aqua.operators import OpVec, StateFn, StateFnCircuit, Zero
 from qiskit.aqua.operators.converters import DicttoCircuitSum
 
-from qiskit.aqua.utils.backend_utils import is_aer_provider, is_statevector_backend
+from qiskit.aqua.utils.backend_utils import is_aer_provider, is_statevector_backend, is_aer_qasm
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ class LocalSimulatorSampler(CircuitSampler):
 
     """
 
-    def __init__(self, backend=None, hw_backend_to_emulate=None, kwargs={}, statevector=False):
+    def __init__(self, backend=None, hw_backend_to_emulate=None, kwargs={}, statevector=False, snapshot=False):
         """
         Args:
             backend():
@@ -50,8 +50,12 @@ class LocalSimulatorSampler(CircuitSampler):
         self._circuit_ops_cache = None
         self._transpiled_circ_cache = None
         self._statevector = statevector
-        if self._statevector and not is_statevector_backend(self._qi.backend):
+        if self._statevector and not is_statevector_backend(self.quantum_instance.backend):
             raise ValueError('Statevector mode for circuit sampling requires statevector '
+                             'backend, not {}.'.format(backend))
+        self._snapshot = snapshot
+        if self._snapshot and not is_aer_qasm(self.quantum_instance.backend):
+            raise ValueError('Snapshot mode for expectation values requires Aer qasm '
                              'backend, not {}.'.format(backend))
 
     @property
@@ -147,10 +151,20 @@ class LocalSimulatorSampler(CircuitSampler):
             for j in range(reps):
                 circ_index = (i*reps) + j
                 if self._statevector:
-                    result_sfn = op_c.coeff * results.get_statevector(circ_index)
+                    result_sfn = StateFn(op_c.coeff * results.get_statevector(circ_index))
+                elif self._snapshot:
+                    snapshot_data = results.data(circ_index)['snapshots']
+                    avg = snapshot_data['expectation_value']['expval'][0]['value']
+                    if isinstance(avg, (list, tuple)):
+                        # Aer versions before 0.4 use a list snapshot format
+                        # which must be converted to a complex value.
+                        avg = avg[0] + 1j * avg[1]
+                    # Will be replaced with just avg when eval is called later
+                    num_qubits = op_circuits[0].num_qubits
+                    result_sfn = (Zero^num_qubits).adjoint() * avg
                 else:
-                    result_sfn = {b: (v * op_c.coeff / self._qi._run_config.shots) ** .5
-                                  for (b, v) in results.get_counts(circ_index).items()}
-                c_statefns.append(StateFn(result_sfn))
+                    result_sfn = StateFn({b: (v * op_c.coeff / self._qi._run_config.shots) ** .5
+                                          for (b, v) in results.get_counts(circ_index).items()})
+                c_statefns.append(result_sfn)
             sampled_statefn_dicts[id(op_c)] = c_statefns
         return sampled_statefn_dicts
