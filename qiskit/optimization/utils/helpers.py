@@ -103,12 +103,12 @@ class NameIndex:
             return self._convert_str(names)
         elif isinstance(names, int):
             if names not in self._dict:
-                raise QiskitOptimizationError('Invalid index: %d', names)
+                raise QiskitOptimizationError('Invalid index: {}'.format(names))
             return names
         elif isinstance(names, Sequence):
             return self._convert_seq(names)
         else:
-            raise QiskitOptimizationError('Invalid argument: %s'.format(names))
+            raise QiskitOptimizationError('Invalid argument: {}'.format(names))
 
     def _convert_str(self, name: str) -> int:
         if name not in self._dict:
