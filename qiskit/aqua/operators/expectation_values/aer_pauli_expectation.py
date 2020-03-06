@@ -91,18 +91,6 @@ class AerPauliExpectation(ExpectationBase):
         snapshot_meas = replace_pauli_sums(self._operator)
         return snapshot_meas
 
-        # Extract state circuits
-        # circuits_to_run = {}
-        #
-        # def extract_statefns(operator):
-        #     if isinstance(operator, StateFnCircuit):
-        #         circuits_to_run[id(operator)] = operator.to_circuit()
-        #     if isinstance(operator, OpVec):
-        #         [extract_statefns(op) for op in operator.oplist]
-        #
-        # extract_statefns(snapshot_op)
-        # return snapshot_op, circuits_to_run
-
     def compute_expectation(self, state=None, params=None):
         # Wipes caches in setter
         if state and not state == self.state:
@@ -117,7 +105,6 @@ class AerPauliExpectation(ExpectationBase):
         # TODO once https://github.com/Qiskit/qiskit-aer/pull/485 goes through
         # self._quantum_instance._run_config.parameterizations = ...
         # result = self.quantum_instance.execute(list(self._snapshot_circuit.values()))
-        # result_expect_dict = {}
 
         return measured_op.eval()
 
