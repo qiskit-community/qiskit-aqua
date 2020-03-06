@@ -37,7 +37,7 @@ SPHINXOPTS    =
 
 .PHONY: lint style test test_ci spell copyright html coverage coverage_erase
 
-all_check: spell style lint copyright html
+all_check: spell style lint html
 
 lint:
 	pylint -rn --ignore=gauopen qiskit/aqua qiskit/chemistry qiskit/finance qiskit/ml qiskit/optimization test tools
