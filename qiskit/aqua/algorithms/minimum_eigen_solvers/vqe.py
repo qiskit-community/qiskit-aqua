@@ -29,11 +29,6 @@ from qiskit.circuit import ParameterVector
 
 from qiskit.aqua.algorithms import VQAlgorithm
 from qiskit.aqua import AquaError
-from qiskit.aqua.operators import (TPBGroupedWeightedPauliOperator, WeightedPauliOperator,
-                                   MatrixOperator)
-from qiskit.aqua.operators.legacy import op_converter
-from qiskit.aqua.utils.backend_utils import (is_statevector_backend,
-                                             is_aer_provider)
 from qiskit.aqua.operators import OperatorBase, ExpectationBase, StateFnCircuit
 from qiskit.aqua.components.optimizers import Optimizer
 from qiskit.aqua.components.variational_forms import VariationalForm
@@ -83,11 +78,9 @@ class VQE(VQAlgorithm):
                  initial_point: Optional[np.ndarray] = None,
                  expectation_value: Optional[ExpectationBase] = None,
                  max_evals_grouped: int = 1,
-                 # TODO delete usage of aux_ops in favor of ExpectationValue
-                 # aux_operators: Optional[List[OperatorBase]] = None,
+                 # TODO delete usage of aux_operators in favor of ExpectationValue
                  callback: Optional[Callable[[int, np.ndarray, float, float], None]] = None,
                  # TODO delete all instances of auto_conversion
-                 # auto_conversion: bool = True
                  ) -> None:
         """
 
