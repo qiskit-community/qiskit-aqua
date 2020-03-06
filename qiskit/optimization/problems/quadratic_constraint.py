@@ -12,17 +12,23 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from typing import List, Tuple, Dict
-from qiskit.optimization.utils.base import BaseInterface
-from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
-from qiskit.optimization.utils.helpers import unpack_pair, unpack_triple, NameIndexConverter
+from collections.abc import Sequence
+from logging import getLogger
+from typing import List, Dict, Tuple
+
 from cplex import SparsePair, SparseTriple
+
+from qiskit.optimization.utils.base import BaseInterface
+from qiskit.optimization.utils.helpers import convert, NameIndex
+from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
+
+logger = getLogger(__name__)
 
 
 class QuadraticConstraintInterface(BaseInterface):
     """Methods for adding, modifying, and querying quadratic constraints."""
 
-    def __init__(self):
+    def __init__(self, varsgetindexfunc=None):
         """Creates a new QuadraticConstraintInterface.
 
         The quadratic constraints interface is exposed by the top-level
@@ -33,9 +39,10 @@ class QuadraticConstraintInterface(BaseInterface):
         self._rhs = []
         self._senses = []
         self._names = []
-        self._lin_expr = []
-        self._quad_expr = []
-        self._index = NameIndexConverter()
+        self._lin_expr: List[Dict[int, float]] = []
+        self._quad_expr: List[Dict[Tuple[int, int], float]] = []
+        self._name_index = NameIndex()
+        self._varsgetindexfunc = varsgetindexfunc
 
     def get_num(self) -> int:
         """Returns the number of quadratic constraints.
@@ -53,16 +60,6 @@ class QuadraticConstraintInterface(BaseInterface):
         10
         """
         return len(self._names)
-
-    def _add(self, lin_expr, quad_expr, sense, rhs, name):
-        """non-public"""
-        ind, val = unpack_pair(lin_expr)
-        if len(val) == 1 and val[0] == 0.0:
-            ind = []
-            val = []
-        ind1, ind2, qval = unpack_triple(quad_expr)
-        varcache = {}
-        None
 
     def add(self, lin_expr=None, quad_expr=None, sense="L", rhs=0.0, name=""):
         """Adds a quadratic constraint to the problem.
@@ -106,20 +103,62 @@ class QuadraticConstraintInterface(BaseInterface):
         ...                             sense = "G")
         0
         """
-        if lin_expr is None:
-            lin_expr = SparsePair([0], [0.0])
-        if quad_expr is None:
-            quad_expr = SparseTriple([0], [0], [0.0])
         # We only ever create one quadratic constraint at a time.
+
+        # check constraint name
+        if name == '':
+            name = 'q{}'.format(len(self._names))
+        if name in self._name_index:
+            raise QiskitOptimizationError('Duplicate quadratic constraint name: %s'.format(name))
+        self._names.append(name)
+
+        # linear terms
+        lin_expr_dict = {}
+        if lin_expr is None:
+            ind, val = [], []
+        elif isinstance(lin_expr, SparsePair):
+            ind, val = lin_expr.ind, lin_expr.val
+        elif isinstance(lin_expr, Sequence):
+            if len(lin_expr) != 2 or len(lin_expr[0]) != len(lin_expr[1]):
+                raise QiskitOptimizationError('Invalid lin_expr: %s'.format(lin_expr))
+            ind, val = lin_expr
+        else:
+            raise QiskitOptimizationError('Invalid lin_expr: %s'.format(lin_expr))
+        for i, val in zip(ind, val):
+            i2 = convert(i, self._varsgetindexfunc)
+            if i2 in lin_expr_dict:
+                logger.warning('lin_expr contains duplicate index: %s'.format(i))
+            lin_expr_dict[i2] = val
+        self._lin_expr.append(lin_expr_dict)
+
+        # quadratic terms
+        quad_expr_dict = {}
+        if quad_expr is None:
+            ind1, ind2, val = [], [], []
+        elif isinstance(quad_expr, SparseTriple):
+            ind1, ind2, val = quad_expr.ind1, quad_expr.ind2, quad_expr.val
+        elif isinstance(quad_expr, Sequence):
+            if len(quad_expr) != 3 or len(quad_expr[0]) != len(quad_expr[1]) or \
+                    len(quad_expr[1]) != len(quad_expr[2]):
+                raise QiskitOptimizationError('Invalid quad_expr: %s'.format(quad_expr))
+            ind1, ind2, val = quad_expr
+        else:
+            raise QiskitOptimizationError('Invalid quad_expr: %s'.format(quad_expr))
+        for i, j, val in zip(ind1, ind2, val):
+            i2 = convert(i, self._varsgetindexfunc)
+            j2 = convert(j, self._varsgetindexfunc)
+            if (i2, j2) in quad_expr_dict or (j2, i2) in quad_expr_dict:
+                logger.warning('quad_expr contains duplicate index: %s %s'.format(i, j))
+            quad_expr_dict[i2, j2] = quad_expr_dict[j2, i2] = val
+        self._quad_expr.append(quad_expr_dict)
 
         if sense not in ['L', 'G', 'E']:
             raise QiskitOptimizationError('Invalid sense: %s'.format(sense))
         else:
             self._senses.append(sense)
         self._rhs.append(rhs)
-        self._names.append(name)
-        return self._add_single(self.get_num, self._add,
-                                lin_expr, quad_expr, sense, rhs, name)
+
+        return self._name_index.convert(name)
 
     def delete(self, *args):
         """Deletes quadratic constraints from the problem.
@@ -176,7 +215,33 @@ class QuadraticConstraintInterface(BaseInterface):
         >>> op.quadratic_constraints.get_names()
         []
         """
-        None
+        if len(args) == 0:
+            # delete all
+            self._rhs = []
+            self._senses = []
+            self._names = []
+            self._lin_expr = []
+            self._quad_expr = []
+            self._name_index = NameIndex()
+            return
+        elif len(args) == 1:
+            # one item or sequence
+            keys = self._name_index.convert(args[0])
+            if isinstance(keys, int):
+                keys = [keys]
+        elif len(args) == 2:
+            # begin and end of a range
+            keys = self._name_index.convert(range(*args))
+        else:
+            raise QiskitOptimizationError('Invalid arguments: %s'.format(args))
+
+        for i in sorted(keys, reverse=True):
+            del self._rhs[i]
+            del self._senses[i]
+            del self._names[i]
+            del self._lin_expr[i]
+            del self._quad_expr[i]
+        self._name_index.build(self._names)
 
     def get_rhs(self, *args):
         """Returns the righthand side of a set of quadratic constraints.
@@ -221,7 +286,17 @@ class QuadraticConstraintInterface(BaseInterface):
         >>> op.quadratic_constraints.get_rhs()
         [0.0, 1.5, 3.0, 4.5, 6.0, 7.5, 9.0, 10.5, 12.0, 13.5]
         """
-        return self._rhs
+        if len(args) == 0:
+            return self._rhs
+        elif len(args) == 1:
+            keys = self._name_index.convert(args[0])
+        elif len(args) == 2:
+            keys = self._name_index.convert(range(*args))
+        else:
+            raise QiskitOptimizationError('Invalid arguments: %s'.format(args))
+        if isinstance(keys, int):
+            return self._rhs[keys]
+        return [self._rhs[k] for k in keys]
 
     def get_senses(self, *args):
         """Returns the senses of a set of quadratic constraints.
@@ -265,7 +340,17 @@ class QuadraticConstraintInterface(BaseInterface):
         >>> op.quadratic_constraints.get_senses()
         ['G', 'G', 'L', 'L']
         """
-        return self._senses
+        if len(args) == 0:
+            return self._senses
+        elif len(args) == 1:
+            keys = self._name_index.convert(args[0])
+        elif len(args) == 2:
+            keys = self._name_index.convert(range(*args))
+        else:
+            raise QiskitOptimizationError('Invalid arguments: %s'.format(args))
+        if isinstance(keys, int):
+            return self._senses[keys]
+        return [self._senses[k] for k in keys]
 
     def get_linear_num_nonzeros(self, *args):
         """Returns the number of nonzeros in the linear part of a set of quadratic constraints.
@@ -312,7 +397,21 @@ class QuadraticConstraintInterface(BaseInterface):
         >>> op.quadratic_constraints.get_linear_num_nonzeros()
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         """
-        []
+
+        def _nonzero(tab: Dict[int, float]) -> int:
+            return len([0 for v in tab.values() if v != 0.0])
+
+        if len(args) == 0:
+            keys = range(self.get_num())
+        elif len(args) == 1:
+            keys = self._name_index.convert(args[0])
+        elif len(args) == 2:
+            keys = self._name_index.convert(range(*args))
+        else:
+            raise QiskitOptimizationError('Invalid arguments: %s'.format(args))
+        if isinstance(keys, int):
+            return _nonzero(self._lin_expr[keys])
+        return [_nonzero(self._lin_expr[k]) for k in keys]
 
     def get_linear_components(self, *args):
         """Returns the linear part of a set of quadratic constraints.
@@ -362,7 +461,21 @@ class QuadraticConstraintInterface(BaseInterface):
         >>> op.quadratic_constraints.get_linear_components()
         [SparsePair(ind = [], val = []), SparsePair(ind = [0], val = [1.0]), SparsePair(ind = [0, 1], val = [1.0, 2.0]), SparsePair(ind = [0, 1, 2], val = [1.0, 2.0, 3.0])]
         """
-        return []
+
+        def _linear_component(tab: Dict[int, float]) -> SparsePair:
+            return SparsePair(ind=tab.keys(), val=tab.values())
+
+        if len(args) == 0:
+            return len(self._lin_expr)
+        elif len(args) == 1:
+            keys = self._name_index.convert(args[0])
+        elif len(args) == 2:
+            keys = self._name_index.convert(range(*args))
+        else:
+            raise QiskitOptimizationError('Invalid arguments: %s'.format(args))
+        if isinstance(keys, int):
+            return _linear_component(self._lin_expr[keys])
+        return [_linear_component(self._lin_expr[k]) for k in keys]
 
     def get_quad_num_nonzeros(self, *args):
         """Returns the number of nonzeros in the quadratic part of a set of quadratic constraints.
@@ -409,7 +522,21 @@ class QuadraticConstraintInterface(BaseInterface):
         >>> op.quadratic_constraints.get_quad_num_nonzeros()
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         """
-        return []
+
+        def _nonzero(tab: Dict[int, int, float]) -> int:
+            return len([0 for v in tab.values() if v != 0.0])
+
+        if len(args) == 0:
+            keys = range(self.get_num())
+        elif len(args) == 1:
+            keys = self._name_index.convert(args[0])
+        elif len(args) == 2:
+            keys = self._name_index.convert(range(*args))
+        else:
+            raise QiskitOptimizationError('Invalid arguments: %s'.format(args))
+        if isinstance(keys, int):
+            return _nonzero(self._quad_expr[keys])
+        return [_nonzero(self._quad_expr[k]) for k in keys]
 
     def get_quadratic_components(self, *args):
         """Returns the quadratic part of a set of quadratic constraints.
@@ -457,7 +584,22 @@ class QuadraticConstraintInterface(BaseInterface):
         >>> op.quadratic_constraints.get_quadratic_components()
         [SparseTriple(ind1 = [0], ind2 = [0], val = [1.0]), SparseTriple(ind1 = [0, 1], ind2 = [0, 1], val = [1.0, 2.0]), SparseTriple(ind1 = [0, 1, 2], ind2 = [0, 1, 2], val = [1.0, 2.0, 3.0]), SparseTriple(ind1 = [0, 1, 2, 3], ind2 = [0, 1, 2, 3], val = [1.0, 2.0, 3.0, 4.0])]
         """
-        return []
+
+        def _quadtratic_component(tab: Dict[Tuple[int, int], float]) -> SparseTriple:
+            ind1, ind2 = zip(*tab.keys())
+            return SparseTriple(ind1=ind1, ind2=ind2, val=tab.values())
+
+        if len(args) == 0:
+            return len(self._lin_expr)
+        elif len(args) == 1:
+            keys = self._name_index.convert(args[0])
+        elif len(args) == 2:
+            keys = self._name_index.convert(range(*args))
+        else:
+            raise QiskitOptimizationError('Invalid arguments: %s'.format(args))
+        if isinstance(keys, int):
+            return _quadtratic_component(self._quad_expr[keys])
+        return [_quadtratic_component(self._quad_expr[k]) for k in keys]
 
     def get_names(self, *args):
         """Returns the names of a set of quadratic constraints.
@@ -502,4 +644,14 @@ class QuadraticConstraintInterface(BaseInterface):
         >>> op.quadratic_constraints.get_names()
         ['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q8', 'q9', 'q10']
         """
-        self._names
+        if len(args) == 0:
+            return self._names
+        elif len(args) == 1:
+            keys = self._name_index.convert(args[0])
+        elif len(args) == 2:
+            keys = self._name_index.convert(range(*args))
+        else:
+            raise QiskitOptimizationError('Invalid arguments: %s'.format(args))
+        if isinstance(keys, int):
+            return self._names[keys]
+        return [self._names[k] for k in keys]

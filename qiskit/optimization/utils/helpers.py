@@ -13,8 +13,7 @@
 # that they have been altered from the originals.
 
 
-from collections.abc import Sequence
-from typing import Union, List, Tuple, Dict
+from typing import Union, List, Tuple, Dict, Sequence
 
 from cplex import SparsePair, SparseTriple
 
@@ -89,31 +88,45 @@ def convert(name, getindexfunc=_defaultgetindexfunc, cache=None):
         return name
 
 
-class NameIndexConverter:
+class NameIndex:
     def __init__(self):
-        self._cache = {}
+        self._dict = {}
 
     def to_dict(self) -> Dict[str, int]:
-        return self._cache
+        return self._dict
 
     def build(self, names: List[str]):
-        self._cache = {i: e for i, e in enumerate(names)}
+        self._dict = {i: e for i, e in enumerate(names)}
 
-    def convert(self, names: Union[str, List[str]]) -> Union[int, List[int]]:
+    def convert(self, names: Union[str, int, Sequence[Union[str, int]]]) -> Union[int, List[int]]:
         if isinstance(names, str):
             return self._convert_str(names)
+        elif isinstance(names, int):
+            if names not in self._dict:
+                raise QiskitOptimizationError('Invalid index: %d', names)
+            return names
         elif isinstance(names, Sequence):
             return self._convert_seq(names)
         else:
             raise QiskitOptimizationError('Invalid argument: %s'.format(names))
 
     def _convert_str(self, name: str) -> int:
-        if name not in self._cache:
-            self._cache[name] = len(self._cache)
-        return self._cache[name]
+        if name not in self._dict:
+            self._dict[name] = len(self._dict)
+        return self._dict[name]
 
-    def _convert_seq(self, names: List[str]) -> List[int]:
+    def _convert_seq(self, names: Sequence[str]) -> List[int]:
         return [self._convert_str(e) if isinstance(e, str) else e for e in names]
+
+    def delete(self, names: Union[str, List[str]]):
+        if isinstance(names, str):
+            del self._dict[names]
+        elif isinstance(names, Sequence):
+            for name in names:
+                del self._dict[name]
+
+    def __contains__(self, item: str) -> bool:
+        return item in self._dict
 
 
 def init_list_args(*args):
