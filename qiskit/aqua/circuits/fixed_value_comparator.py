@@ -16,13 +16,14 @@
 
 import numpy as np
 
+from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.aqua.utils.circuit_factory import CircuitFactory
 from qiskit.aqua.circuits.gates import logical_or  # pylint: disable=unused-import
 
 # pylint: disable=invalid-name
 
 
-class FixedValueComparator(CircuitFactory):
+class FixedValueComparator(QuantumCircuit, CircuitFactory):
     r"""
     Fixed Value Comparator.
 
@@ -50,7 +51,16 @@ class FixedValueComparator(CircuitFactory):
             i_target (Optional(int)): index of target qubit in given list
                 of qubits / register, if None, i_target = num_state_qubits is used
         """
-        super().__init__(num_state_qubits + 1)
+        # state (num_state_qubits) + ancillas (num_state_qubits - 1) + compare qubit (1)
+        qr_state = QuantumRegister(num_state_qubits, 'state')
+        qr_result = QuantumRegister(1, 'result')
+        super().__init__(qr_state, qr_result)
+        if num_state_qubits > 1:
+            qr_ancilla = QuantumRegister(num_state_qubits - 1, 'ancilla')
+            self.add_register(qr_ancilla)
+        else:
+            qr_ancilla = None
+
         self._num_state_qubits = num_state_qubits
         self._value = value
         self._geq = geq
@@ -67,6 +77,8 @@ class FixedValueComparator(CircuitFactory):
             self.i_target = i_target
         else:
             self.i_target = num_state_qubits
+
+        self._build(qr_state, qr_result, qr_ancilla)
 
     @property
     def num_state_qubits(self):
@@ -98,19 +110,21 @@ class FixedValueComparator(CircuitFactory):
             [1 if twos_complement[i] == '1' else 0 for i in reversed(range(len(twos_complement)))]
         return twos_complement
 
-    def build(self, qc, q, q_ancillas=None, params=None):
+    def _build(self,
+               qr_state: QuantumRegister,
+               qr_result: QuantumRegister,
+               qr_ancilla: QuantumRegister) -> None:
+        """Build the comparator circuit.
 
-        # get parameters
-        i_state = self.i_state
-        i_target = self.i_target
-
-        # get qubits
-        q_result = q[i_target]
-        q_state = [q[i] for i in i_state]
+        Args:
+            qr_state: The register containing the qubit state.
+            qr_result: The register containing the single qubit, which will contain the result.
+            qr_ancilla: The register containing the ancilla qubits.
+        """
 
         if self.value <= 0:  # condition always satisfied for non-positive values
             if self._geq:  # otherwise the condition is never satisfied
-                qc.x(q_result)
+                self.x(qr_result)
         # condition never satisfied for values larger than or equal to 2^n
         elif self.value < pow(2, self.num_state_qubits):
 
@@ -120,41 +134,50 @@ class FixedValueComparator(CircuitFactory):
                 for i in range(self.num_state_qubits):
                     if i == 0:
                         if tc[i] == 1:
-                            qc.cx(q_state[i], q_ancillas[i])
+                            self.cx(qr_state[i], qr_ancilla[i])
                     elif i < self.num_state_qubits-1:
                         if tc[i] == 1:
-                            qc.OR([q_state[i], q_ancillas[i-1]], q_ancillas[i], None)
+                            self.OR([qr_state[i], qr_ancilla[i-1]], qr_ancilla[i], None)
                         else:
-                            qc.ccx(q_state[i], q_ancillas[i-1], q_ancillas[i])
+                            self.ccx(qr_state[i], qr_ancilla[i-1], qr_ancilla[i])
                     else:
                         if tc[i] == 1:
-                            qc.OR([q_state[i], q_ancillas[i-1]], q_result, None)
+                            # OR needs the result argument as qubit not register, thus
+                            # access the index [0]
+                            self.OR([qr_state[i], qr_ancilla[i-1]], qr_result[0], None)
                         else:
-                            qc.ccx(q_state[i], q_ancillas[i-1], q_result)
+                            self.ccx(qr_state[i], qr_ancilla[i-1], qr_result)
 
                 # flip result bit if geq flag is false
                 if not self._geq:
-                    qc.x(q_result)
+                    self.x(qr_result[0])
 
                 # uncompute ancillas state
                 for i in reversed(range(self.num_state_qubits-1)):
                     if i == 0:
                         if tc[i] == 1:
-                            qc.cx(q_state[i], q_ancillas[i])
+                            self.cx(qr_state[i], qr_ancilla[i])
                     else:
                         if tc[i] == 1:
-                            qc.OR([q_state[i], q_ancillas[i - 1]], q_ancillas[i], None)
+                            self.OR([qr_state[i], qr_ancilla[i - 1]], qr_ancilla[i], None)
                         else:
-                            qc.ccx(q_state[i], q_ancillas[i - 1], q_ancillas[i])
+                            self.ccx(qr_state[i], qr_ancilla[i - 1], qr_ancilla[i])
             else:
 
                 # num_state_qubits == 1 and value == 1:
-                qc.cx(q_state[0], q_result)
+                self.cx(qr_state[0], qr_result)
 
                 # flip result bit if geq flag is false
                 if not self._geq:
-                    qc.x(q_result)
+                    self.x(qr_result)
 
         else:
             if not self._geq:  # otherwise the condition is never satisfied
-                qc.x(q_result)
+                self.x(qr_result)
+
+    def build(self, qc, q, q_ancillas=None, params=None):
+        instr = self.to_instruction()
+        qr = [qi for qi in q]  # pylint:disable=unnecessary-comprehension
+        if q_ancillas:
+            qr += [qi for qi in q_ancillas]  # pylint:disable=unnecessary-comprehension
+        qc.append(instr, qr)
