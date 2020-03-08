@@ -51,8 +51,20 @@ class TestAppMGSE(QiskitChemistryTestCase):
 
         self.reference_energy = -1.137306
 
-    def test_mgse(self):
-        """ Test Molecular Ground State Energy """
+    def test_mgse_cme(self):
+        """ Test Molecular Ground State Energy classical solver """
+        mgse = MolecularGroundStateEnergy(self.driver, self.cme)
+        result = mgse.compute_energy()
+        self.assertAlmostEqual(result.energy, self.reference_energy, places=5)
+
+    def test_mgse_vqe(self):
+        """ Test Molecular Ground State Energy VQE solver """
+        mgse = MolecularGroundStateEnergy(self.driver, self.vqe)
+        result = mgse.compute_energy()
+        self.assertAlmostEqual(result.energy, self.reference_energy, places=5)
+
+    def test_mgse_solver(self):
+        """ Test Molecular Ground State Energy setting solver """
         mgse = MolecularGroundStateEnergy(self.driver)
         with self.assertRaises(QiskitChemistryError):
             _ = mgse.compute_energy()
@@ -67,7 +79,8 @@ class TestAppMGSE(QiskitChemistryTestCase):
 
     def test_mgse_callback_ipqe(self):
         """ Callback test setting up Hartree Fock with IQPE """
-        def create_solver(num_particles, num_orbitals, qubit_mapping, two_qubit_reduction):
+        def cb_create_solver(num_particles, num_orbitals,
+                             qubit_mapping, two_qubit_reduction, z2_symmetries):
             state_in = HartreeFock(2, num_orbitals, num_particles, qubit_mapping,
                                    two_qubit_reduction)
             iqpe = IQPE(None, state_in, num_time_slices=1, num_iterations=6,
@@ -77,25 +90,28 @@ class TestAppMGSE(QiskitChemistryTestCase):
                                                     shots=100)
             return iqpe
         mgse = MolecularGroundStateEnergy(self.driver)
-        result = mgse.compute_energy(create_solver)
+        result = mgse.compute_energy(cb_create_solver)
         np.testing.assert_approx_equal(result.energy, self.reference_energy, significant=2)
 
     def test_mgse_callback_vqe_uccsd(self):
         """ Callback test setting up Hartree Fock with UCCSD and VQE """
-        def create_solver(num_particles, num_orbitals, qubit_mapping, two_qubit_reduction):
+        def cb_create_solver(num_particles, num_orbitals,
+                             qubit_mapping, two_qubit_reduction, z2_symmetries):
+            sq_list = z2_symmetries.sq_list if z2_symmetries is not None else None
             initial_state = HartreeFock(2, num_orbitals, num_particles, qubit_mapping,
-                                        two_qubit_reduction)
+                                        two_qubit_reduction, sq_list)
             var_form = UCCSD(2, depth=1,
                              num_orbitals=num_orbitals,
                              num_particles=num_particles,
                              initial_state=initial_state,
                              qubit_mapping=qubit_mapping,
-                             two_qubit_reduction=two_qubit_reduction)
+                             two_qubit_reduction=two_qubit_reduction,
+                             z2_symmetries=z2_symmetries)
             vqe = VQE(var_form=var_form, optimizer=SLSQP(maxiter=500))
             vqe.quantum_instance = BasicAer.get_backend('statevector_simulator')
             return vqe
         mgse = MolecularGroundStateEnergy(self.driver)
-        result = mgse.compute_energy(create_solver)
+        result = mgse.compute_energy(cb_create_solver)
         self.assertAlmostEqual(result.energy, self.reference_energy, places=5)
 
     def test_mgse_callback(self):
@@ -106,6 +122,18 @@ class TestAppMGSE(QiskitChemistryTestCase):
         self.assertAlmostEqual(result.energy, self.reference_energy, places=5)
 
         result = mgse.compute_energy(lambda *args: self.vqe)
+        self.assertAlmostEqual(result.energy, self.reference_energy, places=5)
+
+    def test_mgse_default_solver(self):
+        """ Callback testing using default solver """
+        mgse = MolecularGroundStateEnergy(self.driver)
+
+        result = mgse.compute_energy(mgse.get_default_solver(
+            BasicAer.get_backend('statevector_simulator')))
+        self.assertAlmostEqual(result.energy, self.reference_energy, places=5)
+
+        q_inst = QuantumInstance(BasicAer.get_backend('statevector_simulator'))
+        result = mgse.compute_energy(mgse.get_default_solver(q_inst))
         self.assertAlmostEqual(result.energy, self.reference_energy, places=5)
 
 

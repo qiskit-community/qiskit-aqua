@@ -14,10 +14,16 @@
 
 """ Molecular ground state energy  chemistry application """
 
-from typing import List, Optional, Callable
+from typing import List, Optional, Callable, Union
 
-from qiskit.aqua.algorithms import MinimumEigensolver, AlgorithmResult, MinimumEigensolverResult
+from qiskit.providers import BaseBackend
+from qiskit.aqua import QuantumInstance
+from qiskit.aqua.algorithms import MinimumEigensolver, AlgorithmResult, MinimumEigensolverResult, \
+    VQE
+from qiskit.aqua.operators import Z2Symmetries
 from qiskit.chemistry import QiskitChemistryError
+from qiskit.chemistry.components.initial_states import HartreeFock
+from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.core import (Hamiltonian, TransformationType, QubitMappingType,
                                    ChemistryOperator)
 from qiskit.chemistry.drivers import BaseDriver
@@ -53,6 +59,7 @@ class MolecularGroundStateEnergy:
         self._two_qubit_reduction = two_qubit_reduction
         self._freeze_core = freeze_core
         self._orbital_reduction = orbital_reduction
+        self._z2_symmetries = None
 
     @property
     def driver(self) -> BaseDriver:
@@ -74,19 +81,19 @@ class MolecularGroundStateEnergy:
         self._solver = solver
 
     def compute_energy(self,
-                       callback: Optional[Callable[[List, int,
-                                                    str, bool], MinimumEigensolver]] = None
+                       callback: Optional[Callable[[List, int, str, bool, Optional[Z2Symmetries]],
+                                                   MinimumEigensolver]] = None
                        ) -> 'MolecularGroundStateEnergyResult':
         """
         Compute the ground state energy of the molecule that was supplied via the driver
 
         Args:
-            callback: In not None will be called with the following values
-                      num_particles, num_orbitals, qubit_mapping, two_qubit_reduction
-                      in that order. This information can then be used to setup chemistry
-                      specific component(s) that are needed by the chosen MinimumEigensolver.
-                      The MinimumEigensolver can then be built and returned from this callback
-                      for use as the solver here.
+            callback: If not None will be called with the following values
+                num_particles, num_orbitals, qubit_mapping, two_qubit_reduction, z2_symmetries
+                in that order. This information can then be used to setup chemistry
+                specific component(s) that are needed by the chosen MinimumEigensolver.
+                The MinimumEigensolver can then be built and returned from this callback
+                for use as the solver here.
 
         Returns:
             A MolecularGroundStateEnergyResult
@@ -109,7 +116,8 @@ class MolecularGroundStateEnergy:
             num_particles = core.molecule_info[ChemistryOperator.INFO_NUM_PARTICLES]
             num_orbitals = core.molecule_info[ChemistryOperator.INFO_NUM_ORBITALS]
             self.solver = callback(num_particles, num_orbitals,
-                                   self._qubit_mapping.value, self._two_qubit_reduction)
+                                   self._qubit_mapping.value, self._two_qubit_reduction,
+                                   self._z2_symmetries)
 
         aux_operators = aux_operators if self.solver.supports_aux_operators() else None
 
@@ -122,6 +130,36 @@ class MolecularGroundStateEnergy:
         mgse.raw_result = raw_result
 
         return mgse
+
+    @staticmethod
+    def get_default_solver(quantum_instance: Union[QuantumInstance, BaseBackend]) ->\
+            Optional[Callable[[List, int, str, bool, Optional[Z2Symmetries]], MinimumEigensolver]]:
+        """
+        Get the default solver callback that can be used with :meth:`compute_energy`
+        Args:
+            quantum_instance: A Backend/Quantum Instance for the solver to run on
+
+        Returns:
+            Default solver callback
+        """
+        # TODO num_qubits should be removed since they should be updated by VQE when operator is set
+        def cb_default_solver(num_particles, num_orbitals,
+                              qubit_mapping, two_qubit_reduction, z2_symmetries):
+            """ Default solver """
+            sq_list = z2_symmetries.sq_list if z2_symmetries is not None else None
+            initial_state = HartreeFock(2, num_orbitals, num_particles, qubit_mapping,
+                                        two_qubit_reduction, sq_list)
+            var_form = UCCSD(2, depth=1,
+                             num_orbitals=num_orbitals,
+                             num_particles=num_particles,
+                             initial_state=initial_state,
+                             qubit_mapping=qubit_mapping,
+                             two_qubit_reduction=two_qubit_reduction,
+                             z2_symmetries=z2_symmetries)
+            vqe = VQE(var_form=var_form)
+            vqe.quantum_instance = quantum_instance
+            return vqe
+        return cb_default_solver
 
 
 class MolecularGroundStateEnergyResult(AlgorithmResult):
