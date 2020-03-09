@@ -27,11 +27,12 @@ from qiskit.aqua.components.initial_states import VarFormBased
 from qiskit.aqua.components.variational_forms import RYRZ
 from qiskit.aqua.components.optimizers import SPSA
 from qiskit.aqua.algorithms import VQE
-from qiskit.aqua.algorithms import IQPE
+from qiskit.aqua.algorithms import IQPEMinimumEigensolver
 
 
 class TestVQE2IQPE(QiskitAquaTestCase):
     """ Test VQE to IQPE """
+
     def setUp(self):
         super().setUp()
         self.seed = 0
@@ -66,8 +67,9 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         num_iterations = 6
 
         state_in = VarFormBased(var_form, result.optimal_point)
-        iqpe = IQPE(self.qubit_op, state_in, num_time_slices, num_iterations,
-                    expansion_mode='suzuki', expansion_order=2, shallow_circuit_concat=True)
+        iqpe = IQPEMinimumEigensolver(self.qubit_op, state_in, num_time_slices, num_iterations,
+                                      expansion_mode='suzuki', expansion_order=2,
+                                      shallow_circuit_concat=True)
         quantum_instance = QuantumInstance(
             backend, shots=100, seed_transpiler=self.seed, seed_simulator=self.seed
         )
@@ -82,7 +84,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         self.log.debug('ref eigenvalue (transformed): %s',
                        (ref_eigenval + result.translation) * result.stretch)
         self.log.debug('reference binary str label:   %s', decimal_to_binary(
-            (ref_eigenval .real + result.translation) * result.stretch,
+            (ref_eigenval.real + result.translation) * result.stretch,
             max_num_digits=num_iterations + 3,
             fractional_part_only=True
         ))

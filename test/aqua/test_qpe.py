@@ -23,7 +23,7 @@ from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import MatrixOperator, WeightedPauliOperator, op_converter
 from qiskit.aqua.utils import decimal_to_binary
 from qiskit.aqua.algorithms import ClassicalMinimumEigensolver
-from qiskit.aqua.algorithms import QPE
+from qiskit.aqua.algorithms import QPEMinimumEigensolver
 from qiskit.aqua.components.iqfts import Standard
 from qiskit.aqua.components.initial_states import Custom
 
@@ -45,7 +45,6 @@ PAULI_DICT = {
     ]
 }
 QUBIT_OP_H2_WITH_2_QUBIT_REDUCTION = WeightedPauliOperator.from_dict(PAULI_DICT)
-
 
 PAULI_DICT_ZZ = {
     'paulis': [
@@ -80,9 +79,9 @@ class TestQPE(QiskitAquaTestCase):
         state_in = Custom(qubit_op.num_qubits, state_vector=ref_eigenvec)
         iqft = Standard(n_ancillae)
 
-        qpe = QPE(qubit_op, state_in, iqft, num_time_slices, n_ancillae,
-                  expansion_mode='suzuki', expansion_order=2,
-                  shallow_circuit_concat=True)
+        qpe = QPEMinimumEigensolver(qubit_op, state_in, iqft, num_time_slices, n_ancillae,
+                                    expansion_mode='suzuki', expansion_order=2,
+                                    shallow_circuit_concat=True)
 
         backend = BasicAer.get_backend(simulator)
         quantum_instance = QuantumInstance(backend, shots=100)

@@ -20,7 +20,7 @@ import numpy as np
 
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.algorithms import ClassicalMinimumEigensolver, VQE, IQPE
+from qiskit.aqua.algorithms import ClassicalMinimumEigensolver, VQE, IQPEMinimumEigensolver
 from qiskit.aqua.components.optimizers import SLSQP
 from qiskit.aqua.components.variational_forms import RY
 from qiskit.chemistry.applications import MolecularGroundStateEnergy
@@ -79,22 +79,25 @@ class TestAppMGSE(QiskitChemistryTestCase):
 
     def test_mgse_callback_ipqe(self):
         """ Callback test setting up Hartree Fock with IQPE """
+
         def cb_create_solver(num_particles, num_orbitals,
                              qubit_mapping, two_qubit_reduction, z2_symmetries):
             state_in = HartreeFock(2, num_orbitals, num_particles, qubit_mapping,
                                    two_qubit_reduction)
-            iqpe = IQPE(None, state_in, num_time_slices=1, num_iterations=6,
-                        expansion_mode='suzuki', expansion_order=2,
-                        shallow_circuit_concat=True)
+            iqpe = IQPEMinimumEigensolver(None, state_in, num_time_slices=1, num_iterations=6,
+                                          expansion_mode='suzuki', expansion_order=2,
+                                          shallow_circuit_concat=True)
             iqpe.quantum_instance = QuantumInstance(BasicAer.get_backend('qasm_simulator'),
                                                     shots=100)
             return iqpe
+
         mgse = MolecularGroundStateEnergy(self.driver)
         result = mgse.compute_energy(cb_create_solver)
         np.testing.assert_approx_equal(result.energy, self.reference_energy, significant=2)
 
     def test_mgse_callback_vqe_uccsd(self):
         """ Callback test setting up Hartree Fock with UCCSD and VQE """
+
         def cb_create_solver(num_particles, num_orbitals,
                              qubit_mapping, two_qubit_reduction, z2_symmetries):
             sq_list = z2_symmetries.sq_list if z2_symmetries is not None else None
@@ -110,6 +113,7 @@ class TestAppMGSE(QiskitChemistryTestCase):
             vqe = VQE(var_form=var_form, optimizer=SLSQP(maxiter=500))
             vqe.quantum_instance = BasicAer.get_backend('statevector_simulator')
             return vqe
+
         mgse = MolecularGroundStateEnergy(self.driver)
         result = mgse.compute_energy(cb_create_solver)
         self.assertAlmostEqual(result.energy, self.reference_energy, places=5)

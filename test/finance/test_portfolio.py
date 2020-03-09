@@ -72,7 +72,7 @@ class TestPortfolio(QiskitFinanceTestCase):
                                            seed_simulator=self.seed,
                                            seed_transpiler=self.seed)
         result = qaoa.run(quantum_instance)
-        selection = sample_most_likely(result['eigvecs'][0])
+        selection = sample_most_likely(result.eigenstate)
         value = portfolio.portfolio_value(
             selection, self.muu, self.sigma, self.risk, self.budget, self.penalty)
         np.testing.assert_array_equal(selection, [1, 0, 0, 1])

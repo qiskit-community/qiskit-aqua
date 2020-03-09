@@ -18,6 +18,7 @@ See https://arxiv.org/abs/quant-ph/0610214
 
 from typing import Optional, List, Dict
 import logging
+import warnings
 import numpy as np
 
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
@@ -34,10 +35,11 @@ from .qpe import QPEResult
 
 logger = logging.getLogger(__name__)
 
+
 # pylint: disable=invalid-name
 
 
-class IQPE(QuantumAlgorithm, MinimumEigensolver):
+class IQPEMinimumEigensolver(QuantumAlgorithm, MinimumEigensolver):
     """
     The Iterative Quantum Phase Estimation algorithm.
 
@@ -292,6 +294,28 @@ class IQPE(QuantumAlgorithm, MinimumEigensolver):
             result.phase = self._ret['phase']
 
         return result
+
+
+class IQPE(IQPEMinimumEigensolver):
+    """
+    The deprecated Iterative Quantum Phase Estimation algorithm.
+    """
+
+    def __init__(self,
+                 operator: Optional[BaseOperator] = None,
+                 state_in: Optional[InitialState] = None,
+                 num_time_slices: int = 1,
+                 num_iterations: int = 1,
+                 expansion_mode: str = 'suzuki',
+                 expansion_order: int = 2,
+                 shallow_circuit_concat: bool = False) -> None:
+        warnings.warn('Deprecated class {}, use {}.'.format('IQPE',
+                                                            'IQPEMinimumEigenSolver'),
+                      DeprecationWarning)
+        super().__init__(operator, state_in,
+                         num_time_slices, num_iterations,
+                         expansion_mode, expansion_order,
+                         shallow_circuit_concat)
 
 
 class IQPEResult(QPEResult):

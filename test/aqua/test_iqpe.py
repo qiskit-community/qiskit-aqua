@@ -21,11 +21,10 @@ from ddt import ddt, idata, unpack
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.utils import decimal_to_binary
-from qiskit.aqua.algorithms import IQPE
+from qiskit.aqua.algorithms import IQPEMinimumEigensolver
 from qiskit.aqua.algorithms import ClassicalMinimumEigensolver
 from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator, op_converter
 from qiskit.aqua.components.initial_states import Custom
-
 
 X = np.array([[0, 1], [1, 0]])
 Y = np.array([[0, -1j], [1j, 0]])
@@ -34,7 +33,6 @@ _I = np.array([[1, 0], [0, 1]])
 H1 = X + Y + Z + _I
 QUBIT_OP_SIMPLE = MatrixOperator(matrix=H1)
 QUBIT_OP_SIMPLE = op_converter.to_weighted_pauli_operator(QUBIT_OP_SIMPLE)
-
 
 PAULI_DICT = {
     'paulis': [
@@ -46,7 +44,6 @@ PAULI_DICT = {
     ]
 }
 QUBIT_OP_H2_WITH_2_QUBIT_REDUCTION = WeightedPauliOperator.from_dict(PAULI_DICT)
-
 
 PAULI_DICT_ZZ = {
     'paulis': [
@@ -79,8 +76,9 @@ class TestIQPE(QiskitAquaTestCase):
         self.log.debug('The corresponding eigenvector: %s', ref_eigenvec)
 
         state_in = Custom(qubit_op.num_qubits, state_vector=ref_eigenvec)
-        iqpe = IQPE(qubit_op, state_in, num_time_slices, num_iterations,
-                    expansion_mode='suzuki', expansion_order=2, shallow_circuit_concat=True)
+        iqpe = IQPEMinimumEigensolver(qubit_op, state_in, num_time_slices, num_iterations,
+                                      expansion_mode='suzuki', expansion_order=2,
+                                      shallow_circuit_concat=True)
 
         backend = BasicAer.get_backend(simulator)
         quantum_instance = QuantumInstance(backend, shots=100)

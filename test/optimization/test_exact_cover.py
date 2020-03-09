@@ -76,7 +76,7 @@ class TestExactCover(QiskitOptimizationTestCase):
                          QuantumInstance(BasicAer.get_backend('statevector_simulator'),
                                          seed_simulator=aqua_globals.random_seed,
                                          seed_transpiler=aqua_globals.random_seed))
-        x = sample_most_likely(result['eigvecs'][0])
+        x = sample_most_likely(result.eigenstate)
         ising_sol = exact_cover.get_solution(x)
         oracle = self._brute_force()
         self.assertEqual(exact_cover.check_solution_satisfiability(ising_sol, self.list_of_subsets),
