@@ -63,7 +63,7 @@ class TestRYCRX(QiskitAquaTestCase):
                                                      shots=1,
                                                      seed_simulator=aqua_globals.random_seed,
                                                      seed_transpiler=aqua_globals.random_seed))
-        self.assertAlmostEqual(result['energy'], -1.85727503, places=places)
+        self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=places)
 
 
 if __name__ == '__main__':

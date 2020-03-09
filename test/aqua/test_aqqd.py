@@ -50,4 +50,4 @@ class TestAQGD(QiskitAquaTestCase):
                          QuantumInstance(BasicAer.get_backend('statevector_simulator'),
                                          seed_simulator=aqua_globals.random_seed,
                                          seed_transpiler=aqua_globals.random_seed))
-        self.assertAlmostEqual(result['energy'], -1.85727, places=5)
+        self.assertAlmostEqual(result.eigenvalue.real, -1.85727, places=5)

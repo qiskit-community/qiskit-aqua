@@ -21,7 +21,7 @@ import numpy as np
 from qiskit.optimization.ising import set_packing
 from qiskit.optimization.ising.common import sample_most_likely
 from qiskit.aqua import QuantumInstance, aqua_globals
-from qiskit.aqua.algorithms import ExactEigensolver, VQE
+from qiskit.aqua.algorithms import ClassicalMinimumEigensolver, VQE
 from qiskit.aqua.components.optimizers import SPSA
 from qiskit.aqua.components.variational_forms import RY
 
@@ -55,9 +55,9 @@ class TestSetPacking(QiskitOptimizationTestCase):
 
     def test_set_packing(self):
         """ set packing test """
-        algo = ExactEigensolver(self.qubit_op, k=1, aux_operators=[])
+        algo = ClassicalMinimumEigensolver(self.qubit_op, aux_operators=[])
         result = algo.run()
-        x = sample_most_likely(result['eigvecs'][0])
+        x = sample_most_likely(result.eigenstate)
         ising_sol = set_packing.get_solution(x)
         np.testing.assert_array_equal(ising_sol, [0, 1, 1])
         oracle = self._brute_force()

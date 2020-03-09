@@ -49,24 +49,18 @@ class YearChecker:
         year = YearChecker._get_year_from_date(out)
         return year, err
 
-    def _process_file_year(self, file_path, start, follow):
+    def _process_file_last_year(self, file_path):
         file = file_path.replace(self._root_dir, '')
         if file.startswith('/'):
             file = file[1:]
 
-        cmd = ['git', 'log']
-        if follow:
-            cmd.append('--follow')
-
-        cmd.extend(['--format=%aI', '--', file])
-
+        cmd = ['git', 'log', '--format=%aI', '--', file]
         popen_git = subprocess.Popen(cmd,
                                      cwd=self._root_dir,
                                      stdin=subprocess.DEVNULL,
                                      stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE)
-        cmd = ['tail'] if start else ['head']
-        cmd.append('-1')
+        cmd = ['head', '-1']
         popen = subprocess.Popen(cmd,
                                  stdin=popen_git.stdout,
                                  stdout=subprocess.PIPE,
@@ -82,13 +76,9 @@ class YearChecker:
         last_year = None
         errors = []
         try:
-            last_year, err = self._process_file_year(file_path, False, True)
+            last_year, err = self._process_file_last_year(file_path)
             if err:
                 errors.append(err)
-            elif last_year is None:
-                last_year, err = self._process_file_year(file_path, False, False)
-                if err:
-                    errors.append(err)
         except Exception as ex:  # pylint: disable=broad-except
             errors.append("'{}' Last year: {}".format(file_path, str(ex)))
 

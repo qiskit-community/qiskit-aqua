@@ -55,6 +55,7 @@ class TestVQE(QiskitAquaTestCase):
         result = VQE(self.qubit_op,
                      RYRZ(self.qubit_op.num_qubits),
                      L_BFGS_B()).run(
+<<<<<<< HEAD
             QuantumInstance(BasicAer.get_backend('statevector_simulator'),
                             basis_gates=['u1', 'u2', 'u3', 'cx', 'id'],
                             coupling_map=[[0, 1]],
@@ -62,13 +63,22 @@ class TestVQE(QiskitAquaTestCase):
                             seed_transpiler=aqua_globals.random_seed))
         self.assertAlmostEqual(result['energy'], -1.85727503)
         np.testing.assert_array_almost_equal(result['eigvals'], [-1.85727503], 5)
+=======
+                         QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                         basis_gates=['u1', 'u2', 'u3', 'cx', 'id'],
+                                         coupling_map=[[0, 1]],
+                                         seed_simulator=aqua_globals.random_seed,
+                                         seed_transpiler=aqua_globals.random_seed))
+        self.assertAlmostEqual(result.eigenvalue.real, -1.85727503)
+        np.testing.assert_array_almost_equal(result.eigenvalue.real, -1.85727503, 5)
+>>>>>>> ffbd107ea780d71be8392a26725044e6814e60eb
         ref_opt_params = [-0.58294401, -1.86141794, -1.97209632, -0.54796022,
                           -0.46945572, 2.60114794, -1.15637845, 1.40498879,
                           1.14479635, -0.48416694, -0.66608349, -1.1367579,
                           -2.67097002, 3.10214631, 3.10000313, 0.37235089]
-        np.testing.assert_array_almost_equal(result['opt_params'], ref_opt_params, 5)
-        self.assertIn('eval_count', result)
-        self.assertIn('eval_time', result)
+        np.testing.assert_array_almost_equal(result.optimal_point, ref_opt_params, 5)
+        self.assertIsNotNone(result.cost_function_evals)
+        self.assertIsNotNone(result.optimizer_time)
 
     @idata([
         [SLSQP, 5, 4],
@@ -87,7 +97,7 @@ class TestVQE(QiskitAquaTestCase):
                             seed_simulator=aqua_globals.random_seed,
                             seed_transpiler=aqua_globals.random_seed))
 
-        self.assertAlmostEqual(result['energy'], -1.85727503, places=places)
+        self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=places)
 
     @idata([
         [RY, 5],
@@ -99,10 +109,17 @@ class TestVQE(QiskitAquaTestCase):
         result = VQE(self.qubit_op,
                      var_form_cls(self.qubit_op.num_qubits),
                      L_BFGS_B()).run(
+<<<<<<< HEAD
             QuantumInstance(BasicAer.get_backend('statevector_simulator'), shots=1,
                             seed_simulator=aqua_globals.random_seed,
                             seed_transpiler=aqua_globals.random_seed))
         self.assertAlmostEqual(result['energy'], -1.85727503, places=places)
+=======
+                         QuantumInstance(BasicAer.get_backend('statevector_simulator'), shots=1,
+                                         seed_simulator=aqua_globals.random_seed,
+                                         seed_transpiler=aqua_globals.random_seed))
+        self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=places)
+>>>>>>> ffbd107ea780d71be8392a26725044e6814e60eb
 
     def test_vqe_qasm(self):
         """ VQE QASM test """
@@ -115,7 +132,7 @@ class TestVQE(QiskitAquaTestCase):
                                            seed_simulator=self.seed,
                                            seed_transpiler=self.seed)
         result = algo.run(quantum_instance)
-        self.assertAlmostEqual(result['energy'], -1.85727503, places=2)
+        self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=2)
 
     def test_vqe_statevector_snapshot_mode(self):
         """ VQE Aer statevector_simulator snapshot mode test """
@@ -135,7 +152,7 @@ class TestVQE(QiskitAquaTestCase):
                                            seed_simulator=aqua_globals.random_seed,
                                            seed_transpiler=aqua_globals.random_seed)
         result = algo.run(quantum_instance)
-        self.assertAlmostEqual(result['energy'], -1.85727503, places=6)
+        self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=6)
 
     def test_vqe_qasm_snapshot_mode(self):
         """ VQE Aer qasm_simulator snapshot mode test """
@@ -155,7 +172,7 @@ class TestVQE(QiskitAquaTestCase):
                                            seed_simulator=aqua_globals.random_seed,
                                            seed_transpiler=aqua_globals.random_seed)
         result = algo.run(quantum_instance)
-        self.assertAlmostEqual(result['energy'], -1.85727503, places=6)
+        self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=6)
 
     def test_vqe_callback(self):
         """ VQE Callback test """
@@ -210,6 +227,42 @@ class TestVQE(QiskitAquaTestCase):
         finally:
             if is_file_exist:
                 os.remove(self.get_resource_path(tmp_filename))
+
+    def test_vqe_reuse(self):
+        """ Test vqe reuse """
+        vqe = VQE()
+        with self.assertRaises(AquaError):
+            _ = vqe.run()
+
+        num_qubits = self.qubit_op.num_qubits
+        var_form = RY(num_qubits, 3)
+        vqe.var_form = var_form
+        with self.assertRaises(AquaError):
+            _ = vqe.run()
+
+        vqe.operator = self.qubit_op
+        with self.assertRaises(AquaError):
+            _ = vqe.run()
+
+        qinst = QuantumInstance(BasicAer.get_backend('statevector_simulator'))
+        vqe.quantum_instance = qinst
+        result = vqe.run()
+        self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=5)
+
+        operator = MatrixOperator(np.array([[1, 0, 0, 0],
+                                            [0, -1, 0, 0],
+                                            [0, 0, 2, 0],
+                                            [0, 0, 0, 3]]))
+        vqe.operator = operator
+        result = vqe.run()
+        self.assertAlmostEqual(result.eigenvalue.real, -1.0, places=5)
+
+    def test_vqe_mes(self):
+        """ Test vqe minimum eigen solver interface """
+        vqe = VQE(var_form=RY(self.qubit_op.num_qubits, 3), optimizer=COBYLA())
+        vqe.set_backend(BasicAer.get_backend('statevector_simulator'))
+        result = vqe.compute_minimum_eigenvalue(self.qubit_op)
+        self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=5)
 
 
 if __name__ == '__main__':

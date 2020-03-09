@@ -20,7 +20,7 @@ from qiskit import BasicAer
 from qiskit.aqua import aqua_globals, QuantumInstance
 from qiskit.optimization.ising import partition
 from qiskit.optimization.ising.common import read_numbers_from_file, sample_most_likely
-from qiskit.aqua.algorithms import ExactEigensolver, VQE
+from qiskit.aqua.algorithms import ClassicalMinimumEigensolver, VQE
 from qiskit.aqua.components.optimizers import SPSA
 from qiskit.aqua.components.variational_forms import RY
 
@@ -36,9 +36,9 @@ class TestSetPacking(QiskitOptimizationTestCase):
 
     def test_partition(self):
         """ Partition test """
-        algo = ExactEigensolver(self.qubit_op, k=1, aux_operators=[])
+        algo = ClassicalMinimumEigensolver(self.qubit_op, aux_operators=[])
         result = algo.run()
-        x = sample_most_likely(result['eigvecs'][0])
+        x = sample_most_likely(result.eigenstate)
         np.testing.assert_array_equal(x, [0, 1, 0])
 
     def test_partition_vqe(self):

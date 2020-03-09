@@ -21,7 +21,7 @@ from qiskit import BasicAer
 from qiskit.aqua import aqua_globals, QuantumInstance
 from qiskit.optimization.ising import clique
 from qiskit.optimization.ising.common import random_graph, sample_most_likely
-from qiskit.aqua.algorithms import ExactEigensolver, VQE
+from qiskit.aqua.algorithms import ClassicalMinimumEigensolver, VQE
 from qiskit.aqua.components.optimizers import COBYLA
 from qiskit.aqua.components.variational_forms import RY
 
@@ -57,9 +57,9 @@ class TestClique(QiskitOptimizationTestCase):
 
     def test_clique(self):
         """ Clique test """
-        algo = ExactEigensolver(self.qubit_op, k=1, aux_operators=[])
+        algo = ClassicalMinimumEigensolver(self.qubit_op, aux_operators=[])
         result = algo.run()
-        x = sample_most_likely(result['eigvecs'][0])
+        x = sample_most_likely(result.eigenstate)
         ising_sol = clique.get_graph_solution(x)
         np.testing.assert_array_equal(ising_sol, [1, 1, 1, 1, 1])
         oracle = self._brute_force()
@@ -75,7 +75,7 @@ class TestClique(QiskitOptimizationTestCase):
                          QuantumInstance(BasicAer.get_backend('statevector_simulator'),
                                          seed_simulator=aqua_globals.random_seed,
                                          seed_transpiler=aqua_globals.random_seed))
-        x = sample_most_likely(result['eigvecs'][0])
+        x = sample_most_likely(result.eigenstate)
         ising_sol = clique.get_graph_solution(x)
         np.testing.assert_array_equal(ising_sol, [1, 1, 1, 1, 1])
         oracle = self._brute_force()
