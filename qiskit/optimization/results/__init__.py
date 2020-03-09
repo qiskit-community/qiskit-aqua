@@ -13,31 +13,13 @@
 # that they have been altered from the originals.
 
 """
-Grover Optimization (:mod:`qiskit.optimization.grover_optimization`)
+Optimization Results Objects (:mod:`qiskit.optimization.results`)
 ====================================================================
-Grover models for optimization problems
+Results objects for optimization problems
 
-.. currentmodule:: qiskit.optimization.grover_optimization
+.. currentmodule:: qiskit.optimization.results
 
-Grover Models
-=============
-
-.. autosummary::
-   :toctree: ../stubs/
-   :nosignatures:
-
-   grover_minimum_finder
-
-Generators for QUBO Operators and Oracles
-=========================================
-
-.. autosummary::
-   :toctree: ../stubs/
-   :nosignatures:
-
-   optimization_problem_to_negative_value_oracle
-
-Utilities/Results Objects
+Results Objects
 =========================
 
 .. autosummary::
@@ -45,6 +27,7 @@ Utilities/Results Objects
    :nosignatures:
 
    grover_optimization_results
-   portfolio_util
 
 """
+
+from .grover_optimization_results import GroverOptimizationResults

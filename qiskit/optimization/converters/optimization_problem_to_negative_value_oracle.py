@@ -22,8 +22,8 @@ import numpy as np
 class OptimizationProblemToNegativeValueOracle:
 
     def __init__(self, num_output_qubits, verbose=False, backend='statevector_simulator'):
-        """ A helper function that converts a quadratic function into a state preparation operator A (InitialState) and
-            oracle O (CustomCircuitOracle) that recognizes negative numbers.
+        """ A helper function that converts a quadratic function into a state preparation operator A
+            (InitialState) and oracle O (CustomCircuitOracle) that recognizes negative numbers.
             :param num_output_qubits: The number of qubits required to represent the output.
             :param verbose: Verbose flag.
             :param backend: A string corresponding to a valid Qiskit backend.
@@ -31,12 +31,11 @@ class OptimizationProblemToNegativeValueOracle:
         self._num_value = num_output_qubits
         self._verbose = verbose
         self._backend = backend
-        self._largest = 1  # If self.approximate, this value is used to approximate to and from non-integers.
 
     def encode(self, linear_coeff, quadratic_coeff, constant):
-        """ Takes the coefficients and constants of a quadratic function and returns a state preparation operator A
-            (InitialState.Custom) that encodes the function, and an oracle O (Oracle.CustomCircuitOracle) that
-            recognizes negative values.
+        """ Takes the coefficients and constants of a quadratic function and returns a state
+            preparation operator A (InitialState.Custom) that encodes the function, and an oracle O
+            (Oracle.CustomCircuitOracle) that recognizes negative values.
             :param linear_coeff: (n x 1 matrix) The linear coefficients of the function.
             :param quadratic_coeff: (n x n matrix) The quadratic coefficients of the function.
             :param constant: (int) The constant of the function.
@@ -104,13 +103,15 @@ class OptimizationProblemToNegativeValueOracle:
             assignment_dict[v] = bool(v < 0)
         return assignment_dict, assignment
 
+
 class QDictionary:
     """
-        A parent class that defines a Quantum Dictionary, which encodes key-value pairs into the quantum state. See
-        https://arxiv.org/abs/1912.04088 for a formal definition.
+        A parent class that defines a Quantum Dictionary, which encodes key-value pairs into the
+        quantum state. See https://arxiv.org/abs/1912.04088 for a formal definition.
     """
 
-    def __init__(self, key_bits, value_bits, ancilla_bits, f, prepare, backend="statevector_simulator"):
+    def __init__(self, key_bits, value_bits, ancilla_bits, f, prepare,
+                 backend="statevector_simulator"):
         """
             Initializes a Quantum Dictionary.
             :param key_bits: The number of key bits.
@@ -151,7 +152,8 @@ class QQUBODictionary(QDictionary):
     """
 
     def __init__(self, key_bits, value_bits, ancilla_bits, f, backend="statevector_simulator"):
-        QDictionary.__init__(self, key_bits, value_bits, ancilla_bits, f, self.prepare_quadratic, backend=backend)
+        QDictionary.__init__(self, key_bits, value_bits, ancilla_bits, f, self.prepare_quadratic,
+                             backend=backend)
         self._circuit = None
 
     @property
@@ -162,19 +164,21 @@ class QQUBODictionary(QDictionary):
 
     def prepare_quadratic(self, d, circuit, key_val):
         """ Encodes a QUBO in the proper dictionary format into the state of a given register.
-        :param d: (dict) The QUBO problem. The keys should be the subscripts of the coefficients (e.g. x_1 -> 1), with
-            the constant (if present) being represented with a key of -1 (i.e. d[-1] = constant). Quadratic coefficients
-            should use a tuple for the key, with the corresponding subscripts inside (e.g. 2*x_1*x_2 -> d[(1,2)]=2).
+        :param d: (dict) The QUBO problem. The keys should be the subscripts of the coefficients
+            (e.g. x_1 -> 1), with the constant (if present) being represented with a key of -1
+            (i.e. d[-1] = constant). Quadratic coefficients should use a tuple for the key, with the
+            corresponding subscripts inside (e.g. 2*x_1*x_2 -> d[(1,2)]=2).
         :param circuit: The QuantumCircuit to apply the operator to.
-        :param key_val: The QuantumRegister containing the key and value qubits. They are combined here to follow the
-            register format expected by algorithms like Qiskit Aqua's Grover.
+        :param key_val: The QuantumRegister containing the key and value qubits. They are combined
+            here to follow the register format expected by algorithms like Qiskit Aqua's Grover.
         """
         circuit.h(key_val)
 
         # Linear Coefficients
         for i in range(self.value_bits):
             if d.get(-1, 0) != 0:
-                circuit.u1(1/2 ** self.value_bits * 2 * np.pi * 2 ** i * d[-1], key_val[self.key_bits + i])
+                circuit.u1(1/2 ** self.value_bits * 2 * np.pi * 2 ** i * d[-1],
+                           key_val[self.key_bits + i])
             for j in range(self.key_bits):
                 if d.get(j, 0) != 0:
                     circuit.cu1(1/2 ** self.value_bits * 2 * np.pi * 2 ** i * d[j], key_val[j],
@@ -184,8 +188,8 @@ class QQUBODictionary(QDictionary):
         for i in range(self.value_bits):
             for k, v in d.items():
                 if isinstance(k, tuple):
-                    circuit.mcu1(1/2 ** self.value_bits * 2 * np.pi * 2 ** i * v, [key_val[k[0]], key_val[k[1]]],
-                                 key_val[self.key_bits + i])
+                    circuit.mcu1(1/2 ** self.value_bits * 2 * np.pi * 2 ** i * v,
+                                 [key_val[k[0]], key_val[k[1]]],  key_val[self.key_bits + i])
 
         iqft = IQFT(self.value_bits)
         value = [key_val[v] for v in range(self.key_bits, self.key_bits + self.value_bits)]

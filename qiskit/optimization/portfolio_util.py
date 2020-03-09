@@ -22,7 +22,8 @@ def get_mu_sigma(num_assets):
         :returns mu (linear coefficients, nx1 matrix) and sigma (quadratic coefficients, nxn matrix)
     """
     stocks = [("TICKER%s" % i) for i in range(num_assets)]
-    data = RandomDataProvider(tickers=stocks, start=datetime.datetime(2020, 1, 1), end=datetime.datetime(2020, 1, 30))
+    data = RandomDataProvider(tickers=stocks, start=datetime.datetime(2020, 1, 1),
+                              end=datetime.datetime(2020, 1, 30))
     data.run()
     mu = data.get_period_return_mean_vector()
     sigma = data.get_period_return_covariance_matrix()
@@ -32,8 +33,8 @@ def get_mu_sigma(num_assets):
 
 def get_qubo_solutions(f, n_key, print_solutions=False):
     """ Calculates all of the outputs of a QUBO function representable by n key qubits.
-        :param f: A dictionary representation of the function, where the keys correspond to a variable, and the
-            values are the corresponding coefficients.
+        :param f: A dictionary representation of the function, where the keys correspond to a
+            variable, and the values are the corresponding coefficients.
         :param n_key: The number of key qubits.
         :param print_solutions: If true, the solutions will be formatted and printed.
         :return: A dictionary of the inputs (keys) and outputs (values) of the QUBO function.

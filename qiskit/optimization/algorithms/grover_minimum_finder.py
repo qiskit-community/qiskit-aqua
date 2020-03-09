@@ -12,9 +12,9 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from qiskit.optimization.grover_optimization.optimization_problem_to_negative_value_oracle import OptimizationProblemToNegativeValueOracle
-from qiskit.optimization.grover_optimization.grover_optimization_results import GroverOptimizationResults
-from qiskit.optimization.grover_optimization.portfolio_util import get_qubo_solutions
+from qiskit.optimization.converters import OptimizationProblemToNegativeValueOracle
+from qiskit.optimization.results import GroverOptimizationResults
+from qiskit.optimization.portfolio_util import get_qubo_solutions
 
 from qiskit.aqua.algorithms.amplitude_amplifiers.grover import Grover
 from qiskit.visualization import plot_histogram
@@ -26,9 +26,11 @@ import math
 
 class GroverMinimumFinder:
 
-    def __init__(self, num_iterations=3, backend=Aer.get_backend('statevector_simulator'), verbose=False):
+    def __init__(self, num_iterations=3, backend=Aer.get_backend('statevector_simulator'),
+                 verbose=False):
         """ Initializes a GroverMinimumFinder optimizer.
-            :param num_iterations: The number of iterations the algorithm will search with no improvement.
+            :param num_iterations: The number of iterations the algorithm will search with no
+                improvement.
             :param backend: A valid backend object. Default statevector_simulator.
             :param verbose: Verbose flag - prints and plots state at each iteration of GAS.
         """
@@ -42,7 +44,8 @@ class GroverMinimumFinder:
             :param linear: (nx1 matrix) The linear coefficients of the QUBO.
             :param constant: (int) The constant of the QUBO.
             :param num_output_qubits: The number of qubits used to represent the output values.
-            :return: A GroverOptimizationResults object containing information about the run, including the solution.
+            :return: A GroverOptimizationResults object containing information about the run,
+                including the solution.
         """
         # Variables for tracking the optimum.
         optimum_found = False
@@ -66,7 +69,8 @@ class GroverMinimumFinder:
         max_rotations = np.ceil(2 ** (n_key / 2))
 
         # Initialize oracle helper object.
-        opt_prob_converter = OptimizationProblemToNegativeValueOracle(n_value, verbose=self._verbose,
+        opt_prob_converter = OptimizationProblemToNegativeValueOracle(n_value,
+                                                                      verbose=self._verbose,
                                                                       backend=self._backend)
 
         while not optimum_found:
@@ -82,17 +86,20 @@ class GroverMinimumFinder:
                 rotations += rotation_count
 
                 # Get state preparation operator A and oracle O for the current threshold.
-                a_operator, oracle, f = opt_prob_converter.encode(linear, quadratic, constant - threshold)
+                a_operator, oracle, f = opt_prob_converter.encode(linear, quadratic,
+                                                                  constant - threshold)
 
                 # Apply Grover's Algorithm to find values below the threshold.
                 if rotation_count > 0:
                     grover = Grover(oracle, init_state=a_operator, num_iterations=rotation_count)
-                    circuit = grover.construct_circuit(measurement=self._backend.name() != "statevector_simulator")
+                    circuit = grover.construct_circuit(
+                        measurement=self._backend.name() != "statevector_simulator")
                 else:
                     circuit = a_operator._circuit
 
                 # Get the next outcome.
-                outcome = self.__measure(circuit, n_key, n_value, self._backend, verbose=self._verbose)
+                outcome = self.__measure(circuit, n_key, n_value, self._backend,
+                                         verbose=self._verbose)
                 k = int(outcome[0:n_key], 2)
                 v = outcome[n_key:n_key + n_value]
 
@@ -116,7 +123,7 @@ class GroverMinimumFinder:
                         improvement_found = True
                         threshold = optimum_value
                 else:
-                    # If we haven't found a better number after an iterative threshold, we've found the optimal value.
+                    # If we haven't found a better number after n iter, we've found the optimal.
                     if loops_with_no_improvement >= self._n_iterations:
                         improvement_found = True
                         optimum_found = True
@@ -168,7 +175,8 @@ class GroverMinimumFinder:
             print("Frequencies:", freq)
             outcomes = {}
             for label in probs:
-                key = str(int(label[:n_key], 2)) + " -> " + str(self.__bin_to_int(label[n_key:n_key + n_value], n_value))
+                key = str(int(label[:n_key], 2)) + " -> " +\
+                      str(self.__bin_to_int(label[n_key:n_key + n_value], n_value))
                 outcomes[key] = probs[label]
             plot_histogram(outcomes).show()
 
@@ -184,17 +192,20 @@ class GroverMinimumFinder:
         result = job.result()
         if backend.name() == 'statevector_simulator':
             state = np.round(result.get_statevector(qc), 5)
-            keys = [bin(i)[2::].rjust(int(np.log2(len(state))), '0')[::-1] for i in range(0, len(state))]
+            keys = [bin(i)[2::].rjust(int(np.log2(len(state))), '0')[::-1]
+                    for i in range(0, len(state))]
             probs = [np.round(abs(a)*abs(a), 5) for a in state]
             f_hist = dict(zip(keys, probs))
             hist = {}
             for key in f_hist:
-                hist[key[:n_key] + key[n_key:n_key+n_value][::-1] + key[n_key+n_value:]] = f_hist[key]
+                new_key = key[:n_key] + key[n_key:n_key+n_value][::-1] + key[n_key+n_value:]
+                hist[new_key] = f_hist[key]
         else:
             state = result.get_counts(qc)
             hist = {}
             for key in state:
-                hist[key[:n_key] + key[n_key:n_key+n_value][::-1] + key[n_key+n_value:]] = state[key] / shots
+                hist[key[:n_key] + key[n_key:n_key+n_value][::-1] + key[n_key+n_value:]] = \
+                    state[key] / shots
         hist = dict(filter(lambda p: p[1] > 0, hist.items()))
 
         return hist

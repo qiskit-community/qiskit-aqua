@@ -15,8 +15,8 @@
 """ Test Optimization Problem to Negative Value Oracle """
 
 from test.optimization import QiskitOptimizationTestCase
-from qiskit.optimization.grover_optimization.optimization_problem_to_negative_value_oracle import OptimizationProblemToNegativeValueOracle
-from qiskit.optimization.grover_optimization.portfolio_util import get_qubo_solutions
+from qiskit.optimization.converters import OptimizationProblemToNegativeValueOracle
+from qiskit.optimization.portfolio_util import get_qubo_solutions
 from qiskit import QuantumCircuit, Aer, execute
 import numpy as np
 
@@ -53,7 +53,8 @@ class TestOptimizationProblemToNegativeValueOracle(QiskitOptimizationTestCase):
         job = execute(qc, backend=backend, shots=1)
         result = job.result()
         state = np.round(result.get_statevector(qc), 5)
-        keys = [bin(i)[2::].rjust(int(np.log2(len(state))), '0')[::-1] for i in range(0, len(state))]
+        keys = [bin(i)[2::].rjust(int(np.log2(len(state))), '0')[::-1]
+                for i in range(0, len(state))]
         probs = [np.round(abs(a)*abs(a), 5) for a in state]
         f_hist = dict(zip(keys, probs))
         hist = {}
@@ -109,7 +110,7 @@ class TestOptimizationProblemToNegativeValueOracle(QiskitOptimizationTestCase):
         self._validate_operator(f, len(linear), num_value, a_operator)
 
     def test_optnvo_4_key_all_negative(self):
-        """ Test with 4 negative linear coefficients, negative quadratic coeffs, and a negative constant """
+        """ Test with all negative values """
         # Circuit parameters.
         num_value = 5
 

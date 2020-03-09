@@ -25,6 +25,7 @@ Changed
 -   Refactor Multiclass Extensions to set Estimator internally (#822)
 -   Refactor algorithms (#831)
 -   Moved to Terra: multi-controlled Toffoli, U1 and Pauli rotation gates (including tests) (#833)
+-   Add Grover Optimization to the Optimization Stack (#847)
 
 [0.6.4](https://github.com/Qiskit/qiskit-aqua/compare/0.6.3...0.6.4) - 2020-02-06
 =================================================================================
