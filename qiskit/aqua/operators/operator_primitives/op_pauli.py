@@ -20,6 +20,7 @@ from qiskit import QuantumCircuit
 from qiskit.circuit import Instruction
 from qiskit.quantum_info import Pauli
 from qiskit.quantum_info import Operator as MatrixOperator
+from qiskit.extensions.standard import RZGate, RYGate, RXGate
 
 from . import OpPrimitive
 from ..operator_combos import OpSum, OpComposition, OpKron
@@ -258,3 +259,30 @@ class OpPauli(OpPrimitive):
             return back.eval(new_front)
         else:
             return new_front
+
+    def exp_i(self):
+        # if only one qubit is significant, we can perform the evolution
+        corrected_x = self.primitive.x[::-1]
+        corrected_z = self.primitive.z[::-1]
+
+        sig_qubits = np.logical_or(corrected_x, corrected_z)
+        if np.sum(sig_qubits) == 0:
+            return self
+        if np.sum(sig_qubits) == 1:
+            sig_qubit_index = sig_qubits.tolist().index(True)
+            # Y rotation
+            if corrected_x[sig_qubit_index] and corrected_z[sig_qubit_index]:
+                rot_op = OpPrimitive(RYGate(self.coeff))
+            elif corrected_z[sig_qubit_index]:
+                rot_op = OpPrimitive(RZGate(self.coeff))
+            elif corrected_x[sig_qubit_index]:
+                rot_op = OpPrimitive(RXGate(self.coeff))
+
+            from .. import I
+            left_pad = I.kronpower(sig_qubit_index)
+            right_pad = I.kronpower(self.num_qubits - sig_qubit_index - 1)
+            # Need to use overloaded operators here in case left_pad == I^0
+            return left_pad^rot_op^right_pad
+        else:
+            from qiskit.aqua.operators import OpEvolution
+            return OpEvolution(self)
