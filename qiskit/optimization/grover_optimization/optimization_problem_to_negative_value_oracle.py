@@ -38,7 +38,7 @@ class OptimizationProblemToNegativeValueOracle:
             (InitialState.Custom) that encodes the function, and an oracle O (Oracle.CustomCircuitOracle) that
             recognizes negative values.
             :param linear_coeff: (n x 1 matrix) The linear coefficients of the function.
-            :param quadratic_coeff: (n x n matrix) The quadratic coefficients of the function..
+            :param quadratic_coeff: (n x n matrix) The quadratic coefficients of the function.
             :param constant: (int) The constant of the function.
         """
         # Get circuit requirements from input.
@@ -88,6 +88,7 @@ class OptimizationProblemToNegativeValueOracle:
 
     @staticmethod
     def __cxzxz(circuit, ctrl, tgt):
+        """Multiplies by -1."""
         circuit.cx(ctrl, tgt)
         circuit.cz(ctrl, tgt)
         circuit.cx(ctrl, tgt)

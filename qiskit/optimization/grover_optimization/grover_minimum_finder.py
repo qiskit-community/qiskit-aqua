@@ -27,8 +27,7 @@ import math
 class GroverMinimumFinder:
 
     def __init__(self, num_iterations=3, backend=Aer.get_backend('statevector_simulator'), verbose=False):
-        """
-            Initializes a GroverMinimumFinder optimizer.
+        """ Initializes a GroverMinimumFinder optimizer.
             :param num_iterations: The number of iterations the algorithm will search with no improvement.
             :param backend: A valid backend object. Default statevector_simulator.
             :param verbose: Verbose flag - prints and plots state at each iteration of GAS.
@@ -38,6 +37,13 @@ class GroverMinimumFinder:
         self._backend = backend
 
     def solve(self, quadratic, linear, constant, num_output_qubits):
+        """ Given the coefficients and constants of a QUBO function, find the minimum output value.
+            :param quadratic: (nxn matrix) The quadratic coefficients of the QUBO.
+            :param linear: (nx1 matrix) The linear coefficients of the QUBO.
+            :param constant: (int) The constant of the QUBO.
+            :param num_output_qubits: The number of qubits used to represent the output values.
+            :return: A GroverOptimizationResults object containing information about the run, including the solution.
+        """
         # Variables for tracking the optimum.
         optimum_found = False
         optimum_key = math.inf
@@ -151,7 +157,7 @@ class GroverMinimumFinder:
                                          rotations, n_key, n_value, f)
 
     def __measure(self, circuit, n_key, n_value, backend, shots=1024, verbose=False):
-        # Get probabilities from the given backend.
+        """Get probabilities from the given backend, and picks a random outcome."""
         probs = self.__get_probs(n_key, n_value, circuit, backend, shots)
         freq = sorted(probs.items(), key=lambda x: x[1], reverse=True)
 
@@ -170,6 +176,7 @@ class GroverMinimumFinder:
 
     @staticmethod
     def __get_probs(n_key, n_value, qc, backend, shots):
+        """Gets probabilities from a given backend."""
         from qiskit import execute
 
         # Execute job and filter results.
@@ -194,6 +201,7 @@ class GroverMinimumFinder:
 
     @staticmethod
     def __twos_complement(v, n_bits):
+        """Converts an integer into a binary string of n bits using two's complement."""
         assert -2**n_bits <= v < 2**n_bits
 
         if v < 0:
@@ -207,6 +215,7 @@ class GroverMinimumFinder:
 
     @staticmethod
     def __bin_to_int(v, num_value_bits):
+        """Converts a binary string of n bits using two's complement to an integer."""
         if v.startswith("1"):
             int_v = int(v, 2) - 2 ** num_value_bits
         else:

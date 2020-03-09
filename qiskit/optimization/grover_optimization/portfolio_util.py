@@ -17,7 +17,10 @@ import datetime
 
 
 def get_mu_sigma(num_assets):
-    # Generate expected return and covariance matrix from (random) time-series
+    """ Generate expected return and covariance matrix from (random) time-series.
+        :param num_assets: The number of assets to generate values for.
+        :returns mu (linear coefficients, nx1 matrix) and sigma (quadratic coefficients, nxn matrix)
+    """
     stocks = [("TICKER%s" % i) for i in range(num_assets)]
     data = RandomDataProvider(tickers=stocks, start=datetime.datetime(2020, 1, 1), end=datetime.datetime(2020, 1, 30))
     data.run()
@@ -28,6 +31,13 @@ def get_mu_sigma(num_assets):
 
 
 def get_qubo_solutions(f, n_key, print_solutions=False):
+    """ Calculates all of the outputs of a QUBO function representable by n key qubits.
+        :param f: A dictionary representation of the function, where the keys correspond to a variable, and the
+            values are the corresponding coefficients.
+        :param n_key: The number of key qubits.
+        :param print_solutions: If true, the solutions will be formatted and printed.
+        :return: A dictionary of the inputs (keys) and outputs (values) of the QUBO function.
+    """
     # Determine constant.
     constant = 0
     if -1 in f:

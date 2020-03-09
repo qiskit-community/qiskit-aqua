@@ -45,6 +45,7 @@ class TestGroverMinimumFinder(QiskitOptimizationTestCase):
         self.assertTrue(min_value == op_value or max_rotations == rot)
 
     def test_qubo_gas_int_zero(self):
+        """ Test for when the answer is zero. """
         # Circuit parameters.
         num_value = 4
 
@@ -61,6 +62,7 @@ class TestGroverMinimumFinder(QiskitOptimizationTestCase):
         self.assertEqual(int(results.optimum_output), 0)
 
     def test_qubo_gas_int_simple(self):
+        """ Test for simple case, with 2 linear coeffs and no quadratic coeffs or constants. """
         # Circuit parameters.
         num_value = 4
 
@@ -77,6 +79,7 @@ class TestGroverMinimumFinder(QiskitOptimizationTestCase):
         self.validate_results(results)
 
     def test_qubo_gas_int_simple_pos_constant(self):
+        """ Test for a positive constant. """
         # Circuit parameters.
         num_value = 4
 
@@ -94,6 +97,7 @@ class TestGroverMinimumFinder(QiskitOptimizationTestCase):
         self.validate_results(results)
 
     def test_qubo_gas_int_simple_neg_constant(self):
+        """ Test for a negative constant. """
         # Circuit parameters.
         num_value = 4
 
@@ -111,6 +115,7 @@ class TestGroverMinimumFinder(QiskitOptimizationTestCase):
         self.validate_results(results)
 
     def test_qubo_gas_int_paper_example(self):
+        """ Test the example from https://arxiv.org/abs/1912.04088. """
         # Circuit parameters.
         num_value = 5
 
@@ -123,6 +128,6 @@ class TestGroverMinimumFinder(QiskitOptimizationTestCase):
         sigma = sigma.dot(q)
 
         # Get the optimum key and value.
-        gmf = GroverMinimumFinder(num_iterations=8, verbose=verbose)
+        gmf = GroverMinimumFinder(num_iterations=10, verbose=verbose)
         results = gmf.solve(sigma, mu, 0, num_value)
         self.validate_results(results)

@@ -73,6 +73,7 @@ class TestOptimizationProblemToNegativeValueOracle(QiskitOptimizationTestCase):
         return int_v
 
     def test_optnvo_2_key(self):
+        """ Test with 2 linear coefficients, no quadratic or constant. """
         # Circuit parameters.
         num_value = 4
 
@@ -90,6 +91,7 @@ class TestOptimizationProblemToNegativeValueOracle(QiskitOptimizationTestCase):
         self._validate_operator(f, len(linear), num_value, a_operator)
 
     def test_optnvo_2_key_w_constant(self):
+        """ Test with 2 linear coefficients, no quadratic, simple constant. """
         # Circuit parameters.
         num_value = 4
 
@@ -107,6 +109,7 @@ class TestOptimizationProblemToNegativeValueOracle(QiskitOptimizationTestCase):
         self._validate_operator(f, len(linear), num_value, a_operator)
 
     def test_optnvo_4_key_all_negative(self):
+        """ Test with 4 negative linear coefficients, negative quadratic coeffs, and a negative constant. """
         # Circuit parameters.
         num_value = 5
 
@@ -126,6 +129,7 @@ class TestOptimizationProblemToNegativeValueOracle(QiskitOptimizationTestCase):
         self._validate_operator(f, len(linear), num_value, a_operator)
 
     def test_optnvo_6_key(self):
+        """ Test with 6 linear coefficients, negative quadratics, no constant. """
         # Circuit parameters.
         num_value = 4
 
