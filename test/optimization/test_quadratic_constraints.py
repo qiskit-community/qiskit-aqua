@@ -63,24 +63,20 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
         self.assertTupleEqual(q[0].ind2, (0, 1))
         self.assertTupleEqual(q[0].val, (1.0, -1.0))
 
-    def test_initial3(self):
+    def test_delete(self):
         op = OptimizationProblem()
-        op.linear_constraints.add(names=[str(i) for i in range(10)])
-        self.assertEqual(op.linear_constraints.get_num(), 10)
-        op.linear_constraints.delete(8)
-        self.assertEqual(len(op.linear_constraints.get_names()), 9)
-        self.assertEqual(op.linear_constraints.get_names()[0], '0')
-        # ['0', '1', '2', '3', '4', '5', '6', '7', '9']
-        op.linear_constraints.delete("1", 3)
-        self.assertEqual(len(op.linear_constraints.get_names()), 6)
-        # ['0', '4', '5', '6', '7', '9']
-        op.linear_constraints.delete([2, "0", 5])
-        self.assertEqual(len(op.linear_constraints.get_names()), 3)
-        self.assertEqual(op.linear_constraints.get_names()[0], '4')
-        # ['4', '6', '7']
-        op.linear_constraints.delete()
-        self.assertEqual(len(op.linear_constraints.get_names()), 0)
-        # []
+        q0 = [op.quadratic_constraints.add(name=str(i)) for i in range(10)]
+        self.assertListEqual(q0, list(range(10)))
+        q = op.quadratic_constraints
+        self.assertListEqual(q.get_names(), ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'])
+        q.delete(8)
+        self.assertListEqual(q.get_names(), ['0', '1', '2', '3', '4', '5', '6', '7', '9'])
+        q.delete("1", 3)
+        self.assertListEqual(q.get_names(), ['0', '4', '5', '6', '7', '9'])
+        q.delete([2, "0", 5])
+        self.assertListEqual(q.get_names(), ['4', '6', '7'])
+        q.delete()
+        self.assertListEqual(q.get_names(), [])
 
     def test_rhs1(self):
         op = OptimizationProblem()

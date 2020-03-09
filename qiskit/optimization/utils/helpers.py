@@ -96,14 +96,12 @@ class NameIndex:
         return self._dict
 
     def build(self, names: List[str]):
-        self._dict = {i: e for i, e in enumerate(names)}
+        self._dict = {e: i for i, e in enumerate(names)}
 
     def convert(self, names: Union[str, int, Sequence[Union[str, int]]]) -> Union[int, List[int]]:
         if isinstance(names, str):
             return self._convert_str(names)
         elif isinstance(names, int):
-            if names not in self._dict:
-                raise QiskitOptimizationError('Invalid index: {}'.format(names))
             return names
         elif isinstance(names, Sequence):
             return self._convert_seq(names)
@@ -117,13 +115,6 @@ class NameIndex:
 
     def _convert_seq(self, names: Sequence[str]) -> List[int]:
         return [self._convert_str(e) if isinstance(e, str) else e for e in names]
-
-    def delete(self, names: Union[str, List[str]]):
-        if isinstance(names, str):
-            del self._dict[names]
-        elif isinstance(names, Sequence):
-            for name in names:
-                del self._dict[name]
 
     def __contains__(self, item: str) -> bool:
         return item in self._dict

@@ -233,7 +233,9 @@ class QuadraticConstraintInterface(BaseInterface):
                 keys = [keys]
         elif len(args) == 2:
             # begin and end of a range
-            keys = self._name_index.convert(range(*args))
+            begin = self._name_index.convert(args[0])
+            end = self._name_index.convert(args[1]) + 1
+            keys = range(begin, end)
         else:
             raise QiskitOptimizationError('Invalid arguments: {}'.format(args))
 
