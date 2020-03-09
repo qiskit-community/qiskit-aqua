@@ -170,3 +170,6 @@ class OpMatrix(OpPrimitive):
             return back.eval(new_front)
         else:
             return new_front
+
+    def to_simulation_instruction(self):
+        return OpPrimitive(self.primitive.to_instruction(), coeff=self.coeff)

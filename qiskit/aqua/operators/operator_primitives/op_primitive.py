@@ -135,6 +135,11 @@ class OpPrimitive(OperatorBase):
             temp = temp.compose(self)
         return temp
 
+    def exp_i(self):
+        """ Raise Operator to power e ^ (i * op)"""
+        from qiskit.aqua.operators import OpEvolution
+        return OpEvolution(self)
+
     # def to_matrix(self, massive=False):
     #     raise NotImplementedError
 
