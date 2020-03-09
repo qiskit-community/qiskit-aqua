@@ -226,19 +226,10 @@ class QuadraticConstraintInterface(BaseInterface):
             self._quad_expr = []
             self._name_index = NameIndex()
             return
-        elif len(args) == 1:
-            # one item or sequence
-            keys = self._name_index.convert(args[0])
-            if isinstance(keys, int):
-                keys = [keys]
-        elif len(args) == 2:
-            # begin and end of a range
-            begin = self._name_index.convert(args[0])
-            end = self._name_index.convert(args[1]) + 1
-            keys = range(begin, end)
-        else:
-            raise QiskitOptimizationError('Invalid arguments: {}'.format(args))
 
+        keys = self._name_index.convert(*args)
+        if isinstance(keys, int):
+            keys = [keys]
         for i in sorted(keys, reverse=True):
             del self._rhs[i]
             del self._senses[i]
@@ -292,15 +283,7 @@ class QuadraticConstraintInterface(BaseInterface):
         """
         if len(args) == 0:
             return self._rhs
-        elif len(args) == 1:
-            keys = self._name_index.convert(args[0])
-        elif len(args) == 2:
-            # begin and end of a range
-            begin = self._name_index.convert(args[0])
-            end = self._name_index.convert(args[1]) + 1
-            keys = range(begin, end)
-        else:
-            raise QiskitOptimizationError('Invalid arguments: {}'.format(args))
+        keys = self._name_index.convert(*args)
         if isinstance(keys, int):
             return self._rhs[keys]
         return [self._rhs[k] for k in keys]
@@ -349,15 +332,7 @@ class QuadraticConstraintInterface(BaseInterface):
         """
         if len(args) == 0:
             return self._senses
-        elif len(args) == 1:
-            keys = self._name_index.convert(args[0])
-        elif len(args) == 2:
-            # begin and end of a range
-            begin = self._name_index.convert(args[0])
-            end = self._name_index.convert(args[1]) + 1
-            keys = range(begin, end)
-        else:
-            raise QiskitOptimizationError('Invalid arguments: {}'.format(args))
+        keys = self._name_index.convert(*args)
         if isinstance(keys, int):
             return self._senses[keys]
         return [self._senses[k] for k in keys]
@@ -411,17 +386,7 @@ class QuadraticConstraintInterface(BaseInterface):
         def _nonzero(tab: Dict[int, float]) -> int:
             return len([0 for v in tab.values() if v != 0.0])
 
-        if len(args) == 0:
-            keys = range(self.get_num())
-        elif len(args) == 1:
-            keys = self._name_index.convert(args[0])
-        elif len(args) == 2:
-            # begin and end of a range
-            begin = self._name_index.convert(args[0])
-            end = self._name_index.convert(args[1]) + 1
-            keys = range(begin, end)
-        else:
-            raise QiskitOptimizationError('Invalid arguments: {}'.format(args))
+        keys = self._name_index.convert(*args)
         if isinstance(keys, int):
             return _nonzero(self._lin_expr[keys])
         return [_nonzero(self._lin_expr[k]) for k in keys]
@@ -478,17 +443,7 @@ class QuadraticConstraintInterface(BaseInterface):
         def _linear_component(tab: Dict[int, float]) -> SparsePair:
             return SparsePair(ind=tuple(tab.keys()), val=tuple(tab.values()))
 
-        if len(args) == 0:
-            keys = range(self.get_num())
-        elif len(args) == 1:
-            keys = self._name_index.convert(args[0])
-        elif len(args) == 2:
-            # begin and end of a range
-            begin = self._name_index.convert(args[0])
-            end = self._name_index.convert(args[1]) + 1
-            keys = range(begin, end)
-        else:
-            raise QiskitOptimizationError('Invalid arguments: {}'.format(args))
+        keys = self._name_index.convert(*args)
         if isinstance(keys, int):
             return _linear_component(self._lin_expr[keys])
         return [_linear_component(self._lin_expr[k]) for k in keys]
@@ -542,17 +497,7 @@ class QuadraticConstraintInterface(BaseInterface):
         def _nonzero(tab: Dict[Tuple[int, int], float]) -> int:
             return len([0 for v in tab.values() if v != 0.0])
 
-        if len(args) == 0:
-            keys = range(self.get_num())
-        elif len(args) == 1:
-            keys = self._name_index.convert(args[0])
-        elif len(args) == 2:
-            # begin and end of a range
-            begin = self._name_index.convert(args[0])
-            end = self._name_index.convert(args[1]) + 1
-            keys = range(begin, end)
-        else:
-            raise QiskitOptimizationError('Invalid arguments: {}'.format(args))
+        keys = self._name_index.convert(*args)
         if isinstance(keys, int):
             return _nonzero(self._quad_expr[keys])
         return [_nonzero(self._quad_expr[k]) for k in keys]
@@ -608,17 +553,7 @@ class QuadraticConstraintInterface(BaseInterface):
             ind1, ind2 = zip(*tab.keys())
             return SparseTriple(ind1=ind1, ind2=ind2, val=tuple(tab.values()))
 
-        if len(args) == 0:
-            keys = range(self.get_num())
-        elif len(args) == 1:
-            keys = self._name_index.convert(args[0])
-        elif len(args) == 2:
-            # begin and end of a range
-            begin = self._name_index.convert(args[0])
-            end = self._name_index.convert(args[1]) + 1
-            keys = range(begin, end)
-        else:
-            raise QiskitOptimizationError('Invalid arguments: {}'.format(args))
+        keys = self._name_index.convert(*args)
         if isinstance(keys, int):
             return _quadratic_component(self._quad_expr[keys])
         return [_quadratic_component(self._quad_expr[k]) for k in keys]
@@ -668,15 +603,7 @@ class QuadraticConstraintInterface(BaseInterface):
         """
         if len(args) == 0:
             return self._names
-        elif len(args) == 1:
-            keys = self._name_index.convert(args[0])
-        elif len(args) == 2:
-            # begin and end of a range
-            begin = self._name_index.convert(args[0])
-            end = self._name_index.convert(args[1]) + 1
-            keys = range(begin, end)
-        else:
-            raise QiskitOptimizationError('Invalid arguments: {}'.format(args))
+        keys = self._name_index.convert(*args)
         if isinstance(keys, int):
             return self._names[keys]
         return [self._names[k] for k in keys]

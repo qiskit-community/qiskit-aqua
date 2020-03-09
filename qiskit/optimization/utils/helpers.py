@@ -95,29 +95,38 @@ class NameIndex:
     def to_dict(self) -> Dict[str, int]:
         return self._dict
 
+    def __contains__(self, item: str) -> bool:
+        return item in self._dict
+
     def build(self, names: List[str]):
         self._dict = {e: i for i, e in enumerate(names)}
 
-    def convert(self, names: Union[str, int, Sequence[Union[str, int]]]) -> Union[int, List[int]]:
-        if isinstance(names, str):
-            return self._convert_str(names)
-        elif isinstance(names, int):
-            return names
-        elif isinstance(names, Sequence):
-            return self._convert_seq(names)
+    def _convert_one(self, arg: Union[str, int]) -> int:
+        if isinstance(arg, int):
+            return arg
+        if not isinstance(arg, str):
+            raise QiskitOptimizationError('Invalid argument" {}'.format(arg))
+        if arg not in self._dict:
+            self._dict[arg] = len(self._dict)
+        return self._dict[arg]
+
+    def convert(self, *args) -> Union[int, List[int]]:
+        if len(args) == 0:
+            return list(self._dict.values())
+        elif len(args) == 1:
+            a0 = args[0]
+            if isinstance(a0, (int, str)):
+                return self._convert_one(a0)
+            elif isinstance(a0, Sequence):
+                return [self._convert_one(e) for e in a0]
+            else:
+                raise QiskitOptimizationError('Invalid argument: {}'.format(args))
+        elif len(args) == 2:
+            begin = self._convert_one(args[0])
+            end = self._convert_one(args[1]) + 1
+            return list(range(begin, end))
         else:
-            raise QiskitOptimizationError('Invalid argument: {}'.format(names))
-
-    def _convert_str(self, name: str) -> int:
-        if name not in self._dict:
-            self._dict[name] = len(self._dict)
-        return self._dict[name]
-
-    def _convert_seq(self, names: Sequence[str]) -> List[int]:
-        return [self._convert_str(e) if isinstance(e, str) else e for e in names]
-
-    def __contains__(self, item: str) -> bool:
-        return item in self._dict
+            raise QiskitOptimizationError('Invalid arguments: {}'.format(args))
 
 
 def init_list_args(*args):
