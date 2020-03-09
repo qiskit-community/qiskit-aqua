@@ -69,7 +69,8 @@ class OptimizationProblemToNegativeValueOracle:
         oracle = CustomCircuitOracle(variable_register=key_val,
                                      output_register=oracle_bit,
                                      ancillary_register=anc,
-                                     circuit=oracle_circuit)
+                                     circuit=oracle_circuit,
+                                     evaluate_classically_callback=self.__evaluate_classically)
 
         return a_operator, oracle, f
 
@@ -94,6 +95,14 @@ class OptimizationProblemToNegativeValueOracle:
         circuit.cx(ctrl, tgt)
         circuit.cz(ctrl, tgt)
 
+    def __evaluate_classically(self, measurement):
+        """ evaluate classical """
+        assignment = [(var + 1) * (int(tf) * 2 - 1) for tf, var in zip(measurement[::-1],
+                                                                       range(len(measurement)))]
+        assignment_dict = dict()
+        for v in assignment:
+            assignment_dict[v] = bool(v < 0)
+        return assignment_dict, assignment
 
 class QDictionary:
     """
