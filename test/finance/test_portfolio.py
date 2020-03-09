@@ -22,7 +22,7 @@ import numpy as np
 
 from qiskit import BasicAer
 from qiskit.aqua import aqua_globals, QuantumInstance
-from qiskit.aqua.algorithms import ExactEigensolver, QAOA
+from qiskit.aqua.algorithms import ClassicalMinimumEigensolver, QAOA
 from qiskit.aqua.components.optimizers import COBYLA
 from qiskit.finance.ising import portfolio
 from qiskit.finance.data_providers import RandomDataProvider
@@ -55,9 +55,9 @@ class TestPortfolio(QiskitFinanceTestCase):
 
     def test_portfolio(self):
         """ portfolio test """
-        algo = ExactEigensolver(self.qubit_op)
+        algo = ClassicalMinimumEigensolver(self.qubit_op)
         result = algo.run()
-        selection = sample_most_likely(result['eigvecs'][0])
+        selection = sample_most_likely(result.eigenstate)
         value = portfolio.portfolio_value(
             selection, self.muu, self.sigma, self.risk, self.budget, self.penalty)
         np.testing.assert_array_equal(selection, [1, 0, 0, 1])

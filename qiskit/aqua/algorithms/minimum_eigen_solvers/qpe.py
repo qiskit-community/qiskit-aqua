@@ -16,9 +16,10 @@ The Quantum Phase Estimation Algorithm.
 """
 
 import logging
-from typing import Optional
+from typing import Optional, List, Dict
 
 import numpy as np
+from qiskit import QuantumCircuit
 from qiskit.quantum_info import Pauli
 
 from qiskit.aqua.operators import op_converter
@@ -30,13 +31,14 @@ from qiskit.aqua.operators import BaseOperator
 from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.components.iqfts import IQFT
 from qiskit.aqua.utils.validation import validate_min, validate_in_set
+from .minimum_eigen_solver import MinimumEigensolver, MinimumEigensolverResult
 
 logger = logging.getLogger(__name__)
 
 # pylint: disable=invalid-name
 
 
-class QPE(QuantumAlgorithm):
+class QPE(QuantumAlgorithm, MinimumEigensolver):
     """The Quantum Phase Estimation algorithm.
 
     QPE (also sometimes abbreviated as PEA, for Phase Estimation Algorithm), has two quantum
@@ -52,11 +54,15 @@ class QPE(QuantumAlgorithm):
     trial eigen wave functions.
     """
 
-    def __init__(
-            self, operator: BaseOperator, state_in: Optional[InitialState],
-            iqft: IQFT, num_time_slices: int = 1,
-            num_ancillae: int = 1, expansion_mode: str = 'trotter',
-            expansion_order: int = 1, shallow_circuit_concat: bool = False) -> None:
+    def __init__(self,
+                 operator: Optional[BaseOperator] = None,
+                 state_in: Optional[InitialState] = None,
+                 iqft: Optional[IQFT] = None,
+                 num_time_slices: int = 1,
+                 num_ancillae: int = 1,
+                 expansion_mode: str = 'trotter',
+                 expansion_order: int = 1,
+                 shallow_circuit_concat: bool = False) -> None:
         """
 
         Args:
@@ -78,53 +84,99 @@ class QPE(QuantumAlgorithm):
         validate_in_set('expansion_mode', expansion_mode, {'trotter', 'suzuki'})
         validate_min('expansion_order', expansion_order, 1)
         super().__init__()
-        self._operator = op_converter.to_weighted_pauli_operator(operator.copy())
+        self._state_in = state_in
+        self._iqft = iqft
+        self._num_time_slices = num_time_slices
         self._num_ancillae = num_ancillae
+        self._expansion_mode = expansion_mode
+        self._expansion_order = expansion_order
+        self._shallow_circuit_concat = shallow_circuit_concat
+        self._binary_fractions = [1 / 2 ** p for p in range(1, self._num_ancillae + 1)]
+        self._in_operator = operator
+        self._operator = None
         self._ret = {}
+        self._pauli_list = None
+        self._phase_estimation_circuit = None
+        self._setup(operator)
 
-        self._ret['translation'] = sum([abs(p[0]) for p in self._operator.reorder_paulis()])
-        self._ret['stretch'] = 0.5 / self._ret['translation']
+    def _setup(self, operator: Optional[BaseOperator]) -> None:
+        self._operator = None
+        self._ret = {}
+        self._pauli_list = None
+        self._phase_estimation_circuit = None
+        if operator:
+            self._operator = op_converter.to_weighted_pauli_operator(operator.copy())
+            self._ret['translation'] = sum([abs(p[0]) for p in self._operator.reorder_paulis()])
+            self._ret['stretch'] = 0.5 / self._ret['translation']
 
-        # translate the operator
-        self._operator.simplify()
-        translation_op = WeightedPauliOperator([
-            [
-                self._ret['translation'],
-                Pauli(
-                    np.zeros(self._operator.num_qubits),
-                    np.zeros(self._operator.num_qubits)
-                )
-            ]
-        ])
-        translation_op.simplify()
-        self._operator += translation_op
-        self._pauli_list = self._operator.reorder_paulis()
+            # translate the operator
+            self._operator.simplify()
+            translation_op = WeightedPauliOperator([
+                [
+                    self._ret['translation'],
+                    Pauli(
+                        np.zeros(self._operator.num_qubits),
+                        np.zeros(self._operator.num_qubits)
+                    )
+                ]
+            ])
+            translation_op.simplify()
+            self._operator += translation_op
+            self._pauli_list = self._operator.reorder_paulis()
 
-        # stretch the operator
-        for p in self._pauli_list:
-            p[0] = p[0] * self._ret['stretch']
+            # stretch the operator
+            for p in self._pauli_list:
+                p[0] = p[0] * self._ret['stretch']
 
-        self._phase_estimation_circuit = PhaseEstimationCircuit(
-            operator=self._operator, state_in=state_in, iqft=iqft,
-            num_time_slices=num_time_slices, num_ancillae=num_ancillae,
-            expansion_mode=expansion_mode, expansion_order=expansion_order,
-            shallow_circuit_concat=shallow_circuit_concat, pauli_list=self._pauli_list
-        )
-        self._binary_fractions = [1 / 2 ** p for p in range(1, num_ancillae + 1)]
+            self._phase_estimation_circuit = PhaseEstimationCircuit(
+                operator=self._operator, state_in=self._state_in, iqft=self._iqft,
+                num_time_slices=self._num_time_slices, num_ancillae=self._num_ancillae,
+                expansion_mode=self._expansion_mode, expansion_order=self._expansion_order,
+                shallow_circuit_concat=self._shallow_circuit_concat, pauli_list=self._pauli_list
+            )
 
-    def construct_circuit(self, measurement=False):
+    @property
+    def operator(self) -> Optional[BaseOperator]:
+        """ Returns operator """
+        return self._in_operator
+
+    @operator.setter
+    def operator(self, operator: BaseOperator) -> None:
+        """ set operator """
+        self._in_operator = operator
+        self._setup(operator)
+
+    @property
+    def aux_operators(self) -> List[BaseOperator]:
+        """ Returns aux operators """
+        raise TypeError('aux_operators not supported.')
+
+    @aux_operators.setter
+    def aux_operators(self, aux_operators: List[BaseOperator]) -> None:
+        """ Set aux operators """
+        raise TypeError('aux_operators not supported.')
+
+    def construct_circuit(self, measurement: bool = False) -> QuantumCircuit:
         """
         Construct circuit.
 
         Args:
-            measurement (bool): Boolean flag to indicate if measurement
+            measurement: Boolean flag to indicate if measurement
                 should be included in the circuit.
 
         Returns:
             QuantumCircuit: quantum circuit.
         """
-        qc = self._phase_estimation_circuit.construct_circuit(measurement=measurement)
-        return qc
+        if self._phase_estimation_circuit:
+            return self._phase_estimation_circuit.construct_circuit(measurement=measurement)
+
+        return None
+
+    def compute_minimum_eigenvalue(
+            self, operator: Optional[BaseOperator] = None,
+            aux_operators: Optional[List[BaseOperator]] = None) -> MinimumEigensolverResult:
+        super().compute_minimum_eigenvalue(operator, aux_operators)
+        return self._run()
 
     def _compute_energy(self):
         if self._quantum_instance.is_statevector:
@@ -158,6 +210,74 @@ class QPE(QuantumAlgorithm):
             [top_measurement_decimal / self._ret['stretch'] - self._ret['translation']]
         self._ret['energy'] = self._ret['eigvals'][0]
 
-    def _run(self):
+    def _run(self) -> 'QPEResult':
         self._compute_energy()
-        return self._ret
+
+        result = QPEResult()
+        if 'translation' in self._ret:
+            result.translation = self._ret['translation']
+        if 'stretch' in self._ret:
+            result.stretch = self._ret['stretch']
+        if 'top_measurement_label' in self._ret:
+            result.top_measurement_label = self._ret['top_measurement_label']
+        if 'top_measurement_decimal' in self._ret:
+            result.top_measurement_decimal = self._ret['top_measurement_decimal']
+        if 'eigvals' in self._ret:
+            result.eigenvalue = self._ret['eigvals'][0]
+
+        return result
+
+
+class QPEResult(MinimumEigensolverResult):
+    """ QPE Result."""
+
+    @property
+    def translation(self) -> float:
+        """ Returns translation """
+        return self.get('translation')
+
+    @translation.setter
+    def translation(self, value: float) -> None:
+        """ Sets translation """
+        self.data['translation'] = value
+
+    @property
+    def stretch(self) -> float:
+        """ Returns stretch """
+        return self.get('stretch')
+
+    @stretch.setter
+    def stretch(self, value: float) -> None:
+        """ Sets stretch """
+        self.data['stretch'] = value
+
+    @property
+    def top_measurement_label(self) -> str:
+        """ Returns top measurement label """
+        return self.get('top_measurement_label')
+
+    @top_measurement_label.setter
+    def top_measurement_label(self, value: str) -> None:
+        """ Sets top measurement label """
+        self.data['top_measurement_label'] = value
+
+    @property
+    def top_measurement_decimal(self) -> float:
+        """ Returns top measurement decimal """
+        return self.get('top_measurement_decimal')
+
+    @top_measurement_decimal.setter
+    def top_measurement_decimal(self, value: float) -> None:
+        """ Sets top measurement decimal """
+        self.data['top_measurement_decimal'] = value
+
+    @staticmethod
+    def from_dict(a_dict: Dict) -> 'QPEResult':
+        """ create new object from a dictionary """
+        return QPEResult(a_dict)
+
+    def __getitem__(self, key: object) -> object:
+        if key == 'aux_operator_eigenvalues':
+            raise KeyError('aux_operator_eigenvalues not supported.')
+
+        return super().__getitem__(key)

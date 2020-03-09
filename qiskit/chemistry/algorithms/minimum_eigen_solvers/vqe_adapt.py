@@ -14,18 +14,17 @@
 
 """
 An adaptive VQE implementation.
-
-See https://arxiv.org/abs/1812.11173
 """
 
 from typing import Optional, List
 import logging
+import warnings
 import re
 import numpy as np
 
 from qiskit import ClassicalRegister
 from qiskit.aqua import AquaError
-from qiskit.aqua.algorithms import VQAlgorithm, VQE
+from qiskit.aqua.algorithms import VQAlgorithm, VQE, VQEResult
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.aqua.operators import TPBGroupedWeightedPauliOperator, WeightedPauliOperator
 from qiskit.aqua.utils.backend_utils import is_aer_statevector_backend
@@ -39,11 +38,12 @@ logger = logging.getLogger(__name__)
 
 class VQEAdapt(VQAlgorithm):
     """
-    An adaptive VQE implementation.
+    The Adaptive VQE algorithm.
 
     See https://arxiv.org/abs/1812.11173
     """
 
+    # TODO make re-usable, implement MinimumEignesolver interface
     def __init__(self, operator: BaseOperator,
                  var_form_base: VariationalForm, optimizer: Optimizer,
                  initial_point: Optional[np.ndarray] = None,
@@ -51,8 +51,7 @@ class VQEAdapt(VQAlgorithm):
                  threshold: float = 1e-5,
                  delta: float = 1, max_evals_grouped: int = 1,
                  aux_operators: Optional[List[BaseOperator]] = None) -> None:
-        """Constructor.
-
+        """
         Args:
             operator: Qubit operator
             var_form_base: base parameterized variational form
@@ -119,7 +118,8 @@ class VQEAdapt(VQAlgorithm):
             var_form.push_hopping_operator(exc)
             # construct auxiliary VQE instance
             vqe = VQE(operator, var_form, optimizer)
-            vqe._quantum_instance = self._quantum_instance
+            vqe.quantum_instance = self.quantum_instance
+            vqe._operator = vqe._config_the_best_mode(operator, self.quantum_instance.backend)
             vqe._use_simulator_snapshot_mode = self._use_simulator_snapshot_mode
             # evaluate energies
             parameter_sets = theta + [-delta] + theta + [delta]
@@ -132,7 +132,7 @@ class VQEAdapt(VQAlgorithm):
 
         return res
 
-    def _run(self):
+    def _run(self) -> 'VQEAdaptResult':
         """
         Run the algorithm to compute the minimum eigenvalue.
 
@@ -142,6 +142,7 @@ class VQEAdapt(VQAlgorithm):
         Raises:
             AquaError: wrong setting of operator and backend.
         """
+        self._ret = {}  # TODO should be eliminated
         self._operator = VQE._config_the_best_mode(self, self._operator,
                                                    self._quantum_instance.backend)
         self._use_simulator_snapshot_mode = \
@@ -199,24 +200,32 @@ class VQEAdapt(VQAlgorithm):
             # run VQE on current Ansatz
             algorithm = VQE(self._operator, self._var_form_base, self._optimizer,
                             initial_point=theta)
-            self._ret = algorithm.run(self._quantum_instance)
-            theta = self._ret['opt_params'].tolist()
+            vqe_result = algorithm.run(self._quantum_instance)
+            self._ret['opt_params'] = vqe_result.optimal_point
+            theta = vqe_result.optimal_point.tolist()
         # once finished evaluate auxiliary operators if any
         if self._aux_operators is not None and self._aux_operators:
             algorithm = VQE(self._operator, self._var_form_base, self._optimizer,
                             initial_point=theta, aux_operators=self._aux_operators)
-            self._ret = algorithm.run(self._quantum_instance)
-        # extend VQE returned information with additional outputs
-        logger.info('The final energy is: %s', str(self._ret['energy']))
-        self._ret['num_iterations'] = iteration
-        self._ret['final_max_grad'] = max_grad[0]
+            vqe_result = algorithm.run(self._quantum_instance)
+            self._ret['opt_params'] = vqe_result.optimal_point
+
         if threshold_satisfied:
-            self._ret['finishing_criterion'] = 'threshold_converged'
+            finishing_criterion = 'Threshold converged'
         elif alternating_sequence:
-            self._ret['finishing_criterion'] = 'aborted_due_to_cyclicity'
+            finishing_criterion = 'Aborted due to cyclicity'
         else:
             raise AquaError('The algorithm finished due to an unforeseen reason!')
-        return self._ret
+
+        # extend VQE returned information with additional outputs
+        result = VQEAdaptResult()
+        result.combine(vqe_result)
+        result.num_iterations = iteration
+        result.final_max_gradient = max_grad[0]
+        result.finishing_criterion = finishing_criterion
+
+        logger.info('The final energy is: %s', str(result.optimal_value.real))
+        return result
 
     def get_optimal_cost(self):
         if 'opt_params' not in self._ret:
@@ -259,3 +268,45 @@ class VQEAdapt(VQAlgorithm):
         if 'opt_params' not in self._ret:
             raise AquaError("Cannot find optimal params before running the algorithm.")
         return self._ret['opt_params']
+
+
+class VQEAdaptResult(VQEResult):
+    """ VQE Result."""
+
+    @property
+    def num_iterations(self) -> int:
+        """ Returns number of iterations """
+        return self.get('num_iterations')
+
+    @num_iterations.setter
+    def num_iterations(self, value: int) -> None:
+        """ Sets number of iterations """
+        self.data['num_iterations'] = value
+
+    @property
+    def final_max_gradient(self) -> float:
+        """ Returns final maximum gradient """
+        return self.get('final_max_gradient')
+
+    @final_max_gradient.setter
+    def final_max_gradient(self, value: float) -> None:
+        """ Sets final maximum gradient """
+        self.data['final_max_gradient'] = value
+
+    @property
+    def finishing_criterion(self) -> str:
+        """ Returns finishing criterion """
+        return self.get('finishing criterion')
+
+    @finishing_criterion.setter
+    def finishing_criterion(self, value: str) -> None:
+        """ Sets finishing criterion """
+        self.data['finishing_criterion'] = value
+
+    def __getitem__(self, key: object) -> object:
+        if key == 'final_max_grad':
+            warnings.warn('final_max_grad deprecated, use final_max_gradient property.',
+                          DeprecationWarning)
+            return super().__getitem__('final_max_gradient')
+
+        return super().__getitem__(key)

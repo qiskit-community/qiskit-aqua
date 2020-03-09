@@ -14,20 +14,25 @@
 
 """ Minimum Eigen Solvers Package """
 
-from .vqe import VQE
+from .vqe import VQE, VQEResult
 from .qaoa import QAOA
-from .iqpe import IQPE
-from .qpe import QPE
-from .cplex import CPLEX_Ising
-from .exact_minimum_eigen_solver import ExactMinimumEigensolver
-from .min_eigen_solver import MinEigenSolver
+from .iqpe import IQPE, IQPEResult
+from .qpe import QPE, QPEResult
+from .cplex import ClassicalCPLEX, CPLEX_Ising
+from .classical_minimum_eigen_solver import ClassicalMinimumEigensolver
+from .minimum_eigen_solver import MinimumEigensolver, MinimumEigensolverResult
 
 __all__ = [
     'VQE',
+    'VQEResult',
     'QAOA',
     'IQPE',
+    'IQPEResult',
     'QPE',
+    'QPEResult',
+    'ClassicalCPLEX',
     'CPLEX_Ising',
-    'ExactMinimumEigensolver',
-    'MinEigenSolver'
+    'ClassicalMinimumEigensolver',
+    'MinimumEigensolver',
+    'MinimumEigensolverResult'
 ]
