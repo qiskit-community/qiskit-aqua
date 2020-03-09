@@ -14,8 +14,9 @@
 
 """Linearly-controlled X, Y or Z rotation."""
 
-import numpy as np
+import warnings
 
+from qiskit.circuit.library.arithmetic import LinearRotation as LR
 from qiskit.aqua.utils import CircuitFactory
 
 
@@ -42,8 +43,15 @@ class LinearRotation(CircuitFactory):
         Raises:
             ValueError: invalid input
         """
+        warnings.warn('The qiskit.aqua.circuits.LinearRotation object is deprecated and will be '
+                      'removed no earlier than 3 months after the 0.7 release of Qiskit Aqua. '
+                      'You should use qiskit.circuit.library.arithmetic.LinearRotation instead.',
+                      DeprecationWarning, stacklevel=2)
 
         super().__init__(num_state_qubits + 1)
+
+        # store the circuit
+        self._linear_rotation_circuit = LR(slope, offset, num_state_qubits, basis)
 
         # store parameters
         self.num_control_qubits = num_state_qubits
@@ -67,25 +75,8 @@ class LinearRotation(CircuitFactory):
             self.i_target = num_state_qubits
 
     def build(self, qc, q, q_ancillas=None, params=None):
-
-        # get indices
-        i_state = self.i_state
-        i_target = self.i_target
-
-        # apply linear rotation
-        if not np.isclose(self.offset / 4 / np.pi % 1, 0):
-            if self.basis == 'X':
-                qc.rx(self.offset, q[i_target])
-            elif self.basis == 'Y':
-                qc.ry(self.offset, q[i_target])
-            elif self.basis == 'Z':
-                qc.rz(self.offset, q[i_target])
-        for i, j in enumerate(i_state):
-            theta = self.slope * pow(2, i)
-            if not np.isclose(theta / 4 / np.pi % 1, 0):
-                if self.basis == 'X':
-                    qc.crx(self.slope * pow(2, i), q[j], q[i_target])
-                elif self.basis == 'Y':
-                    qc.cry(self.slope * pow(2, i), q[j], q[i_target])
-                elif self.basis == 'Z':
-                    qc.crz(self.slope * pow(2, i), q[j], q[i_target])
+        instr = self._linear_rotation_circuit.to_instruction()
+        qr = [q[i] for i in self.i_state] + [q[self.i_target]]
+        if q_ancillas:
+            qr += [qi for qi in q_ancillas]  # pylint:disable=unnecessary-comprehension
+        qc.append(instr, qr)
