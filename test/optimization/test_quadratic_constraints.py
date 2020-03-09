@@ -55,13 +55,13 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
         self.assertListEqual(quad.get_quad_num_nonzeros(), [2])
         l = quad.get_linear_components()
         self.assertEqual(len(l), 1)
-        self.assertTupleEqual(l[0].ind, (0, 2))
-        self.assertTupleEqual(l[0].val, (1.0, -1.0))
+        self.assertListEqual(l[0].ind, [0, 2])
+        self.assertListEqual(l[0].val, [1.0, -1.0])
         q = quad.get_quadratic_components()
         self.assertEqual(len(q), 1)
-        self.assertTupleEqual(q[0].ind1, (1, 2))
-        self.assertTupleEqual(q[0].ind2, (0, 1))
-        self.assertTupleEqual(q[0].val, (1.0, -1.0))
+        self.assertListEqual(q[0].ind1, [1, 2])
+        self.assertListEqual(q[0].ind2, [0, 1])
+        self.assertListEqual(q[0].val, [1.0, -1.0])
 
     def test_delete(self):
         op = OptimizationProblem()
@@ -80,7 +80,7 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
 
     def test_rhs(self):
         op = OptimizationProblem()
-        indices = op.variables.add(names=[str(i) for i in range(10)])
+        op.variables.add(names=[str(i) for i in range(10)])
         q0 = [op.quadratic_constraints.add(rhs=1.5 * i, name=str(i)) for i in range(10)]
         self.assertListEqual(q0, list(range(10)))
         q = op.quadratic_constraints
@@ -92,179 +92,147 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
 
     def test_names(self):
         op = OptimizationProblem()
-        op.linear_constraints.add(names=["c0", "c1", "c2", "c3"])
-        op.linear_constraints.set_names("c1", "second")
-        self.assertEqual(op.linear_constraints.get_names(1), 'second')
-        op.linear_constraints.set_names([("c3", "last"), (2, "middle")])
-        op.linear_constraints.get_names()
-        self.assertEqual(len(op.linear_constraints.get_names()), 4)
-        self.assertEqual(op.linear_constraints.get_names()[0], 'c0')
-        self.assertEqual(op.linear_constraints.get_names()[1], 'second')
-        self.assertEqual(op.linear_constraints.get_names()[2], 'middle')
-        self.assertEqual(op.linear_constraints.get_names()[3], 'last')
-        # ['c0', 'second', 'middle', 'last']
+        op.variables.add(names=[str(i) for i in range(11)])
+        q = op.quadratic_constraints
+        [q.add(name="q" + str(i),
+               quad_expr=[range(i), range(i), [1.0 * (j + 1.0) for j in range(i)]])
+         for i in range(1, 11)]
+        self.assertEqual(q.get_num(), 10)
+        self.assertEqual(q.get_names(8), 'q9')
+        self.assertListEqual(q.get_names(1, 3), ['q2', 'q3', 'q4'])
+        self.assertListEqual(q.get_names([2, 0, 5]), ['q3', 'q1', 'q6'])
+        self.assertListEqual(q.get_names(),
+                             ['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q8', 'q9', 'q10'])
 
-    def test_senses1(self):
+    def test_senses(self):
         op = OptimizationProblem()
-        op.linear_constraints.add(names=["c0", "c1", "c2", "c3"])
-        op.linear_constraints.get_senses()
-        self.assertEqual(len(op.linear_constraints.get_senses()), 4)
-        self.assertEqual(op.linear_constraints.get_senses()[0], 'E')
-        # ['E', 'E', 'E', 'E']
-        op.linear_constraints.set_senses("c1", "G")
-        self.assertEqual(op.linear_constraints.get_senses(1), 'G')
-        op.linear_constraints.set_senses([("c3", "L"), (2, "R")])
-        # ['E', 'G', 'R', 'L']
-        self.assertEqual(op.linear_constraints.get_senses()[0], 'E')
-        self.assertEqual(op.linear_constraints.get_senses()[1], 'G')
-        self.assertEqual(op.linear_constraints.get_senses()[2], 'R')
-        self.assertEqual(op.linear_constraints.get_senses()[3], 'L')
+        op.variables.add(names=["x0"])
+        q = op.quadratic_constraints
+        q0 = [q.add(name=str(i), sense=j) for i, j in enumerate('GGLL')]
+        self.assertListEqual(q0, [0, 1, 2, 3])
+        self.assertEqual(q.get_senses(1), 'G')
+        self.assertListEqual(q.get_senses('1', 3), ['G', 'L', 'L'])
+        self.assertListEqual(q.get_senses([2, '0', 1]), ['L', 'G', 'G'])
+        self.assertListEqual(q.get_senses(), ['G', 'G', 'L', 'L'])
+
+    def test_linear_num_nonzeros(self):
+        op = OptimizationProblem()
+        op.variables.add(names=[str(i) for i in range(11)], types="B" * 11)
+        q = op.quadratic_constraints
+        [q.add(name=str(i),
+               lin_expr=[range(i), [1.0 * (j + 1.0) for j in range(i)]])
+         for i in range(10)]
+        self.assertEqual(q.get_linear_num_nonzeros(8), 8)
+        self.assertListEqual(q.get_linear_num_nonzeros('1', 3), [1, 2, 3])
+        self.assertListEqual(q.get_linear_num_nonzeros('1', 3), [1, 2, 3])
+        self.assertListEqual(q.get_linear_num_nonzeros([2, '0', 5]), [2, 0, 5])
+        self.assertListEqual(q.get_linear_num_nonzeros(), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 
     def test_linear_components(self):
         op = OptimizationProblem()
-        op.linear_constraints.add(names=["c0", "c1", "c2", "c3"])
-        op.variables.add(names=["x0", "x1"])
-        op.linear_constraints.set_linear_components("c0", [["x0"], [1.0]])
-        self.assertEqual(op.linear_constraints.get_rows("c0").ind[0], 0)
-        self.assertAlmostEqual(op.linear_constraints.get_rows("c0").val[0], 1.0)
-        # SparsePair(ind = [0], val = [1.0])
-        op.linear_constraints.set_linear_components([("c3", SparsePair(ind=["x1"], val=[-1.0])),
-                                                     (2, [[0, 1], [-2.0, 3.0]])])
-        op.linear_constraints.get_rows()
-        # [SparsePair(ind = [0], val = [1.0]),
-        #  SparsePair(ind = [], val = []),
-        #  SparsePair(ind = [0, 1], val = [-2.0, 3.0]),
-        #  SparsePair(ind = [1], val = [-1.0])]
-        self.assertEqual(op.linear_constraints.get_rows()[0].ind[0], 0)
-        self.assertAlmostEqual(op.linear_constraints.get_rows()[0].val[0], 1.0)
-        self.assertEqual(op.linear_constraints.get_rows()[2].ind[0], 0)
-        self.assertAlmostEqual(op.linear_constraints.get_rows()[2].val[0], -2.0)
+        op.variables.add(names=[str(i) for i in range(11)], types="B" * 11)
+        q = op.quadratic_constraints
+        [q.add(name=str(i),
+               lin_expr=[range(i), [1.0 * (j + 1.0) for j in range(i)]])
+         for i in range(10)]
+        s = q.get_linear_components(8)
+        self.assertListEqual(s.ind, [0, 1, 2, 3, 4, 5, 6, 7])
+        self.assertListEqual(s.val, [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])
 
-    def test_linear_components_ranges(self):
-        op = OptimizationProblem()
-        op.linear_constraints.add(names=["c0", "c1", "c2", "c3"])
-        op.linear_constraints.set_range_values("c1", 1.0)
-        self.assertEqual(len(op.linear_constraints.get_range_values()), 4)
-        self.assertAlmostEqual(op.linear_constraints.get_range_values()[0], 0.0)
-        # [0.0, 1.0, 0.0, 0.0]
-        op.linear_constraints.set_range_values([("c3", 2.0), (2, -1.0)])
-        # [0.0, 1.0, -1.0, 2.0]
-        self.assertEqual(len(op.linear_constraints.get_range_values()), 4)
-        self.assertAlmostEqual(op.linear_constraints.get_range_values()[2], -1.0)
-        self.assertAlmostEqual(op.linear_constraints.get_range_values()[3], 2.0)
+        s = q.get_linear_components('1', 3)
+        self.assertEqual(len(s), 3)
+        self.assertListEqual(s[0].ind, [0])
+        self.assertListEqual(s[0].val, [1.0])
+        self.assertListEqual(s[1].ind, [0, 1])
+        self.assertListEqual(s[1].val, [1.0, 2.0])
+        self.assertListEqual(s[2].ind, [0, 1, 2])
+        self.assertListEqual(s[2].val, [1.0, 2.0, 3.0])
 
-    def test_rows(self):
-        op = OptimizationProblem()
-        op.linear_constraints.add(names=["c0", "c1", "c2", "c3"])
-        op.variables.add(names=["x0", "x1"])
-        op.linear_constraints.set_coefficients("c0", "x1", 1.0)
-        self.assertEqual(op.linear_constraints.get_rows(0).ind[0], 1)
-        self.assertAlmostEqual(op.linear_constraints.get_rows(0).val[0], 1.0)
-        # SparsePair(ind = [1], val = [1.0])
-        op.linear_constraints.set_coefficients([("c2", "x0", 2.0),
-                                                ("c2", "x1", -1.0)])
-        # SparsePair(ind = [0, 1], val = [2.0, -1.0])
-        self.assertEqual(op.linear_constraints.get_rows("c2").ind[0], 0)
-        self.assertAlmostEqual(op.linear_constraints.get_rows("c2").val[0], 2.0)
-        self.assertEqual(op.linear_constraints.get_rows("c2").ind[1], 1)
-        self.assertAlmostEqual(op.linear_constraints.get_rows("c2").val[1], -1.0)
+        s = q.get_linear_components([2, '0', 5])
+        self.assertEqual(len(s), 3)
+        self.assertListEqual(s[0].ind, [0, 1])
+        self.assertListEqual(s[0].val, [1.0, 2.0])
+        self.assertListEqual(s[1].ind, [])
+        self.assertListEqual(s[1].val, [])
+        self.assertListEqual(s[2].ind, [0, 1, 2, 3, 4])
+        self.assertListEqual(s[2].val, [1.0, 2.0, 3.0, 4.0, 5.0])
 
-    def test_rhs2(self):
-        op = OptimizationProblem()
-        op.linear_constraints.add(rhs=[1.5 * i for i in range(10)],
-                                  names=[str(i) for i in range(10)])
-        self.assertEqual(op.linear_constraints.get_num(), 10)
-        self.assertAlmostEqual(op.linear_constraints.get_rhs(8), 12.0)
-        self.assertAlmostEqual(op.linear_constraints.get_rhs([2, "0", 5])[0], 3.0)
-        self.assertAlmostEqual(op.linear_constraints.get_rhs([2, "0", 5])[1], 0.0)
-        self.assertAlmostEqual(op.linear_constraints.get_rhs([2, "0", 5])[2], 7.5)
-        # [3.0, 0.0, 7.5]
-        self.assertEqual(len(op.linear_constraints.get_rhs()), 10)
-        self.assertEqual(sum(op.linear_constraints.get_rhs()), 67.5)
-        # [0.0, 1.5, 3.0, 4.5, 6.0, 7.5, 9.0, 10.5, 12.0, 13.5]
+        q.delete(4, 9)
+        s = q.get_linear_components()
+        self.assertEqual(len(s), 4)
+        self.assertListEqual(s[0].ind, [])
+        self.assertListEqual(s[0].val, [])
+        self.assertListEqual(s[1].ind, [0])
+        self.assertListEqual(s[1].val, [1.0])
+        self.assertListEqual(s[2].ind, [0, 1])
+        self.assertListEqual(s[2].val, [1.0, 2.0])
+        self.assertListEqual(s[3].ind, [0, 1, 2])
+        self.assertListEqual(s[3].val, [1.0, 2.0, 3.0])
 
-    def test_senses2(self):
+    def test_quad_num_nonzeros(self):
         op = OptimizationProblem()
-        op.linear_constraints.add(
-            senses=["E", "G", "L", "R"],
-            names=[str(i) for i in range(4)])
-        self.assertEqual(op.linear_constraints.get_num(), 4)
-        self.assertEqual(op.linear_constraints.get_senses(1), 'G')
-        self.assertEqual(op.linear_constraints.get_senses([2, "0", 1])[0], 'L')
-        self.assertEqual(op.linear_constraints.get_senses([2, "0", 1])[1], 'E')
-        self.assertEqual(op.linear_constraints.get_senses([2, "0", 1])[2], 'G')
-        # ['L', 'E', 'G']
-        self.assertEqual(op.linear_constraints.get_senses()[0], 'E')
-        self.assertEqual(op.linear_constraints.get_senses()[1], 'G')
-        # ['E', 'G', 'L', 'R']
+        op.variables.add(names=[str(i) for i in range(11)])
+        q = op.quadratic_constraints
+        [q.add(name=str(i),
+               quad_expr=[range(i), range(i), [1.0 * (j + 1.0) for j in range(i)]])
+         for i in range(1, 11)]
+        self.assertEqual(q.get_num(), 10)
+        self.assertEqual(q.get_quad_num_nonzeros(8), 9)
+        self.assertListEqual(q.get_quad_num_nonzeros('1', 2), [1, 2, 3])
+        self.assertListEqual(q.get_quad_num_nonzeros([2, '1', 5]), [3, 1, 6])
+        self.assertListEqual(q.get_quad_num_nonzeros(), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
 
-    def test_range_values(self):
+    def test_quadratic_components(self):
         op = OptimizationProblem()
-        op.linear_constraints.add(
-            range_values=[1.5 * i for i in range(10)],
-            senses=["R"] * 10,
-            names=[str(i) for i in range(10)])
-        self.assertEqual(op.linear_constraints.get_num(), 10)
-        self.assertAlmostEqual(op.linear_constraints.get_range_values(8), 12.0)
-        self.assertAlmostEqual(sum(op.linear_constraints.get_range_values([2, "0", 5])), 10.5)
-        # [3.0, 0.0, 7.5]
-        self.assertAlmostEqual(sum(op.linear_constraints.get_range_values()), 67.5)
-        # [0.0, 1.5, 3.0, 4.5, 6.0, 7.5, 9.0, 10.5, 12.0, 13.5]
+        op.variables.add(names=[str(i) for i in range(11)])
+        q = op.quadratic_constraints
+        [q.add(name=str(i),
+               quad_expr=[range(i), range(i), [1.0 * (j + 1.0) for j in range(i)]])
+         for i in range(1, 11)]
+        s = q.get_quadratic_components(8)
+        self.assertListEqual(s.ind1, [0, 1, 2, 3, 4, 5, 6, 7, 8])
+        self.assertListEqual(s.ind2, [0, 1, 2, 3, 4, 5, 6, 7, 8])
+        self.assertListEqual(s.val, [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0])
 
-    def test_coefficients(self):
-        op = OptimizationProblem()
-        op.variables.add(names=["x0", "x1"])
-        op.linear_constraints.add(
-            names=["c0", "c1"],
-            lin_expr=[[[1], [1.0]], [[0, 1], [2.0, -1.0]]])
-        self.assertAlmostEqual(op.linear_constraints.get_coefficients("c0", "x1"), 1.0)
-        self.assertAlmostEqual(op.linear_constraints.get_coefficients(
-            [("c1", "x0"), ("c1", "x1")])[0], 2.0)
-        self.assertAlmostEqual(op.linear_constraints.get_coefficients(
-            [("c1", "x0"), ("c1", "x1")])[1], -1.0)
+        s = q.get_quadratic_components('1', 3)
+        self.assertEqual(len(s), 4)
+        self.assertListEqual(s[0].ind1, [0])
+        self.assertListEqual(s[0].ind2, [0])
+        self.assertListEqual(s[0].val, [1.0])
+        self.assertListEqual(s[1].ind1, [0, 1])
+        self.assertListEqual(s[1].ind2, [0, 1])
+        self.assertListEqual(s[1].val, [1.0, 2.0])
+        self.assertListEqual(s[2].ind1, [0, 1, 2])
+        self.assertListEqual(s[2].ind2, [0, 1, 2])
+        self.assertListEqual(s[2].val, [1.0, 2.0, 3.0])
+        self.assertListEqual(s[3].ind1, [0, 1, 2, 3])
+        self.assertListEqual(s[3].ind2, [0, 1, 2, 3])
+        self.assertListEqual(s[3].val, [1.0, 2.0, 3.0, 4.0])
 
-    def test_rows2(self):
-        op = OptimizationProblem()
-        op.variables.add(names=["x1", "x2", "x3"])
-        op.linear_constraints.add(
-            names=["c0", "c1", "c2", "c3"],
-            lin_expr=[SparsePair(ind=["x1", "x3"], val=[1.0, -1.0]),
-                      SparsePair(ind=["x1", "x2"], val=[1.0, 1.0]),
-                      SparsePair(ind=["x1", "x2", "x3"], val=[-1.0] * 3),
-                      SparsePair(ind=["x2", "x3"], val=[10.0, -2.0])])
-        self.assertEqual(op.linear_constraints.get_rows(0).ind[0], 0)
-        self.assertAlmostEqual(op.linear_constraints.get_rows(0).val[0], 1.0)
-        self.assertEqual(op.linear_constraints.get_rows(0).ind[1], 2)
-        self.assertAlmostEqual(op.linear_constraints.get_rows(0).val[1], -1.0)
-        # SparsePair(ind = [0, 2], val = [1.0, -1.0])
-        self.assertEqual(op.linear_constraints.get_rows("c2").ind[0], 0)
-        self.assertAlmostEqual(op.linear_constraints.get_rows("c2").val[0], -1.0)
-        self.assertEqual(op.linear_constraints.get_rows("c2").ind[1], 1)
-        self.assertAlmostEqual(op.linear_constraints.get_rows("c2").val[1], -1.0)
-        # [SparsePair(ind = [0, 1, 2], val = [-1.0, -1.0, -1.0]),
-        #  SparsePair(ind = [0, 2], val = [1.0, -1.0])]
-        self.assertEqual(len(op.linear_constraints.get_rows()), 4)
-        # [SparsePair(ind = [0, 2], val = [1.0, -1.0]),
-        #  SparsePair(ind = [0, 1], val = [1.0, 1.0]),
-        #  SparsePair(ind = [0, 1, 2], val = [-1.0, -1.0, -1.0]),
-        #  SparsePair(ind = [1, 2], val = [10.0, -2.0])]
+        s = q.get_quadratic_components([2, '1', 5])
+        self.assertEqual(len(s), 3)
+        self.assertListEqual(s[0].ind1, [0, 1, 2])
+        self.assertListEqual(s[0].ind2, [0, 1, 2])
+        self.assertListEqual(s[0].val, [1.0, 2.0, 3.0])
+        self.assertListEqual(s[1].ind1, [0])
+        self.assertListEqual(s[1].ind2, [0])
+        self.assertListEqual(s[1].val, [1.0])
+        self.assertListEqual(s[2].ind1, [0, 1, 2, 3, 4, 5])
+        self.assertListEqual(s[2].ind2, [0, 1, 2, 3, 4, 5])
+        self.assertListEqual(s[2].val, [1.0, 2.0, 3.0, 4.0, 5.0, 6.0])
 
-    def test_nnz(self):
-        op = OptimizationProblem()
-        op.variables.add(names=["x1", "x2", "x3"])
-        op.linear_constraints.add(names=["c0", "c1", "c2", "c3"],
-                                  lin_expr=[SparsePair(ind=["x1", "x3"], val=[1.0, -1.0]),
-                                            SparsePair(ind=["x1", "x2"], val=[1.0, 1.0]),
-                                            SparsePair(ind=["x1", "x2", "x3"], val=[-1.0] * 3),
-                                            SparsePair(ind=["x2", "x3"], val=[10.0, -2.0])])
-        self.assertEqual(op.linear_constraints.get_num_nonzeros(), 9)
-
-    def test_names2(self):
-        op = OptimizationProblem()
-        op.linear_constraints.add(names=["c" + str(i) for i in range(10)])
-        self.assertEqual(op.linear_constraints.get_num(), 10)
-        self.assertEqual(op.linear_constraints.get_names(8), 'c8')
-        self.assertEqual(op.linear_constraints.get_names([2, 0, 5])[0], 'c2')
-        # ['c2', 'c0', 'c5']
-        self.assertEqual(len(op.linear_constraints.get_names()), 10)
-        # ['c0', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c9']
+        q.delete(4, 9)
+        s = q.get_quadratic_components()
+        self.assertEqual(len(s), 4)
+        self.assertListEqual(s[0].ind1, [0])
+        self.assertListEqual(s[0].ind2, [0])
+        self.assertListEqual(s[0].val, [1.0])
+        self.assertListEqual(s[1].ind1, [0, 1])
+        self.assertListEqual(s[1].ind2, [0, 1])
+        self.assertListEqual(s[1].val, [1.0, 2.0])
+        self.assertListEqual(s[2].ind1, [0, 1, 2])
+        self.assertListEqual(s[2].ind2, [0, 1, 2])
+        self.assertListEqual(s[2].val, [1.0, 2.0, 3.0])
+        self.assertListEqual(s[3].ind1, [0, 1, 2, 3])
+        self.assertListEqual(s[3].ind2, [0, 1, 2, 3])
+        self.assertListEqual(s[3].val, [1.0, 2.0, 3.0, 4.0])

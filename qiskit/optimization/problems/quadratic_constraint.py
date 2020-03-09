@@ -441,7 +441,7 @@ class QuadraticConstraintInterface(BaseInterface):
         """
 
         def _linear_component(tab: Dict[int, float]) -> SparsePair:
-            return SparsePair(ind=tuple(tab.keys()), val=tuple(tab.values()))
+            return SparsePair(ind=list(tab.keys()), val=list(tab.values()))
 
         keys = self._name_index.convert(*args)
         if isinstance(keys, int):
@@ -551,7 +551,7 @@ class QuadraticConstraintInterface(BaseInterface):
 
         def _quadratic_component(tab: Dict[Tuple[int, int], float]) -> SparseTriple:
             ind1, ind2 = zip(*tab.keys())
-            return SparseTriple(ind1=ind1, ind2=ind2, val=tuple(tab.values()))
+            return SparseTriple(ind1=list(ind1), ind2=list(ind2), val=list(tab.values()))
 
         keys = self._name_index.convert(*args)
         if isinstance(keys, int):
