@@ -60,8 +60,8 @@ class TestVQE(QiskitAquaTestCase):
                             coupling_map=[[0, 1]],
                             seed_simulator=aqua_globals.random_seed,
                             seed_transpiler=aqua_globals.random_seed))
-        self.assertAlmostEqual(result['energy'], -1.85727503)
-        np.testing.assert_array_almost_equal(result['eigvals'], [-1.85727503], 5)
+        self.assertAlmostEqual(result.eigenvalue.real, -1.85727503)
+        np.testing.assert_array_almost_equal(result.eigenvalue.real, -1.85727503, 5)
         ref_opt_params = [-0.58294401, -1.86141794, -1.97209632, -0.54796022,
                           -0.46945572, 2.60114794, -1.15637845, 1.40498879,
                           1.14479635, -0.48416694, -0.66608349, -1.1367579,
@@ -102,7 +102,7 @@ class TestVQE(QiskitAquaTestCase):
             QuantumInstance(BasicAer.get_backend('statevector_simulator'), shots=1,
                             seed_simulator=aqua_globals.random_seed,
                             seed_transpiler=aqua_globals.random_seed))
-        self.assertAlmostEqual(result['energy'], -1.85727503, places=places)
+        self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=places)
 
     def test_vqe_qasm(self):
         """ VQE QASM test """
