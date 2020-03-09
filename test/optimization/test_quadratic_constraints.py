@@ -78,21 +78,17 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
         q.delete()
         self.assertListEqual(q.get_names(), [])
 
-    def test_rhs1(self):
+    def test_rhs(self):
         op = OptimizationProblem()
-        op.linear_constraints.add(names=["c0", "c1", "c2", "c3"])
-        self.assertEqual(len(op.linear_constraints.get_rhs()), 4)
-        self.assertAlmostEqual(op.linear_constraints.get_rhs()[0], 0.0)
-        # [0.0, 0.0, 0.0, 0.0]
-        op.linear_constraints.set_rhs("c1", 1.0)
-        self.assertEqual(len(op.linear_constraints.get_rhs()), 4)
-        self.assertAlmostEqual(op.linear_constraints.get_rhs()[1], 1.0)
-        # [0.0, 1.0, 0.0, 0.0]
-        op.linear_constraints.set_rhs([("c3", 2.0), (2, -1.0)])
-        self.assertEqual(len(op.linear_constraints.get_rhs()), 4)
-        self.assertAlmostEqual(op.linear_constraints.get_rhs()[2], -1.0)
-        self.assertAlmostEqual(op.linear_constraints.get_rhs()[3], 2.0)
-        # [0.0, 1.0, -1.0, 2.0]
+        indices = op.variables.add(names=[str(i) for i in range(10)])
+        q0 = [op.quadratic_constraints.add(rhs=1.5 * i, name=str(i)) for i in range(10)]
+        self.assertListEqual(q0, list(range(10)))
+        q = op.quadratic_constraints
+        self.assertEqual(q.get_num(), 10)
+        self.assertEqual(q.get_rhs(8), 12.0)
+        self.assertListEqual(q.get_rhs('1', 3), [1.5, 3.0, 4.5])
+        self.assertListEqual(q.get_rhs([2, '0', 5]), [3.0, 0.0, 7.5])
+        self.assertListEqual(q.get_rhs(), [0.0, 1.5, 3.0, 4.5, 6.0, 7.5, 9.0, 10.5, 12.0, 13.5])
 
     def test_names(self):
         op = OptimizationProblem()
