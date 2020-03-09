@@ -66,31 +66,36 @@ class QuadraticConstraintInterface(BaseInterface):
 
         Takes up to five keyword arguments:
 
-        lin_expr : either a SparsePair or a list of two lists specifying
-        the linear component of the constraint.
+        Args:
+            lin_expr : either a SparsePair or a list of two lists specifying
+                the linear component of the constraint.
 
-        Note
-          lin_expr must not contain duplicate indices.  If lin_expr
-          references a variable more than once, either by index, name,
-          or a combination of index and name, an exception will be
-          raised.
+                Note
+                    lin_expr must not contain duplicate indices.  If lin_expr
+                    references a variable more than once, either by index, name,
+                    or a combination of index and name, an exception will be
+                    raised.
 
-        quad_expr : either a SparseTriple or a list of three lists
-        specifying the quadratic component of the constraint.
+            quad_expr : either a SparseTriple or a list of three lists
+                specifying the quadratic component of the constraint.
 
-        Note
-          quad_expr must not contain duplicate indices.  If quad_expr
-          references a matrix entry more than once, either by indices,
-          names, or a combination of indices and names, an exception
-          will be raised.
+                Note
+                    quad_expr must not contain duplicate indices.  If quad_expr
+                    references a matrix entry more than once, either by indices,
+                    names, or a combination of indices and names, an exception
+                    will be raised.
 
-        sense : either "L", "G", or "E"
+            sense : either "L", "G", or "E"
 
-        rhs : a float specifying the righthand side of the constraint.
+            rhs : a float specifying the righthand side of the constraint.
 
-        name : the name of the constraint.
+            name : the name of the constraint.
 
-        Returns the index of the added quadratic constraint.
+        Returns:
+             The index of the added quadratic constraint.
+
+        Raises:
+            QiskitOptimizationError: if invalid argument is given.
 
         >>> op = qiskit.optimization.OptimizationProblem()
         >>> indices = op.variables.add(names = ['x','y'])
