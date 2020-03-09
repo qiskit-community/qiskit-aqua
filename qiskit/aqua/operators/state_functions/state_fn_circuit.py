@@ -19,7 +19,7 @@ import numpy as np
 
 from qiskit import QuantumCircuit, BasicAer, execute
 from qiskit.circuit import Instruction
-from qiskit.extensions import Initialize
+from qiskit.extensions import Initialize, IGate
 
 from qiskit.aqua.operators import OperatorBase
 from . import StateFn
@@ -246,3 +246,11 @@ class StateFnCircuit(StateFn):
         counts = execute(qc, qasm_backend, optimization_level=0, shots=shots).result().get_counts()
         scaled_dict = {bstr: np.sqrt((prob/shots))*self.coeff for (bstr, prob) in counts.items()}
         return scaled_dict
+
+    # Warning - modifying immutable object!!
+    def reduce(self):
+        for i, inst_context in enumerate(self.primitive._definition):
+            [gate, _, _] = inst_context
+            if isinstance(gate, IGate):
+                del self.primitive._definition[i]
+        return self

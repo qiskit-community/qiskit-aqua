@@ -16,6 +16,7 @@ import logging
 import numpy as np
 
 from qiskit import QuantumCircuit, BasicAer, execute
+from qiskit.extensions.standard import IGate
 from qiskit.circuit import Instruction
 from qiskit.quantum_info import Pauli
 
@@ -198,3 +199,11 @@ class OpCircuit(OpPrimitive):
 
         # For now, always do this. If it's not performant, we can be more granular.
         return OpPrimitive(self.to_matrix()).eval(front=front, back=back)
+
+    # Warning - modifying immutable object!!
+    def reduce(self):
+        for i, inst_context in enumerate(self.primitive._definition):
+            [gate, _, _] = inst_context
+            if isinstance(gate, IGate):
+                del self.primitive._definition[i]
+        return self
