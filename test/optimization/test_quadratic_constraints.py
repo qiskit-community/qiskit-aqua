@@ -22,7 +22,7 @@ from test.optimization.common import QiskitOptimizationTestCase
 
 
 class TestQuadraticConstraints(QiskitOptimizationTestCase):
-    """Test LinearConstraintInterface."""
+    """Test QuadraticConstraintInterface."""
 
     def setUp(self):
         super().setUp()
