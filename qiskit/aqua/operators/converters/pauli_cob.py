@@ -131,8 +131,18 @@ class PauliChangeOfBasis(ConverterBase):
         # If no destination specified, assume nearest Pauli in {Z,I}^n basis, the standard CoB for expectation
         origin_sig_bits = np.logical_or(origin.x, origin.z)
         destination = self._destination or Pauli(z=origin_sig_bits, x=[False]*len(origin.z))
-        destination_sig_bits = np.logical_or(destination.x, destination.z)
         num_qubits = max([len(origin.z), len(destination.z)])
+
+        # Pad origin or destination if either are not as long as the other
+        if not len(origin.z) == num_qubits:
+            missing_qubits = num_qubits - len(origin.z)
+            origin = Pauli(z=origin.z.tolist() + ([False] * missing_qubits),
+                           x=origin.x.tolist() + ([False] * missing_qubits))
+        if not len(destination.z) == num_qubits:
+            missing_qubits = num_qubits - len(destination.z)
+            destination = Pauli(z=destination.z.tolist() + ([False] * missing_qubits),
+                                x=destination.x.tolist() + ([False] * missing_qubits))
+        destination_sig_bits = np.logical_or(destination.x, destination.z)
 
         if not any(origin_sig_bits) or not any(destination_sig_bits):
             if not (any(origin_sig_bits) or any(destination_sig_bits)):
@@ -191,7 +201,7 @@ class PauliChangeOfBasis(ConverterBase):
             #     cnots.x(dest_anchor_bit)
 
             # Need to do this or a Terra bug sometimes flips cnots. No time to investigate.
-            cnots.iden(0)
+            cnots.i(0)
 
             # Step 6)
             for i in sig_in_dest_only_indices:
