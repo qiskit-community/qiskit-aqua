@@ -18,7 +18,7 @@ from test.chemistry import QiskitChemistryTestCase
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import Z2Symmetries
-from qiskit.aqua.algorithms import VQE, ExactEigensolver
+from qiskit.aqua.algorithms import VQE, ClassicalMinimumEigensolver
 from qiskit.aqua.components.optimizers import SLSQP
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.components.initial_states import HartreeFock
@@ -54,7 +54,7 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
             smallest_eig_value = 99999999999999
             smallest_idx = -1
             for idx, _ in enumerate(tapered_ops):
-                ee = ExactEigensolver(tapered_ops[idx], k=1)
+                ee = ClassicalMinimumEigensolver(tapered_ops[idx])
                 curr_value = ee.run()['energy']
                 if curr_value < smallest_eig_value:
                     smallest_eig_value = curr_value

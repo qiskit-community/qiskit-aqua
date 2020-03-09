@@ -19,7 +19,7 @@ import unittest
 from test.aqua import QiskitAquaTestCase
 import numpy as np
 
-from qiskit.aqua.algorithms import ExactEigensolver
+from qiskit.aqua.algorithms import ClassicalEigensolver
 from qiskit.aqua.operators import Z2Symmetries
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
@@ -43,9 +43,9 @@ class TestEomEE(QiskitAquaTestCase):
                                freeze_core=False,
                                orbital_reduction=[])
             qubit_op, _ = core.run(self.molecule)
-            exact_eigensolver = ExactEigensolver(qubit_op, k=2 ** qubit_op.num_qubits)
+            exact_eigensolver = ClassicalEigensolver(qubit_op, k=2 ** qubit_op.num_qubits)
             result = exact_eigensolver.run()
-            self.reference = result['eigvals'].real
+            self.reference = result.eigenvalues.real
         except QiskitChemistryError:
             self.skipTest('PYSCF driver does not appear to be installed')
 

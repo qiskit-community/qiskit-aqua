@@ -16,7 +16,7 @@
 
 from test.chemistry import QiskitChemistryTestCase
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
-from qiskit.aqua.algorithms import ExactEigensolver
+from qiskit.aqua.algorithms import ClassicalMinimumEigensolver
 
 
 class TestDriverMethods(QiskitChemistryTestCase):
@@ -49,7 +49,7 @@ class TestDriverMethods(QiskitChemistryTestCase):
 
         qubit_op, aux_ops = core.run(qmolecule)
 
-        exact_eigensolver = ExactEigensolver(qubit_op, aux_operators=aux_ops, k=1)
+        exact_eigensolver = ClassicalMinimumEigensolver(qubit_op, aux_operators=aux_ops)
         _, result = core.process_algorithm_result(exact_eigensolver.run())
         return result
 

@@ -43,10 +43,11 @@ Chemistry Classical Algorithms
 """
 
 from .eigen_solvers import QEomVQE, QEomEE
-from .minimum_eigen_solvers import VQEAdapt
+from .minimum_eigen_solvers import VQEAdapt, VQEAdaptResult
 
 __all__ = [
     'QEomVQE',
     'QEomEE',
     'VQEAdapt',
+    'VQEAdaptResult',
 ]
