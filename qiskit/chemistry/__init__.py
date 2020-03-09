@@ -45,6 +45,7 @@ Submodules
 .. autosummary::
    :toctree:
 
+   applications
    algorithms
    components
    core

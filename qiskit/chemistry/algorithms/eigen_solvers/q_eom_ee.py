@@ -19,14 +19,14 @@ import logging
 
 import numpy as np
 from qiskit.aqua.operators import BaseOperator, Z2Symmetries
-from qiskit.aqua.algorithms import ExactEigensolver
+from qiskit.aqua.algorithms import ClassicalMinimumEigensolver
 from qiskit.aqua.utils.validation import validate_min, validate_in_set
 from .q_equation_of_motion import QEquationOfMotion
 
 logger = logging.getLogger(__name__)
 
 
-class QEomEE(ExactEigensolver):
+class QEomEE(ClassicalMinimumEigensolver):
     """ QEomEE algorithm """
 
     def __init__(self, operator: BaseOperator, num_orbitals: int,
@@ -71,7 +71,7 @@ class QEomEE(ExactEigensolver):
         if isinstance(num_particles, list) and len(num_particles) != 2:
             raise ValueError('Num particles value {}. Number of values allowed is 2'.format(
                 num_particles))
-        super().__init__(operator, 1, aux_operators)
+        super().__init__(operator, aux_operators)
 
         self.qeom = QEquationOfMotion(operator, num_orbitals, num_particles, qubit_mapping,
                                       two_qubit_reduction, active_occupied, active_unoccupied,

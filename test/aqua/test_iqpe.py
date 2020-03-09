@@ -22,7 +22,7 @@ from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.utils import decimal_to_binary
 from qiskit.aqua.algorithms import IQPE
-from qiskit.aqua.algorithms import ExactEigensolver
+from qiskit.aqua.algorithms import ClassicalMinimumEigensolver
 from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator, op_converter
 from qiskit.aqua.components.initial_states import Custom
 
@@ -70,11 +70,11 @@ class TestIQPE(QiskitAquaTestCase):
         """ iqpe test """
         self.log.debug('Testing IQPE')
         tmp_qubit_op = qubit_op.copy()
-        exact_eigensolver = ExactEigensolver(qubit_op, k=1)
+        exact_eigensolver = ClassicalMinimumEigensolver(qubit_op)
         results = exact_eigensolver.run()
 
-        ref_eigenval = results['eigvals'][0]
-        ref_eigenvec = results['eigvecs'][0]
+        ref_eigenval = results.eigenvalue
+        ref_eigenvec = results.eigenstate
         self.log.debug('The exact eigenvalue is:       %s', ref_eigenval)
         self.log.debug('The corresponding eigenvector: %s', ref_eigenvec)
 
@@ -86,22 +86,21 @@ class TestIQPE(QiskitAquaTestCase):
         quantum_instance = QuantumInstance(backend, shots=100)
 
         result = iqpe.run(quantum_instance)
-
-        self.log.debug('top result str label:         %s', result['top_measurement_label'])
-        self.log.debug('top result in decimal:        %s', result['top_measurement_decimal'])
-        self.log.debug('stretch:                      %s', result['stretch'])
-        self.log.debug('translation:                  %s', result['translation'])
-        self.log.debug('final eigenvalue from IQPE:   %s', result['energy'])
+        self.log.debug('top result str label:         %s', result.top_measurement_label)
+        self.log.debug('top result in decimal:        %s', result.top_measurement_decimal)
+        self.log.debug('stretch:                      %s', result.stretch)
+        self.log.debug('translation:                  %s', result.translation)
+        self.log.debug('final eigenvalue from IQPE:   %s', result.eigenvalue)
         self.log.debug('reference eigenvalue:         %s', ref_eigenval)
         self.log.debug('ref eigenvalue (transformed): %s',
-                       (ref_eigenval + result['translation']) * result['stretch'])
+                       (ref_eigenval.real + result.translation) * result.stretch)
         self.log.debug('reference binary str label:   %s', decimal_to_binary(
-            (ref_eigenval.real + result['translation']) * result['stretch'],
+            (ref_eigenval.real + result.translation) * result.stretch,
             max_num_digits=num_iterations + 3,
             fractional_part_only=True
         ))
 
-        np.testing.assert_approx_equal(result['energy'], ref_eigenval.real, significant=2)
+        np.testing.assert_approx_equal(result.eigenvalue.real, ref_eigenval.real, significant=2)
         self.assertEqual(tmp_qubit_op, qubit_op, "Operator is modified after IQPE.")
 
 

@@ -12,13 +12,14 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""The CPLEX Ising algorithm. Uses IBM CPLEX backend for Ising Hamiltonian solution"""
+"""The Classical CPLEX algorithm. Uses IBM CPLEX backend for Ising Hamiltonian solution"""
 
 import csv
 import logging
 from math import fsum
 from timeit import default_timer
 from typing import Dict, List, Tuple, Any
+import warnings
 import numpy as np
 
 from qiskit.aqua.algorithms import ClassicalAlgorithm
@@ -27,12 +28,13 @@ from qiskit.aqua.utils.validation import validate_min, validate_range
 
 logger = logging.getLogger(__name__)
 
+
 # pylint: disable=invalid-name
 
 
-class CPLEX_Ising(ClassicalAlgorithm):
+class ClassicalCPLEX(ClassicalAlgorithm):
     """
-    The CPLEX Ising algorithm.
+    The Classical CPLEX algorithm.
 
     This algorithm uses the `IBM ILOG CPLEX Optimization Studio` along with its separately
     installed `Python API` to solve optimization problems modeled as an Ising Hamiltonian.
@@ -80,6 +82,19 @@ class CPLEX_Ising(ClassicalAlgorithm):
         return self._sol
 
 
+class CPLEX_Ising(ClassicalCPLEX):
+    """
+    The deprecated CPLEX Ising algorithm.
+    """
+
+    def __init__(self, operator: WeightedPauliOperator,
+                 timelimit: int = 600, thread: int = 1,
+                 display: int = 2) -> None:
+        warnings.warn('Deprecated class {}, use {}.'.format('CPLEX_Ising', 'ClassicalCPLEX'),
+                      DeprecationWarning)
+        super().__init__(operator, timelimit, thread, display)
+
+
 def new_cplex(timelimit=600, thread=1, display=2):
     """ new cplex """
     # pylint: disable=import-outside-toplevel
@@ -95,6 +110,7 @@ def new_cplex(timelimit=600, thread=1, display=2):
 
 class IsingInstance:
     """ Ising Instance """
+
     def __init__(self):
         self._num_vars = 0
         self._const = 0
@@ -170,6 +186,7 @@ class IsingInstance:
 
 class IsingModel:
     """ Ising Model """
+
     def __init__(self, instance: IsingInstance, **kwargs):
         self._instance = instance
         self._num_vars = instance.num_vars
