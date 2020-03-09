@@ -133,8 +133,8 @@ jobs:
           name: aqua1
           paths: aqua1.dat
       before_script:
-        - export PYTHON="coverage run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
-      script: stestr --test-path test/aqua run --blacklist-file selection.txt && coverage combine && mv .coverage aqua1.dat
+        - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
+      script: stestr --test-path test/aqua run --blacklist-file selection.txt && coverage3 combine && mv .coverage aqua1.dat
     - name: "Test Aqua 1 Python 3.8"
       <<: *stage_test_aqua
       if: tag IS blank
@@ -148,8 +148,8 @@ jobs:
           name: aqua2
           paths: aqua2.dat
       before_script:
-        - export PYTHON="coverage run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
-      script: stestr --test-path test/aqua run --whitelist-file selection.txt && coverage combine && mv .coverage aqua2.dat
+        - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
+      script: stestr --test-path test/aqua run --whitelist-file selection.txt && coverage3 combine && mv .coverage aqua2.dat
     - name: "Test Aqua 2 Python 3.8"
       <<: *stage_test_aqua
       if: tag IS blank
@@ -172,8 +172,8 @@ jobs:
         # Installing pyquante2 master branch...
         - pip install https://github.com/rpmuller/pyquante2/archive/master.zip --progress-bar off
       before_script:
-        - export PYTHON="coverage run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
-      script: stestr --test-path test/chemistry run && coverage combine && mv .coverage chemistry.dat
+        - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
+      script: stestr --test-path test/chemistry run && coverage3 combine && mv .coverage chemistry.dat
     - name: "Test Chemistry Python 3.8"
       <<: *stage_dependencies
       if: tag IS blank
@@ -194,8 +194,8 @@ jobs:
           name: finance
           paths: finance.dat
       before_script:
-        - export PYTHON="coverage run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
-      script: stestr --test-path test/finance run && coverage combine && mv .coverage finance.dat
+        - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
+      script: stestr --test-path test/finance run && coverage3 combine && mv .coverage finance.dat
     - name: "Test Finance Python 3.8"
       <<: *stage_dependencies
       if: tag IS blank
@@ -209,8 +209,8 @@ jobs:
           name: ml
           paths: ml.dat
       before_script:
-        - export PYTHON="coverage run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
-      script: stestr --test-path test/ml run && coverage combine && mv .coverage ml.dat
+        - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
+      script: stestr --test-path test/ml run && coverage3 combine && mv .coverage ml.dat
     - name: "Test Machine Learning Python 3.8"
       <<: *stage_dependencies
       if: tag IS blank
@@ -224,8 +224,8 @@ jobs:
           name: optimization
           paths: optimization.dat
       before_script:
-        - export PYTHON="coverage run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
-      script: stestr --test-path test/optimization run && coverage combine && mv .coverage optimization.dat
+        - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
+      script: stestr --test-path test/optimization run && coverage3 combine && mv .coverage optimization.dat
     - name: "Test Optimization Python 3.8"
       <<: *stage_dependencies
       if: tag IS blank
@@ -245,9 +245,9 @@ jobs:
       install:
         - pip install -U coverage coveralls diff-cover
       script:
-        - coverage combine aqua1.dat aqua2.dat chemistry.dat finance.dat ml.dat optimization.dat
+        - coverage3 combine aqua1.dat aqua2.dat chemistry.dat finance.dat ml.dat optimization.dat
         - coveralls || true
-        - coverage xml
+        - coverage3 xml
         - diff-cover --compare-branch master coverage.xml || true
     - stage: Deploy
       name: "Deploy to Pypi"
