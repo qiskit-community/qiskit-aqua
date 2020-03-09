@@ -26,6 +26,7 @@ Submodules
    :toctree:
 
    ising
+   grover_optimization
 
 """
 
