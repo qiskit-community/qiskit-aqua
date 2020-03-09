@@ -17,10 +17,10 @@
 import unittest
 from test.aqua import QiskitAquaTestCase
 import numpy as np
-from qiskit.aqua.algorithms import ExactLSsolver
+from qiskit.aqua.algorithms import ClassicalLSsolver
 
 
-class TestExactLSsolver(QiskitAquaTestCase):
+class TestClassicalLSsolver(QiskitAquaTestCase):
     """ Test Exact LS solver """
     def setUp(self):
         super().setUp()
@@ -29,7 +29,7 @@ class TestExactLSsolver(QiskitAquaTestCase):
 
     def test_els(self):
         """ ELS test """
-        algo = ExactLSsolver(self.matrix, self.vector)
+        algo = ClassicalLSsolver(self.matrix, self.vector)
         result = algo.run()
         np.testing.assert_array_almost_equal(result['solution'], [1, 0])
         np.testing.assert_array_almost_equal(result['eigvals'], [3, -1])

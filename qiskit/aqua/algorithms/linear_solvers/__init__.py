@@ -15,7 +15,8 @@
 """ Linear Solvers Package """
 
 from .hhl import HHL
-from .exact_ls_solver import ExactLSsolver
+from .classical_ls_solver import ClassicalLSsolver, ExactLSsolver
 
 __all__ = ['HHL',
+           'ClassicalLSsolver',
            'ExactLSsolver']

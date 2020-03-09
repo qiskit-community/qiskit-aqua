@@ -21,7 +21,7 @@ from qiskit import BasicAer
 from qiskit.aqua import aqua_globals, QuantumInstance
 from qiskit.optimization.ising import stable_set
 from qiskit.optimization.ising.common import random_graph, sample_most_likely
-from qiskit.aqua.algorithms import ExactEigensolver, VQE
+from qiskit.aqua.algorithms import ClassicalMinimumEigensolver, VQE
 from qiskit.aqua.components.optimizers import L_BFGS_B
 from qiskit.aqua.components.variational_forms import RYRZ
 
@@ -39,11 +39,11 @@ class TestStableSet(QiskitOptimizationTestCase):
 
     def test_stable_set(self):
         """ Stable set test """
-        algo = ExactEigensolver(self.qubit_op, k=1, aux_operators=[])
+        algo = ClassicalMinimumEigensolver(self.qubit_op, aux_operators=[])
         result = algo.run()
-        x = sample_most_likely(result['eigvecs'][0])
-        self.assertAlmostEqual(result['energy'], -29.5)
-        self.assertAlmostEqual(result['energy'] + self.offset, -25.0)
+        x = sample_most_likely(result.eigenstate)
+        self.assertAlmostEqual(result.eigenvalue.real, -29.5)
+        self.assertAlmostEqual(result.eigenvalue.real + self.offset, -25.0)
         ising_sol = stable_set.get_graph_solution(x)
         np.testing.assert_array_equal(ising_sol, [0, 0, 1, 1, 1])
         self.assertEqual(stable_set.stable_set_value(x, self.w), (3.0, False))

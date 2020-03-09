@@ -23,7 +23,7 @@ from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.components.variational_forms import RY
 from qiskit.aqua.components.optimizers import COBYLA, SPSA
-from qiskit.aqua.algorithms import ExactEigensolver
+from qiskit.aqua.algorithms import ClassicalEigensolver
 from qiskit.aqua.operators import Z2Symmetries
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.algorithms import QEomVQE
@@ -50,7 +50,7 @@ class TestEomVQE(QiskitAquaTestCase):
                                freeze_core=False,
                                orbital_reduction=[])
             qubit_op, _ = core.run(self.molecule)
-            exact_eigensolver = ExactEigensolver(qubit_op, k=2 ** qubit_op.num_qubits)
+            exact_eigensolver = ClassicalEigensolver(qubit_op, k=2 ** qubit_op.num_qubits)
             result = exact_eigensolver.run()
             self.reference = result['eigvals'].real
         except QiskitChemistryError:

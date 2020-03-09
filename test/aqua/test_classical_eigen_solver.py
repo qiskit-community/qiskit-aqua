@@ -12,17 +12,18 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Test Exact Eigen solver """
+""" Test Classical Eigen solver """
 
 import unittest
 from test.aqua import QiskitAquaTestCase
 import numpy as np
-from qiskit.aqua.algorithms import ExactEigensolver
+from qiskit.aqua import AquaError
+from qiskit.aqua.algorithms import ClassicalEigensolver
 from qiskit.aqua.operators import WeightedPauliOperator
 
 
-class TestExactEigensolver(QiskitAquaTestCase):
-    """ Test Exact Eigen solver """
+class TestClassicalEigensolver(QiskitAquaTestCase):
+    """ Test Classical Eigen solver """
     def setUp(self):
         super().setUp()
         pauli_dict = {
@@ -35,23 +36,28 @@ class TestExactEigensolver(QiskitAquaTestCase):
         }
         self.qubit_op = WeightedPauliOperator.from_dict(pauli_dict)
 
-    def test_ee(self):
-        """ ee test """
-        algo = ExactEigensolver(self.qubit_op, k=1, aux_operators=[])
+    def test_ce(self):
+        """ Test basics """
+        algo = ClassicalEigensolver(self.qubit_op, aux_operators=[])
         result = algo.run()
-        self.assertAlmostEqual(result['energy'], -1.85727503)
-        np.testing.assert_array_almost_equal(result['energies'], [-1.85727503])
-        np.testing.assert_array_almost_equal(result['eigvals'], [-1.85727503 + 0j])
+        self.assertEqual(len(result.eigenvalues), 1)
+        self.assertEqual(len(result.eigenstates), 1)
+        self.assertAlmostEqual(result.eigenvalues[0], -1.85727503 + 0j)
 
-    def test_ee_k4(self):
-        """ ee k4 test """
-        algo = ExactEigensolver(self.qubit_op, k=4, aux_operators=[])
+    def test_ce_k4(self):
+        """ Test for k=4 eigenvalues """
+        algo = ClassicalEigensolver(self.qubit_op, k=4, aux_operators=[])
         result = algo.run()
-        self.assertAlmostEqual(result['energy'], -1.85727503)
-        self.assertEqual(len(result['eigvals']), 4)
-        self.assertEqual(len(result['eigvecs']), 4)
-        np.testing.assert_array_almost_equal(result['energies'],
+        self.assertEqual(len(result.eigenvalues), 4)
+        self.assertEqual(len(result.eigenstates), 4)
+        np.testing.assert_array_almost_equal(result.eigenvalues.real,
                                              [-1.85727503, -1.24458455, -0.88272215, -0.22491125])
+
+    def test_ce_fail(self):
+        """ Test no operator """
+        algo = ClassicalEigensolver()
+        with self.assertRaises(AquaError):
+            _ = algo.run()
 
 
 if __name__ == '__main__':

@@ -23,7 +23,7 @@ from docplex.mp.model import Model
 from qiskit.quantum_info import Pauli
 
 from qiskit.aqua import AquaError, aqua_globals
-from qiskit.aqua.algorithms import ExactEigensolver
+from qiskit.aqua.algorithms import ClassicalMinimumEigensolver
 from qiskit.optimization.ising import docplex, tsp
 from qiskit.aqua.operators import WeightedPauliOperator
 
@@ -230,14 +230,15 @@ class TestDocplex(QiskitOptimizationTestCase):
         mdl.maximize(maxcut_func)
         qubit_op, offset = docplex.get_operator(mdl)
 
-        e_e = ExactEigensolver(qubit_op, k=1)
+        e_e = ClassicalMinimumEigensolver(qubit_op)
         result = e_e.run()
 
-        ee_expected = ExactEigensolver(QUBIT_OP_MAXCUT, k=1)
+        ee_expected = ClassicalMinimumEigensolver(QUBIT_OP_MAXCUT)
         expected_result = ee_expected.run()
 
         # Compare objective
-        self.assertEqual(result['energy'] + offset, expected_result['energy'] + OFFSET_MAXCUT)
+        self.assertEqual(result.eigenvalue.real + offset,
+                         expected_result.eigenvalue.real + OFFSET_MAXCUT)
 
     def test_docplex_tsp(self):
         """ Docplex tsp test """
@@ -263,14 +264,15 @@ class TestDocplex(QiskitOptimizationTestCase):
             mdl.add_constraint(mdl.sum(x[(i, j)] for i in range(num_node)) == 1)
         qubit_op, offset = docplex.get_operator(mdl)
 
-        e_e = ExactEigensolver(qubit_op, k=1)
+        e_e = ClassicalMinimumEigensolver(qubit_op)
         result = e_e.run()
 
-        ee_expected = ExactEigensolver(QUBIT_OP_TSP, k=1)
+        ee_expected = ClassicalMinimumEigensolver(QUBIT_OP_TSP)
         expected_result = ee_expected.run()
 
         # Compare objective
-        self.assertEqual(result['energy'] + offset, expected_result['energy'] + OFFSET_TSP)
+        self.assertEqual(result.eigenvalue.real +
+                         offset, expected_result.eigenvalue.real + OFFSET_TSP)
 
     def test_docplex_integer_constraints(self):
         """ Docplex Integer Constraints test """
@@ -282,13 +284,13 @@ class TestDocplex(QiskitOptimizationTestCase):
         mdl.add_constraint(mdl.sum(i * x[i] for i in range(1, 5)) == 3)
         qubit_op, offset = docplex.get_operator(mdl)
 
-        e_e = ExactEigensolver(qubit_op, k=1)
+        e_e = ClassicalMinimumEigensolver(qubit_op)
         result = e_e.run()
 
         expected_result = -2
 
         # Compare objective
-        self.assertEqual(result['energy'] + offset, expected_result)
+        self.assertEqual(result.eigenvalue.real + offset, expected_result)
 
     def test_docplex_constant_and_quadratic_terms_in_object_function(self):
         """ Docplex Constant and Quadratic terms in Object function test """
@@ -311,10 +313,10 @@ class TestDocplex(QiskitOptimizationTestCase):
         mdl.minimize(ising_func)
         qubit_op, offset = docplex.get_operator(mdl)
 
-        e_e = ExactEigensolver(qubit_op, k=1)
+        e_e = ClassicalMinimumEigensolver(qubit_op)
         result = e_e.run()
 
         expected_result = -22
 
         # Compare objective
-        self.assertEqual(result['energy'] + offset, expected_result)
+        self.assertEqual(result.eigenvalue.real + offset, expected_result)
