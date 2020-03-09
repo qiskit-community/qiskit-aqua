@@ -24,7 +24,7 @@ Changed
 -   Remove declarative api (#758) (#759) (#760) (#762) (#763)
 -   Refactor Multiclass Extensions to set Estimator internally (#822)
 -   Refactor algorithms (#831)
--   Moved to Terra: multi-controlled Toffoli, U1 and Pauli rotations (including tests) (#833)
+-   Moved to Terra: multi-controlled Toffoli, U1 and Pauli rotation gates (including tests) (#833)
 
 [0.6.4](https://github.com/Qiskit/qiskit-aqua/compare/0.6.3...0.6.4) - 2020-02-06
 =================================================================================
