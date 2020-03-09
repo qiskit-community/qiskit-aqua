@@ -296,7 +296,7 @@ class VQEAdaptResult(VQEResult):
     @property
     def finishing_criterion(self) -> str:
         """ Returns finishing criterion """
-        return self.get('finishing criterion')
+        return self.get('finishing_criterion')
 
     @finishing_criterion.setter
     def finishing_criterion(self, value: str) -> None:
