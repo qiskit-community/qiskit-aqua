@@ -102,7 +102,10 @@ class OpPrimitive(OperatorBase):
 
     def kronpower(self, other):
         """ Kron with Self Multiple Times """
-        if not isinstance(other, int) or other <= 0:
+        # Hack to make Z^(I^0) work as intended.
+        if other == 0:
+            return 1
+        if not isinstance(other, int) or other < 0:
             raise TypeError('Kronpower can only take positive int arguments')
         temp = OpPrimitive(self.primitive, coeff=self.coeff)
         for i in range(other-1):
