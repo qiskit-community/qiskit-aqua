@@ -164,6 +164,14 @@ class OperatorBase(ABC):
         else:
             return self.kron(other)
 
+    # Hack to make (I^0)^Z work as intended.
+    def __rxor__(self, other):
+        """ Overload ^ for kron or kronpower if ^ is int"""
+        if other == 1:
+            return self
+        else:
+            return other.kron(self)
+
     @abstractmethod
     def kron(self, other):
         """ Kron """

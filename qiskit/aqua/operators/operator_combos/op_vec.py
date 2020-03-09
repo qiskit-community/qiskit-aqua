@@ -18,8 +18,7 @@
 import numpy as np
 from functools import reduce
 
-from qiskit.aqua.operators.operator_base import OperatorBase
-from qiskit.aqua.operators.state_functions.state_fn import StateFn
+from .. import OperatorBase
 
 
 class OpVec(OperatorBase):
@@ -155,6 +154,9 @@ class OpVec(OperatorBase):
 
     def kronpower(self, other):
         """ Kron with Self Multiple Times """
+        # Hack to make op1^(op2^0) work as intended.
+        if other == 0:
+            return 1
         if not isinstance(other, int) or other <= 0:
             raise TypeError('Kronpower can only take positive int arguments')
 
@@ -225,6 +227,8 @@ class OpVec(OperatorBase):
         if isinstance(front, list):
             return [self.eval(front_elem, back=back) for front_elem in front]
 
+        from ..state_functions import StateFn
+
         if back is not None and not isinstance(back, OperatorBase):
             back = StateFn(back, is_measurement=True)
 
@@ -237,6 +241,11 @@ class OpVec(OperatorBase):
                 res += [(self.coeff*op).eval(front, back)]
 
         return self.combo_fn(res)
+
+    def exp_i(self):
+        """ Raise Operator to power e ^ (i * op)"""
+        from qiskit.aqua.operators import OpEvolution
+        return OpEvolution(self)
 
     def __str__(self):
         """Overload str() """
