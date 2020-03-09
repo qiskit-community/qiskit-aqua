@@ -14,11 +14,10 @@
 
 """ Test OptimizationProblem """
 
-import numpy as np
 import os.path
 import tempfile
-import qiskit.optimization.problems.optimization_problem
 from test.optimization.common import QiskitOptimizationTestCase
+import qiskit.optimization.problems.optimization_problem
 from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
 
 

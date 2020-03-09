@@ -147,12 +147,6 @@ class VQE(VQAlgorithm, MinimumEigensolver):
             initial_point = var_form.preferred_init_points
 
         self._max_evals_grouped = max_evals_grouped
-
-        super().__init__(var_form=var_form,
-                         optimizer=optimizer,
-                         cost_fn=self._energy_evaluation,
-                         initial_point=initial_point)
-
         self._quantum_instance = quantum_instance
         self._in_operator = None
         self._operator = None
@@ -165,6 +159,11 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         self._ret = None
         self._eval_time = None
         self._eval_count = 0
+
+        super().__init__(var_form=var_form,
+                         optimizer=optimizer,
+                         cost_fn=self._energy_evaluation,
+                         initial_point=initial_point)
 
         logger.info(self.print_settings())
         self._var_form_params = None
