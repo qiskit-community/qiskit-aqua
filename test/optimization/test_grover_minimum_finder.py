@@ -16,7 +16,7 @@
 
 from test.optimization import QiskitOptimizationTestCase
 from qiskit.optimization.algorithms import GroverMinimumFinder
-from qiskit.optimization.portfolio_util import get_qubo_solutions
+from qiskit.optimization.util import get_qubo_solutions
 import numpy as np
 
 # Flag for verbosity in all units under test.

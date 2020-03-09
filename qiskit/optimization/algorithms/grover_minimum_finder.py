@@ -14,7 +14,7 @@
 
 from qiskit.optimization.converters import OptimizationProblemToNegativeValueOracle
 from qiskit.optimization.results import GroverOptimizationResults
-from qiskit.optimization.portfolio_util import get_qubo_solutions
+from qiskit.optimization.util import get_qubo_solutions
 
 from qiskit.aqua.algorithms.amplitude_amplifiers.grover import Grover
 from qiskit.visualization import plot_histogram
