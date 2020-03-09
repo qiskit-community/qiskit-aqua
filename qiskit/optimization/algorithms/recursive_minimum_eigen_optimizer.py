@@ -24,27 +24,26 @@
         >>> result = optimizer.solve(problem)
 """
 
+from copy import deepcopy
 from typing import Optional
 import numpy as np
 from cplex import SparseTriple
-from copy import deepcopy
 
 from qiskit.optimization import QiskitOptimizationError
-from qiskit.optimization.algorithms import OptimizationAlgorithm, MinEigenOptimizer
+from qiskit.optimization.algorithms import OptimizationAlgorithm, MinimumEigenOptimizer
 from qiskit.optimization.problems import OptimizationProblem
 from qiskit.optimization.results import OptimizationResult
-from qiskit.optimization.converters import (OptimizationProblemToOperator,
-                                            PenalizeLinearEqualityConstraints,
+from qiskit.optimization.converters import (PenalizeLinearEqualityConstraints,
                                             IntegerToBinaryConverter)
-from qiskit.aqua.algorithms import ExactEigensolver
+from qiskit.aqua.algorithms import ClassicalMinimumEigensolver
 
 
-class RecursiveMinEigenOptimizer(OptimizationAlgorithm):
+class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
     """
     TODO
     """
 
-    def __init__(self, min_eigen_optimizer: MinEigenOptimizer, min_num_vars: int = 1,
+    def __init__(self, min_eigen_optimizer: MinimumEigenOptimizer, min_num_vars: int = 1,
                  min_num_vars_optimizer: Optional[OptimizationAlgorithm] = None,
                  penalty: Optional[float] = None) -> None:
         """
@@ -59,7 +58,7 @@ class RecursiveMinEigenOptimizer(OptimizationAlgorithm):
         if min_num_vars_optimizer:
             self._min_num_vars_optimizer = min_num_vars_optimizer
         else:
-            self._min_num_vars_optimizer = MinEigenOptimizer(ExactEigensolver())
+            self._min_num_vars_optimizer = MinimumEigenOptimizer(ClassicalMinimumEigensolver())
         self._penalty = penalty
 
     def is_compatible(self, problem: OptimizationProblem) -> Optional[str]:

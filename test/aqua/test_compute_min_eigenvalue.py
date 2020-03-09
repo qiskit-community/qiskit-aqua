@@ -23,7 +23,7 @@ from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator
 from qiskit.aqua.components.variational_forms import RY, RYRZ
 from qiskit.aqua.components.optimizers import L_BFGS_B, SPSA, SLSQP
 from qiskit.aqua.components.initial_states import Zero
-from qiskit.aqua.algorithms import VQE, ExactEigensolver
+from qiskit.aqua.algorithms import VQE, ClassicalMinimumEigensolver
 
 
 class TestComputeMinEigenvalue(QiskitAquaTestCase):
@@ -51,40 +51,36 @@ class TestComputeMinEigenvalue(QiskitAquaTestCase):
                                            seed_simulator=aqua_globals.random_seed,
                                            seed_transpiler=aqua_globals.random_seed)
 
-        dummy_operator = MatrixOperator([])
-        vqe = VQE(dummy_operator, RYRZ(self.qubit_op.num_qubits), L_BFGS_B(),
+        vqe = VQE(var_form=RYRZ(self.qubit_op.num_qubits),
+                  optimizer=L_BFGS_B(),
                   quantum_instance=quantum_instance)
-
-        output = vqe.compute_min_eigenvalue(self.qubit_op)
-
-        vector, energy = output
-        self.assertAlmostEqual(energy, -1.85727503)
+        output = vqe.compute_minimum_eigenvalue(self.qubit_op)
+        self.assertAlmostEqual(output.eigenvalue, -1.85727503)
 
     def test_vqe_qasm(self):
         """ VQE QASM test """
         backend = BasicAer.get_backend('qasm_simulator')
         num_qubits = self.qubit_op.num_qubits
-        var_form = RY(num_qubits, 3)
+        var_form = RY(num_qubits, num_qubits)
         optimizer = SPSA(max_trials=300, last_avg=5)
         quantum_instance = QuantumInstance(backend, shots=10000,
                                            seed_simulator=self.seed,
                                            seed_transpiler=self.seed)
-        dummy_operator = MatrixOperator([])
-        vqe = VQE(dummy_operator, var_form, optimizer, max_evals_grouped=1,
+        vqe = VQE(var_form=var_form,
+                  optimizer=optimizer,
+                  max_evals_grouped=1,
                   quantum_instance=quantum_instance)
 
-        output = vqe.compute_min_eigenvalue(self.qubit_op)
-
-        vector, energy = output
-        self.assertAlmostEqual(energy, -1.85727503, places=2)
+        output = vqe.compute_minimum_eigenvalue(self.qubit_op)
+        self.assertAlmostEqual(output.eigenvalue, -1.85727503, places=1)
 
     def test_ee(self):
         """ EE test """
         dummy_operator = MatrixOperator([[1]])
-        ee = ExactEigensolver(self.qubit_op, k=1, aux_operators=[])
-        eigenvector, eigenvalue = ee.compute_min_eigenvalue(self.qubit_op)
+        ee = ClassicalMinimumEigensolver()
+        output = ee.compute_minimum_eigenvalue(self.qubit_op)
 
-        self.assertAlmostEqual(eigenvalue, -1.85727503)
+        self.assertAlmostEqual(output.eigenvalue, -1.85727503)
 
 
 if __name__ == '__main__':

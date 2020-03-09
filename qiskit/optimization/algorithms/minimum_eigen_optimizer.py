@@ -26,7 +26,7 @@
 
 from typing import Optional
 
-from qiskit.aqua.algorithms import MinEigenSolver
+from qiskit.aqua.algorithms import MinimumEigensolver
 from qiskit.optimization.problems import OptimizationProblem
 from qiskit.optimization.algorithms import OptimizationAlgorithm
 from qiskit.optimization.utils import QiskitOptimizationError
@@ -36,10 +36,8 @@ from qiskit.optimization.converters import (OptimizationProblemToOperator,
 from qiskit.optimization.utils import eigenvector_to_solutions
 from qiskit.optimization.results import OptimizationResult
 
-from qiskit import Aer
 
-
-class MinEigenOptimizer(OptimizationAlgorithm):
+class MinimumEigenOptimizer(OptimizationAlgorithm):
     """A wrapper for minimum eigen solvers from Qiskit Aqua to be used within Qiskit Optimization.
 
     This class provides a wrapper for minimum eigen solvers from Qiskit Aqua.
@@ -54,7 +52,8 @@ class MinEigenOptimizer(OptimizationAlgorithm):
 
     """
 
-    def __init__(self, min_eigen_solver: MinEigenSolver, penalty: Optional[float] = None) -> None:
+    def __init__(self, min_eigen_solver: MinimumEigensolver, penalty: Optional[float] = None
+                 ) -> None:
         """Initializes the minimum eigen optimizer.
 
         This initializer takes the minimum eigen solver to be used to approximate the groundstate
@@ -148,11 +147,11 @@ class MinEigenOptimizer(OptimizationAlgorithm):
         operator, offset = operator_converter.encode(problem_)
 
         # approximate ground state of operator using min eigen solver
-        eigenvector, _ = self._min_eigen_solver.compute_min_eigenvalue(operator)
+        eigen_results = self._min_eigen_solver.compute_minimum_eigenvalue(operator)
 
         # analyze results
         # TODO: handle min_probability depending on backend or some other property
-        results = eigenvector_to_solutions(eigenvector, operator, min_probability=0)
+        results = eigenvector_to_solutions(eigen_results.eigenstate, operator, min_probability=0)
         results = [(res[0], problem_.objective.get_sense() * (res[1] + offset), res[2])
                    for res in results]
         results.sort(key=lambda x: problem_.objective.get_sense() * x[1])

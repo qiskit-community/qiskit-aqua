@@ -21,6 +21,7 @@ import warnings
 import numpy as np
 from scipy import sparse as scisparse
 
+from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms import ClassicalAlgorithm
 from qiskit.aqua.operators import MatrixOperator, op_converter  # pylint: disable=unused-import
 from qiskit.aqua.operators import BaseOperator
@@ -189,7 +190,7 @@ class ClassicalEigensolver(ClassicalAlgorithm):
              ValueError: if no operator has been provided
         """
         if self._operator is None:
-            raise ValueError("Operator was never provided")
+            raise AquaError("Operator was never provided")
 
         self._ret = {}
         self._solve()

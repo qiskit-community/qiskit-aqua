@@ -27,8 +27,9 @@ Structures for defining an optimization algorithms
 from qiskit.optimization.algorithms.optimization_algorithm import OptimizationAlgorithm
 from qiskit.optimization.algorithms.cplex_optimizer import CplexOptimizer
 from qiskit.optimization.algorithms.cobyla_optimizer import CobylaOptimizer
-from qiskit.optimization.algorithms.min_eigen_optimizer import MinEigenOptimizer
-from qiskit.optimization.algorithms.recursive_min_eigen_optimizer import RecursiveMinEigenOptimizer
+from qiskit.optimization.algorithms.minimum_eigen_optimizer import MinimumEigenOptimizer
+from qiskit.optimization.algorithms.recursive_minimum_eigen_optimizer import\
+    RecursiveMinimumEigenOptimizer
 
-__all__ = ["OptimizationAlgorithm", "CplexOptimizer", "CobylaOptimizer", "MinEigenOptimizer",
-           "RecursiveMinEigenOptimizer"]
+__all__ = ["OptimizationAlgorithm", "CplexOptimizer", "CobylaOptimizer", "MinimumEigenOptimizer",
+           "RecursiveMinimumEigenOptimizer"]
