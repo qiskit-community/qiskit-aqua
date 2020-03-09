@@ -30,7 +30,8 @@ logger = logging.getLogger(__name__)
 
 class LocalSimulatorSampler(CircuitSampler):
     """ A sampler for local Quantum simulator backends.
-
+    # TODO replace OpMatrices with Terra unitary gates to make them runnable. Note, Terra's Operator has a
+    to_instruction method.
     """
 
     def __init__(self, backend=None, hw_backend_to_emulate=None, kwargs={}, statevector=False, snapshot=False):

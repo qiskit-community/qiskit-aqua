@@ -23,6 +23,9 @@ from .pauli_to_instruction import PaulitoInstruction
 from .to_matrixop import ToMatrixOp
 from .dict_to_circuit_sum import DicttoCircuitSum
 
+# TODO MatrixToPauliSum
+# TODO MatrixToSimInstruction
+
 __all__ = ['ConverterBase',
            'PauliChangeOfBasis',
            'PaulitoInstruction',
