@@ -12,7 +12,11 @@ import sys
 import time
 import numpy as np
 
-from qiskit.optimization.algorithms.admm_optimizer import ADMMOptimizer
+from qiskit.aqua.algorithms import QAOA
+from qiskit.aqua.components.optimizers import COBYLA
+
+from qiskit.optimization.algorithms import CplexOptimizer, MinimumEigenOptimizer
+from qiskit.optimization.algorithms.admm_optimizer import ADMMOptimizer, ADMMParameters
 from qiskit.optimization.problems import OptimizationProblem
 
 
@@ -174,6 +178,7 @@ def get_instance_params():
     return K, T, P, S, D, C
 
 
+
 class Miskp:
 
     def __init__(self, K, T, P, S, D: np.ndarray, C: np.ndarray, verbose=False, relativeGap=0.0,
@@ -316,6 +321,37 @@ class Miskp:
         solution = solver.solve(self.op)
 
         return solution
+    
+    def run_op_eigens(self):
+        """Main method, which populates and solve the OptimizationProblem model via OptimizationAlgorithm
+
+        """
+
+        self.op = OptimizationProblem()
+
+        self.create_params()
+        self.create_vars()
+        self.create_obj()
+        self.create_cons()
+
+        # Save the model
+        create_folder(self.lp_folder)
+
+        self.op.write(self.lp_folder + "miskp.lp")
+
+        # QAOA
+        optimizer = COBYLA()
+        min_eigen_solver = QAOA(optimizer=optimizer)
+        qubo_solver_class = MinimumEigenOptimizer(min_eigen_solver)
+
+        continuous_solver_class = CplexOptimizer()
+
+        admm_params = ADMMParameters(qubo_solver_class=qubo_solver_class, continuous_solver_class=continuous_solver_class)
+
+        solver = ADMMOptimizer(params=admm_params)
+        solution = solver.solve(self.op)
+
+        return solution
 
 
 def toy_cplex_api():
@@ -329,11 +365,18 @@ def toy_op():
     K, T, P, S, D, C = get_instance_params()
     pb = Miskp(K, T, P, S, D, C)
     out = pb.run_op()
+    
+def toy_op_eigens():
+
+    K, T, P, S, D, C = get_instance_params()
+    pb = Miskp(K, T, P, S, D, C)
+    out = pb.run_op_eigens()
 
 
 if __name__ == '__main__':
     # toy_cplex_api()
-    toy_op()
+    # toy_op()
+    toy_op_eigens()
 
 
 
