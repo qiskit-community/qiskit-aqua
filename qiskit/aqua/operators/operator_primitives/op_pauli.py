@@ -129,8 +129,8 @@ class OpPauli(OpPrimitive):
 
         # Both Paulis
         if isinstance(other, OpPauli):
-            return OpPrimitive(self.primitive * other.primitive, coeff=self.coeff * other.coeff)
-            # TODO double check coeffs logic for paulis
+            product, phase = Pauli.sgn_prod(self.primitive, other.primitive)
+            return OpPrimitive(product, coeff=self.coeff * other.coeff * phase)
 
         from . import OpCircuit
         from .. import StateFnCircuit
@@ -286,3 +286,15 @@ class OpPauli(OpPrimitive):
         else:
             from qiskit.aqua.operators import OpEvolution
             return OpEvolution(self)
+
+    def __hash__(self):
+        # Need this to be able to easily construct AbelianGraphs
+        return id(self)
+
+    def commutes(self, other_op):
+        if not isinstance(other_op, OpPauli):
+            return False
+        # Don't use compose because parameters will break this
+        self_bits = self.primitive.z.astype(int) + 2*self.primitive.x.astype(int)
+        other_bits = other_op.primitive.z.astype(int) + 2*other_op.primitive.x.astype(int)
+        return all((self_bits * other_bits) * (self_bits - other_bits) == 0)
