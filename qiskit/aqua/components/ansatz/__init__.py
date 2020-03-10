@@ -17,7 +17,10 @@
 from .ansatz import Ansatz
 from .feature_maps import PauliExpansion
 from .operator_ansatz import OperatorAnsatz
-from .variational_forms import TwoLocalAnsatz, RY, RYRZ, SwapRZ
+from .two_local_ansatz import TwoLocalAnsatz
+from .ry import RY
+from .ryrz import RYRZ
+from .swaprz import SwapRZ
 
 __all__ = [
     'Ansatz',

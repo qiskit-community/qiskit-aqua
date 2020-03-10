@@ -257,7 +257,7 @@ class Ansatz:
         """
         circuit = QuantumCircuit(self.num_qubits)
         circuit.append(block, qargs)
-        if params is not None:
+        if params is not None and self._overwrite_block_parameters:
             update = dict(zip(circuit.parameters, params))
             circuit = circuit.copy()
             circuit._substitute_parameters(update)
@@ -366,7 +366,8 @@ class Ansatz:
     @base_parameters.setter
     def base_parameters(self, parameters):
         """Set the base parameters."""
-        self._circuit._substitute_parameters(dict(zip(self._base_params, parameters)))
+        if self._circuit:
+            self._circuit._substitute_parameters(dict(zip(self._base_params, parameters)))
         self._base_params = parameters
 
     @property
@@ -701,11 +702,12 @@ class Ansatz:
         else:
             num_qubits = block.num_qubits
 
+        # Convert to a list, so that if reps was an integer, the appended block gets added
+        # once and not multiple times. Must happen before appending block to self._blocks.
+        self._reps = self._reps_as_list() + [len(self._blocks)]
+
         # add other to the list of blocks
         self._blocks += [block]
-
-        # keep track of which blocks to add to the Ansatz
-        self._reps = self._reps_as_list() + [len(self._blocks) - 1]
 
         # We can have two cases: the appended block fits onto the current Ansatz (i.e. has
         # less of equal number of qubits), or exceeds the number of qubits.

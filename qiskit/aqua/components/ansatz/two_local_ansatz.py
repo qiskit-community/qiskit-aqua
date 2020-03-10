@@ -158,6 +158,7 @@ class TwoLocalAnsatz(Ansatz):
         new_parameters = [Parameter('{}{}'.format(self._parameter_prefix, i + self._param_count))
                           for i in range(n)]
         self._param_count += n
+        self._base_params += new_parameters
         return new_parameters
 
     def _get_entanglement_layer(self, block_num: int) -> Gate:
@@ -182,7 +183,8 @@ class TwoLocalAnsatz(Ansatz):
             # apply the gates
             for gate, num_params in self.entanglement_gates:
                 if num_params == 0:
-                    circuit.append(gate, [src, tgt], [])
+                    params = []
+                    circuit.append(gate, [src, tgt], params)
                 else:
                     # param_count = self.num_parameters + len(circuit.parameters)
                     # params = [Parameter('{}{}'.format(self._parameter_prefix, param_count + i))
@@ -232,7 +234,8 @@ class TwoLocalAnsatz(Ansatz):
                 # apply the gates
                 for gate, num_params in self.rotation_gates:
                     if num_params == 0:
-                        circuit.append(gate, [qubit], [])  # todo: use _append with register
+                        params = []
+                        circuit.append(gate, [qubit], params)  # todo: use _append with register
                     else:
                         params = self._get_new_parameters(num_params)
 
@@ -338,22 +341,31 @@ class TwoLocalAnsatz(Ansatz):
 
         blocks = []
         self._param_count = 0
+        self._base_params = []
         # define the blocks of this Ansatz
         for block_num in range(self._depth):
             # append a rotation layer, if entanglement gates are specified
             if len(self._rotation_gates) > 0:
-                blocks += [self._get_rotation_layer(block_num)]
+                block = self._get_rotation_layer(block_num)
+                blocks += [block]
 
             # append an entanglement layer, if entanglement gates are specified
             if len(self._entanglement_gates) > 0:
-                blocks += [self._get_entanglement_layer(block_num)]
+                block = self._get_entanglement_layer(block_num)
+                blocks += [block]
 
         # add a final rotation layer, if not specified otherwise
         if not self._skip_final_rotation_layer and len(self._rotation_gates) > 0:
-            blocks += [self._get_rotation_layer(self._reps)]
+            block = self._get_rotation_layer(block_num)
+            blocks += [block]
 
         self._blocks = blocks
         return blocks
+
+    @Ansatz.base_parameters.getter
+    def base_parameters(self):
+        _ = self.blocks
+        return self._base_params
 
     @Ansatz.num_qubits.setter
     def num_qubits(self, num_qubits: int) -> None:
