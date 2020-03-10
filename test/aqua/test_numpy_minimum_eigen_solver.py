@@ -12,18 +12,18 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Test Classical Minimum Eigensolver """
+""" Test NumPy Minimum Eigensolver """
 
 import unittest
 from test.aqua import QiskitAquaTestCase
 import numpy as np
 from qiskit.aqua import AquaError
-from qiskit.aqua.algorithms import ClassicalMinimumEigensolver
+from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.aqua.operators import WeightedPauliOperator
 
 
-class TestClassicalMinimumEigensolver(QiskitAquaTestCase):
-    """ Test Classical Minimum Eigensolver """
+class TestNumPyMinimumEigensolver(QiskitAquaTestCase):
+    """ Test NumPy Minimum Eigensolver """
     def setUp(self):
         super().setUp()
         pauli_dict = {
@@ -51,7 +51,7 @@ class TestClassicalMinimumEigensolver(QiskitAquaTestCase):
 
     def test_cme(self):
         """ Basic test """
-        algo = ClassicalMinimumEigensolver(self.qubit_op, aux_operators=self.aux_ops)
+        algo = NumPyMinimumEigensolver(self.qubit_op, aux_operators=self.aux_ops)
         result = algo.run()
         self.assertAlmostEqual(result.eigenvalue, -1.85727503 + 0j)
         self.assertEqual(len(result.aux_operator_eigenvalues), 2)
@@ -60,14 +60,14 @@ class TestClassicalMinimumEigensolver(QiskitAquaTestCase):
 
     def test_cme_fail(self):
         """ Test no operator """
-        algo = ClassicalMinimumEigensolver()
+        algo = NumPyMinimumEigensolver()
         with self.assertRaises(AquaError):
             _ = algo.run()
 
     def test_cme_reuse(self):
         """ Test reuse """
         # Start with no operator or aux_operators, give via compute method
-        algo = ClassicalMinimumEigensolver()
+        algo = NumPyMinimumEigensolver()
         result = algo.compute_minimum_eigenvalue(self.qubit_op)
         self.assertAlmostEqual(result.eigenvalue, -1.85727503 + 0j)
         self.assertEqual(self.qubit_op, algo.operator)
