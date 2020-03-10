@@ -27,7 +27,12 @@ class TestReadmeSample(QiskitOptimizationTestCase):
 
     def test_readme_sample(self):
         """ readme sample test """
-        # pylint: disable=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel,redefined-builtin
+
+        def print(*args):
+            """ overloads print to log values """
+            if args:
+                self.log.debug(args[0], *args[1:])
 
         # --- Exact copy of sample code ----------------------------------------
 
@@ -76,11 +81,11 @@ class TestReadmeSample(QiskitOptimizationTestCase):
         result = qaoa.run(quantum_instance)
 
         x = sample_most_likely(result.eigenstate)
-        self.log.debug('energy: %s', result.eigenvalue.real)
-        self.log.debug('time: %s', result.optimizer_time)
-        self.log.debug('max-cut objective: %s', result.eigenvalue.real + offset)
-        self.log.debug('solution: %s', max_cut.get_graph_solution(x))
-        self.log.debug('solution objective: %s', max_cut.max_cut_value(x, w))
+        print('energy:', result.eigenvalue.real)
+        print('time:', result.optimizer_time)
+        print('max-cut objective:', result.eigenvalue.real + offset)
+        print('solution:', max_cut.get_graph_solution(x))
+        print('solution objective:', max_cut.max_cut_value(x, w))
 
         # ----------------------------------------------------------------------
 

@@ -231,7 +231,7 @@ from qiskit import Aer
 backend = Aer.get_backend('statevector_simulator')
 
 result = algorithm.run(backend)
-print(result['energy'])
+print(result.eigenvalue.real)
 ```
 The program above uses a quantum computer to calculate the ground state energy of molecular Hydrogen,
 H<sub>2</sub>, where the two atoms are configured to be at a distance of 0.735 angstroms. The molecular
@@ -428,10 +428,10 @@ quantum_instance = QuantumInstance(backend, shots=1024, seed_simulator=seed,
                                    seed_transpiler=seed)
 result = qaoa.run(quantum_instance)
 
-x = sample_most_likely(result['eigvecs'][0])
-print('energy:', result['energy'])
-print('time:', result['eval_time'])
-print('max-cut objective:', result['energy'] + offset)
+x = sample_most_likely(result.eigenstate)
+print('energy:', result.eigenvalue.real)
+print('time:', result.optimizer_time)
+print('max-cut objective:', result.eigenvalue.real + offset)
 print('solution:', max_cut.get_graph_solution(x))
 print('solution objective:', max_cut.max_cut_value(x, w))
 ```
