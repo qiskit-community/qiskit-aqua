@@ -202,8 +202,9 @@ class OpCircuit(OpPrimitive):
 
     # Warning - modifying immutable object!!
     def reduce(self):
-        for i, inst_context in enumerate(self.primitive._definition):
-            [gate, _, _] = inst_context
-            if isinstance(gate, IGate):
-                del self.primitive._definition[i]
+        if self.primitive._definition is not None:
+            for i, inst_context in enumerate(self.primitive._definition):
+                [gate, _, _] = inst_context
+                if isinstance(gate, IGate):
+                    del self.primitive._definition[i]
         return self

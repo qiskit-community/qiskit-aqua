@@ -19,7 +19,7 @@ from typing import List, Optional, Union, Dict
 
 import numpy as np
 from qiskit.aqua.algorithms import AlgorithmResult
-from qiskit.aqua.operators import BaseOperator
+from qiskit.aqua.operators import LegacyBaseOperator
 
 
 class MinimumEigensolver(ABC):
@@ -33,8 +33,8 @@ class MinimumEigensolver(ABC):
 
     @abstractmethod
     def compute_minimum_eigenvalue(
-            self, operator: Optional[BaseOperator] = None,
-            aux_operators: Optional[List[BaseOperator]] = None) -> 'MinimumEigensolverResult':
+            self, operator: Optional[LegacyBaseOperator] = None,
+            aux_operators: Optional[List[LegacyBaseOperator]] = None) -> 'MinimumEigensolverResult':
         """
         Computes minimum eigenvalue. Operator and aux_operators can be supplied here and
         if not None will override any already set into algorithm so it can be reused with
@@ -67,25 +67,25 @@ class MinimumEigensolver(ABC):
 
     @property
     @abstractmethod
-    def operator(self) -> BaseOperator:
+    def operator(self) -> LegacyBaseOperator:
         """ returns operator """
         pass
 
     @operator.setter
     @abstractmethod
-    def operator(self, operator: BaseOperator) -> None:
+    def operator(self, operator: LegacyBaseOperator) -> None:
         """ set operator """
         pass
 
     @property
     @abstractmethod
-    def aux_operators(self) -> List[BaseOperator]:
+    def aux_operators(self) -> List[LegacyBaseOperator]:
         """ returns aux operators """
         pass
 
     @aux_operators.setter
     @abstractmethod
-    def aux_operators(self, aux_operators: List[BaseOperator]) -> None:
+    def aux_operators(self, aux_operators: List[LegacyBaseOperator]) -> None:
         """ set aux operators """
         pass
 

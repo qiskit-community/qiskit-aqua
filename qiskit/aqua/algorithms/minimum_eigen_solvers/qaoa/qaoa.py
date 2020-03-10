@@ -115,7 +115,7 @@ class QAOA(VQE):
                          callback=callback, auto_conversion=auto_conversion)
 
     @VQE.operator.setter
-    def operator(self, operator: BaseOperator) -> None:
+    def operator(self, operator: LegacyBaseOperator) -> None:
         """ Sets operator """
         if operator is not None:
             self._in_operator = operator

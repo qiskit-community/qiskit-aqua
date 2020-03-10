@@ -163,28 +163,28 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         self.aux_operators = aux_ops
 
     @property
-    def operator(self) -> Optional[BaseOperator]:
+    def operator(self) -> Optional[OperatorBase]:
         """ Returns operator """
         return self._in_operator
 
     @operator.setter
-    def operator(self, operator: BaseOperator) -> None:
+    def operator(self, operator: OperatorBase) -> None:
         """ set operator """
         self._in_operator = operator
         self._check_operator_varform()
 
-    @property
-    def aux_operators(self) -> List[BaseOperator]:
-        """ Returns aux operators """
-        return self._in_aux_operators
-
-    @aux_operators.setter
-    def aux_operators(self, aux_operators: List[BaseOperator]) -> None:
-        """ Set aux operators """
-        self._in_aux_operators = aux_operators
-        if self.var_form is not None:
-            self._var_form_params = ParameterVector('θ', self.var_form.num_parameters)
-        self._parameterized_circuits = None
+    # @property
+    # def aux_operators(self) -> List[LegacyBaseOperator]:
+    #     """ Returns aux operators """
+    #     return self._in_aux_operators
+    #
+    # @aux_operators.setter
+    # def aux_operators(self, aux_operators: List[LegacyBaseOperator]) -> None:
+    #     """ Set aux operators """
+    #     self._in_aux_operators = aux_operators
+    #     if self.var_form is not None:
+    #         self._var_form_params = ParameterVector('θ', self.var_form.num_parameters)
+    #     self._parameterized_circuits = None
 
     @VQAlgorithm.var_form.setter
     def var_form(self, var_form: VariationalForm):

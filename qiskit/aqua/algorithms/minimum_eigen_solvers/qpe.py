@@ -101,7 +101,7 @@ class QPEMinimumEigensolver(QuantumAlgorithm, MinimumEigensolver):
         self._phase_estimation_circuit = None
         self._setup(operator)
 
-    def _setup(self, operator: Optional[BaseOperator]) -> None:
+    def _setup(self, operator: Optional[LegacyBaseOperator]) -> None:
         self._operator = None
         self._ret = {}
         self._pauli_list = None
@@ -138,23 +138,23 @@ class QPEMinimumEigensolver(QuantumAlgorithm, MinimumEigensolver):
             )
 
     @property
-    def operator(self) -> Optional[BaseOperator]:
+    def operator(self) -> Optional[LegacyBaseOperator]:
         """ Returns operator """
         return self._in_operator
 
     @operator.setter
-    def operator(self, operator: BaseOperator) -> None:
+    def operator(self, operator: LegacyBaseOperator) -> None:
         """ set operator """
         self._in_operator = operator
         self._setup(operator)
 
     @property
-    def aux_operators(self) -> List[BaseOperator]:
+    def aux_operators(self) -> List[LegacyBaseOperator]:
         """ Returns aux operators """
         raise TypeError('aux_operators not supported.')
 
     @aux_operators.setter
-    def aux_operators(self, aux_operators: List[BaseOperator]) -> None:
+    def aux_operators(self, aux_operators: List[LegacyBaseOperator]) -> None:
         """ Set aux operators """
         raise TypeError('aux_operators not supported.')
 
@@ -175,8 +175,8 @@ class QPEMinimumEigensolver(QuantumAlgorithm, MinimumEigensolver):
         return None
 
     def compute_minimum_eigenvalue(
-            self, operator: Optional[BaseOperator] = None,
-            aux_operators: Optional[List[BaseOperator]] = None) -> MinimumEigensolverResult:
+            self, operator: Optional[LegacyBaseOperator] = None,
+            aux_operators: Optional[List[LegacyBaseOperator]] = None) -> MinimumEigensolverResult:
         super().compute_minimum_eigenvalue(operator, aux_operators)
         return self._run()
 
@@ -236,7 +236,7 @@ class QPE(QPEMinimumEigensolver):
     """
 
     def __init__(self,
-                 operator: Optional[BaseOperator] = None,
+                 operator: Optional[LegacyBaseOperator] = None,
                  state_in: Optional[InitialState] = None,
                  iqft: Optional[IQFT] = None,
                  num_time_slices: int = 1,

@@ -19,7 +19,7 @@ import logging
 import pprint
 
 from qiskit.aqua.algorithms import ClassicalAlgorithm, ClassicalEigensolver
-from qiskit.aqua.operators import BaseOperator
+from qiskit.aqua.operators import LegacyBaseOperator
 from .minimum_eigen_solver import MinimumEigensolver, MinimumEigensolverResult
 
 logger = logging.getLogger(__name__)
@@ -32,8 +32,8 @@ class ClassicalMinimumEigensolver(ClassicalAlgorithm, MinimumEigensolver):
     The Classical Minimum Eigensolver algorithm.
     """
 
-    def __init__(self, operator: Optional[BaseOperator] = None,
-                 aux_operators: Optional[List[BaseOperator]] = None) -> None:
+    def __init__(self, operator: Optional[LegacyBaseOperator] = None,
+                 aux_operators: Optional[List[LegacyBaseOperator]] = None) -> None:
         """
         Args:
             operator: Operator instance
@@ -43,27 +43,27 @@ class ClassicalMinimumEigensolver(ClassicalAlgorithm, MinimumEigensolver):
         self._ret = {}  # TODO remove
 
     @property
-    def operator(self) -> BaseOperator:
+    def operator(self) -> LegacyBaseOperator:
         return self._ces.operator
 
     @operator.setter
-    def operator(self, operator: BaseOperator) -> None:
+    def operator(self, operator: LegacyBaseOperator) -> None:
         self._ces.operator = operator
 
     @property
-    def aux_operators(self) -> List[BaseOperator]:
+    def aux_operators(self) -> List[LegacyBaseOperator]:
         return self._ces.aux_operators
 
     @aux_operators.setter
-    def aux_operators(self, aux_operators: List[BaseOperator]) -> None:
+    def aux_operators(self, aux_operators: List[LegacyBaseOperator]) -> None:
         self._ces.aux_operators = aux_operators
 
     def supports_aux_operators(self) -> bool:
         return self._ces.supports_aux_operators()
 
     def compute_minimum_eigenvalue(
-            self, operator: BaseOperator = None,
-            aux_operators: Optional[List[BaseOperator]] = None) -> MinimumEigensolverResult:
+            self, operator: LegacyBaseOperator = None,
+            aux_operators: Optional[List[LegacyBaseOperator]] = None) -> MinimumEigensolverResult:
         super().compute_minimum_eigenvalue(operator, aux_operators)
         return self._run()
 

@@ -74,12 +74,12 @@ class ClassicalEigensolver(ClassicalAlgorithm):
         self._ret = {}
 
     @property
-    def operator(self) -> BaseOperator:
+    def operator(self) -> LegacyBaseOperator:
         """ returns operator """
         return self._in_operator
 
     @operator.setter
-    def operator(self, operator: BaseOperator) -> None:
+    def operator(self, operator: LegacyBaseOperator) -> None:
         """ set operator """
         self._in_operator = operator
         if operator is None:
@@ -89,12 +89,12 @@ class ClassicalEigensolver(ClassicalAlgorithm):
             self._check_set_k()
 
     @property
-    def aux_operators(self) -> List[BaseOperator]:
+    def aux_operators(self) -> List[LegacyBaseOperator]:
         """ returns aux operators """
         return self._in_aux_operators
 
     @aux_operators.setter
-    def aux_operators(self, aux_operators: List[BaseOperator]) -> None:
+    def aux_operators(self, aux_operators: List[LegacyBaseOperator]) -> None:
         """ set aux operators """
         self._in_aux_operators = aux_operators
         if aux_operators is None:
@@ -215,8 +215,8 @@ class ExactEigensolver(ClassicalEigensolver):
     The deprecated Eigensolver algorithm.
     """
 
-    def __init__(self, operator: BaseOperator, k: int = 1,
-                 aux_operators: Optional[List[BaseOperator]] = None) -> None:
+    def __init__(self, operator: LegacyBaseOperator, k: int = 1,
+                 aux_operators: Optional[List[LegacyBaseOperator]] = None) -> None:
         warnings.warn('Deprecated class {}, use {}.'.format('ExactEigensolver',
                                                             'ClassicalEigensolver'),
                       DeprecationWarning)
