@@ -21,7 +21,7 @@ TODO
         case differently
 """
 
-from typing import Union, Optional, List, Tuple
+from typing import Union, Optional, List, Tuple, Callable
 
 from qiskit import QuantumCircuit
 from qiskit.circuit import Gate, Instruction, Parameter
@@ -46,7 +46,7 @@ class TwoLocalAnsatz(Ansatz):
                  depth: int = 3,
                  rotation_gates: Optional[Union[str, List[str], type, List[type]]] = None,
                  entanglement_gates: Optional[Union[str, List[str], type, List[type]]] = None,
-                 entanglement: Union[str, List[List[int]], callable] = 'full',
+                 entanglement: Union[str, List[List[int]], Callable[[int], List[int]]] = 'full',
                  initial_state: Optional[InitialState] = None,
                  skip_unentangled_qubits: bool = False,
                  skip_final_rotation_layer: bool = False,
@@ -57,7 +57,7 @@ class TwoLocalAnsatz(Ansatz):
 
         Args:
             num_qubits: The number of qubits of the Ansatz.
-            reps: Specifies how often a block of consisting of a rotation layer and entanglement
+            depth: Specifies how often a block of consisting of a rotation layer and entanglement
                 layer is repeated.
             rotation_gates: The gates used in the rotation layer. Can be specified via the name of
                 a gate (e.g. 'ry') or the gate type itself (e.g. RYGate).
@@ -85,8 +85,7 @@ class TwoLocalAnsatz(Ansatz):
                 we use instances of `qiskit.circuit.Parameter`. The name of each parameter is the
                 number of its occurrence with this specified prefix.
             insert_barriers: If True, barriers are inserted in between each layer. If False,
-                no barriers are inserted.
-                Defaults to False.
+                no barriers are inserted. Defaults to False.
 
         Examples:
             >>> ansatz = TwoLocalAnsatz(3, 'ry', 'cx', 'linear', reps=2, insert_barriers=True)
@@ -94,32 +93,32 @@ class TwoLocalAnsatz(Ansatz):
             >>> qc += ansatz.to_circuit()
             >>> qc.decompose().draw()  # decompose the layers into standard gates
                     ┌────────┐ ░            ░ ┌────────┐ ░            ░ ┌────────┐
-            q_0: |0>┤ Ry(_0) ├─░───■────────░─┤ Ry(_3) ├─░───■────────░─┤ Ry(_6) ├
+            q_0: |0>┤ Ry(θ0) ├─░───■────────░─┤ Ry(θ3) ├─░───■────────░─┤ Ry(θ6) ├
                     ├────────┤ ░ ┌─┴─┐      ░ ├────────┤ ░ ┌─┴─┐      ░ ├────────┤
-            q_1: |0>┤ Ry(_1) ├─░─┤ X ├──■───░─┤ Ry(_4) ├─░─┤ X ├──■───░─┤ Ry(_7) ├
+            q_1: |0>┤ Ry(θ1) ├─░─┤ X ├──■───░─┤ Ry(θ4) ├─░─┤ X ├──■───░─┤ Ry(θ7) ├
                     ├────────┤ ░ └───┘┌─┴─┐ ░ ├────────┤ ░ └───┘┌─┴─┐ ░ ├────────┤
-            q_2: |0>┤ Ry(_2) ├─░──────┤ X ├─░─┤ Ry(_5) ├─░──────┤ X ├─░─┤ Ry(_8) ├
+            q_2: |0>┤ Ry(θ2) ├─░──────┤ X ├─░─┤ Ry(θ5) ├─░──────┤ X ├─░─┤ Ry(θ8) ├
                     └────────┘ ░      └───┘ ░ └────────┘ ░      └───┘ ░ └────────┘
 
             >>> ansatz = TwoLocalAnsatz(3, ['ry', 'rz'], 'cz', 'full', reps=1, insert_barriers=True)
             >>> print(ansatz)  # quick way of plotting the Ansatz
                     ┌────────┐┌────────┐ ░           ░  ┌────────┐ ┌────────┐
-            q_0: |0>┤ Ry(_0) ├┤ Rz(_1) ├─░──■──■─────░──┤ Ry(_6) ├─┤ Rz(_7) ├
+            q_0: |0>┤ Ry(θ0) ├┤ Rz(θ1) ├─░──■──■─────░──┤ Ry(θ6) ├─┤ Rz(θ7) ├
                     ├────────┤├────────┤ ░  │  │     ░  ├────────┤ ├────────┤
-            q_1: |0>┤ Ry(_2) ├┤ Rz(_3) ├─░──■──┼──■──░──┤ Ry(_8) ├─┤ Rz(_9) ├
+            q_1: |0>┤ Ry(θ2) ├┤ Rz(θ3) ├─░──■──┼──■──░──┤ Ry(θ8) ├─┤ Rz(θ9) ├
                     ├────────┤├────────┤ ░     │  │  ░ ┌┴────────┤┌┴────────┤
-            q_2: |0>┤ Ry(_4) ├┤ Rz(_5) ├─░─────■──■──░─┤ Ry(_10) ├┤ Rz(_11) ├
+            q_2: |0>┤ Ry(θ4) ├┤ Rz(θ5) ├─░─────■──■──░─┤ Ry(θ10) ├┤ Rz(θ11) ├
                     └────────┘└────────┘ ░           ░ └─────────┘└─────────┘
 
             >>> entangler_map = [[0, 1], [1, 2], [2, 0]]  # circular entanglement for 3 qubits
             >>> ansatz = TwoLocalAnsatz(3, 'x', 'crx', entangler_map, reps=1)
             >>> print(ansatz)  # note: no barriers inserted this time!
                     ┌───┐                         ┌────────┐┌───┐
-            q_0: |0>┤ X ├────■────────────────────┤ Rx(_2) ├┤ X ├
+            q_0: |0>┤ X ├────■────────────────────┤ Rx(θ2) ├┤ X ├
                     ├───┤┌───┴────┐          ┌───┐└───┬────┘└───┘
-            q_1: |0>┤ X ├┤ Rx(_0) ├────■─────┤ X ├────┼──────────
+            q_1: |0>┤ X ├┤ Rx(θ0) ├────■─────┤ X ├────┼──────────
                     ├───┤└────────┘┌───┴────┐└───┘    │     ┌───┐
-            q_2: |0>┤ X ├──────────┤ Rx(_1) ├─────────■─────┤ X ├
+            q_2: |0>┤ X ├──────────┤ Rx(θ1) ├─────────■─────┤ X ├
                     └───┘          └────────┘               └───┘
 
             >>> entangler_map = [[0, 3], [0, 2]]  # entangle the first and last two-way
@@ -130,9 +129,9 @@ class TwoLocalAnsatz(Ansatz):
                         │         │         │         │
             q_1: |0>────┼─────────┼─────────┼─────────┼─────
                         │     ┌───┴────┐    │     ┌───┴────┐
-            q_2: |0>────┼─────┤ Ry(_1) ├────┼─────┤ Ry(_1) ├
+            q_2: |0>────┼─────┤ Ry(θ1) ├────┼─────┤ Ry(θ1) ├
                     ┌───┴────┐└────────┘┌───┴────┐└────────┘
-            q_3: |0>┤ Ry(_0) ├──────────┤ Ry(_0) ├──────────
+            q_3: |0>┤ Ry(θ0) ├──────────┤ Ry(θ0) ├──────────
                     └────────┘          └────────┘
         """
         # initialize Ansatz
@@ -362,8 +361,13 @@ class TwoLocalAnsatz(Ansatz):
         self._blocks = blocks
         return blocks
 
-    @Ansatz.base_parameters.getter
-    def base_parameters(self):
+    @Ansatz.base_parameters.getter  # pylint:disable=invalid-overridden-method
+    def base_parameters(self) -> List[Parameter]:
+        """Return the parameters of the underlying circuit.
+
+        Returns:
+            The parameters used in the circuit.
+        """
         _ = self.blocks
         return self._base_params
 

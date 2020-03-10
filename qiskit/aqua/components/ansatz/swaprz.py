@@ -19,7 +19,7 @@ TODO
 * test if this actually coincides with the current SwapRZ varform
 """
 
-from typing import Union, Optional, List, Tuple
+from typing import Union, Optional, List, Tuple, Callable
 import numpy as np
 
 from qiskit import QuantumCircuit
@@ -58,7 +58,7 @@ class SwapRZ(TwoLocalAnsatz):
     def __init__(self,
                  num_qubits: Optional[int] = None,
                  depth: int = 3,
-                 entanglement: Union[str, List[List[int]], callable] = 'full',
+                 entanglement: Union[str, List[List[int]], Callable[[int], List[int]]] = 'full',
                  parameter_prefix: str = 'θ',
                  insert_barriers: bool = False,
                  skip_unentangled_qubits: bool = False,

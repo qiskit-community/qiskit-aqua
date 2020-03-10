@@ -22,14 +22,13 @@ import itertools
 import logging
 
 import numpy as np
-from qiskit import QuantumCircuit, QuantumRegister
+from qiskit import QuantumCircuit
 from qiskit.circuit import ParameterVector
 from qiskit.quantum_info import Pauli
-from qiskit.qasm import pi
 
 from qiskit.aqua import AquaError
 from qiskit.aqua.operators import evolution_instruction
-from qiskit.aqua.utils.validation import validate_min, validate_in_set
+from qiskit.aqua.utils.validation import validate_min
 from qiskit.aqua.components.ansatz import Ansatz
 from qiskit.aqua.utils import get_entangler_map, validate_entangler_map
 
@@ -49,30 +48,31 @@ class PauliExpansion(Ansatz):
 
     def __init__(self,
                  feature_dimension: int,
+                 depth: int = 2,
+                 entanglement: Union[str, List[List[int]], Callable[[int], List[int]]] = 'full',
                  paulis: Optional[List[str]] = None,
-                 entanglement: Union[str, List[List[int]], callable] = 'full',
-                 reps: int = 2,
                  data_map_func: Callable[[np.ndarray], float] = self_product,
                  insert_barriers: bool = False) -> None:
-        """Constructor.
+        """
 
         Args:
             feature_dimension: Number of features.
-            reps: The number of repeated circuits. Defaults to 2, has a min. value of 1.
-            entanglement: ['full', 'linear'], generate the qubit
-                                          connectivity by predefined topology.
-                                          Defaults to full
-            paulis: a list of strings for to-be-used paulis.
-                                    Defaults to None. If None, ['Z', 'ZZ'] will be used.
-            data_map_func: a mapping function for data x
+            depth: The number of repeated circuits. Defaults to 2, has a min. value of 1.
+            entanglement: Specifies the entanglement structure. Can be a string ('full', 'linear'
+                or 'sca'), a list of integer-pairs specifying the indices of qubits
+                entangled with one another, or a callable returning such a list provided with
+                the index of the entanglement layer.
+                Default to 'full' entanglement.
+            paulis: A list of strings for to-be-used paulis. Defaults to None.
+                If None, ['Z', 'ZZ'] will be used.
+            data_map_func: A mapping function for data x.
             insert_barriers: If True, barriers are inserted in between the evolution instructions
                 and hadamard layers.
         """
         paulis = paulis if paulis is not None else ['Z', 'ZZ']
-        validate_min('reps', reps, 1)
-        validate_in_set('entanglement', entanglement, {'full', 'linear'})
+        validate_min('depth', depth, 1)
 
-        super().__init__(insert_barriers=insert_barriers)
+        super().__init__(insert_barriers=insert_barriers, overwrite_block_parameters=False)
 
         self._num_qubits = feature_dimension
         self._entanglement = entanglement
@@ -89,13 +89,15 @@ class PauliExpansion(Ansatz):
         x = ParameterVector('x', length=feature_dimension)
 
         # iterate over the layers
-        for _ in range(reps):
+        for _ in range(depth):
             self.append(hadamard_layer)
             for pauli in self._pauli_strings:
                 coeff = self._data_map_func(self._extract_data_for_rotation(pauli, x))
                 p = Pauli.from_label(pauli)
                 inst = evolution_instruction([[1, p]], coeff, 1)
                 self.append(inst)
+
+        print('after construction:', self.num_parameters, self.feature_dimension)
 
     @property
     def feature_dimension(self) -> int:
@@ -146,7 +148,7 @@ class PauliExpansion(Ansatz):
         """Return the specified entangler map, if self._entangler_map if it has been set previously.
 
         Args:
-            offset (int): Some entanglements allow an offset argument, since the entangler map might
+            offset: Some entanglements allow an offset argument, since the entangler map might
                 differ per entanglement block (e.g. for 'sca' entanglement). This is the block
                 index.
 

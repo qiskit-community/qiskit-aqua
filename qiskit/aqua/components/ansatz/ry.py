@@ -14,7 +14,7 @@
 
 """The RY variational form."""
 
-from typing import Union, Optional, List, Tuple
+from typing import Union, Optional, List, Tuple, Callable
 
 import numpy as np
 from qiskit.extensions.standard import RYGate, CZGate
@@ -36,7 +36,7 @@ class RY(TwoLocalAnsatz):
                  num_qubits: Optional[int] = None,
                  depth: int = 3,
                  entanglement_gates: Union[str, List[str], type, List[type]] = CZGate,
-                 entanglement: Union[str, List[List[int]], callable] = 'full',
+                 entanglement: Union[str, List[List[int]], Callable[[int], List[int]]] = 'full',
                  initial_state: Optional[InitialState] = None,
                  skip_unentangled_qubits: bool = False,
                  skip_final_rotation_layer: bool = False,
