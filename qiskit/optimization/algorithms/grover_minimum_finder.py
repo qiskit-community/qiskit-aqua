@@ -131,7 +131,7 @@ class GroverMinimumFinder:
                         improvement_found = True
                         threshold = optimum_value
                 else:
-                    # If we haven't found a better number after n iter, we've found the optimal.
+                    # If we haven't found a better number after the max number of iterations, we assume the optimal.
                     if loops_with_no_improvement >= self._n_iterations:
                         improvement_found = True
                         optimum_found = True

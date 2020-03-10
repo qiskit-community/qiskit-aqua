@@ -132,6 +132,7 @@ dj
 dnf
 docplex
 dp
+durr
 ecc
 ee
 eigen
@@ -206,6 +207,7 @@ hassidim
 hb
 hhl
 hk
+hoyer
 https
 iadd
 idx
@@ -222,6 +224,7 @@ indices
 indvar
 init
 initializer
+initialstate
 initio
 innerproduct
 inreg

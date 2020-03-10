@@ -164,7 +164,7 @@ class QuantumDictionary:
 
 class QQUBODictionary(QuantumDictionary):
     """
-        A QDictionary that creates a state preparation operator for a given QUBO problem.
+        A Quantum Dictionary that creates a state preparation operator for a given QUBO problem.
     """
 
     def __init__(self, key_bits, value_bits, ancilla_bits, func_dict,
@@ -185,7 +185,7 @@ class QQUBODictionary(QuantumDictionary):
     @property
     def circuit(self):
         """
-        Provides the circuit of the QuantumDictionary. Will construct one if not yet created.
+        Provides the circuit of the Quantum Dictionary. Will construct one if not yet created.
         Returns:
             QuantumCircuit: Circuit object describing the Quantum Dictionary.
         """
