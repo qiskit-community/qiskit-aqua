@@ -131,12 +131,12 @@ class GroverMinimumFinder:
                         improvement_found = True
                         threshold = optimum_value
                 else:
-                    # If we haven't found a better number after the max number of iterations, we assume the optimal.
+                    # No better number after the max number of iterations, so we assume the optimal.
                     if loops_with_no_improvement >= self._n_iterations:
                         improvement_found = True
                         optimum_found = True
 
-                    # Using Durr-Hoyer's method, increase m.
+                    # Using Durr and Hoyer method, increase m.
                     m = int(np.ceil(min(m * 8/7, 2**(n_key / 2))))
                     if self._verbose:
                         print("No Improvement.")
