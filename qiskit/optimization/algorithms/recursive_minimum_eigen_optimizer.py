@@ -110,9 +110,28 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
             xi = problem_.variables.get_names(i)
             xj = problem_.variables.get_names(j)
             if correlations[i, j] > 0:
+                # set xi = xj
                 problem_ = problem_.substitute_variables(variables=SparseTriple([i], [j], [1]))
                 replacements[xi] = (xj, 1)
             else:
+                # set xi = 1 - xj, this is done in two steps:
+                # 1. set xi = 1 + xi
+                # 2. set xi = -xj
+
+                # 1a. get additional offset
+                offset = problem_.objective.get_offset()
+                offset += problem_.objective.get_quadratic_coefficients(i, i) / 2
+                offset += problem_.objective.get_linear(i)
+                problem_.objective.set_offset(offset)
+
+                # 1b. get additional linear part
+                for k in range(problem_.variables.get_num()):
+                    coeff = problem_.objective.get_quadratic_coefficients(i, k)
+                    if np.abs(coeff) > 1e-10:
+                        coeff += problem_.objective.get_linear(k)
+                        problem_.objective.set_linear(k, coeff)
+
+                # 2. replace xi by -xj
                 problem_ = problem_.substitute_variables(variables=SparseTriple([i], [j], [-1]))
                 replacements[xi] = (xj, -1)
 
@@ -146,7 +165,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
 
         # construct result
         x = [var_values[name] for name in problem_ref.variables.get_names()]
-        fval = 0  # TODO: problem.objective.evaluate(x)
+        fval = result.fval
         results = OptimizationResult(x, fval, (replacements, int_to_bin_converter))
         results = int_to_bin_converter.decode(results)
         return results
@@ -155,7 +174,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         n = len(states[0])
         correlations = np.zeros((n, n))
         for k, p in enumerate(probs):
-            b = states[k][::-1]
+            b = states[k]
             for i in range(n):
                 for j in range(i):
                     if b[i] == b[j]:
