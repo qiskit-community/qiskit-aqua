@@ -70,7 +70,7 @@ class TestRecursiveMinEigenOptimizer(QiskitOptimizationTestCase):
         min_eigen_optimizer = MinimumEigenOptimizer(min_eigen_solver)
         # construct minimum eigen optimizer
         recursive_min_eigen_optimizer = RecursiveMinimumEigenOptimizer(min_eigen_optimizer,
-                                                                       min_num_vars=3)
+                                                                       min_num_vars=4)
 
         # load optimization problem
         problem = OptimizationProblem()
