@@ -186,7 +186,7 @@ class UCCSD(Ansatz):
             logging.debug('Grouped double excitations for singlet ucc')
             logging.debug(self._double_excitations_grouped)
 
-            self._num_parameters = self.num_groups
+            self._internal_num_parameters = self.num_groups
 
             # this will order the hopping operators
             self.labeled_double_excitations = []
@@ -205,12 +205,37 @@ class UCCSD(Ansatz):
 
             self._hopping_ops[len(self._single_excitations):] = self._hopping_ops_doubles_temp
         else:
-            self._hopping_ops, self._num_parameters = self._build_hopping_operators()
+            self._hopping_ops, self._internal_num_parameters = self._build_hopping_operators()
 
         if logger.isEnabledFor(logging.DEBUG) and self._logging_construct_circuit:
             logger.debug("Evolving hopping operators:")
             TextProgressBar(sys.stderr)
             self._logging_construct_circuit = False
+
+        super().__init__(initial_state=initial_state)
+
+    @property
+    def _num_parameters(self):
+        return self._internal_num_parameters
+
+    @_num_parameters.setter
+    def _num_parameters(self, num):
+        self._internal_num_parameters = num
+
+    @property
+    def num_parameters(self):
+        return self._internal_num_parameters
+
+    @num_parameters.setter
+    def num_parameters(self, num):
+        self._internal_num_parameters = num
+
+    @Ansatz.blocks.getter
+    def blocks(self):  # pylint:disable=invalid-overridden-method
+        """Get the blocks."""
+
+        if self._blocks:
+            return self._blocks
 
         num_excitations = len(self._hopping_ops)
 
@@ -219,12 +244,12 @@ class UCCSD(Ansatz):
         if not self.uccd_singlet:
             list_excitation_operators = [
                 (self._hopping_ops[index % num_excitations], parameters[index])
-                for index in range(depth * num_excitations)]
+                for index in range(self._depth * num_excitations)]
             blockwise_parameters = [[p] for p in parameters]
         else:
             list_excitation_operators = []
             counter = 0
-            for i in range(int(depth * self.num_groups)):
+            for i in range(int(self._depth * self.num_groups)):
                 for _ in range(len(self._double_excitations_grouped[i % self.num_groups])):
                     list_excitation_operators.append((self._hopping_ops[counter],
                                                       parameters[i]))
@@ -236,9 +261,12 @@ class UCCSD(Ansatz):
                                task_args=(self._num_time_slices,),
                                num_processes=aqua_globals.num_processes)
 
-        super().__init__(blocks=results, initial_state=initial_state,
-                         overwrite_block_parameters=blockwise_parameters)
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
+        self.blockwise_parameters = blockwise_parameters
+        self.blocks = results
+
+        print('returned:', len(results), 'blocks with', blockwise_parameters)
+        return results
 
     @property
     def single_excitations(self):
@@ -374,6 +402,7 @@ class UCCSD(Ansatz):
         self._hopping_ops = []
         self._num_parameters = len(self._hopping_ops) * self._depth
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
+        self._blocks, self._circuit = None, None
 
     def push_hopping_operator(self, excitation):
         """
@@ -385,6 +414,7 @@ class UCCSD(Ansatz):
         self._hopping_ops.append(excitation)
         self._num_parameters = len(self._hopping_ops) * self._depth
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
+        self._blocks, self._circuit = None, None
 
     def pop_hopping_operator(self):
         """
@@ -393,6 +423,7 @@ class UCCSD(Ansatz):
         self._hopping_ops.pop()
         self._num_parameters = len(self._hopping_ops) * self._depth
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
+        self._blocks, self._circuit = None, None
 
         return self._num_parameters
 
