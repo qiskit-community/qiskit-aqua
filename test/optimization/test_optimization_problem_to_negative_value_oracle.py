@@ -15,26 +15,27 @@
 """ Test Optimization Problem to Negative Value Oracle """
 
 from test.optimization import QiskitOptimizationTestCase
+import numpy as np
 from qiskit.optimization.converters import OptimizationProblemToNegativeValueOracle
 from qiskit.optimization.util import get_qubo_solutions
 from qiskit import QuantumCircuit, Aer, execute
-import numpy as np
 
 
 class TestOptimizationProblemToNegativeValueOracle(QiskitOptimizationTestCase):
+    """OPtNVO Tests"""
 
-    def _validate_function(self, f, linear, quadratic, constant):
-        for key in f:
+    def _validate_function(self, func_dict, linear, quadratic, constant):
+        for key in func_dict:
             if isinstance(key, int) and key >= 0:
-                self.assertEqual(-1*linear[key], f[key])
+                self.assertEqual(-1 * linear[key], func_dict[key])
             elif isinstance(key, tuple):
-                self.assertEqual(quadratic[key[0]][key[1]], f[key])
+                self.assertEqual(quadratic[key[0]][key[1]], func_dict[key])
             else:
-                self.assertEqual(constant, f[key])
+                self.assertEqual(constant, func_dict[key])
 
-    def _validate_operator(self, f, n_key, n_value, operator):
+    def _validate_operator(self, func_dict, n_key, n_value, operator):
         # Get expected results.
-        solutions = get_qubo_solutions(f, n_key, print_solutions=False)
+        solutions = get_qubo_solutions(func_dict, n_key, print_solutions=False)
 
         # Run the state preparation operator A and observe results.
         circuit = operator._circuit
@@ -86,10 +87,10 @@ class TestOptimizationProblemToNegativeValueOracle(QiskitOptimizationTestCase):
 
         # Convert to dictionary format with operator/oracle.
         converter = OptimizationProblemToNegativeValueOracle(num_value)
-        a_operator, _, f = converter.encode(linear, quadratic, constant)
+        a_operator, _, func_dict = converter.encode(linear, quadratic, constant)
 
-        self._validate_function(f, linear, quadratic, constant)
-        self._validate_operator(f, len(linear), num_value, a_operator)
+        self._validate_function(func_dict, linear, quadratic, constant)
+        self._validate_operator(func_dict, len(linear), num_value, a_operator)
 
     def test_optnvo_2_key_w_constant(self):
         """ Test with 2 linear coefficients, no quadratic, simple constant """
@@ -104,10 +105,10 @@ class TestOptimizationProblemToNegativeValueOracle(QiskitOptimizationTestCase):
 
         # Convert to dictionary format with operator/oracle.
         converter = OptimizationProblemToNegativeValueOracle(num_value)
-        a_operator, _, f = converter.encode(linear, quadratic, constant)
+        a_operator, _, func_dict = converter.encode(linear, quadratic, constant)
 
-        self._validate_function(f, linear, quadratic, constant)
-        self._validate_operator(f, len(linear), num_value, a_operator)
+        self._validate_function(func_dict, linear, quadratic, constant)
+        self._validate_operator(func_dict, len(linear), num_value, a_operator)
 
     def test_optnvo_4_key_all_negative(self):
         """ Test with all negative values """
@@ -124,10 +125,10 @@ class TestOptimizationProblemToNegativeValueOracle(QiskitOptimizationTestCase):
 
         # Convert to dictionary format with operator/oracle.
         converter = OptimizationProblemToNegativeValueOracle(num_value)
-        a_operator, _, f = converter.encode(linear, quadratic, constant)
+        a_operator, _, func_dict = converter.encode(linear, quadratic, constant)
 
-        self._validate_function(f, linear, quadratic, constant)
-        self._validate_operator(f, len(linear), num_value, a_operator)
+        self._validate_function(func_dict, linear, quadratic, constant)
+        self._validate_operator(func_dict, len(linear), num_value, a_operator)
 
     def test_optnvo_6_key(self):
         """ Test with 6 linear coefficients, negative quadratics, no constant """
@@ -146,7 +147,7 @@ class TestOptimizationProblemToNegativeValueOracle(QiskitOptimizationTestCase):
 
         # Convert to dictionary format with operator/oracle.
         converter = OptimizationProblemToNegativeValueOracle(num_value)
-        a_operator, _, f = converter.encode(linear, quadratic, constant)
+        a_operator, _, func_dict = converter.encode(linear, quadratic, constant)
 
-        self._validate_function(f, linear, quadratic, constant)
-        self._validate_operator(f, len(linear), num_value, a_operator)
+        self._validate_function(func_dict, linear, quadratic, constant)
+        self._validate_operator(func_dict, len(linear), num_value, a_operator)

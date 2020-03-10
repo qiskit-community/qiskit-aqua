@@ -12,20 +12,27 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""GroverOptimizationResults module"""
+
 
 class GroverOptimizationResults:
 
+    """A results object for Grover Optimization methods."""
+
     def __init__(self, optimum_input, optimum_output, operation_counts, rotations, n_input_qubits,
-                 n_output_qubits, f):
-        """ Stores the result of a Grover optimization problem.
-            :param optimum_input: (int) The input that corresponds to the optimum output.
-            :param optimum_output: (int) The optimum output value.
-            :param operation_counts: (dict) The counts of each operation performed per iteration.
-            :param rotations: The total number of Grover rotations performed.
-            :param n_input_qubits: The number of qubits used to represent the input.
-            :param n_output_qubits: The number of qubits used to represent the output.
-            :param f: A dictionary representation of the function, where the keys correspond to a
-                variable, and the values are the corresponding coefficients.
+                 n_output_qubits, func_dict):
+        """
+        Constructor.
+
+        Args:
+            optimum_input (int): The input that corresponds to the optimum output.
+            optimum_output (int): The optimum output value.
+            operation_counts (dict): The counts of each operation performed per iteration.
+            rotations (int): The total number of Grover rotations performed.
+            n_input_qubits (int): The number of qubits used to represent the input.
+            n_output_qubits (int): The number of qubits used to represent the output.
+            func_dict (dict): A dictionary representation of the function, where the keys correspond
+                to a variable, and the values are the corresponding coefficients.
         """
         self._optimum_input = optimum_input
         self._optimum_output = optimum_output
@@ -33,32 +40,39 @@ class GroverOptimizationResults:
         self._rotations = rotations
         self._n_input_qubits = n_input_qubits
         self._n_output_qubits = n_output_qubits
-        self._f = f
+        self._func_dict = func_dict
 
     @property
     def optimum_input(self):
+        """Getter of optimum_input"""
         return self._optimum_input
 
     @property
     def optimum_output(self):
+        """Getter of optimum_output"""
         return self._optimum_output
 
     @property
     def operation_counts(self):
+        """Getter of operation_counts"""
         return self._operation_counts
 
     @property
     def rotation_count(self):
+        """Getter of rotation_count"""
         return self._rotations
 
     @property
     def n_input_qubits(self):
+        """Getter of n_input_qubits"""
         return self._n_input_qubits
 
     @property
     def n_output_qubits(self):
+        """Getter of n_output_qubits"""
         return self._n_output_qubits
 
     @property
-    def function(self):
-        return self._f
+    def func_dict(self):
+        """Getter of func_dict"""
+        return self._func_dict

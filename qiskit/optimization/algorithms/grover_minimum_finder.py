@@ -12,39 +12,47 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""GroverMinimumFinder module"""
+
+import random
+import math
+import numpy as np
 from qiskit.optimization.converters import OptimizationProblemToNegativeValueOracle
 from qiskit.optimization.results import GroverOptimizationResults
 from qiskit.optimization.util import get_qubo_solutions
-
 from qiskit.aqua.algorithms.amplitude_amplifiers.grover import Grover
 from qiskit.visualization import plot_histogram
-from qiskit import Aer
-import numpy as np
-import random
-import math
+from qiskit import Aer, execute
 
 
 class GroverMinimumFinder:
 
+    """Uses Grover Adaptive Search (GAS) to find the minimum of a QUBO function."""
+
     def __init__(self, num_iterations=3, backend=Aer.get_backend('statevector_simulator'),
                  verbose=False):
-        """ Initializes a GroverMinimumFinder optimizer.
-            :param num_iterations: The number of iterations the algorithm will search with no
-                improvement.
-            :param backend: A valid backend object. Default statevector_simulator.
-            :param verbose: Verbose flag - prints and plots state at each iteration of GAS.
+        """
+        Constructor.
+        Args:
+            num_iterations (int, optional): The number of iterations the algorithm will search with
+                no improvement.
+            backend (str, optional): Instance of selected backend.
+            verbose (bool, optional): Verbose flag - prints/plots state at each iteration of GAS.
         """
         self._n_iterations = num_iterations
         self._verbose = verbose
         self._backend = backend
 
     def solve(self, quadratic, linear, constant, num_output_qubits):
-        """ Given the coefficients and constants of a QUBO function, find the minimum output value.
-            :param quadratic: (nxn matrix) The quadratic coefficients of the QUBO.
-            :param linear: (nx1 matrix) The linear coefficients of the QUBO.
-            :param constant: (int) The constant of the QUBO.
-            :param num_output_qubits: The number of qubits used to represent the output values.
-            :return: A GroverOptimizationResults object containing information about the run,
+        """
+        Given the coefficients and constants of a QUBO function, find the minimum output value.
+        Args:
+            quadratic (np.array): The quadratic coefficients of the QUBO.
+            linear (np.array): The linear coefficients of the QUBO.
+            constant (int): The constant of the QUBO.
+            num_output_qubits (int): The number of qubits used to represent the output values.
+        Returns:
+            GroverOptimizationResults: A results object containing information about the run,
                 including the solution.
         """
         # Variables for tracking the optimum.
@@ -60,7 +68,7 @@ class GroverMinimumFinder:
         keys_measured = []
 
         # Variables for result object.
-        f = {}
+        func_dict = {}
         operation_count = {}
         iteration = 0
 
@@ -86,8 +94,8 @@ class GroverMinimumFinder:
                 rotations += rotation_count
 
                 # Get state preparation operator A and oracle O for the current threshold.
-                a_operator, oracle, f = opt_prob_converter.encode(linear, quadratic,
-                                                                  constant - threshold)
+                a_operator, oracle, func_dict = opt_prob_converter.encode(linear, quadratic,
+                                                                          constant - threshold)
 
                 # Apply Grover's Algorithm to find values below the threshold.
                 if rotation_count > 0:
@@ -144,24 +152,24 @@ class GroverMinimumFinder:
                     optimum_found = True
 
                 # Track the operation count.
-                oc = circuit.count_ops()
-                operation_count[iteration] = oc
+                operations = circuit.count_ops()
+                operation_count[iteration] = operations
                 iteration += 1
 
                 if self._verbose:
-                    print("Operation Count:", oc)
+                    print("Operation Count:", operations)
                     print("\n")
 
         # Get original key and value pairs.
-        f[-1] = constant
-        solutions = get_qubo_solutions(f, n_key)
+        func_dict[-1] = constant
+        solutions = get_qubo_solutions(func_dict, n_key)
 
         # If the constant is 0 and we didn't find a negative, the answer is likely 0.
         if optimum_value >= 0 and constant == 0:
             optimum_key = 0
 
         return GroverOptimizationResults(optimum_key, solutions[optimum_key], operation_count,
-                                         rotations, n_key, n_value, f)
+                                         rotations, n_key, n_value, func_dict)
 
     def __measure(self, circuit, n_key, n_value, backend, shots=1024, verbose=False):
         """Get probabilities from the given backend, and picks a random outcome."""
@@ -185,8 +193,6 @@ class GroverMinimumFinder:
     @staticmethod
     def __get_probs(n_key, n_value, qc, backend, shots):
         """Gets probabilities from a given backend."""
-        from qiskit import execute
-
         # Execute job and filter results.
         job = execute(qc, backend=backend, shots=shots)
         result = job.result()

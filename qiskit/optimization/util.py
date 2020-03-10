@@ -12,37 +12,45 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from qiskit.finance.data_providers import RandomDataProvider
+""" Optimization Utilities module """
+
 import datetime
+from qiskit.finance.data_providers import RandomDataProvider
 
 
 def get_mu_sigma(num_assets):
-    """ Generate expected return and covariance matrix from (random) time-series.
-        :param num_assets: The number of assets to generate values for.
-        :returns mu (linear coefficients, nx1 matrix) and sigma (quadratic coefficients, nxn matrix)
+    """
+    Generate expected return and covariance matrix from (random) time-series.
+    Args:
+        num_assets (int): The number of assets to generate values for.
+    Returns:
+        Tuple(np.array, np.array): mu (linear coefficients) and sigma (quadratic coefficients)
     """
     stocks = [("TICKER%s" % i) for i in range(num_assets)]
     data = RandomDataProvider(tickers=stocks, start=datetime.datetime(2020, 1, 1),
                               end=datetime.datetime(2020, 1, 30))
     data.run()
-    mu = data.get_period_return_mean_vector()
-    sigma = data.get_period_return_covariance_matrix()
+    linear = data.get_period_return_mean_vector()
+    quadratic = data.get_period_return_covariance_matrix()
 
-    return mu, sigma
+    return linear, quadratic
 
 
-def get_qubo_solutions(f, n_key, print_solutions=False):
-    """ Calculates all of the outputs of a QUBO function representable by n key qubits.
-        :param f: A dictionary representation of the function, where the keys correspond to a
-            variable, and the values are the corresponding coefficients.
-        :param n_key: The number of key qubits.
-        :param print_solutions: If true, the solutions will be formatted and printed.
-        :return: A dictionary of the inputs (keys) and outputs (values) of the QUBO function.
+def get_qubo_solutions(function_dict, n_key, print_solutions=False):
+    """
+    Calculates all of the outputs of a QUBO function representable by n key qubits.
+    Args:
+        function_dict (dict): A dictionary representation of the function, where the keys correspond
+            to a variable, and the values are the corresponding coefficients.
+        n_key (int): The number of key qubits.
+        print_solutions (bool, optional): If true, the solutions will be formatted and printed.
+    Returns:
+        dict: A dictionary of the inputs (keys) and outputs (values) of the QUBO function.
     """
     # Determine constant.
     constant = 0
-    if -1 in f:
-        constant = f[-1]
+    if -1 in function_dict:
+        constant = function_dict[-1]
     format_string = '{0:0'+str(n_key)+'b}'
 
     # Iterate through every key combination.
@@ -59,14 +67,14 @@ def get_qubo_solutions(f, n_key, print_solutions=False):
 
         # Handle the linear terms.
         for k in range(len(bin_key)):
-            if bin_list[k] == 1 and k in f:
-                solution += f[k]
+            if bin_list[k] == 1 and k in function_dict:
+                solution += function_dict[k]
 
         # Handle the quadratic terms.
-        for p in range(len(bin_key)):
+        for j in range(len(bin_key)):
             for q in range(len(bin_key)):
-                if (p, q) in f and p != q and bin_list[p] == 1 and bin_list[q] == 1:
-                    solution += f[(p, q)]
+                if (j, q) in function_dict and j != q and bin_list[j] == 1 and bin_list[q] == 1:
+                    solution += function_dict[(j, q)]
 
         # Print row.
         if print_solutions:
