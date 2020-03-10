@@ -50,6 +50,14 @@ class RawFeatureVector(Ansatz):
         super().__init__(blocks=placeholder, overwrite_block_parameters=False)
 
     @property
+    def support_parameterized_circuit(self):
+        """TODO Deprecate.
+
+        Whether it is supported to bind parameters in this circuit.
+        """
+        return False
+
+    @property
     def feature_dimension(self):
         return self._feature_dimension
 
@@ -63,12 +71,11 @@ class RawFeatureVector(Ansatz):
             AquaError: If the parameters contain a ParameterExpression.
         """
         x = self.parameters
-        print('constructing on', x)
         if any(isinstance(xi, ParameterExpression) for xi in x):
             raise AquaError('Cannot construct the RawFeatureVector on a ParameterExpression.')
 
         state_vector = np.pad(x, (0, (1 << self.num_qubits) - self.feature_dimension), 'constant')
-        self._circuit = StateVectorCircuit(state_vector)
+        self._circuit = StateVectorCircuit(state_vector).construct_circuit()
         return self._circuit
 
     def construct_circuit(self, x: List[float],   # pylint:disable=arguments-differ
