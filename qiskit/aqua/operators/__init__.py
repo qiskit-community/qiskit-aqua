@@ -87,12 +87,12 @@ Plus = H.compose(Zero)
 Minus = H.compose(One)
 
 from qiskit.aqua.operators.converters import (ConverterBase, PauliChangeOfBasis, PaulitoInstruction, ToMatrixOp,
-                                              DicttoCircuitSum)
+                                              DicttoCircuitSum, AbelianGrouper)
 from qiskit.aqua.operators.expectation_values import (ExpectationBase, PauliExpectation, MatrixExpectation,
                                                       AerPauliExpectation)
 from qiskit.aqua.operators.circuit_samplers import CircuitSampler, LocalSimulatorSampler, IBMQSampler
-from qiskit.aqua.operators.evolutions import EvolutionBase, OpEvolution, PauliTrotterEvolution, TrotterizationBase, \
-    Trotter, Suzuki, QDrift
+from qiskit.aqua.operators.evolutions import (EvolutionBase, OpEvolution, PauliTrotterEvolution, TrotterizationBase,
+                                              Trotter, Suzuki, QDrift)
 
 __all__ = [
     # Common

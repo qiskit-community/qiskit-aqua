@@ -27,7 +27,7 @@ class OpVec(OperatorBase):
     but also refers to the "vec" mathematical operation.
     """
 
-    def __init__(self, oplist, combo_fn=lambda x: x, coeff=1.0, param_bindings=None):
+    def __init__(self, oplist, combo_fn=lambda x: x, coeff=1.0, param_bindings=None, abelian=False):
         """
         Args:
             oplist (list(OperatorBase)): The operators being summed.
@@ -45,6 +45,7 @@ class OpVec(OperatorBase):
         self._combo_fn = combo_fn
         self._coeff = coeff
         self._param_bindings = param_bindings
+        self._abelian = abelian
 
     @property
     def oplist(self):
@@ -63,6 +64,10 @@ class OpVec(OperatorBase):
 
     def get_parameterization(self, i):
         return {param: value_list[i] for (param, value_list) in self.param_bindings.items()}
+
+    @property
+    def abelian(self):
+        return self._abelian
 
     # TODO: Keep this property for evals or just enact distribution at composition time?
     @property
@@ -249,15 +254,19 @@ class OpVec(OperatorBase):
 
     def __str__(self):
         """Overload str() """
-        if self.coeff == 1.0:
-            return "{}([{}])".format(self.__class__.__name__, ', '.join([str(op) for op in self.oplist]))
-        else:
-            return "{} * {}([{}])".format(self.coeff, self.__class__.__name__, ', '.join([str(op) for op in
-                                                                                         self.oplist]))
+        main_string = "{}([{}])".format(self.__class__.__name__, ', '.join([str(op) for op in self.oplist]))
+        if self.abelian:
+            main_string = 'Abelian' + main_string
+        if not self.coeff == 1.0:
+            main_string = '{} * '.format(self.coeff) + main_string
+        return main_string
 
     def __repr__(self):
         """Overload str() """
-        return "{}({}, coeff={})".format(self.__class__.__name__, repr(self.oplist), self.coeff)
+        return "{}({}, coeff={}, abelian={})".format(self.__class__.__name__,
+                                                     repr(self.oplist),
+                                                     self.coeff,
+                                                     self.abelian)
 
     def print_details(self):
         """ print details """

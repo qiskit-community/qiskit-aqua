@@ -23,13 +23,13 @@ from .op_vec import OpVec
 
 class OpSum(OpVec):
 
-    def __init__(self, oplist, coeff=1.0):
+    def __init__(self, oplist, coeff=1.0, abelian=False):
         """
         Args:
             oplist (list(OperatorBase)): The operators being summed.
             coeff (int, float, complex): A coefficient multiplying the primitive
         """
-        super().__init__(oplist, combo_fn=partial(reduce, lambda x, y: x+y), coeff=coeff)
+        super().__init__(oplist, combo_fn=partial(reduce, lambda x, y: x+y), coeff=coeff, abelian=abelian)
 
     @property
     def num_qubits(self):
