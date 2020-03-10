@@ -59,7 +59,7 @@ class TestReadmeSample(QiskitAquaTestCase):
         oracle = LogicalExpressionOracle(sat_cnf)
         algorithm = Grover(oracle)
         result = algorithm.run(backend)
-        print(result["result"])
+        self.log.debug(result["result"])
 
         # ----------------------------------------------------------------------
 

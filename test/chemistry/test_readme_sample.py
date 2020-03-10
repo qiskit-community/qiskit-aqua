@@ -92,11 +92,11 @@ class TestReadmeSample(QiskitChemistryTestCase):
         backend = Aer.get_backend('statevector_simulator')
 
         result = algorithm.run(backend)
-        print(result['energy'])
+        self.log.debug(result.eigenvalue.real)
 
         # ----------------------------------------------------------------------
 
-        self.assertAlmostEqual(result['energy'], -1.8572750301938803, places=6)
+        self.assertAlmostEqual(result.eigenvalue.real, -1.8572750301938803, places=6)
 
 
 if __name__ == '__main__':

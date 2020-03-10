@@ -22,7 +22,7 @@ from qiskit import BasicAer
 from qiskit.aqua import aqua_globals, QuantumInstance
 from qiskit.optimization.ising import exact_cover
 from qiskit.optimization.ising.common import sample_most_likely
-from qiskit.aqua.algorithms import ClassicalMinimumEigensolver, VQE
+from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE
 from qiskit.aqua.components.optimizers import COBYLA
 from qiskit.aqua.components.variational_forms import RYRZ
 
@@ -57,7 +57,7 @@ class TestExactCover(QiskitOptimizationTestCase):
 
     def test_exact_cover(self):
         """ Exact Cover test """
-        algo = ClassicalMinimumEigensolver(self.qubit_op, aux_operators=[])
+        algo = NumPyMinimumEigensolver(self.qubit_op, aux_operators=[])
         result = algo.run()
         x = sample_most_likely(result.eigenstate)
         ising_sol = exact_cover.get_solution(x)

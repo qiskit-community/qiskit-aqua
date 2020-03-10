@@ -12,18 +12,18 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Test Classical Eigen solver """
+""" Test NumPy Eigen solver """
 
 import unittest
 from test.aqua import QiskitAquaTestCase
 import numpy as np
 from qiskit.aqua import AquaError
-from qiskit.aqua.algorithms import ClassicalEigensolver
+from qiskit.aqua.algorithms import NumPyEigensolver
 from qiskit.aqua.operators import WeightedPauliOperator
 
 
-class TestClassicalEigensolver(QiskitAquaTestCase):
-    """ Test Classical Eigen solver """
+class TestNumPyEigensolver(QiskitAquaTestCase):
+    """ Test NumPy Eigen solver """
     def setUp(self):
         super().setUp()
         pauli_dict = {
@@ -38,7 +38,7 @@ class TestClassicalEigensolver(QiskitAquaTestCase):
 
     def test_ce(self):
         """ Test basics """
-        algo = ClassicalEigensolver(self.qubit_op, aux_operators=[])
+        algo = NumPyEigensolver(self.qubit_op, aux_operators=[])
         result = algo.run()
         self.assertEqual(len(result.eigenvalues), 1)
         self.assertEqual(len(result.eigenstates), 1)
@@ -46,7 +46,7 @@ class TestClassicalEigensolver(QiskitAquaTestCase):
 
     def test_ce_k4(self):
         """ Test for k=4 eigenvalues """
-        algo = ClassicalEigensolver(self.qubit_op, k=4, aux_operators=[])
+        algo = NumPyEigensolver(self.qubit_op, k=4, aux_operators=[])
         result = algo.run()
         self.assertEqual(len(result.eigenvalues), 4)
         self.assertEqual(len(result.eigenstates), 4)
@@ -55,7 +55,7 @@ class TestClassicalEigensolver(QiskitAquaTestCase):
 
     def test_ce_fail(self):
         """ Test no operator """
-        algo = ClassicalEigensolver()
+        algo = NumPyEigensolver()
         with self.assertRaises(AquaError):
             _ = algo.run()
 

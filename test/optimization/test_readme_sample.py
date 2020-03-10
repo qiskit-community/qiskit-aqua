@@ -75,12 +75,12 @@ class TestReadmeSample(QiskitOptimizationTestCase):
                                            seed_transpiler=seed)
         result = qaoa.run(quantum_instance)
 
-        x = sample_most_likely(result['eigvecs'][0])
-        print('energy:', result['energy'])
-        print('time:', result['eval_time'])
-        print('max-cut objective:', result['energy'] + offset)
-        print('solution:', max_cut.get_graph_solution(x))
-        print('solution objective:', max_cut.max_cut_value(x, w))
+        x = sample_most_likely(result.eigenstate)
+        self.log.debug('energy: %s', result.eigenvalue.real)
+        self.log.debug('time: %s', result.optimizer_time)
+        self.log.debug('max-cut objective: %s', result.eigenvalue.real + offset)
+        self.log.debug('solution: %s', max_cut.get_graph_solution(x))
+        self.log.debug('solution objective: %s', max_cut.max_cut_value(x, w))
 
         # ----------------------------------------------------------------------
 

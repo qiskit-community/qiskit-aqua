@@ -21,7 +21,7 @@ from ddt import ddt, idata, unpack
 import qiskit
 from qiskit.aqua.utils import decimal_to_binary
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.algorithms import QPEMinimumEigensolver, ClassicalMinimumEigensolver
+from qiskit.aqua.algorithms import QPEMinimumEigensolver, NumPyMinimumEigensolver
 from qiskit.aqua.components.iqfts import Standard
 from qiskit.aqua.operators import Z2Symmetries
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
@@ -59,7 +59,7 @@ class TestEnd2EndWithQPE(QiskitChemistryTestCase):
         qubit_op = fer_op.mapping(map_type=qubit_mapping, threshold=1e-10)
         qubit_op = Z2Symmetries.two_qubit_reduction(qubit_op, 2)
 
-        exact_eigensolver = ClassicalMinimumEigensolver(qubit_op)
+        exact_eigensolver = NumPyMinimumEigensolver(qubit_op)
         results = exact_eigensolver.run()
         reference_energy = results.eigenvalue.real
         self.log.debug('The exact ground state energy is: %s', results.eigenvalue.real)
