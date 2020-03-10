@@ -135,8 +135,6 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         self._eval_time = None
         self._optimizer.set_max_evals_grouped(max_evals_grouped)
         self._callback = callback
-        if initial_point is None:
-            self._initial_point = var_form.preferred_init_points
 
         self._operator = operator
         self._expectation_value = expectation_value
@@ -154,13 +152,6 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         self._parameterized_circuits = None
 
         self.operator = operator
-        aux_ops = []
-        if aux_operators is not None:
-            aux_operators = \
-                [aux_operators] if not isinstance(aux_operators, list) else aux_operators
-            for aux_op in aux_operators:
-                aux_ops.append(aux_op)
-        self.aux_operators = aux_ops
 
     @property
     def operator(self) -> Optional[OperatorBase]:
@@ -310,6 +301,12 @@ class VQE(VQAlgorithm, MinimumEigensolver):
 
         self.cleanup_parameterized_circuits()
         return result
+
+    def compute_minimum_eigenvalue(
+            self, operator: Optional[OperatorBase] = None,
+            aux_operators: Optional[List[OperatorBase]] = None) -> MinimumEigensolverResult:
+        super().compute_minimum_eigenvalue(operator, aux_operators)
+        return self._run()
 
     # This is the objective function to be passed to the optimizer that is used for evaluation
     def _energy_evaluation(self, parameters):

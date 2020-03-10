@@ -78,13 +78,13 @@ class MinimumEigensolver(ABC):
         pass
 
     @property
-    @abstractmethod
+    # @abstractmethod
     def aux_operators(self) -> List[LegacyBaseOperator]:
         """ returns aux operators """
         pass
 
     @aux_operators.setter
-    @abstractmethod
+    # @abstractmethod
     def aux_operators(self, aux_operators: List[LegacyBaseOperator]) -> None:
         """ set aux operators """
         pass
