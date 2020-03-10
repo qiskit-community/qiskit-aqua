@@ -15,8 +15,8 @@ from qiskit.optimization.results.optimization_result import OptimizationResult
 class ADMMParameters:
     def __init__(self, rho_initial=10000, factor_c=100000, beta=1000, max_iter=10, tol=1.e-4, max_time=1800,
                  three_block=True, vary_rho=0, tau_incr=2, tau_decr=2, mu_res=10,
-                 mu=1000, qubo_solver_class: OptimizationAlgorithm = CplexOptimizer,
-                 continuous_solver_class: OptimizationAlgorithm = CplexOptimizer) -> None:
+                 mu=1000, qubo_solver: OptimizationAlgorithm = CplexOptimizer,
+                 continuous_solver: OptimizationAlgorithm = CplexOptimizer) -> None:
         """Defines parameters for ADMM optimizer and their default values.
 
         Args:
@@ -34,8 +34,8 @@ class ADMMParameters:
             tau_decr: Parameter used in the rho update.
             mu_res: Parameter used in the rho update.
             mu: Penalization for constraint residual. Used to compute the merit values.
-            qubo_solver_class: A subclass of OptimizationAlgorithm that can effectively solve QUBO problems
-            continuous_solver_class: A subclass of OptimizationAlgorithm that can solve continuous problems
+            qubo_solver: An instance of OptimizationAlgorithm that can effectively solve QUBO problems
+            continuous_solver: An instance of OptimizationAlgorithm that can solve continuous problems
         """
         super().__init__()
         self.mu = mu
@@ -50,8 +50,8 @@ class ADMMParameters:
         self.factor_c = factor_c
         self.beta = beta
         self.rho_initial = rho_initial
-        self.qubo_solver_class = qubo_solver_class
-        self.continuous_solver_class = continuous_solver_class
+        self.qubo_solver = qubo_solver
+        self.continuous_solver = continuous_solver
 
 
 class ADMMState:
@@ -111,9 +111,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
         self._mu = params.mu
         self._rho_initial = params.rho_initial
 
-        # note, we create instances of the solvers here instead of keeping classes
-        self._qubo_solver = params.qubo_solver_class()
-        self._continuous_solver = params.continuous_solver_class()
+        self._qubo_solver = params.qubo_solver
+        self._continuous_solver = params.continuous_solver
 
         # internal state where we'll keep intermediate solution
         # here, we just declare the class variable
