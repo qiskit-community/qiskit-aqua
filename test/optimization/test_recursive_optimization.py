@@ -64,9 +64,13 @@ class TestRecursiveMinEigenOptimizer(QiskitOptimizationTestCase):
         min_eigen_solver = self.min_eigen_solvers[min_eigen_solver_name]
         if backend:
             min_eigen_solver.quantum_instance = BasicAer.get_backend(backend)
+            if backend == 'qasm_simulator':
+                min_eigen_solver.quantum_instance.run_config.shots = 10000
+
         min_eigen_optimizer = MinimumEigenOptimizer(min_eigen_solver)
         # construct minimum eigen optimizer
-        recursive_min_eigen_optimizer = RecursiveMinimumEigenOptimizer(min_eigen_optimizer)
+        recursive_min_eigen_optimizer = RecursiveMinimumEigenOptimizer(min_eigen_optimizer,
+                                                                       min_num_vars=3)
 
         # load optimization problem
         problem = OptimizationProblem()
