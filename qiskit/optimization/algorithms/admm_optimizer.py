@@ -1,3 +1,19 @@
+# -*-coding: utf-8 -*-
+# This code is part of Qiskit.
+#
+# (C) Copyright IBM 2000.
+#
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
+#
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
+
+"""An implementation of the ADMM algorithm.
+"""
+
 import time
 from typing import List
 
@@ -11,12 +27,14 @@ from qiskit.optimization.problems.variables import CPX_BINARY, CPX_CONTINUOUS
 
 from qiskit.optimization.results.optimization_result import OptimizationResult
 
+from qiskit.optimization.problems.objective import ObjSense
+
 
 class ADMMParameters:
     def __init__(self, rho_initial=10000, factor_c=100000, beta=1000, max_iter=10, tol=1.e-4, max_time=1800,
                  three_block=True, vary_rho=0, tau_incr=2, tau_decr=2, mu_res=10,
-                 mu=1000, qubo_solver: OptimizationAlgorithm = CplexOptimizer,
-                 continuous_solver: OptimizationAlgorithm = CplexOptimizer) -> None:
+                 mu=1000, qubo_solver: OptimizationAlgorithm = None,
+                 continuous_solver: OptimizationAlgorithm = None) -> None:
         """Defines parameters for ADMM optimizer and their default values.
 
         Args:
@@ -50,23 +68,38 @@ class ADMMParameters:
         self.factor_c = factor_c
         self.beta = beta
         self.rho_initial = rho_initial
-        self.qubo_solver = qubo_solver
-        self.continuous_solver = continuous_solver
+        self.qubo_solver = qubo_solver if qubo_solver is not None else CplexOptimizer()
+        self.continuous_solver = continuous_solver if continuous_solver is not None else CplexOptimizer()
 
 
 class ADMMState:
-    def __init__(self, binary_size: int, rho_initial: float) -> None:
+    def __init__(self,
+                 op: OptimizationProblem,
+                 binary_indices: List[int],
+                 continuous_indices: List[int],
+                 rho_initial: float) -> None:
         """
         Internal computation state of the ADMM implementation. Here, various variables are stored that are
         being updated during problem solving. The values are relevant to the problem being solved.
         The state is recreated for each optimization problem.
 
         Args:
-            binary_size: Number of binary decision variables of the original problem
+            op: The optimization problem being solved
+            binary_indices: Indices of the binary decision variables of the original problem
+            continuous_indices: Indices of the continuous decision variables of the original problem
             rho_initial: Initial value of the rho parameter.
         """
         super().__init__()
+
+        # Optimization problem itself
+        self.op = op
+        # Indices of the variables
+        self.binary_indices = binary_indices
+        self.continuous_indices = continuous_indices
+        self.sense = op.objective.get_sense()
+
         # These are the parameters that are updated in the ADMM iterations.
+        binary_size = len(binary_indices)
         self.x0: np.ndarray = np.zeros(binary_size)
         self.z: np.ndarray = np.zeros(binary_size)
         self.z_init: np.ndarray = self.z
@@ -90,9 +123,6 @@ class ADMMState:
 class ADMMOptimizer(OptimizationAlgorithm):
     def __init__(self, params: ADMMParameters = None) -> None:
         super().__init__()
-        self._op = None
-        self._binary_indices = []
-        self._continuous_indices = []
         if params is None:
             # create default params
             params = ADMMParameters()
@@ -119,32 +149,40 @@ class ADMMOptimizer(OptimizationAlgorithm):
         self._state = None
 
     def is_compatible(self, problem: OptimizationProblem):
+        """Checks whether a given problem can be solved with the optimizer implementing this method.
+
+        Args:
+            problem: The optimization problem to check compatibility.
+
+        Returns:
+            Returns ``None`` if the problem is compatible and else a string with the error message.
+        """
+
         # 1. only binary and continuous variables are supported
         for var_index, var_type in enumerate(problem.variables.get_types()):
             if var_type != CPX_BINARY and var_type != CPX_CONTINUOUS:
                 # var var_index is not binary and not continuous
-                return False
+                return "Only binary and continuous variables are supported"
 
-        self._op = problem
-        self._binary_indices = self._get_variable_indices(CPX_BINARY)
-        self._continuous_indices = self._get_variable_indices(CPX_CONTINUOUS)
+        binary_indices = self._get_variable_indices(problem, CPX_BINARY)
+        continuous_indices = self._get_variable_indices(problem, CPX_CONTINUOUS)
 
         # 2. binary and continuous variables are separable in objective
-        for binary_index in self._binary_indices:
-            for continuous_index in self._continuous_indices:
+        for binary_index in binary_indices:
+            for continuous_index in continuous_indices:
                 coeff = problem.objective.get_quadratic_coefficients(binary_index, continuous_index)
                 if coeff != 0:
                     # binary and continuous vars are mixed
-                    return False
+                    return "Binary and continuous variables are not separable in the objective"
 
         # 3. no quadratic constraints are supported
         quad_constraints = problem.quadratic_constraints.get_num()
         if quad_constraints is not None and quad_constraints > 0:
             # quadratic constraints are not supported
-            return False
+            return "Quadratic constraints are not supported"
 
         # todo: verify other properties of the problem
-        return True
+        return None
 
     def solve(self, problem: OptimizationProblem):
         """Tries to solves the given problem using ADMM algorithm.
@@ -160,14 +198,12 @@ class ADMMOptimizer(OptimizationAlgorithm):
         Raises:
             QiskitOptimizationError: If the problem is incompatible with the optimizer.
         """
-        self._op = problem
-
         # parse problem and convert to an ADMM specific representation
-        self._binary_indices = self._get_variable_indices(CPX_BINARY)
-        self._continuous_indices = self._get_variable_indices(CPX_CONTINUOUS)
+        binary_indices = self._get_variable_indices(problem, CPX_BINARY)
+        continuous_indices = self._get_variable_indices(problem, CPX_CONTINUOUS)
 
         # create our computation state
-        self._state = ADMMState(len(self._binary_indices), self._rho_initial)
+        self._state = ADMMState(problem, binary_indices, continuous_indices, self._rho_initial)
 
         # debug
         # self.__dump_matrices_and_vectors()
@@ -246,56 +282,57 @@ class ADMMOptimizer(OptimizationAlgorithm):
         print("it {0}, state {1}".format(it, self._state))
         return result
 
-    def _get_variable_indices(self, var_type: str) -> List[int]:
+    @staticmethod
+    def _get_variable_indices(op: OptimizationProblem, var_type: str) -> List[int]:
         indices = []
-        for i, variable_type in enumerate(self._op.variables.get_types()):
+        for i, variable_type in enumerate(op.variables.get_types()):
             if variable_type == var_type:
                 indices.append(i)
 
         return indices
 
     def get_q0(self):
-        # TODO: Flip the sign, according to the optimization sense
-        return self._get_q(self._binary_indices)
+        return self._get_q(self._state.binary_indices)
 
     def get_q1(self):
-        # TODO: Flip the sign, according to the optimization sense
-        return self._get_q(self._continuous_indices)
+        return self._get_q(self._state.continuous_indices)
 
     def _get_q(self, variable_indices: List[int]) -> np.ndarray:
         size = len(variable_indices)
         q = np.zeros(shape=(size, size))
         # fill in the matrix
         # in fact we use re-indexed variables
-        [q.itemset((i, j), self._op.objective.get_quadratic_coefficients(var_index_i, var_index_j))
+        [q.itemset((i, j), self._state.op.objective.get_quadratic_coefficients(var_index_i, var_index_j))
          for i, var_index_i in enumerate(variable_indices)
          for j, var_index_j in enumerate(variable_indices)]
-        return q
+
+        # flip the sign, according to the optimization sense, e.g. sense == 1 if minimize, sense == -1 if maximize
+        return q * self._state.sense
 
     def _get_c(self, variable_indices: List[int]) -> np.ndarray:
-        c = np.array(self._op.objective.get_linear(variable_indices))
+        c = np.array(self._state.op.objective.get_linear(variable_indices))
+        # flip the sign, according to the optimization sense, e.g. sense == 1 if minimize, sense == -1 if maximize
+        c = c * self._state.sense
         return c
 
     def get_c0(self):
-        # TODO: Flip the sign, according to the optimization sense
-        return self._get_c(self._binary_indices)
+        return self._get_c(self._state.binary_indices)
 
     def get_c1(self):
-        # TODO: Flip the sign, according to the optimization sense
-        return self._get_c(self._continuous_indices)
+        return self._get_c(self._state.continuous_indices)
 
     def _assign_row_values(self, matrix: List[List[float]], vector: List[float], constraint_index, variable_indices):
         # assign matrix row
         row = []
-        [row.append(self._op.linear_constraints.get_coefficients(constraint_index, var_index))
+        [row.append(self._state.op.linear_constraints.get_coefficients(constraint_index, var_index))
          for var_index in variable_indices]
         matrix.append(row)
 
         # assign vector row
-        vector.append(self._op.linear_constraints.get_rhs(constraint_index))
+        vector.append(self._state.op.linear_constraints.get_rhs(constraint_index))
 
         # flip the sign if constraint is G, we want L constraints
-        if self._op.linear_constraints.get_senses(constraint_index) == "G":
+        if self._state.op.linear_constraints.get_senses(constraint_index) == "G":
             # invert the sign to make constraint "L"
             matrix[-1] = [-1 * el for el in matrix[-1]]
             vector[-1] = -1 * vector[-1]
@@ -311,27 +348,27 @@ class ADMMOptimizer(OptimizationAlgorithm):
         matrix = []
         vector = []
 
-        senses = self._op.linear_constraints.get_senses()
-        index_set = set(self._binary_indices)
+        senses = self._state.op.linear_constraints.get_senses()
+        index_set = set(self._state.binary_indices)
         for constraint_index, sense in enumerate(senses):
             # we check only equality constraints here
             if sense != "E":
                 continue
-            row = self._op.linear_constraints.get_rows(constraint_index)
+            row = self._state.op.linear_constraints.get_rows(constraint_index)
             if set(row.ind).issubset(index_set):
-                self._assign_row_values(matrix, vector, constraint_index, self._binary_indices)
+                self._assign_row_values(matrix, vector, constraint_index, self._state.binary_indices)
             else:
                 raise ValueError(
                     "Linear constraint with the 'E' sense must contain only binary variables, "
-                    "row indices: {}, binary variable indices: {}".format(row, self._binary_indices))
+                    "row indices: {}, binary variable indices: {}".format(row, self._state.binary_indices))
 
-        return self._create_ndarrays(matrix, vector, len(self._binary_indices))
+        return self._create_ndarrays(matrix, vector, len(self._state.binary_indices))
 
     def _get_inequality_matrix_and_vector(self, variable_indices: List[int]) -> (List[List[float]], List[float]):
         # extracting matrix and vector from constraints like Ax <= b
         matrix = []
         vector = []
-        senses = self._op.linear_constraints.get_senses()
+        senses = self._state.op.linear_constraints.get_senses()
 
         index_set = set(variable_indices)
         for constraint_index, sense in enumerate(senses):
@@ -339,35 +376,35 @@ class ADMMOptimizer(OptimizationAlgorithm):
                 # TODO: Ranged constraints should be supported
                 continue
             # sense either G or L
-            row = self._op.linear_constraints.get_rows(constraint_index)
+            row = self._state.op.linear_constraints.get_rows(constraint_index)
             if set(row.ind).issubset(index_set):
                 self._assign_row_values(matrix, vector, constraint_index, variable_indices)
 
         return matrix, vector
 
     def get_a1_b1(self) -> (np.ndarray, np.ndarray):
-        matrix, vector = self._get_inequality_matrix_and_vector(self._binary_indices)
-        return self._create_ndarrays(matrix, vector, len(self._binary_indices))
+        matrix, vector = self._get_inequality_matrix_and_vector(self._state.binary_indices)
+        return self._create_ndarrays(matrix, vector, len(self._state.binary_indices))
 
     def get_a4_b3(self) -> (np.ndarray, np.ndarray):
-        matrix, vector = self._get_inequality_matrix_and_vector(self._continuous_indices)
+        matrix, vector = self._get_inequality_matrix_and_vector(self._state.continuous_indices)
 
-        return self._create_ndarrays(matrix, vector, len(self._continuous_indices))
+        return self._create_ndarrays(matrix, vector, len(self._state.continuous_indices))
 
     def get_a2_a3_b2(self) -> (np.ndarray, np.ndarray, np.ndarray):
         matrix = []
         vector = []
-        senses = self._op.linear_constraints.get_senses()
+        senses = self._state.op.linear_constraints.get_senses()
 
-        binary_index_set = set(self._binary_indices)
-        continuous_index_set = set(self._continuous_indices)
-        all_variables = self._binary_indices + self._continuous_indices
+        binary_index_set = set(self._state.binary_indices)
+        continuous_index_set = set(self._state.continuous_indices)
+        all_variables = self._state.binary_indices + self._state.continuous_indices
         for constraint_index, sense in enumerate(senses):
             if sense == "E" or sense == "R":
                 # TODO: Ranged constraints should be supported as well
                 continue
             # sense either G or L
-            row = self._op.linear_constraints.get_rows(constraint_index)
+            row = self._state.op.linear_constraints.get_rows(constraint_index)
             row_indices = set(row.ind)
             # we must have a least one binary and one continuous variable, otherwise it is another type of constraints
             if len(row_indices & binary_index_set) != 0 and len(row_indices & continuous_index_set) != 0:
@@ -375,14 +412,14 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         matrix, b2 = self._create_ndarrays(matrix, vector, len(all_variables))
         # a2
-        a2 = matrix[:, 0:len(self._binary_indices)]
-        a3 = matrix[:, len(self._binary_indices):]
+        a2 = matrix[:, 0:len(self._state.binary_indices)]
+        a3 = matrix[:, len(self._state.binary_indices):]
         return a2, a3, b2
 
     def _create_step1_problem(self):
         op1 = OptimizationProblem()
 
-        binary_size = len(self._binary_indices)
+        binary_size = len(self._state.binary_indices)
         # create the same binary variables
         # op1.variables.add(names=["x0_" + str(i + 1) for i in range(binary_size)], types=["B"] * binary_size)
         op1.variables.add(names=["x0_" + str(i + 1) for i in range(binary_size)],
@@ -412,10 +449,10 @@ class ADMMOptimizer(OptimizationAlgorithm):
     def _create_step2_problem(self):
         op2 = OptimizationProblem()
 
-        continuous_size = len(self._continuous_indices)
-        binary_size = len(self._binary_indices)
-        lb = self._op.variables.get_lower_bounds(self._continuous_indices)
-        ub = self._op.variables.get_upper_bounds(self._continuous_indices)
+        continuous_size = len(self._state.continuous_indices)
+        binary_size = len(self._state.binary_indices)
+        lb = self._state.op.variables.get_lower_bounds(self._state.continuous_indices)
+        ub = self._state.op.variables.get_upper_bounds(self._state.continuous_indices)
         if continuous_size:
             # add u variables
             op2.variables.add(names=["u0_" + str(i + 1) for i in range(continuous_size)],
@@ -490,7 +527,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
     def _create_step3_problem(self):
         op3 = OptimizationProblem()
         # add y variables
-        binary_size = len(self._binary_indices)
+        binary_size = len(self._state.binary_indices)
         op3.variables.add(names=["y_" + str(i + 1) for i in range(binary_size)],
                           types=["C"] * binary_size)
 
@@ -523,8 +560,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
     def update_x1(self, op2: OptimizationProblem) -> (np.ndarray, np.ndarray):
         vars_op2 = self._continuous_solver.solve(op2).x
         # TODO: Check output type
-        u = np.asarray(vars_op2[:len(self._continuous_indices)])
-        z = np.asarray(vars_op2[len(self._continuous_indices):])
+        u = np.asarray(vars_op2[:len(self._state.continuous_indices)])
+        z = np.asarray(vars_op2[len(self._state.continuous_indices):])
         return u, z
 
     def update_y(self, op3):
@@ -548,10 +585,10 @@ class ADMMOptimizer(OptimizationAlgorithm):
         sol = [x0, u]
         sol_val = self._state.cost_iterates[it_min_merits]
         return sol, sol_val
-    
+
     def update_lambda_mult(self):
         return self._state.lambda_mult + self._state.rho * (self._state.x0 - self._state.z + self._state.y)
-    
+
     def update_rho(self, r, s):
         """
         Updating the rho parameter in ADMM
