@@ -21,18 +21,18 @@ from ddt import ddt, data
 from qiskit import BasicAer
 
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.algorithms import ExactEigensolver
+from qiskit.aqua.algorithms import ClassicalMinimumEigensolver
 from qiskit.aqua.algorithms import QAOA
 from qiskit.aqua.components.optimizers import COBYLA
 
-from qiskit.optimization.algorithms import (MinEigenOptimizer, CplexOptimizer,
-                                            RecursiveMinEigenOptimizer)
+from qiskit.optimization.algorithms import (MinimumEigenOptimizer, CplexOptimizer,
+                                            RecursiveMinimumEigenOptimizer)
 from qiskit.optimization.problems import OptimizationProblem
 
 
 @ddt
 class TestRecursiveMinEigenOptimizer(QiskitOptimizationTestCase):
-    """Rrecursive Min Eigen Optimizer Tests."""
+    """Recursive Min Eigen Optimizer Tests."""
 
     def setUp(self):
         super().setUp()
@@ -43,7 +43,7 @@ class TestRecursiveMinEigenOptimizer(QiskitOptimizationTestCase):
         self.min_eigen_solvers = {}
 
         # exact eigen solver
-        self.min_eigen_solvers['exact'] = ExactEigensolver()
+        self.min_eigen_solvers['exact'] = ClassicalMinimumEigensolver()
 
         # QAOA
         optimizer = COBYLA()
@@ -64,9 +64,9 @@ class TestRecursiveMinEigenOptimizer(QiskitOptimizationTestCase):
         min_eigen_solver = self.min_eigen_solvers[min_eigen_solver_name]
         if backend:
             min_eigen_solver._quantum_instance = BasicAer.get_backend(backend)
-        min_eigen_optimizer = MinEigenOptimizer(min_eigen_solver)
+        min_eigen_optimizer = MinimumEigenOptimizer(min_eigen_solver)
         # construct minimum eigen optimizer
-        recursive_min_eigen_optimizer = RecursiveMinEigenOptimizer(min_eigen_optimizer)
+        recursive_min_eigen_optimizer = RecursiveMinimumEigenOptimizer(min_eigen_optimizer)
 
         # load optimization problem
         problem = OptimizationProblem()

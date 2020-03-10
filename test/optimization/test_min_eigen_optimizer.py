@@ -21,11 +21,11 @@ from ddt import ddt, data
 from qiskit import BasicAer
 
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.algorithms import ExactEigensolver
+from qiskit.aqua.algorithms import ClassicalMinimumEigensolver
 from qiskit.aqua.algorithms import QAOA
 from qiskit.aqua.components.optimizers import COBYLA
 
-from qiskit.optimization.algorithms import MinEigenOptimizer, CplexOptimizer
+from qiskit.optimization.algorithms import MinimumEigenOptimizer, CplexOptimizer
 from qiskit.optimization.problems import OptimizationProblem
 
 
@@ -42,7 +42,7 @@ class TestMinEigenOptimizer(QiskitOptimizationTestCase):
         self.min_eigen_solvers = {}
 
         # exact eigen solver
-        self.min_eigen_solvers['exact'] = ExactEigensolver()
+        self.min_eigen_solvers['exact'] = ClassicalMinimumEigensolver()
 
         # QAOA
         optimizer = COBYLA()
@@ -62,10 +62,10 @@ class TestMinEigenOptimizer(QiskitOptimizationTestCase):
         # get minimum eigen solver
         min_eigen_solver = self.min_eigen_solvers[min_eigen_solver_name]
         if backend:
-            min_eigen_solver._quantum_instance = BasicAer.get_backend(backend)
+            min_eigen_solver.quantum_instance = BasicAer.get_backend(backend)
 
         # construct minimum eigen optimizer
-        min_eigen_optimizer = MinEigenOptimizer(min_eigen_solver)
+        min_eigen_optimizer = MinimumEigenOptimizer(min_eigen_solver)
 
         # load optimization problem
         problem = OptimizationProblem()
