@@ -16,7 +16,7 @@
 
 from test.chemistry import QiskitChemistryTestCase
 from ddt import ddt, idata, unpack
-from qiskit.aqua.algorithms import ExactEigensolver
+from qiskit.aqua.algorithms import ClassicalMinimumEigensolver
 from qiskit.chemistry import FermionicOperator, QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType, HFMethodType
 
@@ -72,9 +72,10 @@ class TestParticleHole(QiskitChemistryTestCase):
 
         # Energy in original fer_op should same as ph transformed one added with ph_shift
         jw_op = fer_op.mapping('jordan_wigner')
-        result = ExactEigensolver(jw_op).run()
+        result = ClassicalMinimumEigensolver(jw_op).run()
 
         ph_jw_op = ph_fer_op.mapping('jordan_wigner')
-        ph_result = ExactEigensolver(ph_jw_op).run()
+        ph_result = ClassicalMinimumEigensolver(ph_jw_op).run()
 
-        self.assertAlmostEqual(result['energy'], ph_result['energy']-ph_shift, msg=config)
+        self.assertAlmostEqual(result.eigenvalue.real,
+                               ph_result.eigenvalue.real-ph_shift, msg=config)

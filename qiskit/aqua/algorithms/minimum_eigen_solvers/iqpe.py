@@ -16,7 +16,9 @@ The Iterative Quantum Phase Estimation Algorithm.
 See https://arxiv.org/abs/quant-ph/0610214
 """
 
+from typing import Optional, List, Dict
 import logging
+import warnings
 import numpy as np
 
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
@@ -29,13 +31,16 @@ from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.operators import LegacyBaseOperator
 from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.utils.validation import validate_min, validate_in_set
+from .minimum_eigen_solver import MinimumEigensolver, MinimumEigensolverResult
+from .qpe import QPEResult
 
 logger = logging.getLogger(__name__)
+
 
 # pylint: disable=invalid-name
 
 
-class IQPE(QuantumAlgorithm):
+class IQPEMinimumEigensolver(QuantumAlgorithm, MinimumEigensolver):
     """
     The Iterative Quantum Phase Estimation algorithm.
 
@@ -47,9 +52,13 @@ class IQPE(QuantumAlgorithm):
     See also https://arxiv.org/abs/quant-ph/0610214
     """
 
-    def __init__(self, operator: LegacyBaseOperator, state_in: InitialState,
-                 num_time_slices: int = 1, num_iterations: int = 1,
-                 expansion_mode: str = 'suzuki', expansion_order: int = 2,
+    def __init__(self,
+                 operator: Optional[LegacyBaseOperator] = None,
+                 state_in: Optional[InitialState] = None,
+                 num_time_slices: int = 1,
+                 num_iterations: int = 1,
+                 expansion_mode: str = 'suzuki',
+                 expansion_order: int = 2,
                  shallow_circuit_concat: bool = False) -> None:
         """
 
@@ -68,7 +77,6 @@ class IQPE(QuantumAlgorithm):
         validate_in_set('expansion_mode', expansion_mode, {'trotter', 'suzuki'})
         validate_min('expansion_order', expansion_order, 1)
         super().__init__()
-        self._operator = op_converter.to_weighted_pauli_operator(operator.copy())
         self._state_in = state_in
         self._num_time_slices = num_time_slices
         self._num_iterations = num_iterations
@@ -77,59 +85,96 @@ class IQPE(QuantumAlgorithm):
         self._shallow_circuit_concat = shallow_circuit_concat
         self._state_register = None
         self._ancillary_register = None
-        self._pauli_list = None
-        self._ret = {}
         self._ancilla_phase_coef = None
-        self._setup()
+        self._in_operator = operator
+        self._operator = None
+        self._ret = {}
+        self._pauli_list = None
+        self._phase_estimation_circuit = None
+        self._slice_pauli_list = None
+        self._setup(operator)
 
-    def _setup(self):
-        self._ret['translation'] = sum([abs(p[0]) for p in self._operator.reorder_paulis()])
-        self._ret['stretch'] = 0.5 / self._ret['translation']
+    def _setup(self, operator: Optional[BaseOperator]) -> None:
+        self._operator = None
+        self._ret = {}
+        self._pauli_list = None
+        self._phase_estimation_circuit = None
+        self._slice_pauli_list = None
+        if operator:
+            self._operator = op_converter.to_weighted_pauli_operator(operator.copy())
+            self._ret['translation'] = sum([abs(p[0]) for p in self._operator.reorder_paulis()])
+            self._ret['stretch'] = 0.5 / self._ret['translation']
 
-        # translate the operator
-        self._operator.simplify()
-        translation_op = WeightedPauliOperator([
-            [
-                self._ret['translation'],
-                Pauli(
-                    np.zeros(self._operator.num_qubits),
-                    np.zeros(self._operator.num_qubits)
-                )
-            ]
-        ])
-        translation_op.simplify()
-        self._operator += translation_op
+            # translate the operator
+            self._operator.simplify()
+            translation_op = WeightedPauliOperator([
+                [
+                    self._ret['translation'],
+                    Pauli(
+                        np.zeros(self._operator.num_qubits),
+                        np.zeros(self._operator.num_qubits)
+                    )
+                ]
+            ])
+            translation_op.simplify()
+            self._operator += translation_op
+            self._pauli_list = self._operator.reorder_paulis()
 
-        self._pauli_list = self._operator.reorder_paulis()
+            # stretch the operator
+            for p in self._pauli_list:
+                p[0] = p[0] * self._ret['stretch']
 
-        # stretch the operator
-        for p in self._pauli_list:
-            p[0] = p[0] * self._ret['stretch']
-
-        if len(self._pauli_list) == 1:
-            slice_pauli_list = self._pauli_list
-        else:
-            if self._expansion_mode == 'trotter':
+            if len(self._pauli_list) == 1:
                 slice_pauli_list = self._pauli_list
             else:
-                slice_pauli_list = suzuki_expansion_slice_pauli_list(self._pauli_list,
-                                                                     1, self._expansion_order)
-        self._slice_pauli_list = slice_pauli_list
+                if self._expansion_mode == 'trotter':
+                    slice_pauli_list = self._pauli_list
+                else:
+                    slice_pauli_list = suzuki_expansion_slice_pauli_list(self._pauli_list,
+                                                                         1, self._expansion_order)
+            self._slice_pauli_list = slice_pauli_list
 
-    def construct_circuit(self, k=None, omega=0, measurement=False):
+    @property
+    def operator(self) -> Optional[BaseOperator]:
+        """ Returns operator """
+        return self._in_operator
+
+    @operator.setter
+    def operator(self, operator: BaseOperator) -> None:
+        """ set operator """
+        self._in_operator = operator
+        self._setup(operator)
+
+    @property
+    def aux_operators(self) -> List[BaseOperator]:
+        """ Returns aux operators """
+        raise TypeError('aux_operators not supported.')
+
+    @aux_operators.setter
+    def aux_operators(self, aux_operators: List[BaseOperator]) -> None:
+        """ Set aux operators """
+        raise TypeError('aux_operators not supported.')
+
+    def construct_circuit(self,
+                          k: Optional[int] = None,
+                          omega: float = 0,
+                          measurement: bool = False) -> QuantumCircuit:
         """Construct the kth iteration Quantum Phase Estimation circuit.
 
         For details of parameters, please see Fig. 2 in https://arxiv.org/pdf/quant-ph/0610214.pdf.
 
         Args:
-            k (int): the iteration idx.
-            omega (float): the feedback angle.
-            measurement (bool): Boolean flag to indicate if measurement should
+            k: the iteration idx.
+            omega: the feedback angle.
+            measurement: Boolean flag to indicate if measurement should
                     be included in the circuit.
 
         Returns:
             QuantumCircuit: the quantum circuit per iteration
         """
+        if self._operator is None or self._state_in is None:
+            return None
+
         k = self._num_iterations if k is None else k
         a = QuantumRegister(1, name='a')
         q = QuantumRegister(self._operator.num_qubits, name='q')
@@ -163,6 +208,12 @@ class IQPE(QuantumAlgorithm):
             # qc.barrier(self._ancillary_register)
             qc.measure(self._ancillary_register, c)
         return qc
+
+    def compute_minimum_eigenvalue(
+            self, operator: Optional[BaseOperator] = None,
+            aux_operators: Optional[List[BaseOperator]] = None) -> MinimumEigensolverResult:
+        super().compute_minimum_eigenvalue(operator, aux_operators)
+        return self._run()
 
     def _estimate_phase_iteratively(self):
         """
@@ -226,6 +277,62 @@ class IQPE(QuantumAlgorithm):
         )])
         self._ret['energy'] = self._ret['phase'] / self._ret['stretch'] - self._ret['translation']
 
-    def _run(self):
+    def _run(self) -> 'IQPEResult':
         self._compute_energy()
-        return self._ret
+
+        result = IQPEResult()
+        if 'translation' in self._ret:
+            result.translation = self._ret['translation']
+        if 'stretch' in self._ret:
+            result.stretch = self._ret['stretch']
+        if 'top_measurement_label' in self._ret:
+            result.top_measurement_label = self._ret['top_measurement_label']
+        if 'top_measurement_decimal' in self._ret:
+            result.top_measurement_decimal = self._ret['top_measurement_decimal']
+        if 'energy' in self._ret:
+            result.eigenvalue = complex(self._ret['energy'])
+        if 'phase' in self._ret:
+            result.phase = self._ret['phase']
+
+        return result
+
+
+class IQPE(IQPEMinimumEigensolver):
+    """
+    The deprecated Iterative Quantum Phase Estimation algorithm.
+    """
+
+    def __init__(self,
+                 operator: Optional[BaseOperator] = None,
+                 state_in: Optional[InitialState] = None,
+                 num_time_slices: int = 1,
+                 num_iterations: int = 1,
+                 expansion_mode: str = 'suzuki',
+                 expansion_order: int = 2,
+                 shallow_circuit_concat: bool = False) -> None:
+        warnings.warn('Deprecated class {}, use {}.'.format('IQPE',
+                                                            'IQPEMinimumEigenSolver'),
+                      DeprecationWarning)
+        super().__init__(operator, state_in,
+                         num_time_slices, num_iterations,
+                         expansion_mode, expansion_order,
+                         shallow_circuit_concat)
+
+
+class IQPEResult(QPEResult):
+    """ IQPE Result."""
+
+    @property
+    def phase(self) -> float:
+        """ Returns phase """
+        return self.get('phase')
+
+    @phase.setter
+    def phase(self, value: float) -> None:
+        """ Sets phase """
+        self.data['phase'] = value
+
+    @staticmethod
+    def from_dict(a_dict: Dict) -> 'IQPEResult':
+        """ create new object from a dictionary """
+        return IQPEResult(a_dict)

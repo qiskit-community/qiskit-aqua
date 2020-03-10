@@ -21,22 +21,28 @@ See https://arxiv.org/abs/1304.3061
 from typing import Optional, List, Callable
 import logging
 import functools
+import warnings
 from time import time
 
 import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit
 from qiskit.circuit import ParameterVector
 
-from qiskit.aqua.algorithms import VQAlgorithm
 from qiskit.aqua import AquaError
 from qiskit.aqua.operators import OperatorBase, ExpectationBase, StateFnCircuit
-from qiskit.aqua.components.optimizers import Optimizer
-from qiskit.aqua.components.variational_forms import VariationalForm
+from qiskit.aqua.components.optimizers import Optimizer, SLSQP
+from qiskit.aqua.components.variational_forms import VariationalForm, RY
+from qiskit.aqua.utils.validation import validate_min
+from ..vq_algorithm import VQAlgorithm, VQResult
+from .minimum_eigen_solver import MinimumEigensolver, MinimumEigensolverResult
 
 logger = logging.getLogger(__name__)
 
+# disable check for var_forms, optimizer setter because of pylint bug
+# pylint: disable=no-member
 
-class VQE(VQAlgorithm):
+
+class VQE(VQAlgorithm, MinimumEigensolver):
     r"""
     The Variational Quantum Eigensolver algorithm.
 
@@ -72,9 +78,9 @@ class VQE(VQAlgorithm):
     """
 
     def __init__(self,
-                 operator: OperatorBase,
-                 var_form: VariationalForm,
-                 optimizer: Optimizer,
+                 operator: Optional[OperatorBase] = None,
+                 var_form: Optional[VariationalForm] = None,
+                 optimizer: Optional[Optimizer] = None,
                  initial_point: Optional[np.ndarray] = None,
                  expectation_value: Optional[ExpectationBase] = None,
                  max_evals_grouped: int = 1,
@@ -103,6 +109,24 @@ class VQE(VQAlgorithm):
                 These are: the evaluation count, the optimizer parameters for the
                 variational form, the evaluated mean and the evaluated standard deviation.
         """
+        validate_min('max_evals_grouped', max_evals_grouped, 1)
+
+        if var_form is None:
+            # TODO after ansatz refactor num qubits can be set later so we do not have to have
+            #      an operator to create a default
+            if operator is not None:
+                var_form = RY(operator.num_qubits)
+
+        if optimizer is None:
+            optimizer = SLSQP()
+
+        # TODO after ansatz refactor we may still not be able to do this
+        #      if num qubits is not set on var form
+        if initial_point is None and var_form is not None:
+            initial_point = var_form.preferred_init_points
+
+        self._max_evals_grouped = max_evals_grouped
+
         super().__init__(var_form=var_form,
                          optimizer=optimizer,
                          cost_fn=self._energy_evaluation,
@@ -121,7 +145,75 @@ class VQE(VQAlgorithm):
 
         self._eval_count = 0
         logger.info(self.print_settings())
-        self._var_form_params = ParameterVector('θ', self._var_form.num_parameters)
+        self._var_form_params = None
+
+        logger.info(self.print_settings())
+        self._var_form_params = None
+        if self.var_form is not None:
+            self._var_form_params = ParameterVector('θ', self.var_form.num_parameters)
+        self._parameterized_circuits = None
+
+        self.operator = operator
+        aux_ops = []
+        if aux_operators is not None:
+            aux_operators = \
+                [aux_operators] if not isinstance(aux_operators, list) else aux_operators
+            for aux_op in aux_operators:
+                aux_ops.append(aux_op)
+        self.aux_operators = aux_ops
+
+    @property
+    def operator(self) -> Optional[BaseOperator]:
+        """ Returns operator """
+        return self._in_operator
+
+    @operator.setter
+    def operator(self, operator: BaseOperator) -> None:
+        """ set operator """
+        self._in_operator = operator
+        self._check_operator_varform()
+
+    @property
+    def aux_operators(self) -> List[BaseOperator]:
+        """ Returns aux operators """
+        return self._in_aux_operators
+
+    @aux_operators.setter
+    def aux_operators(self, aux_operators: List[BaseOperator]) -> None:
+        """ Set aux operators """
+        self._in_aux_operators = aux_operators
+        if self.var_form is not None:
+            self._var_form_params = ParameterVector('θ', self.var_form.num_parameters)
+        self._parameterized_circuits = None
+
+    @VQAlgorithm.var_form.setter
+    def var_form(self, var_form: VariationalForm):
+        """ Sets variational form """
+        VQAlgorithm.var_form.fset(self, var_form)
+        self._var_form_params = ParameterVector('θ', var_form.num_parameters)
+        if self.initial_point is None:
+            self.initial_point = var_form.preferred_init_points
+        self._check_operator_varform()
+
+    def _check_operator_varform(self):
+        if self.operator is not None and self.var_form is not None:
+            if self.operator.num_qubits != self.var_form.num_qubits:
+                # TODO After Ansatz update we should be able to set in the
+                #      number of qubits to var form. Important since use by
+                #      application stack of VQE the user may be able to set
+                #      a var form but not know num_qubits. Whether any smarter
+                #      settings could be optionally done by VQE e.g adjust depth
+                #      is TBD. Also this auto adjusting might not be reasonable for
+                #      instance UCCSD where its parameterization is much closer to
+                #      the specific problem and hence to the operator
+                raise AquaError("Variational form num qubits does not match operator")
+
+    @VQAlgorithm.optimizer.setter
+    def optimizer(self, optimizer: Optimizer):
+        """ Sets optimizer """
+        super().optimizer = optimizer
+        if optimizer is not None:
+            optimizer.set_max_evals_grouped(self._max_evals_grouped)
 
     @property
     def setting(self):
@@ -149,13 +241,16 @@ class VQE(VQAlgorithm):
             self.__class__.__name__)
         ret += "{}".format(self.setting)
         ret += "===============================================================\n"
-        ret += "{}".format(self._var_form.setting)
+        if self._var_form is not None:
+            ret += "{}".format(self._var_form.setting)
+        else:
+            ret += 'var_form has not been set'
         ret += "===============================================================\n"
         ret += "{}".format(self._optimizer.setting)
         ret += "===============================================================\n"
         return ret
 
-    def _run(self):
+    def _run(self) -> 'VQEResult':
         """
         Run the algorithm to compute the minimum eigenvalue.
 
@@ -169,6 +264,11 @@ class VQE(VQAlgorithm):
         # TODO delete all instances of self._use_simulator_snapshot_mode
         # TODO make Expectations throw warnings more aggressively for incompatible operator primitives
 
+        if self.operator is None:
+            raise AquaError("Operator was never provided")
+
+        self._operator = self.operator
+
         if self._expectation_value is None:
             self._expectation_value = ExpectationBase.factory(operator=self._operator,
                                                               backend=self._quantum_instance)
@@ -176,10 +276,18 @@ class VQE(VQAlgorithm):
         self._quantum_instance.circuit_summary = True
 
         self._eval_count = 0
-        self._ret = self.find_minimum(initial_point=self.initial_point,
-                                      var_form=self.var_form,
-                                      cost_fn=self._energy_evaluation,
-                                      optimizer=self.optimizer)
+        vqresult = self.find_minimum(initial_point=self.initial_point,
+                                     var_form=self.var_form,
+                                     cost_fn=self._energy_evaluation,
+                                     optimizer=self.optimizer)
+
+        # TODO remove all former dictionary logic
+        self._ret = {}
+        self._ret['num_optimizer_evals'] = vqresult.optimizer_evals
+        self._ret['min_val'] = vqresult.optimal_value
+        self._ret['opt_params'] = vqresult.optimal_point
+        self._ret['eval_time'] = vqresult.optimizer_time
+
         if self._ret['num_optimizer_evals'] is not None and \
                 self._eval_count >= self._ret['num_optimizer_evals']:
             self._eval_count = self._ret['num_optimizer_evals']
@@ -192,8 +300,16 @@ class VQE(VQAlgorithm):
         self._ret['eigvals'] = np.asarray([self.get_optimal_cost()])
         self._ret['eigvecs'] = np.asarray([self.get_optimal_vector()])
 
+        result = VQEResult()
+        result.combine(vqresult)
+        result.eigenvalue = vqresult.optimal_value + 0j
+        result.eigenstate = self.get_optimal_vector()
+        if 'aux_ops' in self._ret:
+            result.aux_operator_eigenvalues = self._ret['aux_ops'][0]
+        result.cost_function_evals = self._eval_count
+
         self.cleanup_parameterized_circuits()
-        return self._ret
+        return result
 
     # This is the objective function to be passed to the optimizer that is used for evaluation
     def _energy_evaluation(self, parameters):
@@ -271,3 +387,28 @@ class VQE(VQAlgorithm):
         if 'opt_params' not in self._ret:
             raise AquaError("Cannot find optimal params before running the algorithm.")
         return self._ret['opt_params']
+
+
+class VQEResult(VQResult, MinimumEigensolverResult):
+    """ VQE Result."""
+
+    @property
+    def cost_function_evals(self) -> int:
+        """ Returns number of cost optimizer evaluations """
+        return self.get('cost_function_evals')
+
+    @cost_function_evals.setter
+    def cost_function_evals(self, value: int) -> None:
+        """ Sets number of cost function evaluations """
+        self.data['cost_function_evals'] = value
+
+    def __getitem__(self, key: object) -> object:
+        if key == 'eval_count':
+            warnings.warn('eval_count deprecated, use cost_function_evals property.',
+                          DeprecationWarning)
+            return super().__getitem__('cost_function_evals')
+
+        try:
+            return VQResult.__getitem__(self, key)
+        except KeyError:
+            return MinimumEigensolverResult.__getitem__(self, key)
