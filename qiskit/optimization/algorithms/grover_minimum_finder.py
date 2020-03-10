@@ -74,7 +74,7 @@ class GroverMinimumFinder:
 
         # Variables for stopping if we've hit the rotation max.
         rotations = 0
-        max_rotations = np.ceil(2 ** (n_key / 2))
+        max_rotations = int(np.ceil(100*np.pi/4))
 
         # Initialize oracle helper object.
         opt_prob_converter = OptimizationProblemToNegativeValueOracle(n_value,

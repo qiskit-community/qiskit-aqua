@@ -26,12 +26,13 @@ VERBOSE = False
 class TestGroverMinimumFinder(QiskitOptimizationTestCase):
     """GroverMinimumFinder Tests"""
 
-    def validate_results(self, results):
+    def validate_results(self, results, max_iterations):
         """Validate the results object returned by GroverMinimumFinder."""
         # Get measured values.
         n_key = results.n_input_qubits
         op_key = results.optimum_input
         op_value = results.optimum_output
+        iterations = len(results.operation_counts)
         rot = results.rotation_count
         func = results.func_dict
         print("Optimum Key:", op_key, "Optimum Value:", op_value, "Rotations:", rot, "\n")
@@ -40,11 +41,12 @@ class TestGroverMinimumFinder(QiskitOptimizationTestCase):
         solutions = get_qubo_solutions(func, n_key, print_solutions=False)
         min_key = min(solutions, key=lambda key: int(solutions[key]))
         min_value = solutions[min_key]
-        max_rotations = np.ceil(2 ** (n_key / 2))
+        max_rotations = int(np.ceil(100*np.pi/4))
 
         # Validate results.
-        self.assertTrue(min_key == op_key or max_rotations == rot)
-        self.assertTrue(min_value == op_value or max_rotations == rot)
+        max_hit = max_rotations <= rot or max_iterations <= iterations
+        self.assertTrue(min_key == op_key or max_hit)
+        self.assertTrue(min_value == op_value or max_hit)
 
     def test_qubo_gas_int_zero(self):
         """ Test for when the answer is zero """
@@ -76,9 +78,10 @@ class TestGroverMinimumFinder(QiskitOptimizationTestCase):
         quadratic = quadratic.dot(q)
 
         # Get the optimum key and value.
-        gmf = GroverMinimumFinder(num_iterations=6, verbose=VERBOSE)
+        n_iter = 8
+        gmf = GroverMinimumFinder(num_iterations=n_iter, verbose=VERBOSE)
         results = gmf.solve(quadratic, linear, 0, num_value)
-        self.validate_results(results)
+        self.validate_results(results, n_iter)
 
     def test_qubo_gas_int_simple_pos_constant(self):
         """ Test for a positive constant """
@@ -94,9 +97,10 @@ class TestGroverMinimumFinder(QiskitOptimizationTestCase):
         constant = 2
 
         # Get the optimum key and value.
-        gmf = GroverMinimumFinder(num_iterations=6, verbose=VERBOSE)
+        n_iter = 8
+        gmf = GroverMinimumFinder(num_iterations=n_iter, verbose=VERBOSE)
         results = gmf.solve(quadratic, linear, constant, num_value)
-        self.validate_results(results)
+        self.validate_results(results, n_iter)
 
     def test_qubo_gas_int_simple_neg_constant(self):
         """ Test for a negative constant """
@@ -112,9 +116,10 @@ class TestGroverMinimumFinder(QiskitOptimizationTestCase):
         constant = -2
 
         # Get the optimum key and value.
-        gmf = GroverMinimumFinder(num_iterations=6, verbose=VERBOSE)
+        n_iter = 8
+        gmf = GroverMinimumFinder(num_iterations=n_iter, verbose=VERBOSE)
         results = gmf.solve(quadratic, linear, constant, num_value)
-        self.validate_results(results)
+        self.validate_results(results, n_iter)
 
     def test_qubo_gas_int_paper_example(self):
         """ Test the example from https://arxiv.org/abs/1912.04088 """
@@ -130,6 +135,7 @@ class TestGroverMinimumFinder(QiskitOptimizationTestCase):
         quadratic = quadratic.dot(q)
 
         # Get the optimum key and value.
-        gmf = GroverMinimumFinder(num_iterations=20, verbose=VERBOSE)
+        n_iter = 10
+        gmf = GroverMinimumFinder(num_iterations=n_iter, verbose=VERBOSE)
         results = gmf.solve(quadratic, linear, 0, num_value)
-        self.validate_results(results)
+        self.validate_results(results, 10)
