@@ -468,15 +468,13 @@ class VariablesInterface(BaseInterface):
         """
 
         def _set(i, v):
-            i = self._index.convert(i)
-            self._names[i] = v
+            self._names[self._index.convert(i)] = v
 
-        if len(args) == 2:
-            _set(args[0], args[1])
-        elif len(args) == 1:
-            args = listify(args[0])
-            for iv in args:
-                _set(iv[0], iv[1])
+        if len(args) == 1 and all(isinstance(el, Sequence) and len(el) == 2 for el in args[0]):
+            for el in args[0]:
+                _set(*el)
+        elif len(args) == 2:
+            _set(*args)
         else:
             raise QiskitOptimizationError("Wrong number of arguments.")
         self._index.build(self._names)
@@ -520,17 +518,15 @@ class VariablesInterface(BaseInterface):
             if v not in [CPX_CONTINUOUS, CPX_BINARY, CPX_INTEGER, CPX_SEMICONT, CPX_SEMIINT]:
                 raise QiskitOptimizationError(
                     "Second argument must be a string, as per VarTypes constants.")
-            i = self._index.convert(i)
-            self._types[i] = v
+            self._types[self._index.convert(i)] = v
 
-        if len(args) == 2:
+        if len(args) == 1 and all(isinstance(el, Sequence) and len(el) == 2 for el in args[0]):
+            for el in args[0]:
+                _set(*el)
+        elif len(args) == 2:
             _set(*args)
-        elif len(args) == 1:
-            args = listify(args[0])
-            for (i, v) in args:
-                _set(i, v)
         else:
-            raise QiskitOptimizationError("Wrong number of arguments: {}".format(args))
+            raise QiskitOptimizationError("Wrong number of arguments.")
 
     def get_lower_bounds(self, *args):
         """Returns the lower bounds on variables from the problem.
