@@ -419,7 +419,8 @@ class VariablesInterface(BaseInterface):
           the corresponding values.  Equivalent to
           [variables.set_upper_bounds(pair[0], pair[1]) for pair in seq_of_pairs].
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization.problems import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> indices = op.variables.add(names = ["x0", "x1", "x2"])
         >>> op.variables.set_upper_bounds(0, 1.0)
         >>> op.variables.set_upper_bounds([("x1", 10.0), (2, 3.0)])
@@ -629,7 +630,8 @@ class VariablesInterface(BaseInterface):
           names of the variables with indices the members of s.
           Equivalent to [variables.get_names(i) for i in s]
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization.problems import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> indices = op.variables.add(names = ['x' + str(i) for i in range(10)])
         >>> op.variables.get_num()
         10
