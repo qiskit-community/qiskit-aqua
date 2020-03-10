@@ -68,7 +68,8 @@ class OptimizationProblem(object):
             varsgetindexfunc=self.variables._varsgetindexfunc)
         """See `qiskit.optimization.LinearConstraintInterface()` """
 
-        self.quadratic_constraints = QuadraticConstraintInterface()
+        self.quadratic_constraints = QuadraticConstraintInterface(
+            varsgetindexfunc = self.variables._varsgetindexfunc)
         """See `qiskit.optimization.QuadraticConstraintInterface()` """
 
         # pylint: disable=unexpected-keyword-arg
