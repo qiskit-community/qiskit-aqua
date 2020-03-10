@@ -11,6 +11,7 @@ import os
 import sys
 import time
 import numpy as np
+from qiskit import BasicAer
 
 from qiskit.aqua.algorithms import QAOA
 from qiskit.aqua.components.optimizers import COBYLA
@@ -342,11 +343,16 @@ class Miskp:
         # QAOA
         optimizer = COBYLA()
         min_eigen_solver = QAOA(optimizer=optimizer)
-        qubo_solver_class = MinimumEigenOptimizer(min_eigen_solver)
+        qubo_solver = MinimumEigenOptimizer(min_eigen_solver)
 
-        continuous_solver_class = CplexOptimizer()
+        # Note: a backend needs to be given, otherwise an error is raised in the _run method of VQE.
+        backend = 'statevector_simulator'
+        # backend = 'qasm_simulator'
+        min_eigen_solver.quantum_instance = BasicAer.get_backend(backend)
 
-        admm_params = ADMMParameters(qubo_solver_class=qubo_solver_class, continuous_solver_class=continuous_solver_class)
+        continuous_solver = CplexOptimizer()
+
+        admm_params = ADMMParameters(qubo_solver=qubo_solver, continuous_solver=continuous_solver)
 
         solver = ADMMOptimizer(params=admm_params)
         solution = solver.solve(self.op)
