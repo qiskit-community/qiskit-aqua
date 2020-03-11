@@ -31,9 +31,15 @@ class TestEvolution(QiskitAquaTestCase):
 
     def test_pauli_evolution(self):
         op = (2*Z^Z) + (3*X^X) - (4*Y^Y) + (.5*I^I)
+        op = (-1.052373245772859 * I ^ I) + \
+             (0.39793742484318045 * I ^ Z) + \
+             (0.18093119978423156 * X ^ X) + \
+             (-0.39793742484318045 * Z ^ I) + \
+             (-0.01128010425623538 * Z ^ Z)
         backend = BasicAer.get_backend('qasm_simulator')
         evolution = EvolutionBase.factory(operator=op, backend=backend)
         # wf = (Pl^Pl) + (Ze^Ze)
-        wf = (np.pi/2)*op.exp_i() @ CX @ (H^I) @ Zero
+        wf = ((np.pi/2)*op).exp_i() @ CX @ (H^I) @ Zero
         mean = evolution.convert(wf)
-        print(mean)
+        self.assertIsNotNone(mean)
+        print(mean.to_matrix())
