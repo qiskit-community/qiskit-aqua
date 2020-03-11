@@ -37,7 +37,7 @@ class AerPauliExpectation(ExpectationBase):
         super().__init__()
         self._operator = operator
         self._state = state
-        self.set_backend(backend)
+        self.backend = backend
         self._snapshot_op = None
 
     # TODO setters which wipe state

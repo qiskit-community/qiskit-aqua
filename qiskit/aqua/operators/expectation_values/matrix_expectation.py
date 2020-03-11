@@ -37,8 +37,7 @@ class MatrixExpectation(ExpectationBase):
         super().__init__()
         self._operator = operator
         self._state = state
-        if backend is not None:
-            self.set_backend(backend)
+        self.backend = backend
         self._matrix_op = None
 
     @property

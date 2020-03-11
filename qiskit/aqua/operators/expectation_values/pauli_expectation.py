@@ -39,7 +39,7 @@ class PauliExpectation(ExpectationBase):
         super().__init__()
         self._operator = operator
         self._state = state
-        self.set_backend(backend)
+        self.backend = backend
         self._grouper = AbelianGrouper() if group_paulis else None
         self._converted_operator = None
         self._reduced_meas_op = None

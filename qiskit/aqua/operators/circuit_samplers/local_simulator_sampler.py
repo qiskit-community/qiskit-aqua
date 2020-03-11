@@ -60,6 +60,14 @@ class LocalSimulatorSampler(CircuitSampler):
                              'backend, not {}.'.format(backend))
 
     @property
+    def backend(self):
+        return self.quantum_instance.backend
+
+    @backend.setter
+    def backend(self, backend):
+        self.quantum_instance = QuantumInstance(backend=backend, **kwargs)
+
+    @property
     def quantum_instance(self):
         return self._qi
 

@@ -39,8 +39,14 @@ class ExpectationBase():
     def __init__(self):
         self._circuit_sampler = None
 
-    def set_backend(self, backend=None):
-        self._circuit_sampler = CircuitSampler.factory(backend=backend)
+    @property
+    def backend(self):
+        return self._circuit_sampler.backend
+
+    @backend.setter
+    def backend(self, backend):
+        if backend is not None:
+            self._circuit_sampler = CircuitSampler.factory(backend=backend)
 
     @staticmethod
     def factory(operator, backend=None, state=None):
