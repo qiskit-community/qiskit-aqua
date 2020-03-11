@@ -21,8 +21,8 @@ import numpy as np
 from ddt import ddt, idata, unpack
 from qiskit import BasicAer
 
-from qiskit.aqua import QuantumInstance, aqua_globals
-from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.aqua import QuantumInstance, aqua_globals, AquaError
+from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator
 # from qiskit.aqua.components.variational_forms import RY, RYRZ
 # from qiskit.aqua.components.variational_forms.ryrz import RYRZ
 # from qiskit.aqua.components.variational_forms.ry import RY
