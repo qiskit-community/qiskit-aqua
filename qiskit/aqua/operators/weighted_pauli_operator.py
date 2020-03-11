@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -753,8 +753,11 @@ class WeightedPauliOperator(BaseOperator):
         if use_simulator_snapshot_mode:
             snapshot_data = result.data(
                 circuit_name_prefix + 'snapshot_mode')['snapshots']
-            expval = snapshot_data['expectation_value']['expval'][0]['value']
-            avg = expval[0] + 1j * expval[1]
+            avg = snapshot_data['expectation_value']['expval'][0]['value']
+            if isinstance(avg, (list, tuple)):
+                # Aer versions before 0.4 use a list snapshot format
+                # which must be converted to a complex value.
+                avg = avg[0] + 1j * avg[1]
         elif statevector_mode:
             quantum_state = np.asarray(result.get_statevector(circuit_name_prefix + 'psi'))
             for weight, pauli in self._paulis:
@@ -878,7 +881,8 @@ class WeightedPauliOperator(BaseOperator):
         return qc
 
     def evolve_instruction(self, evo_time=0, num_time_slices=1,
-                           expansion_mode='trotter', expansion_order=1):
+                           expansion_mode='trotter', expansion_order=1,
+                           use_basis_gates=True):
         """
         Carry out the eoh evolution for the operator under supplied specifications.
 
@@ -891,6 +895,8 @@ class WeightedPauliOperator(BaseOperator):
                 and 'suzuki', which corresponds to the discussion in
                 https://arxiv.org/pdf/quant-ph/0508139.pdf
             expansion_order (int): The order for suzuki expansion
+            use_basis_gates (bool): If True, use U1/U2/U3 gates for the evolution instruction,
+                otherwise use the Pauli/Clifford gates
 
         Returns:
             QuantumCircuit: The constructed QuantumCircuit.
@@ -922,7 +928,8 @@ class WeightedPauliOperator(BaseOperator):
                     1,
                     expansion_order
                 )
-        instruction = evolution_instruction(slice_pauli_list, evo_time, num_time_slices)
+        instruction = evolution_instruction(slice_pauli_list, evo_time, num_time_slices,
+                                            use_basis_gates=use_basis_gates)
         return instruction
 
 

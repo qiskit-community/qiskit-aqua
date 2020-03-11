@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -11,10 +11,8 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""
-This module contains the definition of a base class for
-feature map. Several types of commonly used approaches.
-"""
+
+"""The first order expansion Pauli-Z-expansion."""
 
 from typing import Callable
 import numpy as np
@@ -24,8 +22,7 @@ from .data_mapping import self_product
 
 
 class FirstOrderExpansion(PauliZExpansion):
-    """
-    Mapping data with the first order expansion without entangling gates.
+    """Mapping data with the first order expansion without entangling gates.
 
     Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
     """
@@ -33,13 +30,19 @@ class FirstOrderExpansion(PauliZExpansion):
     def __init__(self,
                  feature_dimension: int,
                  depth: int = 2,
-                 data_map_func: Callable[[np.ndarray], float] = self_product) -> None:
-        """Constructor.
+                 data_map_func: Callable[[np.ndarray], float] = self_product,
+                 insert_barriers: bool = False) -> None:
+        """
 
         Args:
-            feature_dimension: number of features
-            depth: the number of repeated circuits, has a min. value of 1.
-            data_map_func: a mapping function for data x
+            feature_dimension: Number of features.
+            depth: The number of repeated circuits, has a min. value of 1.
+            data_map_func: A mapping function for data x.
+            insert_barriers: If True, barriers are inserted in between the evolution instructions
+                and hadamard layers.
         """
         validate_min('depth', depth, 1)
-        super().__init__(feature_dimension, depth, z_order=1, data_map_func=data_map_func)
+        super().__init__(feature_dimension=feature_dimension,
+                         depth=depth,
+                         z_order=1,
+                         data_map_func=data_map_func)

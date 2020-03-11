@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,59 +12,13 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
-Feature Maps (:mod:`qiskit.aqua.components.feature_maps`)
-=========================================================
-Feature Maps...
-
-.. currentmodule:: qiskit.aqua.components.feature_maps
-
-Feature Map Base Class
-======================
-
-.. autosummary::
-   :toctree: ../stubs/
-   :nosignatures:
-
-   FeatureMap
-
-Feature Maps
-============
-
-.. autosummary::
-   :toctree: ../stubs/
-   :nosignatures:
-
-   PauliExpansion
-   PauliZExpansion
-   FirstOrderExpansion
-   SecondOrderExpansion
-   RawFeatureVector
-
-Feature Map Utility
-===================
-
-.. autosummary::
-   :toctree: ../stubs/
-   :nosignatures:
-
-   self_product
-
-"""
-
+import warnings
+from qiskit.aqua.components.ansatz.feature_maps import (PauliExpansion, PauliZExpansion,
+                                                        FirstOrderExpansion, SecondOrderExpansion,
+                                                        RawFeatureVector)
 from .feature_map import FeatureMap
-from .data_mapping import self_product
-from .pauli_expansion import PauliExpansion
-from .pauli_z_expansion import PauliZExpansion
-from .first_order_expansion import FirstOrderExpansion
-from .second_order_expansion import SecondOrderExpansion
-from .raw_feature_vector import RawFeatureVector
 
-__all__ = ['FeatureMap',
-           'self_product',
-           'PauliExpansion',
-           'PauliZExpansion',
-           'FirstOrderExpansion',
-           'SecondOrderExpansion',
-           'RawFeatureVector'
-           ]
+warnings.warn('The qiskit.aqua.components.feature_maps module is deprecated and will be removed '
+              'no later than the release of Aqua 0.7. The feature maps '
+              'are now located in qiskit.aqua.components.ansatze.feature.maps.',
+              DeprecationWarning, stacklevel=2)

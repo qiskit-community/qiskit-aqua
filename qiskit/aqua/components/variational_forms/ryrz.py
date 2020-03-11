@@ -21,6 +21,11 @@ from qiskit.aqua.utils.validation import validate_min, validate_in_set
 from qiskit.aqua.components.initial_states import InitialState
 from .variational_form import VariationalForm
 
+import warnings
+warnings.warn('This module is deprecated, RYRZ is now located in '
+              'qiskit.aqua.components.ansatz.variational_forms.ryrz',
+              DeprecationWarning, stacklevel=2)
+
 
 class RYRZ(VariationalForm):
     """Layers of Y+Z rotations followed by entangling gates."""

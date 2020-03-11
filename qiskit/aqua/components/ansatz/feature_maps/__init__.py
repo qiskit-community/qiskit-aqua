@@ -12,25 +12,20 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
-This module contains the definition of data mapping function for feature map.
-"""
+"""The feature maps."""
 
-import functools
+from .data_mapping import self_product
+from .pauli_expansion import PauliExpansion
+from .pauli_z_expansion import PauliZExpansion
+from .first_order_expansion import FirstOrderExpansion
+from .second_order_expansion import SecondOrderExpansion
+from .raw_feature_vector import RawFeatureVector
 
-import numpy as np
-
-
-def self_product(x: np.ndarray) -> float:
-    """
-    Define a function map from R^n to R.
-
-    Args:
-        x: data
-
-    Returns:
-        float: the mapped value
-    """
-    coeff = x[0] if len(x) == 1 else \
-        functools.reduce(lambda m, n: m * n, np.pi - x)
-    return coeff
+__all__ = [
+    'self_product',
+    'PauliExpansion',
+    'PauliZExpansion',
+    'FirstOrderExpansion',
+    'SecondOrderExpansion',
+    'RawFeatureVector'
+]

@@ -41,10 +41,11 @@ Variational Forms
 
 """
 
-from .variational_form import VariationalForm
-from .ry import RY
-from .ryrz import RYRZ
-from .swaprz import SwapRZ
+from qiskit.aqua.components.variational_forms.variational_form import VariationalForm
+# from .ry import RY
+# from .ryrz import RYRZ
+# from .swaprz import SwapRZ
+from qiskit.aqua.components.ansatz import RY, RYRZ, SwapRZ
 
 __all__ = ['VariationalForm',
            'RY',
