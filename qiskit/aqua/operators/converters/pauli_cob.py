@@ -86,9 +86,7 @@ class PauliChangeOfBasis(ConverterBase):
             # TODO make a cononical "distribute" or graph swap as method in StateFnVec or OpVec?
             elif operator.primitive.distributive:
                 if operator.primitive.abelian:
-                    origin_z = reduce(np.logical_or, [p_op.primitive.z for p_op in operator.primitive.oplist])
-                    origin_x = reduce(np.logical_or, [p_op.primitive.x for p_op in operator.primitive.oplist])
-                    origin_pauli = Pauli(x=origin_x, z=origin_z)
+                    origin_pauli = self.get_tpb_pauli(operator.primitive)
                     cob_instr_op, _ = self.get_cob_circuit(origin_pauli)
                     diag_ops = [self.get_diagonal_pauli_op(op) for op in operator.primitive.oplist]
                     dest_pauli_op = operator.primitive.__class__(diag_ops, coeff=operator.coeff, abelian=True)
@@ -103,9 +101,7 @@ class PauliChangeOfBasis(ConverterBase):
             # If opvec is abelian we can find a single post-rotation circuit for the whole set. For now,
             # assume operator can only be abelian if all elements are Paulis (enforced in AbelianGrouper).
             if operator.abelian:
-                origin_z = reduce(np.logical_or, [p_op.primitive.z for p_op in operator.oplist])
-                origin_x = reduce(np.logical_or, [p_op.primitive.x for p_op in operator.oplist])
-                origin_pauli = Pauli(x=origin_x, z=origin_z)
+                origin_pauli = self.get_tpb_pauli(operator)
                 cob_instr_op, _ = self.get_cob_circuit(origin_pauli)
                 diag_ops = [self.get_diagonal_pauli_op(op) for op in operator.oplist]
                 dest_pauli_op = operator.__class__(diag_ops, coeff=operator.coeff, abelian=True)
@@ -127,6 +123,11 @@ class PauliChangeOfBasis(ConverterBase):
     @staticmethod
     def operator_replacement_fn(cob_instr_op, dest_pauli_op):
         return OpComposition([cob_instr_op.adjoint(), dest_pauli_op, cob_instr_op])
+
+    def get_tpb_pauli(self, op_vec):
+        origin_z = reduce(np.logical_or, [p_op.primitive.z for p_op in op_vec.oplist])
+        origin_x = reduce(np.logical_or, [p_op.primitive.x for p_op in op_vec.oplist])
+        return Pauli(x=origin_x, z=origin_z)
 
     def get_diagonal_pauli_op(self, pauli_op):
         return OpPauli(Pauli(z=np.logical_or(pauli_op.primitive.z, pauli_op.primitive.x),
@@ -223,10 +224,6 @@ class PauliChangeOfBasis(ConverterBase):
         #     cnots.x(dest_anchor_bit)
 
         return OpPrimitive(cnots.to_instruction())
-
-    # TODO
-    def compute_shortest_cnot_path(self, ablian_op_vec):
-        pass
 
     # TODO change to only accept OpPrimitive Pauli.
     def get_cob_circuit(self, origin):
