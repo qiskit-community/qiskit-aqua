@@ -53,6 +53,9 @@ class StateFnCircuit(StateFn):
         if isinstance(primitive, QuantumCircuit):
             primitive = primitive.to_instruction()
 
+        if not isinstance(primitive, Instruction):
+            raise TypeError('StateFnCircuit can only be instantiated with Instruction, not {}'.format(type(primitive)))
+
         super().__init__(primitive, coeff=coeff, is_measurement=is_measurement)
 
     @staticmethod

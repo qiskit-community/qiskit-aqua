@@ -44,6 +44,9 @@ class OpCircuit(OpPrimitive):
         if isinstance(primitive, QuantumCircuit):
             primitive = primitive.to_instruction()
 
+        if not isinstance(primitive, Instruction):
+            raise TypeError('OpCircuit can only be instantiated with Instruction, not {}'.format(type(primitive)))
+
         super().__init__(primitive, coeff=coeff)
 
     def get_primitives(self):

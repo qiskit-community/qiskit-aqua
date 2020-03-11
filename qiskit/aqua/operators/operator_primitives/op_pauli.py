@@ -43,6 +43,8 @@ class OpPauli(OpPrimitive):
                     wrapped.
                     coeff (int, float, complex): A coefficient multiplying the primitive
                 """
+        if not isinstance(primitive, Pauli):
+            raise TypeError('OpPauli can only be instantiated with Pualis, not {}'.format(type(primitive)))
         super().__init__(primitive, coeff=coeff)
 
     def get_primitives(self):

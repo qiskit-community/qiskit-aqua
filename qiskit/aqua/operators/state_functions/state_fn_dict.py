@@ -61,7 +61,12 @@ class StateFnDict(StateFn):
         # 3) This will only extract the first result.
         if isinstance(primitive, Result):
             counts = primitive.get_counts()
-            primitive = {bstr: shots / sum(counts.values()) for (bstr, shots) in counts.items()}
+            # NOTE: Need to squareroot to take Pauli measurements!
+            primitive = {bstr: (shots / sum(counts.values()))**.5 for (bstr, shots) in counts.items()}
+
+        if not isinstance(primitive, dict):
+            raise TypeError('StateFnDict can only be instantiated with dict, string, or Qiskit Result, not {}'.format(
+                type(primitive)))
 
         super().__init__(primitive, coeff=coeff, is_measurement=is_measurement)
 

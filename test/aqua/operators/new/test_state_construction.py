@@ -65,11 +65,10 @@ class TestStateConstruction(QiskitAquaTestCase):
         qc.measure(range(3),range(3))
         qasm_res = execute(qc, BasicAer.get_backend('qasm_simulator')).result()
 
-        print(sv_res.get_counts())
-
-        np.testing.assert_array_almost_equal(StateFn(sv_res).to_matrix(), [0.5, 0.5, 0, 0, 0, 0, 0, 0])
+        np.testing.assert_array_almost_equal(StateFn(sv_res).to_matrix(), [.5**.5, .5**.5, 0, 0, 0, 0, 0, 0])
         np.testing.assert_array_almost_equal(StateFn(sv_vector).to_matrix(), [.5**.5, .5**.5, 0, 0, 0, 0, 0, 0])
-        np.testing.assert_array_almost_equal(StateFn(qasm_res).to_matrix(), [0.5, 0.5, 0, 0, 0, 0, 0, 0], decimal=1)
+        np.testing.assert_array_almost_equal(StateFn(qasm_res).to_matrix(), [.5**.5, .5**.5, 0, 0, 0, 0, 0, 0],
+                                             decimal=1)
 
         np.testing.assert_array_almost_equal(((I^I^H)@Zero).to_matrix(), [.5**.5, .5**.5, 0, 0, 0, 0, 0, 0])
         np.testing.assert_array_almost_equal((qc_op@Zero).to_matrix(), [.5**.5, .5**.5, 0, 0, 0, 0, 0, 0])

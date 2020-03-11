@@ -44,6 +44,9 @@ class OpMatrix(OpPrimitive):
         if isinstance(primitive, (list, np.ndarray)):
             primitive = MatrixOperator(primitive)
 
+        if not isinstance(primitive, MatrixOperator):
+            raise TypeError('OpMatrix can only be instantiated with MatrixOperator, not {}'.format(type(primitive)))
+
         if not primitive.input_dims() == primitive.output_dims():
             raise ValueError('Cannot handle non-square matrices yet.')
 
