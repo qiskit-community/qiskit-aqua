@@ -107,7 +107,7 @@ class PauliChangeOfBasis(ConverterBase):
         cob_instr_op, dest_pauli_op = self.get_cob_circuit(origin_pauli)
 
         if isinstance(operator, OpVec) and operator.abelian:
-            diag_ops = [OpPrimitive(Pauli(z=op.primitive.z), coeff=op.coeff) for op in operator.oplist]
+            diag_ops = [self.get_diagonal_pauli_op(op) for op in operator.oplist]
             dest_pauli_op = operator.__class__(diag_ops, coeff=operator.coeff, abelian=True)
 
         if self._replacement_fn:
@@ -148,7 +148,7 @@ class PauliChangeOfBasis(ConverterBase):
             pauli_2 = Pauli(z=pauli_2.z.tolist() + ([False] * missing_qubits),
                             x=pauli_2.x.tolist() + ([False] * missing_qubits))
 
-        return OpPauli(pauli_1), OpPauli(pauli_2)
+        return OpPauli(pauli_1, coeff=pauli_op1.coeff), OpPauli(pauli_2, coeff=pauli_op2.coeff)
 
     # TODO
     def construct_cnot_chain(self, diag_pauli_op1, diag_pauli_op2):
@@ -259,7 +259,7 @@ class PauliChangeOfBasis(ConverterBase):
         if not any(origin_sig_bits) or not any(destination_sig_bits):
             if not (any(origin_sig_bits) or any(destination_sig_bits)):
                 # Both all Identity, just return Identities
-                return origin, destination
+                return I^origin.num_qubits, destination
             else:
                 # One is Identity, one is not
                 raise ValueError('Cannot change to or from a fully Identity Pauli.')
