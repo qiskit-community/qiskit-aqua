@@ -23,6 +23,7 @@ TODO
 """
 
 from __future__ import annotations  # to use the type hint 'Ansatz' in the class itself
+import copy
 import warnings
 import logging
 from typing import Union, Optional, List, Any, Tuple
@@ -95,13 +96,12 @@ class Ansatz:
         parameters: The parameters of the Ansatz.
         num_qubits: The number of qubits in the Ansatz.
         num_parameters: The number of tuneable parameters in the Ansatz.
-        setting: Returns information about the class properties. To be deprecated.
+        setting: Returns information about the class properties.
         support_parameterized_circuit: If True, the parameters can be set with Parameter objects.
             To be deprecated, since it always should be True.
         parameter_bounds: Suggested parameter bounds for the parameters that an optimizer may use.
         preferred_init_points: The Ansatz can store preferred initial points for the paramter
-            values. To be deprecated?
-
+            values.
     """
 
     def __init__(self,
@@ -129,24 +129,24 @@ class Ansatz:
         Args:
             blocks: The input blocks. Can be a single gate, a list of gates, (or circuits?)
             qubit_indices: The indices specifying on which qubits the input blocks act. If None, for
-                each block this is set to the first `n` qubits, where `n` is the number of qubits
-                the block acts on.
+                each block this is set to the first ``n`` qubits, where ``n`` is the number of
+                qubits the block acts on.
             reps: Specifies how the input blocks are repeated. If an integer, all input blocks
-                are repeated `reps` times (in the provided order). If a list of
-                integers, `reps` determines the order of the layers in Ansatz using the elements
-                of `reps` as index. See the Examples section for more detail.
+                are repeated ``reps`` times (in the provided order). If a list of
+                integers, ``reps`` determines the order of the layers in Ansatz using the elements
+                of ``reps`` as index. See the Examples section for more detail.
             insert_barriers: If True, barriers are inserted in between each layer/block. If False,
                 no barriers are inserted.
             parameter_prefix: The prefix used if default parameters are generated.
             overwrite_block_parameters: If the parameters in the added blocks should be overwritten.
                 If a list of list of Parameters is passed, these Parameters are used to set the
                 parameters in the blocks.
-            initial_state: An `InitialState` object to prepent to the Ansatz.
+            initial_state: An ``InitialState`` object to prepent to the Ansatz.
                 TODO deprecate this feature in favour of prepend or overloading __add__ in
                 the initial state class
 
         Raises:
-            TypeError: If `blocks` contains an unsupported object.
+            TypeError: If ``blocks`` contains an unsupported object.
             ValueError: If the initial state has less qubits than specified via the blocks or
                 qubit indices.
             ValueError: If the ``overwrite_block_parameters`` is set to a list of list of
@@ -183,7 +183,7 @@ class Ansatz:
         if isinstance(overwrite_block_parameters, bool):
             self._overwrite_block_parameters = overwrite_block_parameters
         else:  # user provided the blockwise parameters
-            self._overwrite_block_parameters = False
+            self._overwrite_block_parameters = True
             self.blockwise_parameters = overwrite_block_parameters
 
         # keep track of the circuit
@@ -211,6 +211,23 @@ class Ansatz:
         """
         return self.append(other)
 
+    def __add__(self, other: Union[Ansatz, Instruction, QuantumCircuit]) -> Ansatz:
+        """Overloading += for convenience.
+
+        This presumes list(range(other.num_qubits)) as qubit indices and calls self.append().
+
+        Args:
+            other: The object to append.
+
+        Raises:
+            TypeError: If the added type is unsupported.
+
+        Returns:
+            A copy of self with the other object appended.
+        """
+        target = copy.deepcopy(self)
+        return target.append(other)
+
     def __repr__(self) -> str:
         """Draw this Ansatz in circuit format using the standard gates.
 
@@ -218,12 +235,12 @@ class Ansatz:
             A single string representing this Ansatz.
         """
         basis_gates = ['id', 'x', 'y', 'z', 'h', 's', 't', 'sdg', 'tdg', 'rx', 'ry', 'rz',
-                       'rxx', 'ryy', 'cx', 'cy', 'cz', 'ch', 'crx', 'cry', 'crz', 'swap', 'cswap',
-                       'toffoli', 'u1', 'u2', 'u3']
+                       'rxx', 'ryy', 'cx', 'cy', 'cz', 'ch', 'crx', 'cry', 'crz', 'swap',
+                       'cswap', 'ccx', 'cu1', 'cu3', 'u1', 'u2', 'u3']
         return transpile(self.to_circuit(), basis_gates=basis_gates).draw().single_string()
 
     def _convert_to_block(self, layer: Any) -> Instruction:
-        """Try to convert `layer` to an Instruction.
+        """Try to convert ``layer`` to an Instruction.
 
         Args:
             layer: The object to be converted to an Ansatz block / Instruction.
@@ -352,8 +369,12 @@ class Ansatz:
         return True
 
     @property
-    def base_parameters(self):
-        """Base params."""
+    def base_parameters(self) -> List[Parameter]:
+        """The parameters used in the underlying circuit.
+
+        Returns:
+            The parameters objects used in the circuit.
+        """
         if self._base_params:
             return self._base_params
 
@@ -364,22 +385,32 @@ class Ansatz:
         return base_params
 
     @base_parameters.setter
-    def base_parameters(self, parameters):
-        """Set the base parameters."""
+    def base_parameters(self, parameters: List[Parameter]) -> None:
+        """Set the parameters used in the underlying circuit.
+
+        Args:
+            The parameters to be used in the underlying circuit.
+        """
         if self._circuit:
             self._circuit._substitute_parameters(dict(zip(self._base_params, parameters)))
         self._base_params = parameters
 
     @property
-    def blocks(self):
-        """Return blocks."""
+    def blocks(self) -> List[Instruction]:
+        """The blocks in the Ansatz.
+
+        Returns:
+            The blocks that define the Ansatz.
+        """
         return self._blocks
 
     @blocks.setter
-    def blocks(self, blocks):
-        """Set the blocks.
+    def blocks(self, blocks: Union[QuantumCircuit, List[QuantumCircuit],
+                                   Instruction, List[Instruction]]) -> None:
+        """Set the blocks of the Ansatz.
 
-        Do this somehow via add blocks.
+        Args:
+            blocks: The new blocks of the Ansatz.
         """
         # cannot use hasattr(blocks, '__len__') because a circuit also has this attribute
         if not isinstance(blocks, (list, numpy.ndarray)):
@@ -388,13 +419,21 @@ class Ansatz:
         self._blocks = [self._convert_to_block(block) for block in blocks]
 
     @property
-    def qubit_indices(self):
-        """Return the qubit indices per block."""
+    def qubit_indices(self) -> List[List[int]]:
+        """The qubit indices each block acts on.
+
+        Returns:
+            The qubit indices specifying the qubits each block acts on.
+        """
         return self._qargs or [list(range(block.num_qubits)) for block in self._blocks]
 
     @qubit_indices.setter
-    def qubit_indices(self, indices):
-        """Set the qubit indices per block."""
+    def qubit_indices(self, indices: List[List[int]]) -> None:
+        """Set the qubit indices per block.
+
+        Args:
+            The qubit indices specifying on which qubits each block acts on.
+        """
         self._qargs = indices
 
         # TODO check if indices is the same if qargs, only then invalidate the definition
@@ -403,7 +442,11 @@ class Ansatz:
 
     @property
     def initial_state(self) -> InitialState:
-        """Return the initial state."""
+        """Return the initial state prepended to the Ansatz.
+
+        Returns:
+            The initial state.
+        """
         return self._initial_state
 
     @initial_state.setter
@@ -502,8 +545,15 @@ class Ansatz:
         return int(self._num_qubits)
 
     @num_qubits.setter
-    def num_qubits(self, num_qubits):
-        """Set the number of qubits."""
+    def num_qubits(self, num_qubits: int) -> None:
+        """Set the number of qubits for the Ansatz.
+
+        This does not change the qubit indices. If the number of qubits is not sufficient for the
+        blocks in the Ansatz, an error will be thrown upon circuit construction.
+
+        Args:
+            The new number of qubits.
+        """
         if self._num_qubits != num_qubits:
             # invalidate the circuit
             self._circuit = None
@@ -582,13 +632,23 @@ class Ansatz:
             self._surface_params = params
 
     @property
-    def reps(self):
-        """Return reps as integer, or if not available, as list."""
+    def reps(self) -> Union[int, List[int]]:
+        """Return reps as integer, or if not available, as list.
+
+        Returns:
+            The repetitions. If it is an integer the repetitions specify how often
+            all blocks are repeated. If a list of integers, each element is an index specifiying
+            which block is added to the Ansatz.
+        """
         return self._reps
 
     @reps.setter
-    def reps(self, repetitions):
-        """Set the repetitions."""
+    def reps(self, repetitions: Union[int, List[int]]) -> None:
+        """Set the repetitions.
+
+        Args:
+            repetitions: The new repetitions.
+        """
 
         # TODO invalidate circuit only when reps changed
         self._circuit = None
@@ -849,7 +909,12 @@ class Ansatz:
             AquaError: If the Ansatz contains non-unitary operations.
         """
         try:
-            return self.to_circuit().to_gate()
+            # Terra bug: cannot identify nested instructions as gates
+            basis_gates = ['id', 'x', 'y', 'z', 'h', 's', 't', 'sdg', 'tdg', 'rx', 'ry', 'rz',
+                           'rxx', 'ryy', 'cx', 'cy', 'cz', 'ch', 'crx', 'cry', 'crz', 'swap',
+                           'cswap', 'ccx', 'cu1', 'cu3', 'u1', 'u2', 'u3']
+            transpiled = transpile(self.to_circuit(), basis_gates=basis_gates)
+            return transpiled.to_gate()
         except QiskitError:
             # the QiskitError raised does not give a hint what the non-unitary operations can be
             # therefore raise a more meaningful AquaError
