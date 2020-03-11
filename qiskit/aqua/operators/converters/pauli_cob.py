@@ -52,7 +52,7 @@ class PauliChangeOfBasis(ConverterBase):
         else:
             self._destination = None
         self._traverse = traverse
-        self._replacement_fn = replacement_fn
+        self._replacement_fn = replacement_fn or PauliChangeOfBasis.operator_replacement_fn
 
     @property
     def destination(self):
@@ -76,19 +76,27 @@ class PauliChangeOfBasis(ConverterBase):
         destination Pauli d and c†, such that p == c·d·c†, up to global phase. """
 
         if isinstance(operator, (Pauli, OpPrimitive)):
-            origin_pauli = operator
-            # Don't need to set coeff for OpPrimitive because converter below will set it in dest_pauli if available
-            coeff = 1.0
-        elif isinstance(operator, StateFn) and 'Pauli' in operator.get_primitives():
+            cob_instr_op, dest_pauli_op = self.get_cob_circuit(operator)
+            return self._replacement_fn(cob_instr_op, dest_pauli_op)
+        if isinstance(operator, StateFn) and 'Pauli' in operator.get_primitives():
             # If the StateFn/Meas only contains a Pauli, use it directly.
             if isinstance(operator.primitive, OpPrimitive):
-                origin_pauli = operator.primitive
-                coeff = operator.coeff
-            # TODO make a cononical "distribute" or graph swap as method in OperatorBase
+                cob_instr_op, dest_pauli_op = self.get_cob_circuit(operator.primitive)
+                return self._replacement_fn(cob_instr_op, dest_pauli_op)
+            # TODO make a cononical "distribute" or graph swap as method in StateFnVec or OpVec?
             elif operator.primitive.distributive:
-                sf_list = [StateFn(op, is_measurement=operator.is_measurement) for op in operator.primitive.oplist]
-                opvec_of_statefns = operator.primitive.__class__(oplist=sf_list, coeff=operator.coeff)
-                return opvec_of_statefns.traverse(self.convert)
+                if operator.primitive.abelian:
+                    origin_z = reduce(np.logical_or, [p_op.primitive.z for p_op in operator.primitive.oplist])
+                    origin_x = reduce(np.logical_or, [p_op.primitive.x for p_op in operator.primitive.oplist])
+                    origin_pauli = Pauli(x=origin_x, z=origin_z)
+                    cob_instr_op, _ = self.get_cob_circuit(origin_pauli)
+                    diag_ops = [self.get_diagonal_pauli_op(op) for op in operator.primitive.oplist]
+                    dest_pauli_op = operator.__class__(diag_ops, coeff=operator.coeff, abelian=True)
+                    return self._replacement_fn(cob_instr_op, dest_pauli_op)
+                else:
+                    sf_list = [StateFn(op, is_measurement=operator.is_measurement) for op in operator.primitive.oplist]
+                    opvec_of_statefns = operator.primitive.__class__(oplist=sf_list, coeff=operator.coeff)
+                    return opvec_of_statefns.traverse(self.convert)
 
         # TODO allow parameterized OpVec to be returned to save circuit copying.
         elif isinstance(operator, OpVec) and self._traverse and 'Pauli' in operator.get_primitives():
@@ -98,25 +106,27 @@ class PauliChangeOfBasis(ConverterBase):
                 origin_z = reduce(np.logical_or, [p_op.primitive.z for p_op in operator.oplist])
                 origin_x = reduce(np.logical_or, [p_op.primitive.x for p_op in operator.oplist])
                 origin_pauli = Pauli(x=origin_x, z=origin_z)
+                cob_instr_op, _ = self.get_cob_circuit(origin_pauli)
+                diag_ops = [self.get_diagonal_pauli_op(op) for op in operator.oplist]
+                dest_pauli_op = operator.__class__(diag_ops, coeff=operator.coeff, abelian=True)
+                return self._replacement_fn(cob_instr_op, dest_pauli_op)
             else:
                 return operator.traverse(self.convert)
         else:
             raise TypeError('PauliChangeOfBasis can only accept OperatorBase objects or '
                             'Paulis, not {}'.format(type(operator)))
 
-        cob_instr_op, dest_pauli_op = self.get_cob_circuit(origin_pauli)
+    @staticmethod
+    def measurement_replacement_fn(cob_instr_op, dest_pauli_op):
+        return PauliChangeOfBasis.statefn_replacement_fn(cob_instr_op, dest_pauli_op).adjoint()
 
-        if isinstance(operator, OpVec) and operator.abelian:
-            diag_ops = [self.get_diagonal_pauli_op(op) for op in operator.oplist]
-            dest_pauli_op = operator.__class__(diag_ops, coeff=operator.coeff, abelian=True)
+    @staticmethod
+    def statefn_replacement_fn(cob_instr_op, dest_pauli_op):
+        return OpComposition([cob_instr_op.adjoint(), StateFn(dest_pauli_op)])
 
-        if self._replacement_fn:
-            return self._replacement_fn(cob_instr_op, dest_pauli_op)
-        elif isinstance(operator, StateFn):
-            new_sf = OpComposition([cob_instr_op.adjoint(), StateFn(dest_pauli_op)], coeff=coeff)
-            return new_sf.adjoint() if operator.is_measurement else new_sf
-        else:
-            return OpComposition([cob_instr_op.adjoint(), dest_pauli_op, cob_instr_op], coeff=coeff)
+    @staticmethod
+    def operator_replacement_fn(cob_instr_op, dest_pauli_op):
+        return OpComposition([cob_instr_op.adjoint(), dest_pauli_op, cob_instr_op])
 
     def get_diagonal_pauli_op(self, pauli_op):
         return OpPauli(Pauli(z=np.logical_or(pauli_op.primitive.z, pauli_op.primitive.x),

@@ -173,7 +173,7 @@ class StateFn(OperatorBase):
         """
         # TODO maybe allow outers later to produce density operators or projectors, but not yet.
         if not self.is_measurement:
-            raise ValueError('Composition with a Statefunctions in the first operand is not defined.')
+            raise ValueError('Composition with a Statefunction in the first operand is not defined.')
 
         new_self, other = self._check_zero_for_composition_and_expand(other)
         # TODO maybe include some reduction here in the subclasses - vector and Op, op and Op, etc.

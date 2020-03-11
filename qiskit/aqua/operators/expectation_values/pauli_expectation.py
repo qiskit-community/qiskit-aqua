@@ -19,8 +19,8 @@ import numpy as np
 
 from .expectation_base import ExpectationBase
 
-from qiskit.aqua.operators import OpVec, OpPrimitive, StateFn, OpComposition
-from qiskit.aqua.operators.converters import PauliChangeOfBasis
+from qiskit.aqua.operators import OpVec, OpSum, OpPrimitive, StateFn, OpComposition
+from qiskit.aqua.operators.converters import PauliChangeOfBasis, AbelianGrouper
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,7 @@ class PauliExpectation(ExpectationBase):
 
     """
 
-    def __init__(self, operator=None, state=None, backend=None):
+    def __init__(self, operator=None, state=None, backend=None, group_paulis=True):
         """
         Args:
 
@@ -40,6 +40,7 @@ class PauliExpectation(ExpectationBase):
         self._operator = operator
         self._state = state
         self.set_backend(backend)
+        self._grouper = AbelianGrouper() if group_paulis else None
         self._converted_operator = None
         self._reduced_meas_op = None
         self._sampled_meas_op = None
@@ -80,9 +81,14 @@ class PauliExpectation(ExpectationBase):
 
         if not self._converted_operator:
             # Construct measurement from operator
-            meas = StateFn(self._operator, is_measurement=True)
+            if self._grouper and isinstance(self._operator, OpVec):
+                grouped = self._grouper.convert(self.operator)
+                meas = StateFn(grouped, is_measurement=True)
+            else:
+                meas = StateFn(self._operator, is_measurement=True)
             # Convert the measurement into a classical basis (PauliChangeOfBasis chooses this basis by default).
-            self._converted_operator = PauliChangeOfBasis().convert(meas)
+            cob = PauliChangeOfBasis(replacement_fn=PauliChangeOfBasis.measurement_replacement_fn)
+            self._converted_operator = cob.convert(meas)
             # TODO self._converted_operator = PauliExpectation.group_equal_measurements(self._converted_operator)
 
         expec_op = self._converted_operator.compose(state)
