@@ -13,28 +13,30 @@
 # that they have been altered from the originals.
 
 """
-The Classical SVM algorithm.
+The Sklearn SVM algorithm.
 """
 
 from typing import Dict, Optional
 import logging
+import warnings
 import numpy as np
 from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms import ClassicalAlgorithm
 from qiskit.aqua.utils import get_num_classes
 from qiskit.aqua.components.multiclass_extensions import MulticlassExtension
-from ._svm_classical_binary import _SVM_Classical_Binary
-from ._svm_classical_multiclass import _SVM_Classical_Multiclass
+from ._sklearn_svm_binary import _SklearnSVMBinary
+from ._sklearn_svm_multiclass import _SklearnSVMMulticlass
 from ._rbf_svc_estimator import _RBF_SVC_Estimator
 
 logger = logging.getLogger(__name__)
 
+
 # pylint: disable=invalid-name
 
 
-class SVM_Classical(ClassicalAlgorithm):
+class SklearnSVM(ClassicalAlgorithm):
     """
-    The Classical SVM algorithm.
+    The Sklearn SVM algorithm.
 
     SVM Classical uses a classical approach to experiment with feature map classification
     problems. See also the quantum classifier :class:`QSVM`.
@@ -81,10 +83,10 @@ class SVM_Classical(ClassicalAlgorithm):
                                "extension will be ignored")
 
         if multiclass_extension is None:
-            svm_instance = _SVM_Classical_Binary(training_dataset, test_dataset, datapoints, gamma)
+            svm_instance = _SklearnSVMBinary(training_dataset, test_dataset, datapoints, gamma)
         else:
             multiclass_extension.set_estimator(_RBF_SVC_Estimator, [])
-            svm_instance = _SVM_Classical_Multiclass(
+            svm_instance = _SklearnSVMMulticlass(
                 training_dataset, test_dataset, datapoints, gamma, multiclass_extension)
 
         self.instance = svm_instance
@@ -166,3 +168,20 @@ class SVM_Classical(ClassicalAlgorithm):
             file_path (str): a path to save the model.
         """
         self.instance.save_model(file_path)
+
+
+class SVM_Classical(SklearnSVM):
+    """ The deprecated Sklearn SVM algorithm. """
+
+    def __init__(self, training_dataset: Dict[str, np.ndarray],
+                 test_dataset: Optional[Dict[str, np.ndarray]] = None,
+                 datapoints: Optional[np.ndarray] = None,
+                 gamma: Optional[int] = None,
+                 multiclass_extension: Optional[MulticlassExtension] = None) -> None:
+        warnings.warn('Deprecated class {}, use {}.'.format('SVM_Classical', 'SklearnSVM'),
+                      DeprecationWarning)
+        super().__init__(training_dataset,
+                         test_dataset,
+                         datapoints,
+                         gamma,
+                         multiclass_extension)

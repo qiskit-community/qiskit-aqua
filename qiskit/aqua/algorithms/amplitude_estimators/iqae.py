@@ -195,6 +195,9 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         # add optional measurement
         if measurement:
+            # real hardware can currently not handle operations after measurements, which might
+            # happen if the circuit gets transpiled, hence we're adding a safeguard-barrier
+            circuit.barrier()
             circuit.measure(q[self.i_objective], c[0])
 
         return circuit

@@ -133,6 +133,9 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 self.q_factory.build_power(qc_k, q, k, q_aux)
 
             if measurement:
+                # real hardware can currently not handle operations after measurements, which might
+                # happen if the circuit gets transpiled, hence we're adding a safeguard-barrier
+                qc_k.barrier()
                 qc_k.measure(q[self.i_objective], c[0])
 
             self._circuits += [qc_k]

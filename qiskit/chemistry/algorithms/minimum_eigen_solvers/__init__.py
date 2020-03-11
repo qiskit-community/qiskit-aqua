@@ -12,8 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Minimum Eigen Solvers Package """
+""" Minimum Eigen Solvers Package for Chemistry """
 
-from .vqe_adapt import VQEAdapt
+from .vqe_adapt import VQEAdapt, VQEAdaptResult
 
-__all__ = ['VQEAdapt']
+__all__ = ['VQEAdapt', 'VQEAdaptResult']

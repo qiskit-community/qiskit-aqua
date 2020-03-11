@@ -23,7 +23,7 @@ from qiskit import BasicAer
 from qiskit.quantum_info import state_fidelity
 
 from qiskit.aqua import aqua_globals, QuantumInstance
-from qiskit.aqua.algorithms import HHL, ExactLSsolver
+from qiskit.aqua.algorithms import HHL, NumPyLSsolver
 from qiskit.aqua.utils import random_matrix_generator as rmg
 from qiskit.aqua.operators import MatrixOperator
 from qiskit.aqua.components.eigs import EigsQPE
@@ -68,8 +68,8 @@ class TestHHL(QiskitAquaTestCase):
 
         matrix = [[1, 0], [0, 1]]
 
-        # run ExactLSsolver
-        ref_result = ExactLSsolver(matrix, vector).run()
+        # run NumPyLSsolver
+        ref_result = NumPyLSsolver(matrix, vector).run()
         ref_solution = ref_result['solution']
         ref_normed = ref_solution/np.linalg.norm(ref_solution)
 
@@ -113,8 +113,8 @@ class TestHHL(QiskitAquaTestCase):
 
         matrix = [[1, 0], [0, 1]]
 
-        # run ExactLSsolver
-        ref_result = ExactLSsolver(matrix, vector).run()
+        # run NumPyLSsolver
+        ref_result = NumPyLSsolver(matrix, vector).run()
         ref_solution = ref_result['solution']
         ref_normed = ref_solution/np.linalg.norm(ref_solution)
 
@@ -157,8 +157,8 @@ class TestHHL(QiskitAquaTestCase):
 
         matrix = [[1, 0], [0, 1]]
 
-        # run ExactLSsolver
-        ref_result = ExactLSsolver(matrix, vector).run()
+        # run NumPyLSsolver
+        ref_result = NumPyLSsolver(matrix, vector).run()
         ref_solution = ref_result['solution']
         ref_normed = ref_solution/np.linalg.norm(ref_solution)
 
@@ -201,8 +201,8 @@ class TestHHL(QiskitAquaTestCase):
 
         matrix = [[1, 0], [0, 1]]
 
-        # run ExactLSsolver
-        ref_result = ExactLSsolver(matrix, vector).run()
+        # run NumPyLSsolver
+        ref_result = NumPyLSsolver(matrix, vector).run()
         ref_solution = ref_result['solution']
         ref_normed = ref_solution/np.linalg.norm(ref_solution)
 
@@ -247,8 +247,8 @@ class TestHHL(QiskitAquaTestCase):
         matrix = rmg.random_diag(n, eigrange=[0, 1])
         vector = aqua_globals.random.random_sample(n)
 
-        # run ExactLSsolver
-        ref_result = ExactLSsolver(matrix, vector).run()
+        # run NumPyLSsolver
+        ref_result = NumPyLSsolver(matrix, vector).run()
         ref_solution = ref_result['solution']
         ref_normed = ref_solution/np.linalg.norm(ref_solution)
 
@@ -292,8 +292,8 @@ class TestHHL(QiskitAquaTestCase):
         matrix = rmg.random_diag(n, eigrange=[-1, 1])
         vector = aqua_globals.random.random_sample(n)
 
-        # run ExactLSsolver
-        ref_result = ExactLSsolver(matrix, vector).run()
+        # run NumPyLSsolver
+        ref_result = NumPyLSsolver(matrix, vector).run()
         ref_solution = ref_result['solution']
         ref_normed = ref_solution/np.linalg.norm(ref_solution)
 
@@ -336,8 +336,8 @@ class TestHHL(QiskitAquaTestCase):
         matrix = rmg.random_hermitian(n, eigrange=[0, 1])
         vector = aqua_globals.random.random_sample(n)
 
-        # run ExactLSsolver
-        ref_result = ExactLSsolver(matrix, vector).run()
+        # run NumPyLSsolver
+        ref_result = NumPyLSsolver(matrix, vector).run()
         ref_solution = ref_result['solution']
         ref_normed = ref_solution/np.linalg.norm(ref_solution)
 
@@ -379,8 +379,8 @@ class TestHHL(QiskitAquaTestCase):
         matrix = [[1, 1], [2, 1]]
         vector = [1, 0]
 
-        # run ExactLSsolver
-        ref_result = ExactLSsolver(matrix, vector).run()
+        # run NumPyLSsolver
+        ref_result = NumPyLSsolver(matrix, vector).run()
         ref_solution = ref_result['solution']
         ref_normed = ref_solution/np.linalg.norm(ref_solution)
 
