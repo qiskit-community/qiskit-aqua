@@ -35,7 +35,7 @@ from qiskit.optimization.problems import OptimizationProblem
 from qiskit.optimization.results import OptimizationResult
 from qiskit.optimization.converters import (PenalizeLinearEqualityConstraints,
                                             IntegerToBinaryConverter)
-from qiskit.aqua.algorithms import ClassicalMinimumEigensolver
+from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 
 
 class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
@@ -58,7 +58,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         if min_num_vars_optimizer:
             self._min_num_vars_optimizer = min_num_vars_optimizer
         else:
-            self._min_num_vars_optimizer = MinimumEigenOptimizer(ClassicalMinimumEigensolver())
+            self._min_num_vars_optimizer = MinimumEigenOptimizer(NumPyMinimumEigensolver())
         self._penalty = penalty
 
     def is_compatible(self, problem: OptimizationProblem) -> Optional[str]:
