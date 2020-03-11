@@ -13,8 +13,6 @@
 # that they have been altered from the originals.
 
 import copy
-from collections.abc import Sequence
-from typing import Callable, Union, List, Any
 
 from qiskit.optimization import infinity
 from qiskit.optimization.utils.base import BaseInterface
@@ -286,7 +284,6 @@ class VariablesInterface(BaseInterface):
             names = ["x" + str(cnt)
                      for cnt in range(len(self._names), len(self._names) + max_length)]
         self._names.extend(names)
-
         self._index.build(names)
 
         return range(len(self._names) - max_length, len(self._names))
@@ -360,24 +357,6 @@ class VariablesInterface(BaseInterface):
         for i in sorted(keys, reverse=True):
             _delete(i)
         self._index.build(self._names)
-
-    def _setter(self, setfunc: Callable[[Union[int, str], Any], None], *args):
-        # check for all elements in args whether they are types
-        if len(args) == 1 and all(isinstance(el, Sequence) and len(el) == 2 for el in args[0]):
-            for el in args[0]:
-                setfunc(*el)
-        elif len(args) == 2:
-            setfunc(*args)
-        else:
-            raise QiskitOptimizationError("Invalid arguments: {}".format(args))
-
-    def _getter(self, lst: List[Any], *args):
-        if len(args) == 0:
-            return copy.deepcopy(lst)
-        keys = self._index.convert(*args)
-        if isinstance(keys, int):
-            return lst[keys]
-        return [lst[k] for k in keys]
 
     def set_lower_bounds(self, *args):
         """Sets the lower bound for a variable or set of variables.
@@ -552,7 +531,14 @@ class VariablesInterface(BaseInterface):
         >>> op.variables.get_lower_bounds()
         [0.0, 1.5, 3.0, 4.5, 6.0, 7.5, 9.0, 10.5, 12.0, 13.5]
         """
-        return self._getter(self._lb, *args)
+
+        def _get(i):
+            return self._lb[i]
+
+        if len(args) == 0:
+            return copy.deepcopy(self._lb)
+        keys = self._index.convert(*args)
+        return self._getter(_get, keys)
 
     def get_upper_bounds(self, *args):
         """Returns the upper bounds on variables from the problem.
@@ -591,7 +577,14 @@ class VariablesInterface(BaseInterface):
         >>> op.variables.get_upper_bounds()
         [1.0, 2.5, 4.0, 5.5, 7.0, 8.5, 10.0, 11.5, 13.0, 14.5]
         """
-        return self._getter(self._ub, *args)
+
+        def _get(i):
+            return self._ub[i]
+
+        if len(args) == 0:
+            return copy.deepcopy(self._ub)
+        keys = self._index.convert(*args)
+        return self._getter(_get, keys)
 
     def get_names(self, *args):
         """Returns the names of variables from the problem.
@@ -621,7 +614,14 @@ class VariablesInterface(BaseInterface):
         >>> op.variables.get_names()
         ['x0', 'x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8', 'x9']
         """
-        return self._getter(self._names, *args)
+
+        def _get(i):
+            return self._names[i]
+
+        if len(args) == 0:
+            return copy.deepcopy(self._names)
+        keys = self._index.convert(*args)
+        return self._getter(_get, keys)
 
     def get_types(self, *args):
         """Returns the types of variables from the problem.
@@ -655,7 +655,14 @@ class VariablesInterface(BaseInterface):
         >>> op.variables.get_types()
         ['C', 'I', 'B', 'S', 'N']
         """
-        return self._getter(self._types, *args)
+
+        def _get(i):
+            return self._types[i]
+
+        if len(args) == 0:
+            return copy.deepcopy(self._types)
+        keys = self._index.convert(*args)
+        return self._getter(_get, keys)
 
     def get_cols(self, *args):
         raise QiskitOptimizationError("Please use LinearConstraintInterface instead.")

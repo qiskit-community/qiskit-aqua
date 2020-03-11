@@ -205,3 +205,9 @@ class TestVariables(QiskitOptimizationTestCase):
         op = OptimizationProblem()
         with self.assertRaises(QiskitOptimizationError):
             op.variables.get_obj()
+
+    def test_get_indices(self):
+        op = OptimizationProblem()
+        op.variables.add(names=['a', 'b'])
+        self.assertEqual(op.variables.get_indices('a'), 0)
+        self.assertListEqual(op.variables.get_indices(), [0, 1])

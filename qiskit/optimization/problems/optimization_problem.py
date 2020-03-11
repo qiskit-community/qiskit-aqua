@@ -69,11 +69,11 @@ class OptimizationProblem(object):
         """See `qiskit.optimization.LinearConstraintInterface()` """
 
         self.quadratic_constraints = QuadraticConstraintInterface(
-            varsgetindexfunc = self.variables._varsgetindexfunc)
+            varindex=self.variables.get_indices)
         """See `qiskit.optimization.QuadraticConstraintInterface()` """
 
         # pylint: disable=unexpected-keyword-arg
-        self.objective = ObjectiveInterface(varsgetindexfunc=self.variables._varsgetindexfunc)
+        self.objective = ObjectiveInterface(varindex=self.variables.get_indices)
         """See `qiskit.optimization.ObjectiveInterface()` """
 
         self.solution = SolutionInterface()

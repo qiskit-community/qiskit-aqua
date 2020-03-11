@@ -13,7 +13,10 @@
 # that they have been altered from the originals.
 
 
-from qiskit.optimization.utils.helpers import convert, _defaultgetindexfunc
+from typing import Callable, Sequence, Union, Any
+
+from qiskit.optimization.utils.helpers import NameIndex
+from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
 
 
 class BaseInterface(object):
@@ -27,28 +30,9 @@ class BaseInterface(object):
         """
         if type(self) == BaseInterface:
             raise TypeError("BaseInterface must be sub-classed")
+        self._index = NameIndex()
 
-    def _conv(self, name, cache=None):
-        """Converts from names to indices as necessary."""
-        return convert(name, self._get_index, cache)
-
-    @staticmethod
-    def _add_iter(getnumfun, addfun, *args, **kwargs):
-        """non-public"""
-        old = getnumfun()
-        addfun(*args, **kwargs)
-        return range(old, getnumfun())
-
-    @staticmethod
-    def _add_single(getnumfun, addfun, *args, **kwargs):
-        """non-public"""
-        addfun(*args, **kwargs)
-        return getnumfun() - 1  # minus one for zero-based indices
-
-    def _get_index(self, name):
-        return _defaultgetindexfunc(name)
-
-    def get_indices(self, name):
+    def get_indices(self, *args):
         """Converts from names to indices.
 
         If name is a string, get_indices returns the index of the
@@ -64,7 +48,7 @@ class BaseInterface(object):
 
         Example usage:
 
-        >>> import cplex
+        >>> from qiskit.optimization.problems import OptimizationProblem
         >>> c = cplex.Cplex()
         >>> indices = c.variables.add(names=["a", "b"])
         >>> c.variables.get_indices("a")
@@ -72,9 +56,27 @@ class BaseInterface(object):
         >>> c.variables.get_indices(["a", "b"])
         [0, 1]
         """
-        if _defaultgetindexfunc is None:
-            raise NotImplementedError("This is not an indexed interface")
-        if isinstance(name, str):
-            return self._get_index(name)
+        return self._index.convert(*args)
+
+    @staticmethod
+    def _setter(setfunc: Callable[[int, Any], None], *args):
+        # check for all elements in args whether they are types
+        if len(args) == 1 and all(isinstance(el, Sequence) and len(el) == 2 for el in args[0]):
+            for el in args[0]:
+                setfunc(*el)
+        elif len(args) == 2:
+            setfunc(*args)
         else:
-            return [self._get_index(x) for x in name]
+            raise QiskitOptimizationError("Invalid arguments: {}".format(args))
+
+    @staticmethod
+    def _getter(getfunc: Callable[[int], Any], *args):
+        # `args` should be already converted into `int` by `get_indices`.
+        if len(args) == 0:
+            raise QiskitOptimizationError('Empty arguments should be handled in the caller')
+        if len(args) == 1:
+            if isinstance(args[0], Sequence):
+                args = args[0]
+            else:
+                return getfunc(args[0])
+        return [getfunc(k) for k in args]
