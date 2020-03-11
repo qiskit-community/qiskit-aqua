@@ -48,7 +48,7 @@ class LocalSimulatorSampler(CircuitSampler):
         self._qi = backend if isinstance(backend, QuantumInstance) else QuantumInstance(backend=backend, **kwargs)
         self._last_op = None
         self._reduced_op_cache = None
-        self._circuit_ops_cache = None
+        self._circuit_ops_cache = {}
         self._transpiled_circ_cache = None
         self._statevector = statevector
         if self._statevector and not is_statevector_backend(self.quantum_instance.backend):
@@ -89,17 +89,7 @@ class LocalSimulatorSampler(CircuitSampler):
 
         if not self._circuit_ops_cache:
             self._circuit_ops_cache = {}
-
-            def extract_statefncircuits(operator):
-                if isinstance(operator, StateFnCircuit):
-                    self._circuit_ops_cache[id(operator)] = operator
-                elif isinstance(operator, OpVec):
-                    for op in operator.oplist:
-                        extract_statefncircuits(op)
-                else:
-                    return operator
-
-            extract_statefncircuits(self._reduced_op_cache)
+            self._extract_statefncircuits(self._reduced_op_cache)
 
         if params:
             num_parameterizations = len(list(params.values())[0])
@@ -126,6 +116,15 @@ class LocalSimulatorSampler(CircuitSampler):
                           for i in range(num_parameterizations)])
         else:
             return replace_circuits_with_dicts(self._reduced_op_cache, param_index=0)
+
+    def _extract_statefncircuits(self, operator):
+        if isinstance(operator, StateFnCircuit):
+            self._circuit_ops_cache[id(operator)] = operator
+        elif isinstance(operator, OpVec):
+            for op in operator.oplist:
+                self._extract_statefncircuits(op)
+        else:
+            return operator
 
     def sample_circuits(self, op_circuits=None, param_bindings=None):
         """
