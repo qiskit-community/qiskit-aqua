@@ -65,7 +65,7 @@ class OptimizationProblem(object):
         """See `qiskit.optimization.VariablesInterface()` """
 
         self.linear_constraints = LinearConstraintInterface(
-            varsgetindexfunc=self.variables._varsgetindexfunc)
+            varindex=self.variables.get_indices)
         """See `qiskit.optimization.LinearConstraintInterface()` """
 
         self.quadratic_constraints = QuadraticConstraintInterface(

@@ -48,12 +48,12 @@ class BaseInterface(object):
 
         Example usage:
 
-        >>> from qiskit.optimization.problems import OptimizationProblem
-        >>> c = cplex.Cplex()
-        >>> indices = c.variables.add(names=["a", "b"])
-        >>> c.variables.get_indices("a")
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
+        >>> indices = op.variables.add(names=["a", "b"])
+        >>> op.variables.get_indices("a")
         0
-        >>> c.variables.get_indices(["a", "b"])
+        >>> op.variables.get_indices(["a", "b"])
         [0, 1]
         """
         return self._index.convert(*args)

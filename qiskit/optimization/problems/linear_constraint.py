@@ -12,15 +12,14 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+import copy
 from collections.abc import Sequence
 
-import copy
-
-from qiskit.optimization.utils.base import BaseInterface
-from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
-from qiskit.optimization.utils.helpers import init_list_args, validate_arg_lengths, listify, convert
 from cplex import SparsePair
 
+from qiskit.optimization.utils.base import BaseInterface
+from qiskit.optimization.utils.helpers import init_list_args, convert, NameIndex
+from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
 
 # TODO: can we delete these?
 CPX_CON_LOWER_BOUND = 1
@@ -39,7 +38,7 @@ CPX_CON_LAST_CONTYPE = 10
 class LinearConstraintInterface(BaseInterface):
     """Methods for adding, modifying, and querying linear constraints."""
 
-    def __init__(self, varsgetindexfunc=None):
+    def __init__(self, varindex):
         """Creates a new LinearConstraintInterface.
 
         The linear constraints interface is exposed by the top-level
@@ -52,8 +51,8 @@ class LinearConstraintInterface(BaseInterface):
         self._range_values = []
         self._names = []
         self._lin_expr = []
-        self._linconsgetindex = {}
-        self._varsgetindexfunc = varsgetindexfunc
+        self._index = NameIndex()
+        self._varindex = varindex
 
     def get_num(self):
         """Returns the number of linear constraints.
@@ -66,16 +65,6 @@ class LinearConstraintInterface(BaseInterface):
         3
         """
         return len(self._names)
-
-    def _linconsgetindexfunc(self, item):
-        if item not in self._linconsgetindex:
-            self._linconsgetindex[item] = len(self._linconsgetindex)
-        return self._linconsgetindex[item]
-
-    def _linconsrebuildindex(self):
-        self._linconsgetindex = {}
-        for (cnt, item) in enumerate(self._names):
-            self._linconsgetindex[item] = cnt
 
     def add(self, lin_expr=None, senses="", rhs=None, range_values=None,
             names=None):
@@ -159,34 +148,25 @@ class LinearConstraintInterface(BaseInterface):
                 names = ["c" + str(cnt) for cnt in range(len(self._names),
                                                          len(self._names) + max_length)]
             self._names.extend(names)
-            for name in names:
-                self._linconsgetindexfunc(name)
+            self._index.build(self._names)
 
             if not lin_expr:
                 lin_expr = [SparsePair()] * max_length
-            if all(isinstance(el, SparsePair) for el in lin_expr):
-                for sp in lin_expr:
-                    lin_expr_dict = {}
-                    for i, val in zip(sp.ind, sp.val):
-                        i = convert(i, self._varsgetindexfunc)
-                        if i in lin_expr_dict:
-                            raise QiskitOptimizationError(
-                                'Variables should only appear once in linear constraint.')
-                        lin_expr_dict[i] = val
-                    self._lin_expr += [lin_expr_dict]
-            elif all(isinstance(el, Sequence) for el in lin_expr):
-                for l in lin_expr:
-                    lin_expr_dict = {}
-                    for i, val in zip(l[0], l[1]):
-                        i = convert(i, self._varsgetindexfunc)
-                        if i in lin_expr_dict:
-                            raise QiskitOptimizationError(
-                                'Variables should only appear once in linear constraint.')
-                        lin_expr_dict[i] = val
-                    self._lin_expr += [lin_expr_dict]
-            else:
-                raise QiskitOptimizationError(
-                    'Invalid lin_expr format in linear_constraint.add().')
+            for sp in lin_expr:
+                lin_expr_dict = {}
+                if isinstance(sp, SparsePair):
+                    zip_iter = zip(sp.ind, sp.val)
+                elif isinstance(sp, Sequence) and len(sp) == 2:
+                    zip_iter = zip(sp[0], sp[1])
+                else:
+                    raise QiskitOptimizationError('Invalid lin_expr: {}'.format(lin_expr))
+                for i, val in zip_iter:
+                    i = self._varindex(i)
+                    if i in lin_expr_dict:
+                        raise QiskitOptimizationError(
+                            'Variables should only appear once in linear constraint.')
+                    lin_expr_dict[i] = val
+                self._lin_expr += [lin_expr_dict]
 
         return range(len(self._names) - max_length, len(self._names))
 
@@ -238,16 +218,6 @@ class LinearConstraintInterface(BaseInterface):
         >>> op.linear_constraints.get_names()
         []
         """
-
-        # TODO: delete does not update the index to find constraints by name etc.
-
-        def _delete(i):
-            del self._rhs[i]
-            del self._senses[i]
-            del self._names[i]
-            del self._lin_expr[i]
-            del self._range_values[i]
-
         if len(args) == 0:
             # Delete All:
             self._rhs = []
@@ -255,22 +225,18 @@ class LinearConstraintInterface(BaseInterface):
             self._names = []
             self._lin_expr = []
             self._range_values = []
-            self._linconsgetindex = {}
-        elif len(args) == 1:
-            # Delete all items from a possibly unordered list of mixed types:
-            args = listify(convert(args[0], self._linconsgetindexfunc))
-            args = sorted(args)
-            for i, j in enumerate(args):
-                _delete(j - i)
-            self._linconsrebuildindex()
-        elif len(args) == 2:
-            # Delete range from arg[0] to arg[1]:
-            start = convert(args[0], self._linconsgetindexfunc)
-            end = convert(args[1], self._linconsgetindexfunc)
-            self.delete(range(start, end + 1))
-            self._linconsrebuildindex()
-        else:
-            raise QiskitOptimizationError("Wrong number of arguments.")
+            self._index = NameIndex()
+
+        keys = self._index.convert(*args)
+        if isinstance(keys, int):
+            keys = [keys]
+        for i in sorted(keys, reverse=True):
+            del self._rhs[i]
+            del self._senses[i]
+            del self._names[i]
+            del self._lin_expr[i]
+            del self._range_values[i]
+        self._index.build(self._names)
 
     def set_rhs(self, *args):
         """Sets the righthand side of a set of linear constraints.
@@ -303,16 +269,9 @@ class LinearConstraintInterface(BaseInterface):
         """
 
         def _set(i, v):
-            self._rhs[convert(i, self._linconsgetindexfunc)] = v
+            self._rhs[self._index.convert(i)] = v
 
-        if len(args) == 2:
-            _set(args[0], args[1])
-        elif len(args) == 1:
-            args = listify(args[0])
-            for (i, v) in args:
-                _set(i, v)
-        else:
-            raise QiskitOptimizationError("Wrong number of arguments.")
+        self._setter(_set, *args)
 
     def set_names(self, *args):
         """Sets the name of a linear constraint or set of linear constraints.
@@ -342,16 +301,9 @@ class LinearConstraintInterface(BaseInterface):
         """
 
         def _set(i, v):
-            self._names[convert(i, self._linconsgetindexfunc)] = v
+            self._names[self._index.convert(i)] = v
 
-        if len(args) == 2:
-            _set(args[0], args[1])
-        elif len(args) == 1:
-            args = listify(args[0])
-            for (i, v) in args:
-                _set(i, v)
-        else:
-            raise QiskitOptimizationError("Wrong number of arguments.")
+        self._setter(_set, *args)
 
     def set_senses(self, *args):
         """Sets the sense of a linear constraint or set of linear constraints.
@@ -387,20 +339,13 @@ class LinearConstraintInterface(BaseInterface):
         """
 
         def _set(i, v):
-            v = v.upper().strip()
+            v = v.upper()
             if v in ["G", "L", "E", "R"]:
-                self._senses[convert(i, getindexfunc=self._linconsgetindexfunc)] = v
+                self._senses[self._index.convert(i)] = v
             else:
-                raise QiskitOptimizationError("Wrong sense!")
+                raise QiskitOptimizationError("Wrong sense {}".format(v))
 
-        if len(args) == 2:
-            _set(args[0], args[1])
-        elif len(args) == 1:
-            args = listify(args[0])
-            for (i, v) in args:
-                _set(i, v)
-        else:
-            raise QiskitOptimizationError("Wrong number of arguments.")
+        self._setter(_set, *args)
 
     def set_linear_components(self, *args):
         """Sets a linear constraint or set of linear constraints.
@@ -433,30 +378,19 @@ class LinearConstraintInterface(BaseInterface):
         """
 
         def _set(i, v):
-            i = convert(i, self._linconsgetindexfunc)
             if isinstance(v, SparsePair):
-                ind, val = SparsePair.unpack(v)
-                for j, w in zip(ind, val):
-                    j = convert(j, self._varsgetindexfunc)
-                    self._lin_expr[i][j] = w
-            elif isinstance(v, Sequence):
-                if len(v) != 2:
-                    raise QiskitOptimizationError(
-                        "Wrong linear expression. A SparsePair or a pair of indices and values is expected!")
-                for j, w in zip(v[0], v[1]):
-                    j = convert(j, self._varsgetindexfunc)
-                    self._lin_expr[i][j] = w
+                zip_iter = zip(v.ind, v.val)
+            elif isinstance(v, Sequence) and len(v) == 2:
+                zip_iter = zip(v[0], v[1])
             else:
-                raise QiskitOptimizationError("Wrong linear expression. A SparsePair is expected!")
+                raise QiskitOptimizationError(
+                    "Wrong linear expression. A SparsePair is expected: {}".format(v))
+            i = self._index.convert(i)
+            for j, w in zip_iter:
+                j = self._varindex(j)
+                self._lin_expr[i][j] = w
 
-        if len(args) == 2:
-            _set(args[0], args[1])
-        elif len(args) == 1:
-            args = listify(args[0])
-            for (i, v) in args:
-                _set(i, v)
-        else:
-            raise QiskitOptimizationError("Wrong number of arguments.")
+        self._setter(_set, *args)
 
     def set_range_values(self, *args):
         """Sets the range values for a set of linear constraints.
@@ -505,17 +439,10 @@ class LinearConstraintInterface(BaseInterface):
         """
 
         def _set(i, v):
-            self._range_values[convert(i, getindexfunc=self._linconsgetindexfunc)] = v
+            self._range_values[self._index.convert(i)] = v
             # TODO: raise QiskitOptimizationError("Wrong range!")
 
-        if len(args) == 2:
-            _set(args[0], args[1])
-        elif len(args) == 1:
-            args = listify(args[0])
-            for (i, v) in args:
-                _set(i, v)
-        else:
-            raise QiskitOptimizationError("Wrong number of arguments.")
+        self._setter(_set, *args)
 
     def set_coefficients(self, *args):
         """Sets individual coefficients of the linear constraint matrix.
@@ -545,14 +472,14 @@ class LinearConstraintInterface(BaseInterface):
         """
         if len(args) == 3:
             arg_list = [args]
-        elif len(args) == 1:
-            arg_list = listify(args[0])
+        elif len(args) == 1 and isinstance(args[0], Sequence):
+            arg_list = args[0]
         else:
-            raise QiskitOptimizationError("Wrong number of arguments")
-        for ijv in arg_list:
-            i = convert(ijv[0], self._linconsgetindexfunc)
-            j = convert(ijv[1], self._varsgetindexfunc)
-            self._lin_expr[i][j] = ijv[2]
+            raise QiskitOptimizationError("Invalid arguments {}".format(args))
+        for i, j, v in arg_list:
+            i = self._index.convert(i)
+            j = self._varindex(j)
+            self._lin_expr[i][j] = v
 
     def get_rhs(self, *args):
         """Returns the righthand side of constraints from the problem.
@@ -588,22 +515,12 @@ class LinearConstraintInterface(BaseInterface):
         """
 
         def _get(i):
-            i = convert(i, self._linconsgetindexfunc)
             return self._rhs[i]
 
-        out = []
         if len(args) == 0:
             return copy.deepcopy(self._rhs)
-        elif len(args) == 1:
-            if isinstance(args[0], Sequence):
-                for i in args[0]:
-                    out.append(_get(i))
-            else:
-                return _get(args[0])
-        else:
-            for i in args:
-                out.append(_get(i))
-        return out
+        keys = self._index.convert(*args)
+        return self._getter(_get, keys)
 
     def get_senses(self, *args):
         """Returns the senses of constraints from the problem.
@@ -639,22 +556,12 @@ class LinearConstraintInterface(BaseInterface):
         """
 
         def _get(i):
-            i = convert(i, self._linconsgetindexfunc)
             return self._senses[i]
 
-        out = []
         if len(args) == 0:
             return copy.deepcopy(self._senses)
-        elif len(args) == 1:
-            if isinstance(args[0], Sequence):
-                for i in args[0]:
-                    out.append(_get(i))
-            else:
-                return _get(args[0])
-        else:
-            for i in args:
-                out.append(_get(i))
-        return out
+        keys = self._index.convert(*args)
+        return self._getter(_get, keys)
 
     def get_range_values(self, *args):
         """Returns the range values of linear constraints from the problem.
@@ -703,22 +610,12 @@ class LinearConstraintInterface(BaseInterface):
         """
 
         def _get(i):
-            i = convert(i, self._linconsgetindexfunc)
             return self._range_values[i]
 
-        out = []
         if len(args) == 0:
             return copy.deepcopy(self._range_values)
-        elif len(args) == 1:
-            if isinstance(args[0], Sequence):
-                for i in args[0]:
-                    out.append(_get(i))
-            else:
-                return _get(args[0])
-        else:
-            for i in args:
-                out.append(_get(i))
-        return out
+        keys = self._index.convert(*args)
+        return self._getter(_get, keys)
 
     def get_coefficients(self, *args):
         """Returns coefficients by row, column coordinates.
@@ -748,27 +645,25 @@ class LinearConstraintInterface(BaseInterface):
         [2.0, -1.0]
         """
 
-        def _get(i, j):
-            i = convert(i, self._linconsgetindexfunc)
-            j = convert(j, self._varsgetindexfunc)
+        def _get(args):
+            i, j = args
             return self._lin_expr[i].get(j, 0)
 
         if len(args) == 0:
             return copy.deepcopy(self._lin_expr)
-        elif len(args) == 1:
-            if isinstance(args[0], Sequence):
-                out = []
-                for (i, j) in args[0]:
-                    out.append(_get(i, j))
-                return out
-            else:
-                raise QiskitOptimizationError(
-                    "Wrong type of arguments. Single argument must be of list type.")
+        elif len(args) == 1 and isinstance(args[0], Sequence):
+            i, j = zip(*args[0])
+            i = self._index.convert(i)
+            j = self._varindex(j)
+            return self._getter(_get, *zip(i, j))
         elif len(args) == 2:
-            return _get(args[0], args[1])
+            i, j = args
+            i = self._index.convert(i)
+            j = self._varindex(j)
+            return _get((i, j))
         else:
             raise QiskitOptimizationError(
-                "Wrong number of arguments. Please use 2 or one list of pairs.")
+                "Wrong number of arguments. Please use 2 or one list of pairs: {}".format(args))
 
     def get_rows(self, *args):
         """Returns a set of rows of the linear constraint matrix.
@@ -883,19 +778,9 @@ class LinearConstraintInterface(BaseInterface):
         """
 
         def _get(i):
-            i = convert(i, self._linconsgetindexfunc)
             return self._names[i]
 
-        out = []
         if len(args) == 0:
-            return copy.deepcopy(self._names)
-        elif len(args) == 1:
-            if isinstance(args[0], Sequence):
-                for i in args[0]:
-                    out.append(_get(i))
-            else:
-                return _get(args[0])
-        else:
-            for i in args:
-                out.append(_get(i))
-        return out
+            return self._names
+        keys = self._index.convert(*args)
+        return self._getter(_get, keys)

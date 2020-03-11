@@ -416,7 +416,7 @@ class ObjectiveInterface(BaseInterface):
 
         if len(args) == 0:
             return copy.deepcopy(self._quadratic)
-        elif len(args) == 1:
+        elif len(args) == 1 and isinstance(args[0], Sequence):
             i, j = zip(*args[0])
             i = self._varindex(i)
             j = self._varindex(j)
