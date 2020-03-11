@@ -150,8 +150,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         eigen_results = self._min_eigen_solver.compute_minimum_eigenvalue(operator)
 
         # analyze results
-        # TODO: handle min_probability depending on backend or some other property
-        results = eigenvector_to_solutions(eigen_results.eigenstate, operator, min_probability=0)
+        results = eigenvector_to_solutions(eigen_results.eigenstate, operator)
         results = [(res[0], problem_.objective.get_sense() * (res[1] + offset), res[2])
                    for res in results]
         results.sort(key=lambda x: problem_.objective.get_sense() * x[1])

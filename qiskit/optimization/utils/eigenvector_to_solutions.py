@@ -50,11 +50,11 @@ def eigenvector_to_solutions(eigenvector: Union[dict, numpy.ndarray],
         # iterate over all samples
         for bitstr, count in eigenvector.items():
             sampling_probability = count / all_counts
-
             # add the bitstring, if the sampling probability exceeds the threshold
-            if sampling_probability >= min_probability:
-                value = eval_operator_at_bitstring(operator, bitstr)
-                solutions += [(bitstr, value, sampling_probability)]
+            if sampling_probability > 0:
+                if sampling_probability >= min_probability:
+                    value = eval_operator_at_bitstring(operator, bitstr)
+                    solutions += [(bitstr, value, sampling_probability)]
 
     elif isinstance(eigenvector, numpy.ndarray):
         num_qubits = int(numpy.log2(eigenvector.size))
@@ -64,10 +64,11 @@ def eigenvector_to_solutions(eigenvector: Union[dict, numpy.ndarray],
         for i, sampling_probability in enumerate(probabilities):
 
             # add the i-th state if the sampling probability exceeds the threshold
-            if sampling_probability >= min_probability:
-                bitstr = '{:b}'.format(i).rjust(num_qubits, '0')
-                value = eval_operator_at_bitstring(operator, bitstr)
-                solutions += [(bitstr, value, sampling_probability)]
+            if sampling_probability > 0:
+                if sampling_probability >= min_probability:
+                    bitstr = '{:b}'.format(i).rjust(num_qubits, '0')[::-1]
+                    value = eval_operator_at_bitstring(operator, bitstr)
+                    solutions += [(bitstr, value, sampling_probability)]
 
     else:
         raise TypeError('Unsupported format of eigenvector. Provide a dict or numpy.ndarray.')

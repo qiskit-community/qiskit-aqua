@@ -19,6 +19,7 @@ import numbers
 from qiskit.optimization.utils import BaseInterface, QiskitOptimizationError
 from qiskit.optimization.utils.helpers import listify, convert
 from cplex import SparsePair
+from cplex.exceptions import CplexSolverError
 
 CPX_MAX = -1
 CPX_MIN = 1
@@ -107,7 +108,7 @@ class ObjectiveInterface(BaseInterface):
                     self._linear.pop(i)
                 else:
                     self._linear[convert(i, self._varsgetindexfunc)] = v
-            except:
+            except CplexSolverError:
                 raise QiskitOptimizationError(
                     "Value of a coefficient needs to allow for addition of a float!")
 
