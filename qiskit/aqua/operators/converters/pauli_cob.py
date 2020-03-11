@@ -91,7 +91,7 @@ class PauliChangeOfBasis(ConverterBase):
                     origin_pauli = Pauli(x=origin_x, z=origin_z)
                     cob_instr_op, _ = self.get_cob_circuit(origin_pauli)
                     diag_ops = [self.get_diagonal_pauli_op(op) for op in operator.primitive.oplist]
-                    dest_pauli_op = operator.__class__(diag_ops, coeff=operator.coeff, abelian=True)
+                    dest_pauli_op = operator.primitive.__class__(diag_ops, coeff=operator.coeff, abelian=True)
                     return self._replacement_fn(cob_instr_op, dest_pauli_op)
                 else:
                     sf_list = [StateFn(op, is_measurement=operator.is_measurement) for op in operator.primitive.oplist]

@@ -20,7 +20,8 @@ import numpy as np
 import itertools
 
 from qiskit.aqua.operators import (X, Y, Z, I, CX, T, H, S, OpPrimitive, OpSum, OpComposition, OpVec, StateFn, Zero,
-                                   One, Plus, Minus, ExpectationBase, PauliExpectation, AbelianGrouper)
+                                   One, Plus, Minus, ExpectationBase, PauliExpectation, AbelianGrouper,
+                                   CircuitSampler)
 
 from qiskit import QuantumCircuit, BasicAer
 
@@ -135,3 +136,27 @@ class TestPauliExpectation(QiskitAquaTestCase):
                  (I^X^X^X * 0.7)
         grouped_sum = AbelianGrouper().convert(paulis)
         self.assertEqual(len(grouped_sum.oplist), 4)
+
+    def test_grouped_pauli_expectation(self):
+        two_qubit_H2 = (-1.052373245772859 * I ^ I) + \
+                       (0.39793742484318045 * I ^ Z) + \
+                       (-0.39793742484318045 * Z ^ I) + \
+                       (-0.01128010425623538 * Z ^ Z) + \
+                       (0.18093119978423156 * X ^ X)
+        wf = CX @ (H^I) @ Zero
+        backend = BasicAer.get_backend('qasm_simulator')
+        expect_op = PauliExpectation(operator=two_qubit_H2,
+                                     backend=backend,
+                                     group_paulis=False).expectation_op(wf)
+        sampler = CircuitSampler.factory(backend)
+        sampler._extract_statefncircuits(expect_op)
+        num_circuits_ungrouped = len(sampler._circuit_ops_cache)
+        self.assertEqual(num_circuits_ungrouped, 5)
+
+        expect_op_grouped = PauliExpectation(operator=two_qubit_H2,
+                                             backend=backend,
+                                             group_paulis=True).expectation_op(wf)
+        sampler = CircuitSampler.factory(backend)
+        sampler._extract_statefncircuits(expect_op_grouped)
+        num_circuits_grouped = len(sampler._circuit_ops_cache)
+        self.assertEqual(num_circuits_grouped, 2)
