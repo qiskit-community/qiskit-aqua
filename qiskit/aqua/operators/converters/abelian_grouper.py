@@ -19,7 +19,7 @@ import numpy as np
 import itertools
 import networkx as nx
 
-from qiskit.aqua.operators import OpPrimitive, OpVec, StateFnOperator, OpPauli
+from qiskit.aqua.operators import OpPrimitive, OpVec, StateFnOperator, OpPauli, OpSum
 from .converter_base import ConverterBase
 
 logger = logging.getLogger(__name__)
@@ -32,7 +32,7 @@ class AbelianGrouper(ConverterBase):
 
     def convert(self, operator):
 
-        if isinstance(operator, OpVec):
+        if isinstance(operator, OpSum):
             if all([isinstance(op, OpPauli) for op in operator.oplist]):
                 # For now, we only support graphs over Paulis.
                 return self.group_paulis(operator)
