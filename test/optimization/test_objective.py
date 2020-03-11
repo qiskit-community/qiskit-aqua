@@ -24,6 +24,13 @@ class TestObjective(QiskitOptimizationTestCase):
     def setUp(self):
         super().setUp()
 
+    def test_obj_sense(self):
+        op = OptimizationProblem()
+        self.assertEqual(op.objective.sense.minimize, 1)
+        self.assertEqual(op.objective.sense.maximize, -1)
+        self.assertEqual(op.objective.sense[1], 'minimize')
+        self.assertEqual(op.objective.sense[-1], 'maximize')
+
     def test_set_empty_quadratic(self):
         op = OptimizationProblem()
         op.objective.set_quadratic([])

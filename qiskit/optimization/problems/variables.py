@@ -369,7 +369,7 @@ class VariablesInterface(BaseInterface):
         elif len(args) == 2:
             setfunc(*args)
         else:
-            raise QiskitOptimizationError("Invalid arguments to set_lower_bounds: {}".format(args))
+            raise QiskitOptimizationError("Invalid arguments: {}".format(args))
 
     def _getter(self, lst: List[Any], *args):
         if len(args) == 0:
