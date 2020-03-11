@@ -44,7 +44,7 @@ def random_graph(n, weight_range=10, edge_prob=0.3, negative_weight=True,
     w = np.zeros((n, n))
     m = 0
     for i in range(n):
-        for j in range(i+1, n):
+        for j in range(i + 1, n):
             if aqua_globals.random.rand() <= edge_prob:
                 w[i, j] = aqua_globals.random.randint(1, weight_range)
                 if aqua_globals.random.rand() >= 0.5 and negative_weight:
@@ -55,7 +55,7 @@ def random_graph(n, weight_range=10, edge_prob=0.3, negative_weight=True,
         with open(savefile, 'w') as outfile:
             outfile.write('{} {}\n'.format(n, m))
             for i in range(n):
-                for j in range(i+1, n):
+                for j in range(i + 1, n):
                     if w[i, j] != 0:
                         outfile.write('{} {} {}\n'.format(i + 1, j + 1, w[i, j]))
     return w
@@ -76,7 +76,7 @@ def random_number_list(n, weight_range=100, savefile=None, seed=None):
     if seed:
         aqua_globals.random_seed = seed
 
-    number_list = aqua_globals.random.randint(low=1, high=(weight_range+1), size=n)
+    number_list = aqua_globals.random.randint(low=1, high=(weight_range + 1), size=n)
     if savefile:
         with open(savefile, 'w') as outfile:
             for i in range(n):

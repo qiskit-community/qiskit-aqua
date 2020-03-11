@@ -24,7 +24,7 @@ from qiskit.quantum_info import Pauli
 
 from qiskit.aqua import AquaError, aqua_globals
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
-from qiskit.optimization.ising import docplex, tsp
+from qiskit.optimization.applications.ising import docplex, tsp
 from qiskit.aqua.operators import WeightedPauliOperator
 
 # Reference operators and offsets for maxcut and tsp.

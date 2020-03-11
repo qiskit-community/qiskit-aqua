@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020
+# (C) Copyright IBM 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -17,6 +17,8 @@ Converts vehicle routing instances into a list of Paulis,
 and provides some related routines (extracting a solution,
 checking its objective function value).
 """
+
+import warnings
 
 import numpy as np
 from qiskit.quantum_info import Pauli
@@ -46,8 +48,8 @@ def get_vehiclerouting_matrices(instance, n, K):  # pylint: disable=invalid-name
     A = np.max(instance) * 100  # A parameter of cost function
 
     # Determine the weights w
-    instance_vec = instance.reshape(n**2)
-    w_list = [instance_vec[x] for x in range(n**2) if instance_vec[x] > 0]
+    instance_vec = instance.reshape(n ** 2)
+    w_list = [instance_vec[x] for x in range(n ** 2) if instance_vec[x] > 0]
     w = np.zeros(n * (n - 1))
     for i_i, _ in enumerate(w_list):
         w[i_i] = w_list[i_i]
@@ -81,7 +83,7 @@ def get_vehiclerouting_matrices(instance, n, K):  # pylint: disable=invalid-name
         2 * A * K * (np.kron(neg_iv_n_1, iv_n) + v[0].T)
 
     # c is the constant offset
-    c = 2 * A * (n - 1) + 2 * A * (K**2)
+    c = 2 * A * (n - 1) + 2 * A * (K ** 2)
 
     return (Q, g, c)
 
@@ -103,6 +105,7 @@ def get_vehiclerouting_cost(instance, n, K, x_sol):  # pylint: disable=invalid-n
 
     def fun(x):
         return np.dot(np.around(x), np.dot(Q, np.around(x))) + np.dot(g, np.around(x)) + c
+
     cost = fun(x_sol)
     return cost
 
@@ -190,3 +193,12 @@ def get_vehiclerouting_solution(instance, n, K, result):  # pylint: disable=inva
     x_sol = np.flip(x_sol, axis=0)
 
     return x_sol
+
+
+def get_vehiclerouting_qubitops(instance, n, K):
+    """ get vehicle routing qubit ops """
+    # pylint: disable=invalid-name
+    warnings.warn("get_vehiclerouting_qubitops function has been changed to get_operator"
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return get_operator(instance, n, K)

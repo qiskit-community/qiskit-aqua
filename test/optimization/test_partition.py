@@ -18,8 +18,8 @@ from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 from qiskit import BasicAer
 from qiskit.aqua import aqua_globals, QuantumInstance
-from qiskit.optimization.ising import partition
-from qiskit.optimization.ising.common import read_numbers_from_file, sample_most_likely
+from qiskit.optimization.applications.ising import partition
+from qiskit.optimization.applications.ising.common import read_numbers_from_file, sample_most_likely
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE
 from qiskit.aqua.components.optimizers import SPSA
 from qiskit.aqua.components.variational_forms import RY

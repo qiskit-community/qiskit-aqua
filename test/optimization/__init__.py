@@ -14,6 +14,6 @@
 
 """ Optimization test packages """
 
-from .optimization_test_case import QiskitOptimizationTestCase
+from .common import QiskitOptimizationTestCase
 
 __all__ = ['QiskitOptimizationTestCase']

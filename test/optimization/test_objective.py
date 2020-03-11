@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,14 +12,18 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Optimization Test Case"""
+""" Test ObjectiveInterface """
 
-from test import QiskitBaseTestCase
+from qiskit.optimization import OptimizationProblem
+from test.optimization.common import QiskitOptimizationTestCase
 
 
-class QiskitOptimizationTestCase(QiskitBaseTestCase):
-    """Optimization Test Case"""
+class TestObjective(QiskitOptimizationTestCase):
+    """Test ObjectiveInterface"""
 
-    def setUp(self) -> None:
+    def setUp(self):
         super().setUp()
-        self._class_location = __file__
+
+    def test_set_empty_quadratic(self):
+        op = OptimizationProblem()
+        op.objective.set_quadratic([])

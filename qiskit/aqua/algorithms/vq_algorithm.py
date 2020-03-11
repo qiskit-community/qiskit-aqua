@@ -29,6 +29,7 @@ import warnings
 from abc import abstractmethod
 import numpy as np
 
+from qiskit.circuit import ParameterVector
 from qiskit.aqua.algorithms import AlgorithmResult, QuantumAlgorithm
 from qiskit.aqua.components.optimizers import Optimizer
 from qiskit.aqua.components.variational_forms import VariationalForm
@@ -42,9 +43,10 @@ class VQAlgorithm(QuantumAlgorithm):
     """
     The Variational Quantum Algorithm Base Class.
     """
+
     def __init__(self,
-                 var_form: VariationalForm,
-                 optimizer: Optimizer,
+                 var_form: Optional[VariationalForm] = None,
+                 optimizer: Optional[Optimizer] = None,
                  cost_fn: Optional[Callable] = None,
                  initial_point: Optional[np.ndarray] = None) -> None:
         """
@@ -60,10 +62,13 @@ class VQAlgorithm(QuantumAlgorithm):
         """
         super().__init__()
 
-        self._var_form = var_form
+        self._initial_point = initial_point
+        self.var_form = var_form
+
+        if optimizer is None:
+            raise ValueError('Missing optimizer.')
         self._optimizer = optimizer
         self._cost_fn = cost_fn
-        self._initial_point = initial_point
 
         self._parameterized_circuits = None
 
@@ -76,6 +81,8 @@ class VQAlgorithm(QuantumAlgorithm):
     def var_form(self, var_form: VariationalForm):
         """ Sets variational form """
         self._var_form = var_form
+        if var_form:
+            self._var_form_params = ParameterVector('θ', var_form.num_parameters)
 
     @property
     def optimizer(self) -> Optional[Optimizer]:

@@ -20,7 +20,7 @@ import numpy as np
 from qiskit.quantum_info import Pauli
 from qiskit.aqua import aqua_globals
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
-from qiskit.optimization.ising.vehicle_routing import get_operator
+from qiskit.optimization.applications.ising.vehicle_routing import get_operator
 
 
 # To run only this test, issue:

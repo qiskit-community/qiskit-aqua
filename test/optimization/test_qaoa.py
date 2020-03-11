@@ -21,8 +21,8 @@ import numpy as np
 from ddt import ddt, idata, unpack
 from qiskit import BasicAer
 
-from qiskit.optimization.ising import max_cut
-from qiskit.optimization.ising.common import sample_most_likely
+from qiskit.optimization.applications.ising import max_cut
+from qiskit.optimization.applications.ising.common import sample_most_likely
 from qiskit.aqua.components.optimizers import COBYLA
 from qiskit.aqua.algorithms import QAOA
 from qiskit.aqua import QuantumInstance, aqua_globals
@@ -85,6 +85,3 @@ class TestQAOA(QiskitOptimizationTestCase):
         self.log.debug('solution objective: %s', max_cut.max_cut_value(x, w))
         self.assertIn(''.join([str(int(i)) for i in graph_solution]), solutions)
 
-
-if __name__ == '__main__':
-    unittest.main()

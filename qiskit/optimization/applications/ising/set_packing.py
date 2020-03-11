@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -15,6 +15,7 @@
 """ set packing module """
 
 import logging
+import warnings
 
 import numpy as np
 from qiskit.quantum_info import Pauli
@@ -60,17 +61,17 @@ def get_operator(list_of_subsets):
                 vp = np.zeros(n)
                 vp[i] = 1
                 vp[j] = 1
-                pauli_list.append([A*0.25, Pauli(vp, wp)])
+                pauli_list.append([A * 0.25, Pauli(vp, wp)])
 
                 vp2 = np.zeros(n)
                 vp2[i] = 1
-                pauli_list.append([A*0.25, Pauli(vp2, wp)])
+                pauli_list.append([A * 0.25, Pauli(vp2, wp)])
 
                 vp3 = np.zeros(n)
                 vp3[j] = 1
-                pauli_list.append([A*0.25, Pauli(vp3, wp)])
+                pauli_list.append([A * 0.25, Pauli(vp3, wp)])
 
-                shift += A*0.25
+                shift += A * 0.25
 
     for i in range(n):
         wp = np.zeros(n)
@@ -111,3 +112,47 @@ def check_disjoint(sol, list_of_subsets):
                 return False
 
     return True
+
+
+def random_number_list(n, weight_range=100, savefile=None):
+    """ random number list """
+    # pylint: disable=import-outside-toplevel
+    from .common import random_number_list as redirect_func
+    warnings.warn("random_number_list function has been moved to "
+                  "qiskit.optimization.ising.common, "
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return redirect_func(n=n, weight_range=weight_range, savefile=savefile)
+
+
+def read_numbers_from_file(filename):
+    """ read numbers from file """
+    # pylint: disable=import-outside-toplevel
+    from .common import read_numbers_from_file as redirect_func
+    warnings.warn("read_numbers_from_file function has been moved to "
+                  "qiskit.optimization.ising.common, "
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return redirect_func(filename)
+
+
+def sample_most_likely(n=None, state_vector=None):
+    """ sample most likely """
+    # pylint: disable=import-outside-toplevel
+    from .common import sample_most_likely as redirect_func
+    if n is not None:
+        warnings.warn("n argument is not need and it will be removed after Aqua 0.7+",
+                      DeprecationWarning)
+    warnings.warn("sample_most_likely function has been moved to "
+                  "qiskit.optimization.ising.common, "
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return redirect_func(state_vector=state_vector)
+
+
+def get_set_packing_qubitops(list_of_subsets):
+    """ get set packing qubit ops """
+    warnings.warn("get_set_packing_qubitops function has been changed to get_operator"
+                  "the method here will be removed after Aqua 0.7+",
+                  DeprecationWarning)
+    return get_operator(list_of_subsets)

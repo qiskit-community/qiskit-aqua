@@ -33,6 +33,7 @@ from qiskit.aqua.operators import (TPBGroupedWeightedPauliOperator, WeightedPaul
                                    MatrixOperator, op_converter)
 from qiskit.aqua.utils.backend_utils import (is_statevector_backend,
                                              is_aer_provider)
+from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import BaseOperator
 from qiskit.aqua.components.optimizers import Optimizer, SLSQP
 from qiskit.aqua.components.variational_forms import VariationalForm, RY
@@ -89,7 +90,9 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                  max_evals_grouped: int = 1,
                  aux_operators: Optional[List[BaseOperator]] = None,
                  callback: Optional[Callable[[int, np.ndarray, float, float], None]] = None,
-                 auto_conversion: bool = True) -> None:
+                 auto_conversion: bool = True,
+                 quantum_instance: Optional[QuantumInstance] = None
+                 ) -> None:
         """
 
         Args:
@@ -124,6 +127,8 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                   :class:`~qiskit.aqua.operators.WeightedPauliOperator`
                 - for *qasm simulator or real backend:*
                   :class:`~qiskit.aqua.operators.TPBGroupedWeightedPauliOperator`
+            quantum_instance: Quantum instance to be used, needs to be set here or when the
+                algorithm is executed.
         """
         validate_min('max_evals_grouped', max_evals_grouped, 1)
 
@@ -142,12 +147,6 @@ class VQE(VQAlgorithm, MinimumEigensolver):
             initial_point = var_form.preferred_init_points
 
         self._max_evals_grouped = max_evals_grouped
-
-        super().__init__(var_form=var_form,
-                         optimizer=optimizer,
-                         cost_fn=self._energy_evaluation,
-                         initial_point=initial_point)
-
         self._in_operator = None
         self._operator = None
         self._in_aux_operators = None
@@ -159,6 +158,13 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         self._ret = None
         self._eval_time = None
         self._eval_count = 0
+
+        super().__init__(var_form=var_form,
+                         optimizer=optimizer,
+                         cost_fn=self._energy_evaluation,
+                         initial_point=initial_point)
+
+        self._quantum_instance = quantum_instance
 
         logger.info(self.print_settings())
         self._var_form_params = None
@@ -199,11 +205,13 @@ class VQE(VQAlgorithm, MinimumEigensolver):
     @VQAlgorithm.var_form.setter
     def var_form(self, var_form: VariationalForm):
         """ Sets variational form """
+
         VQAlgorithm.var_form.fset(self, var_form)
-        self._var_form_params = ParameterVector('θ', var_form.num_parameters)
-        if self.initial_point is None:
-            self.initial_point = var_form.preferred_init_points
-        self._check_operator_varform()
+        if var_form:
+            self._var_form_params = ParameterVector('θ', var_form.num_parameters)
+            if self.initial_point is None:
+                self.initial_point = var_form.preferred_init_points
+            self._check_operator_varform()
 
     def _check_operator_varform(self):
         if self.operator is not None and self.var_form is not None:

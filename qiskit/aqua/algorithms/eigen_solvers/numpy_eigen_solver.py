@@ -14,7 +14,7 @@
 
 """The Eigensolver algorithm."""
 
-from typing import List, Optional
+from typing import List, Optional, Tuple
 import logging
 import pprint
 import warnings
@@ -23,7 +23,7 @@ from scipy import sparse as scisparse
 
 from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms import ClassicalAlgorithm
-from qiskit.aqua.operators import op_converter
+from qiskit.aqua.operators import MatrixOperator, op_converter  # pylint: disable=unused-import
 from qiskit.aqua.operators import BaseOperator
 from qiskit.aqua.utils.validation import validate_min
 from .eigen_solver_result import EigensolverResult
@@ -131,6 +131,8 @@ class NumPyEigensolver(ClassicalAlgorithm):
                 self._k = self._in_k
 
     def _solve(self):
+        if self._operator is None:
+            raise ValueError('Operator is None but must be set!')
         if self._operator.dia_matrix is None:
             if self._k >= self._operator.matrix.shape[0] - 1:
                 logger.debug("SciPy doesn't support to get all eigenvalues, using NumPy instead.")
@@ -185,7 +187,7 @@ class NumPyEigensolver(ClassicalAlgorithm):
         Returns:
             dict: Dictionary of results
         Raises:
-             AquaError: if no operator has been provided
+             ValueError: if no operator has been provided
         """
         if self._operator is None:
             raise AquaError("Operator was never provided")
