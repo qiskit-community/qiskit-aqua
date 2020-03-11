@@ -20,7 +20,7 @@ import numpy as np
 from qiskit.aqua import aqua_globals
 from qiskit.optimization.ising import tsp
 from qiskit.optimization.ising.common import sample_most_likely
-from qiskit.aqua.algorithms import ClassicalMinimumEigensolver
+from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 
 
 class TestTSP(QiskitOptimizationTestCase):
@@ -36,7 +36,7 @@ class TestTSP(QiskitOptimizationTestCase):
 
     def test_tsp(self):
         """ TSP test """
-        algo = ClassicalMinimumEigensolver(self.qubit_op)
+        algo = NumPyMinimumEigensolver(self.qubit_op)
         result = algo.run()
         x = sample_most_likely(result.eigenstate)
         order = tsp.get_tsp_solution(x)

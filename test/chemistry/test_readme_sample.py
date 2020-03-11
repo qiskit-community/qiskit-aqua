@@ -46,7 +46,12 @@ class TestReadmeSample(QiskitChemistryTestCase):
 
     def test_readme_sample(self):
         """ readme sample test """
-        # pylint: disable=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel,redefined-builtin
+
+        def print(*args):
+            """ overloads print to log values """
+            if args:
+                self.log.debug(args[0], *args[1:])
 
         # --- Exact copy of sample code ----------------------------------------
 
@@ -92,11 +97,11 @@ class TestReadmeSample(QiskitChemistryTestCase):
         backend = Aer.get_backend('statevector_simulator')
 
         result = algorithm.run(backend)
-        print(result['energy'])
+        print(result.eigenvalue.real)
 
         # ----------------------------------------------------------------------
 
-        self.assertAlmostEqual(result['energy'], -1.8572750301938803, places=6)
+        self.assertAlmostEqual(result.eigenvalue.real, -1.8572750301938803, places=6)
 
 
 if __name__ == '__main__':
