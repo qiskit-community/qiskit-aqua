@@ -29,7 +29,7 @@ configurations and capability.
 
 Note: Aqua provides some classical algorithms that take the same input data as quantum algorithms
 solving the same problem. For instance a Hamiltonian operator input to VQE can be used as an input
-to the ExactEigensolver. This may be useful for near-term quantum experiments, for problems
+to the ClassicalEigensolver. This may be useful for near-term quantum experiments, for problems
 that can still be solved classically, as their outcome can be easily compared against a classical
 equivalent since the same input data can be used.
 
@@ -67,8 +67,8 @@ these on a quantum backend, whether a real device or simulator.
 
 ### Optional Installs
 
-* **IBM CPLEX** may be [installed](qiskit/aqua/algorithms/classical/cplex/__init__.py#L16) 
-  to allow use of the `CPLEX_Ising` classical solver algorithm.
+* **IBM CPLEX** may be [installed](qiskit/aqua/algorithms/minimum_eigen_solvers/cplex/__init__.py#L16) 
+  to allow use of the `ClassicalCPLEX` classical solver algorithm.
 * **PyTorch**, may be installed either using command `pip install qiskit-aqua[torch]` to install the
   package or refer to PyTorch [getting started](https://pytorch.org/get-started/locally/). PyTorch
   being installed will enable the neural networks `PyTorchDiscriminator` component to be used with

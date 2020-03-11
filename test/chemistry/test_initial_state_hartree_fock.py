@@ -17,7 +17,7 @@
 import unittest
 from test.chemistry import QiskitChemistryTestCase
 import numpy as np
-from parameterized import parameterized
+from ddt import ddt, idata, unpack
 from qiskit.chemistry.components.initial_states import HartreeFock
 from qiskit.aqua.operators import op_converter
 from qiskit.chemistry import QiskitChemistryError
@@ -25,6 +25,7 @@ from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
 
 
+@ddt
 class TestInitialStateHartreeFock(QiskitChemistryTestCase):
     """ Initial State HartreeFock tests """
 
@@ -78,11 +79,12 @@ class TestInitialStateHartreeFock(QiskitChemistryTestCase):
                                       [False, False, False, False, True,
                                        False, True, False, True, True])
 
-    @parameterized.expand([
+    @idata([
         [QubitMappingType.JORDAN_WIGNER],
         [QubitMappingType.PARITY],
         [QubitMappingType.BRAVYI_KITAEV]
     ])
+    @unpack
     def test_hf_value(self, mapping):
         """ hf value test """
         try:

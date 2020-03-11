@@ -21,7 +21,6 @@ from sympy.ntheory.multinomial import multinomial_coefficients
 import numpy as np
 
 from qiskit.aqua.utils import CircuitFactory
-from qiskit.aqua.circuits.gates import mcrx, mcry, mcrz  # pylint: disable=unused-import
 
 # pylint: disable=invalid-name
 

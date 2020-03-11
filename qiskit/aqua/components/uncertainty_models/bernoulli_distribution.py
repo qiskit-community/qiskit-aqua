@@ -24,12 +24,21 @@ from .univariate_distribution import UnivariateDistribution
 class BernoulliDistribution(UnivariateDistribution):
     """
     The Univariate Bernoulli Distribution.
+
+    Distribution with only two values (low, high) and the corresponding probabilities
+    represented by a single qubit.
     """
 
     def __init__(self,
                  p: float,
                  low: float = 0,
                  high: float = 1):
+        """
+        Args:
+            p: Probability
+            low: Low value
+            high: High value
+        """
         probabilities = np.array([1-p, p])
         super().__init__(1, probabilities, low, high)
         self._p = p

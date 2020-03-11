@@ -21,7 +21,7 @@ import numpy as np
 from qiskit.quantum_info import Pauli
 
 from qiskit.aqua import aqua_globals
-from qiskit.aqua.algorithms import ExactEigensolver
+from qiskit.aqua.algorithms import ClassicalMinimumEigensolver
 from qiskit.finance.ising.portfolio_diversification import \
     (get_portfoliodiversification_solution,
      get_operator,
@@ -211,7 +211,7 @@ class TestPortfolioDiversification(QiskitFinanceTestCase):
         """ simple2 test """
         # Computes the cost using the exact eigensolver
         # and compares it against pre-determined value.
-        result = ExactEigensolver(self.qubit_op).run()
+        result = ClassicalMinimumEigensolver(self.qubit_op).run()
         quantum_solution = get_portfoliodiversification_solution(self.instance,
                                                                  self.n,
                                                                  self.q, result)
@@ -233,7 +233,7 @@ class TestPortfolioDiversification(QiskitFinanceTestCase):
             # This test should not focus on the availability of CPLEX, so we just eat the exception.
             self.skipTest("CPLEX may be missing.")
         # Solve the problem using the exact eigensolver
-        result = ExactEigensolver(self.qubit_op).run()
+        result = ClassicalMinimumEigensolver(self.qubit_op).run()
         quantum_solution = get_portfoliodiversification_solution(self.instance,
                                                                  self.n,
                                                                  self.q, result)

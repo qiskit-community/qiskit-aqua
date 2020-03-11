@@ -29,35 +29,17 @@ Gates
    :toctree: ../stubs/
    :nosignatures:
 
-    mcu1
-    mcrx
-    mcry
-    mcrz
-    mct
     mcmt
     logical_and
     logical_or
-    rccx
-    rcccx
 
 """
 
-from .multi_control_u1_gate import mcu1
-from .multi_control_rotation_gates import mcrx, mcry, mcrz
-from .multi_control_toffoli_gate import mct
 from .multi_control_multi_target_gate import mcmt
 from .boolean_logical_gates import logical_and, logical_or
-from .relative_phase_toffoli import rccx, rcccx
 
 __all__ = [
-    'mcu1',
-    'mcrx',
-    'mcry',
-    'mcrz',
-    'mct',
     'mcmt',
     'logical_and',
     'logical_or',
-    'rccx',
-    'rcccx'
 ]

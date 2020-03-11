@@ -22,6 +22,7 @@ import logging
 import os
 import unittest
 import time
+from qiskit.aqua import set_logging_level, QiskitLogDomains
 
 
 # disable deprecation warnings that can cause log output overflow
@@ -73,6 +74,8 @@ class QiskitBaseTestCase(unittest.TestCase, ABC):
             level = logging._nameToLevel.get(os.getenv('LOG_LEVEL'),
                                              logging.INFO)
             cls.log.setLevel(level)
+            # set all domains logging
+            set_logging_level(level, list(QiskitLogDomains), log_file_name)
 
     def get_resource_path(self,
                           filename: str,

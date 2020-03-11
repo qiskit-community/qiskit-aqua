@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""The first order expansion Pauli-Z-expansion."""
+"""First Order Expansion feature map."""
 
 from typing import Callable
 import numpy as np
@@ -22,9 +22,10 @@ from .data_mapping import self_product
 
 
 class FirstOrderExpansion(PauliZExpansion):
-    """Mapping data with the first order expansion without entangling gates.
+    """First Order Expansion feature map.
 
-    Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
+    This is a sub-class of :class:`PauliZExpansion` where *z_order* is fixed at 1.
+    As a result the first order expansion will be a feature map without entangling gates.
     """
 
     def __init__(self,
@@ -33,13 +34,14 @@ class FirstOrderExpansion(PauliZExpansion):
                  data_map_func: Callable[[np.ndarray], float] = self_product,
                  insert_barriers: bool = False) -> None:
         """
-
         Args:
-            feature_dimension: Number of features.
-            depth: The number of repeated circuits, has a min. value of 1.
-            data_map_func: A mapping function for data x.
+            feature_dimension: The number of features
+            depth: The number of repeated circuits. Defaults to 2, has a minimum value of 1.
+            data_map_func: A mapping function for data x which can be supplied to override the
+                default mapping from :meth:`self_product`.
             insert_barriers: If True, barriers are inserted in between the evolution instructions
                 and hadamard layers.
+                 data_map_func: Callable[[np.ndarray], float] = self_product) -> None:
         """
         validate_min('depth', depth, 1)
         super().__init__(feature_dimension=feature_dimension,

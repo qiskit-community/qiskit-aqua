@@ -18,7 +18,7 @@ import unittest
 from test.optimization import QiskitOptimizationTestCase
 
 import numpy as np
-from parameterized import parameterized
+from ddt import ddt, idata, unpack
 from qiskit import BasicAer
 
 from qiskit.optimization.ising import max_cut
@@ -54,12 +54,14 @@ M2 = None
 S2 = {'1011', '0100'}
 
 
+@ddt
 class TestQAOA(QiskitOptimizationTestCase):
     """Test QAOA with MaxCut."""
-    @parameterized.expand([
+    @idata([
         [W1, P1, M1, S1],
         [W2, P2, M2, S2],
     ])
+    @unpack
     def test_qaoa(self, w, prob, m, solutions):
         """ QAOA test """
         seed = 0
@@ -74,11 +76,11 @@ class TestQAOA(QiskitOptimizationTestCase):
         quantum_instance = QuantumInstance(backend, seed_simulator=seed, seed_transpiler=seed)
 
         result = qaoa.run(quantum_instance)
-        x = sample_most_likely(result['eigvecs'][0])
+        x = sample_most_likely(result.eigenstate)
         graph_solution = max_cut.get_graph_solution(x)
-        self.log.debug('energy:             %s', result['energy'])
-        self.log.debug('time:               %s', result['eval_time'])
-        self.log.debug('maxcut objective:   %s', result['energy'] + offset)
+        self.log.debug('energy:             %s', result.eigenvalue.real)
+        self.log.debug('time:               %s', result.optimizer_time)
+        self.log.debug('maxcut objective:   %s', result.eigenvalue.real + offset)
         self.log.debug('solution:           %s', graph_solution)
         self.log.debug('solution objective: %s', max_cut.max_cut_value(x, w))
         self.assertIn(''.join([str(int(i)) for i in graph_solution]), solutions)

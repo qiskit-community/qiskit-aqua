@@ -17,7 +17,7 @@
 import unittest
 from test.aqua import QiskitAquaTestCase
 
-from parameterized import parameterized
+from ddt import ddt, idata, unpack
 from qiskit import BasicAer
 
 from qiskit.aqua import aqua_globals, QuantumInstance
@@ -28,6 +28,7 @@ from qiskit.aqua.components.optimizers import L_BFGS_B
 from qiskit.aqua.operators import WeightedPauliOperator
 
 
+@ddt
 class TestRYCRX(QiskitAquaTestCase):
     """ Test RYCRX """
 
@@ -45,11 +46,12 @@ class TestRYCRX(QiskitAquaTestCase):
         }
         self.qubit_op = WeightedPauliOperator.from_dict(pauli_dict)
 
-    @parameterized.expand([
+    @idata([
         [2, 5],
         [3, 5],
         [4, 5]
     ])
+    @unpack
     def test_vqe_var_forms(self, depth, places):
         """ VQE Var Forms test """
         aqua_globals.random_seed = self.seed
@@ -61,7 +63,7 @@ class TestRYCRX(QiskitAquaTestCase):
                                                      shots=1,
                                                      seed_simulator=aqua_globals.random_seed,
                                                      seed_transpiler=aqua_globals.random_seed))
-        self.assertAlmostEqual(result['energy'], -1.85727503, places=places)
+        self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=places)
 
 
 if __name__ == '__main__':

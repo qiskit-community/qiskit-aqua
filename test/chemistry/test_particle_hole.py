@@ -15,12 +15,13 @@
 """ Test Particle Hole """
 
 from test.chemistry import QiskitChemistryTestCase
-from parameterized import parameterized
-from qiskit.aqua.algorithms import ExactEigensolver
+from ddt import ddt, idata, unpack
+from qiskit.aqua.algorithms import ClassicalMinimumEigensolver
 from qiskit.chemistry import FermionicOperator, QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType, HFMethodType
 
 
+@ddt
 class TestParticleHole(QiskitChemistryTestCase):
     """Test ParticleHole transformations of Fermionic Operator"""
 
@@ -30,7 +31,7 @@ class TestParticleHole(QiskitChemistryTestCase):
     O_H = 'O 0 0 0; H 0 0 0.9697'
     CH2 = 'C; H 1 1; H 1 1 2 125.0'
 
-    @parameterized.expand([
+    @idata([
         [H_2, 0, 0, 'sto3g', HFMethodType.RHF],
         [H_2, 0, 0, '6-31g', HFMethodType.RHF],
         [LIH, 0, 0, 'sto3g', HFMethodType.RHF],
@@ -42,6 +43,7 @@ class TestParticleHole(QiskitChemistryTestCase):
         [CH2, 0, 2, 'sto3g', HFMethodType.ROHF],
         [CH2, 0, 2, 'sto3g', HFMethodType.UHF],
     ])
+    @unpack
     def test_particle_hole(self, atom, charge=0, spin=0, basis='sto3g', hf_method=HFMethodType.RHF):
         """ particle hole test """
         try:
@@ -70,9 +72,10 @@ class TestParticleHole(QiskitChemistryTestCase):
 
         # Energy in original fer_op should same as ph transformed one added with ph_shift
         jw_op = fer_op.mapping('jordan_wigner')
-        result = ExactEigensolver(jw_op).run()
+        result = ClassicalMinimumEigensolver(jw_op).run()
 
         ph_jw_op = ph_fer_op.mapping('jordan_wigner')
-        ph_result = ExactEigensolver(ph_jw_op).run()
+        ph_result = ClassicalMinimumEigensolver(ph_jw_op).run()
 
-        self.assertAlmostEqual(result['energy'], ph_result['energy']-ph_shift, msg=config)
+        self.assertAlmostEqual(result.eigenvalue.real,
+                               ph_result.eigenvalue.real-ph_shift, msg=config)

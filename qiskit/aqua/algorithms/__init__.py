@@ -17,9 +17,18 @@ Algorithms (:mod:`qiskit.aqua.algorithms`)
 ==========================================
 Aqua contains a collection of quantum algorithms, for use with quantum computers, to
 carry out research and investigate how to solve problems in different domains on
-near-term quantum devices with short depth circuits. Aqua uses
-`Terra <https://www.qiskit.org/terra>`__ for compilation and execution
-of the quantum circuits required by the algorithm for the specific problems.
+near-term quantum devices with short depth circuits.
+
+Algorithms configuration includes the use of :mod:`~qiskit.aqua.components` which
+were designed to be swappable sub-parts of an algorithm. Any component and may be exchanged for
+a different implementation of the same component type in order to potentially alter the behavior
+and outcome of the algorithm.
+
+Algorithms are run via a :class:`~qiskit.aqua.QuantumInstance` which must be set with the desired
+backend where the algorithm's circuits will be executed and be configured with a number of compile
+and runtime parameters controlling circuit compilation and execution. Aqua ultimately uses
+`Terra <https://www.qiskit.org/terra>`__ for the actual compilation and execution of the quantum
+circuits created by the algorithm and its components.
 
 .. currentmodule:: qiskit.aqua.algorithms
 
@@ -47,8 +56,8 @@ Quantum Algorithms
    EOH
    QSVM
    Grover
-   IQPE
-   QPE
+   IQPEMinimumEigensolver
+   QPEMinimumEigensolver
    AmplitudeEstimation
    IterativeAmplitudeEstimation
    MaximumLikelihoodAmplitudeEstimation
@@ -67,53 +76,78 @@ generate reference values while experimenting with, developing and testing quant
 The algorithms are designed to take the same input data as the quantum algorithms so that
 behavior, data validity and output can be evaluated and compared to a quantum result.
 
-Note: The :class:`CPLEX_Ising` algorithm requires `IBM ILOG CPLEX Optimization Studio
+Note: The :class:`ClassicalCPLEX` algorithm requires `IBM ILOG CPLEX Optimization Studio
 <https://www.ibm.com/support/knowledgecenter/SSSA5P_12.10.0/COS_KC_home.html>`__
 and its Python API to be installed. See the following for more information:
 
 .. toctree::
    :maxdepth: 1
 
-   qiskit.aqua.algorithms.classical.cplex
+   qiskit.aqua.algorithms.minimum_eigen_solvers.cplex
 
 .. autosummary::
    :toctree: ../stubs/
    :nosignatures:
 
-   ExactEigensolver
-   ExactLSsolver
-   SVM_Classical
-   CPLEX_Ising
+   ClassicalEigensolver
+   ClassicalMinimumEigensolver
+   ClassicalLSsolver
+   ClassicalSVM
+   ClassicalCPLEX
 
 """
 
+from .algorithm_result import AlgorithmResult
 from .quantum_algorithm import QuantumAlgorithm
-from .adaptive import VQE, QAOA, VQC, QGAN
-from .classical import (ClassicalAlgorithm, ExactEigensolver, ExactLSsolver,
-                        SVM_Classical, CPLEX_Ising)
-from .many_sample import EOH, QSVM
-from .single_sample import (Grover, IQPE, QPE, AmplitudeEstimation,
-                            Simon, DeutschJozsa, BernsteinVazirani, HHL, Shor,
-                            IterativeAmplitudeEstimation,
-                            MaximumLikelihoodAmplitudeEstimation)
-
+from .classical_algorithm import ClassicalAlgorithm
+from .vq_algorithm import VQAlgorithm, VQResult
+from .amplitude_amplifiers import Grover
+from .amplitude_estimators import (AmplitudeEstimation,
+                                   IterativeAmplitudeEstimation,
+                                   MaximumLikelihoodAmplitudeEstimation)
+from .classifiers import VQC, QSVM, ClassicalSVM, SVM_Classical
+from .distribution_learners import QGAN
+from .eigen_solvers import ClassicalEigensolver, ExactEigensolver, EigensolverResult
+from .factorizers import Shor
+from .linear_solvers import HHL, ClassicalLSsolver, ExactLSsolver
+from .minimum_eigen_solvers import (VQE, VQEResult, QAOA, IQPE, IQPEMinimumEigensolver, IQPEResult,
+                                    QPE, QPEMinimumEigensolver, QPEResult,
+                                    ClassicalCPLEX, CPLEX_Ising, ClassicalMinimumEigensolver,
+                                    MinimumEigensolver, MinimumEigensolverResult)
+from .education import EOH, Simon, DeutschJozsa, BernsteinVazirani
 
 __all__ = [
+    'AlgorithmResult',
     'QuantumAlgorithm',
     'VQE',
+    'VQEResult',
     'QAOA',
     'VQC',
     'QGAN',
     'ClassicalAlgorithm',
+    'VQAlgorithm',
+    'VQResult',
+    'ClassicalEigensolver',
     'ExactEigensolver',
+    'ClassicalLSsolver',
+    'EigensolverResult',
     'ExactLSsolver',
+    'ClassicalMinimumEigensolver',
+    'MinimumEigensolver',
+    'MinimumEigensolverResult',
+    'ClassicalSVM',
     'SVM_Classical',
+    'ClassicalCPLEX',
     'CPLEX_Ising',
     'EOH',
     'QSVM',
     'Grover',
     'IQPE',
+    'IQPEMinimumEigensolver',
+    'IQPEResult',
     'QPE',
+    'QPEMinimumEigensolver',
+    'QPEResult',
     'AmplitudeEstimation',
     'IterativeAmplitudeEstimation',
     'MaximumLikelihoodAmplitudeEstimation',

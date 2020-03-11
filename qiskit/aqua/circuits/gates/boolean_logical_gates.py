@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -22,7 +22,6 @@ from qiskit.circuit import QuantumCircuit, QuantumRegister, Qubit
 from qiskit.qasm import pi
 
 from qiskit.aqua import AquaError
-from .multi_control_toffoli_gate import mct  # pylint: disable=unused-import
 
 logger = logging.getLogger(__name__)
 

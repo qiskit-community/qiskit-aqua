@@ -17,16 +17,18 @@
 import unittest
 from test.aqua import QiskitAquaTestCase
 import numpy as np
-from parameterized import parameterized
+from ddt import ddt, idata, unpack
 from qiskit import (QuantumRegister, QuantumCircuit, execute, BasicAer)
 from qiskit.aqua.components.reciprocals.lookup_rotation import LookupRotation
 from qiskit.quantum_info import (state_fidelity, Statevector)
 
 
+@ddt
 class TestLookupRotation(QiskitAquaTestCase):
     """Lookup Rotation tests."""
 
-    @parameterized.expand([[3, 1/2], [5, 1/4], [7, 1/8], [9, 1/16], [11, 1/32]])
+    @idata([[3, 1/2], [5, 1/4], [7, 1/8], [9, 1/16], [11, 1/32]])
+    @unpack
     def test_lookup_rotation(self, reg_size, ref_rot):
         """ lookup rotation test """
         self.log.debug('Testing Lookup Rotation with positive eigenvalues')
@@ -50,7 +52,8 @@ class TestLookupRotation(QiskitAquaTestCase):
         self.log.debug('Lookup rotation register size: %s', reg_size)
         self.log.debug('Lookup rotation fidelity:      %s', fidelity)
 
-    @parameterized.expand([[3, 0], [5, 1/4], [7, 1/8], [9, 1/16], [11, 1/32]])
+    @idata([[3, 0], [5, 1/4], [7, 1/8], [9, 1/16], [11, 1/32]])
+    @unpack
     def test_lookup_rotation_neg(self, reg_size, ref_rot):
         """ lookup rotation neg test """
         self.log.debug('Testing Lookup Rotation with support for negative '
