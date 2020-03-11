@@ -12,17 +12,21 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from collections.abc import Sequence
 import copy
 import numbers
+from collections.abc import Sequence
+from logging import getLogger
+from typing import Callable, Union, List
+
+from cplex import SparsePair
 
 from qiskit.optimization.utils import BaseInterface, QiskitOptimizationError
-from qiskit.optimization.utils.helpers import listify, convert
-from cplex import SparsePair
-from cplex.exceptions import CplexSolverError
+from qiskit.optimization.utils.helpers import NameIndex
 
 CPX_MAX = -1
 CPX_MIN = 1
+
+logger = getLogger(__name__)
 
 
 class ObjSense(object):
@@ -35,7 +39,8 @@ class ObjSense(object):
 
         Example usage:
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> op.objective.sense.minimize
         1
         >>> op.objective.sense[1]
@@ -52,24 +57,15 @@ class ObjectiveInterface(BaseInterface):
 
     sense = ObjSense()  # See `ObjSense()`
 
-    def __init__(self, varsgetindexfunc=None):
+    def __init__(self, varindex: Callable[[Union[str, List[str]]], int]):
         super(ObjectiveInterface, self).__init__()
         self._linear = {}
         self._quadratic = {}
         self._name = None
         self._sense = ObjSense.minimize
         self._offset = 0.0
-
-        def defaultvarsgetindexfunc(i):
-            if isinstance(i, int):
-                return i
-            else:
-                raise ("Cannot convert variable names without appropriate vargetindexfunc!")
-
-        if varsgetindexfunc:
-            self._varsgetindexfunc = varsgetindexfunc
-        else:
-            self._varsgetindexfunc = defaultvarsgetindexfunc
+        self._index = NameIndex()
+        self._varindex = varindex
 
     def set_linear(self, *args):
         """Changes the linear part of the objective function.
@@ -86,7 +82,8 @@ class ObjectiveInterface(BaseInterface):
           above.  Changes the coefficients for the specified
           variables to the given values.
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> indices = op.variables.add(names = [str(i) for i in range(4)])
         >>> op.objective.get_linear()
         [0.0, 0.0, 0.0, 0.0]
@@ -102,26 +99,15 @@ class ObjectiveInterface(BaseInterface):
         """
 
         def _set(i, v):
-            try:
-                v = v + 0.0
-                if v == 0.0 and i in self._linear:
-                    self._linear.pop(i)
-                else:
-                    self._linear[convert(i, self._varsgetindexfunc)] = v
-            except CplexSolverError:
-                raise QiskitOptimizationError(
-                    "Value of a coefficient needs to allow for addition of a float!")
+            i = self._varindex(i)
+            if v == 0.0 and i in self._linear:
+                del self._linear[i]
+            else:
+                self._linear[i] = v
 
-        # check for all elements in args whether they are types
-        if len(args) == 1 and all(hasattr(el, '__len__') and len(el) == 2 for el in args[0]):
-            for el in args[0]:
-                _set(*el)
-        elif len(args) == 2:
-            _set(*args)
-        else:
-            raise QiskitOptimizationError("Invalid arguments to set set_linear!")
+        self._setter(_set, *args)
 
-    def set_quadratic(self, *args):
+    def set_quadratic(self, args: List):
         """Sets the quadratic part of the objective function.
 
         Call this method with a list with length equal to the number
@@ -142,7 +128,8 @@ class ObjectiveInterface(BaseInterface):
           quadratic objective function, use the method
           set_quadratic_coefficients.
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> indices = op.variables.add(names = [str(i) for i in range(3)])
         >>> op.objective.set_quadratic([SparsePair(ind = [0, 1, 2], val = [1.0, -2.0, 0.5]),\
                                        SparsePair(ind = [0, 1], val = [-2.0, -1.0]),\
@@ -161,33 +148,33 @@ class ObjectiveInterface(BaseInterface):
         self._quadratic = {}
 
         def _set(i, j, val):
-            i = convert(i, self._varsgetindexfunc)
-            j = convert(j, self._varsgetindexfunc)
-            i_vals = self._quadratic.setdefault(i, {})
-            j_vals = self._quadratic.setdefault(j, {})
-            # NOTE: The following check is not necessary, considering we clear the _quadratic first
-            # if i in j_vals.keys() and j_vals[i] != val or j in i_vals.keys() and i_vals[j] != val:
-            #        raise QiskitOptimizationError('Q is not symmetric in set_quadratic.')
-            i_vals[j] = val
-            j_vals[i] = val
+            if val == 0 or val == 0.0:
+                return
+            i = self._varindex(i)
+            j = self._varindex(j)
+            if i not in self._quadratic:
+                self._quadratic[i] = {}
+            if j not in self._quadratic:
+                self._quadratic[j] = {}
+            self._quadratic[i][j] = self._quadratic[j][i] = val
 
-        if len(args) != 1:
-            raise QiskitOptimizationError("set_quadratic expects one argument, which is a list")
-        if args[0] and isinstance(args[0][0], numbers.Number):
-            for i, val in enumerate(args[0]):
+        if len(args) == 0:
+            logger.warning('Empty argument %s', args)
+        elif isinstance(args[0], numbers.Number):
+            for i, val in enumerate(args):
                 _set(i, i, val)
         else:
-            for i, sp in enumerate(args[0]):
+            for i, sp in enumerate(args):
                 if isinstance(sp, SparsePair):
                     for j, val in zip(sp.ind, sp.val):
                         _set(i, j, val)
                 elif isinstance(sp, Sequence) and len(sp) == 2:
-                    for i, (j, val) in enumerate(zip(sp[0], sp[1])):
+                    for j, val in zip(sp[0], sp[1]):
                         _set(i, j, val)
                 else:
-                    QiskitOptimizationError(
-                        "set_quadratic expects a list of the length equal to the number of " +
-                        "variables, where each entry has a pair of the indices of the other " +
+                    raise QiskitOptimizationError(
+                        "set_quadratic expects a list of the length equal to the number of "
+                        "variables, where each entry has a pair of the indices of the other "
                         "variables and values, or the corresponding SparsePair")
 
     def set_quadratic_coefficients(self, *args):
@@ -219,7 +206,8 @@ class ObjectiveInterface(BaseInterface):
           can be time consuming. Instead, use the method set_quadratic to set
           the quadratic part of the objective efficiently.
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> indices = op.variables.add(names = [str(i) for i in range(3)])
         >>> op.objective.set_quadratic_coefficients(0, 1, 1.0)
         >>> op.objective.get_quadratic()
@@ -236,22 +224,31 @@ class ObjectiveInterface(BaseInterface):
         """
 
         def _set(i, j, val):
-            i = convert(i, self._varsgetindexfunc)
-            j = convert(j, self._varsgetindexfunc)
-            i_vals = self._quadratic.setdefault(i, {})
-            j_vals = self._quadratic.setdefault(j, {})
+            # set a value or delete an element if val is zero
+            i = self._varindex(i)
+            j = self._varindex(j)
             if val == 0:
-                if j in i_vals:
-                    i_vals.pop(j)
-                if i != j and i in j_vals:
-                    j_vals.pop(i)
+                if i in self._quadratic and j in self._quadratic[i]:
+                    del self._quadratic[i][j]
+                    if len(self._quadratic[i]) == 0:
+                        del self._quadratic[i]
+                if j in self._quadratic and i in self._quadratic[j]:
+                    del self._quadratic[j][i]
+                    if len(self._quadratic[j]) == 0:
+                        del self._quadratic[j]
             else:
-                i_vals[j] = val
-                j_vals[i] = val
+                if i not in self._quadratic:
+                    self._quadratic[i] = {}
+                if j not in self._quadratic:
+                    self._quadratic[j] = {}
+                self._quadratic[i][j] = self._quadratic[j][i] = val
 
-        if len(args) not in (3, 1):
-            raise QiskitOptimizationError("Wrong number of arguments")
-        if isinstance(args[0], (str, int)):
+        if (len(args) == 1 and isinstance(args[0], Sequence)) or len(args) == 3:
+            # valid arguments
+            pass
+        else:
+            raise QiskitOptimizationError("Wrong number of arguments: {}".format(args))
+        if len(args) == 3:
             arg_list = [args]
         else:
             arg_list = args[0]
@@ -264,7 +261,8 @@ class ObjectiveInterface(BaseInterface):
         The argument to this method must be either
         objective.sense.minimize or objective.sense.maximize.
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> op.objective.sense[op.objective.get_sense()]
         'minimize'
         >>> op.objective.set_sense(op.objective.sense.maximize)
@@ -286,7 +284,8 @@ class ObjectiveInterface(BaseInterface):
 
         Example usage:
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> op.objective.set_name("cost")
         >>> op.objective.get_name()
         'cost'
@@ -313,7 +312,8 @@ class ObjectiveInterface(BaseInterface):
           indices the members of s.  Equivalent to
           [objective.get_linear(i) for i in s]
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> indices = op.variables.add(obj = [1.5 * i for i in range(10)],\
                             names = [str(i) for i in range(10)])
         >>> op.variables.get_num()
@@ -327,24 +327,12 @@ class ObjectiveInterface(BaseInterface):
         """
 
         def _get(i):
-            i = convert(i, self._varsgetindexfunc)
             return self._linear.get(i, 0.0)
 
-        out = []
         if len(args) == 0:
             return copy.deepcopy(self._linear)
-        elif len(args) == 1:
-            if isinstance(args[0], str):
-                return _get(args[0])
-            elif isinstance(args[0], Sequence):
-                for i in args[0]:
-                    out.append(_get(i))
-            else:
-                return _get(args[0])
-        else:
-            for i in args:
-                out.append(_get(i))
-        return out
+        keys = self._varindex(*args)
+        return self._getter(_get, keys)
 
     def get_quadratic(self, *args):
         """Returns a set of columns of the quadratic component of the objective function.
@@ -367,7 +355,8 @@ class ObjectiveInterface(BaseInterface):
           with the variables with indices the members of s.
           Equivalent to [objective.get_quadratic(i) for i in s]
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> indices = op.variables.add(names = [str(i) for i in range(10)])
         >>> op.variables.get_num()
         10
@@ -386,25 +375,13 @@ class ObjectiveInterface(BaseInterface):
         """
 
         def _get(i):
-            i = convert(i, self._varsgetindexfunc)
-            return SparsePair(list(self._quadratic[i].keys()), list(self._quadratic[i].values()))
+            qi = self._quadratic.get(i, {})
+            return SparsePair(list(qi.keys()), list(qi.values()))
 
-        out = []
         if len(args) == 0:
             return copy.deepcopy(self._quadratic)
-        elif len(args) == 1:
-            if isinstance(args[0], str):
-                return _get(args[0])
-            elif isinstance(args[0], Sequence):
-                for i in args[0]:
-                    out.append(_get(i))
-            else:
-                return _get(args[0])
-        else:
-            # NOTE: This is not documented, but perhaps useful.
-            for i in args:
-                out.append(_get(i))
-        return out
+        keys = self._varindex(*args)
+        return self._getter(_get, keys)
 
     def get_quadratic_coefficients(self, *args):
         """Returns individual coefficients from the quadratic objective function.
@@ -422,7 +399,8 @@ class ObjectiveInterface(BaseInterface):
         where sequence is a list or tuple of pairs (v1, v2) as
         described above.
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> indices = op.variables.add(names = [str(i) for i in range(3)])
         >>> op.objective.set_quadratic_coefficients(0, 1, 1.0)
         >>> op.objective.get_quadratic_coefficients("1", 0)
@@ -432,45 +410,40 @@ class ObjectiveInterface(BaseInterface):
         [5.0, 2.0, 3.0]
         """
 
-        def _get(i, j):
-            i = convert(i, self._varsgetindexfunc)
-            j = convert(j, self._varsgetindexfunc)
+        def _get(args):
+            i, j = args
             return self._quadratic.get(i, {}).get(j, 0)
 
-        out = []
         if len(args) == 0:
             return copy.deepcopy(self._quadratic)
-        elif len(args) == 2:
-            return _get(args[0], args[1])
         elif len(args) == 1:
-            if isinstance(args[0], str):
-                raise QiskitOptimizationError('Incompatible type: %s' % args[0])
-            elif isinstance(args[0], Sequence):
-                for (i, j) in args[0]:
-                    out.append(_get(i, j))
-                return out
-            else:
-                raise QiskitOptimizationError(
-                    "get_quadratic_coefficients passed a single argument that is not iterable.")
+            i, j = zip(*args[0])
+            i = self._varindex(i)
+            j = self._varindex(j)
+            return self._getter(_get, *zip(i, j))
+        elif len(args) == 2:
+            i, j = args
+            i = self._varindex(i)
+            j = self._varindex(j)
+            return _get((i, j))
         else:
-            raise QiskitOptimizationError(
-                "get_quadratic_coefficients expects either values two indices as two arguments, " +
-                "or a sequence of tuples.")
+            raise QiskitOptimizationError('Invalid arguments {}'.format(args))
 
     def get_sense(self):
         """Returns the sense of the objective function.
 
         Example usage:
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> op.objective.sense[op.objective.get_sense()]
-        1
+        'minimize'
         >>> op.objective.set_sense(op.objective.sense.maximize)
         >>> op.objective.sense[op.objective.get_sense()]
-        -1
+        'maximize'
         >>> op.objective.set_sense(op.objective.sense.minimize)
         >>> op.objective.sense[op.objective.get_sense()]
-        1
+        'minimize'
         """
         return self._sense
 
@@ -491,7 +464,8 @@ class ObjectiveInterface(BaseInterface):
 
         Example usage:
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> indices = op.variables.add(names = [str(i) for i in range(3)])
         >>> op.objective.set_quadratic_coefficients(0, 1, 1.0)
         >>> op.objective.get_num_quadratic_variables()
@@ -503,14 +477,15 @@ class ObjectiveInterface(BaseInterface):
         >>> op.objective.get_num_quadratic_variables()
         3
         """
-        return len(self._quadratic.items())
+        return len(self._quadratic)
 
     def get_num_quadratic_nonzeros(self):
         """Returns the number of nonzeros in the quadratic objective function.
 
         Example usage:
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> indices = op.variables.add(names = [str(i) for i in range(3)])
         >>> op.objective.set_quadratic_coefficients(0, 1, 1.0)
         >>> op.objective.get_num_quadratic_nonzeros()
@@ -522,17 +497,15 @@ class ObjectiveInterface(BaseInterface):
         >>> op.objective.get_num_quadratic_nonzeros()
         3
         """
-        nnz = 0
-        for (i, v) in self._quadratic.items():
-            nnz += len(v)
-        return nnz
+        return sum(len(v) for v in self._quadratic.values())
 
     def get_offset(self):
         """Returns the constant offset of the objective function for a problem.
 
         Example usage:
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> offset = op.objective.get_offset()
         >>> abs(offset - 0.0) < 1e-6
         True
@@ -544,7 +517,8 @@ class ObjectiveInterface(BaseInterface):
 
         Example usage:
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> op.objective.set_offset(3.14)
         >>> offset = op.objective.get_offset()
         >>> abs(offset - 3.14) < 1e-6
