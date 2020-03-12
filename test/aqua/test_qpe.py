@@ -33,8 +33,8 @@ Y = np.array([[0, -1j], [1j, 0]])
 Z = np.array([[1, 0], [0, -1]])
 _I = np.array([[1, 0], [0, 1]])
 H1 = X + Y + Z + _I
-QUBIT_OP_SIMPLE = MatrixOperator(matrix=H1)
-QUBIT_OP_SIMPLE = op_converter.to_weighted_pauli_operator(QUBIT_OP_SIMPLE)
+QUBIT_OP_SIMPLE = MatrixOperator(matrix=H1).to_opflow()
+QUBIT_OP_SIMPLE = op_converter.to_weighted_pauli_operator(QUBIT_OP_SIMPLE).to_opflow()
 
 PAULI_DICT = {
     'paulis': [
@@ -45,14 +45,14 @@ PAULI_DICT = {
         {"coeff": {"imag": 0.0, "real": 0.18093119978423156}, "label": "XX"}
     ]
 }
-QUBIT_OP_H2_WITH_2_QUBIT_REDUCTION = WeightedPauliOperator.from_dict(PAULI_DICT)
+QUBIT_OP_H2_WITH_2_QUBIT_REDUCTION = WeightedPauliOperator.from_dict(PAULI_DICT).to_opflow()
 
 PAULI_DICT_ZZ = {
     'paulis': [
         {"coeff": {"imag": 0.0, "real": 1.0}, "label": "ZZ"}
     ]
 }
-QUBIT_OP_ZZ = WeightedPauliOperator.from_dict(PAULI_DICT_ZZ)
+QUBIT_OP_ZZ = WeightedPauliOperator.from_dict(PAULI_DICT_ZZ).to_opflow()
 
 
 @ddt
