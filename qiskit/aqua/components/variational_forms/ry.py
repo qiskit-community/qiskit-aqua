@@ -69,7 +69,7 @@ class RY(VariationalForm):
     from :math:`0` to :math:`q-1`, where :math:`q` is the total number of qubits,
     as in the following example:
 
-         entangler_map = [[0, 1], [0, 2], [1, 3]]
+    entangler_map = [[0, 1], [0, 2], [1, 3]]
 
     """
 
