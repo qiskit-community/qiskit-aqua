@@ -14,14 +14,10 @@
 
 """ Test LinearConstraintInterface """
 
-import numpy as np
-import os.path
-import tempfile
 from cplex import SparsePair
-from qiskit.optimization.problems import OptimizationProblem
-from cplex import infinity
+
+from qiskit.optimization import OptimizationProblem
 from test.optimization.common import QiskitOptimizationTestCase
-from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
 
 
 class TestLinearConstraints(QiskitOptimizationTestCase):
@@ -30,13 +26,12 @@ class TestLinearConstraints(QiskitOptimizationTestCase):
     def setUp(self):
         super().setUp()
 
-    def test_initial1(self):
+    def test_get_num(self):
         op = OptimizationProblem()
         op.linear_constraints.add(names=["c1", "c2", "c3"])
         self.assertEqual(op.linear_constraints.get_num(), 3)
 
-    def test_initial2(self):
-        rhs = [0.0, 1.0, -1.0, 2.0]
+    def test_add(self):
         op = OptimizationProblem()
         op.variables.add(names=["x1", "x2", "x3"])
         op.linear_constraints.add(
@@ -45,183 +40,137 @@ class TestLinearConstraints(QiskitOptimizationTestCase):
                       SparsePair(ind=["x1", "x2", "x3"], val=[-1.0] * 3),
                       SparsePair(ind=["x2", "x3"], val=[10.0, -2.0])],
             senses=["E", "L", "G", "R"],
-            rhs=rhs,
+            rhs=[0.0, 1.0, -1.0, 2.0],
             range_values=[0.0, 0.0, 0.0, -10.0],
             names=["c0", "c1", "c2", "c3"])
-        self.assertEqual(len(op.linear_constraints.get_rhs()), 4)
-        for i, v in enumerate(rhs):
-            self.assertAlmostEqual(op.linear_constraints.get_rhs(i), v)
-            self.assertAlmostEqual(op.linear_constraints.get_rhs()[i], v)
+        self.assertListEqual(op.linear_constraints.get_rhs(), [0.0, 1.0, -1.0, 2.0])
 
-    def test_initial3(self):
+    def test_delete(self):
         op = OptimizationProblem()
         op.linear_constraints.add(names=[str(i) for i in range(10)])
         self.assertEqual(op.linear_constraints.get_num(), 10)
         op.linear_constraints.delete(8)
-        self.assertEqual(len(op.linear_constraints.get_names()), 9)
-        self.assertEqual(op.linear_constraints.get_names()[0], '0')
-        # ['0', '1', '2', '3', '4', '5', '6', '7', '9']
+        self.assertListEqual(op.linear_constraints.get_names(),
+                             ['0', '1', '2', '3', '4', '5', '6', '7', '9'])
         op.linear_constraints.delete("1", 3)
-        self.assertEqual(len(op.linear_constraints.get_names()), 6)
-        # ['0', '4', '5', '6', '7', '9']
+        self.assertListEqual(op.linear_constraints.get_names(), ['0', '4', '5', '6', '7', '9'])
         op.linear_constraints.delete([2, "0", 5])
-        self.assertEqual(len(op.linear_constraints.get_names()), 3)
-        self.assertEqual(op.linear_constraints.get_names()[0], '4')
-        # ['4', '6', '7']
+        self.assertListEqual(op.linear_constraints.get_names(), ['4', '6', '7'])
         op.linear_constraints.delete()
-        self.assertEqual(len(op.linear_constraints.get_names()), 0)
-        # []
+        self.assertListEqual(op.linear_constraints.get_names(), [])
 
-    def test_rhs1(self):
+    def test_rhs(self):
         op = OptimizationProblem()
         op.linear_constraints.add(names=["c0", "c1", "c2", "c3"])
-        self.assertEqual(len(op.linear_constraints.get_rhs()), 4)
-        self.assertAlmostEqual(op.linear_constraints.get_rhs()[0], 0.0)
-        # [0.0, 0.0, 0.0, 0.0]
+        self.assertListEqual(op.linear_constraints.get_rhs(), [0.0, 0.0, 0.0, 0.0])
         op.linear_constraints.set_rhs("c1", 1.0)
-        self.assertEqual(len(op.linear_constraints.get_rhs()), 4)
-        self.assertAlmostEqual(op.linear_constraints.get_rhs()[1], 1.0)
-        # [0.0, 1.0, 0.0, 0.0]
+        self.assertListEqual(op.linear_constraints.get_rhs(), [0.0, 1.0, 0.0, 0.0])
         op.linear_constraints.set_rhs([("c3", 2.0), (2, -1.0)])
-        self.assertEqual(len(op.linear_constraints.get_rhs()), 4)
-        self.assertAlmostEqual(op.linear_constraints.get_rhs()[2], -1.0)
-        self.assertAlmostEqual(op.linear_constraints.get_rhs()[3], 2.0)
-        # [0.0, 1.0, -1.0, 2.0]
+        self.assertListEqual(op.linear_constraints.get_rhs(), [0.0, 1.0, -1.0, 2.0])
 
-    def test_names(self):
+    def test_set_names(self):
         op = OptimizationProblem()
         op.linear_constraints.add(names=["c0", "c1", "c2", "c3"])
         op.linear_constraints.set_names("c1", "second")
         self.assertEqual(op.linear_constraints.get_names(1), 'second')
         op.linear_constraints.set_names([("c3", "last"), (2, "middle")])
-        op.linear_constraints.get_names()
-        self.assertEqual(len(op.linear_constraints.get_names()), 4)
-        self.assertEqual(op.linear_constraints.get_names()[0], 'c0')
-        self.assertEqual(op.linear_constraints.get_names()[1], 'second')
-        self.assertEqual(op.linear_constraints.get_names()[2], 'middle')
-        self.assertEqual(op.linear_constraints.get_names()[3], 'last')
-        # ['c0', 'second', 'middle', 'last']
+        self.assertListEqual(op.linear_constraints.get_names(), ['c0', 'second', 'middle', 'last'])
 
-    def test_senses1(self):
+    def test_set_senses(self):
         op = OptimizationProblem()
         op.linear_constraints.add(names=["c0", "c1", "c2", "c3"])
-        op.linear_constraints.get_senses()
-        self.assertEqual(len(op.linear_constraints.get_senses()), 4)
-        self.assertEqual(op.linear_constraints.get_senses()[0], 'E')
-        # ['E', 'E', 'E', 'E']
+        self.assertListEqual(op.linear_constraints.get_senses(), ['E', 'E', 'E', 'E'])
         op.linear_constraints.set_senses("c1", "G")
         self.assertEqual(op.linear_constraints.get_senses(1), 'G')
         op.linear_constraints.set_senses([("c3", "L"), (2, "R")])
-        # ['E', 'G', 'R', 'L']
-        self.assertEqual(op.linear_constraints.get_senses()[0], 'E')
-        self.assertEqual(op.linear_constraints.get_senses()[1], 'G')
-        self.assertEqual(op.linear_constraints.get_senses()[2], 'R')
-        self.assertEqual(op.linear_constraints.get_senses()[3], 'L')
+        self.assertListEqual(op.linear_constraints.get_senses(), ['E', 'G', 'R', 'L'])
 
-    def test_linear_components(self):
+    def test_set_linear_components(self):
         op = OptimizationProblem()
         op.linear_constraints.add(names=["c0", "c1", "c2", "c3"])
         op.variables.add(names=["x0", "x1"])
         op.linear_constraints.set_linear_components("c0", [["x0"], [1.0]])
-        self.assertEqual(op.linear_constraints.get_rows("c0").ind[0], 0)
-        self.assertAlmostEqual(op.linear_constraints.get_rows("c0").val[0], 1.0)
-        # SparsePair(ind = [0], val = [1.0])
-        op.linear_constraints.set_linear_components([("c3", SparsePair(ind=["x1"], val=[-1.0])),
-                                                     (2, [[0, 1], [-2.0, 3.0]])])
-        op.linear_constraints.get_rows()
-        # [SparsePair(ind = [0], val = [1.0]),
-        #  SparsePair(ind = [], val = []),
-        #  SparsePair(ind = [0, 1], val = [-2.0, 3.0]),
-        #  SparsePair(ind = [1], val = [-1.0])]
-        self.assertEqual(op.linear_constraints.get_rows()[0].ind[0], 0)
-        self.assertAlmostEqual(op.linear_constraints.get_rows()[0].val[0], 1.0)
-        self.assertEqual(op.linear_constraints.get_rows()[2].ind[0], 0)
-        self.assertAlmostEqual(op.linear_constraints.get_rows()[2].val[0], -2.0)
+        sp = op.linear_constraints.get_rows("c0")
+        self.assertListEqual(sp.ind, [0])
+        self.assertListEqual(sp.val, [1.0])
+        op.linear_constraints.set_linear_components(
+            [("c3", SparsePair(ind=["x1"], val=[-1.0])),
+             (2, [[0, 1], [-2.0, 3.0]])]
+        )
+        sp = op.linear_constraints.get_rows("c3")
+        self.assertListEqual(sp.ind, [1])
+        self.assertListEqual(sp.val, [-1.0])
+        sp = op.linear_constraints.get_rows(2)
+        self.assertListEqual(sp.ind, [0, 1])
+        self.assertListEqual(sp.val, [-2.0, 3.0])
 
-    def test_linear_components_ranges(self):
+    def test_set_range_values(self):
         op = OptimizationProblem()
         op.linear_constraints.add(names=["c0", "c1", "c2", "c3"])
         op.linear_constraints.set_range_values("c1", 1.0)
-        self.assertEqual(len(op.linear_constraints.get_range_values()), 4)
-        self.assertAlmostEqual(op.linear_constraints.get_range_values()[0], 0.0)
-        # [0.0, 1.0, 0.0, 0.0]
+        self.assertListEqual(op.linear_constraints.get_range_values(), [0.0, 1.0, 0.0, 0.0])
         op.linear_constraints.set_range_values([("c3", 2.0), (2, -1.0)])
-        # [0.0, 1.0, -1.0, 2.0]
-        self.assertEqual(len(op.linear_constraints.get_range_values()), 4)
-        self.assertAlmostEqual(op.linear_constraints.get_range_values()[2], -1.0)
-        self.assertAlmostEqual(op.linear_constraints.get_range_values()[3], 2.0)
+        self.assertListEqual(op.linear_constraints.get_range_values(), [0.0, 1.0, -1.0, 2.0])
 
-    def test_rows(self):
+    def test_set_coeffients(self):
         op = OptimizationProblem()
         op.linear_constraints.add(names=["c0", "c1", "c2", "c3"])
         op.variables.add(names=["x0", "x1"])
         op.linear_constraints.set_coefficients("c0", "x1", 1.0)
-        self.assertEqual(op.linear_constraints.get_rows(0).ind[0], 1)
-        self.assertAlmostEqual(op.linear_constraints.get_rows(0).val[0], 1.0)
-        # SparsePair(ind = [1], val = [1.0])
+        sp = op.linear_constraints.get_rows(0)
+        self.assertListEqual(sp.ind, [1])
+        self.assertListEqual(sp.val, [1.0])
         op.linear_constraints.set_coefficients([("c2", "x0", 2.0),
                                                 ("c2", "x1", -1.0)])
-        # SparsePair(ind = [0, 1], val = [2.0, -1.0])
-        self.assertEqual(op.linear_constraints.get_rows("c2").ind[0], 0)
-        self.assertAlmostEqual(op.linear_constraints.get_rows("c2").val[0], 2.0)
-        self.assertEqual(op.linear_constraints.get_rows("c2").ind[1], 1)
-        self.assertAlmostEqual(op.linear_constraints.get_rows("c2").val[1], -1.0)
+        sp = op.linear_constraints.get_rows("c2")
+        self.assertListEqual(sp.ind, [0, 1])
+        self.assertListEqual(sp.val, [2.0, -1.0])
 
-    def test_rhs2(self):
+    def test_get_rhs(self):
         op = OptimizationProblem()
         op.linear_constraints.add(rhs=[1.5 * i for i in range(10)],
                                   names=[str(i) for i in range(10)])
         self.assertEqual(op.linear_constraints.get_num(), 10)
         self.assertAlmostEqual(op.linear_constraints.get_rhs(8), 12.0)
-        self.assertAlmostEqual(op.linear_constraints.get_rhs([2, "0", 5])[0], 3.0)
-        self.assertAlmostEqual(op.linear_constraints.get_rhs([2, "0", 5])[1], 0.0)
-        self.assertAlmostEqual(op.linear_constraints.get_rhs([2, "0", 5])[2], 7.5)
-        # [3.0, 0.0, 7.5]
-        self.assertEqual(len(op.linear_constraints.get_rhs()), 10)
-        self.assertEqual(sum(op.linear_constraints.get_rhs()), 67.5)
-        # [0.0, 1.5, 3.0, 4.5, 6.0, 7.5, 9.0, 10.5, 12.0, 13.5]
+        self.assertListEqual(op.linear_constraints.get_rhs([2, "0", 5]), [3.0, 0.0, 7.5])
+        self.assertEqual(op.linear_constraints.get_rhs(),
+                         [0.0, 1.5, 3.0, 4.5, 6.0, 7.5, 9.0, 10.5, 12.0, 13.5])
 
-    def test_senses2(self):
+    def test_get_senses(self):
         op = OptimizationProblem()
         op.linear_constraints.add(
             senses=["E", "G", "L", "R"],
             names=[str(i) for i in range(4)])
         self.assertEqual(op.linear_constraints.get_num(), 4)
         self.assertEqual(op.linear_constraints.get_senses(1), 'G')
-        self.assertEqual(op.linear_constraints.get_senses([2, "0", 1])[0], 'L')
-        self.assertEqual(op.linear_constraints.get_senses([2, "0", 1])[1], 'E')
-        self.assertEqual(op.linear_constraints.get_senses([2, "0", 1])[2], 'G')
-        # ['L', 'E', 'G']
-        self.assertEqual(op.linear_constraints.get_senses()[0], 'E')
-        self.assertEqual(op.linear_constraints.get_senses()[1], 'G')
-        # ['E', 'G', 'L', 'R']
+        self.assertListEqual(op.linear_constraints.get_senses("1", 3), ['G', 'L', 'R'])
+        self.assertListEqual(op.linear_constraints.get_senses([2, "0", 1]), ['L', 'E', 'G'])
+        self.assertListEqual(op.linear_constraints.get_senses(), ['E', 'G', 'L', 'R'])
 
-    def test_range_values(self):
+    def test_get_range_values(self):
         op = OptimizationProblem()
         op.linear_constraints.add(
             range_values=[1.5 * i for i in range(10)],
             senses=["R"] * 10,
             names=[str(i) for i in range(10)])
         self.assertEqual(op.linear_constraints.get_num(), 10)
-        self.assertAlmostEqual(op.linear_constraints.get_range_values(8), 12.0)
-        self.assertAlmostEqual(sum(op.linear_constraints.get_range_values([2, "0", 5])), 10.5)
-        # [3.0, 0.0, 7.5]
-        self.assertAlmostEqual(sum(op.linear_constraints.get_range_values()), 67.5)
-        # [0.0, 1.5, 3.0, 4.5, 6.0, 7.5, 9.0, 10.5, 12.0, 13.5]
+        self.assertEqual(op.linear_constraints.get_range_values(8), 12.0)
+        self.assertListEqual(op.linear_constraints.get_range_values("1", 3), [1.5, 3.0, 4.5])
+        self.assertListEqual(op.linear_constraints.get_range_values([2, "0", 5]), [3.0, 0.0, 7.5])
+        self.assertListEqual(op.linear_constraints.get_range_values(),
+                             [0.0, 1.5, 3.0, 4.5, 6.0, 7.5, 9.0, 10.5, 12.0, 13.5])
 
-    def test_coefficients(self):
+    def test_get_coefficients(self):
         op = OptimizationProblem()
         op.variables.add(names=["x0", "x1"])
         op.linear_constraints.add(
             names=["c0", "c1"],
             lin_expr=[[[1], [1.0]], [[0, 1], [2.0, -1.0]]])
         self.assertAlmostEqual(op.linear_constraints.get_coefficients("c0", "x1"), 1.0)
-        self.assertAlmostEqual(op.linear_constraints.get_coefficients(
-            [("c1", "x0"), ("c1", "x1")])[0], 2.0)
-        self.assertAlmostEqual(op.linear_constraints.get_coefficients(
-            [("c1", "x0"), ("c1", "x1")])[1], -1.0)
+        self.assertListEqual(
+            op.linear_constraints.get_coefficients([("c1", "x0"), ("c1", "x1")]), [2.0, -1.0])
 
-    def test_rows2(self):
+    def test_get_rows(self):
         op = OptimizationProblem()
         op.variables.add(names=["x1", "x2", "x3"])
         op.linear_constraints.add(
@@ -230,39 +179,56 @@ class TestLinearConstraints(QiskitOptimizationTestCase):
                       SparsePair(ind=["x1", "x2"], val=[1.0, 1.0]),
                       SparsePair(ind=["x1", "x2", "x3"], val=[-1.0] * 3),
                       SparsePair(ind=["x2", "x3"], val=[10.0, -2.0])])
-        self.assertEqual(op.linear_constraints.get_rows(0).ind[0], 0)
-        self.assertAlmostEqual(op.linear_constraints.get_rows(0).val[0], 1.0)
-        self.assertEqual(op.linear_constraints.get_rows(0).ind[1], 2)
-        self.assertAlmostEqual(op.linear_constraints.get_rows(0).val[1], -1.0)
-        # SparsePair(ind = [0, 2], val = [1.0, -1.0])
-        self.assertEqual(op.linear_constraints.get_rows("c2").ind[0], 0)
-        self.assertAlmostEqual(op.linear_constraints.get_rows("c2").val[0], -1.0)
-        self.assertEqual(op.linear_constraints.get_rows("c2").ind[1], 1)
-        self.assertAlmostEqual(op.linear_constraints.get_rows("c2").val[1], -1.0)
-        # [SparsePair(ind = [0, 1, 2], val = [-1.0, -1.0, -1.0]),
-        #  SparsePair(ind = [0, 2], val = [1.0, -1.0])]
-        self.assertEqual(len(op.linear_constraints.get_rows()), 4)
-        # [SparsePair(ind = [0, 2], val = [1.0, -1.0]),
-        #  SparsePair(ind = [0, 1], val = [1.0, 1.0]),
-        #  SparsePair(ind = [0, 1, 2], val = [-1.0, -1.0, -1.0]),
-        #  SparsePair(ind = [1, 2], val = [10.0, -2.0])]
+        sp = op.linear_constraints.get_rows(0)
+        self.assertListEqual(sp.ind, [0, 2])
+        self.assertListEqual(sp.val, [1.0, -1.0])
 
-    def test_nnz(self):
+        sp = op.linear_constraints.get_rows(1, 3)
+        self.assertListEqual(sp[0].ind, [0, 1])
+        self.assertListEqual(sp[0].val, [1.0, 1.0])
+        self.assertListEqual(sp[1].ind, [0, 1, 2])
+        self.assertListEqual(sp[1].val, [-1.0, -1.0, -1.0])
+        self.assertListEqual(sp[2].ind, [1, 2])
+        self.assertListEqual(sp[2].val, [10.0, -2.0])
+
+        sp = op.linear_constraints.get_rows(['c2', 0])
+        self.assertListEqual(sp[0].ind, [0, 1, 2])
+        self.assertListEqual(sp[0].val, [-1.0, -1.0, -1.0])
+        self.assertListEqual(sp[1].ind, [0, 2])
+        self.assertListEqual(sp[1].val, [1.0, -1.0])
+
+        sp = op.linear_constraints.get_rows()
+        self.assertListEqual(sp[0].ind, [0, 2])
+        self.assertListEqual(sp[0].val, [1.0, -1.0])
+        self.assertListEqual(sp[1].ind, [0, 1])
+        self.assertListEqual(sp[1].val, [1.0, 1.0])
+        self.assertListEqual(sp[2].ind, [0, 1, 2])
+        self.assertListEqual(sp[2].val, [-1.0, -1.0, -1.0])
+        self.assertListEqual(sp[3].ind, [1, 2])
+        self.assertListEqual(sp[3].val, [10.0, -2.0])
+
+    def test_get_num_nonzeros(self):
         op = OptimizationProblem()
         op.variables.add(names=["x1", "x2", "x3"])
-        op.linear_constraints.add(names=["c0", "c1", "c2", "c3"],
-                                  lin_expr=[SparsePair(ind=["x1", "x3"], val=[1.0, -1.0]),
-                                            SparsePair(ind=["x1", "x2"], val=[1.0, 1.0]),
-                                            SparsePair(ind=["x1", "x2", "x3"], val=[-1.0] * 3),
-                                            SparsePair(ind=["x2", "x3"], val=[10.0, -2.0])])
+        op.linear_constraints.add(
+            names=["c0", "c1", "c2", "c3"],
+            lin_expr=[SparsePair(ind=["x1", "x3"], val=[1.0, -1.0]),
+                      SparsePair(ind=["x1", "x2"], val=[1.0, 1.0]),
+                      SparsePair(ind=["x1", "x2", "x3"], val=[-1.0] * 3),
+                      SparsePair(ind=["x2", "x3"], val=[10.0, -2.0])])
         self.assertEqual(op.linear_constraints.get_num_nonzeros(), 9)
+        op.linear_constraints.set_coefficients("c0", "x3", 0)
+        self.assertEqual(op.linear_constraints.get_num_nonzeros(), 8)
 
-    def test_names2(self):
+    def test_get_names(self):
         op = OptimizationProblem()
         op.linear_constraints.add(names=["c" + str(i) for i in range(10)])
         self.assertEqual(op.linear_constraints.get_num(), 10)
         self.assertEqual(op.linear_constraints.get_names(8), 'c8')
-        self.assertEqual(op.linear_constraints.get_names([2, 0, 5])[0], 'c2')
-        # ['c2', 'c0', 'c5']
-        self.assertEqual(len(op.linear_constraints.get_names()), 10)
-        # ['c0', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c9']
+        self.assertListEqual(op.linear_constraints.get_names([2, 0, 5]), ['c2', 'c0', 'c5'])
+        self.assertEqual(op.linear_constraints.get_names(),
+                         ['c0', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c9'])
+
+    def test_get_histogram(self):
+        op = OptimizationProblem()
+        self.assertRaises(NotImplementedError, lambda: op.linear_constraints.get_histogram())

@@ -13,16 +13,16 @@
 # that they have been altered from the originals.
 
 
-from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
-from qiskit.optimization.utils.helpers import convert
-from qiskit.optimization.problems.variables import VariablesInterface
-from qiskit.optimization.problems.linear_constraint import LinearConstraintInterface
-from qiskit.optimization.problems.quadratic_constraint import QuadraticConstraintInterface
-from qiskit.optimization.problems.objective import ObjectiveInterface
-from qiskit.optimization.problems.problem_type import ProblemType
-from qiskit.optimization.results.solution import SolutionInterface
 from cplex import Cplex, SparsePair
 from cplex.exceptions import CplexSolverError
+
+from qiskit.optimization.problems.linear_constraint import LinearConstraintInterface
+from qiskit.optimization.problems.objective import ObjectiveInterface
+from qiskit.optimization.problems.problem_type import ProblemType
+from qiskit.optimization.problems.quadratic_constraint import QuadraticConstraintInterface
+from qiskit.optimization.problems.variables import VariablesInterface
+from qiskit.optimization.results.solution import SolutionInterface
+from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
 
 
 class OptimizationProblem(object):
@@ -65,15 +65,15 @@ class OptimizationProblem(object):
         """See `qiskit.optimization.VariablesInterface()` """
 
         self.linear_constraints = LinearConstraintInterface(
-            varsgetindexfunc=self.variables._varsgetindexfunc)
+            varindex=self.variables.get_indices)
         """See `qiskit.optimization.LinearConstraintInterface()` """
 
         self.quadratic_constraints = QuadraticConstraintInterface(
-            varsgetindexfunc = self.variables._varsgetindexfunc)
+            varindex=self.variables.get_indices)
         """See `qiskit.optimization.QuadraticConstraintInterface()` """
 
         # pylint: disable=unexpected-keyword-arg
-        self.objective = ObjectiveInterface(varsgetindexfunc=self.variables._varsgetindexfunc)
+        self.objective = ObjectiveInterface(varindex=self.variables.get_indices)
         """See `qiskit.optimization.ObjectiveInterface()` """
 
         self.solution = SolutionInterface()
@@ -97,10 +97,10 @@ class OptimizationProblem(object):
         self._disposed = False
         self._name = None
         self.variables = VariablesInterface()
-        self.linear_constraints = LinearConstraintInterface(
-            varsgetindexfunc=self.variables._varsgetindexfunc)
-        self.quadratic_constraints = QuadraticConstraintInterface()
-        self.objective = ObjectiveInterface(varsgetindexfunc=self.variables._varsgetindexfunc)
+        self.linear_constraints = LinearConstraintInterface(varindex=self.variables.get_indices)
+        self.quadratic_constraints = QuadraticConstraintInterface(
+            varindex=self.variables.get_indices)
+        self.objective = ObjectiveInterface(varindex=self.variables.get_indices)
         self.solution = SolutionInterface()
 
         # set problem name
@@ -364,15 +364,15 @@ class OptimizationProblem(object):
         vars_to_be_replaced = {}
         if constants is not None:
             for i, v in zip(constants.ind, constants.val):
-                i = convert(i, self.variables._varsgetindexfunc)
+                i = self.variables.get_indices(i)
                 name = self.variables.get_names(i)
                 if i in vars_to_be_replaced:
                     raise QiskitOptimizationError('cannot substitute the same variable twice')
                 vars_to_be_replaced[name] = [v]
         if variables is not None:
             for i, j, v in zip(variables.ind1, variables.ind2, variables.val):
-                i = convert(i, self.variables._varsgetindexfunc)
-                j = convert(j, self.variables._varsgetindexfunc)
+                i = self.variables.get_indices(i)
+                j = self.variables.get_indices(j)
                 name1 = self.variables.get_names(i)
                 name2 = self.variables.get_names(j)
                 if name1 in vars_to_be_replaced:
@@ -416,7 +416,7 @@ class OptimizationProblem(object):
 
         # construct linear part of objective
         for i, v in self.objective.get_linear().items():
-            i = convert(i, self.variables._varsgetindexfunc)
+            i = self.variables.get_indices(i)
             i_name = self.variables.get_names(i)
             i_repl = vars_to_be_replaced.get(i_name, None)
             if i_repl is not None:
@@ -433,8 +433,8 @@ class OptimizationProblem(object):
         # construct quadratic part of objective
         for i, vi in self.objective.get_quadratic().items():
             for j, v in vi.items():
-                i = convert(i, self.variables._varsgetindexfunc)
-                j = convert(j, self.variables._varsgetindexfunc)
+                i = self.variables.get_indices(i)
+                j = self.variables.get_indices(j)
                 i_name = self.variables.get_names(i)
                 j_name = self.variables.get_names(j)
                 i_repl = vars_to_be_replaced.get(i_name, None)
@@ -447,7 +447,7 @@ class OptimizationProblem(object):
                         w_j += i_repl[0] * w_ij / 2
                         op.objective.set_linear(j_name, w_j)
                     else:  # len == 2
-                        k = convert(i_repl[0], self.variables._varsgetindexfunc)
+                        k = self.variables.get_indices(i_repl[0])
                         k_name = self.variables.get_names(k)
                         if k_name in vars_to_be_replaced.keys():
                             raise QiskitOptimizationError(
@@ -462,7 +462,7 @@ class OptimizationProblem(object):
                         w_i += j_repl[0] * w_ij / 2
                         op.objective.set_linear(i_name, w_i)
                     else:  # len == 2
-                        k = convert(j_repl[0], self.variables._varsgetindexfunc)
+                        k = self.variables.get_indices(j_repl[0])
                         k_name = self.variables.get_names(k)
                         if k_name in vars_to_be_replaced.keys():
                             raise QiskitOptimizationError(
@@ -474,7 +474,7 @@ class OptimizationProblem(object):
                     if len(i_repl) == 1 and len(j_repl) == 1:
                         offset += w_ij * i_repl[0] * j_repl[0] / 2
                     elif len(i_repl) == 1 and len(j_repl) == 2:
-                        k = convert(j_repl[0], self.variables._varsgetindexfunc)
+                        k = self.variables.get_indices(j_repl[0])
                         k_name = self.variables.get_names(k)
                         if k_name in vars_to_be_replaced.keys():
                             raise QiskitOptimizationError(
@@ -483,7 +483,7 @@ class OptimizationProblem(object):
                         w_k += w_ij * i_repl[0] * j_repl[1] / 2
                         op.objective.set_linear(k_name, w_k)
                     elif len(i_repl) == 2 and len(j_repl) == 1:
-                        k = convert(i_repl[0], self.variables._varsgetindexfunc)
+                        k = self.variables.get_indices(i_repl[0])
                         k_name = self.variables.get_names(k)
                         if k_name in vars_to_be_replaced.keys():
                             raise QiskitOptimizationError(
@@ -492,12 +492,12 @@ class OptimizationProblem(object):
                         w_k += w_ij * j_repl[0] * i_repl[1] / 2
                         op.objective.set_linear(k_name, w_k)
                     else:  # both len(repl) == 2
-                        k = convert(i_repl[0], self.variables._varsgetindexfunc)
+                        k = self.variables.get_indices(i_repl[0])
                         k_name = self.variables.get_names(k)
                         if k_name in vars_to_be_replaced.keys():
                             raise QiskitOptimizationError(
                                 'Cannot substitute by variable that gets substituted itself.')
-                        l = convert(j_repl[0], self.variables._varsgetindexfunc)
+                        l = self.variables.get_indices(j_repl[0])
                         l_name = self.variables.get_names(l)
                         if l_name in vars_to_be_replaced.keys():
                             raise QiskitOptimizationError(
@@ -508,11 +508,11 @@ class OptimizationProblem(object):
                 else:
                     # nothing to be replaced, just copy coefficients
                     if i == j:
-                        w_ij = self.objective.get_quadratic_coefficients(
-                            i_name, j_name) + op.objective.get_quadratic_coefficients(i_name, j_name)
+                        w_ij = sum(self.objective.get_quadratic_coefficients(i_name, j_name),
+                                   op.objective.get_quadratic_coefficients(i_name, j_name))
                     else:
-                        w_ij = self.objective.get_quadratic_coefficients(
-                            i_name, j_name)/2 + op.objective.get_quadratic_coefficients(i_name, j_name)
+                        w_ij = sum(self.objective.get_quadratic_coefficients(i_name, j_name) / 2,
+                                   op.objective.get_quadratic_coefficients(i_name, j_name))
                     op.objective.set_quadratic_coefficients(i_name, j_name, w_ij)
 
         # set offset
@@ -529,24 +529,25 @@ class OptimizationProblem(object):
             # print(name, row, rhs, sense, range_value)
             new_vals = {}
             for i, v in zip(row.ind, row.val):
-                i = convert(i, self.variables._varsgetindexfunc)
+                i = self.variables.get_indices(i)
                 i_name = self.variables.get_names(i)
                 i_repl = vars_to_be_replaced.get(i_name, None)
                 if i_repl is not None:
                     if len(i_repl) == 1:
-                        rhs -= v*i_repl[0]
+                        rhs -= v * i_repl[0]
                     else:
-                        j = convert(i_repl[0], self.variables._varsgetindexfunc)
+                        j = self.variables.get_indices(i_repl[0])
                         j_name = self.variables.get_names(j)
-                        new_vals[j_name] = v*i_repl[1] + new_vals.get(i_name, 0)
+                        new_vals[j_name] = v * i_repl[1] + new_vals.get(i_name, 0)
                 else:
                     # nothing to replace, just add value
                     new_vals[i_name] = v + new_vals.get(i_name, 0)
             new_ind = list(new_vals.keys())
             new_val = [new_vals[i] for i in new_ind]
             new_row = SparsePair(new_ind, new_val)
-            op.linear_constraints.add(lin_expr=[new_row], senses=[sense], rhs=[
-                                      rhs], range_values=[range_value], names=[name])
+            op.linear_constraints.add(
+                lin_expr=[new_row], senses=[sense], rhs=[rhs], range_values=[range_value],
+                names=[name])
 
         # TODO: quadratic constraints
 

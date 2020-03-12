@@ -12,16 +12,12 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from collections.abc import Sequence
 import copy
 
-from qiskit.optimization.utils.helpers import (
-    init_list_args, validate_arg_lengths, max_arg_length, listify, convert)
-from qiskit.optimization.utils.base import BaseInterface
-from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
 from qiskit.optimization import infinity
-
-from cplex.exceptions import CplexSolverError
+from qiskit.optimization.utils.base import BaseInterface
+from qiskit.optimization.utils.helpers import init_list_args, NameIndex
+from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
 
 CPX_CONTINUOUS = 'C'
 CPX_BINARY = 'B'
@@ -48,7 +44,8 @@ class VarTypes(object):
 
         Example usage:
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization.problems import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> op.variables.type.binary
         'B'
         >>> op.variables.type['B']
@@ -71,7 +68,8 @@ class VariablesInterface(BaseInterface):
 
     Example usage:
 
-    >>> op = qiskit.optimization.OptimizationProblem()
+    >>> from qiskit.optimization import OptimizationProblem
+    >>> op = OptimizationProblem()
     >>> indices = op.variables.add(names = ["x0", "x1", "x2"])
     >>> # default values for lower_bounds are 0.0
     >>> op.variables.get_lower_bounds()
@@ -79,6 +77,9 @@ class VariablesInterface(BaseInterface):
     >>> # values can be set either one at a time or many at a time
     >>> op.variables.set_lower_bounds(0, 1.0)
     >>> op.variables.set_lower_bounds([("x1", -1.0), (2, 3.0)])
+    >>> # values can be queried as a range
+    >>> op.variables.get_lower_bounds(0, "x1")
+    [1.0, -1.0]
     >>> # values can be queried as a sequence in arbitrary order
     >>> op.variables.get_lower_bounds(["x1", "x2", 0])
     [-1.0, 3.0, 1.0]
@@ -107,24 +108,15 @@ class VariablesInterface(BaseInterface):
         self._types = []
         # self._obj = []
         # self._columns = []
-        self._varsgetindex = {}
-
-    def _varsgetindexfunc(self, item):
-        if item not in self._varsgetindex:
-            self._varsgetindex[item] = len(self._varsgetindex)
-        return self._varsgetindex[item]
-
-    def _varsrebuildindex(self):
-        self._varsgetindex = {}
-        for (cnt, item) in enumerate(self._names):
-            self._varsgetindex[item] = cnt
+        self._index = NameIndex()
 
     def get_num(self):
         """Returns the number of variables in the problem.
 
         Example usage:
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> t = op.variables.type
         >>> indices = op.variables.add(types = [t.continuous, t.binary, t.integer])
         >>> op.variables.get_num()
@@ -137,106 +129,114 @@ class VariablesInterface(BaseInterface):
 
         Example usage:
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> t = op.variables.type
         >>> indices = op.variables.add(types = [t.continuous, t.binary, t.integer])
         >>> op.variables.get_num_continuous()
         1
         """
-        return self._types.count(VarTypes().continuous)
+        return self._types.count(VarTypes.continuous)
 
     def get_num_integer(self):
         """Returns the number of integer variables in the problem.
 
         Example usage:
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> t = op.variables.type
         >>> indices = op.variables.add(types = [t.continuous, t.binary, t.integer])
         >>> op.variables.get_num_integer()
         1
         """
-        return self._types.count(VarTypes().integer)
+        return self._types.count(VarTypes.integer)
 
     def get_num_binary(self):
         """Returns the number of binary variables in the problem.
 
         Example usage:
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> t = op.variables.type
         >>> indices = op.variables.add(types = [t.semi_continuous, t.binary, t.integer])
         >>> op.variables.get_num_binary()
         1
         """
-        return self._types.count(VarTypes().binary)
+        return self._types.count(VarTypes.binary)
 
     def get_num_semicontinuous(self):
         """Returns the number of semi-continuous variables in the problem.
 
         Example usage:
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> t = op.variables.type
         >>> indices = op.variables.add(types = [t.semi_continuous, t.semi_integer, t.semi_integer])
         >>> op.variables.get_num_semicontinuous()
         1
         """
-        return self._types.count(VarTypes().semi_continuous)
+        return self._types.count(VarTypes.semi_continuous)
 
     def get_num_semiinteger(self):
         """Returns the number of semi-integer variables in the problem.
 
         Example usage:
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> t = op.variables.type
         >>> indices = op.variables.add(types = [t.semi_continuous, t.semi_integer, t.semi_integer])
         >>> op.variables.get_num_semiinteger()
         2
         """
-        return self._types.count(VarTypes().semi_integer)
+        return self._types.count(VarTypes.semi_integer)
 
-    def add(self, obj=None, lb=None, ub=None, types="", names=None,
-            columns=None):
+    def add(self, obj=None, lb=None, ub=None, types="", names=None, columns=None):
         """Adds variables and related data to the problem.
 
-        variables.add accepts the keyword arguments obj, lb, ub,
-        types, names, and columns.
+        variables.add accepts the keyword arguments obj, lb, ub, types, names, and columns.
 
-        If more than one argument is specified, all arguments must
-        have the same length.
-
-        obj is a list of floats specifying the linear objective
-        coefficients of the variables.
-
-        lb is a list of floats specifying the lower bounds on the
-        variables.
-
-        ub is a list of floats specifying the upper bounds on the
-        variables.
-
-        types must be either a list of single-character strings or a
-        string containing the types of the variables.
+        If more than one argument is specified, all arguments must have the same length.
 
         Note
-          If types is specified, the problem type will be a MIP, even if
-          all variables are specified to be continuous.
+            `obj` and `columns` have not been supported yet.
+            Use `objective` and `linear_constraint` instead.
 
-        names is a list of strings.
+        Args:
+            obj: a list of floats specifying the linear objective coefficients of the variables.
 
-        columns may be either a list of sparse vectors or a matrix in
-        list-of-lists format.
+            lb: a list of floats specifying the lower bounds on the variables.
 
-        Note
-          The entries of columns must not contain duplicate indices.
-          If an entry of columns references a row more than once,
-          either by index, name, or a combination of index and name,
-          an exception will be raised.
+            ub: a list of floats specifying the upper bounds on the variables.
 
-        Returns an iterator containing the indices of the added variables.
+            types: must be either a list of single-character strings or a string containing
+                the types of the variables.
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+                Note
+                    If types is specified, the problem type will be a MIP, even if all variables are
+                    specified to be continuous.
+
+            names: a list of strings.
+
+            columns: may be either a list of sparse vectors or a matrix in list-of-lists format.
+
+                Note
+                  The entries of columns must not contain duplicate indices.
+                  If an entry of columns references a row more than once,
+                  either by index, name, or a combination of index and name,
+                  an exception will be raised.
+
+        Returns:
+            an iterator containing the indices of the added variables.
+
+        Example usage:
+
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> from cplex import SparsePair, infinity
+        >>> op = OptimizationProblem()
         >>> indices = op.linear_constraints.add(names = ["c0", "c1", "c2"])
         >>> indices = op.variables.add(obj = [1.0, 2.0, 3.0],\
                                       types = [op.variables.type.integer] * 3)
@@ -285,9 +285,7 @@ class VariablesInterface(BaseInterface):
             names = ["x" + str(cnt)
                      for cnt in range(len(self._names), len(self._names) + max_length)]
         self._names.extend(names)
-
-        for name in names:
-            self._varsgetindexfunc(name)
+        self._index.build(names)
 
         return range(len(self._names) - max_length, len(self._names))
 
@@ -320,22 +318,24 @@ class VariablesInterface(BaseInterface):
 
         Example usage:
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> indices = op.variables.add(names=[str(i) for i in range(10)])
         >>> op.variables.get_num()
         10
         >>> op.variables.delete(8)
         >>> op.variables.get_names()
         ['0', '1', '2', '3', '4', '5', '6', '7', '9']
+        >>> op.variables.delete("1", 3)
+        >>> op.variables.get_names()
+        ['0', '4', '5', '6', '7', '9']
         >>> op.variables.delete([2, "0", 5])
         >>> op.variables.get_names()
-        ['1', '3', '5', '6', '7', '9']
+        ['4', '6', '7']
         >>> op.variables.delete()
         >>> op.variables.get_names()
         []
         """
-
-        # TODO: does not update varsgetindexfunc
 
         def _delete(i):
             del self._names[i]
@@ -344,28 +344,20 @@ class VariablesInterface(BaseInterface):
             del self._types[i]
 
         if len(args) == 0:
-            # Delete All:
+            # Delete all
             self._names = []
             self._ub = []
             self._lb = []
             self._types = []
             # self._columns = []
-            self._varsgetindex = {}
-        elif len(args) == 1:
-            # Delete all items from a possibly unordered list of mixed types:
-            args = listify(args[0])
-            for i in args:
-                i = convert(i, self._varsgetindexfunc)
-                _delete(i)
-                self._varsrebuildindex()
-        elif len(args) == 2:
-            # Delete range from arg[0] to arg[1]:
-            for i in reversed(range(convert(args[0], self._varsgetindexfunc),
-                                    convert(args[1], self._varsgetindexfunc))):
-                _delete(i)
-                self._varsrebuildindex()
-        else:
-            raise QiskitOptimizationError("Wrong number of arguments.")
+            self._index = NameIndex()
+
+        keys = self._index.convert(*args)
+        if isinstance(keys, int):
+            keys = [keys]
+        for i in sorted(keys, reverse=True):
+            _delete(i)
+        self._index.build(self._names)
 
     def set_lower_bounds(self, *args):
         """Sets the lower bound for a variable or set of variables.
@@ -385,7 +377,8 @@ class VariablesInterface(BaseInterface):
           the corresponding values.  Equivalent to
           [variables.set_lower_bounds(pair[0], pair[1]) for pair in seq_of_pairs].
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> indices = op.variables.add(names = ["x0", "x1", "x2"])
         >>> op.variables.set_lower_bounds(0, 1.0)
         >>> op.variables.get_lower_bounds()
@@ -396,20 +389,9 @@ class VariablesInterface(BaseInterface):
         """
 
         def _set(i, v):
-            try:
-                v = v + 0.0
-                self._lb[convert(i, self._varsgetindexfunc)] = v
-            except CplexSolverError:
-                raise QiskitOptimizationError("Lower bound must support addition of a float.")
+            self._lb[self._index.convert(i)] = v
 
-        # check for all elements in args whether they are types
-        if len(args) == 1 and all(hasattr(el, '__len__') and len(el) == 2 for el in args[0]):
-            for el in args[0]:
-                _set(*el)
-        elif len(args) == 2:
-            _set(*args)
-        else:
-            raise QiskitOptimizationError("Invalid arguments to set_lower_bounds!")
+        self._setter(_set, *args)
 
     def set_upper_bounds(self, *args):
         """Sets the upper bound for a variable or set of variables.
@@ -429,7 +411,8 @@ class VariablesInterface(BaseInterface):
           the corresponding values.  Equivalent to
           [variables.set_upper_bounds(pair[0], pair[1]) for pair in seq_of_pairs].
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> indices = op.variables.add(names = ["x0", "x1", "x2"])
         >>> op.variables.set_upper_bounds(0, 1.0)
         >>> op.variables.set_upper_bounds([("x1", 10.0), (2, 3.0)])
@@ -438,20 +421,9 @@ class VariablesInterface(BaseInterface):
         """
 
         def _set(i, v):
-            try:
-                v = v + 0.0
-                self._ub[convert(i, self._varsgetindexfunc)] = v
-            except CplexSolverError:
-                raise QiskitOptimizationError("Upper bound must support addition of a float.")
+            self._ub[self._index.convert(i)] = v
 
-        # check for all elements in args whether they are types
-        if len(args) == 1 and all(hasattr(el, '__len__') and len(el) == 2 for el in args[0]):
-            for el in args[0]:
-                _set(*el)
-        elif len(args) == 2:
-            _set(*args)
-        else:
-            raise QiskitOptimizationError("Invalid arguments to set_upper_bounds!")
+        self._setter(_set, *args)
 
     def set_names(self, *args):
         """Sets the name of a variable or set of variables.
@@ -470,7 +442,8 @@ class VariablesInterface(BaseInterface):
           corresponding strings.  Equivalent to
           [variables.set_names(pair[0], pair[1]) for pair in seq_of_pairs].
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> t = op.variables.type
         >>> indices = op.variables.add(types = [t.continuous, t.binary, t.integer])
         >>> op.variables.set_names(0, "first")
@@ -480,25 +453,10 @@ class VariablesInterface(BaseInterface):
         """
 
         def _set(i, v):
-            try:
-                v = v + ""
-                i = convert(i, self._varsgetindexfunc)
-                old_name = self._names[i]
-                self._names[i] = v
-                self._varsgetindex[v] = i
-                self._varsgetindex.pop(old_name)
-            except CplexSolverError:
-                raise QiskitOptimizationError(
-                    "First argument must refer to currently defined variable, second to string.")
+            self._names[self._index.convert(i)] = v
 
-        if len(args) == 2:
-            _set(args[0], args[1])
-        elif len(args) == 1:
-            args = listify(args[0])
-            for iv in args:
-                _set(iv[0], iv[1])
-        else:
-            raise QiskitOptimizationError("Wrong number of arguments.")
+        self._setter(_set, *args)
+        self._index.build(self._names)
 
     def set_types(self, *args):
         """Sets the type of a variable or set of variables.
@@ -521,7 +479,8 @@ class VariablesInterface(BaseInterface):
           If the types are set, the problem will be treated as a MIP,
           even if all variable types are continuous.
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> indices = op.variables.add(names = [str(i) for i in range(5)])
         >>> op.variables.set_types(0, op.variables.type.continuous)
         >>> op.variables.set_types([("1", op.variables.type.integer),\
@@ -535,24 +494,12 @@ class VariablesInterface(BaseInterface):
         """
 
         def _set(i, v):
-            try:
-                if v not in [CPX_CONTINUOUS, CPX_BINARY, CPX_INTEGER, CPX_SEMICONT, CPX_SEMIINT]:
-                    raise QiskitOptimizationError(
-                        "Second argument must be a string, as per VarTypes constants.")
-                i = convert(i, self._varsgetindexfunc)
-                self._types[i] = v
-            except CplexSolverError:
+            if v not in [CPX_CONTINUOUS, CPX_BINARY, CPX_INTEGER, CPX_SEMICONT, CPX_SEMIINT]:
                 raise QiskitOptimizationError(
-                    "First argument must be index of a currently defined variable.")
+                    "Second argument must be a string, as per VarTypes constants.")
+            self._types[self._index.convert(i)] = v
 
-        if len(args) == 2:
-            _set(args[0], args[1])
-        elif len(args) == 1:
-            args = listify(args[0])
-            for (i, v) in args:
-                _set(i, v)
-        else:
-            raise QiskitOptimizationError("Wrong number of arguments.")
+        self._setter(_set, *args)
 
     def get_lower_bounds(self, *args):
         """Returns the lower bounds on variables from the problem.
@@ -572,13 +519,16 @@ class VariablesInterface(BaseInterface):
           of s.  Equivalent to
           [variables.get_lower_bounds(i) for i in s]
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> indices = op.variables.add(lb = [1.5 * i for i in range(10)],\
                                       names = [str(i) for i in range(10)])
         >>> op.variables.get_num()
         10
         >>> op.variables.get_lower_bounds(8)
         12.0
+        >>> op.variables.get_lower_bounds("1",3)
+        [1.5, 3.0, 4.5]
         >>> op.variables.get_lower_bounds([2,"0",5])
         [3.0, 0.0, 7.5]
         >>> op.variables.get_lower_bounds()
@@ -586,22 +536,12 @@ class VariablesInterface(BaseInterface):
         """
 
         def _get(i):
-            i = convert(i, self._varsgetindexfunc)
             return self._lb[i]
 
-        out = []
         if len(args) == 0:
             return copy.deepcopy(self._lb)
-        elif len(args) == 1:
-            if isinstance(args[0], Sequence):
-                for i in args[0]:
-                    out.append(_get(i))
-            else:
-                return _get(args[0])
-        else:
-            for i in args:
-                out.append(_get(i))
-        return out
+        keys = self._index.convert(*args)
+        return self._getter(_get, keys)
 
     def get_upper_bounds(self, *args):
         """Returns the upper bounds on variables from the problem.
@@ -627,13 +567,16 @@ class VariablesInterface(BaseInterface):
           begin and end, inclusive of end. Equivalent to
           variables.get_upper_bounds(range(begin, end + 1)).
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> indices = op.variables.add(ub = [(1.5 * i) + 1.0 for i in range(10)],\
                                       names = [str(i) for i in range(10)])
         >>> op.variables.get_num()
         10
         >>> op.variables.get_upper_bounds(8)
         13.0
+        >>> op.variables.get_upper_bounds("1",3)
+        [2.5, 4.0, 5.5]
         >>> op.variables.get_upper_bounds([2,"0",5])
         [4.0, 1.0, 8.5]
         >>> op.variables.get_upper_bounds()
@@ -641,22 +584,12 @@ class VariablesInterface(BaseInterface):
         """
 
         def _get(i):
-            i = convert(i, self._varsgetindexfunc)
             return self._ub[i]
 
-        out = []
         if len(args) == 0:
             return copy.deepcopy(self._ub)
-        elif len(args) == 1:
-            if isinstance(args[0], Sequence):
-                for i in args[0]:
-                    out.append(_get(i))
-            else:
-                return _get(args[0])
-        else:
-            for i in args:
-                out.append(_get(i))
-        return out
+        keys = self._index.convert(*args)
+        return self._getter(_get, keys)
 
     def get_names(self, *args):
         """Returns the names of variables from the problem.
@@ -674,12 +607,15 @@ class VariablesInterface(BaseInterface):
           names of the variables with indices the members of s.
           Equivalent to [variables.get_names(i) for i in s]
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> indices = op.variables.add(names = ['x' + str(i) for i in range(10)])
         >>> op.variables.get_num()
         10
         >>> op.variables.get_names(8)
         'x8'
+        >>> op.variables.get_names(1,3)
+        ['x1', 'x2', 'x3']
         >>> op.variables.get_names([2,0,5])
         ['x2', 'x0', 'x5']
         >>> op.variables.get_names()
@@ -687,22 +623,12 @@ class VariablesInterface(BaseInterface):
         """
 
         def _get(i):
-            i = convert(i, self._varsgetindexfunc)
             return self._names[i]
 
-        out = []
         if len(args) == 0:
             return copy.deepcopy(self._names)
-        elif len(args) == 1:
-            if isinstance(args[0], Sequence):
-                for i in args[0]:
-                    out.append(_get(i))
-            else:
-                return _get(args[0])
-        else:
-            for i in args:
-                out.append(_get(i))
-        return out
+        keys = self._index.convert(*args)
+        return self._getter(_get, keys)
 
     def get_types(self, *args):
         """Returns the types of variables from the problem.
@@ -721,7 +647,8 @@ class VariablesInterface(BaseInterface):
           the types of the variables with indices the members of s.
           Equivalent to [variables.get_types(i) for i in s]
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> t = op.variables.type
         >>> indices = op.variables.add(names = [str(i) for i in range(5)],\
                                       types = [t.continuous, t.integer,\
@@ -730,6 +657,8 @@ class VariablesInterface(BaseInterface):
         5
         >>> op.variables.get_types(3)
         'S'
+        >>> op.variables.get_types(1,3)
+        ['I', 'B', 'S']
         >>> op.variables.get_types([2,0,4])
         ['B', 'C', 'N']
         >>> op.variables.get_types()
@@ -737,25 +666,15 @@ class VariablesInterface(BaseInterface):
         """
 
         def _get(i):
-            i = convert(i, self._varsgetindexfunc)
             return self._types[i]
 
-        out = []
         if len(args) == 0:
             return copy.deepcopy(self._types)
-        elif len(args) == 1:
-            if isinstance(args[0], Sequence):
-                for i in args[0]:
-                    out.append(_get(i))
-            else:
-                return _get(args[0])
-        else:
-            for i in args:
-                out.append(_get(i))
-        return out
+        keys = self._index.convert(*args)
+        return self._getter(_get, keys)
 
     def get_cols(self, *args):
-        raise QiskitOptimizationError("Please use LinearConstraintInterface instead.")
+        raise NotImplementedError("Please use LinearConstraintInterface instead.")
 
     def get_obj(self, *args):
-        raise QiskitOptimizationError("Please use ObjectiveInterface instead.")
+        raise NotImplementedError("Please use ObjectiveInterface instead.")
