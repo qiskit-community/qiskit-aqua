@@ -63,7 +63,7 @@ class OptimizationProblemToOperator:
         _q_d = {}
         qubit_index = 0
         for name in self._src.variables.get_names():
-            var_index = self._src.variables._varsgetindex[name]
+            var_index = self._src.variables.get_indices(name)
             _q_d[var_index] = qubit_index
             qubit_index += 1
 

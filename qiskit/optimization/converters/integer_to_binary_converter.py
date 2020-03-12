@@ -75,7 +75,7 @@ class IntegerToBinaryConverter:
                 self._dst.variables.add(
                     names=[name for name, _ in new_vars], types='B' * len(new_vars))
             else:
-                self._dst.variables.add(names=[name], types=typ)
+                self._dst.variables.add(names=[name], types=typ, lb=[lb[i]], ub=[ub[i]])
 
         # replace integer variables with binary variables in the objective function
         # self.objective.subs(self._conv)
@@ -135,7 +135,6 @@ class IntegerToBinaryConverter:
 
         num_var = self._dst.variables.get_num()
         new_quad = np.zeros((num_var, num_var))
-        index_dict = self._dst.variables._varsgetindex
 
         for row in src_obj_quad:
             for col in src_obj_quad[row]:
@@ -155,8 +154,8 @@ class IntegerToBinaryConverter:
 
                 for new_row, row_coef in row_vars:
                     for new_col, col_coef in col_vars:
-                        row_index = index_dict[new_row]
-                        col_index = index_dict[new_col]
+                        row_index = self._dst.variables.get_indices(new_row)
+                        col_index = self._dst.variables.get_indices(new_col)
                         new_quad[row_index, col_index] = coef * row_coef * col_coef
 
         ind = list(range(num_var))
