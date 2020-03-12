@@ -46,7 +46,8 @@ class InequalityToEqualityConverter:
         self._conv: Dict[str, List[Tuple[str, int]]] = {}
         # e.g., self._conv = {'c1': [c1@slack_var]}
 
-    def encode(self, op: OptimizationProblem, name: str = None, mode: str = 'auto') -> OptimizationProblem:
+    def encode(self, op: OptimizationProblem, name: str = None,
+               mode: str = 'auto') -> OptimizationProblem:
         """ Convert a problem with inequality constraints into new one with only equality
         constraints.
 
@@ -116,11 +117,14 @@ class InequalityToEqualityConverter:
             # with slack variables which represent [lb, ub] = [0, constant - the lower bound of lhs]
             elif senses[i] == 'L':
                 if mode == 'integer':
-                    self._add_int_slack_var_constraint(name=name, row=rows[i], rhs=rhs[i], sense=senses[i])
+                    self._add_int_slack_var_constraint(name=name, row=rows[i], rhs=rhs[i],
+                                                       sense=senses[i])
                 elif mode == 'continuous':
-                    self._add_continuous_slack_var_constraint(name=name, row=rows[i], rhs=rhs[i], sense=senses[i])
+                    self._add_continuous_slack_var_constraint(name=name, row=rows[i], rhs=rhs[i],
+                                                              sense=senses[i])
                 elif mode == 'auto':
-                    self._add_auto_slack_var_constraint(name=name, row=rows[i], rhs=rhs[i], sense=senses[i])
+                    self._add_auto_slack_var_constraint(name=name, row=rows[i], rhs=rhs[i],
+                                                        sense=senses[i])
                 else:
                     raise AquaError('Unsupported mode is selected' + mode)
 
@@ -128,11 +132,14 @@ class InequalityToEqualityConverter:
             # with slack variables which represent [lb, ub] = [0, the upper bound of lhs]
             elif senses[i] == 'G':
                 if mode == 'integer':
-                    self._add_int_slack_var_constraint(name=name, row=rows[i], rhs=rhs[i], sense=senses[i])
+                    self._add_int_slack_var_constraint(name=name, row=rows[i], rhs=rhs[i],
+                                                       sense=senses[i])
                 elif mode == 'continuous':
-                    self._add_continuous_slack_var_constraint(name=name, row=rows[i], rhs=rhs[i], sense=senses[i])
+                    self._add_continuous_slack_var_constraint(name=name, row=rows[i], rhs=rhs[i],
+                                                              sense=senses[i])
                 elif mode == 'auto':
-                    self._add_auto_slack_var_constraint(name=name, row=rows[i], rhs=rhs[i], sense=senses[i])
+                    self._add_auto_slack_var_constraint(name=name, row=rows[i], rhs=rhs[i],
+                                                        sense=senses[i])
                 else:
                     raise AquaError('Unsupported mode is selected' + mode)
 
@@ -207,12 +214,12 @@ class InequalityToEqualityConverter:
         new_ind = copy.deepcopy(row.ind)
         new_val = copy.deepcopy(row.val)
 
-        new_ind.append(self._dst.variables._varsgetindex[slack_name])
+        new_ind.append(self._dst.variables.get_indices(slack_name))
         new_val.append(sign)
 
         # Add a new equality constraint.
-        self._dst.linear_constraints.add(lin_expr=[SparsePair(ind=new_ind, val=new_val)], senses=['E'],
-                                         rhs=[new_rhs], names=[name])
+        self._dst.linear_constraints.add(lin_expr=[SparsePair(ind=new_ind, val=new_val)],
+                                         senses=['E'], rhs=[new_rhs], names=[name])
 
     def _add_continuous_slack_var_constraint(self, name, row, rhs, sense):
         slack_name = name + self._delimiter + 'continuous_slack'
@@ -235,12 +242,12 @@ class InequalityToEqualityConverter:
         new_ind = copy.deepcopy(row.ind)
         new_val = copy.deepcopy(row.val)
 
-        new_ind.append(self._dst.variables._varsgetindex[slack_name])
+        new_ind.append(self._dst.variables.get_indices(slack_name))
         new_val.append(sign)
 
         # Add a new equality constraint.
-        self._dst.linear_constraints.add(lin_expr=[SparsePair(ind=new_ind, val=new_val)], senses=['E'],
-                                         rhs=[rhs], names=[name])
+        self._dst.linear_constraints.add(lin_expr=[SparsePair(ind=new_ind, val=new_val)],
+                                         senses=['E'], rhs=[rhs], names=[name])
 
     def _add_auto_slack_var_constraint(self, name, row, rhs, sense):
         # If a coefficient that is not integer exist, use a continuous slack variable

@@ -17,7 +17,6 @@
 from cplex import infinity
 
 from qiskit.optimization.problems import OptimizationProblem
-from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
 from test.optimization.common import QiskitOptimizationTestCase
 
 
@@ -212,3 +211,21 @@ class TestVariables(QiskitOptimizationTestCase):
         op.variables.add(names=['a', 'b'])
         self.assertEqual(op.variables.get_indices('a'), 0)
         self.assertListEqual(op.variables.get_indices(['a', 'b']), [0, 1])
+
+    def test_add2(self):
+        op = OptimizationProblem()
+        op.variables.add(names=['x'])
+        self.assertEqual(op.variables.get_indices('x'), 0)
+        self.assertListEqual(op.variables.get_indices(), [0])
+        op.variables.add(names=['y'])
+        self.assertEqual(op.variables.get_indices('x'), 0)
+        self.assertEqual(op.variables.get_indices('y'), 1)
+        self.assertListEqual(op.variables.get_indices(), [0, 1])
+
+    def test_default_bounds(self):
+        op = OptimizationProblem()
+        types = ['B', 'I', 'C', 'S', 'N']
+        op.variables.add(names=types, types=types)
+        self.assertListEqual(op.variables.get_lower_bounds(), [0.0] * 5)
+        # the upper bound of binary variable is 1.
+        self.assertListEqual(op.variables.get_upper_bounds(), [1.0] + [infinity] * 4)
