@@ -27,12 +27,6 @@ class NameIndex(object):
         """Initialize a dictionary of name and index"""
         self._dict = {}
 
-    def to_dict(self) -> Dict[str, int]:
-        """
-        Returns: A dictionary of name and index
-        """
-        return self._dict
-
     def __contains__(self, name: str) -> bool:
         """Check a name is registered or not.
 

@@ -15,6 +15,7 @@
 """ Test helpers """
 
 from qiskit.optimization.utils.helpers import NameIndex, init_list_args
+from qiskit.optimization import QiskitOptimizationError
 from test.optimization.common import QiskitOptimizationTestCase
 
 
@@ -44,3 +45,10 @@ class TestHelpers(QiskitOptimizationTestCase):
         self.assertListEqual(a.convert(), [0, 1, 2])
         self.assertListEqual(a.convert('1', '3'), [0, 1, 2])
         self.assertListEqual(a.convert('1', '2'), [0, 1])
+
+    def test_name_index3(self):
+        a = NameIndex()
+        with self.assertRaises(QiskitOptimizationError):
+            a.convert({})
+        with self.assertRaises(QiskitOptimizationError):
+            a.convert(1, 2, 3)
