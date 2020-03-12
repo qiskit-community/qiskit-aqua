@@ -278,14 +278,17 @@ class VariablesInterface(BaseInterface):
         self._ub.extend(ub)
 
         if not types:
-            types = [VarTypes().continuous] * max_length
+            types = [VarTypes.continuous] * max_length
+        for i, t in enumerate(types):
+            if t == VarTypes.binary:
+                self._ub[i] = 1.0
         self._types.extend(types)
 
         if not names:
             names = ["x" + str(cnt)
                      for cnt in range(len(self._names), len(self._names) + max_length)]
         self._names.extend(names)
-        self._index.build(names)
+        self._index.build(self._names)
 
         return range(len(self._names) - max_length, len(self._names))
 

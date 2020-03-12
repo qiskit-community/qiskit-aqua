@@ -136,8 +136,8 @@ class TestConverters(QiskitOptimizationTestCase):
         self.assertIn('x', names)
         self.assertIn('z', names)
         vars = op2.variables
-        self.assertEqual(vars.get_lower_bounds('x')[0], 0.0)
-        self.assertEqual(vars.get_lower_bounds('z')[0], 0.0)
-        self.assertEqual(vars.get_upper_bounds('x')[0], 1.0)
-        self.assertEqual(vars.get_upper_bounds('z')[0], 10.0)
+        self.assertEqual(vars.get_lower_bounds('x'), 0.0)
+        self.assertEqual(vars.get_lower_bounds('z'), 0.0)
+        self.assertEqual(vars.get_upper_bounds('x'), 1.0)
+        self.assertEqual(vars.get_upper_bounds('z'), 10.0)
         self.assertListEqual(vars.get_types(['x', 'z']), ['B', 'C'])
