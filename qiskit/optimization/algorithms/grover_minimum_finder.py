@@ -17,6 +17,8 @@
 import random
 import math
 import numpy as np
+from qiskit.optimization.algorithms import OptimizationAlgorithm
+from qiskit.optimization.problems import OptimizationProblem
 from qiskit.optimization.converters import OptimizationProblemToNegativeValueOracle
 from qiskit.optimization.results import GroverOptimizationResults
 from qiskit.optimization.util import get_qubo_solutions
@@ -25,11 +27,11 @@ from qiskit.visualization import plot_histogram
 from qiskit import Aer, execute
 
 
-class GroverMinimumFinder:
+class GroverMinimumFinder(OptimizationAlgorithm):
 
     """Uses Grover Adaptive Search (GAS) to find the minimum of a QUBO function."""
 
-    def __init__(self, num_iterations=3, backend=Aer.get_backend('statevector_simulator'),
+    def __init__(self, num_output_qubits, num_iterations=3, backend=Aer.get_backend('statevector_simulator'),
                  verbose=False):
         """
         Constructor.
@@ -39,11 +41,16 @@ class GroverMinimumFinder:
             backend (str, optional): Instance of selected backend.
             verbose (bool, optional): Verbose flag - prints/plots state at each iteration of GAS.
         """
+        self._num_output_qubits = num_output_qubits
         self._n_iterations = num_iterations
         self._verbose = verbose
         self._backend = backend
 
-    def solve(self, quadratic, linear, constant, num_output_qubits):
+    def is_compatible(self, problem: OptimizationProblem) -> Optional[str]:
+        # TODO
+        return True
+
+    def solve(self, problem: OptimizationProblem) -> OptimizationResult:
         """
         Given the coefficients and constants of a QUBO function, find the minimum output value.
         Args:
@@ -55,13 +62,21 @@ class GroverMinimumFinder:
             GroverOptimizationResults: A results object containing information about the run,
                 including the solution.
         """
+
+        # map to QUBO or throw exception
+
+        # extract
+        quadratic = problem.objective.get_quadratic()
+        linear = problem.objective.get_linear()
+        constant = problem.objective.get_offset()
+
         # Variables for tracking the optimum.
         optimum_found = False
         optimum_key = math.inf
         optimum_value = math.inf
         threshold = 0
         n_key = len(linear)
-        n_value = num_output_qubits
+        n_value = self._num_output_qubits
 
         # Variables for tracking the solutions encountered.
         num_solutions = 2**n_key
