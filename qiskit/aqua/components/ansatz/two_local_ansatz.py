@@ -15,7 +15,7 @@
 """The two-local gate Ansatz.
 
 TODO
-    * remove the temporary param subst fix and move to ccts away from gates
+    * remove the temporary param substitution fix and move to circuits away from gates
     * if entanglement is not a callable, store only 2 blocks, not all of them
     * let identify gate return a type if possible to avoid substitution, handle the circuit
         case differently
@@ -33,6 +33,10 @@ from qiskit.aqua.utils import get_entangler_map, validate_entangler_map
 from qiskit.aqua.components.initial_states import InitialState
 
 from qiskit.aqua.components.ansatz import Ansatz
+
+# disable check for overrriding getter and setter because of pylint bug
+# pylint: disable=no-member
+# pylint:disable=invalid-overridden-method
 
 
 class TwoLocalAnsatz(Ansatz):
@@ -73,8 +77,8 @@ class TwoLocalAnsatz(Ansatz):
                 the index of the entanglement layer.
                 Default to 'full' entanglement.
                 See the Examples section for more detail.
-            initial_state: An `InitialState` object to prepent to the Ansatz.
-                TODO deprecate this feature in favour of prepend or overloading __add__ in
+            initial_state: An `InitialState` object to prepend to the Ansatz.
+                TODO deprecate this feature in favor of prepend or overloading __add__ in
                 the initial state class
             skip_unentangled_qubits: If True, the single qubit gates are only applied to qubits
                 that are entangled with another qubit. If False, the single qubit gates are applied
@@ -123,7 +127,7 @@ class TwoLocalAnsatz(Ansatz):
 
             >>> entangler_map = [[0, 3], [0, 2]]  # entangle the first and last two-way
             >>> ansatz = TwoLocalAnsatz(4, [], 'cry', entangler_map, reps=1)
-            >>> circuit = ansatz.to_circuit() + ansatz.to_circuit()  # add two Ansaetze
+            >>> circuit = ansatz.to_circuit() + ansatz.to_circuit()  # add two Ansatze
             >>> circuit.decompose().draw()  # note, that the parameters are the same!
             q_0: |0>────■─────────■─────────■─────────■─────
                         │         │         │         │
@@ -178,12 +182,12 @@ class TwoLocalAnsatz(Ansatz):
 
         circuit = QuantumCircuit(self._num_qubits, name='ent{}'.format(block_num))
 
-        for src, tgt in self.get_entangler_map(block_num):
+        for control, target in self.get_entangler_map(block_num):
             # apply the gates
             for gate, num_params in self.entanglement_gates:
                 if num_params == 0:
                     params = []
-                    circuit.append(gate, [src, tgt], params)
+                    circuit.append(gate, [control, target], params)
                 else:
                     # param_count = self.num_parameters + len(circuit.parameters)
                     # params = [Parameter('{}{}'.format(self._parameter_prefix, param_count + i))
@@ -194,7 +198,7 @@ class TwoLocalAnsatz(Ansatz):
 
                     # correctly replace the parameters
                     sub_circuit = QuantumCircuit(self._num_qubits)
-                    sub_circuit.append(gate, [src, tgt], [])
+                    sub_circuit.append(gate, [control, target], [])
                     update = dict(zip(list(sub_circuit.parameters), params))
                     sub_circuit._substitute_parameters(update)
 
@@ -215,8 +219,8 @@ class TwoLocalAnsatz(Ansatz):
         # determine the entangled qubits for this block
         if self._skip_unentangled_qubits:
             all_qubits = []
-            for src, tgt in self.get_entangler_map(block_num):
-                all_qubits.extend([src, tgt])
+            for control, target in self.get_entangler_map(block_num):
+                all_qubits.extend([control, target])
             entangled_qubits = sorted(list(set(all_qubits)))
         else:
             entangled_qubits = list(range(self._num_qubits))
@@ -234,7 +238,7 @@ class TwoLocalAnsatz(Ansatz):
                 for gate, num_params in self.rotation_gates:
                     if num_params == 0:
                         params = []
-                        circuit.append(gate, [qubit], params)  # todo: use _append with register
+                        circuit.append(gate, [qubit], params)  # TODO use _append with register
                     else:
                         params = self._get_new_parameters(num_params)
 
@@ -321,7 +325,7 @@ class TwoLocalAnsatz(Ansatz):
                          + '`gate` must be a type, str or QuantumCircuit.')
 
     @Ansatz.blocks.getter
-    def blocks(self) -> List[Instruction]:  # pylint:disable=invalid-overridden-method
+    def blocks(self) -> List[Instruction]:
         """Set the blocks according to the current state.
 
         Set the blocks and return them.
@@ -361,7 +365,7 @@ class TwoLocalAnsatz(Ansatz):
         self._blocks = blocks
         return blocks
 
-    @Ansatz.base_parameters.getter  # pylint:disable=invalid-overridden-method
+    @Ansatz.base_parameters.getter
     def base_parameters(self) -> List[Parameter]:
         """Return the parameters of the underlying circuit.
 
@@ -378,8 +382,9 @@ class TwoLocalAnsatz(Ansatz):
         Args:
             num_qubits: The new number of qubits.
 
-        Additionally to invaliting the circuit (which is done in Ansatz.num_qubits), here we
-        need to invalidate the blocks, since they are dependent on the number of qubits.
+        Note:
+            Additionally to invalidating the circuit (which is done in Ansatz.num_qubits), here we
+            need to invalidate the blocks, since they are dependent on the number of qubits.
         """
         if num_qubits != self._num_qubits:
             self._blocks, self._circuit = None, None  # invalidate current setup
@@ -432,9 +437,9 @@ class TwoLocalAnsatz(Ansatz):
         Can be of type ``str``, a list of ``int`` or a ``callable``.
         If the entanglement is a ``str`` it can be one of:
         - ``'full'``: Entangle each qubit with every qubit (all-to-all).
-        - ``'linear'``: Entangle each qubit with its direct neighbour.
+        - ``'linear'``: Entangle each qubit with its direct neighbor.
         - ``'sca'``: Shifted-circular-alternating entanglement. Within every entanglement block,
-            the qubits are entangled circulary, i.e. linear but the first and last qubit are
+            the qubits are entangled circularly, i.e. linear but the first and last qubit are
             also entangled. Shifted means that in the next block the (i+1)-th entanglement is the
             i-th entanglement of the previous block (modulo ``num_qubits``). Alternating indicates
             that the role of target and control qubit is swapped every other block.
@@ -520,7 +525,7 @@ class TwoLocalAnsatz(Ansatz):
                 index.
 
         Returns:
-            A list of [src, tgt] pairs specifying entanglements, also known as entangler map.
+            A list of [control, target] pairs specifying entanglements, also known as entangler map.
 
         Raises:
             ValueError: Unsupported format of entanglement, if self._entanglement has the wrong

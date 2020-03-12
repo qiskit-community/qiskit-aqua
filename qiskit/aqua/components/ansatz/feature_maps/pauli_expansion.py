@@ -126,8 +126,8 @@ class PauliExpansion(Ansatz):
                 final_paulis.append(pauli)
             else:
                 is_valid = True
-                for src, targ in itertools.combinations(where_z, 2):
-                    if [src, targ] not in self.get_entangler_map():
+                for control, target in itertools.combinations(where_z, 2):
+                    if [control, target] not in self.get_entangler_map():
                         is_valid = False
                         break
                 if is_valid:
@@ -153,7 +153,7 @@ class PauliExpansion(Ansatz):
                 index.
 
         Returns:
-            A list of [src, tgt] pairs specifying entanglements, also known as entangler map.
+            A list of [control, target] pairs specifying entanglements, also known as entangler map.
 
         Raises:
             AquaError: Unsupported format of entanglement, if self._entanglement has the wrong

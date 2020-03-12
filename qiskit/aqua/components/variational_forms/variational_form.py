@@ -16,6 +16,7 @@ This module contains the definition of a base class for
 variational forms. Several types of commonly used ansatz.
 """
 
+import warnings
 from typing import Optional, Union, List
 # below to allow it for python 3.6.1
 try:
@@ -28,7 +29,6 @@ import numpy as np
 from qiskit import QuantumRegister
 from qiskit.aqua.utils import get_entangler_map, validate_entangler_map
 
-import warnings
 warnings.warn('This module is deprecated, VariationalForm is replaced by Ansatz, located in '
               'qiskit.aqua.components.ansatz',
               DeprecationWarning, stacklevel=2)

@@ -59,6 +59,7 @@ class RawFeatureVector(Ansatz):
 
     @property
     def feature_dimension(self):
+        """Return the feature dimension."""
         return self._feature_dimension
 
     def to_circuit(self) -> QuantumCircuit:

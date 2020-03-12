@@ -14,6 +14,8 @@
 
 """Layers of Swap+Z rotations followed by entangling gates."""
 
+import warnings
+
 from typing import Optional, List
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
@@ -21,7 +23,6 @@ from qiskit.aqua.utils.validation import validate_min, validate_in_set
 from qiskit.aqua.components.initial_states import InitialState
 from .variational_form import VariationalForm
 
-import warnings
 warnings.warn('This module is deprecated, SwapRZ is now located in '
               'qiskit.aqua.components.ansatz.variational_forms.swaprz',
               DeprecationWarning, stacklevel=2)

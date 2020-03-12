@@ -15,8 +15,8 @@
 """The Ansatz class.
 
 TODO
-    * store ccts instead of gates?
-        - Reverting to ccts in future anyways
+    * store circuits instead of gates?
+        - Reverting to circuits in future anyways
         - Performance difference?
     * add transpile feature
     * rename append to combine(after=True) with to support after/before
@@ -58,7 +58,7 @@ def combine_parameterlists(first: List[Parameter], other: List[Parameter],
     If the parameters in ``other`` already exists in the list, add the instance with the same
     name at the end of the list. If the name does not exist in the list, add the parameter
     in ``other``.
-    This prevents having different instances with the same name in the list of paramters,
+    This prevents having different instances with the same name in the list of parameters,
     which leads to naming conflict if a circuit is constructed with these parameters.
 
     Args:
@@ -95,7 +95,7 @@ class Ansatz:
         blocks: The single building blocks of the Ansatz.
         parameters: The parameters of the Ansatz.
         num_qubits: The number of qubits in the Ansatz.
-        num_parameters: The number of tuneable parameters in the Ansatz.
+        num_parameters: The number of tunable parameters in the Ansatz.
         setting: Returns information about the class properties.
         support_parameterized_circuit: If True, the parameters can be set with Parameter objects.
             To be deprecated, since it always should be True.
@@ -124,7 +124,7 @@ class Ansatz:
         These "base parameters" do not change. The user modifies "surface parameters" which are
         bound to the circuit upon requesting the circuit.
         If specified, barriers can be inserted in between every block.
-        If an initial state is provided, it is prepended to the Ansatz.
+        If an initial state is provided, it is added in front of the Ansatz.
 
         Args:
             blocks: The input blocks. Can be a single gate, a list of gates, (or circuits?)
@@ -141,8 +141,8 @@ class Ansatz:
             overwrite_block_parameters: If the parameters in the added blocks should be overwritten.
                 If a list of list of Parameters is passed, these Parameters are used to set the
                 parameters in the blocks.
-            initial_state: An ``InitialState`` object to prepent to the Ansatz.
-                TODO deprecate this feature in favour of prepend or overloading __add__ in
+            initial_state: An ``InitialState`` object to prepend to the Ansatz.
+                TODO deprecate this feature in favor of prepend or overloading __add__ in
                 the initial state class
 
         Raises:
@@ -182,7 +182,7 @@ class Ansatz:
         # keep track of the parameters
         if isinstance(overwrite_block_parameters, bool):
             self._overwrite_block_parameters = overwrite_block_parameters
-        else:  # user provided the blockwise parameters
+        else:  # user provided the block-wise parameters
             self._overwrite_block_parameters = True
             self.blockwise_parameters = overwrite_block_parameters
 
@@ -293,8 +293,8 @@ class Ansatz:
             ValueError: If the number of repetitions is not set.
             ValueError: If the qubit indices are not set.
             ValueError: If the number of qubit indices does not match the number of blocks.
-            ValueError: If an index in the repetions list exceeds the number of blocks.
-            ValueError: If the number of repetitions does not match the number of blockwise
+            ValueError: If an index in the repetitions list exceeds the number of blocks.
+            ValueError: If the number of repetitions does not match the number of block-wise
                 parameters.
             ValueError: If a specified qubit index is larger than the (manually set) number of
                 qubits.
@@ -327,7 +327,7 @@ class Ansatz:
         return True
 
     def _reps_as_list(self) -> List[int]:
-        """Return the indicies of the blocks that go in the circuit.
+        """Return the indices of the blocks that go in the circuit.
 
         Returns:
             If ``reps`` has been set to a list, return that list. Otherwise, i.e. if ``reps`` is an
@@ -529,7 +529,7 @@ class Ansatz:
     def num_qubits(self) -> int:
         """Returns the number of qubits in this Ansatz.
 
-        If the number of qubits has not been explicitely set via the setter or the initial state
+        If the number of qubits has not been explicitly set via the setter or the initial state
         (which dictates the number of qubits), infer the number of qubits from the qubit indices
         of the blocks.
 
@@ -618,9 +618,9 @@ class Ansatz:
         # in the list. Random access via element should be much faster in the dictionary, probably.
         if isinstance(params, dict):
             new_params = []
-            for i, current_param in enumerate(self.params):
+            for i, current_param in enumerate(self.parameters):
                 # try to get the new value, if there is none, use the current value
-                new_params[i] = params.get(current_param, self.params[i])
+                new_params[i] = params.get(current_param, self.parameters[i])
             self._surface_params = new_params
 
         # if a list is provided, just assign if the sizes match
@@ -697,7 +697,7 @@ class Ansatz:
         Returns:
             A list containing the surface parameters.
         """
-        # if no blockwise base params have been generated, generate them
+        # if no block-wise base params have been generated, generate them
         if self._blockwise_base_params:
             return self._blockwise_base_params
 

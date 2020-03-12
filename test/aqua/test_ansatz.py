@@ -14,6 +14,7 @@
 
 """Tests for Aqua's Ansatz object."""
 
+from test.aqua import QiskitAquaTestCase
 
 import unittest
 import numpy as np
@@ -25,12 +26,9 @@ from qiskit.circuit.random.utils import random_circuit
 from qiskit.extensions.standard import XGate, RXGate, CrxGate
 from qiskit.quantum_info import Pauli
 
-from qiskit.aqua.aqua_error import AquaError
-from qiskit.aqua.components.ansatz import Ansatz, OperatorAnsatz, SwapRZ, RY, RYRZ
+from qiskit.aqua.components.ansatz import Ansatz, OperatorAnsatz, SwapRZ, RY
 from qiskit.aqua.components.variational_forms.ry import RY as DeprecatedRY
 from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator
-
-from test.aqua import QiskitAquaTestCase
 
 
 _CONTAINER = set
@@ -176,7 +174,7 @@ class TestAnsatz(QiskitAquaTestCase):
         # get a reference
         reference = first_circuit + circuit
 
-        # convert the appendee to different types
+        # convert the object to be appended to different types
         others = [circuit, circuit.to_instruction(), circuit.to_gate(), Ansatz(circuit)]
 
         # try adding each type
@@ -188,10 +186,9 @@ class TestAnsatz(QiskitAquaTestCase):
 
     def test_parameter_getter_from_automatic_repetition(self):
         """Test getting and setting of the ansatz parameters."""
-        a, b = Parameter('a'), Parameter('b')
         circuit = QuantumCircuit(2)
-        circuit.ry(a, 0)
-        circuit.crx(b, 0, 1)
+        circuit.ry(Parameter('a'), 0)
+        circuit.crx(Parameter('b'), 0, 1)
 
         # repeat circuit and check that parameters are duplicated
         reps = 3
@@ -204,10 +201,9 @@ class TestAnsatz(QiskitAquaTestCase):
 
         TODO Test the input ``[0, 1, Parameter('θ'), 3, 4, 5]`` once that's supported.
         """
-        a, b = Parameter('a'), Parameter('b')
         circuit = QuantumCircuit(2)
-        circuit.ry(a, 0)
-        circuit.crx(b, 0, 1)
+        circuit.ry(Parameter('a'), 0)
+        circuit.crx(Parameter('b'), 0, 1)
 
         # repeat circuit and check that parameters are duplicated
         reps = 3
@@ -224,7 +220,7 @@ class TestAnsatz(QiskitAquaTestCase):
             transpiled_circuit = transpile(ansatz.to_circuit(), basis_gates=basis_gates)
             self.assertEqual(transpiled_circuit.parameters, param_set)
 
-    # TODO add as soon as supported by Terra: [0, 1, Parameter('θ'), 3, 4, 5])
+    # TODO add as soon as supported by Terra: [0, 1, Parameter('theta'), 3, 4, 5])
     # (the test already supports that structure)
     @data(list(range(6)), ParameterVector('θ', length=6))
     def test_parameters_setter(self, params):
@@ -251,10 +247,9 @@ class TestAnsatz(QiskitAquaTestCase):
 
     def test_repetetive_parameter_setting(self):
         """Test alternate setting of parameters and circuit construction."""
-
-        p = Parameter('p')
+        x = Parameter('x')
         circuit = QuantumCircuit(1)
-        circuit.rx(p, 0)
+        circuit.rx(x, 0)
 
         ansatz = Ansatz(circuit, reps=[0, 0, 0], insert_barriers=True)
         with self.subTest(msg='immediately after initialization'):
@@ -271,11 +266,11 @@ class TestAnsatz(QiskitAquaTestCase):
             self.assertEqual(as_circuit.parameters, _CONTAINER())
 
         q = Parameter('q')
-        ansatz.parameters = [p, q, q]
+        ansatz.parameters = [x, q, q]
         with self.subTest(msg='setting parameter to Parameter objects'):
             as_circuit = ansatz.to_circuit()
-            self.assertEqual(ansatz.parameters, [p, q, q])
-            self.assertEqual(as_circuit.parameters, _CONTAINER({p, q}))
+            self.assertEqual(ansatz.parameters, [x, q, q])
+            self.assertEqual(as_circuit.parameters, _CONTAINER({x, q}))
 
 
 class TestBackwardCompatibility(QiskitAquaTestCase):
@@ -291,7 +286,6 @@ class TestBackwardCompatibility(QiskitAquaTestCase):
         """Test the feature maps are backwards compatible."""
         self.assertTrue(False)  # pylint: disable=redundant-unittest-assert
 
-    # @unittest.skip('TODO')
     def test_parameter_order(self):
         """Test that the parameter appearance is equal in the old and new variational forms."""
         num_qubits = 3
@@ -397,7 +391,6 @@ class TestSwapRZ(QiskitAquaTestCase):
         swaprz = SwapRZ(3, insert_barriers=True)
         basis_gates = ['rz', 'rxx', 'ryy']
         qasm = transpile(swaprz.to_circuit(), basis_gates=basis_gates).qasm()
-        self.maxDiff = None
         self.assertEqual(qasm, expected)
 
 
@@ -411,12 +404,14 @@ class TestOperatorAnsatz(QiskitAquaTestCase):
         paulis = [Pauli.from_label(label) for label in pauli_labels]
         op = WeightedPauliOperator.from_list(paulis)
         ansatz = OperatorAnsatz(op)
+        print(ansatz)
 
     def test_multiple_operators(self):
         """Test creation of the operator ansatz from multiple weighted pauli operators."""
         pauli_labels = ['ZXX', 'XYX', 'ZII']
         ops = [WeightedPauliOperator.from_list([Pauli.from_label(label)]) for label in pauli_labels]
         ansatz = OperatorAnsatz(ops, insert_barriers=True)
+        print(ansatz)
 
     def test_matrix_operator(self):
         """Test the creation of the operator ansatz from a matrix operator."""
@@ -424,6 +419,7 @@ class TestOperatorAnsatz(QiskitAquaTestCase):
         matrix_2 = np.array([[0, 1], [1, 0]])
         op_1, op_2 = MatrixOperator(matrix_1), MatrixOperator(matrix_2)
         ansatz = OperatorAnsatz([op_1, op_2])
+        print(ansatz)
 
 
 if __name__ == '__main__':

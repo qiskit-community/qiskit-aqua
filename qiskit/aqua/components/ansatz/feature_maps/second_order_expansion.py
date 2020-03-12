@@ -16,8 +16,9 @@ This module contains the definition of a base class for
 feature map. Several types of commonly used approaches.
 """
 
-from typing import Callable, List, Union
+from typing import Callable, List, Union, Optional
 import numpy as np
+from qiskit.util import deprecate_arguments
 from qiskit.aqua.utils.validation import validate_min
 from .pauli_z_expansion import PauliZExpansion
 from .data_mapping import self_product
@@ -30,12 +31,15 @@ class SecondOrderExpansion(PauliZExpansion):
     Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
     """
 
+    @deprecate_arguments({'entangler_map': 'entanglement'})
     def __init__(self,
                  feature_dimension: int,
                  depth: int = 2,
                  entanglement: Union[str, List[List[int]], Callable[[int], List[int]]] = 'full',
                  data_map_func: Callable[[np.ndarray], float] = self_product,
-                 insert_barriers: bool = False) -> None:
+                 insert_barriers: bool = False,
+                 entangler_map: Optional[List[List[int]]] = None  # pylint:disable=unused-argument
+                 ) -> None:
         """
 
         Args:
@@ -49,6 +53,7 @@ class SecondOrderExpansion(PauliZExpansion):
             data_map_func: A mapping function for data x.
             insert_barriers: If True, barriers are inserted in between the evolution instructions
                 and hadamard layers.
+            entangler_map: Deprecated, use ``entanglement`` instead.
         """
         validate_min('depth', depth, 1)
 

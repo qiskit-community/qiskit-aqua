@@ -60,8 +60,8 @@ class RYRZ(TwoLocalAnsatz):
                 the index of the entanglement layer.
                 Default to 'full' entanglement.
                 See the Examples section for more detail.
-            initial_state: An `InitialState` object to prepent to the Ansatz.
-                TODO deprecate this feature in favour of prepend or overloading __add__ in
+            initial_state: An `InitialState` object to prepend to the Ansatz.
+                TODO deprecate this feature in favor of prepend or overloading __add__ in
                 the initial state class
             skip_unentangled_qubits: If True, the single qubit gates are only applied to qubits
                 that are entangled with another qubit. If False, the single qubit gates are applied

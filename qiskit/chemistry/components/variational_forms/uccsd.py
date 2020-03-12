@@ -124,7 +124,7 @@ class UCCSD(Ansatz):
 
         # compare the number of required qubits to the number of qubits the user specified
         # this exists only as safeguard to not lead to unexpected number of qubits, since the
-        # TODO change this to a log warning or info message or sth
+        # TODO change this to a log warning or info message
         if num_required_qubits != num_qubits:
             raise ValueError('Computed num qubits {} does not match actual {}'
                              .format(num_required_qubits, num_qubits))
@@ -230,7 +230,7 @@ class UCCSD(Ansatz):
     def num_parameters(self, num):
         self._internal_num_parameters = num
 
-    @Ansatz.blocks.getter
+    @Ansatz.blocks.getter  # pylint:disable=no-member
     def blocks(self):  # pylint:disable=invalid-overridden-method
         """Get the blocks."""
 

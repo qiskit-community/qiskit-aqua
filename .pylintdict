@@ -57,6 +57,7 @@ cct
 ccx
 cdf
 cdot
+cdots
 ceil
 chernoff
 circ
@@ -348,6 +349,7 @@ nxn
 objval
 occ
 oe
+otimes
 ok
 oneee
 online
@@ -445,6 +447,7 @@ rtype
 runarsson
 RunConfig
 ry
+ryrz
 rz
 sanjiv
 sashank
@@ -489,6 +492,7 @@ sudo
 superclass
 suzuki
 svm
+swaprz
 sx
 sy
 symm
