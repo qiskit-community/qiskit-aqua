@@ -15,19 +15,23 @@
 """Aqua's Ansatz classes."""
 
 from .ansatz import Ansatz
-from .feature_maps import PauliExpansion
 from .operator_ansatz import OperatorAnsatz
 from .two_local_ansatz import TwoLocalAnsatz
 from .ry import RY
 from .ryrz import RYRZ
 from .swaprz import SwapRZ
+from .feature_maps import (PauliExpansion, FirstOrderExpansion, SecondOrderExpansion,
+                           RawFeatureVector)
 
 __all__ = [
     'Ansatz',
+    'FirstOrderExpansion',
     'OperatorAnsatz',
     'PauliExpansion',
+    'RawFeatureVector',
     'RY',
     'RYRZ',
+    'SecondOrderExpansion',
     'SwapRZ',
     'TwoLocalAnsatz',
 ]

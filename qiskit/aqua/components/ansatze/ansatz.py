@@ -339,19 +339,24 @@ class Ansatz:
             return self._reps * list(range(len(self.blocks)))
         return self._reps
 
+    def __str__(self) -> str:
+        """Returns information about the setting.
+
+        Returns:
+            The class name and the attributes/parameters of the instance as ``str``.
+        """
+        ret = 'Ansatz: {}\n'.format(self.__class__.__name__)
+        params = ''
+        for key, value in self.__dict__.items():
+            if key[0] == '_':
+                params += '-- {}: {}\n'.format(key[1:], value)
+        ret += '{}'.format(params)
+        return ret
+
     @property
     def setting(self):
-        """TODO Deprecate.
-
-        Returns information about the setting.
-        """
-        ret = "variational form: {}\n".format(self.__class__.__name__)
-        params = ""
-        for key, value in self.__dict__.items():
-            if key[0] == "_":
-                params += "-- {}: {}\n".format(key[1:], value)
-        ret += "{}".format(params)
-        return ret
+        """Deprecated, moved to __str__."""
+        return self.__str__()
 
     @property
     def preferred_init_points(self):
