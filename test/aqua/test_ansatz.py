@@ -199,7 +199,7 @@ class TestAnsatz(QiskitAquaTestCase):
     def test_parameter_setter_from_automatic_repetition(self, params):
         """Test getting and setting of the ansatz parameters.
 
-        TODO Test the input ``[0, 1, Parameter('θ'), 3, 4, 5]`` once that's supported.
+        TODO Test the input ``[0, 1, Parameter('theta'), 3, 4, 5]`` once that's supported.
         """
         circuit = QuantumCircuit(2)
         circuit.ry(Parameter('a'), 0)
