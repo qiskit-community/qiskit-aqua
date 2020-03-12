@@ -23,4 +23,4 @@ from .suzuki import Suzuki
 class Trotter(Suzuki):
 
     def __init__(self, reps=1):
-        super().__init__(reps=1)
+        super().__init__(order=1, reps=1)
