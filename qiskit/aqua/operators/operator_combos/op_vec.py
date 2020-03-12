@@ -18,6 +18,8 @@
 import numpy as np
 from functools import reduce
 
+from qiskit.circuit import ParameterExpression
+
 from .. import OperatorBase
 
 
@@ -32,7 +34,7 @@ class OpVec(OperatorBase):
         Args:
             oplist (list(OperatorBase)): The operators being summed.
             combo_fn (callable): The recombination function to reduce classical operators when available (e.g. sum)
-            coeff (int, float, complex): A coefficient multiplying the primitive
+            coeff (int, float, complex, ParameterExpression): A coefficient multiplying the primitive
             param_bindings(dict): A dictionary containing {param: list_of_bindings} mappings, such that each binding
             should be treated as a new op in oplist for that parameterization. Keys can also be ParameterVectors,
             or anything else that can be passed as a key in a Terra .bind_parameters call.
@@ -134,10 +136,9 @@ class OpVec(OperatorBase):
 
     def mul(self, scalar):
         """ Scalar multiply. Overloaded by * in OperatorBase. """
-        if not isinstance(scalar, (int, float, complex)):
+        if not isinstance(scalar, (int, float, complex, ParameterExpression)):
             raise ValueError('Operators can only be scalar multiplied by float or complex, not '
                              '{} of type {}.'.format(scalar, type(scalar)))
-        # return self.__class__([op.mul(scalar) for op in self.oplist])
         return self.__class__(self.oplist, coeff=self.coeff * scalar)
 
     def kron(self, other):
@@ -267,6 +268,15 @@ class OpVec(OperatorBase):
                                                      repr(self.oplist),
                                                      self.coeff,
                                                      self.abelian)
+
+    def bind_parameters(self, param_dict):
+        param_value = self.coeff
+        if isinstance(self.coeff, ParameterExpression):
+            unrolled_dict = self._unroll_param_dict(param_dict)
+            if self.coeff in unrolled_dict:
+                # TODO what do we do about complex?
+                param_value = float(self.coeff.bind(unrolled_dict[self.coeff]))
+        return self.traverse(lambda x: x.bind_parameters(param_dict), coeff=param_value)
 
     def print_details(self):
         """ print details """

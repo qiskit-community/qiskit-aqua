@@ -219,6 +219,16 @@ class StateFnCircuit(StateFn):
                                         prim_str,
                                         self.coeff)
 
+    # TODO figure out binding instruction parameters.
+    # def bind_parameters(self, param_dict):
+    #     param_value = self.coeff
+    #     if isinstance(self.coeff, ParameterExpression):
+    #         unrolled_dict = self._unroll_param_dict(param_dict)
+    #         if self.coeff in unrolled_dict:
+    #             # TODO what do we do about complex?
+    #             param_value = float(self.coeff.bind(unrolled_dict[self.coeff]))
+    #     return self.__class__(self.primitive, coeff=param_value)
+
     def eval(self, other=None):
         # Validate bitstring: re.fullmatch(rf'[01]{{{0}}}', val1)
 
@@ -237,7 +247,8 @@ class StateFnCircuit(StateFn):
             qc.append(self.primitive, qargs=range(self.primitive.num_qubits))
         return qc
 
-    def sample(self, shots=1024):
+    #TODO specify backend?
+    def sample(self, shots=1024, massive=False):
         """ Sample the statefunction as a normalized probability distribution."""
         if self.num_qubits > 16 and not massive:
             # TODO figure out sparse matrices?

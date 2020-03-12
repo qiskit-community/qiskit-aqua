@@ -20,7 +20,7 @@ import numpy as np
 from qiskit.quantum_info import Statevector
 from qiskit.result import Result
 from qiskit import QuantumCircuit
-from qiskit.circuit import Instruction
+from qiskit.circuit import Instruction, ParameterExpression
 
 from qiskit.aqua.operators.operator_base import OperatorBase
 
@@ -122,7 +122,7 @@ class StateFn(OperatorBase):
         copies.
         TODO figure out if this is a bad idea.
          """
-        if not isinstance(scalar, (int, float, complex)):
+        if not isinstance(scalar, (int, float, complex, ParameterExpression)):
             raise ValueError('Operators can only be scalar multiplied by float or complex, not '
                              '{} of type {}.'.format(scalar, type(scalar)))
 
@@ -290,6 +290,15 @@ class StateFn(OperatorBase):
     def sample(self, shots):
         """ Sample the statefunction as a normalized probability distribution."""
         raise NotImplementedError
+
+    def bind_parameters(self, param_dict):
+        param_value = self.coeff
+        if isinstance(self.coeff, ParameterExpression):
+            unrolled_dict = self._unroll_param_dict(param_dict)
+            if self.coeff in unrolled_dict:
+                # TODO what do we do about complex?
+                param_value = float(self.coeff.bind(unrolled_dict[self.coeff]))
+        return self.__class__(self.primitive, is_measurement=self.is_measurement, coeff=param_value)
 
     # Try collapsing primitives where possible. Nothing to collapse here.
     def reduce(self):

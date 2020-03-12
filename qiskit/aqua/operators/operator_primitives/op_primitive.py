@@ -52,7 +52,7 @@ class OpPrimitive(OperatorBase):
                 Args:
                     primitive (Gate, Pauli, [[complex]], np.ndarray, QuantumCircuit, Instruction): The operator primitive being
                     wrapped.
-                    coeff (int, float, complex): A coefficient multiplying the primitive
+                    coeff (int, float, complex, ParameterExpression): A coefficient multiplying the primitive
                 """
         self._primitive = primitive
         self._coeff = coeff
@@ -150,6 +150,15 @@ class OpPrimitive(OperatorBase):
     def __repr__(self):
         """Overload str() """
         return "OpPrimitive({}, coeff={})".format(repr(self.primitive), self.coeff)
+
+    def bind_parameters(self, param_dict):
+        param_value = self.coeff
+        if isinstance(self.coeff, ParameterExpression):
+            unrolled_dict = self._unroll_param_dict(param_dict)
+            if self.coeff in unrolled_dict:
+                # TODO what do we do about complex?
+                param_value = float(self.coeff.bind(unrolled_dict[self.coeff]))
+        return self.__class__(self.primitive, coeff=param_value)
 
     def print_details(self):
         """ print details """
