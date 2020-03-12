@@ -204,5 +204,5 @@ class StateFnOperator(StateFn):
 
     # TODO
     def sample(self, shots):
-        """ Sample the statefunction as a normalized probability distribution."""
+        """ Sample the state function as a normalized probability distribution."""
         raise NotImplementedError

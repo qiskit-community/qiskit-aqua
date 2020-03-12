@@ -68,7 +68,7 @@ class OperatorBase(ABC):
         or, exactly:
             sum([op.eval(bstr, bstr) * np.conj(sf.eval(bstr)) * sf.eval(bstr) for bstr in sampled_strings])
 
-        Note that for a quantum statefunction, we do not generally have efficient classical access to sf.sample or
+        Note that for a quantum state function, we do not generally have efficient classical access to sf.sample or
         sf.eval.
 
         """

@@ -113,6 +113,6 @@ class TestStateConstruction(QiskitAquaTestCase):
             self.assertIn(k, statedict)
             self.assertAlmostEqual(v, np.abs(statedict[k]), delta=.1)
 
-        # Follows same codepath as above, but testing to be thorough
+        # Follows same code path as above, but testing to be thorough
         sfc_vector = StateFnCircuit.from_vector(StateFn(statedict).to_matrix())
         np.testing.assert_array_almost_equal(StateFn(statedict).to_matrix(), sfc_vector.to_matrix())

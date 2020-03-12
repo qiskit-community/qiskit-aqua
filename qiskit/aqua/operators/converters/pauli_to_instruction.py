@@ -52,7 +52,7 @@ class PaulitoInstruction(ConverterBase):
         return OpPrimitive(self.convert_pauli(operator), coeff=coeff)
 
     def convert_pauli(self, pauli):
-        # Note: Reversing endian-ness!!
+        # Note: Reversing endianness!!
         qc = QuantumCircuit(len(pauli))
         for q, p in enumerate(reversed(pauli.to_label())):
             gate = _pauli_to_gate_mapping[p]

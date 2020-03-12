@@ -83,7 +83,7 @@ class PauliChangeOfBasis(ConverterBase):
             if isinstance(operator.primitive, OpPrimitive):
                 cob_instr_op, dest_pauli_op = self.get_cob_circuit(operator.primitive)
                 return self._replacement_fn(cob_instr_op, dest_pauli_op)
-            # TODO make a cononical "distribute" or graph swap as method in StateFnVec or OpVec?
+            # TODO make a canonical "distribute" or graph swap as method in StateFnVec or OpVec?
             elif operator.primitive.distributive:
                 if operator.primitive.abelian:
                     origin_pauli = self.get_tpb_pauli(operator.primitive)
@@ -136,7 +136,7 @@ class PauliChangeOfBasis(ConverterBase):
 
     def get_diagonalizing_clifford(self, pauli):
         """ Construct single-qubit rotations to {Z, I)^n
-         Note, underlying Pauli bits are in Qiskit endian-ness!! """
+         Note, underlying Pauli bits are in Qiskit endianness!! """
         if isinstance(pauli, OpPauli):
             pauli = pauli.primitive
 

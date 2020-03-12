@@ -288,7 +288,7 @@ class StateFn(OperatorBase):
 
     # TODO
     def sample(self, shots):
-        """ Sample the statefunction as a normalized probability distribution."""
+        """ Sample the state function as a normalized probability distribution."""
         raise NotImplementedError
 
     def bind_parameters(self, param_dict):

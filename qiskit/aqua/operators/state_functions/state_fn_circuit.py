@@ -249,7 +249,7 @@ class StateFnCircuit(StateFn):
 
     #TODO specify backend?
     def sample(self, shots=1024, massive=False):
-        """ Sample the statefunction as a normalized probability distribution."""
+        """ Sample the state function as a normalized probability distribution."""
         if self.num_qubits > 16 and not massive:
             # TODO figure out sparse matrices?
             raise ValueError('to_vector will return an exponentially large vector, in this case {0} elements.'

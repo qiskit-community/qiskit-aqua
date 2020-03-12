@@ -92,7 +92,7 @@ class OpPauli(OpPrimitive):
 
         # Both Paulis
         if isinstance(other, OpPauli):
-            # TODO change Pauli kron in Terra to have optional inplace
+            # TODO change Pauli kron in Terra to have optional in place
             op_copy = Pauli(x=other.primitive.x, z=other.primitive.z)
             # NOTE!!! REVERSING QISKIT ENDIANNESS HERE
             return OpPauli(op_copy.kron(self.primitive), coeff=self.coeff * other.coeff)

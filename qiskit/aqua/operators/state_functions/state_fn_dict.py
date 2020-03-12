@@ -61,7 +61,7 @@ class StateFnDict(StateFn):
         # 3) This will only extract the first result.
         if isinstance(primitive, Result):
             counts = primitive.get_counts()
-            # NOTE: Need to squareroot to take Pauli measurements!
+            # NOTE: Need to square root to take Pauli measurements!
             primitive = {bstr: (shots / sum(counts.values()))**.5 for (bstr, shots) in counts.items()}
 
         if not isinstance(primitive, dict):
@@ -86,7 +86,7 @@ class StateFnDict(StateFn):
 
         # Right now doesn't make sense to add a StateFn to a Measurement
         if isinstance(other, StateFnDict) and self.is_measurement == other.is_measurement:
-            # TODO add compatability with vector and Operator?
+            # TODO add compatibility with vector and Operator?
             if self.primitive == other.primitive:
                 return StateFnDict(self.primitive,
                                    coeff=self.coeff + other.coeff,
@@ -222,5 +222,5 @@ class StateFnDict(StateFn):
 
     # TODO
     def sample(self, shots):
-        """ Sample the statefunction as a normalized probability distribution."""
+        """ Sample the state function as a normalized probability distribution."""
         raise NotImplementedError
