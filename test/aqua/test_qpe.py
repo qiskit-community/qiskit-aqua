@@ -23,7 +23,7 @@ from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import MatrixOperator, WeightedPauliOperator
 from qiskit.aqua.operators.legacy import op_converter
 from qiskit.aqua.utils import decimal_to_binary
-from qiskit.aqua.algorithms import ClassicalMinimumEigensolver
+from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.aqua.algorithms import QPEMinimumEigensolver
 from qiskit.aqua.components.iqfts import Standard
 from qiskit.aqua.components.initial_states import Custom
@@ -69,7 +69,7 @@ class TestQPE(QiskitAquaTestCase):
         """ QPE test """
         self.log.debug('Testing QPE')
         tmp_qubit_op = qubit_op.copy()
-        exact_eigensolver = ClassicalMinimumEigensolver(qubit_op)
+        exact_eigensolver = NumPyMinimumEigensolver(qubit_op)
         results = exact_eigensolver.run()
 
         ref_eigenval = results.eigenvalue

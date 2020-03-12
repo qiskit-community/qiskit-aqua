@@ -11,7 +11,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""The Classical LinearSystem algorithm."""
+"""The Numpy LinearSystem algorithm."""
 
 from typing import List, Union
 import logging
@@ -23,9 +23,9 @@ from qiskit.aqua.algorithms import ClassicalAlgorithm
 logger = logging.getLogger(__name__)
 
 
-class ClassicalLSsolver(ClassicalAlgorithm):
+class NumPyLSsolver(ClassicalAlgorithm):
     r"""
-    The Classical LinearSystem algorithm.
+    The Numpy LinearSystem algorithm.
 
     This linear system solver computes the eigenvalues of a complex-valued square
     matrix :math:`A` of dimension :math:`n \times n` and the solution to the systems of linear
@@ -61,13 +61,13 @@ class ClassicalLSsolver(ClassicalAlgorithm):
         return self._ret
 
 
-class ExactLSsolver(ClassicalLSsolver):
+class ExactLSsolver(NumPyLSsolver):
     """
     The deprecated Exact LinearSystem algorithm.
     """
 
     def __init__(self, matrix: Union[List[List[float]], np.ndarray],
                  vector: Union[List[float], np.ndarray]) -> None:
-        warnings.warn('Deprecated class {}, use {}.'.format('ExactLSsolver', 'ClassicalLSsolver'),
+        warnings.warn('Deprecated class {}, use {}.'.format('ExactLSsolver', 'NumPyLSsolver'),
                       DeprecationWarning)
         super().__init__(matrix, vector)

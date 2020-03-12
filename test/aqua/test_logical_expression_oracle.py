@@ -85,7 +85,7 @@ class TestLogicalExpressionOracle(QiskitAquaTestCase):
             qc += leo_circuit
             qc.barrier(leo.output_register)
             qc.measure(leo.output_register, m)
-            # print(qc.draw(line_length=10000))
+            # self.log.debug(qc.draw(line_length=10000))
             counts = q_execute(qc,
                                BasicAer.get_backend('qasm_simulator'),
                                shots=num_shots).result().get_counts(qc)

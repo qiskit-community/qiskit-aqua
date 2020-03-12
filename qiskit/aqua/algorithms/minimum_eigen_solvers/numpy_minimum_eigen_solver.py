@@ -12,13 +12,13 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""The Classical Minimum Eigensolver algorithm."""
+"""The Numpy Minimum Eigensolver algorithm."""
 
 from typing import List, Optional
 import logging
 import pprint
 
-from qiskit.aqua.algorithms import ClassicalAlgorithm, ClassicalEigensolver
+from qiskit.aqua.algorithms import ClassicalAlgorithm, NumPyEigensolver
 from qiskit.aqua.operators import LegacyBaseOperator
 from .minimum_eigen_solver import MinimumEigensolver, MinimumEigensolverResult
 
@@ -27,9 +27,9 @@ logger = logging.getLogger(__name__)
 
 # pylint: disable=invalid-name
 
-class ClassicalMinimumEigensolver(ClassicalAlgorithm, MinimumEigensolver):
+class NumPyMinimumEigensolver(ClassicalAlgorithm, MinimumEigensolver):
     """
-    The Classical Minimum Eigensolver algorithm.
+    The Numpy Minimum Eigensolver algorithm.
     """
 
     def __init__(self, operator: Optional[LegacyBaseOperator] = None,
@@ -39,7 +39,7 @@ class ClassicalMinimumEigensolver(ClassicalAlgorithm, MinimumEigensolver):
             operator: Operator instance
             aux_operators: Auxiliary operators to be evaluated at minimum eigenvalue
         """
-        self._ces = ClassicalEigensolver(operator, 1, aux_operators)
+        self._ces = NumPyEigensolver(operator, 1, aux_operators)
         self._ret = {}  # TODO remove
 
     @property
@@ -83,7 +83,7 @@ class ClassicalMinimumEigensolver(ClassicalAlgorithm, MinimumEigensolver):
             if len(result_ces.aux_operator_eigenvalues) > 0:
                 result.aux_operator_eigenvalues = result_ces.aux_operator_eigenvalues[0]
 
-        logger.debug('ClassicalMinimumEigensolver dict:\n%s',
+        logger.debug('NumPyMinimumEigensolver dict:\n%s',
                      pprint.pformat(result.data, indent=4))
 
         return result

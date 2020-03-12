@@ -20,7 +20,7 @@ import numpy as np
 
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.algorithms import ClassicalMinimumEigensolver, VQE, IQPEMinimumEigensolver
+from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE, IQPEMinimumEigensolver
 from qiskit.aqua.components.optimizers import SLSQP
 from qiskit.aqua.components.variational_forms import RY
 from qiskit.chemistry.applications import MolecularGroundStateEnergy
@@ -44,7 +44,7 @@ class TestAppMGSE(QiskitChemistryTestCase):
         except QiskitChemistryError:
             self.skipTest('PYSCF driver does not appear to be installed')
 
-        self.cme = ClassicalMinimumEigensolver()
+        self.cme = NumPyMinimumEigensolver()
 
         self.vqe = VQE(var_form=RY(2))
         self.vqe.set_backend(BasicAer.get_backend('statevector_simulator'))
@@ -122,7 +122,7 @@ class TestAppMGSE(QiskitChemistryTestCase):
         """ Callback testing """
         mgse = MolecularGroundStateEnergy(self.driver)
 
-        result = mgse.compute_energy(lambda *args: ClassicalMinimumEigensolver())
+        result = mgse.compute_energy(lambda *args: NumPyMinimumEigensolver())
         self.assertAlmostEqual(result.energy, self.reference_energy, places=5)
 
         result = mgse.compute_energy(lambda *args: self.vqe)

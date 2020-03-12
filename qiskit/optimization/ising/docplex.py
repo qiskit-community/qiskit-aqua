@@ -52,7 +52,7 @@ The following is an example of use.
     qubitOp, offset = get_operator(mdl)
 
     # Calculate with the generated Ising Hamiltonian.
-    ee = ClassicalMinimumEigensolver(qubitOp)
+    ee = NumPyMinimumEigensolver(qubitOp)
     result = ee.run()
     print('get_operator')
     print('tsp objective:', result['energy'] + offset)
