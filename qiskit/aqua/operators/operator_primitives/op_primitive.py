@@ -16,7 +16,7 @@ import logging
 import numpy as np
 
 from qiskit import QuantumCircuit
-from qiskit.circuit import Instruction
+from qiskit.circuit import Instruction, ParameterExpression
 from qiskit.quantum_info import Pauli
 from qiskit.quantum_info import Operator as MatrixOperator
 
@@ -92,7 +92,7 @@ class OpPrimitive(OperatorBase):
         Doesn't multiply MatrixOperator until to_matrix() is called to keep things lazy and avoid big copies.
         TODO figure out if this is a bad idea.
          """
-        if not isinstance(scalar, (int, float, complex)):
+        if not isinstance(scalar, (int, float, complex, ParameterExpression)):
             raise ValueError('Operators can only be scalar multiplied by float or complex, not '
                              '{} of type {}.'.format(scalar, type(scalar)))
         return self.__class__(self.primitive, coeff=self.coeff * scalar)

@@ -19,11 +19,12 @@ from test.aqua import QiskitAquaTestCase
 import numpy as np
 import itertools
 
+from qiskit import QuantumCircuit, BasicAer
+from qiskit.circuit import ParameterVector
+
 from qiskit.aqua.operators import X, Y, Z, I, CX, T, H, S, OpPrimitive, OpSum, OpComposition, OpVec
 from qiskit.aqua.operators import StateFn, Zero, One, Plus, Minus
-
-from qiskit.aqua.operators import EvolutionBase
-from qiskit import QuantumCircuit, BasicAer
+from qiskit.aqua.operators import EvolutionBase, PauliTrotterEvolution
 
 
 class TestEvolution(QiskitAquaTestCase):
@@ -43,3 +44,20 @@ class TestEvolution(QiskitAquaTestCase):
         mean = evolution.convert(wf)
         self.assertIsNotNone(mean)
         print(mean.to_matrix())
+
+    def test_parameterized_evolution(self):
+        thetas = ParameterVector('θ', length=6)
+        op = (thetas[0] * I ^ I) + \
+             (thetas[1] * I ^ Z) + \
+             (thetas[2] * X ^ X) + \
+             (thetas[3] * Z ^ I) + \
+             (thetas[4] * Y ^ Z) + \
+             (thetas[5] * Z ^ Z)
+        evolution = PauliTrotterEvolution(trotter_mode='trotter', reps=1, group_paulis=False)
+        # wf = (Pl^Pl) + (Ze^Ze)
+        wf = (op).exp_i() @ CX @ (H ^ I) @ Zero
+        mean = evolution.convert(wf)
+        circuit_params = mean.to_circuit().parameters
+        # Check that the non-identity parameters are in the circuit
+        for p in thetas[1:]:
+            self.assertIn(p, circuit_params)

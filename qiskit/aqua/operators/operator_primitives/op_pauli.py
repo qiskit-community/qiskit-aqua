@@ -269,7 +269,9 @@ class OpPauli(OpPrimitive):
 
         sig_qubits = np.logical_or(corrected_x, corrected_z)
         if np.sum(sig_qubits) == 0:
-            return self
+            # e^I is just a global phase, but we can keep track of it! Should we?
+            # For now, just return identity
+            return OpPauli(self.primitive)
         if np.sum(sig_qubits) == 1:
             sig_qubit_index = sig_qubits.tolist().index(True)
             # Y rotation
