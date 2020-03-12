@@ -15,25 +15,6 @@
 """ Optimization Utilities module """
 
 import datetime
-from qiskit.finance.data_providers import RandomDataProvider
-
-
-def get_mu_sigma(num_assets):
-    """
-    Generate expected return and covariance matrix from (random) time-series.
-    Args:
-        num_assets (int): The number of assets to generate values for.
-    Returns:
-        Tuple(np.array, np.array): mu (linear coefficients) and sigma (quadratic coefficients)
-    """
-    stocks = [("TICKER%s" % i) for i in range(num_assets)]
-    data = RandomDataProvider(tickers=stocks, start=datetime.datetime(2020, 1, 1),
-                              end=datetime.datetime(2020, 1, 30))
-    data.run()
-    linear = data.get_period_return_mean_vector()
-    quadratic = data.get_period_return_covariance_matrix()
-
-    return linear, quadratic
 
 
 def get_qubo_solutions(function_dict, n_key, print_solutions=False):
@@ -83,7 +64,7 @@ def get_qubo_solutions(function_dict, n_key, print_solutions=False):
             print(spacer + str(i), "=", bin_key, "->" + value_spacer + str(round(solution, 4)))
 
         # Record solution.
-        solutions[i] = str(round(solution, 4))
+        solutions[i] = solution
 
     if print_solutions:
         print()

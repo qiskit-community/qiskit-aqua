@@ -22,6 +22,7 @@ from qiskit.aqua.components.oracles import CustomCircuitOracle
 from qiskit.aqua.components.initial_states import Custom
 from qiskit.aqua.components.iqfts import Standard as IQFT
 from qiskit.providers import BaseBackend
+from qiskit.optimization.problems import OptimizationProblem
 
 
 class OptimizationProblemToNegativeValueOracle:
@@ -46,7 +47,7 @@ class OptimizationProblemToNegativeValueOracle:
             self._backend = backend
         self._logger = logging.getLogger(__name__)
 
-    def encode(self, linear_coeff: np.array, quadratic_coeff: np.array, constant: int) -> \
+    def encode(self, problem: OptimizationProblem) -> \
             Tuple[Custom, CustomCircuitOracle, Dict[Union[int, Tuple[int, int]], int]]:
         """ A helper function that converts a QUBO into an oracle that recognizes negative numbers.
 
@@ -60,6 +61,22 @@ class OptimizationProblemToNegativeValueOracle:
             a dictionary representation of the function coefficients, where the key -1 represents
             the constant.
         """
+
+        # get linear part of objective
+        linear_dict = problem.objective.get_linear()
+        linear_coeff = np.zeros(problem.variables.get_num())
+        for i, v in linear_dict.items():
+            linear_coeff[i] = v
+
+        # get quadratic part of objective
+        quadratic_dict = problem.objective.get_quadratic()
+        quadratic_coeff = {}
+        for i, jv in quadratic_dict.items():
+            for j, v in jv.items():
+                quadratic_coeff[(i, j)] = v
+
+        constant = problem.objective.get_offset()
+
         # Get circuit requirements from input.
         num_key = len(linear_coeff)
         num_ancilla = max(num_key, self._num_value) - 1
@@ -79,16 +96,17 @@ class OptimizationProblemToNegativeValueOracle:
         for reg in a_operator_circuit.qregs:
             reg_map[reg.name] = reg
         key_val = reg_map["key_value"]
-        anc = reg_map["ancilla"]
+        # anc = reg_map["ancilla"]
 
         # TODO: Can we use LogicalExpressionOracle instead?
         # Build negative value oracle O.
         oracle_bit = QuantumRegister(1, "oracle")
-        oracle_circuit = QuantumCircuit(key_val, anc, oracle_bit)
+        oracle_circuit = QuantumCircuit(key_val, oracle_bit)
+        # oracle_circuit = QuantumCircuit(key_val, anc, oracle_bit)  # TODO
         self._cxzxz(oracle_circuit, key_val[num_key], oracle_bit[0])
         oracle = CustomCircuitOracle(variable_register=key_val,
                                      output_register=oracle_bit,
-                                     ancillary_register=anc,
+                                    #  ancillary_register=anc,  # TODO
                                      circuit=oracle_circuit,
                                      evaluate_classically_callback=self._evaluate_classically)
 
@@ -163,13 +181,15 @@ class QuantumDictionary:
             Circuit object describing the Quantum Dictionary.
         """
         key_val = QuantumRegister(self._key_bits + self._value_bits, "key_value")
-        ancilla = QuantumRegister(self._ancilla_bits, "ancilla")
+        # ancilla = QuantumRegister(self._ancilla_bits, "ancilla")  # TODO
 
         if self._backend.name == "statevector_simulator":
-            circuit = QuantumCircuit(key_val, ancilla)
+            # circuit = QuantumCircuit(key_val, ancilla)  # TODO
+            circuit = QuantumCircuit(key_val)
         else:
             measure = ClassicalRegister(self._key_bits + self._value_bits)
-            circuit = QuantumCircuit(key_val, ancilla, measure)
+            # circuit = QuantumCircuit(key_val, ancilla, measure)  # TODO
+            circuit = QuantumCircuit(key_val, measure)
 
         self._prepare(self._func_dict, circuit, key_val)
 

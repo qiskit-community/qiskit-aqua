@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-
+from docplex.mp.model import Model
 from cplex import Cplex, SparsePair
 from cplex.exceptions import CplexSolverError
 
@@ -95,7 +95,10 @@ class OptimizationProblem(object):
 
         # make sure current problem is clean
         self._disposed = False
-        self._name = None
+        try:
+            self._name = op.get_problem_name()
+        except CplexSolverError:
+            self._name = None
         self.variables = VariablesInterface()
         self.linear_constraints = LinearConstraintInterface(varindex=self.variables.get_indices)
         self.quadratic_constraints = QuadraticConstraintInterface(
@@ -130,7 +133,7 @@ class OptimizationProblem(object):
         # set objective name
         try:
             self.objective.set_name(op.objective.get_name())
-        except:
+        except CplexSolverError:
             pass
 
         # set linear objective terms
@@ -156,8 +159,14 @@ class OptimizationProblem(object):
 
         # TODO: add quadratic constraints
 
-    def from_docplex(self, op):
-        self.from_cplex(op.get_cplex())
+    def from_docplex(self, model: Model):
+        cplex = model.get_cplex()
+        try:
+            cplex.set_problem_name(model.get_name())
+        except CplexSolverError:
+            cplex.set_problem_name('')
+        cplex.objective.set_name('Objective')
+        self.from_cplex(cplex)
 
     def to_cplex(self):
 
@@ -165,6 +174,8 @@ class OptimizationProblem(object):
         op = Cplex()
         if self.get_problem_name() is not None:
             op.set_problem_name(self.get_problem_name())
+        else:
+            op.set_problem_name('')
         # TODO: what about problem type?
 
         # set variables (obj is set via objective interface)

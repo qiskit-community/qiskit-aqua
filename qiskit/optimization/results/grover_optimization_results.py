@@ -15,14 +15,13 @@
 """GroverOptimizationResults module"""
 
 from typing import Dict, Tuple, Union
-from qiskit.optimization.results import OptimizationResult
 
 
-class GroverOptimizationResults(OptimizationResult):
+class GroverOptimizationResults():
 
     """A results object for Grover Optimization methods."""
 
-    def __init__(self, x, fval, operation_counts: Dict[int, Dict[str, int]], rotations: int,
+    def __init__(self, operation_counts: Dict[int, Dict[str, int]], rotations: int,
                  n_input_qubits: int, n_output_qubits: int,
                  func_dict: Dict[Union[int, Tuple[int, int]], int]) -> None:
         """
@@ -34,7 +33,6 @@ class GroverOptimizationResults(OptimizationResult):
             func_dict: A dictionary representation of the function, where the keys correspond
                 to a variable, and the values are the corresponding coefficients.
         """
-        super().__init__(x, fval)
         self._operation_counts = operation_counts
         self._rotations = rotations
         self._n_input_qubits = n_input_qubits

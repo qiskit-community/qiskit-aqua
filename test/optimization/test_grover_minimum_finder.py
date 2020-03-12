@@ -16,8 +16,11 @@
 
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
+from docplex.mp.model import Model
 from cplex import SparsePair, SparseTriple
-from qiskit.optimization.algorithms import GroverMinimumFinder
+from qiskit.finance.applications.ising import portfolio
+from qiskit.aqua.algorithms import NumPyMinimumEigensolver
+from qiskit.optimization.algorithms import GroverMinimumFinder, MinimumEigenOptimizer
 from qiskit.optimization.problems import OptimizationProblem
 from qiskit.optimization.util import get_qubo_solutions
 
@@ -25,7 +28,7 @@ from qiskit.optimization.util import get_qubo_solutions
 class TestGroverMinimumFinder(QiskitOptimizationTestCase):
     """GroverMinimumFinder Tests"""
 
-    def validate_results(self, results, max_iterations):
+    def validate_results(self, problem, results, max_iterations):
         """Validate the results object returned by GroverMinimumFinder."""
         # Get measured values.
         grover_results = results.results
@@ -39,6 +42,8 @@ class TestGroverMinimumFinder(QiskitOptimizationTestCase):
         print("Optimum Key:", op_key, "Optimum Value:", op_value, "Rotations:", rot, "\n")
 
         # Get expected value.
+        solver = MinimumEigenOptimizer(NumPyMinimumEigensolver())
+        comp_result = solver.solve(problem)
         solutions = get_qubo_solutions(func, n_key, print_solutions=False)
         min_key = min(solutions, key=lambda key: int(solutions[key]))
         min_value = solutions[min_key]
@@ -46,64 +51,100 @@ class TestGroverMinimumFinder(QiskitOptimizationTestCase):
 
         # Validate results.
         max_hit = max_rotations <= rot or max_iterations <= iterations
-        self.assertTrue(min_key == op_key or max_hit)
-        self.assertTrue(min_value == op_value or max_hit)
+        # self.assertTrue(min_key == op_key or max_hit)
+        # self.assertTrue(min_value == op_value or max_hit)
+        self.assertTrue(comp_result.x == results.x or max_hit)
+        self.assertTrue(comp_result.fval == results.fval or max_hit)
 
     def test_qubo_gas_int_zero(self):
         """ Test for when the answer is zero """
-        # Circuit parameters.
-        num_value = 4
 
         # Input.
         op = OptimizationProblem()
-        _ = op.variables.add(names=["x0", "x1"])
-        x0_linear = SparsePair(ind=['x0'], val=[0])
-        x1_linear = SparsePair(ind=['x1'], val=[0])
-        op.linear_constraints.add(lin_expr=[x0_linear, x1_linear])
+        op.variables.add(names=["x0", "x1"], types='BB')
+        linear = [("x0", 0), ("x1", 0)]
+        op.objective.set_linear(linear)
 
         # Will not find a negative, should return 0.
         gmf = GroverMinimumFinder(num_iterations=1)
         results = gmf.solve(op)
-        self.assertEqual(results.x, 0)
-        self.assertEqual(int(results.fval), 0)
+        self.assertEqual(results.x, [0, 0])
+        self.assertEqual(results.fval, 0.0)
 
     def test_qubo_gas_int_simple(self):
         """ Test for simple case, with 2 linear coeffs and no quadratic coeffs or constants """
-        # Circuit parameters.
-        num_value = 4
 
         # Input.
         op = OptimizationProblem()
-        _ = op.variables.add(names=["x0", "x1"])
-        x0_linear = SparsePair(ind=['x0'], val=[-1])
-        x1_linear = SparsePair(ind=['x1'], val=[2])
-        op.linear_constraints.add(lin_expr=[x0_linear, x1_linear])
+        op.variables.add(names=["x0", "x1"], types='BB')
+        linear = [("x0", -1), ("x1", 2)]
+        op.objective.set_linear(linear)
 
         # Get the optimum key and value.
         n_iter = 8
         gmf = GroverMinimumFinder(num_iterations=n_iter)
         results = gmf.solve(op)
-        self.validate_results(results, n_iter)
+        self.validate_results(op, results, n_iter)
 
     def test_qubo_gas_int_paper_example(self):
         """ Test the example from https://arxiv.org/abs/1912.04088 """
-        # Circuit parameters.
-        num_value = 5
 
         # Input.
         op = OptimizationProblem()
-        _ = op.variables.add(names=["x0", "x1", "x2"])
-        x0_linear = SparsePair(ind=['x0'], val=[-1])
-        x1_linear = SparsePair(ind=['x1'], val=[2])
-        x2_linear = SparsePair(ind=['x2'], val=[-3])
-        x0_x2 = SparseTriple(ind1=['x0'], ind2=['x2'], val=[-2])
-        x1_x2 = SparseTriple(ind1=['x1'], ind2=['x2'], val=[-1])
-        op.quadratic_constraints.add(name='x0x2', quad_expr=x0_x2)
-        op.quadratic_constraints.add(name='x1x2', quad_expr=x1_x2)
-        op.linear_constraints.add(lin_expr=[x0_linear, x1_linear, x2_linear])
+        op.variables.add(names=["x0", "x1", "x2"], types='BBB')
+
+        linear = [("x0", -1), ("x1", 2), ("x2", -3)]
+        op.objective.set_linear(linear)
+        op.objective.set_quadratic_coefficients('x0', 'x2', -2)
+        op.objective.set_quadratic_coefficients('x1', 'x2', -1)
 
         # Get the optimum key and value.
         n_iter = 10
         gmf = GroverMinimumFinder(num_iterations=n_iter)
         results = gmf.solve(op)
-        self.validate_results(results, 10)
+        self.validate_results(op, results, 10)
+
+    def test_gas_portfolio(self):
+
+        # specify problem
+        n = 2
+        mu, sigma = portfolio.random_model(n, seed=42)
+        budget = n//2
+        q = 0.5
+        penalty = n
+
+        # round to integer (for Grover)
+        sigma = 2*np.round(2*sigma)
+        mu = np.round(2*mu)
+
+        # initialize docplex model
+        mdl = Model('portfolio_optimization')
+
+        # create binary variables
+        x = {}
+        for i in range(n):
+            x[i] = mdl.integer_var(name='x%s' % i, lb=0, ub=2)
+
+        # construct objective
+        ret = mdl.sum([mu[i] * x[i] for i in range(n)])
+        var = mdl.sum([sigma[i, j] * x[i] * x[j] for i in range(n) for j in range(n)])
+        objective = q * var - ret
+        mdl.minimize(objective)
+
+        # construct budget constraint
+        cost = mdl.sum([x[i] for i in range(n)])
+        mdl.add_constraint(cost == budget, ctname='budget')
+
+        # print model
+        mdl.pprint()
+
+        # create optimization problem from docplex model
+        problem = OptimizationProblem()
+        problem.from_docplex(mdl)
+
+        # print problem
+        print(problem.write_as_string())
+
+        grover_optimizer = GroverMinimumFinder(num_iterations=6)
+        result = grover_optimizer.solve(problem)
+        print(result)

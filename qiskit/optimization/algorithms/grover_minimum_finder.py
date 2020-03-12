@@ -21,7 +21,9 @@ import math
 import numpy as np
 from qiskit.optimization.algorithms import OptimizationAlgorithm
 from qiskit.optimization.problems import OptimizationProblem
-from qiskit.optimization.converters import OptimizationProblemToNegativeValueOracle
+from qiskit.optimization.converters import (IntegerToBinaryConverter,
+                                            PenalizeLinearEqualityConstraints,
+                                            OptimizationProblemToNegativeValueOracle)
 from qiskit.optimization.results import GroverOptimizationResults
 from qiskit.optimization.results import OptimizationResult
 from qiskit.optimization.utils import QiskitOptimizationError
@@ -45,11 +47,50 @@ class GroverMinimumFinder(OptimizationAlgorithm):
         self._n_iterations = num_iterations
         if backend is None:
             self._backend = Aer.get_backend('statevector_simulator')
+        else:
+            self._backend = backend
         self._logger = logging.getLogger(__name__)
 
     def is_compatible(self, problem: OptimizationProblem) -> Optional[str]:
-        # TODO
-        return True
+        """Checks whether a given problem can be solved with this optimizer.
+
+        Checks whether the given problem is compatible, i.e., whether the problem contains only
+        binary and integer variables as well as linear equality constraints, and otherwise,
+        returns a message explaining the incompatibility.
+
+        Args:
+            problem: The optization problem to check compatibility.
+
+        Returns:
+            Returns ``None`` if the problem is compatible and else a string with the error message.
+        """
+
+        # initialize message
+        msg = ''
+
+        # check whether there are incompatible variable types
+        if problem.variables.get_num_continuous() > 0:
+            msg += 'Continuous variables are not supported! '
+        if problem.variables.get_num_semicontinuous() > 0:
+            msg += 'Semi-continuous variables are not supported! '
+        # if problem.variables.get_num_integer() > 0:
+        #     # TODO: to be removed once integer to binary mapping is introduced
+        #     msg += 'Integer variables are not supported! '
+        if problem.variables.get_num_semiinteger() > 0:
+            # TODO: to be removed once semi-integer to binary mapping is introduced
+            msg += 'Semi-integer variables are not supported! '
+
+        # check whether there are incompatible constraint types
+        if not all([sense == 'E' for sense in problem.linear_constraints.get_senses()]):
+            msg += 'Only linear equality constraints are supported.'
+
+        # TODO: check for quadratic constraints
+
+        # if an error occurred, return error message, otherwise, return None
+        if len(msg) > 0:
+            return msg.strip()
+        else:
+            return None
 
     def solve(self, problem: OptimizationProblem) -> OptimizationResult:
         """Tries to solves the given problem using the optimizer.
@@ -66,35 +107,36 @@ class GroverMinimumFinder(OptimizationAlgorithm):
         Raises:
             QiskitOptimizationError: If the problem is incompatible with the optimizer.
         """
-        # check compatibility and raise exception if incompatible
+
+        # analyze compatibility of problem
         msg = self.is_compatible(problem)
         if msg is not None:
             raise QiskitOptimizationError('Incompatible problem: %s' % msg)
 
-        # TODO: Best practice for getting the linear coefficients as a list?
-        linear_dicts = problem.linear_constraints.get_coefficients()
-        linear = [0 for _ in range(len(linear_dicts))]
-        for i in range(len(linear_dicts)):
-            for key in linear_dicts[i]:
-                linear[key] = linear_dicts[i][key]
+        # map integer variables to binary variables
+        int_to_bin_converter = IntegerToBinaryConverter()
+        problem_ = int_to_bin_converter.encode(problem)
 
-        # TODO: Best practice for getting the quadratic coefficients as a dict?
-        quadratic_dicts = problem.quadratic_constraints.get_quadratic_components()
-        quadratic = {}
-        for pair in quadratic_dicts:
-            idx1, idx2, val = pair.unpack()
-            quadratic[(idx1[0], idx2[0])] = val[0]
+        # penalize linear equality constraints with only binary variables
+        penalty = 2  # TODO
+        # if self._penalty is None:
+        #     # TODO: should be derived from problem
+        #     penalty = 1e5
+        # else:
+        #     penalty = self._penalty
+        lin_eq_converter = PenalizeLinearEqualityConstraints()
+        problem_ = lin_eq_converter.encode(problem_, penalty_factor=penalty)
 
-        constant = 0  # TODO: How to get from Optimization Problem?
-        num_output_qubits = 6  # TODO: How to get from Optimization Problem?
+        # TODO: How to get from Optimization Problem?
+        num_output_qubits = 6
 
         # Variables for tracking the optimum.
         optimum_found = False
         optimum_key = math.inf
         optimum_value = math.inf
         threshold = 0
-        n_key = len(linear)
-        n_value = self._num_output_qubits
+        n_key = problem_.variables.get_num()
+        n_value = num_output_qubits
 
         # Variables for tracking the solutions encountered.
         num_solutions = 2**n_key
@@ -110,9 +152,9 @@ class GroverMinimumFinder(OptimizationAlgorithm):
         max_rotations = int(np.ceil(100*np.pi/4))
 
         # Initialize oracle helper object.
+        orig_constant = problem_.objective.get_offset()
         opt_prob_converter = OptimizationProblemToNegativeValueOracle(n_value,
                                                                       backend=self._backend)
-
         while not optimum_found:
             m = 1
             improvement_found = False
@@ -126,8 +168,8 @@ class GroverMinimumFinder(OptimizationAlgorithm):
                 rotations += rotation_count
 
                 # Get state preparation operator A and oracle O for the current threshold.
-                a_operator, oracle, func_dict = opt_prob_converter.encode(linear, quadratic,
-                                                                          constant - threshold)
+                problem_.objective.set_offset(orig_constant - threshold)
+                a_operator, oracle, func_dict = opt_prob_converter.encode(problem_)
 
                 # Apply Grover's Algorithm to find values below the threshold.
                 if rotation_count > 0:
@@ -185,18 +227,23 @@ class GroverMinimumFinder(OptimizationAlgorithm):
                 self._logger.info('Operation Count: {}\n'.format(operations))
 
         # Get original key and value pairs.
-        func_dict[-1] = constant
+        func_dict[-1] = orig_constant
         solutions = get_qubo_solutions(func_dict, n_key)
 
         # If the constant is 0 and we didn't find a negative, the answer is likely 0.
-        if optimum_value >= 0 and constant == 0:
+        if optimum_value >= 0 and orig_constant == 0:
             optimum_key = 0
+        opt_x = [1 if s == '1' else 0 for s in ('{0:%sb}' % n_key).format(optimum_key)]
 
         # Build the results object.
         grover_results = GroverOptimizationResults(operation_count, rotations, n_key, n_value,
                                                    func_dict)
-        result = OptimizationResult(x=optimum_key, fval=solutions[optimum_key],
+        result = OptimizationResult(x=opt_x, fval=solutions[optimum_key],
                                     results=grover_results)
+
+        # cast binaries back to integers
+        print(result)
+        result = int_to_bin_converter.decode(result)
 
         return result
 
