@@ -34,7 +34,7 @@ class PauliTrotterEvolution(EvolutionBase):
 
     """
 
-    def __init__(self, trotter_mode=('suzuki', 2), group_paulis=True):
+    def __init__(self, trotter_mode='suzuki', reps=1, group_paulis=True):
         """
         Args:
 
@@ -43,8 +43,7 @@ class PauliTrotterEvolution(EvolutionBase):
         if isinstance(trotter_mode, TrotterizationBase):
             self._trotter = trotter_mode
         else:
-            (mode_str, reps) = trotter_mode
-            self._trotter = TrotterizationBase.factory(mode=mode_str, reps=reps)
+            self._trotter = TrotterizationBase.factory(mode=trotter_mode, reps=reps)
 
         self._grouper = AbelianGrouper() if group_paulis else None
 
@@ -90,10 +89,11 @@ class PauliTrotterEvolution(EvolutionBase):
             return cob_instr_op.adjoint().compose(z_evolution).compose(cob_instr_op)
 
         # Note: PauliChangeOfBasis will pad destination with identities to produce correct CoB circuit
-        destination = Z
+        destination = Z * pauli_op.coeff
         cob = PauliChangeOfBasis(destination_basis=destination, replacement_fn=replacement_fn)
         return cob.convert(pauli_op)
 
+    # TODO
     @staticmethod
     def compute_cnot_distance(pauli_op1, pauli_op2):
         sig_pauli1_bits = np.logical_and(pauli_op1.primitive.z, pauli_op1.primitive.x)
@@ -125,4 +125,4 @@ class PauliTrotterEvolution(EvolutionBase):
                                              for ops in itertools.combinations(op_sum.oplist, 2)])
         print(pauli_graph.edges(data=True))
         tree = nx.minimum_spanning_tree(pauli_graph)
-        print(sorted(tree.edges(data=True)))
+        tree_edges = nx.dfs_edges(tree)

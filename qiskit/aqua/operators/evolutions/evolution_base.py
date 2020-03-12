@@ -50,10 +50,12 @@ class EvolutionBase(ConverterBase):
             from .pauli_trotter_evolution import PauliTrotterEvolution
             return PauliTrotterEvolution()
 
+        # TODO
         elif 'Matrix' in primitives:
             from .matrix_evolution import MatrixEvolution
             return MatrixEvolution()
 
+        # TODO
         # elif primitives == {'Instruction'}:
         #     from .density_matrix_evolution import DensityMatrixEvolution
         #     return DensityMatrixEvolution()
