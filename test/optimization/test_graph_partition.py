@@ -18,9 +18,9 @@ from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 from qiskit import BasicAer
 from qiskit.aqua import aqua_globals, QuantumInstance
-from qiskit.optimization.ising import graph_partition
-from qiskit.optimization.ising.common import random_graph, sample_most_likely
-from qiskit.aqua.algorithms import ClassicalMinimumEigensolver, VQE
+from qiskit.optimization.applications.ising import graph_partition
+from qiskit.optimization.applications.ising.common import random_graph, sample_most_likely
+from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE
 from qiskit.aqua.components.variational_forms import RY
 from qiskit.aqua.components.optimizers import SPSA
 
@@ -58,7 +58,7 @@ class TestGraphPartition(QiskitOptimizationTestCase):
 
     def test_graph_partition(self):
         """ Graph Partition test """
-        algo = ClassicalMinimumEigensolver(self.qubit_op, aux_operators=[])
+        algo = NumPyMinimumEigensolver(self.qubit_op, aux_operators=[])
         result = algo.run()
         x = sample_most_likely(result.eigenstate)
         # check against the oracle

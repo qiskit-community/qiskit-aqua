@@ -25,12 +25,20 @@ Submodules
 .. autosummary::
    :toctree:
 
-   ising
+   OptimizationProblem
 
 """
 
+CPX_INFBOUND = 1.0E+20
+infinity = CPX_INFBOUND
+
+from qiskit.optimization.utils import QiskitOptimizationError
+from qiskit.optimization.problems.linear_constraint import LinearConstraintInterface
+from qiskit.optimization.problems.objective import ObjSense, ObjectiveInterface
+from qiskit.optimization.problems.optimization_problem import OptimizationProblem
 from ._logging import (get_qiskit_optimization_logging,
                        set_qiskit_optimization_logging)
 
-__all__ = ['get_qiskit_optimization_logging',
+__all__ = ["OptimizationProblem", "QiskitOptimizationError", "LinearConstraintInterface",
+           "ObjSense", "ObjectiveInterface", "infinity", 'get_qiskit_optimization_logging',
            'set_qiskit_optimization_logging']
