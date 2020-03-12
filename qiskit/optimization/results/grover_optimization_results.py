@@ -14,28 +14,25 @@
 
 """GroverOptimizationResults module"""
 
+from typing import Dict, Tuple, Union
+
 
 class GroverOptimizationResults:
 
     """A results object for Grover Optimization methods."""
 
-    def __init__(self, optimum_input, optimum_output, operation_counts, rotations, n_input_qubits,
-                 n_output_qubits, func_dict):
+    def __init__(self, operation_counts: Dict[int, Dict[str, int]], rotations: int,
+                 n_input_qubits: int, n_output_qubits: int,
+                 func_dict: Dict[Union[int, Tuple[int, int]], int]) -> None:
         """
-        Constructor.
-
         Args:
-            optimum_input (int): The input that corresponds to the optimum output.
-            optimum_output (int): The optimum output value.
-            operation_counts (dict): The counts of each operation performed per iteration.
-            rotations (int): The total number of Grover rotations performed.
-            n_input_qubits (int): The number of qubits used to represent the input.
-            n_output_qubits (int): The number of qubits used to represent the output.
-            func_dict (dict): A dictionary representation of the function, where the keys correspond
+            operation_counts: The counts of each operation performed per iteration.
+            rotations: The total number of Grover rotations performed.
+            n_input_qubits: The number of qubits used to represent the input.
+            n_output_qubits: The number of qubits used to represent the output.
+            func_dict: A dictionary representation of the function, where the keys correspond
                 to a variable, and the values are the corresponding coefficients.
         """
-        self._optimum_input = optimum_input
-        self._optimum_output = optimum_output
         self._operation_counts = operation_counts
         self._rotations = rotations
         self._n_input_qubits = n_input_qubits
@@ -43,36 +40,26 @@ class GroverOptimizationResults:
         self._func_dict = func_dict
 
     @property
-    def optimum_input(self):
-        """Getter of optimum_input"""
-        return self._optimum_input
-
-    @property
-    def optimum_output(self):
-        """Getter of optimum_output"""
-        return self._optimum_output
-
-    @property
-    def operation_counts(self):
+    def operation_counts(self) -> Dict[int, Dict[str, int]]:
         """Getter of operation_counts"""
         return self._operation_counts
 
     @property
-    def rotation_count(self):
+    def rotation_count(self) -> int:
         """Getter of rotation_count"""
         return self._rotations
 
     @property
-    def n_input_qubits(self):
+    def n_input_qubits(self) -> int:
         """Getter of n_input_qubits"""
         return self._n_input_qubits
 
     @property
-    def n_output_qubits(self):
+    def n_output_qubits(self) -> int:
         """Getter of n_output_qubits"""
         return self._n_output_qubits
 
     @property
-    def func_dict(self):
+    def func_dict(self) -> Dict[Union[int, Tuple[int, int]], int]:
         """Getter of func_dict"""
         return self._func_dict
