@@ -160,6 +160,16 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         if self._expectation_value is not None:
             self._expectation_value.operator = self._operator
 
+    @property
+    def expectation_value(self):
+        """ Makes aux ops obsolete, as we can now just take the expectations of the ops directly. """
+        return self._expectation_value
+
+    @expectation_value.setter
+    def expectation_value(self, exp):
+        # TODO throw an error if operator is different from exp's operator? Or don't store it at all, only in exp?
+        self._expectation_value = exp
+
     # @property
     # def aux_operators(self) -> List[LegacyBaseOperator]:
     #     """ Returns aux operators """

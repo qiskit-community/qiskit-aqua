@@ -63,8 +63,7 @@ class QAOA(VQE):
                  initial_state: Optional[InitialState] = None,
                  mixer: Optional[LegacyBaseOperator] = None, initial_point: Optional[np.ndarray] = None,
                  max_evals_grouped: int = 1, aux_operators: Optional[List[LegacyBaseOperator]] = None,
-                 callback: Optional[Callable[[int, np.ndarray, float, float], None]] = None,
-                 auto_conversion: bool = True) -> None:
+                 callback: Optional[Callable[[int, np.ndarray, float, float], None]] = None) -> None:
         """
         Args:
             operator: Qubit operator
@@ -111,15 +110,15 @@ class QAOA(VQE):
         # VQE will use the operator setter, during its constructor, which is overridden below and
         # will cause the var form to be built
         super().__init__(operator, None, optimizer, initial_point=initial_point,
-                         max_evals_grouped=max_evals_grouped, aux_operators=aux_operators,
-                         callback=callback, auto_conversion=auto_conversion)
+                         max_evals_grouped=max_evals_grouped,
+                         callback=callback)
 
     @VQE.operator.setter
     def operator(self, operator: LegacyBaseOperator) -> None:
         """ Sets operator """
         if operator is not None:
-            self._in_operator = operator
-            self.var_form = QAOAVarForm(operator.copy(),
+            self._operator = operator
+            self.var_form = QAOAVarForm(operator,
                                         self._p,
                                         initial_state=self._initial_state,
                                         mixer_operator=self._mixer_operator)

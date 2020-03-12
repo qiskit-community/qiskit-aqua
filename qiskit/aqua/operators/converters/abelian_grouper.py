@@ -67,6 +67,6 @@ class AbelianGrouper(ConverterBase):
 
         group_ops = [op_vec.__class__(group, abelian=True) for group in groups.values()]
         if len(group_ops) == 1:
-            return group_ops[0]
+            return group_ops[0] * op_vec.coeff
         else:
             return op_vec.__class__(group_ops, coeff=op_vec.coeff)

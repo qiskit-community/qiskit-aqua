@@ -39,7 +39,7 @@ M1 = WeightedPauliOperator.from_dict({'paulis': [{'label': 'IIIX', 'coeff': {'re
                                                  {'label': 'IIXI', 'coeff': {'real': 1}},
                                                  {'label': 'IXII', 'coeff': {'real': 1}},
                                                  {'label': 'XIII', 'coeff': {'real': 1}}]
-                                      })
+                                      }).to_opflow()
 S1 = {'0101', '1010'}
 
 
@@ -71,6 +71,7 @@ class TestQAOA(QiskitOptimizationTestCase):
         backend = BasicAer.get_backend('statevector_simulator')
         optimizer = COBYLA()
         qubit_op, offset = max_cut.get_operator(w)
+        qubit_op = qubit_op.to_opflow()
 
         qaoa = QAOA(qubit_op, optimizer, prob, mixer=m)
         quantum_instance = QuantumInstance(backend, seed_simulator=seed, seed_transpiler=seed)

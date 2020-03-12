@@ -96,7 +96,8 @@ class WeightedPauliOperator(LegacyBaseOperator):
 
         op_paulis = []
         for [w, p] in self.paulis:
-            op_paulis += [OpPrimitive(p, coeff=w)]
+            # TODO figure out complex parameters!!
+            op_paulis += [OpPrimitive(p, coeff=np.real(w))]
         return sum(op_paulis)
 
     @property
