@@ -13,7 +13,7 @@
 # that they have been altered from the originals.
 
 
-from typing import Callable, Sequence, Union, Any
+from typing import Callable, Sequence, Union, Any, List
 
 from qiskit.optimization.utils.helpers import NameIndex
 from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
@@ -32,7 +32,7 @@ class BaseInterface(object):
             raise TypeError("BaseInterface must be sub-classed")
         self._index = NameIndex()
 
-    def get_indices(self, *args):
+    def get_indices(self, *name) -> Union[int, List[int]]:
         """Converts from names to indices.
 
         If name is a string, get_indices returns the index of the
@@ -42,6 +42,8 @@ class BaseInterface(object):
         If name is a sequence of strings, get_indices returns a list
         of the indices corresponding to the strings in name.
         Equivalent to map(self.get_indices, name).
+
+        See `NameIndex.convert` for details.
 
         If the subclass does not provide an index function (i.e., the
         interface is not indexed), then a NotImplementedError is raised.
@@ -56,22 +58,44 @@ class BaseInterface(object):
         >>> op.variables.get_indices(["a", "b"])
         [0, 1]
         """
-        return self._index.convert(*args)
+        return self._index.convert(*name)
 
     @staticmethod
-    def _setter(setfunc: Callable[[int, Any], None], *args):
+    def _setter(setfunc: Callable[[Union[str, int], Any], None], *args) -> None:
+        """A generic setter method
+
+        Args:
+            setfunc(index, val): A setter function of two parameters: `index` and `val`.
+                Since `index` can be a string, users need to convert it into an appropriate index
+                by applying `NameIndex.convert`.
+            *args: A pair of index and value or a list of pairs of index and value.
+                `setfunc` is invoked with `args`.
+
+        Returns:
+            None
+        """
         # check for all elements in args whether they are types
-        if len(args) == 1 and all(isinstance(el, Sequence) and len(el) == 2 for el in args[0]):
-            for el in args[0]:
-                setfunc(*el)
+        if len(args) == 1 and \
+                all(isinstance(pair, Sequence) and len(pair) == 2 for pair in args[0]):
+            for pair in args[0]:
+                setfunc(*pair)
         elif len(args) == 2:
             setfunc(*args)
         else:
             raise QiskitOptimizationError("Invalid arguments: {}".format(args))
 
     @staticmethod
-    def _getter(getfunc: Callable[[int], Any], *args):
-        # `args` should be already converted into `int` by `get_indices`.
+    def _getter(getfunc: Callable[[int], Any], *args) -> Any:
+        """A generic getter method
+
+        Args:
+            getfunc(index): A getter function with an argument `index`.
+                `index` should be already converted by `NameIndex.convert`.
+            *args: A single index or a list of indices. `getfunc` is invoked with args.
+
+        Returns: if `args` is a single index, this returns a single value genereted by `getfunc`.
+            If `args` is a list of indices, this returns a list of values.
+        """
         if len(args) == 0:
             raise QiskitOptimizationError('Empty arguments should be handled in the caller')
         if len(args) == 1:

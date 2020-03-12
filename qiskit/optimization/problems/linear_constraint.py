@@ -396,7 +396,11 @@ class LinearConstraintInterface(BaseInterface):
             i = self._index.convert(i)
             for j, w in zip_iter:
                 j = self._varindex(j)
-                self._lin_expr[i][j] = w
+                if w == 0:
+                    if j in self._lin_expr[i]:
+                        del self._lin_expr[i][j]
+                else:
+                    self._lin_expr[i][j] = w
 
         self._setter(_set, *args)
 
@@ -489,7 +493,11 @@ class LinearConstraintInterface(BaseInterface):
         for i, j, v in arg_list:
             i = self._index.convert(i)
             j = self._varindex(j)
-            self._lin_expr[i][j] = v
+            if v == 0:
+                if j in self._lin_expr[i]:
+                    del self._lin_expr[i][j]
+            else:
+                self._lin_expr[i][j] = v
 
     def get_rhs(self, *args):
         """Returns the righthand side of constraints from the problem.
@@ -790,4 +798,4 @@ class LinearConstraintInterface(BaseInterface):
         return self._getter(_get, keys)
 
     def get_histogram(self):
-        raise QiskitOptimizationError("Not implemented")
+        raise NotImplementedError("histrogram is not implemented")

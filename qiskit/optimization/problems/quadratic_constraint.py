@@ -50,7 +50,7 @@ class QuadraticConstraintInterface(BaseInterface):
 
         Example usage:
 
-        >>> from qiskit.optimization.problems import OptimizationProblem
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = OptimizationProblem()
         >>> indices = op.variables.add(names = ['x','y'])
         >>> l = SparsePair(ind = ['x'], val = [1.0])
@@ -99,7 +99,7 @@ class QuadraticConstraintInterface(BaseInterface):
         Raises:
             QiskitOptimizationError: if invalid argument is given.
 
-        >>> from qiskit.optimization.problems import OptimizationProblem
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = OptimizationProblem()
         >>> indices = op.variables.add(names = ['x','y'])
         >>> l = SparsePair(ind = ['x'], val = [1.0])
@@ -202,7 +202,7 @@ class QuadraticConstraintInterface(BaseInterface):
 
         Example usage:
 
-        >>> from qiskit.optimization.problems import OptimizationProblem
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = OptimizationProblem()
         >>> indices = op.variables.add(names=['x', 'y'])
         >>> l = SparsePair(ind=['x'], val=[1.0])
@@ -274,7 +274,7 @@ class QuadraticConstraintInterface(BaseInterface):
           end. Equivalent to
           quadratic_constraints.get_rhs(range(begin, end + 1)).
 
-        >>> from qiskit.optimization.problems import OptimizationProblem
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = OptimizationProblem()
         >>> indices = op.variables.add(names = [str(i) for i in range(10)])
         >>> [op.quadratic_constraints.add(rhs=1.5 * i, name=str(i))
@@ -326,7 +326,7 @@ class QuadraticConstraintInterface(BaseInterface):
           end. Equivalent to
           quadratic_constraints.get_senses(range(begin, end + 1)).
 
-        >>> from qiskit.optimization.problems import OptimizationProblem
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = OptimizationProblem()
         >>> indices = op.variables.add(names = ["x0"])
         >>> [op.quadratic_constraints.add(name=str(i), sense=j)
@@ -379,7 +379,7 @@ class QuadraticConstraintInterface(BaseInterface):
           inclusive of end. Equivalent to
           quadratic_constraints.get_linear_num_nonzeros(range(begin, end + 1)).
 
-        >>> from qiskit.optimization.problems import OptimizationProblem
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = OptimizationProblem()
         >>> indices = op.variables.add(names = [str(i) for i in range(11)], types = "B" * 11)
         >>> [op.quadratic_constraints.add(
@@ -435,25 +435,36 @@ class QuadraticConstraintInterface(BaseInterface):
           inclusive of end. Equivalent to
           quadratic_constraints.get_linear_components(range(begin, end + 1)).
 
-        >>> from qiskit.optimization.problems import OptimizationProblem
+        Examples:
+
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = OptimizationProblem()
-        >>> indices = op.variables.add(names = [str(i) for i in range(11)], types = "B" * 11)
+        >>> indices = op.variables.add(
+        ...     names=[str(i) for i in range(4)],
+        ...     types="B" * 4
+        ... )
         >>> [op.quadratic_constraints.add(
-        ...      name = str(i),
-        ...      lin_expr = [range(i), [1.0 * (j+1.0) for j in range(i)]])
-        ...  for i in range(10)]
-        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        ...      name=str(i),
+        ...      lin_expr=[range(i), [1.0 * (j+1.0) for j in range(i)]])
+        ...  for i in range(3)]
+        [0, 1, 2]
         >>> op.quadratic_constraints.get_num()
-        10
-        >>> op.quadratic_constraints.get_linear_components(8)
-        SparsePair(ind = [0, 1, 2, 3, 4, 5, 6, 7], val = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])
-        >>> op.quadratic_constraints.get_linear_components("1",3)
-        [SparsePair(ind = [0], val = [1.0]), SparsePair(ind = [0, 1], val = [1.0, 2.0]), SparsePair(ind = [0, 1, 2], val = [1.0, 2.0, 3.0])]
-        >>> op.quadratic_constraints.get_linear_components([2,"0",5])
-        [SparsePair(ind = [0, 1], val = [1.0, 2.0]), SparsePair(ind = [], val = []), SparsePair(ind = [0, 1, 2, 3, 4], val = [1.0, 2.0, 3.0, 4.0, 5.0])]
-        >>> op.quadratic_constraints.delete(4,9)
-        >>> op.quadratic_constraints.get_linear_components()
-        [SparsePair(ind = [], val = []), SparsePair(ind = [0], val = [1.0]), SparsePair(ind = [0, 1], val = [1.0, 2.0]), SparsePair(ind = [0, 1, 2], val = [1.0, 2.0, 3.0])]
+        3
+        >>> op.quadratic_constraints.get_linear_components(2)
+        SparsePair(ind = [0, 1], val = [1.0, 2.0])
+        >>> for row in op.quadratic_constraints.get_linear_components("0", 1):
+        ...     print(row)
+        SparsePair(ind = [], val = [])
+        SparsePair(ind = [0], val = [1.0])
+        >>> for row in op.quadratic_constraints.get_linear_components([1, "0"]):
+        ...     print(row)
+        SparsePair(ind = [0], val = [1.0])
+        SparsePair(ind = [], val = [])
+        >>> for row in op.quadratic_constraints.get_linear_components():
+        ...     print(row)
+        SparsePair(ind = [], val = [])
+        SparsePair(ind = [0], val = [1.0])
+        SparsePair(ind = [0, 1], val = [1.0, 2.0])
         """
 
         def _linear_component(i) -> SparsePair:
@@ -490,7 +501,7 @@ class QuadraticConstraintInterface(BaseInterface):
           inclusive of end. Equivalent to
           quadratic_constraints.get_quad_num_nonzeros(range(begin, end + 1)).
 
-        >>> from qiskit.optimization.problems import OptimizationProblem
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = OptimizationProblem()
         >>> indices = op.variables.add(names = [str(i) for i in range(11)])
         >>> [op.quadratic_constraints.add(
@@ -544,24 +555,33 @@ class QuadraticConstraintInterface(BaseInterface):
           inclusive of end. Equivalent to
           quadratic_constraints.get_quadratic_components(range(begin, end + 1)).
 
-        >>> op = qiskit.optimization.OptimizationProblem()
-        >>> indices = op.variables.add(names = [str(i) for i in range(11)], types = "B" * 11)
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
+        >>> indices = op.variables.add(
+        ...     names=[str(i) for i in range(4)]
+        ... )
         >>> [op.quadratic_constraints.add(
-        ...      name = str(i),
-        ...      quad_expr = [range(i), range(i), [1.0 * (j+1.0) for j in range(i)]])
-        ...  for i in range(1, 11)]
-        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        ...      name="q{0}".format(i),
+        ...      quad_expr=[range(i), range(i),
+        ...                 [1.0 * (j+1.0) for j in range(i)]])
+        ...  for i in range(1, 3)]
+        [0, 1]
         >>> op.quadratic_constraints.get_num()
-        10
-        >>> op.quadratic_constraints.get_quadratic_components(8)
-        SparseTriple(ind1 = [0, 1, 2, 3, 4, 5, 6, 7, 8], ind2 = [0, 1, 2, 3, 4, 5, 6, 7, 8], val = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0])
-        >>> op.quadratic_constraints.get_quadratic_components("1",3)
-        [SparseTriple(ind1 = [0], ind2 = [0], val = [1.0]), SparseTriple(ind1 = [0, 1], ind2 = [0, 1], val = [1.0, 2.0]), SparseTriple(ind1 = [0, 1, 2], ind2 = [0, 1, 2], val = [1.0, 2.0, 3.0]), SparseTriple(ind1 = [0, 1, 2, 3], ind2 = [0, 1, 2, 3], val = [1.0, 2.0, 3.0, 4.0])]
-        >>> op.quadratic_constraints.get_quadratic_components([2,"1",5])
-        [SparseTriple(ind1 = [0, 1, 2], ind2 = [0, 1, 2], val = [1.0, 2.0, 3.0]), SparseTriple(ind1 = [0], ind2 = [0], val = [1.0]), SparseTriple(ind1 = [0, 1, 2, 3, 4, 5], ind2 = [0, 1, 2, 3, 4, 5], val = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0])]
-        >>> op.quadratic_constraints.delete(4,9)
-        >>> op.quadratic_constraints.get_quadratic_components()
-        [SparseTriple(ind1 = [0], ind2 = [0], val = [1.0]), SparseTriple(ind1 = [0, 1], ind2 = [0, 1], val = [1.0, 2.0]), SparseTriple(ind1 = [0, 1, 2], ind2 = [0, 1, 2], val = [1.0, 2.0, 3.0]), SparseTriple(ind1 = [0, 1, 2, 3], ind2 = [0, 1, 2, 3], val = [1.0, 2.0, 3.0, 4.0])]
+        2
+        >>> op.quadratic_constraints.get_quadratic_components(1)
+        SparseTriple(ind1 = [0, 1], ind2 = [0, 1], val = [1.0, 2.0])
+        >>> for quad in op.quadratic_constraints.get_quadratic_components("q1", 1):
+        ...     print(quad)
+        SparseTriple(ind1 = [0], ind2 = [0], val = [1.0])
+        SparseTriple(ind1 = [0, 1], ind2 = [0, 1], val = [1.0, 2.0])
+        >>> for quad in op.quadratic_constraints.get_quadratic_components(["q2", 0]):
+        ...     print(quad)
+        SparseTriple(ind1 = [0, 1], ind2 = [0, 1], val = [1.0, 2.0])
+        SparseTriple(ind1 = [0], ind2 = [0], val = [1.0])
+        >>> for quad in op.quadratic_constraints.get_quadratic_components():
+        ...     print(quad)
+        SparseTriple(ind1 = [0], ind2 = [0], val = [1.0])
+        SparseTriple(ind1 = [0, 1], ind2 = [0, 1], val = [1.0, 2.0])
         """
 
         def _quadratic_component(i) -> SparseTriple:

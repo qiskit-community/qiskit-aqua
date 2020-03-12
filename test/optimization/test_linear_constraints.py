@@ -17,7 +17,6 @@
 from cplex import SparsePair
 
 from qiskit.optimization import OptimizationProblem
-from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
 from test.optimization.common import QiskitOptimizationTestCase
 
 
@@ -232,4 +231,4 @@ class TestLinearConstraints(QiskitOptimizationTestCase):
 
     def test_get_histogram(self):
         op = OptimizationProblem()
-        self.assertRaises(QiskitOptimizationError, lambda: op.linear_constraints.get_histogram())
+        self.assertRaises(NotImplementedError, lambda: op.linear_constraints.get_histogram())

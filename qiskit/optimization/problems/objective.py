@@ -16,12 +16,11 @@ import copy
 import numbers
 from collections.abc import Sequence
 from logging import getLogger
-from typing import Callable, Union, List
+from typing import Callable, List
 
 from cplex import SparsePair
 
 from qiskit.optimization.utils import BaseInterface, QiskitOptimizationError
-from qiskit.optimization.utils.helpers import NameIndex
 
 CPX_MAX = -1
 CPX_MIN = 1
@@ -55,7 +54,8 @@ class ObjSense(object):
 class ObjectiveInterface(BaseInterface):
     """Contains methods for querying and modifying the objective function."""
 
-    sense = ObjSense()  # See `ObjSense()`
+    sense = ObjSense()
+    """See `ObjSense()`"""
 
     def __init__(self, varindex: Callable):
         super(ObjectiveInterface, self).__init__()
@@ -64,7 +64,6 @@ class ObjectiveInterface(BaseInterface):
         self._name = None
         self._sense = ObjSense.minimize
         self._offset = 0.0
-        self._index = NameIndex()
         self._varindex = varindex
 
     def set_linear(self, *args):
@@ -100,7 +99,7 @@ class ObjectiveInterface(BaseInterface):
 
         def _set(i, v):
             i = self._varindex(i)
-            if v == 0.0 and i in self._linear:
+            if v == 0 and i in self._linear:
                 del self._linear[i]
             else:
                 self._linear[i] = v
@@ -148,7 +147,7 @@ class ObjectiveInterface(BaseInterface):
         self._quadratic = {}
 
         def _set(i, j, val):
-            if val == 0 or val == 0.0:
+            if val == 0:
                 return
             i = self._varindex(i)
             j = self._varindex(j)
@@ -244,7 +243,7 @@ class ObjectiveInterface(BaseInterface):
                 self._quadratic[i][j] = self._quadratic[j][i] = val
 
         if (len(args) == 1 and isinstance(args[0], Sequence)) or len(args) == 3:
-            # valid arguments
+            # valid arguments. go through.
             pass
         else:
             raise QiskitOptimizationError("Wrong number of arguments: {}".format(args))
@@ -452,11 +451,14 @@ class ObjectiveInterface(BaseInterface):
 
         Example usage:
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> op.objective.set_name("cost")
         >>> op.objective.get_name()
         'cost'
         """
+        if not self._name:
+            logger.warning('No name of exists for objective')
         return self._name
 
     def get_num_quadratic_variables(self):

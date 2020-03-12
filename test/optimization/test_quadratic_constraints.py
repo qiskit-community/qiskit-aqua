@@ -63,6 +63,24 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
         self.assertListEqual(q[0].ind2, [0, 1])
         self.assertListEqual(q[0].val, [1.0, -1.0])
 
+    def test_get_num(self):
+        op = OptimizationProblem()
+        op.variables.add(names=['x', 'y'])
+        l = SparsePair(ind=['x'], val=[1.0])
+        q = SparseTriple(ind1=['x'], ind2=['y'], val=[1.0])
+        n = 10
+        for i in range(n):
+            self.assertEqual(op.quadratic_constraints.add(name=str(i), lin_expr=l, quad_expr=q), i)
+        self.assertEqual(op.quadratic_constraints.get_num(), n)
+
+    def test_add(self):
+        op = OptimizationProblem()
+        op.variables.add(names=['x', 'y'])
+        l = SparsePair(ind=['x'], val=[1.0])
+        q = SparseTriple(ind1=['x'], ind2=['y'], val=[1.0])
+        self.assertEqual(op.quadratic_constraints.add(
+            name='my quad', lin_expr=l, quad_expr=q, rhs=1.0, sense='G'), 0)
+
     def test_delete(self):
         op = OptimizationProblem()
         q0 = [op.quadratic_constraints.add(name=str(i)) for i in range(10)]
@@ -78,7 +96,7 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
         q.delete()
         self.assertListEqual(q.get_names(), [])
 
-    def test_rhs(self):
+    def test_get_rhs(self):
         op = OptimizationProblem()
         op.variables.add(names=[str(i) for i in range(10)])
         q0 = [op.quadratic_constraints.add(rhs=1.5 * i, name=str(i)) for i in range(10)]
@@ -90,21 +108,7 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
         self.assertListEqual(q.get_rhs([2, '0', 5]), [3.0, 0.0, 7.5])
         self.assertListEqual(q.get_rhs(), [0.0, 1.5, 3.0, 4.5, 6.0, 7.5, 9.0, 10.5, 12.0, 13.5])
 
-    def test_names(self):
-        op = OptimizationProblem()
-        op.variables.add(names=[str(i) for i in range(11)])
-        q = op.quadratic_constraints
-        [q.add(name="q" + str(i),
-               quad_expr=[range(i), range(i), [1.0 * (j + 1.0) for j in range(i)]])
-         for i in range(1, 11)]
-        self.assertEqual(q.get_num(), 10)
-        self.assertEqual(q.get_names(8), 'q9')
-        self.assertListEqual(q.get_names(1, 3), ['q2', 'q3', 'q4'])
-        self.assertListEqual(q.get_names([2, 0, 5]), ['q3', 'q1', 'q6'])
-        self.assertListEqual(q.get_names(),
-                             ['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q8', 'q9', 'q10'])
-
-    def test_senses(self):
+    def test_get_senses(self):
         op = OptimizationProblem()
         op.variables.add(names=["x0"])
         q = op.quadratic_constraints
@@ -115,20 +119,54 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
         self.assertListEqual(q.get_senses([2, '0', 1]), ['L', 'G', 'G'])
         self.assertListEqual(q.get_senses(), ['G', 'G', 'L', 'L'])
 
-    def test_linear_num_nonzeros(self):
+    def test_get_linear_num_nonzeros(self):
         op = OptimizationProblem()
         op.variables.add(names=[str(i) for i in range(11)], types="B" * 11)
         q = op.quadratic_constraints
+        n = 10
         [q.add(name=str(i),
                lin_expr=[range(i), [1.0 * (j + 1.0) for j in range(i)]])
-         for i in range(10)]
+         for i in range(n)]
+        self.assertEqual(q.get_num(), n)
         self.assertEqual(q.get_linear_num_nonzeros(8), 8)
-        self.assertListEqual(q.get_linear_num_nonzeros('1', 3), [1, 2, 3])
         self.assertListEqual(q.get_linear_num_nonzeros('1', 3), [1, 2, 3])
         self.assertListEqual(q.get_linear_num_nonzeros([2, '0', 5]), [2, 0, 5])
         self.assertListEqual(q.get_linear_num_nonzeros(), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 
-    def test_linear_components(self):
+    def test_get_linear_components(self):
+        op = OptimizationProblem()
+        op.variables.add(names=[str(i) for i in range(4)], types="B" * 4)
+        q = op.quadratic_constraints
+        z = [q.add(name=str(i),
+                   lin_expr=[range(i), [1.0 * (j + 1.0) for j in range(i)]]) for i in range(3)]
+        self.assertListEqual(z, [0, 1, 2])
+        self.assertEqual(q.get_num(), 3)
+
+        sp = q.get_linear_components(2)
+        self.assertListEqual(sp.ind, [0, 1])
+        self.assertListEqual(sp.val, [1.0, 2.0])
+
+        sp = q.get_linear_components('0', 1)
+        self.assertListEqual(sp[0].ind, [])
+        self.assertListEqual(sp[0].val, [])
+        self.assertListEqual(sp[1].ind, [0])
+        self.assertListEqual(sp[1].val, [1.0])
+
+        sp = q.get_linear_components([1, '0'])
+        self.assertListEqual(sp[0].ind, [0])
+        self.assertListEqual(sp[0].val, [1.0])
+        self.assertListEqual(sp[1].ind, [])
+        self.assertListEqual(sp[1].val, [])
+
+        sp = q.get_linear_components()
+        self.assertListEqual(sp[0].ind, [])
+        self.assertListEqual(sp[0].val, [])
+        self.assertListEqual(sp[1].ind, [0])
+        self.assertListEqual(sp[1].val, [1.0])
+        self.assertListEqual(sp[2].ind, [0, 1])
+        self.assertListEqual(sp[2].val, [1.0, 2.0])
+
+    def test_get_linear_components2(self):
         op = OptimizationProblem()
         op.variables.add(names=[str(i) for i in range(11)], types="B" * 11)
         q = op.quadratic_constraints
@@ -182,7 +220,46 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
         self.assertListEqual(q.get_quad_num_nonzeros([2, '1', 5]), [3, 1, 6])
         self.assertListEqual(q.get_quad_num_nonzeros(), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
 
-    def test_quadratic_components(self):
+    def test_get_quadratic_components(self):
+        op = OptimizationProblem()
+        op.variables.add(names=[str(i) for i in range(4)])
+        q = op.quadratic_constraints
+        z = [q.add(name="q{0}".format(i),
+                   quad_expr=[range(i), range(i), [1.0 * (j + 1.0) for j in range(i)]])
+             for i in range(1, 3)]
+        self.assertListEqual(z, [0, 1])
+        self.assertEqual(q.get_num(), 2)
+
+        st = q.get_quadratic_components(1)
+        self.assertListEqual(st.ind1, [0, 1])
+        self.assertListEqual(st.ind2, [0, 1])
+        self.assertListEqual(st.val, [1.0, 2.0])
+
+        st = q.get_quadratic_components('q1', 1)
+        self.assertListEqual(st[0].ind1, [0])
+        self.assertListEqual(st[0].ind2, [0])
+        self.assertListEqual(st[0].val, [1.0])
+        self.assertListEqual(st[1].ind1, [0, 1])
+        self.assertListEqual(st[1].ind2, [0, 1])
+        self.assertListEqual(st[1].val, [1.0, 2.0])
+
+        st = q.get_quadratic_components(['q2', 0])
+        self.assertListEqual(st[0].ind1, [0, 1])
+        self.assertListEqual(st[0].ind2, [0, 1])
+        self.assertListEqual(st[0].val, [1.0, 2.0])
+        self.assertListEqual(st[1].ind1, [0])
+        self.assertListEqual(st[1].ind2, [0])
+        self.assertListEqual(st[1].val, [1.0])
+
+        st = q.get_quadratic_components()
+        self.assertListEqual(st[0].ind1, [0])
+        self.assertListEqual(st[0].ind2, [0])
+        self.assertListEqual(st[0].val, [1.0])
+        self.assertListEqual(st[1].ind1, [0, 1])
+        self.assertListEqual(st[1].ind2, [0, 1])
+        self.assertListEqual(st[1].val, [1.0, 2.0])
+
+    def test_get_quadratic_components2(self):
         op = OptimizationProblem()
         op.variables.add(names=[str(i) for i in range(11)])
         q = op.quadratic_constraints
@@ -236,3 +313,17 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
         self.assertListEqual(s[3].ind1, [0, 1, 2, 3])
         self.assertListEqual(s[3].ind2, [0, 1, 2, 3])
         self.assertListEqual(s[3].val, [1.0, 2.0, 3.0, 4.0])
+
+    def test_get_names(self):
+        op = OptimizationProblem()
+        op.variables.add(names=[str(i) for i in range(11)])
+        q = op.quadratic_constraints
+        [q.add(name="q" + str(i),
+               quad_expr=[range(i), range(i), [1.0 * (j + 1.0) for j in range(i)]])
+         for i in range(1, 11)]
+        self.assertEqual(q.get_num(), 10)
+        self.assertEqual(q.get_names(8), 'q9')
+        self.assertListEqual(q.get_names(1, 3), ['q2', 'q3', 'q4'])
+        self.assertListEqual(q.get_names([2, 0, 5]), ['q3', 'q1', 'q6'])
+        self.assertListEqual(q.get_names(),
+                             ['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q8', 'q9', 'q10'])

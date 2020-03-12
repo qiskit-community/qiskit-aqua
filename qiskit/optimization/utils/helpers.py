@@ -18,17 +18,39 @@ from typing import Union, List, Dict, Sequence
 from qiskit.optimization.utils import QiskitOptimizationError
 
 
-class NameIndex:
+class NameIndex(object):
+    """Convert a string name into an integer index.
+    This is used for the implementation of `BaseInterface.get_indices`.
+    """
+
     def __init__(self):
+        """Initialize a dictionary of name and index"""
         self._dict = {}
 
     def to_dict(self) -> Dict[str, int]:
+        """
+        Returns: A dictionary of name and index
+        """
         return self._dict
 
-    def __contains__(self, item: str) -> bool:
-        return item in self._dict
+    def __contains__(self, name: str) -> bool:
+        """Check a name is registered or not.
 
-    def build(self, names: List[str]):
+        Args:
+            name: a string name
+
+        Returns:
+            This returns True if the name has been registered. Otherwise it returns False.
+
+        """
+        return name in self._dict
+
+    def build(self, names: List[str]) -> None:
+        """Build a dictionary from scratch.
+
+        Args:
+            names: a list of names
+        """
         self._dict = {e: i for i, e in enumerate(names)}
 
     def _convert_one(self, arg: Union[str, int]) -> int:
@@ -41,6 +63,20 @@ class NameIndex:
         return self._dict[arg]
 
     def convert(self, *args) -> Union[int, List[int]]:
+        """Convert a set of names into a set of indices.
+        There are three types of arguments.
+
+        - `convert()` returns all indices.
+
+        - `convert(Union[str, int])` return an index corresponding to the argument.
+            If the argument is already integer, this returns the same integer value.
+
+        - `convert(List[Union[str, int]])` returns a list of indices
+
+        - `convert(begin, end)` return a list of indices in a range starting from `begin` to `end`,
+            which includes both `begin` and `end`.
+            Note that it behaves similar to `range(begin, end+1)`
+        """
         if len(args) == 0:
             return list(self._dict.values())
         elif len(args) == 1:

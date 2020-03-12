@@ -68,7 +68,7 @@ class VariablesInterface(BaseInterface):
 
     Example usage:
 
-    >>> from qiskit.optimization.problems import OptimizationProblem
+    >>> from qiskit.optimization import OptimizationProblem
     >>> op = OptimizationProblem()
     >>> indices = op.variables.add(names = ["x0", "x1", "x2"])
     >>> # default values for lower_bounds are 0.0
@@ -77,6 +77,9 @@ class VariablesInterface(BaseInterface):
     >>> # values can be set either one at a time or many at a time
     >>> op.variables.set_lower_bounds(0, 1.0)
     >>> op.variables.set_lower_bounds([("x1", -1.0), (2, 3.0)])
+    >>> # values can be queried as a range
+    >>> op.variables.get_lower_bounds(0, "x1")
+    [1.0, -1.0]
     >>> # values can be queried as a sequence in arbitrary order
     >>> op.variables.get_lower_bounds(["x1", "x2", 0])
     [-1.0, 3.0, 1.0]
@@ -106,14 +109,13 @@ class VariablesInterface(BaseInterface):
         # self._obj = []
         # self._columns = []
         self._index = NameIndex()
-        self._varsgetindexfunc = {}  # TODO: to be deleted
 
     def get_num(self):
         """Returns the number of variables in the problem.
 
         Example usage:
 
-        >>> from qiskit.optimization.problems import OptimizationProblem
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = OptimizationProblem()
         >>> t = op.variables.type
         >>> indices = op.variables.add(types = [t.continuous, t.binary, t.integer])
@@ -127,7 +129,7 @@ class VariablesInterface(BaseInterface):
 
         Example usage:
 
-        >>> from qiskit.optimization.problems import OptimizationProblem
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = OptimizationProblem()
         >>> t = op.variables.type
         >>> indices = op.variables.add(types = [t.continuous, t.binary, t.integer])
@@ -141,7 +143,7 @@ class VariablesInterface(BaseInterface):
 
         Example usage:
 
-        >>> from qiskit.optimization.problems import OptimizationProblem
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = OptimizationProblem()
         >>> t = op.variables.type
         >>> indices = op.variables.add(types = [t.continuous, t.binary, t.integer])
@@ -155,7 +157,7 @@ class VariablesInterface(BaseInterface):
 
         Example usage:
 
-        >>> from qiskit.optimization.problems import OptimizationProblem
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = OptimizationProblem()
         >>> t = op.variables.type
         >>> indices = op.variables.add(types = [t.semi_continuous, t.binary, t.integer])
@@ -169,7 +171,7 @@ class VariablesInterface(BaseInterface):
 
         Example usage:
 
-        >>> from qiskit.optimization.problems import OptimizationProblem
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = OptimizationProblem()
         >>> t = op.variables.type
         >>> indices = op.variables.add(types = [t.semi_continuous, t.semi_integer, t.semi_integer])
@@ -183,7 +185,7 @@ class VariablesInterface(BaseInterface):
 
         Example usage:
 
-        >>> from qiskit.optimization.problems import OptimizationProblem
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = OptimizationProblem()
         >>> t = op.variables.type
         >>> indices = op.variables.add(types = [t.semi_continuous, t.semi_integer, t.semi_integer])
@@ -192,8 +194,7 @@ class VariablesInterface(BaseInterface):
         """
         return self._types.count(VarTypes.semi_integer)
 
-    def add(self, obj=None, lb=None, ub=None, types="", names=None,
-            columns=None):
+    def add(self, obj=None, lb=None, ub=None, types="", names=None, columns=None):
         """Adds variables and related data to the problem.
 
         variables.add accepts the keyword arguments obj, lb, ub, types, names, and columns.
@@ -233,7 +234,7 @@ class VariablesInterface(BaseInterface):
 
         Example usage:
 
-        >>> from qiskit.optimization.problems import OptimizationProblem
+        >>> from qiskit.optimization import OptimizationProblem
         >>> from cplex import SparsePair, infinity
         >>> op = OptimizationProblem()
         >>> indices = op.linear_constraints.add(names = ["c0", "c1", "c2"])
@@ -317,7 +318,7 @@ class VariablesInterface(BaseInterface):
 
         Example usage:
 
-        >>> from qiskit.optimization.problems import OptimizationProblem
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = OptimizationProblem()
         >>> indices = op.variables.add(names=[str(i) for i in range(10)])
         >>> op.variables.get_num()
@@ -376,7 +377,7 @@ class VariablesInterface(BaseInterface):
           the corresponding values.  Equivalent to
           [variables.set_lower_bounds(pair[0], pair[1]) for pair in seq_of_pairs].
 
-        >>> from qiskit.optimization.problems import OptimizationProblem
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = OptimizationProblem()
         >>> indices = op.variables.add(names = ["x0", "x1", "x2"])
         >>> op.variables.set_lower_bounds(0, 1.0)
@@ -410,7 +411,7 @@ class VariablesInterface(BaseInterface):
           the corresponding values.  Equivalent to
           [variables.set_upper_bounds(pair[0], pair[1]) for pair in seq_of_pairs].
 
-        >>> from qiskit.optimization.problems import OptimizationProblem
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = OptimizationProblem()
         >>> indices = op.variables.add(names = ["x0", "x1", "x2"])
         >>> op.variables.set_upper_bounds(0, 1.0)
@@ -441,7 +442,7 @@ class VariablesInterface(BaseInterface):
           corresponding strings.  Equivalent to
           [variables.set_names(pair[0], pair[1]) for pair in seq_of_pairs].
 
-        >>> from qiskit.optimization.problems import OptimizationProblem
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = OptimizationProblem()
         >>> t = op.variables.type
         >>> indices = op.variables.add(types = [t.continuous, t.binary, t.integer])
@@ -478,7 +479,7 @@ class VariablesInterface(BaseInterface):
           If the types are set, the problem will be treated as a MIP,
           even if all variable types are continuous.
 
-        >>> from qiskit.optimization.problems import OptimizationProblem
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = OptimizationProblem()
         >>> indices = op.variables.add(names = [str(i) for i in range(5)])
         >>> op.variables.set_types(0, op.variables.type.continuous)
@@ -518,7 +519,7 @@ class VariablesInterface(BaseInterface):
           of s.  Equivalent to
           [variables.get_lower_bounds(i) for i in s]
 
-        >>> from qiskit.optimization.problems import OptimizationProblem
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = OptimizationProblem()
         >>> indices = op.variables.add(lb = [1.5 * i for i in range(10)],\
                                       names = [str(i) for i in range(10)])
@@ -526,6 +527,8 @@ class VariablesInterface(BaseInterface):
         10
         >>> op.variables.get_lower_bounds(8)
         12.0
+        >>> op.variables.get_lower_bounds("1",3)
+        [1.5, 3.0, 4.5]
         >>> op.variables.get_lower_bounds([2,"0",5])
         [3.0, 0.0, 7.5]
         >>> op.variables.get_lower_bounds()
@@ -564,7 +567,7 @@ class VariablesInterface(BaseInterface):
           begin and end, inclusive of end. Equivalent to
           variables.get_upper_bounds(range(begin, end + 1)).
 
-        >>> from qiskit.optimization.problems import OptimizationProblem
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = OptimizationProblem()
         >>> indices = op.variables.add(ub = [(1.5 * i) + 1.0 for i in range(10)],\
                                       names = [str(i) for i in range(10)])
@@ -572,6 +575,8 @@ class VariablesInterface(BaseInterface):
         10
         >>> op.variables.get_upper_bounds(8)
         13.0
+        >>> op.variables.get_upper_bounds("1",3)
+        [2.5, 4.0, 5.5]
         >>> op.variables.get_upper_bounds([2,"0",5])
         [4.0, 1.0, 8.5]
         >>> op.variables.get_upper_bounds()
@@ -602,13 +607,15 @@ class VariablesInterface(BaseInterface):
           names of the variables with indices the members of s.
           Equivalent to [variables.get_names(i) for i in s]
 
-        >>> from qiskit.optimization.problems import OptimizationProblem
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = OptimizationProblem()
         >>> indices = op.variables.add(names = ['x' + str(i) for i in range(10)])
         >>> op.variables.get_num()
         10
         >>> op.variables.get_names(8)
         'x8'
+        >>> op.variables.get_names(1,3)
+        ['x1', 'x2', 'x3']
         >>> op.variables.get_names([2,0,5])
         ['x2', 'x0', 'x5']
         >>> op.variables.get_names()
@@ -640,7 +647,7 @@ class VariablesInterface(BaseInterface):
           the types of the variables with indices the members of s.
           Equivalent to [variables.get_types(i) for i in s]
 
-        >>> from qiskit.optimization.problems import OptimizationProblem
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = OptimizationProblem()
         >>> t = op.variables.type
         >>> indices = op.variables.add(names = [str(i) for i in range(5)],\
@@ -650,6 +657,8 @@ class VariablesInterface(BaseInterface):
         5
         >>> op.variables.get_types(3)
         'S'
+        >>> op.variables.get_types(1,3)
+        ['I', 'B', 'S']
         >>> op.variables.get_types([2,0,4])
         ['B', 'C', 'N']
         >>> op.variables.get_types()
@@ -665,7 +674,7 @@ class VariablesInterface(BaseInterface):
         return self._getter(_get, keys)
 
     def get_cols(self, *args):
-        raise QiskitOptimizationError("Please use LinearConstraintInterface instead.")
+        raise NotImplementedError("Please use LinearConstraintInterface instead.")
 
     def get_obj(self, *args):
-        raise QiskitOptimizationError("Please use ObjectiveInterface instead.")
+        raise NotImplementedError("Please use ObjectiveInterface instead.")
