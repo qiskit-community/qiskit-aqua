@@ -43,7 +43,7 @@ class TestEvolution(QiskitAquaTestCase):
         wf = ((np.pi/2)*op).exp_i() @ CX @ (H^I) @ Zero
         mean = evolution.convert(wf)
         self.assertIsNotNone(mean)
-        print(mean.to_matrix())
+        # print(mean.to_matrix())
 
     def test_parameterized_evolution(self):
         thetas = ParameterVector('θ', length=7)

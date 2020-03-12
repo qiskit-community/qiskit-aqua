@@ -136,33 +136,29 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         self._optimizer.set_max_evals_grouped(max_evals_grouped)
         self._callback = callback
 
-        self._operator = operator
+        # TODO if we ingest backend we can set expectation through the factory here.
         self._expectation_value = expectation_value
-        if self._expectation_value is not None:
-            self._expectation_value.operator = self._operator
+        self.operator = operator
 
         self._eval_count = 0
         logger.info(self.print_settings())
-        self._var_form_params = None
 
-        logger.info(self.print_settings())
         self._var_form_params = None
         if self.var_form is not None:
             self._var_form_params = ParameterVector('θ', self.var_form.num_parameters)
-        self._parameterized_circuits = None
-
-        self.operator = operator
 
     @property
     def operator(self) -> Optional[OperatorBase]:
         """ Returns operator """
-        return self._in_operator
+        return self._operator
 
     @operator.setter
     def operator(self, operator: OperatorBase) -> None:
         """ set operator """
-        self._in_operator = operator
+        self._operator = operator
         self._check_operator_varform()
+        if self._expectation_value is not None:
+            self._expectation_value.operator = self._operator
 
     # @property
     # def aux_operators(self) -> List[LegacyBaseOperator]:
@@ -299,7 +295,6 @@ class VQE(VQAlgorithm, MinimumEigensolver):
             result.aux_operator_eigenvalues = self._ret['aux_ops'][0]
         result.cost_function_evals = self._eval_count
 
-        self.cleanup_parameterized_circuits()
         return result
 
     def compute_minimum_eigenvalue(
