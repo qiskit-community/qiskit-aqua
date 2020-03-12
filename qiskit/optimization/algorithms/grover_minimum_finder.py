@@ -14,6 +14,8 @@
 
 """GroverMinimumFinder module"""
 
+import logging
+from typing import Optional, Dict
 import random
 import math
 import numpy as np
@@ -21,54 +23,70 @@ from qiskit.optimization.algorithms import OptimizationAlgorithm
 from qiskit.optimization.problems import OptimizationProblem
 from qiskit.optimization.converters import OptimizationProblemToNegativeValueOracle
 from qiskit.optimization.results import GroverOptimizationResults
+from qiskit.optimization.results import OptimizationResult
+from qiskit.optimization.utils import QiskitOptimizationError
 from qiskit.optimization.util import get_qubo_solutions
 from qiskit.aqua.algorithms.amplitude_amplifiers.grover import Grover
-from qiskit.visualization import plot_histogram
-from qiskit import Aer, execute
+from qiskit import Aer, execute, QuantumCircuit
+from qiskit.providers import BaseBackend
 
 
 class GroverMinimumFinder(OptimizationAlgorithm):
 
     """Uses Grover Adaptive Search (GAS) to find the minimum of a QUBO function."""
 
-    def __init__(self, num_output_qubits, num_iterations=3, backend=Aer.get_backend('statevector_simulator'),
-                 verbose=False):
+    def __init__(self, num_iterations: int = 3, backend: Optional[BaseBackend] = None) -> None:
         """
-        Constructor.
         Args:
-            num_iterations (int, optional): The number of iterations the algorithm will search with
+            num_iterations: The number of iterations the algorithm will search with
                 no improvement.
-            backend (str, optional): Instance of selected backend.
-            verbose (bool, optional): Verbose flag - prints/plots state at each iteration of GAS.
+            backend: Instance of selected backend.
         """
-        self._num_output_qubits = num_output_qubits
         self._n_iterations = num_iterations
-        self._verbose = verbose
-        self._backend = backend
+        if backend is None:
+            self._backend = Aer.get_backend('statevector_simulator')
+        self._logger = logging.getLogger(__name__)
 
     def is_compatible(self, problem: OptimizationProblem) -> Optional[str]:
         # TODO
         return True
 
     def solve(self, problem: OptimizationProblem) -> OptimizationResult:
-        """
-        Given the coefficients and constants of a QUBO function, find the minimum output value.
+        """Tries to solves the given problem using the optimizer.
+
+        Runs the optimizer to try to solve the optimization problem. If problem is not convex,
+        this optimizer may raise an exception due to incompatibility, depending on the settings.
+
         Args:
-            quadratic (np.array): The quadratic coefficients of the QUBO.
-            linear (np.array): The linear coefficients of the QUBO.
-            constant (int): The constant of the QUBO.
-            num_output_qubits (int): The number of qubits used to represent the output values.
+            problem: The problem to be solved.
+
         Returns:
-            GroverOptimizationResults: A results object containing information about the run,
-                including the solution.
+            The result of the optimizer applied to the problem.
+
+        Raises:
+            QiskitOptimizationError: If the problem is incompatible with the optimizer.
         """
+        # check compatibility and raise exception if incompatible
+        msg = self.is_compatible(problem)
+        if msg is not None:
+            raise QiskitOptimizationError('Incompatible problem: %s' % msg)
 
-        # map to QUBO or throw exception
+        # TODO: Best practice for getting the linear coefficients as a list?
+        linear_dicts = problem.linear_constraints.get_coefficients()
+        linear = [0 for _ in range(len(linear_dicts))]
+        for i in range(len(linear_dicts)):
+            for key in linear_dicts[i]:
+                linear[key] = linear_dicts[i][key]
 
-        # extract
-        quadratic = problem.objective.get_quadratic()
-        linear = problem.objective.get_linear()
-        constant = problem.objective.get_offset()
+        # TODO: Best practice for getting the quadratic coefficients as a dict?
+        quadratic_dicts = problem.quadratic_constraints.get_quadratic_components()
+        quadratic = {}
+        for pair in quadratic_dicts:
+            idx1, idx2, val = pair.unpack()
+            quadratic[(idx1[0], idx2[0])] = val[0]
+
+        constant = 0  # TODO: How to get from Optimization Problem?
+        num_output_qubits = 6  # TODO: How to get from Optimization Problem?
 
         # Variables for tracking the optimum.
         optimum_found = False
@@ -93,7 +111,6 @@ class GroverMinimumFinder(OptimizationAlgorithm):
 
         # Initialize oracle helper object.
         opt_prob_converter = OptimizationProblemToNegativeValueOracle(n_value,
-                                                                      verbose=self._verbose,
                                                                       backend=self._backend)
 
         while not optimum_found:
@@ -121,27 +138,24 @@ class GroverMinimumFinder(OptimizationAlgorithm):
                     circuit = a_operator._circuit
 
                 # Get the next outcome.
-                outcome = self.__measure(circuit, n_key, n_value, self._backend,
-                                         verbose=self._verbose)
+                outcome = self._measure(circuit, n_key, n_value, self._backend)
                 k = int(outcome[0:n_key], 2)
                 v = outcome[n_key:n_key + n_value]
 
                 # Convert the binary string to integer.
-                int_v = self.__bin_to_int(v, n_value) + threshold
-                v = self.__twos_complement(int_v, n_value)
+                int_v = self._bin_to_int(v, n_value) + threshold
+                v = self._twos_complement(int_v, n_value)
 
-                if self._verbose:
-                    print("Iterations:", rotation_count)
-                    print("Outcome:", outcome)
-                    print("Value:", v, "=", int_v)
+                self._logger.info('Iterations: {}'.format(rotation_count))
+                self._logger.info('Outcome: {}'.format(outcome))
+                self._logger.info('Value: {} = {}'.format(v, int_v))
 
                 # If the value is an improvement, we update the iteration parameters (e.g. oracle).
                 if int_v < optimum_value:
                     optimum_key = k
                     optimum_value = int_v
-                    if self._verbose:
-                        print("Current Optimum Key:", optimum_key)
-                        print("Current Optimum:", optimum_value)
+                    self._logger.info('Current Optimum Key: {}'.format(optimum_key))
+                    self._logger.info('Current Optimum Value: {}'.format(optimum_value))
                     if v.startswith("1"):
                         improvement_found = True
                         threshold = optimum_value
@@ -153,9 +167,7 @@ class GroverMinimumFinder(OptimizationAlgorithm):
 
                     # Using Durr and Hoyer method, increase m.
                     m = int(np.ceil(min(m * 8/7, 2**(n_key / 2))))
-                    if self._verbose:
-                        print("No Improvement.")
-                        print("M:", m)
+                    self._logger.info('No Improvement. M: {}'.format(m))
 
                 # Check if we've already seen this value.
                 if k not in keys_measured:
@@ -170,10 +182,7 @@ class GroverMinimumFinder(OptimizationAlgorithm):
                 operations = circuit.count_ops()
                 operation_count[iteration] = operations
                 iteration += 1
-
-                if self._verbose:
-                    print("Operation Count:", operations)
-                    print("\n")
+                self._logger.info('Operation Count: {}\n'.format(operations))
 
         # Get original key and value pairs.
         func_dict[-1] = constant
@@ -183,30 +192,30 @@ class GroverMinimumFinder(OptimizationAlgorithm):
         if optimum_value >= 0 and constant == 0:
             optimum_key = 0
 
-        return GroverOptimizationResults(optimum_key, solutions[optimum_key], operation_count,
-                                         rotations, n_key, n_value, func_dict)
+        # Build the results object.
+        grover_results = GroverOptimizationResults(operation_count, rotations, n_key, n_value,
+                                                   func_dict)
+        result = OptimizationResult(x=optimum_key, fval=solutions[optimum_key],
+                                    results=grover_results)
 
-    def __measure(self, circuit, n_key, n_value, backend, shots=1024, verbose=False):
+        return result
+
+    def _measure(self, circuit: QuantumCircuit, n_key: int, n_value: int, backend: BaseBackend,
+                 shots: Optional[int] = 1024) -> str:
         """Get probabilities from the given backend, and picks a random outcome."""
-        probs = self.__get_probs(n_key, n_value, circuit, backend, shots)
+        probs = self._get_probs(n_key, n_value, circuit, backend, shots)
         freq = sorted(probs.items(), key=lambda x: x[1], reverse=True)
 
         # Pick a random outcome.
         freq[len(freq)-1] = (freq[len(freq)-1][0], 1 - sum([x[1] for x in freq[0:len(freq)-1]]))
         idx = np.random.choice(len(freq), 1, p=[x[1] for x in freq])[0]
-        if verbose:
-            print("Frequencies:", freq)
-            outcomes = {}
-            for label in probs:
-                key = str(int(label[:n_key], 2)) + " -> " +\
-                      str(self.__bin_to_int(label[n_key:n_key + n_value], n_value))
-                outcomes[key] = probs[label]
-            plot_histogram(outcomes).show()
+        self._logger.info('Frequencies: {}'.format(freq))
 
         return freq[idx][0]
 
     @staticmethod
-    def __get_probs(n_key, n_value, qc, backend, shots):
+    def _get_probs(n_key: int, n_value: int, qc: QuantumCircuit, backend: BaseBackend,
+                   shots: int) -> Dict[str, float]:
         """Gets probabilities from a given backend."""
         # Execute job and filter results.
         job = execute(qc, backend=backend, shots=shots)
@@ -232,7 +241,7 @@ class GroverMinimumFinder(OptimizationAlgorithm):
         return hist
 
     @staticmethod
-    def __twos_complement(v, n_bits):
+    def _twos_complement(v: int, n_bits: int) -> str:
         """Converts an integer into a binary string of n bits using two's complement."""
         assert -2**n_bits <= v < 2**n_bits
 
@@ -246,7 +255,7 @@ class GroverMinimumFinder(OptimizationAlgorithm):
         return bin_v
 
     @staticmethod
-    def __bin_to_int(v, num_value_bits):
+    def _bin_to_int(v: str, num_value_bits: int) -> int:
         """Converts a binary string of n bits using two's complement to an integer."""
         if v.startswith("1"):
             int_v = int(v, 2) - 2 ** num_value_bits

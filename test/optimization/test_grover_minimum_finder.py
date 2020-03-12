@@ -16,11 +16,10 @@
 
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
+from cplex import SparsePair, SparseTriple
 from qiskit.optimization.algorithms import GroverMinimumFinder
+from qiskit.optimization.problems import OptimizationProblem
 from qiskit.optimization.util import get_qubo_solutions
-
-# Flag for verbosity in all units under test.
-VERBOSE = False
 
 
 class TestGroverMinimumFinder(QiskitOptimizationTestCase):
@@ -29,12 +28,14 @@ class TestGroverMinimumFinder(QiskitOptimizationTestCase):
     def validate_results(self, results, max_iterations):
         """Validate the results object returned by GroverMinimumFinder."""
         # Get measured values.
-        n_key = results.n_input_qubits
-        op_key = results.optimum_input
-        op_value = results.optimum_output
-        iterations = len(results.operation_counts)
-        rot = results.rotation_count
-        func = results.func_dict
+        grover_results = results.results
+        n_key = grover_results.n_input_qubits
+        op_key = results.x
+        op_value = results.fval
+        iterations = len(grover_results.operation_counts)
+        rot = grover_results.rotation_count
+        func = grover_results.func_dict
+        print("Function", func)
         print("Optimum Key:", op_key, "Optimum Value:", op_value, "Rotations:", rot, "\n")
 
         # Get expected value.
@@ -54,16 +55,17 @@ class TestGroverMinimumFinder(QiskitOptimizationTestCase):
         num_value = 4
 
         # Input.
-        linear = np.array([0, 0])
-        quadratic = np.array([[0, 0],
-                              [0, 0]])
-        constant = 0
+        op = OptimizationProblem()
+        _ = op.variables.add(names=["x0", "x1"])
+        x0_linear = SparsePair(ind=['x0'], val=[0])
+        x1_linear = SparsePair(ind=['x1'], val=[0])
+        op.linear_constraints.add(lin_expr=[x0_linear, x1_linear])
 
         # Will not find a negative, should return 0.
-        gmf = GroverMinimumFinder(num_iterations=1, verbose=VERBOSE)
-        results = gmf.solve(quadratic, linear, constant, num_value)
-        self.assertEqual(results.optimum_input, 0)
-        self.assertEqual(int(results.optimum_output), 0)
+        gmf = GroverMinimumFinder(num_iterations=1)
+        results = gmf.solve(op)
+        self.assertEqual(results.x, 0)
+        self.assertEqual(int(results.fval), 0)
 
     def test_qubo_gas_int_simple(self):
         """ Test for simple case, with 2 linear coeffs and no quadratic coeffs or constants """
@@ -71,54 +73,16 @@ class TestGroverMinimumFinder(QiskitOptimizationTestCase):
         num_value = 4
 
         # Input.
-        linear = np.array([1, -2])
-        quadratic = np.array([[2, 0],
-                              [0, 2]])
-        q = 0.5
-        quadratic = quadratic.dot(q)
+        op = OptimizationProblem()
+        _ = op.variables.add(names=["x0", "x1"])
+        x0_linear = SparsePair(ind=['x0'], val=[-1])
+        x1_linear = SparsePair(ind=['x1'], val=[2])
+        op.linear_constraints.add(lin_expr=[x0_linear, x1_linear])
 
         # Get the optimum key and value.
         n_iter = 8
-        gmf = GroverMinimumFinder(num_iterations=n_iter, verbose=VERBOSE)
-        results = gmf.solve(quadratic, linear, 0, num_value)
-        self.validate_results(results, n_iter)
-
-    def test_qubo_gas_int_simple_pos_constant(self):
-        """ Test for a positive constant """
-        # Circuit parameters.
-        num_value = 4
-
-        # Input.
-        linear = np.array([1, -2])
-        quadratic = np.array([[2, 0],
-                              [0, 2]])
-        q = 0.5
-        quadratic = quadratic.dot(q)
-        constant = 2
-
-        # Get the optimum key and value.
-        n_iter = 8
-        gmf = GroverMinimumFinder(num_iterations=n_iter, verbose=VERBOSE)
-        results = gmf.solve(quadratic, linear, constant, num_value)
-        self.validate_results(results, n_iter)
-
-    def test_qubo_gas_int_simple_neg_constant(self):
-        """ Test for a negative constant """
-        # Circuit parameters.
-        num_value = 4
-
-        # Input.
-        linear = np.array([1, -2])
-        quadratic = np.array([[2, 0],
-                              [0, 2]])
-        q = 0.5
-        quadratic = quadratic.dot(q)
-        constant = -2
-
-        # Get the optimum key and value.
-        n_iter = 8
-        gmf = GroverMinimumFinder(num_iterations=n_iter, verbose=VERBOSE)
-        results = gmf.solve(quadratic, linear, constant, num_value)
+        gmf = GroverMinimumFinder(num_iterations=n_iter)
+        results = gmf.solve(op)
         self.validate_results(results, n_iter)
 
     def test_qubo_gas_int_paper_example(self):
@@ -127,15 +91,19 @@ class TestGroverMinimumFinder(QiskitOptimizationTestCase):
         num_value = 5
 
         # Input.
-        linear = np.array([1, -2, 3])
-        quadratic = np.array([[2, 0, -4],
-                              [0, 4, -2],
-                              [-4, -2, 10]])
-        q = 0.5
-        quadratic = quadratic.dot(q)
+        op = OptimizationProblem()
+        _ = op.variables.add(names=["x0", "x1", "x2"])
+        x0_linear = SparsePair(ind=['x0'], val=[-1])
+        x1_linear = SparsePair(ind=['x1'], val=[2])
+        x2_linear = SparsePair(ind=['x2'], val=[-3])
+        x0_x2 = SparseTriple(ind1=['x0'], ind2=['x2'], val=[-2])
+        x1_x2 = SparseTriple(ind1=['x1'], ind2=['x2'], val=[-1])
+        op.quadratic_constraints.add(name='x0x2', quad_expr=x0_x2)
+        op.quadratic_constraints.add(name='x1x2', quad_expr=x1_x2)
+        op.linear_constraints.add(lin_expr=[x0_linear, x1_linear, x2_linear])
 
         # Get the optimum key and value.
         n_iter = 10
-        gmf = GroverMinimumFinder(num_iterations=n_iter, verbose=VERBOSE)
-        results = gmf.solve(quadratic, linear, 0, num_value)
+        gmf = GroverMinimumFinder(num_iterations=n_iter)
+        results = gmf.solve(op)
         self.validate_results(results, 10)
