@@ -18,7 +18,7 @@ from collections.abc import Sequence
 from cplex import SparsePair
 
 from qiskit.optimization.utils.base import BaseInterface
-from qiskit.optimization.utils.helpers import init_list_args, convert, NameIndex
+from qiskit.optimization.utils.helpers import init_list_args, NameIndex
 from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
 
 # TODO: can we delete these?
@@ -59,6 +59,7 @@ class LinearConstraintInterface(BaseInterface):
 
         Example usage:
 
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = qiskit.optimization.OptimizationProblem()
         >>> indices = op.linear_constraints.add(names = ["c1", "c2", "c3"])
         >>> op.linear_constraints.get_num()
@@ -106,6 +107,7 @@ class LinearConstraintInterface(BaseInterface):
         Returns an iterator containing the indices of the added linear
         constraints.
 
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = qiskit.optimization.OptimizationProblem()
         >>> indices = op.variables.add(names = ["x1", "x2", "x3"])
         >>> indices = op.linear_constraints.add(\
@@ -129,44 +131,43 @@ class LinearConstraintInterface(BaseInterface):
         for arg_length in arg_lengths:
             if arg_length > 0 and arg_length != max_length:
                 raise QiskitOptimizationError("inconsistent arguments in linear_constraints.add().")
+        assert max_length > 0
 
-        if max_length > 0:
+        if not rhs:
+            rhs = [0.0] * max_length
+        self._rhs.extend(rhs)
 
-            if not rhs:
-                rhs = [0.0] * max_length
-            self._rhs.extend(rhs)
+        if not senses:
+            senses = "E" * max_length
+        self._senses.extend(senses)
 
-            if not senses:
-                senses = "E" * max_length
-            self._senses.extend(senses)
+        if not range_values:
+            range_values = [0.0] * max_length
+        self._range_values.extend(range_values)
 
-            if not range_values:
-                range_values = [0.0] * max_length
-            self._range_values.extend(range_values)
+        if not names:
+            names = ["c" + str(cnt) for cnt in range(len(self._names),
+                                                     len(self._names) + max_length)]
+        self._names.extend(names)
+        self._index.build(self._names)
 
-            if not names:
-                names = ["c" + str(cnt) for cnt in range(len(self._names),
-                                                         len(self._names) + max_length)]
-            self._names.extend(names)
-            self._index.build(self._names)
-
-            if not lin_expr:
-                lin_expr = [SparsePair()] * max_length
-            for sp in lin_expr:
-                lin_expr_dict = {}
-                if isinstance(sp, SparsePair):
-                    zip_iter = zip(sp.ind, sp.val)
-                elif isinstance(sp, Sequence) and len(sp) == 2:
-                    zip_iter = zip(sp[0], sp[1])
-                else:
-                    raise QiskitOptimizationError('Invalid lin_expr: {}'.format(lin_expr))
-                for i, val in zip_iter:
-                    i = self._varindex(i)
-                    if i in lin_expr_dict:
-                        raise QiskitOptimizationError(
-                            'Variables should only appear once in linear constraint.')
-                    lin_expr_dict[i] = val
-                self._lin_expr += [lin_expr_dict]
+        if not lin_expr:
+            lin_expr = [SparsePair()] * max_length
+        for sp in lin_expr:
+            lin_expr_dict = {}
+            if isinstance(sp, SparsePair):
+                zip_iter = zip(sp.ind, sp.val)
+            elif isinstance(sp, Sequence) and len(sp) == 2:
+                zip_iter = zip(sp[0], sp[1])
+            else:
+                raise QiskitOptimizationError('Invalid lin_expr: {}'.format(lin_expr))
+            for i, val in zip_iter:
+                i = self._varindex(i)
+                if i in lin_expr_dict:
+                    raise QiskitOptimizationError(
+                        'Variables should only appear once in linear constraint.')
+                lin_expr_dict[i] = val
+            self._lin_expr.append(lin_expr_dict)
 
         return range(len(self._names) - max_length, len(self._names))
 
@@ -201,6 +202,7 @@ class LinearConstraintInterface(BaseInterface):
 
         Example usage:
 
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = qiskit.optimization.OptimizationProblem()
         >>> indices = op.linear_constraints.add(names=[str(i) for i in range(10)])
         >>> op.linear_constraints.get_num()
@@ -219,7 +221,7 @@ class LinearConstraintInterface(BaseInterface):
         []
         """
         if len(args) == 0:
-            # Delete All:
+            # Delete all
             self._rhs = []
             self._senses = []
             self._names = []
@@ -256,6 +258,7 @@ class LinearConstraintInterface(BaseInterface):
           the corresponding values.  Equivalent to
           [linear_constraints.set_rhs(pair[0], pair[1]) for pair in seq_of_pairs].
 
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = qiskit.optimization.OptimizationProblem()
         >>> indices = op.linear_constraints.add(names = ["c0", "c1", "c2", "c3"])
         >>> op.linear_constraints.get_rhs()
@@ -290,6 +293,7 @@ class LinearConstraintInterface(BaseInterface):
           corresponding strings.  Equivalent to
           [linear_constraints.set_names(pair[0], pair[1]) for pair in seq_of_pairs].
 
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = qiskit.optimization.OptimizationProblem()
         >>> indices = op.linear_constraints.add(names = ["c0", "c1", "c2", "c3"])
         >>> op.linear_constraints.set_names("c1", "second")
@@ -326,6 +330,7 @@ class LinearConstraintInterface(BaseInterface):
         and 'R', indicating greater-than, less-than, equality, and
         ranged constraints, respectively.
 
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = qiskit.optimization.OptimizationProblem()
         >>> indices = op.linear_constraints.add(names = ["c0", "c1", "c2", "c3"])
         >>> op.linear_constraints.get_senses()
@@ -365,6 +370,7 @@ class LinearConstraintInterface(BaseInterface):
           to the corresponding vector.  Equivalent to
           [linear_constraints.set_linear_components(pair[0], pair[1]) for pair in seq_of_pairs].
 
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = qiskit.optimization.OptimizationProblem()
         >>> indices = op.linear_constraints.add(names = ["c0", "c1", "c2", "c3"])
         >>> indices = op.variables.add(names = ["x0", "x1"])
@@ -428,6 +434,7 @@ class LinearConstraintInterface(BaseInterface):
           the corresponding values.  Equivalent to
           [linear_constraints.set_range_values(pair[0], pair[1]) for pair in seq_of_pairs].
 
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = qiskit.optimization.OptimizationProblem()
         >>> indices = op.linear_constraints.add(names = ["c0", "c1", "c2", "c3"])
         >>> op.linear_constraints.set_range_values("c1", 1.0)
@@ -459,6 +466,7 @@ class LinearConstraintInterface(BaseInterface):
           coefficients must be a list of (row, col, val) triples as
           described above.
 
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = qiskit.optimization.OptimizationProblem()
         >>> indices = op.linear_constraints.add(names = ["c0", "c1", "c2", "c3"])
         >>> indices = op.variables.add(names = ["x0", "x1"])
@@ -501,6 +509,7 @@ class LinearConstraintInterface(BaseInterface):
           indices the members of s.  Equivalent to
           [linear_constraints.get_rhs(i) for i in s]
 
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = qiskit.optimization.OptimizationProblem()
         >>> indices = op.linear_constraints.add(rhs = [1.5 * i for i in range(10)],\
                                      names = [str(i) for i in range(10)])
@@ -541,6 +550,7 @@ class LinearConstraintInterface(BaseInterface):
           the members of s.  Equivalent to
           [linear_constraints.get_senses(i) for i in s]
 
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = qiskit.optimization.OptimizationProblem()
         >>> indices = op.linear_constraints.add(
         ...     senses=["E", "G", "L", "R"],
@@ -549,6 +559,8 @@ class LinearConstraintInterface(BaseInterface):
         4
         >>> op.linear_constraints.get_senses(1)
         'G'
+        >>> op.linear_constraints.get_senses("1",3)
+        ['G', 'L', 'R']
         >>> op.linear_constraints.get_senses([2,"0",1])
         ['L', 'E', 'G']
         >>> op.linear_constraints.get_senses()
@@ -594,6 +606,7 @@ class LinearConstraintInterface(BaseInterface):
           indices the members of s.  Equivalent to
           [linear_constraints.get_range_values(i) for i in s]
 
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = qiskit.optimization.OptimizationProblem()
         >>> indices = op.linear_constraints.add(\
                 range_values = [1.5 * i for i in range(10)],\
@@ -603,6 +616,8 @@ class LinearConstraintInterface(BaseInterface):
         10
         >>> op.linear_constraints.get_range_values(8)
         12.0
+        >>> op.linear_constraints.get_range_values("1",3)
+        [1.5, 3.0, 4.5]
         >>> op.linear_constraints.get_range_values([2,"0",5])
         [3.0, 0.0, 7.5]
         >>> op.linear_constraints.get_range_values()
@@ -634,6 +649,7 @@ class LinearConstraintInterface(BaseInterface):
         linear_constraints.get_coefficients(sequence_of_pairs)
           returns a list of coefficients.
 
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = qiskit.optimization.OptimizationProblem()
         >>> indices = op.variables.add(names = ["x0", "x1"])
         >>> indices = op.linear_constraints.add(\
@@ -686,6 +702,7 @@ class LinearConstraintInterface(BaseInterface):
           of s.  Equivalent to
           [linear_constraints.get_rows(i) for i in s]
 
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = qiskit.optimization.OptimizationProblem()
         >>> indices = op.variables.add(names = ["x1", "x2", "x3"])
         >>> indices = op.linear_constraints.add(\
@@ -703,36 +720,19 @@ class LinearConstraintInterface(BaseInterface):
         """
 
         def _get(i):
-            i = convert(i, self._linconsgetindexfunc)
-            keys = self._lin_expr[i].keys()
-            keys = sorted(keys)
-            values = [self._lin_expr[i][k] for k in keys]
-            s = SparsePair(keys, values)
-            return s
+            keys = list(self._lin_expr[i].keys())
+            keys.sort()
+            return SparsePair(keys, [self._lin_expr[i][k] for k in keys])
 
-        out = []
-        if len(args) == 0:
-            for i in range(len(self._lin_expr)):
-                out.append(_get(i))
-            return out
-        elif len(args) == 1:
-            if isinstance(args[0], str):
-                return _get(args[0])
-            if isinstance(args[0], Sequence):
-                for i in args[0]:
-                    out.append(_get(i))
-                return out
-            else:
-                return _get(args[0])
-        else:
-            raise QiskitOptimizationError(
-                "Wrong number of arguments. Please use 0 or 1. If there is 1, it can be iterable.")
+        keys = self._index.convert(*args)
+        return self._getter(_get, keys)
 
     def get_num_nonzeros(self):
         """Returns the number of nonzeros in the linear constraint matrix.
 
         Example usage:
 
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = qiskit.optimization.OptimizationProblem()
         >>> indices = op.variables.add(names = ["x1", "x2", "x3"])
         >>> indices = op.linear_constraints.add(names = ["c0", "c1", "c2", "c3"],\
@@ -745,8 +745,9 @@ class LinearConstraintInterface(BaseInterface):
         """
         nnz = 0
         for c in self._lin_expr:
-            for v in c.values():
-                nnz += 1 * (v != 0.0)
+            for e in c.values():
+                if e != 0.0:
+                    nnz += 1
         return nnz
 
     def get_names(self, *args):
@@ -765,6 +766,7 @@ class LinearConstraintInterface(BaseInterface):
           the linear constraints with indices the members of s.
           Equivalent to [linear_constraints.get_names(i) for i in s]
 
+        >>> from qiskit.optimization import OptimizationProblem
         >>> op = qiskit.optimization.OptimizationProblem()
         >>> indices = op.linear_constraints.add(names = ["c" + str(i) for i in range(10)])
         >>> op.linear_constraints.get_num()
@@ -784,3 +786,6 @@ class LinearConstraintInterface(BaseInterface):
             return self._names
         keys = self._index.convert(*args)
         return self._getter(_get, keys)
+
+    def get_histogram(self):
+        raise QiskitOptimizationError("Not implemented")
