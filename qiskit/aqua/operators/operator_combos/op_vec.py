@@ -273,9 +273,11 @@ class OpVec(OperatorBase):
         param_value = self.coeff
         if isinstance(self.coeff, ParameterExpression):
             unrolled_dict = self._unroll_param_dict(param_dict)
-            if self.coeff in unrolled_dict:
+            coeff_param = list(self.coeff.parameters)[0]
+            if coeff_param in unrolled_dict:
                 # TODO what do we do about complex?
-                param_value = float(self.coeff.bind(unrolled_dict[self.coeff]))
+                value = unrolled_dict[coeff_param]
+                param_value = float(self.coeff.bind({coeff_param: value}))
         return self.traverse(lambda x: x.bind_parameters(param_dict), coeff=param_value)
 
     def print_details(self):

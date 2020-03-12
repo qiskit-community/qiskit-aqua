@@ -46,13 +46,14 @@ class TestEvolution(QiskitAquaTestCase):
         print(mean.to_matrix())
 
     def test_parameterized_evolution(self):
-        thetas = ParameterVector('θ', length=6)
+        thetas = ParameterVector('θ', length=7)
         op = (thetas[0] * I ^ I) + \
              (thetas[1] * I ^ Z) + \
              (thetas[2] * X ^ X) + \
              (thetas[3] * Z ^ I) + \
              (thetas[4] * Y ^ Z) + \
              (thetas[5] * Z ^ Z)
+        op = op * thetas[6]
         evolution = PauliTrotterEvolution(trotter_mode='trotter', reps=1, group_paulis=False)
         # wf = (Pl^Pl) + (Ze^Ze)
         wf = (op).exp_i() @ CX @ (H ^ I) @ Zero
@@ -61,3 +62,22 @@ class TestEvolution(QiskitAquaTestCase):
         # Check that the non-identity parameters are in the circuit
         for p in thetas[1:]:
             self.assertIn(p, circuit_params)
+        self.assertNotIn(thetas[0], circuit_params)
+
+    def test_bind_parameters(self):
+        thetas = ParameterVector('θ', length=6)
+        op = (thetas[1] * I ^ Z) + \
+             (thetas[2] * X ^ X) + \
+             (thetas[3] * Z ^ I) + \
+             (thetas[4] * Y ^ Z) + \
+             (thetas[5] * Z ^ Z)
+        op = thetas[0] * op
+        evolution = PauliTrotterEvolution(trotter_mode='trotter', reps=1, group_paulis=False)
+        # wf = (Pl^Pl) + (Ze^Ze)
+        wf = (op).exp_i() @ CX @ (H ^ I) @ Zero
+        wf = wf.bind_parameters({thetas: np.arange(10, 16)})
+        mean = evolution.convert(wf)
+        circuit_params = mean.to_circuit().parameters
+        # Check that the no parameters are in the circuit
+        for p in thetas[1:]:
+            self.assertNotIn(p, circuit_params)

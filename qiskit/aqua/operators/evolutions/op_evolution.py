@@ -16,6 +16,8 @@ import logging
 import numpy as np
 import scipy
 
+from qiskit.circuit import ParameterExpression
+
 from qiskit.aqua.operators.operator_primitives import OpPrimitive
 from qiskit.aqua.operators.operator_combos import OpSum, OpComposition, OpKron
 
@@ -110,6 +112,17 @@ class OpEvolution(OpPrimitive):
 
     def reduce(self):
         return OpEvolution(self.primitive.reduce(), coeff=self.coeff)
+
+    def bind_parameters(self, param_dict):
+        param_value = self.coeff
+        if isinstance(self.coeff, ParameterExpression):
+            unrolled_dict = self._unroll_param_dict(param_dict)
+            coeff_param = list(self.coeff.parameters)[0]
+            if coeff_param in unrolled_dict:
+                # TODO what do we do about complex?
+                value = unrolled_dict[coeff_param]
+                param_value = float(self.coeff.bind({coeff_param: value}))
+        return self.__class__(self.primitive.bind_parameters(param_dict), coeff=param_value)
 
     def eval(self, front=None, back=None):
         """ A square binary Operator can be defined as a function over two binary strings of equal length. This

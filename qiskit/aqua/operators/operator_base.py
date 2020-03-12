@@ -16,6 +16,8 @@
 
 from abc import ABC, abstractmethod
 
+from qiskit.circuit import ParameterExpression, ParameterVector
+
 
 class OperatorBase(ABC):
     """ An square binary Operator can be defined in a two equivalent ways:
