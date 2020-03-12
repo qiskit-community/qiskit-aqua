@@ -18,11 +18,8 @@ from typing import Optional
 from functools import reduce
 
 import numpy as np
-from qiskit import QuantumRegister, QuantumCircuit
-from qiskit.quantum_info import Pauli
 
 from qiskit.aqua.operators import OperatorBase, X, H, Zero, StateFnCircuit, EvolutionBase
-from qiskit.aqua.operators.legacy import op_converter
 from qiskit.aqua.components.variational_forms import VariationalForm
 from qiskit.aqua.components.initial_states import InitialState
 
