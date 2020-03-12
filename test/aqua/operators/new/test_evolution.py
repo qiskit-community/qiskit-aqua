@@ -22,9 +22,8 @@ import itertools
 from qiskit import QuantumCircuit, BasicAer
 from qiskit.circuit import ParameterVector
 
-from qiskit.aqua.operators import X, Y, Z, I, CX, T, H, S, OpPrimitive, OpSum, OpComposition, OpVec
-from qiskit.aqua.operators import StateFn, Zero, One, Plus, Minus
-from qiskit.aqua.operators import EvolutionBase, PauliTrotterEvolution
+from qiskit.aqua.operators import (X, Y, Z, I, CX, T, H, S, OpCircuit, Zero, EvolutionBase,
+                                   OpEvolution, PauliTrotterEvolution, QDrift)
 
 
 class TestEvolution(QiskitAquaTestCase):
@@ -81,3 +80,14 @@ class TestEvolution(QiskitAquaTestCase):
         # Check that the no parameters are in the circuit
         for p in thetas[1:]:
             self.assertNotIn(p, circuit_params)
+
+    def test_qdrift(self):
+        op = (2 * Z ^ Z) + (3 * X ^ X) - (4 * Y ^ Y) + (.5 * Z ^ I)
+        trotterization = QDrift().trotterize(op)
+        self.assertGreater(len(trotterization.oplist), 150)
+        first_coeff = trotterization.oplist[0].primitive.coeff
+        # Check that all types are correct and all coefficients are equals
+        for op in trotterization.oplist:
+            self.assertIsInstance(op, (OpEvolution, OpCircuit))
+            if isinstance(op, OpEvolution):
+                self.assertEqual(op.primitive.coeff, first_coeff)
