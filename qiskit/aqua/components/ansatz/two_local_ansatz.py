@@ -34,7 +34,7 @@ from qiskit.aqua.components.initial_states import InitialState
 
 from qiskit.aqua.components.ansatz import Ansatz
 
-# disable check for overrriding getter and setter because of pylint bug
+# disable check for overriding getter and setter because of pylint bug
 # pylint: disable=no-member
 # pylint:disable=invalid-overridden-method
 

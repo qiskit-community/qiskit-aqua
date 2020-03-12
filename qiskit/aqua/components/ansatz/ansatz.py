@@ -100,7 +100,7 @@ class Ansatz:
         support_parameterized_circuit: If True, the parameters can be set with Parameter objects.
             To be deprecated, since it always should be True.
         parameter_bounds: Suggested parameter bounds for the parameters that an optimizer may use.
-        preferred_init_points: The Ansatz can store preferred initial points for the paramter
+        preferred_init_points: The Ansatz can store preferred initial points for the parameter
             values.
     """
 
@@ -412,7 +412,7 @@ class Ansatz:
         Args:
             blocks: The new blocks of the Ansatz.
         """
-        # cannot use hasattr(blocks, '__len__') because a circuit also has this attribute
+        # cannot check for the attribute ``'__len__'`` because a circuit also has this attribute
         if not isinstance(blocks, (list, numpy.ndarray)):
             blocks = [blocks]
 
@@ -442,7 +442,7 @@ class Ansatz:
 
     @property
     def initial_state(self) -> InitialState:
-        """Return the initial state prepended to the Ansatz.
+        """Return the initial state that is added in front of the Ansatz.
 
         Returns:
             The initial state.
@@ -637,7 +637,7 @@ class Ansatz:
 
         Returns:
             The repetitions. If it is an integer the repetitions specify how often
-            all blocks are repeated. If a list of integers, each element is an index specifiying
+            all blocks are repeated. If a list of integers, each element is an index specifying
             which block is added to the Ansatz.
         """
         return self._reps
