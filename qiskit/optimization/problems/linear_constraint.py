@@ -131,6 +131,8 @@ class LinearConstraintInterface(BaseInterface):
         for arg_length in arg_lengths:
             if arg_length > 0 and arg_length != max_length:
                 raise QiskitOptimizationError("inconsistent arguments in linear_constraints.add().")
+        if max_length == 0:
+            return range(len(self._names), len(self._names))
         assert max_length > 0
 
         if not rhs:

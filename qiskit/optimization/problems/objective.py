@@ -57,7 +57,7 @@ class ObjectiveInterface(BaseInterface):
 
     sense = ObjSense()  # See `ObjSense()`
 
-    def __init__(self, varindex: Callable[[Union[str, List[str]]], int]):
+    def __init__(self, varindex: Callable):
         super(ObjectiveInterface, self).__init__()
         self._linear = {}
         self._quadratic = {}
