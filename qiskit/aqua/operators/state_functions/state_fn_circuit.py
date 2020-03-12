@@ -29,17 +29,25 @@ from ..operator_combos import OpSum
 class StateFnCircuit(StateFn):
     """ A class for representing state functions and measurements.
 
-    State functions are defined to be complex functions over a single binary string (as compared to an operator,
-    which is defined as a function over two binary strings, or a function taking a binary function to another
+    State functions are defined to be complex functions over a single binary string
+    (as compared to an operator,
+    which is defined as a function over two binary strings, or a function taking
+    a binary function to another
     binary function). This function may be called by the eval() method.
 
-    Measurements are defined to be functionals over StateFns, taking them to real values. Generally, this real value
-    is interpreted to represent the probability of some classical state (binary string) being observed from a
-    probabilistic or quantum system represented by a StateFn. This leads to the equivalent definition, which is that
-    a measurement m is a function over binary strings producing StateFns, such that the probability of measuring
-    a given binary string b from a system with StateFn f is equal to the inner product between f and m(b).
+    Measurements are defined to be functionals over StateFns, taking them to real values.
+    Generally, this real value
+    is interpreted to represent the probability of some classical state (binary string)
+    being observed from a
+    probabilistic or quantum system represented by a StateFn. This leads to the
+    equivalent definition, which is that
+    a measurement m is a function over binary strings producing StateFns, such that
+     the probability of measuring
+    a given binary string b from a system with StateFn f is equal to the inner
+    product between f and m(b).
 
-    NOTE: State functions here are not restricted to wave functions, as there is no requirement of normalization.
+    NOTE: State functions here are not restricted to wave functions, as there
+    is no requirement of normalization.
     """
 
     # TODO maybe break up into different classes for different fn definition primitives
@@ -54,13 +62,15 @@ class StateFnCircuit(StateFn):
             primitive = primitive.to_instruction()
 
         if not isinstance(primitive, Instruction):
-            raise TypeError('StateFnCircuit can only be instantiated with Instruction, not {}'.format(type(primitive)))
+            raise TypeError('StateFnCircuit can only be instantiated '
+                            'with Instruction, not {}'.format(type(primitive)))
 
         super().__init__(primitive, coeff=coeff, is_measurement=is_measurement)
 
     @staticmethod
     def from_dict(density_dict):
-        # If the dict is sparse (elements <= qubits), don't go building a statevector to pass to Qiskit's
+        # If the dict is sparse (elements <= qubits), don't go
+        # building a statevector to pass to Qiskit's
         # initializer, just create a sum.
         if len(density_dict) <= len(list(density_dict.keys())[0]):
             statefn_circuits = []
@@ -99,7 +109,8 @@ class StateFnCircuit(StateFn):
     def add(self, other):
         """ Addition. Overloaded by + in OperatorBase. """
         if not self.num_qubits == other.num_qubits:
-            raise ValueError('Sum over operators with different numbers of qubits, {} and {}, is not well '
+            raise ValueError('Sum over operators with different numbers of qubits, '
+                             '{} and {}, is not well '
                              'defined'.format(self.num_qubits, other.num_qubits))
 
         if isinstance(other, StateFnCircuit) and self.primitive == other.primitive:
@@ -114,12 +125,14 @@ class StateFnCircuit(StateFn):
                               is_measurement=(not self.is_measurement))
 
     def compose(self, other):
-        """ Composition (Linear algebra-style, right-to-left) is not well defined for States in the binary function
+        """ Composition (Linear algebra-style, right-to-left) is not well defined
+        for States in the binary function
         model. However, it is well defined for measurements.
         """
         # TODO maybe allow outers later to produce density operators or projectors, but not yet.
         if not self.is_measurement:
-            raise ValueError('Composition with a Statefunctions in the first operand is not defined.')
+            raise ValueError(
+                'Composition with a Statefunctions in the first operand is not defined.')
 
         new_self, other = self._check_zero_for_composition_and_expand(other)
 
@@ -138,15 +151,18 @@ class StateFnCircuit(StateFn):
 
         if isinstance(other, StateFnCircuit) and self.is_measurement:
             from .. import Zero
-            return self.compose(OpCircuit(other.primitive, other.coeff)).compose(Zero^self.num_qubits)
+            return self.compose(OpCircuit(other.primitive,
+                                          other.coeff)).compose(Zero ^ self.num_qubits)
 
         from qiskit.aqua.operators import OpComposition
         return OpComposition([new_self, other])
 
     def kron(self, other):
         """ Kron
-        Note: You must be conscious of Qiskit's big-endian bit printing convention. Meaning, Plus.kron(Zero)
-        produces a |+⟩ on qubit 0 and a |0⟩ on qubit 1, or |+⟩⨂|0⟩, but would produce a QuantumCircuit like
+        Note: You must be conscious of Qiskit's big-endian bit printing convention.
+        Meaning, Plus.kron(Zero)
+        produces a |+⟩ on qubit 0 and a |0⟩ on qubit 1, or |+⟩⨂|0⟩, but would produce
+        a QuantumCircuit like
         |0⟩--
         |+⟩--
         Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
@@ -160,21 +176,27 @@ class StateFnCircuit(StateFn):
             new_qc.append(self.primitive, new_qc.qubits[other.primitive.num_qubits:])
             # TODO Fix because converting to dag just to append is nuts
             # TODO Figure out what to do with cbits?
-            return StateFnCircuit(new_qc.decompose().to_instruction(), coeff=self.coeff * other.coeff)
+            return StateFnCircuit(new_qc.decompose().to_instruction(),
+                                  coeff=self.coeff * other.coeff)
 
         from qiskit.aqua.operators import OpKron
         return OpKron([self, other])
 
     def to_density_matrix(self, massive=False):
-        """ Return numpy matrix of density operator, warn if more than 16 qubits to force the user to set
-        massive=True if they want such a large matrix. Generally big methods like this should require the use of a
-        converter, but in this case a convenience method for quick hacking and access to classical tools is
+        """ Return numpy matrix of density operator, warn if more than 16 qubits to
+        force the user to set
+        massive=True if they want such a large matrix. Generally big methods like this
+        should require the use of a
+        converter, but in this case a convenience method for quick hacking and access
+        to classical tools is
         appropriate. """
 
         if self.num_qubits > 16 and not massive:
             # TODO figure out sparse matrices?
-            raise ValueError('to_matrix will return an exponentially large matrix, in this case {0}x{0} elements.'
-                             ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
+            raise ValueError(
+                'to_matrix will return an exponentially large matrix,'
+                ' in this case {0}x{0} elements.'
+                ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
 
         # TODO handle list case
         # Rely on StateFnVectors logic here.
@@ -182,28 +204,36 @@ class StateFnCircuit(StateFn):
 
     def to_matrix(self, massive=False):
         """
-        NOTE: THIS DOES NOT RETURN A DENSITY MATRIX, IT RETURNS A CLASSICAL MATRIX CONTAINING THE QUANTUM OR CLASSICAL
-        VECTOR REPRESENTING THE EVALUATION OF THE STATE FUNCTION ON EACH BINARY BASIS STATE. DO NOT ASSUME THIS IS
-        IS A NORMALIZED QUANTUM OR CLASSICAL PROBABILITY VECTOR. If we allowed this to return a density matrix,
-        then we would need to change the definition of composition to be ~Op @ StateFn @ Op for those cases,
+        NOTE: THIS DOES NOT RETURN A DENSITY MATRIX, IT RETURNS A CLASSICAL MATRIX CONTAINING
+         THE QUANTUM OR CLASSICAL
+        VECTOR REPRESENTING THE EVALUATION OF THE STATE FUNCTION ON EACH BINARY BASIS STATE.
+        DO NOT ASSUME THIS IS
+        IS A NORMALIZED QUANTUM OR CLASSICAL PROBABILITY VECTOR. If we allowed this to
+        return a density matrix,
+        then we would need to change the definition of composition to be ~Op @ StateFn @
+        Op for those cases,
         whereas by this methodology we can ensure that composition always means Op @ StateFn.
 
         Return numpy vector of state vector, warn if more than 16 qubits to force the user to set
-        massive=True if they want such a large vector. Generally big methods like this should require the use of a
-        converter, but in this case a convenience method for quick hacking and access to classical tools is
+        massive=True if they want such a large vector. Generally big methods like this
+        should require the use of a
+        converter, but in this case a convenience method for quick hacking and access
+        to classical tools is
         appropriate. """
 
         if self.num_qubits > 16 and not massive:
             # TODO figure out sparse matrices?
-            raise ValueError('to_vector will return an exponentially large vector, in this case {0} elements.'
-                             ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
+            raise ValueError(
+                'to_vector will return an exponentially large vector, in this case {0} elements.'
+                ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
 
         # Need to adjoint to get forward statevector and then reverse
         if self.is_measurement:
             return np.conj(self.adjoint().to_matrix())
         qc = self.to_circuit(meas=False)
         statevector_backend = BasicAer.get_backend('statevector_simulator')
-        statevector = execute(qc, statevector_backend, optimization_level=0).result().get_statevector()
+        statevector = execute(qc, statevector_backend,
+                              optimization_level=0).result().get_statevector()
         return statevector * self.coeff
 
     def __str__(self):
@@ -213,9 +243,11 @@ class StateFnCircuit(StateFn):
         qc = qc.decompose()
         prim_str = str(qc.draw(output='text'))
         if self.coeff == 1.0:
-            return "{}({})".format('StateFunction' if not self.is_measurement else 'Measurement', prim_str)
+            return "{}({})".format('StateFunction' if not self.is_measurement
+                                   else 'Measurement', prim_str)
         else:
-            return "{}({}) * {}".format('StateFunction' if not self.is_measurement else 'Measurement',
+            return "{}({}) * {}".format('StateFunction' if not self.is_measurement
+                                        else 'Measurement',
                                         prim_str,
                                         self.coeff)
 
@@ -233,8 +265,9 @@ class StateFnCircuit(StateFn):
         # Validate bitstring: re.fullmatch(rf'[01]{{{0}}}', val1)
 
         if not self.is_measurement and isinstance(other, OperatorBase):
-            raise ValueError('Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '
-                             'sf.adjoint() first to convert to measurement.')
+            raise ValueError(
+                'Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '
+                'sf.adjoint() first to convert to measurement.')
         return StateFn(self.to_matrix(), is_measurement=True).eval(other)
 
     def to_circuit(self, meas=False):
@@ -247,13 +280,14 @@ class StateFnCircuit(StateFn):
             qc.append(self.primitive, qargs=range(self.primitive.num_qubits))
         return qc
 
-    #TODO specify backend?
+    # TODO specify backend?
     def sample(self, shots=1024, massive=False):
         """ Sample the state function as a normalized probability distribution."""
         if self.num_qubits > 16 and not massive:
             # TODO figure out sparse matrices?
-            raise ValueError('to_vector will return an exponentially large vector, in this case {0} elements.'
-                             ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
+            raise ValueError(
+                'to_vector will return an exponentially large vector, in this case {0} elements.'
+                ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
 
         qc = self.to_circuit(meas=True)
         qasm_backend = BasicAer.get_backend('qasm_simulator')

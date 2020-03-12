@@ -28,7 +28,8 @@ from qiskit.tools.events import TextProgressBar
 from qiskit.aqua import AquaError, aqua_globals
 from qiskit.aqua.operators.legacy.weighted_pauli_operator import WeightedPauliOperator
 from qiskit.aqua.operators.legacy.matrix_operator import MatrixOperator
-from qiskit.aqua.operators.legacy.tpb_grouped_weighted_pauli_operator import TPBGroupedWeightedPauliOperator
+from qiskit.aqua.operators.legacy.tpb_grouped_weighted_pauli_operator \
+    import TPBGroupedWeightedPauliOperator
 
 logger = logging.getLogger(__name__)
 

@@ -38,11 +38,11 @@ class TestStateOpMeasEvals(QiskitAquaTestCase):
         self.assertAlmostEqual(wf.adjoint().eval(wf_vec), 14.45)
 
     def test_wf_evals_x(self):
-        qbts = 4
-        wf = ((Zero^qbts) + (One^qbts))*(1/2**.5)
-        # Note: wf = Plus^qbts fails because OpKron can't handle it.
+        qbits = 4
+        wf = ((Zero ^ qbits) + (One ^ qbits)) * (1 / 2 ** .5)
+        # Note: wf = Plus^qbits fails because OpKron can't handle it.
         wf_vec = StateFn(wf.to_matrix())
-        op = X^qbts
+        op = X ^ qbits
         # op = I^6
         self.assertAlmostEqual(op.eval(front=wf, back=wf.adjoint()), 1)
         self.assertAlmostEqual(op.eval(front=wf, back=wf_vec.adjoint()), 1)
@@ -54,8 +54,8 @@ class TestStateOpMeasEvals(QiskitAquaTestCase):
         self.assertAlmostEqual(wf_vec.adjoint().eval(op.eval(wf_vec)), 1)
 
         # op = (H^X^Y)^2
-        op = H^6
-        wf = ((Zero^6) + (One^6))*(1/2**.5)
+        op = H ^ 6
+        wf = ((Zero ^ 6) + (One ^ 6)) * (1 / 2 ** .5)
         wf_vec = StateFn(wf.to_matrix())
         # print(wf.adjoint().to_matrix() @ op.to_matrix() @ wf.to_matrix())
         self.assertAlmostEqual(op.eval(front=wf, back=wf.adjoint()), .25)

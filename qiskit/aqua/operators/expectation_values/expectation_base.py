@@ -30,8 +30,10 @@ logger = logging.getLogger(__name__)
 
 
 class ExpectationBase():
-    """ A base for Expectation Value algorithms. An expectation value algorithm takes an operator Observable,
-    a backend, and a state distribution function, and computes the expected value of that observable over the
+    """ A base for Expectation Value algorithms. An expectation value algorithm
+    takes an operator Observable,
+    a backend, and a state distribution function, and computes the expected value
+    of that observable over the
     distribution.
 
     """
@@ -65,31 +67,37 @@ class ExpectationBase():
                 if has_aer():
                     from qiskit import Aer
                     backend_to_check = Aer.get_backend('qasm_simulator')
-                # If user doesn't have Aer, use statevector_simulator for < 16 qubits, and qasm with warning for more.
+                # If user doesn't have Aer, use statevector_simulator
+                # for < 16 qubits, and qasm with warning for more.
                 else:
                     if operator.num_qubits <= 16:
                         backend_to_check = BasicAer.get_backend('statevector_simulator')
                     else:
-                        logging.warning('{0} qubits is a very large expectation value. Consider installing Aer to use '
-                                        'Aer\'s fast expectation, which will perform better here. We\'ll use '
-                                        'the BasicAer qasm backend for this expectation to avoid having to '
-                                        'construct the {1}x{1} operator matrix.'.format(operator.num_qubits,
-                                                                                        2**operator.num_qubits))
+                        logging.warning(
+                            '{0} qubits is a very large expectation value. '
+                            'Consider installing Aer to use '
+                            'Aer\'s fast expectation, which will perform better here. We\'ll use '
+                            'the BasicAer qasm backend for this expectation to avoid having to '
+                            'construct the {1}x{1} operator matrix.'.format(operator.num_qubits,
+                                                                            2**operator.num_qubits))
                         backend_to_check = BasicAer.get_backend('qasm_simulator')
 
-            # If the user specified Aer qasm backend and is using a Pauli operator, use the Aer fast expectation
+            # If the user specified Aer qasm backend and is using a
+            # Pauli operator, use the Aer fast expectation
             if is_aer_qasm(backend_to_check):
                 from .aer_pauli_expectation import AerPauliExpectation
                 return AerPauliExpectation(operator=operator, backend=backend, state=state)
 
-            # If the user specified a statevector backend (either Aer or BasicAer), use a converter to produce a
+            # If the user specified a statevector backend (either Aer or BasicAer),
+            # use a converter to produce a
             # Matrix operator and compute using matmul
             elif is_statevector_backend(backend_to_check):
                 from .matrix_expectation import MatrixExpectation
                 if operator.num_qubits >= 16:
-                    logging.warning('Note: Using a statevector_simulator with {} qubits can be very expensive. '
-                                    'Consider using the Aer qasm_simulator instead to take advantage of Aer\'s '
-                                    'built-in fast Pauli Expectation'.format(operator.num_qubits))
+                    logging.warning(
+                        'Note: Using a statevector_simulator with {} qubits can be very expensive. '
+                        'Consider using the Aer qasm_simulator instead to take advantage of Aer\'s '
+                        'built-in fast Pauli Expectation'.format(operator.num_qubits))
                 # TODO do this properly with converters
                 return MatrixExpectation(operator=operator, backend=backend, state=state)
 

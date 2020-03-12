@@ -28,28 +28,37 @@ from ..operator_combos import OpVec
 class StateFnVector(StateFn):
     """ A class for representing state functions and measurements.
 
-    State functions are defined to be complex functions over a single binary string (as compared to an operator,
-    which is defined as a function over two binary strings, or a function taking a binary function to another
+    State functions are defined to be complex functions over a single binary string
+    (as compared to an operator,
+    which is defined as a function over two binary strings, or a function taking a
+    binary function to another
     binary function). This function may be called by the eval() method.
 
-    Measurements are defined to be functionals over StateFns, taking them to real values. Generally, this real value
-    is interpreted to represent the probability of some classical state (binary string) being observed from a
-    probabilistic or quantum system represented by a StateFn. This leads to the equivalent definition, which is that
-    a measurement m is a function over binary strings producing StateFns, such that the probability of measuring
-    a given binary string b from a system with StateFn f is equal to the inner product between f and m(b).
+    Measurements are defined to be functionals over StateFns, taking them to real values.
+    Generally, this real value
+    is interpreted to represent the probability of some classical state (binary string)
+    being observed from a
+    probabilistic or quantum system represented by a StateFn. This leads to the equivalent
+    definition, which is that
+    a measurement m is a function over binary strings producing StateFns, such that the
+    probability of measuring
+    a given binary string b from a system with StateFn f is equal to the inner product
+    between f and m(b).
 
-    NOTE: State functions here are not restricted to wave functions, as there is no requirement of normalization.
+    NOTE: State functions here are not restricted to wave functions,
+    as there is no requirement of normalization.
     """
 
     # TODO maybe break up into different classes for different fn definition primitives
     # TODO allow normalization somehow?
     def __init__(self, primitive, coeff=1.0, is_measurement=False):
         """
-        Args:
+        Args
             primitive(str, dict, OperatorBase, Result, np.ndarray, list)
             coeff(int, float, complex): A coefficient by which to multiply the state
         """
-        # Lists and Numpy arrays representing statevectors are stored in Statevector objects for easier handling.
+        # Lists and Numpy arrays representing statevectors are stored
+        # in Statevector objects for easier handling.
         if isinstance(primitive, (np.ndarray, list)):
             primitive = Statevector(primitive)
 
@@ -66,8 +75,9 @@ class StateFnVector(StateFn):
     def add(self, other):
         """ Addition. Overloaded by + in OperatorBase. """
         if not self.num_qubits == other.num_qubits:
-            raise ValueError('Sum over statefns with different numbers of qubits, {} and {}, is not well '
-                             'defined'.format(self.num_qubits, other.num_qubits))
+            raise ValueError(
+                'Sum over statefns with different numbers of qubits, {} and {}, is not well '
+                'defined'.format(self.num_qubits, other.num_qubits))
 
         # Right now doesn't make sense to add a StateFn to a Measurement
         if isinstance(other, StateFnVector) and self.is_measurement == other.is_measurement:
@@ -85,8 +95,10 @@ class StateFnVector(StateFn):
 
     def kron(self, other):
         """ Kron
-        Note: You must be conscious of Qiskit's big-endian bit printing convention. Meaning, Plus.kron(Zero)
-        produces a |+⟩ on qubit 0 and a |0⟩ on qubit 1, or |+⟩⨂|0⟩, but would produce a QuantumCircuit like
+        Note: You must be conscious of Qiskit's big-endian bit printing convention.
+        Meaning, Plus.kron(Zero)
+        produces a |+⟩ on qubit 0 and a |0⟩ on qubit 1, or |+⟩⨂|0⟩,
+        but would produce a QuantumCircuit like
         |0⟩--
         |+⟩--
         Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
@@ -102,35 +114,47 @@ class StateFnVector(StateFn):
         return OpKron([self, other])
 
     def to_density_matrix(self, massive=False):
-        """ Return numpy matrix of density operator, warn if more than 16 qubits to force the user to set
-        massive=True if they want such a large matrix. Generally big methods like this should require the use of a
-        converter, but in this case a convenience method for quick hacking and access to classical tools is
+        """ Return numpy matrix of density operator, warn if more than 16 qubits
+        to force the user to set
+        massive=True if they want such a large matrix. Generally big methods
+        like this should require the use of a
+        converter, but in this case a convenience method for quick hacking and
+        access to classical tools is
         appropriate. """
 
         if self.num_qubits > 16 and not massive:
             # TODO figure out sparse matrices?
-            raise ValueError('to_matrix will return an exponentially large matrix, in this case {0}x{0} elements.'
-                             ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
+            raise ValueError(
+                'to_matrix will return an exponentially large matrix,'
+                ' in this case {0}x{0} elements.'
+                ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
 
         return self.primitive.to_operator().data * self.coeff
 
     def to_matrix(self, massive=False):
         """
-        NOTE: THIS DOES NOT RETURN A DENSITY MATRIX, IT RETURNS A CLASSICAL MATRIX CONTAINING THE QUANTUM OR CLASSICAL
-        VECTOR REPRESENTING THE EVALUATION OF THE STATE FUNCTION ON EACH BINARY BASIS STATE. DO NOT ASSUME THIS IS
-        IS A NORMALIZED QUANTUM OR CLASSICAL PROBABILITY VECTOR. If we allowed this to return a density matrix,
-        then we would need to change the definition of composition to be ~Op @ StateFn @ Op for those cases,
+        NOTE: THIS DOES NOT RETURN A DENSITY MATRIX, IT RETURNS A CLASSICAL
+        MATRIX CONTAINING THE QUANTUM OR CLASSICAL
+        VECTOR REPRESENTING THE EVALUATION OF THE STATE FUNCTION ON EACH BINARY BASIS STATE.
+        DO NOT ASSUME THIS IS
+        IS A NORMALIZED QUANTUM OR CLASSICAL PROBABILITY VECTOR.
+        If we allowed this to return a density matrix,
+        then we would need to change the definition of composition to
+        be ~Op @ StateFn @ Op for those cases,
         whereas by this methodology we can ensure that composition always means Op @ StateFn.
 
         Return numpy vector of state vector, warn if more than 16 qubits to force the user to set
-        massive=True if they want such a large vector. Generally big methods like this should require the use of a
-        converter, but in this case a convenience method for quick hacking and access to classical tools is
+        massive=True if they want such a large vector. Generally big methods
+        like this should require the use of a
+        converter, but in this case a convenience method for
+        quick hacking and access to classical tools is
         appropriate. """
 
         if self.num_qubits > 16 and not massive:
             # TODO figure out sparse matrices?
-            raise ValueError('to_vector will return an exponentially large vector, in this case {0} elements.'
-                             ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
+            raise ValueError(
+                'to_vector will return an exponentially large vector, in this case {0} elements.'
+                ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
 
         vec = self.primitive.data * self.coeff
 
@@ -140,9 +164,11 @@ class StateFnVector(StateFn):
         """Overload str() """
         prim_str = str(self.primitive)
         if self.coeff == 1.0:
-            return "{}({})".format('StateFnVector' if not self.is_measurement else 'MeasurementVector', prim_str)
+            return "{}({})".format('StateFnVector' if not self.is_measurement
+                                   else 'MeasurementVector', prim_str)
         else:
-            return "{}({}) * {}".format('StateFnVector' if not self.is_measurement else 'MeasurementVector',
+            return "{}({}) * {}".format('StateFnVector' if not self.is_measurement
+                                        else 'MeasurementVector',
                                         prim_str,
                                         self.coeff)
 
@@ -150,12 +176,14 @@ class StateFnVector(StateFn):
         # Validate bitstring: re.fullmatch(rf'[01]{{{0}}}', val1)
 
         if not self.is_measurement and isinstance(other, OperatorBase):
-            raise ValueError('Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '
-                             'sf.adjoint() first to convert to measurement.')
+            raise ValueError(
+                'Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '
+                'sf.adjoint() first to convert to measurement.')
         if isinstance(other, list):
             return [self.eval(front_elem) for front_elem in front]
         if isinstance(other, OpVec) and other.distributive:
-            return other.combo_fn([self.eval(other.coeff * other_elem) for other_elem in other.oplist])
+            return other.combo_fn([self.eval(other.coeff * other_elem)
+                                   for other_elem in other.oplist])
         if not isinstance(other, OperatorBase):
             other = StateFn(other)
 

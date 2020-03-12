@@ -29,12 +29,13 @@ logger = logging.getLogger(__name__)
 
 
 class LocalSimulatorSampler(CircuitSampler):
-    """ A sampler for local Quantum simulator backends.
-    # TODO replace OpMatrices with Terra unitary gates to make them runnable. Note, Terra's Operator has a
-    to_instruction method.
+    """ A sampler for local Quantum simulator backends
     """
+    # TODO replace OpMatrices with Terra unitary gates to make them runnable.
+    # Note, Terra's Operator has a to_instruction method.
 
-    def __init__(self, backend=None, hw_backend_to_emulate=None, kwargs={}, statevector=False, snapshot=False):
+    def __init__(self, backend=None, hw_backend_to_emulate=None, kwargs={},
+                 statevector=False, snapshot=False):
         """
         Args:
             backend():
@@ -45,7 +46,8 @@ class LocalSimulatorSampler(CircuitSampler):
             # TODO figure out Aer versioning
             kwargs['noise_model'] = NoiseModel.from_backend(hw_backend_to_emulate)
 
-        self._qi = backend if isinstance(backend, QuantumInstance) else QuantumInstance(backend=backend, **kwargs)
+        self._qi = backend if isinstance(backend, QuantumInstance) else \
+            QuantumInstance(backend=backend, **kwargs)
         self._last_op = None
         self._reduced_op_cache = None
         self._circuit_ops_cache = {}
@@ -101,13 +103,15 @@ class LocalSimulatorSampler(CircuitSampler):
 
         # Don't pass circuits if we have in the cache the sampling function knows to use the cache.
         circs = list(self._circuit_ops_cache.values()) if not self._transpiled_circ_cache else None
-        sampled_statefn_dicts = self.sample_circuits(op_circuits=circs, param_bindings=param_bindings)
+        sampled_statefn_dicts = self.sample_circuits(op_circuits=circs,
+                                                     param_bindings=param_bindings)
 
         def replace_circuits_with_dicts(operator, param_index=0):
             if isinstance(operator, StateFnCircuit):
                 return sampled_statefn_dicts[id(operator)][param_index]
             elif isinstance(operator, OpVec):
-                return operator.traverse(partial(replace_circuits_with_dicts, param_index=param_index))
+                return operator.traverse(partial(replace_circuits_with_dicts,
+                                                 param_index=param_index))
             else:
                 return operator
 
@@ -153,11 +157,12 @@ class LocalSimulatorSampler(CircuitSampler):
 
         sampled_statefn_dicts = {}
         for i, op_c in enumerate(op_circuits):
-            # Taking square root because we're replacing a statevector representation of probabilities.
+            # Taking square root because we're replacing a statevector
+            # representation of probabilities.
             reps = len(param_bindings) if param_bindings is not None else 1
             c_statefns = []
             for j in range(reps):
-                circ_index = (i*reps) + j
+                circ_index = (i * reps) + j
                 if self._statevector:
                     result_sfn = StateFn(op_c.coeff * results.get_statevector(circ_index))
                 elif self._snapshot:
@@ -169,7 +174,7 @@ class LocalSimulatorSampler(CircuitSampler):
                         avg = avg[0] + 1j * avg[1]
                     # Will be replaced with just avg when eval is called later
                     num_qubits = op_circuits[0].num_qubits
-                    result_sfn = (Zero^num_qubits).adjoint() * avg
+                    result_sfn = (Zero ^ num_qubits).adjoint() * avg
                 else:
                     result_sfn = StateFn({b: (v * op_c.coeff / self._qi._run_config.shots) ** .5
                                           for (b, v) in results.get_counts(circ_index).items()})

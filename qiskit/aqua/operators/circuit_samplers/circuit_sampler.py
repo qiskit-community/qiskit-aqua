@@ -31,15 +31,18 @@ logger = logging.getLogger(__name__)
 
 
 class CircuitSampler(ConverterBase):
-    """ A base for Expectation Value algorithms. An expectation value algorithm takes an operator Observable,
-    a backend, and a state distribution function, and computes the expected value of that observable over the
+    """ A base for Expectation Value algorithms. An expectation
+    value algorithm takes an operator Observable,
+    a backend, and a state distribution function,
+    and computes the expected value of that observable over the
     distribution.
 
     """
 
     @staticmethod
     def factory(backend=None):
-        """ A factory method to produce the correct type of CircuitSampler subclass based on the primitive passed in."""
+        """ A factory method to produce the correct type of CircuitSampler
+        subclass based on the primitive passed in."""
 
         backend_to_check = backend.backend if isinstance(backend, QuantumInstance) else backend
 

@@ -161,7 +161,6 @@ enum
 eoh
 eom
 eps
-equalling
 erdos
 eri
 et
@@ -427,7 +426,7 @@ qancilla
 qargs
 qasm
 qbit
-qbts
+qbits
 qc
 qcmatrixio
 QDrift

@@ -13,8 +13,8 @@
 # that they have been altered from the originals.
 
 """
-Operator Evolution algorithms - Algorithms for producing or approximating the exponential of an operator.
-
+Operator Evolution algorithms - Algorithms for producing or approximating
+the exponential of an operator.
 """
 
 from .evolution_base import EvolutionBase

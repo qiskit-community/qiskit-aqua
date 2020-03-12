@@ -35,7 +35,8 @@ class ToMatrixOp(ConverterBase):
         if isinstance(operator, OpVec):
             return operator.__class__(operator.traverse(self.convert), coeff=operator.coeff)
         elif isinstance(operator, StateFnOperator):
-            return StateFnOperator(OpPrimitive(operator.to_density_matrix()), is_measurement=operator.is_measurement)
+            return StateFnOperator(OpPrimitive(operator.to_density_matrix()),
+                                   is_measurement=operator.is_measurement)
         elif isinstance(operator, StateFn):
             return StateFn(operator.to_matrix(), is_measurement=operator.is_measurement)
         elif isinstance(operator, OperatorBase):

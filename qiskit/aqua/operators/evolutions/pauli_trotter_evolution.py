@@ -21,7 +21,8 @@ import itertools
 
 from .evolution_base import EvolutionBase
 
-from qiskit.aqua.operators import (OpVec, OpSum, OpPauli, OpPrimitive, Z, I, PauliChangeOfBasis, AbelianGrouper)
+from qiskit.aqua.operators import (OpVec, OpSum, OpPauli, OpPrimitive, Z, I,
+                                   PauliChangeOfBasis, AbelianGrouper)
 
 from . import OpEvolution
 from .trotterizations import TrotterizationBase
@@ -88,7 +89,8 @@ class PauliTrotterEvolution(EvolutionBase):
             # Remember, circuit composition order is mirrored operator composition order.
             return cob_instr_op.adjoint().compose(z_evolution).compose(cob_instr_op)
 
-        # Note: PauliChangeOfBasis will pad destination with identities to produce correct CoB circuit
+        # Note: PauliChangeOfBasis will pad destination with identities
+        # to produce correct CoB circuit
         destination = Z * pauli_op.coeff
         cob = PauliChangeOfBasis(destination_basis=destination, replacement_fn=replacement_fn)
         return cob.convert(pauli_op)
@@ -121,7 +123,8 @@ class PauliTrotterEvolution(EvolutionBase):
 
         pauli_graph = nx.Graph()
         pauli_graph.add_nodes_from(op_sum.oplist)
-        pauli_graph.add_weighted_edges_from([(ops[0], ops[1], self.compute_cnot_distance(ops[0], ops[1]))
+        pauli_graph.add_weighted_edges_from([(ops[0], ops[1],
+                                              self.compute_cnot_distance(ops[0], ops[1]))
                                              for ops in itertools.combinations(op_sum.oplist, 2)])
         print(pauli_graph.edges(data=True))
         tree = nx.minimum_spanning_tree(pauli_graph)

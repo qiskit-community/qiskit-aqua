@@ -37,8 +37,10 @@ class OpKron(OpVec):
     # TODO: Keep this property for evals or just enact distribution at composition time?
     @property
     def distributive(self):
-        """ Indicates whether the OpVec or subclass is distributive under composition. OpVec and OpSum are,
-        meaning that opv @ op = opv[0] @ op + opv[1] @ op +... (plus for OpSum, vec for OpVec, etc.),
+        """ Indicates whether the OpVec or subclass is distributive under
+        composition. OpVec and OpSum are,
+        meaning that opv @ op = opv[0] @ op + opv[1] @ op +...
+        (plus for OpSum, vec for OpVec, etc.),
         while OpComposition and OpKron do not behave this way."""
         return False
 
@@ -51,12 +53,15 @@ class OpKron(OpVec):
     # TODO Kron eval should partial trace the input into smaller StateFns each of size
     #  op.num_qubits for each op in oplist. Right now just works through matmul like OpComposition.
     def eval(self, front=None, back=None):
-        """ A square binary Operator can be defined as a function over two binary strings of equal length. This
-        method returns the value of that function for a given pair of binary strings. For more information,
+        """ A square binary Operator can be defined as a function over two binary strings of
+        equal length. This
+        method returns the value of that function for a given pair of binary strings.
+        For more information,
         see the eval method in operator_base.py.
         """
 
-        kron_mat_op = OpPrimitive(self.combo_fn([op.to_matrix() for op in self.oplist]), coeff=self.coeff)
+        kron_mat_op = OpPrimitive(self.combo_fn([op.to_matrix() for op in self.oplist]),
+                                  coeff=self.coeff)
         return kron_mat_op.eval(front=front, back=back)
 
     # Try collapsing list or trees of krons.

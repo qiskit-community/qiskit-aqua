@@ -28,7 +28,8 @@ logger = logging.getLogger(__name__)
 class OpPrimitive(OperatorBase):
     """ Class for Wrapping Operator Primitives
 
-    Note that all mathematical methods are not in-place, meaning that they return a new object, but the underlying
+    Note that all mathematical methods are not in-place,
+    meaning that they return a new object, but the underlying
     primitives are not copied.
 
     """
@@ -50,9 +51,11 @@ class OpPrimitive(OperatorBase):
     def __init__(self, primitive, coeff=1.0):
         """
                 Args:
-                    primitive (Gate, Pauli, [[complex]], np.ndarray, QuantumCircuit, Instruction): The operator primitive being
+                    primitive (Gate, Pauli, [[complex]], np.ndarray,
+                    QuantumCircuit, Instruction): The operator primitive being
                     wrapped.
-                    coeff (int, float, complex, ParameterExpression): A coefficient multiplying the primitive
+                    coeff (int, float, complex, ParameterExpression): A coefficient
+                    multiplying the primitive
                 """
         self._primitive = primitive
         self._coeff = coeff
@@ -89,9 +92,10 @@ class OpPrimitive(OperatorBase):
     def mul(self, scalar):
         """ Scalar multiply. Overloaded by * in OperatorBase.
 
-        Doesn't multiply MatrixOperator until to_matrix() is called to keep things lazy and avoid big copies.
-        TODO figure out if this is a bad idea.
+        Doesn't multiply MatrixOperator until to_matrix()
+        is called to keep things lazy and avoid big copies.
          """
+        # TODO figure out if this is a bad idea.
         if not isinstance(scalar, (int, float, complex, ParameterExpression)):
             raise ValueError('Operators can only be scalar multiplied by float or complex, not '
                              '{} of type {}.'.format(scalar, type(scalar)))
@@ -122,8 +126,9 @@ class OpPrimitive(OperatorBase):
                 # Zero is special - we'll expand it to the correct qubit number.
                 other = Zero.__class__('0' * self.num_qubits)
             else:
-                raise ValueError('Composition is not defined over Operators of different dimensions, {} and {}, '
-                                 'respectively.'.format(self.num_qubits, other.num_qubits))
+                raise ValueError(
+                    'Composition is not defined over Operators of different dimensions, {} and {}, '
+                    'respectively.'.format(self.num_qubits, other.num_qubits))
         return other
 
     def power(self, other):

@@ -38,8 +38,10 @@ class OpComposition(OpVec):
     # TODO: Keep this property for evals or just enact distribution at composition time?
     @property
     def distributive(self):
-        """ Indicates whether the OpVec or subclass is distributive under composition. OpVec and OpSum are,
-        meaning that opv @ op = opv[0] @ op + opv[1] @ op +... (plus for OpSum, vec for OpVec, etc.),
+        """ Indicates whether the OpVec or subclass is distributive under composition.
+        OpVec and OpSum are,
+        meaning that opv @ op = opv[0] @ op + opv[1] @ op +...
+        (plus for OpSum, vec for OpVec, etc.),
         while OpComposition and OpKron do not behave this way."""
         return False
 
@@ -62,8 +64,10 @@ class OpComposition(OpVec):
         if isinstance(other, OpComposition):
             return OpComposition(self.oplist + other.oplist, coeff=self.coeff*other.coeff)
 
-        # Try composing with last element of oplist. We only try this if that last element isn't itself an
-        # OpComposition, so we can tell whether composing the two elements directly worked. If it doesn't,
+        # Try composing with last element of oplist. We only try
+        # this if that last element isn't itself an
+        # OpComposition, so we can tell whether composing the
+        # two elements directly worked. If it doesn't,
         # continue to the final return statement below, appending other to the oplist.
         if not isinstance(self.oplist[-1], OpComposition):
             comp_with_last = self.oplist[-1].compose(other)
@@ -75,11 +79,14 @@ class OpComposition(OpVec):
         return OpComposition(self.oplist + [other], coeff=self.coeff)
 
     def eval(self, front=None, back=None):
-        """ A square binary Operator can be defined as a function over two binary strings of equal length. This
-        method returns the value of that function for a given pair of binary strings. For more information,
+        """ A square binary Operator can be defined as a function over two
+        binary strings of equal length. This
+        method returns the value of that function for a given pair
+        of binary strings. For more information,
         see the eval method in operator_base.py.
         """
-        # TODO do this for real later. Requires allowing Ops to take a state and return another. Can't do this yet.
+        # TODO do this for real later. Requires allowing Ops to take a
+        #  state and return another. Can't do this yet.
         # front_holder = front.eval(front=front)
         # Start from last op, and stop before op 0, then eval op 0 with back
         # for op in self.oplist[-1:0:-1]:

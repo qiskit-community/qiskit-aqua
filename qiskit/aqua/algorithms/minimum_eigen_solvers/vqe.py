@@ -162,12 +162,14 @@ class VQE(VQAlgorithm, MinimumEigensolver):
 
     @property
     def expectation_value(self):
-        """ Makes aux ops obsolete, as we can now just take the expectations of the ops directly. """
+        """ Makes aux ops obsolete, as we can now just take
+        the expectations of the ops directly. """
         return self._expectation_value
 
     @expectation_value.setter
     def expectation_value(self, exp):
-        # TODO throw an error if operator is different from exp's operator? Or don't store it at all, only in exp?
+        # TODO throw an error if operator is different from exp's operator?
+        #  Or don't store it at all, only in exp?
         self._expectation_value = exp
 
     # @property
@@ -259,7 +261,8 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         """
         # TODO delete instances of self._auto_conversion
         # TODO delete all instances of self._use_simulator_snapshot_mode
-        # TODO make Expectations throw warnings more aggressively for incompatible operator primitives
+        # TODO make Expectations throw warnings more aggressively for
+        #  incompatible operator primitives
 
         if self.operator is None:
             raise AquaError("Operator was never provided")
@@ -328,7 +331,8 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         parameter_sets = np.split(parameters, num_parameter_sets)
 
         if not self._expectation_value.state:
-            ansatz_circuit_op = StateFnCircuit(self._var_form.construct_circuit(self._var_form_params))
+            ansatz_circuit_op = StateFnCircuit(
+                self._var_form.construct_circuit(self._var_form_params))
             self._expectation_value.state = ansatz_circuit_op
         param_bindings = {self._var_form_params: parameter_sets}
 
@@ -336,12 +340,14 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         means = np.real(self._expectation_value.compute_expectation(params=param_bindings))
 
         if self._callback is not None:
-            stds = np.real(self._expectation_value.compute_standard_deviation(params=param_bindings))
+            stds = np.real(
+                self._expectation_value.compute_standard_deviation(params=param_bindings))
             for i, param_set in enumerate(parameter_sets):
                 self._eval_count += 1
                 self._callback(self._eval_count, param_set, means[i], stds[i])
-        # TODO I would like to change the callback to the following, to allow one to access an accurate picture of
-        #  the evaluation steps, and to distinguish between single energy and gradient evaluations.
+        # TODO I would like to change the callback to the following, to allow one to access an
+        #  accurate picture of the evaluation steps, and to distinguish between single
+        #  energy and gradient evaluations.
         if self._callback is not None and False:
             self._callback(self._eval_count, parameter_sets, means, stds)
 

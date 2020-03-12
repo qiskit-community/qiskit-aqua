@@ -33,13 +33,13 @@ class TestMatrixExpectation(QiskitAquaTestCase):
         op = (Z ^ Z)
         expect = MatrixExpectation(operator=op)
         # wf = (Pl^Pl) + (Ze^Ze)
-        wf = CX @ (H^I) @ Zero
+        wf = CX @ (H ^ I) @ Zero
         mean = expect.compute_expectation(wf)
         self.assertAlmostEqual(mean, 0)
 
     def test_matrix_expect_single(self):
         paulis = [Z, X, Y, I]
-        states = [Zero, One, Plus, Minus, S@Plus, S@Minus]
+        states = [Zero, One, Plus, Minus, S @ Plus, S @ Minus]
         for pauli, state in itertools.product(paulis, states):
             expect = MatrixExpectation(operator=pauli)
             mean = expect.compute_expectation(state)
@@ -64,7 +64,7 @@ class TestMatrixExpectation(QiskitAquaTestCase):
         sum_plus_mean = expect.compute_expectation(sum_plus)
         np.testing.assert_array_almost_equal(sum_plus_mean, [1, 0, 0, 1])
 
-        sum_zero = (Plus + Minus)*(.5**.5)
+        sum_zero = (Plus + Minus) * (.5 ** .5)
         sum_zero_mean = expect.compute_expectation(sum_zero)
         np.testing.assert_array_almost_equal(sum_zero_mean, [0, 0, 1, 1])
 
@@ -72,11 +72,14 @@ class TestMatrixExpectation(QiskitAquaTestCase):
             # print(op)
             mat_op = op.to_matrix()
             np.testing.assert_array_almost_equal(plus_mean[i],
-                                                 Plus.adjoint().to_matrix() @ mat_op @ Plus.to_matrix())
+                                                 Plus.adjoint().to_matrix() @
+                                                 mat_op @ Plus.to_matrix())
             np.testing.assert_array_almost_equal(minus_mean[i],
-                                                 Minus.adjoint().to_matrix() @ mat_op @ Minus.to_matrix())
+                                                 Minus.adjoint().to_matrix() @
+                                                 mat_op @ Minus.to_matrix())
             np.testing.assert_array_almost_equal(sum_zero_mean[i],
-                                                 sum_zero.adjoint().to_matrix() @ mat_op @ sum_zero.to_matrix())
+                                                 sum_zero.adjoint().to_matrix() @
+                                                 mat_op @ sum_zero.to_matrix())
 
     def test_matrix_expect_state_vector(self):
         states_op = OpVec([One, Zero, Plus, Minus])
@@ -93,7 +96,7 @@ class TestMatrixExpectation(QiskitAquaTestCase):
         expect = MatrixExpectation(operator=paulis_op)
         means = expect.compute_expectation(states_op)
         valids = [[+0, 0, 1, -1],
-                  [+0, 0, 0,  0],
+                  [+0, 0, 0, 0],
                   [-1, 1, 0, -0],
-                  [+1, 1, 1,  1]]
+                  [+1, 1, 1, 1]]
         np.testing.assert_array_almost_equal(means, valids)

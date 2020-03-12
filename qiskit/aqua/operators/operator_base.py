@@ -21,7 +21,8 @@ from qiskit.circuit import ParameterExpression, ParameterVector
 
 class OperatorBase(ABC):
     """ An square binary Operator can be defined in a two equivalent ways:
-        1) A functional, taking a complex function over a binary alphabet of values to another binary function
+        1) A functional, taking a complex function over a binary alphabet
+           of values to another binary function
         2) A complex function over two values of a binary alphabet
 
     """
@@ -49,14 +50,18 @@ class OperatorBase(ABC):
     # TODO allow massive argument to decide whether to perform to_matrix?
     @abstractmethod
     def eval(self, front=None, back=None):
-        """ A square binary Operator can be defined as a function over two binary strings of equal length,
-        or equivalently, a function taking a binary function to another binary function. This method returns the
-        value of that function for a given pair of binary strings if both front and back are supplied, or returns a
+        """ A square binary Operator can be defined as a function over two binary strings
+        of equal length,
+        or equivalently, a function taking a binary function to another binary function.
+        This method returns the
+        value of that function for a given pair of binary strings if both front and back are
+        supplied, or returns a
         StateFn if only front is provided. Note that providing both values is simply a shorthand for
         op.eval(front).eval(back) if back is a binary string, or back.eval(op.eval(front)) if back
         is a Measurement (front can be a StateFn or binary string in either case).
 
-        A brute force way to evaluate an expectation for some **positive real** state function sf would be:
+        A brute force way to evaluate an expectation for some **positive
+        real** state function sf would be:
             sampled_strings = sf.sample(shots=1000)
             sum([op.eval(bstr, bstr) for bstr in sampled_strings])
         or, exactly:
@@ -66,9 +71,11 @@ class OperatorBase(ABC):
             sampled_strings = sf.sample(shots=1000)
             sum([op.eval(bstr, bstr) * np.sign(sf.eval(bstr)) for bstr in sampled_strings])
         or, exactly:
-            sum([op.eval(bstr, bstr) * np.conj(sf.eval(bstr)) * sf.eval(bstr) for bstr in sampled_strings])
+            sum([op.eval(bstr, bstr) * np.conj(sf.eval(bstr)) * sf.eval(bstr)
+            for bstr in sampled_strings])
 
-        Note that for a quantum state function, we do not generally have efficient classical access to sf.sample or
+        Note that for a quantum state function, we do not generally
+        have efficient classical access to sf.sample or
         sf.eval.
 
         """
@@ -76,15 +83,18 @@ class OperatorBase(ABC):
 
     @abstractmethod
     def reduce(self):
-        """ Try collapsing the Operator structure, usually after some time of processing. E.g. a conversion,
-        some operators in an OpComposition can now be directly composed. At worst, just returns self."""
+        """ Try collapsing the Operator structure, usually after some
+        time of processing. E.g. a conversion,
+        some operators in an OpComposition can now be directly composed.
+        At worst, just returns self."""
         raise NotImplementedError
 
 # Addition / Subtraction
 
     def __add__(self, other):
         """ Overload + operation """
-        # Hack to be able to use sum(list_of_ops) nicely, because sum adds 0 to the first element of the list.
+        # Hack to be able to use sum(list_of_ops) nicely,
+        # because sum adds 0 to the first element of the list.
         if other == 0:
             return self
 
@@ -92,7 +102,8 @@ class OperatorBase(ABC):
 
     def __radd__(self, other):
         """ Overload right + operation """
-        # Hack to be able to use sum(list_of_ops) nicely, because sum adds 0 to the first element of the list.
+        # Hack to be able to use sum(list_of_ops) nicely,
+        # because sum adds 0 to the first element of the list.
         if other == 0:
             return self
 
@@ -187,8 +198,9 @@ class OperatorBase(ABC):
                 unrolled_value_dict[param] = value
             if isinstance(param, ParameterVector):
                 if not len(param) == len(value):
-                    raise ValueError('ParameterVector {} has length {}, which differs from value list {} of '
-                                     'len {}'.format(param, len(param), value, len(value)))
+                    raise ValueError(
+                        'ParameterVector {} has length {}, which differs from value list {} of '
+                        'len {}'.format(param, len(param), value, len(value)))
                 unrolled_value_dict.update(zip(param, value))
         return unrolled_value_dict
 

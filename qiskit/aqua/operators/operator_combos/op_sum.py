@@ -29,7 +29,8 @@ class OpSum(OpVec):
             oplist (list(OperatorBase)): The operators being summed.
             coeff (int, float, complex): A coefficient multiplying the primitive
         """
-        super().__init__(oplist, combo_fn=partial(reduce, lambda x, y: x+y), coeff=coeff, abelian=abelian)
+        super().__init__(oplist, combo_fn=partial(reduce, lambda x, y: x+y),
+                         coeff=coeff, abelian=abelian)
 
     @property
     def num_qubits(self):
@@ -38,8 +39,10 @@ class OpSum(OpVec):
     # TODO: Keep this property for evals or just enact distribution at composition time?
     @property
     def distributive(self):
-        """ Indicates whether the OpVec or subclass is distributive under composition. OpVec and OpSum are,
-        meaning that opv @ op = opv[0] @ op + opv[1] @ op +... (plus for OpSum, vec for OpVec, etc.),
+        """ Indicates whether the OpVec or subclass is distributive
+        under composition. OpVec and OpSum are,
+        meaning that opv @ op = opv[0] @ op + opv[1] @
+        op +... (plus for OpSum, vec for OpVec, etc.),
         while OpComposition and OpKron do not behave this way."""
         return True
 

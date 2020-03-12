@@ -24,7 +24,8 @@ from .trotterization_base import TrotterizationBase
 
 
 class QDrift(TrotterizationBase):
-    """ The QDrift trotterization method, which selects each each term in the trotterization randomly,
+    """ The QDrift trotterization method, which selects each each term in the
+    trotterization randomly,
     with a probability proportional to its weight. Based on the work of Earl Campbell in
     https://arxiv.org/abs/1811.08017.
     """
@@ -39,7 +40,8 @@ class QDrift(TrotterizationBase):
         N = 2*(lambd**2)*(op_sum.coeff**2)
 
         factor = lambd * op_sum.coeff / (N * self.reps)
-        # The protocol calls for the removal of the individual coefficients, and multiplication by a constant factor.
+        # The protocol calls for the removal of the individual coefficients,
+        # and multiplication by a constant factor.
         scaled_ops = [(op * (factor / op.coeff)).exp_i() for op in op_sum.oplist]
         sampled_ops = np.random.choice(scaled_ops, size=(int(N*self.reps), ), p=weights/lambd)
 

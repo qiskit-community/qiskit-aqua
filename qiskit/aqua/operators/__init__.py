@@ -52,21 +52,24 @@ Operator support
 
 """
 
-from qiskit.aqua.operators.legacy.common import (evolution_instruction, suzuki_expansion_slice_pauli_list, pauli_measurement,
-                                                 measure_pauli_z, covariance, row_echelon_F2,
-                                                 kernel_F2, commutator, check_commutativity)
-from qiskit.aqua.operators.legacy import (LegacyBaseOperator, WeightedPauliOperator, Z2Symmetries,
-                                          TPBGroupedWeightedPauliOperator, MatrixOperator, PauliGraph)
+from qiskit.quantum_info import Pauli
+from qiskit.extensions.standard import CXGate, SGate, TGate, HGate, SwapGate
+
+from .legacy.common import (evolution_instruction,
+                            suzuki_expansion_slice_pauli_list,
+                            pauli_measurement,
+                            measure_pauli_z, covariance, row_echelon_F2,
+                            kernel_F2, commutator, check_commutativity)
+from .legacy import (LegacyBaseOperator, WeightedPauliOperator, Z2Symmetries,
+                     TPBGroupedWeightedPauliOperator, MatrixOperator,
+                     PauliGraph)
 
 # New Operators
 from .operator_base import OperatorBase
-
-from qiskit.aqua.operators.operator_primitives import OpPrimitive, OpPauli, OpMatrix, OpCircuit
-from qiskit.aqua.operators.state_functions import StateFn, StateFnDict, StateFnVector, StateFnCircuit, StateFnOperator
-from qiskit.aqua.operators.operator_combos import OpVec, OpSum, OpComposition, OpKron
-
-from qiskit.quantum_info import Pauli
-from qiskit.extensions.standard import CXGate, SGate, TGate, HGate, SwapGate
+from .operator_primitives import OpPrimitive, OpPauli, OpMatrix, OpCircuit
+from .state_functions import (StateFn, StateFnDict, StateFnVector,
+                              StateFnCircuit, StateFnOperator)
+from .operator_combos import OpVec, OpSum, OpComposition, OpKron
 
 # Paulis
 X = OpPrimitive(Pauli.from_label('X'))
@@ -86,20 +89,22 @@ One = StateFn('1')
 Plus = H.compose(Zero)
 Minus = H.compose(One)
 
-from qiskit.aqua.operators.converters import (ConverterBase, PauliChangeOfBasis, PaulitoInstruction, ToMatrixOp,
-                                              DicttoCircuitSum, AbelianGrouper)
-from qiskit.aqua.operators.expectation_values import (ExpectationBase, PauliExpectation, MatrixExpectation,
-                                                      AerPauliExpectation)
-from qiskit.aqua.operators.circuit_samplers import CircuitSampler, LocalSimulatorSampler, IBMQSampler
-from qiskit.aqua.operators.evolutions import (EvolutionBase, OpEvolution, PauliTrotterEvolution, TrotterizationBase,
-                                              Trotter, Suzuki, QDrift)
+from .converters import (ConverterBase, PauliChangeOfBasis, PaulitoInstruction, ToMatrixOp,
+                         DicttoCircuitSum, AbelianGrouper)
+from .expectation_values import (ExpectationBase, PauliExpectation, MatrixExpectation,
+                                 AerPauliExpectation)
+from .circuit_samplers import CircuitSampler, LocalSimulatorSampler, IBMQSampler
+from .evolutions import (EvolutionBase, OpEvolution, PauliTrotterEvolution, TrotterizationBase,
+                         Trotter, Suzuki, QDrift)
 
 __all__ = [
     # Common
-    'evolution_instruction', 'suzuki_expansion_slice_pauli_list', 'pauli_measurement', 'measure_pauli_z',
+    'evolution_instruction', 'suzuki_expansion_slice_pauli_list',
+    'pauli_measurement', 'measure_pauli_z',
     'covariance', 'row_echelon_F2', 'kernel_F2', 'commutator', 'check_commutativity',
     # Legacy
-    'PauliGraph', 'LegacyBaseOperator', 'WeightedPauliOperator', 'Z2Symmetries', 'TPBGroupedWeightedPauliOperator',
+    'PauliGraph', 'LegacyBaseOperator', 'WeightedPauliOperator',
+    'Z2Symmetries', 'TPBGroupedWeightedPauliOperator',
     'MatrixOperator',
     # New
     'OperatorBase'

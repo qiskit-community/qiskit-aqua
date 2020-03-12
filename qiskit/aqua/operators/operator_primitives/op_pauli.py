@@ -31,20 +31,22 @@ logger = logging.getLogger(__name__)
 class OpPauli(OpPrimitive):
     """ Class for Wrapping Pauli Primitives
 
-    Note that all mathematical methods are not in-place, meaning that they return a new object, but the underlying
+    Note that all mathematical methods are not in-place,
+    meaning that they return a new object, but the underlying
     primitives are not copied.
 
     """
 
     def __init__(self, primitive, coeff=1.0):
         """
-                Args:
-                    primitive (Gate, Pauli, [[complex]], np.ndarray, QuantumCircuit, Instruction): The operator primitive being
-                    wrapped.
-                    coeff (int, float, complex): A coefficient multiplying the primitive
-                """
+        Args:
+            primitive (Gate, Pauli, [[complex]], np.ndarray, QuantumCircuit, Instruction):
+            The operator primitive being wrapped.
+            coeff (int, float, complex): A coefficient multiplying the primitive
+        """
         if not isinstance(primitive, Pauli):
-            raise TypeError('OpPauli can only be instantiated with Pualis, not {}'.format(type(primitive)))
+            raise TypeError(
+                'OpPauli can only be instantiated with Pualis, not {}'.format(type(primitive)))
         super().__init__(primitive, coeff=coeff)
 
     def get_primitives(self):
@@ -60,8 +62,9 @@ class OpPauli(OpPrimitive):
     def add(self, other):
         """ Addition. Overloaded by + in OperatorBase. """
         if not self.num_qubits == other.num_qubits:
-            raise ValueError('Sum over operators with different numbers of qubits, {} and {}, is not well '
-                             'defined'.format(self.num_qubits, other.num_qubits))
+            raise ValueError(
+                'Sum over operators with different numbers of qubits, {} and {}, is not well '
+                'defined'.format(self.num_qubits, other.num_qubits))
 
         if isinstance(other, OpPauli) and self.primitive == other.primitive:
             return OpPauli(self.primitive, coeff=self.coeff + other.coeff)
@@ -82,8 +85,11 @@ class OpPauli(OpPrimitive):
     # TODO change to *other to handle lists? How aggressively to handle pairwise business?
     def kron(self, other):
         """ Kron
-        Note: You must be conscious of Qiskit's big-endian bit printing convention. Meaning, X.kron(Y)
-        produces an X on qubit 0 and an Y on qubit 1, or X⨂Y, but would produce a QuantumCircuit which looks like
+        Note: You must be conscious of Qiskit's big-endian bit
+        printing convention. Meaning, X.kron(Y)
+        produces an X on qubit 0 and an Y on qubit 1, or X⨂Y,
+        but would produce a
+        QuantumCircuit which looks like
         -[Y]-
         -[X]-
         Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
@@ -116,7 +122,8 @@ class OpPauli(OpPrimitive):
     def compose(self, other):
         """ Operator Composition (Linear algebra-style, right-to-left)
 
-        Note: You must be conscious of Quantum Circuit vs. Linear Algebra ordering conventions. Meaning, X.compose(Y)
+        Note: You must be conscious of Quantum Circuit vs. Linear Algebra ordering
+        conventions. Meaning, X.compose(Y)
         produces an X∘Y on qubit 0, but would produce a QuantumCircuit which looks like
         -[Y]-[X]-
         Because Terra prints circuits with the initial state at the left side of the circuit.
@@ -127,7 +134,7 @@ class OpPauli(OpPrimitive):
 
         # If self is identity, just return other.
         if not any(self.primitive.x + self.primitive.z):
-            return (other*self.coeff)
+            return (other * self.coeff)
 
         # Both Paulis
         if isinstance(other, OpPauli):
@@ -149,19 +156,25 @@ class OpPauli(OpPrimitive):
                                       is_measurement=other.is_measurement,
                                       coeff=self.coeff * other.coeff)
             else:
-                return OpCircuit(new_qc.decompose().to_instruction(), coeff=self.coeff * other.coeff)
+                return OpCircuit(new_qc.decompose().to_instruction(),
+                                 coeff=self.coeff * other.coeff)
 
         return OpComposition([self, other])
 
     def to_matrix(self, massive=False):
-        """ Return numpy matrix of operator, warn if more than 16 qubits to force the user to set massive=True if
-        they want such a large matrix. Generally big methods like this should require the use of a converter,
-        but in this case a convenience method for quick hacking and access to classical tools is appropriate. """
+        """ Return numpy matrix of operator, warn if more than
+        16 qubits to force the user to set massive=True if
+        they want such a large matrix. Generally big methods like
+        this should require the use of a converter,
+        but in this case a convenience method for quick hacking
+        and access to classical tools is appropriate. """
 
         if self.num_qubits > 16 and not massive:
             # TODO figure out sparse matrices?
-            raise ValueError('to_matrix will return an exponentially large matrix, in this case {0}x{0} elements.'
-                             ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
+            raise ValueError(
+                'to_matrix will return an exponentially large matrix, '
+                'in this case {0}x{0} elements.'
+                ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
 
         return self.primitive.to_matrix() * self.coeff
 
@@ -174,12 +187,16 @@ class OpPauli(OpPrimitive):
             return "{} * {}".format(self.coeff, prim_str)
 
     def eval(self, front=None, back=None):
-        """ A square binary Operator can be defined as a function over two binary strings of equal length. This
-        method returns the value of that function for a given pair of binary strings. For more information,
+        """ A square binary Operator can be defined as a function over
+        two binary strings of equal length. This
+        method returns the value of that function for a given pair of
+        binary strings. For more information,
         see the eval method in operator_base.py.
 
-        Notice that Pauli evals will always return 0 for Paulis with X or Y terms if val1 == val2. This is why we must
-        convert to a {Z,I}^n Pauli basis to take "averaging" style expectations (e.g. PauliExpectation).
+        Notice that Pauli evals will always return 0 for Paulis with X or Y terms
+        if val1 == val2. This is why we must
+        convert to a {Z,I}^n Pauli basis to take "averaging"
+        style expectations (e.g. PauliExpectation).
         """
 
         if front is None and back is None:
@@ -193,7 +210,8 @@ class OpPauli(OpPrimitive):
             return [self.eval(front_elem, back=back) for front_elem in front]
 
         elif isinstance(front, OpVec) and front.distributive:
-            return front.combo_fn([self.eval(front.coeff * front_elem, back=back) for front_elem in front.oplist])
+            return front.combo_fn([self.eval(front.coeff * front_elem, back=back)
+                                   for front_elem in front.oplist])
         # For now, always do this. If it's not performant, we can be more granular.
         if not isinstance(front, OperatorBase):
             front = StateFn(front, is_measurement=False)
@@ -212,10 +230,8 @@ class OpPauli(OpPrimitive):
                 x_factor = np.logical_xor(bitstr1, bitstr2) == corrected_x_bits
                 z_factor = 1 - 2 * np.logical_and(bitstr1, corrected_z_bits)
                 y_factor = np.sqrt(1 - 2 * np.logical_and(corrected_x_bits, corrected_z_bits) + 0j)
-                sum += self.coeff * \
-                       np.product(x_factor * z_factor * y_factor) * \
-                       front.primitive[str1] * front.coeff * \
-                       back.primitive[str2] * back.coeff
+                sum += self.coeff * np.product(x_factor * z_factor * y_factor) * \
+                    front.primitive[str1] * front.coeff * back.primitive[str2] * back.coeff
             return sum
 
         new_front = None
@@ -229,9 +245,10 @@ class OpPauli(OpPrimitive):
                 new_b_str = np.logical_xor(bitstr, corrected_x_bits)
                 new_str = ''.join(map(str, 1 * new_b_str))
                 z_factor = np.product(1 - 2 * np.logical_and(bitstr, corrected_z_bits))
-                y_factor = np.product(np.sqrt(1 - 2 * np.logical_and(corrected_x_bits, corrected_z_bits) + 0j))
+                y_factor = np.product(np.sqrt(1 - 2 * np.logical_and(corrected_x_bits,
+                                                                     corrected_z_bits) + 0j))
                 new_dict[new_str] = (v * z_factor * y_factor) + new_dict.get(new_str, 0)
-            new_front = StateFn(new_dict, coeff=self.coeff*front.coeff)
+            new_front = StateFn(new_dict, coeff=self.coeff * front.coeff)
         elif isinstance(front, StateFn):
             if front.is_measurement:
                 raise ValueError('Operator composed with a measurement is undefined.')
@@ -286,7 +303,7 @@ class OpPauli(OpPrimitive):
             left_pad = I.kronpower(sig_qubit_index)
             right_pad = I.kronpower(self.num_qubits - sig_qubit_index - 1)
             # Need to use overloaded operators here in case left_pad == I^0
-            return left_pad^rot_op^right_pad
+            return left_pad ^ rot_op ^ right_pad
         else:
             from qiskit.aqua.operators import OpEvolution
             return OpEvolution(self)
@@ -299,6 +316,6 @@ class OpPauli(OpPrimitive):
         if not isinstance(other_op, OpPauli):
             return False
         # Don't use compose because parameters will break this
-        self_bits = self.primitive.z.astype(int) + 2*self.primitive.x.astype(int)
-        other_bits = other_op.primitive.z.astype(int) + 2*other_op.primitive.x.astype(int)
+        self_bits = self.primitive.z.astype(int) + 2 * self.primitive.x.astype(int)
+        other_bits = other_op.primitive.z.astype(int) + 2 * other_op.primitive.x.astype(int)
         return all((self_bits * other_bits) * (self_bits - other_bits) == 0)

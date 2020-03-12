@@ -25,10 +25,14 @@ logger = logging.getLogger(__name__)
 
 
 class OpEvolution(OpPrimitive):
-    """ Class for wrapping Operator Evolutions for compilation by an Evolution method later, essentially acting as a
-    placeholder. Note that OpEvolution is a weird case of OpPrimitive. It happens to be that it fits into the
-    OpPrimitive interface nearly perfectly, and it essentially represents a placeholder for an OpPrimitive later,
-    even though it doesn't actually hold a primitive object. We could have chosen for it to be an OperatorBase,
+    """ Class for wrapping Operator Evolutions for compilation by an Evolution
+    method later, essentially acting as a
+    placeholder. Note that OpEvolution is a weird case of OpPrimitive.
+    It happens to be that it fits into the
+    OpPrimitive interface nearly perfectly, and it essentially
+    represents a placeholder for an OpPrimitive later,
+    even though it doesn't actually hold a primitive object. We could
+    have chosen for it to be an OperatorBase,
     but would have ended up copying and pasting a lot of code from OpPrimitive."""
 
     def __init__(self, primitive, coeff=1.0):
@@ -49,8 +53,9 @@ class OpEvolution(OpPrimitive):
     def add(self, other):
         """ Addition. Overloaded by + in OperatorBase. """
         if not self.num_qubits == other.num_qubits:
-            raise ValueError('Sum over operators with different numbers of qubits, {} and {}, is not well '
-                             'defined'.format(self.num_qubits, other.num_qubits))
+            raise ValueError(
+                'Sum over operators with different numbers of qubits, {} and {}, is not well '
+                'defined'.format(self.num_qubits, other.num_qubits))
 
         if isinstance(other, OpEvolution) and self.primitive == other.primitive:
             return OpEvolution(self.primitive, coeff=self.coeff + other.coeff)
@@ -70,8 +75,10 @@ class OpEvolution(OpPrimitive):
 
     def kron(self, other):
         """ Kron
-        Note: You must be conscious of Qiskit's big-endian bit printing convention. Meaning, X.kron(Y)
-        produces an X on qubit 0 and an Y on qubit 1, or X⨂Y, but would produce a QuantumCircuit which looks
+        Note: You must be conscious of Qiskit's big-endian bit printing
+        convention. Meaning, X.kron(Y)
+        produces an X on qubit 0 and an Y on qubit 1, or X⨂Y, but would produce
+        a QuantumCircuit which looks
         like
         -[Y]-
         -[X]-
@@ -82,11 +89,13 @@ class OpEvolution(OpPrimitive):
     def compose(self, other):
         """ Operator Composition (Linear algebra-style, right-to-left)
 
-                Note: You must be conscious of Quantum Circuit vs. Linear Algebra ordering conventions. Meaning,
+                Note: You must be conscious of Quantum Circuit vs. Linear Algebra
+                ordering conventions. Meaning,
                 X.compose(Y)
                 produces an X∘Y on qubit 0, but would produce a QuantumCircuit which looks like
                 -[Y]-[X]-
-                Because Terra prints circuits with the initial state at the left side of the circuit.
+                Because Terra prints circuits with the initial state at the
+                left side of the circuit.
                 """
         # TODO accept primitives directly in addition to OpPrimitive?
 
@@ -125,11 +134,14 @@ class OpEvolution(OpPrimitive):
         return self.__class__(self.primitive.bind_parameters(param_dict), coeff=param_value)
 
     def eval(self, front=None, back=None):
-        """ A square binary Operator can be defined as a function over two binary strings of equal length. This
-        method returns the value of that function for a given pair of binary strings. For more information,
+        """ A square binary Operator can be defined as a function over
+        two binary strings of equal length. This
+        method returns the value of that function for a given pair
+        of binary strings. For more information,
         see the eval method in operator_base.py.
 
-        For OpEvolutions which haven't been converted by an Evolution method yet, our only option is to convert to an
+        For OpEvolutions which haven't been converted by an Evolution
+        method yet, our only option is to convert to an
         OpMatrix and eval with that.
         """
         return OpPrimitive(self.to_matrix()).eval(front=front, back=back)

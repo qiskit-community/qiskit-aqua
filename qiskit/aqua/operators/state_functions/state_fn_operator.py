@@ -14,7 +14,6 @@
 
 """ An Object to represent State Functions constructed from Operators """
 
-
 import numpy as np
 import itertools
 
@@ -27,17 +26,25 @@ from ..operator_combos import OpVec, OpSum
 class StateFnOperator(StateFn):
     """ A class for representing state functions and measurements.
 
-    State functions are defined to be complex functions over a single binary string (as compared to an operator,
-    which is defined as a function over two binary strings, or a function taking a binary function to another
+    State functions are defined to be complex functions over a single binary string
+    (as compared to an operator,
+    which is defined as a function over two binary strings, or a function taking a
+    binary function to another
     binary function). This function may be called by the eval() method.
 
-    Measurements are defined to be functionals over StateFns, taking them to real values. Generally, this real value
-    is interpreted to represent the probability of some classical state (binary string) being observed from a
-    probabilistic or quantum system represented by a StateFn. This leads to the equivalent definition, which is that
-    a measurement m is a function over binary strings producing StateFns, such that the probability of measuring
-    a given binary string b from a system with StateFn f is equal to the inner product between f and m(b).
+    Measurements are defined to be functionals over StateFns, taking them to real values.
+    Generally, this real value
+    is interpreted to represent the probability of some classical state (binary string)
+    being observed from a
+    probabilistic or quantum system represented by a StateFn. This leads to the equivalent
+    definition, which is that
+    a measurement m is a function over binary strings producing StateFns, such that
+    the probability of measuring
+    a given binary string b from a system with StateFn f is equal to the
+    inner product between f and m(b).
 
-    NOTE: State functions here are not restricted to wave functions, as there is no requirement of normalization.
+    NOTE: State functions here are not restricted to wave functions,
+    as there is no requirement of normalization.
     """
 
     # TODO maybe break up into different classes for different fn definition primitives
@@ -62,8 +69,9 @@ class StateFnOperator(StateFn):
     def add(self, other):
         """ Addition. Overloaded by + in OperatorBase. """
         if not self.num_qubits == other.num_qubits:
-            raise ValueError('Sum over statefns with different numbers of qubits, {} and {}, is not well '
-                             'defined'.format(self.num_qubits, other.num_qubits))
+            raise ValueError(
+                'Sum over statefns with different numbers of qubits, {} and {}, is not well '
+                'defined'.format(self.num_qubits, other.num_qubits))
 
         # Right now doesn't make sense to add a StateFn to a Measurement
         if isinstance(other, StateFnOperator) and self.is_measurement == other.is_measurement:
@@ -75,8 +83,9 @@ class StateFnOperator(StateFn):
             # Covers MatrixOperator, Statevector and custom.
             elif isinstance(other, StateFnOperator):
                 # Also assumes scalar multiplication is available
-                return StateFnOperator((self.coeff * self.primitive).add(other.primitive * other.coeff),
-                                       is_measurement=self._is_measurement)
+                return StateFnOperator(
+                    (self.coeff * self.primitive).add(other.primitive * other.coeff),
+                    is_measurement=self._is_measurement)
 
         from .. import OpSum
         return OpSum([self, other])
@@ -88,8 +97,10 @@ class StateFnOperator(StateFn):
 
     def kron(self, other):
         """ Kron
-        Note: You must be conscious of Qiskit's big-endian bit printing convention. Meaning, Plus.kron(Zero)
-        produces a |+⟩ on qubit 0 and a |0⟩ on qubit 1, or |+⟩⨂|0⟩, but would produce a QuantumCircuit like
+        Note: You must be conscious of Qiskit's big-endian bit printing convention.
+        Meaning, Plus.kron(Zero)
+        produces a |+⟩ on qubit 0 and a |0⟩ on qubit 1, or |+⟩⨂|0⟩, but would produce
+        a QuantumCircuit like
         |0⟩--
         |+⟩--
         Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
@@ -105,41 +116,54 @@ class StateFnOperator(StateFn):
         return OpKron([self, other])
 
     def to_density_matrix(self, massive=False):
-        """ Return numpy matrix of density operator, warn if more than 16 qubits to force the user to set
-        massive=True if they want such a large matrix. Generally big methods like this should require the use of a
-        converter, but in this case a convenience method for quick hacking and access to classical tools is
+        """ Return numpy matrix of density operator, warn if more than 16 qubits
+        to force the user to set
+        massive=True if they want such a large matrix. Generally big methods like
+        this should require the use of a
+        converter, but in this case a convenience method for quick hacking and
+        access to classical tools is
         appropriate. """
 
         if self.num_qubits > 16 and not massive:
             # TODO figure out sparse matrices?
-            raise ValueError('to_matrix will return an exponentially large matrix, in this case {0}x{0} elements.'
-                             ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
+            raise ValueError(
+                'to_matrix will return an exponentially large matrix,'
+                ' in this case {0}x{0} elements.'
+                ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
 
         # TODO handle list case
         return self.primitive.to_matrix() * self.coeff
 
     def to_matrix(self, massive=False):
         """
-        NOTE: THIS DOES NOT RETURN A DENSITY MATRIX, IT RETURNS A CLASSICAL MATRIX CONTAINING THE QUANTUM OR CLASSICAL
-        VECTOR REPRESENTING THE EVALUATION OF THE STATE FUNCTION ON EACH BINARY BASIS STATE. DO NOT ASSUME THIS IS
-        IS A NORMALIZED QUANTUM OR CLASSICAL PROBABILITY VECTOR. If we allowed this to return a density matrix,
-        then we would need to change the definition of composition to be ~Op @ StateFn @ Op for those cases,
+        NOTE: THIS DOES NOT RETURN A DENSITY MATRIX, IT RETURNS A CLASSICAL MATRIX
+        CONTAINING THE QUANTUM OR CLASSICAL
+        VECTOR REPRESENTING THE EVALUATION OF THE STATE FUNCTION ON EACH BINARY
+        BASIS STATE. DO NOT ASSUME THIS IS
+        IS A NORMALIZED QUANTUM OR CLASSICAL PROBABILITY VECTOR. If we allowed
+        this to return a density matrix,
+        then we would need to change the definition of composition to be ~Op @
+        StateFn @ Op for those cases,
         whereas by this methodology we can ensure that composition always means Op @ StateFn.
 
         Return numpy vector of state vector, warn if more than 16 qubits to force the user to set
-        massive=True if they want such a large vector. Generally big methods like this should require the use of a
-        converter, but in this case a convenience method for quick hacking and access to classical tools is
-        appropriate. """
+        massive=True if they want such a large vector. Generally big methods like
+        this should require the use of a
+        converter, but in this case a convenience method for quick hacking and
+        access to classical tools is appropriate. """
 
         if self.num_qubits > 16 and not massive:
             # TODO figure out sparse matrices?
-            raise ValueError('to_vector will return an exponentially large vector, in this case {0} elements.'
-                             ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
+            raise ValueError(
+                'to_vector will return an exponentially large vector, in this case {0} elements.'
+                ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
 
-        # Operator - return diagonal (real values, not complex), not rank 1 decomposition (statevector)!
+        # Operator - return diagonal (real values, not complex),
+        # not rank 1 decomposition (statevector)!
         mat = self.primitive.to_matrix()
 
-        # OpVec primitives can return lists of matrices (or trees for nested OpVecs), so we need to recurse over the
+        # OpVec primitives can return lists of matrices (or trees for nested OpVecs),
+        # so we need to recurse over the
         # possible tree.
         def diag_over_tree(t):
             if isinstance(t, list):
@@ -155,37 +179,44 @@ class StateFnOperator(StateFn):
         """Overload str() """
         prim_str = str(self.primitive)
         if self.coeff == 1.0:
-            return "{}({})".format('StateFunction' if not self.is_measurement else 'Measurement', prim_str)
+            return "{}({})".format('StateFunction' if not self.is_measurement
+                                   else 'Measurement', prim_str)
         else:
-            return "{}({}) * {}".format('StateFunction' if not self.is_measurement else 'Measurement',
-                                        prim_str,
-                                        self.coeff)
+            return "{}({}) * {}".format(
+                'StateFunction' if not self.is_measurement else 'Measurement',
+                prim_str,
+                self.coeff)
 
     def eval(self, other=None):
         # Validate bitstring: re.fullmatch(rf'[01]{{{0}}}', val1)
 
         if not self.is_measurement and isinstance(other, OperatorBase):
-            raise ValueError('Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '
-                             'sf.adjoint() first to convert to measurement.')
+            raise ValueError(
+                'Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '
+                'sf.adjoint() first to convert to measurement.')
         if isinstance(other, list):
             return [self.eval(front_elem) for front_elem in other]
 
         if not isinstance(other, OperatorBase):
             other = StateFn(other)
 
-        # Need a carve-out here to deal with cross terms in sum. Unique to StateFnOperator working with OpSum,
+        # Need a carve-out here to deal with cross terms in sum. Unique to
+        # StateFnOperator working with OpSum,
         # other measurements don't have this issue.
         if isinstance(other, OpSum):
             # Need to do this in two steps to deal with the cross-terms
-            front_res = other.combo_fn([self.primitive.eval(other.coeff * other_elem) for other_elem in other.oplist])
+            front_res = other.combo_fn([self.primitive.eval(other.coeff * other_elem)
+                                        for other_elem in other.oplist])
             return other.adjoint().eval(front_res)
         elif isinstance(other, OpVec) and other.distributive:
-            return other.combo_fn([self.eval(other.coeff * other_elem) for other_elem in other.oplist])
+            return other.combo_fn([self.eval(other.coeff * other_elem)
+                                   for other_elem in other.oplist])
 
         if isinstance(other, StateFnOperator):
             return np.trace(self.primitive.to_matrix() @ other.to_matrix())
         elif isinstance(other, OperatorBase):
-            # If other is a dict, we can try to do this scalably, e.g. if self.primitive is an OpPauli
+            # If other is a dict, we can try to do this
+            # scalably, e.g. if self.primitive is an OpPauli
             from . import StateFnDict
             if isinstance(other, StateFnDict):
                 comp = self.primitive.eval(front=other, back=other.adjoint())
@@ -194,7 +225,7 @@ class StateFnOperator(StateFn):
 
             if isinstance(comp, (int, float, complex)):
                 return comp
-            elif comp.shape == (1, ):
+            elif comp.shape == (1,):
                 return comp[0]
             else:
                 return np.diag(comp)

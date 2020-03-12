@@ -26,6 +26,7 @@ from ..vqe import VQE
 
 logger = logging.getLogger(__name__)
 
+
 # pylint: disable=invalid-name
 # disable check for operator setter because of pylint bug
 # pylint: disable=no-member
@@ -63,7 +64,8 @@ class QAOA(VQE):
                  initial_state: Optional[InitialState] = None,
                  mixer: Optional[OperatorBase] = None, initial_point: Optional[np.ndarray] = None,
                  max_evals_grouped: int = 1, aux_operators: Optional[List[OperatorBase]] = None,
-                 callback: Optional[Callable[[int, np.ndarray, float, float], None]] = None) -> None:
+                 callback: Optional[Callable[[int, np.ndarray, float, float], None]] = None) \
+            -> None:
         """
         Args:
             operator: Qubit operator

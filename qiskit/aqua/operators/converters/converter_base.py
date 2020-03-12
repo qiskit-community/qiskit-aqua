@@ -23,11 +23,16 @@ logger = logging.getLogger(__name__)
 
 
 class ConverterBase(ABC):
-    """ Converters take an Operator and return a new Operator, generally isomorphic in some way with the first,
-    but with certain desired properties. For example, a converter may accept a Circuit Operator and return a Sum of
-    Pauli Operators representing the circuit unitary. Converters may not have polynomial space or time scaling in
-    their operations. On the contrary, many converters, such as a Pauli to Matrix converter, will require
-    exponential time or space unless a clever trick is known (such as the use of sparse matrices). """
+    """ Converters take an Operator and return a new Operator, generally isomorphic
+    in some way with the first,
+    but with certain desired properties. For example, a converter may accept
+    Circuit Operator and return a Sum of
+    Pauli Operators representing the circuit unitary. Converters may not
+    have polynomial space or time scaling in
+    their operations. On the contrary, many converters, such as a Pauli
+    to Matrix converter, will require
+    exponential time or space unless a clever trick is known
+    (such as the use of sparse matrices). """
 
     @abstractmethod
     def convert(self, operator):

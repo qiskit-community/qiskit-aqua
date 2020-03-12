@@ -30,13 +30,13 @@ class TestOpConstruction(QiskitAquaTestCase):
 
     def test_pauli_primitives(self):
         """ from to file test """
-        newop = X^Y^Z^I
+        newop = X ^ Y ^ Z ^ I
         self.assertEqual(newop.primitive, Pauli(label='XYZI'))
 
-        kpower_op = (Y^5)^(I^3)
+        kpower_op = (Y ^ 5) ^ (I ^ 3)
         self.assertEqual(kpower_op.primitive, Pauli(label='YYYYYIII'))
 
-        kpower_op2 = (Y^I)^4
+        kpower_op2 = (Y ^ I) ^ 4
         self.assertEqual(kpower_op2.primitive, Pauli(label='YIYIYIYI'))
 
         # Check immutability
@@ -76,23 +76,26 @@ class TestOpConstruction(QiskitAquaTestCase):
         self.assertEqual(OpPrimitive(Y.to_matrix()).eval('0', '1'), 1j)
         self.assertEqual(OpPrimitive(Y.to_matrix()).eval('1', '1'), 0)
 
-        pauli_op = Z^I^X^Y
+        pauli_op = Z ^ I ^ X ^ Y
         mat_op = OpPrimitive(pauli_op.to_matrix())
         full_basis = list(map(''.join, itertools.product('01', repeat=pauli_op.num_qubits)))
         for bstr1, bstr2 in itertools.product(full_basis, full_basis):
-            # print('{} {} {} {}'.format(bstr1, bstr2, pauli_op.eval(bstr1, bstr2), mat_op.eval(bstr1, bstr2)))
-            np.testing.assert_array_almost_equal(pauli_op.eval(bstr1, bstr2), mat_op.eval(bstr1, bstr2))
+            # print('{} {} {} {}'.format(bstr1, bstr2, pauli_op.eval(bstr1, bstr2),
+            # mat_op.eval(bstr1, bstr2)))
+            np.testing.assert_array_almost_equal(pauli_op.eval(bstr1, bstr2),
+                                                 mat_op.eval(bstr1, bstr2))
 
         gnarly_op = OpSum([(H ^ I ^ Y).compose(X ^ X ^ Z).kron(Z),
-                          OpPrimitive(Operator.from_label('+r0I')),
-                          3*(X^CX^T)], coeff=3+.2j)
+                           OpPrimitive(Operator.from_label('+r0I')),
+                           3 * (X ^ CX ^ T)], coeff=3 + .2j)
         gnarly_mat_op = OpPrimitive(gnarly_op.to_matrix())
         full_basis = list(map(''.join, itertools.product('01', repeat=gnarly_op.num_qubits)))
         for bstr1, bstr2 in itertools.product(full_basis, full_basis):
-            np.testing.assert_array_almost_equal(gnarly_op.eval(bstr1, bstr2), gnarly_mat_op.eval(bstr1, bstr2))
+            np.testing.assert_array_almost_equal(gnarly_op.eval(bstr1, bstr2),
+                                                 gnarly_mat_op.eval(bstr1, bstr2))
 
     def test_circuit_construction(self):
-        hadq2 = H^I
+        hadq2 = H ^ I
         cz = hadq2.compose(CX).compose(hadq2)
         from qiskit import QuantumCircuit
         qc = QuantumCircuit(2)
@@ -102,21 +105,23 @@ class TestOpConstruction(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(cz.to_matrix(), ref_cz_mat)
 
     def test_io_consistency(self):
-        new_op = X^Y^I
+        new_op = X ^ Y ^ I
         label = 'XYI'
         # label = new_op.primitive.to_label()
         self.assertEqual(str(new_op.primitive), label)
-        np.testing.assert_array_almost_equal(new_op.primitive.to_matrix(), Operator.from_label(label).data)
+        np.testing.assert_array_almost_equal(new_op.primitive.to_matrix(),
+                                             Operator.from_label(label).data)
         self.assertEqual(new_op.primitive, Pauli(label=label))
 
         x_mat = X.primitive.to_matrix()
         y_mat = Y.primitive.to_matrix()
         i_mat = np.eye(2, 2)
-        np.testing.assert_array_almost_equal(new_op.primitive.to_matrix(), np.kron(np.kron(x_mat, y_mat), i_mat))
+        np.testing.assert_array_almost_equal(new_op.primitive.to_matrix(),
+                                             np.kron(np.kron(x_mat, y_mat), i_mat))
 
         hi = np.kron(H.to_matrix(), I.to_matrix())
         hi2 = Operator.from_label('HI').data
-        hi3 = (H^I).to_matrix()
+        hi3 = (H ^ I).to_matrix()
         np.testing.assert_array_almost_equal(hi, hi2)
         np.testing.assert_array_almost_equal(hi2, hi3)
 
@@ -147,31 +152,36 @@ class TestOpConstruction(QiskitAquaTestCase):
         np.testing.assert_array_equal(Y.to_matrix(), Operator.from_label('Y').data)
         np.testing.assert_array_equal(Z.to_matrix(), Operator.from_label('Z').data)
 
-        op1 = Y+H
+        op1 = Y + H
         np.testing.assert_array_almost_equal(op1.to_matrix(), Y.to_matrix() + H.to_matrix())
 
-        op2 = op1*.5
-        np.testing.assert_array_almost_equal(op2.to_matrix(), op1.to_matrix()*.5)
+        op2 = op1 * .5
+        np.testing.assert_array_almost_equal(op2.to_matrix(), op1.to_matrix() * .5)
 
         op3 = (4 - .6j) * op2
         np.testing.assert_array_almost_equal(op3.to_matrix(), op2.to_matrix() * (4 - .6j))
 
         op4 = op3.kron(X)
-        np.testing.assert_array_almost_equal(op4.to_matrix(), np.kron(op3.to_matrix(), X.to_matrix()))
+        np.testing.assert_array_almost_equal(op4.to_matrix(),
+                                             np.kron(op3.to_matrix(), X.to_matrix()))
 
-        op5 = op4.compose(H^I)
-        np.testing.assert_array_almost_equal(op5.to_matrix(), np.dot(op4.to_matrix(), (H^I).to_matrix()))
+        op5 = op4.compose(H ^ I)
+        np.testing.assert_array_almost_equal(op5.to_matrix(), np.dot(op4.to_matrix(),
+                                                                     (H ^ I).to_matrix()))
 
         op6 = op5 + OpPrimitive(Operator.from_label('+r').data)
-        np.testing.assert_array_almost_equal(op6.to_matrix(), op5.to_matrix() + Operator.from_label('+r').data)
+        np.testing.assert_array_almost_equal(op6.to_matrix(), op5.to_matrix() +
+                                             Operator.from_label('+r').data)
 
     def test_adjoint(self):
-        gnarly_op = 3 * (H^I^Y).compose(X^X^Z).kron(T^Z) + OpPrimitive(Operator.from_label('+r0IX').data)
+        gnarly_op = 3 * (H ^ I ^ Y).compose(X ^ X ^ Z).kron(T ^ Z) +\
+                    OpPrimitive(Operator.from_label('+r0IX').data)
         np.testing.assert_array_almost_equal(np.conj(np.transpose(gnarly_op.to_matrix())),
                                              gnarly_op.adjoint().to_matrix())
 
     def test_get_primitives(self):
         self.assertEqual(X.get_primitives(), {'Pauli'})
 
-        gnarly_op = 3 * (H ^ I ^ Y).compose(X ^ X ^ Z).kron(T ^ Z) + OpPrimitive(Operator.from_label('+r0IX').data)
+        gnarly_op = 3 * (H ^ I ^ Y).compose(X ^ X ^ Z).kron(T ^ Z) + \
+            OpPrimitive(Operator.from_label('+r0IX').data)
         self.assertEqual(gnarly_op.get_primitives(), {'Instruction', 'Matrix'})

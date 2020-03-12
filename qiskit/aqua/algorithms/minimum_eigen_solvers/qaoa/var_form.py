@@ -23,6 +23,7 @@ from qiskit.aqua.operators import OperatorBase, X, H, Zero, StateFnCircuit, Evol
 from qiskit.aqua.components.variational_forms import VariationalForm
 from qiskit.aqua.components.initial_states import InitialState
 
+
 # pylint: disable=invalid-name
 
 
@@ -62,7 +63,7 @@ class QAOAVarForm(VariationalForm):
 
         # prepare the mixer operator
         if mixer_operator is None:
-            self._mixer_operator = X^self._cost_operator.num_qubits
+            self._mixer_operator = X ^ self._cost_operator.num_qubits
         else:
             if not isinstance(mixer_operator, OperatorBase):
                 raise TypeError('The mixer should be a qiskit.aqua.operators.OperatorBase '

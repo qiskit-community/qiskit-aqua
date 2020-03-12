@@ -19,8 +19,9 @@ from test.aqua import QiskitAquaTestCase
 import numpy as np
 import itertools
 
-from qiskit.aqua.operators import (X, Y, Z, I, CX, T, H, S, OpPrimitive, OpSum, OpComposition, OpVec, StateFn, Zero,
-                                   One, Plus, Minus, ExpectationBase, PauliExpectation, AbelianGrouper,
+from qiskit.aqua.operators import (X, Y, Z, I, CX, T, H, S, OpPrimitive, OpSum,
+                                   OpComposition, OpVec, StateFn, Zero, One, Plus, Minus,
+                                   ExpectationBase, PauliExpectation, AbelianGrouper,
                                    CircuitSampler)
 
 from qiskit import QuantumCircuit, BasicAer
@@ -34,14 +35,14 @@ class TestPauliExpectation(QiskitAquaTestCase):
         backend = BasicAer.get_backend('qasm_simulator')
         expect = PauliExpectation(operator=op, backend=backend)
         # wf = (Pl^Pl) + (Ze^Ze)
-        wf = CX @ (H^I) @ Zero
+        wf = CX @ (H ^ I) @ Zero
         mean = expect.compute_expectation(wf)
         self.assertAlmostEqual(mean, 0, delta=.1)
 
     def test_pauli_expect_single(self):
         backend = BasicAer.get_backend('qasm_simulator')
         paulis = [Z, X, Y, I]
-        states = [Zero, One, Plus, Minus, S@Plus, S@Minus]
+        states = [Zero, One, Plus, Minus, S @ Plus, S @ Minus]
         for pauli, state in itertools.product(paulis, states):
             expect = PauliExpectation(operator=pauli, backend=backend)
             mean = expect.compute_expectation(state)
@@ -64,22 +65,26 @@ class TestPauliExpectation(QiskitAquaTestCase):
         zero_mean = expect.compute_expectation(Zero)
         np.testing.assert_array_almost_equal(zero_mean, [0, 0, 1, 1], decimal=1)
 
-        # !!NOTE!!: Depolarizing channel (Sampling) means interference does not happen between circuits in sum,
-        # so expectation does not equal expectation for Zero!!
-        sum_zero = (Plus+Minus)*(.5**.5)
+        # !!NOTE!!: Depolarizing channel (Sampling) means interference
+        # does not happen between circuits in sum, so expectation does
+        # not equal expectation for Zero!!
+        sum_zero = (Plus + Minus) * (.5 ** .5)
         sum_zero_mean = expect.compute_expectation(sum_zero)
         np.testing.assert_array_almost_equal(sum_zero_mean, [0, 0, 0, 2], decimal=1)
 
         for i, op in enumerate(paulis_op.oplist):
             mat_op = op.to_matrix()
             np.testing.assert_array_almost_equal(zero_mean[i],
-                                                 Zero.adjoint().to_matrix() @ mat_op @ Zero.to_matrix(),
+                                                 Zero.adjoint().to_matrix() @
+                                                 mat_op @ Zero.to_matrix(),
                                                  decimal=1)
             np.testing.assert_array_almost_equal(plus_mean[i],
-                                                 Plus.adjoint().to_matrix() @ mat_op @ Plus.to_matrix(),
+                                                 Plus.adjoint().to_matrix() @
+                                                 mat_op @ Plus.to_matrix(),
                                                  decimal=1)
             np.testing.assert_array_almost_equal(minus_mean[i],
-                                                 Minus.adjoint().to_matrix() @ mat_op @ Minus.to_matrix(),
+                                                 Minus.adjoint().to_matrix() @
+                                                 mat_op @ Minus.to_matrix(),
                                                  decimal=1)
 
     def test_pauli_expect_state_vector(self):
@@ -99,41 +104,41 @@ class TestPauliExpectation(QiskitAquaTestCase):
         expect = PauliExpectation(operator=paulis_op, backend=backend)
         means = expect.compute_expectation(states_op)
         valids = [[+0, 0, 1, -1],
-                  [+0, 0, 0,  0],
+                  [+0, 0, 0, 0],
                   [-1, 1, 0, -0],
-                  [+1, 1, 1,  1]]
+                  [+1, 1, 1, 1]]
         np.testing.assert_array_almost_equal(means, valids, decimal=1)
 
     def test_not_to_matrix_called(self):
-        """ 45 qubit calculation - literally will not work if to_matrix is somehow called (in addition to massive=False
-        throwing an error)"""
+        """ 45 qubit calculation - literally will not work if to_matrix is
+            somehow called (in addition to massive=False throwing an error)"""
 
         backend = BasicAer.get_backend('qasm_simulator')
         qs = 45
-        states_op = OpVec([Zero^qs,
-                           One^qs,
-                           (Zero^qs) + (One^qs)])
-        paulis_op = OpVec([Z^qs,
-                           (I^Z^I)^int(qs/3)])
+        states_op = OpVec([Zero ^ qs,
+                           One ^ qs,
+                           (Zero ^ qs) + (One ^ qs)])
+        paulis_op = OpVec([Z ^ qs,
+                           (I ^ Z ^ I) ^ int(qs / 3)])
         expect = PauliExpectation(operator=paulis_op, backend=backend)
         means = expect.compute_expectation(states_op)
         np.testing.assert_array_almost_equal(means, [[1, -1, 0],
                                                      [1, -1, 0]])
 
     def test_abelian_grouper(self):
-        two_qubit_H2 = (-1.052373245772859 * I^I) + \
-                       (0.39793742484318045 * I^Z) + \
-                       (-0.39793742484318045 * Z^I) + \
-                       (-0.01128010425623538 * Z^Z) + \
-                       (0.18093119978423156 * X^X)
+        two_qubit_H2 = (-1.052373245772859 * I ^ I) + \
+                       (0.39793742484318045 * I ^ Z) + \
+                       (-0.39793742484318045 * Z ^ I) + \
+                       (-0.01128010425623538 * Z ^ Z) + \
+                       (0.18093119978423156 * X ^ X)
         grouped_sum = AbelianGrouper().convert(two_qubit_H2)
         self.assertEqual(len(grouped_sum.oplist), 2)
-        paulis = (I^I^X^X * 0.2) + \
-                 (Z^Z^X^X * 0.3) + \
-                 (Z^Z^Z^Z * 0.4) + \
-                 (X^X^Z^Z * 0.5) + \
-                 (X^X^X^X * 0.6) + \
-                 (I^X^X^X * 0.7)
+        paulis = (I ^ I ^ X ^ X * 0.2) + \
+                 (Z ^ Z ^ X ^ X * 0.3) + \
+                 (Z ^ Z ^ Z ^ Z * 0.4) + \
+                 (X ^ X ^ Z ^ Z * 0.5) + \
+                 (X ^ X ^ X ^ X * 0.6) + \
+                 (I ^ X ^ X ^ X * 0.7)
         grouped_sum = AbelianGrouper().convert(paulis)
         self.assertEqual(len(grouped_sum.oplist), 4)
 
@@ -143,7 +148,7 @@ class TestPauliExpectation(QiskitAquaTestCase):
                        (-0.39793742484318045 * Z ^ I) + \
                        (-0.01128010425623538 * Z ^ Z) + \
                        (0.18093119978423156 * X ^ X)
-        wf = CX @ (H^I) @ Zero
+        wf = CX @ (H ^ I) @ Zero
         backend = BasicAer.get_backend('qasm_simulator')
         expect_op = PauliExpectation(operator=two_qubit_H2,
                                      backend=backend,

@@ -43,7 +43,8 @@ class PaulitoInstruction(ConverterBase):
             operator = operator.primitive
             coeff = operator.coeff
         # TODO allow parameterized OpVec to be returned to save circuit copying.
-        elif isinstance(operator, OpVec) and self._traverse and 'Pauli' in operator.get_primitives():
+        elif isinstance(operator, OpVec) and self._traverse and \
+                'Pauli' in operator.get_primitives():
             return operator.traverse(self.convert)
         else:
             raise TypeError('PauliToInstruction can only accept OperatorBase objects or '

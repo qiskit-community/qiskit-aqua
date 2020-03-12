@@ -28,24 +28,35 @@ logger = logging.getLogger(__name__)
 
 
 class PauliChangeOfBasis(ConverterBase):
-    """ Converter for changing Paulis into other bases. By default, Pauli {Z,I}^n is used as the destination basis.
-    Meaning, if a Pauli containing X or Y terms is passed in, which cannot be sampled or evolved natively on Quantum
-    hardware, the Pauli can be replaced by a composition of a change of basis circuit and a Pauli composed of only Z
+    """ Converter for changing Paulis into other bases. By default,
+    Pauli {Z,I}^n is used as the destination basis.
+    Meaning, if a Pauli containing X or Y terms is passed in, which cannot be
+    sampled or evolved natively on Quantum
+    hardware, the Pauli can be replaced by a composition of a change of basis
+    circuit and a Pauli composed of only Z
     and I terms, which can be evolved or sampled natively on gate-based Quantum hardware. """
 
     def __init__(self, destination_basis=None, traverse=True, replacement_fn=None):
         """ Args:
-            destination_basis(Pauli): The Pauli into the basis of which the operators will be converted. If None is
-            specified, the destination basis will be the {I,Z}^n basis requiring only single qubit rotations.
-            travers(bool): If true and the operator passed into convert is an OpVec, traverse the OpVec,
+            destination_basis(Pauli): The Pauli into the basis of which the operators
+            will be converted. If None is
+            specified, the destination basis will be the {I,Z}^n basis requiring only
+            single qubit rotations.
+            travers(bool): If true and the operator passed into convert is an OpVec,
+            traverse the OpVec,
             applying the conversion to every applicable operator within the oplist.
-            replacement_fn(callable): A function specifying what to do with the CoB instruction and destination
-            Pauli when converting an Operator and replacing converted values. By default, this will be
-                1) For StateFns (or Measurements): replacing the StateFn with OpComposition(StateFn(d), c) where c
-                is the conversion circuit and d is the destination Pauli, so the overall beginning and
-                ending operators are equivalent.
-                2) For non-StateFn Operators: replacing the origin p with c·d·c†, where c is the conversion circuit
-                and d is the destination, so the overall beginning and ending operators are equivalent.
+            replacement_fn(callable): A function specifying what to do with the CoB
+            instruction and destination
+            Pauli when converting an Operator and replacing converted values.
+            By default, this will be
+                1) For StateFns (or Measurements): replacing the StateFn with
+                OpComposition(StateFn(d), c) where c
+                is the conversion circuit and d is the destination Pauli,
+                so the overall beginning and ending operators are equivalent.
+                2) For non-StateFn Operators: replacing the origin p with c·d·c†,
+                where c is the conversion circuit
+                and d is the destination, so the overall beginning and ending
+                operators are equivalent.
         """
         if destination_basis is not None:
             self.destination = destination_basis
@@ -71,8 +82,10 @@ class PauliChangeOfBasis(ConverterBase):
 
     # TODO see whether we should make this performant by handling OpVecs of Paulis later.
     def convert(self, operator):
-        """ Given an Operator with Paulis, converts each Pauli into the basis specified by self._destination. More
-        specifically, each Pauli p will be replaced by the composition of a Change-of-basis Clifford c with the
+        """ Given an Operator with Paulis, converts each Pauli into the basis specified
+        by self._destination. More
+        specifically, each Pauli p will be replaced by the composition of
+        a Change-of-basis Clifford c with the
         destination Pauli d and c†, such that p == c·d·c†, up to global phase. """
 
         if isinstance(operator, (Pauli, OpPrimitive)):
@@ -89,17 +102,23 @@ class PauliChangeOfBasis(ConverterBase):
                     origin_pauli = self.get_tpb_pauli(operator.primitive)
                     cob_instr_op, _ = self.get_cob_circuit(origin_pauli)
                     diag_ops = [self.get_diagonal_pauli_op(op) for op in operator.primitive.oplist]
-                    dest_pauli_op = operator.primitive.__class__(diag_ops, coeff=operator.coeff, abelian=True)
+                    dest_pauli_op = operator.primitive.__class__(diag_ops,
+                                                                 coeff=operator.coeff, abelian=True)
                     return self._replacement_fn(cob_instr_op, dest_pauli_op)
                 else:
-                    sf_list = [StateFn(op, is_measurement=operator.is_measurement) for op in operator.primitive.oplist]
-                    opvec_of_statefns = operator.primitive.__class__(oplist=sf_list, coeff=operator.coeff)
+                    sf_list = [StateFn(op, is_measurement=operator.is_measurement)
+                               for op in operator.primitive.oplist]
+                    opvec_of_statefns = operator.primitive.__class__(oplist=sf_list,
+                                                                     coeff=operator.coeff)
                     return opvec_of_statefns.traverse(self.convert)
 
         # TODO allow parameterized OpVec to be returned to save circuit copying.
-        elif isinstance(operator, OpVec) and self._traverse and 'Pauli' in operator.get_primitives():
-            # If opvec is abelian we can find a single post-rotation circuit for the whole set. For now,
-            # assume operator can only be abelian if all elements are Paulis (enforced in AbelianGrouper).
+        elif isinstance(operator, OpVec) and self._traverse and\
+                'Pauli' in operator.get_primitives():
+            # If opvec is abelian we can find a single post-rotation circuit
+            # for the whole set. For now,
+            # assume operator can only be abelian if all elements are
+            # Paulis (enforced in AbelianGrouper).
             if operator.abelian:
                 origin_pauli = self.get_tpb_pauli(operator)
                 cob_instr_op, _ = self.get_cob_circuit(origin_pauli)
@@ -142,8 +161,10 @@ class PauliChangeOfBasis(ConverterBase):
 
         kronall = partial(reduce, lambda x, y: x.kron(y))
 
-        y_to_x_origin = kronall([S if has_y else I for has_y in reversed(np.logical_and(pauli.x, pauli.z))]).adjoint()
-        x_to_z_origin = kronall([H if has_x else I for has_x in reversed(pauli.x)])
+        y_to_x_origin = kronall([S if has_y else I for has_y in
+                                 reversed(np.logical_and(pauli.x, pauli.z))]).adjoint()
+        x_to_z_origin = kronall([H if has_x else I for has_x in
+                                 reversed(pauli.x)])
         return x_to_z_origin.compose(y_to_x_origin)
 
     def pad_paulis_to_equal_length(self, pauli_op1, pauli_op2):
@@ -166,8 +187,10 @@ class PauliChangeOfBasis(ConverterBase):
         # TODO be smarter about connectivity and actual distance between pauli and destination
         # TODO be smarter in general
 
-        pauli_1 = diag_pauli_op1.primitive if isinstance(diag_pauli_op1, OpPauli) else diag_pauli_op1
-        pauli_2 = diag_pauli_op2.primitive if isinstance(diag_pauli_op2, OpPauli) else diag_pauli_op2
+        pauli_1 = diag_pauli_op1.primitive if isinstance(diag_pauli_op1, OpPauli)\
+            else diag_pauli_op1
+        pauli_2 = diag_pauli_op2.primitive if isinstance(diag_pauli_op2, OpPauli)\
+            else diag_pauli_op2
         origin_sig_bits = np.logical_or(pauli_1.z, pauli_1.x)
         destination_sig_bits = np.logical_or(pauli_2.z, pauli_2.x)
         # TODO maybe just raise error if not equal
@@ -178,13 +201,15 @@ class PauliChangeOfBasis(ConverterBase):
         # Equivalent to np.logical_xor(origin_sig_bits, destination_sig_bits)
 
         if not any(non_equal_sig_bits):
-            return I^num_qubits
+            return I ^ num_qubits
 
         # I am deeply sorry for this code, but I don't know another way to do it.
-        sig_in_origin_only_indices = np.extract(np.logical_and(non_equal_sig_bits, origin_sig_bits),
-                                                np.arange(num_qubits))
-        sig_in_dest_only_indices = np.extract(np.logical_and(non_equal_sig_bits, destination_sig_bits),
-                                              np.arange(num_qubits))
+        sig_in_origin_only_indices = np.extract(
+            np.logical_and(non_equal_sig_bits, origin_sig_bits),
+            np.arange(num_qubits))
+        sig_in_dest_only_indices = np.extract(
+            np.logical_and(non_equal_sig_bits, destination_sig_bits),
+            np.arange(num_qubits))
 
         if len(sig_in_origin_only_indices) and len(sig_in_dest_only_indices):
             origin_anchor_bit = min(sig_in_origin_only_indices)
@@ -195,8 +220,8 @@ class PauliChangeOfBasis(ConverterBase):
             dest_anchor_bit = origin_anchor_bit
 
         cnots = QuantumCircuit(num_qubits)
-        # Step 3) Take the indices of bits which are sig_bits in pauli but but not in dest, and cnot them to the
-        # pauli anchor.
+        # Step 3) Take the indices of bits which are sig_bits in
+        # pauli but but not in dest, and cnot them to the pauli anchor.
         for i in sig_in_origin_only_indices:
             if not i == origin_anchor_bit:
                 cnots.cx(i, origin_anchor_bit)
@@ -227,24 +252,32 @@ class PauliChangeOfBasis(ConverterBase):
 
     # TODO change to only accept OpPrimitive Pauli.
     def get_cob_circuit(self, origin):
-        """ The goal of this module is to construct a circuit which maps the +1 and -1 eigenvectors of the origin
-        pauli to the +1 and -1 eigenvectors of the destination pauli. It does so by
-            1) converting any |i+⟩ or |i+⟩ eigenvector bits in the origin to |+⟩ and |-⟩ with S†s, then
-            2) converting any |+⟩ or |+⟩ eigenvector bits in the converted origin to |0⟩ and |1⟩ with Hs, then
-            3) writing the parity of the significant (Z-measured, rather than I) bits in the origin to a single
+        """ The goal of this module is to construct a circuit which maps the +1 and -1 eigenvectors
+        of the origin pauli to the +1 and -1 eigenvectors of the destination pauli. It does so by
+            1) converting any |i+⟩ or |i+⟩ eigenvector bits in the origin to
+             |+⟩ and |-⟩ with S†s, then
+            2) converting any |+⟩ or |+⟩ eigenvector bits in the converted origin to
+             |0⟩ and |1⟩ with Hs, then
+             3) writing the parity of the significant (Z-measured, rather than
+            I) bits in the origin to a single
             "origin anchor bit," using cnots, which will hold the parity of these bits,
-            4) swapping the parity of the pauli anchor bit into a destination anchor bit using a swap gate (only if
-            they are different, if there are any bits which are significant in both origin and dest, we set both
-            anchors to one of these bits to avoid a swap).
-            5) flipping the state (parity) of the destination anchor if the parity of the number of pauli significant
-            bits is different from the parity of the number of destination significant bits (to be flipped back in
-            step 7)
-            6) writing the parity of the destination anchor bit into the other significant bits of the destination,
+            4) swapping the parity of the pauli anchor bit into a destination anchor bit using
+            a swap gate (only if they are different, if there are any bits which are significant
+            in both origin and dest, we set both anchors to one of these bits to avoid a swap).
+            5) flipping the state (parity) of the destination anchor if the parity of the number
+            of pauli significant
+            bits is different from the parity of the number of destination significant bits
+            (to be flipped back in step 7)
+            6) writing the parity of the destination anchor bit into the other significant bits
+            of the destination,
             7) flipping back the parity of the destination anchor if we flipped it in step 5)
-            8) converting the |0⟩ and |1⟩ significant eigenvector bits to |+⟩ and |-⟩ eigenvector bits in the
-            destination where the destination demands it (e.g. pauli.x == true for a bit), using Hs
-            8) converting the |+⟩ and |-⟩ significant eigenvector bits to |i+⟩ and |i-⟩ eigenvector bits in the
-            destination where the destination demands it (e.g. pauli.x == true and pauli.z == true for a bit), using Ss
+            8) converting the |0⟩ and |1⟩ significant eigenvector bits to |+⟩ and |-⟩ eigenvector
+            bits in the destination where the destination demands it
+            (e.g. pauli.x == true for a bit), using Hs
+            8) converting the |+⟩ and |-⟩ significant eigenvector bits to
+            |i+⟩ and |i-⟩ eigenvector bits in the
+            destination where the destination demands it
+            (e.g. pauli.x == true and pauli.z == true for a bit), using Ss
         """
 
         # If pauli is an OpPrimitive, extract the Pauli
@@ -252,10 +285,12 @@ class PauliChangeOfBasis(ConverterBase):
             origin = OpPauli(origin)
 
         if not isinstance(origin, OpPauli):
-            raise TypeError('PauliCoB can only convert Pauli-based OpPrimitives, not {}'.format(type(
-                OpPrimitive.primitive)))
+            raise TypeError(
+                'PauliCoB can only convert Pauli-based OpPrimitives, not {}'.format(type(
+                    OpPrimitive.primitive)))
 
-        # If no destination specified, assume nearest Pauli in {Z,I}^n basis, the standard CoB for expectation
+        # If no destination specified, assume nearest Pauli in {Z,I}^n basis,
+        # the standard CoB for expectation
         destination = self.destination or self.get_diagonal_pauli_op(origin)
 
         # Pad origin or destination if either are not as long as the other
@@ -266,7 +301,7 @@ class PauliChangeOfBasis(ConverterBase):
         if not any(origin_sig_bits) or not any(destination_sig_bits):
             if not (any(origin_sig_bits) or any(destination_sig_bits)):
                 # Both all Identity, just return Identities
-                return I^origin.num_qubits, destination
+                return I ^ origin.num_qubits, destination
             else:
                 # One is Identity, one is not
                 raise ValueError('Cannot change to or from a fully Identity Pauli.')

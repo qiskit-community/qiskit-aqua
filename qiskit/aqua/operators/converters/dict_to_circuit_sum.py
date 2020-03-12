@@ -28,8 +28,8 @@ logger = logging.getLogger(__name__)
 
 
 class DicttoCircuitSum(ConverterBase):
-    """ Very naively convert StateFnDicts to sums of StateFnCircuits which each prepare the bit strings in the keys of
-    the dict."""
+    """ Very naively convert StateFnDicts to sums of StateFnCircuits which each
+    prepare the bit strings in the keys of the dict."""
 
     def __init__(self, traverse=True, convert_dicts=True, convert_vectors=True):
         self._traverse = traverse

@@ -24,8 +24,8 @@ logger = logging.getLogger(__name__)
 
 
 class AerPauliExpectation(ExpectationBase):
-    """ An Expectation Value algorithm for using Aer's operator snapshot to take expectations of quantum state
-    circuits over Pauli observables.
+    """ An Expectation Value algorithm for using Aer's operator snapshot to
+    take expectations of quantum state circuits over Pauli observables.
 
     """
 

@@ -202,8 +202,10 @@ class TestVQE(QiskitAquaTestCase):
                     self.assertEqual(eval_count.strip(), ref_content[idx][0])
                     self.assertEqual(parameters, ref_content[idx][1])
                     self.assertEqual(mean.strip(), ref_content[idx][2])
-                    # TODO the standard deviation which was previously in Aqua was not the standard deviation of the
-                    #  observable over the StateFn distribution, it was the error in the estimator of the minimum
+                    # TODO the standard deviation which was previously in Aqua
+                    #  was not the standard deviation of the
+                    #  observable over the StateFn distribution, it was
+                    #  the error in the estimator of the minimum
                     #  eigenvalue. Correct this naming and add citations to Kandala et al.
                     # self.assertEqual(std.strip(), ref_content[idx][3])
                     idx += 1

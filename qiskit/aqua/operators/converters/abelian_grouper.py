@@ -36,7 +36,8 @@ class AbelianGrouper(ConverterBase):
         from .. import OpEvolution
 
         if isinstance(operator, OpVec):
-            if isinstance(operator, OpSum) and all([isinstance(op, OpPauli) for op in operator.oplist]):
+            if isinstance(operator, OpSum) and all([isinstance(op, OpPauli)
+                                                    for op in operator.oplist]):
                 # For now, we only support graphs over Paulis.
                 return self.group_paulis(operator)
             elif self._traverse:

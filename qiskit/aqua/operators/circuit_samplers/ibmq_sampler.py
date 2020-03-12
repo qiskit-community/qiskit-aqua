@@ -78,7 +78,8 @@ class IBMQSampler(CircuitSampler):
         results = self._qi.execute(circuits)
         sampled_statefn_dicts = {}
         for (op_c, circuit) in zip(op_circuits, circuits):
-            # Taking square root because we're replacing a statevector representation of probabilities.
+            # Taking square root because we're replacing a
+            # statevector representation of probabilities.
             sqrt_counts = {b: (v * op_c.coeff / self._qi._run_config.shots) ** .5
                            for (b, v) in results.get_counts(circuit).items()}
             sampled_statefn_dicts[str(op_c)] = StateFn(sqrt_counts)

@@ -30,8 +30,10 @@ logger = logging.getLogger(__name__)
 
 
 class EvolutionBase(ConverterBase):
-    """ A base for Evolution algorithms. An evolution algorithm is a converter which recurses through an operator tree,
-    replacing the OpEvolutions with a backend-runnable Hamiltonian simulation equalling or approximating the
+    """ A base for Evolution algorithms. An evolution algorithm is a converter which recurses
+    through an operator tree,
+    replacing the OpEvolutions with a backend-runnable Hamiltonian simulation equaling
+    or approximating the
     exponentiation of its contained operator.
 
     """

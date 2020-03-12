@@ -37,7 +37,8 @@ class Suzuki(TrotterizationBase):
         self._order = order
 
     def trotterize(self, op_sum):
-        composition_list = Suzuki.suzuki_recursive_expansion(op_sum.oplist, op_sum.coeff, self.order, self.reps)
+        composition_list = Suzuki.suzuki_recursive_expansion(
+            op_sum.oplist, op_sum.coeff, self.order, self.reps)
 
         single_rep = OpComposition(composition_list)
         full_evo = single_rep.power(self.reps)
@@ -46,8 +47,8 @@ class Suzuki(TrotterizationBase):
     @staticmethod
     def suzuki_recursive_expansion(op_list, evo_time, expansion_order, reps):
         """
-        Compute the list of pauli terms for a single slice of the suzuki expansion following the paper
-        https://arxiv.org/pdf/quant-ph/0508139.pdf.
+        Compute the list of pauli terms for a single slice of the suzuki expansion
+        following the paper https://arxiv.org/pdf/quant-ph/0508139.pdf.
 
         Args:
             op_list (list[list[complex, Pauli]]): The slice's weighted Pauli list for the
@@ -63,10 +64,13 @@ class Suzuki(TrotterizationBase):
             # Base first-order Trotter case
             return [(op * (evo_time / reps)).exp_i() for op in op_list]
         if expansion_order == 2:
-            half = Suzuki.suzuki_recursive_expansion(op_list, evo_time / 2, expansion_order - 1, reps)
+            half = Suzuki.suzuki_recursive_expansion(op_list, evo_time / 2,
+                                                     expansion_order - 1, reps)
             return list(reversed(half)) + half
         else:
             p_k = (4 - 4 ** (1 / (2 * expansion_order - 1))) ** -1
-            side = 2 * Suzuki.suzuki_recursive_expansion(op_list, evo_time * p_k, expansion_order - 2, reps)
-            middle = Suzuki.suzuki_recursive_expansion(op_list, evo_time * (1 - 4 * p_k), expansion_order - 2, reps)
+            side = 2 * Suzuki.suzuki_recursive_expansion(op_list, evo_time *
+                                                         p_k, expansion_order - 2, reps)
+            middle = Suzuki.suzuki_recursive_expansion(op_list, evo_time * (1 - 4 * p_k),
+                                                       expansion_order - 2, reps)
             return side + middle + side

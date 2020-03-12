@@ -13,8 +13,10 @@
 # that they have been altered from the originals.
 
 """
-Expectation Value algorithms - Algorithms for approximating the value of some function over a probability
-distribution, or in the quantum case, algorithms for approximating the value of some observable over a state function.
+Expectation Value algorithms - Algorithms for approximating the value of some
+function over a probability
+distribution, or in the quantum case, algorithms for approximating the value
+of some observable over a state function.
 
 """
 

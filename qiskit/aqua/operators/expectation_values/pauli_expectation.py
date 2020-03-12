@@ -26,8 +26,8 @@ logger = logging.getLogger(__name__)
 
 
 class PauliExpectation(ExpectationBase):
-    """ An Expectation Value algorithm for taking expectations of quantum states specified by circuits over
-    observables specified by Pauli Operators. Flow:
+    """ An Expectation Value algorithm for taking expectations of quantum states
+    specified by circuits over observables specified by Pauli Operators. Flow:
 
     """
 
@@ -86,10 +86,12 @@ class PauliExpectation(ExpectationBase):
                 meas = StateFn(grouped, is_measurement=True)
             else:
                 meas = StateFn(self._operator, is_measurement=True)
-            # Convert the measurement into a classical basis (PauliChangeOfBasis chooses this basis by default).
+            # Convert the measurement into a classical
+            # basis (PauliChangeOfBasis chooses this basis by default).
             cob = PauliChangeOfBasis(replacement_fn=PauliChangeOfBasis.measurement_replacement_fn)
             self._converted_operator = cob.convert(meas)
-            # TODO self._converted_operator = PauliExpectation.group_equal_measurements(self._converted_operator)
+            # TODO self._converted_operator =
+            #  PauliExpectation.group_equal_measurements(self._converted_operator)
 
         expec_op = self._converted_operator.compose(state)
         return expec_op.reduce()
@@ -105,12 +107,15 @@ class PauliExpectation(ExpectationBase):
         if 'Instruction' in self._reduced_meas_op.get_primitives():
             # TODO check if params have been sufficiently provided.
             if self._circuit_sampler:
-                self._sampled_meas_op = self._circuit_sampler.convert(self._reduced_meas_op, params=params)
+                self._sampled_meas_op = self._circuit_sampler.convert(self._reduced_meas_op,
+                                                                      params=params)
                 return self._sampled_meas_op.eval()
             else:
-                raise ValueError('Unable to compute expectation of functions containing circuits without a backend '
-                                 'set. Set a backend for the Expectation algorithm to compute the expectation, '
-                                 'or convert Instructions to other types which do not require a backend.')
+                raise ValueError(
+                    'Unable to compute expectation of functions containing '
+                    'circuits without a backend set. Set a backend for the Expectation '
+                    'algorithm to compute the expectation, or convert Instructions to '
+                    'other types which do not require a backend.')
         else:
             return self._reduced_meas_op.eval()
 
