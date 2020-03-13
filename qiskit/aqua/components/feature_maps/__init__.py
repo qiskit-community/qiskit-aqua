@@ -15,9 +15,9 @@
 """The deprecated feature maps module."""
 
 import warnings
-from qiskit.aqua.components.ansatz.feature_maps import (PauliExpansion, PauliZExpansion,
-                                                        FirstOrderExpansion, SecondOrderExpansion,
-                                                        RawFeatureVector)
+from qiskit.aqua.components.ansatze.feature_maps import (PauliExpansion, PauliZExpansion,
+                                                         FirstOrderExpansion, SecondOrderExpansion,
+                                                         RawFeatureVector)
 from .feature_map import FeatureMap
 
 warnings.warn('The qiskit.aqua.components.feature_maps module is deprecated and will be removed '

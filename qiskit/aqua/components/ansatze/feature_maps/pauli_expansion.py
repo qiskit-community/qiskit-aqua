@@ -29,7 +29,7 @@ from qiskit.quantum_info import Pauli
 from qiskit.aqua import AquaError
 from qiskit.aqua.operators import evolution_instruction
 from qiskit.aqua.utils.validation import validate_min
-from qiskit.aqua.components.ansatz import Ansatz
+from qiskit.aqua.components.ansatze import Ansatz
 from qiskit.aqua.utils import get_entangler_map, validate_entangler_map
 
 from .data_mapping import self_product

@@ -25,7 +25,7 @@ from qiskit.aqua.aqua_error import AquaError
 from qiskit.aqua.utils.arithmetic import next_power_of_2_base
 from qiskit.aqua.circuits import StateVectorCircuit
 from qiskit.aqua.utils.validation import validate_min
-from qiskit.aqua.components.ansatz import Ansatz
+from qiskit.aqua.components.ansatze import Ansatz
 
 logger = logging.getLogger(__name__)
 

@@ -32,7 +32,7 @@ from qiskit.extensions.standard import (IGate, XGate, YGate, ZGate, HGate, TGate
 from qiskit.aqua.utils import get_entangler_map, validate_entangler_map
 from qiskit.aqua.components.initial_states import InitialState
 
-from qiskit.aqua.components.ansatz import Ansatz
+from qiskit.aqua.components.ansatze import Ansatz
 
 # disable check for overriding getter and setter because of pylint bug
 # pylint: disable=no-member
@@ -439,10 +439,10 @@ class TwoLocalAnsatz(Ansatz):
         - ``'full'``: Entangle each qubit with every qubit (all-to-all).
         - ``'linear'``: Entangle each qubit with its direct neighbor.
         - ``'sca'``: Shifted-circular-alternating entanglement. Within every entanglement block,
-            the qubits are entangled circularly, i.e. linear but the first and last qubit are
-            also entangled. Shifted means that in the next block the (i+1)-th entanglement is the
-            i-th entanglement of the previous block (modulo ``num_qubits``). Alternating indicates
-            that the role of target and control qubit is swapped every other block.
+        the qubits are entangled circularly, i.e. linear but the first and last qubit are
+        also entangled. Shifted means that in the next block the (i+1)-th entanglement is the
+        i-th entanglement of the previous block (modulo ``num_qubits``). Alternating indicates
+        that the role of target and control qubit is swapped every other block.
 
         If the entanglement is a list of lists of ``int``, the structure is specified as
         ``[[control1, target1], [control2, target2], ...]``.

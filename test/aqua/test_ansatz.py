@@ -26,7 +26,7 @@ from qiskit.circuit.random.utils import random_circuit
 from qiskit.extensions.standard import XGate, RXGate, CrxGate
 from qiskit.quantum_info import Pauli
 
-from qiskit.aqua.components.ansatz import Ansatz, OperatorAnsatz, SwapRZ, RY
+from qiskit.aqua.components.ansatze import Ansatz, OperatorAnsatz, SwapRZ, RY
 from qiskit.aqua.components.variational_forms.ry import RY as DeprecatedRY
 from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator
 

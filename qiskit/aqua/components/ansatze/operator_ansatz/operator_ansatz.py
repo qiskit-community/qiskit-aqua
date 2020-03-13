@@ -21,7 +21,7 @@ from qiskit.tools import parallel_map
 
 from qiskit.aqua import aqua_globals
 from qiskit.aqua.operators import BaseOperator
-from qiskit.aqua.components.ansatz import Ansatz
+from qiskit.aqua.components.ansatze import Ansatz
 from qiskit.aqua.operators.op_converter import to_weighted_pauli_operator
 
 
