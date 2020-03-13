@@ -59,7 +59,7 @@ from .legacy.common import (evolution_instruction,
                             kernel_F2, commutator, check_commutativity)
 from .legacy import (LegacyBaseOperator, WeightedPauliOperator, Z2Symmetries,
                      TPBGroupedWeightedPauliOperator, MatrixOperator,
-                     PauliGraph)
+                     PauliGraph, op_converter)
 
 # New Operators
 from .operator_base import OperatorBase
@@ -88,7 +88,7 @@ __all__ = [
     'Z2Symmetries', 'TPBGroupedWeightedPauliOperator',
     'MatrixOperator',
     # New
-    'OperatorBase'
+    'OperatorBase',
     'OpPrimitive', 'OpPauli', 'OpMatrix', 'OpCircuit',
     'StateFn', 'StateFnDict', 'StateFnVector', 'StateFnCircuit', 'StateFnOperator',
     'OpVec', 'OpSum', 'OpComposition', 'OpKron',
