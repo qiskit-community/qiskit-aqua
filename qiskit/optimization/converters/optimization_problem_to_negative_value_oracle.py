@@ -16,7 +16,7 @@
 
 import logging
 import numpy as np
-from typing import Optional, Tuple, Dict, Union, Callable, Any
+from typing import Optional, Tuple, Dict, Union
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister, Aer
 from qiskit.aqua.components.oracles import CustomCircuitOracle
 from qiskit.aqua.components.initial_states import Custom
@@ -98,11 +98,10 @@ class OptimizationProblemToNegativeValueOracle:
             reg_map[reg.name] = reg
         key_val = reg_map["key_value"]
 
-        # TODO: Can we use LogicalExpressionOracle instead?
         # Build negative value oracle O.
         oracle_bit = QuantumRegister(1, "oracle")
         oracle_circuit = QuantumCircuit(key_val, oracle_bit)
-        self._cxzxz(oracle_circuit, key_val[self._num_key], oracle_bit[0])
+        oracle_circuit.z(key_val[self._num_key])  # recognize negative values.
         oracle = CustomCircuitOracle(variable_register=key_val,
                                      output_register=oracle_bit,
                                      circuit=oracle_circuit,
@@ -125,14 +124,6 @@ class OptimizationProblemToNegativeValueOracle:
                 func[i] += v
 
         return func
-
-    @staticmethod
-    def _cxzxz(circuit: QuantumCircuit, ctrl: QuantumRegister, tgt: QuantumRegister) -> None:
-        """Multiplies by -1."""
-        circuit.cx(ctrl, tgt)
-        circuit.cz(ctrl, tgt)
-        circuit.cx(ctrl, tgt)
-        circuit.cz(ctrl, tgt)
 
     def _evaluate_classically(self, measurement):
         # TODO: Typing for this method? Still not sure what it's used for. Required by Grover.
