@@ -12,26 +12,35 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""The RY variational form."""
+"""The RYRZ variational form."""
 
 from typing import Union, Optional, List, Tuple, Callable
+from numpy import pi
 
-import numpy as np
-from qiskit.extensions.standard import RYGate, CZGate
+from qiskit.extensions.standard import RYGate, RZGate, CZGate
 from qiskit.util import deprecate_arguments
 from qiskit.aqua.components.initial_states import InitialState
 from .two_local_ansatz import TwoLocalAnsatz
 
 
-class RY(TwoLocalAnsatz):
-    """The RY variational form.
+class RYRZ(TwoLocalAnsatz):
+    r"""The RYRZ variational form.
 
-    TODO
+    The RYRZ trial wave function is layers of :math:`y` plus :math:`z` rotations with entanglements.
+    When none of qubits are unentangled to other qubits, the number of optimizer parameters this
+    form creates and uses is given by :math:`q \times (d + 1) \times 2`, where :math:`q` is the
+    total number of qubits and :math:`d` is the depth of the circuit.
+    Nonetheless, in some cases, if an `entangler_map` does not include all qubits, that is, some
+    qubits are not entangled by other qubits. The number of parameters is reduced by
+    :math:`d \times q' \times 2` where :math:`q'` is the number of unentangled qubits.
+    This is because adding more parameters to the unentangled qubits only introduce overhead
+    without bringing any benefit; furthermore, theoretically, applying multiple Ry and Rz gates
+    in a row can be reduced to a single Ry gate and one Rz gate with the summed rotation angles.
+
+    See :class:`RY` for more detail on `entanglement` which applies here too.
     """
 
-    @deprecate_arguments({'entangler_map': 'entanglement',
-                          'skip_final_ry': 'skip_final_rotation_layer',
-                          'entanglement_gate': 'entanglement_gates'})
+    @deprecate_arguments({'entangler_map': 'entanglement'})
     def __init__(self,
                  num_qubits: Optional[int] = None,
                  depth: int = 3,
@@ -43,8 +52,6 @@ class RY(TwoLocalAnsatz):
                  parameter_prefix: str = 'θ',
                  insert_barriers: bool = False,
                  entangler_map: Optional[List[List[int]]] = None,  # pylint: disable=unused-argument
-                 skip_final_ry: Optional[bool] = None,  # pylint: disable=unused-argument
-                 entanglement_gate: Optional[str] = None,  # pylint: disable=unused-argument
                  ) -> None:
         """Initializer. Assumes that the type hints are obeyed for now.
 
@@ -80,37 +87,35 @@ class RY(TwoLocalAnsatz):
                 Defaults to False.
             entangler_map: Deprecated, use `entanglement` instead. This argument now also supports
                 entangler maps.
-            skip_final_ry: Deprecated, use `skip_final_rotation_layer` instead.
-            entanglement_gate: Deprecated, use `entanglement_gates` instead.
 
         Examples:
-            >>> ry = RY(3)  # create the variational form on 3 qubits
-            >>> print(ry)  # show the circuit
+            >>> ryrz = RYRZ(3)  # create the variational form on 3 qubits
+            >>> print(ryrz)  # show the circuit
             TODO: circuit diagram
 
-            >>> ry = RY(3, entanglement='linear', reps=2, insert_barriers=True)
+            >>> ryrz = RYRZ(4, entanglement='full', reps=1)
             >>> qc = QuantumCircuit(3)  # create a circuit and append the RY variational form
-            >>> qc += ry.to_circuit()
+            >>> qc += ryrz.to_circuit()
             >>> qc.draw()
             TODO: circuit diagram
 
-            >>> ry = RY(2, entanglement_gate='crx', 'sca', reps=2, insert_barriers=True)
-            >>> print(ry)
+            >>> ryrz_crx = RYRZ(2, entanglement_gate='crx', 'sca', reps=1, insert_barriers=True)
+            >>> print(ryrz_crx)
             TODO: circuit diagram
 
             >>> entangler_map = [[0, 1], [1, 2], [2, 0]]  # circular entanglement for 3 qubits
-            >>> ry = RY(3, 'cx', entangler_map, reps=2)
-            >>> print(ry)
+            >>> ry = RYRZ(3, 'cx', entangler_map, reps=2)
+            >>> print(ryrz)
             TODO: circuit diagram
 
-            >>> ry_linear = RY(2, entanglement='linear', reps=1)
-            >>> ry_full = RY(2, entanglement='full', reps=1)
-            >>> my_ry = ry_linear + ry_full
-            >>> print(my_ry)
+            >>> ryrz = RYRZ(2, entanglement='linear', reps=1)
+            >>> ry = RY(2, entanglement='full', reps=1)
+            >>> my_varform = ryrz + ry
+            >>> print(my_varform)
         """
         super().__init__(num_qubits=num_qubits,
                          depth=depth,
-                         rotation_gates=RYGate,
+                         rotation_gates=[RYGate, RZGate],
                          entanglement_gates=entanglement_gates,
                          entanglement=entanglement,
                          initial_state=initial_state,
@@ -126,4 +131,4 @@ class RY(TwoLocalAnsatz):
         Returns:
             The parameter bounds.
         """
-        return self.num_parameters * [(-np.pi, np.pi)]
+        return self.num_parameters * [(-pi, pi)]

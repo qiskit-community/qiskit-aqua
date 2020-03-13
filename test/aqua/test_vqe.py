@@ -23,10 +23,7 @@ from qiskit import BasicAer
 
 from qiskit.aqua import QuantumInstance, aqua_globals, AquaError
 from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator
-# from qiskit.aqua.components.variational_forms import RY, RYRZ
-# from qiskit.aqua.components.variational_forms.ryrz import RYRZ
-# from qiskit.aqua.components.variational_forms.ry import RY
-from qiskit.aqua.components.ansatze import RY, RYRZ
+from qiskit.aqua.components.ansatzes import RY, RYRZ
 from qiskit.aqua.components.optimizers import L_BFGS_B, COBYLA, SPSA, SLSQP
 from qiskit.aqua.components.initial_states import Zero
 from qiskit.aqua.algorithms import VQE

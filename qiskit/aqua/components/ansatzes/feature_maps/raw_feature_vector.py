@@ -25,7 +25,7 @@ from qiskit.aqua.aqua_error import AquaError
 from qiskit.aqua.utils.arithmetic import next_power_of_2_base
 from qiskit.aqua.circuits import StateVectorCircuit
 from qiskit.aqua.utils.validation import validate_min
-from qiskit.aqua.components.ansatze import Ansatz
+from qiskit.aqua.components.ansatzes import Ansatz
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +89,7 @@ class RawFeatureVector(Ansatz):
                 generate new registers with name q.
 
         Returns:
-            A quantum circuit transform data x.
+            A quantum circuit encoding the data ``x``.
 
         Raises:
             ValueError: Dimension of ``x`` is not equal to the feature dimension.

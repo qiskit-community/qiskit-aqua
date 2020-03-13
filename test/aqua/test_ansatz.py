@@ -26,12 +26,9 @@ from qiskit.circuit.random.utils import random_circuit
 from qiskit.extensions.standard import XGate, RXGate, CrxGate
 from qiskit.quantum_info import Pauli
 
-from qiskit.aqua.components.ansatze import Ansatz, OperatorAnsatz, SwapRZ, RY
+from qiskit.aqua.components.ansatzes import Ansatz, OperatorAnsatz, SwapRZ, RY
 from qiskit.aqua.components.variational_forms.ry import RY as DeprecatedRY
 from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator
-
-
-_CONTAINER = set
 
 
 @ddt
@@ -210,7 +207,7 @@ class TestAnsatz(QiskitAquaTestCase):
         ansatz = Ansatz(circuit, reps=reps)
         ansatz.parameters = params
 
-        param_set = _CONTAINER(p for p in params if isinstance(p, ParameterExpression))
+        param_set = set(p for p in params if isinstance(p, ParameterExpression))
         with self.subTest(msg='Test the parameters of the non-transpiled circuit'):
             # check the parameters of the final circuit
             self.assertEqual(ansatz.to_circuit().parameters, param_set)
@@ -235,7 +232,7 @@ class TestAnsatz(QiskitAquaTestCase):
         ansatz = Ansatz(circuit)
         ansatz.parameters = params
 
-        param_set = _CONTAINER(p for p in params if isinstance(p, ParameterExpression))
+        param_set = set(p for p in params if isinstance(p, ParameterExpression))
         with self.subTest(msg='Test the parameters of the non-transpiled circuit'):
             # check the parameters of the final circuit
             self.assertEqual(ansatz.to_circuit().parameters, param_set)
@@ -263,14 +260,14 @@ class TestAnsatz(QiskitAquaTestCase):
         with self.subTest(msg='setting parameter to numbers'):
             as_circuit = ansatz.to_circuit()
             self.assertEqual(ansatz.parameters, [0, -1, 0])
-            self.assertEqual(as_circuit.parameters, _CONTAINER())
+            self.assertEqual(as_circuit.parameters, set())
 
         q = Parameter('q')
         ansatz.parameters = [x, q, q]
         with self.subTest(msg='setting parameter to Parameter objects'):
             as_circuit = ansatz.to_circuit()
             self.assertEqual(ansatz.parameters, [x, q, q])
-            self.assertEqual(as_circuit.parameters, _CONTAINER({x, q}))
+            self.assertEqual(as_circuit.parameters, set({x, q}))
 
 
 class TestBackwardCompatibility(QiskitAquaTestCase):

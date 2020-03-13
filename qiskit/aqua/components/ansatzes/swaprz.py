@@ -27,10 +27,34 @@ from .two_local_ansatz import TwoLocalAnsatz
 
 
 class SwapRZ(TwoLocalAnsatz):
-    r"""The SwapRZ variational form.
+    r"""The SwapRZ ansatz.
 
-    The SwapRZ variational form consists of layers of Z-rotations and (XX + YY)-rotations as
-    entanglements. These rotations can be written as
+    This trial wave function is layers of swap plus :math:`z` rotations with entanglements.
+    It was designed principally to be a particle-preserving variational form for
+    :mod:`qiskit.chemistry`. Given an initial state as a set of 1's and 0's it will preserve
+    the number of 1's - where for chemistry a 1 will indicate a particle.
+
+    Note:
+
+        In chemistry, to define the particles for SwapRZ, use a
+        :class:`~qiskit.chemistry.components.initial_states.HartreeFock` initial state with
+        the `Jordan-Wigner` qubit mapping
+
+    For the case of none of qubits are unentangled to other qubits, the number of optimizer
+    parameters `SwapRZ` creates and uses is given by
+    :math:`q + d \times \left(q + \sum_{k=0}^{q-1}|D(k)|\right)`, where :math:`|D(k)|` denotes the
+    *cardinality* of :math:`D(k)` or, more precisely, the *length* of :math:`D(k)`
+    (since :math:`D(k)` is not just a set, but a list).
+    Nonetheless, in some cases the entanglement does not include all qubits, that is, some
+    qubits are not entangled by other qubits. Then the number of parameters is reduced by
+    :math:`d \times q'`, where :math:`q'` is the number of unentangled qubits.
+    This is because adding more Rz gates to the unentangled qubits only introduce overhead without
+    bringing any benefit; furthermore, theoretically, applying multiple Rz gates in a row can be
+    reduced to a single Rz gate with the summed rotation angles.
+
+    See :class:`RY` for more detail on `entanglement` which applies here too.
+
+    The rotations of the SwapRZ ansatz can be written as
 
     .. math::
 
@@ -45,8 +69,6 @@ class SwapRZ(TwoLocalAnsatz):
                           = R_{XX}(\theta) R_{YY}(\theta)
 
     where the approximation used comes from the Trotter expansion of the sum in the exponential.
-
-    This variational form is used for TODO
     """
 
     @deprecate_arguments({'entangler_map': 'entanglement'})

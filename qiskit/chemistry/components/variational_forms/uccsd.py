@@ -31,7 +31,7 @@ from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
 
 from qiskit.aqua import aqua_globals
-from qiskit.aqua.components.ansatze import Ansatz
+from qiskit.aqua.components.ansatzes import Ansatz
 from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.operators import WeightedPauliOperator, Z2Symmetries
 from qiskit.aqua.utils.validation import validate_min, validate_in_set

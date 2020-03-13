@@ -12,26 +12,26 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Test of SWAPRZ from core aqua """
+"""Test of SWAPRZ from core Aqua."""
 
 from test.chemistry import QiskitChemistryTestCase
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms import VQE
 from qiskit.aqua.components.optimizers import SLSQP
-# from qiskit.aqua.components.variational_forms import SwapRZ
-from qiskit.aqua.components.ansatze import SwapRZ
+from qiskit.aqua.components.ansatzes import SwapRZ
 from qiskit.chemistry.components.initial_states import HartreeFock
 from qiskit.chemistry.drivers import HDF5Driver
 from qiskit.chemistry.core import Hamiltonian, QubitMappingType
 
 
 class TestSwapRZ(QiskitChemistryTestCase):
-    """
-       SwapRZ was designed to preserve particles. We test it here from
-       chemistry with JORDAN_WIGNER mapping and HartreeFock initial
-       state to set it up. THis facilitates testing SwapRZ using these
-       chemistry components/problem to ensure its correct operation
+    """Test the SwapRZ ansatz.
+
+    SwapRZ was designed to preserve particles. We test it here from
+    chemistry with JORDAN_WIGNER mapping and HartreeFock initial
+    state to set it up. THis facilitates testing SwapRZ using these
+    chemistry components/problem to ensure its correct operation
     """
 
     def setUp(self):

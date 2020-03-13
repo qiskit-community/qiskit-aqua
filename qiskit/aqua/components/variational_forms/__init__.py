@@ -56,7 +56,7 @@ from qiskit.aqua.components.variational_forms.variational_form import Variationa
 # from .ry import RY
 # from .ryrz import RYRZ
 # from .swaprz import SwapRZ
-from qiskit.aqua.components.ansatze import RY, RYRZ, SwapRZ
+from qiskit.aqua.components.ansatzes import RY, RYRZ, SwapRZ
 
 __all__ = ['VariationalForm',
            'RY',

@@ -32,7 +32,7 @@ from qiskit.extensions.standard import (IGate, XGate, YGate, ZGate, HGate, TGate
 from qiskit.aqua.utils import get_entangler_map, validate_entangler_map
 from qiskit.aqua.components.initial_states import InitialState
 
-from qiskit.aqua.components.ansatze import Ansatz
+from qiskit.aqua.components.ansatzes import Ansatz
 
 # disable check for overriding getter and setter because of pylint bug
 # pylint: disable=no-member
