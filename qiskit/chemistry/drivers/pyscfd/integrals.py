@@ -214,7 +214,7 @@ def _calculate_integrals(mol, hf_method='rhf', conv_tol=1e-9, max_cycle=50, init
     nucl_dip = np.round(nucl_dip, decimals=8)
     logger.info("HF Electronic dipole moment: %s", elec_dip)
     logger.info("Nuclear dipole moment: %s", nucl_dip)
-    logger.info("Total dipole moment: %s", nucl_dip+elec_dip)
+    logger.info("Total dipole moment: %s", nucl_dip + elec_dip)
 
     # Create driver level molecule object and populate
     _q_ = QMolecule()

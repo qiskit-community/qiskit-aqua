@@ -173,8 +173,8 @@ class TestOpConstruction(QiskitAquaTestCase):
                                                                      (H ^ I).to_matrix()))
 
         op6 = op5 + OpPrimitive(Operator.from_label('+r').data)
-        np.testing.assert_array_almost_equal(op6.to_matrix(), op5.to_matrix() +
-                                             Operator.from_label('+r').data)
+        np.testing.assert_array_almost_equal(
+            op6.to_matrix(), op5.to_matrix() + Operator.from_label('+r').data)
 
     def test_adjoint(self):
         """ adjoint test """

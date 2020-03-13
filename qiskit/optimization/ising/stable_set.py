@@ -45,7 +45,7 @@ def get_operator(w):
     pauli_list = []
     shift = 0
     for i in range(num_nodes):
-        for j in range(i+1, num_nodes):
+        for j in range(i + 1, num_nodes):
             if w[i, j] != 0:
                 x_p = np.zeros(num_nodes, dtype=np.bool)
                 z_p = np.zeros(num_nodes, dtype=np.bool)
@@ -58,8 +58,8 @@ def get_operator(w):
         x_p = np.zeros(num_nodes, dtype=np.bool)
         z_p = np.zeros(num_nodes, dtype=np.bool)
         z_p[i] = True
-        pauli_list.append([degree - 1/2, Pauli(z_p, x_p)])
-    return WeightedPauliOperator(paulis=pauli_list), shift - num_nodes/2
+        pauli_list.append([degree - 1 / 2, Pauli(z_p, x_p)])
+    return WeightedPauliOperator(paulis=pauli_list), shift - num_nodes / 2
 
 
 def stable_set_value(x, w):
@@ -78,7 +78,7 @@ def stable_set_value(x, w):
     feasible = True
     num_nodes = w.shape[0]
     for i in range(num_nodes):
-        for j in range(i+1, num_nodes):
+        for j in range(i + 1, num_nodes):
             if w[i, j] != 0 and x[i] == 0 and x[j] == 0:
                 feasible = False
                 break

@@ -34,7 +34,7 @@ class OpSum(OpVec):
             coeff: A coefficient multiplying the primitive
             abelian: indicates if abelian
         """
-        super().__init__(oplist, combo_fn=partial(reduce, lambda x, y: x+y),
+        super().__init__(oplist, combo_fn=partial(reduce, lambda x, y: x + y),
                          coeff=coeff, abelian=abelian)
 
     @property

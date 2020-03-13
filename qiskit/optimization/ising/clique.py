@@ -67,11 +67,11 @@ def get_operator(weight_matrix, K):  # pylint: disable=invalid-name
     pauli_list = []
     shift = 0
 
-    Y = K - 0.5*num_nodes  # Y = K-sum_{v}{1/2}
+    Y = K - 0.5 * num_nodes  # Y = K - sum_{v}{1 / 2}
 
     A = 1000
     # Ha part:
-    shift += A*Y*Y
+    shift += A * Y * Y
 
     for i in range(num_nodes):
         for j in range(num_nodes):
@@ -80,16 +80,16 @@ def get_operator(weight_matrix, K):  # pylint: disable=invalid-name
                 zp = np.zeros(num_nodes, dtype=np.bool)
                 zp[i] = True
                 zp[j] = True
-                pauli_list.append([A*0.25, Pauli(zp, xp)])
+                pauli_list.append([A * 0.25, Pauli(zp, xp)])
             else:
-                shift += A*0.25
+                shift += A * 0.25
     for i in range(num_nodes):
         xp = np.zeros(num_nodes, dtype=np.bool)
         zp = np.zeros(num_nodes, dtype=np.bool)
         zp[i] = True
-        pauli_list.append([-A*Y, Pauli(zp, xp)])
+        pauli_list.append([-A * Y, Pauli(zp, xp)])
 
-    shift += 0.5*K*(K-1)
+    shift += 0.5 * K * (K - 1)
 
     for i in range(num_nodes):
         for j in range(i):
@@ -128,7 +128,7 @@ def satisfy_or_not(x, w, K):  # pylint: disable=invalid-name
     X = np.outer(x, x)
     w_01 = np.where(w != 0, 1, 0)
 
-    return np.sum(w_01 * X) == K*(K-1)  # note sum() count the same edge twice
+    return np.sum(w_01 * X) == K * (K - 1)  # note sum() count the same edge twice
 
 
 def get_graph_solution(x):

@@ -109,7 +109,7 @@ class StateFnDict(StateFn):
             else:
                 new_dict = {b: (v * self.coeff) + (other.primitive.get(b, 0) * other.coeff)
                             for (b, v) in self.primitive.items()}
-                new_dict.update({b: v*other.coeff for (b, v) in other.primitive.items()
+                new_dict.update({b: v * other.coeff for (b, v) in other.primitive.items()
                                  if b not in self.primitive})
                 return StateFn(new_dict, is_measurement=self._is_measurement)
         # pylint: disable=cyclic-import,import-outside-toplevel
@@ -135,7 +135,7 @@ class StateFnDict(StateFn):
 
         # Both dicts
         if isinstance(other, StateFnDict):
-            new_dict = {k1+k2: v1*v2 for ((k1, v1,), (k2, v2)) in
+            new_dict = {k1 + k2: v1 * v2 for ((k1, v1,), (k2, v2)) in
                         itertools.product(self.primitive.items(), other.primitive.items())}
             return StateFn(new_dict,
                            coeff=self.coeff * other.coeff,

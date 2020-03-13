@@ -71,8 +71,8 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
         # map strike price to {0, ..., 2^n-1}
         lb = uncertainty_model.low
         ub = uncertainty_model.high
-        self._mapped_strike_price = int(np.round((strike_price - lb) /
-                                                 (ub - lb) * (uncertainty_model.num_values - 1)))
+        self._mapped_strike_price = \
+            int(np.round((strike_price - lb) / (ub - lb) * (uncertainty_model.num_values - 1)))
 
         # create comparator
         self._comparator = FixedValueComparator(uncertainty_model.num_target_qubits,
@@ -81,7 +81,7 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
         self.offset_angle_zero = np.pi / 4 * (1 - self._c_approx)
         if self._mapped_strike_price < uncertainty_model.num_values - 1:
             self.offset_angle = -1 * np.pi / 2 * self._c_approx * self._mapped_strike_price / \
-                        (uncertainty_model.num_values - self._mapped_strike_price - 1)
+                (uncertainty_model.num_values - self._mapped_strike_price - 1)
             self.slope_angle = np.pi / 2 * self._c_approx / \
                 (uncertainty_model.num_values - self._mapped_strike_price - 1)
         else:

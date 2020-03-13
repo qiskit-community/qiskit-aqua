@@ -45,7 +45,7 @@ class TestFixedValueComparator(QiskitAquaTestCase):
         comp = Comparator(num_state_qubits, value, geq)
 
         # initialize circuit
-        q = QuantumRegister(num_state_qubits+1)
+        q = QuantumRegister(num_state_qubits + 1)
         if comp.required_ancillas() > 0:
             q_a = QuantumRegister(comp.required_ancillas())
             qc = QuantumCircuit(q, q_a)
@@ -67,10 +67,10 @@ class TestFixedValueComparator(QiskitAquaTestCase):
             prob = np.abs(s_a)**2
             if prob > 1e-6:
                 # equal superposition
-                self.assertEqual(True, np.isclose(1.0, prob * 2.0**num_state_qubits))
+                self.assertEqual(True, np.isclose(1.0, prob * 2.0 ** num_state_qubits))
                 b_value = '{0:b}'.format(i).rjust(qc.width(), '0')
                 x = int(b_value[(-num_state_qubits):], 2)
-                comp_result = int(b_value[-num_state_qubits-1], 2)
+                comp_result = int(b_value[-num_state_qubits - 1], 2)
                 if geq:
                     self.assertEqual(x >= value, comp_result == 1)
                 else:

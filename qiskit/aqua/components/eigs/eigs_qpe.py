@@ -88,9 +88,9 @@ class EigsQPE(Eigenvalues):
         if self._evo_time is None:
             lmax = sum([abs(p[0]) for p in self._operator.paulis])
             if not self._negative_evals:
-                self._evo_time = (1-2**-self._num_ancillae)*2*np.pi/lmax
+                self._evo_time = (1 - 2 ** -self._num_ancillae) * 2 * np.pi / lmax
             else:
-                self._evo_time = (1/2-2**-self._num_ancillae)*2*np.pi/lmax
+                self._evo_time = (1 / 2 - 2 ** -self._num_ancillae) * 2 * np.pi / lmax
 
         # check for identify paulis to get its coef for applying global
         # phase shift on ancillae later
@@ -152,5 +152,5 @@ class EigsQPE(Eigenvalues):
             qc.cx(sgn, qi)
         self._ne_qfts[0].construct_circuit(mode='circuit', qubits=qs, circuit=qc, do_swaps=False)
         for i, qi in enumerate(reversed(qs)):
-            qc.cu1(2*np.pi/2**(i+1), sgn, qi)
+            qc.cu1(2 * np.pi / 2 ** (i + 1), sgn, qi)
         self._ne_qfts[1].construct_circuit(mode='circuit', qubits=qs, circuit=qc, do_swaps=False)

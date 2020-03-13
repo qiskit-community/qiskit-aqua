@@ -74,8 +74,8 @@ class Suzuki(TrotterizationBase):
             return list(reversed(half)) + half
         else:
             p_k = (4 - 4 ** (1 / (2 * expansion_order - 1))) ** -1
-            side = 2 * Suzuki.suzuki_recursive_expansion(op_list, evo_time *
-                                                         p_k, expansion_order - 2, reps)
+            side = 2 * Suzuki.suzuki_recursive_expansion(op_list, evo_time
+                                                         * p_k, expansion_order - 2, reps)
             middle = Suzuki.suzuki_recursive_expansion(op_list, evo_time * (1 - 4 * p_k),
                                                        expansion_order - 2, reps)
             return side + middle + side

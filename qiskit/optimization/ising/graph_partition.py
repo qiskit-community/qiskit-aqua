@@ -85,7 +85,7 @@ def objective_value(x, w):
         float: value of the cut.
     """
     # pylint: disable=invalid-name
-    X = np.outer(x, (1-x))
+    X = np.outer(x, (1 - x))
     w_01 = np.where(w != 0, 1, 0)
     return np.sum(w_01 * X)
 

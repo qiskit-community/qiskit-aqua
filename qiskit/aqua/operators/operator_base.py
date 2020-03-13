@@ -170,7 +170,7 @@ class OperatorBase(ABC):
 
     def __truediv__(self, other):
         """ Overload / """
-        return self.mul(1/other)
+        return self.mul(1 / other)
 
     @abstractmethod
     def mul(self, scalar):

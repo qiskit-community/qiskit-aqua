@@ -39,7 +39,7 @@ class BernoulliDistribution(UnivariateDistribution):
             low: Low value
             high: High value
         """
-        probabilities = np.array([1-p, p])
+        probabilities = np.array([1 - p, p])
         super().__init__(1, probabilities, low, high)
         self._p = p
 

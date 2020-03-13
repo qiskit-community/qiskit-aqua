@@ -137,7 +137,7 @@ class TestTPBGroupedWeightedPauliOperator(QiskitAquaTestCase):
         result = self.quantum_instance_qasm.execute(circuits)
         pauli_value = self.qubit_op.evaluate_with_result(result=result, statevector_mode=False)
         grouped_op = op_converter.to_tpb_grouped_weighted_pauli_operator(
-                        self.qubit_op, TPBGroupedWeightedPauliOperator.sorted_grouping)
+            self.qubit_op, TPBGroupedWeightedPauliOperator.sorted_grouping)
         shots = 65536 // grouped_op.num_groups
         self.quantum_instance_qasm.set_config(shots=shots)
         circuits = grouped_op.construct_evaluation_circuit(wave_function=wave_function,

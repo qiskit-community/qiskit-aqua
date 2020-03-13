@@ -306,8 +306,8 @@ class QuantumInstance:
             if build_cals_matrix:
                 logger.info("Updating qobj with the circuits for measurement error mitigation.")
                 use_different_shots = not (
-                    self._meas_error_mitigation_shots is None or
-                    self._meas_error_mitigation_shots == self._run_config.shots)
+                    self._meas_error_mitigation_shots is None
+                    or self._meas_error_mitigation_shots == self._run_config.shots)
                 temp_run_config = copy.deepcopy(self._run_config)
                 if use_different_shots:
                     temp_run_config.shots = self._meas_error_mitigation_shots

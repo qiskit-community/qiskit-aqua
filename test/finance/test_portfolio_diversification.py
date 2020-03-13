@@ -59,7 +59,7 @@ class ClassicalOptimizer:
 
         my_rhs = [q] + [1 for x in range(0, n)] + \
                  [0 for x in range(0, n)] + [0.1 for x in range(0, n ** 2)]
-        my_sense = "".join(['E' for x in range(0, 1+n)]) + \
+        my_sense = "".join(['E' for x in range(0, 1 + n)]) + \
                    "".join(['E' for x in range(0, n)]) + \
                    "".join(['L' for x in range(0, n ** 2)])
 
@@ -92,12 +92,12 @@ class ClassicalOptimizer:
         prob.set_results_stream(None)
 
         rows = []
-        col = list(range(n**2, n**2+n))
+        col = list(range(n ** 2, n ** 2 + n))
         coef = [1 for x in range(0, n)]
         rows.append([col, coef])
 
         for i_i in range(0, n):
-            col = list(range(0+n*i_i, n+n*i_i))
+            col = list(range(0 + n * i_i, n + n * i_i))
             coef = [1 for x in range(0, n)]
 
             rows.append([col, coef])
@@ -109,7 +109,7 @@ class ClassicalOptimizer:
 
         for i_i in range(0, n):
             for j_j in range(0, n):
-                col = [i_i*n + j_j, n ** 2 + j_j]
+                col = [i_i * n + j_j, n ** 2 + j_j]
                 coef = [1, -1]
 
                 rows.append([col, coef])

@@ -90,8 +90,7 @@ class TestMCMTGate(QiskitAquaTestCase):
                 if single_control_gate_function.__name__ == 'cz':
                     # Z gate flips the last qubit only if it's applied an odd
                     # number of times
-                    if (len(subset) == num_controls
-                            and (num_controls % 2) == 1):
+                    if len(subset) == num_controls and (num_controls % 2) == 1:
                         vec_exp[-1] = -1
                 elif single_control_gate_function.__name__ == 'ch':
                     # if all the control qubits have been activated,
@@ -110,8 +109,7 @@ class TestMCMTGate(QiskitAquaTestCase):
                 # append the remaining part of the state
                 vec_exp = np.concatenate(
                     (vec_exp,
-                     [0] * (2**(num_controls + num_ancillae + num_targets) -
-                            vec_exp.size)))
+                     [0] * (2**(num_controls + num_ancillae + num_targets) - vec_exp.size)))
                 f_i = state_fidelity(vec, vec_exp)
                 self.assertAlmostEqual(f_i, 1)
 

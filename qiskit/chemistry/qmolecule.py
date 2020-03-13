@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019
+# (C) Copyright IBM 2018, 2020
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -430,14 +430,14 @@ class QMolecule:
 
         # The number of spin orbitals is twice the number of orbitals
         norbs = mohij.shape[0]
-        nspin_orbs = 2*norbs
+        nspin_orbs = 2 * norbs
 
         # One electron terms
         moh1_qubit = numpy.zeros([nspin_orbs, nspin_orbs])
         for p in range(nspin_orbs):  # pylint: disable=invalid-name
             for q in range(nspin_orbs):
-                spinp = int(p/norbs)
-                spinq = int(q/norbs)
+                spinp = int(p / norbs)
+                spinq = int(q / norbs)
                 if spinp % 2 != spinq % 2:
                     continue
                 ints = mohij if spinp == 0 else mohij_b
@@ -475,7 +475,7 @@ class QMolecule:
 
         # The number of spin orbitals is twice the number of orbitals
         norbs = mohijkl.shape[0]
-        nspin_orbs = 2*norbs
+        nspin_orbs = 2 * norbs
 
         # The spin orbitals are mapped in the following way:
         #       Orbital zero, spin up mapped to qubit 0
@@ -495,10 +495,10 @@ class QMolecule:
             for q in range(nspin_orbs):
                 for r in range(nspin_orbs):
                     for s in range(nspin_orbs):  # pylint: disable=invalid-name
-                        spinp = int(p/norbs)
-                        spinq = int(q/norbs)
-                        spinr = int(r/norbs)
-                        spins = int(s/norbs)
+                        spinp = int(p / norbs)
+                        spinq = int(q / norbs)
+                        spinr = int(r / norbs)
+                        spins = int(s / norbs)
                         if spinp != spins:
                             continue
                         if spinq != spinr:
@@ -512,7 +512,7 @@ class QMolecule:
                         orbr = int(r % norbs)
                         orbs = int(s % norbs)
                         if abs(ints[orbp, orbq, orbr, orbs]) > threshold:
-                            moh2_qubit[p, q, r, s] = -0.5*ints[orbp, orbq, orbr, orbs]
+                            moh2_qubit[p, q, r, s] = -0.5 * ints[orbp, orbq, orbr, orbs]
 
         return moh2_qubit
 

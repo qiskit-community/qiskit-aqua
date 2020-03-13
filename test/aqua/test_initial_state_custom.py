@@ -56,13 +56,13 @@ class TestInitialStateCustom(QiskitAquaTestCase):
         """ qubits 2 uniform vector test """
         custom = Custom(2, state='uniform')
         cct = custom.construct_circuit('vector')
-        np.testing.assert_array_equal(cct, [0.5]*4)
+        np.testing.assert_array_equal(cct, [0.5] * 4)
 
     def test_qubits_5_uniform_vector(self):
         """ qubits 5 uniform vector test """
         custom = Custom(5, state='uniform')
         cct = custom.construct_circuit('vector')
-        np.testing.assert_array_almost_equal(cct, [0.1767767]*32)
+        np.testing.assert_array_almost_equal(cct, [0.1767767] * 32)
 
     def test_qubits_2_uniform_circuit(self):
         """ qubits 2 uniform circuit test """
@@ -88,15 +88,15 @@ class TestInitialStateCustom(QiskitAquaTestCase):
 
     def test_qubits_2_given_vector(self):
         """ qubits 2 given vector test """
-        custom = Custom(2, state_vector=[0.5]*4)
+        custom = Custom(2, state_vector=[0.5] * 4)
         cct = custom.construct_circuit('vector')
-        np.testing.assert_array_equal(cct, [0.5]*4)
+        np.testing.assert_array_equal(cct, [0.5] * 4)
 
     def test_qubits_5_given_vector(self):
         """ qubits 5 given vector test """
-        custom = Custom(5, state_vector=[1.0]*32)
+        custom = Custom(5, state_vector=[1.0] * 32)
         cct = custom.construct_circuit('vector')
-        np.testing.assert_array_almost_equal(cct, [0.1767767]*32)
+        np.testing.assert_array_almost_equal(cct, [0.1767767] * 32)
 
     def test_qubits_5_randgiven_vector(self):
         """ qubits 5 randgiven vector test """
@@ -109,7 +109,7 @@ class TestInitialStateCustom(QiskitAquaTestCase):
     def test_qubits_qubits_given_mismatch(self):
         """ qubits 5 given mismatch test """
         with self.assertRaises(AquaError):
-            _ = Custom(5, state_vector=[1.0]*23)
+            _ = Custom(5, state_vector=[1.0] * 23)
 
     def test_qubits_2_zero_vector_wrong_cct_mode(self):
         """ qubits 2 zero vector wrong cct mode test """

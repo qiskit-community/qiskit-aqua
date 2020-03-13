@@ -199,7 +199,7 @@ def _check_molecule_format(val):
                 z = [parts[0]]
                 for i in range(1, len(parts), 2):
                     z.append(int(parts[i]))
-                    z.append(float(parts[i+1]))
+                    z.append(float(parts[i + 1]))
                 zmat.append(z)
             xyz = z2xyz(zmat)
             new_val = ""

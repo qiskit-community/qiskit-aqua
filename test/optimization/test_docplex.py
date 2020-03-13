@@ -271,8 +271,8 @@ class TestDocplex(QiskitOptimizationTestCase):
         expected_result = ee_expected.run()
 
         # Compare objective
-        self.assertEqual(result.eigenvalue.real +
-                         offset, expected_result.eigenvalue.real + OFFSET_TSP)
+        self.assertEqual(result.eigenvalue.real + offset,
+                         expected_result.eigenvalue.real + OFFSET_TSP)
 
     def test_docplex_integer_constraints(self):
         """ Docplex Integer Constraints test """

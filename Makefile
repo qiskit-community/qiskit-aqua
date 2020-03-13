@@ -43,7 +43,7 @@ lint:
 	pylint -rn --ignore=gauopen qiskit/aqua qiskit/chemistry qiskit/finance qiskit/ml qiskit/optimization test tools
 
 style:
-	pycodestyle --max-line-length=100 --exclude=gauopen qiskit/aqua qiskit/chemistry qiskit/finance qiskit/ml qiskit/optimization test tools
+	pycodestyle --max-line-length=100 --ignore=W503,E741,E241 --exclude=gauopen qiskit/aqua qiskit/chemistry qiskit/finance qiskit/ml qiskit/optimization test tools
 
 test:
 	python -m unittest discover -v test

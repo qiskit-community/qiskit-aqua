@@ -125,7 +125,7 @@ class VQEAdapt(VQAlgorithm):
             parameter_sets = theta + [-delta] + theta + [delta]
             energy_results = vqe._energy_evaluation(np.asarray(parameter_sets))
             # compute gradient
-            gradient = (energy_results[0] - energy_results[1]) / (2*delta)
+            gradient = (energy_results[0] - energy_results[1]) / (2 * delta)
             res.append((np.abs(gradient), exc))
             # pop excitation from variational form
             var_form.pop_hopping_operator()

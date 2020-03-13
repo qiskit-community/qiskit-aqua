@@ -48,7 +48,7 @@ class TestDriver(ABC):
     def test_driver_nuclear_repulsion_energy(self):
         """ driver nuclear repulsion energy test """
         self.log.debug('QMolecule Nuclear repulsion energy: {}'.format(
-                        self.qmolecule.nuclear_repulsion_energy))
+            self.qmolecule.nuclear_repulsion_energy))
         self.assertAlmostEqual(self.qmolecule.nuclear_repulsion_energy, 0.72, places=2)
 
     def test_driver_num_orbitals(self):
@@ -125,7 +125,7 @@ class TestDriver(ABC):
     def test_driver_dipole_integrals(self):
         """ driver dipole integrals test """
         self.log.debug('QMolecule has dipole integrals {}'.format(
-                        self.qmolecule.has_dipole_integrals()))
+            self.qmolecule.has_dipole_integrals()))
         if self.qmolecule.has_dipole_integrals():
             self.assertEqual(self.qmolecule.x_dip_mo_ints.shape, (2, 2))
             self.assertEqual(self.qmolecule.y_dip_mo_ints.shape, (2, 2))

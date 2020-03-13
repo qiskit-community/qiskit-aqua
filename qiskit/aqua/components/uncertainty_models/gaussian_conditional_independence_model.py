@@ -58,7 +58,7 @@ class GaussianConditionalIndependenceModel(MultivariateDistribution):
         self.p_zeros = p_zeros
         self.rhos = rhos
         self.K = len(p_zeros)
-        num_qubits = [n_normal] + [1]*self.K
+        num_qubits = [n_normal] + [1] * self.K
 
         # set and store indices
         if i_normal is not None:
@@ -82,8 +82,8 @@ class GaussianConditionalIndependenceModel(MultivariateDistribution):
             return norm.pdf(x)
 
         # set low/high values
-        low = [-normal_max_value] + [0]*self.K
-        high = [normal_max_value] + [1]*self.K
+        low = [-normal_max_value] + [0] * self.K
+        high = [normal_max_value] + [1] * self.K
 
         # call super constructor
         super().__init__(num_qubits, low=low, high=high)
@@ -102,11 +102,11 @@ class GaussianConditionalIndependenceModel(MultivariateDistribution):
             # compute slope / offset
             slope = -np.sqrt(rhos[k]) / np.sqrt(1 - rhos[k])
             slope *= f(psi) / np.sqrt(1 - F(psi)) / np.sqrt(F(psi))
-            offset = 2*np.arcsin(np.sqrt(F(psi)))
+            offset = 2 * np.arcsin(np.sqrt(F(psi)))
 
             # adjust for integer to normal range mapping
             offset += slope * (-normal_max_value)
-            slope *= 2*normal_max_value / (2**n_normal - 1)
+            slope *= 2 * normal_max_value / (2 ** n_normal - 1)
 
             self._offsets[k] = offset
             self._slopes[k] = slope

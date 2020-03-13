@@ -62,17 +62,17 @@ def get_operator(weight_matrix):
                 v_p = np.zeros(n)
                 v_p[i] = 1
                 v_p[j] = 1
-                pauli_list.append([a__*0.25, Pauli(v_p, w_p)])
+                pauli_list.append([a__ * 0.25, Pauli(v_p, w_p)])
 
                 v_p2 = np.zeros(n)
                 v_p2[i] = 1
-                pauli_list.append([-a__*0.25, Pauli(v_p2, w_p)])
+                pauli_list.append([-a__ * 0.25, Pauli(v_p2, w_p)])
 
                 v_p3 = np.zeros(n)
                 v_p3[j] = 1
-                pauli_list.append([-a__*0.25, Pauli(v_p3, w_p)])
+                pauli_list.append([-a__ * 0.25, Pauli(v_p3, w_p)])
 
-                shift += a__*0.25
+                shift += a__ * 0.25
 
     for i in range(n):
         w_p = np.zeros(n)

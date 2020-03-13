@@ -117,7 +117,7 @@ class OpPrimitive(OperatorBase):
         if not isinstance(other, int) or other < 0:
             raise TypeError('Kronpower can only take positive int arguments')
         temp = OpPrimitive(self.primitive, coeff=self.coeff)
-        for i in range(other-1):
+        for i in range(other - 1):
             temp = temp.kron(self)
         return temp
 

@@ -68,7 +68,8 @@ class WeightedSumOperator(CircuitFactory):
         else:
             self.i_state = i_state
         if i_sum is None:
-            self.i_sum = list(range(max(self.i_state)+1, max(self.i_state)+self.num_sum_qubits+1))
+            self.i_sum = \
+                list(range(max(self.i_state) + 1, max(self.i_state) + self.num_sum_qubits + 1))
         else:
             if len(i_sum) == self.get_required_sum_qubits(weights):
                 self.i_sum = i_sum
@@ -147,7 +148,7 @@ class WeightedSumOperator(CircuitFactory):
                             # - controlled by q_state[i]
                             qc.ccx(q_state, q[i_sum[j]], q_ancillas[i_carry[j]])
                             qc.cx(q_state, q[i_sum[j]])
-                        elif j == self.num_sum_qubits-1:
+                        elif j == self.num_sum_qubits - 1:
                             # compute (q_sum[j] + q_carry[j-1] + 1) into (q_sum[j])
                             # - controlled by q_state[i] / last qubit,
                             # no carry needed by construction
@@ -157,23 +158,23 @@ class WeightedSumOperator(CircuitFactory):
                             # compute (q_sum[j] + q_carry[j-1] + 1) into (q_sum[j], q_carry[j])
                             # - controlled by q_state[i]
                             qc.x(q[i_sum[j]])
-                            qc.x(q_ancillas[i_carry[j-1]])
+                            qc.x(q_ancillas[i_carry[j - 1]])
                             qc.mct(
-                                [q_state, q[i_sum[j]], q_ancillas[i_carry[j-1]]],
+                                [q_state, q[i_sum[j]], q_ancillas[i_carry[j - 1]]],
                                 q_ancillas[i_carry[j]],
                                 [q_ancillas[i_control]]
                             )
                             qc.cx(q_state, q_ancillas[i_carry[j]])
                             qc.x(q[i_sum[j]])
-                            qc.x(q_ancillas[i_carry[j-1]])
+                            qc.x(q_ancillas[i_carry[j - 1]])
                             qc.cx(q_state, q[i_sum[j]])
-                            qc.ccx(q_state, q_ancillas[i_carry[j-1]], q[i_sum[j]])
+                            qc.ccx(q_state, q_ancillas[i_carry[j - 1]], q[i_sum[j]])
                     else:
                         if self.num_sum_qubits == 1:
                             pass  # nothing to do, since nothing to add
                         elif j == 0:
                             pass  # nothing to do, since nothing to add
-                        elif j == self.num_sum_qubits-1:
+                        elif j == self.num_sum_qubits - 1:
                             # compute (q_sum[j] + q_carry[j-1]) into (q_sum[j])
                             # - controlled by q_state[i] / last qubit,
                             # no carry needed by construction
@@ -182,11 +183,11 @@ class WeightedSumOperator(CircuitFactory):
                             # compute (q_sum[j] + q_carry[j-1]) into (q_sum[j], q_carry[j])
                             # - controlled by q_state[i]
                             qc.mct(
-                                [q_state, q[i_sum[j]], q_ancillas[i_carry[j-1]]],
+                                [q_state, q[i_sum[j]], q_ancillas[i_carry[j - 1]]],
                                 q_ancillas[i_carry[j]],
                                 [q_ancillas[i_control]]
                             )
-                            qc.ccx(q_state, q_ancillas[i_carry[j-1]], q[i_sum[j]])
+                            qc.ccx(q_state, q_ancillas[i_carry[j - 1]], q[i_sum[j]])
 
                 # uncompute carry qubits
                 for j in reversed(range(len(w_bits))):

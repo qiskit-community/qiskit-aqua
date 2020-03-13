@@ -201,7 +201,7 @@ class OpVec(OperatorBase):
         # Avoid circular dependency
         # pylint: disable=cyclic-import,import-outside-toplevel
         from .op_kron import OpKron
-        return OpKron([self]*other)
+        return OpKron([self] * other)
 
     # TODO change to *other to efficiently handle lists?
     def compose(self, other):
@@ -232,7 +232,7 @@ class OpVec(OperatorBase):
         # Avoid circular dependency
         # pylint: disable=cyclic-import,import-outside-toplevel
         from .op_composition import OpComposition
-        return OpComposition([self]*other)
+        return OpComposition([self] * other)
 
     def to_matrix(self, massive=False):
         """ Return numpy matrix of operator, warn if more than 16 qubits
@@ -252,7 +252,7 @@ class OpVec(OperatorBase):
         # Combination function must be able to handle classical values
         # TODO wrap combo function in np.array? Or just here to make sure broadcasting works?
         if self.distributive:
-            return self.combo_fn([op.to_matrix()*self.coeff for op in self.oplist])
+            return self.combo_fn([op.to_matrix() * self.coeff for op in self.oplist])
         else:
             return self.combo_fn([op.to_matrix() for op in self.oplist]) * self.coeff
 
@@ -290,7 +290,7 @@ class OpVec(OperatorBase):
                 new_front = (self.coeff * op).eval(front)
                 res += [back.eval(new_front)] if back is not None else [new_front]
             else:
-                res += [(self.coeff*op).eval(front, back)]
+                res += [(self.coeff * op).eval(front, back)]
 
         return self.combo_fn(res)
 

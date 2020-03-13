@@ -193,8 +193,9 @@ def discretize_and_truncate(data, bounds, num_qubits, return_data_grid_elements=
         # prepare element grid for dim j
         elements_current_dim = np.linspace(bounds[j, 0], bounds[j, 1], (2 ** prec))
         # find index for data sample in grid
-        index_grid = np.searchsorted(elements_current_dim,
-                                     data_row-(elements_current_dim[1]-elements_current_dim[0])*0.5)
+        index_grid = np.searchsorted(
+            elements_current_dim,
+            data_row - (elements_current_dim[1] - elements_current_dim[0]) * 0.5)
         for k, index in enumerate(index_grid):
             data[k, j] = elements_current_dim[index]
         if j == 0:

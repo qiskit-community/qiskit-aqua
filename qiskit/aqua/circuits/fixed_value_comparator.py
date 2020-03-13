@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -121,23 +121,23 @@ class FixedValueComparator(CircuitFactory):
                     if i == 0:
                         if tc[i] == 1:
                             qc.cx(q_state[i], q_ancillas[i])
-                    elif i < self.num_state_qubits-1:
+                    elif i < self.num_state_qubits - 1:
                         if tc[i] == 1:
-                            qc.OR([q_state[i], q_ancillas[i-1]], q_ancillas[i], None)
+                            qc.OR([q_state[i], q_ancillas[i - 1]], q_ancillas[i], None)
                         else:
-                            qc.ccx(q_state[i], q_ancillas[i-1], q_ancillas[i])
+                            qc.ccx(q_state[i], q_ancillas[i - 1], q_ancillas[i])
                     else:
                         if tc[i] == 1:
-                            qc.OR([q_state[i], q_ancillas[i-1]], q_result, None)
+                            qc.OR([q_state[i], q_ancillas[i - 1]], q_result, None)
                         else:
-                            qc.ccx(q_state[i], q_ancillas[i-1], q_result)
+                            qc.ccx(q_state[i], q_ancillas[i - 1], q_result)
 
                 # flip result bit if geq flag is false
                 if not self._geq:
                     qc.x(q_result)
 
                 # uncompute ancillas state
-                for i in reversed(range(self.num_state_qubits-1)):
+                for i in reversed(range(self.num_state_qubits - 1)):
                     if i == 0:
                         if tc[i] == 1:
                             qc.cx(q_state[i], q_ancillas[i])

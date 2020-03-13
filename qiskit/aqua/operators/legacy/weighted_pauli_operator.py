@@ -1107,10 +1107,10 @@ class Z2Symmetries:
                             and stacked_symm_del[symm_idx, col + symm_shape[1] // 2] in (0, 1)):
                         Z_or_I = False
                 if Z_or_I:
-                    if ((stacked_symmetries[row, col] == 1 and
-                         stacked_symmetries[row, col + symm_shape[1] // 2] == 0) or
-                            (stacked_symmetries[row, col] == 1 and
-                             stacked_symmetries[row, col + symm_shape[1] // 2] == 1)):
+                    if ((stacked_symmetries[row, col] == 1
+                         and stacked_symmetries[row, col + symm_shape[1] // 2] == 0)
+                            or (stacked_symmetries[row, col] == 1
+                                and stacked_symmetries[row, col + symm_shape[1] // 2] == 1)):
                         sq_paulis.append(Pauli(np.zeros(symm_shape[1] // 2),
                                                np.zeros(symm_shape[1] // 2)))
                         sq_paulis[row].z[col] = False
@@ -1121,14 +1121,14 @@ class Z2Symmetries:
                 # case symmetries other than one at (row) have X or I on col qubit
                 X_or_I = True
                 for symm_idx in range(symm_shape[0] - 1):
-                    if not (stacked_symm_del[symm_idx, col] in (0, 1) and
-                            stacked_symm_del[symm_idx, col + symm_shape[1] // 2] == 0):
+                    if not (stacked_symm_del[symm_idx, col] in (0, 1)
+                            and stacked_symm_del[symm_idx, col + symm_shape[1] // 2] == 0):
                         X_or_I = False
                 if X_or_I:
-                    if ((stacked_symmetries[row, col] == 0 and
-                         stacked_symmetries[row, col + symm_shape[1] // 2] == 1) or
-                            (stacked_symmetries[row, col] == 1 and
-                             stacked_symmetries[row, col + symm_shape[1] // 2] == 1)):
+                    if ((stacked_symmetries[row, col] == 0
+                         and stacked_symmetries[row, col + symm_shape[1] // 2] == 1)
+                            or (stacked_symmetries[row, col] == 1
+                                and stacked_symmetries[row, col + symm_shape[1] // 2] == 1)):
                         sq_paulis.append(Pauli(np.zeros(symm_shape[1] // 2),
                                                np.zeros(symm_shape[1] // 2)))
                         sq_paulis[row].z[col] = True
@@ -1139,16 +1139,16 @@ class Z2Symmetries:
                 # case symmetries other than one at (row)  have Y or I on col qubit
                 Y_or_I = True
                 for symm_idx in range(symm_shape[0] - 1):
-                    if not ((stacked_symm_del[symm_idx, col] == 1 and
-                             stacked_symm_del[symm_idx, col + symm_shape[1] // 2] == 1)
-                            or (stacked_symm_del[symm_idx, col] == 0 and
-                                stacked_symm_del[symm_idx, col + symm_shape[1] // 2] == 0)):
+                    if not ((stacked_symm_del[symm_idx, col] == 1
+                             and stacked_symm_del[symm_idx, col + symm_shape[1] // 2] == 1)
+                            or (stacked_symm_del[symm_idx, col] == 0
+                                and stacked_symm_del[symm_idx, col + symm_shape[1] // 2] == 0)):
                         Y_or_I = False
                 if Y_or_I:
-                    if ((stacked_symmetries[row, col] == 0 and
-                         stacked_symmetries[row, col + symm_shape[1] // 2] == 1) or
-                            (stacked_symmetries[row, col] == 1 and
-                             stacked_symmetries[row, col + symm_shape[1] // 2] == 0)):
+                    if ((stacked_symmetries[row, col] == 0
+                         and stacked_symmetries[row, col + symm_shape[1] // 2] == 1)
+                            or (stacked_symmetries[row, col] == 1
+                                and stacked_symmetries[row, col + symm_shape[1] // 2] == 0)):
                         sq_paulis.append(Pauli(np.zeros(symm_shape[1] // 2),
                                                np.zeros(symm_shape[1] // 2)))
                         sq_paulis[row].z[col] = True

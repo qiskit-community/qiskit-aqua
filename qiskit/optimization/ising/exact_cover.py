@@ -57,8 +57,8 @@ def get_operator(list_of_subsets):
         cond = [True if e in sub else False for sub in list_of_subsets]
         indices_has_e = np.arange(n)[cond]
         num_has_e = len(indices_has_e)
-        Y = 1-0.5*num_has_e
-        shift += Y*Y
+        Y = 1 - 0.5 * num_has_e
+        shift += Y * Y
 
         for i in indices_has_e:
             for j in indices_has_e:

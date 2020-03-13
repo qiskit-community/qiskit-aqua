@@ -60,17 +60,17 @@ def get_operator(list_of_subsets):
                 vp = np.zeros(n)
                 vp[i] = 1
                 vp[j] = 1
-                pauli_list.append([A*0.25, Pauli(vp, wp)])
+                pauli_list.append([A * 0.25, Pauli(vp, wp)])
 
                 vp2 = np.zeros(n)
                 vp2[i] = 1
-                pauli_list.append([A*0.25, Pauli(vp2, wp)])
+                pauli_list.append([A * 0.25, Pauli(vp2, wp)])
 
                 vp3 = np.zeros(n)
                 vp3[j] = 1
-                pauli_list.append([A*0.25, Pauli(vp3, wp)])
+                pauli_list.append([A * 0.25, Pauli(vp3, wp)])
 
-                shift += A*0.25
+                shift += A * 0.25
 
     for i in range(n):
         wp = np.zeros(n)

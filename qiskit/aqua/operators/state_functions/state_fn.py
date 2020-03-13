@@ -164,7 +164,7 @@ class StateFn(OperatorBase):
         temp = StateFn(self.primitive,
                        coeff=self.coeff,
                        is_measurement=self.is_measurement)
-        for i in range(other-1):
+        for i in range(other - 1):
             temp = temp.kron(self)
         return temp
 
@@ -206,7 +206,7 @@ class StateFn(OperatorBase):
         # pylint: disable=import-outside-toplevel
         from qiskit.aqua.operators import OpCircuit
 
-        if self.primitive == {'0'*self.num_qubits: 1.0} and isinstance(other, OpCircuit):
+        if self.primitive == {'0' * self.num_qubits: 1.0} and isinstance(other, OpCircuit):
             # Returning StateFnCircuit
             return StateFn(other.primitive, is_measurement=self.is_measurement,
                            coeff=self.coeff * other.coeff)

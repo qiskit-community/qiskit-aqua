@@ -52,7 +52,7 @@ def get_operator(values):
             z_p[i] = True
             z_p[j] = True
             pauli_list.append([2. * values[i] * values[j], Pauli(z_p, x_p)])
-    return WeightedPauliOperator(paulis=pauli_list), sum(values*values)
+    return WeightedPauliOperator(paulis=pauli_list), sum(values * values)
 
 
 def partition_value(x, number_list):

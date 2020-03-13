@@ -361,16 +361,16 @@ class MatrixOperator(LegacyBaseOperator):
 
             if len(pauli_list) == 1:
                 approx_matrix_slice = scila.expm(
-                    -1.j * evo_time / num_time_slices * pauli_list[0][0] *
-                    pauli_list[0][1].to_spmatrix().tocsc()
+                    -1.j * evo_time / num_time_slices * pauli_list[0][0]
+                    * pauli_list[0][1].to_spmatrix().tocsc()
                 )
             else:
                 if expansion_mode == 'trotter':
                     approx_matrix_slice = reduce(
                         lambda x, y: x @ y,
                         [
-                            scila.expm(-1.j * evo_time /
-                                       num_time_slices * c * p.to_spmatrix().tocsc())
+                            scila.expm(-1.j * evo_time
+                                       / num_time_slices * c * p.to_spmatrix().tocsc())
                             for c, p in pauli_list
                         ]
                     )
