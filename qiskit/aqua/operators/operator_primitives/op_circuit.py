@@ -17,7 +17,7 @@ import numpy as np
 
 from qiskit import QuantumCircuit, BasicAer, execute
 from qiskit.extensions.standard import IGate
-from qiskit.circuit import Instruction
+from qiskit.circuit import Instruction, ParameterExpression
 
 from ..operator_combos import OpSum, OpComposition, OpKron
 from .op_primitive import OpPrimitive
@@ -192,15 +192,20 @@ class OpCircuit(OpPrimitive):
         else:
             return "{} * {}".format(self.coeff, prim_str)
 
-    # TODO figure out binding instruction parameters.
-    # def bind_parameters(self, param_dict):
-    #     param_value = self.coeff
-    #     if isinstance(self.coeff, ParameterExpression):
-    #         unrolled_dict = self._unroll_param_dict(param_dict)
-    #         if self.coeff in unrolled_dict:
-    #             # TODO what do we do about complex?
-    #             param_value = float(self.coeff.bind(unrolled_dict[self.coeff]))
-    #     return self.__class__(self.primitive, coeff=param_value)
+    def bind_parameters(self, param_dict):
+        param_value = self.coeff
+        qc = self.primitive
+        if isinstance(self.coeff, ParameterExpression) or self.primitive.params:
+            unrolled_dict = self._unroll_param_dict(param_dict)
+            if isinstance(unrolled_dict, list):
+                from ..operator_combos.op_vec import OpVec
+                return OpVec([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
+            if self.coeff in unrolled_dict:
+                # TODO what do we do about complex?
+                param_value = float(self.coeff.bind(unrolled_dict[self.coeff]))
+            if all(param in unrolled_dict for param in self.primitive.params):
+                qc = self.to_circuit().decompose().bind_parameters(param_dict)
+        return self.__class__(qc, coeff=param_value)
 
     def eval(self, front=None, back=None):
         """ A square binary Operator can be defined as a function over two binary

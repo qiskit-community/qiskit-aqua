@@ -21,7 +21,7 @@ import numpy as np
 from qiskit import BasicAer
 from qiskit.circuit import ParameterVector
 
-from qiskit.aqua.operators import (X, Y, Z, I, CX, H, OpCircuit, Zero, EvolutionBase,
+from qiskit.aqua.operators import (X, Y, Z, I, CX, H, OpVec, OpCircuit, Zero, EvolutionBase,
                                    OpEvolution, PauliTrotterEvolution, QDrift)
 
 
@@ -79,6 +79,49 @@ class TestEvolution(QiskitAquaTestCase):
         # Check that the no parameters are in the circuit
         for p in thetas[1:]:
             self.assertNotIn(p, circuit_params)
+
+    def test_bind_circuit_parameters(self):
+        thetas = ParameterVector('θ', length=6)
+        op = (thetas[1] * I ^ Z) + \
+             (thetas[2] * X ^ X) + \
+             (thetas[3] * Z ^ I) + \
+             (thetas[4] * Y ^ Z) + \
+             (thetas[5] * Z ^ Z)
+        op = thetas[0] * op
+        evolution = PauliTrotterEvolution(trotter_mode='trotter', reps=1, group_paulis=False)
+        # wf = (Pl^Pl) + (Ze^Ze)
+        wf = (op).exp_i() @ CX @ (H ^ I) @ Zero
+        evo = evolution.convert(wf)
+        mean = evo.bind_parameters({thetas: np.arange(10, 16)})
+        # Check that the no parameters are in the circuit
+        for p in thetas[1:]:
+            self.assertNotIn(p, mean.to_circuit().parameters)
+        # Check that original circuit is unchanged
+        for p in thetas:
+            self.assertIn(p, evo.to_circuit().parameters)
+
+    def test_bind_parameter_list(self):
+        thetas = ParameterVector('θ', length=6)
+        op = (thetas[1] * I ^ Z) + \
+             (thetas[2] * X ^ X) + \
+             (thetas[3] * Z ^ I) + \
+             (thetas[4] * Y ^ Z) + \
+             (thetas[5] * Z ^ Z)
+        op = thetas[0] * op
+        evolution = PauliTrotterEvolution(trotter_mode='trotter', reps=1, group_paulis=False)
+        # wf = (Pl^Pl) + (Ze^Ze)
+        wf = (op).exp_i() @ CX @ (H ^ I) @ Zero
+        evo = evolution.convert(wf)
+        param_list = np.transpose([np.arange(10, 16), np.arange(2, 8), np.arange(30, 36)]).tolist()
+        means = evo.bind_parameters({thetas: param_list})
+        self.assertIsInstance(means, OpVec)
+        # Check that the no parameters are in the circuit
+        for p in thetas[1:]:
+            for circop in means.oplist:
+                self.assertNotIn(p, circop.to_circuit().parameters)
+        # Check that original circuit is unchanged
+        for p in thetas:
+            self.assertIn(p, evo.to_circuit().parameters)
 
     def test_qdrift(self):
         op = (2 * Z ^ Z) + (3 * X ^ X) - (4 * Y ^ Y) + (.5 * Z ^ I)

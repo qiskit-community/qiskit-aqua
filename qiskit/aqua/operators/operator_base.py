@@ -18,6 +18,8 @@ from abc import ABC, abstractmethod
 
 from qiskit.circuit import ParameterExpression, ParameterVector
 
+from qiskit.aqua import AquaError
+
 
 class OperatorBase(ABC):
     """ An square binary Operator can be defined in a two equivalent ways:
@@ -189,7 +191,7 @@ class OperatorBase(ABC):
         else:
             return other.kron(self)
 
-    # Copy from terra:
+    # Copy from terra, except the list unrolling:
     @staticmethod
     def _unroll_param_dict(value_dict):
         unrolled_value_dict = {}
@@ -202,7 +204,20 @@ class OperatorBase(ABC):
                         'ParameterVector {} has length {}, which differs from value list {} of '
                         'len {}'.format(param, len(param), value, len(value)))
                 unrolled_value_dict.update(zip(param, value))
+        if isinstance(list(unrolled_value_dict.values())[0], list):
+            # check that all are same length
+            unrolled_value_dict_list = []
+            try:
+                for i in range(len(list(unrolled_value_dict.values())[0])):
+                    unrolled_value_dict_list.append(OperatorBase._get_param_dict_for_index(unrolled_value_dict, i))
+                return unrolled_value_dict_list
+            except(IndexError):
+                raise AquaError('Parameter binding lists must all be the same length.')
         return unrolled_value_dict
+
+    @staticmethod
+    def _get_param_dict_for_index(unrolled_dict, i):
+        return {k: v[i] for (k, v) in unrolled_dict.items()}
 
     @abstractmethod
     def kron(self, other):

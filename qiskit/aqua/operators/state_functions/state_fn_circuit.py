@@ -18,7 +18,7 @@
 import numpy as np
 
 from qiskit import QuantumCircuit, BasicAer, execute
-from qiskit.circuit import Instruction
+from qiskit.circuit import Instruction, ParameterExpression
 from qiskit.extensions import Initialize, IGate
 
 from ..operator_base import OperatorBase
@@ -244,23 +244,28 @@ class StateFnCircuit(StateFn):
         qc = qc.decompose()
         prim_str = str(qc.draw(output='text'))
         if self.coeff == 1.0:
-            return "{}({})".format('StateFunction' if not self.is_measurement
+            return "{}(\n{}\n)".format('StateFunction' if not self.is_measurement
                                    else 'Measurement', prim_str)
         else:
-            return "{}({}) * {}".format('StateFunction' if not self.is_measurement
+            return "{}(\n{}\n) * {}".format('StateFunction' if not self.is_measurement
                                         else 'Measurement',
                                         prim_str,
                                         self.coeff)
 
-    # TODO figure out binding instruction parameters.
-    # def bind_parameters(self, param_dict):
-    #     param_value = self.coeff
-    #     if isinstance(self.coeff, ParameterExpression):
-    #         unrolled_dict = self._unroll_param_dict(param_dict)
-    #         if self.coeff in unrolled_dict:
-    #             # TODO what do we do about complex?
-    #             param_value = float(self.coeff.bind(unrolled_dict[self.coeff]))
-    #     return self.__class__(self.primitive, coeff=param_value)
+    def bind_parameters(self, param_dict):
+        param_value = self.coeff
+        qc = self.primitive
+        if isinstance(self.coeff, ParameterExpression) or self.primitive.params:
+            unrolled_dict = self._unroll_param_dict(param_dict)
+            if isinstance(unrolled_dict, list):
+                from ..operator_combos.op_vec import OpVec
+                return OpVec([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
+            if self.coeff in unrolled_dict:
+                # TODO what do we do about complex?
+                param_value = float(self.coeff.bind(unrolled_dict[self.coeff]))
+            if all(param in unrolled_dict for param in self.primitive.params):
+                qc = self.to_circuit().decompose().bind_parameters(param_dict)
+        return self.__class__(qc, coeff=param_value)
 
     def eval(self, other=None):
         # Validate bitstring: re.fullmatch(rf'[01]{{{0}}}', val1)
