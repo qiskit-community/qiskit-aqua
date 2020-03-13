@@ -35,7 +35,7 @@ class LocalSimulatorSampler(CircuitSampler):
     # Note, Terra's Operator has a to_instruction method.
 
     def __init__(self, backend=None, hw_backend_to_emulate=None, kwargs={},
-                 statevector=False, snapshot=False):
+                 statevector=False, snapshot=False, param_qobj=False):
         """
         Args:
             backend():
@@ -61,6 +61,11 @@ class LocalSimulatorSampler(CircuitSampler):
         if self._snapshot and not is_aer_qasm(self.quantum_instance.backend):
             raise ValueError('Snapshot mode for expectation values requires Aer qasm '
                              'backend, not {}.'.format(backend))
+        self._param_qobj = param_qobj
+        if self._param_qobj and not is_aer_provider(self.quantum_instance.backend):
+            raise ValueError('Parameterized Qobj mode requires Aer '
+                             'backend, not {}.'.format(backend))
+        self._binding_mappings = None
 
     @property
     def backend(self):
@@ -149,12 +154,19 @@ class LocalSimulatorSampler(CircuitSampler):
             op_circuits = list(self._circuit_ops_cache.values())
 
         if param_bindings is not None:
-            ready_circs = [circ.bind_parameters(binding)
-                           for circ in self._transpiled_circ_cache for binding in param_bindings]
+            if self._param_qobj:
+                ready_circs = self._transpiled_circ_cache
+                self._prepare_parameterized_run_config(param_bindings)
+            else:
+                ready_circs = [circ.bind_parameters(binding)
+                               for circ in self._transpiled_circ_cache for binding in param_bindings]
         else:
             ready_circs = self._transpiled_circ_cache
 
         results = self._qi.execute(ready_circs, had_transpiled=True)
+
+        # Wipe parameterizations, if any
+        # self._qi._run_config.parameterizations = None
 
         sampled_statefn_dicts = {}
         for i, op_c in enumerate(op_circuits):
@@ -182,3 +194,18 @@ class LocalSimulatorSampler(CircuitSampler):
                 c_statefns.append(result_sfn)
             sampled_statefn_dicts[id(op_c)] = c_statefns
         return sampled_statefn_dicts
+
+    def _prepare_parameterized_run_config(self, param_bindings):
+        pass
+        # Wipe parameterizations, if any
+        # self._qi._run_config.parameterizations = None
+
+        # if not self._binding_mappings:
+        #     phony_binding = {k: str(k) for k in param_bindings[0].keys()}
+        #     phony_bound_circuits = [circ.bind_parameters(phony_binding) for circ in self._transpiled_circ_cache]
+        #     qobj = self._qi.assemble(phony_bound_circuits)
+        #     # for circ in qobj:
+        #     #     mapping = None
+        #     #     for
+        #
+        # # self._qi._run_config.parameterizations = [params_circ]

@@ -244,6 +244,9 @@ class QuantumInstance:
 
         return transpiled_circuits
 
+    def assemble(self, circuits):
+        return compiler.assemble(circuits, **self._run_config.to_dict())
+
     def execute(self, circuits, had_transpiled=False):
         """
         A wrapper to interface with quantum backend.
@@ -268,7 +271,7 @@ class QuantumInstance:
             circuits = self.transpile(circuits)
 
         # assemble
-        qobj = compiler.assemble(circuits, **self._run_config.to_dict())
+        qobj = self.assemble(circuits)
 
         if self._meas_error_mitigation_cls is not None:
             qubit_index = get_measured_qubits_from_qobj(qobj)
