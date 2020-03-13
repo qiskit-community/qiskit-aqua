@@ -18,7 +18,8 @@ import logging
 
 from .expectation_base import ExpectationBase
 from ..operator_combos import OpVec, OpSum
-from ..state_functions import StateFnCircuit
+from ..operator_primitives import OpPauli
+from ..state_functions import StateFn, StateFnCircuit
 
 logger = logging.getLogger(__name__)
 
@@ -96,17 +97,19 @@ class AerPauliExpectation(ExpectationBase):
         if state and not state == self.state:
             self.state = state
 
-        if not self._snapshot_op:
-            snapshot_meas = self.expectation_op(self.state)
-            self._snapshot_op = snapshot_meas.compose(self.state).reduce()
+        if 'Instruction' in self.state.get_primitives():
+            if not self._snapshot_op:
+                snapshot_meas = self.expectation_op(self.state)
+                self._snapshot_op = snapshot_meas.compose(self.state).reduce()
 
-        measured_op = self._circuit_sampler.convert(self._snapshot_op, params=params)
-
-        # TODO once https://github.com/Qiskit/qiskit-aer/pull/485 goes through
-        # self._quantum_instance._run_config.parameterizations = ...
-        # result = self.quantum_instance.execute(list(self._snapshot_circuit.values()))
-
-        return measured_op.eval()
+            measured_op = self._circuit_sampler.convert(self._snapshot_op, params=params)
+            # TODO once https://github.com/Qiskit/qiskit-aer/pull/485 goes through
+            # self._quantum_instance._run_config.parameterizations = ...
+            # result = self.quantum_instance.execute(list(self._snapshot_circuit.values()))
+            return measured_op.eval()
+        else:
+            # If no circuits to run (i.e. state is a Dict, eval directly)
+            return StateFn(self._operator, is_measurement=True).eval(self.state)
 
     def compute_standard_deviation(self, state=None, params=None):
         return 0.0

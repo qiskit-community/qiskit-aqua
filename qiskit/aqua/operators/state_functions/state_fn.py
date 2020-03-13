@@ -183,6 +183,10 @@ class StateFn(OperatorBase):
 
         return new_self, other
 
+    def to_matrix(self):
+        """ Must be overridden by child classes."""
+        raise NotImplementedError
+
     def compose(self, other):
         """ Composition (Linear algebra-style, right-to-left) is not well
 

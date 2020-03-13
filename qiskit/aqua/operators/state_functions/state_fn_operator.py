@@ -222,7 +222,7 @@ class StateFnOperator(StateFn):
             else:
                 comp = other.adjoint().to_matrix() @ self.primitive.to_matrix() @ other.to_matrix()
 
-            if isinstance(comp, (int, float, complex)):
+            if isinstance(comp, (int, float, complex, list)):
                 return comp
             elif comp.shape == (1,):
                 return comp[0]
