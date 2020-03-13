@@ -63,10 +63,12 @@ class OpPrimitive(OperatorBase):
 
     @property
     def primitive(self):
+        """ returns primitive """
         return self._primitive
 
     @property
     def coeff(self):
+        """ returns coeff """
         return self._coeff
 
     def neg(self):
@@ -160,6 +162,7 @@ class OpPrimitive(OperatorBase):
         return "OpPrimitive({}, coeff={})".format(repr(self.primitive), self.coeff)
 
     def bind_parameters(self, param_dict):
+        """ bind parameters """
         param_value = self.coeff
         if isinstance(self.coeff, ParameterExpression):
             unrolled_dict = self._unroll_param_dict(param_dict)

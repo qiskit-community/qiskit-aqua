@@ -28,6 +28,7 @@ class TestStateConstruction(QiskitAquaTestCase):
     """State Construction tests."""
 
     def test_state_singletons(self):
+        """ state singletons test """
         self.assertEqual(Zero.primitive, {'0': 1})
         self.assertEqual(One.primitive, {'1': 1})
 
@@ -36,9 +37,11 @@ class TestStateConstruction(QiskitAquaTestCase):
         self.assertEqual(((Zero ^ One) ^ 3).primitive, {'010101': 1})
 
     def test_zero_broadcast(self):
+        """ zero broadcast test """
         np.testing.assert_array_almost_equal(((H ^ 5) @ Zero).to_matrix(), (Plus ^ 5).to_matrix())
 
     def test_state_to_matrix(self):
+        """ state to matrix test """
         np.testing.assert_array_equal(Zero.to_matrix(), np.array([1, 0]))
         np.testing.assert_array_equal(One.to_matrix(), np.array([0, 1]))
         np.testing.assert_array_almost_equal(Plus.to_matrix(),
@@ -58,6 +61,7 @@ class TestStateConstruction(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(gnarly_mat, gnarly_mat_separate)
 
     def test_qiskit_result_instantiation(self):
+        """ qiskit result instantiation test """
         qc = QuantumCircuit(3)
         # REMEMBER: This is Qubit 2 in Operator land.
         qc.h(0)
@@ -83,6 +87,7 @@ class TestStateConstruction(QiskitAquaTestCase):
                                              [.5 ** .5, .5 ** .5, 0, 0, 0, 0, 0, 0])
 
     def test_state_meas_composition(self):
+        """ state meas composition test """
         pass
         # print((~Zero^4).eval(Zero^4))
         # print((~One^4).eval(Zero^4))
@@ -90,6 +95,7 @@ class TestStateConstruction(QiskitAquaTestCase):
         # print(StateFn(I^Z, is_measurement=True).eval(One^2))
 
     def test_add_direct(self):
+        """ add direct test """
         wf = StateFn({'101010': .5, '111111': .3}) + (Zero ^ 6)
         self.assertEqual(wf.primitive, {'101010': 0.5, '111111': 0.3, '000000': 1.0})
         wf = (4 * StateFn({'101010': .5, '111111': .3})) + ((3 + .1j) * (Zero ^ 6))
@@ -97,6 +103,7 @@ class TestStateConstruction(QiskitAquaTestCase):
                                         '111111': (1.2 + 0j)})
 
     def test_state_fn_circuit_from_dict_as_sum(self):
+        """state fn circuit from dict as sum test """
         statedict = {'1010101': .5,
                      '1000000': .1,
                      '0000000': .2j,
@@ -111,6 +118,7 @@ class TestStateConstruction(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(StateFn(statedict).to_matrix(), sfc_sum.to_matrix())
 
     def test_state_fn_circuit_from_dict_initialize(self):
+        """ state fn circuit from dict initialize test """
         statedict = {'101': .5,
                      '100': .1,
                      '000': .2,

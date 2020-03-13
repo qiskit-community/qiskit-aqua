@@ -42,6 +42,7 @@ class TestPauliCoB(QiskitAquaTestCase):
                 inst.compose(pauli).compose(inst.adjoint()).to_matrix(), dest.to_matrix())
 
     def test_pauli_cob_two_qubit(self):
+        """ pauli cob two qubit test """
         multis = [Y ^ X, Z ^ Y, I ^ Z, Z ^ I, X ^ X, I ^ X]
         for pauli, dest in itertools.product(multis, reversed(multis)):
             converter = PauliChangeOfBasis(destination_basis=dest)
@@ -54,6 +55,7 @@ class TestPauliCoB(QiskitAquaTestCase):
                 inst.compose(pauli).compose(inst.adjoint()).to_matrix(), dest.to_matrix())
 
     def test_pauli_cob_multiqubit(self):
+        """ pauli cob multi qubit test """
         # Helpful prints for debugging commented out below.
         multis = [Y ^ X ^ I ^ I, I ^ Z ^ Y ^ X, X ^ Y ^ I ^ Z, I ^ I ^ I ^ X, X ^ X ^ X ^ X]
         for pauli, dest in itertools.product(multis, reversed(multis)):
@@ -72,6 +74,7 @@ class TestPauliCoB(QiskitAquaTestCase):
                 inst.compose(pauli).compose(inst.adjoint()).to_matrix(), dest.to_matrix())
 
     def test_pauli_cob_traverse(self):
+        """ pauli cob traverse test """
         # Helpful prints for debugging commented out below.
         multis = [(X ^ Y) + (I ^ Z) + (Z ^ Z), (Y ^ X ^ I ^ I) + (I ^ Z ^ Y ^ X)]
         dests = [Y ^ Y, I ^ I ^ I ^ Z]

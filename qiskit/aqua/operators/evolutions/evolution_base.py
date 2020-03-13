@@ -59,4 +59,5 @@ class EvolutionBase(ConverterBase):
 
     # TODO @abstractmethod
     def error_bounds(self):
+        """ error bounds """
         raise NotImplementedError

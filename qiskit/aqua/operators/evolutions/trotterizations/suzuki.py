@@ -22,17 +22,19 @@ from ...operator_combos import OpComposition
 
 
 class Suzuki(TrotterizationBase):
-
+    """ Simple Trotter expansion """
     def __init__(self, reps=1, order=2):
         super().__init__(reps=reps)
         self._order = order
 
     @property
     def order(self):
+        """ returns order """
         return self._order
 
     @order.setter
     def order(self, order):
+        """ sets order """
         self._order = order
 
     def trotterize(self, op_sum):

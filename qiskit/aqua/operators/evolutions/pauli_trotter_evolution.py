@@ -50,6 +50,7 @@ class PauliTrotterEvolution(EvolutionBase):
 
     @property
     def trotter(self):
+        """ returns trotter """
         return self._trotter
 
     @trotter.setter
@@ -82,6 +83,7 @@ class PauliTrotterEvolution(EvolutionBase):
             return operator
 
     def evolution_for_pauli(self, pauli_op):
+        """ evolution for pauli """
         # TODO Evolve for group of commuting paulis, TODO pauli grouper
 
         def replacement_fn(cob_instr_op, dest_pauli_op):
@@ -98,6 +100,7 @@ class PauliTrotterEvolution(EvolutionBase):
     # TODO
     @staticmethod
     def compute_cnot_distance(pauli_op1, pauli_op2):
+        """ compute cnot distance """
         sig_pauli1_bits = np.logical_and(pauli_op1.primitive.z, pauli_op1.primitive.x)
         sig_pauli2_bits = np.logical_and(pauli_op2.primitive.z, pauli_op2.primitive.x)
 
@@ -116,6 +119,7 @@ class PauliTrotterEvolution(EvolutionBase):
 
     # TODO
     def evolution_for_abelian_paulisum(self, op_sum):
+        """ evolution for abelian pauli sum """
         if not all([isinstance(op, OpPauli) for op in op_sum.oplist]):
             raise TypeError('Evolving abelian sum requires Pauli elements.')
 

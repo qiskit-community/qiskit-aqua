@@ -29,6 +29,7 @@ class TestEvolution(QiskitAquaTestCase):
     """Evolution tests."""
 
     def test_pauli_evolution(self):
+        """ pauli evolution test """
         op = (2 * Z ^ Z) + (3 * X ^ X) - (4 * Y ^ Y) + (.5 * I ^ I)
         op = (-1.052373245772859 * I ^ I) + \
              (0.39793742484318045 * I ^ Z) + \
@@ -44,6 +45,7 @@ class TestEvolution(QiskitAquaTestCase):
         # print(mean.to_matrix())
 
     def test_parameterized_evolution(self):
+        """ parameterized evolution test """
         thetas = ParameterVector('θ', length=7)
         op = (thetas[0] * I ^ I) + \
              (thetas[1] * I ^ Z) + \
@@ -63,6 +65,7 @@ class TestEvolution(QiskitAquaTestCase):
         self.assertNotIn(thetas[0], circuit_params)
 
     def test_bind_parameters(self):
+        """ bind parameters test """
         thetas = ParameterVector('θ', length=6)
         op = (thetas[1] * I ^ Z) + \
              (thetas[2] * X ^ X) + \
@@ -81,6 +84,7 @@ class TestEvolution(QiskitAquaTestCase):
             self.assertNotIn(p, circuit_params)
 
     def test_bind_circuit_parameters(self):
+        """ bind circuit parameters test """
         thetas = ParameterVector('θ', length=6)
         op = (thetas[1] * I ^ Z) + \
              (thetas[2] * X ^ X) + \
@@ -102,6 +106,7 @@ class TestEvolution(QiskitAquaTestCase):
 
     # TODO test with other Op types than StateFnCircuit
     def test_bind_parameter_list(self):
+        """ bind parameters list test """
         thetas = ParameterVector('θ', length=6)
         op = (thetas[1] * I ^ Z) + \
              (thetas[2] * X ^ X) + \
@@ -125,6 +130,7 @@ class TestEvolution(QiskitAquaTestCase):
             self.assertIn(p, evo.to_circuit().parameters)
 
     def test_qdrift(self):
+        """ QDrift test """
         op = (2 * Z ^ Z) + (3 * X ^ X) - (4 * Y ^ Y) + (.5 * Z ^ I)
         trotterization = QDrift().trotterize(op)
         self.assertGreater(len(trotterization.oplist), 150)

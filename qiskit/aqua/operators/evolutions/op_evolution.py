@@ -89,14 +89,14 @@ class OpEvolution(OpPrimitive):
     def compose(self, other):
         """ Operator Composition (Linear algebra-style, right-to-left)
 
-                Note: You must be conscious of Quantum Circuit vs. Linear Algebra
-                ordering conventions. Meaning,
-                X.compose(Y)
-                produces an X∘Y on qubit 0, but would produce a QuantumCircuit which looks like
-                -[Y]-[X]-
-                Because Terra prints circuits with the initial state at the
-                left side of the circuit.
-                """
+        Note: You must be conscious of Quantum Circuit vs. Linear Algebra
+        ordering conventions. Meaning,
+        X.compose(Y)
+        produces an X∘Y on qubit 0, but would produce a QuantumCircuit which looks like
+        -[Y]-[X]-
+        Because Terra prints circuits with the initial state at the
+        left side of the circuit.
+        """
         # TODO accept primitives directly in addition to OpPrimitive?
 
         other = self._check_zero_for_composition_and_expand(other)
@@ -104,6 +104,7 @@ class OpEvolution(OpPrimitive):
         return OpComposition([self, other])
 
     def to_matrix(self, massive=False):
+        """ returns matrix """
         prim_mat = 1.j * self.primitive.to_matrix()
         return scipy.linalg.expm(prim_mat) * self.coeff
 

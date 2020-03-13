@@ -42,6 +42,7 @@ class OperatorBase(ABC):
     # TODO replace with proper alphabets later?
     @abstractmethod
     def num_qubits(self):
+        """ returns number of qubits """
         raise NotImplementedError
 
     @abstractmethod
@@ -209,7 +210,8 @@ class OperatorBase(ABC):
             unrolled_value_dict_list = []
             try:
                 for i in range(len(list(unrolled_value_dict.values())[0])):
-                    unrolled_value_dict_list.append(OperatorBase._get_param_dict_for_index(unrolled_value_dict, i))
+                    unrolled_value_dict_list.append(
+                        OperatorBase._get_param_dict_for_index(unrolled_value_dict, i))
                 return unrolled_value_dict_list
             except(IndexError):
                 raise AquaError('Parameter binding lists must all be the same length.')

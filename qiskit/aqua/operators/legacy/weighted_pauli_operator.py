@@ -92,6 +92,7 @@ class WeightedPauliOperator(LegacyBaseOperator):
         return cls(paulis=[[w, p] for w, p in zip(weights, paulis)], name=name)
 
     def to_opflow(self):
+        """ to op flow """
         # pylint: disable=import-outside-toplevel
         from qiskit.aqua.operators import OpPrimitive
 

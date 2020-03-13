@@ -29,6 +29,7 @@ class TestMatrixExpectation(QiskitAquaTestCase):
     """Pauli Change of Basis Expectation tests."""
 
     def test_matrix_expect_pair(self):
+        """ matrix expect pair test """
         op = (Z ^ Z)
         expect = MatrixExpectation(operator=op)
         # wf = (Pl^Pl) + (Ze^Ze)
@@ -37,6 +38,7 @@ class TestMatrixExpectation(QiskitAquaTestCase):
         self.assertAlmostEqual(mean, 0)
 
     def test_matrix_expect_single(self):
+        """ matrix expect single test """
         paulis = [Z, X, Y, I]
         states = [Zero, One, Plus, Minus, S @ Plus, S @ Minus]
         for pauli, state in itertools.product(paulis, states):
@@ -47,6 +49,7 @@ class TestMatrixExpectation(QiskitAquaTestCase):
             np.testing.assert_array_almost_equal(mean, matmulmean)
 
     def test_matrix_expect_op_vector(self):
+        """ matrix expect op vector test """
         paulis_op = OpVec([X, Y, Z, I])
 
         expect = MatrixExpectation(operator=paulis_op)
@@ -81,6 +84,7 @@ class TestMatrixExpectation(QiskitAquaTestCase):
                                                  mat_op @ sum_zero.to_matrix())
 
     def test_matrix_expect_state_vector(self):
+        """ matrix expect state vector test """
         states_op = OpVec([One, Zero, Plus, Minus])
 
         paulis_op = X
@@ -89,6 +93,7 @@ class TestMatrixExpectation(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(means, [0, 0, 1, -1])
 
     def test_matrix_expect_op_vector_state_vector(self):
+        """ matrix expect op vector state vector test """
         paulis_op = OpVec([X, Y, Z, I])
         states_op = OpVec([One, Zero, Plus, Minus])
 

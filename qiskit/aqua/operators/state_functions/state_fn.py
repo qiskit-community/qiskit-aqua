@@ -88,14 +88,17 @@ class StateFn(OperatorBase):
 
     @property
     def primitive(self):
+        """ returns primitive """
         return self._primitive
 
     @property
     def coeff(self):
+        """ returns coeff """
         return self._coeff
 
     @property
     def is_measurement(self):
+        """ return if is measurement """
         return self._is_measurement
 
     # def get_primitives(self):
@@ -329,6 +332,7 @@ class StateFn(OperatorBase):
         raise NotImplementedError
 
     def bind_parameters(self, param_dict):
+        """ bind parameters """
         param_value = self.coeff
         if isinstance(self.coeff, ParameterExpression):
             unrolled_dict = self._unroll_param_dict(param_dict)

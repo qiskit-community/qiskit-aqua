@@ -190,4 +190,5 @@ class OpMatrix(OpPrimitive):
             return new_front
 
     def to_simulation_instruction(self):
+        """ returns simulation instruction """
         return OpPrimitive(self.primitive.to_instruction(), coeff=self.coeff)

@@ -313,6 +313,7 @@ class OpPauli(OpPrimitive):
         return id(self)
 
     def commutes(self, other_op):
+        """ commutes """
         if not isinstance(other_op, OpPauli):
             return False
         # Don't use compose because parameters will break this

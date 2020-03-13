@@ -41,7 +41,3 @@ Zero = StateFn('0')
 One = StateFn('1')
 Plus = H.compose(Zero)
 Minus = H.compose(One)
-
-__all__ = [
-    'X', 'Y', 'Z', 'I', 'CX', 'S', 'H', 'T', 'Swap', 'Zero', 'One', 'Plus', 'Minus'
-]

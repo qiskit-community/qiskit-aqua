@@ -64,6 +64,7 @@ class LocalSimulatorSampler(CircuitSampler):
 
     @property
     def backend(self):
+        """ returns backend """
         return self.quantum_instance.backend
 
     @backend.setter
@@ -72,6 +73,7 @@ class LocalSimulatorSampler(CircuitSampler):
 
     @property
     def quantum_instance(self):
+        """ returns quantum instance """
         return self._qi
 
     @quantum_instance.setter

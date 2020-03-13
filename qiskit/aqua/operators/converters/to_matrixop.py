@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 class ToMatrixOp(ConverterBase):
-
+    """ Expectation Algorithm Base """
     def __init__(self, traverse=True):
         self._traverse = traverse
 

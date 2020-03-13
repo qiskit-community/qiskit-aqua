@@ -58,25 +58,31 @@ class OpVec(OperatorBase):
 
     @property
     def oplist(self):
+        """ returns op list """
         return self._oplist
 
     @property
     def combo_fn(self):
+        """ returns combo function """
         return self._combo_fn
 
     @property
     def param_bindings(self):
+        """ returns parameter binding """
         return self._param_bindings
 
     def num_parameterizations(self):
+        """ returns num parameterization """
         return len(list(self._param_bindings.values())[0])\
             if self._param_bindings is not None else 1
 
     def get_parameterization(self, i):
+        """ returns parameterization """
         return {param: value_list[i] for (param, value_list) in self.param_bindings.items()}
 
     @property
     def abelian(self):
+        """ returns abelian """
         return self._abelian
 
     # TODO: Keep this property for evals or just enact distribution at composition time?
@@ -91,6 +97,7 @@ class OpVec(OperatorBase):
 
     @property
     def coeff(self):
+        """ returns coeff """
         return self._coeff
 
     def get_primitives(self):
@@ -305,6 +312,7 @@ class OpVec(OperatorBase):
                                                      self.abelian)
 
     def bind_parameters(self, param_dict):
+        """ bind parameters """
         param_value = self.coeff
         if isinstance(self.coeff, ParameterExpression):
             unrolled_dict = self._unroll_param_dict(param_dict)
