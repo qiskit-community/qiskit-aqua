@@ -100,6 +100,7 @@ class TestEvolution(QiskitAquaTestCase):
         for p in thetas:
             self.assertIn(p, evo.to_circuit().parameters)
 
+    # TODO test with other Op types than StateFnCircuit
     def test_bind_parameter_list(self):
         thetas = ParameterVector('θ', length=6)
         op = (thetas[1] * I ^ Z) + \

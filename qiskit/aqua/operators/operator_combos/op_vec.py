@@ -308,6 +308,8 @@ class OpVec(OperatorBase):
         param_value = self.coeff
         if isinstance(self.coeff, ParameterExpression):
             unrolled_dict = self._unroll_param_dict(param_dict)
+            if isinstance(unrolled_dict, list):
+                return OpVec([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
             coeff_param = list(self.coeff.parameters)[0]
             if coeff_param in unrolled_dict:
                 # TODO what do we do about complex?
