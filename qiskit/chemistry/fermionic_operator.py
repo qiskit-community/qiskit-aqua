@@ -38,7 +38,7 @@ class FermionicOperator:
 
     References:
 
-    - *E. Wigner and P. Jordan., Über das Paulische Äguivalenzverbot,
+    - *E. Wigner and P. Jordan., Über das Paulische Äquivalenzverbot,
       Z. Phys., 47:631 (1928).*
     - *S. Bravyi and A. Kitaev. Fermionic quantum computation,
       Ann. of Phys., 298(1):210–226 (2002).*

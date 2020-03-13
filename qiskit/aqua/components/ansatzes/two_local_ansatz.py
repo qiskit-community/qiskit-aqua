@@ -127,7 +127,7 @@ class TwoLocalAnsatz(Ansatz):
 
             >>> entangler_map = [[0, 3], [0, 2]]  # entangle the first and last two-way
             >>> ansatz = TwoLocalAnsatz(4, [], 'cry', entangler_map, reps=1)
-            >>> circuit = ansatz.to_circuit() + ansatz.to_circuit()  # add two Ansatze
+            >>> circuit = ansatz.to_circuit() + ansatz.to_circuit()  # add two Ansatzes
             >>> circuit.decompose().draw()  # note, that the parameters are the same!
             q_0: |0>────■─────────■─────────■─────────■─────
                         │         │         │         │
