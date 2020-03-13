@@ -14,7 +14,6 @@
 
 """ Eager Operator Sum Container """
 
-import numpy as np
 import copy
 from functools import reduce, partial
 

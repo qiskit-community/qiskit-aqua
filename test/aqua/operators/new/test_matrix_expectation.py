@@ -16,14 +16,13 @@
 
 from test.aqua import QiskitAquaTestCase
 
-import numpy as np
 import itertools
+import numpy as np
 
-from qiskit.aqua.operators import X, Y, Z, I, CX, T, H, S, OpPrimitive, OpSum, OpComposition, OpVec
-from qiskit.aqua.operators import StateFn, Zero, One, Plus, Minus
+from qiskit.aqua.operators import X, Y, Z, I, CX, H, S, OpVec
+from qiskit.aqua.operators import Zero, One, Plus, Minus
 
-from qiskit.aqua.operators.expectation_values import ExpectationBase, MatrixExpectation
-from qiskit import BasicAer
+from qiskit.aqua.operators.expectation_values import MatrixExpectation
 
 
 class TestMatrixExpectation(QiskitAquaTestCase):

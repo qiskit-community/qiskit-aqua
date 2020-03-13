@@ -16,11 +16,10 @@
 
 
 import numpy as np
-import itertools
 
 from qiskit.quantum_info import Statevector
 
-from qiskit.aqua.operators import OperatorBase
+from ..operator_base import OperatorBase
 from . import StateFn
 from ..operator_combos import OpVec
 
@@ -84,7 +83,7 @@ class StateFnVector(StateFn):
             # Covers MatrixOperator, Statevector and custom.
             return StateFnVector((self.coeff * self.primitive).add(other.primitive * other.coeff),
                                  is_measurement=self._is_measurement)
-
+        # pylint: disable=cyclic-import,import-outside-toplevel
         from .. import OpSum
         return OpSum([self, other])
 
@@ -109,7 +108,7 @@ class StateFnVector(StateFn):
             return StateFn(self.primitive.tensor(other.primitive),
                            coeff=self.coeff * other.coeff,
                            is_measurement=self.is_measurement)
-
+        # pylint: disable=cyclic-import,import-outside-toplevel
         from .. import OpKron
         return OpKron([self, other])
 
@@ -186,7 +185,7 @@ class StateFnVector(StateFn):
                                    for other_elem in other.oplist])
         if not isinstance(other, OperatorBase):
             other = StateFn(other)
-
+        # pylint: disable=cyclic-import,import-outside-toplevel
         from . import StateFnDict, StateFnOperator
         if isinstance(other, StateFnDict):
             return sum([v * self.primitive.data[int(b, 2)] * other.coeff

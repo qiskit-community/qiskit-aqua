@@ -14,15 +14,15 @@
 
 """ Test Operator construction, including OpPrimitives and singletons. """
 
-import unittest
-import itertools
 from test.aqua import QiskitAquaTestCase
+import itertools
+import numpy as np
+
+from qiskit import QuantumCircuit
 from qiskit.quantum_info.operators import Operator, Pauli
 from qiskit.extensions.standard import CzGate
 
-import numpy as np
-
-from qiskit.aqua.operators import X, Y, Z, I, CX, T, H, S, OpPrimitive, OpSum
+from qiskit.aqua.operators import X, Y, Z, I, CX, T, H, OpPrimitive, OpSum
 
 
 class TestOpConstruction(QiskitAquaTestCase):
@@ -97,7 +97,6 @@ class TestOpConstruction(QiskitAquaTestCase):
     def test_circuit_construction(self):
         hadq2 = H ^ I
         cz = hadq2.compose(CX).compose(hadq2)
-        from qiskit import QuantumCircuit
         qc = QuantumCircuit(2)
         qc.append(cz.primitive, qargs=range(2))
 

@@ -14,13 +14,12 @@
 
 """ An Object to represent State Functions constructed from Operators """
 
-
-import numpy as np
 import itertools
+import numpy as np
 
 from qiskit.result import Result
 
-from qiskit.aqua.operators import OperatorBase
+from ..operator_base import OperatorBase
 from . import StateFn
 from ..operator_combos import OpVec
 
@@ -111,7 +110,7 @@ class StateFnDict(StateFn):
                 new_dict.update({b: v*other.coeff for (b, v) in other.primitive.items()
                                  if b not in self.primitive})
                 return StateFn(new_dict, is_measurement=self._is_measurement)
-
+        # pylint: disable=cyclic-import,import-outside-toplevel
         from qiskit.aqua.operators import OpSum
         return OpSum([self, other])
 
@@ -139,7 +138,7 @@ class StateFnDict(StateFn):
             return StateFn(new_dict,
                            coeff=self.coeff * other.coeff,
                            is_measurement=self.is_measurement)
-
+        # pylint: disable=cyclic-import,import-outside-toplevel
         from qiskit.aqua.operators import OpKron
         return OpKron([self, other])
 
@@ -236,7 +235,7 @@ class StateFnDict(StateFn):
                         self.primitive.items()]) * self.coeff * other.coeff
 
         # All remaining possibilities only apply when self.is_measurement is True
-
+        # pylint: disable=cyclic-import,import-outside-toplevel
         from . import StateFnVector
         if isinstance(other, StateFnVector):
             # TODO does it need to be this way for measurement?

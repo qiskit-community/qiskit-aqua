@@ -15,17 +15,14 @@
 """ Expectation Algorithm Base """
 
 import logging
-import numpy as np
 from abc import abstractmethod
 
-from ..converters import ConverterBase
-
+from qiskit.aqua import QuantumInstance
 from qiskit.aqua.utils.backend_utils import (is_ibmq_provider,
                                              is_local_backend,
-                                             has_aer,
                                              is_statevector_backend,
                                              is_aer_qasm)
-from qiskit.aqua import QuantumInstance
+from ..converters import ConverterBase
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +42,7 @@ class CircuitSampler(ConverterBase):
         subclass based on the primitive passed in."""
 
         backend_to_check = backend.backend if isinstance(backend, QuantumInstance) else backend
-
+        # pylint: disable=cyclic-import,import-outside-toplevel
         if is_local_backend(backend_to_check):
             from . import LocalSimulatorSampler
             return LocalSimulatorSampler(backend=backend,

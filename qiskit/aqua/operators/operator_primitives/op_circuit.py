@@ -18,10 +18,9 @@ import numpy as np
 from qiskit import QuantumCircuit, BasicAer, execute
 from qiskit.extensions.standard import IGate
 from qiskit.circuit import Instruction
-from qiskit.quantum_info import Pauli
 
-from . import OpPrimitive
 from ..operator_combos import OpSum, OpComposition, OpKron
+from .op_primitive import OpPrimitive
 
 logger = logging.getLogger(__name__)
 
@@ -100,7 +99,7 @@ class OpCircuit(OpPrimitive):
         Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
         """
         # TODO accept primitives directly in addition to OpPrimitive?
-
+        # pylint: disable=cyclic-import,import-outside-toplevel
         from . import OpPauli
         if isinstance(other, OpPauli):
             from qiskit.aqua.operators.converters import PaulitoInstruction
@@ -131,8 +130,9 @@ class OpCircuit(OpPrimitive):
         # TODO accept primitives directly in addition to OpPrimitive?
 
         other = self._check_zero_for_composition_and_expand(other)
-
-        from .. import Zero, StateFnCircuit
+        # pylint: disable=cyclic-import,import-outside-toplevel
+        from ..operator_globals import Zero
+        from ..state_functions import StateFnCircuit
         if other == Zero ^ self.num_qubits:
             return StateFnCircuit(self.primitive, coeff=self.coeff)
 
@@ -220,7 +220,8 @@ class OpCircuit(OpPrimitive):
         elif front is None:
             # Saves having to reimplement logic twice for front and back
             return self.adjoint().eval(back).adjoint()
-        from .. import OpVec
+        # pylint: disable=import-outside-toplevel
+        from ..operator_combos import OpVec
         if isinstance(front, list):
             return [self.eval(front_elem, back=back) for front_elem in front]
         elif isinstance(front, OpVec) and front.distributive:

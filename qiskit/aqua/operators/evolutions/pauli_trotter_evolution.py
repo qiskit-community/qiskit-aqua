@@ -15,16 +15,16 @@
 """ Expectation Algorithm Base """
 
 import logging
-import numpy as np
-import networkx as nx
 import itertools
+import networkx as nx
+import numpy as np
 
+from ..operator_globals import Z
 from .evolution_base import EvolutionBase
-
-from qiskit.aqua.operators import (OpVec, OpSum, OpPauli, OpPrimitive, Z, I,
-                                   PauliChangeOfBasis, AbelianGrouper)
-
-from . import OpEvolution
+from ..operator_combos import OpVec, OpSum
+from ..operator_primitives import OpPauli
+from ..converters import PauliChangeOfBasis, AbelianGrouper
+from .op_evolution import OpEvolution
 from .trotterizations import TrotterizationBase
 
 logger = logging.getLogger(__name__)

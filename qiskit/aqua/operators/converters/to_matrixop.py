@@ -15,8 +15,6 @@
 """ Expectation Algorithm Base """
 
 import logging
-import numpy as np
-from functools import partial, reduce
 
 from qiskit.aqua.operators import OperatorBase, OpPrimitive, OpVec, StateFn, StateFnOperator
 from .converter_base import ConverterBase

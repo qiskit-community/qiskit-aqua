@@ -16,12 +16,11 @@
 
 from test.aqua import QiskitAquaTestCase
 
-import numpy as np
 import itertools
+import numpy as np
 
-from qiskit.aqua.operators import X, Y, Z, I, CX, T, H, S, OpPrimitive, OpSum, OpComposition
+from qiskit.aqua.operators import X, Y, Z, I, OpSum, OpComposition
 from qiskit.aqua.operators.converters import PauliChangeOfBasis
-from qiskit import QuantumCircuit
 
 
 class TestPauliCoB(QiskitAquaTestCase):

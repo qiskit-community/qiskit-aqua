@@ -15,10 +15,8 @@
 """ Expectation Algorithm Base """
 
 import logging
-import numpy as np
 
 from .expectation_base import ExpectationBase
-from qiskit.aqua.operators import OpVec, OpPrimitive
 
 logger = logging.getLogger(__name__)
 

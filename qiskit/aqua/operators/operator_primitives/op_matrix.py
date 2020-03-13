@@ -15,13 +15,11 @@
 import logging
 import numpy as np
 
-from qiskit.circuit import Instruction
-from qiskit.quantum_info import Pauli
 from qiskit.quantum_info import Operator as MatrixOperator
 
 from qiskit.aqua.operators import OperatorBase
-from . import OpPrimitive
 from ..operator_combos import OpSum, OpComposition, OpKron
+from .op_primitive import OpPrimitive
 
 logger = logging.getLogger(__name__)
 
@@ -164,7 +162,7 @@ class OpMatrix(OpPrimitive):
         convert to a {Z,I}^n Pauli basis to take "averaging"
         style expectations (e.g. PauliExpectation).
         """
-
+        # pylint: disable=cyclic-import,import-outside-toplevel
         if front is None and back is None:
             return self.to_matrix()
         elif front is None:

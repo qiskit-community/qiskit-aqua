@@ -14,13 +14,12 @@
 
 """ Eager Operator Vec Container """
 
-
-import numpy as np
 from functools import reduce
+import numpy as np
 
 from qiskit.circuit import ParameterExpression
 
-from .. import OperatorBase
+from ..operator_base import OperatorBase
 
 
 class OpVec(OperatorBase):
@@ -118,6 +117,7 @@ class OpVec(OperatorBase):
         #     return self.__class__([op.add(other) for op in self.oplist], coeff=self.coeff)
 
         # Avoid circular dependency
+        # pylint: disable=cyclic-import,import-outside-toplevel
         from .op_sum import OpSum
         return OpSum([self, other])
 
@@ -173,6 +173,7 @@ class OpVec(OperatorBase):
         #     return self.__class__([op.kron(other) for op in self.oplist], coeff=self.coeff)
 
         # Avoid circular dependency
+        # pylint: disable=cyclic-import,import-outside-toplevel
         from .op_kron import OpKron
         return OpKron([self, other])
 
@@ -185,6 +186,7 @@ class OpVec(OperatorBase):
             raise TypeError('Kronpower can only take positive int arguments')
 
         # Avoid circular dependency
+        # pylint: disable=cyclic-import,import-outside-toplevel
         from .op_kron import OpKron
         return OpKron([self]*other)
 
@@ -205,6 +207,7 @@ class OpVec(OperatorBase):
         #     return self.__class__([op.compose(other) for op in self.oplist], coeff=self.coeff)
 
         # Avoid circular dependency
+        # pylint: disable=cyclic-import,import-outside-toplevel
         from .op_composition import OpComposition
         return OpComposition([self, other])
 
@@ -214,6 +217,7 @@ class OpVec(OperatorBase):
             raise TypeError('power can only take positive int arguments')
 
         # Avoid circular dependency
+        # pylint: disable=cyclic-import,import-outside-toplevel
         from .op_composition import OpComposition
         return OpComposition([self]*other)
 
@@ -261,7 +265,7 @@ class OpVec(OperatorBase):
         #  be able to handle vector returns correctly?
         if isinstance(front, list):
             return [self.eval(front_elem, back=back) for front_elem in front]
-
+        # pylint: disable=cyclic-import,import-outside-toplevel
         from ..state_functions import StateFn
 
         if back is not None and not isinstance(back, OperatorBase):
@@ -279,6 +283,7 @@ class OpVec(OperatorBase):
 
     def exp_i(self):
         """ Raise Operator to power e ^ (i * op)"""
+        # pylint: disable=import-outside-toplevel
         from qiskit.aqua.operators import OpEvolution
         return OpEvolution(self)
 

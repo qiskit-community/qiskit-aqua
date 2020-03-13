@@ -15,8 +15,6 @@
 """ Expectation Algorithm Base """
 
 import logging
-import numpy as np
-from functools import partial, reduce
 
 from qiskit import QuantumCircuit
 from qiskit.quantum_info import Pauli

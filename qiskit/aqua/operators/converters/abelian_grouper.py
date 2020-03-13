@@ -15,11 +15,10 @@
 """ Expectation Algorithm Base """
 
 import logging
-import numpy as np
 import itertools
 import networkx as nx
 
-from qiskit.aqua.operators import OpPrimitive, OpVec, StateFnOperator, OpPauli, OpSum
+from qiskit.aqua.operators import OpVec, StateFnOperator, OpPauli, OpSum
 
 from .converter_base import ConverterBase
 
@@ -32,7 +31,7 @@ class AbelianGrouper(ConverterBase):
         self._traverse = traverse
 
     def convert(self, operator):
-
+        # pylint: disable=cyclic-import,import-outside-toplevel
         from .. import OpEvolution
 
         if isinstance(operator, OpVec):

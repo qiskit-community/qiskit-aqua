@@ -15,7 +15,6 @@
 """Global X phases and parameterized problem hamiltonian."""
 
 from typing import Optional
-from functools import reduce
 
 import numpy as np
 

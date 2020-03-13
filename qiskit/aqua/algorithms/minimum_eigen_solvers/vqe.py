@@ -20,12 +20,11 @@ See https://arxiv.org/abs/1304.3061
 
 from typing import Optional, List, Callable
 import logging
-import functools
 import warnings
 from time import time
 
 import numpy as np
-from qiskit import ClassicalRegister, QuantumCircuit
+from qiskit import ClassicalRegister
 from qiskit.circuit import ParameterVector
 
 from qiskit.aqua import AquaError

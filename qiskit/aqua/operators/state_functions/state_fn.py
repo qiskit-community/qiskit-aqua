@@ -22,7 +22,7 @@ from qiskit.result import Result
 from qiskit import QuantumCircuit
 from qiskit.circuit import Instruction, ParameterExpression
 
-from qiskit.aqua.operators.operator_base import OperatorBase
+from ..operator_base import OperatorBase
 
 
 class StateFn(OperatorBase):
@@ -58,6 +58,7 @@ class StateFn(OperatorBase):
         if not cls.__name__ == 'StateFn':
             return super().__new__(cls)
 
+        # pylint: disable=cyclic-import,import-outside-toplevel
         if isinstance(primitive, (str, dict, Result)):
             from . import StateFnDict
             return StateFnDict.__new__(StateFnDict)
@@ -166,6 +167,7 @@ class StateFn(OperatorBase):
 
     def _check_zero_for_composition_and_expand(self, other):
         new_self = self
+        # pylint: disable=import-outside-toplevel
         if not self.num_qubits == other.num_qubits:
             from qiskit.aqua.operators import Zero
             if self == StateFn({'0': 1}, is_measurement=True):
@@ -194,7 +196,7 @@ class StateFn(OperatorBase):
 
         new_self, other = self._check_zero_for_composition_and_expand(other)
         # TODO maybe include some reduction here in the subclasses - vector and Op, op and Op, etc.
-
+        # pylint: disable=import-outside-toplevel
         from qiskit.aqua.operators import OpCircuit
 
         if self.primitive == {'0'*self.num_qubits: 1.0} and isinstance(other, OpCircuit):

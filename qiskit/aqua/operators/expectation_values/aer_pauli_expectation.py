@@ -15,10 +15,10 @@
 """ Expectation Algorithm Base """
 
 import logging
-import numpy as np
 
 from .expectation_base import ExpectationBase
-from qiskit.aqua.operators import OpVec, OpPrimitive, OpSum, StateFnCircuit
+from ..operator_combos import OpVec, OpSum
+from ..state_functions import StateFnCircuit
 
 logger = logging.getLogger(__name__)
 

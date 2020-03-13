@@ -21,9 +21,9 @@ from qiskit import QuantumCircuit, BasicAer, execute
 from qiskit.circuit import Instruction
 from qiskit.extensions import Initialize, IGate
 
-from qiskit.aqua.operators import OperatorBase
-from . import StateFn
+from ..operator_base import OperatorBase
 from ..operator_combos import OpSum
+from .state_fn import StateFn
 
 
 class StateFnCircuit(StateFn):
@@ -136,6 +136,7 @@ class StateFnCircuit(StateFn):
 
         new_self, other = self._check_zero_for_composition_and_expand(other)
 
+        # pylint: disable=cyclic-import,import-outside-toplevel
         from qiskit.aqua.operators import OpCircuit, OpPauli
 
         if isinstance(other, (OpCircuit, OpPauli)):
@@ -178,7 +179,7 @@ class StateFnCircuit(StateFn):
             # TODO Figure out what to do with cbits?
             return StateFnCircuit(new_qc.decompose().to_instruction(),
                                   coeff=self.coeff * other.coeff)
-
+        # pylint: disable=cyclic-import,import-outside-toplevel
         from qiskit.aqua.operators import OpKron
         return OpKron([self, other])
 

@@ -17,12 +17,11 @@
 from test.aqua import QiskitAquaTestCase
 
 import numpy as np
-import itertools
 
-from qiskit import QuantumCircuit, BasicAer
+from qiskit import BasicAer
 from qiskit.circuit import ParameterVector
 
-from qiskit.aqua.operators import (X, Y, Z, I, CX, T, H, S, OpCircuit, Zero, EvolutionBase,
+from qiskit.aqua.operators import (X, Y, Z, I, CX, H, OpCircuit, Zero, EvolutionBase,
                                    OpEvolution, PauliTrotterEvolution, QDrift)
 
 

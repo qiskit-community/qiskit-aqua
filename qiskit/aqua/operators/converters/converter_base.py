@@ -15,7 +15,6 @@
 """ Expectation Algorithm Base """
 
 import logging
-import numpy as np
 
 from abc import ABC, abstractmethod
 

@@ -15,16 +15,8 @@
 """ Expectation Algorithm Base """
 
 import logging
-import numpy as np
-from abc import abstractmethod
 
-from qiskit import BasicAer
-
-from qiskit.aqua.utils.backend_utils import (is_statevector_backend,
-                                             is_aer_qasm,
-                                             has_aer)
-from qiskit.aqua import QuantumInstance
-from qiskit.aqua.operators import ConverterBase
+from ..converters import ConverterBase
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +36,7 @@ class EvolutionBase(ConverterBase):
         Args:
 
         """
-
+        # pylint: disable=cyclic-import,import-outside-toplevel
         # TODO remove state from factory and inits?
         primitives = operator.get_primitives()
         if 'Pauli' in primitives:

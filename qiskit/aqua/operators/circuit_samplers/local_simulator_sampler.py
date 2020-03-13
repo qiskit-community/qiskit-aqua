@@ -15,15 +15,15 @@
 """ Expectation Algorithm Base """
 
 import logging
-import numpy as np
 from functools import partial
 
-from . import CircuitSampler
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.operators import OpVec, StateFn, StateFnCircuit, Zero
-from qiskit.aqua.operators.converters import DicttoCircuitSum
-
 from qiskit.aqua.utils.backend_utils import is_aer_provider, is_statevector_backend, is_aer_qasm
+from ..operator_globals import Zero
+from ..operator_combos import OpVec
+from ..state_functions import StateFn, StateFnCircuit
+from ..converters import DicttoCircuitSum
+from .circuit_sampler import CircuitSampler
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +42,7 @@ class LocalSimulatorSampler(CircuitSampler):
             hw_backend_to_emulate():
         """
         if hw_backend_to_emulate and is_aer_provider(backend) and 'noise_model' not in kwargs:
+            # pylint: disable=import-outside-toplevel
             from qiskit.providers.aer.noise import NoiseModel
             # TODO figure out Aer versioning
             kwargs['noise_model'] = NoiseModel.from_backend(hw_backend_to_emulate)

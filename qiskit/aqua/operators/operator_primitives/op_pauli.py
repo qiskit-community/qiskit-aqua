@@ -13,13 +13,11 @@
 # that they have been altered from the originals.
 
 import logging
-import numpy as np
 import itertools
+import numpy as np
 
 from qiskit import QuantumCircuit
-from qiskit.circuit import Instruction
 from qiskit.quantum_info import Pauli
-from qiskit.quantum_info import Operator as MatrixOperator
 from qiskit.extensions.standard import RZGate, RYGate, RXGate
 
 from . import OpPrimitive
@@ -104,6 +102,7 @@ class OpPauli(OpPrimitive):
             return OpPauli(op_copy.kron(self.primitive), coeff=self.coeff * other.coeff)
 
         # Both Instructions/Circuits
+        # pylint: disable=cyclic-import,import-outside-toplevel
         from . import OpCircuit
         if isinstance(other, OpCircuit):
             from qiskit.aqua.operators.converters import PaulitoInstruction
@@ -141,6 +140,7 @@ class OpPauli(OpPrimitive):
             product, phase = Pauli.sgn_prod(self.primitive, other.primitive)
             return OpPrimitive(product, coeff=self.coeff * other.coeff * phase)
 
+        # pylint: disable=cyclic-import,import-outside-toplevel
         from . import OpCircuit
         from .. import StateFnCircuit
         if isinstance(other, (OpCircuit, StateFnCircuit)):
@@ -204,7 +204,7 @@ class OpPauli(OpPrimitive):
         elif front is None:
             # Saves having to reimplement logic twice for front and back
             return self.adjoint().eval(front=back).adjoint()
-
+        # pylint: disable=import-outside-toplevel
         from .. import OperatorBase, StateFn, StateFnDict, StateFnVector, StateFnOperator, OpVec
         if isinstance(front, list):
             return [self.eval(front_elem, back=back) for front_elem in front]
@@ -283,7 +283,7 @@ class OpPauli(OpPrimitive):
         # if only one qubit is significant, we can perform the evolution
         corrected_x = self.primitive.x[::-1]
         corrected_z = self.primitive.z[::-1]
-
+        # pylint: disable=import-outside-toplevel
         sig_qubits = np.logical_or(corrected_x, corrected_z)
         if np.sum(sig_qubits) == 0:
             # e^I is just a global phase, but we can keep track of it! Should we?

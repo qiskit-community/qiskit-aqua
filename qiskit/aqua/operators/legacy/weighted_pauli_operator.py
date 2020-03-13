@@ -28,10 +28,10 @@ from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
 
 from qiskit.aqua import AquaError, aqua_globals
-from qiskit.aqua.operators.legacy.base_operator import LegacyBaseOperator
-from qiskit.aqua.operators.legacy.common import (measure_pauli_z, covariance, pauli_measurement,
-                                                 kernel_F2, suzuki_expansion_slice_pauli_list,
-                                                 check_commutativity, evolution_instruction)
+from .base_operator import LegacyBaseOperator
+from .common import (measure_pauli_z, covariance, pauli_measurement,
+                     kernel_F2, suzuki_expansion_slice_pauli_list,
+                     check_commutativity, evolution_instruction)
 
 
 logger = logging.getLogger(__name__)
@@ -92,6 +92,7 @@ class WeightedPauliOperator(LegacyBaseOperator):
         return cls(paulis=[[w, p] for w, p in zip(weights, paulis)], name=name)
 
     def to_opflow(self):
+        # pylint: disable=import-outside-toplevel
         from qiskit.aqua.operators import OpPrimitive
 
         op_paulis = []

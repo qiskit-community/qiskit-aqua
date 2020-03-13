@@ -23,7 +23,7 @@ from scipy import sparse as scisparse
 from scipy import linalg as scila
 
 from qiskit.aqua import AquaError
-from qiskit.aqua.operators.legacy.base_operator import LegacyBaseOperator
+from .base_operator import LegacyBaseOperator
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +63,7 @@ class MatrixOperator(LegacyBaseOperator):
         self._atol = atol
 
     def to_opflow(self):
+        # pylint: disable=import-outside-toplevel
         from qiskit.aqua.operators import OpPrimitive
         return OpPrimitive(self.dense_matrix)
 

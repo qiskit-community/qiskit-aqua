@@ -15,14 +15,17 @@
 """ Expectation Algorithm Base """
 
 import logging
-import numpy as np
 from functools import partial, reduce
+import numpy as np
 
 from qiskit.quantum_info import Pauli
 from qiskit import QuantumCircuit
 
-from .. import OpPrimitive, OpPauli, OpComposition, OpVec, StateFn, H, S, I
-from . import ConverterBase
+from ..operator_primitives import OpPrimitive, OpPauli
+from ..operator_combos import OpVec, OpComposition
+from ..state_functions import StateFn
+from ..operator_globals import H, S, I
+from .converter_base import ConverterBase
 
 logger = logging.getLogger(__name__)
 

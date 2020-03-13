@@ -17,9 +17,8 @@ Simple Trotter expansion.
 
 """
 
-from qiskit.aqua.operators import OpComposition
-
 from .trotterization_base import TrotterizationBase
+from ...operator_combos import OpComposition
 
 
 class Suzuki(TrotterizationBase):

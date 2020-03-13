@@ -14,8 +14,8 @@
 
 """ Eager Operator Composition Container """
 
-import numpy as np
 from functools import reduce, partial
+import numpy as np
 from qiskit.quantum_info import Statevector
 
 from .op_vec import OpVec
@@ -106,6 +106,7 @@ class OpComposition(OpVec):
         eval_list[0] = eval_list[0] * self.coeff
         eval_list = eval_list + [front] if front else eval_list
         if isinstance(back, (str, dict, Statevector)):
+            # pylint: disable=cyclic-import,import-outside-toplevel
             from .. import StateFn
             back = StateFn(back)
         eval_list = [back] + eval_list if back else eval_list

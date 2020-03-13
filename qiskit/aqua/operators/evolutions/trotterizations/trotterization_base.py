@@ -29,6 +29,7 @@ class TrotterizationBase():
     def factory(mode, reps=1):
         if mode not in ['trotter', 'suzuki', 'qdrift']:
             raise ValueError('Trotter mode {} not supported'.format(mode))
+        # pylint: disable=cyclic-import,import-outside-toplevel
         if mode == 'trotter':
             from .trotter import Trotter
             return Trotter(reps=reps)

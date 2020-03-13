@@ -15,7 +15,6 @@
 """ Expectation Algorithm Base """
 
 import logging
-import numpy as np
 from abc import abstractmethod
 
 from qiskit import BasicAer
@@ -58,6 +57,7 @@ class ExpectationBase():
         """
         backend_to_check = backend.backend if isinstance(backend, QuantumInstance) else backend
 
+        # pylint: disable=cyclic-import,import-outside-toplevel
         # TODO remove state from factory and inits?
         primitives = operator.get_primitives()
         if primitives == {'Pauli'}:

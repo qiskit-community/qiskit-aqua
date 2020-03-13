@@ -19,8 +19,8 @@ Simple Trotter expansion.
 
 import numpy as np
 
-from qiskit.aqua.operators import OpComposition, OpSum
 from .trotterization_base import TrotterizationBase
+from ...operator_combos import OpSum, OpComposition
 
 
 class QDrift(TrotterizationBase):

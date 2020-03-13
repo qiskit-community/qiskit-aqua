@@ -15,10 +15,8 @@
 """ An Object to represent State Functions constructed from Operators """
 
 import numpy as np
-import itertools
 
-from qiskit.quantum_info import Statevector
-from qiskit.aqua.operators import OperatorBase
+from ..operator_base import OperatorBase
 from . import StateFn
 from ..operator_combos import OpVec, OpSum
 
@@ -86,7 +84,7 @@ class StateFnOperator(StateFn):
                 return StateFnOperator(
                     (self.coeff * self.primitive).add(other.primitive * other.coeff),
                     is_measurement=self._is_measurement)
-
+        # pylint: disable=cyclic-import,import-outside-toplevel
         from .. import OpSum
         return OpSum([self, other])
 
@@ -111,7 +109,7 @@ class StateFnOperator(StateFn):
             return StateFn(self.primitive.kron(other.primitive),
                            coeff=self.coeff * other.coeff,
                            is_measurement=self.is_measurement)
-
+        # pylint: disable=cyclic-import,import-outside-toplevel
         from .. import OpKron
         return OpKron([self, other])
 
@@ -217,6 +215,7 @@ class StateFnOperator(StateFn):
         elif isinstance(other, OperatorBase):
             # If other is a dict, we can try to do this
             # scalably, e.g. if self.primitive is an OpPauli
+            # pylint: disable=cyclic-import,import-outside-toplevel
             from . import StateFnDict
             if isinstance(other, StateFnDict):
                 comp = self.primitive.eval(front=other, back=other.adjoint())

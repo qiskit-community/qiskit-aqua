@@ -14,14 +14,12 @@
 
 """ Test Operator construction, including OpPrimitives and singletons. """
 
-import unittest
-import itertools
+from test.aqua import QiskitAquaTestCase
 import numpy as np
 
 from qiskit import QuantumCircuit, BasicAer, execute, ClassicalRegister
 from qiskit.quantum_info import Statevector
 
-from test.aqua import QiskitAquaTestCase
 from qiskit.aqua.operators import (StateFn, Zero, One, Plus, Minus, OpPrimitive,
                                    OpSum, H, I, Z, X, Y, StateFnCircuit)
 

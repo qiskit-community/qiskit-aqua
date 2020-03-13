@@ -15,12 +15,12 @@
 """ Expectation Algorithm Base """
 
 import logging
-import numpy as np
 
-from . import CircuitSampler
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.operators import OpVec, StateFn, StateFnCircuit
-from qiskit.aqua.operators.converters import DicttoCircuitSum
+from ..operator_combos import OpVec
+from ..state_functions import StateFn, StateFnCircuit
+from ..converters import DicttoCircuitSum
+from .circuit_sampler import CircuitSampler
 
 logger = logging.getLogger(__name__)
 

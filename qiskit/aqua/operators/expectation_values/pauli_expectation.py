@@ -15,12 +15,11 @@
 """ Expectation Algorithm Base """
 
 import logging
-import numpy as np
 
 from .expectation_base import ExpectationBase
-
-from qiskit.aqua.operators import OpVec, OpSum, OpPrimitive, StateFn, OpComposition
-from qiskit.aqua.operators.converters import PauliChangeOfBasis, AbelianGrouper
+from ..operator_combos import OpVec, OpComposition
+from ..state_functions import StateFn
+from ..converters import PauliChangeOfBasis, AbelianGrouper
 
 logger = logging.getLogger(__name__)
 

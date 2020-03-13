@@ -16,15 +16,15 @@
 
 from test.aqua import QiskitAquaTestCase
 
-import numpy as np
 import itertools
+import numpy as np
 
-from qiskit.aqua.operators import (X, Y, Z, I, CX, T, H, S, OpPrimitive, OpSum,
-                                   OpComposition, OpVec, StateFn, Zero, One, Plus, Minus,
-                                   ExpectationBase, PauliExpectation, AbelianGrouper,
+from qiskit.aqua.operators import (X, Y, Z, I, CX, H, S,
+                                   OpVec, Zero, One, Plus, Minus,
+                                   PauliExpectation, AbelianGrouper,
                                    CircuitSampler)
 
-from qiskit import QuantumCircuit, BasicAer
+from qiskit import BasicAer
 
 
 class TestPauliExpectation(QiskitAquaTestCase):

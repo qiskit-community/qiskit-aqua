@@ -18,8 +18,8 @@ import scipy
 
 from qiskit.circuit import ParameterExpression
 
-from qiskit.aqua.operators.operator_primitives import OpPrimitive
-from qiskit.aqua.operators.operator_combos import OpSum, OpComposition, OpKron
+from ..operator_primitives import OpPrimitive
+from ..operator_combos import OpSum, OpComposition, OpKron
 
 logger = logging.getLogger(__name__)
 

@@ -20,7 +20,7 @@ from qiskit.circuit import Instruction, ParameterExpression
 from qiskit.quantum_info import Pauli
 from qiskit.quantum_info import Operator as MatrixOperator
 
-from qiskit.aqua.operators.operator_base import OperatorBase
+from ..operator_base import OperatorBase
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +38,7 @@ class OpPrimitive(OperatorBase):
     def __new__(cls, primitive=None, coeff=1.0):
         if not cls.__name__ == 'OpPrimitive':
             return super().__new__(cls)
+        # pylint: disable=cyclic-import,import-outside-toplevel
         if isinstance(primitive, (Instruction, QuantumCircuit)):
             from .op_circuit import OpCircuit
             return OpCircuit.__new__(OpCircuit)
@@ -121,7 +122,8 @@ class OpPrimitive(OperatorBase):
 
     def _check_zero_for_composition_and_expand(self, other):
         if not self.num_qubits == other.num_qubits:
-            from .. import Zero
+            # pylint: disable=cyclic-import,import-outside-toplevel
+            from ..operator_globals import Zero
             if other == Zero:
                 # Zero is special - we'll expand it to the correct qubit number.
                 other = Zero.__class__('0' * self.num_qubits)
@@ -142,6 +144,7 @@ class OpPrimitive(OperatorBase):
 
     def exp_i(self):
         """ Raise Operator to power e ^ (i * op)"""
+        # pylint: disable=cyclic-import,import-outside-toplevel
         from qiskit.aqua.operators import OpEvolution
         return OpEvolution(self)
 

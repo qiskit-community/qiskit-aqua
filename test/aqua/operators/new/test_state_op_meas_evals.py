@@ -14,15 +14,8 @@
 
 """ Test Operator construction, including OpPrimitives and singletons. """
 
-import unittest
-import itertools
-import numpy as np
-
-from qiskit import QuantumCircuit, BasicAer, execute, ClassicalRegister
-from qiskit.quantum_info import Statevector
-
 from test.aqua import QiskitAquaTestCase
-from qiskit.aqua.operators import StateFn, Zero, One, Plus, Minus, OpPrimitive, H, I, Z, X, Y
+from qiskit.aqua.operators import StateFn, Zero, One, H, X
 
 
 class TestStateOpMeasEvals(QiskitAquaTestCase):

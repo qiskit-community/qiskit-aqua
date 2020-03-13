@@ -52,9 +52,6 @@ Operator support
 
 """
 
-from qiskit.quantum_info import Pauli
-from qiskit.extensions.standard import CXGate, SGate, TGate, HGate, SwapGate
-
 from .legacy.common import (evolution_instruction,
                             suzuki_expansion_slice_pauli_list,
                             pauli_measurement,
@@ -70,25 +67,6 @@ from .operator_primitives import OpPrimitive, OpPauli, OpMatrix, OpCircuit
 from .state_functions import (StateFn, StateFnDict, StateFnVector,
                               StateFnCircuit, StateFnOperator)
 from .operator_combos import OpVec, OpSum, OpComposition, OpKron
-
-# Paulis
-X = OpPrimitive(Pauli.from_label('X'))
-Y = OpPrimitive(Pauli.from_label('Y'))
-Z = OpPrimitive(Pauli.from_label('Z'))
-I = OpPrimitive(Pauli.from_label('I'))
-
-# Clifford+T
-CX = OpPrimitive(CXGate())
-S = OpPrimitive(SGate())
-H = OpPrimitive(HGate())
-T = OpPrimitive(TGate())
-Swap = OpPrimitive(SwapGate())
-
-Zero = StateFn('0')
-One = StateFn('1')
-Plus = H.compose(Zero)
-Minus = H.compose(One)
-
 from .converters import (ConverterBase, PauliChangeOfBasis, PaulitoInstruction, ToMatrixOp,
                          DicttoCircuitSum, AbelianGrouper)
 from .expectation_values import (ExpectationBase, PauliExpectation, MatrixExpectation,
@@ -96,6 +74,9 @@ from .expectation_values import (ExpectationBase, PauliExpectation, MatrixExpect
 from .circuit_samplers import CircuitSampler, LocalSimulatorSampler, IBMQSampler
 from .evolutions import (EvolutionBase, OpEvolution, PauliTrotterEvolution, TrotterizationBase,
                          Trotter, Suzuki, QDrift)
+
+# Singletons
+from .operator_globals import X, Y, Z, I, CX, S, H, T, Swap, Zero, One, Plus, Minus
 
 __all__ = [
     # Common

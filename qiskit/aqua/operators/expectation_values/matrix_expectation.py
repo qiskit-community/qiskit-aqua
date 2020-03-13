@@ -15,13 +15,11 @@
 """ Expectation Algorithm Base """
 
 import logging
-import numpy as np
-
-from qiskit import BasicAer
 
 from .expectation_base import ExpectationBase
-from qiskit.aqua.operators import OpMatrix, StateFn, OpVec
-from qiskit.aqua.operators.converters import ToMatrixOp
+from ..operator_combos import OpVec
+from ..state_functions import StateFn
+from ..operator_primitives import OpMatrix
 
 logger = logging.getLogger(__name__)
 
