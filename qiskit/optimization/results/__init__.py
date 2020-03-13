@@ -50,4 +50,5 @@ from qiskit.optimization.results.solution import SolutionInterface
 from qiskit.optimization.results.solution_status import SolutionStatus
 from qiskit.optimization.results.optimization_result import OptimizationResult
 
-__all__ = ["SolutionStatus", "QualityMetrics", "SolutionStatus", "OptimizationResult"]
+__all__ = ["SolutionStatus", "QualityMetrics", "SolutionStatus", "OptimizationResult",
+           "GroverOptimizationResults"]

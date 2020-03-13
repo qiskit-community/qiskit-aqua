@@ -14,17 +14,19 @@
 
 """ Optimization Utilities module """
 
-import datetime
+from typing import Dict, Union, Tuple, Optional
 
 
-def get_qubo_solutions(function_dict, n_key, print_solutions=False):
-    """
-    Calculates all of the outputs of a QUBO function representable by n key qubits.
+def get_qubo_solutions(function_dict: Dict[Union[int, Tuple[int, int]], int], n_key: int,
+                       print_solutions: Optional[bool] = False):
+    """ Calculates all of the outputs of a QUBO function representable by n key qubits.
+
     Args:
-        function_dict (dict): A dictionary representation of the function, where the keys correspond
+        function_dict: A dictionary representation of the function, where the keys correspond
             to a variable, and the values are the corresponding coefficients.
-        n_key (int): The number of key qubits.
-        print_solutions (bool, optional): If true, the solutions will be formatted and printed.
+        n_key: The number of key qubits.
+        print_solutions: If true, the solutions will be formatted and printed.
+
     Returns:
         dict: A dictionary of the inputs (keys) and outputs (values) of the QUBO function.
     """

@@ -13,30 +13,6 @@
 # that they have been altered from the originals.
 
 """
-Optimization Converters (:mod:`qiskit.optimization.converters`)
-Converters for optimization problems
-
-.. currentmodule:: qiskit.optimization.converters
-
-Converters for Operators and Oracles
-=========================================
-
-.. autosummary::
-   :toctree: ../stubs/
-   :nosignatures:
-
-   optimization_problem_to_negative_value_oracle
-
-Utilities/Results Objects
-=========================
-
-.. autosummary::
-   :toctree: ../stubs/
-   :nosignatures:
-
-   grover_optimization_results
-   portfolio_util
-
 ========================================================
 Optimization stack for Aqua (:mod:`qiskit.optimization`)
 ========================================================
@@ -62,5 +38,6 @@ __all__ = [
     "InequalityToEqualityConverter",
     "IntegerToBinaryConverter",
     "OptimizationProblemToOperator",
+    "OptimizationProblemToNegativeValueOracle",
     "PenalizeLinearEqualityConstraints"
 ]

@@ -17,12 +17,10 @@
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 from docplex.mp.model import Model
-from cplex import SparsePair, SparseTriple
 from qiskit.finance.applications.ising import portfolio
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.optimization.algorithms import GroverMinimumFinder, MinimumEigenOptimizer
 from qiskit.optimization.problems import OptimizationProblem
-from qiskit.optimization.util import get_qubo_solutions
 
 
 class TestGroverMinimumFinder(QiskitOptimizationTestCase):
@@ -32,7 +30,6 @@ class TestGroverMinimumFinder(QiskitOptimizationTestCase):
         """Validate the results object returned by GroverMinimumFinder."""
         # Get measured values.
         grover_results = results.results
-        n_key = grover_results.n_input_qubits
         op_key = results.x
         op_value = results.fval
         iterations = len(grover_results.operation_counts)
@@ -44,15 +41,10 @@ class TestGroverMinimumFinder(QiskitOptimizationTestCase):
         # Get expected value.
         solver = MinimumEigenOptimizer(NumPyMinimumEigensolver())
         comp_result = solver.solve(problem)
-        solutions = get_qubo_solutions(func, n_key, print_solutions=False)
-        min_key = min(solutions, key=lambda key: int(solutions[key]))
-        min_value = solutions[min_key]
         max_rotations = int(np.ceil(100*np.pi/4))
 
         # Validate results.
         max_hit = max_rotations <= rot or max_iterations <= iterations
-        # self.assertTrue(min_key == op_key or max_hit)
-        # self.assertTrue(min_value == op_value or max_hit)
         self.assertTrue(comp_result.x == results.x or max_hit)
         self.assertTrue(comp_result.fval == results.fval or max_hit)
 

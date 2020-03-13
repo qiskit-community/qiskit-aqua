@@ -59,7 +59,7 @@ class GroverMinimumFinder(OptimizationAlgorithm):
         returns a message explaining the incompatibility.
 
         Args:
-            problem: The optization problem to check compatibility.
+            problem: The optimization problem to check compatibility.
 
         Returns:
             Returns ``None`` if the problem is compatible and else a string with the error message.
@@ -155,9 +155,14 @@ class GroverMinimumFinder(OptimizationAlgorithm):
         orig_constant = problem_.objective.get_offset()
         opt_prob_converter = OptimizationProblemToNegativeValueOracle(n_value,
                                                                       backend=self._backend)
+
         while not optimum_found:
             m = 1
             improvement_found = False
+
+            # Get oracle O and the state preparation operator A for the current threshold.
+            problem_.objective.set_offset(orig_constant - threshold)
+            a_operator, oracle, func_dict = opt_prob_converter.encode(problem_)
 
             # Iterate until we measure a negative.
             loops_with_no_improvement = 0
@@ -166,11 +171,6 @@ class GroverMinimumFinder(OptimizationAlgorithm):
                 loops_with_no_improvement += 1
                 rotation_count = int(np.ceil(random.uniform(0, m-1)))
                 rotations += rotation_count
-
-                # Get state preparation operator A and oracle O for the current threshold.
-                # TODO: can the conversion go to before the while-loop?
-                problem_.objective.set_offset(orig_constant - threshold)
-                a_operator, oracle, func_dict = opt_prob_converter.encode(problem_)
 
                 # Apply Grover's Algorithm to find values below the threshold.
                 if rotation_count > 0:
@@ -209,6 +209,7 @@ class GroverMinimumFinder(OptimizationAlgorithm):
                         optimum_found = True
 
                     # Using Durr and Hoyer method, increase m.
+                    # TODO: Give option for a rotation schedule, or for different lambda's.
                     m = int(np.ceil(min(m * 8/7, 2**(n_key / 2))))
                     self._logger.info('No Improvement. M: {}'.format(m))
 
