@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Wrapping Pauli Primitive """
+
 import logging
 import numpy as np
 
@@ -38,6 +40,9 @@ class OpMatrix(OpPrimitive):
             primitive (Gate, Pauli, [[complex]], np.ndarray, QuantumCircuit, Instruction):
             The operator primitive being wrapped.
             coeff (int, float, complex): A coefficient multiplying the primitive
+        Raises:
+            TypeError: invalid parameters.
+            ValueError: invalid parameters.
         """
         if isinstance(primitive, (list, np.ndarray)):
             primitive = MatrixOperator(primitive)

@@ -56,6 +56,8 @@ class StateFnCircuit(StateFn):
         Args:
             primitive(QuantumCircuit, Instruction)
             coeff(int, float, complex): A coefficient by which to multiply the state
+        Raises:
+            TypeError: invalid parameters.
         """
         if isinstance(primitive, QuantumCircuit):
             primitive = primitive.to_instruction()
@@ -221,7 +223,12 @@ class StateFnCircuit(StateFn):
         should require the use of a
         converter, but in this case a convenience method for quick hacking and access
         to classical tools is
-        appropriate. """
+        appropriate.
+        Returns:
+            np.ndarray: vector of state vector
+        Raises:
+            ValueError: invalid parameters.
+        """
 
         if self.num_qubits > 16 and not massive:
             # TODO figure out sparse matrices?

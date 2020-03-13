@@ -24,6 +24,8 @@ from qiskit.aqua.operators import (StateFn, Zero, One, Plus, Minus, OpPrimitive,
                                    OpSum, H, I, Z, X, Y, StateFnCircuit)
 
 
+# pylint: disable=invalid-name
+
 class TestStateConstruction(QiskitAquaTestCase):
     """State Construction tests."""
 

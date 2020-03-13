@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Wrapping Operator Primitives """
+
 import logging
 import numpy as np
 

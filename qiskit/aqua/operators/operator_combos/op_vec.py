@@ -14,6 +14,7 @@
 
 """ Eager Operator Vec Container """
 
+from typing import List, Union, Dict, Callable
 from functools import reduce
 import numpy as np
 
@@ -30,19 +31,24 @@ class OpVec(OperatorBase):
     but also refers to the "vec" mathematical operation.
     """
 
-    def __init__(self, oplist, combo_fn=lambda x: x, coeff=1.0, param_bindings=None, abelian=False):
+    def __init__(self,
+                 oplist: List[OperatorBase],
+                 combo_fn: Callable = lambda x: x,
+                 coeff: Union[int, float, complex, ParameterExpression] = 1.0,
+                 param_bindings: Dict = None,
+                 abelian: bool = False) -> None:
         """
         Args:
-            oplist (list(OperatorBase)): The operators being summed.
+            oplist: The operators being summed.
             combo_fn (callable): The recombination function to reduce classical operators
             when available (e.g. sum)
-            coeff (int, float, complex, ParameterExpression):
-            A coefficient multiplying the primitive
-            param_bindings(dict): A dictionary containing {param: list_of_bindings}
+            coeff: A coefficient multiplying the primitive
+            param_bindings: A dictionary containing {param: list_of_bindings}
             mappings, such that each binding
             should be treated as a new op in oplist for that parameterization.
             Keys can also be ParameterVectors,
             or anything else that can be passed as a key in a Terra .bind_parameters call.
+            abelian: indicates if abelian
 
             Note that the default "recombination function" lambda above is the identity -
             it takes a list of operators,

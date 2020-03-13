@@ -27,6 +27,8 @@ from qiskit.aqua.operators import (X, Y, Z, I, CX, H, S,
 from qiskit import BasicAer
 
 
+# pylint: disable=invalid-name
+
 class TestPauliExpectation(QiskitAquaTestCase):
     """Pauli Change of Basis Expectation tests."""
 

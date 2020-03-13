@@ -14,9 +14,11 @@
 
 """ Expectation Algorithm Base """
 
+from typing import Optional, Dict, List
 import logging
 from functools import partial
 
+from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.utils.backend_utils import is_aer_provider, is_statevector_backend, is_aer_qasm
 from ..operator_globals import Zero
@@ -34,13 +36,25 @@ class LocalSimulatorSampler(CircuitSampler):
     # TODO replace OpMatrices with Terra unitary gates to make them runnable.
     # Note, Terra's Operator has a to_instruction method.
 
-    def __init__(self, backend=None, hw_backend_to_emulate=None, kwargs={},
-                 statevector=False, snapshot=False, param_qobj=False):
+    def __init__(self,
+                 backend: Optional[BaseBackend] = None,
+                 hw_backend_to_emulate: Optional[BaseBackend] = None,
+                 kwargs: Optional[Dict] = None,
+                 statevector: bool = False,
+                 snapshot: bool = False,
+                 param_qobj: bool = False) -> None:
         """
         Args:
-            backend():
-            hw_backend_to_emulate():
+            backend:
+            hw_backend_to_emulate:
+            kwargs:
+            statevector:
+            snapshot:
+            param_qobj:
+        Raises:
+            ValueError: invalid parameters.
         """
+        kwargs = {} if kwargs is None else kwargs
         if hw_backend_to_emulate and is_aer_provider(backend) and 'noise_model' not in kwargs:
             # pylint: disable=import-outside-toplevel
             from qiskit.providers.aer.noise import NoiseModel
@@ -138,10 +152,15 @@ class LocalSimulatorSampler(CircuitSampler):
         else:
             return operator
 
-    def sample_circuits(self, op_circuits=None, param_bindings=None):
+    def sample_circuits(self,
+                        op_circuits: Optional[List] = None,
+                        param_bindings: Optional[List] = None) -> Dict:
         """
         Args:
-            op_circuits(list): The list of circuits or StateFnCircuits to sample
+            op_circuits: The list of circuits or StateFnCircuits to sample
+            param_bindings: bindings
+        Returns:
+            Dict: dictionary of sampled state functions
         """
         if op_circuits or not self._transpiled_circ_cache:
             if all([isinstance(circ, StateFnCircuit) for circ in op_circuits]):
@@ -161,7 +180,8 @@ class LocalSimulatorSampler(CircuitSampler):
                 self._prepare_parameterized_run_config(param_bindings)
             else:
                 ready_circs = [circ.bind_parameters(binding)
-                               for circ in self._transpiled_circ_cache for binding in param_bindings]
+                               for circ in self._transpiled_circ_cache
+                               for binding in param_bindings]
         else:
             ready_circs = self._transpiled_circ_cache
 
@@ -204,7 +224,8 @@ class LocalSimulatorSampler(CircuitSampler):
 
         # if not self._binding_mappings:
         #     phony_binding = {k: str(k) for k in param_bindings[0].keys()}
-        #     phony_bound_circuits = [circ.bind_parameters(phony_binding) for circ in self._transpiled_circ_cache]
+        #     phony_bound_circuits = [circ.bind_parameters(phony_binding)
+        #                             for circ in self._transpiled_circ_cache]
         #     qobj = self._qi.assemble(phony_bound_circuits)
         #     # for circ in qobj:
         #     #     mapping = None

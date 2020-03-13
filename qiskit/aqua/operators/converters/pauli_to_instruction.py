@@ -24,6 +24,8 @@ from ..operator_primitives import OpPrimitive
 from ..operator_combos import OpVec
 from .converter_base import ConverterBase
 
+# pylint: disable=invalid-name
+
 logger = logging.getLogger(__name__)
 _pauli_to_gate_mapping = {'X': XGate(), 'Y': YGate(), 'Z': ZGate(), 'I': IGate()}
 

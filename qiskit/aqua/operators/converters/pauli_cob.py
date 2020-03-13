@@ -14,6 +14,7 @@
 
 """ Expectation Algorithm Base """
 
+from typing import Optional, Callable
 import logging
 from functools import partial, reduce
 import numpy as np
@@ -39,16 +40,19 @@ class PauliChangeOfBasis(ConverterBase):
     circuit and a Pauli composed of only Z
     and I terms, which can be evolved or sampled natively on gate-based Quantum hardware. """
 
-    def __init__(self, destination_basis=None, traverse=True, replacement_fn=None):
+    def __init__(self,
+                 destination_basis: Optional[Pauli] = None,
+                 traverse: bool = True,
+                 replacement_fn: Optional[Callable] = None) -> None:
         """ Args:
-            destination_basis(Pauli): The Pauli into the basis of which the operators
+            destination_basis: The Pauli into the basis of which the operators
             will be converted. If None is
             specified, the destination basis will be the {I,Z}^n basis requiring only
             single qubit rotations.
-            travers(bool): If true and the operator passed into convert is an OpVec,
+            traverse: If true and the operator passed into convert is an OpVec,
             traverse the OpVec,
             applying the conversion to every applicable operator within the oplist.
-            replacement_fn(callable): A function specifying what to do with the CoB
+            replacement_fn: A function specifying what to do with the CoB
             instruction and destination
             Pauli when converting an Operator and replacing converted values.
             By default, this will be

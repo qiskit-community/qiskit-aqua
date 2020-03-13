@@ -14,20 +14,29 @@
 
 """ Eager Operator Composition Container """
 
+from typing import List, Union
 from functools import reduce, partial
 import numpy as np
 from qiskit.quantum_info import Statevector
 
+from ..operator_base import OperatorBase
 from .op_vec import OpVec
 
 
+# pylint: disable=invalid-name
+
 class OpComposition(OpVec):
     """ Eager Operator Composition Container """
-    def __init__(self, oplist, coeff=1.0, abelian=False):
+
+    def __init__(self,
+                 oplist: List[OperatorBase],
+                 coeff: Union[int, float, complex] = 1.0,
+                 abelian: bool = False) -> None:
         """
         Args:
-            oplist (list(OperatorBase)): The operators being summed.
-            coeff (int, float, complex): A coefficient multiplying the primitive
+            oplist: The operators being summed.
+            coeff: A coefficient multiplying the primitive
+            abelian: indicates if abelian
         """
         super().__init__(oplist, combo_fn=partial(reduce, np.dot), coeff=coeff, abelian=abelian)
 
@@ -62,7 +71,7 @@ class OpComposition(OpVec):
         """ Operator Composition (Circuit-style, left to right) """
         # Try composing with last element in list
         if isinstance(other, OpComposition):
-            return OpComposition(self.oplist + other.oplist, coeff=self.coeff*other.coeff)
+            return OpComposition(self.oplist + other.oplist, coeff=self.coeff * other.coeff)
 
         # Try composing with last element of oplist. We only try
         # this if that last element isn't itself an
@@ -85,6 +94,7 @@ class OpComposition(OpVec):
         of binary strings. For more information,
         see the eval method in operator_base.py.
         """
+
         # TODO do this for real later. Requires allowing Ops to take a
         #  state and return another. Can't do this yet.
         # front_holder = front.eval(front=front)
@@ -134,6 +144,7 @@ class OpComposition(OpVec):
                 return r.__class__([distribute_compose(l, r_op) for r_op in r.oplist])
             else:
                 return l.compose(r)
+
         reduced_ops = reduce(lambda x, y: distribute_compose(x, y), reduced_ops) * self.coeff
         if isinstance(reduced_ops, OpVec) and len(reduced_ops.oplist) == 1:
             return reduced_ops.oplist[0]

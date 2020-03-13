@@ -33,9 +33,10 @@ from .common import (measure_pauli_z, covariance, pauli_measurement,
                      kernel_F2, suzuki_expansion_slice_pauli_list,
                      check_commutativity, evolution_instruction)
 
-
 logger = logging.getLogger(__name__)
 
+
+# pylint: disable=invalid-name
 
 class WeightedPauliOperator(LegacyBaseOperator):
     """ Weighted Pauli Operator """

@@ -25,6 +25,8 @@ from qiskit.aqua.operators import Zero, One, Plus, Minus
 from qiskit.aqua.operators.expectation_values import MatrixExpectation
 
 
+# pylint: disable=invalid-name
+
 class TestMatrixExpectation(QiskitAquaTestCase):
     """Pauli Change of Basis Expectation tests."""
 

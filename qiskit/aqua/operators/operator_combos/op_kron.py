@@ -14,19 +14,25 @@
 
 """ Eager Operator Kron Container """
 
+from typing import List, Union
 from functools import reduce, partial
 import numpy as np
 
+from ..operator_base import OperatorBase
 from .op_vec import OpVec
 
 
 class OpKron(OpVec):
     """ Eager Operator Kron Container """
-    def __init__(self, oplist, coeff=1.0, abelian=False):
+    def __init__(self,
+                 oplist: List[OperatorBase],
+                 coeff: Union[int, float, complex] = 1.0,
+                 abelian: bool = False) -> None:
         """
         Args:
-            oplist (list(OperatorBase)): The operators being summed.
-            coeff (int, float, complex): A coefficient multiplying the primitive
+            oplist: The operators being summed.
+            coeff: A coefficient multiplying the primitive
+            abelian: indicates if abelian
         """
         super().__init__(oplist, combo_fn=partial(reduce, np.kron), coeff=coeff, abelian=abelian)
 

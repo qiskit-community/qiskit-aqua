@@ -23,6 +23,8 @@ from .trotterization_base import TrotterizationBase
 from ...operator_combos import OpSum, OpComposition
 
 
+# pylint: disable=invalid-name
+
 class QDrift(TrotterizationBase):
     """ The QDrift trotterization method, which selects each each term in the
     trotterization randomly,
@@ -37,12 +39,12 @@ class QDrift(TrotterizationBase):
         # We artificially make the weights positive, TODO check if this works
         weights = np.abs([op.coeff for op in op_sum.oplist])
         lambd = sum(weights)
-        N = 2*(lambd**2)*(op_sum.coeff**2)
+        N = 2 * (lambd ** 2) * (op_sum.coeff ** 2)
 
         factor = lambd * op_sum.coeff / (N * self.reps)
         # The protocol calls for the removal of the individual coefficients,
         # and multiplication by a constant factor.
         scaled_ops = [(op * (factor / op.coeff)).exp_i() for op in op_sum.oplist]
-        sampled_ops = np.random.choice(scaled_ops, size=(int(N*self.reps), ), p=weights/lambd)
+        sampled_ops = np.random.choice(scaled_ops, size=(int(N * self.reps),), p=weights / lambd)
 
         return OpComposition(sampled_ops).reduce()

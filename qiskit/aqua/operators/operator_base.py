@@ -213,7 +213,7 @@ class OperatorBase(ABC):
                     unrolled_value_dict_list.append(
                         OperatorBase._get_param_dict_for_index(unrolled_value_dict, i))
                 return unrolled_value_dict_list
-            except(IndexError):
+            except IndexError:
                 raise AquaError('Parameter binding lists must all be the same length.')
         return unrolled_value_dict
 

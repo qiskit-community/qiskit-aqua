@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Wrapping Pauli Primitives """
+
 import logging
 import itertools
 import numpy as np
@@ -41,6 +43,8 @@ class OpPauli(OpPrimitive):
             primitive (Gate, Pauli, [[complex]], np.ndarray, QuantumCircuit, Instruction):
             The operator primitive being wrapped.
             coeff (int, float, complex): A coefficient multiplying the primitive
+        Raises:
+            TypeError: invalid parameters.
         """
         if not isinstance(primitive, Pauli):
             raise TypeError(
@@ -133,7 +137,7 @@ class OpPauli(OpPrimitive):
 
         # If self is identity, just return other.
         if not any(self.primitive.x + self.primitive.z):
-            return (other * self.coeff)
+            return other * self.coeff
 
         # Both Paulis
         if isinstance(other, OpPauli):

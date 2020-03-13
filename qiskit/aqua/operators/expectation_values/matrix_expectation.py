@@ -24,6 +24,8 @@ from ..operator_primitives import OpMatrix
 logger = logging.getLogger(__name__)
 
 
+# pylint: disable=invalid-name
+
 class MatrixExpectation(ExpectationBase):
     """ A base for Expectation Value algorithms """
 
@@ -66,6 +68,7 @@ class MatrixExpectation(ExpectationBase):
                         return OpVec([recursive_opvec(t_op) for t_op in t])
                     else:
                         return StateFn(OpMatrix(t), is_measurement=True)
+
                 self._matrix_op = recursive_opvec(mat_conversion)
             else:
                 self._matrix_op = StateFn(OpMatrix(mat_conversion), is_measurement=True)

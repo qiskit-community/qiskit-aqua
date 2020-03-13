@@ -18,6 +18,8 @@ from test.aqua import QiskitAquaTestCase
 from qiskit.aqua.operators import StateFn, Zero, One, H, X
 
 
+# pylint: disable=invalid-name
+
 class TestStateOpMeasEvals(QiskitAquaTestCase):
     """Tests of evals of Meas-Operator-StateFn combos."""
 

@@ -17,6 +17,8 @@ Simple Trotter expansion.
 
 """
 
+from typing import List, Union
+from qiskit.quantum_info import Pauli
 from .trotterization_base import TrotterizationBase
 from ...operator_combos import OpComposition
 
@@ -46,18 +48,20 @@ class Suzuki(TrotterizationBase):
         return full_evo.reduce()
 
     @staticmethod
-    def suzuki_recursive_expansion(op_list, evo_time, expansion_order, reps):
+    def suzuki_recursive_expansion(op_list: List[List[Union[complex, Pauli]]],
+                                   evo_time: float,
+                                   expansion_order: int,
+                                   reps: int) -> List:
         """
         Compute the list of pauli terms for a single slice of the suzuki expansion
         following the paper https://arxiv.org/pdf/quant-ph/0508139.pdf.
 
         Args:
-            op_list (list[list[complex, Pauli]]): The slice's weighted Pauli list for the
-                                                     suzuki expansion
-            evo_time (float): The parameter lambda as defined in said paper,
+            op_list: The slice's weighted Pauli list for the suzuki expansion
+            evo_time: The parameter lambda as defined in said paper,
                               adjusted for the evolution time and the number of time slices
-            expansion_order (int): The order for suzuki expansion
-
+            expansion_order: The order for suzuki expansion
+            reps: reps
         Returns:
             list: slice pauli list
         """

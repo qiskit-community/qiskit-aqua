@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Wrapping Pauli Primitives """
+
 import logging
 import numpy as np
 
@@ -40,6 +42,8 @@ class OpCircuit(OpPrimitive):
             The operator primitive being
             wrapped.
             coeff (int, float, complex): A coefficient multiplying the primitive
+        Raises:
+            TypeError: invalid parameters.
         """
         if isinstance(primitive, QuantumCircuit):
             primitive = primitive.to_instruction()

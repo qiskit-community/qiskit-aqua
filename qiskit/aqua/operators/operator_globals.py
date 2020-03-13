@@ -22,6 +22,8 @@ from qiskit.extensions.standard import CXGate, SGate, TGate, HGate, SwapGate
 from .operator_primitives import OpPrimitive
 from .state_functions import StateFn
 
+# pylint: disable=invalid-name
+
 # Singletons
 
 # Paulis

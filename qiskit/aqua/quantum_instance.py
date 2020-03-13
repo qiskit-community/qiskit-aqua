@@ -245,6 +245,7 @@ class QuantumInstance:
         return transpiled_circuits
 
     def assemble(self, circuits):
+        """ assemble circuits """
         return compiler.assemble(circuits, **self._run_config.to_dict())
 
     def execute(self, circuits, had_transpiled=False):

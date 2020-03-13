@@ -14,8 +14,10 @@
 
 """ Expectation Algorithm Base """
 
+from typing import Dict, List, Optional
 import logging
 
+from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance
 from ..operator_combos import OpVec
 from ..state_functions import StateFn, StateFnCircuit
@@ -30,11 +32,17 @@ class IBMQSampler(CircuitSampler):
 
     """
 
-    def __init__(self, backend=None, quantum_instance=None, kwargs={}):
+    def __init__(self,
+                 backend: Optional[BaseBackend] = None,
+                 quantum_instance: Optional[QuantumInstance] = None,
+                 kwargs: Optional[Dict] = None) -> None:
         """
         Args:
-            backend():
+            backend:
+            quantum_instance:
+            kwargs:
         """
+        kwargs = {} if kwargs is None else kwargs
         self._qi = quantum_instance or QuantumInstance(backend=backend, **kwargs)
 
     def convert(self, operator):
@@ -65,10 +73,12 @@ class IBMQSampler(CircuitSampler):
 
         return replace_circuits_with_dicts(reduced_op)
 
-    def sample_circuits(self, op_circuits):
+    def sample_circuits(self, op_circuits: List) -> Dict:
         """
         Args:
-            op_circuits(list): The list of circuits or StateFnCircuits to sample
+            op_circuits: The list of circuits or StateFnCircuits to sample
+        Returns:
+            Dict: dictionary of sampled state functions
         """
         if all([isinstance(circ, StateFnCircuit) for circ in op_circuits]):
             circuits = [op_c.to_circuit(meas=True) for op_c in op_circuits]

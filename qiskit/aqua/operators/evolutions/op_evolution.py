@@ -12,12 +12,16 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Wrapping Operator Evolutions """
+
+from typing import Union
 import logging
 import numpy as np
 import scipy
 
 from qiskit.circuit import ParameterExpression
 
+from ..operator_base import OperatorBase
 from ..operator_primitives import OpPrimitive
 from ..operator_combos import OpSum, OpComposition, OpKron
 
@@ -35,12 +39,14 @@ class OpEvolution(OpPrimitive):
     have chosen for it to be an OperatorBase,
     but would have ended up copying and pasting a lot of code from OpPrimitive."""
 
-    def __init__(self, primitive, coeff=1.0):
+    def __init__(self,
+                 primitive: OperatorBase,
+                 coeff: Union[int, float, complex] = 1.0) -> None:
         """
-                Args:
-                    primitive (OperatorBase): The operator being wrapped.
-                    coeff (int, float, complex): A coefficient multiplying the primitive
-                """
+        Args:
+            primitive: The operator being wrapped.
+            coeff: A coefficient multiplying the primitive
+        """
         super().__init__(primitive, coeff=coeff)
 
     def get_primitives(self):

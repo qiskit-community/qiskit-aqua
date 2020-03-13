@@ -55,6 +55,8 @@ class StateFnDict(StateFn):
         Args:
             primitive(str, dict, OperatorBase, Result, np.ndarray, list)
             coeff(int, float, complex): A coefficient by which to multiply the state
+        Raises:
+            TypeError: invalid parameters.
         """
         # If the initial density is a string, treat this as a density dict
         # with only a single basis state.
@@ -177,7 +179,12 @@ class StateFnDict(StateFn):
         massive=True if they want such a large vector. Generally big methods like this
         should require the use of a
         converter, but in this case a convenience method for quick hacking and access
-        to classical tools is appropriate. """
+        to classical tools is appropriate.
+        Returns:
+            np.ndarray: vector of state vector
+        Raises:
+            ValueError: invalid parameters.
+        """
 
         if self.num_qubits > 16 and not massive:
             # TODO figure out sparse matrices?

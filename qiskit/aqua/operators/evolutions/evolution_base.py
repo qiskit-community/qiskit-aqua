@@ -34,7 +34,10 @@ class EvolutionBase(ConverterBase):
     def factory(operator=None, backend=None):
         """
         Args:
-
+        Returns:
+            EvolutionBase: derived class
+        Raises:
+            ValueError: evolutions of Mixed Operators not yet supported.
         """
         # pylint: disable=cyclic-import,import-outside-toplevel
         # TODO remove state from factory and inits?

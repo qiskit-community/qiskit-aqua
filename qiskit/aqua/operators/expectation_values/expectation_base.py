@@ -27,7 +27,7 @@ from ..circuit_samplers import CircuitSampler
 logger = logging.getLogger(__name__)
 
 
-class ExpectationBase():
+class ExpectationBase:
     """ A base for Expectation Value algorithms. An expectation value algorithm
     takes an operator Observable,
     a backend, and a state distribution function, and computes the expected value
@@ -53,7 +53,10 @@ class ExpectationBase():
     def factory(operator, backend=None, state=None):
         """
         Args:
-
+        Returns:
+            ExpectationBase: derived class
+        Raises:
+            ValueError: Expectations of Mixed Operators not yet supported.
         """
         backend_to_check = backend.backend if isinstance(backend, QuantumInstance) else backend
 

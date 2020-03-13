@@ -25,6 +25,8 @@ from qiskit.extensions.standard import CzGate
 from qiskit.aqua.operators import X, Y, Z, I, CX, T, H, OpPrimitive, OpSum
 
 
+# pylint: disable=invalid-name
+
 class TestOpConstruction(QiskitAquaTestCase):
     """Operator Construction tests."""
 

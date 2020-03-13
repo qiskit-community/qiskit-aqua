@@ -25,6 +25,8 @@ from qiskit.aqua.operators import (X, Y, Z, I, CX, H, OpVec, OpCircuit, Zero, Ev
                                    OpEvolution, PauliTrotterEvolution, QDrift)
 
 
+# pylint: disable=invalid-name
+
 class TestEvolution(QiskitAquaTestCase):
     """Evolution tests."""
 
