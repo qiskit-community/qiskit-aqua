@@ -16,7 +16,10 @@
 
 import logging
 
-from qiskit.aqua.operators import OperatorBase, OpPrimitive, OpVec, StateFn, StateFnOperator
+from ..operator_base import OperatorBase
+from ..operator_primitives import OpPrimitive
+from ..operator_combos import OpVec
+from ..state_functions import StateFn, StateFnOperator
 from .converter_base import ConverterBase
 
 logger = logging.getLogger(__name__)

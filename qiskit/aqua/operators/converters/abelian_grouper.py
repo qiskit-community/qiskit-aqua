@@ -18,8 +18,9 @@ import logging
 import itertools
 import networkx as nx
 
-from qiskit.aqua.operators import OpVec, StateFnOperator, OpPauli, OpSum
-
+from ..operator_combos import OpVec, OpSum
+from ..state_functions import StateFnOperator
+from ..operator_primitives import OpPauli
 from .converter_base import ConverterBase
 
 logger = logging.getLogger(__name__)

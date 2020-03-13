@@ -20,7 +20,8 @@ from qiskit import QuantumCircuit
 from qiskit.quantum_info import Pauli
 from qiskit.extensions.standard import XGate, YGate, ZGate, IGate
 
-from qiskit.aqua.operators import OpPrimitive, OpVec
+from ..operator_primitives import OpPrimitive
+from ..operator_combos import OpVec
 from .converter_base import ConverterBase
 
 logger = logging.getLogger(__name__)

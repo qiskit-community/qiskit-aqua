@@ -18,12 +18,11 @@ import logging
 from abc import abstractmethod
 
 from qiskit import BasicAer
-from qiskit.aqua.operators.circuit_samplers import CircuitSampler
-
 from qiskit.aqua.utils.backend_utils import (is_statevector_backend,
                                              is_aer_qasm,
                                              has_aer)
 from qiskit.aqua import QuantumInstance
+from ..circuit_samplers import CircuitSampler
 
 logger = logging.getLogger(__name__)
 

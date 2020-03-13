@@ -17,7 +17,7 @@ import numpy as np
 
 from qiskit.quantum_info import Operator as MatrixOperator
 
-from qiskit.aqua.operators import OperatorBase
+from ..operator_base import OperatorBase
 from ..operator_combos import OpSum, OpComposition, OpKron
 from .op_primitive import OpPrimitive
 
