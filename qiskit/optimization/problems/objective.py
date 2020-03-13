@@ -61,7 +61,7 @@ class ObjectiveInterface(BaseInterface):
         super(ObjectiveInterface, self).__init__()
         self._linear = {}
         self._quadratic = {}
-        self._name = None
+        self._name = 'Objective'
         self._sense = ObjSense.minimize
         self._offset = 0.0
         self._varindex = varindex

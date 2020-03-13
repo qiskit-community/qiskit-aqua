@@ -73,16 +73,21 @@ class OptimizationProblemToNegativeValueOracle:
         quadratic_coeff = {}
         for i, jv in quadratic_dict.items():
             for j, v in jv.items():
-                quadratic_coeff[(i, j)] = v
+                coeff = quadratic_coeff.get((j, i), 0)
+                if i <= j:
+                    quadratic_coeff[(i, j)] = v / 2 + coeff  # divide by 2 since problem considers xQx/2.
+                else:
+                    quadratic_coeff[(j, i)] = v / 2 + coeff
 
         constant = problem.objective.get_offset()
 
         # Get circuit requirements from input.
         num_key = len(linear_coeff)
-        num_ancilla = max(num_key, self._num_value) - 1
+        # num_ancilla = max(num_key, self._num_value) - 1  # TODO: ancillas are not used, are they?
+        num_ancilla = 0
 
         # Get the function dictionary.
-        func = self._get_function(num_key, linear_coeff, quadratic_coeff, constant)
+        func = self._get_function(linear_coeff, quadratic_coeff, constant)
         self._logger.info("Function: {}\n", func)
 
         # Define state preparation operator A from function.
@@ -113,15 +118,15 @@ class OptimizationProblemToNegativeValueOracle:
         return a_operator, oracle, func
 
     @staticmethod
-    def _get_function(num_assets: int, linear: np.array, quadratic: np.array, constant: int) -> \
+    def _get_function(linear: np.array, quadratic: np.array, constant: int) -> \
             Dict[Union[int, Tuple[int, int]], int]:
         """Convert the problem to a dictionary format."""
         func = {-1: constant}
-        for i in range(num_assets):
-            func[i] = linear[i]
-            for j in range(i):
-                if (i, j) in quadratic:
-                    func[(i, j)] = int(quadratic[(i, j)])
+        for i, v in enumerate(linear):
+            func[i] = v
+        for ij, v in quadratic.items():
+            i, j = ij
+            func[(i, j)] = int(quadratic[(i, j)])
 
         return func
 

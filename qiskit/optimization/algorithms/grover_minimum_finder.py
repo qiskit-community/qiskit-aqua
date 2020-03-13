@@ -168,6 +168,7 @@ class GroverMinimumFinder(OptimizationAlgorithm):
                 rotations += rotation_count
 
                 # Get state preparation operator A and oracle O for the current threshold.
+                # TODO: can the conversion go to before the while-loop?
                 problem_.objective.set_offset(orig_constant - threshold)
                 a_operator, oracle, func_dict = opt_prob_converter.encode(problem_)
 
@@ -242,7 +243,6 @@ class GroverMinimumFinder(OptimizationAlgorithm):
                                     results=grover_results)
 
         # cast binaries back to integers
-        print(result)
         result = int_to_bin_converter.decode(result)
 
         return result

@@ -148,3 +148,17 @@ class TestGroverMinimumFinder(QiskitOptimizationTestCase):
         grover_optimizer = GroverMinimumFinder(num_iterations=6)
         result = grover_optimizer.solve(problem)
         print(result)
+
+    def test_gas_2(self):
+
+        op = OptimizationProblem()
+        op.variables.add(names=["x0", "x1", "x2"], types='BBB')
+
+        linear = [("x0", -1), ("x1", 2), ("x2", -3)]
+        op.objective.set_linear(linear)
+        op.objective.set_quadratic_coefficients('x0', 'x2', -2)
+        op.objective.set_quadratic_coefficients('x1', 'x2', -1)
+
+        grover_optimizer = GroverMinimumFinder(num_iterations=8)
+        result = grover_optimizer.solve(op)
+        print(result)
