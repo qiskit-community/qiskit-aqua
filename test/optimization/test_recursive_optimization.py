@@ -21,7 +21,7 @@ from ddt import ddt, data
 from qiskit import BasicAer
 
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.algorithms import ClassicalMinimumEigensolver
+from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.aqua.algorithms import QAOA
 from qiskit.aqua.components.optimizers import COBYLA
 
@@ -43,7 +43,7 @@ class TestRecursiveMinEigenOptimizer(QiskitOptimizationTestCase):
         self.min_eigen_solvers = {}
 
         # exact eigen solver
-        self.min_eigen_solvers['exact'] = ClassicalMinimumEigensolver()
+        self.min_eigen_solvers['exact'] = NumPyMinimumEigensolver()
 
         # QAOA
         optimizer = COBYLA()

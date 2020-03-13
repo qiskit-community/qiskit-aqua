@@ -126,7 +126,10 @@ class OptimizationProblemToNegativeValueOracle:
             func[i] = v
         for ij, v in quadratic.items():
             i, j = ij
-            func[(i, j)] = int(quadratic[(i, j)])
+            if i != j:
+                func[(i, j)] = int(quadratic[(i, j)])
+            else:
+                func[i] += v
 
         return func
 

@@ -185,6 +185,6 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
 
     def _find_strongest_correlation(self, M):
         m_max = np.argmax(np.abs(M.flatten()))
-        i = m_max // len(M)
-        j = m_max - i*len(M)
+        i = int(m_max // len(M))
+        j = int(m_max - i*len(M))
         return (i, j)

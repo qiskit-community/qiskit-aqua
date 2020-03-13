@@ -519,11 +519,11 @@ class OptimizationProblem(object):
                 else:
                     # nothing to be replaced, just copy coefficients
                     if i == j:
-                        w_ij = sum(self.objective.get_quadratic_coefficients(i_name, j_name),
-                                   op.objective.get_quadratic_coefficients(i_name, j_name))
+                        w_ij = sum([self.objective.get_quadratic_coefficients(i_name, j_name),
+                                   op.objective.get_quadratic_coefficients(i_name, j_name)])
                     else:
-                        w_ij = sum(self.objective.get_quadratic_coefficients(i_name, j_name) / 2,
-                                   op.objective.get_quadratic_coefficients(i_name, j_name))
+                        w_ij = sum([self.objective.get_quadratic_coefficients(i_name, j_name) / 2,
+                                   op.objective.get_quadratic_coefficients(i_name, j_name)])
                     op.objective.set_quadratic_coefficients(i_name, j_name, w_ij)
 
         # set offset
