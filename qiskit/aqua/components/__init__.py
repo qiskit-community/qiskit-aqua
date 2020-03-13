@@ -45,8 +45,8 @@ Submodules
 .. autosummary::
    :toctree:
 
+   ansatzes
    eigs
-   feature_maps
    initial_states
    iqfts
    multiclass_extensions
@@ -57,6 +57,5 @@ Submodules
    reciprocals
    uncertainty_models
    uncertainty_problems
-   variational_forms
 
 """

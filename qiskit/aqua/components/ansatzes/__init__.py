@@ -53,6 +53,15 @@ Ansätze
    RYRZ
    SwapRZ
 
+
+Submodules
+==========
+
+.. autosummary::
+   :toctree:
+
+   feature_maps
+
 """
 from .ansatz import Ansatz
 from .operator_ansatz import OperatorAnsatz
