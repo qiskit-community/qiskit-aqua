@@ -289,7 +289,7 @@ class OpVec(OperatorBase):
 
     def __str__(self):
         """Overload str() """
-        main_string = "{}([{}])".format(self.__class__.__name__, ', '.join(
+        main_string = "{}(\n[{}])".format(self.__class__.__name__, ',\n'.join(
             [str(op) for op in self.oplist]))
         if self.abelian:
             main_string = 'Abelian' + main_string
