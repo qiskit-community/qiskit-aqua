@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 class AbelianGrouper(ConverterBase):
-
+    """ Expectation Algorithm Base """
     def __init__(self, traverse=True):
         self._traverse = traverse
 
@@ -54,6 +54,7 @@ class AbelianGrouper(ConverterBase):
             return operator
 
     def group_paulis(self, op_vec):
+        """ group paulis """
         commutation_graph = nx.Graph()
         commutation_graph.add_nodes_from(op_vec.oplist)
         commutation_graph.add_edges_from(filter(lambda ops: not ops[0].commutes(ops[1]),

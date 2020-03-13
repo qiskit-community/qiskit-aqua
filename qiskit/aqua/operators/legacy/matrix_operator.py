@@ -63,6 +63,7 @@ class MatrixOperator(LegacyBaseOperator):
         self._atol = atol
 
     def to_opflow(self):
+        """ to op flow """
         # pylint: disable=import-outside-toplevel
         from qiskit.aqua.operators import OpPrimitive
         return OpPrimitive(self.dense_matrix)

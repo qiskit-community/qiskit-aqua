@@ -59,6 +59,7 @@ class PauliExpectation(ExpectationBase):
 
     @property
     def state(self):
+        """ returns state """
         return self._state
 
     @state.setter
@@ -69,6 +70,7 @@ class PauliExpectation(ExpectationBase):
 
     @property
     def quantum_instance(self):
+        """ returns quantum instance """
         return self._circuit_sampler.quantum_instance
 
     @quantum_instance.setter
@@ -76,6 +78,7 @@ class PauliExpectation(ExpectationBase):
         self._circuit_sampler.quantum_instance = quantum_instance
 
     def expectation_op(self, state=None):
+        """ expectation op """
         state = state or self._state
 
         if not self._converted_operator:
@@ -119,6 +122,7 @@ class PauliExpectation(ExpectationBase):
             return self._reduced_meas_op.eval()
 
     def compute_standard_deviation(self, state=None, params=None):
+        """ compute standard deviation """
         state = state or self.state
         if self._sampled_meas_op is None:
             self.compute_expectation(state=state, params=params)

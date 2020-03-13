@@ -22,6 +22,7 @@ class TestStateOpMeasEvals(QiskitAquaTestCase):
     """Tests of evals of Meas-Operator-StateFn combos."""
 
     def test_statefn_overlaps(self):
+        """ state functions overlaps test """
         # wf = StateFn({'101010': .5, '111111': .3}) + (Zero^6)
         wf = (4 * StateFn({'101010': .5, '111111': .3})) + ((3 + .1j) * (Zero ^ 6))
         wf_vec = StateFn(wf.to_matrix())
@@ -31,6 +32,7 @@ class TestStateOpMeasEvals(QiskitAquaTestCase):
         self.assertAlmostEqual(wf.adjoint().eval(wf_vec), 14.45)
 
     def test_wf_evals_x(self):
+        """ wf evals x test """
         qbits = 4
         wf = ((Zero ^ qbits) + (One ^ qbits)) * (1 / 2 ** .5)
         # Note: wf = Plus^qbits fails because OpKron can't handle it.

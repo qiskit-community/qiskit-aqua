@@ -46,8 +46,7 @@ class TestOpConstruction(QiskitAquaTestCase):
         self.assertEqual(I.primitive, Pauli(label='I'))
 
     def test_evals(self):
-
-        # Test eval
+        """ evals test """
         # TODO: Think about eval names
         self.assertEqual(Z.eval('0', '0'), 1)
         self.assertEqual(Z.eval('1', '0'), 0)
@@ -95,6 +94,7 @@ class TestOpConstruction(QiskitAquaTestCase):
                                                  gnarly_mat_op.eval(bstr1, bstr2))
 
     def test_circuit_construction(self):
+        """ circuit construction test """
         hadq2 = H ^ I
         cz = hadq2.compose(CX).compose(hadq2)
         qc = QuantumCircuit(2)
@@ -104,6 +104,7 @@ class TestOpConstruction(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(cz.to_matrix(), ref_cz_mat)
 
     def test_io_consistency(self):
+        """ consistency test """
         new_op = X ^ Y ^ I
         label = 'XYI'
         # label = new_op.primitive.to_label()
@@ -147,6 +148,7 @@ class TestOpConstruction(QiskitAquaTestCase):
         # np.testing.assert_array_almost_equal(new_op.primitive.to_matrix(), unitary)
 
     def test_to_matrix(self):
+        """to matrix text """
         np.testing.assert_array_equal(X.to_matrix(), Operator.from_label('X').data)
         np.testing.assert_array_equal(Y.to_matrix(), Operator.from_label('Y').data)
         np.testing.assert_array_equal(Z.to_matrix(), Operator.from_label('Z').data)
@@ -173,12 +175,14 @@ class TestOpConstruction(QiskitAquaTestCase):
                                              Operator.from_label('+r').data)
 
     def test_adjoint(self):
-        gnarly_op = 3 * (H ^ I ^ Y).compose(X ^ X ^ Z).kron(T ^ Z) +\
-                    OpPrimitive(Operator.from_label('+r0IX').data)
+        """ adjoint test """
+        gnarly_op = 3 * (H ^ I ^ Y).compose(X ^ X ^ Z).kron(T ^ Z) + \
+            OpPrimitive(Operator.from_label('+r0IX').data)
         np.testing.assert_array_almost_equal(np.conj(np.transpose(gnarly_op.to_matrix())),
                                              gnarly_op.adjoint().to_matrix())
 
     def test_get_primitives(self):
+        """ get primitives test """
         self.assertEqual(X.get_primitives(), {'Pauli'})
 
         gnarly_op = 3 * (H ^ I ^ Y).compose(X ^ X ^ Z).kron(T ^ Z) + \

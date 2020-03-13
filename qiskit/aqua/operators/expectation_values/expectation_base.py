@@ -41,6 +41,7 @@ class ExpectationBase():
 
     @property
     def backend(self):
+        """ returns backend """
         return self._circuit_sampler.backend
 
     @backend.setter
@@ -73,12 +74,14 @@ class ExpectationBase():
                         backend_to_check = BasicAer.get_backend('statevector_simulator')
                     else:
                         logging.warning(
-                            '{0} qubits is a very large expectation value. '
+                            '%d qubits is a very large expectation value. '
                             'Consider installing Aer to use '
                             'Aer\'s fast expectation, which will perform better here. We\'ll use '
                             'the BasicAer qasm backend for this expectation to avoid having to '
-                            'construct the {1}x{1} operator matrix.'.format(operator.num_qubits,
-                                                                            2**operator.num_qubits))
+                            'construct the %dx%d operator matrix.',
+                            operator.num_qubits,
+                            2 ** operator.num_qubits,
+                            2 ** operator.num_qubits)
                         backend_to_check = BasicAer.get_backend('qasm_simulator')
 
             # If the user specified Aer qasm backend and is using a
@@ -94,9 +97,9 @@ class ExpectationBase():
                 from .matrix_expectation import MatrixExpectation
                 if operator.num_qubits >= 16:
                     logging.warning(
-                        'Note: Using a statevector_simulator with {} qubits can be very expensive. '
+                        'Note: Using a statevector_simulator with %d qubits can be very expensive. '
                         'Consider using the Aer qasm_simulator instead to take advantage of Aer\'s '
-                        'built-in fast Pauli Expectation'.format(operator.num_qubits))
+                        'built-in fast Pauli Expectation', operator.num_qubits)
                 # TODO do this properly with converters
                 return MatrixExpectation(operator=operator, backend=backend, state=state)
 
@@ -118,16 +121,20 @@ class ExpectationBase():
 
     @abstractmethod
     def operator(self, operator):
+        """ returns operator """
         raise NotImplementedError
 
     @abstractmethod
     def compute_expectation_for_primitives(self, state=None, primitives=None):
+        """ compute expectation for primitives """
         raise NotImplementedError
 
     @abstractmethod
     def compute_variance(self, state=None):
+        """ compute variance """
         raise NotImplementedError
 
     @abstractmethod
     def compute_expectation(self, state=None, params=None):
+        """ compute expectation """
         pass

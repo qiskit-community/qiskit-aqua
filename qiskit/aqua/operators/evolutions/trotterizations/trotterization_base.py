@@ -27,6 +27,7 @@ class TrotterizationBase():
 
     @staticmethod
     def factory(mode, reps=1):
+        """ Factory """
         if mode not in ['trotter', 'suzuki', 'qdrift']:
             raise ValueError('Trotter mode {} not supported'.format(mode))
         # pylint: disable=cyclic-import,import-outside-toplevel
@@ -45,6 +46,7 @@ class TrotterizationBase():
 
     @property
     def reps(self):
+        """ returns reps """
         return self._reps
 
     @reps.setter
@@ -53,6 +55,7 @@ class TrotterizationBase():
 
     @abstractmethod
     def trotterize(self, op_sum):
+        """ trotterize """
         raise NotImplementedError
 
     # TODO @abstractmethod - trotter_error_bound

@@ -31,6 +31,7 @@ class TestPauliExpectation(QiskitAquaTestCase):
     """Pauli Change of Basis Expectation tests."""
 
     def test_pauli_expect_pair(self):
+        """ pauli expect pair test """
         op = (Z ^ Z)
         backend = BasicAer.get_backend('qasm_simulator')
         expect = PauliExpectation(operator=op, backend=backend)
@@ -40,6 +41,7 @@ class TestPauliExpectation(QiskitAquaTestCase):
         self.assertAlmostEqual(mean, 0, delta=.1)
 
     def test_pauli_expect_single(self):
+        """ pauli expect single test """
         backend = BasicAer.get_backend('qasm_simulator')
         paulis = [Z, X, Y, I]
         states = [Zero, One, Plus, Minus, S @ Plus, S @ Minus]
@@ -51,6 +53,7 @@ class TestPauliExpectation(QiskitAquaTestCase):
             np.testing.assert_array_almost_equal(mean, matmulmean, decimal=1)
 
     def test_pauli_expect_op_vector(self):
+        """ pauli expect op vector test """
         backend = BasicAer.get_backend('qasm_simulator')
         paulis_op = OpVec([X, Y, Z, I])
         expect = PauliExpectation(operator=paulis_op, backend=backend)
@@ -88,6 +91,7 @@ class TestPauliExpectation(QiskitAquaTestCase):
                                                  decimal=1)
 
     def test_pauli_expect_state_vector(self):
+        """ pauli expect state vector test """
         backend = BasicAer.get_backend('qasm_simulator')
         states_op = OpVec([One, Zero, Plus, Minus])
 
@@ -97,6 +101,7 @@ class TestPauliExpectation(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(means, [0, 0, 1, -1], decimal=1)
 
     def test_pauli_expect_op_vector_state_vector(self):
+        """ pauli expect op vector state vector test """
         backend = BasicAer.get_backend('qasm_simulator')
         paulis_op = OpVec([X, Y, Z, I])
         states_op = OpVec([One, Zero, Plus, Minus])
@@ -126,6 +131,7 @@ class TestPauliExpectation(QiskitAquaTestCase):
                                                      [1, -1, 0]])
 
     def test_abelian_grouper(self):
+        """ abelian grouper test """
         two_qubit_H2 = (-1.052373245772859 * I ^ I) + \
                        (0.39793742484318045 * I ^ Z) + \
                        (-0.39793742484318045 * Z ^ I) + \
@@ -143,6 +149,7 @@ class TestPauliExpectation(QiskitAquaTestCase):
         self.assertEqual(len(grouped_sum.oplist), 4)
 
     def test_grouped_pauli_expectation(self):
+        """ grouped pauli expectation test """
         two_qubit_H2 = (-1.052373245772859 * I ^ I) + \
                        (0.39793742484318045 * I ^ Z) + \
                        (-0.39793742484318045 * Z ^ I) + \

@@ -21,7 +21,7 @@ from .op_vec import OpVec
 
 
 class OpSum(OpVec):
-
+    """ Eager Operator Sum Container """
     def __init__(self, oplist, coeff=1.0, abelian=False):
         """
         Args:

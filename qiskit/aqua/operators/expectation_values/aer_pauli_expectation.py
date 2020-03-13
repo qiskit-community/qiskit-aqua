@@ -54,6 +54,7 @@ class AerPauliExpectation(ExpectationBase):
 
     @property
     def state(self):
+        """ returns state """
         return self._state
 
     @state.setter
@@ -63,6 +64,7 @@ class AerPauliExpectation(ExpectationBase):
 
     @property
     def quantum_instance(self):
+        """ returns quantum instance """
         return self._circuit_sampler.quantum_instance
 
     @quantum_instance.setter
@@ -70,7 +72,7 @@ class AerPauliExpectation(ExpectationBase):
         self._circuit_sampler.quantum_instance = quantum_instance
 
     def expectation_op(self, state):
-
+        """ expectation op """
         # pylint: disable=import-outside-toplevel
         from qiskit.providers.aer.extensions import SnapshotExpectationValue
 
@@ -112,4 +114,5 @@ class AerPauliExpectation(ExpectationBase):
             return StateFn(self._operator, is_measurement=True).eval(self.state)
 
     def compute_standard_deviation(self, state=None, params=None):
+        """ compute standard deviation """
         return 0.0

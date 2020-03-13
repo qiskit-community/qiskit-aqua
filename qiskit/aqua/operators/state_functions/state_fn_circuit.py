@@ -14,7 +14,6 @@
 
 """ An Object to represent State Functions constructed from Operators """
 
-
 import numpy as np
 
 from qiskit import QuantumCircuit, BasicAer, execute
@@ -69,6 +68,7 @@ class StateFnCircuit(StateFn):
 
     @staticmethod
     def from_dict(density_dict):
+        """ from dictionary """
         # If the dict is sparse (elements <= qubits), don't go
         # building a statevector to pass to Qiskit's
         # initializer, just create a sum.
@@ -92,6 +92,7 @@ class StateFnCircuit(StateFn):
 
     @staticmethod
     def from_vector(statevector):
+        """ from vector """
         normalization_coeff = np.linalg.norm(statevector)
         normalized_sv = statevector / normalization_coeff
         if not np.all(np.abs(statevector) == statevector):
@@ -197,7 +198,7 @@ class StateFnCircuit(StateFn):
             raise ValueError(
                 'to_matrix will return an exponentially large matrix,'
                 ' in this case {0}x{0} elements.'
-                ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
+                ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
 
         # TODO handle list case
         # Rely on StateFnVectors logic here.
@@ -226,7 +227,7 @@ class StateFnCircuit(StateFn):
             # TODO figure out sparse matrices?
             raise ValueError(
                 'to_vector will return an exponentially large vector, in this case {0} elements.'
-                ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
+                ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
 
         # Need to adjoint to get forward statevector and then reverse
         if self.is_measurement:
@@ -245,12 +246,12 @@ class StateFnCircuit(StateFn):
         prim_str = str(qc.draw(output='text'))
         if self.coeff == 1.0:
             return "{}(\n{}\n)".format('StateFunction' if not self.is_measurement
-                                   else 'Measurement', prim_str)
+                                       else 'Measurement', prim_str)
         else:
             return "{}(\n{}\n) * {}".format('StateFunction' if not self.is_measurement
-                                        else 'Measurement',
-                                        prim_str,
-                                        self.coeff)
+                                            else 'Measurement',
+                                            prim_str,
+                                            self.coeff)
 
     def bind_parameters(self, param_dict):
         param_value = self.coeff
@@ -277,6 +278,7 @@ class StateFnCircuit(StateFn):
         return StateFn(self.to_matrix(), is_measurement=True).eval(other)
 
     def to_circuit(self, meas=False):
+        """ to circuit """
         if meas:
             qc = QuantumCircuit(self.num_qubits, self.num_qubits)
             qc.append(self.primitive, qargs=range(self.primitive.num_qubits))
@@ -298,7 +300,8 @@ class StateFnCircuit(StateFn):
         qc = self.to_circuit(meas=True)
         qasm_backend = BasicAer.get_backend('qasm_simulator')
         counts = execute(qc, qasm_backend, optimization_level=0, shots=shots).result().get_counts()
-        scaled_dict = {bstr: np.sqrt((prob/shots))*self.coeff for (bstr, prob) in counts.items()}
+        scaled_dict = {bstr: np.sqrt((prob / shots)) * self.coeff
+                       for (bstr, prob) in counts.items()}
         return scaled_dict
 
     # Warning - modifying immutable object!!

@@ -70,6 +70,7 @@ class PauliChangeOfBasis(ConverterBase):
 
     @property
     def destination(self):
+        """ returns destination """
         return self._destination
 
     @destination.setter
@@ -136,22 +137,27 @@ class PauliChangeOfBasis(ConverterBase):
 
     @staticmethod
     def measurement_replacement_fn(cob_instr_op, dest_pauli_op):
+        """ measurement replacement function """
         return PauliChangeOfBasis.statefn_replacement_fn(cob_instr_op, dest_pauli_op).adjoint()
 
     @staticmethod
     def statefn_replacement_fn(cob_instr_op, dest_pauli_op):
+        """ state function replacement """
         return OpComposition([cob_instr_op.adjoint(), StateFn(dest_pauli_op)])
 
     @staticmethod
     def operator_replacement_fn(cob_instr_op, dest_pauli_op):
+        """ operator replacement """
         return OpComposition([cob_instr_op.adjoint(), dest_pauli_op, cob_instr_op])
 
     def get_tpb_pauli(self, op_vec):
+        """ get tpb pauli """
         origin_z = reduce(np.logical_or, [p_op.primitive.z for p_op in op_vec.oplist])
         origin_x = reduce(np.logical_or, [p_op.primitive.x for p_op in op_vec.oplist])
         return Pauli(x=origin_x, z=origin_z)
 
     def get_diagonal_pauli_op(self, pauli_op):
+        """ get diagonal pauli operation """
         return OpPauli(Pauli(z=np.logical_or(pauli_op.primitive.z, pauli_op.primitive.x),
                              x=[False] * pauli_op.num_qubits),
                        coeff=pauli_op.coeff)
@@ -171,6 +177,7 @@ class PauliChangeOfBasis(ConverterBase):
         return x_to_z_origin.compose(y_to_x_origin)
 
     def pad_paulis_to_equal_length(self, pauli_op1, pauli_op2):
+        """ pad paulis to equal length """
         num_qubits = max(pauli_op1.num_qubits, pauli_op2.num_qubits)
         pauli_1, pauli_2 = pauli_op1.primitive, pauli_op2.primitive
 
@@ -187,6 +194,7 @@ class PauliChangeOfBasis(ConverterBase):
 
     # TODO
     def construct_cnot_chain(self, diag_pauli_op1, diag_pauli_op2):
+        """ construct cnot chain """
         # TODO be smarter about connectivity and actual distance between pauli and destination
         # TODO be smarter in general
 

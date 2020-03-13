@@ -29,7 +29,7 @@ _pauli_to_gate_mapping = {'X': XGate(), 'Y': YGate(), 'Z': ZGate(), 'I': IGate()
 
 
 class PaulitoInstruction(ConverterBase):
-
+    """ Expectation Algorithm Base """
     def __init__(self, traverse=True, delete_identities=False):
         self._traverse = traverse
         self._delete_identities = delete_identities
@@ -52,6 +52,7 @@ class PaulitoInstruction(ConverterBase):
         return OpPrimitive(self.convert_pauli(operator), coeff=coeff)
 
     def convert_pauli(self, pauli):
+        """ convert pauli """
         # Note: Reversing endianness!!
         qc = QuantumCircuit(len(pauli))
         for q, p in enumerate(reversed(pauli.to_label())):

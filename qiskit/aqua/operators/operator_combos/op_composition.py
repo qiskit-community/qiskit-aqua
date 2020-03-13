@@ -22,7 +22,7 @@ from .op_vec import OpVec
 
 
 class OpComposition(OpVec):
-
+    """ Eager Operator Composition Container """
     def __init__(self, oplist, coeff=1.0, abelian=False):
         """
         Args:
@@ -115,6 +115,7 @@ class OpComposition(OpVec):
 
     # Try collapsing list or trees of compositions into a single <Measurement | Op | State>.
     def non_distributive_reduce(self):
+        """ non distributive reduce """
         reduced_ops = [op.reduce() for op in self.oplist]
         reduced_ops = reduce(lambda x, y: x.compose(y), reduced_ops) * self.coeff
         if isinstance(reduced_ops, OpComposition) and len(reduced_ops.oplist) > 1:

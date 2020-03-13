@@ -21,7 +21,7 @@ from .op_vec import OpVec
 
 
 class OpKron(OpVec):
-
+    """ Eager Operator Kron Container """
     def __init__(self, oplist, coeff=1.0, abelian=False):
         """
         Args:
