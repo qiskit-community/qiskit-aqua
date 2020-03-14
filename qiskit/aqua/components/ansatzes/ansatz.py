@@ -89,20 +89,7 @@ def combine_parameterlists(first: List[Parameter], other: List[Parameter],
 
 
 class Ansatz:
-    """The Ansatz class.
-
-    Attributes:
-        blocks: The single building blocks of the Ansatz.
-        parameters: The parameters of the Ansatz.
-        num_qubits: The number of qubits in the Ansatz.
-        num_parameters: The number of tunable parameters in the Ansatz.
-        setting: Returns information about the class properties.
-        support_parameterized_circuit: If True, the parameters can be set with Parameter objects.
-            To be deprecated, since it always should be True.
-        parameter_bounds: Suggested parameter bounds for the parameters that an optimizer may use.
-        preferred_init_points: The Ansatz can store preferred initial points for the parameter
-            values.
-    """
+    """The Ansatz class."""
 
     def __init__(self,
                  blocks: Optional[Union[QuantumCircuit, List[QuantumCircuit],
