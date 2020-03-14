@@ -41,7 +41,7 @@ class FirstOrderExpansion(PauliZExpansion):
                 default mapping from :meth:`self_product`.
             insert_barriers: If True, barriers are inserted in between the evolution instructions
                 and hadamard layers.
-                 data_map_func: Callable[[np.ndarray], float] = self_product) -> None:
+            data_map_func: Callable[[np.ndarray], float] = self_product) -> None:
         """
         validate_min('depth', depth, 1)
         super().__init__(feature_dimension=feature_dimension,
