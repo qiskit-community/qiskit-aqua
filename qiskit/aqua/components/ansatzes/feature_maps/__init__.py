@@ -14,7 +14,7 @@
 
 """
 Feature Maps (:mod:`qiskit.aqua.components.ansatzes.feature_maps`)
-=========================================================
+==================================================================
 In machine learning, pattern recognition and image processing, a **feature map**
 starts from an initial set of measured data and builds derived values (also known as
 **features**) intended to be informative and non-redundant, facilitating the subsequent
@@ -35,14 +35,6 @@ so that the desired task can be performed by using the reduced representation in
 of the complete initial data.
 
 .. currentmodule:: qiskit.aqua.components.ansatzes.feature_maps
-
-Feature Map Base Class
-======================
-.. autosummary::
-   :toctree: ../stubs/
-   :nosignatures:
-
-   FeatureMap
 
 Feature Maps
 ============

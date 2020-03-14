@@ -32,6 +32,14 @@ As such, they require an ansatz.
 
 .. currentmodule:: qiskit.aqua.components.ansatzes
 
+Submodules
+==========
+
+.. autosummary::
+   :toctree:
+
+   feature_maps
+
 Ansatz Base Class
 =================
 
@@ -52,15 +60,6 @@ Ansätze
    RY
    RYRZ
    SwapRZ
-
-
-Submodules
-==========
-
-.. autosummary::
-   :toctree:
-
-   feature_maps
 
 """
 from .ansatz import Ansatz
