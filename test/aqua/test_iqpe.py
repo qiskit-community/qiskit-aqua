@@ -27,18 +27,20 @@ from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator
 from qiskit.aqua.operators.legacy import op_converter
 from qiskit.aqua.components.initial_states import Custom
 
+# pylint: disable=invalid-name
 
-def _params_generator():
-    # pylint: disable=invalid-name
+
+@ddt
+class TestIQPE(QiskitAquaTestCase):
+    """IQPE tests."""
+
     X = np.array([[0, 1], [1, 0]])
     Y = np.array([[0, -1j], [1j, 0]])
     Z = np.array([[1, 0], [0, -1]])
     _I = np.array([[1, 0], [0, 1]])
     H1 = X + Y + Z + _I
-    qubit_op_simple = MatrixOperator(matrix=H1)
-    qubit_op_simple = op_converter.to_weighted_pauli_operator(qubit_op_simple)
 
-    pauli_dict = {
+    PAULI_DICT = {
         'paulis': [
             {"coeff": {"imag": 0.0, "real": -1.052373245772859}, "label": "II"},
             {"coeff": {"imag": 0.0, "real": 0.39793742484318045}, "label": "IZ"},
@@ -47,30 +49,35 @@ def _params_generator():
             {"coeff": {"imag": 0.0, "real": 0.18093119978423156}, "label": "XX"}
         ]
     }
-    qubit_op_h2_with_2_qubit_reduction = WeightedPauliOperator.from_dict(pauli_dict)
 
-    pauli_dict_zz = {
+    PAULI_DICT_ZZ = {
         'paulis': [
             {"coeff": {"imag": 0.0, "real": 1.0}, "label": "ZZ"}
         ]
     }
-    qubit_op_zz = WeightedPauliOperator.from_dict(pauli_dict_zz)
 
-    for x in [[qubit_op_simple, 'qasm_simulator', 1, 5],
-              [qubit_op_zz, 'statevector_simulator', 1, 1],
-              [qubit_op_h2_with_2_qubit_reduction, 'statevector_simulator', 1, 6]]:
-        yield x
+    def setUp(self):
+        super().setUp()
+        qubit_op_simple = MatrixOperator(matrix=TestIQPE.H1)
+        qubit_op_simple = op_converter.to_weighted_pauli_operator(qubit_op_simple)
+        qubit_op_h2_with_2_qubit_reduction = WeightedPauliOperator.from_dict(TestIQPE.PAULI_DICT)
+        qubit_op_zz = WeightedPauliOperator.from_dict(TestIQPE.PAULI_DICT_ZZ)
+        self._dict = {
+            'QUBIT_OP_SIMPLE': qubit_op_simple,
+            'QUBIT_OP_ZZ': qubit_op_zz,
+            'QUBIT_OP_H2_WITH_2_QUBIT_REDUCTION': qubit_op_h2_with_2_qubit_reduction
+        }
 
-
-@ddt
-class TestIQPE(QiskitAquaTestCase):
-    """IQPE tests."""
-
-    @idata(_params_generator())
+    @idata([
+        ['QUBIT_OP_SIMPLE', 'qasm_simulator', 1, 5],
+        ['QUBIT_OP_ZZ', 'statevector_simulator', 1, 1],
+        ['QUBIT_OP_H2_WITH_2_QUBIT_REDUCTION', 'statevector_simulator', 1, 6],
+    ])
     @unpack
     def test_iqpe(self, qubit_op, simulator, num_time_slices, num_iterations):
         """ iqpe test """
         self.log.debug('Testing IQPE')
+        qubit_op = self._dict[qubit_op]
         tmp_qubit_op = qubit_op.copy()
         exact_eigensolver = NumPyMinimumEigensolver(qubit_op)
         results = exact_eigensolver.run()
