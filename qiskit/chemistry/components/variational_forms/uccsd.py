@@ -265,7 +265,6 @@ class UCCSD(Ansatz):
         self.blockwise_parameters = blockwise_parameters
         self.blocks = results
 
-        print('returned:', len(results), 'blocks with', blockwise_parameters)
         return results
 
     @property

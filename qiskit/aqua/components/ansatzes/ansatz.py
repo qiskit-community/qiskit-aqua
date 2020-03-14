@@ -190,6 +190,7 @@ class Ansatz:
         self._circuit = None
 
         # parameter bounds
+        print('initializing to none')
         self._bounds = None
 
         # temporary fix until UCCSD is rewritten
@@ -575,6 +576,8 @@ class Ansatz:
             None indicates an unbounded parameter in the corresponding direction.
             If None is returned, problem is fully unbounded.
         """
+        if self._circuit is None:
+            _ = self.to_circuit()
         return self._bounds
 
     @parameter_bounds.setter
