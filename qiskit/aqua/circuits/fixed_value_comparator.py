@@ -16,7 +16,6 @@
 
 import numpy as np
 
-from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.circuit.library.arithmetic import FixedValueComparator as FVC
 from qiskit.aqua.utils.circuit_factory import CircuitFactory
 from qiskit.aqua.circuits.gates import logical_or  # pylint: disable=unused-import
@@ -52,8 +51,8 @@ class FixedValueComparator(CircuitFactory):
             i_target (Optional(int)): index of target qubit in given list
                 of qubits / register, if None, i_target = num_state_qubits is used
         """
-        # state (num_state_qubits) + ancillas (num_state_qubits - 1) + compare qubit (1)
-        self._comparator_circuit = FVC(num_state_qubits, value, geq)
+        super().__init__(num_state_qubits + 1)
+        self._comparator_circuit = FVC(value, num_state_qubits, geq=geq)
 
         self.i_state = None
         if i_state is not None:
@@ -101,5 +100,6 @@ class FixedValueComparator(CircuitFactory):
         instr = self._comparator_circuit.to_instruction()
         qr = [q[i] for i in self.i_state] + [q[self.i_target]]
         if q_ancillas:
-            qr += [qi for qi in q_ancillas]  # pylint:disable=unnecessary-comprehension
+            qr += [qi for qi in q_ancillas[:self.required_ancillas()]
+                   ]  # pylint:disable=unnecessary-comprehension
         qc.append(instr, qr)

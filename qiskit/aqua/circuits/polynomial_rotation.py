@@ -140,5 +140,5 @@ class PolynomialRotation(CircuitFactory):
         instr = PR(self.num_state_qubits, self.px, self.basis, reverse).to_instruction()
         qr = [qi for qi in q] + [q_target]  # pylint:disable=unnecessary-comprehension
         if q_ancillas:
-            qr += [qi for qi in q_ancillas]  # pylint:disable=unnecessary-comprehension
+            qr += [qi for qi in q_ancillas[:self.required_ancillas()]]
         qc.append(instr, qr)

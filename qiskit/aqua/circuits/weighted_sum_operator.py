@@ -118,7 +118,7 @@ class WeightedSumOperator(CircuitFactory):
 
     def build(self, qc, q, q_ancillas=None, params=None):
         instr = WSO(self.num_state_qubits, self.weights).to_instruction()
-        qr = [q[i] for i in [self.i_state + self.i_sum]]
+        qr = [q[i] for i in self.i_state + self.i_sum]
         if q_ancillas:
-            qr += q_ancillas[:]  # pylint:disable=unnecessary-comprehension
+            qr += q_ancillas[:self.required_ancillas()]  # pylint:disable=unnecessary-comprehension
         qc.append(instr, qr)
