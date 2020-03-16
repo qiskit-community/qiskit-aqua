@@ -18,7 +18,6 @@ from test.aqua import QiskitAquaTestCase
 
 import numpy as np
 
-from qiskit import BasicAer
 from qiskit.circuit import ParameterVector
 
 from qiskit.aqua.operators import (X, Y, Z, I, CX, H, OpVec, OpCircuit, Zero, EvolutionBase,
@@ -38,8 +37,7 @@ class TestEvolution(QiskitAquaTestCase):
              (0.18093119978423156 * X ^ X) + \
              (-0.39793742484318045 * Z ^ I) + \
              (-0.01128010425623538 * Z ^ Z)
-        backend = BasicAer.get_backend('qasm_simulator')
-        evolution = EvolutionBase.factory(operator=op, backend=backend)
+        evolution = EvolutionBase.factory(operator=op)
         # wf = (Pl^Pl) + (Ze^Ze)
         wf = ((np.pi / 2) * op).exp_i() @ CX @ (H ^ I) @ Zero
         mean = evolution.convert(wf)
