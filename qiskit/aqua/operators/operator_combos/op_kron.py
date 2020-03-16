@@ -20,7 +20,6 @@ import numpy as np
 
 from ..operator_base import OperatorBase
 from .op_vec import OpVec
-from ..operator_primitives import OpPrimitive
 
 
 class OpKron(OpVec):
@@ -67,6 +66,8 @@ class OpKron(OpVec):
         see the eval method in operator_base.py.
         """
 
+        # pylint: disable=import-outside-toplevel
+        from ..operator_primitives import OpPrimitive
         kron_mat_op = OpPrimitive(self.combo_fn([op.to_matrix() for op in self.oplist]),
                                   coeff=self.coeff)
         return kron_mat_op.eval(front=front, back=back)
