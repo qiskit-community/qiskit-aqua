@@ -16,6 +16,8 @@
 
 import numpy as np
 
+from qiskit.aqua import AquaError
+
 from ..operator_base import OperatorBase
 from . import StateFn
 from ..operator_combos import OpVec, OpSum
@@ -86,8 +88,7 @@ class StateFnOperator(StateFn):
                 return StateFnOperator(
                     (self.coeff * self.primitive).add(other.primitive * other.coeff),
                     is_measurement=self._is_measurement)
-        # pylint: disable=cyclic-import,import-outside-toplevel
-        from .. import OpSum
+
         return OpSum([self, other])
 
     def adjoint(self):
@@ -192,42 +193,44 @@ class StateFnOperator(StateFn):
                 prim_str,
                 self.coeff)
 
-    def eval(self, other=None):
-        # Validate bitstring: re.fullmatch(rf'[01]{{{0}}}', val1)
+    # pylint: disable=too-many-return-statements
+    def eval(self, front=None, back=None):
+        if back:
+            raise AquaError('Eval with back is only defined for Operators, not StateFns.')
 
-        if not self.is_measurement and isinstance(other, OperatorBase):
+        if not self.is_measurement and isinstance(front, OperatorBase):
             raise ValueError(
                 'Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '
                 'sf.adjoint() first to convert to measurement.')
-        if isinstance(other, list):
-            return [self.eval(front_elem) for front_elem in other]
+        if isinstance(front, list):
+            return [self.eval(front_elem) for front_elem in front]
 
-        if not isinstance(other, OperatorBase):
-            other = StateFn(other)
+        if not isinstance(front, OperatorBase):
+            front = StateFn(front)
 
         # Need a carve-out here to deal with cross terms in sum. Unique to
         # StateFnOperator working with OpSum,
         # other measurements don't have this issue.
-        if isinstance(other, OpSum):
+        if isinstance(front, OpSum):
             # Need to do this in two steps to deal with the cross-terms
-            front_res = other.combo_fn([self.primitive.eval(other.coeff * other_elem)
-                                        for other_elem in other.oplist])
-            return other.adjoint().eval(front_res)
-        elif isinstance(other, OpVec) and other.distributive:
-            return other.combo_fn([self.eval(other.coeff * other_elem)
-                                   for other_elem in other.oplist])
+            front_res = front.combo_fn([self.primitive.eval(front.coeff * front_elem)
+                                        for front_elem in front.oplist])
+            return front.adjoint().eval(front_res)
+        elif isinstance(front, OpVec) and front.distributive:
+            return front.combo_fn([self.eval(front.coeff * front_elem)
+                                   for front_elem in front.oplist])
 
-        if isinstance(other, StateFnOperator):
-            return np.trace(self.primitive.to_matrix() @ other.to_matrix())
-        elif isinstance(other, OperatorBase):
-            # If other is a dict, we can try to do this
+        if isinstance(front, StateFnOperator):
+            return np.trace(self.primitive.to_matrix() @ front.to_matrix())
+        elif isinstance(front, OperatorBase):
+            # If front is a dict, we can try to do this
             # scalably, e.g. if self.primitive is an OpPauli
             # pylint: disable=cyclic-import,import-outside-toplevel
             from . import StateFnDict
-            if isinstance(other, StateFnDict):
-                comp = self.primitive.eval(front=other, back=other.adjoint())
+            if isinstance(front, StateFnDict):
+                comp = self.primitive.eval(front=front, back=front.adjoint())
             else:
-                comp = other.adjoint().to_matrix() @ self.primitive.to_matrix() @ other.to_matrix()
+                comp = front.adjoint().to_matrix() @ self.primitive.to_matrix() @ front.to_matrix()
 
             if isinstance(comp, (int, float, complex, list)):
                 return comp
