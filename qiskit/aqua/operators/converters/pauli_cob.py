@@ -85,10 +85,10 @@ class PauliChangeOfBasis(ConverterBase):
         if not isinstance(dest, OpPauli):
             raise TypeError('PauliChangeOfBasis can only convert into Pauli bases, '
                             'not {}.'.format(type(dest)))
-        else:
-            self._destination = dest
+        self._destination = dest
 
     # TODO see whether we should make this performant by handling OpVecs of Paulis later.
+    # pylint: disable=inconsistent-return-statements
     def convert(self, operator):
         """ Given an Operator with Paulis, converts each Pauli into the basis specified
         by self._destination. More
@@ -226,7 +226,7 @@ class PauliChangeOfBasis(ConverterBase):
             np.logical_and(non_equal_sig_bits, destination_sig_bits),
             np.arange(num_qubits))
 
-        if len(sig_in_origin_only_indices) and len(sig_in_dest_only_indices):
+        if len(sig_in_origin_only_indices) > 0 and len(sig_in_dest_only_indices) > 0:
             origin_anchor_bit = min(sig_in_origin_only_indices)
             dest_anchor_bit = min(sig_in_dest_only_indices)
         else:
