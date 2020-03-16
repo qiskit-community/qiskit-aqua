@@ -44,10 +44,7 @@ class GroverMinimumFinder(OptimizationAlgorithm):
             backend: Instance of selected backend, defaults to Aer's statevector simulator.
         """
         self._n_iterations = num_iterations
-        if backend is None:
-            self._backend = Aer.get_backend('statevector_simulator')
-        else:
-            self._backend = backend
+        self._backend = backend or Aer.get_backend('statevector_simulator')
         self._logger = logging.getLogger(__name__)
 
     def is_compatible(self, problem: OptimizationProblem) -> Optional[str]:
