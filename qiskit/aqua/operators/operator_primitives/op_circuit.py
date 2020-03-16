@@ -202,6 +202,7 @@ class OpCircuit(OpPrimitive):
         if isinstance(self.coeff, ParameterExpression) or self.primitive.params:
             unrolled_dict = self._unroll_param_dict(param_dict)
             if isinstance(unrolled_dict, list):
+                # pylint: disable=import-outside-toplevel
                 from ..operator_combos.op_vec import OpVec
                 return OpVec([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
             if self.coeff in unrolled_dict:
@@ -241,6 +242,12 @@ class OpCircuit(OpPrimitive):
 
         # For now, always do this. If it's not performant, we can be more granular.
         return OpPrimitive(self.to_matrix()).eval(front=front, back=back)
+
+    def to_circuit(self):
+        """ Convert OpCircuit to circuit """
+        qc = QuantumCircuit(self.num_qubits)
+        qc.append(self.primitive, qargs=range(self.primitive.num_qubits))
+        return qc
 
     # Warning - modifying immutable object!!
     def reduce(self):
