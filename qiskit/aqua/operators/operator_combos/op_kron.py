@@ -20,6 +20,7 @@ import numpy as np
 
 from ..operator_base import OperatorBase
 from .op_vec import OpVec
+from ..operator_primitives import OpPrimitive
 
 
 class OpKron(OpVec):
