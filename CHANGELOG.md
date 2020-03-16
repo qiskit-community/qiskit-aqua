@@ -24,12 +24,12 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 Removed
 -------
 
--  Removed cvxopt from installation.
+-  Removed cvxopt from installation. (#858)
 
 Fixed
 -----
 
--  Fixes issue #768. The AQGD optimizer if condition in func converged was ignored. That kept breaking the while loop for training.
+-  Fixes issue #768. The AQGD optimizer if condition in func converged was ignored. That kept breaking the while loop for training. (#858)
 
 [0.6.4](https://github.com/Qiskit/qiskit-aqua/compare/0.6.3...0.6.4) - 2020-02-06
 =================================================================================
