@@ -122,18 +122,14 @@ class ExpectationBase:
         else:
             raise ValueError('Expectations of Mixed Operators not yet supported.')
 
+    @property
     @abstractmethod
-    def operator(self, operator):
+    def operator(self):
         """ returns operator """
         raise NotImplementedError
 
     @abstractmethod
-    def compute_expectation_for_primitives(self, state=None, primitives=None):
-        """ compute expectation for primitives """
-        raise NotImplementedError
-
-    @abstractmethod
-    def compute_variance(self, state=None):
+    def compute_standard_deviation(self, state=None, params=None):
         """ compute variance """
         raise NotImplementedError
 

@@ -121,6 +121,7 @@ class PauliExpectation(ExpectationBase):
         else:
             return self._reduced_meas_op.eval()
 
+    # pylint: disable=inconsistent-return-statements
     def compute_standard_deviation(self, state=None, params=None):
         """ compute standard deviation """
         state = state or self.state
