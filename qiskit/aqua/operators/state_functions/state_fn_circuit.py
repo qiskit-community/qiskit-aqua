@@ -19,6 +19,7 @@ import numpy as np
 from qiskit import QuantumCircuit, BasicAer, execute
 from qiskit.circuit import Instruction, ParameterExpression
 from qiskit.extensions import Initialize, IGate
+from qiskit.aqua import AquaError
 
 from ..operator_base import OperatorBase
 from ..operator_combos import OpSum
@@ -266,6 +267,7 @@ class StateFnCircuit(StateFn):
         if isinstance(self.coeff, ParameterExpression) or self.primitive.params:
             unrolled_dict = self._unroll_param_dict(param_dict)
             if isinstance(unrolled_dict, list):
+                # pylint: disable=import-outside-toplevel
                 from ..operator_combos.op_vec import OpVec
                 return OpVec([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
             if self.coeff in unrolled_dict:
@@ -275,14 +277,15 @@ class StateFnCircuit(StateFn):
                 qc = self.to_circuit().decompose().bind_parameters(param_dict)
         return self.__class__(qc, coeff=param_value)
 
-    def eval(self, other=None):
-        # Validate bitstring: re.fullmatch(rf'[01]{{{0}}}', val1)
+    def eval(self, front=None, back=None):
+        if back:
+            raise AquaError('Eval with back is only defined for Operators, not StateFns.')
 
-        if not self.is_measurement and isinstance(other, OperatorBase):
+        if not self.is_measurement and isinstance(front, OperatorBase):
             raise ValueError(
                 'Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '
                 'sf.adjoint() first to convert to measurement.')
-        return StateFn(self.to_matrix(), is_measurement=True).eval(other)
+        return StateFn(self.to_matrix(), is_measurement=True).eval(front)
 
     def to_circuit(self, meas=False):
         """ to circuit """
