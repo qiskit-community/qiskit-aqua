@@ -15,8 +15,21 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 > -   **Fixed**: for any bug fixes.
 > -   **Security**: in case of vulnerabilities.
 
-[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.4...HEAD)
+[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.5...HEAD)
 ========================================================================
+
+[0.6.5](https://github.com/Qiskit/qiskit-aqua/compare/0.6.4...0.6.5) - 2020-03-16
+=================================================================================
+
+Removed
+-------
+
+-  Removed cvxopt from installation.
+
+Fixed
+-----
+
+-  Fixes issue #768. The AQGD optimizer if condition in func converged was ignored. That kept breaking the while loop for training.
 
 [0.6.4](https://github.com/Qiskit/qiskit-aqua/compare/0.6.3...0.6.4) - 2020-02-06
 =================================================================================
