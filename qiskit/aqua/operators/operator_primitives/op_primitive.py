@@ -37,16 +37,23 @@ class OpPrimitive(OperatorBase):
     """
 
     @staticmethod
+    # pylint: disable=unused-argument,inconsistent-return-statements
     def __new__(cls, primitive=None, coeff=1.0):
-        if not cls.__name__ == 'OpPrimitive':
+        """ A factory method to produce the correct type of OpPrimitive subclass
+        based on the primitive passed in. Primitive and coeff arguments are passed into
+        subclass's init() as-is automatically by new()."""
+        if cls.__name__ != 'OpPrimitive':
             return super().__new__(cls)
+
         # pylint: disable=cyclic-import,import-outside-toplevel
         if isinstance(primitive, (Instruction, QuantumCircuit)):
             from .op_circuit import OpCircuit
             return OpCircuit.__new__(OpCircuit)
+
         if isinstance(primitive, (list, np.ndarray, MatrixOperator)):
             from .op_matrix import OpMatrix
             return OpMatrix.__new__(OpMatrix)
+
         if isinstance(primitive, Pauli):
             from .op_pauli import OpPauli
             return OpPauli.__new__(OpPauli)
@@ -77,22 +84,22 @@ class OpPrimitive(OperatorBase):
         """ Negate. Overloaded by - in OperatorBase. """
         return self.mul(-1.0)
 
-    # @property
-    # def num_qubits(self):
-    #     raise NotImplementedError
+    @property
+    def num_qubits(self):
+        raise NotImplementedError
 
-    # def get_primitives(self):
-    #     raise NotImplementedError
+    def get_primitives(self):
+        raise NotImplementedError
 
-    # def add(self, other):
-    #     raise NotImplementedError
+    def add(self, other):
+        raise NotImplementedError
 
-    # def adjoint(self):
-    #     """ Return operator adjoint (conjugate transpose). Overloaded by ~ in OperatorBase. """
-    #     raise NotImplementedError
+    def adjoint(self):
+        """ Return operator adjoint (conjugate transpose). Overloaded by ~ in OperatorBase. """
+        raise NotImplementedError
 
-    # def equals(self, other):
-    #     raise NotImplementedError
+    def equals(self, other):
+        raise NotImplementedError
 
     def mul(self, scalar):
         """ Scalar multiply. Overloaded by * in OperatorBase.
@@ -106,8 +113,8 @@ class OpPrimitive(OperatorBase):
                              '{} of type {}.'.format(scalar, type(scalar)))
         return self.__class__(self.primitive, coeff=self.coeff * scalar)
 
-    # def kron(self, other):
-    #     raise NotImplementedError
+    def kron(self, other):
+        raise NotImplementedError
 
     def kronpower(self, other):
         """ Kron with Self Multiple Times """
@@ -117,12 +124,12 @@ class OpPrimitive(OperatorBase):
         if not isinstance(other, int) or other < 0:
             raise TypeError('Kronpower can only take positive int arguments')
         temp = OpPrimitive(self.primitive, coeff=self.coeff)
-        for i in range(other - 1):
+        for _ in range(other - 1):
             temp = temp.kron(self)
         return temp
 
-    # def compose(self, other):
-    #     raise NotImplementedError
+    def compose(self, other):
+        raise NotImplementedError
 
     def _check_zero_for_composition_and_expand(self, other):
         if not self.num_qubits == other.num_qubits:
@@ -142,7 +149,7 @@ class OpPrimitive(OperatorBase):
         if not isinstance(other, int) or other <= 0:
             raise TypeError('power can only take positive int arguments')
         temp = OpPrimitive(self.primitive, coeff=self.coeff)
-        for i in range(other - 1):
+        for _ in range(other - 1):
             temp = temp.compose(self)
         return temp
 
@@ -155,13 +162,17 @@ class OpPrimitive(OperatorBase):
     # def to_matrix(self, massive=False):
     #     raise NotImplementedError
 
-    # def __str__(self):
-    #     """Overload str() """
-    #     raise NotImplementedError
+    def __str__(self):
+        """Overload str() """
+        raise NotImplementedError
 
     def __repr__(self):
         """Overload str() """
         return "OpPrimitive({}, coeff={})".format(repr(self.primitive), self.coeff)
+
+    def eval(self, front=None, back=None):
+        """ Evaluate the Operator function given one or both states. """
+        return NotImplementedError
 
     def bind_parameters(self, param_dict):
         """ bind parameters """
@@ -169,6 +180,7 @@ class OpPrimitive(OperatorBase):
         if isinstance(self.coeff, ParameterExpression):
             unrolled_dict = self._unroll_param_dict(param_dict)
             if isinstance(unrolled_dict, list):
+                # pylint: disable=import-outside-toplevel
                 from ..operator_combos.op_vec import OpVec
                 return OpVec([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
             coeff_param = list(self.coeff.parameters)[0]
@@ -178,8 +190,12 @@ class OpPrimitive(OperatorBase):
                 param_value = float(self.coeff.bind({coeff_param: value}))
         return self.__class__(self.primitive, coeff=param_value)
 
-    def print_details(self):
-        """ print details """
+    # def print_details(self):
+    #     """ print details """
+    #     raise NotImplementedError
+
+    def to_matrix(self, massive=False):
+        """ Return matrix representing OpPrimitive evaluated on each pair of basis states."""
         raise NotImplementedError
 
     # Nothing to collapse here.
