@@ -50,12 +50,14 @@ class StateFn(OperatorBase):
     """
 
     @staticmethod
+    # pylint: disable=unused-argument,inconsistent-return-statements
     def __new__(cls, primitive=None, coeff=1.0, is_measurement=False):
         """ A factory method to produce the correct type of StateFn subclass
-        based on the primitive passed in."""
+        based on the primitive passed in. Primitive, coeff, and is_measurement arguments
+        are passed into subclass's init() as-is automatically by new()."""
 
         # Prevents infinite recursion when subclasses are created
-        if not cls.__name__ == 'StateFn':
+        if cls.__name__ != 'StateFn':
             return super().__new__(cls)
 
         # pylint: disable=cyclic-import,import-outside-toplevel
@@ -101,24 +103,24 @@ class StateFn(OperatorBase):
         """ return if is measurement """
         return self._is_measurement
 
-    # def get_primitives(self):
-    #     """ Return a set of strings describing the primitives contained in the Operator """
-    #     raise NotImplementedError
+    def get_primitives(self):
+        """ Return a set of strings describing the primitives contained in the Operator """
+        raise NotImplementedError
 
-    # @property
-    # def num_qubits(self):
-    #     raise NotImplementedError
+    @property
+    def num_qubits(self):
+        raise NotImplementedError
 
-    # def add(self, other):
-    #     """ Addition. Overloaded by + in OperatorBase. """
-    #     raise NotImplementedError
+    def add(self, other):
+        """ Addition. Overloaded by + in OperatorBase. """
+        raise NotImplementedError
 
     def neg(self):
         """ Negate. Overloaded by - in OperatorBase. """
         return self.mul(-1.0)
 
-    # def adjoint(self):
-    #     raise NotImplementedError
+    def adjoint(self):
+        raise NotImplementedError
 
     def equals(self, other):
         """ Evaluate Equality. Overloaded by == in OperatorBase. """
@@ -144,18 +146,18 @@ class StateFn(OperatorBase):
                               coeff=self.coeff * scalar,
                               is_measurement=self.is_measurement)
 
-    # def kron(self, other):
-    #     """ Kron
-    #     Note: You must be conscious of Qiskit's big-endian bit printing
-    #     convention. Meaning, Plus.kron(Zero)
-    #     produces a |+⟩ on qubit 0 and a |0⟩ on qubit 1, or |+⟩⨂|0⟩, but
-    #     would produce a QuantumCircuit like
-    #     |0⟩--
-    #     |+⟩--
-    #     Because Terra prints circuits and results with qubit 0
-    #     at the end of the string or circuit.
-    #     """
-    #     raise NotImplementedError
+    def kron(self, other):
+        """ Kron
+        Note: You must be conscious of Qiskit's big-endian bit printing
+        convention. Meaning, Plus.kron(Zero)
+        produces a |+⟩ on qubit 0 and a |0⟩ on qubit 1, or |+⟩⨂|0⟩, but
+        would produce a QuantumCircuit like
+        |0⟩--
+        |+⟩--
+        Because Terra prints circuits and results with qubit 0
+        at the end of the string or circuit.
+        """
+        raise NotImplementedError
 
     def kronpower(self, other):
         """ Kron with Self Multiple Times """
@@ -164,7 +166,7 @@ class StateFn(OperatorBase):
         temp = StateFn(self.primitive,
                        coeff=self.coeff,
                        is_measurement=self.is_measurement)
-        for i in range(other - 1):
+        for _ in range(other - 1):
             temp = temp.kron(self)
         return temp
 
@@ -186,8 +188,14 @@ class StateFn(OperatorBase):
 
         return new_self, other
 
-    def to_matrix(self):
-        """ Must be overridden by child classes."""
+    def to_matrix(self, massive=False):
+        """ Return vector representing StateFn evaluated on each basis state.
+        Must be overridden by child classes."""
+        raise NotImplementedError
+
+    def to_density_matrix(self, massive=False):
+        """ Return matrix representing product of StateFn evaluated on pairs of basis states.
+        Must be overridden by child classes."""
         raise NotImplementedError
 
     def compose(self, other):
@@ -266,74 +274,18 @@ class StateFn(OperatorBase):
         return "StateFn({}, coeff={}, is_measurement={})".format(repr(self.primitive),
                                                                  self.coeff, self.is_measurement)
 
-    def print_details(self):
-        """ print details """
-        raise NotImplementedError
+    # def print_details(self):
+    #     """ print details """
+    #     raise NotImplementedError
 
-    def eval(self, other=None):
-        # Validate bitstring: re.fullmatch(rf'[01]{{{0}}}', val1)
-
-        if isinstance(other, str):
-            other = {str: 1}
-
-        # If the primitive is a lookup of bitstrings, we define all missing
-        # strings to have a function value of
-        # zero.
-        if isinstance(self.primitive, dict) and isinstance(other, dict):
-            return sum([v * other.get(b, 0) for (b, v) in self.primitive.items()]) * self.coeff
-
-        if not self.is_measurement and isinstance(other, OperatorBase):
-            raise ValueError(
-                'Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '
-                'sf.adjoint() first to convert to measurement.')
-
-        # All remaining possibilities only apply when self.is_measurement is True
-
-        if isinstance(other, StateFn):
-            if isinstance(other.primitive, OperatorBase):
-                if isinstance(self.primitive, OperatorBase):
-                    # Both are density matrices, need to compose and trace
-                    return np.trace(self.to_matrix() @ other.to_matrix())
-                else:
-                    return self.eval(other.primitive).eval(self.adjoint()) * self.coeff
-            elif isinstance(other.primitive, (Statevector, dict)):
-                return self.eval(other.primitive) * other.coeff
-
-        if isinstance(self.primitive, dict):
-            if isinstance(other, Statevector):
-                return sum([v * other.data[int(b, 2)] * np.conj(other.data[int(b, 2)])
-                            for (b, v) in self.primitive.items()]) * self.coeff
-            if isinstance(other, OperatorBase):
-                # TODO Wrong, need to eval from both sides
-                return other.eval(self.primitive).adjoint()
-
-        # Measurement is specified as Density matrix.
-        if isinstance(self.primitive, OperatorBase):
-            if isinstance(other, OperatorBase):
-                # Compose the other Operator to self's measurement density matrix
-                return StateFn(other.adjoint().compose(self.primitive).compose(other),
-                               coeff=self.coeff,
-                               is_measurement=True)
-            else:
-                # Written this way to be able to handle many types
-                # of other (at least dict and Statevector).
-                return self.primitive.eval(other).adjoint().eval(other) * self.coeff
-
-        elif isinstance(self.primitive, Statevector):
-            if isinstance(other, dict):
-                return sum([v * self.primitive.data[int(b, 2)]
-                            for (b, v) in other.items()]) * self.coeff
-            elif isinstance(other, Statevector):
-                return np.dot(self.primitive.data, other.data) * self.coeff
-
-        # TODO figure out what to actually do here.
-        else:
-            return self.sample(1024)
+    def eval(self, front=None, back=None):
+        """ Evaluate the State function given a basis string, dict, or state (if measurement). """
+        return NotImplementedError
 
     # TODO
-    def sample(self, shots):
-        """ Sample the state function as a normalized probability distribution."""
-        raise NotImplementedError
+    # def sample(self, shots):
+    #     """ Sample the state function as a normalized probability distribution."""
+    #     raise NotImplementedError
 
     def bind_parameters(self, param_dict):
         """ bind parameters """
@@ -341,6 +293,7 @@ class StateFn(OperatorBase):
         if isinstance(self.coeff, ParameterExpression):
             unrolled_dict = self._unroll_param_dict(param_dict)
             if isinstance(unrolled_dict, list):
+                # pylint: disable=import-outside-toplevel
                 from ..operator_combos.op_vec import OpVec
                 return OpVec([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
             coeff_param = list(self.coeff.parameters)[0]
