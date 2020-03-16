@@ -26,17 +26,21 @@ class TrotterizationBase():
     """ A base for Trotterization methods to allow for user-specified trotterization. """
 
     @staticmethod
+    # pylint: disable=inconsistent-return-statements
     def factory(mode, reps=1):
         """ Factory """
         if mode not in ['trotter', 'suzuki', 'qdrift']:
             raise ValueError('Trotter mode {} not supported'.format(mode))
+
         # pylint: disable=cyclic-import,import-outside-toplevel
         if mode == 'trotter':
             from .trotter import Trotter
             return Trotter(reps=reps)
+
         if mode == 'suzuki':
             from .suzuki import Suzuki
             return Suzuki(reps=reps)
+
         if mode == 'qdrift':
             from .qdrift import QDrift
             return QDrift(reps=reps)
