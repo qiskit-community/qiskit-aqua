@@ -18,6 +18,7 @@
 import numpy as np
 
 from qiskit.quantum_info import Statevector
+from qiskit.aqua import AquaError
 
 from ..operator_base import OperatorBase
 from . import StateFn
@@ -176,32 +177,34 @@ class StateFnVector(StateFn):
                                         prim_str,
                                         self.coeff)
 
-    def eval(self, other=None):
-        # Validate bitstring: re.fullmatch(rf'[01]{{{0}}}', val1)
+    # pylint: disable=too-many-return-statements
+    def eval(self, front=None, back=None):
+        if back:
+            raise AquaError('Eval with back is only defined for Operators, not StateFns.')
 
-        if not self.is_measurement and isinstance(other, OperatorBase):
+        if not self.is_measurement and isinstance(front, OperatorBase):
             raise ValueError(
                 'Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '
                 'sf.adjoint() first to convert to measurement.')
-        if isinstance(other, list):
+        if isinstance(front, list):
             return [self.eval(front_elem) for front_elem in front]
-        if isinstance(other, OpVec) and other.distributive:
-            return other.combo_fn([self.eval(other.coeff * other_elem)
-                                   for other_elem in other.oplist])
-        if not isinstance(other, OperatorBase):
-            other = StateFn(other)
+        if isinstance(front, OpVec) and front.distributive:
+            return front.combo_fn([self.eval(front.coeff * front_elem)
+                                   for front_elem in front.oplist])
+        if not isinstance(front, OperatorBase):
+            front = StateFn(front)
         # pylint: disable=cyclic-import,import-outside-toplevel
         from . import StateFnDict, StateFnOperator
-        if isinstance(other, StateFnDict):
-            return sum([v * self.primitive.data[int(b, 2)] * other.coeff
-                        for (b, v) in other.primitive.items()]) * self.coeff
-        elif isinstance(other, StateFnVector):
+        if isinstance(front, StateFnDict):
+            return sum([v * self.primitive.data[int(b, 2)] * front.coeff
+                        for (b, v) in front.primitive.items()]) * self.coeff
+        elif isinstance(front, StateFnVector):
             # Need to extract the element or np.array([1]) is returned.
-            return np.dot(self.to_matrix(), other.to_matrix())[0]
-        if isinstance(other, StateFnOperator):
-            return other.adjoint().eval(self.primitive) * self.coeff
-        if isinstance(other, OperatorBase):
-            return other.adjoint().eval(self.adjoint().primitive).adjoint() * self.coeff
+            return np.dot(self.to_matrix(), front.to_matrix())[0]
+        if isinstance(front, StateFnOperator):
+            return front.adjoint().eval(self.primitive) * self.coeff
+        if isinstance(front, OperatorBase):
+            return front.adjoint().eval(self.adjoint().primitive).adjoint() * self.coeff
 
         # TODO figure out what to actually do here.
         return self.to_matrix()
