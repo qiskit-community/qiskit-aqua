@@ -17,8 +17,7 @@
 from typing import Dict, Tuple, Union
 
 
-class GroverOptimizationResults():
-
+class GroverOptimizationResults:
     """A results object for Grover Optimization methods."""
 
     def __init__(self, operation_counts: Dict[int, Dict[str, int]], rotations: int,
