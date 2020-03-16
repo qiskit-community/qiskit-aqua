@@ -190,6 +190,7 @@ class OpPauli(OpPrimitive):
         else:
             return "{} * {}".format(self.coeff, prim_str)
 
+    # pylint: disable=too-many-return-statements
     def eval(self, front=None, back=None):
         """ A square binary Operator can be defined as a function over
         two binary strings of equal length. This
@@ -222,7 +223,7 @@ class OpPauli(OpPrimitive):
 
         # Hack for speed
         if isinstance(front, StateFnDict) and isinstance(back, StateFnDict):
-            sum = 0
+            total = 0
             for (str1, str2) in itertools.product(front.primitive.keys(), back.primitive.keys()):
                 bitstr1 = np.asarray(list(str1)).astype(np.bool)
                 bitstr2 = np.asarray(list(str2)).astype(np.bool)
@@ -234,9 +235,9 @@ class OpPauli(OpPrimitive):
                 x_factor = np.logical_xor(bitstr1, bitstr2) == corrected_x_bits
                 z_factor = 1 - 2 * np.logical_and(bitstr1, corrected_z_bits)
                 y_factor = np.sqrt(1 - 2 * np.logical_and(corrected_x_bits, corrected_z_bits) + 0j)
-                sum += self.coeff * np.product(x_factor * z_factor * y_factor) * \
+                total += self.coeff * np.product(x_factor * z_factor * y_factor) * \
                     front.primitive[str1] * front.coeff * back.primitive[str2] * back.coeff
-            return sum
+            return total
 
         new_front = None
         if isinstance(front, StateFnDict):
@@ -256,7 +257,8 @@ class OpPauli(OpPrimitive):
         elif isinstance(front, StateFn):
             if front.is_measurement:
                 raise ValueError('Operator composed with a measurement is undefined.')
-            elif isinstance(front, StateFnVector):
+
+            if isinstance(front, StateFnVector):
                 # new_front = self.eval(front.to_matrix())
                 new_front = StateFnVector(np.dot(self.to_matrix(), front.to_matrix()))
             elif isinstance(front, StateFnOperator):
