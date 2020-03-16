@@ -18,6 +18,7 @@ import itertools
 import numpy as np
 
 from qiskit.result import Result
+from qiskit.aqua import AquaError
 
 from ..operator_base import OperatorBase
 from . import StateFn
@@ -218,45 +219,47 @@ class StateFnDict(StateFn):
                                         prim_str,
                                         self.coeff)
 
-    def eval(self, other=None):
-        # Validate bitstring: re.fullmatch(rf'[01]{{{0}}}', val1)
+    # pylint: disable=too-many-return-statements
+    def eval(self, front=None, back=None):
+        if back:
+            raise AquaError('Eval with back is only defined for Operators, not StateFns.')
 
-        if not self.is_measurement and isinstance(other, OperatorBase):
+        if not self.is_measurement and isinstance(front, OperatorBase):
             raise ValueError(
                 'Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '
                 'sf.adjoint() first to convert to measurement.')
-        if isinstance(other, list):
+        if isinstance(front, list):
             return [self.eval(front_elem) for front_elem in front]
-        if isinstance(other, OpVec) and other.distributive:
-            return other.combo_fn([self.eval(other.coeff * other_elem)
-                                   for other_elem in other.oplist])
+        if isinstance(front, OpVec) and front.distributive:
+            return front.combo_fn([self.eval(front.coeff * front_elem)
+                                   for front_elem in front.oplist])
         # For now, always do this. If it's not performant, we can be more granular.
-        if not isinstance(other, OperatorBase):
-            other = StateFn(other)
+        if not isinstance(front, OperatorBase):
+            front = StateFn(front)
 
         # If the primitive is a lookup of bitstrings,
         # we define all missing strings to have a function value of
         # zero.
-        if isinstance(other, StateFnDict):
-            return sum([v * other.primitive.get(b, 0) for (b, v) in
-                        self.primitive.items()]) * self.coeff * other.coeff
+        if isinstance(front, StateFnDict):
+            return sum([v * front.primitive.get(b, 0) for (b, v) in
+                        self.primitive.items()]) * self.coeff * front.coeff
 
         # All remaining possibilities only apply when self.is_measurement is True
         # pylint: disable=cyclic-import,import-outside-toplevel
         from . import StateFnVector
-        if isinstance(other, StateFnVector):
+        if isinstance(front, StateFnVector):
             # TODO does it need to be this way for measurement?
-            # return sum([v * other.primitive.data[int(b, 2)] *
-            # np.conj(other.primitive.data[int(b, 2)])
-            return sum([v * other.primitive.data[int(b, 2)]
+            # return sum([v * front.primitive.data[int(b, 2)] *
+            # np.conj(front.primitive.data[int(b, 2)])
+            return sum([v * front.primitive.data[int(b, 2)]
                         for (b, v) in self.primitive.items()]) * self.coeff
 
         from . import StateFnOperator
-        if isinstance(other, StateFnOperator):
-            return other.adjoint().eval(self.primitive) * self.coeff
+        if isinstance(front, StateFnOperator):
+            return front.adjoint().eval(self.primitive) * self.coeff
 
-        if isinstance(other, OperatorBase):
-            return other.adjoint().eval(self.adjoint().primitive).adjoint() * self.coeff
+        if isinstance(front, OperatorBase):
+            return front.adjoint().eval(self.adjoint().primitive).adjoint() * self.coeff
 
         # TODO figure out what to actually do here.
         return self.to_matrix()
