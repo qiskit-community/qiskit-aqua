@@ -61,8 +61,9 @@ class AbelianGrouper(ConverterBase):
                                                 itertools.combinations(op_vec.oplist, 2)))
 
         # Keys in coloring_dict are nodes, values are colors
+        # pylint: disable=no-member
         coloring_dict = nx.coloring.greedy_color(commutation_graph, strategy='largest_first')
-        # for op, color in sorted(coloring_dict.items(), key=value):
+
         groups = {}
         for op, color in coloring_dict.items():
             groups.setdefault(color, []).append(op)
