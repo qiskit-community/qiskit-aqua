@@ -34,7 +34,6 @@ from qiskit.providers import BaseBackend
 
 
 class GroverMinimumFinder(OptimizationAlgorithm):
-
     """Uses Grover Adaptive Search (GAS) to find the minimum of a QUBO function."""
 
     def __init__(self, num_iterations: int = 3, backend: Optional[BaseBackend] = None) -> None:
