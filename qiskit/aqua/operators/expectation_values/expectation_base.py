@@ -136,4 +136,4 @@ class ExpectationBase:
     @abstractmethod
     def compute_expectation(self, state=None, params=None):
         """ compute expectation """
-        pass
+        raise NotImplementedError

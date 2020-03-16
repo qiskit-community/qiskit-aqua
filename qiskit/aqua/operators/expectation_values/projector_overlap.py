@@ -29,6 +29,15 @@ class ProjectorOverlap(ExpectationBase):
         Args:
 
         """
+        super().__init__()
+        self._operator = operator
+        self._state = state
+        self.backend = backend
 
     def compute_expectation(self, state=None, params=None):
+        """ compute expectation """
+        raise NotImplementedError
+
+    def compute_standard_deviation(self, state=None, params=None):
+        """ compute standard deviation """
         raise NotImplementedError

@@ -71,12 +71,13 @@ class AerPauliExpectation(ExpectationBase):
     def quantum_instance(self, quantum_instance):
         self._circuit_sampler.quantum_instance = quantum_instance
 
-    def expectation_op(self, state):
+    def expectation_op(self):
         """ expectation op """
         # pylint: disable=import-outside-toplevel
         from qiskit.providers.aer.extensions import SnapshotExpectationValue
 
         # Construct snapshot op
+        # pylint: disable=inconsistent-return-statements
         def replace_pauli_sums(operator):
             if isinstance(operator, OpSum):
                 paulis = [[meas.coeff, meas.primitive] for meas in operator.oplist]
@@ -101,7 +102,7 @@ class AerPauliExpectation(ExpectationBase):
 
         if 'Instruction' in self.state.get_primitives():
             if not self._snapshot_op:
-                snapshot_meas = self.expectation_op(self.state)
+                snapshot_meas = self.expectation_op()
                 self._snapshot_op = snapshot_meas.compose(self.state).reduce()
 
             measured_op = self._circuit_sampler.convert(self._snapshot_op, params=params)
