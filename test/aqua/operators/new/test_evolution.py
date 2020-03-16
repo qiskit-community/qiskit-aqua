@@ -136,9 +136,12 @@ class TestEvolution(QiskitAquaTestCase):
         op = (2 * Z ^ Z) + (3 * X ^ X) - (4 * Y ^ Y) + (.5 * Z ^ I)
         trotterization = QDrift().trotterize(op)
         self.assertGreater(len(trotterization.oplist), 150)
-        first_coeff = trotterization.oplist[0].primitive.coeff
+        last_coeff = None
         # Check that all types are correct and all coefficients are equals
         for op in trotterization.oplist:
             self.assertIsInstance(op, (OpEvolution, OpCircuit))
             if isinstance(op, OpEvolution):
-                self.assertEqual(op.primitive.coeff, first_coeff)
+                if last_coeff:
+                    self.assertEqual(op.primitive.coeff, last_coeff)
+                else:
+                    last_coeff = op.primitive.coeff
