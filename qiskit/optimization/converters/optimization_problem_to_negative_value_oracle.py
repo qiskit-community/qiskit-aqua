@@ -26,7 +26,6 @@ from qiskit.optimization.problems import OptimizationProblem
 
 
 class OptimizationProblemToNegativeValueOracle:
-
     """Converts an optimization problem (QUBO) to a negative value oracle.
 
     In addition, a state preparation operator is generated from the coefficients and constant of a
