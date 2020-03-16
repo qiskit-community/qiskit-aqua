@@ -34,7 +34,6 @@ requirements = [
     "psutil>=5",
     "jsonschema>=2.6",
     "scikit-learn>=0.20.0",
-    "cvxopt; python_version < '3.8' or sys_platform != 'win32'",
     "dlx",
     "docplex",
     "fastdtw",
