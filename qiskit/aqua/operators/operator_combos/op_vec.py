@@ -306,7 +306,7 @@ class OpVec(OperatorBase):
             [str(op) for op in self.oplist]))
         if self.abelian:
             main_string = 'Abelian' + main_string
-        if not self.coeff == 1.0:
+        if self.coeff != 1.0:
             main_string = '{} * '.format(self.coeff) + main_string
         return main_string
 
@@ -331,9 +331,9 @@ class OpVec(OperatorBase):
                 param_value = float(self.coeff.bind({coeff_param: value}))
         return self.traverse(lambda x: x.bind_parameters(param_dict), coeff=param_value)
 
-    def print_details(self):
-        """ print details """
-        raise NotImplementedError
+    # def print_details(self):
+    #     """ print details """
+    #     raise NotImplementedError
 
     def reduce(self):
         reduced_ops = [op.reduce() for op in self.oplist]
