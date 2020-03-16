@@ -51,6 +51,7 @@ class IBMQSampler(CircuitSampler):
         reduced_op = operator_dicts_replaced.reduce()
         op_circuits = {}
 
+        # pylint: disable=inconsistent-return-statements
         def extract_statefncircuits(operator):
             if isinstance(operator, StateFnCircuit):
                 op_circuits[str(operator)] = operator

@@ -37,6 +37,7 @@ class CircuitSampler(ConverterBase):
     """
 
     @staticmethod
+    # pylint: disable=inconsistent-return-statements
     def factory(backend=None):
         """ A factory method to produce the correct type of CircuitSampler
         subclass based on the primitive passed in."""

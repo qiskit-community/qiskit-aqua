@@ -88,7 +88,7 @@ class LocalSimulatorSampler(CircuitSampler):
 
     @backend.setter
     def backend(self, backend):
-        self.quantum_instance = QuantumInstance(backend=backend, **kwargs)
+        self.quantum_instance = QuantumInstance(backend=backend)
 
     @property
     def quantum_instance(self):
@@ -99,6 +99,7 @@ class LocalSimulatorSampler(CircuitSampler):
     def quantum_instance(self, quantum_instance):
         self._qi = quantum_instance
 
+    # pylint: disable=arguments-differ
     def convert(self, operator, params=None):
         if self._last_op is None or not operator == self._last_op:
             # Clear caches
@@ -143,6 +144,7 @@ class LocalSimulatorSampler(CircuitSampler):
         else:
             return replace_circuits_with_dicts(self._reduced_op_cache, param_index=0)
 
+    # pylint: disable=inconsistent-return-statements
     def _extract_statefncircuits(self, operator):
         if isinstance(operator, StateFnCircuit):
             self._circuit_ops_cache[id(operator)] = operator
