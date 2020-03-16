@@ -40,6 +40,7 @@ class OperatorBase(ABC):
         self._name = new_value
 
     # TODO replace with proper alphabets later?
+    @property
     @abstractmethod
     def num_qubits(self):
         """ returns number of qubits """
@@ -259,7 +260,7 @@ class OperatorBase(ABC):
         """Overload str() """
         raise NotImplementedError
 
-    @abstractmethod
-    def print_details(self):
-        """ print details """
-        raise NotImplementedError
+    # @abstractmethod
+    # def print_details(self):
+    #     """ print details """
+    #     raise NotImplementedError
