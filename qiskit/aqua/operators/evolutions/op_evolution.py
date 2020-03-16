@@ -112,6 +112,7 @@ class OpEvolution(OpPrimitive):
     def to_matrix(self, massive=False):
         """ returns matrix """
         prim_mat = 1.j * self.primitive.to_matrix()
+        # pylint: disable=no-member
         return scipy.linalg.expm(prim_mat) * self.coeff
 
     def __str__(self):
@@ -134,6 +135,7 @@ class OpEvolution(OpPrimitive):
         if isinstance(self.coeff, ParameterExpression):
             unrolled_dict = self._unroll_param_dict(param_dict)
             if isinstance(unrolled_dict, list):
+                # pylint: disable=import-outside-toplevel
                 from ..operator_combos.op_vec import OpVec
                 return OpVec([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
             coeff_param = list(self.coeff.parameters)[0]

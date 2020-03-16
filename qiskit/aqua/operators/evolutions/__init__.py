@@ -20,6 +20,7 @@ the exponential of an operator.
 from .evolution_base import EvolutionBase
 from .op_evolution import OpEvolution
 from .pauli_trotter_evolution import PauliTrotterEvolution
+from .matrix_evolution import MatrixEvolution
 from .trotterizations import TrotterizationBase, Trotter, Suzuki, QDrift
 
 # TODO matrix evolution
@@ -30,6 +31,7 @@ from .trotterizations import TrotterizationBase, Trotter, Suzuki, QDrift
 __all__ = ['EvolutionBase',
            'OpEvolution',
            'PauliTrotterEvolution',
+           'MatrixEvolution',
            'TrotterizationBase',
            'Trotter',
            'Suzuki',

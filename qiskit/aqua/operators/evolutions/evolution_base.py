@@ -31,7 +31,8 @@ class EvolutionBase(ConverterBase):
     """
 
     @staticmethod
-    def factory(operator=None, backend=None):
+    # pylint: disable=inconsistent-return-statements
+    def factory(operator=None):
         """
         Args:
         Returns:
@@ -60,7 +61,10 @@ class EvolutionBase(ConverterBase):
         else:
             raise ValueError('Evolutions of Mixed Operators not yet supported.')
 
-    # TODO @abstractmethod
-    def error_bounds(self):
-        """ error bounds """
+    def convert(self, operator):
         raise NotImplementedError
+
+    # TODO @abstractmethod
+    # def error_bounds(self):
+    #     """ error bounds """
+    #     raise NotImplementedError

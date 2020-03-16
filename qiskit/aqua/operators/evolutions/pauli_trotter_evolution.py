@@ -63,6 +63,7 @@ class PauliTrotterEvolution(EvolutionBase):
             operator = self._grouper.convert(operator).reduce()
         return self._recursive_convert(operator)
 
+    # pylint: disable=inconsistent-return-statements
     def _recursive_convert(self, operator):
         if isinstance(operator, OpEvolution):
             if isinstance(operator.primitive, OpSum):
