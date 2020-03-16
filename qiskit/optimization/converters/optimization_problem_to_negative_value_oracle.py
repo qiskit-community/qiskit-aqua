@@ -69,14 +69,14 @@ class OptimizationProblemToNegativeValueOracle:
         # get quadratic part of objective
         quadratic_dict = problem.objective.get_quadratic()
         quadratic_coeff = {}
-        for i, jv in quadratic_dict.items():
-            for j, v in jv.items():
+        for i, j_value_dict in quadratic_dict.items():
+            for j, value in j_value_dict.items():
                 coeff = quadratic_coeff.get((j, i), 0)
                 if i <= j:
                     # divide by 2 since problem considers xQx/2.
-                    quadratic_coeff[(i, j)] = v / 2 + coeff
+                    quadratic_coeff[(i, j)] = value / 2 + coeff
                 else:
-                    quadratic_coeff[(j, i)] = v / 2 + coeff
+                    quadratic_coeff[(j, i)] = value / 2 + coeff
 
         constant = problem.objective.get_offset()
 
