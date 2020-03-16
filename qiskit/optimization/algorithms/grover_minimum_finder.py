@@ -106,7 +106,7 @@ class GroverMinimumFinder(OptimizationAlgorithm):
 
         # analyze compatibility of problem
         msg = self.is_compatible(problem)
-        if msg is not None:
+        if msg:
             raise QiskitOptimizationError('Incompatible problem: %s' % msg)
 
         # map integer variables to binary variables
