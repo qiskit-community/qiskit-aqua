@@ -44,10 +44,6 @@ Algorithms
    MinimumEigenOptimizer
    RecursiveMinimumEigenOptimizer
    
-Structures for defining an optimization algorithms
-==========
-
-
 """
 
 from qiskit.optimization.algorithms.optimization_algorithm import OptimizationAlgorithm
