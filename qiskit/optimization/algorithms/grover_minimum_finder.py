@@ -42,7 +42,7 @@ class GroverMinimumFinder(OptimizationAlgorithm):
         Args:
             num_iterations: The number of iterations the algorithm will search with
                 no improvement.
-            backend: Instance of selected backend.
+            backend: Instance of selected backend, defaults to Aer's statevector simulator.
         """
         self._n_iterations = num_iterations
         if backend is None:
