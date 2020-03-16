@@ -15,8 +15,8 @@
 """OptimizationProblemToNegativeValueOracle module"""
 
 import logging
-import numpy as np
 from typing import Optional, Tuple, Dict, Union
+import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister, Aer
 from qiskit.aqua.components.oracles import CustomCircuitOracle
 from qiskit.aqua.components.initial_states import Custom

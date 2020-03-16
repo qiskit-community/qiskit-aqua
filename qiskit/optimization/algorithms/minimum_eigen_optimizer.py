@@ -16,11 +16,12 @@
 """A wrapper for minimum eigen solvers from Qiskit Aqua to be used within Qiskit Optimization.
 
     Examples:
-        >>> problem = OptimizationProblem()
         >>> # specify problem here
+        >>> problem = OptimizationProblem()
         >>> # specify minimum eigen solver to be used, e.g., QAOA
         >>> qaoa = QAOA(...)
-        >>> optimizer = MinEigenOptimizer(qaoa)
+        >>> # construct minimum eigen optimizer
+        >>> optimizer = MinimumEigenOptimizer(qaoa)
         >>> result = optimizer.solve(problem)
 """
 
@@ -29,10 +30,7 @@ from typing import Optional
 from qiskit.aqua.algorithms import MinimumEigensolver
 from qiskit.optimization.problems import OptimizationProblem
 from qiskit.optimization.algorithms import OptimizationAlgorithm
-from qiskit.optimization.utils import QiskitOptimizationError
-from qiskit.optimization.converters import (OptimizationProblemToOperator,
-                                            PenalizeLinearEqualityConstraints,
-                                            IntegerToBinaryConverter)
+from qiskit.optimization.converters import OptimizationProblemToQubo, OptimizationProblemToOperator
 from qiskit.optimization.utils import eigenvector_to_solutions
 from qiskit.optimization.results import OptimizationResult
 
@@ -71,9 +69,8 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
     def is_compatible(self, problem: OptimizationProblem) -> Optional[str]:
         """Checks whether a given problem can be solved with this optimizer.
 
-        Checks whether the given problem is compatible, i.e., whether the problem contains only
-        binary and integer variables as well as linear equality constraints, and otherwise,
-        returns a message explaining the incompatibility.
+        Checks whether the given problem is compatible, i.e., whether the problem can be converted
+        to a QUBO, and otherwise, returns a message explaining the incompatibility.
 
         Args:
             problem: The optization problem to check compatibility.
@@ -81,33 +78,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         Returns:
             Returns ``None`` if the problem is compatible and else a string with the error message.
         """
-
-        # initialize message
-        msg = ''
-
-        # check whether there are incompatible variable types
-        if problem.variables.get_num_continuous() > 0:
-            msg += 'Continuous variables are not supported! '
-        if problem.variables.get_num_semicontinuous() > 0:
-            msg += 'Semi-continuous variables are not supported! '
-        # if problem.variables.get_num_integer() > 0:
-        #     # TODO: to be removed once integer to binary mapping is introduced
-        #     msg += 'Integer variables are not supported! '
-        if problem.variables.get_num_semiinteger() > 0:
-            # TODO: to be removed once semi-integer to binary mapping is introduced
-            msg += 'Semi-integer variables are not supported! '
-
-        # check whether there are incompatible constraint types
-        if not all([sense == 'E' for sense in problem.linear_constraints.get_senses()]):
-            msg += 'Only linear equality constraints are supported.'
-
-        # TODO: check for quadratic constraints
-
-        # if an error occurred, return error message, otherwise, return None
-        if len(msg) > 0:
-            return msg.strip()
-        else:
-            return None
+        return OptimizationProblemToQubo.is_compatible(problem)
 
     def solve(self, problem: OptimizationProblem) -> OptimizationResult:
         """Tries to solves the given problem using the optimizer.
@@ -120,27 +91,11 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         Returns:
             The result of the optimizer applied to the problem.
 
-        Raises:
-            QiskitOptimizationError: If the problem is incompatible with the optimizer.
         """
 
-        # analyze compatibility of problem
-        msg = self.is_compatible(problem)
-        if msg is not None:
-            raise QiskitOptimizationError('Incompatible problem: %s' % msg)
-
-        # map integer variables to binary variables
-        int_to_bin_converter = IntegerToBinaryConverter()
-        problem_ = int_to_bin_converter.encode(problem)
-
-        # penalize linear equality constraints with only binary variables
-        if self._penalty is None:
-            # TODO: should be derived from problem
-            penalty = 1e5
-        else:
-            penalty = self._penalty
-        lin_eq_converter = PenalizeLinearEqualityConstraints()
-        problem_ = lin_eq_converter.encode(problem_, penalty_factor=penalty)
+        # convert problem to QUBO
+        qubo_converter = OptimizationProblemToQubo()
+        problem_ = qubo_converter.encode(problem)
 
         # construct operator and offset
         operator_converter = OptimizationProblemToOperator()
@@ -156,8 +111,8 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         results.sort(key=lambda x: problem_.objective.get_sense() * x[1])
 
         # translate result back to integers
-        opt_res = OptimizationResult(results[0][0], results[0][1], (results, int_to_bin_converter))
-        opt_res = int_to_bin_converter.decode(opt_res)
+        opt_res = OptimizationResult(results[0][0], results[0][1], (results, qubo_converter))
+        opt_res = qubo_converter.decode(opt_res)
 
         # translate results back to original problem
         return opt_res
