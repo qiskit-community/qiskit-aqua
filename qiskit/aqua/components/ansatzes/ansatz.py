@@ -38,56 +38,6 @@ from qiskit.aqua.components.initial_states import InitialState
 logger = logging.getLogger(__name__)
 
 
-def get_parameters(block: Union[QuantumCircuit, Instruction]) -> List[Parameter]:
-    """Return the list of Parameters inside block.
-
-    TODO This functionality will be moved to another location, this is just a helper.
-    """
-    if isinstance(block, QuantumCircuit):
-        return list(block.parameters)
-    else:
-        return [p for p in block.params if isinstance(p, ParameterExpression)]
-
-
-def combine_parameterlists(first: List[Parameter], other: List[Parameter],
-                           duplicate_existing: bool = True) -> List[Parameter]:
-    """Add ``other`` to the ``first`` via name, not instance.
-
-    TODO This functionality will be moved to another location, this is just a helper.
-
-    If the parameters in ``other`` already exists in the list, add the instance with the same
-    name at the end of the list. If the name does not exist in the list, add the parameter
-    in ``other``.
-    This prevents having different instances with the same name in the list of parameters,
-    which leads to naming conflict if a circuit is constructed with these parameters.
-
-    Args:
-        first: The list of parameters, where ``new_parameter`` is to be added.
-        other: The parameter list that should be added.
-        duplicate_existing: Duplicate the parameter even if it is in the list.
-
-    Returns:
-        The merged parameter list, where same names are the same instance.
-    """
-    for obj in [first, other]:
-        if isinstance(obj, ParameterExpression):
-            obj = [obj]
-
-    for new_param in other:
-        found = False
-        for existing_param in first:
-            if new_param.name == existing_param.name:
-                if duplicate_existing:
-                    first.append(existing_param)
-                found = True
-                break
-
-        if not found:
-            first.append(new_param)
-
-    return first
-
-
 class Ansatz:
     """The Ansatz class."""
 
@@ -177,7 +127,6 @@ class Ansatz:
         self._circuit = None
 
         # parameter bounds
-        print('initializing to none')
         self._bounds = None
 
         # temporary fix until UCCSD is rewritten
@@ -915,3 +864,53 @@ class Ansatz:
             # therefore raise a more meaningful AquaError
             raise AquaError('The Ansatz contains non-unitary operations (e.g. barriers, resets or '
                             'measurements) and cannot be converted to a Gate!')
+
+
+def get_parameters(block: Union[QuantumCircuit, Instruction]) -> List[Parameter]:
+    """Return the list of Parameters inside block.
+
+    TODO This functionality will be moved to another location, this is just a helper.
+    """
+    if isinstance(block, QuantumCircuit):
+        return list(block.parameters)
+    else:
+        return [p for p in block.params if isinstance(p, ParameterExpression)]
+
+
+def combine_parameterlists(first: List[Parameter], other: List[Parameter],
+                           duplicate_existing: bool = True) -> List[Parameter]:
+    """Add ``other`` to the ``first`` via name, not instance.
+
+    TODO This functionality will be moved to another location, this is just a helper.
+
+    If the parameters in ``other`` already exists in the list, add the instance with the same
+    name at the end of the list. If the name does not exist in the list, add the parameter
+    in ``other``.
+    This prevents having different instances with the same name in the list of parameters,
+    which leads to naming conflict if a circuit is constructed with these parameters.
+
+    Args:
+        first: The list of parameters, where ``new_parameter`` is to be added.
+        other: The parameter list that should be added.
+        duplicate_existing: Duplicate the parameter even if it is in the list.
+
+    Returns:
+        The merged parameter list, where same names are the same instance.
+    """
+    for obj in [first, other]:
+        if isinstance(obj, ParameterExpression):
+            obj = [obj]
+
+    for new_param in other:
+        found = False
+        for existing_param in first:
+            if new_param.name == existing_param.name:
+                if duplicate_existing:
+                    first.append(existing_param)
+                found = True
+                break
+
+        if not found:
+            first.append(new_param)
+
+    return first
