@@ -140,6 +140,7 @@ eigenstate
 eigrange
 eigs
 eigvecs
+einact
 einsum
 els
 endif
@@ -159,6 +160,7 @@ excitations
 expr
 factorizers
 factr
+fcidump
 fcompiler
 fermionic
 FermionicOperator
@@ -205,16 +207,22 @@ hartree
 hassidim
 hb
 hhl
+hijs
+hijkls
 hk
 https
+ia
 iadd
+iajb
 idx
 ifdef
 ifortvars
 ign
 ignis
 ij
+ijkl
 ijkm
+ik
 ikmj
 imag
 implicants
@@ -224,6 +232,7 @@ indvar
 init
 initializer
 initio
+inline
 innerproduct
 inreg
 instantiations
@@ -243,12 +252,16 @@ iteratively
 izaac
 jac
 jacobian
+jb
+ji
+jl
 jordan
 jozsa
 jt
 jth
 jw
 kaicher
+ket
 killoran
 kingma
 kitaev
@@ -265,6 +278,7 @@ lhs
 lih
 lijh
 lin
+lk
 lmin
 lnot
 loglikelihood
@@ -317,6 +331,7 @@ msq
 multiclass
 multinomial
 multiprocess
+namelist
 nan
 narray
 nasdaq
@@ -326,6 +341,7 @@ ndarray
 ndarray's
 negoro
 nelder
+nelec
 neq
 nevals
 newtons's
@@ -338,6 +354,7 @@ nn
 noancilla
 noint
 noqa
+norb
 norbs
 nosignatures
 np
@@ -358,6 +375,7 @@ optim
 optimizer's
 optimizers
 org
+outpath
 overfit
 params
 parentname
