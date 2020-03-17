@@ -19,19 +19,22 @@ import numpy as np
 from qiskit.optimization.converters import OptimizationProblemToNegativeValueOracle
 from qiskit.optimization.util import get_qubo_solutions
 from qiskit import QuantumCircuit, Aer, execute
+from qiskit.optimization.problems import OptimizationProblem
 
 
 class TestOptimizationProblemToNegativeValueOracle(QiskitOptimizationTestCase):
     """OPtNVO Tests"""
 
-    def _validate_function(self, func_dict, linear, quadratic, constant):
+    def _validate_function(self, func_dict, problem):
+        linear = problem.objective.get_linear()
+        quadratic = problem.objective.get_quadratic()
         for key in func_dict:
             if isinstance(key, int) and key >= 0:
-                self.assertEqual(-1 * linear[key], func_dict[key])
+                self.assertEqual(linear[key], func_dict[key])
             elif isinstance(key, tuple):
                 self.assertEqual(quadratic[key[0]][key[1]], func_dict[key])
             else:
-                self.assertEqual(constant, func_dict[key])
+                self.assertEqual(problem.objective.get_offset(), func_dict[key])
 
     def _validate_operator(self, func_dict, n_key, n_value, operator):
         # Get expected results.
@@ -74,40 +77,24 @@ class TestOptimizationProblemToNegativeValueOracle(QiskitOptimizationTestCase):
 
         return int_v
 
-    def test_optnvo_2_key(self):
-        """ Test with 2 linear coefficients, no quadratic or constant """
+    def test_optnvo_3_linear_2_quadratic_no_constant(self):
+        """ Test with 3 linear coefficients, 2 quadratic, and no constant """
         # Circuit parameters.
         num_value = 4
 
         # Input.
-        linear = np.array([1, -2])
-        quadratic = np.array([[1, 0],
-                              [0, 1]])
-        constant = 0
+        problem = OptimizationProblem()
+        problem.variables.add(names=["x0", "x1", "x2"], types='BBB')
+        linear = [("x0", -1), ("x1", 2), ("x2", -3)]
+        problem.objective.set_linear(linear)
+        problem.objective.set_quadratic_coefficients('x0', 'x2', -2)
+        problem.objective.set_quadratic_coefficients('x1', 'x2', -1)
 
         # Convert to dictionary format with operator/oracle.
         converter = OptimizationProblemToNegativeValueOracle(num_value)
-        a_operator, _, func_dict = converter.encode(linear, quadratic, constant)
+        a_operator, _, func_dict = converter.encode(problem)
 
-        self._validate_function(func_dict, linear, quadratic, constant)
-        self._validate_operator(func_dict, len(linear), num_value, a_operator)
-
-    def test_optnvo_2_key_w_constant(self):
-        """ Test with 2 linear coefficients, no quadratic, simple constant """
-        # Circuit parameters.
-        num_value = 4
-
-        # Input.
-        linear = np.array([1, -2])
-        quadratic = np.array([[1, 0],
-                              [0, 1]])
-        constant = 1
-
-        # Convert to dictionary format with operator/oracle.
-        converter = OptimizationProblemToNegativeValueOracle(num_value)
-        a_operator, _, func_dict = converter.encode(linear, quadratic, constant)
-
-        self._validate_function(func_dict, linear, quadratic, constant)
+        self._validate_function(func_dict, problem)
         self._validate_operator(func_dict, len(linear), num_value, a_operator)
 
     def test_optnvo_4_key_all_negative(self):
@@ -116,18 +103,20 @@ class TestOptimizationProblemToNegativeValueOracle(QiskitOptimizationTestCase):
         num_value = 5
 
         # Input.
-        linear = np.array([1, 1, 1, 1])
-        quadratic = np.array([[-1, -1, -1, -1],
-                              [-1, -1, -1, -1],
-                              [-1, -1, -1, -1],
-                              [-1, -1, -1, -1]])
-        constant = -1
+        problem = OptimizationProblem()
+        problem.variables.add(names=["x0", "x1", "x2"], types='BBB')
+        linear = [("x0", -1), ("x1", -2), ("x2", -1)]
+        problem.objective.set_linear(linear)
+        problem.objective.set_quadratic_coefficients('x0', 'x1', -1)
+        problem.objective.set_quadratic_coefficients('x0', 'x2', -2)
+        problem.objective.set_quadratic_coefficients('x1', 'x2', -1)
+        problem.objective.set_offset(-1)
 
         # Convert to dictionary format with operator/oracle.
         converter = OptimizationProblemToNegativeValueOracle(num_value)
-        a_operator, _, func_dict = converter.encode(linear, quadratic, constant)
+        a_operator, _, func_dict = converter.encode(problem)
 
-        self._validate_function(func_dict, linear, quadratic, constant)
+        self._validate_function(func_dict, problem)
         self._validate_operator(func_dict, len(linear), num_value, a_operator)
 
     def test_optnvo_6_key(self):
@@ -136,18 +125,17 @@ class TestOptimizationProblemToNegativeValueOracle(QiskitOptimizationTestCase):
         num_value = 4
 
         # Input.
-        linear = np.array([1, -2, -1, 0, 1, 2])
-        quadratic = np.array([[1, 0, 0, -1, 0, 0],
-                              [0, 1, 0, 0, 0, -2],
-                              [0, 0, 1, 0, 0, 0],
-                              [-1, 0, 0, 1, 0, 0],
-                              [0, 0, 0, 0, 1, 0],
-                              [0, -2, 0, 0, 0, 1]])
+        problem = OptimizationProblem()
+        problem.variables.add(names=["x0", "x1", "x2", "x3", "x4", "x5"], types='BBBBBB')
+        linear = [("x0", -1), ("x1", -2), ("x2", -1), ("x3", 0), ("x4", 1), ("x5", 2)]
+        problem.objective.set_linear(linear)
+        problem.objective.set_quadratic_coefficients('x0', 'x3', -1)
+        problem.objective.set_quadratic_coefficients('x1', 'x5', -2)
         constant = 0
 
         # Convert to dictionary format with operator/oracle.
         converter = OptimizationProblemToNegativeValueOracle(num_value)
-        a_operator, _, func_dict = converter.encode(linear, quadratic, constant)
+        a_operator, _, func_dict = converter.encode(problem)
 
-        self._validate_function(func_dict, linear, quadratic, constant)
+        self._validate_function(func_dict, problem)
         self._validate_operator(func_dict, len(linear), num_value, a_operator)

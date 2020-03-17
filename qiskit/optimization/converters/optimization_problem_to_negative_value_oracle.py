@@ -71,11 +71,12 @@ class OptimizationProblemToNegativeValueOracle:
         quadratic_coeff = {}
         for i, j_value_dict in quadratic_dict.items():
             for j, value in j_value_dict.items():
-                coeff = quadratic_coeff.get((j, i), 0)
                 if i <= j:
                     # divide by 2 since problem considers xQx/2.
+                    coeff = quadratic_coeff.get((i, j), 0)
                     quadratic_coeff[(i, j)] = value / 2 + coeff
                 else:
+                    coeff = quadratic_coeff.get((j, i), 0)
                     quadratic_coeff[(j, i)] = value / 2 + coeff
 
         constant = problem.objective.get_offset()
@@ -112,15 +113,15 @@ class OptimizationProblemToNegativeValueOracle:
     def _get_function(linear: np.array, quadratic: np.array, constant: int) -> \
             Dict[Union[int, Tuple[int, int]], int]:
         """Convert the problem to a dictionary format."""
-        func = {-1: constant}
+        func = {-1: int(constant)}
         for i, v in enumerate(linear):
-            func[i] = v
+            func[i] = int(v)
         for ij, v in quadratic.items():
             i, j = ij
             if i != j:
                 func[(i, j)] = int(quadratic[(i, j)])
             else:
-                func[i] += v
+                func[i] += int(v)
 
         return func
 
