@@ -25,7 +25,7 @@
         >>> result = optimizer.solve(problem)
 """
 
-from typing import Optional
+from typing import Optional, Any
 
 from qiskit.aqua.algorithms import MinimumEigensolver
 from qiskit.optimization.problems import OptimizationProblem
@@ -33,6 +33,25 @@ from qiskit.optimization.algorithms import OptimizationAlgorithm
 from qiskit.optimization.converters import OptimizationProblemToQubo, OptimizationProblemToOperator
 from qiskit.optimization.utils import eigenvector_to_solutions
 from qiskit.optimization.results import OptimizationResult
+
+
+class MinimumEigenOptimizerResult(OptimizationResult):
+    """ Minimum Eigen Optimizer Result."""
+
+    def __init__(self, x: Optional[Any] = None, fval: Optional[Any] = None,
+                 samples: Optional[Any] = None, results: Optional[Any] = None) -> None:
+        super().__init__(x, fval, results)
+        self._samples = samples
+
+    @property
+    def samples(self) -> Any:
+        """ returns samples """
+        return self._samples
+
+    @samples.setter
+    def samples(self, samples: Any) -> None:
+        """ set samples """
+        self._samples = samples
 
 
 class MinimumEigenOptimizer(OptimizationAlgorithm):
@@ -80,7 +99,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         """
         return OptimizationProblemToQubo.is_compatible(problem)
 
-    def solve(self, problem: OptimizationProblem) -> OptimizationResult:
+    def solve(self, problem: OptimizationProblem) -> MinimumEigenOptimizerResult:
         """Tries to solves the given problem using the optimizer.
 
         Runs the optimizer to try to solve the optimization problem.
@@ -105,13 +124,13 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         eigen_results = self._min_eigen_solver.compute_minimum_eigenvalue(operator)
 
         # analyze results
-        results = eigenvector_to_solutions(eigen_results.eigenstate, operator)
-        results = [(res[0], problem_.objective.get_sense() * (res[1] + offset), res[2])
-                   for res in results]
-        results.sort(key=lambda x: problem_.objective.get_sense() * x[1])
+        samples = eigenvector_to_solutions(eigen_results.eigenstate, operator)
+        samples = [(res[0], problem_.objective.get_sense() * (res[1] + offset), res[2])
+                   for res in samples]
+        samples.sort(key=lambda x: problem_.objective.get_sense() * x[1])
 
         # translate result back to integers
-        opt_res = OptimizationResult(results[0][0], results[0][1], (results, qubo_converter))
+        opt_res = MinimumEigenOptimizerResult(samples[0][0], samples[0][1], samples, qubo_converter)
         opt_res = qubo_converter.decode(opt_res)
 
         # translate results back to original problem

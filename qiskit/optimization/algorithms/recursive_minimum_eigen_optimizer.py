@@ -118,11 +118,11 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
 
             # solve current problem with optimizer
             result = self._min_eigen_optimizer.solve(problem_)
-            details = result.results[0]
+            samples = result.samples
 
             # analyze results to get strongest correlation
-            states = [v[0] for v in details]
-            probs = [v[2] for v in details]
+            states = [v[0] for v in samples]
+            probs = [v[2] for v in samples]
             correlations = self._construct_correlations(states, probs)
             i, j = self._find_strongest_correlation(correlations)
 
