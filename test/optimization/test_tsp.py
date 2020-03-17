@@ -18,8 +18,8 @@ from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 
 from qiskit.aqua import aqua_globals
-from qiskit.optimization.ising import tsp
-from qiskit.optimization.ising.common import sample_most_likely
+from qiskit.optimization.applications.ising import tsp
+from qiskit.optimization.applications.ising.common import sample_most_likely
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 
 

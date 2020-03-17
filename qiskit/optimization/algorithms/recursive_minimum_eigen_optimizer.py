@@ -39,7 +39,7 @@ from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 
 class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
     """ A meta-algorithm that applies the recursive optimization scheme introduce in
-    [paper] on top of ``MinimumEigenOptimizer``.
+    [http://arxiv.org/abs/1910.08980] on top of ``MinimumEigenOptimizer``.
     """
 
     def __init__(self, min_eigen_optimizer: MinimumEigenOptimizer, min_num_vars: int = 1,

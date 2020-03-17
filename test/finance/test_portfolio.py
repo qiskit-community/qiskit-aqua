@@ -24,9 +24,9 @@ from qiskit import BasicAer
 from qiskit.aqua import aqua_globals, QuantumInstance
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver, QAOA
 from qiskit.aqua.components.optimizers import COBYLA
-from qiskit.finance.ising import portfolio
+from qiskit.finance.applications.ising import portfolio
 from qiskit.finance.data_providers import RandomDataProvider
-from qiskit.optimization.ising.common import sample_most_likely
+from qiskit.optimization.applications.ising.common import sample_most_likely
 
 
 class TestPortfolio(QiskitFinanceTestCase):

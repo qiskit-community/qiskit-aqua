@@ -29,7 +29,7 @@ class TestGroverMinimumFinder(QiskitOptimizationTestCase):
     def validate_results(self, problem, results, max_iterations):
         """Validate the results object returned by GroverMinimumFinder."""
         # Get measured values.
-        grover_results = results.results
+        grover_results = results.results['grover_results']
         op_key = results.x
         op_value = results.fval
         iterations = len(grover_results.operation_counts)
@@ -95,62 +95,3 @@ class TestGroverMinimumFinder(QiskitOptimizationTestCase):
         gmf = GroverMinimumFinder(num_iterations=n_iter)
         results = gmf.solve(op)
         self.validate_results(op, results, 10)
-
-    def test_gas_portfolio(self):
-
-        # specify problem
-        n = 2
-        mu, sigma = portfolio.random_model(n, seed=42)
-        budget = n//2
-        q = 0.5
-        penalty = n
-
-        # round to integer (for Grover)
-        sigma = 2*np.round(2*sigma)
-        mu = np.round(2*mu)
-
-        # initialize docplex model
-        mdl = Model('portfolio_optimization')
-
-        # create binary variables
-        x = {}
-        for i in range(n):
-            x[i] = mdl.integer_var(name='x%s' % i, lb=0, ub=2)
-
-        # construct objective
-        ret = mdl.sum([mu[i] * x[i] for i in range(n)])
-        var = mdl.sum([sigma[i, j] * x[i] * x[j] for i in range(n) for j in range(n)])
-        objective = q * var - ret
-        mdl.minimize(objective)
-
-        # construct budget constraint
-        cost = mdl.sum([x[i] for i in range(n)])
-        mdl.add_constraint(cost == budget, ctname='budget')
-
-        # print model
-        mdl.pprint()
-
-        # create optimization problem from docplex model
-        problem = OptimizationProblem()
-        problem.from_docplex(mdl)
-
-        # print problem
-        print(problem.write_as_string())
-
-        grover_optimizer = GroverMinimumFinder(num_iterations=6)
-        result = grover_optimizer.solve(problem)
-        print(result)
-
-    def test_gas_2(self):
-
-        op = OptimizationProblem()
-        op.variables.add(names=["x0", "x1", "x2"], types='BBB')
-
-        linear = [("x0", -1), ("x1", 2), ("x2", -3)]
-        op.objective.set_linear(linear)
-        op.objective.set_quadratic_coefficients('x0', 'x2', -2)
-        op.objective.set_quadratic_coefficients('x1', 'x2', -1)
-
-        grover_optimizer = GroverMinimumFinder(num_iterations=8)
-        result = grover_optimizer.solve(op)
-        print(result)
