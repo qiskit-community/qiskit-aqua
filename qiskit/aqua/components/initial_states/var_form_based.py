@@ -17,7 +17,7 @@
 from typing import Union, List
 import numpy as np
 from qiskit.aqua import AquaError
-from qiskit.aqua.components.variational_forms import VariationalForm
+from qiskit.aqua.components.ansatzes import Ansatz
 
 
 class VarFormBased:
@@ -25,7 +25,7 @@ class VarFormBased:
     The variational form based initial state.
 
     This can been useful, say for example, if you have been doing experiments using a
-    :class:`~qiskit.aqua.components.variational_forms.VariationalForm` and have parameters for
+    :class:`~qiskit.aqua.components.ansatzes.Ansatz` and have parameters for
     a state of interest of that form. Using this class it can then be turned into an initial state
     for use elsewhere.
 
@@ -37,7 +37,7 @@ class VarFormBased:
     """
 
     def __init__(self,
-                 var_form: VariationalForm,
+                 var_form: Ansatz,
                  params: Union[List[float], np.ndarray]) -> None:
         """
         Args:

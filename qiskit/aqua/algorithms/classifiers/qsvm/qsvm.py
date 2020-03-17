@@ -29,7 +29,7 @@ from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua import AquaError
 from qiskit.aqua.utils.dataset_helper import get_num_classes
 from qiskit.aqua.utils import split_dataset_to_data_and_labels
-from qiskit.aqua.components.feature_maps import FeatureMap
+from qiskit.aqua.components.ansatzes import Ansatz
 from qiskit.aqua.components.multiclass_extensions import MulticlassExtension
 from ._qsvm_estimator import _QSVM_Estimator
 from ._qsvm_binary import _QSVM_Binary
@@ -76,7 +76,7 @@ class QSVM(QuantumAlgorithm):
 
     BATCH_SIZE = 1000
 
-    def __init__(self, feature_map: FeatureMap,
+    def __init__(self, feature_map: Ansatz,
                  training_dataset: Optional[Dict[str, np.ndarray]] = None,
                  test_dataset: Optional[Dict[str, np.ndarray]] = None,
                  datapoints: Optional[np.ndarray] = None,
@@ -196,7 +196,7 @@ class QSVM(QuantumAlgorithm):
 
         Args:
             quantum_instance (QuantumInstance): quantum backend with all settings
-            feature_map (FeatureMap): a feature map that maps data to feature space
+            feature_map (Ansatz): a feature map that maps data to feature space
             x1_vec (numpy.ndarray): data points, 2-D array, N1xD, where N1 is the number of data,
                                     D is the feature dimension
             x2_vec (numpy.ndarray): data points, 2-D array, N2xD, where N2 is the number of data,

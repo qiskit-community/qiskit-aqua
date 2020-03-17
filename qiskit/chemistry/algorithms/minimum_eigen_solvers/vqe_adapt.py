@@ -25,12 +25,12 @@ import numpy as np
 from qiskit import ClassicalRegister
 from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms import VQAlgorithm, VQE, VQEResult
-from qiskit.chemistry.components.variational_forms import UCCSD
+from qiskit.chemistry.components.ansatzes import UCCSD
 from qiskit.aqua.operators import TPBGroupedWeightedPauliOperator, WeightedPauliOperator
 from qiskit.aqua.utils.backend_utils import is_aer_statevector_backend
 from qiskit.aqua.operators import BaseOperator
 from qiskit.aqua.components.optimizers import Optimizer
-from qiskit.aqua.components.variational_forms import VariationalForm
+from qiskit.aqua.components.ansatzes import Ansatz
 from qiskit.aqua.utils.validation import validate_min
 
 logger = logging.getLogger(__name__)
@@ -45,7 +45,7 @@ class VQEAdapt(VQAlgorithm):
 
     # TODO make re-usable, implement MinimumEignesolver interface
     def __init__(self, operator: BaseOperator,
-                 var_form_base: VariationalForm, optimizer: Optimizer,
+                 var_form_base: Ansatz, optimizer: Optimizer,
                  initial_point: Optional[np.ndarray] = None,
                  excitation_pool: Optional[List[WeightedPauliOperator]] = None,
                  threshold: float = 1e-5,
@@ -67,7 +67,7 @@ class VQEAdapt(VQAlgorithm):
 
         Raises:
             ValueError: if var_form_base is not an instance of UCCSD.
-            See also: qiskit/chemistry/components/variational_forms/uccsd_adapt.py
+            See also: qiskit/chemistry/components/ansatzes/uccsd_adapt.py
         """
         validate_min('threshold', threshold, 1e-15)
         validate_min('delta', delta, 1e-5)
@@ -104,7 +104,7 @@ class VQEAdapt(VQAlgorithm):
             excitation_pool (list): pool of excitation operators
             theta (list): list of (up to now) optimal parameters
             delta (float): finite difference step size (for gradient computation)
-            var_form (VariationalForm): current variational form
+            var_form (Ansatz): current variational form
             operator (BaseOperator): system Hamiltonian
             optimizer (Optimizer): classical optimizer algorithm
 

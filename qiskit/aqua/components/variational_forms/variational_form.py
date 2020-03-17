@@ -29,10 +29,6 @@ import numpy as np
 from qiskit import QuantumRegister
 from qiskit.aqua.utils import get_entangler_map, validate_entangler_map
 
-warnings.warn('This module is deprecated, VariationalForm is replaced by Ansatz, located in '
-              'qiskit.aqua.components.ansatz',
-              DeprecationWarning, stacklevel=2)
-
 
 class VariationalForm(ABC):
 
@@ -45,6 +41,10 @@ class VariationalForm(ABC):
 
     @abstractmethod
     def __init__(self) -> None:
+        warnings.warn('The class VariationalForm is replaced by Ansatz and is deprecated as '
+                      'of 0.7.0. Use Ansatz from qiskit.aqua.components.ansatzes instead.',
+                      DeprecationWarning, stacklevel=2)
+
         super().__init__()
         self._num_parameters = 0
         self._num_qubits = 0

@@ -20,7 +20,7 @@ from typing import Union, List
 import numpy as np
 
 from qiskit import ClassicalRegister
-from qiskit.aqua.components.variational_forms import VariationalForm
+from qiskit.aqua.components.ansatzes import Ansatz
 from qiskit.aqua.utils.validation import validate_min
 from .univariate_distribution import UnivariateDistribution
 
@@ -32,7 +32,7 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
 
     def __init__(self,
                  num_qubits: int,
-                 var_form: VariationalForm,
+                 var_form: Ansatz,
                  params: Union[List[float], np.ndarray],
                  low: float = 0,
                  high: float = 1) -> None:

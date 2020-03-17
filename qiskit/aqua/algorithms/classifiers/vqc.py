@@ -28,8 +28,7 @@ from qiskit.aqua.utils import map_label_to_class_name
 from qiskit.aqua.utils import split_dataset_to_data_and_labels
 from qiskit.aqua.algorithms import VQAlgorithm
 from qiskit.aqua.components.optimizers import Optimizer
-from qiskit.aqua.components.feature_maps import FeatureMap
-from qiskit.aqua.components.variational_forms import VariationalForm
+from qiskit.aqua.components.ansatzes import Ansatz
 
 logger = logging.getLogger(__name__)
 
@@ -49,8 +48,8 @@ class VQC(VQAlgorithm):
     def __init__(
             self,
             optimizer: Optimizer,
-            feature_map: FeatureMap,
-            var_form: VariationalForm,
+            feature_map: Ansatz,
+            var_form: Ansatz,
             training_dataset: Dict[str, np.ndarray],
             test_dataset: Optional[Dict[str, np.ndarray]] = None,
             datapoints: Optional[np.ndarray] = None,

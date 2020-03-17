@@ -18,7 +18,7 @@ from typing import Optional, List, Union
 import numpy as np
 
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
-from qiskit.aqua.components.variational_forms import VariationalForm
+from qiskit.aqua.components.ansatzes import Ansatz
 from .multivariate_distribution import MultivariateDistribution
 
 # pylint: disable=invalid-name
@@ -31,7 +31,7 @@ class MultivariateVariationalDistribution(MultivariateDistribution):
 
     def __init__(self,
                  num_qubits: Union[List[int], np.ndarray],
-                 var_form: VariationalForm,
+                 var_form: Ansatz,
                  params: Union[List[float], np.ndarray],
                  low: Optional[Union[List[float], np.ndarray]] = None,
                  high: Optional[Union[List[float], np.ndarray]] = None) -> None:

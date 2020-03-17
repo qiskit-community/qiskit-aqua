@@ -33,7 +33,8 @@ import numpy
 from qiskit import QuantumCircuit, QiskitError, transpile, QuantumRegister
 from qiskit.circuit import Gate, Instruction, Parameter, ParameterVector, ParameterExpression
 from qiskit.aqua.aqua_error import AquaError
-from qiskit.aqua.components.initial_states import InitialState
+
+from ..initial_states.initial_state import InitialState
 
 logger = logging.getLogger(__name__)
 

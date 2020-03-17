@@ -35,7 +35,7 @@ from qiskit.aqua.utils.backend_utils import (is_statevector_backend,
                                              is_aer_provider)
 from qiskit.aqua.operators import BaseOperator
 from qiskit.aqua.components.optimizers import Optimizer, SLSQP
-from qiskit.aqua.components.variational_forms import VariationalForm, RY
+from qiskit.aqua.components.ansatzes import Ansatz, RY
 from qiskit.aqua.utils.validation import validate_min
 from ..vq_algorithm import VQAlgorithm, VQResult
 from .minimum_eigen_solver import MinimumEigensolver, MinimumEigensolverResult
@@ -83,7 +83,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
 
     def __init__(self,
                  operator: Optional[BaseOperator] = None,
-                 var_form: Optional[VariationalForm] = None,
+                 var_form: Optional[Ansatz] = None,
                  optimizer: Optional[Optimizer] = None,
                  initial_point: Optional[np.ndarray] = None,
                  max_evals_grouped: int = 1,
@@ -197,7 +197,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         self._in_aux_operators = aux_operators
 
     @VQAlgorithm.var_form.setter
-    def var_form(self, var_form: VariationalForm):
+    def var_form(self, var_form: Ansatz):
         """ Sets variational form """
         VQAlgorithm.var_form.fset(self, var_form)
         self._var_form_params = ParameterVector('θ', var_form.num_parameters)

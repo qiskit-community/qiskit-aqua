@@ -19,22 +19,22 @@ Components were designed to be swappable sub-parts of an algorithm. Different im
 of a component type can thereby be exchanged to potentially alter the behavior and outcome of
 the algorithm. For example :class:`~qiskit.aqua.algorithms.VQE` takes an
 :class:`~qiskit.aqua.components.optimizers.Optimizer` and a
-:class:`~qiskit.aqua.components.variational_forms.VariationalForm` components. There are a
+:class:`~qiskit.aqua.components.ansatzes.Ansatz` components. There are a
 selection of both different :mod:`~qiskit.aqua.components.optimizers` and
-:mod:`~qiskit.aqua.components.variational_forms` that can be chosen from according the nature of
+:mod:`~qiskit.aqua.components.ansatzes` that can be chosen from according the nature of
 the problem. Some optimizers use gradients, others have alternative techniques to finding a
 minimum. Variational forms include heuristic ansatzes such as
-:class:`~qiskit.aqua.components.variational_forms.RYRZ` and types designed for specific problems
-such as :class:`~qiskit.chemistry.components.variational_forms.UCCSD` for chemistry and ground
+:class:`~qiskit.aqua.components.ansatzes.RYRZ` and types designed for specific problems
+such as :class:`~qiskit.chemistry.components.ansatzes.UCCSD` for chemistry and ground
 state energy computation.
 
 Components may also be used in other components. For example the
 :class:`~qiskit.aqua.components.uncertainty_models.UnivariateVariationalDistribution` takes a
-:class:`~qiskit.aqua.components.variational_forms.VariationalForm`.
+:class:`~qiskit.aqua.components.ansatzes.Ansatz`.
 
 Each type of component has a base class that can be extended to provide a new implementation. For
-example the base class for :mod:`~qiskit.aqua.components.variational_forms` is
-:class:`~qiskit.aqua.components.variational_forms.VariationalForm`. For more information refer
+example the base class for :mod:`~qiskit.aqua.components.ansatzes` is
+:class:`~qiskit.aqua.components.ansatzes.Ansatz`. For more information refer
 to the component type of interest below.
 
 .. currentmodule:: qiskit.aqua.components

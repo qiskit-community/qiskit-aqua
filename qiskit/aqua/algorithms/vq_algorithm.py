@@ -31,7 +31,7 @@ import numpy as np
 
 from qiskit.aqua.algorithms import AlgorithmResult, QuantumAlgorithm
 from qiskit.aqua.components.optimizers import Optimizer
-from qiskit.aqua.components.variational_forms import VariationalForm
+from qiskit.aqua.components.ansatzes import Ansatz
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +43,7 @@ class VQAlgorithm(QuantumAlgorithm):
     The Variational Quantum Algorithm Base Class.
     """
     def __init__(self,
-                 var_form: VariationalForm,
+                 var_form: Ansatz,
                  optimizer: Optimizer,
                  cost_fn: Optional[Callable] = None,
                  initial_point: Optional[np.ndarray] = None) -> None:
@@ -68,12 +68,12 @@ class VQAlgorithm(QuantumAlgorithm):
         self._parameterized_circuits = None
 
     @property
-    def var_form(self) -> Optional[VariationalForm]:
+    def var_form(self) -> Optional[Ansatz]:
         """ Returns variational form """
         return self._var_form
 
     @var_form.setter
-    def var_form(self, var_form: VariationalForm):
+    def var_form(self, var_form: Ansatz):
         """ Sets variational form """
         self._var_form = var_form
 
@@ -99,7 +99,7 @@ class VQAlgorithm(QuantumAlgorithm):
 
     def find_minimum(self,
                      initial_point: Optional[np.ndarray] = None,
-                     var_form: Optional[VariationalForm] = None,
+                     var_form: Optional[Ansatz] = None,
                      cost_fn: Optional[Callable] = None,
                      optimizer: Optional[Optimizer] = None,
                      gradient_fn: Optional[Callable] = None) -> 'VQResult':

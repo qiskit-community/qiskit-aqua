@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,8 +12,25 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Deprecated variational forms module, moved to ansatzes."""
+"""
+Ansätze (:mod:`qiskit.chemistry.components.ansatzes`)
+=====================================================
+These are chemistry specific Aqua Ansätze where they inherit from
+Aqua :class:`Ansatz`. As they rely on chemistry specific knowledge
+and/or functions they live here rather than in Aqua.
 
+.. currentmodule:: qiskit.chemistry.components.ansatzes
+
+Ansätze
+=======
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   UCCSD
+
+"""
 from .uccsd import UCCSD
 
 __all__ = ['UCCSD']

@@ -191,7 +191,7 @@ class QGAN(QuantumAlgorithm):
         Initialize generator.
 
         Args:
-            generator_circuit (VariationalForm): parameterized quantum circuit which sets
+            generator_circuit (Ansatz): parameterized quantum circuit which sets
                 the structure of the quantum generator
             generator_init_params(numpy.ndarray): initial parameters for the generator circuit
             generator_optimizer (Optimizer): optimizer to be used for the training of the generator
