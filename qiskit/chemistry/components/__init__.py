@@ -27,7 +27,7 @@ Submodules
 .. autosummary::
    :toctree:
 
+   ansatzes
    initial_states
-   variational_forms
 
 """

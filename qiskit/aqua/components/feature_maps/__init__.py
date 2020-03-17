@@ -12,7 +12,10 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""The deprecated feature maps module."""
+"""The feature maps.
+
+This module is deprecated, the feature maps moved to qiskit/aqua/components/ansatzes.
+"""
 
 import warnings
 from qiskit.aqua.components.ansatzes.feature_maps import (PauliExpansion, PauliZExpansion,

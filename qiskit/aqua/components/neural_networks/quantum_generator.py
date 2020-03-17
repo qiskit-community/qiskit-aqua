@@ -27,7 +27,7 @@ from qiskit.aqua.components.uncertainty_models import \
     UniformDistribution, MultivariateUniformDistribution
 from qiskit.aqua.components.uncertainty_models import UnivariateVariationalDistribution, \
     MultivariateVariationalDistribution
-from qiskit.aqua.components.variational_forms import RY
+from qiskit.aqua.components.ansatzes import RY
 from qiskit.aqua import AquaError
 from qiskit.aqua.components.neural_networks.generative_network import GenerativeNetwork
 from qiskit.aqua.components.initial_states import Custom

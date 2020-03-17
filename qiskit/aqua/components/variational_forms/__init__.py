@@ -12,51 +12,19 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
-Variational Forms (:mod:`qiskit.aqua.components.variational_forms`)
-===================================================================
-In quantum mechanics, the *variational method* is one way of finding approximations to the lowest
-energy eigenstate, or *ground state*, and some excited states. This allows calculating approximate
-wave functions, such as molecular orbitals. The basis for this method is the *variational
-principle*.
+"""The variational forms.
 
-The variational method consists of choosing a *trial wave function*, or *variational form*, that
-depends on one or more parameters, and finding the values of these parameters for which the
-expectation value of the energy is the lowest possible.  The wave function obtained by fixing the
-parameters to such values is then an approximation to the ground state wave function, and the
-expectation value of the energy in that state is an upper bound to the ground state energy. Quantum
-variational algorithms, such as :class:`~qiskit.aqua.algorithms.VQE`, apply the variational method.
-As such, they require a variational form.
-
-.. currentmodule:: qiskit.aqua.components.variational_forms
-
-Variational Form Base Class
-===========================
-
-.. autosummary::
-   :toctree: ../stubs/
-   :nosignatures:
-
-   VariationalForm
-
-Variational Forms
-=================
-
-.. autosummary::
-   :toctree: ../stubs/
-   :nosignatures:
-
-   RY
-   RYRZ
-   SwapRZ
-
+This module is deprecated, the variational forms moved to qiskit/aqua/components/ansatzes.
 """
 
-from qiskit.aqua.components.variational_forms.variational_form import VariationalForm
-# from .ry import RY
-# from .ryrz import RYRZ
-# from .swaprz import SwapRZ
+import warnings
 from qiskit.aqua.components.ansatzes import RY, RYRZ, SwapRZ
+from .variational_form import VariationalForm
+
+warnings.warn('The qiskit.aqua.components.feature_maps module is deprecated and will be removed '
+              'no later than the release of Aqua 0.7. The feature maps '
+              'are now located in qiskit.aqua.components.ansatze.feature.maps.',
+              DeprecationWarning, stacklevel=2)
 
 __all__ = ['VariationalForm',
            'RY',
