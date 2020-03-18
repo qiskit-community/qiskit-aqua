@@ -60,7 +60,7 @@ class FCIDumpDriver(BaseDriver):
 
         q_mol = QMolecule()
 
-        q_mol.hf_energy = fcidump_data.get('ecore', float('NaN'))
+        q_mol.nuclear_repulsion_energy = fcidump_data.get('ecore', float('NaN'))
         q_mol.num_orbitals = fcidump_data.get('NORB', float('NaN'))
         # TODO: NELEC is inconclusive in the case of a non-singlet spin system
         q_mol.num_beta = fcidump_data.get('NELEC', float('NaN')) // 2
@@ -87,4 +87,4 @@ class FCIDumpDriver(BaseDriver):
         dump(q_mol.num_orbitals, q_mol.num_alpha + q_mol.num_beta,
              (q_mol.mo_onee_ints, q_mol.mo_onee_ints_b),
              (q_mol.mo_eri_ints, q_mol.mo_eri_ints_ba, q_mol.mo_eri_ints_bb),
-             q_mol.hf_energy, outpath)
+             q_mol.nuclear_repulsion_energy, outpath)

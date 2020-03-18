@@ -32,7 +32,7 @@ class BaseTestDriverFCIDump(ABC):
     def __init__(self):
         self.log = None
         self.qmolecule = None
-        self.hf_energy = None
+        self.nuclear_repulsion_energy = None
         self.num_orbitals = None
         self.num_alpha = None
         self.num_beta = None
@@ -59,8 +59,10 @@ class BaseTestDriverFCIDump(ABC):
 
     def test_driver_inactive_energy(self):
         """ driver inactive energy test """
-        self.log.debug('QMolecule inactive energy is {}'.format(self.qmolecule.hf_energy))
-        self.assertAlmostEqual(self.qmolecule.hf_energy, self.hf_energy, places=3)
+        self.log.debug('QMolecule inactive energy is {}'.format(
+            self.qmolecule.nuclear_repulsion_energy))
+        self.assertAlmostEqual(self.qmolecule.nuclear_repulsion_energy,
+                               self.nuclear_repulsion_energy, places=3)
 
     def test_driver_num_orbitals(self):
         """ driver num orbitals test """
@@ -129,7 +131,7 @@ class TestDriverFCIDumpH2(QiskitChemistryTestCase, BaseTestDriverFCIDump):
 
     def setUp(self):
         super().setUp()
-        self.hf_energy = 0.7199
+        self.nuclear_repulsion_energy = 0.7199
         self.num_orbitals = 2
         self.num_alpha = 1
         self.num_beta = 1
@@ -150,7 +152,7 @@ class TestDriverFCIDumpLiH(QiskitChemistryTestCase, BaseTestDriverFCIDump):
 
     def setUp(self):
         super().setUp()
-        self.hf_energy = 0.9924
+        self.nuclear_repulsion_energy = 0.9924
         self.num_orbitals = 6
         self.num_alpha = 2
         self.num_beta = 2
@@ -169,7 +171,7 @@ class TestDriverFCIDumpOH(QiskitChemistryTestCase, BaseTestDriverFCIDump):
 
     def setUp(self):
         super().setUp()
-        self.hf_energy = 11.3412
+        self.nuclear_repulsion_energy = 11.3412
         self.num_orbitals = 6
         self.num_alpha = 5
         self.num_beta = 4
