@@ -31,7 +31,6 @@ def parse(fcidump: str) -> dict:
         Returns:
             dict: dictionary for storing the parsed data
     """
-    fcidump_str = None
     try:
         with open(fcidump, 'r') as file:
             fcidump_str = file.read()
@@ -64,8 +63,7 @@ def parse(fcidump: str) -> dict:
     output['ISYM'] = int(_isym.groups()[0]) if _isym else 1
     # ORBSYM holds a list, thus it requires a little different treatment
     _orbsym = re.search(r'ORBSYM.*?'+r'(\d+),'*norb, metadata)
-    output['ORBSYM'] = [int(s) for s in _orbsym.groups()] if _orbsym \
-        else [1 for s in range(norb)]
+    output['ORBSYM'] = [int(s) for s in _orbsym.groups()] if _orbsym else [1] * len(norb)
     _iprtim = re.search('IPRTIM'+pattern, metadata)
     output['IPRTIM'] = int(_iprtim.groups()[0]) if _iprtim else -1
     _int = re.search('INT'+pattern, metadata)
@@ -204,7 +202,7 @@ def _permute_1e_ints(hij: list, elements: set, norb: int, beta: bool = False) ->
 def _permute_2e_ints(hijkl: list, elements: set, norb: int, beta: bool = False) -> None:
     # pylint: disable=wrong-spelling-in-comment
     for elem in elements.copy():
-        shifted = tuple([e-((e >= norb) * norb)for e in elem])
+        shifted = tuple(e-((e >= norb) * norb) for e in elem)
         # initially look for "transposed" element if spins are equal
         if beta != 1 and elem[::-1] not in elements:
             hijkl[shifted] = hijkl[shifted[::-1]]

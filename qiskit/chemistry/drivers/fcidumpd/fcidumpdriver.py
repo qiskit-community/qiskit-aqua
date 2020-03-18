@@ -16,8 +16,8 @@
 
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry import QiskitChemistryError, QMolecule
-from qiskit.chemistry.drivers.fcidumpd.dumper import dump
-from qiskit.chemistry.drivers.fcidumpd.parser import parse
+from .dumper import dump
+from .parser import parse
 
 
 class FCIDumpDriver(BaseDriver):
@@ -53,7 +53,7 @@ class FCIDumpDriver(BaseDriver):
                 "The fcidump_input must be str, not '{}'".format(fcidump_input))
         self._fcidump_input = fcidump_input
 
-        if atoms is not None and not isinstance(atoms, list) \
+        if atoms and not isinstance(atoms, list) \
                 and not all([sym in QMolecule.symbols for sym in atoms]):
             raise QiskitChemistryError(
                 "The atoms must be a list of valid atomic symbols, not '{}'".format(atoms))
