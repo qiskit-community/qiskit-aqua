@@ -215,8 +215,6 @@ class ADMMOptimizer(OptimizationAlgorithm):
         it = 0
         r = 1.e+2
 
-        # TODO: Handle objective sense. This has to be feed to the solvers of the subproblems.
-
         while (it < self._max_iter and r > self._tol) and (elapsed_time < self._max_time):
 
             op1 = self._create_step1_problem()
@@ -255,8 +253,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
             print("cost_iterate, cr, merit", cost_iterate, cr, merit)
 
             # costs and merits are saved with their original sign
-            # TODO: obtain the sense, and update cost iterates and merits
-            self._state.cost_iterates.append(cost_iterate)
+            self._state.cost_iterates.append(self._state.sense * cost_iterate)
             self._state.residuals.append(r)
             self._state.dual_residuals.append(s)
             self._state.cons_r.append(cr)
@@ -273,7 +270,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
             it += 1
             elapsed_time = time.time() - start_time
 
-        sol, sol_val = self.get_min_mer_sol()
+        sol, sol_val = self.get_best_mer_sol()
 
         # third parameter is our internal state of computations
         result = OptimizationResult(sol, sol_val, self._state)
@@ -568,22 +565,23 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # TODO: Check output type
         return np.asarray(self._continuous_solver.solve(op3).x)
 
-    def get_min_mer_sol(self):
+    def get_best_mer_sol(self):
         """
-        The ADMM solution is that for which the merit value is the least
-            * sol: Iterate with the least merit value
+        The ADMM solution is that for which the merit value is the best (least for min problems, greatest for max problems)
+            * sol: Iterate with the best merit value
             * sol_val: Value of sol, according to the original objective
 
         Returns:
             A tuple of (sol, sol_val), where
-                * sol: Iterate with the least merit value
+                * sol: Iterate with the best merit value
                 * sol_val: Value of sol, according to the original objective
         """
-        it_min_merits = self._state.merits.index(min(self._state.merits))
-        x0 = self._state.x0_saved[it_min_merits]
-        u = self._state.u_saved[it_min_merits]
+
+        it_best_merits = self._state.merits.index(min(list(map(lambda x: self._state.sense * x, self._state.merits))))
+        x0 = self._state.x0_saved[it_best_merits]
+        u = self._state.u_saved[it_best_merits]
         sol = [x0, u]
-        sol_val = self._state.cost_iterates[it_min_merits]
+        sol_val = self._state.cost_iterates[it_best_merits]
         return sol, sol_val
 
     def update_lambda_mult(self):
