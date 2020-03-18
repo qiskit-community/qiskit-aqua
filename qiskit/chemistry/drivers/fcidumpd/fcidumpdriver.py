@@ -33,12 +33,15 @@ class FCIDumpDriver(BaseDriver):
         ISSN 0010-4655, https://doi.org/10.1016/0010-4655(89)90033-7.
     """
 
-    def __init__(self, fcidump_input: str) -> None:
+    def __init__(self, fcidump_input: str, num_particles: list = None) -> None:
         """
         Initializer
 
         Args:
             fcidump_input: path to the FCIDump file
+            num_particles (optional): Allows to specify the number of alpha and beta particles
+            explicitly. If None, the electrons are distributed evenly into the alpha and beta
+            states (preferring alpha in the case of an off number of particles).
 
         Raises:
             QiskitChemistryError: invalid input
@@ -48,6 +51,11 @@ class FCIDumpDriver(BaseDriver):
         if not isinstance(fcidump_input, str):
             raise QiskitChemistryError("Invalid input for FCIDumpDriver '{}'".format(fcidump_input))
         self._fcidump_input = fcidump_input
+
+        if num_particles is not None and not isinstance(num_particles, list) \
+                and len(num_particles) != 2:
+            raise QiskitChemistryError("Invalid input for FCIDumpDriver '{}'".format(num_particles))
+        self.num_particles = num_particles
 
     def run(self) -> QMolecule:
         """
@@ -62,9 +70,11 @@ class FCIDumpDriver(BaseDriver):
 
         q_mol.nuclear_repulsion_energy = fcidump_data.get('ecore', float('NaN'))
         q_mol.num_orbitals = fcidump_data.get('NORB', float('NaN'))
-        # TODO: NELEC is inconclusive in the case of a non-singlet spin system
-        q_mol.num_beta = fcidump_data.get('NELEC', float('NaN')) // 2
-        q_mol.num_alpha = fcidump_data.get('NELEC', float('NaN')) - q_mol.num_beta
+        if self.num_particles is None:
+            q_mol.num_beta = fcidump_data.get('NELEC', float('NaN')) // 2
+            q_mol.num_alpha = fcidump_data.get('NELEC', float('NaN')) - q_mol.num_beta
+        else:
+            q_mol.num_alpha, q_mol.num_beta = self.num_particles
 
         q_mol.mo_onee_ints = fcidump_data.get('hij', None)
         q_mol.mo_onee_ints_b = fcidump_data.get('hij_b', None)
