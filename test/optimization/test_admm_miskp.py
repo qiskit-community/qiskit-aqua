@@ -13,7 +13,7 @@ import time
 import numpy as np
 from qiskit import BasicAer
 
-from qiskit.aqua.algorithms import QAOA
+from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.aqua.components.optimizers import COBYLA
 
 from qiskit.optimization.algorithms import CplexOptimizer, MinimumEigenOptimizer
@@ -341,18 +341,23 @@ class Miskp:
         self.op.write(self.lp_folder + "miskp.lp")
 
         # QAOA
-        optimizer = COBYLA()
-        min_eigen_solver = QAOA(optimizer=optimizer)
-        qubo_solver = MinimumEigenOptimizer(min_eigen_solver)
-
+        # optimizer = COBYLA()
+        # min_eigen_solver = QAOA(optimizer=optimizer)
+        # qubo_optimizer = MinimumEigenOptimizer(min_eigen_solver)
         # Note: a backend needs to be given, otherwise an error is raised in the _run method of VQE.
-        backend = 'statevector_simulator'
-        # backend = 'qasm_simulator'
-        min_eigen_solver.quantum_instance = BasicAer.get_backend(backend)
+        # backend = 'statevector_simulator'
+        # # backend = 'qasm_simulator'
+        # min_eigen_solver.quantum_instance = BasicAer.get_backend(backend)
 
-        continuous_solver = CplexOptimizer()
+        # use numpy exact diagonalization
+        qubo_optimizer = MinimumEigenOptimizer(NumPyMinimumEigensolver())
 
-        admm_params = ADMMParameters(qubo_solver=qubo_solver, continuous_solver=continuous_solver)
+        # Cplex
+        # qubo_optimizer = CplexOptimizer()
+
+        continuous_optimizer = CplexOptimizer()
+
+        admm_params = ADMMParameters(qubo_optimizer=qubo_optimizer, continuous_optimizer=continuous_optimizer)
 
         solver = ADMMOptimizer(params=admm_params)
         solution = solver.solve(self.op)
@@ -364,20 +369,26 @@ def toy_cplex_api():
 
     K, T, P, S, D, C = get_instance_params()
     pb = Miskp(K, T, P, S, D, C)
-    out = pb.run_cplex_api()
+    result = pb.run_cplex_api()
 
 def toy_op():
 
     K, T, P, S, D, C = get_instance_params()
     pb = Miskp(K, T, P, S, D, C)
-    out = pb.run_op()
+    result = pb.run_op()
     
 def toy_op_eigens():
 
     K, T, P, S, D, C = get_instance_params()
     pb = Miskp(K, T, P, S, D, C)
-    out = pb.run_op_eigens()
-
+    result = pb.run_op_eigens()
+    # debug
+    print("results")
+    print("x={}".format(result.x))
+    print("fval={}".format(result.fval))
+    # print("x0_saved={}".format(result.results.x0_saved))
+    # print("u_saved={}".format(result.results.u_saved))
+    # print("z_saved={}".format(result.results.z_saved))
 
 if __name__ == '__main__':
     # toy_cplex_api()
