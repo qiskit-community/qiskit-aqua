@@ -3,7 +3,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -23,13 +23,13 @@
 """
 
 from typing import Optional
-
-from qiskit.optimization import QiskitOptimizationError
-from qiskit.optimization.algorithms import OptimizationAlgorithm
-from qiskit.optimization.results import OptimizationResult
-from qiskit.optimization.problems import OptimizationProblem
 from cplex import ParameterSet
 from cplex.exceptions import CplexSolverError
+
+from .optimization_algorithm import OptimizationAlgorithm
+from ..utils import QiskitOptimizationError
+from ..results import OptimizationResult
+from ..problems import OptimizationProblem
 
 
 class CplexOptimizer(OptimizationAlgorithm):
@@ -110,7 +110,7 @@ class CplexOptimizer(OptimizationAlgorithm):
         try:
             cplex.solve()
         except CplexSolverError:
-            raise QiskitOptimizationError("Non convex/symmetric matrix.")
+            raise QiskitOptimizationError('Non convex/symmetric matrix.')
 
         # process results
         sol = cplex.solution

@@ -3,7 +3,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -27,14 +27,14 @@
 from typing import Optional
 
 from qiskit.aqua.algorithms import MinimumEigensolver
-from qiskit.optimization.problems import OptimizationProblem
-from qiskit.optimization.algorithms import OptimizationAlgorithm
-from qiskit.optimization.utils import QiskitOptimizationError
-from qiskit.optimization.converters import (OptimizationProblemToOperator,
+
+from .optimization_algorithm import OptimizationAlgorithm
+from ..problems import OptimizationProblem
+from ..utils import QiskitOptimizationError, eigenvector_to_solutions
+from ..converters import (OptimizationProblemToOperator,
                                             PenalizeLinearEqualityConstraints,
                                             IntegerToBinaryConverter)
-from qiskit.optimization.utils import eigenvector_to_solutions
-from qiskit.optimization.results import OptimizationResult
+from ..results import OptimizationResult
 
 
 class MinimumEigenOptimizer(OptimizationAlgorithm):
@@ -126,7 +126,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
 
         # analyze compatibility of problem
         msg = self.is_compatible(problem)
-        if msg is not None:
+        if msg:
             raise QiskitOptimizationError('Incompatible problem: %s' % msg)
 
         # map integer variables to binary variables

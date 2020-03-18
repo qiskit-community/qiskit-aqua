@@ -19,8 +19,8 @@ from typing import List, Tuple, Dict
 import numpy as np
 from cplex import SparsePair
 
-from qiskit.optimization.problems.optimization_problem import OptimizationProblem
-from qiskit.optimization.results.optimization_result import OptimizationResult
+from ..problems.optimization_problem import OptimizationProblem
+from ..results.optimization_result import OptimizationResult
 
 
 class IntegerToBinaryConverter:
