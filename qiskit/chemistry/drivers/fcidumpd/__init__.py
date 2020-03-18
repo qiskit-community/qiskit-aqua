@@ -12,7 +12,10 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" FCIDump package """
+"""FCIDump driver package.
+
+Contains tools to parse and dump FCIDump files.
+"""
 
 from .fcidumpdriver import FCIDumpDriver
 

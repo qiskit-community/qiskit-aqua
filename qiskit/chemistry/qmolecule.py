@@ -14,6 +14,7 @@
 
 """ QMolecule """
 
+from typing import List
 import os
 import logging
 import tempfile
@@ -137,8 +138,11 @@ class QMolecule:
         return QMolecule.symbols.index(self.atom_symbol[natom].lower().capitalize())
 
     @property
-    def core_orbitals(self):
-        """ returns core orbitals """
+    def core_orbitals(self) -> List[int]:
+        """
+        Returns:
+            A list of core orbital indices.
+        """
         if self.num_atoms is None:
             logger.warning("Missing molecule information! Returning empty core orbital list.")
             return []

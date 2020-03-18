@@ -12,27 +12,31 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" FCIDump dumper """
+"""FCIDump dumper."""
 
+from typing import List, Optional
 from io import TextIOWrapper
 import itertools
 import numpy as np
 
 
-def dump(outpath: str, norb: int, nelec: int, hijs: list, hijkls: list, einact: float,
-         ms2: int = 0, orbsym: list = None, isym: int = 1) -> None:
-    """ Generates a FCIDump output.
-        Args:
-            outpath: path to the output file
-            norb: number of orbitals
-            nelec: number of electrons
-            hijs: pair of alpha and beta 1-electron integrals. The latter may be None.
-            hijkls: triplet of alpha/alpha, beta/alpha and beta/beta 2-electron integrals. The
+def dump(outpath: str, norb: int, nelec: int, hijs: List[float], hijkls: List[float], einact: float,
+         ms2: Optional[int] = 0, orbsym: Optional[List[int]] = None, isym: Optional[int] = 1
+         ) -> None:
+    # pylint: disable=wrong-spelling-in-docstring
+    """Generates a FCIDump output.
+
+    Args:
+        outpath: Path to the output file.
+        norb: The number of orbitals.
+        nelec: The number of electrons.
+        hijs: The pair of alpha and beta 1-electron integrals. The latter may be None.
+        hijkls: The triplet of alpha/alpha, beta/alpha and beta/beta 2-electron integrals. The
             latter two may be None.
-            einact: inactive energy
-            ms2 (optional): 2*S where S is the spin quantum number. Defaults to 0.
-            orbsym (optional): list of spatial symmetries of the orbitals
-            isym (optional): spatial symmetry of the wave function. Defaults to 1.
+        einact: The inactive energy.
+        ms2: 2*S, where S is the spin quantum number.
+        orbsym: A list of spatial symmetries of the orbitals.
+        isym: The spatial symmetry of the wave function.
     """
     hij, hij_b = hijs
     hijkl, hijkl_ba, hijkl_bb = hijkls
@@ -65,7 +69,8 @@ def dump(outpath: str, norb: int, nelec: int, hijs: list, hijkls: list, einact: 
         _write_to_outfile(outfile, einact, (0, 0, 0, 0))
 
 
-def _dump_1e_ints(hij: list, mos: list, outfile: TextIOWrapper, beta: bool = False) -> None:
+def _dump_1e_ints(hij: List[float], mos: List[int], outfile: TextIOWrapper,
+                  beta: Optional[bool] = False) -> None:
     idx_offset = 1 if not beta else 1+len(mos)
     hij_elements = set()
     for i, j in itertools.product(mos, repeat=2):
@@ -78,7 +83,8 @@ def _dump_1e_ints(hij: list, mos: list, outfile: TextIOWrapper, beta: bool = Fal
         hij_elements.add((i, j))
 
 
-def _dump_2e_ints(hijkl: list, mos: list, outfile: TextIOWrapper, beta: int = 0) -> None:
+def _dump_2e_ints(hijkl: List[float], mos: List[int], outfile: TextIOWrapper,
+                  beta: Optional[int] = 0) -> None:
     idx_offsets = [1, 1]
     for b in range(beta):
         idx_offsets[1-b] += len(mos)
@@ -112,5 +118,5 @@ def _dump_2e_ints(hijkl: list, mos: list, outfile: TextIOWrapper, beta: int = 0)
             hijkl_elements.add(elem)
 
 
-def _write_to_outfile(outfile, value, indices):
+def _write_to_outfile(outfile: str, value: float, indices: List[int]):
     outfile.write('{:23.16E}{:4d}{:4d}{:4d}{:4d}\n'.format(value, *indices))

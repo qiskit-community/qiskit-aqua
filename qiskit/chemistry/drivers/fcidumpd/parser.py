@@ -12,8 +12,9 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" FCIDump parser """
+"""FCIDump parser."""
 
+from typing import Any, Dict
 import itertools
 import re
 import numpy as np
@@ -21,15 +22,17 @@ import numpy as np
 from qiskit.chemistry import QiskitChemistryError
 
 
-def parse(fcidump: str) -> dict:
+def parse(fcidump: str) -> Dict[str, Any]:
     # pylint: disable=wrong-spelling-in-comment
-    """ Parses a FCIDump output.
-        Args:
-            fcidump: path to the FCIDump file
-        Raises:
-            QiskitChemistryError: missing file or invalid input
-        Returns:
-            dict: dictionary for storing the parsed data
+    """Parses a FCIDump output.
+
+    Args:
+        fcidump: Path to the FCIDump file.
+    Raises:
+        QiskitChemistryError: If the input file cannot be found, if wrong integral indices are
+            encountered, or if the alpha/beta or beta/alpha 2-electron integrals are mixed.
+    Returns:
+        A dictionary storing the parsed data.
     """
     try:
         with open(fcidump, 'r') as file:

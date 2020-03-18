@@ -12,8 +12,9 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" FCIDump Driver """
+"""FCIDump Driver."""
 
+from typing import List, Optional
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry import QiskitChemistryError, QMolecule
 from .dumper import dump
@@ -21,30 +22,28 @@ from .parser import parse
 
 
 class FCIDumpDriver(BaseDriver):
-    """
-    Python implementation of an FCIDump driver.
+    """Python implementation of an FCIDump driver.
 
     The FCIDump format is partially defined in Knowles1989.
 
-    Knowles1989:
-        Peter J. Knowles, Nicholas C. Handy,
-        A determinant based full configuration interaction program,
-        Computer Physics Communications, Volume 54, Issue 1, 1989, Pages 75-83,
-        ISSN 0010-4655, https://doi.org/10.1016/0010-4655(89)90033-7.
+    References:
+        Knowles1989: Peter J. Knowles, Nicholas C. Handy,
+            A determinant based full configuration interaction program,
+            Computer Physics Communications, Volume 54, Issue 1, 1989, Pages 75-83,
+            ISSN 0010-4655, https://doi.org/10.1016/0010-4655(89)90033-7.
     """
 
-    def __init__(self, fcidump_input: str, atoms: list = None) -> None:
+    def __init__(self, fcidump_input: str, atoms: Optional[List[str]] = None) -> None:
         """
-        Initializer
-
         Args:
-            fcidump_input: path to the FCIDump file
-            atoms (optional): Allows to specify the atom list of the molecule. If it is provided,
-            the created QMolecule instance will permit frozen core Hamiltonians. This list must
-            consist of valid atom symbols.
+            fcidump_input: Path to the FCIDump file.
+            atoms: Allows to specify the atom list of the molecule. If it is provided, the created
+                QMolecule instance will permit frozen core Hamiltonians. This list must consist of
+                valid atom symbols.
 
         Raises:
-            QiskitChemistryError: invalid input
+            QiskitChemistryError: If ``fcidump_input`` is not a string or if ``atoms`` is not a list
+                of valid atomic symbols as specified in ``QMolecule``.
         """
         super().__init__()
 
@@ -60,11 +59,10 @@ class FCIDumpDriver(BaseDriver):
         self.atoms = atoms
 
     def run(self) -> QMolecule:
-        """
-        Constructs a QMolecule instance out of a FCIDump file.
+        """Constructs a QMolecule instance out of a FCIDump file.
 
         Returns:
-            QMolecule: a QMolecule instance populated with a minimal set of required data
+            A QMolecule instance populated with a minimal set of required data.
         """
         fcidump_data = parse(self._fcidump_input)
 
@@ -88,16 +86,16 @@ class FCIDumpDriver(BaseDriver):
         return q_mol
 
     @staticmethod
-    def dump(q_mol: QMolecule, outpath: str, orbsym: list = None, isym: int = 1) -> None:
-        """
-        Convenience method to produce an FCIDump output file
+    def dump(q_mol: QMolecule, outpath: str, orbsym: Optional[List[int]] = None,
+             isym: Optional[int] = 1) -> None:
+        """Convenience method to produce an FCIDump output file.
 
         Args:
-            outpath (str): path to the output file
-            q_mol (QMolecule): QMolecule data to be dumped. It is assumed that the HF energy stored
-            in this QMolecule instance contains the inactive core energy.
-            orbsym (optional): list of spatial symmetries of the orbitals
-            isym (optional): spatial symmetry of the wave function. Defaults to 1.
+            outpath: Path to the output file.
+            q_mol: QMolecule data to be dumped. It is assumed that the nuclear_repulsion_energy in
+                this QMolecule instance contains the inactive core energy.
+            orbsym: A list of spatial symmetries of the orbitals.
+            isym: The spatial symmetry of the wave function.
         """
         dump(outpath,
              q_mol.num_orbitals, q_mol.num_alpha + q_mol.num_beta,
