@@ -138,7 +138,8 @@ def parse(fcidump: str) -> dict:
                     hij_b_elements.remove((i-1, a-1))
                     hij_b[i-1-norb][a-1-norb] = x
                 else:
-                    raise QiskitChemistryError()
+                    raise QiskitChemistryError("Unkown 1-electron integral indices encountered in \
+                            '{}'".format((i, a)))
         else:
             try:
                 hijkl_elements.remove((i-1, a-1, j-1, b-1))
@@ -156,7 +157,8 @@ def parse(fcidump: str) -> dict:
                             hijkl_bb_elements.remove((i-1, a-1, j-1, b-1))
                             hijkl_bb[i-1-norb][a-1-norb][j-1-norb][b-1-norb] = x
                 else:
-                    raise QiskitChemistryError()
+                    raise QiskitChemistryError("Unkown 2-electron integral indices encountered in \
+                            '{}'".format((i, a, j, b)))
 
     # iterate over still empty elements in 1-electron matrix and populate with symmetric ones
     # if any elements are not populated these will be zero
@@ -176,7 +178,9 @@ def parse(fcidump: str) -> dict:
         _permute_2e_ints(hijkl_ba, hijkl_ba_elements, norb, beta=1)
 
         # assert that EITHER hijkl_ab OR hijkl_ba were given
-        assert np.allclose(hijkl_ab, 0.0) != np.allclose(hijkl_ba, 0.0)
+        if np.allclose(hijkl_ab, 0.0) == np.allclose(hijkl_ba, 0.0):
+            raise QiskitChemistryError("Encountered mixed sets of indices for the 2-electron \
+                    integrals. Either alpha/beta or beta/alpha matrix should be specified.")
 
         if np.allclose(hijkl_ba, 0.0):
             hijkl_ba = hijkl_ab.transpose()
