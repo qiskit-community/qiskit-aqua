@@ -15,13 +15,13 @@
 
 """A wrapper for minimum eigen solvers from Qiskit Aqua to be used within Qiskit Optimization.
 
-    Examples:
-        >>> problem = OptimizationProblem()
-        >>> # specify problem here
-        >>> # specify minimum eigen solver to be used, e.g., QAOA
-        >>> qaoa = QAOA(...)
-        >>> optimizer = MinEigenOptimizer(qaoa)
-        >>> result = optimizer.solve(problem)
+Examples:
+    >>> problem = OptimizationProblem()
+    >>> # specify problem here
+    >>> # specify minimum eigen solver to be used, e.g., QAOA
+    >>> qaoa = QAOA(...)
+    >>> optimizer = MinEigenOptimizer(qaoa)
+    >>> result = optimizer.solve(problem)
 """
 
 from typing import Optional
@@ -32,8 +32,8 @@ from .optimization_algorithm import OptimizationAlgorithm
 from ..problems import OptimizationProblem
 from ..utils import QiskitOptimizationError, eigenvector_to_solutions
 from ..converters import (OptimizationProblemToOperator,
-                                            PenalizeLinearEqualityConstraints,
-                                            IntegerToBinaryConverter)
+                          PenalizeLinearEqualityConstraints,
+                          IntegerToBinaryConverter)
 from ..results import OptimizationResult
 
 
@@ -49,7 +49,6 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
     corresponding eigenstate correspond to the optimal solution of the original optimization
     problem. The provided minimum eigen solver is then used to approximate the groundstate of the
     Hamiltonian to find a good solution for the optimization problem.
-
     """
 
     def __init__(self, min_eigen_solver: MinimumEigensolver, penalty: Optional[float] = None
