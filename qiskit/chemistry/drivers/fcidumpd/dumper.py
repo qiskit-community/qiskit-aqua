@@ -60,6 +60,7 @@ def dump(outpath: str, norb: int, nelec: int, hijs: list, hijkls: list, einact: 
         _dump_1e_ints(hij, mos, outfile)
         if hij_b is not None:
             _dump_1e_ints(hij_b, mos, outfile, beta=True)
+        # TODO append MO energies (last three indices are 0)
         # append inactive energy
         _write_to_outfile(outfile, einact, (0, 0, 0, 0))
 

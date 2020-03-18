@@ -125,6 +125,9 @@ def parse(fcidump: str) -> dict:
         i, a, j, b = [int(i) for i in orbital.split()[1:]]  # pylint: disable=invalid-name
         if i == a == j == b == 0:
             output['ecore'] = x
+        elif a == j == b == 0:
+            # TODO: x is the energy of the i-th MO
+            continue
         elif j == b == 0:
             try:
                 hij_elements.remove((i-1, a-1))
