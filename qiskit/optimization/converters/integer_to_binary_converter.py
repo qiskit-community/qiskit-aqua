@@ -15,7 +15,7 @@
 """The converter to convert an integer problem to a binary problem."""
 
 import copy
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Optional
 
 import numpy as np
 from cplex import SparsePair
@@ -43,12 +43,13 @@ class IntegerToBinaryConverter:
         self._conv: Dict[str, List[Tuple[str, int]]] = {}
         # e.g., self._conv = {'x': [('x@1', 1), ('x@2', 2)]}
 
-    def encode(self, op: OptimizationProblem, name: str = None) -> OptimizationProblem:
+    def encode(self, op: OptimizationProblem, name: Optional[str] = None) -> OptimizationProblem:
         """Convert an integer problem into a new problem with binary variables.
 
         Args:
             op: The problem to be solved, that may contain integer variables.
-            name: The name of the converted problem.
+            name: The name of the converted problem. If not provided, the name of the input
+                problem is used.
 
         Returns:
             The converted problem, that contains no integer variables.
@@ -56,10 +57,10 @@ class IntegerToBinaryConverter:
 
         self._src = copy.deepcopy(op)
         self._dst = OptimizationProblem()
-        if name is None:
-            self._dst.set_problem_name(self._src.get_problem_name())
-        else:
+        if name:
             self._dst.set_problem_name(name)
+        else:
+            self._dst.set_problem_name(self._src.get_problem_name())
 
         # declare variables
         names = self._src.variables.get_names()
