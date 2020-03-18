@@ -29,12 +29,13 @@ from typing import Optional
 from qiskit.aqua.algorithms import MinimumEigensolver
 
 from .optimization_algorithm import OptimizationAlgorithm
-from ..problems import OptimizationProblem
-from ..utils import QiskitOptimizationError, eigenvector_to_solutions
-from ..converters import (OptimizationProblemToOperator,
-                          PenalizeLinearEqualityConstraints,
-                          IntegerToBinaryConverter)
-from ..results import OptimizationResult
+from ..problems.optimization_problem import OptimizationProblem
+from ..utils.qiskit_optimization_error import QiskitOptimizationError
+from ..utils.eigenvector_to_solutions import eigenvector_to_solutions
+from ..converters.optimization_problem_to_operator import OptimizationProblemToOperator
+from ..converters.penalize_linear_equality_constraints import PenalizeLinearEqualityConstraints
+from ..converters.integer_to_binary_converter import IntegerToBinaryConverter
+from ..results.optimization_result import OptimizationResult
 
 
 class MinimumEigenOptimizer(OptimizationAlgorithm):

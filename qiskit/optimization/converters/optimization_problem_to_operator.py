@@ -21,8 +21,9 @@ import numpy as np
 from qiskit.quantum_info import Pauli
 
 from qiskit.aqua.operators import WeightedPauliOperator
-from qiskit.optimization import OptimizationProblem
-from qiskit.optimization.utils import QiskitOptimizationError
+
+from ..problems.optimization_problem import OptimizationProblem
+from ..utils.qiskit_optimization_error import QiskitOptimizationError
 
 
 class OptimizationProblemToOperator:

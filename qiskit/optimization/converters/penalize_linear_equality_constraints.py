@@ -20,7 +20,7 @@ import copy
 from collections import defaultdict
 
 from ..problems.optimization_problem import OptimizationProblem
-from ..utils import QiskitOptimizationError
+from ..utils.qiskit_optimization_error import QiskitOptimizationError
 
 
 class PenalizeLinearEqualityConstraints:

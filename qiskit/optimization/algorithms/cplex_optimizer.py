@@ -15,11 +15,11 @@
 
 """The CPLEX optimizer wrapped to be used within Qiskit Optimization.
 
-    Examples:
-        >>> problem = OptimizationProblem()
-        >>> # specify problem here
-        >>> optimizer = CplexOptimizer()
-        >>> result = optimizer.solve(problem)
+Examples:
+    >>> problem = OptimizationProblem()
+    >>> # specify problem here
+    >>> optimizer = CplexOptimizer()
+    >>> result = optimizer.solve(problem)
 """
 
 from typing import Optional
@@ -27,9 +27,9 @@ from cplex import ParameterSet
 from cplex.exceptions import CplexSolverError
 
 from .optimization_algorithm import OptimizationAlgorithm
-from ..utils import QiskitOptimizationError
-from ..results import OptimizationResult
-from ..problems import OptimizationProblem
+from ..utils.qiskit_optimization_error import QiskitOptimizationError
+from ..results.optimization_result import OptimizationResult
+from ..problems.optimization_problem import OptimizationProblem
 
 
 class CplexOptimizer(OptimizationAlgorithm):

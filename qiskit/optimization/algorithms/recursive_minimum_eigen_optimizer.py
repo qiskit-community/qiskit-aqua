@@ -33,10 +33,11 @@ from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 
 from .optimization_algorithm import OptimizationAlgorithm
 from .minimum_eigen_optimizer import MinimumEigenOptimizer
-from ..utils import QiskitOptimizationError
-from ..problems import OptimizationProblem
-from ..results import OptimizationResult
-from ..converters import PenalizeLinearEqualityConstraints, IntegerToBinaryConverter
+from ..utils.qiskit_optimization_error import QiskitOptimizationError
+from ..problems.optimization_problem import OptimizationProblem
+from ..results.optimization_result import OptimizationResult
+from ..converters.penalize_linear_equality_constraints import PenalizeLinearEqualityConstraints
+from ..converters.integer_to_binary_converter import IntegerToBinaryConverter
 
 
 class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):

@@ -19,8 +19,8 @@ from abc import abstractmethod
 
 from typing import Optional
 
-from ..problems import OptimizationProblem
-from ..results import OptimizationResult
+from ..problems.optimization_problem import OptimizationProblem
+from ..results.optimization_result import OptimizationResult
 
 
 class OptimizationAlgorithm:

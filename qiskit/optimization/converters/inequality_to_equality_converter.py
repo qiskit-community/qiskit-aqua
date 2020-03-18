@@ -20,9 +20,9 @@ from typing import List, Tuple, Dict, Optional
 
 from cplex import SparsePair
 
-from ..problems import OptimizationProblem
-from ..results import OptimizationResult
-from ..utils import QiskitOptimizationError
+from ..problems.optimization_problem import OptimizationProblem
+from ..results.optimization_result import OptimizationResult
+from ..utils.qiskit_optimization_error import QiskitOptimizationError
 
 
 class InequalityToEqualityConverter:
