@@ -13,30 +13,37 @@
 # that they have been altered from the originals.
 
 """
-Optimization Algorithms (:mod:`qiskit.optimization.algorithms`)
-Algorithms for optimization problems
-
-.. currentmodule:: qiskit.optimization.algorithms
-
-Algorithms
-=============
-
-.. autosummary::
-   :toctree: ../stubs/
-   :nosignatures:
-
-   grover_minimum_finder
-
-
 ========================================================
 Optimization stack for Aqua (:mod:`qiskit.optimization`)
 ========================================================
 
+Algorithms for optimization problems.
+
 .. currentmodule:: qiskit.optimization.algorithms
-Structures for defining an optimization algorithms
+
+Base class
 ==========
 
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+   
+   OptimizationAlgorithm
 
+Algorithms
+==========
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+   
+   ADMMOptimizer
+   CobylaOptimizer
+   CplexOptimizer
+   GroverMinimumFinder
+   MinimumEigenOptimizer
+   RecursiveMinimumEigenOptimizer
+   
 """
 
 from qiskit.optimization.algorithms.optimization_algorithm import OptimizationAlgorithm

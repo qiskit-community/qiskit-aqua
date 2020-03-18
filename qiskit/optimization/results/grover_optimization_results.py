@@ -17,8 +17,7 @@
 from typing import Dict, Tuple, Union
 
 
-class GroverOptimizationResults():
-
+class GroverOptimizationResults:
     """A results object for Grover Optimization methods."""
 
     def __init__(self, operation_counts: Dict[int, Dict[str, int]], rotations: int,
@@ -41,25 +40,47 @@ class GroverOptimizationResults():
 
     @property
     def operation_counts(self) -> Dict[int, Dict[str, int]]:
-        """Getter of operation_counts"""
+        """Get the operation counts.
+        
+        Returns:
+            The counts of each operation performed per iteration.
+        """
         return self._operation_counts
 
     @property
     def rotation_count(self) -> int:
-        """Getter of rotation_count"""
+        """Getter of rotation_count
+
+        Returns:
+            The total number of Grover rotations.
+        """
         return self._rotations
 
     @property
     def n_input_qubits(self) -> int:
-        """Getter of n_input_qubits"""
+        """Getter of n_input_qubits
+
+        Returns:
+            The number of qubits used to represent the input.
+        """
         return self._n_input_qubits
 
     @property
     def n_output_qubits(self) -> int:
-        """Getter of n_output_qubits"""
+        """Getter of n_output_qubits
+
+        Returns:
+            The number of qubits used to represent the output.
+        """
         return self._n_output_qubits
 
     @property
     def func_dict(self) -> Dict[Union[int, Tuple[int, int]], int]:
-        """Getter of func_dict"""
+        """Getter of func_dict
+
+        Returns:
+            A dictionary of coefficients describing a function, where the keys are the subscripts
+            of the variables (e.g. x1), and the values are the corresponding coefficients. If there
+            is a constant term, it is referenced by key -1.
+        """
         return self._func_dict

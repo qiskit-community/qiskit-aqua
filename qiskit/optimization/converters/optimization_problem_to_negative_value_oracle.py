@@ -15,18 +15,17 @@
 """OptimizationProblemToNegativeValueOracle module"""
 
 import logging
-from typing import Optional, Tuple, Dict, Union
+from typing import Tuple, Dict, Union
 import numpy as np
-from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister, Aer
+
+from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from qiskit.aqua.components.oracles import CustomCircuitOracle
 from qiskit.aqua.components.initial_states import Custom
 from qiskit.aqua.components.iqfts import Standard as IQFT
-from qiskit.providers import BaseBackend
 from qiskit.optimization.problems import OptimizationProblem
 
 
 class OptimizationProblemToNegativeValueOracle:
-
     """Converts an optimization problem (QUBO) to a negative value oracle.
 
     In addition, a state preparation operator is generated from the coefficients and constant of a
@@ -34,18 +33,15 @@ class OptimizationProblemToNegativeValueOracle:
     and operator can be used to flag the negative values of a QUBO encoded in a quantum state.
     """
 
-    def __init__(self, num_output_qubits: int, backend: Optional[BaseBackend] = None) -> None:
+    def __init__(self, num_output_qubits: int, measurement: bool = False) -> None:
         """
         Args:
             num_output_qubits: The number of qubits required to represent the output.
-            backend: Instance of selected backend.
+            measurement: Whether the A operator contains measurements.
         """
         self._num_key = 0
         self._num_value = num_output_qubits
-        if backend is None:
-            self._backend = Aer.get_backend('statevector_simulator')
-        else:
-            self._backend = backend
+        self._measurement = measurement
         self._logger = logging.getLogger(__name__)
 
     def encode(self, problem: OptimizationProblem) -> \
@@ -70,14 +66,15 @@ class OptimizationProblemToNegativeValueOracle:
         # get quadratic part of objective
         quadratic_dict = problem.objective.get_quadratic()
         quadratic_coeff = {}
-        for i, jv in quadratic_dict.items():
-            for j, v in jv.items():
-                coeff = quadratic_coeff.get((j, i), 0)
+        for i, j_value_dict in quadratic_dict.items():
+            for j, value in j_value_dict.items():
                 if i <= j:
                     # divide by 2 since problem considers xQx/2.
-                    quadratic_coeff[(i, j)] = v / 2 + coeff
+                    coeff = quadratic_coeff.get((i, j), 0)
+                    quadratic_coeff[(i, j)] = value / 2 + coeff
                 else:
-                    quadratic_coeff[(j, i)] = v / 2 + coeff
+                    coeff = quadratic_coeff.get((j, i), 0)
+                    quadratic_coeff[(j, i)] = value / 2 + coeff
 
         constant = problem.objective.get_offset()
 
@@ -86,7 +83,7 @@ class OptimizationProblemToNegativeValueOracle:
 
         # Get the function dictionary.
         func = self._get_function(linear_coeff, quadratic_coeff, constant)
-        self._logger.info("Function: {}\n", func)
+        self._logger.info("Function: %s\n", func)
 
         # Define state preparation operator A from function.
         a_operator_circuit = self._build_operator(func)
@@ -113,15 +110,14 @@ class OptimizationProblemToNegativeValueOracle:
     def _get_function(linear: np.array, quadratic: np.array, constant: int) -> \
             Dict[Union[int, Tuple[int, int]], int]:
         """Convert the problem to a dictionary format."""
-        func = {-1: constant}
+        func = {-1: int(constant)}
         for i, v in enumerate(linear):
-            func[i] = v
-        for ij, v in quadratic.items():
-            i, j = ij
+            func[i] = int(v)
+        for (i, j), v in quadratic.items():
             if i != j:
                 func[(i, j)] = int(quadratic[(i, j)])
             else:
-                func[i] += v
+                func[i] += int(v)
 
         return func
 
@@ -150,11 +146,10 @@ class OptimizationProblemToNegativeValueOracle:
 
         # Build initial circuit.
         key_val = QuantumRegister(self._num_key + self._num_value, "key_value")
-        if self._backend.name == "statevector_simulator":
-            circuit = QuantumCircuit(key_val)
-        else:
+        circuit = QuantumCircuit(key_val)
+        if self._measurement:
             measure = ClassicalRegister(self._num_key + self._num_value)
-            circuit = QuantumCircuit(key_val, measure)
+            circuit.add_register(measure)
         circuit.h(key_val)
 
         # Linear Coefficients.
