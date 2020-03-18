@@ -14,6 +14,7 @@
 
 """ Test Driver Methods FCIDump """
 
+from test.chemistry import QiskitChemistryTestCase
 from test.chemistry.test_driver_methods import TestDriverMethods
 from qiskit.chemistry.drivers import FCIDumpDriver
 
@@ -66,3 +67,20 @@ class TestDriverMethodsFCIDump(TestDriverMethods):
                                atoms=['O', 'H'])
         result = self._run_driver(driver, freeze_core=True)
         self._assert_energy(result, 'oh')
+
+
+class TestFCIDumpDriverQMolecule(QiskitChemistryTestCase):
+    """QMolecule FCIDumpDriver tests."""
+
+    def test_qmolecule_log(self):
+        """Test QMolecule log function."""
+        qmolecule = FCIDumpDriver(self.get_resource_path('test_driver_fcidump_h2.fcidump')).run()
+        with self.assertLogs('qiskit.chemistry', level='DEBUG') as _:
+            qmolecule.log()
+
+    def test_qmolecule_log_with_atoms(self):
+        """Test QMolecule log function."""
+        qmolecule = FCIDumpDriver(self.get_resource_path('test_driver_fcidump_h2.fcidump'),
+                                  atoms=['H', 'H']).run()
+        with self.assertLogs('qiskit.chemistry', level='DEBUG') as _:
+            qmolecule.log()

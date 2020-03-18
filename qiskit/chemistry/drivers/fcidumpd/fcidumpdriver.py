@@ -68,14 +68,17 @@ class FCIDumpDriver(BaseDriver):
 
         q_mol = QMolecule()
 
+        q_mol.hf_energy = float('NaN')  # ensures QMolecule.log() works
         q_mol.nuclear_repulsion_energy = fcidump_data.get('ecore', float('NaN'))
         q_mol.num_orbitals = fcidump_data.get('NORB', float('NaN'))
         q_mol.multiplicity = fcidump_data.get('MS2', 0) + 1
+        q_mol.charge = 0  # ensures QMolecule.log() works
         q_mol.num_beta = (fcidump_data.get('NELEC', float('NaN')) - (q_mol.multiplicity - 1)) // 2
         q_mol.num_alpha = fcidump_data.get('NELEC', float('NaN')) - q_mol.num_beta
         if self.atoms is not None:
             q_mol.num_atoms = len(self.atoms)
             q_mol.atom_symbol = self.atoms
+            q_mol.atom_xyz = [[float('NaN')] * 3] * len(self.atoms)  # ensures QMolecule.log() works
 
         q_mol.mo_onee_ints = fcidump_data.get('hij', None)
         q_mol.mo_onee_ints_b = fcidump_data.get('hij_b', None)
