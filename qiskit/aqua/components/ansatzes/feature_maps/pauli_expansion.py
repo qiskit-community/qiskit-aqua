@@ -41,9 +41,24 @@ logger = logging.getLogger(__name__)
 
 
 class PauliExpansion(Ansatz):
-    """
-    Mapping data with the second order expansion followed by entangling gates.
-    Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
+    r"""The Pauli Expansion feature map.
+
+    Refer to https://arxiv.org/abs/1804.11326 for details.
+    The Pauli Expansion feature map transforms data :math:`\vec{x} \in \mathbb{R}^n`
+    according to the following equation, and then duplicate the same circuit with depth
+    :math:`d` times, where :math:`d` is the depth of the circuit:
+
+    :math:`U_{\Phi(\vec{x})}=\exp\left(i\sum_{S\subseteq [n]}
+    \phi_S(\vec{x})\prod_{i\in S} P_i\right)`
+
+    where :math:`S \in \{\binom{n}{k}\ combinations,\ k = 1,... n \}, \phi_S(\vec{x}) = x_i` if
+    :math:`k=1`, otherwise :math:`\phi_S(\vec{x}) = \prod_S(\pi - x_j)`, where :math:`j \in S`, and
+    :math:`P_i \in \{ I, X, Y, Z \}`
+
+    Please refer to :class:`FirstOrderExpansion` for the case
+    :math:`k = 1`, :math:`P_0 = Z`
+    and to :class:`SecondOrderExpansion` for the case
+    :math:`k = 2`, :math:`P_0 = Z\ and\ P_1 P_0 = ZZ`.
     """
 
     def __init__(self,
@@ -54,7 +69,6 @@ class PauliExpansion(Ansatz):
                  data_map_func: Callable[[np.ndarray], float] = self_product,
                  insert_barriers: bool = False) -> None:
         """
-
         Args:
             feature_dimension: Number of features.
             depth: The number of repeated circuits. Defaults to 2, has a min. value of 1.
@@ -65,7 +79,8 @@ class PauliExpansion(Ansatz):
                 Default to 'full' entanglement.
             paulis: A list of strings for to-be-used paulis. Defaults to None.
                 If None, ['Z', 'ZZ'] will be used.
-            data_map_func: A mapping function for data x.
+            data_map_func: A mapping function for data x which can be supplied to override the
+                default mapping from :meth:`self_product`.
             insert_barriers: If True, barriers are inserted in between the evolution instructions
                 and hadamard layers.
         """

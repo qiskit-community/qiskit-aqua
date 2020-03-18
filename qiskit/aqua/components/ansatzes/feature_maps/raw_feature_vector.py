@@ -31,8 +31,12 @@ logger = logging.getLogger(__name__)
 
 
 class RawFeatureVector(Ansatz):
-    """
-    Using raw feature vector as the initial state vector
+    """Raw Feature Vector feature map.
+
+    The Raw Feature Vector can be directly used as a feature map, where the raw feature vectors
+    will be automatically padded with ending 0s as necessary, to make sure vector length
+    is a power of 2, and normalized such that it can be treated and used
+    as an initial quantum state vector.
     """
 
     def __init__(self, feature_dimension: int = 2) -> None:

@@ -25,10 +25,9 @@ from .data_mapping import self_product
 
 
 class SecondOrderExpansion(PauliZExpansion):
-    """
-    Mapping data with the second order expansion followed by entangling gates.
+    """Second Order Expansion feature map.
 
-    Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
+    This is a sub-class of :class:`PauliZExpansion` where *z_order* is fixed at 2.
     """
 
     @deprecate_arguments({'entangler_map': 'entanglement'})

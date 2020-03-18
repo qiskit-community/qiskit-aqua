@@ -24,10 +24,12 @@ from .data_mapping import self_product
 
 
 class PauliZExpansion(PauliExpansion):
-    """
-    Mapping data with the second order expansion followed by entangling gates.
+    """The Pauli Z Expansion feature map.
 
-    Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
+    This is a sub-class of the general :class:`PauliExpansion` but where the pauli string is fixed
+    to only contain Z and where *paulis* is now created for the superclass as per the given
+    *z_order*. So with default of 2 this creates ['Z', 'ZZ'] which also happens to be the default
+    of the superclass. A *z_order* of 3 would be ['Z', 'ZZ', 'ZZZ'] and so on.
     """
 
     def __init__(self,
@@ -39,7 +41,6 @@ class PauliZExpansion(PauliExpansion):
                  data_map_func: Callable[[np.ndarray], float] = self_product,
                  insert_barriers: bool = False) -> None:
         """
-
         Args:
             feature_dimension: Number of features.
             depth: The number of repeated circuits. Defaults to 2, has a min. value of 1.
@@ -51,7 +52,8 @@ class PauliZExpansion(PauliExpansion):
             paulis: A list of strings for to-be-used paulis. Defaults to None.
                 If None, ['Z', 'ZZ'] will be used.
             z_order: z order.
-            data_map_func: A mapping function for data x.
+            data_map_func: A mapping function for data x which can be supplied to override the
+                default mapping from :meth:`self_product`.
             insert_barriers: If True, barriers are inserted in between the evolution instructions
                 and hadamard layers.
         """
