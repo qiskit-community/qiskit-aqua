@@ -15,10 +15,11 @@
 """GroverMinimumFinder module"""
 
 import logging
-from typing import Optional, Dict
+from typing import Optional, Dict, Union
 import random
 import math
 import numpy as np
+from qiskit.aqua import QuantumInstance
 from qiskit.optimization.algorithms import OptimizationAlgorithm
 from qiskit.optimization.problems import OptimizationProblem
 from qiskit.optimization.converters import (IntegerToBinaryConverter,
@@ -29,22 +30,26 @@ from qiskit.optimization.results import OptimizationResult
 from qiskit.optimization.utils import QiskitOptimizationError
 from qiskit.optimization.util import get_qubo_solutions
 from qiskit.aqua.algorithms.amplitude_amplifiers.grover import Grover
-from qiskit import Aer, execute, QuantumCircuit
+from qiskit import Aer, QuantumCircuit
 from qiskit.providers import BaseBackend
 
 
 class GroverMinimumFinder(OptimizationAlgorithm):
     """Uses Grover Adaptive Search (GAS) to find the minimum of a QUBO function."""
 
-    def __init__(self, num_iterations: int = 3, backend: Optional[BaseBackend] = None) -> None:
+    def __init__(self, num_iterations: int = 3,
+                 quantum_instance: Optional[Union[BaseBackend, QuantumInstance]] = None) -> None:
         """
         Args:
             num_iterations: The number of iterations the algorithm will search with
                 no improvement.
-            backend: Instance of selected backend, defaults to Aer's statevector simulator.
+            quantum_instance: Instance of selected backend, defaults to Aer's statevector simulator.
         """
         self._n_iterations = num_iterations
-        self._backend = backend or Aer.get_backend('statevector_simulator')
+        if quantum_instance is None or isinstance(quantum_instance, BaseBackend):
+            backend = quantum_instance or Aer.get_backend('statevector_simulator')
+            quantum_instance = QuantumInstance(backend)
+        self._quantum_instance = quantum_instance
         self._logger = logging.getLogger(__name__)
 
     def is_compatible(self, problem: OptimizationProblem) -> Optional[str]:
@@ -149,8 +154,9 @@ class GroverMinimumFinder(OptimizationAlgorithm):
 
         # Initialize oracle helper object.
         orig_constant = problem_.objective.get_offset()
+        measurement = not self._quantum_instance.is_statevector
         opt_prob_converter = OptimizationProblemToNegativeValueOracle(n_value,
-                                                                      backend=self._backend)
+                                                                      measurement)
 
         while not optimum_found:
             m = 1
@@ -172,12 +178,14 @@ class GroverMinimumFinder(OptimizationAlgorithm):
                 if rotation_count > 0:
                     grover = Grover(oracle, init_state=a_operator, num_iterations=rotation_count)
                     circuit = grover.construct_circuit(
-                        measurement=self._backend.name() != "statevector_simulator")
+                        measurement=self._quantum_instance.is_statevector
+                        )
+
                 else:
                     circuit = a_operator._circuit
 
                 # Get the next outcome.
-                outcome = self._measure(circuit, n_key, n_value, self._backend)
+                outcome = self._measure(circuit, n_key, n_value)
                 k = int(outcome[0:n_key], 2)
                 v = outcome[n_key:n_key + n_value]
 
@@ -185,17 +193,17 @@ class GroverMinimumFinder(OptimizationAlgorithm):
                 int_v = self._bin_to_int(v, n_value) + threshold
                 v = self._twos_complement(int_v, n_value)
 
-                self._logger.info('Iterations: {}'.format(rotation_count))
-                self._logger.info('Outcome: {}'.format(outcome))
-                self._logger.info('Value: {} = {}'.format(v, int_v))
+                self._logger.info('Iterations: %s', rotation_count)
+                self._logger.info('Outcome: %s', outcome)
+                self._logger.info('Value: %s = %s', v, int_v)
 
                 # If the value is an improvement, we update the iteration parameters (e.g. oracle).
                 if int_v < optimum_value:
                     optimum_key = k
                     optimum_value = int_v
-                    self._logger.info('Current Optimum Key: {}'.format(optimum_key))
-                    self._logger.info('Current Optimum Value: {}'.format(optimum_value))
-                    if v.startswith("1"):
+                    self._logger.info('Current Optimum Key: %s', optimum_key)
+                    self._logger.info('Current Optimum Value: %s', optimum_value)
+                    if v.startswith('1'):
                         improvement_found = True
                         threshold = optimum_value
                 else:
@@ -207,7 +215,7 @@ class GroverMinimumFinder(OptimizationAlgorithm):
                     # Using Durr and Hoyer method, increase m.
                     # TODO: Give option for a rotation schedule, or for different lambda's.
                     m = int(np.ceil(min(m * 8/7, 2**(n_key / 2))))
-                    self._logger.info('No Improvement. M: {}'.format(m))
+                    self._logger.info('No Improvement. M: %s', m)
 
                 # Check if we've already seen this value.
                 if k not in keys_measured:
@@ -222,7 +230,7 @@ class GroverMinimumFinder(OptimizationAlgorithm):
                 operations = circuit.count_ops()
                 operation_count[iteration] = operations
                 iteration += 1
-                self._logger.info('Operation Count: {}\n'.format(operations))
+                self._logger.info('Operation Count: %s\n', operations)
 
         # Get original key and value pairs.
         func_dict[-1] = orig_constant
@@ -244,27 +252,23 @@ class GroverMinimumFinder(OptimizationAlgorithm):
 
         return result
 
-    def _measure(self, circuit: QuantumCircuit, n_key: int, n_value: int, backend: BaseBackend,
-                 shots: Optional[int] = 1024) -> str:
+    def _measure(self, circuit: QuantumCircuit, n_key: int, n_value: int) -> str:
         """Get probabilities from the given backend, and picks a random outcome."""
-        probs = self._get_probs(n_key, n_value, circuit, backend, shots)
+        probs = self._get_probs(n_key, n_value, circuit)
         freq = sorted(probs.items(), key=lambda x: x[1], reverse=True)
 
         # Pick a random outcome.
         freq[len(freq)-1] = (freq[len(freq)-1][0], 1 - sum([x[1] for x in freq[0:len(freq)-1]]))
         idx = np.random.choice(len(freq), 1, p=[x[1] for x in freq])[0]
-        self._logger.info('Frequencies: {}'.format(freq))
+        self._logger.info('Frequencies: %s', freq)
 
         return freq[idx][0]
 
-    @staticmethod
-    def _get_probs(n_key: int, n_value: int, qc: QuantumCircuit, backend: BaseBackend,
-                   shots: int) -> Dict[str, float]:
+    def _get_probs(self, n_key: int, n_value: int, qc: QuantumCircuit) -> Dict[str, float]:
         """Gets probabilities from a given backend."""
         # Execute job and filter results.
-        job = execute(qc, backend=backend, shots=shots)
-        result = job.result()
-        if backend.name() == 'statevector_simulator':
+        result = self._quantum_instance.execute(qc)
+        if self._quantum_instance.is_statevector:
             state = np.round(result.get_statevector(qc), 5)
             keys = [bin(i)[2::].rjust(int(np.log2(len(state))), '0')[::-1]
                     for i in range(0, len(state))]
@@ -276,6 +280,7 @@ class GroverMinimumFinder(OptimizationAlgorithm):
                 hist[new_key] = f_hist[key]
         else:
             state = result.get_counts(qc)
+            shots = self._quantum_instance.run_config.shots
             hist = {}
             for key in state:
                 hist[key[:n_key] + key[n_key:n_key+n_value][::-1] + key[n_key+n_value:]] = \
