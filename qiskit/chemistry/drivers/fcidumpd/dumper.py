@@ -19,16 +19,20 @@ import itertools
 import numpy as np
 
 
-def dump(norb: int, nelec: int, hijs: list, hijkls: list, einact: float, outpath: str) -> None:
+def dump(outpath: str, norb: int, nelec: int, hijs: list, hijkls: list, einact: float,
+         ms2: int = 0, orbsym: list = None, isym: int = 1) -> None:
     """ Generates a FCIDump output.
         Args:
-            norb (int): number of orbitals
-            nelec (int): number of electrons
-            hijs (tuple): pair of alpha and beta 1-electron integrals. The latter may be None.
-            hijkls (tuple): triplet of alpha/alpha, beta/alpha and beta/beta 2-electron
-            integrals. The latter two may be None.
-            einact (float): inactive energy
-            outpath (str): path to the output file
+            outpath: path to the output file
+            norb: number of orbitals
+            nelec: number of electrons
+            hijs: pair of alpha and beta 1-electron integrals. The latter may be None.
+            hijkls: triplet of alpha/alpha, beta/alpha and beta/beta 2-electron integrals. The
+            latter two may be None.
+            einact: inactive energy
+            ms2 (optional): 2*S where S is the spin quantum number. Defaults to 0.
+            orbsym (optional): list of spatial symmetries of the orbitals
+            isym (optional): spatial symmetry of the wave function. Defaults to 1.
     """
     hij, hij_b = hijs
     hijkl, hijkl_ba, hijkl_bb = hijkls
@@ -39,7 +43,13 @@ def dump(norb: int, nelec: int, hijs: list, hijkls: list, einact: float, outpath
     mos = range(norb)
     with open(outpath, 'w') as outfile:
         # print header
-        outfile.write('&FCI NORB={:4d},NELEC={:4d},\n/\n'.format(norb, nelec))
+        outfile.write('&FCI NORB={:4d},NELEC={:4d},MS2={:4d}\n'.format(norb, nelec, ms2))
+        if orbsym is None:
+            outfile.write(' ORBSYM=' + '1,'*norb + '\n')
+        else:
+            assert len(orbsym) == norb
+            outfile.write(' ORBSYM=' + ','.join(orbsym) + '\n')
+        outfile.write(' ISYM={:d},\n/&END\n'.format(isym))
         # append 2e integrals
         _dump_2e_ints(hijkl, mos, outfile)
         if hijkl_ba is not None:

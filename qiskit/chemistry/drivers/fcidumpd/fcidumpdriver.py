@@ -96,16 +96,21 @@ class FCIDumpDriver(BaseDriver):
         return q_mol
 
     @staticmethod
-    def dump(q_mol: QMolecule, outpath: str) -> None:
+    def dump(q_mol: QMolecule, outpath: str,
+             ms2: int = 0, orbsym: list = None, isym: int = 1) -> None:
         """
         Convenience method to produce an FCIDump output file
 
         Args:
+            outpath (str): path to the output file
             q_mol (QMolecule): QMolecule data to be dumped. It is assumed that the HF energy stored
             in this QMolecule instance contains the inactive core energy.
-            outpath (str): path to the output file
+            ms2 (optional): 2*S where S is the spin quantum number. Defaults to 0.
+            orbsym (optional): list of spatial symmetries of the orbitals
+            isym (optional): spatial symmetry of the wave function. Defaults to 1.
         """
-        dump(q_mol.num_orbitals, q_mol.num_alpha + q_mol.num_beta,
+        dump(outpath,
+             q_mol.num_orbitals, q_mol.num_alpha + q_mol.num_beta,
              (q_mol.mo_onee_ints, q_mol.mo_onee_ints_b),
              (q_mol.mo_eri_ints, q_mol.mo_eri_ints_ba, q_mol.mo_eri_ints_bb),
-             q_mol.nuclear_repulsion_energy, outpath)
+             q_mol.nuclear_repulsion_energy, ms2, orbsym, isym)

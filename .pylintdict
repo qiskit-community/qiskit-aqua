@@ -248,6 +248,7 @@ ising
 isinstance
 iso
 isub
+isym
 iteratively
 izaac
 jac
@@ -374,6 +375,7 @@ oplus
 optim
 optimizer's
 optimizers
+orbsym
 org
 outpath
 overfit
