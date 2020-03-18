@@ -33,7 +33,7 @@ class FCIDumpDriver(BaseDriver):
         ISSN 0010-4655, https://doi.org/10.1016/0010-4655(89)90033-7.
     """
 
-    def __init__(self, fcidump_input: str, num_particles: list = None) -> None:
+    def __init__(self, fcidump_input: str, num_particles: list = None, atoms: list = None) -> None:
         """
         Initializer
 
@@ -42,6 +42,9 @@ class FCIDumpDriver(BaseDriver):
             num_particles (optional): Allows to specify the number of alpha and beta particles
             explicitly. If None, the electrons are distributed evenly into the alpha and beta
             states (preferring alpha in the case of an off number of particles).
+            atoms (optional): Allows to specify the atom list of the molecule. If it is provided,
+            the created QMolecule instance will permit frozen core Hamiltonians. This list must
+            consist of valid atom symbols.
 
         Raises:
             QiskitChemistryError: invalid input
@@ -56,6 +59,11 @@ class FCIDumpDriver(BaseDriver):
                 and len(num_particles) != 2:
             raise QiskitChemistryError("Invalid input for FCIDumpDriver '{}'".format(num_particles))
         self.num_particles = num_particles
+
+        if atoms is not None and not isinstance(atoms, list) \
+                and not all([sym in QMolecule.symbols for sym in atoms]):
+            raise QiskitChemistryError("Invalid input for FCIDumpDriver '{}'".format(atoms))
+        self.atoms = atoms
 
     def run(self) -> QMolecule:
         """
@@ -75,6 +83,9 @@ class FCIDumpDriver(BaseDriver):
             q_mol.num_alpha = fcidump_data.get('NELEC', float('NaN')) - q_mol.num_beta
         else:
             q_mol.num_alpha, q_mol.num_beta = self.num_particles
+        if self.atoms is not None:
+            q_mol.num_atoms = len(self.atoms)
+            q_mol.atom_symbol = self.atoms
 
         q_mol.mo_onee_ints = fcidump_data.get('hij', None)
         q_mol.mo_onee_ints_b = fcidump_data.get('hij_b', None)
