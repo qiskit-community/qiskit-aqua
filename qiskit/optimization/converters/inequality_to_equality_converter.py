@@ -28,11 +28,11 @@ from ..utils import QiskitOptimizationError
 class InequalityToEqualityConverter:
     """Convert inequality constraints into equality constraints by introducing slack variables.
 
-        Examples:
-            >>> problem = OptimizationProblem()
-            >>> # define a problem
-            >>> conv = InequalityToEqualityConverter()
-            >>> problem2 = conv.encode(problem)
+    Examples:
+        >>> problem = OptimizationProblem()
+        >>> # define a problem
+        >>> conv = InequalityToEqualityConverter()
+        >>> problem2 = conv.encode(problem)
     """
 
     _delimiter = '@'  # users are supposed not to use this character in variable names
@@ -47,8 +47,7 @@ class InequalityToEqualityConverter:
 
     def encode(self, op: OptimizationProblem, name: Optional[str] = None,
                mode: str = 'auto') -> OptimizationProblem:
-        """Convert a problem with inequality constraints into new one with only equality
-        constraints.
+        """Convert a problem with inequality constraints into one with only equality constraints.
 
         Args:
             op: The problem to be solved, that may contain inequality constraints.
@@ -66,7 +65,6 @@ class InequalityToEqualityConverter:
             QiskitOptimizationError: If a variable type is not supported.
             QiskitOptimizationError: If an unsupported mode is selected.
             QiskitOptimizationError: If an unsupported sense is specified.
-
         """
         self._src = copy.deepcopy(op)
         self._dst = OptimizationProblem()
