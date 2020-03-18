@@ -22,11 +22,10 @@ from qiskit.chemistry.drivers import FCIDumpDriver
 
 
 class BaseTestDriverFCIDump(ABC):
-    """FCIDump Driver base test class using H2 @ 0.735, sto3g.
+    """FCIDump Driver base test class.
 
     In contrast to the other driver tests this one does *not* derive from TestDriver because the
     interface is fundamentally different.
-    Similar to the HDF5Driver there is also no TestDriverMethodsFCIDump class for the same reason.
     """
 
     def __init__(self):
