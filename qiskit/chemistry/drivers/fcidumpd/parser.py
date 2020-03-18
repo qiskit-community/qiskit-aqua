@@ -22,6 +22,7 @@ from qiskit.chemistry import QiskitChemistryError
 
 
 def parse(fcidump: str) -> dict:
+    # pylint: disable=wrong-spelling-in-comment
     """ Parses a FCIDump output.
         Args:
             fcidump: path to the FCIDump file
@@ -197,6 +198,7 @@ def _permute_1e_ints(hij: list, elements: set, norb: int, beta: bool = False) ->
 
 
 def _permute_2e_ints(hijkl: list, elements: set, norb: int, beta: bool = False) -> None:
+    # pylint: disable=wrong-spelling-in-comment
     for elem in elements.copy():
         shifted = tuple([e-((e >= norb) * norb)for e in elem])
         # initially look for "transposed" element if spins are equal
