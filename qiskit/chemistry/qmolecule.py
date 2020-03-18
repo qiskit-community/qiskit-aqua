@@ -139,6 +139,9 @@ class QMolecule:
     @property
     def core_orbitals(self):
         """ returns core orbitals """
+        if self.num_atoms is None:
+            logger.warning("Missing molecule information! Returning empty core orbital list.")
+            return []
         count = 0
         for i in range(self.num_atoms):
             z = self.Z(i)

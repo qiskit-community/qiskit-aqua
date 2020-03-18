@@ -32,3 +32,23 @@ class TestDriverMethodsFCIDump(TestDriverMethods):
         driver = FCIDumpDriver(self.get_resource_path('test_driver_fcidump_oh.fcidump'))
         result = self._run_driver(driver, freeze_core=False)
         self._assert_energy(result, 'oh')
+
+    def test_lih_freeze_core(self):
+        """ LiH freeze core test """
+        with self.assertLogs('qiskit.chemistry', level='WARNING') as log:
+            driver = FCIDumpDriver(self.get_resource_path('test_driver_fcidump_lih.fcidump'))
+            result = self._run_driver(driver, freeze_core=True)
+            self._assert_energy(result, 'lih')
+        warning = 'WARNING:qiskit.chemistry.qmolecule:' + \
+                  'Missing molecule information! Returning empty core orbital list.'
+        self.assertIn(warning, log.output)
+
+    def test_oh_freeze_core(self):
+        """ OH freeze core test """
+        with self.assertLogs('qiskit.chemistry', level='WARNING') as log:
+            driver = FCIDumpDriver(self.get_resource_path('test_driver_fcidump_oh.fcidump'))
+            result = self._run_driver(driver, freeze_core=True)
+            self._assert_energy(result, 'oh')
+        warning = 'WARNING:qiskit.chemistry.qmolecule:' + \
+                  'Missing molecule information! Returning empty core orbital list.'
+        self.assertIn(warning, log.output)
