@@ -14,7 +14,7 @@
 
 """FCIDump parser."""
 
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional, Set
 import itertools
 import re
 import numpy as np
@@ -195,14 +195,16 @@ def parse(fcidump: str) -> Dict[str, Any]:
     return output
 
 
-def _permute_1e_ints(hij: list, elements: set, norb: int, beta: bool = False) -> None:
+def _permute_1e_ints(hij: List[float], elements: Set[int], norb: int,
+                     beta: Optional[bool] = False) -> None:
     for elem in elements.copy():
         shifted = tuple(e-(beta * norb) for e in elem)
         hij[shifted] = hij[shifted[::-1]]
         elements.remove(elem)
 
 
-def _permute_2e_ints(hijkl: list, elements: set, norb: int, beta: bool = False) -> None:
+def _permute_2e_ints(hijkl: List[float], elements: Set[int], norb: int,
+                     beta: Optional[bool] = False) -> None:
     # pylint: disable=wrong-spelling-in-comment
     for elem in elements.copy():
         shifted = tuple(e-((e >= norb) * norb) for e in elem)
