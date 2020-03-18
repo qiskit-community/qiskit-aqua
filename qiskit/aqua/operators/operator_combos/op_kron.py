@@ -66,7 +66,7 @@ class OpKron(OpVec):
         see the eval method in operator_base.py.
         """
 
-        # pylint: disable=import-outside-toplevel
+        # pylint: disable=cyclic-import,import-outside-toplevel
         from ..operator_primitives import OpPrimitive
         kron_mat_op = OpPrimitive(self.combo_fn([op.to_matrix() for op in self.oplist]),
                                   coeff=self.coeff)
