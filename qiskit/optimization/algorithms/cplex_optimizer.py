@@ -24,12 +24,13 @@
 
 from typing import Optional
 
+from cplex import ParameterSet
+from cplex.exceptions import CplexSolverError
+
 from qiskit.optimization import QiskitOptimizationError
 from qiskit.optimization.algorithms import OptimizationAlgorithm
 from qiskit.optimization.results import OptimizationResult
 from qiskit.optimization.problems import OptimizationProblem
-from cplex import ParameterSet
-from cplex.exceptions import CplexSolverError
 
 
 class CplexOptimizer(OptimizationAlgorithm):

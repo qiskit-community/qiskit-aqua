@@ -14,13 +14,15 @@
 
 """ Test Cobyla Optimizer """
 
+
 from test.optimization.common import QiskitOptimizationTestCase
-import numpy as np
+
+from ddt import ddt, data
 
 from qiskit.optimization.algorithms import CobylaOptimizer
 from qiskit.optimization.problems import OptimizationProblem
 
-from ddt import ddt, data
+from cplex import SparsePair, SparseTriple
 
 
 @ddt
@@ -51,3 +53,22 @@ class TestCobylaOptimizer(QiskitOptimizationTestCase):
 
         # analyze results
         self.assertAlmostEqual(result.fval, fval)
+
+    def test_cobyla_optimizer_with_quadratic_constraint(self):
+        """ Cobyla Optimizer Test """
+
+        # load optimization problem
+        problem = OptimizationProblem()
+        problem.variables.add(lb=[0, 0], ub=[1, 1], types='CC')
+        problem.objective.set_linear([(0, 1), (1, 1)])
+
+        qc = problem.quadratic_constraints
+        linear = SparsePair(ind=[0, 1], val=[-1, -1])
+        quadratic = SparseTriple(ind1=[0, 1], ind2=[0, 1], val=[1, 1])
+        qc.add(name='qc', lin_expr=linear, quad_expr=quadratic, rhs=-1/2)
+
+        # solve problem with cobyla
+        result = self.cobyla_optimizer.solve(problem)
+
+        # analyze results
+        self.assertAlmostEqual(result.fval, 1.0, places=2)

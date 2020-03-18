@@ -24,7 +24,8 @@ Structures for converting optimization problems
 
 """
 
-from .optimization_problem_to_negative_value_oracle import OptimizationProblemToNegativeValueOracle
+from qiskit.optimization.converters.optimization_problem_to_negative_value_oracle import\
+    OptimizationProblemToNegativeValueOracle
 from qiskit.optimization.converters.inequality_to_equality_converter import\
     InequalityToEqualityConverter
 from qiskit.optimization.converters.integer_to_binary_converter import\
@@ -33,11 +34,14 @@ from qiskit.optimization.converters.optimization_problem_to_operator import\
     OptimizationProblemToOperator
 from qiskit.optimization.converters.penalize_linear_equality_constraints import\
     PenalizeLinearEqualityConstraints
+from qiskit.optimization.converters.optimization_problem_to_qubo import\
+    OptimizationProblemToQubo
 
 __all__ = [
     "InequalityToEqualityConverter",
     "IntegerToBinaryConverter",
     "OptimizationProblemToOperator",
     "OptimizationProblemToNegativeValueOracle",
-    "PenalizeLinearEqualityConstraints"
+    "PenalizeLinearEqualityConstraints",
+    "OptimizationProblemToQubo"
 ]
