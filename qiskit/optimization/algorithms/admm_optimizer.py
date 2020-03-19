@@ -287,6 +287,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
             elapsed_time = time.time() - start_time
 
         sol, sol_val = self.get_best_mer_sol()
+        sol = self.revert_solution_indexes(sol)
 
         # third parameter is our internal state of computations
         result = OptimizationResult(sol, sol_val, self._state)
@@ -303,6 +304,14 @@ class ADMMOptimizer(OptimizationAlgorithm):
                 indices.append(i)
 
         return indices
+
+    def revert_solution_indexes(self, internal_solution) -> np.ndarray:
+        (x0, u) = internal_solution
+        solution = np.zeros(len(self._state.binary_indices) + len(self._state.continuous_indices))
+        # restore solution at the original index location
+        [solution.itemset(binary_index, x0[i]) for i, binary_index in enumerate(self._state.binary_indices)]
+        [solution.itemset(continuous_index, u[i]) for i, continuous_index in enumerate(self._state.continuous_indices)]
+        return solution
 
     def convert_problem_representation(self) -> None:
         # objective
