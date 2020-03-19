@@ -141,7 +141,6 @@ class ADMMOptimizer(OptimizationAlgorithm):
         if params is None:
             # create default params
             params = ADMMParameters()
-        # todo: consider keeping params as an object instead of copying
         self._three_block = params.three_block
         self._max_time = params.max_time
         self._tol = params.tol
@@ -196,7 +195,6 @@ class ADMMOptimizer(OptimizationAlgorithm):
             # quadratic constraints are not supported
             return "Quadratic constraints are not supported"
 
-        # todo: verify other properties of the problem
         return None
 
     def solve(self, problem: OptimizationProblem):
@@ -468,7 +466,9 @@ class ADMMOptimizer(OptimizationAlgorithm):
                 op1.objective.set_quadratic_coefficients(j, i, quadratic_objective[i, j])
 
         # prepare and set linear objective
-        linear_objective = self._state.c0 - self._factor_c * np.dot(self._state.b0, self._state.a0) + self._state.rho * (self._state.y - self._state.z)
+        linear_objective = self._state.c0 - self._factor_c * np.dot(self._state.b0, self._state.a0) + \
+                           self._state.rho * (self._state.y - self._state.z)
+
         for i in range(binary_size):
             op1.objective.set_linear(i, linear_objective[i])
         return op1
@@ -575,7 +575,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
     # when a plain list() call is used a numpy type of values makes cplex to fail when cplex.write() is called.
     # for debug only, list() should be used instead
-    def _to_list(self, values):
+    @staticmethod
+    def _to_list(values):
         out_list = []
         for el in values:
             out_list.append(float(el))
@@ -598,7 +599,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
     def get_best_mer_sol(self):
         """
-        The ADMM solution is that for which the merit value is the best (least for min problems, greatest for max problems)
+        The ADMM solution is that for which the merit value is the best (least for min problems, greatest
+        for max problems)
             * sol: Iterate with the best merit value
             * sol_val: Value of sol, according to the original objective
 
@@ -645,7 +647,6 @@ class ADMMOptimizer(OptimizationAlgorithm):
             * max(body - rhs, 0) for leq constraints
         """
 
-        # TODO: think whether a0, b0 should be saved somewhere.. Might move to state?
         cr0 = sum(np.abs(np.dot(self._state.a0, self._state.x0) - self._state.b0))
 
         eq1 = np.dot(self._state.a1, self._state.x0) - self._state.b1
@@ -654,7 +655,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         eq2 = np.dot(self._state.a2, self._state.x0) + np.dot(self._state.a3, self._state.u) - self._state.b2
         cr2 = sum(max(val, 0) for val in eq2)
 
-        return cr0+cr1+cr2
+        return cr0 + cr1 + cr2
 
     def get_merit(self, cost_iterate, cr):
         """
@@ -666,6 +667,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         """
         Computes the value of the objective function.
         """
+
         # quadr_form = lambda A, x, c: np.dot(x.T, np.dot(A, x)) + np.dot(c.T, x)
         def quadratic_form(matrix, x, c): return np.dot(x.T, np.dot(matrix, x)) + np.dot(c.T, x)
 
@@ -686,7 +688,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # elements = np.asarray([x0[i] - z[i] + y[i] for i in self.range_x0_vars])
         r = pow(sum(e ** 2 for e in elements), 0.5)
         if it > 0:
-            elements_dual = self._state.z - self._state.z_saved[it-1]
+            elements_dual = self._state.z - self._state.z_saved[it - 1]
         else:
             elements_dual = self._state.z - self._state.z_init
         # debug
