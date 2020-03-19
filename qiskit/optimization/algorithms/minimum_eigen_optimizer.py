@@ -3,7 +3,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -15,26 +15,27 @@
 
 """A wrapper for minimum eigen solvers from Qiskit Aqua to be used within Qiskit Optimization.
 
-    Examples:
-        >>> problem = OptimizationProblem()
-        >>> # specify problem here
-        >>> # specify minimum eigen solver to be used, e.g., QAOA
-        >>> qaoa = QAOA(...)
-        >>> optimizer = MinEigenOptimizer(qaoa)
-        >>> result = optimizer.solve(problem)
+Examples:
+    >>> problem = OptimizationProblem()
+    >>> # specify problem here
+    >>> # specify minimum eigen solver to be used, e.g., QAOA
+    >>> qaoa = QAOA(...)
+    >>> optimizer = MinEigenOptimizer(qaoa)
+    >>> result = optimizer.solve(problem)
 """
 
 from typing import Optional
 
 from qiskit.aqua.algorithms import MinimumEigensolver
-from qiskit.optimization.problems import OptimizationProblem
-from qiskit.optimization.algorithms import OptimizationAlgorithm
-from qiskit.optimization.utils import QiskitOptimizationError
-from qiskit.optimization.converters import (OptimizationProblemToOperator,
-                                            PenalizeLinearEqualityConstraints,
-                                            IntegerToBinaryConverter)
-from qiskit.optimization.utils import eigenvector_to_solutions
-from qiskit.optimization.results import OptimizationResult
+
+from .optimization_algorithm import OptimizationAlgorithm
+from ..problems.optimization_problem import OptimizationProblem
+from ..utils.qiskit_optimization_error import QiskitOptimizationError
+from ..utils.eigenvector_to_solutions import eigenvector_to_solutions
+from ..converters.optimization_problem_to_operator import OptimizationProblemToOperator
+from ..converters.penalize_linear_equality_constraints import PenalizeLinearEqualityConstraints
+from ..converters.integer_to_binary_converter import IntegerToBinaryConverter
+from ..results.optimization_result import OptimizationResult
 
 
 class MinimumEigenOptimizer(OptimizationAlgorithm):
@@ -49,7 +50,6 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
     corresponding eigenstate correspond to the optimal solution of the original optimization
     problem. The provided minimum eigen solver is then used to approximate the groundstate of the
     Hamiltonian to find a good solution for the optimization problem.
-
     """
 
     def __init__(self, min_eigen_solver: MinimumEigensolver, penalty: Optional[float] = None
@@ -126,7 +126,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
 
         # analyze compatibility of problem
         msg = self.is_compatible(problem)
-        if msg is not None:
+        if msg:
             raise QiskitOptimizationError('Incompatible problem: %s' % msg)
 
         # map integer variables to binary variables

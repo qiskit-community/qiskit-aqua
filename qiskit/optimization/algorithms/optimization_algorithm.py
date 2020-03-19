@@ -3,7 +3,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -13,20 +13,18 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""An abstract class for optimization algorithms in Qiskit Optimization.
-"""
+"""An abstract class for optimization algorithms in Qiskit Optimization."""
 
 from abc import abstractmethod
 
 from typing import Optional
 
-from qiskit.optimization.problems import OptimizationProblem
-from qiskit.optimization.results import OptimizationResult
+from ..problems.optimization_problem import OptimizationProblem
+from ..results.optimization_result import OptimizationResult
 
 
 class OptimizationAlgorithm:
-    """An abstract class for optimization algorithms in Qiskit Optimization.
-    """
+    """An abstract class for optimization algorithms in Qiskit Optimization."""
 
     @abstractmethod
     def is_compatible(self, problem: OptimizationProblem) -> Optional[str]:
@@ -38,7 +36,7 @@ class OptimizationAlgorithm:
         Returns:
             Returns ``None`` if the problem is compatible and else a string with the error message.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def solve(self, problem: OptimizationProblem) -> OptimizationResult:
@@ -55,4 +53,4 @@ class OptimizationAlgorithm:
         Raises:
             QiskitOptimizationError: If the problem is incompatible with the optimizer.
         """
-        pass
+        raise NotImplementedError

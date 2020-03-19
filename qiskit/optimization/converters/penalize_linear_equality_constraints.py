@@ -12,26 +12,28 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""Converter to convert a problem with equality constraints to unconstrained with penalty terms."""
+
+from typing import Optional
+
 import copy
 from collections import defaultdict
 
-from qiskit.optimization.problems.optimization_problem import OptimizationProblem
-from qiskit.optimization.utils import QiskitOptimizationError
+from ..problems.optimization_problem import OptimizationProblem
+from ..utils.qiskit_optimization_error import QiskitOptimizationError
 
 
 class PenalizeLinearEqualityConstraints:
-    """ Convert a problem with only equality constraints into an unconstrained problem
-    with penalty terms associated with the constraints.
-    """
+    """Convert a problem with only equality constraints to unconstrained with penalty terms."""
 
     def __init__(self):
-        """ Constructor. Initialize the internal data structure. No args.
-        """
+        """Initialize the internal data structure."""
         self._src = None
         self._dst = None
 
-    def encode(self, op: OptimizationProblem, penalty_factor: float = 1e5, name: str = None):
-        """ Convert a problem with equality constraints into an unconstrained problem.
+    def encode(self, op: OptimizationProblem, penalty_factor: float = 1e5,
+               name: Optional[str] = None) -> OptimizationProblem:
+        """Convert a problem with equality constraints into an unconstrained problem.
 
         Args:
             op: The problem to be solved, that does not contain inequality constraints.
@@ -41,6 +43,8 @@ class PenalizeLinearEqualityConstraints:
         Returns:
             The converted problem, that is an unconstrained problem.
 
+        Raises:
+            QiskitOptimizationError: If an inequality constraint exists.
         """
 
         # TODO: test compatibility, how to react in case of incompatibility?
@@ -125,8 +129,8 @@ class PenalizeLinearEqualityConstraints:
             self._dst.objective.set_linear(i, v)
 
         # set quadratic objective terms
-        for i, vi in quadratic_terms.items():
-            for j, v in vi.items():
+        for i, v_i in quadratic_terms.items():
+            for j, v in v_i.items():
                 self._dst.objective.set_quadratic_coefficients(i, j, v)
 
         return self._dst

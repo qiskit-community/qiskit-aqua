@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -15,13 +15,11 @@
 """ Test Min Eigen Optimizer """
 
 from test.optimization.common import QiskitOptimizationTestCase
-import numpy as np
 from ddt import ddt, data
 
 from qiskit import BasicAer
 
-from qiskit.aqua import QuantumInstance
-from qiskit.aqua.algorithms import ClassicalMinimumEigensolver
+from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.aqua.algorithms import QAOA
 from qiskit.aqua.components.optimizers import COBYLA
 
@@ -42,7 +40,7 @@ class TestMinEigenOptimizer(QiskitOptimizationTestCase):
         self.min_eigen_solvers = {}
 
         # exact eigen solver
-        self.min_eigen_solvers['exact'] = ClassicalMinimumEigensolver()
+        self.min_eigen_solvers['exact'] = NumPyMinimumEigensolver()
 
         # QAOA
         optimizer = COBYLA()
