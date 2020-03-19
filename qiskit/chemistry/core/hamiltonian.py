@@ -265,6 +265,7 @@ class Hamiltonian(ChemistryOperator):
             # Dipole results if dipole aux ops were present
             dipole_idx = 3
             if len(aux_ops_vals) > dipole_idx:
+                mgsr.reverse_dipole_sign = self._reverse_dipole_sign
                 dipm = []
                 for i in range(dipole_idx, dipole_idx+3):  # Gets X, Y and Z components
                     dipm.append(aux_ops_vals[i][0].real if aux_ops_vals[i] is not None else None)

@@ -205,6 +205,17 @@ class MolecularGroundStateResult(MolecularChemistryResult):
         return self.nuclear_dipole_moment is not None and self.electronic_dipole_moment is not None
 
     @property
+    def reverse_dipole_sign(self) -> bool:
+        """ Returns if elect. dipole moment sign should be reversed when adding to nucl. part """
+        return self.get('reverse_dipole_sign')
+
+    @reverse_dipole_sign.setter
+    def reverse_dipole_sign(self, value: bool) -> None:
+        """ Sets if elect. dipole moment sign should be reversed when adding to nucl. part """
+        self.data['reverse_dipole_sign'] = value
+
+
+    @property
     def total_dipole_moment(self) -> Optional[float]:
         """ Returns total dipole of moment """
         if self.dipole_moment is None:
@@ -222,7 +233,10 @@ class MolecularGroundStateResult(MolecularChemistryResult):
     @property
     def dipole_moment(self) -> Optional[DipoleTuple]:
         """ Returns dipole moment """
-        return _dipole_tuple_add(self.electronic_dipole_moment, self.nuclear_dipole_moment)
+        edm = self.electronic_dipole_moment
+        if self.reverse_dipole_sign:
+            edm = tuple(-x if x is not None else None for x in edm)
+        return _dipole_tuple_add(edm, self.nuclear_dipole_moment)
 
     @property
     def dipole_moment_in_debye(self) -> Optional[DipoleTuple]:
