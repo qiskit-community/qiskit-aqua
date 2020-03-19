@@ -73,7 +73,7 @@ class IntegerToBinaryConverter:
                 new_vars: List[Tuple[str, int]] = self._encode_var(name=variable,
                                                                    lower_bound=lower_bounds[i],
                                                                    upper_bound=upper_bounds[i])
-                self._conv[name] = new_vars
+                self._conv[variable] = new_vars
                 self._dst.variables.add(names=[new_name for new_name, _ in new_vars],
                                         types='B' * len(new_vars))
             else:
