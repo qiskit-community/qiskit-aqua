@@ -182,10 +182,10 @@ class CobylaOptimizer(OptimizationAlgorithm):
                 linear_array[j] = v
 
             quadratic_array = np.zeros((num_vars, num_vars))
-            for i, j, v in zip(quadratic_comp.ind1, quadratic_comp.ind2, quadratic_comp.val):
-                quadratic_array[i, j] = v
+            for j, k, v in zip(quadratic_comp.ind1, quadratic_comp.ind2, quadratic_comp.val):
+                quadratic_array[j, k] = v
 
-            def lhs(x):
+            def lhs(x, linear_array=linear_array, quadratic_array=quadratic_array):
                 return np.dot(x, linear_array) + np.dot(np.dot(x, quadratic_array), x)
 
             if sense == 'E':

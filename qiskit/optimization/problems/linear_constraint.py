@@ -379,10 +379,12 @@ class LinearConstraintInterface(BaseInterface):
         >>> op.linear_constraints.set_linear_components("c0", [["x0"], [1.0]])
         >>> op.linear_constraints.get_rows("c0")
         SparsePair(ind = [0], val = [1.0])
-        >>> op.linear_constraints.set_linear_components([("c3", SparsePair(ind = ["x1"], val = [-1.0])),\
-                                                        (2, [[0, 1], [-2.0, 3.0]])])
+        >>> op.linear_constraints.set_linear_components([
+                                                ("c3", SparsePair(ind = ["x1"], val = [-1.0])),\
+                                                (2, [[0, 1], [-2.0, 3.0]])])
         >>> op.linear_constraints.get_rows()
-        [SparsePair(ind = [0], val = [1.0]), SparsePair(ind = [], val = []), SparsePair(ind = [0, 1], val = [-2.0, 3.0]), SparsePair(ind = [1], val = [-1.0])]
+        [SparsePair(ind = [0], val = [1.0]), SparsePair(ind = [], val = []),
+        SparsePair(ind = [0, 1], val = [-2.0, 3.0]), SparsePair(ind = [1], val = [-1.0])]
         """
 
         def _set(i, v):
@@ -724,9 +726,15 @@ class LinearConstraintInterface(BaseInterface):
         >>> op.linear_constraints.get_rows(0)
         SparsePair(ind = [0, 2], val = [1.0, -1.0])
         >>> op.linear_constraints.get_rows(["c2", 0])
-        [SparsePair(ind = [0, 1, 2], val = [-1.0, -1.0, -1.0]), SparsePair(ind = [0, 2], val = [1.0, -1.0])]
+        [SparsePair(ind = [0, 1, 2], val = [-1.0, -1.0, -1.0]),
+          SparsePair(ind = [0, 2], val = [1.0, -1.0])]
         >>> op.linear_constraints.get_rows()
-        [SparsePair(ind = [0, 2], val = [1.0, -1.0]), SparsePair(ind = [0, 1], val = [1.0, 1.0]), SparsePair(ind = [0, 1, 2], val = [-1.0, -1.0, -1.0]), SparsePair(ind = [1, 2], val = [10.0, -2.0])]
+        [
+          SparsePair(ind = [0, 2], val = [1.0, -1.0]),
+          SparsePair(ind = [0, 1], val = [1.0, 1.0]),
+          SparsePair(ind = [0, 1, 2], val = [-1.0, -1.0, -1.0]),
+          SparsePair(ind = [1, 2], val = [10.0, -2.0])
+        ]
         """
 
         def _get(i):
@@ -746,10 +754,10 @@ class LinearConstraintInterface(BaseInterface):
         >>> op = qiskit.optimization.OptimizationProblem()
         >>> indices = op.variables.add(names = ["x1", "x2", "x3"])
         >>> indices = op.linear_constraints.add(names = ["c0", "c1", "c2", "c3"],\
-                                     lin_expr = [SparsePair(ind = ["x1", "x3"], val = [1.0, -1.0]),\
-                                             SparsePair(ind = ["x1", "x2"], val = [1.0, 1.0]),\
-                                             SparsePair(ind = ["x1", "x2", "x3"], val = [-1.0] * 3),\
-                                             SparsePair(ind = ["x2", "x3"], val = [10.0, -2.0])])
+                                    lin_expr = [SparsePair(ind = ["x1", "x3"], val = [1.0, -1.0]),\
+                                            SparsePair(ind = ["x1", "x2"], val = [1.0, 1.0]),\
+                                            SparsePair(ind = ["x1", "x2", "x3"], val = [-1.0] * 3),\
+                                            SparsePair(ind = ["x2", "x3"], val = [10.0, -2.0])])
         >>> op.linear_constraints.get_num_nonzeros()
         9
         """
