@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -14,6 +14,7 @@
 
 """ QMolecule """
 
+from typing import List
 import os
 import logging
 import tempfile
@@ -137,8 +138,14 @@ class QMolecule:
         return QMolecule.symbols.index(self.atom_symbol[natom].lower().capitalize())
 
     @property
-    def core_orbitals(self):
-        """ returns core orbitals """
+    def core_orbitals(self) -> List[int]:
+        """
+        Returns:
+            A list of core orbital indices.
+        """
+        if self.num_atoms is None:
+            logger.warning("Missing molecule information! Returning empty core orbital list.")
+            return []
         count = 0
         for i in range(self.num_atoms):
             z = self.Z(i)
@@ -430,14 +437,14 @@ class QMolecule:
 
         # The number of spin orbitals is twice the number of orbitals
         norbs = mohij.shape[0]
-        nspin_orbs = 2 * norbs
+        nspin_orbs = 2*norbs
 
         # One electron terms
         moh1_qubit = numpy.zeros([nspin_orbs, nspin_orbs])
         for p in range(nspin_orbs):  # pylint: disable=invalid-name
             for q in range(nspin_orbs):
-                spinp = int(p / norbs)
-                spinq = int(q / norbs)
+                spinp = int(p/norbs)
+                spinq = int(q/norbs)
                 if spinp % 2 != spinq % 2:
                     continue
                 ints = mohij if spinp == 0 else mohij_b
@@ -475,7 +482,7 @@ class QMolecule:
 
         # The number of spin orbitals is twice the number of orbitals
         norbs = mohijkl.shape[0]
-        nspin_orbs = 2 * norbs
+        nspin_orbs = 2*norbs
 
         # The spin orbitals are mapped in the following way:
         #       Orbital zero, spin up mapped to qubit 0
@@ -495,10 +502,10 @@ class QMolecule:
             for q in range(nspin_orbs):
                 for r in range(nspin_orbs):
                     for s in range(nspin_orbs):  # pylint: disable=invalid-name
-                        spinp = int(p / norbs)
-                        spinq = int(q / norbs)
-                        spinr = int(r / norbs)
-                        spins = int(s / norbs)
+                        spinp = int(p/norbs)
+                        spinq = int(q/norbs)
+                        spinr = int(r/norbs)
+                        spins = int(s/norbs)
                         if spinp != spins:
                             continue
                         if spinq != spinr:
@@ -512,7 +519,7 @@ class QMolecule:
                         orbr = int(r % norbs)
                         orbs = int(s % norbs)
                         if abs(ints[orbp, orbq, orbr, orbs]) > threshold:
-                            moh2_qubit[p, q, r, s] = -0.5 * ints[orbp, orbq, orbr, orbs]
+                            moh2_qubit[p, q, r, s] = -0.5*ints[orbp, orbq, orbr, orbs]
 
         return moh2_qubit
 
@@ -552,8 +559,9 @@ class QMolecule:
 
             logger.info("Computed Hartree-Fock energy: %s", self.hf_energy)
             logger.info("Nuclear repulsion energy: %s", self.nuclear_repulsion_energy)
-            logger.info("One and two electron Hartree-Fock energy: %s",
-                        self.hf_energy - self.nuclear_repulsion_energy)
+            if None not in (self.hf_energy, self.nuclear_repulsion_energy):
+                logger.info("One and two electron Hartree-Fock energy: %s",
+                            self.hf_energy - self.nuclear_repulsion_energy)
             logger.info("Number of orbitals is %s", self.num_orbitals)
             logger.info("%s alpha and %s beta electrons", self.num_alpha, self.num_beta)
             logger.info("Molecule comprises %s atoms and in xyz format is ::", self.num_atoms)
