@@ -24,7 +24,7 @@ from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.components.initial_states import HartreeFock
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.core import (Hamiltonian, TransformationType, QubitMappingType,
-                                   ChemistryOperator)
+                                   ChemistryOperator, MolecularGroundStateResult)
 from qiskit.chemistry.drivers import BaseDriver
 
 
@@ -82,7 +82,7 @@ class MolecularGroundStateEnergy:
     def compute_energy(self,
                        callback: Optional[Callable[[List, int, str, bool, Optional[Z2Symmetries]],
                                                    MinimumEigensolver]] = None
-                       ) -> 'MolecularGroundStateEnergyResult':
+                       ) -> MolecularGroundStateResult:
         """
         Compute the ground state energy of the molecule that was supplied via the driver
 
@@ -95,7 +95,7 @@ class MolecularGroundStateEnergy:
                 for use as the solver here.
 
         Returns:
-            A MolecularGroundStateEnergyResult
+            A molecular ground state result
         Raises:
             QiskitChemistryError: If no MinimumEigensolver was given and no callback is being
                                   used that could supply one instead.
