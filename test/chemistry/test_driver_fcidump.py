@@ -43,7 +43,7 @@ class BaseTestDriverFCIDump(ABC):
 
     @abstractmethod
     def assertAlmostEqual(self, first, second, places=None, msg=None, delta=None):
-        """ asset Almost Equal """
+        """ assert Almost Equal """
         raise Exception('Abstract method')
 
     @abstractmethod
