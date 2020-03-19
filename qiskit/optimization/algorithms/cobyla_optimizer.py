@@ -169,7 +169,37 @@ class CobylaOptimizer(OptimizationAlgorithm):
                 # TODO: add range constraints
                 raise QiskitOptimizationError('Unsupported constraint type!')
 
-        # TODO: add quadratic constraints
+        # add quadratic constraints
+        for i in range(problem.quadratic_constraints.get_num()):
+            rhs = problem.quadratic_constraints.get_rhs(i)
+            sense = problem.quadratic_constraints.get_senses(i)
+
+            linear_comp = problem.quadratic_constraints.get_linear_components(i)
+            quadratic_comp = problem.quadratic_constraints.get_quadratic_components(i)
+
+            linear_array = np.zeros(num_vars)
+            for j, v in zip(linear_comp.ind, linear_comp.val):
+                linear_array[j] = v
+
+            quadratic_array = np.zeros((num_vars, num_vars))
+            for i, j, v in zip(quadratic_comp.ind1, quadratic_comp.ind2, quadratic_comp.val):
+                quadratic_array[i, j] = v
+
+            def lhs(x):
+                return np.dot(x, linear_array) + np.dot(np.dot(x, quadratic_array), x)
+
+            if sense == 'E':
+                constraints += [
+                    lambda x: rhs - lhs(x),
+                    lambda x: lhs(x) - rhs
+                ]
+            elif sense == 'L':
+                constraints += [lambda x: rhs - lhs(x)]
+            elif sense == 'G':
+                constraints += [lambda x: lhs(x) - rhs]
+            else:
+                # TODO: add range constraints
+                raise QiskitOptimizationError('Unsupported constraint type!')
 
         # TODO: derive x_0 from lower/upper bounds
         x_0 = np.zeros(problem.variables.get_num())

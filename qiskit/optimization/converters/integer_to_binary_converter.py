@@ -204,14 +204,11 @@ class IntegerToBinaryConverter:
         Returns:
             The result of the original problem.
         """
-        new_result = OptimizationResult()
         names = self._dst.variables.get_names()
         vals = result.x
         new_vals = self._decode_var(names, vals)
-        new_result.x = new_vals
-        new_result.fval = result.fval
-        new_result.results = result.results
-        return new_result
+        result.x = new_vals
+        return result
 
     def _decode_var(self, names, vals) -> List[int]:
         # decode integer values

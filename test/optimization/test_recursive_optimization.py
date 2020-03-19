@@ -18,7 +18,6 @@ from test.optimization.common import QiskitOptimizationTestCase
 from ddt import ddt, data
 
 from qiskit import BasicAer
-
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.aqua.algorithms import QAOA
 from qiskit.aqua.components.optimizers import COBYLA
