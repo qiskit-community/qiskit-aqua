@@ -559,8 +559,9 @@ class QMolecule:
 
             logger.info("Computed Hartree-Fock energy: %s", self.hf_energy)
             logger.info("Nuclear repulsion energy: %s", self.nuclear_repulsion_energy)
-            logger.info("One and two electron Hartree-Fock energy: %s",
-                        self.hf_energy - self.nuclear_repulsion_energy)
+            if None not in (self.hf_energy, self.nuclear_repulsion_energy):
+                logger.info("One and two electron Hartree-Fock energy: %s",
+                            self.hf_energy - self.nuclear_repulsion_energy)
             logger.info("Number of orbitals is %s", self.num_orbitals)
             logger.info("%s alpha and %s beta electrons", self.num_alpha, self.num_beta)
             logger.info("Molecule comprises %s atoms and in xyz format is ::", self.num_atoms)

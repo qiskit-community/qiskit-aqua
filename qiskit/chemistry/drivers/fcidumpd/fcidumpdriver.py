@@ -68,8 +68,7 @@ class FCIDumpDriver(BaseDriver):
 
         q_mol = QMolecule()
 
-        q_mol.hf_energy = float('NaN')  # ensures QMolecule.log() works
-        q_mol.nuclear_repulsion_energy = fcidump_data.get('ecore', float('NaN'))
+        q_mol.nuclear_repulsion_energy = fcidump_data.get('ecore', None)
         q_mol.num_orbitals = fcidump_data.get('NORB')
         q_mol.multiplicity = fcidump_data.get('MS2', 0) + 1
         q_mol.charge = 0  # ensures QMolecule.log() works
