@@ -35,6 +35,9 @@ Core Base Class
    :nosignatures:
 
    ChemistryOperator
+   MolecularChemistryResult
+   MolecularGroundStateResult
+   MolecularExcitedStatesResult
 
 Core
 ====
@@ -49,10 +52,14 @@ Core
 
 """
 
-from .chemistry_operator import ChemistryOperator
+from .chemistry_operator import (ChemistryOperator, MolecularChemistryResult,
+                                 MolecularGroundStateResult, MolecularExcitedStatesResult)
 from .hamiltonian import Hamiltonian, TransformationType, QubitMappingType
 
 __all__ = ['ChemistryOperator',
+           'MolecularChemistryResult',
+           'MolecularGroundStateResult',
+           'MolecularExcitedStatesResult',
            'Hamiltonian',
            'TransformationType',
            'QubitMappingType']
