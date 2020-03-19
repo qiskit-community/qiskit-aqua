@@ -90,7 +90,7 @@ class FCIDumpDriver(BaseDriver):
 
     @staticmethod
     def dump(q_mol: QMolecule, outpath: str, orbsym: Optional[List[int]] = None,
-             isym: Optional[int] = 1) -> None:
+             isym: int = 1) -> None:
         """Convenience method to produce an FCIDump output file.
 
         Args:

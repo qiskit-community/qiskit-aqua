@@ -21,7 +21,7 @@ import numpy as np
 
 
 def dump(outpath: str, norb: int, nelec: int, hijs: List[float], hijkls: List[float], einact: float,
-         ms2: Optional[int] = 0, orbsym: Optional[List[int]] = None, isym: Optional[int] = 1
+         ms2: int = 0, orbsym: Optional[List[int]] = None, isym: int = 1
          ) -> None:
     # pylint: disable=wrong-spelling-in-docstring
     """Generates a FCIDump output.
@@ -70,7 +70,7 @@ def dump(outpath: str, norb: int, nelec: int, hijs: List[float], hijkls: List[fl
 
 
 def _dump_1e_ints(hij: List[float], mos: List[int], outfile: TextIOWrapper,
-                  beta: Optional[bool] = False) -> None:
+                  beta: bool = False) -> None:
     idx_offset = 1 if not beta else 1+len(mos)
     hij_elements = set()
     for i, j in itertools.product(mos, repeat=2):
@@ -84,7 +84,7 @@ def _dump_1e_ints(hij: List[float], mos: List[int], outfile: TextIOWrapper,
 
 
 def _dump_2e_ints(hijkl: List[float], mos: List[int], outfile: TextIOWrapper,
-                  beta: Optional[int] = 0) -> None:
+                  beta: int = 0) -> None:
     idx_offsets = [1, 1]
     for b in range(beta):
         idx_offsets[1-b] += len(mos)
