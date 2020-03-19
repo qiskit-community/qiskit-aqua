@@ -206,14 +206,13 @@ class MolecularGroundStateResult(MolecularChemistryResult):
 
     @property
     def reverse_dipole_sign(self) -> bool:
-        """ Returns if elect. dipole moment sign should be reversed when adding to nucl. part """
+        """ Returns if electronic dipole moment sign should be reversed when adding to nuclear """
         return self.get('reverse_dipole_sign')
 
     @reverse_dipole_sign.setter
     def reverse_dipole_sign(self, value: bool) -> None:
-        """ Sets if elect. dipole moment sign should be reversed when adding to nucl. part """
+        """ Sets if electronic dipole moment sign should be reversed when adding to nuclear """
         self.data['reverse_dipole_sign'] = value
-
 
     @property
     def total_dipole_moment(self) -> Optional[float]:
@@ -292,8 +291,8 @@ class MolecularGroundStateResult(MolecularChemistryResult):
     def has_observables(self):
         """ Returns whether result has aux op observables such as spin, num particles """
         return self.total_angular_momentum is not None \
-               or self.num_particles is not None \
-               or self.magnetization is not None
+            or self.num_particles is not None \
+            or self.magnetization is not None
 
     @property
     def total_angular_momentum(self) -> Optional[float]:

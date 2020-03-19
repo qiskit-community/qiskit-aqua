@@ -71,7 +71,7 @@ class TestAppMGSE(QiskitChemistryTestCase):
         self.assertEqual(formatted[10], '=== DIPOLE MOMENT ===')
         self.assertEqual(formatted[14], '  - frozen energy part: [0.0  0.0  0.0]')
         self.assertEqual(formatted[15], '  - particle hole part: [0.0  0.0  0.0]')
-        self.assertEqual(formatted[18][0:37], '               (debye): [0.0  0.0  7.')
+        self.assertEqual(formatted[18], '               (debye): [0.0  0.0  0.0]  Total: 0.')
 
     def test_mgse_vqe(self):
         """ Test Molecular Ground State Energy VQE solver """

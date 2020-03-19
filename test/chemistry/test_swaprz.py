@@ -59,5 +59,5 @@ class TestSwapRZ(QiskitChemistryTestCase):
         result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),
                                           seed_simulator=aqua_globals.random_seed,
                                           seed_transpiler=aqua_globals.random_seed))
-        _, result = operator.process_algorithm_result(result)
-        self.assertAlmostEqual(result['energy'], self.reference_energy, places=6)
+        result = operator.process_algorithm_result(result)
+        self.assertAlmostEqual(result.energy, self.reference_energy, places=6)

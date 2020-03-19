@@ -101,6 +101,6 @@ class TestSymmetries(QiskitChemistryTestCase):
 
         algo_result = algo.run(quantum_instance)
 
-        _, result = self.core.process_algorithm_result(algo_result)
+        result = self.core.process_algorithm_result(algo_result)
 
-        self.assertAlmostEqual(result['energy'], self.reference_energy, places=6)
+        self.assertAlmostEqual(result.energy, self.reference_energy, places=6)
