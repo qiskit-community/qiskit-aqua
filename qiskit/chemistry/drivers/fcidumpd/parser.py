@@ -29,8 +29,9 @@ def parse(fcidump: str) -> Dict[str, Any]:
     Args:
         fcidump: Path to the FCIDump file.
     Raises:
-        QiskitChemistryError: If the input file cannot be found, if wrong integral indices are
-            encountered, or if the alpha/beta or beta/alpha 2-electron integrals are mixed.
+        QiskitChemistryError: If the input file cannot be found, if a required field in the FCIDump
+            file is missing, if wrong integral indices are encountered, or if the alpha/beta or
+            beta/alpha 2-electron integrals are mixed.
     Returns:
         A dictionary storing the parsed data.
     """
@@ -55,9 +56,13 @@ def parse(fcidump: str) -> Dict[str, Any]:
     pattern = r'.*?([-+]?\d*\.\d+|[-+]?\d+),'
     # we parse the values in the order in which they are listed in Knowles1989
     _norb = re.search('NORB'+pattern, metadata)
+    if _norb is None:
+        raise QiskitChemistryError("The required NORB entry of the FCIDump format is missing!")
     norb = int(_norb.groups()[0])
     output['NORB'] = norb
     _nelec = re.search('NELEC'+pattern, metadata)
+    if _nelec is None:
+        raise QiskitChemistryError("The required NELEC entry of the FCIDump format is missing!")
     output['NELEC'] = int(_nelec.groups()[0])
     # the rest of these values may occur and are set to their defaults otherwise
     _ms2 = re.search('MS2'+pattern, metadata)
