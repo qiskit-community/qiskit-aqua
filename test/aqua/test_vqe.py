@@ -198,7 +198,7 @@ class TestVQE(QiskitAquaTestCase):
             with open(self.get_resource_path(tmp_filename)) as file:
                 idx = 0
                 for record in file.readlines():
-                    eval_count, parameters, mean, std = record.split(",")
+                    eval_count, parameters, mean, _ = record.split(",")
                     self.assertEqual(eval_count.strip(), ref_content[idx][0])
                     self.assertEqual(parameters, ref_content[idx][1])
                     self.assertEqual(mean.strip(), ref_content[idx][2])
