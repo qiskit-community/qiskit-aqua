@@ -15,7 +15,7 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 > -   **Fixed**: for any bug fixes.
 > -   **Security**: in case of vulnerabilities.
 
-[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.4...HEAD)
+[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.5...HEAD)
 ========================================================================
 
 Changed
@@ -25,6 +25,19 @@ Changed
 -   Refactor Multiclass Extensions to set Estimator internally (#822)
 -   Refactor algorithms (#831)
 -   Moved to Terra: multi-controlled Toffoli, U1 and Pauli rotation gates (including tests) (#833)
+
+[0.6.5](https://github.com/Qiskit/qiskit-aqua/compare/0.6.4...0.6.5) - 2020-03-16
+=================================================================================
+
+Removed
+-------
+
+-  Removed cvxopt from installation. (#858)
+
+Fixed
+-----
+
+-  Fixes issue #768. The AQGD optimizer if condition in func converged was ignored. That kept breaking the while loop for training. (#858)
 
 [0.6.4](https://github.com/Qiskit/qiskit-aqua/compare/0.6.3...0.6.4) - 2020-02-06
 =================================================================================
