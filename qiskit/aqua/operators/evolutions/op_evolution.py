@@ -107,6 +107,9 @@ class OpEvolution(OpPrimitive):
 
         other = self._check_zero_for_composition_and_expand(other)
 
+        if isinstance(other, OpComposition):
+            return OpComposition([self] + other.oplist)
+
         return OpComposition([self, other])
 
     def to_matrix(self, massive=False):
