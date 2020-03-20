@@ -49,38 +49,36 @@ class YearChecker:
         year = YearChecker._get_year_from_date(out)
         return year, err
 
-    def _process_file_last_year(self, file_path):
-        file = file_path.replace(self._root_dir, '')
-        if file.startswith('/'):
-            file = file[1:]
-
-        cmd = ['git', 'log', '--format=%aI', '--', file]
-        popen_git = subprocess.Popen(cmd,
-                                     cwd=self._root_dir,
-                                     stdin=subprocess.DEVNULL,
-                                     stdout=subprocess.PIPE,
-                                     stderr=subprocess.PIPE)
-        cmd = ['head', '-1']
-        popen = subprocess.Popen(cmd,
-                                 stdin=popen_git.stdout,
+    def _process_file_last_year(self, relative_path):
+        # construct minimal environment
+        env = {}
+        for k in ['SYSTEMROOT', 'PATH']:
+            v = os.environ.get(k)
+            if v is not None:
+                env[k] = v
+        # LANGUAGE is used on win32
+        env['LANGUAGE'] = 'C'
+        env['LANG'] = 'C'
+        env['LC_ALL'] = 'C'
+        popen = subprocess.Popen(['git', 'log', '-1', '--format=%aI', relative_path],
+                                 cwd=self._root_dir,
+                                 env=env,
+                                 stdin=subprocess.DEVNULL,
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE)
         out, err = popen.communicate()
-
-        popen_git.wait()
         popen.wait()
-
         return YearChecker._format_output(out, err)
 
-    def _get_file_last_year(self, file_path):
+    def _get_file_last_year(self, relative_path):
         last_year = None
         errors = []
         try:
-            last_year, err = self._process_file_last_year(file_path)
+            last_year, err = self._process_file_last_year(relative_path)
             if err:
                 errors.append(err)
         except Exception as ex:  # pylint: disable=broad-except
-            errors.append("'{}' Last year: {}".format(file_path, str(ex)))
+            errors.append("'{}' Last year: {}".format(relative_path, str(ex)))
 
         if errors:
             raise ValueError(' - '.join(errors))
@@ -116,16 +114,16 @@ class YearChecker:
                     elif len(curr_years) == 1:
                         header_start_year = header_last_year = curr_years[0]
 
-                    last_year = self._get_file_last_year(file_path)
+                    relative_path = os.path.relpath(file_path, self._root_dir)
+                    last_year = self._get_file_last_year(relative_path)
                     if last_year and header_last_year != last_year:
                         new_line = '# (C) Copyright IBM '
                         if header_start_year and header_start_year != last_year:
                             new_line += '{}, '.format(header_start_year)
 
                         new_line += '{}.\n'.format(now.year)
-                        rel_path = os.path.relpath(file_path, self._root_dir)
                         print("Wrong Copyright Year: '{}': Current: '{}' Correct: '{}'".format(
-                            rel_path, line[:-1], new_line[:-1]))
+                            relative_path, line[:-1], new_line[:-1]))
 
                         file_with_invalid_year = True
 
