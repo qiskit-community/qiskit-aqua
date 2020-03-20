@@ -234,7 +234,7 @@ class MolecularGroundStateResult(MolecularChemistryResult):
         """ Returns dipole moment """
         edm = self.electronic_dipole_moment
         if self.reverse_dipole_sign:
-            edm = tuple(-x if x is not None else None for x in edm)
+            edm = tuple(-1 * x if x is not None else None for x in edm)
         return _dipole_tuple_add(edm, self.nuclear_dipole_moment)
 
     @property
