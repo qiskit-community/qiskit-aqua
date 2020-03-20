@@ -41,21 +41,37 @@ class TestAppMGSE(QiskitChemistryTestCase):
                                       charge=0,
                                       spin=0,
                                       basis='sto3g')
+
         except QiskitChemistryError:
             self.skipTest('PYSCF driver does not appear to be installed')
 
-        self.cme = NumPyMinimumEigensolver()
+        self.npme = NumPyMinimumEigensolver()
 
         self.vqe = VQE(var_form=RY(2))
         self.vqe.set_backend(BasicAer.get_backend('statevector_simulator'))
 
         self.reference_energy = -1.137306
 
-    def test_mgse_cme(self):
-        """ Test Molecular Ground State Energy classical solver """
-        mgse = MolecularGroundStateEnergy(self.driver, self.cme)
+    def test_mgse_npme(self):
+        """ Test Molecular Ground State Energy NumPy classical solver """
+        mgse = MolecularGroundStateEnergy(self.driver, self.npme)
         result = mgse.compute_energy()
         self.assertAlmostEqual(result.energy, self.reference_energy, places=5)
+
+        formatted = result.formatted
+        # Check formatted output conforms, some substrings to avoid numbers whose digits may
+        # vary slightly
+        self.assertEqual(len(formatted), 19)
+        self.assertEqual(formatted[0], '=== GROUND STATE ENERGY ===')
+        self.assertEqual(formatted[4], '  - frozen energy part: 0.0')
+        self.assertEqual(formatted[5], '  - particle hole part: 0.0')
+        self.assertEqual(formatted[7][0:44], '> Total ground state energy (Hartree): -1.13')
+        self.assertEqual(formatted[8],
+                         '  Measured:: # Particles: 2.000 S: 0.000 S^2: 0.000 M: 0.00000')
+        self.assertEqual(formatted[10], '=== DIPOLE MOMENT ===')
+        self.assertEqual(formatted[14], '  - frozen energy part: [0.0  0.0  0.0]')
+        self.assertEqual(formatted[15], '  - particle hole part: [0.0  0.0  0.0]')
+        self.assertEqual(formatted[18], '               (debye): [0.0  0.0  0.0]  Total: 0.')
 
     def test_mgse_vqe(self):
         """ Test Molecular Ground State Energy VQE solver """
@@ -69,7 +85,7 @@ class TestAppMGSE(QiskitChemistryTestCase):
         with self.assertRaises(QiskitChemistryError):
             _ = mgse.compute_energy()
 
-        mgse.solver = self.cme
+        mgse.solver = self.npme
         result = mgse.compute_energy()
         self.assertAlmostEqual(result.energy, self.reference_energy, places=5)
 
