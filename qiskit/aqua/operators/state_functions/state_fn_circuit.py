@@ -248,9 +248,7 @@ class StateFnCircuit(StateFn):
 
     def __str__(self):
         """Overload str() """
-        qc = QuantumCircuit(self.num_qubits)
-        qc.append(self.primitive, range(self.num_qubits))
-        qc = qc.decompose()
+        qc = self.reduce().to_circuit()
         prim_str = str(qc.draw(output='text'))
         if self.coeff == 1.0:
             return "{}(\n{}\n)".format('StateFunction' if not self.is_measurement
@@ -296,7 +294,8 @@ class StateFnCircuit(StateFn):
         else:
             qc = QuantumCircuit(self.num_qubits)
             qc.append(self.primitive, qargs=range(self.primitive.num_qubits))
-        return qc
+        # Need to decompose to unwrap instruction. TODO this is annoying, fix it
+        return qc.decompose()
 
     # TODO specify backend?
     def sample(self, shots=1024, massive=False):

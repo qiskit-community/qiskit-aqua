@@ -187,9 +187,7 @@ class OpCircuit(OpPrimitive):
 
     def __str__(self):
         """Overload str() """
-        qc = QuantumCircuit(self.num_qubits)
-        qc.append(self.primitive, range(self.num_qubits))
-        qc = qc.decompose()
+        qc = self.reduce().to_circuit()
         prim_str = str(qc.draw(output='text'))
         if self.coeff == 1.0:
             return prim_str
