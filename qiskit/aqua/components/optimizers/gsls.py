@@ -33,25 +33,28 @@ class GSLS(Optimizer):
 
     """
 
-    _OPTIONS = ['max_iter', 'disp', 'sampling_radius', 'sample_size_factor',
-                'initial_step_size', 'min_step_size', 'step_size_multiplier',
-                'armijo_parameter', 'min_gradient_norm',
-                'max_failed_rejection_sampling']
+    _OPTIONS = ['max_iter', 'max_eval', 'disp', 'sampling_radius',
+                'sample_size_factor', 'initial_step_size', 'min_step_size',
+                'step_size_multiplier', 'armijo_parameter',
+                'min_gradient_norm', 'max_failed_rejection_sampling']
 
     # pylint: disable=unused-argument
     def __init__(self,
-                 max_iter: int = 1000,
+                 max_iter: int = 10000,
+                 max_eval: int = 10000,
                  disp: bool = False,
-                 sampling_radius: float = 1.0e-3,
+                 sampling_radius: float = 1.0e-6,
                  sample_size_factor: int = 1,
-                 initial_step_size: float = 1.0e-1,
+                 initial_step_size: float = 1.0e-2,
                  min_step_size: float = 1.0e-10,
-                 step_size_multiplier: float = 0.5,
-                 armijo_parameter: float = 1.0e-2,
-                 min_gradient_norm: float = 1e-5, 
+                 step_size_multiplier: float = 0.4,
+                 armijo_parameter: float = 1.0e-1,
+                 min_gradient_norm: float = 1e-8,
                  max_failed_rejection_sampling: int = 50) -> None:
         """Args:
 
+        max_iter : Maximum number of iterations
+        max_eval : Maximum number of evaluations
         sampling_radius : Sampling radius to determine gradient
                           estimate.
         sample_size_factor : The size of the sample set at each
@@ -144,10 +147,15 @@ class GSLS(Optimizer):
         x = initial_point
         x_value = obj_fun(x)
         n_evals += 1
-        while (iter_count < self._options['max_iter'] and not stop):
+        while (iter_count < self._options['max_iter'] and
+               n_evals < self._options['max_eval'] and not stop):
             # Determine set of sample points
             u, sample_set_x = self.sample_set(n, x, var_lb, var_ub,
                                               sample_set_size)
+            if (n_evals + len(sample_set_x) + 1 >= self._options['max_eval']):
+                # The evaluation budget is too small to allow for
+                # another full iteration; we therefore exit now
+                break
             sample_set_y = np.array(
                 [obj_fun(point) for point in sample_set_x])
             n_evals += len(sample_set_x)
@@ -168,17 +176,17 @@ class GSLS(Optimizer):
             if (self._options['disp']):
                 print('Iter {:d}'.format(iter_count))
                 print('Point ' + str(x) + ' obj ' + str(x_value))
-                print('Gradient' + str(grad))            
+                print('Gradient' + str(grad))
                 print('Grad norm ' + str(grad_norm) + ' new_x_value ' +
                       str(new_x_value) + ' step size ' + str(alpha))
                 print('Direction ' + str(d))
-            # Test Armijo condition for sufficient decrease            
+            # Test Armijo condition for sufficient decrease
             if (new_x_value <= x_value -
-                self._options['armijo_parameter'] * alpha * grad_norm):
-                # Accept point                
+                    self._options['armijo_parameter'] * alpha * grad_norm):
+                # Accept point
                 x = new_x
                 x_value = new_x_value
-                alpha /= self._options['step_size_multiplier']
+                alpha /= 2*self._options['step_size_multiplier']
                 prev_iter_successful = True
                 consecutive_fail_iter = 0
                 # Reset sample set
@@ -196,7 +204,7 @@ class GSLS(Optimizer):
                 prev_sample_set_y = sample_set_y
             iter_count += 1
             if (grad_norm <= self._options['min_gradient_norm'] or
-                alpha <= self._options['min_step_size']):
+                    alpha <= self._options['min_step_size']):
                 stop = True
         return x, x_value, n_evals, grad_norm
     # -- end function
@@ -224,7 +232,7 @@ class GSLS(Optimizer):
 
         """
         # Generate points uniformly on the sphere
-        normal_samples = np.random.normal(size=(num_points,n))
+        normal_samples = np.random.normal(size=(num_points, n))
         row_norms = np.sqrt(np.sum(normal_samples**2, 1, keepdims=True))
         directions = normal_samples / row_norms
         points = x + self._options['sampling_radius'] * directions
@@ -243,7 +251,7 @@ class GSLS(Optimizer):
             while (len(accepted) < num_points and
                    num_trials < self._options['max_failed_rejection_sampling']):
                 # Generate points uniformly on the sphere
-                normal_samples = np.random.normal(size=(num_points,n))
+                normal_samples = np.random.normal(size=(num_points, n))
                 row_norms = np.sqrt(np.sum(normal_samples**2, 1,
                                            keepdims=True))
                 directions = normal_samples / row_norms
@@ -259,7 +267,7 @@ class GSLS(Optimizer):
             # different method that guarantees finding enough points,
             # but they may not be uniformly distributed.
             if (len(accepted) < num_points):
-                normal_samples = np.random.normal(size=(num_points,n))
+                normal_samples = np.random.normal(size=(num_points, n))
                 row_norms = np.sqrt(np.sum(normal_samples**2, 1,
                                            keepdims=True))
                 directions = normal_samples / row_norms
@@ -272,7 +280,7 @@ class GSLS(Optimizer):
                 accepted = np.vstack((accepted, directions[indices]))
             # If we still do not have enough sampling points, we have
             # failed.
-            if (len(accepted) < num_points):                
+            if (len(accepted) < num_points):
                 raise RuntimeError('Could not generate enough samples ' +
                                    'within bounds; try smaller radius.')
             return (accepted[:num_points],
@@ -306,4 +314,3 @@ class GSLS(Optimizer):
             self._options['sampling_radius'] * directions, 0))
         return gradient
     # -- end function
-
