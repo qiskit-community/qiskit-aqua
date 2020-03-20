@@ -55,7 +55,7 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
             smallest_idx = -1
             for idx, _ in enumerate(tapered_ops):
                 ee = NumPyMinimumEigensolver(tapered_ops[idx])
-                curr_value = ee.run()['energy']
+                curr_value = ee.compute_minimum_eigenvalue().eigenvalue.real
                 if curr_value < smallest_eig_value:
                     smallest_eig_value = curr_value
                     smallest_idx = idx
@@ -103,8 +103,8 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
 
         algo = VQE(self.qubit_op, var_form, optimizer)
         result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
-        _, result = self.core.process_algorithm_result(result)
-        self.assertAlmostEqual(result['energy'], self.reference_energy_pUCCD, places=6)
+        result = self.core.process_algorithm_result(result)
+        self.assertAlmostEqual(result.energy, self.reference_energy_pUCCD, places=6)
 
     def test_uccsd_hf_qUCCD0(self):
         """ singlet uccd test """
@@ -131,8 +131,8 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
 
         algo = VQE(self.qubit_op, var_form, optimizer)
         result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
-        _, result = self.core.process_algorithm_result(result)
-        self.assertAlmostEqual(result['energy'], self.reference_energy_UCCD0, places=6)
+        result = self.core.process_algorithm_result(result)
+        self.assertAlmostEqual(result.energy, self.reference_energy_UCCD0, places=6)
 
     def test_uccsd_hf_qUCCD0full(self):
         """ singlet full uccd test """
@@ -160,8 +160,8 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
 
         algo = VQE(self.qubit_op, var_form, optimizer)
         result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
-        _, result = self.core.process_algorithm_result(result)
-        self.assertAlmostEqual(result['energy'], self.reference_energy_UCCD0full, places=6)
+        result = self.core.process_algorithm_result(result)
+        self.assertAlmostEqual(result.energy, self.reference_energy_UCCD0full, places=6)
 
     def test_uccsd_hf_qUCCSD(self):
         """ uccsd tapering test using all double excitations """
@@ -194,8 +194,8 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         algo = VQE(self.the_tapered_op, var_form, optimizer)
 
         result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
-        _, result = self.core.process_algorithm_result(result)
-        self.assertAlmostEqual(result['energy'], self.reference_energy_UCCSD, places=6)
+        result = self.core.process_algorithm_result(result)
+        self.assertAlmostEqual(result.energy, self.reference_energy_UCCSD, places=6)
 
     def test_uccsd_hf_excitations(self):
         """ uccsd tapering test using all double excitations """

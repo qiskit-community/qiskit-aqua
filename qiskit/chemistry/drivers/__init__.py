@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -78,6 +78,7 @@ on any external chemistry program/library and needs no special install.
 
 """
 from ._basedriver import BaseDriver, UnitsType, HFMethodType
+from .fcidumpd import FCIDumpDriver
 from .gaussiand import GaussianDriver
 from .hdf5d import HDF5Driver
 from .psi4d import PSI4Driver
@@ -87,6 +88,7 @@ from .pyscfd import PySCFDriver, InitialGuess
 __all__ = ['BaseDriver',
            'UnitsType',
            'HFMethodType',
+           'FCIDumpDriver',
            'GaussianDriver',
            'HDF5Driver',
            'PSI4Driver',
