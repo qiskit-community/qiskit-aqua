@@ -66,6 +66,9 @@ class OpEvolution(OpPrimitive):
         if isinstance(other, OpEvolution) and self.primitive == other.primitive:
             return OpEvolution(self.primitive, coeff=self.coeff + other.coeff)
 
+        if isinstance(other, OpSum):
+            return OpSum([self] + other.oplist)
+
         return OpSum([self, other])
 
     def adjoint(self):
@@ -90,6 +93,9 @@ class OpEvolution(OpPrimitive):
         -[X]-
         Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
         """
+        if isinstance(other, OpKron):
+            return OpKron([self] + other.oplist)
+
         return OpKron([self, other])
 
     def compose(self, other):
