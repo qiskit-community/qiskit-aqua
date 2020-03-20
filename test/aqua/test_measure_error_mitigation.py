@@ -17,6 +17,7 @@
 import unittest
 import time
 
+from test.aqua import QiskitAquaTestCase
 import numpy as np
 from qiskit.ignis.mitigation.measurement import CompleteMeasFitter
 from qiskit import QuantumCircuit
@@ -24,7 +25,6 @@ from qiskit import QuantumCircuit
 from qiskit.aqua.components.oracles import LogicalExpressionOracle
 from qiskit.aqua import QuantumInstance, aqua_globals, AquaError
 from qiskit.aqua.algorithms import Grover
-from test.aqua import QiskitAquaTestCase
 
 
 class TestMeasurementErrorMitigation(QiskitAquaTestCase):
@@ -155,7 +155,6 @@ class TestMeasurementErrorMitigation(QiskitAquaTestCase):
         self.assertGreater(total_diff, 0.0)
         self.assertGreater(timestamp_2, timestamp_1)
 
-
     def test_measurement_error_mitigation_with_diff_qubit_order(self):
         """ measurement error mitigation with dedicated shots test """
         # pylint: disable=import-outside-toplevel
@@ -168,7 +167,7 @@ class TestMeasurementErrorMitigation(QiskitAquaTestCase):
         noise_model = noise.NoiseModel()
         read_err = noise.errors.readout_error.ReadoutError([[0.9, 0.1], [0.25, 0.75]])
         noise_model.add_all_qubit_readout_error(read_err)
-        
+
         backend = Aer.get_backend('qasm_simulator')
         quantum_instance = QuantumInstance(backend=backend,
                                            seed_simulator=1679,
