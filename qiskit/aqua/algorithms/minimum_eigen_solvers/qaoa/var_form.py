@@ -18,7 +18,7 @@ from typing import Optional
 
 import numpy as np
 
-from qiskit.aqua.operators import OperatorBase, X, H, Zero, StateFnCircuit, EvolutionBase
+from qiskit.aqua.operators import OperatorBase, X, I, H, Zero, StateFnCircuit, EvolutionBase
 from qiskit.aqua.components.variational_forms import VariationalForm
 from qiskit.aqua.components.initial_states import InitialState
 
@@ -62,7 +62,11 @@ class QAOAVarForm(VariationalForm):
 
         # prepare the mixer operator
         if mixer_operator is None:
-            self._mixer_operator = X ^ self._cost_operator.num_qubits
+            # Mixer is just a sum of single qubit X's on each qubit. Evolving by this operator
+            # will simply produce rx's on each qubit.
+            num_qubits = self._cost_operator.num_qubits
+            mixer_terms = [(I^left) ^ X ^ (I^(num_qubits-left-1)) for left in range(num_qubits)]
+            self._mixer_operator = sum(mixer_terms)
         else:
             if not isinstance(mixer_operator, OperatorBase):
                 raise TypeError('The mixer should be a qiskit.aqua.operators.OperatorBase '
