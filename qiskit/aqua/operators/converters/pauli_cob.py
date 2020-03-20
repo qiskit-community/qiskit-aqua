@@ -185,14 +185,15 @@ class PauliChangeOfBasis(ConverterBase):
         num_qubits = max(pauli_op1.num_qubits, pauli_op2.num_qubits)
         pauli_1, pauli_2 = pauli_op1.primitive, pauli_op2.primitive
 
+        # Padding to the end of the Pauli, but remember that Paulis are in reverse endian-ness.
         if not len(pauli_1.z) == num_qubits:
             missing_qubits = num_qubits - len(pauli_1.z)
-            pauli_1 = Pauli(z=pauli_1.z.tolist() + ([False] * missing_qubits),
-                            x=pauli_1.x.tolist() + ([False] * missing_qubits))
+            pauli_1 = Pauli(z=([False] * missing_qubits) + pauli_1.z.tolist(),
+                            x=([False] * missing_qubits) + pauli_1.x.tolist())
         if not len(pauli_2.z) == num_qubits:
             missing_qubits = num_qubits - len(pauli_2.z)
-            pauli_2 = Pauli(z=pauli_2.z.tolist() + ([False] * missing_qubits),
-                            x=pauli_2.x.tolist() + ([False] * missing_qubits))
+            pauli_2 = Pauli(z=([False] * missing_qubits) + pauli_2.z.tolist(),
+                            x=([False] * missing_qubits) + pauli_2.x.tolist())
 
         return OpPauli(pauli_1, coeff=pauli_op1.coeff), OpPauli(pauli_2, coeff=pauli_op2.coeff)
 

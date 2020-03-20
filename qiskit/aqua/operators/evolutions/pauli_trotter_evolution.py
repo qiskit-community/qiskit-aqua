@@ -19,7 +19,7 @@ import itertools
 import networkx as nx
 import numpy as np
 
-from ..operator_globals import Z
+from ..operator_globals import Z, I
 from .evolution_base import EvolutionBase
 from ..operator_combos import OpVec, OpSum
 from ..operator_primitives import OpPauli
@@ -35,7 +35,7 @@ class PauliTrotterEvolution(EvolutionBase):
 
     """
 
-    def __init__(self, trotter_mode='suzuki', reps=1, group_paulis=True):
+    def __init__(self, trotter_mode='trotter', reps=1, group_paulis=True):
         """
         Args:
 
@@ -94,7 +94,9 @@ class PauliTrotterEvolution(EvolutionBase):
 
         # Note: PauliChangeOfBasis will pad destination with identities
         # to produce correct CoB circuit
-        destination = Z * pauli_op.coeff
+        sig_bits = np.logical_or(pauli_op.primitive.z, pauli_op.primitive.x)
+        a_sig_bit = int(max(np.extract(sig_bits, np.arange(pauli_op.num_qubits)[::-1])))
+        destination = (I.kronpower(a_sig_bit)) ^ (Z * pauli_op.coeff)
         cob = PauliChangeOfBasis(destination_basis=destination, replacement_fn=replacement_fn)
         return cob.convert(pauli_op)
 
