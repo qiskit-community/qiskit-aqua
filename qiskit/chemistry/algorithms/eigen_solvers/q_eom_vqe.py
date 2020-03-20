@@ -96,7 +96,7 @@ class QEomVQE(VQE):
                 num_particles))
         super().__init__(operator.copy(), var_form, optimizer, initial_point=initial_point,
                          max_evals_grouped=max_evals_grouped, aux_operators=aux_operators,
-                         callback=callback, auto_conversion=auto_conversion)
+                         callback=callback)
 
         self.qeom = QEquationOfMotion(operator, num_orbitals, num_particles,
                                       qubit_mapping, two_qubit_reduction, active_occupied,

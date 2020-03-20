@@ -28,7 +28,8 @@ from qiskit import ClassicalRegister
 from qiskit.circuit import ParameterVector
 
 from qiskit.aqua import AquaError
-from qiskit.aqua.operators import OperatorBase, ExpectationBase, StateFnCircuit
+from qiskit.aqua.operators import (OperatorBase, ExpectationBase, StateFnCircuit,
+                                   LegacyBaseOperator, OpVec, I)
 from qiskit.aqua.components.optimizers import Optimizer, SLSQP
 from qiskit.aqua.components.variational_forms import VariationalForm, RY
 from qiskit.aqua.utils.validation import validate_min
@@ -83,7 +84,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                  initial_point: Optional[np.ndarray] = None,
                  expectation_value: Optional[ExpectationBase] = None,
                  max_evals_grouped: int = 1,
-                 # TODO delete usage of aux_operators in favor of ExpectationValue
+                 aux_operators: Optional[OperatorBase] = None,
                  callback: Optional[Callable[[int, np.ndarray, float, float], None]] = None,
                  # TODO delete all instances of auto_conversion
                  ) -> None:
@@ -103,6 +104,10 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                 possible when a finite difference gradient is used by the optimizer such that
                 multiple points to compute the gradient can be passed and if computed in parallel
                 improve overall execution time.
+            aux_operators: Optional OpVec or list of auxiliary operators to be evaluated with the
+                eigenstate of the minimum eigenvalue main result and their expectation values
+                returned. For instance in chemistry these can be dipole operators, total particle
+                count operators so we can get values for these at the ground state.
             callback: a callback that can access the intermediate data during the optimization.
                 Four parameter values are passed to the callback as follows during each evaluation
                 by the optimizer for its current set of parameters as it works towards the minimum.
@@ -139,6 +144,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         # TODO if we ingest backend we can set expectation through the factory here.
         self._expectation_value = expectation_value
         self.operator = operator
+        self.aux_operators = aux_operators
 
         self._eval_count = 0
         logger.info(self.print_settings())
@@ -155,6 +161,8 @@ class VQE(VQAlgorithm, MinimumEigensolver):
     @operator.setter
     def operator(self, operator: OperatorBase) -> None:
         """ set operator """
+        if isinstance(operator, LegacyBaseOperator):
+            operator = operator.to_opflow()
         self._operator = operator
         self._check_operator_varform()
         if self._expectation_value is not None:
@@ -172,18 +180,26 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         #  Or don't store it at all, only in exp?
         self._expectation_value = exp
 
-    # @property
-    # def aux_operators(self) -> List[LegacyBaseOperator]:
-    #     """ Returns aux operators """
-    #     return self._in_aux_operators
-    #
-    # @aux_operators.setter
-    # def aux_operators(self, aux_operators: List[LegacyBaseOperator]) -> None:
-    #     """ Set aux operators """
-    #     self._in_aux_operators = aux_operators
-    #     if self.var_form is not None:
-    #         self._var_form_params = ParameterVector('θ', self.var_form.num_parameters)
-    #     self._parameterized_circuits = None
+    @property
+    def aux_operators(self) -> List[LegacyBaseOperator]:
+        """ Returns aux operators """
+        return self._aux_operators
+
+    @aux_operators.setter
+    def aux_operators(self, aux_operators: List[LegacyBaseOperator]) -> None:
+        """ Set aux operators """
+        if isinstance(aux_operators, list):
+            converted = [op.to_opflow() for op in aux_operators]
+            # For some reason Chemistry passes aux_ops with 0 qubits and paulis sometimes. TODO fix
+            zero_op = I.kronpower(self.operator.num_qubits) * 0.0
+            converted = [zero_op if op == 0 else op for op in converted]
+            aux_operators = OpVec(converted)
+        elif isinstance(aux_operators, LegacyBaseOperator):
+            aux_operators = aux_operators.to_opflow()
+        self._aux_operators = aux_operators
+        if self.var_form is not None:
+            self._var_form_params = ParameterVector('θ', self.var_form.num_parameters)
+        self._parameterized_circuits = None
 
     @VQAlgorithm.var_form.setter
     def var_form(self, var_form: VariationalForm):
@@ -304,11 +320,23 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         result.combine(vqresult)
         result.eigenvalue = vqresult.optimal_value + 0j
         result.eigenstate = self.get_optimal_vector()
-        if 'aux_ops' in self._ret:
-            result.aux_operator_eigenvalues = self._ret['aux_ops'][0]
+
+        if self.aux_operators:
+            self._eval_aux_ops()
+            result.aux_operator_eigenvalues = self._ret['aux_ops']
+
         result.cost_function_evals = self._eval_count
 
         return result
+
+    def _eval_aux_ops(self, threshold=1e-12):
+        # Create a new ExpectationBase object to evaluate the auxops.
+        expect = self.expectation_value.__class__(operator=self.aux_operators,
+                                                  backend=self._quantum_instance,
+                                                  state=StateFnCircuit(self.get_optimal_circuit()))
+        values = np.real(expect.compute_expectation())
+        # Discard values below threshold
+        self._ret['aux_ops'] = values * (np.abs(values) > threshold)
 
     def compute_minimum_eigenvalue(
             self, operator: Optional[OperatorBase] = None,
@@ -329,6 +357,11 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         """
         num_parameter_sets = len(parameters) // self._var_form.num_parameters
         parameter_sets = np.split(parameters, num_parameter_sets)
+
+        # TODO this is a hack to make AdaptVQE work, but it should fixed in adapt and deleted.
+        if self._expectation_value is None:
+            self._expectation_value = ExpectationBase.factory(operator=self._operator,
+                                                              backend=self._quantum_instance)
 
         if not self._expectation_value.state:
             ansatz_circuit_op = StateFnCircuit(

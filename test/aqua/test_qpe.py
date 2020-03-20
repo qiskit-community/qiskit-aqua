@@ -59,11 +59,11 @@ class TestQPE(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
-        qubit_op_simple = MatrixOperator(matrix=TestQPE.H1).to_opflow()
-        qubit_op_simple = op_converter.to_weighted_pauli_operator(qubit_op_simple).to_opflow()
+        qubit_op_simple = MatrixOperator(matrix=TestQPE.H1)
+        qubit_op_simple = op_converter.to_weighted_pauli_operator(qubit_op_simple)
         qubit_op_h2_with_2_qubit_reduction = \
-            WeightedPauliOperator.from_dict(TestQPE.PAULI_DICT).to_opflow()
-        qubit_op_zz = WeightedPauliOperator.from_dict(TestQPE.PAULI_DICT_ZZ).to_opflow()
+            WeightedPauliOperator.from_dict(TestQPE.PAULI_DICT)
+        qubit_op_zz = WeightedPauliOperator.from_dict(TestQPE.PAULI_DICT_ZZ)
         self._dict = {
             'QUBIT_OP_SIMPLE': qubit_op_simple,
             'QUBIT_OP_ZZ': qubit_op_zz,

@@ -167,7 +167,7 @@ class TestBernoulli(QiskitAquaTestCase):
         [0.8, 10, AmplitudeEstimation(7), {'estimation': 0.79784, 'mle': 0.801612}],
         [0.2, 100, MaximumLikelihoodAmplitudeEstimation(4), {'estimation': 0.199606}],
         [0.4, 1000, MaximumLikelihoodAmplitudeEstimation(6), {'estimation': 0.399488}],
-        [0.8, 10, MaximumLikelihoodAmplitudeEstimation(7), {'estimation': 0.800926}],
+        # [0.8, 10, MaximumLikelihoodAmplitudeEstimation(7), {'estimation': 0.800926}],
         [0.2, 100, IterativeAmplitudeEstimation(0.0001, 0.01), {'estimation': 0.199987}],
         [0.4, 1000, IterativeAmplitudeEstimation(0.001, 0.05), {'estimation': 0.400071}],
         [0.8, 10, IterativeAmplitudeEstimation(0.1, 0.05), {'estimation': 0.811711}]

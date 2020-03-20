@@ -17,7 +17,7 @@
 from typing import List, Callable, Optional
 import logging
 import numpy as np
-from qiskit.aqua.operators import OperatorBase
+from qiskit.aqua.operators import OperatorBase, LegacyBaseOperator
 from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.components.optimizers import Optimizer
 from qiskit.aqua.utils.validation import validate_min
@@ -92,16 +92,6 @@ class QAOA(VQE):
                 by the optimizer for its current set of parameters as it works towards the minimum.
                 These are: the evaluation count, the optimizer parameters for the
                 variational form, the evaluated mean and the evaluated standard deviation.
-            auto_conversion: When ``True`` allows an automatic conversion for operator and
-                aux_operators into the type which is most suitable for the backend on which the
-                algorithm is run.
-
-                - for *non-Aer statevector simulator:*
-                  :class:`~qiskit.aqua.operators.MatrixOperator`
-                - for *Aer statevector simulator:*
-                  :class:`~qiskit.aqua.operators.WeightedPauliOperator`
-                - for *qasm simulator or real backend:*
-                  :class:`~qiskit.aqua.operators.TPBGroupedWeightedPauliOperator`
         """
         validate_min('p', p, 1)
 
@@ -119,6 +109,8 @@ class QAOA(VQE):
     def operator(self, operator: OperatorBase) -> None:
         """ Sets operator """
         if operator is not None:
+            if isinstance(operator, LegacyBaseOperator):
+                operator = operator.to_opflow()
             self._operator = operator
             self.var_form = QAOAVarForm(operator,
                                         self._p,

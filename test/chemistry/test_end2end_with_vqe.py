@@ -65,6 +65,7 @@ class TestEnd2End(QiskitChemistryTestCase):
         quantum_instance = QuantumInstance(backend, shots=shots)
         results = vqe.run(quantum_instance)
         self.assertAlmostEqual(results.eigenvalue.real, self.reference_energy, places=4)
+        # TODO test aux_ops properly
 
 
 if __name__ == '__main__':

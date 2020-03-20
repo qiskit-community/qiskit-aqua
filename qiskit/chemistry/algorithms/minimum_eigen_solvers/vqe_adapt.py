@@ -119,7 +119,7 @@ class VQEAdapt(VQAlgorithm):
             # construct auxiliary VQE instance
             vqe = VQE(operator, var_form, optimizer)
             vqe.quantum_instance = self.quantum_instance
-            vqe._operator = vqe._config_the_best_mode(operator, self.quantum_instance.backend)
+            # vqe._operator = vqe._config_the_best_mode(operator, self.quantum_instance.backend)
             vqe._use_simulator_snapshot_mode = self._use_simulator_snapshot_mode
             # evaluate energies
             parameter_sets = theta + [-delta] + theta + [delta]
@@ -143,8 +143,8 @@ class VQEAdapt(VQAlgorithm):
             AquaError: wrong setting of operator and backend.
         """
         self._ret = {}  # TODO should be eliminated
-        self._operator = VQE._config_the_best_mode(self, self._operator,
-                                                   self._quantum_instance.backend)
+        # self._operator = VQE._config_the_best_mode(self, self._operator,
+        #                                            self._quantum_instance.backend)
         self._use_simulator_snapshot_mode = \
             is_aer_statevector_backend(self._quantum_instance.backend) \
             and isinstance(self._operator, (WeightedPauliOperator, TPBGroupedWeightedPauliOperator))
