@@ -15,7 +15,7 @@
 This module implements a molecular Hamiltonian operator, representing the
 energy of the electrons and nuclei in a molecule.
 """
-
+import warnings
 from typing import Optional, List
 import logging
 from enum import Enum
@@ -286,6 +286,8 @@ class Hamiltonian(ChemistryOperator):
         return mgsr
 
     def _process_algorithm_result_deprecated(self, algo_result):
+        warnings.warn('Processing a dictionary result is deprecated,'
+                      ' pass a (minimum) eigensolver result now.', DeprecationWarning)
         # pylint: disable=len-as-condition
         result = {}
 
