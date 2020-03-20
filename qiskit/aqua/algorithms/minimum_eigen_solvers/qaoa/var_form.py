@@ -65,7 +65,8 @@ class QAOAVarForm(VariationalForm):
             # Mixer is just a sum of single qubit X's on each qubit. Evolving by this operator
             # will simply produce rx's on each qubit.
             num_qubits = self._cost_operator.num_qubits
-            mixer_terms = [(I^left) ^ X ^ (I^(num_qubits-left-1)) for left in range(num_qubits)]
+            mixer_terms = [(I ^ left) ^ X ^ (I ^ (num_qubits - left - 1))
+                           for left in range(num_qubits)]
             self._mixer_operator = sum(mixer_terms)
         else:
             if not isinstance(mixer_operator, OperatorBase):
