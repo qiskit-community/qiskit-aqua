@@ -33,7 +33,6 @@ requirements = [
     "numpy>=1.13",
     "psutil>=5",
     "scikit-learn>=0.20.0",
-    "cvxopt; python_version < '3.8' or sys_platform != 'win32'",
     "dlx",
     "docplex",
     "fastdtw",

@@ -12,27 +12,11 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
-Chemistry Applications (:mod:`qiskit.chemistry.applications`)
-=============================================================
-These are chemistry applications leveraging quantum algorithms
-from Aqua.
+"""FCIDump driver package.
 
-.. currentmodule:: qiskit.chemistry.applications
-
-Applications
-============
-
-.. autosummary::
-   :toctree: ../stubs/
-   :nosignatures:
-
-   MolecularGroundStateEnergy
-
+Contains tools to parse and dump FCIDump files.
 """
 
-from .molecular_ground_state_energy import MolecularGroundStateEnergy
+from .fcidumpdriver import FCIDumpDriver
 
-__all__ = [
-    'MolecularGroundStateEnergy'
-]
+__all__ = ['FCIDumpDriver']
