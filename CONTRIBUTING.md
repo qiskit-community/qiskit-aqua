@@ -24,7 +24,7 @@ When submitting a pull request and you feel it is ready for review,
 please ensure that:
 
 1. The code follows the _code style_ of the project and successfully
-   passes the _unit tests_. We use [Pylint](https://www.pylint.org) and
+   passes the _unit tests_. Aqua uses [Pylint](https://www.pylint.org) and
    [PEP8](https://www.python.org/dev/peps/pep-0008) style guidelines.
    
    You can run
@@ -68,17 +68,17 @@ please ensure that:
    deprecated entries as appropriate. The PR number should be added too. 
 
 5. Ensure all code, including unit tests, has the copyright header. The copyright
-   date will be checked by CI build. The format of the date(s) is 'first year of creation,
-   last year changed'. So for example
+   date will be checked by CI build. The format of the date(s) is _first year of creation,
+   last year changed_. So for example
    
    > \# (C) Copyright IBM 2018, 2020.
 
-   where the first year of creation is the same as last year changed then only
+   where the _first year of creation_ is the same as _last year changed_ then only
    one date is needed
 
    > \# (C) Copyright IBM 2020.
                                                                                                                                                                                                  
-   If code is changed in a file make sure the last year changed is the current year.
+   If code is changed in a file make sure the _last year changed_ is the current year.
    If there is but one date or a prior year then add it as the 2nd date, otherwise change
    the 2nd date to the current year. The year of creation date is never changed.
  
@@ -106,12 +106,11 @@ does not break any existing tests and that any new tests that you've added
 also run successfully. Before you open a new pull request for your change,
 you'll want to run the test suite locally.
 
-The test suite can be run from command line or via your IDE. Another way to run the
-test suite is to use [**tox**](https://tox.readthedocs.io/en/latest/#). Please refer to
+The test suite can be run from a command line or via your IDE. Another way to run the
+test suite is to use [**tox**](https://tox.readthedocs.io/en/latest/#). For more information
+about using tox please refer to
 [Terra CONTRIBUTING](https://github.com/Qiskit/qiskit-terra/blob/master/CONTRIBUTING.md#test)
-Test section for further information.
-
-However please note Aqua does not have any
+Test section. However please note Aqua does not have any
 [online tests](https://github.com/Qiskit/qiskit-terra/blob/master/CONTRIBUTING.md#online-tests)
 nor does it have
 [test skip
@@ -124,13 +123,13 @@ The development cycle for qiskit-aqua is informed by release plans in the
  
 ### Branches
 
-* `master`:
+* `master`
 
 The master branch is used for development of the next version of qiskit-aqua.
 It will be updated frequently and should not be considered stable. The API
 can and will change on master as we introduce and refine new features.
 
-* `stable`:
+* `stable`
 
 The stable branch is used to maintain released versions of qiskit-aqua.
 It is tagged for each version of the code corresponding to the release of
