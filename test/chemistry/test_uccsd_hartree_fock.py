@@ -37,23 +37,23 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
 
         driver = HDF5Driver(self.get_resource_path('test_driver_hdf5.hdf5'))
         qmolecule = driver.run()
-        operator = Hamiltonian(qubit_mapping=QubitMappingType.PARITY,
-                               two_qubit_reduction=True)
-        qubit_op, _ = operator.run(qmolecule)
+        core = Hamiltonian(qubit_mapping=QubitMappingType.PARITY,
+                           two_qubit_reduction=True)
+        qubit_op, _ = core.run(qmolecule)
 
         optimizer = SLSQP(maxiter=100)
         initial_state = HartreeFock(qubit_op.num_qubits,
-                                    operator.molecule_info['num_orbitals'],
-                                    operator.molecule_info['num_particles'],
-                                    qubit_mapping=operator._qubit_mapping,
-                                    two_qubit_reduction=operator._two_qubit_reduction)
+                                    core.molecule_info['num_orbitals'],
+                                    core.molecule_info['num_particles'],
+                                    qubit_mapping=core._qubit_mapping,
+                                    two_qubit_reduction=core._two_qubit_reduction)
         var_form = UCCSD(qubit_op.num_qubits, depth=1,
-                         num_orbitals=operator.molecule_info['num_orbitals'],
-                         num_particles=operator.molecule_info['num_particles'],
+                         num_orbitals=core.molecule_info['num_orbitals'],
+                         num_particles=core.molecule_info['num_particles'],
                          initial_state=initial_state,
-                         qubit_mapping=operator._qubit_mapping,
-                         two_qubit_reduction=operator._two_qubit_reduction)
+                         qubit_mapping=core._qubit_mapping,
+                         two_qubit_reduction=core._two_qubit_reduction)
         algo = VQE(qubit_op, var_form, optimizer)
         result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
-        _, result = operator.process_algorithm_result(result)
-        self.assertAlmostEqual(result['energy'], self.reference_energy, places=6)
+        result = core.process_algorithm_result(result)
+        self.assertAlmostEqual(result.energy, self.reference_energy, places=6)

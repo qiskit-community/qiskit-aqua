@@ -32,6 +32,7 @@ ast
 atol
 autosummary
 autorecovery
+auxops
 babbush
 backend
 backends

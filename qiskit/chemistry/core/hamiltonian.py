@@ -15,17 +15,17 @@
 This module implements a molecular Hamiltonian operator, representing the
 energy of the electrons and nuclei in a molecule.
 """
-
+import warnings
 from typing import Optional, List
 import logging
 from enum import Enum
 
 import numpy as np
+from qiskit.aqua.algorithms import MinimumEigensolverResult, EigensolverResult
 from qiskit.aqua.operators import Z2Symmetries
 from qiskit.chemistry import QMolecule
 from qiskit.chemistry.fermionic_operator import FermionicOperator
-from .chemistry_operator import ChemistryOperator
-
+from .chemistry_operator import ChemistryOperator, MolecularGroundStateResult
 
 logger = logging.getLogger(__name__)
 
@@ -241,6 +241,53 @@ class Hamiltonian(ChemistryOperator):
 
     # Called by public superclass method process_algorithm_result to complete specific processing
     def _process_algorithm_result(self, algo_result):
+        if isinstance(algo_result, MinimumEigensolverResult):
+            return self._process_algorithm_result_ground_state(algo_result)
+        elif isinstance(algo_result, EigensolverResult):
+            return self._process_algorithm_result_deprecated(algo_result)
+            # TODO return self._process_algorithm_result_excited_states(algo_result)
+        else:
+            return self._process_algorithm_result_deprecated(algo_result)
+
+    def _process_algorithm_result_ground_state(self, algo_result: MinimumEigensolverResult) \
+            -> MolecularGroundStateResult:
+        mgsr = MolecularGroundStateResult()
+        mgsr.algorithm_result = algo_result
+        mgsr.hartree_fock_energy = self._hf_energy
+        mgsr.nuclear_repulsion_energy = self._nuclear_repulsion_energy
+        if self._nuclear_dipole_moment is not None:
+            mgsr.nuclear_dipole_moment = tuple(x for x in self._nuclear_dipole_moment)
+        mgsr.computed_electronic_energy = algo_result.eigenvalue.real
+        mgsr.ph_extracted_energy = self._ph_energy_shift
+        mgsr.frozen_extracted_energy = self._energy_shift
+        aux_ops_vals = algo_result.aux_operator_eigenvalues
+        if aux_ops_vals is not None:
+            # Dipole results if dipole aux ops were present
+            dipole_idx = 3
+            if len(aux_ops_vals) > dipole_idx:
+                mgsr.reverse_dipole_sign = self._reverse_dipole_sign
+                dipm = []
+                for i in range(dipole_idx, dipole_idx+3):  # Gets X, Y and Z components
+                    dipm.append(aux_ops_vals[i][0].real if aux_ops_vals[i] is not None else None)
+                mgsr.computed_dipole_moment = tuple(dipm)
+                mgsr.ph_extracted_dipole_moment = (self._ph_x_dipole_shift,
+                                                   self._ph_y_dipole_shift,
+                                                   self._ph_z_dipole_shift)
+                mgsr.frozen_extracted_dipole_moment = (self._x_dipole_shift,
+                                                       self._y_dipole_shift,
+                                                       self._z_dipole_shift)
+            # The first 3 entries are num particles, total angular momentum and magnetization
+            mgsr.num_particles = aux_ops_vals[0][0].real \
+                if aux_ops_vals[0] is not None else None
+            mgsr.total_angular_momentum = aux_ops_vals[1][0].real \
+                if aux_ops_vals[1] is not None else None
+            mgsr.magnetization = aux_ops_vals[2][0].real \
+                if aux_ops_vals[2] is not None else None
+        return mgsr
+
+    def _process_algorithm_result_deprecated(self, algo_result):
+        warnings.warn('Processing a dictionary result is deprecated,'
+                      ' pass a (minimum) eigensolver result now.', DeprecationWarning)
         # pylint: disable=len-as-condition
         result = {}
 
