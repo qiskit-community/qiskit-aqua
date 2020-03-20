@@ -323,7 +323,8 @@ class VQE(VQAlgorithm, MinimumEigensolver):
 
         if self.aux_operators:
             self._eval_aux_ops()
-            result.aux_operator_eigenvalues = self._ret['aux_ops']
+            # TODO remove when ._ret is deprecated
+            result.aux_operator_eigenvalues = self._ret['aux_ops'][0]
 
         result.cost_function_evals = self._eval_count
 
@@ -336,7 +337,8 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                                                   state=StateFnCircuit(self.get_optimal_circuit()))
         values = np.real(expect.compute_expectation())
         # Discard values below threshold
-        self._ret['aux_ops'] = values * (np.abs(values) > threshold)
+        # TODO remove reshape when ._ret is deprecated
+        self._ret['aux_ops'] = (values * (np.abs(values) > threshold)).reshape(1, -1, 1)
 
     def compute_minimum_eigenvalue(
             self, operator: Optional[OperatorBase] = None,
