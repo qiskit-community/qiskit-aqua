@@ -185,7 +185,7 @@ class PauliChangeOfBasis(ConverterBase):
         num_qubits = max(pauli_op1.num_qubits, pauli_op2.num_qubits)
         pauli_1, pauli_2 = pauli_op1.primitive, pauli_op2.primitive
 
-        # Padding to the end of the Pauli, but remember that Paulis are in reverse endian-ness.
+        # Padding to the end of the Pauli, but remember that Paulis are in reverse endianness.
         if not len(pauli_1.z) == num_qubits:
             missing_qubits = num_qubits - len(pauli_1.z)
             pauli_1 = Pauli(z=([False] * missing_qubits) + pauli_1.z.tolist(),
