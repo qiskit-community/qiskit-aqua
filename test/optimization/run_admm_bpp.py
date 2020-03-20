@@ -7,6 +7,8 @@ import os
 import sys
 import numpy as np
 
+from qiskit.aqua.algorithms import NumPyMinimumEigensolver
+from qiskit.optimization.algorithms import MinimumEigenOptimizer, CplexOptimizer
 from qiskit.optimization.algorithms.admm_optimizer import ADMMOptimizer, ADMMParameters
 from qiskit.optimization.problems import OptimizationProblem
 
@@ -348,14 +350,66 @@ class Bpp:
 
         return solution
 
+    def run_op_eigens(self):
+        """Main method, which populates and solve the OptimizationProblem model via OptimizationAlgorithm
+
+        """
+
+        self.op = OptimizationProblem()
+
+        self.create_params()
+        self.create_vars()
+        self.create_obj()
+        self.create_cons()
+
+        # Save the model
+        create_folder(self.lp_folder)
+
+        self.op.write(self.lp_folder + "miskp.lp")
+
+        # QAOA
+        # optimizer = COBYLA()
+        # min_eigen_solver = QAOA(optimizer=optimizer)
+        # qubo_optimizer = MinimumEigenOptimizer(min_eigen_solver)
+        # Note: a backend needs to be given, otherwise an error is raised in the _run method of VQE.
+        # backend = 'statevector_simulator'
+        # # backend = 'qasm_simulator'
+        # min_eigen_solver.quantum_instance = BasicAer.get_backend(backend)
+
+        # use numpy exact diagonalization
+        # qubo_optimizer = MinimumEigenOptimizer(NumPyMinimumEigensolver())
+
+        # Cplex
+        qubo_optimizer = CplexOptimizer()
+
+        continuous_optimizer = CplexOptimizer()
+
+        admm_params = ADMMParameters(qubo_optimizer=qubo_optimizer, continuous_optimizer=continuous_optimizer)
+
+        solver = ADMMOptimizer(params=admm_params)
+        solution = solver.solve(self.op)
+
+        return solution
+
 
 def toy_op():
     n_items, n_bins, C, w = get_instance_params()
     pb = Bpp(n_items, n_bins, C, w)
     out = pb.run_op()
 
+def toy_op_eigens():
+
+    n_items, n_bins, C, w = get_instance_params()
+    pb = Bpp(n_items, n_bins, C, w)
+    result = pb.run_op_eigens()
+    # debug
+    print("results")
+    print("x={}".format(result.x))
+    print("fval={}".format(result.fval))
+
 
 if __name__ == '__main__':
     # toy_cplex_api()
-    toy_op()
+    # toy_op()
+    toy_op_eigens()
 
