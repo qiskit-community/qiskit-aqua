@@ -58,8 +58,8 @@ please ensure that:
    [install pyenchant](https://pyenchant.github.io/pyenchant/install.html) and be using
    hunspell-en-us as is used by the CI. 
    
-   For some words, such as names and technical terms etc., that are not in the en-us dictionary
-   and get flagged as being misspelled, despite being correct,
+   For some words, such as names, technical terms, referring to parameters of the method etc., 
+   that are not in the en-us dictionary and get flagged as being misspelled, despite being correct,
    there is a [.pylintdict](./.pylintdict) custom word list file, in the root of the Aqua repo,
    where such words can be added, in alphabetic order, as needed.
    
