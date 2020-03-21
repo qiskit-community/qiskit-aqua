@@ -2,14 +2,14 @@
 
 **We appreciate all kinds of help, so thank you!**
 
-First read the overall project contributing guidelines. These are all
-included in the Qiskit documentation:
+First please read the overall project contributing guidelines. These are
+included in the Qiskit documentation here:
 
 https://qiskit.org/documentation/contributing_to_qiskit.html
 
 ## Contributing to Qiskit Aqua
 
-In addition to the general guidelines there are specific details for
+In addition to the general guidelines above there are specific details for
 contributing to Aqua, these are documented below.
 
 ### Project Code Style.
@@ -23,7 +23,7 @@ should be written using the Google docstring format.
 When submitting a pull request and you feel it is ready for review,
 please ensure that:
 
-1. The code follows the _code style_ of the project and successfully
+1. The code follows the _code style_ of this project and successfully
    passes the _unit tests_. Aqua uses [Pylint](https://www.pylint.org) and
    [PEP8](https://www.python.org/dev/peps/pep-0008) style guidelines.
    
@@ -33,6 +33,8 @@ please ensure that:
    make style 
    ```
    from the root of the Aqua repository clone for lint and style conformance checks.
+   
+   For unit testing please see [Tests](#testing) section below.
    
 2. The documentation has been updated accordingly. In particular, if a
    function or class has been modified during the PR, please update the
@@ -46,10 +48,10 @@ please ensure that:
     make html
    ```
    in the 'docs' folder. You might also like to check the html output
-   to see the changes format as expected. You will find an index.html
+   to see the changes formatted output is as expected. You will find an index.html
    file in docs\_build\html and you can navigate from there.
    
-   Please note that a spell check is run in CI on the docstrings since the text
+   Please note that a spell check is run in CI, on the docstrings, since the text
    becomes part of the online [API Documentation](https://qiskit.org/documentation/).
    
    You can run `make spell` locally to check spelling though you would need to
@@ -59,7 +61,7 @@ please ensure that:
    For some words, such as names and technical terms etc., that are not in the en-us dictionary
    and get flagged as being misspelled, despite being correct,
    there is a .pylindict custom word list file, in the root of the Aqua repo, where such
-   words can be added as needed.
+   words can be added, in alphabetic order, as needed.
    
 3. If it makes sense for your change that you have added new tests that
    cover the changes and any new function.
@@ -69,18 +71,19 @@ please ensure that:
 
 5. Ensure all code, including unit tests, has the copyright header. The copyright
    date will be checked by CI build. The format of the date(s) is _first year of creation,
-   last year changed_. So for example
+   last year changed_. So for example:
    
    > \# (C) Copyright IBM 2018, 2020.
 
-   where the _first year of creation_ is the same as _last year changed_ then only
-   one date is needed
+   If the _first year of creation_ is the same as _last year changed_ then only
+   one date is needed, for example:
 
    > \# (C) Copyright IBM 2020.
                                                                                                                                                                                                  
    If code is changed in a file make sure the _last year changed_ is the current year.
-   If there is but one date or a prior year then add it as the 2nd date, otherwise change
-   the 2nd date to the current year. The year of creation date is never changed.
+   If there is just one date and it's a prior year then add the current year as the 2nd date, 
+   otherwise simply change the 2nd date to the current year. The year of creation date is
+   never changed.
  
 ## Installing Qiskit Aqua from source
 
@@ -89,7 +92,7 @@ Source](https://qiskit.org/documentation/contributing_to_qiskit.html#installing-
 section of the Qiskit documentation.
 
 Note: Aqua depends on Ignis and Terra, and has optional dependence on Aer and IBM Q Provider, so
-these should be installed too. The master branch of Aqua is kept working with the other element
+these should be installed too. The master branch of Aqua is kept working with those other element
 master branches so these should be installed from source too following the the instructions at 
 the same location
 
@@ -99,16 +102,17 @@ Aqua also has some other optional dependents see
 further information. Unit tests that require any of the optional dependents will check
 and skip the test if not installed.
 
-### Test
+### Testing
 
 Once you've made a code change, it is important to verify that your change
 does not break any existing tests and that any new tests that you've added
 also run successfully. Before you open a new pull request for your change,
 you'll want to run the test suite locally.
 
-The test suite can be run from a command line or via your IDE. Another way to run the
-test suite is to use [**tox**](https://tox.readthedocs.io/en/latest/#). For more information
-about using tox please refer to
+The test suite can be run from a command line or via your IDE. You can run `make test` which will
+run all unit tests. Another way to run the test suite is to use
+[**tox**](https://tox.readthedocs.io/en/latest/#). For more information about using tox please
+refer to
 [Terra CONTRIBUTING](https://github.com/Qiskit/qiskit-terra/blob/master/CONTRIBUTING.md#test)
 Test section. However please note Aqua does not have any
 [online tests](https://github.com/Qiskit/qiskit-terra/blob/master/CONTRIBUTING.md#online-tests)
@@ -147,10 +151,11 @@ When the time for a new release has come, we will:
 
 1.  Merge the `master` branch with the `stable` branch.
 2.  Create a new tag with the version number in the `stable` branch.
-3.  Crate and distribute the pip package.
+3.  Create and distribute the pip package.
 4.  Change the `master` version to the next release version.
 5.  Announce the new version to the world!
 
-The `stable` branch should only receive changes in the form of bug
-fixes, so the third version number (the maintenance number:
-\[major\].\[minor\].\[maintenance\]) will increase on every new change.
+The `stable` branch will only receive changes in the form of critical bug
+fixes, so the third number, the patch/maintenance number of the version,
+of its form _major.minor.maintenance_, will increase when fixed version is
+released from the stable branch.
