@@ -34,7 +34,7 @@ please ensure that:
    ```
    from the root of the Aqua repository clone for lint and style conformance checks.
    
-   For unit testing please see [Tests](#testing) section below.
+   For unit testing please see [Testing](#testing) section below.
    
 2. The documentation has been updated accordingly. In particular, if a
    function or class has been modified during the PR, please update the
@@ -60,8 +60,8 @@ please ensure that:
    
    For some words, such as names and technical terms etc., that are not in the en-us dictionary
    and get flagged as being misspelled, despite being correct,
-   there is a .pylindict custom word list file, in the root of the Aqua repo, where such
-   words can be added, in alphabetic order, as needed.
+   there is a [.pylintdict](./.pylintdict) custom word list file, in the root of the Aqua repo,
+   where such words can be added, in alphabetic order, as needed.
    
 3. If it makes sense for your change that you have added new tests that
    cover the changes and any new function.
@@ -70,19 +70,19 @@ please ensure that:
    deprecated entries as appropriate. The PR number should be added too. 
 
 5. Ensure all code, including unit tests, has the copyright header. The copyright
-   date will be checked by CI build. The format of the date(s) is _first year of creation,
+   date will be checked by CI build. The format of the date(s) is _year of creation,
    last year changed_. So for example:
    
    > \# (C) Copyright IBM 2018, 2020.
 
-   If the _first year of creation_ is the same as _last year changed_ then only
+   If the _year of creation_ is the same as _last year changed_ then only
    one date is needed, for example:
 
    > \# (C) Copyright IBM 2020.
                                                                                                                                                                                                  
-   If code is changed in a file make sure the _last year changed_ is the current year.
+   If code is changed in a file make sure the copyright includes the current year.
    If there is just one date and it's a prior year then add the current year as the 2nd date, 
-   otherwise simply change the 2nd date to the current year. The year of creation date is
+   otherwise simply change the 2nd date to the current year. The _year of creation_ date is
    never changed.
  
 ## Installing Qiskit Aqua from source
