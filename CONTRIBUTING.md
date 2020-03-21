@@ -157,5 +157,5 @@ When the time for a new release has come, we will:
 
 The `stable` branch will only receive changes in the form of critical bug
 fixes, so the third number, the patch/maintenance number of the version,
-of its form _major.minor.maintenance_, will increase when fixed version is
+of its form _major.minor.maintenance_, will increase when a fixed version is
 released from the stable branch.
