@@ -31,7 +31,8 @@ class TestADMMOptimizerMiskp(QiskitOptimizationTestCase):
         super().setUp()
 
     def test_admm_optimizer_miskp_eigen(self):
-        """ ADMM Optimizer Test based on Mixed-Integer Setup Knapsack Problem using NumPy eigen optimizer"""
+        """ ADMM Optimizer Test based on Mixed-Integer Setup Knapsack Problem
+        using NumPy eigen optimizer"""
         K, T, P, S, D, C = self.get_problem_params()
         miskp = Miskp(K, T, P, S, D, C)
         op: OptimizationProblem = miskp.create_problem()
@@ -40,7 +41,8 @@ class TestADMMOptimizerMiskp(QiskitOptimizationTestCase):
         qubo_optimizer = MinimumEigenOptimizer(NumPyMinimumEigensolver())
         continuous_optimizer = CplexOptimizer()
 
-        admm_params = ADMMParameters(qubo_optimizer=qubo_optimizer, continuous_optimizer=continuous_optimizer)
+        admm_params = ADMMParameters(qubo_optimizer=qubo_optimizer,
+                                     continuous_optimizer=continuous_optimizer)
 
         solver = ADMMOptimizer(params=admm_params)
         solution = solver.solve(op)
@@ -50,19 +52,17 @@ class TestADMMOptimizerMiskp(QiskitOptimizationTestCase):
         print("x={}".format(solution.x))
         print("fval={}".format(solution.fval))
 
-        correct_solution = [0.009127, 0.009127, 0.009127, 0.009127, 0.009127, 0.009127, 0.009127, 0.009127,
-                            0.009127, 0.009127, 0.006151, 0.006151, 0.006151, 0.006151, 0.006151, 0.006151,
-                            0.006151, 0.006151, 0.006151, 0.006151, 0.,       0.]
+        correct_solution = [0.009127, 0.009127, 0.009127, 0.009127, 0.009127, 0.009127, 0.009127,
+                            0.009127, 0.009127, 0.009127, 0.006151, 0.006151, 0.006151, 0.006151,
+                            0.006151, 0.006151, 0.006151, 0.006151, 0.006151, 0.006151,
+                            0., 0.]
         correct_objective = -1.2113693
 
         np.testing.assert_almost_equal(correct_solution, solution.x, 3)
         np.testing.assert_almost_equal(solution.fval, correct_objective, 3)
 
     def get_problem_params(self):
-        """
-        Fills in parameters for a Mixed Integer Setup Knapsack Problem (MISKP) instance.
-        """
-        #
+        """Fills in parameters for a Mixed Integer Setup Knapsack Problem (MISKP) instance."""
 
         K = 2
         T = 10
@@ -73,13 +73,15 @@ class TestADMMOptimizerMiskp(QiskitOptimizationTestCase):
                         4.72, 7.6, 2.83, 1.44, 2.45, 2.24, 6.3, 5.02]).reshape((K, T))
 
         C = np.asarray([-11.78, -10.81, -11.08, -4.03, -10.90, -11.00, -6.12, -10.16, -8.55, -6.84,
-                        -5.78, -7.13, -6.72, -9.60, -4.83, -3.44, -4.45, -4.24, -8.30, -7.02]).reshape((K, T))
+                        -5.78, -7.13, -6.72, -9.60, -4.83, -3.44, -4.45, -4.24, -8.30, -7.02]) \
+            .reshape((K, T))
 
         return K, T, P, S, D, C
 
 
 class Miskp:
-    def __init__(self, K, T, P, S, D: np.ndarray, C: np.ndarray, pairwise_incomp=0, multiple_choice=0):
+    def __init__(self, K: int, T: int, P: float, S: np.ndarray, D: np.ndarray, C: np.ndarray,
+                 pairwise_incomp: int = 0, multiple_choice: int = 0):
         """
         Constructor method of the class.
 
@@ -112,7 +114,9 @@ class Miskp:
 
     @staticmethod
     def var_name(stem, index1, index2=None, index3=None):
-        """A method to return a string representing the name of a decision variable or a constraint, given its indices.
+        """A method to return a string representing the name of a decision variable or
+        a constraint, given its indices.
+
             Args:
                 stem: Element name.
                 index1: Element indices
@@ -182,7 +186,8 @@ class Miskp:
 
     def create_objective(self):
         self.op.objective.set_linear([(self.var_name("y", k), self.S[k]) for k in self.range_K] +
-                                     [(self.var_name("x", k, t), self.C[k, t]) for k, t in self.range_x_vars]
+                                     [(self.var_name("x", k, t), self.C[k, t]) for k, t in
+                                      self.range_x_vars]
                                      )
 
     def create_problem(self):

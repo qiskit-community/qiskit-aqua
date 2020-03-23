@@ -1,7 +1,8 @@
-# -*-coding: utf-8 -*-
+# -*- coding: utf-8 -*-
+
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2000.
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -11,31 +12,33 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""An implementation of the ADMM algorithm.
-"""
+"""An implementation of the ADMM algorithm."""
 
 import time
-from typing import List
+from typing import List, Optional, Any
 
 import numpy as np
 from cplex import SparsePair
-
 from qiskit.optimization.algorithms import CplexOptimizer
 from qiskit.optimization.algorithms.optimization_algorithm import OptimizationAlgorithm
 from qiskit.optimization.problems.optimization_problem import OptimizationProblem
 from qiskit.optimization.problems.variables import CPX_BINARY, CPX_CONTINUOUS
-
 from qiskit.optimization.results.optimization_result import OptimizationResult
 
 
-class ADMMParameters:
-    """Defines a set of parameters for ADMM optimizer.
-    """
+UPDATE_RHO_BY_TEN_PERCENT = 0
+UPDATE_RHO_BY_RESIDUALS = 1
 
-    def __init__(self, rho_initial=10000, factor_c=100000, beta=1000, max_iter=10, tol=1.e-4, max_time=1800,
-                 three_block=True, vary_rho=0, tau_incr=2, tau_decr=2, mu_res=10,
-                 mu=1000, qubo_optimizer: OptimizationAlgorithm = None,
-                 continuous_optimizer: OptimizationAlgorithm = None) -> None:
+
+class ADMMParameters:
+    """Defines a set of parameters for ADMM optimizer."""
+
+    def __init__(self, rho_initial: float = 10000, factor_c: float = 100000, beta: float = 1000,
+                 max_iter: int = 10, tol: float = 1.e-4, max_time: float = 1800,
+                 three_block: bool = True, vary_rho: int = UPDATE_RHO_BY_TEN_PERCENT,
+                 tau_incr: float = 2, tau_decr: float = 2, mu_res: float = 10, mu: float = 1000,
+                 qubo_optimizer: Optional[OptimizationAlgorithm] = None,
+                 continuous_optimizer: Optional[OptimizationAlgorithm] = None) -> None:
         """Defines parameters for ADMM optimizer and their default values.
 
         Args:
@@ -46,14 +49,17 @@ class ADMMParameters:
             tol: Tolerance for the residual convergence.
             max_time: Maximum running time (in seconds) for ADMM.
             three_block: Boolean flag to select the 3-block ADMM implementation.
-            vary_rho: Flag to select the rule to update rho. If set to 0, then rho increases by 10% at each iteration.
+            vary_rho: Flag to select the rule to update rho.
+                If set to 0, then rho increases by 10% at each iteration.
                 If set to 1, then rho is modified according to primal and dual residuals.
             tau_incr: Parameter used in the rho update.
             tau_decr: Parameter used in the rho update.
             mu_res: Parameter used in the rho update.
             mu: Penalization for constraint residual. Used to compute the merit values.
-            qubo_optimizer: An instance of OptimizationAlgorithm that can effectively solve QUBO problems
-            continuous_optimizer: An instance of OptimizationAlgorithm that can solve continuous problems
+            qubo_optimizer: An instance of OptimizationAlgorithm that can effectively solve
+                QUBO problems
+            continuous_optimizer: An instance of OptimizationAlgorithm that can solve
+                continuous problems
         """
         super().__init__()
         self.mu = mu
@@ -69,13 +75,16 @@ class ADMMParameters:
         self.beta = beta
         self.rho_initial = rho_initial
         self.qubo_optimizer = qubo_optimizer if qubo_optimizer is not None else CplexOptimizer()
-        self.continuous_optimizer = continuous_optimizer if continuous_optimizer is not None else CplexOptimizer()
+        self.continuous_optimizer = continuous_optimizer if continuous_optimizer is not None \
+            else CplexOptimizer()
 
 
 class ADMMState:
-    """Internal computation state of the ADMM implementation. Here, various variables are stored that are
-    being updated during problem solving. The values are relevant to the problem being solved.
-    The state is recreated for each optimization problem. State is returned as the third value
+    """Internal computation state of the ADMM implementation.
+
+    The state keeps track of various variables are stored that are being updated during problem
+    solving. The values are relevant to the problem being solved. The state is recreated for each
+    optimization problem. State is returned as the third value
     """
 
     def __init__(self,
@@ -100,7 +109,8 @@ class ADMMState:
         self.continuous_indices = continuous_indices
         self.sense = op.objective.get_sense()
 
-        # define heavily used matrix, they are used at each iteration, so let's cache them, they are np.ndarrays
+        # define heavily used matrix, they are used at each iteration, so let's cache them,
+        # they are np.ndarrays
         # objective
         self.q0 = None
         self.c0 = None
@@ -118,6 +128,7 @@ class ADMMState:
         self.b3 = None
 
         # These are the parameters that are updated in the ADMM iterations.
+        self.u: np.ndarray = np.zeros(len(continuous_indices))
         binary_size = len(binary_indices)
         self.x0: np.ndarray = np.zeros(binary_size)
         self.z: np.ndarray = np.zeros(binary_size)
@@ -140,8 +151,7 @@ class ADMMState:
 
 
 class ADMMOptimizer(OptimizationAlgorithm):
-    """An implementation of the ADMM algorithm.
-    """
+    """An implementation of the ADMM algorithm."""
 
     def __init__(self, params: ADMMParameters = None) -> None:
         """Constructs an instance of ADMMOptimizer.
@@ -172,10 +182,11 @@ class ADMMOptimizer(OptimizationAlgorithm):
         self._continuous_optimizer = params.continuous_optimizer
 
         # internal state where we'll keep intermediate solution
-        # here, we just declare the class variable, the variable is initialized in kept in the solve method.
+        # here, we just declare the class variable, the variable is initialized in kept in
+        # the solve method.
         self._state = None
 
-    def is_compatible(self, problem: OptimizationProblem):
+    def is_compatible(self, problem: OptimizationProblem) -> Optional[str]:
         """Checks whether a given problem can be solved with the optimizer implementing this method.
 
         Args:
@@ -186,9 +197,9 @@ class ADMMOptimizer(OptimizationAlgorithm):
         """
 
         # 1. only binary and continuous variables are supported
-        for var_index, var_type in enumerate(problem.variables.get_types()):
-            if var_type != CPX_BINARY and var_type != CPX_CONTINUOUS:
-                # var var_index is not binary and not continuous
+        for var_type in problem.variables.get_types():
+            if var_type not in (CPX_BINARY, CPX_CONTINUOUS):
+                # variable is not binary and not continuous
                 return "Only binary and continuous variables are supported"
 
         binary_indices = self._get_variable_indices(problem, CPX_BINARY)
@@ -210,7 +221,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         return None
 
-    def solve(self, problem: OptimizationProblem):
+    def solve(self, problem: OptimizationProblem) -> OptimizationResult:
         """Tries to solves the given problem using ADMM algorithm.
 
         Args:
@@ -229,8 +240,9 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # create our computation state
         self._state = ADMMState(problem, binary_indices, continuous_indices, self._rho_initial)
 
-        # convert optimization problem to a set of matrices and vector that are used at each iteration
-        self.convert_problem_representation()
+        # convert optimization problem to a set of matrices and vector that are used
+        # at each iteration
+        self._convert_problem_representation()
 
         # debug
         # self.__dump_matrices_and_vectors()
@@ -241,19 +253,20 @@ class ADMMOptimizer(OptimizationAlgorithm):
         iteration = 0
         residual = 1.e+2
 
-        while (iteration < self._max_iter and residual > self._tol) and (elapsed_time < self._max_time):
+        while (iteration < self._max_iter and residual > self._tol) \
+                and (elapsed_time < self._max_time):
             op1 = self._create_step1_problem()
             # debug
             # op1.write("op1.lp")
 
-            self._state.x0 = self.update_x0(op1)
+            self._state.x0 = self._update_x0(op1)
             # debug
             # print("x0={}".format(self._state.x0))
 
             op2 = self._create_step2_problem()
             # op2.write("op2.lp")
 
-            self._state.u, self._state.z = self.update_x1(op2)
+            self._state.u, self._state.z = self._update_x1(op2)
             # debug
             # print("u={}".format(self._state.u))
             # print("z={}".format(self._state.z))
@@ -261,16 +274,16 @@ class ADMMOptimizer(OptimizationAlgorithm):
             if self._three_block:
                 op3 = self._create_step3_problem()
                 # op3.write("op3.lp")
-                self._state.y = self.update_y(op3)
+                self._state.y = self._update_y(op3)
                 # debug
                 # print("y={}".format(self._state.y))
 
-            lambda_mult = self.update_lambda_mult()
+            lambda_mult = self._update_lambda_mult()
 
-            cost_iterate = self.get_objective_value()
-            cr = self.get_constraint_residual()
-            residual, dual_residual = self.get_solution_residuals(iteration)
-            merit = self.get_merit(cost_iterate, cr)
+            cost_iterate = self._get_objective_value()
+            cr = self._get_constraint_residual()
+            residual, dual_residual = self._get_solution_residuals(iteration)
+            merit = self._get_merit(cost_iterate, cr)
             # debug
             # print("cost_iterate, cr, merit", cost_iterate, cr, merit)
 
@@ -287,13 +300,13 @@ class ADMMOptimizer(OptimizationAlgorithm):
             self._state.z_saved.append(self._state.z)
             self._state.z_saved.append(self._state.y)
 
-            self.update_rho(residual, dual_residual)
+            self._update_rho(residual, dual_residual)
 
             iteration += 1
             elapsed_time = time.time() - start_time
 
-        solution, objective_value = self.get_best_merit_solution()
-        solution = self.revert_solution_indexes(solution)
+        solution, objective_value = self._get_best_merit_solution()
+        solution = self._revert_solution_indexes(solution)
 
         # third parameter is our internal state of computations
         result = OptimizationResult(solution, objective_value, self._state)
@@ -311,61 +324,68 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         return indices
 
-    def revert_solution_indexes(self, internal_solution) -> np.ndarray:
-        (x0, u) = internal_solution
+    def _revert_solution_indexes(self, internal_solution: List[np.ndarray]) \
+            -> np.ndarray:
+        """Constructs a solution array where variables are stored in the correct order.
+
+        Args:
+            internal_solution: a list with two lists: solutions for binary variables and
+                for continuous variables.
+
+        Returns:
+            a solution array
+        """
+        binary_solutions, continuous_solutions = internal_solution
         solution = np.zeros(len(self._state.binary_indices) + len(self._state.continuous_indices))
         # restore solution at the original index location
-        [solution.itemset(binary_index, x0[i]) for i, binary_index in enumerate(self._state.binary_indices)]
-        [solution.itemset(continuous_index, u[i]) for i, continuous_index in enumerate(self._state.continuous_indices)]
+        for i, binary_index in enumerate(self._state.binary_indices):
+            solution[binary_index] = binary_solutions[i]
+        for i, continuous_index in enumerate(self._state.continuous_indices):
+            solution[continuous_index] = continuous_solutions[i]
         return solution
 
-    def convert_problem_representation(self) -> None:
+    def _convert_problem_representation(self) -> None:
+        """Converts problem representation into set of matrices and vectors"""
         # objective
-        self.get_q0()
-        self.get_c0()
-        self.get_q1()
-        self.get_c1()
-        # constraints
-        self.get_a0_b0()
-        self.get_a1_b1()
-        self.get_a2_a3_b2()
-        self.get_a4_b3()
-
-    def get_q0(self) -> None:
         self._state.q0 = self._get_q(self._state.binary_indices)
-
-    def get_q1(self) -> None:
+        self._state.c0 = self._get_c(self._state.binary_indices)
         self._state.q1 = self._get_q(self._state.continuous_indices)
+        self._state.c1 = self._get_c(self._state.continuous_indices)
+        # constraints
+        self._state.a0, self._state.b0 = self._get_a0_b0()
+        self._state.a1, self._state.b1 = self._get_a1_b1()
+        self._state.a2, self._state.a3, self._state.b2 = self._get_a2_a3_b2()
+        self._state.a4, self._state.b3 = self._get_a4_b3()
 
     def _get_q(self, variable_indices: List[int]) -> np.ndarray:
         size = len(variable_indices)
         q = np.zeros(shape=(size, size))
         # fill in the matrix
         # in fact we use re-indexed variables
-        [q.itemset((i, j), self._state.op.objective.get_quadratic_coefficients(var_index_i, var_index_j))
-         for i, var_index_i in enumerate(variable_indices)
-         for j, var_index_j in enumerate(variable_indices)]
+        for i, var_index_i in enumerate(variable_indices):
+            for j, var_index_j in enumerate(variable_indices):
+                q[i, j] = self._state.op.objective.get_quadratic_coefficients(
+                    var_index_i,
+                    var_index_j)
 
-        # flip the sign, according to the optimization sense, e.g. sense == 1 if minimize, sense == -1 if maximize
+        # flip the sign, according to the optimization sense, e.g. sense == 1 if minimize,
+        # sense == -1 if maximize
         return q * self._state.sense
 
     def _get_c(self, variable_indices: List[int]) -> np.ndarray:
         c = np.array(self._state.op.objective.get_linear(variable_indices))
-        # flip the sign, according to the optimization sense, e.g. sense == 1 if minimize, sense == -1 if maximize
-        c = c * self._state.sense
+        # flip the sign, according to the optimization sense, e.g. sense == 1 if minimize,
+        # sense == -1 if maximize
+        c *= self._state.sense
         return c
 
-    def get_c0(self) -> None:
-        self._state.c0 = self._get_c(self._state.binary_indices)
-
-    def get_c1(self) -> None:
-        self._state.c1 = self._get_c(self._state.continuous_indices)
-
-    def _assign_row_values(self, matrix: List[List[float]], vector: List[float], constraint_index, variable_indices):
+    def _assign_row_values(self, matrix: List[List[float]], vector: List[float], constraint_index,
+                           variable_indices):
         # assign matrix row
         row = []
-        [row.append(self._state.op.linear_constraints.get_coefficients(constraint_index, var_index))
-         for var_index in variable_indices]
+        for var_index in variable_indices:
+            row.append(self._state.op
+                       .linear_constraints.get_coefficients(constraint_index, var_index))
         matrix.append(row)
 
         # assign vector row
@@ -378,14 +398,15 @@ class ADMMOptimizer(OptimizationAlgorithm):
             vector[-1] = -1 * vector[-1]
 
     @staticmethod
-    def _create_ndarrays(matrix: List[List[float]], vector: List[float], size: int) -> (np.ndarray, np.ndarray):
+    def _create_ndarrays(matrix: List[List[float]], vector: List[float], size: int) \
+            -> (np.ndarray, np.ndarray):
         # if we don't have such constraints, return just dummy arrays
         if len(matrix) != 0:
             return np.array(matrix), np.array(vector)
         else:
             return np.array([0] * size).reshape((1, -1)), np.zeros(shape=(1,))
 
-    def get_a0_b0(self) -> None:
+    def _get_a0_b0(self) -> (np.ndarray, np.ndarray):
         matrix = []
         vector = []
 
@@ -397,15 +418,18 @@ class ADMMOptimizer(OptimizationAlgorithm):
                 continue
             row = self._state.op.linear_constraints.get_rows(constraint_index)
             if set(row.ind).issubset(index_set):
-                self._assign_row_values(matrix, vector, constraint_index, self._state.binary_indices)
+                self._assign_row_values(matrix, vector,
+                                        constraint_index, self._state.binary_indices)
             else:
                 raise ValueError(
                     "Linear constraint with the 'E' sense must contain only binary variables, "
-                    "row indices: {}, binary variable indices: {}".format(row, self._state.binary_indices))
+                    "row indices: {}, binary variable indices: {}"
+                    .format(row, self._state.binary_indices))
 
-        self._state.a0, self._state.b0 = self._create_ndarrays(matrix, vector, len(self._state.binary_indices))
+        return self._create_ndarrays(matrix, vector, len(self._state.binary_indices))
 
-    def _get_inequality_matrix_and_vector(self, variable_indices: List[int]) -> (List[List[float]], List[float]):
+    def _get_inequality_matrix_and_vector(self, variable_indices: List[int]) \
+            -> (List[List[float]], List[float]):
         # extracting matrix and vector from constraints like Ax <= b
         matrix = []
         vector = []
@@ -413,7 +437,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         index_set = set(variable_indices)
         for constraint_index, sense in enumerate(senses):
-            if sense == "E" or sense == "R":
+            if sense in ("E", "R"):
                 # TODO: Ranged constraints should be supported
                 continue
             # sense either G or L
@@ -423,15 +447,15 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         return matrix, vector
 
-    def get_a1_b1(self) -> None:
+    def _get_a1_b1(self) -> (np.ndarray, np.ndarray):
         matrix, vector = self._get_inequality_matrix_and_vector(self._state.binary_indices)
-        self._state.a1, self._state.b1 = self._create_ndarrays(matrix, vector, len(self._state.binary_indices))
+        return self._create_ndarrays(matrix, vector, len(self._state.binary_indices))
 
-    def get_a4_b3(self) -> None:
+    def _get_a4_b3(self) -> (np.ndarray, np.ndarray):
         matrix, vector = self._get_inequality_matrix_and_vector(self._state.continuous_indices)
-        self._state.a4, self._state.b3 = self._create_ndarrays(matrix, vector, len(self._state.continuous_indices))
+        return self._create_ndarrays(matrix, vector, len(self._state.continuous_indices))
 
-    def get_a2_a3_b2(self) -> None:
+    def _get_a2_a3_b2(self) -> (np.ndarray, np.ndarray, np.ndarray):
         matrix = []
         vector = []
         senses = self._state.op.linear_constraints.get_senses()
@@ -440,48 +464,49 @@ class ADMMOptimizer(OptimizationAlgorithm):
         continuous_index_set = set(self._state.continuous_indices)
         all_variables = self._state.binary_indices + self._state.continuous_indices
         for constraint_index, sense in enumerate(senses):
-            if sense == "E" or sense == "R":
+            if sense in ("E", "R"):
                 # TODO: Ranged constraints should be supported as well
                 continue
             # sense either G or L
             row = self._state.op.linear_constraints.get_rows(constraint_index)
             row_indices = set(row.ind)
-            # we must have a least one binary and one continuous variable, otherwise it is another type of constraints
-            if len(row_indices & binary_index_set) != 0 and len(row_indices & continuous_index_set) != 0:
+            # we must have a least one binary and one continuous variable,
+            # otherwise it is another type of constraints
+            if len(row_indices & binary_index_set) != 0 and len(
+                    row_indices & continuous_index_set) != 0:
                 self._assign_row_values(matrix, vector, constraint_index, all_variables)
 
         matrix, b2 = self._create_ndarrays(matrix, vector, len(all_variables))
         # a2
         a2 = matrix[:, 0:len(self._state.binary_indices)]
         a3 = matrix[:, len(self._state.binary_indices):]
-        self._state.a2 = a2
-        self._state.a3 = a3
-        self._state.b2 = b2
+        return a2, a3, b2
 
     def _create_step1_problem(self) -> OptimizationProblem:
         op1 = OptimizationProblem()
 
         binary_size = len(self._state.binary_indices)
         # create the same binary variables
-        # op1.variables.add(names=["x0_" + str(i + 1) for i in range(binary_size)], types=["B"] * binary_size)
         op1.variables.add(names=["x0_" + str(i + 1) for i in range(binary_size)],
                           types=["I"] * binary_size,
                           lb=[0.] * binary_size,
                           ub=[1.] * binary_size)
 
         # prepare and set quadratic objective.
-        # NOTE: The multiplication by 2 is needed for the solvers to parse the quadratic coefficients.
+        # NOTE: The multiplication by 2 is needed for the solvers to parse
+        # the quadratic coefficients.
         quadratic_objective = 2 * (
-                self._state.q0 + self._factor_c / 2 * np.dot(self._state.a0.transpose(), self._state.a0) +
-                self._state.rho / 2 * np.eye(binary_size)
+            self._state.q0 +
+            self._factor_c / 2 * np.dot(self._state.a0.transpose(), self._state.a0) +
+            self._state.rho / 2 * np.eye(binary_size)
         )
         for i in range(binary_size):
             for j in range(i, binary_size):
                 op1.objective.set_quadratic_coefficients(i, j, quadratic_objective[i, j])
-                op1.objective.set_quadratic_coefficients(j, i, quadratic_objective[i, j])
 
         # prepare and set linear objective
-        linear_objective = self._state.c0 - self._factor_c * np.dot(self._state.b0, self._state.a0) + \
+        linear_objective = self._state.c0 - \
+                           self._factor_c * np.dot(self._state.b0, self._state.a0) + \
                            self._state.rho * (self._state.y - self._state.z)
 
         for i in range(binary_size):
@@ -493,12 +518,12 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         continuous_size = len(self._state.continuous_indices)
         binary_size = len(self._state.binary_indices)
-        lb = self._state.op.variables.get_lower_bounds(self._state.continuous_indices)
-        ub = self._state.op.variables.get_upper_bounds(self._state.continuous_indices)
+        lower_bounds = self._state.op.variables.get_lower_bounds(self._state.continuous_indices)
+        upper_bounds = self._state.op.variables.get_upper_bounds(self._state.continuous_indices)
         if continuous_size:
             # add u variables
             op2.variables.add(names=["u0_" + str(i + 1) for i in range(continuous_size)],
-                              types=["C"] * continuous_size, lb=lb, ub=ub)
+                              types=["C"] * continuous_size, lb=lower_bounds, ub=upper_bounds)
 
         # add z variables
         op2.variables.add(names=["z0_" + str(i + 1) for i in range(binary_size)],
@@ -508,18 +533,21 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         # set quadratic objective coefficients for u variables
         if continuous_size:
-            # NOTE: The multiplication by 2 is needed for the solvers to parse the quadratic coefficients.
+            # NOTE: The multiplication by 2 is needed for the solvers to parse
+            # the quadratic coefficients.
             q_u = 2 * self._state.q1
             for i in range(continuous_size):
                 for j in range(i, continuous_size):
                     op2.objective.set_quadratic_coefficients(i, j, q_u[i, j])
 
         # set quadratic objective coefficients for z variables.
-        # NOTE: The multiplication by 2 is needed for the solvers to parse the quadratic coefficients.
+        # NOTE: The multiplication by 2 is needed for the solvers to parse
+        # the quadratic coefficients.
         q_z = 2 * (self._state.rho / 2 * np.eye(binary_size))
         for i in range(binary_size):
             for j in range(i, binary_size):
-                op2.objective.set_quadratic_coefficients(i + continuous_size, j + continuous_size, q_z[i, j])
+                op2.objective.set_quadratic_coefficients(i + continuous_size, j + continuous_size,
+                                                         q_z[i, j])
 
         # set linear objective for u variables
         if continuous_size:
@@ -535,18 +563,22 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # constraints for z
         # A1 z <= b1
         constraint_count = self._state.a1.shape[0]
-        # in SparsePair val="something from numpy" causes an exception when saving a model via cplex method.
+        # in SparsePair val="something from numpy" causes an exception
+        # when saving a model via cplex method.
         # rhs="something from numpy" is ok
         # so, we convert every single value to python float, todo: consider removing this conversion
         lin_expr = [SparsePair(ind=list(range(continuous_size, continuous_size + binary_size)),
-                               val=self._to_list(self._state.a1[i, :])) for i in range(constraint_count)]
-        op2.linear_constraints.add(lin_expr=lin_expr, senses=["L"] * constraint_count, rhs=list(self._state.b1))
+                               val=self._to_list(self._state.a1[i, :])) for i in
+                    range(constraint_count)]
+        op2.linear_constraints.add(lin_expr=lin_expr, senses=["L"] * constraint_count,
+                                   rhs=list(self._state.b1))
 
         if continuous_size:
             # A2 z + A3 u <= b2
             constraint_count = self._state.a2.shape[0]
             lin_expr = [SparsePair(ind=list(range(continuous_size + binary_size)),
-                                   val=self._to_list(self._state.a3[i, :]) + self._to_list(self._state.a2[i, :]))
+                                   val=self._to_list(self._state.a3[i, :]) + self._to_list(
+                                       self._state.a2[i, :]))
                         for i in range(constraint_count)]
             op2.linear_constraints.add(lin_expr=lin_expr,
                                        senses=["L"] * constraint_count,
@@ -556,7 +588,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
             # A4 u <= b3
             constraint_count = self._state.a4.shape[0]
             lin_expr = [SparsePair(ind=list(range(continuous_size)),
-                                   val=self._to_list(self._state.a4[i, :])) for i in range(constraint_count)]
+                                   val=self._to_list(self._state.a4[i, :])) for i in
+                        range(constraint_count)]
             op2.linear_constraints.add(lin_expr=lin_expr,
                                        senses=["L"] * constraint_count,
                                        rhs=self._to_list(self._state.b3))
@@ -571,12 +604,11 @@ class ADMMOptimizer(OptimizationAlgorithm):
                           types=["C"] * binary_size)
 
         # set quadratic objective.
-        # NOTE: The multiplication by 2 is needed for the solvers to parse the quadratic coefficients.
+        # NOTE: The multiplication by 2 is needed for the solvers to parse the quadratic coeff-s.
         q_y = 2 * (self._beta / 2 * np.eye(binary_size) + self._state.rho / 2 * np.eye(binary_size))
         for i in range(binary_size):
             for j in range(i, binary_size):
                 op3.objective.set_quadratic_coefficients(i, j, q_y[i, j])
-                op3.objective.set_quadratic_coefficients(j, i, q_y[i, j])
 
         linear_y = self._state.lambda_mult + self._state.rho * (self._state.x0 - self._state.z)
         for i in range(binary_size):
@@ -584,31 +616,32 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         return op3
 
-    # when a plain list() call is used a numpy type of values makes cplex to fail when cplex.write() is called.
+    # when a plain list() call is used a numpy type of values makes cplex to fail
+    # when cplex.write() is called.
     # for debug only, list() should be used instead
     @staticmethod
-    def _to_list(values):
+    def _to_list(values) -> List[Any]:
         out_list = []
-        for el in values:
-            out_list.append(float(el))
+        for element in values:
+            out_list.append(float(element))
         return out_list
 
-    def update_x0(self, op1: OptimizationProblem) -> np.ndarray:
+    def _update_x0(self, op1: OptimizationProblem) -> np.ndarray:
         return np.asarray(self._qubo_optimizer.solve(op1).x)
 
-    def update_x1(self, op2: OptimizationProblem) -> (np.ndarray, np.ndarray):
+    def _update_x1(self, op2: OptimizationProblem) -> (np.ndarray, np.ndarray):
         vars_op2 = self._continuous_optimizer.solve(op2).x
         u = np.asarray(vars_op2[:len(self._state.continuous_indices)])
         z = np.asarray(vars_op2[len(self._state.continuous_indices):])
         return u, z
 
-    def update_y(self, op3):
+    def _update_y(self, op3: OptimizationProblem) -> np.ndarray:
         return np.asarray(self._continuous_optimizer.solve(op3).x)
 
-    def get_best_merit_solution(self):
+    def _get_best_merit_solution(self) -> (List[np.ndarray], float):
         """
-        The ADMM solution is that for which the merit value is the best (least for min problems, greatest
-        for max problems)
+        The ADMM solution is that for which the merit value is the best (least for min problems,
+        greatest for max problems)
             * sol: Iterate with the best merit value
             * sol_val: Value of sol, according to the original objective
 
@@ -618,36 +651,38 @@ class ADMMOptimizer(OptimizationAlgorithm):
                 * sol_val: Value of the objective function
         """
 
-        it_best_merits = self._state.merits.index(min(list(map(lambda x: self._state.sense * x, self._state.merits))))
+        it_best_merits = self._state.merits.index(
+            min(list(map(lambda x: self._state.sense * x, self._state.merits))))
         x0 = self._state.x0_saved[it_best_merits]
         u = self._state.u_saved[it_best_merits]
         sol = [x0, u]
         sol_val = self._state.cost_iterates[it_best_merits]
         return sol, sol_val
 
-    def update_lambda_mult(self):
-        return self._state.lambda_mult + self._state.rho * (self._state.x0 - self._state.z + self._state.y)
+    def _update_lambda_mult(self) -> np.ndarray:
+        return self._state.lambda_mult + \
+               self._state.rho * (self._state.x0 - self._state.z + self._state.y)
 
-    def update_rho(self, r, s):
+    def _update_rho(self, primal_residual: float, dual_residual: float) -> None:
         """
         Updating the rho parameter in ADMM
 
         Args:
-            r: primal residual
-            s: dual residual
+            primal_residual: primal residual
+            dual_residual: dual residual
         """
 
-        if self._vary_rho == 0:
+        if self._vary_rho == UPDATE_RHO_BY_TEN_PERCENT:
             # Increase rho, to aid convergence.
             if self._state.rho < 1.e+10:
                 self._state.rho *= 1.1
-        elif self._vary_rho == 1:
-            if r > self._mu_res * s:
+        elif self._vary_rho == UPDATE_RHO_BY_RESIDUALS:
+            if primal_residual > self._mu_res * dual_residual:
                 self._state.rho = self._tau_incr * self._state.rho
-            elif s > self._mu_res * r:
+            elif dual_residual > self._mu_res * primal_residual:
                 self._state.rho = self._tau_decr * self._state.rho
 
-    def get_constraint_residual(self):
+    def _get_constraint_residual(self) -> float:
         """
         Compute violation of the constraints of the original problem, as:
             * norm 1 of the body-rhs of the constraints A0 x0 - b0
@@ -663,25 +698,26 @@ class ADMMOptimizer(OptimizationAlgorithm):
         eq1 = np.dot(self._state.a1, self._state.x0) - self._state.b1
         cr1 = sum(max(val, 0) for val in eq1)
 
-        eq2 = np.dot(self._state.a2, self._state.x0) + np.dot(self._state.a3, self._state.u) - self._state.b2
+        eq2 = np.dot(self._state.a2, self._state.x0) + np.dot(self._state.a3,
+                                                              self._state.u) - self._state.b2
         cr2 = sum(max(val, 0) for val in eq2)
 
         return cr0 + cr1 + cr2
 
-    def get_merit(self, cost_iterate, cr):
+    def _get_merit(self, cost_iterate: float, constraint_residual: float) -> float:
         """
         Compute merit value associated with the current iterate
 
         Args:
             cost_iterate: cost at the certain iteration
-            cr: value of violation of the constraints
+            constraint_residual: value of violation of the constraints
 
         Returns:
             merit value as a float
         """
-        return cost_iterate + self._mu * cr
+        return cost_iterate + self._mu * constraint_residual
 
-    def get_objective_value(self):
+    def _get_objective_value(self) -> float:
         """
         Computes the value of the objective function.
 
@@ -689,20 +725,20 @@ class ADMMOptimizer(OptimizationAlgorithm):
             Value of the objective function as a float
         """
 
-        # quadr_form = lambda A, x, c: np.dot(x.T, np.dot(A, x)) + np.dot(c.T, x)
-        def quadratic_form(matrix, x, c): return np.dot(x.T, np.dot(matrix, x)) + np.dot(c.T, x)
+        def quadratic_form(matrix, x, c):
+            return np.dot(x.T, np.dot(matrix, x)) + np.dot(c.T, x)
 
         obj_val = quadratic_form(self._state.q0, self._state.x0, self._state.c0)
         obj_val += quadratic_form(self._state.q1, self._state.u, self._state.c1)
 
         return obj_val
 
-    def get_solution_residuals(self, it):
+    def _get_solution_residuals(self, iteration: int) -> (float, float):
         """
         Compute primal and dual residual.
 
         Args:
-            it: iteration number
+            iteration: iteration number
 
         Returns:
             r, s as primary and dual residuals
@@ -711,8 +747,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # debug
         # elements = np.asarray([x0[i] - z[i] + y[i] for i in self.range_x0_vars])
         r = pow(sum(e ** 2 for e in elements), 0.5)
-        if it > 0:
-            elements_dual = self._state.z - self._state.z_saved[it - 1]
+        if iteration > 0:
+            elements_dual = self._state.z - self._state.z_saved[iteration - 1]
         else:
             elements_dual = self._state.z - self._state.z_init
         # debug
