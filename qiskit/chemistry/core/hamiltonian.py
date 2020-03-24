@@ -79,6 +79,8 @@ class Hamiltonian(ChemistryOperator):
                 symmetries found in the main operator if this operator commutes with the main
                 operator symmetry. If it does not then the operator will be discarded since no
                 meaningful measurement can take place.
+        Raises:
+            QiskitChemistryError: Invalid symmetry reduction
         """
         transformation = transformation.value
         qubit_mapping = qubit_mapping.value
@@ -350,6 +352,7 @@ class Hamiltonian(ChemistryOperator):
         # Finding all the symmetries using the find_Z2_symmetries:
         taper_coef = []
         for sym in z2_symmetries.symmetries:
+            # pylint: disable=no-member
             coef = -1 if np.logical_xor.reduce(np.logical_and(sym.z[::-1], hf_str)) else 1
             taper_coef.append(coef)
         z2_symmetries.tapering_values = taper_coef

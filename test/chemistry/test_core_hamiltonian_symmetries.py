@@ -15,10 +15,14 @@
 """ Test Core Hamiltonian Symmetry Reduction """
 
 import unittest
+from test.chemistry import QiskitChemistryTestCase
 import numpy as np
 
-from qiskit.aqua.algorithms import NumPyMinimumEigensolver
-from test.chemistry import QiskitChemistryTestCase
+from qiskit import BasicAer
+from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE
+from qiskit.aqua.components.optimizers import SLSQP
+from qiskit.chemistry.components.initial_states import HartreeFock
+from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
 from qiskit.chemistry import QiskitChemistryError
@@ -174,6 +178,36 @@ class TestCoreHamiltonianSymmetries(QiskitChemistryTestCase):
         result = core.process_algorithm_result(npme.compute_minimum_eigenvalue())
         self._validate_result(result)
         self.assertEqual(core.molecule_info[core.INFO_Z2SYMMETRIES].tapering_values, [1, 1])
+
+    def test_vqe_auto_symmetry_freeze_core(self):
+        """ Auto symmetry reduction, with freeze core using VQE """
+        core = Hamiltonian(transformation=TransformationType.FULL,
+                           qubit_mapping=QubitMappingType.JORDAN_WIGNER,
+                           two_qubit_reduction=False,
+                           freeze_core=True,
+                           orbital_reduction=None,
+                           z2symmetry_reduction='auto')
+        qubit_op, aux_ops = core.run(self.qmolecule)
+        self.assertEqual(qubit_op.num_qubits, 6)
+        num_orbitals = core.molecule_info[core.INFO_NUM_ORBITALS]
+        num_particles = core.molecule_info[core.INFO_NUM_PARTICLES]
+        qubit_mapping = 'jordan_wigner'
+        two_qubit_reduction = core.molecule_info[core.INFO_TWO_QUBIT_REDUCTION]
+        z2_symmetries = core.molecule_info[core.INFO_Z2SYMMETRIES]
+        initial_state = HartreeFock(qubit_op.num_qubits, num_orbitals, num_particles,
+                                    qubit_mapping, two_qubit_reduction, z2_symmetries.sq_list)
+        var_form = UCCSD(qubit_op.num_qubits, depth=1,
+                         num_orbitals=num_orbitals,
+                         num_particles=num_particles,
+                         initial_state=initial_state,
+                         qubit_mapping=qubit_mapping,
+                         two_qubit_reduction=two_qubit_reduction,
+                         z2_symmetries=z2_symmetries)
+        vqe = VQE(qubit_op, var_form=var_form, optimizer=SLSQP(maxiter=500), aux_operators=aux_ops)
+        vqe.quantum_instance = BasicAer.get_backend('statevector_simulator')
+        result = core.process_algorithm_result(vqe.compute_minimum_eigenvalue())
+        self._validate_result(result)
+        self.assertEqual(core.molecule_info[core.INFO_Z2SYMMETRIES].tapering_values, [-1, 1, 1, -1])
 
 
 if __name__ == '__main__':
