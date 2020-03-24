@@ -802,11 +802,11 @@ class ADMMOptimizer(OptimizationAlgorithm):
         """Compute merit value associated with the current iterate
 
         Args:
-            cost_iterate: cost at the certain iteration
-            constraint_residual: value of violation of the constraints
+            cost_iterate: Cost at the certain iteration.
+            constraint_residual: Value of violation of the constraints.
 
         Returns:
-            merit value as a float
+            Merit value as a float
         """
         return cost_iterate + self._mu * constraint_residual
 
