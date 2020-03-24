@@ -13,9 +13,9 @@
 # that they have been altered from the originals.
 
 """An implementation of the ADMM algorithm."""
-
+import logging
 import time
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Iterable
 
 import numpy as np
 from cplex import SparsePair
@@ -153,7 +153,7 @@ class ADMMState:
 class ADMMOptimizer(OptimizationAlgorithm):
     """An implementation of the ADMM algorithm."""
 
-    def __init__(self, params: ADMMParameters = None) -> None:
+    def __init__(self, params: Optional[ADMMParameters] = None) -> None:
         """Constructs an instance of ADMMOptimizer.
 
         Args:
@@ -161,9 +161,10 @@ class ADMMOptimizer(OptimizationAlgorithm):
         """
 
         super().__init__()
-        if params is None:
-            # create default params
-            params = ADMMParameters()
+        self._log = logging.getLogger(__name__)
+
+        # create default params if not present
+        params = params or ADMMParameters()
         self._three_block = params.three_block
         self._max_time = params.max_time
         self._tol = params.tol
@@ -184,7 +185,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # internal state where we'll keep intermediate solution
         # here, we just declare the class variable, the variable is initialized in kept in
         # the solve method.
-        self._state = None
+        self._state: Optional[ADMMState] = None
 
     def is_compatible(self, problem: OptimizationProblem) -> Optional[str]:
         """Checks whether a given problem can be solved with the optimizer implementing this method.
@@ -244,9 +245,6 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # at each iteration
         self._convert_problem_representation()
 
-        # debug
-        # self.__dump_matrices_and_vectors()
-
         start_time = time.time()
         # we have not stated our computations yet, so elapsed time initialized as zero
         elapsed_time = 0
@@ -256,42 +254,37 @@ class ADMMOptimizer(OptimizationAlgorithm):
         while (iteration < self._max_iter and residual > self._tol) \
                 and (elapsed_time < self._max_time):
             op1 = self._create_step1_problem()
-            # debug
-            # op1.write("op1.lp")
-
             self._state.x0 = self._update_x0(op1)
             # debug
-            # print("x0={}".format(self._state.x0))
+            self._log.debug("x0=%s", self._state.x0)
 
             op2 = self._create_step2_problem()
-            # op2.write("op2.lp")
-
             self._state.u, self._state.z = self._update_x1(op2)
             # debug
-            # print("u={}".format(self._state.u))
-            # print("z={}".format(self._state.z))
+            self._log.debug("u=%s", self._state.u)
+            self._log.debug("z=%s", self._state.z)
 
             if self._three_block:
                 op3 = self._create_step3_problem()
-                # op3.write("op3.lp")
                 self._state.y = self._update_y(op3)
                 # debug
-                # print("y={}".format(self._state.y))
+                self._log.debug("y=%s", self._state.y)
 
             lambda_mult = self._update_lambda_mult()
 
             cost_iterate = self._get_objective_value()
-            cr = self._get_constraint_residual()
+            constraint_residual = self._get_constraint_residual()
             residual, dual_residual = self._get_solution_residuals(iteration)
-            merit = self._get_merit(cost_iterate, cr)
+            merit = self._get_merit(cost_iterate, constraint_residual)
             # debug
-            # print("cost_iterate, cr, merit", cost_iterate, cr, merit)
+            self._log.debug("cost_iterate=%s, cr=%s, merit=%s",
+                            cost_iterate, constraint_residual, merit)
 
             # costs and merits are saved with their original sign
             self._state.cost_iterates.append(self._state.sense * cost_iterate)
             self._state.residuals.append(residual)
             self._state.dual_residuals.append(dual_residual)
-            self._state.cons_r.append(cr)
+            self._state.cons_r.append(constraint_residual)
             self._state.merits.append(merit)
             self._state.lambdas.append(np.linalg.norm(lambda_mult))
 
@@ -311,12 +304,21 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # third parameter is our internal state of computations
         result = OptimizationResult(solution, objective_value, self._state)
         # debug
-        # print("sol={0}, sol_val={1}".format(solution, objective_value))
-        # print("it {0}, state {1}".format(iteration, self._state))
+        self._log.debug("solution=%s, objective=%s at iteration=%s",
+                        solution, objective_value, iteration)
         return result
 
     @staticmethod
     def _get_variable_indices(op: OptimizationProblem, var_type: str) -> List[int]:
+        """Returns a list of indices of the variables of the specified type
+
+        Args:
+            op: Optimization problem
+            var_type: type of variables to look for
+
+        Returns:
+            List of indices
+        """
         indices = []
         for i, variable_type in enumerate(op.variables.get_types()):
             if variable_type == var_type:
@@ -358,6 +360,15 @@ class ADMMOptimizer(OptimizationAlgorithm):
         self._state.a4, self._state.b3 = self._get_a4_b3()
 
     def _get_q(self, variable_indices: List[int]) -> np.ndarray:
+        """Constructs a quadratic matrix for the variables with the specified indices
+        from the quadratic terms in the objective.
+
+        Args:
+            variable_indices: variable indices to look for
+
+        Returns:
+            A matrix as a numpy array of the shape(len(variable_indices), len(variable_indices))
+        """
         size = len(variable_indices)
         q = np.zeros(shape=(size, size))
         # fill in the matrix
@@ -373,14 +384,35 @@ class ADMMOptimizer(OptimizationAlgorithm):
         return q * self._state.sense
 
     def _get_c(self, variable_indices: List[int]) -> np.ndarray:
+        """Constructs a vector for the variables with the specified indices from the linear terms
+        in the objective.
+
+        Args:
+            variable_indices: variable indices to look for
+
+        Returns:
+            A numpy array of the shape(len(variable_indices))
+        """
         c = np.array(self._state.op.objective.get_linear(variable_indices))
         # flip the sign, according to the optimization sense, e.g. sense == 1 if minimize,
         # sense == -1 if maximize
         c *= self._state.sense
         return c
 
-    def _assign_row_values(self, matrix: List[List[float]], vector: List[float], constraint_index,
-                           variable_indices):
+    def _assign_row_values(self, matrix: List[List[float]], vector: List[float],
+                           constraint_index: int, variable_indices: List[int]):
+        """Appends a row to the specified matrix and vector based on the constraint specified by
+        the index using specified variables
+
+        Args:
+            matrix: a matrix to extend
+            vector: a vector to expend
+            constraint_index: constraint index to look for
+            variable_indices: variables to look for
+
+        Returns:
+            None
+        """
         # assign matrix row
         row = []
         for var_index in variable_indices:
@@ -400,6 +432,16 @@ class ADMMOptimizer(OptimizationAlgorithm):
     @staticmethod
     def _create_ndarrays(matrix: List[List[float]], vector: List[float], size: int) \
             -> (np.ndarray, np.ndarray):
+        """Converts representation of a matrix and a vector in form of lists to numpy array.
+
+        Args:
+            matrix: matrix to convert
+            vector: vector to convert
+            size: size to create matrix and vector
+
+        Returns:
+            Converted matrix and vector as numpy arrays
+        """
         # if we don't have such constraints, return just dummy arrays
         if len(matrix) != 0:
             return np.array(matrix), np.array(vector)
@@ -407,6 +449,15 @@ class ADMMOptimizer(OptimizationAlgorithm):
             return np.array([0] * size).reshape((1, -1)), np.zeros(shape=(1,))
 
     def _get_a0_b0(self) -> (np.ndarray, np.ndarray):
+        """Constructs a matrix and a vector from the constraints in a form of Ax = b, where
+        x is a vector of binary variables.
+
+        Returns:
+            Corresponding matrix and vector as numpy arrays.
+
+        Raises:
+            ValueError: if the problem is not suitable for this optimizer
+        """
         matrix = []
         vector = []
 
@@ -430,7 +481,15 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
     def _get_inequality_matrix_and_vector(self, variable_indices: List[int]) \
             -> (List[List[float]], List[float]):
-        # extracting matrix and vector from constraints like Ax <= b
+        """Constructs a matrix and a vector from the constraints in a form of Ax <= b, where
+        x is a vector of variables specified by the indices.
+
+        Args:
+            variable_indices: variable indices to look for
+
+        Returns:
+            A list based representation of the matrix and the vector.
+        """
         matrix = []
         vector = []
         senses = self._state.op.linear_constraints.get_senses()
@@ -448,14 +507,32 @@ class ADMMOptimizer(OptimizationAlgorithm):
         return matrix, vector
 
     def _get_a1_b1(self) -> (np.ndarray, np.ndarray):
+        """Constructs a matrix and a vector from the constraints in a form of Ax <= b, where
+        x is a vector of binary variables.
+
+        Returns:
+            A numpy based representation of the matrix and the vector.
+        """
         matrix, vector = self._get_inequality_matrix_and_vector(self._state.binary_indices)
         return self._create_ndarrays(matrix, vector, len(self._state.binary_indices))
 
     def _get_a4_b3(self) -> (np.ndarray, np.ndarray):
+        """Constructs a matrix and a vector from the constraints in a form of Au <= b, where
+        u is a vector of continuous variables.
+
+        Returns:
+            A numpy based representation of the matrix and the vector.
+        """
         matrix, vector = self._get_inequality_matrix_and_vector(self._state.continuous_indices)
         return self._create_ndarrays(matrix, vector, len(self._state.continuous_indices))
 
     def _get_a2_a3_b2(self) -> (np.ndarray, np.ndarray, np.ndarray):
+        """Constructs matrices and a vector from the constraints in a form of A_2x + A_3u <= b,
+        where x is a vector of binary variables and u is a vector of continuous variables.
+
+        Returns:
+            A numpy representation of two matrices and one vector
+        """
         matrix = []
         vector = []
         senses = self._state.op.linear_constraints.get_senses()
@@ -483,6 +560,11 @@ class ADMMOptimizer(OptimizationAlgorithm):
         return a2, a3, b2
 
     def _create_step1_problem(self) -> OptimizationProblem:
+        """Creates a step 1 sub-problem
+
+        Returns:
+            A newly created optimization problem
+        """
         op1 = OptimizationProblem()
 
         binary_size = len(self._state.binary_indices)
@@ -514,6 +596,11 @@ class ADMMOptimizer(OptimizationAlgorithm):
         return op1
 
     def _create_step2_problem(self) -> OptimizationProblem:
+        """Creates a step 2 sub-problem
+
+        Returns:
+            A newly created optimization problem
+        """
         op2 = OptimizationProblem()
 
         continuous_size = len(self._state.continuous_indices)
@@ -597,6 +684,11 @@ class ADMMOptimizer(OptimizationAlgorithm):
         return op2
 
     def _create_step3_problem(self) -> OptimizationProblem:
+        """Creates a step 3 sub-problem
+
+        Returns:
+            A newly created optimization problem
+        """
         op3 = OptimizationProblem()
         # add y variables
         binary_size = len(self._state.binary_indices)
@@ -620,27 +712,31 @@ class ADMMOptimizer(OptimizationAlgorithm):
     # when cplex.write() is called.
     # for debug only, list() should be used instead
     @staticmethod
-    def _to_list(values) -> List[Any]:
-        out_list = []
-        for element in values:
-            out_list.append(float(element))
-        return out_list
+    def _to_list(values: Iterable[Any]) -> List[Any]:
+        """Converts an iterable into a list of floats
+
+        Args:
+            values: an iterable
+
+        Returns:
+            List of floats
+        """
+        return [float(element) for element in values]
 
     def _update_x0(self, op1: OptimizationProblem) -> np.ndarray:
         return np.asarray(self._qubo_optimizer.solve(op1).x)
 
     def _update_x1(self, op2: OptimizationProblem) -> (np.ndarray, np.ndarray):
         vars_op2 = self._continuous_optimizer.solve(op2).x
-        u = np.asarray(vars_op2[:len(self._state.continuous_indices)])
-        z = np.asarray(vars_op2[len(self._state.continuous_indices):])
-        return u, z
+        vars_u = np.asarray(vars_op2[:len(self._state.continuous_indices)])
+        vars_z = np.asarray(vars_op2[len(self._state.continuous_indices):])
+        return vars_u, vars_z
 
     def _update_y(self, op3: OptimizationProblem) -> np.ndarray:
         return np.asarray(self._continuous_optimizer.solve(op3).x)
 
     def _get_best_merit_solution(self) -> (List[np.ndarray], float):
-        """
-        The ADMM solution is that for which the merit value is the best (least for min problems,
+        """The ADMM solution is that for which the merit value is the best (least for min problems,
         greatest for max problems)
             * sol: Iterate with the best merit value
             * sol_val: Value of sol, according to the original objective
@@ -664,8 +760,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
                self._state.rho * (self._state.x0 - self._state.z + self._state.y)
 
     def _update_rho(self, primal_residual: float, dual_residual: float) -> None:
-        """
-        Updating the rho parameter in ADMM
+        """Updating the rho parameter in ADMM.
 
         Args:
             primal_residual: primal residual
@@ -683,8 +778,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
                 self._state.rho = self._tau_decr * self._state.rho
 
     def _get_constraint_residual(self) -> float:
-        """
-        Compute violation of the constraints of the original problem, as:
+        """Compute violation of the constraints of the original problem, as:
             * norm 1 of the body-rhs of the constraints A0 x0 - b0
             * -1 * min(body - rhs, 0) for geq constraints
             * max(body - rhs, 0) for leq constraints
@@ -705,8 +799,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         return cr0 + cr1 + cr2
 
     def _get_merit(self, cost_iterate: float, constraint_residual: float) -> float:
-        """
-        Compute merit value associated with the current iterate
+        """Compute merit value associated with the current iterate
 
         Args:
             cost_iterate: cost at the certain iteration
@@ -718,8 +811,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         return cost_iterate + self._mu * constraint_residual
 
     def _get_objective_value(self) -> float:
-        """
-        Computes the value of the objective function.
+        """Computes the value of the objective function.
 
         Returns:
             Value of the objective function as a float
@@ -734,8 +826,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         return obj_val
 
     def _get_solution_residuals(self, iteration: int) -> (float, float):
-        """
-        Compute primal and dual residual.
+        """Compute primal and dual residual.
 
         Args:
             iteration: iteration number
@@ -744,15 +835,11 @@ class ADMMOptimizer(OptimizationAlgorithm):
             r, s as primary and dual residuals
         """
         elements = self._state.x0 - self._state.z - self._state.y
-        # debug
-        # elements = np.asarray([x0[i] - z[i] + y[i] for i in self.range_x0_vars])
-        r = pow(sum(e ** 2 for e in elements), 0.5)
+        primal_residual = pow(sum(e ** 2 for e in elements), 0.5)
         if iteration > 0:
             elements_dual = self._state.z - self._state.z_saved[iteration - 1]
         else:
             elements_dual = self._state.z - self._state.z_init
-        # debug
-        # elements_dual = np.asarray([z[i] - z_old[i] for i in self.range_x0_vars])
-        s = self._state.rho * pow(sum(e ** 2 for e in elements_dual), 0.5)
+        dual_residual = self._state.rho * pow(sum(e ** 2 for e in elements_dual), 0.5)
 
-        return r, s
+        return primal_residual, dual_residual
