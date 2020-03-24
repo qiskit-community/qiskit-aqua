@@ -276,7 +276,7 @@ class OpPauli(OpPrimitive):
                 new_front = np.diag(comp)
             else:
                 # Last ditch, TODO figure out what to actually do here.
-                new_front = self.compose(front).reduce.eval()
+                new_front = self.compose(front).reduce().eval()
 
         if back:
             if not isinstance(back, StateFn):

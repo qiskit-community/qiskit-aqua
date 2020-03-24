@@ -135,6 +135,11 @@ class StateFnOperator(StateFn):
         # TODO handle list case
         return self.primitive.to_matrix() * self.coeff
 
+    def to_matrix_op(self, massive=False):
+        """ Return a MatrixOp for this operator. """
+        return StateFnOperator(self.primitive.to_matrix_op(massive=massive) * self.coeff,
+                               is_measurement=self.is_measurement)
+
     def to_matrix(self, massive=False):
         """
         NOTE: THIS DOES NOT RETURN A DENSITY MATRIX, IT RETURNS A CLASSICAL MATRIX
@@ -230,7 +235,11 @@ class StateFnOperator(StateFn):
             if isinstance(front, StateFnDict):
                 comp = self.primitive.eval(front=front, back=front.adjoint())
             else:
-                comp = front.adjoint().to_matrix() @ self.primitive.to_matrix() @ front.to_matrix()
+                return front.adjoint().eval(self.primitive.to_matrix_op().eval(front))
+                # TODO figure out exact eval contract. The below seems too crazy.
+                # return front.adjoint().to_matrix() @ \
+                #        self.primitive.to_matrix() @ \
+                #        front.to_matrix()
 
             if isinstance(comp, (int, float, complex, list)):
                 return comp

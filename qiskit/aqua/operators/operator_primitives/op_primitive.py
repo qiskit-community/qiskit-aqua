@@ -201,3 +201,9 @@ class OpPrimitive(OperatorBase):
     # Nothing to collapse here.
     def reduce(self):
         return self
+
+    def to_matrix_op(self, massive=False):
+        """ Return a MatrixOp for this operator. """
+        # pylint: disable=import-outside-toplevel
+        from .op_matrix import OpMatrix
+        return OpMatrix(self.to_matrix(massive=massive))

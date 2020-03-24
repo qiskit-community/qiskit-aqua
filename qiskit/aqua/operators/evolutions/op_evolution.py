@@ -22,7 +22,7 @@ import scipy
 from qiskit.circuit import ParameterExpression
 
 from ..operator_base import OperatorBase
-from ..operator_primitives import OpPrimitive
+from ..operator_primitives import OpPrimitive, OpMatrix
 from ..operator_combos import OpSum, OpComposition, OpKron
 
 logger = logging.getLogger(__name__)
@@ -166,3 +166,7 @@ class OpEvolution(OpPrimitive):
         OpMatrix and eval with that.
         """
         return OpPrimitive(self.to_matrix()).eval(front=front, back=back)
+
+    def to_matrix_op(self, massive=False):
+        """ Return a MatrixOp for this operator. """
+        return OpMatrix(self.to_matrix(massive=massive))

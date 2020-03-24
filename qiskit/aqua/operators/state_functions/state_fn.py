@@ -313,3 +313,9 @@ class StateFn(OperatorBase):
         """ Apply the convert_fn to each node in the oplist. """
         return StateFn(convert_fn(self.primitive),
                        coeff=coeff or self.coeff, is_measurement=self.is_measurement)
+
+    def to_matrix_op(self, massive=False):
+        """ Return a StateFnVector for this StateFn. """
+        # pylint: disable=import-outside-toplevel
+        from .state_fn_vector import StateFnVector
+        return StateFnVector(self.to_matrix(massive=massive), is_measurement=self.is_measurement)

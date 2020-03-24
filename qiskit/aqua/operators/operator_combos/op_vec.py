@@ -338,3 +338,7 @@ class OpVec(OperatorBase):
     def reduce(self):
         reduced_ops = [op.reduce() for op in self.oplist]
         return self.__class__(reduced_ops, coeff=self.coeff)
+
+    def to_matrix_op(self, massive=False):
+        """ Return a MatrixOp for this operator. """
+        return self.__class__([op.to_matrix_op(massive=massive) for op in self.oplist]).reduce()

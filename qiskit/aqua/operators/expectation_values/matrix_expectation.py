@@ -61,6 +61,7 @@ class MatrixExpectation(ExpectationBase):
     def compute_expectation(self, state=None, params=None):
         # Making the matrix into a measurement allows us to handle OpVec states, dicts, etc.
         if not self._matrix_op:
+            # self._matrix_op = StateFn(self._operator.to_matrix_op(), is_measurement=True)
             mat_conversion = self._operator.to_matrix()
             if isinstance(mat_conversion, list):
                 def recursive_opvec(t):
@@ -79,6 +80,7 @@ class MatrixExpectation(ExpectationBase):
         if state is None:
             state = self.state
 
+        # If user passed in a backend, try evaluating the state on the backend.
         if self._circuit_sampler:
             state_op_mat = self._circuit_sampler.convert(state, params=params)
             return self._matrix_op.eval(state_op_mat)
