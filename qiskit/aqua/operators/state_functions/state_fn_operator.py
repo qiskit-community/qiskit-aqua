@@ -17,7 +17,7 @@
 import numpy as np
 
 from ..operator_base import OperatorBase
-from . import StateFn
+from .state_fn import StateFn
 from ..operator_combos import OpVec, OpSum
 
 

@@ -158,14 +158,17 @@ class NumPyEigensolver(ClassicalAlgorithm):
             energies[i] = self._ret['eigvals'][i].real
         self._ret['energies'] = energies
         if self._aux_operators:
-            aux_op_vals = np.empty([self._k, len(self._aux_operators), 2])
+            aux_op_vals = []
             for i in range(self._k):
-                aux_op_vals[i, :] = self._eval_aux_operators(self._ret['eigvecs'][i])
+                aux_op_vals.append(self._eval_aux_operators(self._ret['eigvecs'][i]))
             self._ret['aux_ops'] = aux_op_vals
 
     def _eval_aux_operators(self, wavefn, threshold=1e-12):
         values = []
         for operator in self._aux_operators:
+            if operator is None:
+                values.append(None)
+                continue
             value = 0.0
             if not operator.coeff == 0:
                 value = StateFn(operator, is_measurement=True).to_matrix_op().eval(wavefn)

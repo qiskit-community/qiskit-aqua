@@ -46,6 +46,8 @@ class TestCoreHamiltonianOrbReduce(QiskitChemistryTestCase):
     def _validate_info(self, core, num_particles=None,
                        num_orbitals=12, actual_two_qubit_reduction=False):
         num_particles = num_particles if num_particles is not None else [2, 2]
+        z2symmetries = core.molecule_info.pop('z2symmetries')
+        self.assertEqual(z2symmetries.is_empty(), True)
         self.assertEqual(core.molecule_info, {'num_particles': num_particles,
                                               'num_orbitals': num_orbitals,
                                               'two_qubit_reduction': actual_two_qubit_reduction})

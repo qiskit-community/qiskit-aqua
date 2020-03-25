@@ -30,9 +30,12 @@ from qiskit.circuit import ParameterVector
 from qiskit.aqua import AquaError
 from qiskit.aqua.operators import (OperatorBase, ExpectationBase, StateFnCircuit,
                                    LegacyBaseOperator, OpVec, I)
+from qiskit.aqua.operators.legacy import (MatrixOperator, WeightedPauliOperator,
+                                          TPBGroupedWeightedPauliOperator)
 from qiskit.aqua.components.optimizers import Optimizer, SLSQP
 from qiskit.aqua.components.variational_forms import VariationalForm, RY
 from qiskit.aqua.utils.validation import validate_min
+from qiskit.aqua.utils.backend_utils import is_aer_provider
 from ..vq_algorithm import VQAlgorithm, VQResult
 from .minimum_eigen_solver import MinimumEigensolver, MinimumEigensolverResult
 
@@ -115,7 +118,8 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                 variational form, the evaluated mean and the evaluated standard deviation.
         """
         validate_min('max_evals_grouped', max_evals_grouped, 1)
-
+        # TODO delete all instances of self._use_simulator_snapshot_mode
+        self._use_simulator_snapshot_mode = False
         if var_form is None:
             # TODO after ansatz refactor num qubits can be set later so we do not have to have
             #      an operator to create a default
@@ -288,6 +292,31 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         if self._expectation_value is None:
             self._expectation_value = ExpectationBase.factory(operator=self._operator,
                                                               backend=self._quantum_instance)
+        self._aux_operators = self.aux_operators
+        if self._auto_conversion:
+            self._operator = \
+                self._config_the_best_mode(self._operator, self._quantum_instance.backend)
+            for i in range(len(self._aux_operators)):
+                if self._aux_operators[i] is None:
+                    continue
+                if not self._aux_operators[i].is_empty():
+                    self._aux_operators[i] = \
+                        self._config_the_best_mode(self._aux_operators[i],
+                                                   self._quantum_instance.backend)
+
+        # sanity check
+        if isinstance(self._operator, MatrixOperator) and not self._quantum_instance.is_statevector:
+            raise AquaError("Non-statevector simulator can not work "
+                            "with `MatrixOperator`, either turn ON "
+                            "auto_conversion or use the proper "
+                            "combination between operator and backend.")
+
+        self._use_simulator_snapshot_mode = (
+            is_aer_provider(self._quantum_instance.backend)
+            and self._quantum_instance.run_config.shots == 1
+            and not self._quantum_instance.noise_config
+            and isinstance(self._operator,
+                           (WeightedPauliOperator, TPBGroupedWeightedPauliOperator)))
 
         self._quantum_instance.circuit_summary = True
 
