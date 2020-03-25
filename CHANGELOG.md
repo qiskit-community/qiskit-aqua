@@ -21,7 +21,7 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 Added
 -----
 
--   NFT optimizer, part of a project of Qiskit Camp Asia 2019 (#759)
+-   NFT optimizer, part of a project of Qiskit Camp Asia 2019 (#729)
 -   Algorithm interface and result classes (#849) 
 -   Chemistry FCIDump file driver (#859)
 -   Chemistry stack automatic Z2 symmetry reduction (#870)
