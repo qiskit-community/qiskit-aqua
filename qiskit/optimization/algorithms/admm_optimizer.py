@@ -116,6 +116,7 @@ class ADMMState:
 
         # define heavily used matrix, they are used at each iteration, so let's cache them,
         # they are np.ndarrays
+        # pylint:disable=invalid-name 
         # objective
         self.q0 = None
         self.c0 = None
