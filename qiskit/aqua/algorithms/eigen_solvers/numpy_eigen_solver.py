@@ -23,8 +23,7 @@ from scipy import sparse as scisparse
 
 from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms import ClassicalAlgorithm
-from qiskit.aqua.operators.legacy import op_converter
-from qiskit.aqua.operators import LegacyBaseOperator
+from qiskit.aqua.operators import LegacyBaseOperator, I, OpVec
 from qiskit.aqua.utils.validation import validate_min
 from .eigen_solver_result import EigensolverResult
 
@@ -81,11 +80,12 @@ class NumPyEigensolver(ClassicalAlgorithm):
     @operator.setter
     def operator(self, operator: LegacyBaseOperator) -> None:
         """ set operator """
-        self._in_operator = operator
+        if isinstance(operator, LegacyBaseOperator):
+            operator = operator.to_opflow()
         if operator is None:
             self._operator = None
         else:
-            self._operator = op_converter.to_matrix_operator(operator)
+            self._operator = operator.to_matrix_op()
             self._check_set_k()
 
     @property
@@ -102,8 +102,11 @@ class NumPyEigensolver(ClassicalAlgorithm):
         else:
             aux_operators = \
                 [aux_operators] if not isinstance(aux_operators, list) else aux_operators
-            self._aux_operators = \
-                [op_converter.to_matrix_operator(aux_op) for aux_op in aux_operators]
+            converted = [op.to_opflow() for op in aux_operators]
+            # For some reason Chemistry passes aux_ops with 0 qubits and paulis sometimes. TODO fix
+            zero_op = I.kronpower(self.operator.num_qubits) * 0.0
+            converted = [zero_op if op == 0 else op for op in converted]
+            aux_operators = OpVec(converted).to_matrix_op()
 
     @property
     def k(self) -> int:
@@ -123,8 +126,8 @@ class NumPyEigensolver(ClassicalAlgorithm):
 
     def _check_set_k(self):
         if self._operator is not None:
-            if self._in_k > self._operator.matrix.shape[0]:
-                self._k = self._operator.matrix.shape[0]
+            if self._in_k > 2**(self._operator.num_qubits):
+                self._k = 2**(self._operator.num_qubits)
                 logger.debug("WARNING: Asked for %s eigenvalues but max possible is %s.",
                              self._in_k, self._k)
             else:
