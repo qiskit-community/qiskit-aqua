@@ -324,6 +324,7 @@ msq
 multiclass
 multinomial
 multiprocess
+Nakanishi
 namelist
 nan
 narray
@@ -339,6 +340,7 @@ neq
 nevals
 newtons's
 nfev
+nft
 nk
 nlopt
 nmo
@@ -526,6 +528,7 @@ timelimit
 timestamp
 tnc
 toctree
+Todo
 toffoli
 tol
 tomo
