@@ -167,25 +167,29 @@ class OpMatrix(OpPrimitive):
         convert to a {Z,I}^n Pauli basis to take "averaging"
         style expectations (e.g. PauliExpectation).
         """
+        # For other ops eval we return self.to_matrix_op() here, but that's unnecessary here.
+        if front is None:
+            return self
+
         # pylint: disable=cyclic-import,import-outside-toplevel
-        if front is None and back is None:
-            return self.to_matrix()
-        elif front is None:
-            # Saves having to reimplement logic twice for front and back
-            return self.adjoint().eval(front=back, back=None).adjoint()
-        from .. import OpVec
-        if isinstance(front, list):
-            return [self.eval(front_elem, back=back) for front_elem in front]
-        elif isinstance(front, OpVec) and front.distributive:
-            return front.combo_fn([self.eval(front.coeff * front_elem, back=back)
-                                   for front_elem in front.oplist])
+        from ..operator_combos import OpVec
+        from ..state_functions import StateFn, StateFnOperator
+
+        new_front = None
 
         # For now, always do this. If it's not performant, we can be more granular.
-        from .. import StateFn
         if not isinstance(front, OperatorBase):
-            front = StateFn(front)
+            front = StateFn(front, is_measurement=False)
 
-        new_front = StateFn(self.to_matrix() @ front.to_matrix())
+        if isinstance(front, OpVec) and front.distributive:
+            new_front = front.combo_fn([self.eval(front.coeff * front_elem)
+                                        for front_elem in front.oplist])
+
+        elif isinstance(front, StateFnOperator):
+            new_front = StateFnOperator(self.adjoint().compose(front.to_matrix_op()).compose(self))
+
+        elif isinstance(front, OperatorBase):
+            new_front = StateFn(self.to_matrix() @ front.to_matrix())
 
         if back:
             if not isinstance(back, StateFn):

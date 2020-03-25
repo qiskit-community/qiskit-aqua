@@ -223,23 +223,20 @@ class OpCircuit(OpPrimitive):
         (e.g. PauliExpectation).
         """
 
-        if front is None and back is None:
-            return self.to_matrix()
-        elif front is None:
-            # Saves having to reimplement logic twice for front and back
-            return self.adjoint().eval(back).adjoint()
         # pylint: disable=import-outside-toplevel
-        from ..operator_combos import OpVec
-        if isinstance(front, list):
-            return [self.eval(front_elem, back=back) for front_elem in front]
-        elif isinstance(front, OpVec) and front.distributive:
-            # In case front is an OpSum, we need to execute
-            # it's combination function to recombine the results.
-            return front.combo_fn([self.eval(front.coeff * front_elem, back=back)
-                                   for front_elem in front.oplist])
+        from ..state_functions import StateFn, StateFnCircuit
+        from .op_pauli import OpPauli
+        # Composable with circuit
+        if isinstance(front, (OpPauli, StateFnCircuit, OpCircuit)):
+            new_front = self.compose(front)
+            if back:
+                if not isinstance(back, StateFn):
+                    back = StateFn(back, is_measurement=True)
+                return back.eval(new_front)
+            else:
+                return new_front
 
-        # For now, always do this. If it's not performant, we can be more granular.
-        return OpPrimitive(self.to_matrix()).eval(front=front, back=back)
+        return self.to_matrix_op().eval(front=front, back=back)
 
     def to_circuit(self):
         """ Convert OpCircuit to circuit """

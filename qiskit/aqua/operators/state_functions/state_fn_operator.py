@@ -172,6 +172,7 @@ class StateFnOperator(StateFn):
         # Operator - return diagonal (real values, not complex),
         # not rank 1 decomposition (statevector)!
         mat = self.primitive.to_matrix()
+        # TODO change to sum of eigenvectors?
 
         # OpVec primitives can return lists of matrices (or trees for nested OpVecs),
         # so we need to recurse over the

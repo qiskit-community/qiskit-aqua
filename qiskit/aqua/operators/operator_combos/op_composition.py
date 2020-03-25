@@ -95,14 +95,6 @@ class OpComposition(OpVec):
         see the eval method in operator_base.py.
         """
 
-        # TODO do this for real later. Requires allowing Ops to take a
-        #  state and return another. Can't do this yet.
-        # front_holder = front.eval(front=front)
-        # Start from last op, and stop before op 0, then eval op 0 with back
-        # for op in self.oplist[-1:0:-1]:
-        #     front_holder = op.eval(front=front_holder)
-        # return self.oplist[0].eval(front=front_holder, back)
-
         def tree_recursive_eval(r, l):
             # if isinstance(l, list):
             #     return [tree_recursive_eval(l_op, r) for l_op in l]

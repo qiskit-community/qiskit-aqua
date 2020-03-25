@@ -15,7 +15,6 @@
 """ Wrapping Pauli Primitives """
 
 import logging
-import itertools
 import numpy as np
 
 from qiskit import QuantumCircuit
@@ -190,7 +189,6 @@ class OpPauli(OpPrimitive):
         else:
             return "{} * {}".format(self.coeff, prim_str)
 
-    # pylint: disable=too-many-return-statements
     def eval(self, front=None, back=None):
         """ A square binary Operator can be defined as a function over
         two binary strings of equal length. This
@@ -204,43 +202,28 @@ class OpPauli(OpPrimitive):
         style expectations (e.g. PauliExpectation).
         """
 
-        if front is None and back is None:
-            return self.to_matrix()
-        elif front is None:
-            # Saves having to reimplement logic twice for front and back
-            return self.adjoint().eval(front=back).adjoint()
-        # pylint: disable=import-outside-toplevel
-        from .. import OperatorBase, StateFn, StateFnDict, StateFnVector, StateFnOperator, OpVec
-        if isinstance(front, list):
-            return [self.eval(front_elem, back=back) for front_elem in front]
+        if front is None:
+            return self.to_matrix_op()
 
-        elif isinstance(front, OpVec) and front.distributive:
-            return front.combo_fn([self.eval(front.coeff * front_elem, back=back)
-                                   for front_elem in front.oplist])
+        # pylint: disable=import-outside-toplevel
+        from .. import OperatorBase, StateFn, StateFnDict, StateFnCircuit, OpVec
+        from . import OpCircuit
+
+        # TODO maybe remove
+        # if isinstance(front, list):
+        #     new_front = OpVec([self.eval(front_elem) for front_elem in front])
+
+        new_front = None
+
         # For now, always do this. If it's not performant, we can be more granular.
         if not isinstance(front, OperatorBase):
             front = StateFn(front, is_measurement=False)
 
-        # Hack for speed
-        if isinstance(front, StateFnDict) and isinstance(back, StateFnDict):
-            total = 0
-            for (str1, str2) in itertools.product(front.primitive.keys(), back.primitive.keys()):
-                bitstr1 = np.asarray(list(str1)).astype(np.bool)
-                bitstr2 = np.asarray(list(str2)).astype(np.bool)
+        if isinstance(front, OpVec) and front.distributive:
+            new_front = front.combo_fn([self.eval(front.coeff * front_elem)
+                                        for front_elem in front.oplist])
 
-                # fix_endianness
-                corrected_x_bits = self.primitive.x[::-1]
-                corrected_z_bits = self.primitive.z[::-1]
-
-                x_factor = np.logical_xor(bitstr1, bitstr2) == corrected_x_bits
-                z_factor = 1 - 2 * np.logical_and(bitstr1, corrected_z_bits)
-                y_factor = np.sqrt(1 - 2 * np.logical_and(corrected_x_bits, corrected_z_bits) + 0j)
-                total += self.coeff * np.product(x_factor * z_factor * y_factor) * \
-                    front.primitive[str1] * front.coeff * back.primitive[str2] * back.coeff
-            return total
-
-        new_front = None
-        if isinstance(front, StateFnDict):
+        elif isinstance(front, StateFnDict):
             new_dict = {}
             corrected_x_bits = self.primitive.x[::-1]
             corrected_z_bits = self.primitive.z[::-1]
@@ -254,29 +237,17 @@ class OpPauli(OpPrimitive):
                                                                      corrected_z_bits) + 0j))
                 new_dict[new_str] = (v * z_factor * y_factor) + new_dict.get(new_str, 0)
             new_front = StateFn(new_dict, coeff=self.coeff * front.coeff)
-        elif isinstance(front, StateFn):
-            if front.is_measurement:
-                raise ValueError('Operator composed with a measurement is undefined.')
 
-            if isinstance(front, StateFnVector):
-                # new_front = self.eval(front.to_matrix())
-                new_front = StateFnVector(np.dot(self.to_matrix(), front.to_matrix()))
-            elif isinstance(front, StateFnOperator):
-                new_front = StateFnOperator(OpPrimitive(self.adjoint().to_matrix() @
-                                                        front.to_matrix() @
-                                                        self.to_matrix()))
-        elif isinstance(front, OpPauli):
-            new_front = np.diag(self.compose(front).to_matrix())
+        elif isinstance(front, StateFn) and front.is_measurement:
+            raise ValueError('Operator composed with a measurement is undefined.')
 
+        # Composable types with OpPauli
+        elif isinstance(front, (OpPauli, OpCircuit, StateFnCircuit)):
+            new_front = self.compose(front)
+
+        # Covers StateFnVector and StateFnOperator
         elif isinstance(front, OperatorBase):
-            comp = self.to_matrix() @ front.to_matrix()
-            if len(comp.shape) == 1:
-                new_front = comp
-            elif len(comp.shape) == 2:
-                new_front = np.diag(comp)
-            else:
-                # Last ditch, TODO figure out what to actually do here.
-                new_front = self.compose(front).reduce().eval()
+            new_front = self.to_matrix_op().eval(front.to_matrix_op())
 
         if back:
             if not isinstance(back, StateFn):
