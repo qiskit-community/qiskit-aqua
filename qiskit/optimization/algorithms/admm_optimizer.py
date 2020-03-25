@@ -655,7 +655,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # rhs="something from numpy" is ok
         # so, we convert every single value to python float, todo: consider removing this conversion
         lin_expr = [SparsePair(ind=list(range(continuous_size, continuous_size + binary_size)),
-                               val=self._to_list(self._state.a1[i, :])) for i in
+                               val=self._state.a1[i, :].tolist()) for i in
                     range(constraint_count)]
         op2.linear_constraints.add(lin_expr=lin_expr, senses=["L"] * constraint_count,
                                    rhs=list(self._state.b1))
@@ -664,22 +664,22 @@ class ADMMOptimizer(OptimizationAlgorithm):
             # A2 z + A3 u <= b2
             constraint_count = self._state.a2.shape[0]
             lin_expr = [SparsePair(ind=list(range(continuous_size + binary_size)),
-                                   val=self._to_list(self._state.a3[i, :]) + self._to_list(
-                                       self._state.a2[i, :]))
+                                   val=self._state.a3[i, :].tolist() +
+                                       self._state.a2[i, :].tolist())
                         for i in range(constraint_count)]
             op2.linear_constraints.add(lin_expr=lin_expr,
                                        senses=["L"] * constraint_count,
-                                       rhs=self._to_list(self._state.b2))
+                                       rhs=self._state.b2.tolist())
 
         if continuous_size:
             # A4 u <= b3
             constraint_count = self._state.a4.shape[0]
             lin_expr = [SparsePair(ind=list(range(continuous_size)),
-                                   val=self._to_list(self._state.a4[i, :])) for i in
+                                   val=self._state.a4[i, :].tolist()) for i in
                         range(constraint_count)]
             op2.linear_constraints.add(lin_expr=lin_expr,
                                        senses=["L"] * constraint_count,
-                                       rhs=self._to_list(self._state.b3))
+                                       rhs=self._state.b3.tolist())
 
         return op2
 
@@ -707,21 +707,6 @@ class ADMMOptimizer(OptimizationAlgorithm):
             op3.objective.set_linear(i, linear_y[i])
 
         return op3
-
-    # when a plain list() call is used a numpy type of values makes cplex to fail
-    # when cplex.write() is called.
-    # for debug only, list() should be used instead
-    @staticmethod
-    def _to_list(values: Iterable[Any]) -> List[Any]:
-        """Converts an iterable into a list of floats
-
-        Args:
-            values: an iterable
-
-        Returns:
-            List of floats
-        """
-        return [float(element) for element in values]
 
     def _update_x0(self, op1: OptimizationProblem) -> np.ndarray:
         return np.asarray(self._qubo_optimizer.solve(op1).x)
