@@ -23,7 +23,7 @@ from scipy import sparse as scisparse
 
 from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms import ClassicalAlgorithm
-from qiskit.aqua.operators import LegacyBaseOperator, I, OpVec
+from qiskit.aqua.operators import LegacyBaseOperator, I, StateFn
 from qiskit.aqua.utils.validation import validate_min
 from .eigen_solver_result import EigensolverResult
 
@@ -60,8 +60,6 @@ class NumPyEigensolver(ClassicalAlgorithm):
         validate_min('k', k, 1)
         super().__init__()
 
-        self._in_operator = None
-        self._in_aux_operators = None
         self._operator = None
         self._aux_operators = None
         self._in_k = k
@@ -75,7 +73,7 @@ class NumPyEigensolver(ClassicalAlgorithm):
     @property
     def operator(self) -> LegacyBaseOperator:
         """ returns operator """
-        return self._in_operator
+        return self._operator
 
     @operator.setter
     def operator(self, operator: LegacyBaseOperator) -> None:
@@ -85,18 +83,17 @@ class NumPyEigensolver(ClassicalAlgorithm):
         if operator is None:
             self._operator = None
         else:
-            self._operator = operator.to_matrix_op()
+            self._operator = operator
             self._check_set_k()
 
     @property
     def aux_operators(self) -> List[LegacyBaseOperator]:
         """ returns aux operators """
-        return self._in_aux_operators
+        return self._aux_operators
 
     @aux_operators.setter
     def aux_operators(self, aux_operators: List[LegacyBaseOperator]) -> None:
         """ set aux operators """
-        self._in_aux_operators = aux_operators
         if aux_operators is None:
             self._aux_operators = []
         else:
@@ -106,7 +103,7 @@ class NumPyEigensolver(ClassicalAlgorithm):
             # For some reason Chemistry passes aux_ops with 0 qubits and paulis sometimes. TODO fix
             zero_op = I.kronpower(self.operator.num_qubits) * 0.0
             converted = [zero_op if op == 0 else op for op in converted]
-            aux_operators = OpVec(converted).to_matrix_op()
+            self._aux_operators = converted
 
     @property
     def k(self) -> int:
@@ -134,18 +131,12 @@ class NumPyEigensolver(ClassicalAlgorithm):
                 self._k = self._in_k
 
     def _solve(self):
-        if self._operator.dia_matrix is None:
-            if self._k >= self._operator.matrix.shape[0] - 1:
-                logger.debug("SciPy doesn't support to get all eigenvalues, using NumPy instead.")
-                eigval, eigvec = np.linalg.eig(self._operator.matrix.toarray())
-            else:
-                eigval, eigvec = scisparse.linalg.eigs(self._operator.matrix, k=self._k, which='SR')
+        if self._k >= 2**(self._operator.num_qubits) - 1:
+            logger.debug("SciPy doesn't support to get all eigenvalues, using NumPy instead.")
+            eigval, eigvec = np.linalg.eig(self._operator.to_matrix())
         else:
-            eigval = np.sort(self._operator.matrix.data)[:self._k]
-            temp = np.argsort(self._operator.matrix.data)[:self._k]
-            eigvec = np.zeros((self._operator.matrix.shape[0], self._k))
-            for i, idx in enumerate(temp):
-                eigvec[idx, i] = 1.0
+            eigval, eigvec = scisparse.linalg.eigs(self._operator.to_matrix(),
+                                                   k=self._k, which='SR')
         if self._k > 1:
             idx = eigval.argsort()
             eigval = eigval[idx]
@@ -176,8 +167,8 @@ class NumPyEigensolver(ClassicalAlgorithm):
         values = []
         for operator in self._aux_operators:
             value = 0.0
-            if not operator.is_empty():
-                value, _ = operator.evaluate_with_statevector(wavefn)
+            if not operator.coeff == 0:
+                value = StateFn(operator, is_measurement=True).to_matrix_op().eval(wavefn)
                 value = value.real if abs(value.real) > threshold else 0.0
             values.append((value, 0))
         return np.asarray(values)
