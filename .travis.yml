@@ -23,6 +23,9 @@ dist: xenial
 language: python
 python: 3.7
 
+git:
+  depth: false
+
 env:
   global:
     - DEPENDENCY_BRANCH=$(if [[ "$TRAVIS_BRANCH" == stable* ]]; then echo "stable"; else echo "master"; fi)
@@ -133,12 +136,15 @@ jobs:
           name: aqua1
           paths: aqua1.dat
       before_script:
+        - pip install cvxopt
         - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script: stestr --test-path test/aqua run --blacklist-file selection.txt && coverage3 combine && mv .coverage aqua1.dat
     - name: "Test Aqua 1 Python 3.8"
       <<: *stage_test_aqua
       if: tag IS blank
       python: 3.8
+      before_script:
+        - pip install cvxopt
       script: stestr --test-path test/aqua run --blacklist-file selection.txt
     - name: "Test Aqua 2 Python 3.7"
       <<: *stage_test_aqua
@@ -148,12 +154,15 @@ jobs:
           name: aqua2
           paths: aqua2.dat
       before_script:
+        - pip install cvxopt
         - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script: stestr --test-path test/aqua run --whitelist-file selection.txt && coverage3 combine && mv .coverage aqua2.dat
     - name: "Test Aqua 2 Python 3.8"
       <<: *stage_test_aqua
       if: tag IS blank
       python: 3.8
+      before_script:
+        - pip install cvxopt
       script: stestr --test-path test/aqua run --whitelist-file selection.txt
     - name: "Test Chemistry Python 3.7"
       <<: *stage_dependencies

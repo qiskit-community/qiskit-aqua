@@ -49,13 +49,13 @@ class TestDriverMethods(QiskitChemistryTestCase):
 
         qubit_op, aux_ops = core.run(qmolecule)
 
-        exact_eigensolver = NumPyMinimumEigensolver(qubit_op, aux_operators=aux_ops)
-        _, result = core.process_algorithm_result(exact_eigensolver.run())
+        npme = NumPyMinimumEigensolver(qubit_op, aux_operators=aux_ops)
+        result = core.process_algorithm_result(npme.compute_minimum_eigenvalue())
         return result
 
     def _assert_energy(self, result, mol):
-        self.assertAlmostEqual(self.ref_energies[mol], result['energy'], places=3)
+        self.assertAlmostEqual(self.ref_energies[mol], result.energy, places=3)
 
     def _assert_energy_and_dipole(self, result, mol):
         self._assert_energy(result, mol)
-        self.assertAlmostEqual(self.ref_dipoles[mol], result['total_dipole_moment'], places=3)
+        self.assertAlmostEqual(self.ref_dipoles[mol], result.total_dipole_moment, places=3)
