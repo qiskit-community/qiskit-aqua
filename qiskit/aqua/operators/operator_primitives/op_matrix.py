@@ -75,7 +75,7 @@ class OpMatrix(OpPrimitive):
                 'defined'.format(self.num_qubits, other.num_qubits))
 
         if isinstance(other, OpMatrix):
-            return OpMatrix((self.coeff * self.primitive).add(other.primitive * other.coeff))
+            return OpMatrix((self.coeff * self.primitive) + (other.coeff * other.primitive))
 
         # Covers Paulis, Circuits, and all else.
         return OpSum([self, other])

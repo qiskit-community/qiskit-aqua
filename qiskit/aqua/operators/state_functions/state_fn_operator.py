@@ -207,15 +207,16 @@ class StateFnOperator(StateFn):
         if not isinstance(front, OperatorBase):
             front = StateFn(front)
 
-        # Need a carve-out here to deal with cross terms in sum. Unique to
-        # StateFnOperator working with OpSum,
-        # other measurements don't have this issue.
-        if isinstance(front, OpSum):
-            # Need to do this in two steps to deal with the cross-terms
-            front_res = front.combo_fn([self.primitive.eval(front.coeff * front_elem)
-                                        for front_elem in front.oplist])
-            return front.adjoint().eval(front_res)
-        elif isinstance(front, OpVec) and front.distributive:
+        if isinstance(self.primitive, OpVec) and self.primitive.distributive:
+            evals = [StateFnOperator(op, coeff=self.coeff, is_measurement=self.is_measurement).eval(
+                front) for op in self.primitive.oplist]
+            return self.primitive.combo_fn(evals)
+
+        # Need an OpVec-specific carve-out here to make sure measurement over an OpVec doesn't
+        # produce two-dimensional OpVec from composing from both sides of primitive.
+        # Can't use isinstance because this would include subclasses.
+        # pylint: disable=unidiomatic-typecheck
+        if type(front) == OpVec:
             return front.combo_fn([self.eval(front.coeff * front_elem)
                                    for front_elem in front.oplist])
 

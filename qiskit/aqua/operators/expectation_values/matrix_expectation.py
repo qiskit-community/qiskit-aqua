@@ -17,9 +17,7 @@
 import logging
 
 from .expectation_base import ExpectationBase
-from ..operator_combos import OpVec
 from ..state_functions import StateFn
-from ..operator_primitives import OpMatrix
 
 logger = logging.getLogger(__name__)
 
@@ -61,21 +59,7 @@ class MatrixExpectation(ExpectationBase):
     def compute_expectation(self, state=None, params=None):
         # Making the matrix into a measurement allows us to handle OpVec states, dicts, etc.
         if not self._matrix_op:
-            # self._matrix_op = StateFn(self._operator.to_matrix_op(), is_measurement=True)
-            mat_conversion = self._operator.to_matrix()
-            if isinstance(mat_conversion, list):
-                def recursive_opvec(t):
-                    if isinstance(t, list):
-                        return OpVec([recursive_opvec(t_op) for t_op in t])
-                    else:
-                        return StateFn(OpMatrix(t), is_measurement=True)
-
-                self._matrix_op = recursive_opvec(mat_conversion)
-            else:
-                self._matrix_op = StateFn(OpMatrix(mat_conversion), is_measurement=True)
-
-            # TODO: switch to this
-            # self._matrix_op = ToMatrixOp().convert(self._operator)
+            self._matrix_op = StateFn(self._operator, is_measurement=True).to_matrix_op()
 
         if state is None:
             state = self.state
