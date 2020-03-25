@@ -120,6 +120,8 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         validate_min('max_evals_grouped', max_evals_grouped, 1)
         # TODO delete all instances of self._use_simulator_snapshot_mode
         self._use_simulator_snapshot_mode = False
+        # TODO delete instances of self._auto_conversion
+        self._auto_conversion = False
         if var_form is None:
             # TODO after ansatz refactor num qubits can be set later so we do not have to have
             #      an operator to create a default
