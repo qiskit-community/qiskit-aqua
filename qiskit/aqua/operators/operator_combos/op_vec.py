@@ -330,3 +330,14 @@ class OpVec(OperatorBase):
     def to_matrix_op(self, massive=False):
         """ Return a MatrixOp for this operator. """
         return self.__class__([op.to_matrix_op(massive=massive) for op in self.oplist]).reduce()
+
+    # Array operations:
+
+    def __getitem__(self, offset):
+        return self.oplist[offset]
+
+    def __iter__(self):
+        return iter(self.oplist)
+
+    def __len__(self):
+        return len(self.oplist)
