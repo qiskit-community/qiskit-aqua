@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" PhaseEstimationCircuit for getting the eigenvalues of a matrix. """
+""" Quantum Phase Estimation for getting the eigenvalues of a matrix. """
 
 from typing import Optional, List
 import numpy as np
@@ -28,12 +28,13 @@ from .eigs import Eigenvalues
 
 
 class EigsQPE(Eigenvalues):
+    """
+    Eigenvalues using Quantum Phase Estimation
 
-    """ This class embeds a PhaseEstimationCircuit for getting the eigenvalues of a matrix.
-
-    Specifically, this class is based on PhaseEstimationCircuit with no measurements and additional
-    handling of negative eigenvalues, e.g. for HHL. It uses many parameters
-    known from plain QPE. It depends on QFT and IQFT.
+    Specifically, this class is based on PhaseEstimationCircuit with no measurements and
+    has additional handling of negative eigenvalues, e.g. for :class:`~qiskit.aqua.algorithms.HHL`.
+    It depends on :mod:`QFT <qiskit.aqua.components.qfts>` and
+    :mod:`IQFT <qiskit.aqua.components.iqfts>` components.
     """
 
     def __init__(self,
@@ -46,19 +47,20 @@ class EigsQPE(Eigenvalues):
                  evo_time: Optional[float] = None,
                  negative_evals: bool = False,
                  ne_qfts: Optional[List] = None) -> None:
-        """Constructor.
-
+        """
         Args:
-            operator: the hamiltonian Operator object
-            iqft: the Inverse Quantum Fourier Transform component
-            num_time_slices: the number of time slices, has a min. value of 1.
-            num_ancillae: the number of ancillary qubits to use for the measurement,
-                            has a min. value of 1.
-            expansion_mode: the expansion mode (trotter|suzuki)
-            expansion_order: the suzuki expansion order, has a min. value of 1.
-            evo_time: the evolution time
-            negative_evals: indicate if negative eigenvalues need to be handled
-            ne_qfts: the QFT and IQFT components for handling negative eigenvalues
+            operator: The Hamiltonian Operator object
+            iqft: The Inverse Quantum Fourier Transform component
+            num_time_slices: The number of time slices, has a minimum value of 1.
+            num_ancillae: The number of ancillary qubits to use for the measurement,
+                has a minimum value of 1.
+            expansion_mode: The expansion mode ('trotter' | 'suzuki')
+            expansion_order: The suzuki expansion order, has a minimum value of 1.
+            evo_time: An optional evolution time which should scale the eigenvalue onto the range
+                :math:`(0,1]` (or :math:`(-0.5,0.5]` for negative eigenvalues). Defaults to
+                ``None`` in which case a suitably estimated evolution time is internally computed.
+            negative_evals: Set ``True`` to indicate negative eigenvalues need to be handled
+            ne_qfts: The QFT and IQFT components for handling negative eigenvalues
         """
         super().__init__()
         ne_qfts = ne_qfts if ne_qfts is not None else [None, None]

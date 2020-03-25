@@ -22,7 +22,7 @@ from qiskit.aqua.components.optimizers import L_BFGS_B
 from qiskit.aqua.operators.op_converter import to_weighted_pauli_operator
 from qiskit.aqua.operators.weighted_pauli_operator import Z2Symmetries
 from qiskit.chemistry import FermionicOperator
-from qiskit.chemistry.algorithms.adaptive import VQEAdapt
+from qiskit.chemistry.algorithms import VQEAdapt
 from qiskit.chemistry.components.initial_states import HartreeFock
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
@@ -82,10 +82,10 @@ class TestVQEAdaptUCCSD(QiskitChemistryTestCase):
         algorithm = VQEAdapt(self.qubit_op, self.var_form_base, optimizer,
                              threshold=0.00001, delta=0.1)
         result = algorithm.run(backend)
-        self.assertAlmostEqual(result['energy'], -1.85727503, places=2)
-        self.assertIn('num_iterations', result)
-        self.assertIn('final_max_grad', result)
-        self.assertIn('finishing_criterion', result)
+        self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=2)
+        self.assertIsNotNone(result.num_iterations)
+        self.assertIsNotNone(result.final_max_gradient)
+        self.assertIsNotNone(result.finishing_criterion)
 
 
 if __name__ == '__main__':

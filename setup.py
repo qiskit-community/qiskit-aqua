@@ -21,8 +21,9 @@ long_description = """<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Aqua
  modular, open-source library of quantum computing algorithms.
  Researchers can experiment with Aqua algorithms, on near-term quantum devices and simulators,
  and can also get involved by contributing new algorithms and algorithm-supporting objects,
- such as optimizers and variational forms. Qiskit Aqua is used by Qiskit Aqua Chemistry,
- Qiskit Aqua Machine Learning, and Qiskit Aqua Optimization to experiment with real-world applications to quantum computing."""
+ such as optimizers and variational forms.
+ Qiskit Aqua also contains application domain support in the form of Qiskit Chemistry,
+ Qiskit Finance, Qiskit Machine Learning and Qiskit Optimization to experiment with real-world applications to quantum computing."""
 
 requirements = [
     "qiskit-terra>=0.11.0",
@@ -32,7 +33,6 @@ requirements = [
     "numpy>=1.13",
     "psutil>=5",
     "scikit-learn>=0.20.0",
-    "cvxopt; python_version < '3.8' or sys_platform != 'win32'",
     "dlx",
     "docplex",
     "fastdtw",

@@ -18,7 +18,7 @@ from test.chemistry import QiskitChemistryTestCase
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import Z2Symmetries
-from qiskit.aqua.algorithms.adaptive import VQE
+from qiskit.aqua.algorithms import VQE
 from qiskit.aqua.components.optimizers import SLSQP
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
@@ -101,6 +101,6 @@ class TestSymmetries(QiskitChemistryTestCase):
 
         algo_result = algo.run(quantum_instance)
 
-        _, result = self.core.process_algorithm_result(algo_result)
+        result = self.core.process_algorithm_result(algo_result)
 
-        self.assertAlmostEqual(result['energy'], self.reference_energy, places=6)
+        self.assertAlmostEqual(result.energy, self.reference_energy, places=6)

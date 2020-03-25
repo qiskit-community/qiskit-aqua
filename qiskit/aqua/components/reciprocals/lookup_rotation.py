@@ -21,7 +21,6 @@ import numpy as np
 
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.aqua.components.reciprocals import Reciprocal
-from qiskit.aqua.circuits.gates import mct  # pylint: disable=unused-import
 from qiskit.aqua.utils.validation import validate_range
 
 logger = logging.getLogger(__name__)
@@ -31,12 +30,19 @@ logger = logging.getLogger(__name__)
 
 class LookupRotation(Reciprocal):
 
-    """The Lookup Rotation for Reciprocals.
+    """
+    The Lookup Rotation for Reciprocals.
 
-    A calculation of reciprocals of eigenvalues is performed and controlled
-    rotation of ancillary qubit via a lookup method. It uses a partial table
-    lookup of rotation angles to rotate an ancillary qubit by arcsin(C/lambda).
-    Please refer to the HHL documentation for an explanation of this method.
+    This method applies a variable sized binning to the values. Only a specified number of bits
+    after the most-significant bit is taken into account when assigning rotation angles to the
+    numbers prepared as states in the input register. Using precomputed angles, the reciprocal
+    is multiplied to the amplitude via controlled rotations. While no resolution of the result
+    is lost for small values, towards larger values the bin size increases. The accuracy of the
+    result is tuned by the parameters.
+
+    A calculation of reciprocals of eigenvalues is performed and controlled rotation of ancillary
+    qubit via a lookup method. It uses a partial table lookup of rotation angles to rotate an
+    ancillary qubit by arcsin(C/lambda).
     """
 
     def __init__(
@@ -47,16 +53,27 @@ class LookupRotation(Reciprocal):
             negative_evals: bool = False,
             evo_time: Optional[float] = None,
             lambda_min: Optional[float] = None) -> None:
-        """Constructor.
-
+        r"""
         Args:
-            pat_length: the number of qubits used for binning pattern
-            subpat_length: the number of qubits used for binning sub-pattern
-            scale: the scale of rotation angle, corresponds to HHL constant C,
-                     has values between 0 and 1.
-            negative_evals: indicate if negative eigenvalues need to be handled
-            evo_time: the evolution time
-            lambda_min: the smallest expected eigenvalue
+            pat_length: The number of qubits used for binning pattern. Specifies the number of bits
+                following the most-significant bit that is used to identify a number. This leads to
+                a binning of large values, while preserving the accuracy for smaller values. It
+                should be chosen as :math:`min(k-1,5)` for an input register with k qubits to limit
+                the error in the rotation to < 3%.
+            subpat_length: The number of qubits used for binning sub-pattern. This parameter is
+                computed in the circuit creation routine and helps reducing the gate count.
+                For `pat_length<=5` it is chosen as
+                :math:`\left\lceil(\frac{patlength}{2})\right\rceil`.
+            scale: The scale of rotation angle, corresponds to HHL constant C,
+                has values between 0 and 1. This parameter is used to scale the reciprocals such
+                that for a scale C, the rotation is performed by an angle
+                :math:`\arcsin{\frac{C}{\lambda}}`. If neither the `scale` nor the
+                `evo_time` and `lambda_min` parameters are specified, the smallest resolvable
+                Eigenvalue is used.
+            negative_evals: Indicate if negative eigenvalues need to be handled
+            evo_time: The evolution time. This parameter scales the Eigenvalues in the phase
+                estimation onto the range (0,1] ( (-0.5,0.5] for negative Eigenvalues ).
+            lambda_min: The smallest expected eigenvalue
         """
         validate_range('scale', scale, 0, 1)
         super().__init__()
@@ -256,7 +273,6 @@ class LookupRotation(Reciprocal):
                 qc.x(self._ev[int(c + offset)])
 
     def construct_circuit(self, mode, inreg):  # pylint: disable=arguments-differ
-
         """Construct the Lookup Rotation circuit.
 
         Args:
@@ -286,12 +302,12 @@ class LookupRotation(Reciprocal):
         if self._pat_length is None:
             if self._reg_size <= 6:
                 self._pat_length = self._reg_size - \
-                                   (2 if self._negative_evals else 1)
+                    (2 if self._negative_evals else 1)
             else:
                 self._pat_length = 5
         if self._reg_size <= self._pat_length:
             self._pat_length = self._reg_size - \
-                               (2 if self._negative_evals else 1)
+                (2 if self._negative_evals else 1)
         if self._subpat_length is None:
             self._subpat_length = int(np.ceil(self._pat_length/2))
         m = self._subpat_length

@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -27,7 +27,7 @@ class TestDriver(ABC):
 
     @abstractmethod
     def assertAlmostEqual(self, first, second, places=None, msg=None, delta=None):
-        """ asset Almost Equal """
+        """ assert Almost Equal """
         raise Exception('Abstract method')
 
     @abstractmethod
@@ -106,7 +106,7 @@ class TestDriver(ABC):
                                              [-0.5806, 0.6763], decimal=4)
 
     def test_driver_mo_onee_ints(self):
-        """ driver mo oneee ints test """
+        """ driver mo onee ints test """
         self.log.debug('QMolecule MO one electron integrals {}'.format(self.qmolecule.mo_onee_ints))
         self.assertEqual(self.qmolecule.mo_onee_ints.shape, (2, 2))
         np.testing.assert_array_almost_equal(np.absolute(self.qmolecule.mo_onee_ints),

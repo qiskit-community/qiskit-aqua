@@ -23,6 +23,9 @@ dist: xenial
 language: python
 python: 3.7
 
+git:
+  depth: false
+
 env:
   global:
     - DEPENDENCY_BRANCH=$(if [[ "$TRAVIS_BRANCH" == stable* ]]; then echo "stable"; else echo "master"; fi)
@@ -48,47 +51,28 @@ stage_dependencies: &stage_dependencies
     - pip install -U setuptools wheel
     - |
       if [ "$DEPENDENCY_BRANCH" == "master" ]; then
-        # Download github Terra
-        wget https://codeload.github.com/Qiskit/qiskit-terra/zip/$DEPENDENCY_BRANCH -O /tmp/qiskit-terra.zip
-        unzip /tmp/qiskit-terra.zip -d /tmp/
-        # Install local Qiskit Terra
-        pip install -e /tmp/qiskit-terra-$DEPENDENCY_BRANCH --progress-bar off
-        # Download github Ignis
-        wget https://codeload.github.com/Qiskit/qiskit-ignis/zip/$DEPENDENCY_BRANCH -O /tmp/qiskit-ignis.zip
-        unzip /tmp/qiskit-ignis.zip -d /tmp/
-        # Install local Qiskit Ignis
-        pip install -e /tmp/qiskit-ignis-$DEPENDENCY_BRANCH --progress-bar off
-        # Download github IBMQ Provider
-        wget https://codeload.github.com/Qiskit/qiskit-ibmq-provider/zip/$DEPENDENCY_BRANCH -O /tmp/qiskit-ibmq-provider.zip
-        unzip /tmp/qiskit-ibmq-provider.zip -d /tmp/
-        # Install local Qiskit IBMQ Provider
-        pip install -e /tmp/qiskit-ibmq-provider-$DEPENDENCY_BRANCH --progress-bar off
-        # install Qiskit Aer build dependencies
+        pip install cython
+        # Installing qiskit-terra master branch...
+        pip install https://github.com/Qiskit/qiskit-terra/archive/master.zip --progress-bar off
+        # Installing qiskit-ignis master branch...
+        pip install https://github.com/Qiskit/qiskit-ignis/archive/master.zip --progress-bar off
+        # Installing qiskit-ibmq-provider master branch...
+        pip install https://github.com/Qiskit/qiskit-ibmq-provider/archive/master.zip --progress-bar off
+        # install qiskit-aer build dependencies
         sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
         sudo apt-get -y update
         sudo apt-get -y install g++-7
         sudo apt-get -y install libopenblas-dev
-        # Clone Qiskit Aer
-        git clone --recurse-submodules https://github.com/Qiskit/qiskit-aer.git /tmp/qiskit-aer-$DEPENDENCY_BRANCH
-        cd /tmp/qiskit-aer-$DEPENDENCY_BRANCH
-        git checkout $DEPENDENCY_BRANCH
-        # Install Qiskit Aer requirements.
-        pip install -U -r requirements-dev.txt --progress-bar off
-        # Install Thrust headers
-        pushd src/third-party/headers
-        git clone --depth 1 --branch 1.9.5 https://github.com/thrust/thrust.git thrust
-        popd
-        # Move thrust headers into build path
-        cp -r src/third-party/headers/thrust/thrust src/thrust
-        # Build Qiskit Aer with Thrust OpenMP CPU backend
+        # Clone qiskit-aer
+        git clone --recurse-submodules https://github.com/Qiskit/qiskit-aer.git /tmp/qiskit-aer
+        cd /tmp/qiskit-aer
+        # Install qiskit-aer requirements.
+        pip install -U -c constraints.txt -r requirements-dev.txt --progress-bar off
+        # Build qiskit-aer with Thrust OpenMP CPU backend
         python setup.py bdist_wheel -- -DCMAKE_CXX_COMPILER=g++-7 -DAER_THRUST_BACKEND=OMP -- -j4
         pip install dist/qiskit_aer*whl
         # back to current repo directory
         cd $TRAVIS_BUILD_DIR
-      fi
-    - |
-      if [ ! "$(ls -A .stestr)" ]; then
-          rm -rf .stestr
       fi
     # install Aqua and Aqua dev. requirements
     - pip install -e $TRAVIS_BUILD_DIR --progress-bar off
@@ -152,12 +136,15 @@ jobs:
           name: aqua1
           paths: aqua1.dat
       before_script:
-        - export PYTHON="coverage run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
-      script: stestr --test-path test/aqua run --blacklist-file selection.txt && coverage combine && mv .coverage aqua1.dat
+        - pip install cvxopt
+        - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
+      script: stestr --test-path test/aqua run --blacklist-file selection.txt && coverage3 combine && mv .coverage aqua1.dat
     - name: "Test Aqua 1 Python 3.8"
       <<: *stage_test_aqua
       if: tag IS blank
       python: 3.8
+      before_script:
+        - pip install cvxopt
       script: stestr --test-path test/aqua run --blacklist-file selection.txt
     - name: "Test Aqua 2 Python 3.7"
       <<: *stage_test_aqua
@@ -167,12 +154,15 @@ jobs:
           name: aqua2
           paths: aqua2.dat
       before_script:
-        - export PYTHON="coverage run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
-      script: stestr --test-path test/aqua run --whitelist-file selection.txt && coverage combine && mv .coverage aqua2.dat
+        - pip install cvxopt
+        - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
+      script: stestr --test-path test/aqua run --whitelist-file selection.txt && coverage3 combine && mv .coverage aqua2.dat
     - name: "Test Aqua 2 Python 3.8"
       <<: *stage_test_aqua
       if: tag IS blank
       python: 3.8
+      before_script:
+        - pip install cvxopt
       script: stestr --test-path test/aqua run --whitelist-file selection.txt
     - name: "Test Chemistry Python 3.7"
       <<: *stage_dependencies
@@ -188,14 +178,11 @@ jobs:
         # install gaussian dependency libgfortran 5
         - sudo apt-get -y update
         - sudo apt-get -y install libgfortran5
-        # download PyQuante master and unzip it
-        - wget https://codeload.github.com/rpmuller/pyquante2/zip/master -O /tmp/pyquante2.zip
-        - unzip /tmp/pyquante2.zip -d /tmp/
-        # Install local PyQuante
-        - pip install -e /tmp/pyquante2-master --progress-bar off
+        # Installing pyquante2 master branch...
+        - pip install https://github.com/rpmuller/pyquante2/archive/master.zip --progress-bar off
       before_script:
-        - export PYTHON="coverage run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
-      script: stestr --test-path test/chemistry run && coverage combine && mv .coverage chemistry.dat
+        - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
+      script: stestr --test-path test/chemistry run && coverage3 combine && mv .coverage chemistry.dat
     - name: "Test Chemistry Python 3.8"
       <<: *stage_dependencies
       if: tag IS blank
@@ -205,11 +192,8 @@ jobs:
         # install gaussian dependency libgfortran 5
         - sudo apt-get -y update
         - sudo apt-get -y install libgfortran5
-        # download PyQuante master and unzip it
-        - wget https://codeload.github.com/rpmuller/pyquante2/zip/master -O /tmp/pyquante2.zip
-        - unzip /tmp/pyquante2.zip -d /tmp/
-        # Install local PyQuante
-        - pip install -e /tmp/pyquante2-master --progress-bar off
+        # Installing pyquante2 master branch...
+        - pip install https://github.com/rpmuller/pyquante2/archive/master.zip --progress-bar off
       script: stestr --test-path test/chemistry run
     - name: "Test Finance Python 3.7"
       <<: *stage_dependencies
@@ -219,8 +203,8 @@ jobs:
           name: finance
           paths: finance.dat
       before_script:
-        - export PYTHON="coverage run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
-      script: stestr --test-path test/finance run && coverage combine && mv .coverage finance.dat
+        - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
+      script: stestr --test-path test/finance run && coverage3 combine && mv .coverage finance.dat
     - name: "Test Finance Python 3.8"
       <<: *stage_dependencies
       if: tag IS blank
@@ -234,8 +218,8 @@ jobs:
           name: ml
           paths: ml.dat
       before_script:
-        - export PYTHON="coverage run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
-      script: stestr --test-path test/ml run && coverage combine && mv .coverage ml.dat
+        - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
+      script: stestr --test-path test/ml run && coverage3 combine && mv .coverage ml.dat
     - name: "Test Machine Learning Python 3.8"
       <<: *stage_dependencies
       if: tag IS blank
@@ -249,8 +233,8 @@ jobs:
           name: optimization
           paths: optimization.dat
       before_script:
-        - export PYTHON="coverage run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
-      script: stestr --test-path test/optimization run && coverage combine && mv .coverage optimization.dat
+        - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
+      script: stestr --test-path test/optimization run && coverage3 combine && mv .coverage optimization.dat
     - name: "Test Optimization Python 3.8"
       <<: *stage_dependencies
       if: tag IS blank
@@ -270,18 +254,18 @@ jobs:
       install:
         - pip install -U coverage coveralls diff-cover
       script:
-        - coverage combine aqua1.dat aqua2.dat chemistry.dat finance.dat ml.dat optimization.dat
+        - coverage3 combine aqua1.dat aqua2.dat chemistry.dat finance.dat ml.dat optimization.dat
         - coveralls || true
-        - coverage xml
+        - coverage3 xml
         - diff-cover --compare-branch master coverage.xml || true
     - stage: Deploy
-      <<: *stage_dependencies
       name: "Deploy to Pypi"
       if: tag IS present
-      python: 3.6
+      python: 3.7
       env:
         - TWINE_USERNAME=qiskit
-      install: pip install -U twine
+      install:
+        - pip install -U twine pip setuptools virtualenv wheel
       script:
         - python3 setup.py sdist bdist_wheel
         - twine upload dist/qiskit*

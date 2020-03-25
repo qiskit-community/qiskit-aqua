@@ -21,10 +21,10 @@ from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.aqua.components.uncertainty_models import (UniformDistribution,
                                                        UnivariateVariationalDistribution)
 from qiskit.aqua.components.variational_forms import RY
-from qiskit.aqua.algorithms.adaptive.qgan.qgan import QGAN
+from qiskit.aqua.algorithms import QGAN
 from qiskit.aqua import aqua_globals, QuantumInstance
 from qiskit.aqua.components.initial_states import Custom
-from qiskit.aqua.components.neural_networks import NumpyDiscriminator, PyTorchDiscriminator
+from qiskit.aqua.components.neural_networks import NumPyDiscriminator, PyTorchDiscriminator
 from qiskit import BasicAer
 
 
@@ -150,7 +150,7 @@ class TestQGAN(QiskitAquaTestCase):
                      num_qubits,
                      batch_size,
                      num_epochs,
-                     discriminator=NumpyDiscriminator(n_features=len(num_qubits)),
+                     discriminator=NumPyDiscriminator(n_features=len(num_qubits)),
                      snapshot_dir=None)
         _qgan.seed = self.seed
         _qgan.set_generator()

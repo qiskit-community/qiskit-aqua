@@ -204,9 +204,9 @@ class DiscriminatorNet():
         return grads_values
 
 
-class NumpyDiscriminator(DiscriminativeNetwork):
+class NumPyDiscriminator(DiscriminativeNetwork):
     """
-    Discriminator based on numpy
+    Discriminator based on NumPy
     """
 
     def __init__(self, n_features: int = 1, n_out: int = 1) -> None:
