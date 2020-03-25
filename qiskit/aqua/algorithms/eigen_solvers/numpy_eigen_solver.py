@@ -23,7 +23,7 @@ from scipy import sparse as scisparse
 
 from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms import ClassicalAlgorithm
-from qiskit.aqua.operators import LegacyBaseOperator, I, StateFn
+from qiskit.aqua.operators import LegacyBaseOperator, I, StateFn, OpVec
 from qiskit.aqua.utils.validation import validate_min
 from .eigen_solver_result import EigensolverResult
 
@@ -198,7 +198,7 @@ class NumPyEigensolver(ClassicalAlgorithm):
         if 'eigvals' in self._ret:
             result.eigenvalues = self._ret['eigvals']
         if 'eigvecs' in self._ret:
-            result.eigenstates = self._ret['eigvecs']
+            result.eigenstates = OpVec([StateFn(vec) for vec in self._ret['eigvecs']])
         if 'aux_ops' in self._ret:
             result.aux_operator_eigenvalues = self._ret['aux_ops']
 

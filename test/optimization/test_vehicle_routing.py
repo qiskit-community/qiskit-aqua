@@ -63,4 +63,4 @@ class TestVehicleRouting(QiskitOptimizationTestCase):
         # Solve the problem using the exact eigensolver
         result = NumPyMinimumEigensolver(self.qubit_op).run()
         arr = np.array([0., 0., 0., 1.])
-        np.testing.assert_array_almost_equal(arr, result.eigenstate, 4)
+        np.testing.assert_array_almost_equal(arr, np.abs(result.eigenstate.to_matrix())**2, 4)
