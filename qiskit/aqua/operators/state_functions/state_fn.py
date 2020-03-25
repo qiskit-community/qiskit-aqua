@@ -278,7 +278,7 @@ class StateFn(OperatorBase):
     #     """ print details """
     #     raise NotImplementedError
 
-    def eval(self, front=None, back=None):
+    def eval(self, front=None):
         """ Evaluate the State function given a basis string, dict, or state (if measurement). """
         return NotImplementedError
 

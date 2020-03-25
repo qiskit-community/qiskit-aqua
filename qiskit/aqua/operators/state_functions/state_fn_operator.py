@@ -198,7 +198,7 @@ class StateFnOperator(StateFn):
                 self.coeff)
 
     # pylint: disable=too-many-return-statements
-    def eval(self, front=None, back=None):
+    def eval(self, front=None):
         if not self.is_measurement and isinstance(front, OperatorBase):
             raise ValueError(
                 'Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '

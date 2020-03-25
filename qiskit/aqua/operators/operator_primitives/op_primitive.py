@@ -170,7 +170,7 @@ class OpPrimitive(OperatorBase):
         """Overload str() """
         return "OpPrimitive({}, coeff={})".format(repr(self.primitive), self.coeff)
 
-    def eval(self, front=None, back=None):
+    def eval(self, front=None):
         """ Evaluate the Operator function given one or both states. """
         return NotImplementedError
 

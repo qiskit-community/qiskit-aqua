@@ -53,8 +53,10 @@ class OperatorBase(ABC):
 
     # TODO allow massive argument to decide whether to perform to_matrix?
     @abstractmethod
-    def eval(self, front=None, back=None):
-        """ A square binary Operator can be defined as a function over two binary strings
+    def eval(self, front=None):
+        """
+        # TODO update
+        A square binary Operator can be defined as a function over two binary strings
         of equal length,
         or equivalently, a function taking a binary function to another binary function.
         This method returns the

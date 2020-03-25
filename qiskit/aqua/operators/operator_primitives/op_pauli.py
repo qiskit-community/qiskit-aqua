@@ -189,7 +189,7 @@ class OpPauli(OpPrimitive):
         else:
             return "{} * {}".format(self.coeff, prim_str)
 
-    def eval(self, front=None, back=None):
+    def eval(self, front=None):
         """ A square binary Operator can be defined as a function over
         two binary strings of equal length. This
         method returns the value of that function for a given pair of
@@ -208,10 +208,6 @@ class OpPauli(OpPrimitive):
         # pylint: disable=import-outside-toplevel
         from .. import OperatorBase, StateFn, StateFnDict, StateFnCircuit, OpVec
         from . import OpCircuit
-
-        # TODO maybe remove
-        # if isinstance(front, list):
-        #     new_front = OpVec([self.eval(front_elem) for front_elem in front])
 
         new_front = None
 

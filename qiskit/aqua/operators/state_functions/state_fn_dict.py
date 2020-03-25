@@ -219,7 +219,7 @@ class StateFnDict(StateFn):
                                         self.coeff)
 
     # pylint: disable=too-many-return-statements
-    def eval(self, front=None, back=None):
+    def eval(self, front=None):
 
         if not self.is_measurement and isinstance(front, OperatorBase):
             raise ValueError(

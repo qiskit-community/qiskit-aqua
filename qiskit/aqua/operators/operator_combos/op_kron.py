@@ -58,7 +58,7 @@ class OpKron(OpVec):
 
     # TODO Kron eval should partial trace the input into smaller StateFns each of size
     #  op.num_qubits for each op in oplist. Right now just works through matmul like OpComposition.
-    def eval(self, front=None, back=None):
+    def eval(self, front=None):
         """ A square binary Operator can be defined as a function over two binary strings of
         equal length. This
         method returns the value of that function for a given pair of binary strings.

@@ -274,7 +274,7 @@ class StateFnCircuit(StateFn):
                 qc = self.to_circuit().decompose().bind_parameters(param_dict)
         return self.__class__(qc, coeff=param_value)
 
-    def eval(self, front=None, back=None):
+    def eval(self, front=None):
         if not self.is_measurement and isinstance(front, OperatorBase):
             raise ValueError(
                 'Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '

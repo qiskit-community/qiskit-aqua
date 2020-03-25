@@ -154,7 +154,7 @@ class OpEvolution(OpPrimitive):
                 param_value = float(self.coeff.bind({coeff_param: value}))
         return self.__class__(self.primitive.bind_parameters(param_dict), coeff=param_value)
 
-    def eval(self, front=None, back=None):
+    def eval(self, front=None):
         """ A square binary Operator can be defined as a function over
         two binary strings of equal length. This
         method returns the value of that function for a given pair
