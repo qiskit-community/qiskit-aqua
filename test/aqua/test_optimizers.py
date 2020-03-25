@@ -22,7 +22,7 @@ import numpy as np
 
 from qiskit.aqua import aqua_globals
 from qiskit.aqua.components.optimizers import (ADAM, CG, COBYLA, L_BFGS_B, P_BFGS, NELDER_MEAD,
-                                               POWELL, SLSQP, SPSA, TNC, NFT)
+                                               POWELL, SLSQP, SPSA, TNC)
 
 
 class TestOptimizers(QiskitAquaTestCase):
@@ -96,12 +96,6 @@ class TestOptimizers(QiskitAquaTestCase):
     def test_tnc(self):
         """ tnc test """
         optimizer = TNC(maxiter=1000, tol=1e-06)
-        res = self._optimize(optimizer)
-        self.assertLessEqual(res[2], 10000)
-
-    def test_nft(self):
-        """ nft test """
-        optimizer = NFT(maxfev=10000, reset_interval=32)
         res = self._optimize(optimizer)
         self.assertLessEqual(res[2], 10000)
 

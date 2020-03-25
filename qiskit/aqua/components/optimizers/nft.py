@@ -27,7 +27,11 @@ logger = logging.getLogger(__name__)
 
 
 class NFT(Optimizer):
-    """Nakanishi-Fujii-Todo algorithm."""
+    """
+    Nakanishi-Fujii-Todo algorithm.
+
+    See https://arxiv.org/abs/1903.12166
+    """
 
     _OPTIONS = ['maxiter', 'maxfev', 'disp', 'reset_interval']
 
@@ -38,9 +42,7 @@ class NFT(Optimizer):
                  disp: bool = False,
                  reset_interval: int = 32) -> None:
         """
-        Constructor.
-
-        For details, please refer to
+        Built out using scipy framework, for details, please refer to
         https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html.
 
         Args:
@@ -48,7 +50,7 @@ class NFT(Optimizer):
             maxfev: Maximum number of function evaluations to perform.
             disp: disp
             reset_interval: The minimum estimates directly once
-                            in``reset_interval`` times.
+                            in ``reset_interval`` times.
 
         Notes:
             In this optimization method, the optimization function have to satisfy
