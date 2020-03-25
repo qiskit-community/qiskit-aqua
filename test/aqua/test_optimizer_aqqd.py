@@ -24,7 +24,7 @@ from qiskit.aqua.components.optimizers import AQGD
 from qiskit.aqua.algorithms import VQE
 
 
-class TestAQGD(QiskitAquaTestCase):
+class TestOptimizerAQGD(QiskitAquaTestCase):
     """ Test AQGD optimizer using RY for analytic gradient with VQE """
 
     def setUp(self):
