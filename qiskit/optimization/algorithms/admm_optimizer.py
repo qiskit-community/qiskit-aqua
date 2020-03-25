@@ -15,7 +15,7 @@
 """An implementation of the ADMM algorithm."""
 import logging
 import time
-from typing import List, Optional, Any, Iterable
+from typing import List, Optional
 
 import numpy as np
 from cplex import SparsePair
@@ -665,7 +665,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
             constraint_count = self._state.a2.shape[0]
             lin_expr = [SparsePair(ind=list(range(continuous_size + binary_size)),
                                    val=self._state.a3[i, :].tolist() +
-                                       self._state.a2[i, :].tolist())
+                                   self._state.a2[i, :].tolist())
                         for i in range(constraint_count)]
             op2.linear_constraints.add(lin_expr=lin_expr,
                                        senses=["L"] * constraint_count,
