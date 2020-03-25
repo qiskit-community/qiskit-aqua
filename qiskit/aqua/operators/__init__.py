@@ -67,7 +67,7 @@ from .operator_primitives import OpPrimitive, OpPauli, OpMatrix, OpCircuit
 from .state_functions import (StateFn, StateFnDict, StateFnVector,
                               StateFnCircuit, StateFnOperator)
 from .operator_combos import OpVec, OpSum, OpComposition, OpKron
-from .converters import (ConverterBase, PauliChangeOfBasis, PaulitoInstruction, ToMatrixOp,
+from .converters import (ConverterBase, PauliChangeOfBasis, PaulitoInstruction,
                          DicttoCircuitSum, AbelianGrouper)
 from .expectation_values import (ExpectationBase, PauliExpectation, MatrixExpectation,
                                  AerPauliExpectation)

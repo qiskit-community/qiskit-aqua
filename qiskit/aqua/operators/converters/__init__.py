@@ -20,7 +20,6 @@ Converters
 from .converter_base import ConverterBase
 from .pauli_cob import PauliChangeOfBasis
 from .pauli_to_instruction import PaulitoInstruction
-from .to_matrixop import ToMatrixOp
 from .dict_to_circuit_sum import DicttoCircuitSum
 from .abelian_grouper import AbelianGrouper
 
@@ -30,6 +29,5 @@ from .abelian_grouper import AbelianGrouper
 __all__ = ['ConverterBase',
            'PauliChangeOfBasis',
            'PaulitoInstruction',
-           'ToMatrixOp',
            'DicttoCircuitSum',
            'AbelianGrouper']
