@@ -79,9 +79,8 @@ class ADMMParameters:
         self.factor_c = factor_c
         self.beta = beta
         self.rho_initial = rho_initial
-        self.qubo_optimizer = qubo_optimizer if qubo_optimizer is not None else CplexOptimizer()
-        self.continuous_optimizer = continuous_optimizer if continuous_optimizer is not None \
-            else CplexOptimizer()
+        self.qubo_optimizer = qubo_optimizer or CplexOptimizer()
+        self.continuous_optimizer = continuous_optimizer or CplexOptimizer()
 
 
 class ADMMState:
