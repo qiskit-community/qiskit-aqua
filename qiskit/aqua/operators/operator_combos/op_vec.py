@@ -274,25 +274,22 @@ class OpVec(OperatorBase):
         if not self.distributive:
             return NotImplementedError
 
-        # TODO Do we need to use partial(np.sum, axis=0) as OpSum combo to
-        #  be able to handle vector returns correctly?
-        if isinstance(front, list):
-            return [self.eval(front_elem, back=back) for front_elem in front]
-        # pylint: disable=cyclic-import,import-outside-toplevel
-        from ..state_functions import StateFn
+        # pylint: disable=import-outside-toplevel
+        from .. import StateFn
 
-        if back is not None and not isinstance(back, OperatorBase):
-            back = StateFn(back, is_measurement=True)
-
-        res = []
-        for op in self.oplist:
-            if isinstance(op, StateFn):
-                new_front = (self.coeff * op).eval(front)
-                res += [back.eval(new_front)] if back is not None else [new_front]
+        evals = [(self.coeff * op).eval(front) for op in self.oplist]
+        if all([isinstance(op, OperatorBase) for op in evals]):
+            new_front = self.__class__(evals)
+            if back is not None:
+                if not isinstance(back, StateFn):
+                    back = StateFn(back, is_measurement=True)
+                return back.eval(new_front)
             else:
-                res += [(self.coeff * op).eval(front, back)]
-
-        return self.combo_fn(res)
+                return new_front
+        elif any([isinstance(op, OperatorBase) for op in evals]):
+            raise TypeError('Cannot handle mixed scalar and Operator eval results.')
+        else:
+            return self.combo_fn(evals)
 
     def exp_i(self):
         """ Raise Operator to power e ^ (i * op)"""
