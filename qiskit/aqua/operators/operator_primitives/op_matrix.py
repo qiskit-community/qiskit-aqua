@@ -139,13 +139,15 @@ class OpMatrix(OpPrimitive):
         tools is appropriate. """
 
         if self.num_qubits > 16 and not massive:
-            # TODO figure out sparse matrices?
             raise ValueError(
                 'to_matrix will return an exponentially large matrix, '
                 'in this case {0}x{0} elements.'
                 ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
 
         return self.primitive.data * self.coeff
+
+    def to_matrix_op(self, massive=False):
+        return self
 
     def __str__(self):
         """Overload str() """
@@ -191,7 +193,7 @@ class OpMatrix(OpPrimitive):
         elif isinstance(front, OperatorBase):
             new_front = StateFn(self.to_matrix() @ front.to_matrix())
 
-        if back:
+        if back is not None:
             if not isinstance(back, StateFn):
                 back = StateFn(back, is_measurement=True)
             return back.eval(new_front)

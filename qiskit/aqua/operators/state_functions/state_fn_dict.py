@@ -221,7 +221,7 @@ class StateFnDict(StateFn):
 
     # pylint: disable=too-many-return-statements
     def eval(self, front=None, back=None):
-        if back:
+        if back is not None:
             raise AquaError('Eval with back is only defined for Operators, not StateFns.')
 
         if not self.is_measurement and isinstance(front, OperatorBase):

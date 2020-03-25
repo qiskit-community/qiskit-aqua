@@ -229,7 +229,7 @@ class OpCircuit(OpPrimitive):
         # Composable with circuit
         if isinstance(front, (OpPauli, StateFnCircuit, OpCircuit)):
             new_front = self.compose(front)
-            if back:
+            if back is not None:
                 if not isinstance(back, StateFn):
                     back = StateFn(back, is_measurement=True)
                 return back.eval(new_front)

@@ -156,7 +156,6 @@ class StateFnVector(StateFn):
         """
 
         if self.num_qubits > 16 and not massive:
-            # TODO figure out sparse matrices?
             raise ValueError(
                 'to_vector will return an exponentially large vector, in this case {0} elements.'
                 ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
@@ -164,6 +163,9 @@ class StateFnVector(StateFn):
         vec = self.primitive.data * self.coeff
 
         return vec if not self.is_measurement else vec.reshape(1, -1)
+
+    def to_matrix_op(self, massive=False):
+        return self
 
     def __str__(self):
         """Overload str() """
@@ -179,7 +181,7 @@ class StateFnVector(StateFn):
 
     # pylint: disable=too-many-return-statements
     def eval(self, front=None, back=None):
-        if back:
+        if back is not None:
             raise AquaError('Eval with back is only defined for Operators, not StateFns.')
 
         if not self.is_measurement and isinstance(front, OperatorBase):

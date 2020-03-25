@@ -249,7 +249,7 @@ class OpPauli(OpPrimitive):
         elif isinstance(front, OperatorBase):
             new_front = self.to_matrix_op().eval(front.to_matrix_op())
 
-        if back:
+        if back is not None:
             if not isinstance(back, StateFn):
                 back = StateFn(back, is_measurement=True)
             return back.eval(new_front)
