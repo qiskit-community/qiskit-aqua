@@ -143,9 +143,9 @@ class CobylaOptimizer(OptimizationAlgorithm):
         ubs = problem.variables.get_upper_bounds()
         for i in range(num_vars):
             if lbs[i] > -infinity:
-                constraints += [lambda x: x - lbs[i]]
+                constraints += [lambda x, lbs=lbs, i=i: x - lbs[i]]
             if ubs[i] < infinity:
-                constraints += [lambda x: ubs[i] - x]
+                constraints += [lambda x, lbs=lbs, i=i: ubs[i] - x]
 
         # add linear constraints
         for i in range(problem.linear_constraints.get_num()):

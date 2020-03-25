@@ -19,7 +19,7 @@ from typing import List, Optional
 
 import numpy as np
 from cplex import SparsePair
-from qiskit.optimization.algorithms import CplexOptimizer
+from qiskit.optimization.algorithms.cplex_optimizer import CplexOptimizer
 from qiskit.optimization.algorithms.optimization_algorithm import OptimizationAlgorithm
 from qiskit.optimization.problems.optimization_problem import OptimizationProblem
 from qiskit.optimization.problems.variables import CPX_BINARY, CPX_CONTINUOUS
@@ -116,7 +116,7 @@ class ADMMState:
 
         # define heavily used matrix, they are used at each iteration, so let's cache them,
         # they are np.ndarrays
-        # pylint:disable=invalid-name 
+        # pylint:disable=invalid-name
         # objective
         self.q0 = None
         self.c0 = None

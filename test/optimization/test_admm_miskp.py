@@ -75,12 +75,13 @@ class TestADMMOptimizerMiskp(QiskitOptimizationTestCase):
                                   -4.24, -8.30, -7.02]) \
             .reshape((family_count, items_per_family))
 
-        return family_count, items_per_family, knapsack_capacity, setup_costs, \
-               resource_values, cost_values
+        return family_count, items_per_family, knapsack_capacity, setup_costs, resource_values,\
+            cost_values
 
 
 class Miskp:
     """A Helper class to generate  Mixed Integer Setup Knapsack problems"""
+
     def __init__(self, family_count: int, items_per_family: int, knapsack_capacity: float,
                  setup_costs: np.ndarray, resource_values: np.ndarray, cost_values: np.ndarray)\
             -> None:
@@ -162,8 +163,7 @@ class Miskp:
         self.op.linear_constraints.add(
             lin_expr=[
                 SparsePair(
-                    ind=[self._var_name("x", i, j) for i, j in self.range_x_vars]
-                    ,
+                    ind=[self._var_name("x", i, j) for i, j in self.range_x_vars],
                     val=[self.resource_values[i, j] for i, j in self.range_x_vars])
             ],
             senses="L",

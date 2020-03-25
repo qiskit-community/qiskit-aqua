@@ -164,7 +164,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                          cost_fn=self._energy_evaluation,
                          initial_point=initial_point)
 
-        self._quantum_instance = quantum_instance
+        self.quantum_instance = quantum_instance
 
         logger.info(self.print_settings())
         self._var_form_params = None

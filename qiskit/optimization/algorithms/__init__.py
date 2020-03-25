@@ -27,7 +27,7 @@ Base class
 .. autosummary::
    :toctree: ../stubs/
    :nosignatures:
-   
+
    OptimizationAlgorithm
 
 Algorithms
@@ -36,16 +36,17 @@ Algorithms
 .. autosummary::
    :toctree: ../stubs/
    :nosignatures:
-   
+
    ADMMOptimizer
    CobylaOptimizer
    CplexOptimizer
    GroverMinimumFinder
    MinimumEigenOptimizer
    RecursiveMinimumEigenOptimizer
-   
+
 """
 
+from qiskit.optimization.algorithms.admm_optimizer import ADMMOptimizer
 from qiskit.optimization.algorithms.optimization_algorithm import OptimizationAlgorithm
 from qiskit.optimization.algorithms.cplex_optimizer import CplexOptimizer
 from qiskit.optimization.algorithms.cobyla_optimizer import CobylaOptimizer
@@ -54,5 +55,5 @@ from qiskit.optimization.algorithms.recursive_minimum_eigen_optimizer import\
     RecursiveMinimumEigenOptimizer
 from qiskit.optimization.algorithms.grover_minimum_finder import GroverMinimumFinder
 
-__all__ = ["OptimizationAlgorithm", "CplexOptimizer", "CobylaOptimizer", "MinimumEigenOptimizer",
-           "RecursiveMinimumEigenOptimizer", "GroverMinimumFinder"]
+__all__ = ["ADMMOptimizer", "OptimizationAlgorithm", "CplexOptimizer", "CobylaOptimizer",
+           "MinimumEigenOptimizer", "RecursiveMinimumEigenOptimizer", "GroverMinimumFinder"]

@@ -119,7 +119,8 @@ class QAOA(VQE):
         # will cause the var form to be built
         super().__init__(operator, None, optimizer, initial_point=initial_point,
                          max_evals_grouped=max_evals_grouped, aux_operators=aux_operators,
-                         callback=callback, auto_conversion=auto_conversion)
+                         callback=callback, auto_conversion=auto_conversion,
+                         quantum_instance=quantum_instance)
 
     @VQE.operator.setter
     def operator(self, operator: BaseOperator) -> None:
