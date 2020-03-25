@@ -82,8 +82,8 @@ class TestADMMOptimizerMiskp(QiskitOptimizationTestCase):
 class Miskp:
     """A Helper class to generate  Mixed Integer Setup Knapsack problems"""
     def __init__(self, family_count: int, items_per_family: int, knapsack_capacity: float,
-                 setup_costs: np.ndarray, resource_values: np.ndarray, cost_values: np.ndarray,
-                 pairwise_incomp: int = 0, multiple_choice: int = 0) -> None:
+                 setup_costs: np.ndarray, resource_values: np.ndarray, cost_values: np.ndarray)\
+            -> None:
         """Constructs an instance of this helper class to create suitable ADMM problems.
 
         Args:
@@ -93,12 +93,8 @@ class Miskp:
             setup_costs: setup cost to include family k in the knapsack
             resource_values: resources consumed if item t in family k is included in the knapsack
             cost_values: value of including item t in family k in the knapsack
-            pairwise_incomp:
-            multiple_choice:
         """
 
-        self.multiple_choice = multiple_choice
-        self.pairwise_incomp = pairwise_incomp
         self.knapsack_capacity = knapsack_capacity
         self.setup_costs = setup_costs
         self.resource_values = resource_values

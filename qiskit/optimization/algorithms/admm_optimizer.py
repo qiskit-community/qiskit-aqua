@@ -34,9 +34,9 @@ class ADMMParameters:
     """Defines a set of parameters for ADMM optimizer."""
 
     def __init__(self, rho_initial: float = 10000, factor_c: float = 100000, beta: float = 1000,
-                 max_iter: int = 10, tol: float = 1.e-4, max_time: float = 1800,
+                 max_iter: int = 10, tol: float = 1.e-4, max_time: float = np.inf,
                  three_block: bool = True, vary_rho: int = UPDATE_RHO_BY_TEN_PERCENT,
-                 tau_incr: float = 2, tau_decr: float = 2, mu_res: float = 10, mu: float = 1000,
+                 tau_incr: float = 2, tau_decr: float = 2, mu_res: float = 10, mu_merit: float = 1000,
                  qubo_optimizer: Optional[OptimizationAlgorithm] = None,
                  continuous_optimizer: Optional[OptimizationAlgorithm] = None) -> None:
         """Defines parameters for ADMM optimizer and their default values.
@@ -52,17 +52,22 @@ class ADMMParameters:
             vary_rho: Flag to select the rule to update rho.
                 If set to 0, then rho increases by 10% at each iteration.
                 If set to 1, then rho is modified according to primal and dual residuals.
-            tau_incr: Parameter used in the rho update.
-            tau_decr: Parameter used in the rho update.
-            mu_res: Parameter used in the rho update.
-            mu: Penalization for constraint residual. Used to compute the merit values.
+            tau_incr: Parameter used in the rho update (UPDATE_RHO_BY_RESIDUALS).
+                The update rule can be found in:
+                Boyd, S., Parikh, N., Chu, E., Peleato, B., & Eckstein, J. (2011).
+                Distributed optimization and statistical learning via the alternating
+                direction method of multipliers.
+                Foundations and Trends® in Machine learning, 3(1), 1-122.
+            tau_decr: Parameter used in the rho update (UPDATE_RHO_BY_RESIDUALS).
+            mu_res: Parameter used in the rho update (UPDATE_RHO_BY_RESIDUALS).
+            mu_merit: Penalization for constraint residual. Used to compute the merit values.
             qubo_optimizer: An instance of OptimizationAlgorithm that can effectively solve
-                QUBO problems
+                QUBO problems.
             continuous_optimizer: An instance of OptimizationAlgorithm that can solve
-                continuous problems
+                continuous problems.
         """
         super().__init__()
-        self.mu = mu
+        self.mu_merit = mu_merit
         self.mu_res = mu_res
         self.tau_decr = tau_decr
         self.tau_incr = tau_incr
@@ -84,7 +89,7 @@ class ADMMState:
 
     The state keeps track of various variables are stored that are being updated during problem
     solving. The values are relevant to the problem being solved. The state is recreated for each
-    optimization problem. State is returned as the third value
+    optimization problem. State is returned as the third value.
     """
 
     def __init__(self,
@@ -95,9 +100,10 @@ class ADMMState:
         """Constructs an internal computation state of the ADMM implementation.
 
         Args:
-            op: The optimization problem being solved
-            binary_indices: Indices of the binary decision variables of the original problem
-            continuous_indices: Indices of the continuous decision variables of the original problem
+            op: The optimization problem being solved.
+            binary_indices: Indices of the binary decision variables of the original problem.
+            continuous_indices: Indices of the continuous decision variables of the original
+             problem.
             rho_initial: Initial value of the rho parameter.
         """
         super().__init__()
@@ -157,7 +163,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         """Constructs an instance of ADMMOptimizer.
 
         Args:
-            params: An instance of ADMMParameters
+            params: An instance of ADMMParameters.
         """
 
         super().__init__()
@@ -176,7 +182,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         self._tau_incr = params.tau_incr
         self._vary_rho = params.vary_rho
         self._three_block = params.three_block
-        self._mu = params.mu
+        self._mu_merit = params.mu_merit
         self._rho_initial = params.rho_initial
 
         self._qubo_optimizer = params.qubo_optimizer
@@ -200,7 +206,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # 1. only binary and continuous variables are supported
         for var_type in problem.variables.get_types():
             if var_type not in (CPX_BINARY, CPX_CONTINUOUS):
-                # variable is not binary and not continuous
+                # variable is not binary and not continuous.
                 return "Only binary and continuous variables are supported"
 
         binary_indices = self._get_variable_indices(problem, CPX_BINARY)
@@ -211,13 +217,13 @@ class ADMMOptimizer(OptimizationAlgorithm):
             for continuous_index in continuous_indices:
                 coeff = problem.objective.get_quadratic_coefficients(binary_index, continuous_index)
                 if coeff != 0:
-                    # binary and continuous vars are mixed
+                    # binary and continuous vars are mixed.
                     return "Binary and continuous variables are not separable in the objective"
 
-        # 3. no quadratic constraints are supported
+        # 3. no quadratic constraints are supported.
         quad_constraints = problem.quadratic_constraints.get_num()
         if quad_constraints is not None and quad_constraints > 0:
-            # quadratic constraints are not supported
+            # quadratic constraints are not supported.
             return "Quadratic constraints are not supported"
 
         return None
@@ -234,19 +240,19 @@ class ADMMOptimizer(OptimizationAlgorithm):
         Raises:
             QiskitOptimizationError: If the problem is incompatible with the optimizer.
         """
-        # parse problem and convert to an ADMM specific representation
+        # parse problem and convert to an ADMM specific representation.
         binary_indices = self._get_variable_indices(problem, CPX_BINARY)
         continuous_indices = self._get_variable_indices(problem, CPX_CONTINUOUS)
 
-        # create our computation state
+        # create our computation state.
         self._state = ADMMState(problem, binary_indices, continuous_indices, self._rho_initial)
 
         # convert optimization problem to a set of matrices and vector that are used
-        # at each iteration
+        # at each iteration.
         self._convert_problem_representation()
 
         start_time = time.time()
-        # we have not stated our computations yet, so elapsed time initialized as zero
+        # we have not stated our computations yet, so elapsed time initialized as zero.
         elapsed_time = 0
         iteration = 0
         residual = 1.e+2
@@ -280,7 +286,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
             self._log.debug("cost_iterate=%s, cr=%s, merit=%s",
                             cost_iterate, constraint_residual, merit)
 
-            # costs and merits are saved with their original sign
+            # costs and merits are saved with their original sign.
             self._state.cost_iterates.append(self._state.sense * cost_iterate)
             self._state.residuals.append(residual)
             self._state.dual_residuals.append(dual_residual)
@@ -301,7 +307,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         solution, objective_value = self._get_best_merit_solution()
         solution = self._revert_solution_indexes(solution)
 
-        # third parameter is our internal state of computations
+        # third parameter is our internal state of computations.
         result = OptimizationResult(solution, objective_value, self._state)
         # debug
         self._log.debug("solution=%s, objective=%s at iteration=%s",
@@ -310,14 +316,14 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
     @staticmethod
     def _get_variable_indices(op: OptimizationProblem, var_type: str) -> List[int]:
-        """Returns a list of indices of the variables of the specified type
+        """Returns a list of indices of the variables of the specified type.
 
         Args:
-            op: Optimization problem
-            var_type: type of variables to look for
+            op: Optimization problem.
+            var_type: type of variables to look for.
 
         Returns:
-            List of indices
+            List of indices.
         """
         indices = []
         for i, variable_type in enumerate(op.variables.get_types()):
@@ -335,7 +341,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
                 for continuous variables.
 
         Returns:
-            a solution array
+            A solution array.
         """
         binary_solutions, continuous_solutions = internal_solution
         solution = np.zeros(len(self._state.binary_indices) + len(self._state.continuous_indices))
@@ -347,7 +353,17 @@ class ADMMOptimizer(OptimizationAlgorithm):
         return solution
 
     def _convert_problem_representation(self) -> None:
-        """Converts problem representation into set of matrices and vectors"""
+        """Converts problem representation into set of matrices and vectors.
+        Specifically, the optimization problem is represented as:
+
+        min_{x0, u} x0^T q0 x0 + c0^T x0 + u^T q1 u + c1^T u
+
+        s.t. a0 x0 = b0
+            a1 x0 \leq b1
+            a2 z + a3 u \leq b2
+            a4 u <= b3
+
+        """
         # objective
         self._state.q0 = self._get_q(self._state.binary_indices)
         self._state.c0 = self._get_c(self._state.binary_indices)
@@ -364,10 +380,10 @@ class ADMMOptimizer(OptimizationAlgorithm):
         from the quadratic terms in the objective.
 
         Args:
-            variable_indices: variable indices to look for
+            variable_indices: variable indices to look for.
 
         Returns:
-            A matrix as a numpy array of the shape(len(variable_indices), len(variable_indices))
+            A matrix as a numpy array of the shape(len(variable_indices), len(variable_indices)).
         """
         size = len(variable_indices)
         q = np.zeros(shape=(size, size))
@@ -380,7 +396,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
                     var_index_j)
 
         # flip the sign, according to the optimization sense, e.g. sense == 1 if minimize,
-        # sense == -1 if maximize
+        # sense == -1 if maximize.
         return q * self._state.sense
 
     def _get_c(self, variable_indices: List[int]) -> np.ndarray:
@@ -388,44 +404,44 @@ class ADMMOptimizer(OptimizationAlgorithm):
         in the objective.
 
         Args:
-            variable_indices: variable indices to look for
+            variable_indices: variable indices to look for.
 
         Returns:
-            A numpy array of the shape(len(variable_indices))
+            A numpy array of the shape(len(variable_indices)).
         """
         c = np.array(self._state.op.objective.get_linear(variable_indices))
         # flip the sign, according to the optimization sense, e.g. sense == 1 if minimize,
-        # sense == -1 if maximize
+        # sense == -1 if maximize.
         c *= self._state.sense
         return c
 
     def _assign_row_values(self, matrix: List[List[float]], vector: List[float],
                            constraint_index: int, variable_indices: List[int]):
         """Appends a row to the specified matrix and vector based on the constraint specified by
-        the index using specified variables
+        the index using specified variables.
 
         Args:
-            matrix: a matrix to extend
-            vector: a vector to expend
-            constraint_index: constraint index to look for
-            variable_indices: variables to look for
+            matrix: a matrix to extend.
+            vector: a vector to expand.
+            constraint_index: constraint index to look for.
+            variable_indices: variables to look for.
 
         Returns:
             None
         """
-        # assign matrix row
+        # assign matrix row.
         row = []
         for var_index in variable_indices:
             row.append(self._state.op
                        .linear_constraints.get_coefficients(constraint_index, var_index))
         matrix.append(row)
 
-        # assign vector row
+        # assign vector row.
         vector.append(self._state.op.linear_constraints.get_rhs(constraint_index))
 
-        # flip the sign if constraint is G, we want L constraints
+        # flip the sign if constraint is G, we want L constraints.
         if self._state.op.linear_constraints.get_senses(constraint_index) == "G":
-            # invert the sign to make constraint "L"
+            # invert the sign to make constraint "L".
             matrix[-1] = [-1 * el for el in matrix[-1]]
             vector[-1] = -1 * vector[-1]
 
@@ -435,14 +451,14 @@ class ADMMOptimizer(OptimizationAlgorithm):
         """Converts representation of a matrix and a vector in form of lists to numpy array.
 
         Args:
-            matrix: matrix to convert
-            vector: vector to convert
-            size: size to create matrix and vector
+            matrix: matrix to convert.
+            vector: vector to convert.
+            size: size to create matrix and vector.
 
         Returns:
-            Converted matrix and vector as numpy arrays
+            Converted matrix and vector as numpy arrays.
         """
-        # if we don't have such constraints, return just dummy arrays
+        # if we don't have such constraints, return just dummy arrays.
         if len(matrix) != 0:
             return np.array(matrix), np.array(vector)
         else:
@@ -456,7 +472,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
             Corresponding matrix and vector as numpy arrays.
 
         Raises:
-            ValueError: if the problem is not suitable for this optimizer
+            ValueError: if the problem is not suitable for this optimizer.
         """
         matrix = []
         vector = []
@@ -464,7 +480,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         senses = self._state.op.linear_constraints.get_senses()
         index_set = set(self._state.binary_indices)
         for constraint_index, sense in enumerate(senses):
-            # we check only equality constraints here
+            # we check only equality constraints here.
             if sense != "E":
                 continue
             row = self._state.op.linear_constraints.get_rows(constraint_index)
@@ -485,7 +501,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         x is a vector of variables specified by the indices.
 
         Args:
-            variable_indices: variable indices to look for
+            variable_indices: variable indices to look for.
 
         Returns:
             A list based representation of the matrix and the vector.
@@ -499,7 +515,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
             if sense in ("E", "R"):
                 # TODO: Ranged constraints should be supported
                 continue
-            # sense either G or L
+            # sense either G or L.
             row = self._state.op.linear_constraints.get_rows(constraint_index)
             if set(row.ind).issubset(index_set):
                 self._assign_row_values(matrix, vector, constraint_index, variable_indices)
@@ -531,7 +547,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         where x is a vector of binary variables and u is a vector of continuous variables.
 
         Returns:
-            A numpy representation of two matrices and one vector
+            A numpy representation of two matrices and one vector.
         """
         matrix = []
         vector = []
@@ -544,11 +560,11 @@ class ADMMOptimizer(OptimizationAlgorithm):
             if sense in ("E", "R"):
                 # TODO: Ranged constraints should be supported as well
                 continue
-            # sense either G or L
+            # sense either G or L.
             row = self._state.op.linear_constraints.get_rows(constraint_index)
             row_indices = set(row.ind)
             # we must have a least one binary and one continuous variable,
-            # otherwise it is another type of constraints
+            # otherwise it is another type of constraints.
             if len(row_indices & binary_index_set) != 0 and len(
                     row_indices & continuous_index_set) != 0:
                 self._assign_row_values(matrix, vector, constraint_index, all_variables)
@@ -560,15 +576,15 @@ class ADMMOptimizer(OptimizationAlgorithm):
         return a2, a3, b2
 
     def _create_step1_problem(self) -> OptimizationProblem:
-        """Creates a step 1 sub-problem
+        """Creates a step 1 sub-problem.
 
         Returns:
-            A newly created optimization problem
+            A newly created optimization problem.
         """
         op1 = OptimizationProblem()
 
         binary_size = len(self._state.binary_indices)
-        # create the same binary variables
+        # create the same binary variables.
         op1.variables.add(names=["x0_" + str(i + 1) for i in range(binary_size)],
                           types=["I"] * binary_size,
                           lb=[0.] * binary_size,
@@ -586,7 +602,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
             for j in range(i, binary_size):
                 op1.objective.set_quadratic_coefficients(i, j, quadratic_objective[i, j])
 
-        # prepare and set linear objective
+        # prepare and set linear objective.
         linear_objective = self._state.c0 - \
                            self._factor_c * np.dot(self._state.b0, self._state.a0) + \
                            self._state.rho * (self._state.y - self._state.z)
@@ -596,10 +612,10 @@ class ADMMOptimizer(OptimizationAlgorithm):
         return op1
 
     def _create_step2_problem(self) -> OptimizationProblem:
-        """Creates a step 2 sub-problem
+        """Creates a step 2 sub-problem.
 
         Returns:
-            A newly created optimization problem
+            A newly created optimization problem.
         """
         op2 = OptimizationProblem()
 
@@ -608,17 +624,17 @@ class ADMMOptimizer(OptimizationAlgorithm):
         lower_bounds = self._state.op.variables.get_lower_bounds(self._state.continuous_indices)
         upper_bounds = self._state.op.variables.get_upper_bounds(self._state.continuous_indices)
         if continuous_size:
-            # add u variables
+            # add u variables.
             op2.variables.add(names=["u0_" + str(i + 1) for i in range(continuous_size)],
                               types=["C"] * continuous_size, lb=lower_bounds, ub=upper_bounds)
 
-        # add z variables
+        # add z variables.
         op2.variables.add(names=["z0_" + str(i + 1) for i in range(binary_size)],
                           types=["C"] * binary_size,
                           lb=[0.] * binary_size,
                           ub=[1.] * binary_size)
 
-        # set quadratic objective coefficients for u variables
+        # set quadratic objective coefficients for u variables.
         if continuous_size:
             # NOTE: The multiplication by 2 is needed for the solvers to parse
             # the quadratic coefficients.
@@ -636,23 +652,23 @@ class ADMMOptimizer(OptimizationAlgorithm):
                 op2.objective.set_quadratic_coefficients(i + continuous_size, j + continuous_size,
                                                          q_z[i, j])
 
-        # set linear objective for u variables
+        # set linear objective for u variables.
         if continuous_size:
             linear_u = self._state.c1
             for i in range(continuous_size):
                 op2.objective.set_linear(i, linear_u[i])
 
-        # set linear objective for z variables
+        # set linear objective for z variables.
         linear_z = -1 * self._state.lambda_mult - self._state.rho * (self._state.x0 + self._state.y)
         for i in range(binary_size):
             op2.objective.set_linear(i + continuous_size, linear_z[i])
 
-        # constraints for z
-        # A1 z <= b1
+        # constraints for z.
+        # A1 z <= b1.
         constraint_count = self._state.a1.shape[0]
         # in SparsePair val="something from numpy" causes an exception
         # when saving a model via cplex method.
-        # rhs="something from numpy" is ok
+        # rhs="something from numpy" is ok.
         # so, we convert every single value to python float, todo: consider removing this conversion
         lin_expr = [SparsePair(ind=list(range(continuous_size, continuous_size + binary_size)),
                                val=self._state.a1[i, :].tolist()) for i in
@@ -684,13 +700,13 @@ class ADMMOptimizer(OptimizationAlgorithm):
         return op2
 
     def _create_step3_problem(self) -> OptimizationProblem:
-        """Creates a step 3 sub-problem
+        """Creates a step 3 sub-problem.
 
         Returns:
-            A newly created optimization problem
+            A newly created optimization problem.
         """
         op3 = OptimizationProblem()
-        # add y variables
+        # add y variables.
         binary_size = len(self._state.binary_indices)
         op3.variables.add(names=["y_" + str(i + 1) for i in range(binary_size)],
                           types=["C"] * binary_size)
@@ -709,15 +725,43 @@ class ADMMOptimizer(OptimizationAlgorithm):
         return op3
 
     def _update_x0(self, op1: OptimizationProblem) -> np.ndarray:
+        """Solves the Step1 OptimizationProblem via the qubo optimizer.
+
+        Args:
+            op1: the Step1 OptimizationProblem.
+
+        Returns:
+            A solution of the Step1, as a numpy array.
+        """
         return np.asarray(self._qubo_optimizer.solve(op1).x)
 
     def _update_x1(self, op2: OptimizationProblem) -> (np.ndarray, np.ndarray):
+        """Solves the Step2 OptimizationProblem via the continuous optimizer.
+
+        Args:
+            op2: the Step2 OptimizationProblem
+
+        Returns:
+            A solution of the Step2, as a pair of numpy arrays.
+            First array contains the values of decision variables u, and
+            second array contains the values of decision variables z.
+
+        """
         vars_op2 = self._continuous_optimizer.solve(op2).x
         vars_u = np.asarray(vars_op2[:len(self._state.continuous_indices)])
         vars_z = np.asarray(vars_op2[len(self._state.continuous_indices):])
         return vars_u, vars_z
 
     def _update_y(self, op3: OptimizationProblem) -> np.ndarray:
+        """Solves the Step3 OptimizationProblem via the continuous optimizer.
+
+        Args:
+            op3: the Step3 OptimizationProblem
+
+        Returns:
+            A solution of the Step3, as a numpy array.
+
+        """
         return np.asarray(self._continuous_optimizer.solve(op3).x)
 
     def _get_best_merit_solution(self) -> (List[np.ndarray], float):
@@ -741,6 +785,13 @@ class ADMMOptimizer(OptimizationAlgorithm):
         return sol, sol_val
 
     def _update_lambda_mult(self) -> np.ndarray:
+        """
+        Updates the values of lambda multiplier, given the updated iterates
+        x0, z, and y.
+
+        Returns: The updated array of values of lambda multiplier.
+
+        """
         return self._state.lambda_mult + \
                self._state.rho * (self._state.x0 - self._state.z + self._state.y)
 
@@ -793,7 +844,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         Returns:
             Merit value as a float
         """
-        return cost_iterate + self._mu * constraint_residual
+        return cost_iterate + self._mu_merit * constraint_residual
 
     def _get_objective_value(self) -> float:
         """Computes the value of the objective function.
@@ -814,10 +865,10 @@ class ADMMOptimizer(OptimizationAlgorithm):
         """Compute primal and dual residual.
 
         Args:
-            iteration: iteration number
+            iteration: Iteration number.
 
         Returns:
-            r, s as primary and dual residuals
+            r, s as primary and dual residuals.
         """
         elements = self._state.x0 - self._state.z - self._state.y
         primal_residual = pow(sum(e ** 2 for e in elements), 0.5)
