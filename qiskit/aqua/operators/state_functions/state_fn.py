@@ -319,3 +319,8 @@ class StateFn(OperatorBase):
         # pylint: disable=import-outside-toplevel
         from .state_fn_vector import StateFnVector
         return StateFnVector(self.to_matrix(massive=massive), is_measurement=self.is_measurement)
+
+    def sample(self, shots=1024, massive=False, reverse_endianness=False):
+        """ Sample the state function as a normalized probability distribution. Returns dict of
+        bitstrings in order of probability, with values being probability. """
+        raise NotImplementedError

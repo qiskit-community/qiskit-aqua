@@ -222,7 +222,7 @@ class StateFnOperator(StateFn):
 
         return front.adjoint().eval(self.primitive.eval(front))
 
-    # TODO
-    def sample(self, shots):
-        """ Sample the state function as a normalized probability distribution."""
+    def sample(self, shots=1024, massive=False, reverse_endianness=False):
+        """ Sample the state function as a normalized probability distribution. Returns dict of
+        bitstrings in order of probability, with values being probability. """
         raise NotImplementedError

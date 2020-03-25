@@ -99,7 +99,7 @@ class NumPyEigensolver(ClassicalAlgorithm):
         else:
             aux_operators = \
                 [aux_operators] if not isinstance(aux_operators, list) else aux_operators
-            converted = [op.to_opflow() for op in aux_operators]
+            converted = [op.to_opflow() if op else None for op in aux_operators]
             # For some reason Chemistry passes aux_ops with 0 qubits and paulis sometimes. TODO fix
             zero_op = I.kronpower(self.operator.num_qubits) * 0.0
             converted = [zero_op if op == 0 else op for op in converted]

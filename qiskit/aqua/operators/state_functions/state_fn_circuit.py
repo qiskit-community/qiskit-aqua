@@ -308,8 +308,9 @@ class StateFnCircuit(StateFn):
         return qc.decompose()
 
     # TODO specify backend?
-    def sample(self, shots=1024, massive=False):
-        """ Sample the state function as a normalized probability distribution."""
+    def sample(self, shots=1024, massive=False, reverse_endianness=False):
+        """ Sample the state function as a normalized probability distribution. Returns dict of
+        bitstrings in order of probability, with values being probability. """
         if self.num_qubits > 16 and not massive:
             # TODO figure out sparse matrices?
             raise ValueError(
@@ -319,9 +320,11 @@ class StateFnCircuit(StateFn):
         qc = self.to_circuit(meas=True)
         qasm_backend = BasicAer.get_backend('qasm_simulator')
         counts = execute(qc, qasm_backend, optimization_level=0, shots=shots).result().get_counts()
-        scaled_dict = {bstr: np.sqrt((prob / shots)) * self.coeff
-                       for (bstr, prob) in counts.items()}
-        return scaled_dict
+        if reverse_endianness:
+            scaled_dict = {bstr[::-1]: (prob / shots) for (bstr, prob) in counts.items()}
+        else:
+            scaled_dict = {bstr: (prob / shots) for (bstr, prob) in counts.items()}
+        return dict(sorted(scaled_dict.items(), key=lambda x: x[1], reverse=True))
 
     # Warning - modifying immutable object!!
     def reduce(self):

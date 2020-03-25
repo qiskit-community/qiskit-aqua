@@ -207,7 +207,18 @@ class StateFnVector(StateFn):
 
         return front.adjoint().eval(self.adjoint().primitive).adjoint() * self.coeff
 
-    # TODO
-    def sample(self, shots):
-        """ Sample the state function as a normalized probability distribution."""
-        raise NotImplementedError
+    def sample(self, shots=1024, massive=False, reverse_endianness=False):
+        """ Sample the state function as a normalized probability distribution. Returns dict of
+        bitstrings in order of probability, with values being probability. """
+        deterministic_counts = self.primitive.to_counts()
+        probs = np.array(list(deterministic_counts.values())) ** 2
+        unique, counts = np.unique(np.random.choice(list(deterministic_counts.keys()),
+                                                    size=shots,
+                                                    p=(probs / sum(probs))),
+                                   return_counts=True)
+        counts = dict(zip(unique, counts))
+        if reverse_endianness:
+            scaled_dict = {bstr[::-1]: (prob / shots) for (bstr, prob) in counts.items()}
+        else:
+            scaled_dict = {bstr: (prob / shots) for (bstr, prob) in counts.items()}
+        return dict(sorted(scaled_dict.items(), key=lambda x: x[1], reverse=True))

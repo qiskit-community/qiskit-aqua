@@ -132,8 +132,26 @@ class TestStateConstruction(QiskitAquaTestCase):
                                              np.round(sfc.to_matrix(), decimals=1))
         for k, v in samples.items():
             self.assertIn(k, statedict)
-            self.assertAlmostEqual(v, np.abs(statedict[k]), delta=.1)
+            # It's ok if these are far apart because the dict is sampled.
+            self.assertAlmostEqual(v, np.abs(statedict[k])**.5, delta=.5)
 
         # Follows same code path as above, but testing to be thorough
         sfc_vector = StateFnCircuit.from_vector(StateFn(statedict).to_matrix())
         np.testing.assert_array_almost_equal(StateFn(statedict).to_matrix(), sfc_vector.to_matrix())
+
+    def test_sampling(self):
+        """ state fn circuit from dict initialize test """
+        statedict = {'101': .5,
+                     '100': .1,
+                     '000': .2,
+                     '111': .5}
+        sfc = StateFnCircuit.from_dict(statedict)
+        circ_samples = sfc.sample()
+        dict_samples = StateFn(statedict).sample()
+        vec_samples = StateFn(statedict).to_matrix_op().sample()
+        for k, v in circ_samples.items():
+            self.assertIn(k, dict_samples)
+            self.assertIn(k, vec_samples)
+            # It's ok if these are far apart because the dict is sampled.
+            self.assertAlmostEqual(v, np.abs(dict_samples[k])**.5, delta=.5)
+            self.assertAlmostEqual(v, np.abs(vec_samples[k])**.5, delta=.5)
