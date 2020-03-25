@@ -18,7 +18,6 @@ import itertools
 import numpy as np
 
 from qiskit.result import Result
-from qiskit.aqua import AquaError
 
 from ..operator_base import OperatorBase
 from . import StateFn
@@ -221,18 +220,16 @@ class StateFnDict(StateFn):
 
     # pylint: disable=too-many-return-statements
     def eval(self, front=None, back=None):
-        if back is not None:
-            raise AquaError('Eval with back is only defined for Operators, not StateFns.')
 
         if not self.is_measurement and isinstance(front, OperatorBase):
             raise ValueError(
                 'Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '
                 'sf.adjoint() first to convert to measurement.')
-        if isinstance(front, list):
-            return [self.eval(front_elem) for front_elem in front]
+
         if isinstance(front, OpVec) and front.distributive:
             return front.combo_fn([self.eval(front.coeff * front_elem)
                                    for front_elem in front.oplist])
+
         # For now, always do this. If it's not performant, we can be more granular.
         if not isinstance(front, OperatorBase):
             front = StateFn(front)
@@ -245,6 +242,7 @@ class StateFnDict(StateFn):
                         self.primitive.items()]) * self.coeff * front.coeff
 
         # All remaining possibilities only apply when self.is_measurement is True
+
         # pylint: disable=cyclic-import,import-outside-toplevel
         from . import StateFnVector
         if isinstance(front, StateFnVector):
@@ -256,13 +254,10 @@ class StateFnDict(StateFn):
 
         from . import StateFnOperator
         if isinstance(front, StateFnOperator):
-            return front.adjoint().eval(self.primitive) * self.coeff
+            return front.adjoint().eval(self.adjoint())
 
-        if isinstance(front, OperatorBase):
-            return front.adjoint().eval(self.adjoint().primitive).adjoint() * self.coeff
-
-        # TODO figure out what to actually do here.
-        return self.to_matrix()
+        # All other OperatorBases go here
+        return front.adjoint().eval(self.adjoint().primitive).adjoint() * self.coeff
 
     # TODO
     def sample(self, shots):

@@ -16,8 +16,6 @@
 
 import numpy as np
 
-from qiskit.aqua import AquaError
-
 from ..operator_base import OperatorBase
 from . import StateFn
 from ..operator_combos import OpVec, OpSum
@@ -201,15 +199,10 @@ class StateFnOperator(StateFn):
 
     # pylint: disable=too-many-return-statements
     def eval(self, front=None, back=None):
-        if back is not None:
-            raise AquaError('Eval with back is only defined for Operators, not StateFns.')
-
         if not self.is_measurement and isinstance(front, OperatorBase):
             raise ValueError(
                 'Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '
                 'sf.adjoint() first to convert to measurement.')
-        if isinstance(front, list):
-            return [self.eval(front_elem) for front_elem in front]
 
         if not isinstance(front, OperatorBase):
             front = StateFn(front)
@@ -226,31 +219,7 @@ class StateFnOperator(StateFn):
             return front.combo_fn([self.eval(front.coeff * front_elem)
                                    for front_elem in front.oplist])
 
-        if isinstance(front, StateFnOperator):
-            return np.trace(self.primitive.to_matrix() @ front.to_matrix())
-        elif isinstance(front, OperatorBase):
-            # If front is a dict, we can try to do this
-            # scalably, e.g. if self.primitive is an OpPauli
-            # pylint: disable=cyclic-import,import-outside-toplevel
-            from . import StateFnDict
-            if isinstance(front, StateFnDict):
-                comp = self.primitive.eval(front=front, back=front.adjoint())
-            else:
-                return front.adjoint().eval(self.primitive.to_matrix_op().eval(front))
-                # TODO figure out exact eval contract. The below seems too crazy.
-                # return front.adjoint().to_matrix() @ \
-                #        self.primitive.to_matrix() @ \
-                #        front.to_matrix()
-
-            if isinstance(comp, (int, float, complex, list)):
-                return comp
-            elif comp.shape == (1,):
-                return comp[0]
-            else:
-                return np.diag(comp)
-
-        # TODO figure out what to actually do here.
-        return self.to_matrix()
+        return front.adjoint().eval(self.primitive.eval(front))
 
     # TODO
     def sample(self, shots):

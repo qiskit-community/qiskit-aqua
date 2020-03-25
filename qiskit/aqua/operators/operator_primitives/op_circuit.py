@@ -225,7 +225,13 @@ class OpCircuit(OpPrimitive):
 
         # pylint: disable=import-outside-toplevel
         from ..state_functions import StateFn, StateFnCircuit
+        from ..operator_combos import OpVec
         from .op_pauli import OpPauli
+
+        if isinstance(front, OpVec) and front.distributive:
+            return front.combo_fn([self.eval(front.coeff * front_elem)
+                                   for front_elem in front.oplist])
+
         # Composable with circuit
         if isinstance(front, (OpPauli, StateFnCircuit, OpCircuit)):
             new_front = self.compose(front)
