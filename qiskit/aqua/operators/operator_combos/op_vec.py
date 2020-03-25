@@ -162,6 +162,10 @@ class OpVec(OperatorBase):
         # will return False), maybe it shouldn't
         return self.oplist == other.oplist and self.param_bindings == other.param_bindings
 
+    # We need to do this because otherwise Numpy takes over scalar multiplication and wrecks it if
+    # isinstance(scalar, np.number)
+    __array_priority__ = 10000
+
     def mul(self, scalar):
         """ Scalar multiply. Overloaded by * in OperatorBase. """
         if not isinstance(scalar, (int, float, complex, ParameterExpression)):

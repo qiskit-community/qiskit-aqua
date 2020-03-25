@@ -27,6 +27,7 @@ from qiskit.aqua.circuits import StateVectorCircuit
 from qiskit.aqua.utils.arithmetic import normalize_vector
 from qiskit.aqua.utils.circuit_utils import convert_to_basis_gates
 from qiskit.aqua.utils.validation import validate_in_set, validate_min
+from qiskit.aqua.operators import StateFn
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +83,8 @@ class Custom(InitialState):
         self._state = state
         size = np.power(2, self._num_qubits)
         self._circuit = None
+        if isinstance(state_vector, StateFn):
+            state_vector = state_vector.to_matrix()
         if circuit is not None:
             if circuit.width() != num_qubits:
                 logger.warning('The specified num_qubits and '

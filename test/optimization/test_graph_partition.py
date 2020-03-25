@@ -63,7 +63,9 @@ class TestGraphPartition(QiskitOptimizationTestCase):
         x = sample_most_likely(result.eigenstate)
         # check against the oracle
         ising_sol = graph_partition.get_graph_solution(x)
-        np.testing.assert_array_equal(ising_sol, [0, 1, 0, 1])
+        # solutions are equivalent
+        self.assertEqual(graph_partition.objective_value(np.array([0, 1, 0, 1]), self.w),
+                         graph_partition.objective_value(ising_sol, self.w))
         oracle = self._brute_force()
         self.assertEqual(graph_partition.objective_value(x, self.w), oracle)
 
@@ -81,6 +83,7 @@ class TestGraphPartition(QiskitOptimizationTestCase):
         x = sample_most_likely(result['eigvecs'][0])
         # check against the oracle
         ising_sol = graph_partition.get_graph_solution(x)
-        np.testing.assert_array_equal(ising_sol, [0, 1, 0, 1])
+        self.assertEqual(graph_partition.objective_value(np.array([0, 1, 0, 1]), self.w),
+                         graph_partition.objective_value(ising_sol, self.w))
         oracle = self._brute_force()
         self.assertEqual(graph_partition.objective_value(x, self.w), oracle)
