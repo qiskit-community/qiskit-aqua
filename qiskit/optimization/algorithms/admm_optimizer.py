@@ -36,8 +36,8 @@ class ADMMParameters:
     def __init__(self, rho_initial: float = 10000, factor_c: float = 100000, beta: float = 1000,
                  max_iter: int = 10, tol: float = 1.e-4, max_time: float = np.inf,
                  three_block: bool = True, vary_rho: int = UPDATE_RHO_BY_TEN_PERCENT,
-                 tau_incr: float = 2, tau_decr: float = 2, mu_res: float = 10, mu_merit: float = 1000,
-                 qubo_optimizer: Optional[OptimizationAlgorithm] = None,
+                 tau_incr: float = 2, tau_decr: float = 2, mu_res: float = 10,
+                 mu_merit: float = 1000, qubo_optimizer: Optional[OptimizationAlgorithm] = None,
                  continuous_optimizer: Optional[OptimizationAlgorithm] = None) -> None:
         """Defines parameters for ADMM optimizer and their default values.
 
@@ -359,8 +359,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
         min_{x0, u} x0^T q0 x0 + c0^T x0 + u^T q1 u + c1^T u
 
         s.t. a0 x0 = b0
-            a1 x0 \leq b1
-            a2 z + a3 u \leq b2
+            a1 x0 <= b1
+            a2 z + a3 u <= b2
             a4 u <= b3
 
         """
@@ -669,7 +669,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # in SparsePair val="something from numpy" causes an exception
         # when saving a model via cplex method.
         # rhs="something from numpy" is ok.
-        # so, we convert every single value to python float, todo: consider removing this conversion
+        # so, we convert every single value to python float
         lin_expr = [SparsePair(ind=list(range(continuous_size, continuous_size + binary_size)),
                                val=self._state.a1[i, :].tolist()) for i in
                     range(constraint_count)]
