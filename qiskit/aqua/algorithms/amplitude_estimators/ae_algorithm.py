@@ -15,11 +15,14 @@
 The Amplitude Estimation Algorithm.
 """
 
+from typing import Optional, Union
 import logging
 from abc import abstractmethod
 
+from qiskit.providers import BaseBackend
+from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import QuantumAlgorithm
-
+from qiskit.aqua.utils import CircuitFactory
 from .q_factory import QFactory
 
 logger = logging.getLogger(__name__)
@@ -46,12 +49,16 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
     """
 
     @abstractmethod
-    def __init__(self, a_factory=None, q_factory=None, i_objective=None):
+    def __init__(self,
+                 a_factory: Optional[CircuitFactory] = None,
+                 q_factory=None,
+                 i_objective=None,
+                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
         self._a_factory = a_factory
         self._q_factory = q_factory
         self._i_objective = i_objective
 
-        super().__init__()
+        super().__init__(quantum_instance)
 
     @property
     def a_factory(self):
