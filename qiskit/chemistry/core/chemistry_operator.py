@@ -41,6 +41,7 @@ class ChemistryOperator(ABC):
     INFO_NUM_PARTICLES = 'num_particles'
     INFO_NUM_ORBITALS = 'num_orbitals'
     INFO_TWO_QUBIT_REDUCTION = 'two_qubit_reduction'
+    INFO_Z2SYMMETRIES = 'z2symmetries'
 
     @abstractmethod
     def __init__(self):
@@ -430,5 +431,8 @@ def _dipole_to_string(dipole: DipoleTuple):
     return value
 
 
-def _float_to_string(value: float, precision: int = 8):
-    return '0.0' if value == 0 else ('{:.' + str(precision) + 'f}').format(value).rstrip('0')
+def _float_to_string(value: Optional[float], precision: int = 8) -> str:
+    if value is None:
+        return 'None'
+    else:
+        return '0.0' if value == 0 else ('{:.' + str(precision) + 'f}').format(value).rstrip('0')
