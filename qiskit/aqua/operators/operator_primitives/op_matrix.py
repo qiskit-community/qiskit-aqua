@@ -193,12 +193,7 @@ class OpMatrix(OpPrimitive):
         elif isinstance(front, OperatorBase):
             new_front = StateFn(self.to_matrix() @ front.to_matrix())
 
-        if back is not None:
-            if not isinstance(back, StateFn):
-                back = StateFn(back, is_measurement=True)
-            return back.eval(new_front)
-        else:
-            return new_front
+        return new_front
 
     def to_simulation_instruction(self):
         """ returns simulation instruction """

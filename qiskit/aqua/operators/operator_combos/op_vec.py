@@ -274,18 +274,9 @@ class OpVec(OperatorBase):
         if not self.distributive:
             return NotImplementedError
 
-        # pylint: disable=import-outside-toplevel
-        from .. import StateFn
-
         evals = [(self.coeff * op).eval(front) for op in self.oplist]
         if all([isinstance(op, OperatorBase) for op in evals]):
-            new_front = self.__class__(evals)
-            if back is not None:
-                if not isinstance(back, StateFn):
-                    back = StateFn(back, is_measurement=True)
-                return back.eval(new_front)
-            else:
-                return new_front
+            return self.__class__(evals)
         elif any([isinstance(op, OperatorBase) for op in evals]):
             raise TypeError('Cannot handle mixed scalar and Operator eval results.')
         else:

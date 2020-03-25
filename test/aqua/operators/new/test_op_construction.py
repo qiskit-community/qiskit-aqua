@@ -49,33 +49,34 @@ class TestOpConstruction(QiskitAquaTestCase):
 
     def test_evals(self):
         """ evals test """
+        # pylint: disable=no-member
         # TODO: Think about eval names
-        self.assertEqual(Z.eval('0', '0'), 1)
-        self.assertEqual(Z.eval('1', '0'), 0)
-        self.assertEqual(Z.eval('0', '1'), 0)
-        self.assertEqual(Z.eval('1', '1'), -1)
-        self.assertEqual(X.eval('0', '0'), 0)
-        self.assertEqual(X.eval('1', '0'), 1)
-        self.assertEqual(X.eval('0', '1'), 1)
-        self.assertEqual(X.eval('1', '1'), 0)
-        self.assertEqual(Y.eval('0', '0'), 0)
-        self.assertEqual(Y.eval('1', '0'), -1j)
-        self.assertEqual(Y.eval('0', '1'), 1j)
-        self.assertEqual(Y.eval('1', '1'), 0)
+        self.assertEqual(Z.eval('0').eval('0'), 1)
+        self.assertEqual(Z.eval('1').eval('0'), 0)
+        self.assertEqual(Z.eval('0').eval('1'), 0)
+        self.assertEqual(Z.eval('1').eval('1'), -1)
+        self.assertEqual(X.eval('0').eval('0'), 0)
+        self.assertEqual(X.eval('1').eval('0'), 1)
+        self.assertEqual(X.eval('0').eval('1'), 1)
+        self.assertEqual(X.eval('1').eval('1'), 0)
+        self.assertEqual(Y.eval('0').eval('0'), 0)
+        self.assertEqual(Y.eval('1').eval('0'), -1j)
+        self.assertEqual(Y.eval('0').eval('1'), 1j)
+        self.assertEqual(Y.eval('1').eval('1'), 0)
 
         # Check that Pauli logic eval returns same as matrix logic
-        self.assertEqual(OpPrimitive(Z.to_matrix()).eval('0', '0'), 1)
-        self.assertEqual(OpPrimitive(Z.to_matrix()).eval('1', '0'), 0)
-        self.assertEqual(OpPrimitive(Z.to_matrix()).eval('0', '1'), 0)
-        self.assertEqual(OpPrimitive(Z.to_matrix()).eval('1', '1'), -1)
-        self.assertEqual(OpPrimitive(X.to_matrix()).eval('0', '0'), 0)
-        self.assertEqual(OpPrimitive(X.to_matrix()).eval('1', '0'), 1)
-        self.assertEqual(OpPrimitive(X.to_matrix()).eval('0', '1'), 1)
-        self.assertEqual(OpPrimitive(X.to_matrix()).eval('1', '1'), 0)
-        self.assertEqual(OpPrimitive(Y.to_matrix()).eval('0', '0'), 0)
-        self.assertEqual(OpPrimitive(Y.to_matrix()).eval('1', '0'), -1j)
-        self.assertEqual(OpPrimitive(Y.to_matrix()).eval('0', '1'), 1j)
-        self.assertEqual(OpPrimitive(Y.to_matrix()).eval('1', '1'), 0)
+        self.assertEqual(OpPrimitive(Z.to_matrix()).eval('0').eval('0'), 1)
+        self.assertEqual(OpPrimitive(Z.to_matrix()).eval('1').eval('0'), 0)
+        self.assertEqual(OpPrimitive(Z.to_matrix()).eval('0').eval('1'), 0)
+        self.assertEqual(OpPrimitive(Z.to_matrix()).eval('1').eval('1'), -1)
+        self.assertEqual(OpPrimitive(X.to_matrix()).eval('0').eval('0'), 0)
+        self.assertEqual(OpPrimitive(X.to_matrix()).eval('1').eval('0'), 1)
+        self.assertEqual(OpPrimitive(X.to_matrix()).eval('0').eval('1'), 1)
+        self.assertEqual(OpPrimitive(X.to_matrix()).eval('1').eval('1'), 0)
+        self.assertEqual(OpPrimitive(Y.to_matrix()).eval('0').eval('0'), 0)
+        self.assertEqual(OpPrimitive(Y.to_matrix()).eval('1').eval('0'), -1j)
+        self.assertEqual(OpPrimitive(Y.to_matrix()).eval('0').eval('1'), 1j)
+        self.assertEqual(OpPrimitive(Y.to_matrix()).eval('1').eval('1'), 0)
 
         pauli_op = Z ^ I ^ X ^ Y
         mat_op = OpPrimitive(pauli_op.to_matrix())
@@ -83,8 +84,8 @@ class TestOpConstruction(QiskitAquaTestCase):
         for bstr1, bstr2 in itertools.product(full_basis, full_basis):
             # print('{} {} {} {}'.format(bstr1, bstr2, pauli_op.eval(bstr1, bstr2),
             # mat_op.eval(bstr1, bstr2)))
-            np.testing.assert_array_almost_equal(pauli_op.eval(bstr1, bstr2),
-                                                 mat_op.eval(bstr1, bstr2))
+            np.testing.assert_array_almost_equal(pauli_op.eval(bstr1).eval(bstr2),
+                                                 mat_op.eval(bstr1).eval(bstr2))
 
         gnarly_op = OpSum([(H ^ I ^ Y).compose(X ^ X ^ Z).kron(Z),
                            OpPrimitive(Operator.from_label('+r0I')),
@@ -92,8 +93,8 @@ class TestOpConstruction(QiskitAquaTestCase):
         gnarly_mat_op = OpPrimitive(gnarly_op.to_matrix())
         full_basis = list(map(''.join, itertools.product('01', repeat=gnarly_op.num_qubits)))
         for bstr1, bstr2 in itertools.product(full_basis, full_basis):
-            np.testing.assert_array_almost_equal(gnarly_op.eval(bstr1, bstr2),
-                                                 gnarly_mat_op.eval(bstr1, bstr2))
+            np.testing.assert_array_almost_equal(gnarly_op.eval(bstr1).eval(bstr2),
+                                                 gnarly_mat_op.eval(bstr1).eval(bstr2))
 
     def test_circuit_construction(self):
         """ circuit construction test """

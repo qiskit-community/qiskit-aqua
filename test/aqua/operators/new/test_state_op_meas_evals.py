@@ -25,7 +25,6 @@ class TestStateOpMeasEvals(QiskitAquaTestCase):
 
     def test_statefn_overlaps(self):
         """ state functions overlaps test """
-        # wf = StateFn({'101010': .5, '111111': .3}) + (Zero^6)
         wf = (4 * StateFn({'101010': .5, '111111': .3})) + ((3 + .1j) * (Zero ^ 6))
         wf_vec = StateFn(wf.to_matrix())
         self.assertAlmostEqual(wf.adjoint().eval(wf), 14.45)
@@ -41,10 +40,6 @@ class TestStateOpMeasEvals(QiskitAquaTestCase):
         wf_vec = StateFn(wf.to_matrix())
         op = X ^ qbits
         # op = I^6
-        self.assertAlmostEqual(op.eval(front=wf, back=wf.adjoint()), 1)
-        self.assertAlmostEqual(op.eval(front=wf, back=wf_vec.adjoint()), 1)
-        self.assertAlmostEqual(op.eval(front=wf_vec, back=wf.adjoint()), 1)
-        self.assertAlmostEqual(op.eval(front=wf_vec, back=wf_vec.adjoint()), 1)
         self.assertAlmostEqual(wf.adjoint().eval(op.eval(wf)), 1)
         self.assertAlmostEqual(wf_vec.adjoint().eval(op.eval(wf)), 1)
         self.assertAlmostEqual(wf.adjoint().eval(op.eval(wf_vec)), 1)
@@ -55,10 +50,6 @@ class TestStateOpMeasEvals(QiskitAquaTestCase):
         wf = ((Zero ^ 6) + (One ^ 6)) * (1 / 2 ** .5)
         wf_vec = StateFn(wf.to_matrix())
         # print(wf.adjoint().to_matrix() @ op.to_matrix() @ wf.to_matrix())
-        self.assertAlmostEqual(op.eval(front=wf, back=wf.adjoint()), .25)
-        self.assertAlmostEqual(op.eval(front=wf, back=wf_vec.adjoint()), .25)
-        self.assertAlmostEqual(op.eval(front=wf_vec, back=wf.adjoint()), .25)
-        self.assertAlmostEqual(op.eval(front=wf_vec, back=wf_vec.adjoint()), .25)
         self.assertAlmostEqual(wf.adjoint().eval(op.eval(wf)), .25)
         self.assertAlmostEqual(wf_vec.adjoint().eval(op.eval(wf)), .25)
         self.assertAlmostEqual(wf.adjoint().eval(op.eval(wf_vec)), .25)

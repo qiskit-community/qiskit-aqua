@@ -68,9 +68,10 @@ class OpKron(OpVec):
 
         # pylint: disable=cyclic-import,import-outside-toplevel
         from ..operator_primitives import OpPrimitive
+        # TODO replace with to_op_matrix
         kron_mat_op = OpPrimitive(self.combo_fn([op.to_matrix() for op in self.oplist]),
                                   coeff=self.coeff)
-        return kron_mat_op.eval(front=front, back=back)
+        return kron_mat_op.eval(front=front)
 
     # Try collapsing list or trees of krons.
     # TODO do this smarter

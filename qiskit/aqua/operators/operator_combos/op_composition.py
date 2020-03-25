@@ -17,7 +17,6 @@
 from typing import List, Union
 from functools import reduce, partial
 import numpy as np
-from qiskit.quantum_info import Statevector
 
 from ..operator_base import OperatorBase
 from .op_vec import OpVec
@@ -107,11 +106,6 @@ class OpComposition(OpVec):
         # Only one op needs to be multiplied, so just multiply the first.
         eval_list[0] = eval_list[0] * self.coeff
         eval_list = eval_list + [front] if front else eval_list
-        if isinstance(back, (str, dict, Statevector)):
-            # pylint: disable=cyclic-import,import-outside-toplevel
-            from .. import StateFn
-            back = StateFn(back)
-        eval_list = [back] + eval_list if back else eval_list
 
         return reduce(tree_recursive_eval, reversed(eval_list))
 

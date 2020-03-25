@@ -165,7 +165,7 @@ class OpEvolution(OpPrimitive):
         method yet, our only option is to convert to an
         OpMatrix and eval with that.
         """
-        return OpPrimitive(self.to_matrix()).eval(front=front, back=back)
+        return self.to_matrix_op().eval(front=front)
 
     def to_matrix_op(self, massive=False):
         """ Return a MatrixOp for this operator. """

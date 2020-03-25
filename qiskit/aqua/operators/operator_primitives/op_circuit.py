@@ -224,7 +224,7 @@ class OpCircuit(OpPrimitive):
         """
 
         # pylint: disable=import-outside-toplevel
-        from ..state_functions import StateFn, StateFnCircuit
+        from ..state_functions import StateFnCircuit
         from ..operator_combos import OpVec
         from .op_pauli import OpPauli
 
@@ -234,15 +234,9 @@ class OpCircuit(OpPrimitive):
 
         # Composable with circuit
         if isinstance(front, (OpPauli, StateFnCircuit, OpCircuit)):
-            new_front = self.compose(front)
-            if back is not None:
-                if not isinstance(back, StateFn):
-                    back = StateFn(back, is_measurement=True)
-                return back.eval(new_front)
-            else:
-                return new_front
+            return self.compose(front)
 
-        return self.to_matrix_op().eval(front=front, back=back)
+        return self.to_matrix_op().eval(front=front)
 
     def to_circuit(self):
         """ Convert OpCircuit to circuit """
