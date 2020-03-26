@@ -215,6 +215,7 @@ grover
 gset
 gto
 gtol
+hacky
 hadamard
 halfangle
 hamiltonian
@@ -390,6 +391,7 @@ ok
 onee
 online
 onwards
+OOM
 OperatorBase
 oplist
 oplist's
