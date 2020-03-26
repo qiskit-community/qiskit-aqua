@@ -157,7 +157,11 @@ class ADMMState:
 
 
 class ADMMOptimizer(OptimizationAlgorithm):
-    """An implementation of the ADMM algorithm."""
+    """An implementation of the ADMM-based heuristic introduced here:
+    Gambella, C., & Simonetto, A. (2020).
+     Multi-block ADMM Heuristics for Mixed-Binary Optimization on Classical and Quantum Computers.
+     arXiv preprint arXiv:2001.02069.
+    """
 
     def __init__(self, params: Optional[ADMMParameters] = None) -> None:
         """Constructs an instance of ADMMOptimizer.
@@ -871,11 +875,11 @@ class ADMMOptimizer(OptimizationAlgorithm):
             r, s as primary and dual residuals.
         """
         elements = self._state.x0 - self._state.z - self._state.y
-        primal_residual = pow(sum(e ** 2 for e in elements), 0.5)
+        primal_residual = np.linalg.norm(elements)
         if iteration > 0:
             elements_dual = self._state.z - self._state.z_saved[iteration - 1]
         else:
             elements_dual = self._state.z - self._state.z_init
-        dual_residual = self._state.rho * pow(sum(e ** 2 for e in elements_dual), 0.5)
+        dual_residual = self._state.rho * np.linalg.norm(elements_dual)
 
         return primal_residual, dual_residual
