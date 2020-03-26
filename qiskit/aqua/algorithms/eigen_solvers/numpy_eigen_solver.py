@@ -133,9 +133,9 @@ class NumPyEigensolver(ClassicalAlgorithm):
     def _solve(self):
         if self._k >= 2**(self._operator.num_qubits) - 1:
             logger.debug("SciPy doesn't support to get all eigenvalues, using NumPy instead.")
-            eigval, eigvec = np.linalg.eig(self._operator.to_matrix().toarray())
+            eigval, eigvec = np.linalg.eig(self._operator.to_matrix())
         else:
-            eigval, eigvec = scisparse.linalg.eigs(self._operator.to_matrix(),
+            eigval, eigvec = scisparse.linalg.eigs(self._operator.to_spmatrix(),
                                                    k=self._k, which='SR')
         if self._k > 1:
             idx = eigval.argsort()
@@ -171,7 +171,7 @@ class NumPyEigensolver(ClassicalAlgorithm):
                 continue
             value = 0.0
             if not operator.coeff == 0:
-                mat = operator.to_matrix()
+                mat = operator.to_spmatrix()
                 # Terra doesn't support sparse yet, so do the matmul directly if so
                 # This is necessary for the particle_hole and other chemistry tests because the
                 # pauli conversions are 2^12th large and will OOM error if not sparse.

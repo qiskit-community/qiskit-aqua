@@ -260,6 +260,20 @@ class OpVec(OperatorBase):
         else:
             return self.combo_fn([op.to_matrix() for op in self.oplist]) * self.coeff
 
+    def to_spmatrix(self):
+        """ Return numpy matrix of operator, warn if more than 16 qubits
+        to force the user to set massive=True if
+        they want such a large matrix. Generally big methods like this should
+        require the use of a converter,
+        but in this case a convenience method for quick hacking and access to
+        classical tools is appropriate. """
+
+        # Combination function must be able to handle classical values
+        if self.distributive:
+            return self.combo_fn([op.to_spmatrix() * self.coeff for op in self.oplist])
+        else:
+            return self.combo_fn([op.to_spmatrix() for op in self.oplist]) * self.coeff
+
     def eval(self, front=None):
         """ A square binary Operator can be defined as a function over two binary strings
         of equal length. This

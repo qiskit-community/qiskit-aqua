@@ -173,7 +173,22 @@ class OpPauli(OpPrimitive):
         and access to classical tools is appropriate. """
 
         if self.num_qubits > 16 and not massive:
-            # TODO figure out sparse matrices?
+            raise ValueError(
+                'to_matrix will return an exponentially large matrix, '
+                'in this case {0}x{0} elements.'
+                ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
+
+        return self.primitive.to_matrix() * self.coeff
+
+    def to_spmatrix(self, massive=False):
+        """ Return scipy sparse matrix of operator, warn if more than
+        16 qubits to force the user to set massive=True if
+        they want such a large matrix. Generally big methods like
+        this should require the use of a converter,
+        but in this case a convenience method for quick hacking
+        and access to classical tools is appropriate. """
+
+        if self.num_qubits > 16 and not massive:
             raise ValueError(
                 'to_matrix will return an exponentially large matrix, '
                 'in this case {0}x{0} elements.'

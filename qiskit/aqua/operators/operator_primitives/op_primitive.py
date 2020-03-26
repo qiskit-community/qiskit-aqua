@@ -16,6 +16,7 @@
 
 import logging
 import numpy as np
+from scipy.sparse import spmatrix
 
 from qiskit import QuantumCircuit
 from qiskit.circuit import Instruction, ParameterExpression
@@ -50,7 +51,7 @@ class OpPrimitive(OperatorBase):
             from .op_circuit import OpCircuit
             return OpCircuit.__new__(OpCircuit)
 
-        if isinstance(primitive, (list, np.ndarray, MatrixOperator)):
+        if isinstance(primitive, (list, np.ndarray, spmatrix, MatrixOperator)):
             from .op_matrix import OpMatrix
             return OpMatrix.__new__(OpMatrix)
 

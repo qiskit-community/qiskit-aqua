@@ -16,6 +16,7 @@
 
 import itertools
 import numpy as np
+from scipy import sparse
 
 from qiskit.result import Result
 
@@ -205,6 +206,21 @@ class StateFnDict(StateFn):
 
         # Reshape for measurements so np.dot still works for composition.
         return vec if not self.is_measurement else vec.reshape(1, -1)
+
+    def to_spmatrix(self):
+        """
+        Same as to_matrix, but returns csr sparse matrix.
+        Returns:
+            sparse.csr_matrix: vector of state vector
+        Raises:
+            ValueError: invalid parameters.
+        """
+
+        indices = [int(v, 2) for v in self.primitive.keys()]
+        vals = np.array(list(self.primitive.values())) * self.coeff
+        spvec = sparse.csr_matrix((vals, (np.zeros(len(indices), dtype=int), indices)),
+                                  shape=(1, 2**self.num_qubits))
+        return spvec if not self.is_measurement else spvec.transpose()
 
     def __str__(self):
         """Overload str() """
