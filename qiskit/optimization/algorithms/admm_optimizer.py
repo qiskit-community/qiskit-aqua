@@ -777,7 +777,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         """
 
         it_best_merits = self._state.merits.index(
-            min(list(map(lambda x: self._state.sense * x, self._state.merits))))
+            self._state.sense * min(list(map(lambda x: self._state.sense * x, self._state.merits))))
         x0 = self._state.x0_saved[it_best_merits]
         u = self._state.u_saved[it_best_merits]
         sol = [x0, u]
