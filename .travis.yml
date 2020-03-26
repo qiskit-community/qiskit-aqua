@@ -87,25 +87,22 @@ stage_test_aqua: &stage_test_aqua
   install:
     - |
       cat > selection.txt <<EOF
-      test.aqua.operators.test_tpb_grouped_weigted_pauli_operator
+      test.aqua.operators.test_tpb_grouped_weighted_pauli_operator
       test.aqua.operators.test_weighted_pauli_operator
       test.aqua.test_custom_circuit_oracle
       test.aqua.test_entangler_map
       test.aqua.test_eoh
-      test.aqua.test_exact_eigen_solver
-      test.aqua.test_exact_ls_solver
       test.aqua.test_fixed_value_comparator
       test.aqua.test_hhl
       test.aqua.test_initial_state_custom
       test.aqua.test_initial_state_zero
-      test.aqua.test_input_parser
       test.aqua.test_iqpe
       test.aqua.test_logical_expression_oracle
       test.aqua.test_lookup_rotation
-      test.aqua.test_mct
-      test.aqua.test_mcu1
       test.aqua.test_measure_error_mitigation
       test.aqua.test_nlopt_optimizers
+      test.aqua.test_numpy_eigen_solver
+      test.aqua.test_numpy_ls_solver
       test.aqua.test_optimizers
       test.aqua.test_qgan
       test.aqua.test_qpe
