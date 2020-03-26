@@ -15,12 +15,14 @@
 The HHL algorithm.
 """
 
-from typing import Optional
+from typing import Optional, Union
 import logging
 from copy import deepcopy
 import numpy as np
 
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
+from qiskit.providers import BaseBackend
+from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.ignis.verification.tomography import state_tomography_circuits, \
     StateTomographyFitter
@@ -95,8 +97,8 @@ class HHL(QuantumAlgorithm):
             reciprocal: Optional[Reciprocal] = None,
             num_q: int = 0,
             num_a: int = 0,
-            orig_size: Optional[int] = None
-    ) -> None:
+            orig_size: Optional[int] = None,
+            quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
         """
         Args:
             matrix: The input matrix of linear system of equations
@@ -109,10 +111,11 @@ class HHL(QuantumAlgorithm):
             num_q: Number of qubits required for the matrix Operator instance
             num_a: Number of ancillary qubits for Eigenvalues instance
             orig_size: The original dimension of the problem (if truncate_powerdim)
+            quantum_instance: Quantum Instance or Backend
         Raises:
             ValueError: Invalid input
         """
-        super().__init__()
+        super().__init__(quantum_instance)
         if matrix.shape[0] != matrix.shape[1]:
             raise ValueError("Input matrix must be square!")
         if matrix.shape[0] != len(vector):

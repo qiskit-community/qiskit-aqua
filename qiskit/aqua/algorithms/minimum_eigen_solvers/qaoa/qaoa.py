@@ -14,9 +14,12 @@
 
 """ The Quantum Approximate Optimization Algorithm. """
 
-from typing import List, Callable, Optional
+from typing import List, Callable, Optional, Union
 import logging
 import numpy as np
+
+from qiskit.providers import BaseBackend
+from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import OperatorBase, LegacyBaseOperator
 from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.components.optimizers import Optimizer
@@ -64,8 +67,8 @@ class QAOA(VQE):
                  initial_state: Optional[InitialState] = None,
                  mixer: Optional[OperatorBase] = None, initial_point: Optional[np.ndarray] = None,
                  max_evals_grouped: int = 1, aux_operators: Optional[List[OperatorBase]] = None,
-                 callback: Optional[Callable[[int, np.ndarray, float, float], None]] = None) \
-            -> None:
+                 callback: Optional[Callable[[int, np.ndarray, float, float], None]] = None,
+                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
         """
         Args:
             operator: Qubit operator
@@ -92,18 +95,21 @@ class QAOA(VQE):
                 by the optimizer for its current set of parameters as it works towards the minimum.
                 These are: the evaluation count, the optimizer parameters for the
                 variational form, the evaluated mean and the evaluated standard deviation.
+            quantum_instance: Quantum Instance or Backend
         """
         validate_min('p', p, 1)
 
         self._p = p
         self._mixer_operator = mixer
         self._initial_state = initial_state
+        self._operator = None
 
         # VQE will use the operator setter, during its constructor, which is overridden below and
         # will cause the var form to be built
         super().__init__(operator, None, optimizer, initial_point=initial_point,
                          max_evals_grouped=max_evals_grouped,
-                         callback=callback)
+                         callback=callback,
+                         quantum_instance=quantum_instance)
 
     @VQE.operator.setter
     def operator(self, operator: OperatorBase) -> None:

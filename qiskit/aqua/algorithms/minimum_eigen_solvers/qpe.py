@@ -16,14 +16,16 @@ The Quantum Phase Estimation Algorithm.
 """
 
 import logging
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Union
 import warnings
 
 import numpy as np
 from qiskit import QuantumCircuit
 from qiskit.quantum_info import Pauli
 
-from qiskit.aqua.operators.legacy import op_converter
+from qiskit.providers import BaseBackend
+from qiskit.aqua import QuantumInstance
+from qiskit.aqua.operators import op_converter
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.circuits import PhaseEstimationCircuit
@@ -65,7 +67,8 @@ class QPEMinimumEigensolver(QuantumAlgorithm, MinimumEigensolver):
                  num_ancillae: int = 1,
                  expansion_mode: str = 'trotter',
                  expansion_order: int = 1,
-                 shallow_circuit_concat: bool = False) -> None:
+                 shallow_circuit_concat: bool = False,
+                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
         """
 
         Args:
@@ -81,12 +84,13 @@ class QPEMinimumEigensolver(QuantumAlgorithm, MinimumEigensolver):
             shallow_circuit_concat: Set True to use shallow (cheap) mode for circuit concatenation
                 of evolution slices. By default this is False.
                 See :meth:`qiskit.aqua.operators.common.evolution_instruction` for more information.
+            quantum_instance: Quantum Instance or Backend
         """
         validate_min('num_time_slices', num_time_slices, 1)
         validate_min('num_ancillae', num_ancillae, 1)
         validate_in_set('expansion_mode', expansion_mode, {'trotter', 'suzuki'})
         validate_min('expansion_order', expansion_order, 1)
-        super().__init__()
+        super().__init__(quantum_instance)
         self._state_in = state_in
         self._iqft = iqft
         self._num_time_slices = num_time_slices

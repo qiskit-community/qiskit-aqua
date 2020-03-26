@@ -18,7 +18,7 @@ The Variational Quantum Eigensolver algorithm.
 See https://arxiv.org/abs/1304.3061
 """
 
-from typing import Optional, List, Callable
+from typing import Optional, List, Callable, Union
 import logging
 import warnings
 from time import time
@@ -27,7 +27,8 @@ import numpy as np
 from qiskit import ClassicalRegister
 from qiskit.circuit import ParameterVector
 
-from qiskit.aqua import AquaError
+from qiskit.providers import BaseBackend
+from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.operators import (OperatorBase, ExpectationBase, StateFnCircuit,
                                    LegacyBaseOperator, OpVec, I)
 from qiskit.aqua.operators.legacy import (MatrixOperator, WeightedPauliOperator,
@@ -90,7 +91,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                  aux_operators: Optional[OperatorBase] = None,
                  callback: Optional[Callable[[int, np.ndarray, float, float], None]] = None,
                  # TODO delete all instances of auto_conversion
-                 ) -> None:
+                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
         """
 
         Args:
@@ -115,7 +116,8 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                 Four parameter values are passed to the callback as follows during each evaluation
                 by the optimizer for its current set of parameters as it works towards the minimum.
                 These are: the evaluation count, the optimizer parameters for the
-                variational form, the evaluated mean and the evaluated standard deviation.
+                variational form, the evaluated mean and the evaluated standard deviation.`
+            quantum_instance: Quantum Instance or Backend
         """
         validate_min('max_evals_grouped', max_evals_grouped, 1)
         # TODO delete all instances of self._use_simulator_snapshot_mode
@@ -141,7 +143,8 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         super().__init__(var_form=var_form,
                          optimizer=optimizer,
                          cost_fn=self._energy_evaluation,
-                         initial_point=initial_point)
+                         initial_point=initial_point,
+                         quantum_instance=quantum_instance)
         self._ret = None
         self._eval_time = None
         self._optimizer.set_max_evals_grouped(max_evals_grouped)

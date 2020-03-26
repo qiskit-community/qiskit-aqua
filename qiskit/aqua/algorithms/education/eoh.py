@@ -17,7 +17,10 @@ The Quantum Dynamics algorithm.
 
 import logging
 
+from typing import Optional, Union
 from qiskit import QuantumRegister
+from qiskit.providers import BaseBackend
+from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.operators.legacy import op_converter
 from qiskit.aqua.operators import LegacyBaseOperator
@@ -45,7 +48,8 @@ class EOH(QuantumAlgorithm):
                  evo_time: float = 1,
                  num_time_slices: int = 1,
                  expansion_mode: str = 'trotter',
-                 expansion_order: int = 1) -> None:
+                 expansion_order: int = 1,
+                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
         """
         Args:
             operator: Operator to evaluate
@@ -56,12 +60,13 @@ class EOH(QuantumAlgorithm):
             expansion_mode: Either ``"trotter"`` (Lloyd's method) or ``"suzuki"``
                 (for Trotter-Suzuki expansion)
             expansion_order: The Trotter-Suzuki expansion order.
+            quantum_instance: Quantum Instance or Backend
         """
         validate_min('evo_time', evo_time, 0)
         validate_min('num_time_slices', num_time_slices, 1)
         validate_in_set('expansion_mode', expansion_mode, {'trotter', 'suzuki'})
         validate_min('expansion_order', expansion_order, 1)
-        super().__init__()
+        super().__init__(quantum_instance)
         self._operator = op_converter.to_weighted_pauli_operator(operator)
         self._initial_state = initial_state
         self._evo_operator = op_converter.to_weighted_pauli_operator(evo_operator)
