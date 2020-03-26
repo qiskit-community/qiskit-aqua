@@ -20,7 +20,8 @@ import numpy as np
 from scipy.stats import beta
 
 from qiskit import ClassicalRegister, QuantumRegister, QuantumCircuit
-from qiskit.aqua import AquaError
+from qiskit.providers import BaseBackend
+from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.utils.circuit_factory import CircuitFactory
 from qiskit.aqua.utils.validation import validate_range, validate_in_set
 
@@ -47,7 +48,8 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                  confint_method: str = 'beta', min_ratio: float = 2,
                  a_factory: Optional[CircuitFactory] = None,
                  q_factory: Optional[CircuitFactory] = None,
-                 i_objective: Optional[int] = None) -> None:
+                 i_objective: Optional[int] = None,
+                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
         """
         The output of the algorithm is an estimate for the amplitude `a`, that with at least
         probability 1 - alpha has an error of epsilon. The number of A operator calls scales
@@ -64,6 +66,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             q_factory: The Q operator (Grover operator), constructed from the
                 A operator
             i_objective: Index of the objective qubit, that marks the 'good/bad' states
+            quantum_instance: Quantum Instance or Backend
 
         Raises:
             AquaError: if the method to compute the confidence intervals is not supported
@@ -73,7 +76,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         validate_range('alpha', alpha, 0, 1)
         validate_in_set('confint_method', confint_method, {'chernoff', 'beta'})
 
-        super().__init__(a_factory, q_factory, i_objective)
+        super().__init__(a_factory, q_factory, i_objective, quantum_instance)
 
         # store parameters
         self._epsilon = epsilon

@@ -51,9 +51,17 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
     @abstractmethod
     def __init__(self,
                  a_factory: Optional[CircuitFactory] = None,
-                 q_factory=None,
-                 i_objective=None,
+                 q_factory: Optional[CircuitFactory] = None,
+                 i_objective: Optional[int] = None,
                  quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
+        """
+        Args:
+            a_factory: The A operator, specifying the QAE problem
+            q_factory: The Q operator (Grover operator), constructed from the
+                A operator
+            i_objective: Index of the objective qubit, that marks the 'good/bad' states
+            quantum_instance: Quantum Instance or Backend
+        """
         self._a_factory = a_factory
         self._q_factory = q_factory
         self._i_objective = i_objective
