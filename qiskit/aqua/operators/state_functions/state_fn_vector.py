@@ -211,7 +211,8 @@ class StateFnVector(StateFn):
         """ Sample the state function as a normalized probability distribution. Returns dict of
         bitstrings in order of probability, with values being probability. """
         deterministic_counts = self.primitive.to_counts()
-        probs = np.array(list(deterministic_counts.values())) ** 2
+        # Don't need to square because to_counts already does.
+        probs = np.array(list(deterministic_counts.values()))
         unique, counts = np.unique(np.random.choice(list(deterministic_counts.keys()),
                                                     size=shots,
                                                     p=(probs / sum(probs))),

@@ -179,7 +179,7 @@ class OpPauli(OpPrimitive):
                 'in this case {0}x{0} elements.'
                 ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
 
-        return self.primitive.to_matrix() * self.coeff
+        return self.primitive.to_spmatrix() * self.coeff
 
     def __str__(self):
         """Overload str() """

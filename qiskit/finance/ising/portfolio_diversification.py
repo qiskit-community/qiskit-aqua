@@ -17,7 +17,7 @@
 import numpy as np
 from qiskit.quantum_info import Pauli
 
-from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.aqua.operators import WeightedPauliOperator, StateFn
 
 
 def get_operator(rho, n, q):
@@ -142,6 +142,8 @@ def get_portfoliodiversification_solution(rho, n, q, result):  # pylint: disable
     # pylint: disable=invalid-name
     del rho, q  # unused
     v = result['eigvecs'][0]
+    if isinstance(v, StateFn):
+        v = v.to_matrix()
     # N = (n + 1) * n  # number of qubits
     N = n ** 2 + n
 

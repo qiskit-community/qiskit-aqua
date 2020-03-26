@@ -197,14 +197,17 @@ class VQE(VQAlgorithm, MinimumEigensolver):
     @aux_operators.setter
     def aux_operators(self, aux_operators: List[LegacyBaseOperator]) -> None:
         """ Set aux operators """
+        # This is all terrible code to deal with weight 0-qubit None aux_ops.
+        self._aux_op_nones = None
         if isinstance(aux_operators, list):
-            converted = [op.to_opflow() for op in aux_operators]
-            # For some reason Chemistry passes aux_ops with 0 qubits and paulis sometimes. TODO fix
+            self._aux_op_nones = [op is None for op in aux_operators]
             zero_op = I.kronpower(self.operator.num_qubits) * 0.0
+            converted = [op.to_opflow() if op else zero_op for op in aux_operators]
+            # For some reason Chemistry passes aux_ops with 0 qubits and paulis sometimes. TODO fix
             converted = [zero_op if op == 0 else op for op in converted]
             aux_operators = OpVec(converted)
         elif isinstance(aux_operators, LegacyBaseOperator):
-            aux_operators = aux_operators.to_opflow()
+            aux_operators = [aux_operators.to_opflow()]
         self._aux_operators = aux_operators
         if self.var_form is not None:
             self._var_form_params = ParameterVector('θ', self.var_form.num_parameters)
@@ -372,7 +375,11 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         values = np.real(expect.compute_expectation())
         # Discard values below threshold
         # TODO remove reshape when ._ret is deprecated
-        self._ret['aux_ops'] = (values * (np.abs(values) > threshold)).reshape(1, -1, 1)
+        aux_op_results = (values * (np.abs(values) > threshold))
+        # Terribly hacky code to deal with weird legacy aux_op behavior
+        self._ret['aux_ops'] = [None if is_none else [result]
+                                for (is_none, result) in zip(self._aux_op_nones, aux_op_results)]
+        self._ret['aux_ops'] = np.array([self._ret['aux_ops']])
 
     def compute_minimum_eigenvalue(
             self, operator: Optional[OperatorBase] = None,

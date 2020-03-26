@@ -99,7 +99,7 @@ class NumPyEigensolver(ClassicalAlgorithm):
         else:
             aux_operators = \
                 [aux_operators] if not isinstance(aux_operators, list) else aux_operators
-            converted = [op.to_opflow() if op else None for op in aux_operators]
+            converted = [op.to_opflow() if op is not None else None for op in aux_operators]
             # For some reason Chemistry passes aux_ops with 0 qubits and paulis sometimes. TODO fix
             zero_op = I.kronpower(self.operator.num_qubits) * 0.0
             converted = [zero_op if op == 0 else op for op in converted]
@@ -133,7 +133,7 @@ class NumPyEigensolver(ClassicalAlgorithm):
     def _solve(self):
         if self._k >= 2**(self._operator.num_qubits) - 1:
             logger.debug("SciPy doesn't support to get all eigenvalues, using NumPy instead.")
-            eigval, eigvec = np.linalg.eig(self._operator.to_matrix())
+            eigval, eigvec = np.linalg.eig(self._operator.to_matrix().toarray())
         else:
             eigval, eigvec = scisparse.linalg.eigs(self._operator.to_matrix(),
                                                    k=self._k, which='SR')
@@ -171,7 +171,14 @@ class NumPyEigensolver(ClassicalAlgorithm):
                 continue
             value = 0.0
             if not operator.coeff == 0:
-                value = StateFn(operator, is_measurement=True).to_matrix_op().eval(wavefn)
+                mat = operator.to_matrix()
+                # Terra doesn't support sparse yet, so do the matmul directly if so
+                # This is necessary for the particle_hole and other chemistry tests because the
+                # pauli conversions are 2^12th large and will OOM error if not sparse.
+                if isinstance(mat, scisparse.spmatrix):
+                    value = mat.dot(wavefn).dot(np.conj(wavefn))
+                else:
+                    value = StateFn(operator, is_measurement=True).eval(wavefn)
                 value = value.real if abs(value.real) > threshold else 0.0
             values.append((value, 0))
         return np.asarray(values)

@@ -16,6 +16,7 @@
 
 import logging
 import numpy as np
+from scipy.sparse import spmatrix
 
 from qiskit.quantum_info import Operator as MatrixOperator
 
@@ -44,6 +45,10 @@ class OpMatrix(OpPrimitive):
             TypeError: invalid parameters.
             ValueError: invalid parameters.
         """
+        if isinstance(primitive, spmatrix):
+            primitive = primitive.toarray()
+
+        # TODO if Terra's Operator starts to support sparse, we can pass it in here.
         if isinstance(primitive, (list, np.ndarray)):
             primitive = MatrixOperator(primitive)
 
