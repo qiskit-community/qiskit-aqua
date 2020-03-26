@@ -24,6 +24,8 @@ from qiskit.aqua.components.initial_states import Custom
 from qiskit.aqua.components.iqfts import Standard as IQFT
 from qiskit.optimization.problems import OptimizationProblem
 
+logger = logging.getLogger(__name__)
+
 
 class OptimizationProblemToNegativeValueOracle:
     """Converts an optimization problem (QUBO) to a negative value oracle.
@@ -42,11 +44,10 @@ class OptimizationProblemToNegativeValueOracle:
         self._num_key = 0
         self._num_value = num_output_qubits
         self._measurement = measurement
-        self._logger = logging.getLogger(__name__)
 
     def encode(self, problem: OptimizationProblem) -> \
             Tuple[Custom, CustomCircuitOracle, Dict[Union[int, Tuple[int, int]], int]]:
-        """ A helper function that converts a QUBO into an oracle that recognizes negative numbers.
+        """A helper function that converts a QUBO into an oracle that recognizes negative numbers.
 
         Args:
             problem: The problem to be solved.
@@ -83,7 +84,7 @@ class OptimizationProblemToNegativeValueOracle:
 
         # Get the function dictionary.
         func = self._get_function(linear_coeff, quadratic_coeff, constant)
-        self._logger.info("Function: %s\n", func)
+        logger.info("Function: %s\n", func)
 
         # Define state preparation operator A from function.
         a_operator_circuit = self._build_operator(func)
