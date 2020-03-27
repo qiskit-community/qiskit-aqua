@@ -15,6 +15,8 @@
 """Tests of the ADMM algorithm."""
 from typing import Optional
 
+from docplex.mp.model import Model
+
 from test.optimization import QiskitOptimizationTestCase
 
 import numpy as np
@@ -25,13 +27,13 @@ from qiskit.optimization.algorithms.admm_optimizer import ADMMOptimizer, ADMMPar
 from qiskit.optimization.problems import OptimizationProblem
 
 
-class TestADMMOptimizerMiskp(QiskitOptimizationTestCase):
+class TestADMMOptimizer(QiskitOptimizationTestCase):
     """ADMM Optimizer Tests based on Mixed-Integer Setup Knapsack Problem"""
 
-    def test_admm_optimizer_miskp_eigen(self):
+    def test_admm_miskp_eigen(self):
         """ADMM Optimizer Test based on Mixed-Integer Setup Knapsack Problem
         using NumPy eigen optimizer"""
-        miskp = Miskp(*self._get_problem_params())
+        miskp = Miskp(*self._get_miskp_problem_params())
         op: OptimizationProblem = miskp.create_problem()
         self.assertIsNotNone(op)
 
@@ -58,7 +60,7 @@ class TestADMMOptimizerMiskp(QiskitOptimizationTestCase):
         np.testing.assert_almost_equal(correct_objective, solution.fval, 3)
 
     @staticmethod
-    def _get_problem_params() -> (int, int, float, np.ndarray, np.ndarray, np.ndarray):
+    def _get_miskp_problem_params() -> (int, int, float, np.ndarray, np.ndarray, np.ndarray):
         """Fills in parameters for a Mixed Integer Setup Knapsack Problem (MISKP) instance."""
 
         family_count = 2
@@ -77,6 +79,29 @@ class TestADMMOptimizerMiskp(QiskitOptimizationTestCase):
 
         return family_count, items_per_family, knapsack_capacity, setup_costs, resource_values,\
             cost_values
+
+    def test_admm_maximization(self):
+        mdl = Model('test')
+        c = mdl.continuous_var(lb=0, ub=10, name='c')
+        x = mdl.binary_var(name='x')
+        mdl.maximize(c + x * x)
+        op = OptimizationProblem()
+        op.from_docplex(mdl)
+        self.assertIsNotNone(op)
+
+        qubo_optimizer = MinimumEigenOptimizer(NumPyMinimumEigensolver())
+        continuous_optimizer = CplexOptimizer()
+
+        admm_params = ADMMParameters(qubo_optimizer=qubo_optimizer,
+                                     continuous_optimizer=continuous_optimizer)
+        solver = ADMMOptimizer(params=admm_params)
+        solution = solver.solve(op)
+        self.assertIsNotNone(solution)
+
+        self.assertIsNotNone(solution.x)
+        np.testing.assert_almost_equal([10, 0], solution.x, 3)
+        self.assertIsNotNone(solution.fval)
+        np.testing.assert_almost_equal(10, solution.fval, 3)
 
 
 class Miskp:
