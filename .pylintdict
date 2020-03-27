@@ -525,6 +525,7 @@ sj
 sklearn
 slsqp
 spsa
+spmatrix
 sqrt
 srange
 Ss
@@ -580,6 +581,7 @@ tranter
 travers
 trotterization
 trotterize
+trotterizing
 trunc
 ub
 uccsd
