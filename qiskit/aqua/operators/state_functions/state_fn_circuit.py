@@ -14,6 +14,7 @@
 
 """ An Object to represent State Functions constructed from Operators """
 
+from typing import Union
 import numpy as np
 
 from qiskit import QuantumCircuit, BasicAer, execute
@@ -51,13 +52,19 @@ class StateFnCircuit(StateFn):
 
     # TODO maybe break up into different classes for different fn definition primitives
     # TODO allow normalization somehow?
-    def __init__(self, primitive, coeff=1.0, is_measurement=False):
+    def __init__(self,
+                 primitive: Union[QuantumCircuit, Instruction] = None,
+                 coeff: Union[int, float, complex, ParameterExpression] = 1.0,
+                 is_measurement: bool = False) -> OperatorBase:
         """
-        Args:
-            primitive(QuantumCircuit, Instruction)
-            coeff(int, float, complex): A coefficient by which to multiply the state
-        Raises:
-            TypeError: invalid parameters.
+            Args:
+                primitive: The operator primitive being wrapped.
+                coeff: A coefficient by which to multiply
+                 the state function.
+                is_measurement: Whether the StateFn is a measurement operator.
+
+            Raises:
+                TypeError: invalid parameters.
         """
         if isinstance(primitive, QuantumCircuit):
             primitive = primitive.to_instruction()
@@ -69,7 +76,7 @@ class StateFnCircuit(StateFn):
         super().__init__(primitive, coeff=coeff, is_measurement=is_measurement)
 
     @staticmethod
-    def from_dict(density_dict):
+    def from_dict(density_dict: dict) -> OperatorBase:
         """ from dictionary """
         # If the dict is sparse (elements <= qubits), don't go
         # building a statevector to pass to Qiskit's
@@ -93,7 +100,7 @@ class StateFnCircuit(StateFn):
             return StateFnCircuit.from_vector(sf_dict.to_matrix())
 
     @staticmethod
-    def from_vector(statevector):
+    def from_vector(statevector: np.ndarray) -> OperatorBase:
         """ from vector """
         normalization_coeff = np.linalg.norm(statevector)
         normalized_sv = statevector / normalization_coeff
@@ -101,15 +108,15 @@ class StateFnCircuit(StateFn):
             raise ValueError('Qiskit circuit Initializer cannot handle non-positive statevectors.')
         return StateFnCircuit(Initialize(normalized_sv), coeff=normalization_coeff)
 
-    def get_primitives(self):
+    def get_primitives(self) -> set:
         """ Return a set of strings describing the primitives contained in the Operator """
-        return {'Instruction'}
+        return {'QuantumCircuit'}
 
     @property
-    def num_qubits(self):
+    def num_qubits(self) -> int:
         return self.primitive.num_qubits
 
-    def add(self, other):
+    def add(self, other: OperatorBase) -> OperatorBase:
         """ Addition. Overloaded by + in OperatorBase. """
         if not self.num_qubits == other.num_qubits:
             raise ValueError('Sum over operators with different numbers of qubits, '
@@ -122,12 +129,12 @@ class StateFnCircuit(StateFn):
         # Covers all else.
         return OpSum([self, other])
 
-    def adjoint(self):
+    def adjoint(self) -> OperatorBase:
         return StateFnCircuit(self.primitive.inverse(),
                               coeff=np.conj(self.coeff),
                               is_measurement=(not self.is_measurement))
 
-    def compose(self, other):
+    def compose(self, other: OperatorBase) -> OperatorBase:
         """ Composition (Linear algebra-style, right-to-left) is not well defined
         for States in the binary function
         model. However, it is well defined for measurements.
@@ -161,7 +168,7 @@ class StateFnCircuit(StateFn):
         from qiskit.aqua.operators import OpComposition
         return OpComposition([new_self, other])
 
-    def kron(self, other):
+    def kron(self, other: OperatorBase) -> OperatorBase:
         """ Kron
         Note: You must be conscious of Qiskit's big-endian bit printing convention.
         Meaning, Plus.kron(Zero)
@@ -186,7 +193,7 @@ class StateFnCircuit(StateFn):
         from qiskit.aqua.operators import OpKron
         return OpKron([self, other])
 
-    def to_density_matrix(self, massive=False):
+    def to_density_matrix(self, massive: bool = False) -> np.ndarray:
         """ Return numpy matrix of density operator, warn if more than 16 qubits to
         force the user to set
         massive=True if they want such a large matrix. Generally big methods like this
@@ -206,7 +213,7 @@ class StateFnCircuit(StateFn):
         # Rely on StateFnVectors logic here.
         return StateFn(self.primitive.to_matrix() * self.coeff).to_density_matrix()
 
-    def to_matrix(self, massive=False):
+    def to_matrix(self, massive: bool = False) -> np.ndarray:
         """
         NOTE: THIS DOES NOT RETURN A DENSITY MATRIX, IT RETURNS A CLASSICAL MATRIX CONTAINING
          THE QUANTUM OR CLASSICAL
@@ -245,7 +252,7 @@ class StateFnCircuit(StateFn):
                               optimization_level=0).result().get_statevector()
         return statevector * self.coeff
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Overload str() """
         qc = self.reduce().to_circuit()
         prim_str = str(qc.draw(output='text'))
@@ -258,7 +265,7 @@ class StateFnCircuit(StateFn):
                                             prim_str,
                                             self.coeff)
 
-    def bind_parameters(self, param_dict):
+    def bind_parameters(self, param_dict: dict) -> OperatorBase:
         param_value = self.coeff
         qc = self.primitive
         if isinstance(self.coeff, ParameterExpression) or self.primitive.params:
@@ -274,7 +281,9 @@ class StateFnCircuit(StateFn):
                 qc = self.to_circuit().decompose().bind_parameters(param_dict)
         return self.__class__(qc, coeff=param_value)
 
-    def eval(self, front=None):
+    def eval(self,
+             front: Union[str, dict, np.ndarray,
+                          OperatorBase] = None) -> Union[OperatorBase, float, complex]:
         if not self.is_measurement and isinstance(front, OperatorBase):
             raise ValueError(
                 'Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '
@@ -295,7 +304,7 @@ class StateFnCircuit(StateFn):
 
         return self.to_matrix_op().eval(front)
 
-    def to_circuit(self, meas=False):
+    def to_circuit(self, meas: bool = False) -> QuantumCircuit:
         """ to circuit """
         if meas:
             qc = QuantumCircuit(self.num_qubits, self.num_qubits)
@@ -308,7 +317,10 @@ class StateFnCircuit(StateFn):
         return qc.decompose()
 
     # TODO specify backend?
-    def sample(self, shots=1024, massive=False, reverse_endianness=False):
+    def sample(self,
+               shots: int = 1024,
+               massive: bool = False,
+               reverse_endianness: bool = False) -> dict:
         """ Sample the state function as a normalized probability distribution. Returns dict of
         bitstrings in order of probability, with values being probability. """
         if self.num_qubits > 16 and not massive:
@@ -327,7 +339,7 @@ class StateFnCircuit(StateFn):
         return dict(sorted(scaled_dict.items(), key=lambda x: x[1], reverse=True))
 
     # Warning - modifying immutable object!!
-    def reduce(self):
+    def reduce(self) -> OperatorBase:
         if self.primitive._definition is not None:
             for i, inst_context in enumerate(self.primitive._definition):
                 [gate, _, _] = inst_context

@@ -204,7 +204,7 @@ class QuantumInstance:
         self._job_callback = job_callback
         logger.info(self)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Overload string.
 
         Returns:

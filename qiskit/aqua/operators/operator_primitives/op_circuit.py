@@ -14,6 +14,7 @@
 
 """ Wrapping Pauli Primitives """
 
+from typing import Union, Optional
 import logging
 import numpy as np
 
@@ -21,6 +22,7 @@ from qiskit import QuantumCircuit, BasicAer, execute
 from qiskit.extensions.standard import IGate
 from qiskit.circuit import Instruction, ParameterExpression
 
+from ..operator_base import OperatorBase
 from ..operator_combos import OpSum, OpComposition, OpKron
 from .op_primitive import OpPrimitive
 
@@ -28,19 +30,20 @@ logger = logging.getLogger(__name__)
 
 
 class OpCircuit(OpPrimitive):
-    """ Class for Wrapping Pauli Primitives
+    """ Class for Wrapping Circuit Primitives
 
     Note that all mathematical methods are not in-place, meaning that they return a
     new object, but the underlying primitives are not copied.
 
     """
 
-    def __init__(self, primitive, coeff=1.0):
+    def __init__(self,
+                 primitive: Union[Instruction, QuantumCircuit] = None,
+                 coeff: Optional[Union[int, float, complex,
+                                       ParameterExpression]] = 1.0) -> None:
         """
         Args:
-            primitive (Gate, Pauli, [[complex]], np.ndarray, QuantumCircuit, Instruction):
-            The operator primitive being
-            wrapped.
+            primitive (Instruction, QuantumCircuit): The operator primitive being wrapped.
             coeff (int, float, complex): A coefficient multiplying the primitive
         Raises:
             TypeError: invalid parameters.
@@ -54,17 +57,17 @@ class OpCircuit(OpPrimitive):
 
         super().__init__(primitive, coeff=coeff)
 
-    def get_primitives(self):
+    def get_primitives(self) -> set:
         """ Return a set of strings describing the primitives contained in the Operator """
-        return {'Instruction'}
+        return {'QuantumCircuit'}
 
     # TODO replace with proper alphabets later?
     @property
-    def num_qubits(self):
+    def num_qubits(self) -> int:
         return self.primitive.num_qubits
 
     # TODO change to *other to efficiently handle lists?
-    def add(self, other):
+    def add(self, other: OperatorBase) -> OperatorBase:
         """ Addition. Overloaded by + in OperatorBase. """
         if not self.num_qubits == other.num_qubits:
             raise ValueError(
@@ -77,11 +80,11 @@ class OpCircuit(OpPrimitive):
         # Covers all else.
         return OpSum([self, other])
 
-    def adjoint(self):
+    def adjoint(self) -> OperatorBase:
         """ Return operator adjoint (conjugate transpose). Overloaded by ~ in OperatorBase. """
         return OpCircuit(self.primitive.inverse(), coeff=np.conj(self.coeff))
 
-    def equals(self, other):
+    def equals(self, other: OperatorBase) -> bool:
         """ Evaluate Equality. Overloaded by == in OperatorBase. """
         if not isinstance(other, OpPrimitive) \
                 or not isinstance(self.primitive, type(other.primitive)) \
@@ -92,7 +95,7 @@ class OpCircuit(OpPrimitive):
         # Will return NotImplementedError if not supported
 
     # TODO change to *other to handle lists? How aggressively to handle pairwise business?
-    def kron(self, other):
+    def kron(self, other: OperatorBase) -> OperatorBase:
         """ Kron
         Note: You must be conscious of Qiskit's big-endian bit printing
         convention. Meaning, X.kron(Y)
@@ -122,7 +125,7 @@ class OpCircuit(OpPrimitive):
         return OpKron([self, other])
 
     # TODO change to *other to efficiently handle lists?
-    def compose(self, other):
+    def compose(self, other: OperatorBase) -> OperatorBase:
         """ Operator Composition (Linear algebra-style, right-to-left)
 
         Note: You must be conscious of Quantum Circuit vs. Linear Algebra ordering
@@ -162,7 +165,7 @@ class OpCircuit(OpPrimitive):
 
         return OpComposition([self, other])
 
-    def to_matrix(self, massive=False):
+    def to_matrix(self, massive: bool = False) -> np.ndarray:
         """ Return numpy matrix of operator, warn if more than 16 qubits
         to force the user to set massive=True if
         they want such a large matrix. Generally big methods like this
@@ -185,7 +188,7 @@ class OpCircuit(OpPrimitive):
         unitary = execute(qc, unitary_backend, optimization_level=0).result().get_unitary()
         return unitary * self.coeff
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Overload str() """
         qc = self.reduce().to_circuit()
         prim_str = str(qc.draw(output='text'))
@@ -194,7 +197,7 @@ class OpCircuit(OpPrimitive):
         else:
             return "{} * {}".format(self.coeff, prim_str)
 
-    def bind_parameters(self, param_dict):
+    def bind_parameters(self, param_dict: dict) -> OperatorBase:
         param_value = self.coeff
         qc = self.primitive
         if isinstance(self.coeff, ParameterExpression) or self.primitive.params:
@@ -210,7 +213,9 @@ class OpCircuit(OpPrimitive):
                 qc = self.to_circuit().decompose().bind_parameters(param_dict)
         return self.__class__(qc, coeff=param_value)
 
-    def eval(self, front=None):
+    def eval(self,
+             front: Union[str, dict, np.ndarray,
+                          OperatorBase] = None) -> Union[OperatorBase, float, complex]:
         """ A square binary Operator can be defined as a function over two binary
         strings of equal length. This
         method returns the value of that function for a given pair of binary strings.
@@ -238,14 +243,14 @@ class OpCircuit(OpPrimitive):
 
         return self.to_matrix_op().eval(front=front)
 
-    def to_circuit(self):
+    def to_circuit(self) -> QuantumCircuit:
         """ Convert OpCircuit to circuit """
         qc = QuantumCircuit(self.num_qubits)
         qc.append(self.primitive, qargs=range(self.primitive.num_qubits))
         return qc
 
     # Warning - modifying immutable object!!
-    def reduce(self):
+    def reduce(self) -> OperatorBase:
         if self.primitive._definition is not None:
             for i, inst_context in enumerate(self.primitive._definition):
                 [gate, _, _] = inst_context

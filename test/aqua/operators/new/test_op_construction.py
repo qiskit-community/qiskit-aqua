@@ -20,7 +20,7 @@ import numpy as np
 
 from qiskit import QuantumCircuit
 from qiskit.quantum_info.operators import Operator, Pauli
-from qiskit.extensions.standard import CzGate
+from qiskit.extensions.standard import CZGate
 
 from qiskit.aqua.operators import X, Y, Z, I, CX, T, H, OpPrimitive, OpSum
 
@@ -103,7 +103,7 @@ class TestOpConstruction(QiskitAquaTestCase):
         qc = QuantumCircuit(2)
         qc.append(cz.primitive, qargs=range(2))
 
-        ref_cz_mat = OpPrimitive(CzGate()).to_matrix()
+        ref_cz_mat = OpPrimitive(CZGate()).to_matrix()
         np.testing.assert_array_almost_equal(cz.to_matrix(), ref_cz_mat)
 
     def test_io_consistency(self):
@@ -190,4 +190,4 @@ class TestOpConstruction(QiskitAquaTestCase):
 
         gnarly_op = 3 * (H ^ I ^ Y).compose(X ^ X ^ Z).kron(T ^ Z) + \
             OpPrimitive(Operator.from_label('+r0IX').data)
-        self.assertEqual(gnarly_op.get_primitives(), {'Instruction', 'Matrix'})
+        self.assertEqual(gnarly_op.get_primitives(), {'QuantumCircuit', 'Matrix'})

@@ -31,18 +31,18 @@ class OpKron(OpVec):
         """
         Args:
             oplist: The operators being summed.
-            coeff: A coefficient multiplying the primitive
+            coeff: A coefficient multiplying the operator
             abelian: indicates if abelian
         """
         super().__init__(oplist, combo_fn=partial(reduce, np.kron), coeff=coeff, abelian=abelian)
 
     @property
-    def num_qubits(self):
+    def num_qubits(self) -> int:
         return sum([op.num_qubits for op in self.oplist])
 
     # TODO: Keep this property for evals or just enact distribution at composition time?
     @property
-    def distributive(self):
+    def distributive(self) -> bool:
         """ Indicates whether the OpVec or subclass is distributive under
         composition. OpVec and OpSum are,
         meaning that opv @ op = opv[0] @ op + opv[1] @ op +...
@@ -50,7 +50,7 @@ class OpKron(OpVec):
         while OpComposition and OpKron do not behave this way."""
         return False
 
-    def kron(self, other):
+    def kron(self, other: OperatorBase) -> OperatorBase:
         """ Kron """
         if isinstance(other, OpKron):
             return OpKron(self.oplist + other.oplist, coeff=self.coeff * other.coeff)
@@ -58,7 +58,9 @@ class OpKron(OpVec):
 
     # TODO Kron eval should partial trace the input into smaller StateFns each of size
     #  op.num_qubits for each op in oplist. Right now just works through matmul like OpComposition.
-    def eval(self, front=None):
+    def eval(self,
+             front: Union[str, dict, np.ndarray,
+                          OperatorBase] = None) -> Union[OperatorBase, float, complex]:
         """ A square binary Operator can be defined as a function over two binary strings of
         equal length. This
         method returns the value of that function for a given pair of binary strings.
@@ -75,7 +77,7 @@ class OpKron(OpVec):
 
     # Try collapsing list or trees of krons.
     # TODO do this smarter
-    def reduce(self):
+    def reduce(self) -> OperatorBase:
         reduced_ops = [op.reduce() for op in self.oplist]
         reduced_ops = reduce(lambda x, y: x.kron(y), reduced_ops) * self.coeff
         if isinstance(reduced_ops, OpVec) and len(reduced_ops.oplist) == 1:

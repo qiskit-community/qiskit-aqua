@@ -115,7 +115,7 @@ class ExpectationBase:
             from .matrix_expectation import MatrixExpectation
             return MatrixExpectation(operator=operator, backend=backend, state=state)
 
-        elif primitives == {'Instruction'}:
+        elif primitives == {'QuantumCircuit'}:
             from .projector_overlap import ProjectorOverlap
             return ProjectorOverlap(operator=operator, backend=backend, state=state)
 

@@ -34,18 +34,18 @@ class OpComposition(OpVec):
         """
         Args:
             oplist: The operators being summed.
-            coeff: A coefficient multiplying the primitive
+            coeff: A coefficient multiplying the operator
             abelian: indicates if abelian
         """
         super().__init__(oplist, combo_fn=partial(reduce, np.dot), coeff=coeff, abelian=abelian)
 
     @property
-    def num_qubits(self):
+    def num_qubits(self) -> int:
         return self.oplist[0].num_qubits
 
     # TODO: Keep this property for evals or just enact distribution at composition time?
     @property
-    def distributive(self):
+    def distributive(self) -> bool:
         """ Indicates whether the OpVec or subclass is distributive under composition.
         OpVec and OpSum are,
         meaning that opv @ op = opv[0] @ op + opv[1] @ op +...
@@ -63,10 +63,10 @@ class OpComposition(OpVec):
     #     """ Kron with Self Multiple Times """
     #     raise NotImplementedError
 
-    def adjoint(self):
+    def adjoint(self) -> OperatorBase:
         return OpComposition([op.adjoint() for op in reversed(self.oplist)], coeff=self.coeff)
 
-    def compose(self, other):
+    def compose(self, other: OperatorBase) -> OperatorBase:
         """ Operator Composition (Circuit-style, left to right) """
         # Try composing with last element in list
         if isinstance(other, OpComposition):
@@ -86,7 +86,9 @@ class OpComposition(OpVec):
 
         return OpComposition(self.oplist + [other], coeff=self.coeff)
 
-    def eval(self, front=None):
+    def eval(self,
+             front: Union[str, dict, np.ndarray,
+                          OperatorBase] = None) -> Union[OperatorBase, float, complex]:
         """ A square binary Operator can be defined as a function over two
         binary strings of equal length. This
         method returns the value of that function for a given pair
@@ -110,7 +112,7 @@ class OpComposition(OpVec):
         return reduce(tree_recursive_eval, reversed(eval_list))
 
     # Try collapsing list or trees of compositions into a single <Measurement | Op | State>.
-    def non_distributive_reduce(self):
+    def non_distributive_reduce(self) -> OperatorBase:
         """ non distributive reduce """
         reduced_ops = [op.reduce() for op in self.oplist]
         reduced_ops = reduce(lambda x, y: x.compose(y), reduced_ops) * self.coeff
@@ -119,7 +121,7 @@ class OpComposition(OpVec):
         else:
             return reduced_ops[0]
 
-    def reduce(self):
+    def reduce(self) -> OperatorBase:
         reduced_ops = [op.reduce() for op in self.oplist]
 
         def distribute_compose(l, r):

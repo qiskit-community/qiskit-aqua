@@ -14,10 +14,11 @@
 
 """ An Object to represent State Functions constructed from Operators """
 
-
+from typing import Union
 import numpy as np
 
 from qiskit.quantum_info import Statevector
+from qiskit.circuit import ParameterExpression
 
 from ..operator_base import OperatorBase
 from . import StateFn
@@ -50,11 +51,15 @@ class StateFnVector(StateFn):
 
     # TODO maybe break up into different classes for different fn definition primitives
     # TODO allow normalization somehow?
-    def __init__(self, primitive, coeff=1.0, is_measurement=False):
+    def __init__(self,
+                 primitive: Union[list, np.ndarray, Statevector] = None,
+                 coeff: Union[int, float, complex, ParameterExpression] = 1.0,
+                 is_measurement: bool = False) -> OperatorBase:
         """
-        Args
-            primitive(str, dict, OperatorBase, Result, np.ndarray, list)
-            coeff(int, float, complex): A coefficient by which to multiply the state
+        Args:
+            primitive: The operator primitive being wrapped.
+            coeff: A coefficient by which to multiply the state function
+            is_measurement: Whether the StateFn is a measurement operator
         """
         # Lists and Numpy arrays representing statevectors are stored
         # in Statevector objects for easier handling.
@@ -63,15 +68,15 @@ class StateFnVector(StateFn):
 
         super().__init__(primitive, coeff=coeff, is_measurement=is_measurement)
 
-    def get_primitives(self):
+    def get_primitives(self) -> set:
         """ Return a set of strings describing the primitives contained in the Operator """
         return {'Vector'}
 
     @property
-    def num_qubits(self):
+    def num_qubits(self) -> int:
         return len(self.primitive.dims())
 
-    def add(self, other):
+    def add(self, other: OperatorBase) -> OperatorBase:
         """ Addition. Overloaded by + in OperatorBase. """
         if not self.num_qubits == other.num_qubits:
             raise ValueError(
@@ -87,12 +92,12 @@ class StateFnVector(StateFn):
         from .. import OpSum
         return OpSum([self, other])
 
-    def adjoint(self):
+    def adjoint(self) -> OperatorBase:
         return StateFnVector(self.primitive.conjugate(),
                              coeff=np.conj(self.coeff),
                              is_measurement=(not self.is_measurement))
 
-    def kron(self, other):
+    def kron(self, other: OperatorBase) -> OperatorBase:
         """ Kron
         Note: You must be conscious of Qiskit's big-endian bit printing convention.
         Meaning, Plus.kron(Zero)
@@ -112,7 +117,7 @@ class StateFnVector(StateFn):
         from .. import OpKron
         return OpKron([self, other])
 
-    def to_density_matrix(self, massive=False):
+    def to_density_matrix(self, massive: bool = False) -> np.ndarray:
         """ Return numpy matrix of density operator, warn if more than 16 qubits
         to force the user to set
         massive=True if they want such a large matrix. Generally big methods
@@ -130,7 +135,7 @@ class StateFnVector(StateFn):
 
         return self.primitive.to_operator().data * self.coeff
 
-    def to_matrix(self, massive=False):
+    def to_matrix(self, massive: bool = False) -> np.ndarray:
         """
         NOTE: THIS DOES NOT RETURN A DENSITY MATRIX, IT RETURNS A CLASSICAL
         MATRIX CONTAINING THE QUANTUM OR CLASSICAL
@@ -163,10 +168,10 @@ class StateFnVector(StateFn):
 
         return vec if not self.is_measurement else vec.reshape(1, -1)
 
-    def to_matrix_op(self, massive=False):
+    def to_matrix_op(self, massive: bool = False) -> OperatorBase:
         return self
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Overload str() """
         prim_str = str(self.primitive)
         if self.coeff == 1.0:
@@ -179,7 +184,9 @@ class StateFnVector(StateFn):
                                         self.coeff)
 
     # pylint: disable=too-many-return-statements
-    def eval(self, front=None):
+    def eval(self,
+             front: Union[str, dict, np.ndarray,
+                          OperatorBase] = None) -> Union[OperatorBase, float, complex]:
         if not self.is_measurement and isinstance(front, OperatorBase):
             raise ValueError(
                 'Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '
@@ -207,7 +214,10 @@ class StateFnVector(StateFn):
 
         return front.adjoint().eval(self.adjoint().primitive).adjoint() * self.coeff
 
-    def sample(self, shots=1024, massive=False, reverse_endianness=False):
+    def sample(self,
+               shots: int = 1024,
+               massive: bool = False,
+               reverse_endianness: bool = False) -> dict:
         """ Sample the state function as a normalized probability distribution. Returns dict of
         bitstrings in order of probability, with values being probability. """
         deterministic_counts = self.primitive.to_counts()

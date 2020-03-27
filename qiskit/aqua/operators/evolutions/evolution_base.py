@@ -54,7 +54,7 @@ class EvolutionBase(ConverterBase):
             return MatrixEvolution()
 
         # TODO
-        # elif primitives == {'Instruction'}:
+        # elif primitives == {'QuantumCircuit'}:
         #     from .density_matrix_evolution import DensityMatrixEvolution
         #     return DensityMatrixEvolution()
 

@@ -14,6 +14,7 @@
 
 """ Wrapping Operator Primitives """
 
+from typing import Optional, Union
 import logging
 import numpy as np
 from scipy.sparse import spmatrix
@@ -39,11 +40,15 @@ class OpPrimitive(OperatorBase):
 
     @staticmethod
     # pylint: disable=unused-argument,inconsistent-return-statements
-    def __new__(cls, primitive=None, coeff=1.0):
+    def __new__(cls,
+                primitive: Union[Instruction, QuantumCircuit, list,
+                                 np.ndarray, spmatrix, MatrixOperator, Pauli] = None,
+                coeff: Optional[Union[int, float, complex,
+                                      ParameterExpression]] = 1.0) -> OperatorBase:
         """ A factory method to produce the correct type of OpPrimitive subclass
         based on the primitive passed in. Primitive and coeff arguments are passed into
         subclass's init() as-is automatically by new()."""
-        if cls.__name__ != 'OpPrimitive':
+        if cls.__name__ != OpPrimitive.__name__:
             return super().__new__(cls)
 
         # pylint: disable=cyclic-import,import-outside-toplevel
@@ -59,50 +64,52 @@ class OpPrimitive(OperatorBase):
             from .op_pauli import OpPauli
             return OpPauli.__new__(OpPauli)
 
-    def __init__(self, primitive, coeff=1.0):
+    def __init__(self,
+                 primitive: Union[Instruction, QuantumCircuit, list,
+                                  np.ndarray, spmatrix, MatrixOperator, Pauli] = None,
+                 coeff: Optional[Union[int, float, complex, ParameterExpression]] = 1.0) -> None:
         """
-                Args:
-                    primitive (Gate, Pauli, [[complex]], np.ndarray,
-                    QuantumCircuit, Instruction): The operator primitive being
-                    wrapped.
-                    coeff (int, float, complex, ParameterExpression): A coefficient
-                    multiplying the primitive
-                """
+            Args:
+                primitive (Instruction, QuantumCircuit, list, np.ndarray, spmatrix,
+                 MatrixOperator, Pauli): The operator primitive being wrapped.
+                coeff (int, float, complex, ParameterExpression): A coefficient multiplying
+                 the primitive.
+        """
         self._primitive = primitive
         self._coeff = coeff
 
     @property
     def primitive(self):
-        """ returns primitive """
+        """ returns primitive in inherited class """
         return self._primitive
 
     @property
-    def coeff(self):
+    def coeff(self) -> Union[int, float, complex, ParameterExpression]:
         """ returns coeff """
         return self._coeff
 
-    def neg(self):
+    def neg(self) -> OperatorBase:
         """ Negate. Overloaded by - in OperatorBase. """
         return self.mul(-1.0)
 
     @property
-    def num_qubits(self):
+    def num_qubits(self) -> int:
         raise NotImplementedError
 
-    def get_primitives(self):
+    def get_primitives(self) -> set:
         raise NotImplementedError
 
-    def add(self, other):
+    def add(self, other: OperatorBase) -> OperatorBase:
         raise NotImplementedError
 
-    def adjoint(self):
+    def adjoint(self) -> OperatorBase:
         """ Return operator adjoint (conjugate transpose). Overloaded by ~ in OperatorBase. """
         raise NotImplementedError
 
-    def equals(self, other):
+    def equals(self, other: OperatorBase) -> bool:
         raise NotImplementedError
 
-    def mul(self, scalar):
+    def mul(self, scalar: Union[int, float, complex, ParameterExpression]) -> OperatorBase:
         """ Scalar multiply. Overloaded by * in OperatorBase.
 
         Doesn't multiply MatrixOperator until to_matrix()
@@ -112,12 +119,13 @@ class OpPrimitive(OperatorBase):
         if not isinstance(scalar, (int, float, complex, ParameterExpression)):
             raise ValueError('Operators can only be scalar multiplied by float or complex, not '
                              '{} of type {}.'.format(scalar, type(scalar)))
+        # Need to return self.__class__ in case the object is one of the inherited OpPrimitives
         return self.__class__(self.primitive, coeff=self.coeff * scalar)
 
-    def kron(self, other):
+    def kron(self, other: OperatorBase) -> OperatorBase:
         raise NotImplementedError
 
-    def kronpower(self, other):
+    def kronpower(self, other: int) -> Union[OperatorBase, int]:
         """ Kron with Self Multiple Times """
         # Hack to make Z^(I^0) work as intended.
         if other == 0:
@@ -129,10 +137,10 @@ class OpPrimitive(OperatorBase):
             temp = temp.kron(self)
         return temp
 
-    def compose(self, other):
+    def compose(self, other: OperatorBase) -> OperatorBase:
         raise NotImplementedError
 
-    def _check_zero_for_composition_and_expand(self, other):
+    def _check_zero_for_composition_and_expand(self, other: OperatorBase) -> OperatorBase:
         if not self.num_qubits == other.num_qubits:
             # pylint: disable=cyclic-import,import-outside-toplevel
             from ..operator_globals import Zero
@@ -145,7 +153,7 @@ class OpPrimitive(OperatorBase):
                     'respectively.'.format(self.num_qubits, other.num_qubits))
         return other
 
-    def power(self, other):
+    def power(self, other: int) -> OperatorBase:
         """ Compose with Self Multiple Times """
         if not isinstance(other, int) or other <= 0:
             raise TypeError('power can only take positive int arguments')
@@ -154,28 +162,27 @@ class OpPrimitive(OperatorBase):
             temp = temp.compose(self)
         return temp
 
-    def exp_i(self):
+    def exp_i(self) -> OperatorBase:
         """ Raise Operator to power e ^ (i * op)"""
         # pylint: disable=cyclic-import,import-outside-toplevel
         from qiskit.aqua.operators import OpEvolution
         return OpEvolution(self)
 
-    # def to_matrix(self, massive=False):
-    #     raise NotImplementedError
-
-    def __str__(self):
+    def __str__(self) -> str:
         """Overload str() """
         raise NotImplementedError
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Overload str() """
         return "OpPrimitive({}, coeff={})".format(repr(self.primitive), self.coeff)
 
-    def eval(self, front=None):
+    def eval(self,
+             front: Union[str, dict, np.ndarray,
+                          OperatorBase] = None) -> Union[OperatorBase, float, complex]:
         """ Evaluate the Operator function given one or both states. """
-        return NotImplementedError
+        raise NotImplementedError
 
-    def bind_parameters(self, param_dict):
+    def bind_parameters(self, param_dict: dict) -> OperatorBase:
         """ bind parameters """
         param_value = self.coeff
         if isinstance(self.coeff, ParameterExpression):
@@ -191,19 +198,15 @@ class OpPrimitive(OperatorBase):
                 param_value = float(self.coeff.bind({coeff_param: value}))
         return self.__class__(self.primitive, coeff=param_value)
 
-    # def print_details(self):
-    #     """ print details """
-    #     raise NotImplementedError
-
-    def to_matrix(self, massive=False):
+    def to_matrix(self, massive: bool = False) -> np.ndarray:
         """ Return matrix representing OpPrimitive evaluated on each pair of basis states."""
         raise NotImplementedError
 
     # Nothing to collapse here.
-    def reduce(self):
+    def reduce(self) -> OperatorBase:
         return self
 
-    def to_matrix_op(self, massive=False):
+    def to_matrix_op(self, massive: bool = False) -> OperatorBase:
         """ Return a MatrixOp for this operator. """
         # pylint: disable=import-outside-toplevel
         from .op_matrix import OpMatrix

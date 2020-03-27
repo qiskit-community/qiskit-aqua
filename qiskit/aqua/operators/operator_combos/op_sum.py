@@ -31,19 +31,19 @@ class OpSum(OpVec):
         """
         Args:
             oplist: The operators being summed.
-            coeff: A coefficient multiplying the primitive
+            coeff: A coefficient multiplying the operator
             abelian: indicates if abelian
         """
         super().__init__(oplist, combo_fn=partial(reduce, lambda x, y: x + y),
                          coeff=coeff, abelian=abelian)
 
     @property
-    def num_qubits(self):
+    def num_qubits(self) -> int:
         return self.oplist[0].num_qubits
 
     # TODO: Keep this property for evals or just enact distribution at composition time?
     @property
-    def distributive(self):
+    def distributive(self) -> bool:
         """ Indicates whether the OpVec or subclass is distributive
         under composition. OpVec and OpSum are,
         meaning that opv @ op = opv[0] @ op + opv[1] @
@@ -52,7 +52,7 @@ class OpSum(OpVec):
         return True
 
     # TODO change to *other to efficiently handle lists?
-    def add(self, other):
+    def add(self, other: OperatorBase) -> OperatorBase:
         """ Addition. Overloaded by + in OperatorBase. """
         if self == other:
             return self.mul(2.0)
@@ -78,7 +78,7 @@ class OpSum(OpVec):
 
     # Try collapsing list or trees of Sums.
     # TODO be smarter about the fact that any two ops in oplist could be evaluated for sum.
-    def reduce(self):
+    def reduce(self) -> OperatorBase:
         reduced_ops = [op.reduce() for op in self.oplist]
         reduced_ops = reduce(lambda x, y: x.add(y), reduced_ops) * self.coeff
         if isinstance(reduced_ops, OpSum) and len(reduced_ops.oplist) == 1:

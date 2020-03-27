@@ -15,6 +15,7 @@
 """ An Object to represent State Functions constructed from Operators """
 
 
+from typing import Union, Optional, Callable
 import numpy as np
 
 from qiskit.quantum_info import Statevector
@@ -28,20 +29,16 @@ from ..operator_base import OperatorBase
 class StateFn(OperatorBase):
     """ A class for representing state functions and measurements.
 
-    State functions are defined to be complex functions over a single binary
-    string (as compared to an operator,
-    which is defined as a function over two binary strings, or a function
-    taking a binary function to another
-    binary function). This function may be called by the eval() method.
+    State functions are defined to be complex functions over a single binary string (as
+    compared to an operator, which is defined as a function over two binary strings, or a
+    function taking a binary function to another binary function). This function may be
+    called by the eval() method.
 
-    Measurements are defined to be functionals over StateFns, taking them to
-    real values. Generally, this real value
-    is interpreted to represent the probability of some classical state
-    (binary string) being observed from a
-    probabilistic or quantum system represented by a StateFn. This leads to the
-    equivalent definition, which is that
-    a measurement m is a function over binary strings producing StateFns, such
-    that the probability of measuring
+    Measurements are defined to be functionals over StateFns, taking them to real values.
+    Generally, this real value is interpreted to represent the probability of some classical
+    state (binary string) being observed from a probabilistic or quantum system represented
+    by a StateFn. This leads to the equivalent definition, which is that a measurement m is
+    a function over binary strings producing StateFns, such that the probability of measuring
     a given binary string b from a system with StateFn f is equal to the inner
     product between f and m(b).
 
@@ -51,13 +48,19 @@ class StateFn(OperatorBase):
 
     @staticmethod
     # pylint: disable=unused-argument,inconsistent-return-statements
-    def __new__(cls, primitive=None, coeff=1.0, is_measurement=False):
+    def __new__(cls,
+                primitive: Union[str, dict, Result,
+                                 list, np.ndarray, Statevector,
+                                 QuantumCircuit, Instruction,
+                                 OperatorBase] = None,
+                coeff: Union[int, float, complex, ParameterExpression] = 1.0,
+                is_measurement: bool = False) -> OperatorBase:
         """ A factory method to produce the correct type of StateFn subclass
         based on the primitive passed in. Primitive, coeff, and is_measurement arguments
         are passed into subclass's init() as-is automatically by new()."""
 
         # Prevents infinite recursion when subclasses are created
-        if cls.__name__ != 'StateFn':
+        if cls.__name__ != StateFn.__name__:
             return super().__new__(cls)
 
         # pylint: disable=cyclic-import,import-outside-toplevel
@@ -78,11 +81,18 @@ class StateFn(OperatorBase):
             return StateFnOperator.__new__(StateFnOperator)
 
     # TODO allow normalization somehow?
-    def __init__(self, primitive, coeff=1.0, is_measurement=False):
+    def __init__(self,
+                 primitive: Union[str, dict, Result,
+                                  list, np.ndarray, Statevector,
+                                  QuantumCircuit, Instruction,
+                                  OperatorBase] = None,
+                 coeff: Union[int, float, complex, ParameterExpression] = 1.0,
+                 is_measurement: bool = False) -> OperatorBase:
         """
         Args:
-            primitive(str, dict, OperatorBase, Result, np.ndarray, list)
-            coeff(int, float, complex): A coefficient by which to multiply the state
+            primitive: The operator primitive being wrapped.
+            coeff: A coefficient by which to multiply the state function.
+            is_measurement: Whether the StateFn is a measurement operator
         """
         self._primitive = primitive
         self._is_measurement = is_measurement
@@ -94,35 +104,35 @@ class StateFn(OperatorBase):
         return self._primitive
 
     @property
-    def coeff(self):
+    def coeff(self) -> Union[int, float, complex, ParameterExpression]:
         """ returns coeff """
         return self._coeff
 
     @property
-    def is_measurement(self):
+    def is_measurement(self) -> bool:
         """ return if is measurement """
         return self._is_measurement
 
-    def get_primitives(self):
+    def get_primitives(self) -> set:
         """ Return a set of strings describing the primitives contained in the Operator """
         raise NotImplementedError
 
     @property
-    def num_qubits(self):
+    def num_qubits(self) -> int:
         raise NotImplementedError
 
-    def add(self, other):
+    def add(self, other: OperatorBase) -> OperatorBase:
         """ Addition. Overloaded by + in OperatorBase. """
         raise NotImplementedError
 
-    def neg(self):
+    def neg(self) -> OperatorBase:
         """ Negate. Overloaded by - in OperatorBase. """
         return self.mul(-1.0)
 
-    def adjoint(self):
+    def adjoint(self) -> OperatorBase:
         raise NotImplementedError
 
-    def equals(self, other):
+    def equals(self, other: OperatorBase) -> bool:
         """ Evaluate Equality. Overloaded by == in OperatorBase. """
         if not isinstance(other, type(self)) or not self.coeff == other.coeff:
             return False
@@ -130,7 +140,7 @@ class StateFn(OperatorBase):
         return self.primitive == other.primitive
         # Will return NotImplementedError if not supported
 
-    def mul(self, scalar):
+    def mul(self, scalar: Union[int, float, complex, ParameterExpression]) -> OperatorBase:
         """ Scalar multiply. Overloaded by * in OperatorBase.
 
         Doesn't multiply Statevector until to_matrix() or to_vector() is
@@ -146,7 +156,7 @@ class StateFn(OperatorBase):
                               coeff=self.coeff * scalar,
                               is_measurement=self.is_measurement)
 
-    def kron(self, other):
+    def kron(self, other: OperatorBase) -> OperatorBase:
         """ Kron
         Note: You must be conscious of Qiskit's big-endian bit printing
         convention. Meaning, Plus.kron(Zero)
@@ -159,7 +169,7 @@ class StateFn(OperatorBase):
         """
         raise NotImplementedError
 
-    def kronpower(self, other):
+    def kronpower(self, other: int) -> Union[OperatorBase, int]:
         """ Kron with Self Multiple Times """
         if not isinstance(other, int) or other <= 0:
             raise TypeError('Kronpower can only take positive int arguments')
@@ -170,7 +180,8 @@ class StateFn(OperatorBase):
             temp = temp.kron(self)
         return temp
 
-    def _check_zero_for_composition_and_expand(self, other):
+    def _check_zero_for_composition_and_expand(self, other: OperatorBase) \
+            -> (OperatorBase, OperatorBase):
         new_self = self
         # pylint: disable=import-outside-toplevel
         if not self.num_qubits == other.num_qubits:
@@ -188,17 +199,26 @@ class StateFn(OperatorBase):
 
         return new_self, other
 
-    def to_matrix(self, massive=False):
-        """ Return vector representing StateFn evaluated on each basis state.
-        Must be overridden by child classes."""
+    def to_matrix(self, massive: bool = False) -> np.ndarray:
+        """ Return numpy vector representing StateFn evaluated on each basis state. Warn if more
+        than 16 qubits to force having to set massive=True if such a large vector is desired.
+        Must be overridden by child classes.
+
+        NOTE: THIS DOES NOT RETURN A DENSITY MATRIX, IT RETURNS A CLASSICAL MATRIX CONTAINING
+        THE QUANTUM OR CLASSICAL VECTOR REPRESENTING THE EVALUATION OF THE STATE FUNCTION ON
+        EACH BINARY BASIS STATE. DO NOT ASSUME THIS IS IS A NORMALIZED QUANTUM OR CLASSICAL
+        PROBABILITY VECTOR. If we allowed this to return a density matrix, then we would need
+        to change the definition of composition to be ~Op @ StateFn @ Op for those cases,
+        whereas by this methodology we can ensure that composition always means Op @ StateFn.
+        """
         raise NotImplementedError
 
-    def to_density_matrix(self, massive=False):
+    def to_density_matrix(self, massive: bool = False) -> np.ndarray:
         """ Return matrix representing product of StateFn evaluated on pairs of basis states.
         Must be overridden by child classes."""
         raise NotImplementedError
 
-    def compose(self, other):
+    def compose(self, other: OperatorBase) -> OperatorBase:
         """ Composition (Linear algebra-style, right-to-left) is not well
 
         defined for States in the binary function
@@ -222,7 +242,7 @@ class StateFn(OperatorBase):
         from qiskit.aqua.operators import OpComposition
         return OpComposition([new_self, other])
 
-    def power(self, other):
+    def power(self, other: int) -> OperatorBase:
         """ Compose with Self Multiple Times, undefined for StateFns. """
         raise ValueError('Composition power over Statefunctions or Measurements is not defined.')
 
@@ -236,28 +256,7 @@ class StateFn(OperatorBase):
     #     appropriate. """
     #     raise NotImplementedError
 
-    # def to_matrix(self, massive=False):
-    #     """
-    #     NOTE: THIS DOES NOT RETURN A DENSITY MATRIX, IT RETURNS A CLASSICAL MATRIX CONTAINING
-    #     THE QUANTUM OR CLASSICAL
-    #     VECTOR REPRESENTING THE EVALUATION OF THE STATE FUNCTION ON EACH BINARY BASIS
-    #     STATE. DO NOT ASSUME THIS IS
-    #     IS A NORMALIZED QUANTUM OR CLASSICAL PROBABILITY VECTOR. If we allowed
-    #     this to return a density matrix,
-    #     then we would need to change the definition of composition to be ~Op @
-    #     StateFn @ Op for those cases,
-    #     whereas by this methodology we can ensure that composition always
-    #     means Op @ StateFn.
-    #
-    #     Return numpy vector of state vector, warn if more than 16 qubits to force the user to set
-    #     massive=True if they want such a large vector. Generally big methods like this
-    #     should require the use of a
-    #     converter, but in this case a convenience method for quick hacking
-    #     and access to classical tools is
-    #     appropriate. """
-    #     raise NotImplementedError
-
-    def __str__(self):
+    def __str__(self) -> str:
         """Overload str() """
         prim_str = str(self.primitive)
         if self.coeff == 1.0:
@@ -269,25 +268,18 @@ class StateFn(OperatorBase):
                                         self.coeff,
                                         prim_str)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Overload str() """
         return "StateFn({}, coeff={}, is_measurement={})".format(repr(self.primitive),
                                                                  self.coeff, self.is_measurement)
 
-    # def print_details(self):
-    #     """ print details """
-    #     raise NotImplementedError
-
-    def eval(self, front=None):
+    def eval(self,
+             front: Union[str, dict, np.ndarray,
+                          OperatorBase] = None) -> Union[OperatorBase, float, complex]:
         """ Evaluate the State function given a basis string, dict, or state (if measurement). """
-        return NotImplementedError
+        raise NotImplementedError
 
-    # TODO
-    # def sample(self, shots):
-    #     """ Sample the state function as a normalized probability distribution."""
-    #     raise NotImplementedError
-
-    def bind_parameters(self, param_dict):
+    def bind_parameters(self, param_dict: dict) -> OperatorBase:
         """ bind parameters """
         param_value = self.coeff
         if isinstance(self.coeff, ParameterExpression):
@@ -304,23 +296,28 @@ class StateFn(OperatorBase):
         return self.__class__(self.primitive, is_measurement=self.is_measurement, coeff=param_value)
 
     # Try collapsing primitives where possible. Nothing to collapse here.
-    def reduce(self):
-        # TODO replace IZ paulis with dict here?
+    def reduce(self) -> OperatorBase:
         return self
 
     # Recurse into StateFn's operator with a converter if primitive is an operator.
-    def traverse(self, convert_fn, coeff=None):
+    def traverse(self,
+                 convert_fn: Callable,
+                 coeff: Optional[Union[int, float, complex,
+                                       ParameterExpression]] = None) -> OperatorBase:
         """ Apply the convert_fn to each node in the oplist. """
         return StateFn(convert_fn(self.primitive),
                        coeff=coeff or self.coeff, is_measurement=self.is_measurement)
 
-    def to_matrix_op(self, massive=False):
+    def to_matrix_op(self, massive: bool = False) -> OperatorBase:
         """ Return a StateFnVector for this StateFn. """
         # pylint: disable=import-outside-toplevel
         from .state_fn_vector import StateFnVector
         return StateFnVector(self.to_matrix(massive=massive), is_measurement=self.is_measurement)
 
-    def sample(self, shots=1024, massive=False, reverse_endianness=False):
+    def sample(self,
+               shots: int = 1024,
+               massive: bool = False,
+               reverse_endianness: bool = False) -> dict:
         """ Sample the state function as a normalized probability distribution. Returns dict of
         bitstrings in order of probability, with values being probability. """
         raise NotImplementedError

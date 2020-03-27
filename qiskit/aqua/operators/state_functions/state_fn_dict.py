@@ -14,11 +14,13 @@
 
 """ An Object to represent State Functions constructed from Operators """
 
+from typing import Union
 import itertools
 import numpy as np
 from scipy import sparse
 
 from qiskit.result import Result
+from qiskit.circuit import ParameterExpression
 
 from ..operator_base import OperatorBase
 from . import StateFn
@@ -51,13 +53,18 @@ class StateFnDict(StateFn):
 
     # TODO maybe break up into different classes for different fn definition primitives
     # TODO allow normalization somehow?
-    def __init__(self, primitive, coeff=1.0, is_measurement=False):
+    def __init__(self,
+                 primitive: Union[str, dict, Result] = None,
+                 coeff: Union[int, float, complex, ParameterExpression] = 1.0,
+                 is_measurement: bool = False) -> OperatorBase:
         """
-        Args:
-            primitive(str, dict, OperatorBase, Result, np.ndarray, list)
-            coeff(int, float, complex): A coefficient by which to multiply the state
-        Raises:
-            TypeError: invalid parameters.
+            Args:
+                primitive: The operator primitive being wrapped.
+                coeff: A coefficient by which to multiply the state function.
+                is_measurement: Whether the StateFn is a measurement operator.
+
+            Raises:
+                    TypeError: invalid parameters.
         """
         # If the initial density is a string, treat this as a density dict
         # with only a single basis state.
@@ -74,7 +81,7 @@ class StateFnDict(StateFn):
         # 3) This will only extract the first result.
         if isinstance(primitive, Result):
             counts = primitive.get_counts()
-            # NOTE: Need to square root to take Pauli measurements!
+            # NOTE: Need to square root to take correct Pauli measurements!
             primitive = {bstr: (shots / sum(counts.values()))**.5 for
                          (bstr, shots) in counts.items()}
 
@@ -85,15 +92,15 @@ class StateFnDict(StateFn):
 
         super().__init__(primitive, coeff=coeff, is_measurement=is_measurement)
 
-    def get_primitives(self):
+    def get_primitives(self) -> set:
         """ Return a set of strings describing the primitives contained in the Operator """
         return {'Dict'}
 
     @property
-    def num_qubits(self):
+    def num_qubits(self) -> int:
         return len(list(self.primitive.keys())[0])
 
-    def add(self, other):
+    def add(self, other: OperatorBase) -> OperatorBase:
         """ Addition. Overloaded by + in OperatorBase. """
         if not self.num_qubits == other.num_qubits:
             raise ValueError(
@@ -117,12 +124,12 @@ class StateFnDict(StateFn):
         from qiskit.aqua.operators import OpSum
         return OpSum([self, other])
 
-    def adjoint(self):
+    def adjoint(self) -> OperatorBase:
         return StateFnDict({b: np.conj(v) for (b, v) in self.primitive.items()},
                            coeff=np.conj(self.coeff),
                            is_measurement=(not self.is_measurement))
 
-    def kron(self, other):
+    def kron(self, other: OperatorBase) -> OperatorBase:
         """ Kron
         Note: You must be conscious of Qiskit's big-endian bit printing convention.
         Meaning, Plus.kron(Zero)
@@ -145,7 +152,7 @@ class StateFnDict(StateFn):
         from qiskit.aqua.operators import OpKron
         return OpKron([self, other])
 
-    def to_density_matrix(self, massive=False):
+    def to_density_matrix(self, massive: bool = False) -> np.ndarray:
         """ Return numpy matrix of density operator, warn if more than 16 qubits to
         force the user to set
         massive=True if they want such a large matrix. Generally big methods
@@ -164,7 +171,7 @@ class StateFnDict(StateFn):
         states = int(2 ** self.num_qubits)
         return self.to_matrix() * np.eye(states) * self.coeff
 
-    def to_matrix(self, massive=False):
+    def to_matrix(self, massive: bool = False) -> np.ndarray:
         """
         NOTE: THIS DOES NOT RETURN A DENSITY MATRIX, IT RETURNS A CLASSICAL MATRIX CONTAINING
         THE QUANTUM OR CLASSICAL
@@ -207,7 +214,7 @@ class StateFnDict(StateFn):
         # Reshape for measurements so np.dot still works for composition.
         return vec if not self.is_measurement else vec.reshape(1, -1)
 
-    def to_spmatrix(self):
+    def to_spmatrix(self) -> sparse.spmatrix:
         """
         Same as to_matrix, but returns csr sparse matrix.
         Returns:
@@ -222,7 +229,7 @@ class StateFnDict(StateFn):
                                   shape=(1, 2**self.num_qubits))
         return spvec if not self.is_measurement else spvec.transpose()
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Overload str() """
         prim_str = str(self.primitive)
         if self.coeff == 1.0:
@@ -235,7 +242,9 @@ class StateFnDict(StateFn):
                                         self.coeff)
 
     # pylint: disable=too-many-return-statements
-    def eval(self, front=None):
+    def eval(self,
+             front: Union[str, dict, np.ndarray,
+                          OperatorBase] = None) -> Union[OperatorBase, float, complex]:
 
         if not self.is_measurement and isinstance(front, OperatorBase):
             raise ValueError(
@@ -275,7 +284,10 @@ class StateFnDict(StateFn):
         # All other OperatorBases go here
         return front.adjoint().eval(self.adjoint().primitive).adjoint() * self.coeff
 
-    def sample(self, shots=1024, massive=False, reverse_endianness=False):
+    def sample(self,
+               shots: int = 1024,
+               massive: bool = False,
+               reverse_endianness: bool = False) -> dict:
         """ Sample the state function as a normalized probability distribution. Returns dict of
         bitstrings in order of probability, with values being probability. """
         probs = np.array(list(self.primitive.values()))**2

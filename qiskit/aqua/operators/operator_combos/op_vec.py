@@ -14,9 +14,10 @@
 
 """ Eager Operator Vec Container """
 
-from typing import List, Union, Dict, Callable
+from typing import List, Union, Optional, Callable, Iterator
 from functools import reduce
 import numpy as np
+from scipy.sparse import spmatrix
 
 from qiskit.circuit import ParameterExpression
 
@@ -35,65 +36,42 @@ class OpVec(OperatorBase):
                  oplist: List[OperatorBase],
                  combo_fn: Callable = lambda x: x,
                  coeff: Union[int, float, complex, ParameterExpression] = 1.0,
-                 param_bindings: Dict = None,
                  abelian: bool = False) -> None:
         """
         Args:
             oplist: The operators being summed.
             combo_fn (callable): The recombination function to reduce classical operators
             when available (e.g. sum)
-            coeff: A coefficient multiplying the primitive
-            param_bindings: A dictionary containing {param: list_of_bindings}
-            mappings, such that each binding
-            should be treated as a new op in oplist for that parameterization.
-            Keys can also be ParameterVectors,
-            or anything else that can be passed as a key in a Terra .bind_parameters call.
+            coeff: A coefficient multiplying the operator
             abelian: indicates if abelian
 
             Note that the default "recombination function" lambda above is the identity -
             it takes a list of operators,
             and is supposed to return a list of operators.
         """
-        # Create copies of the oplist *pointers* for each binding.
-        # This should be very cheap. We can fix it if it's not.
         self._oplist = oplist
         self._combo_fn = combo_fn
         self._coeff = coeff
-        self._param_bindings = param_bindings
         self._abelian = abelian
 
     @property
-    def oplist(self):
+    def oplist(self) -> List[OperatorBase]:
         """ returns op list """
         return self._oplist
 
     @property
-    def combo_fn(self):
+    def combo_fn(self) -> Callable:
         """ returns combo function """
         return self._combo_fn
 
     @property
-    def param_bindings(self):
-        """ returns parameter binding """
-        return self._param_bindings
-
-    def num_parameterizations(self):
-        """ returns num parameterization """
-        return len(list(self._param_bindings.values())[0])\
-            if self._param_bindings is not None else 1
-
-    def get_parameterization(self, i):
-        """ returns parameterization """
-        return {param: value_list[i] for (param, value_list) in self.param_bindings.items()}
-
-    @property
-    def abelian(self):
+    def abelian(self) -> bool:
         """ returns abelian """
         return self._abelian
 
     # TODO: Keep this property for evals or just enact distribution at composition time?
     @property
-    def distributive(self):
+    def distributive(self) -> bool:
         """ Indicates whether the OpVec or subclass is distributive under composition.
         OpVec and OpSum are,
         meaning that opv @ op = opv[0] @ op + opv[1] @ op +... (plus for OpSum,
@@ -102,16 +80,16 @@ class OpVec(OperatorBase):
         return True
 
     @property
-    def coeff(self):
+    def coeff(self) -> Union[int, float, complex, ParameterExpression]:
         """ returns coeff """
         return self._coeff
 
-    def get_primitives(self):
+    def get_primitives(self) -> set:
         """ Return a set of strings describing the primitives contained in the Operator """
         return reduce(set.union, [op.get_primitives() for op in self.oplist])
 
     @property
-    def num_qubits(self):
+    def num_qubits(self) -> int:
         """ For now, follow the convention that when one composes to a Vec,
         they are composing to each separate system. """
         # return sum([op.num_qubits for op in self.oplist])
@@ -119,7 +97,7 @@ class OpVec(OperatorBase):
         return self.oplist[0].num_qubits
 
     # TODO change to *other to efficiently handle lists?
-    def add(self, other):
+    def add(self, other: OperatorBase) -> OperatorBase:
         """ Addition. Overloaded by + in OperatorBase. OpSum overrides with its own add(). """
         if self == other:
             return self.mul(2.0)
@@ -134,11 +112,11 @@ class OpVec(OperatorBase):
         from .op_sum import OpSum
         return OpSum([self, other])
 
-    def neg(self):
+    def neg(self) -> OperatorBase:
         """ Negate. Overloaded by - in OperatorBase. """
         return self.mul(-1.0)
 
-    def adjoint(self):
+    def adjoint(self) -> OperatorBase:
         """ Return operator adjoint (conjugate transpose). Overloaded by ~ in OperatorBase.
 
         Works for OpSum, OpCompose, OpVec, OpKron, at least.
@@ -149,31 +127,34 @@ class OpVec(OperatorBase):
         #  and ops and adjoints almost always come in pairs.
         return self.__class__([op.adjoint() for op in self.oplist], coeff=np.conj(self.coeff))
 
-    def traverse(self, convert_fn, coeff=None):
+    def traverse(self,
+                 convert_fn: Callable,
+                 coeff: Optional[Union[int, float, complex,
+                                       ParameterExpression]] = None) -> OperatorBase:
         """ Apply the convert_fn to each node in the oplist. """
         return self.__class__([convert_fn(op) for op in self.oplist], coeff=coeff or self.coeff)
 
-    def equals(self, other):
+    def equals(self, other: OperatorBase) -> bool:
         """ Evaluate Equality. Overloaded by == in OperatorBase. """
         if not isinstance(other, type(self)) or not len(self.oplist) == len(other.oplist):
             return False
         # TODO test this a lot
         # Note, ordering matters here (i.e. different ordered lists
         # will return False), maybe it shouldn't
-        return self.oplist == other.oplist and self.param_bindings == other.param_bindings
+        return self.oplist == other.oplist
 
     # We need to do this because otherwise Numpy takes over scalar multiplication and wrecks it if
-    # isinstance(scalar, np.number)
+    # isinstance(scalar, np.number) - this started happening when we added __get_item__().
     __array_priority__ = 10000
 
-    def mul(self, scalar):
+    def mul(self, scalar: Union[int, float, complex, ParameterExpression]) -> OperatorBase:
         """ Scalar multiply. Overloaded by * in OperatorBase. """
         if not isinstance(scalar, (int, float, complex, ParameterExpression)):
             raise ValueError('Operators can only be scalar multiplied by float or complex, not '
                              '{} of type {}.'.format(scalar, type(scalar)))
         return self.__class__(self.oplist, coeff=self.coeff * scalar)
 
-    def kron(self, other):
+    def kron(self, other: OperatorBase) -> OperatorBase:
         """ Kron
         Note: You must be conscious of Qiskit's big-endian bit printing convention.
         Meaning, X.kron(Y)
@@ -194,7 +175,7 @@ class OpVec(OperatorBase):
         from .op_kron import OpKron
         return OpKron([self, other])
 
-    def kronpower(self, other):
+    def kronpower(self, other: int) -> Union[OperatorBase, int]:
         """ Kron with Self Multiple Times """
         # Hack to make op1^(op2^0) work as intended.
         if other == 0:
@@ -208,7 +189,7 @@ class OpVec(OperatorBase):
         return OpKron([self] * other)
 
     # TODO change to *other to efficiently handle lists?
-    def compose(self, other):
+    def compose(self, other: OperatorBase) -> OperatorBase:
         """ Operator Composition (Linear algebra-style, right-to-left)
 
         Note: You must be conscious of Quantum Circuit vs. Linear Algebra ordering conventions.
@@ -228,7 +209,7 @@ class OpVec(OperatorBase):
         from .op_composition import OpComposition
         return OpComposition([self, other])
 
-    def power(self, other):
+    def power(self, other: int) -> OperatorBase:
         """ Compose with Self Multiple Times """
         if not isinstance(other, int) or other <= 0:
             raise TypeError('power can only take positive int arguments')
@@ -238,11 +219,10 @@ class OpVec(OperatorBase):
         from .op_composition import OpComposition
         return OpComposition([self] * other)
 
-    def to_matrix(self, massive=False):
-        """ Return numpy matrix of operator, warn if more than 16 qubits
-        to force the user to set massive=True if
-        they want such a large matrix. Generally big methods like this should
-        require the use of a converter,
+    def to_matrix(self, massive: bool = False) -> np.ndarray:
+        """ Return numpy vector representing StateFn evaluated on each basis state. Warn if more
+        than 16 qubits to force having to set massive=True if such a large vector is desired.
+        Generally a conversion method like this may require the use of a converter,
         but in this case a convenience method for quick hacking and access to
         classical tools is appropriate. """
 
@@ -260,7 +240,7 @@ class OpVec(OperatorBase):
         else:
             return self.combo_fn([op.to_matrix() for op in self.oplist]) * self.coeff
 
-    def to_spmatrix(self):
+    def to_spmatrix(self) -> spmatrix:
         """ Return numpy matrix of operator, warn if more than 16 qubits
         to force the user to set massive=True if
         they want such a large matrix. Generally big methods like this should
@@ -274,7 +254,9 @@ class OpVec(OperatorBase):
         else:
             return self.combo_fn([op.to_spmatrix() for op in self.oplist]) * self.coeff
 
-    def eval(self, front=None):
+    def eval(self,
+             front: Union[str, dict, np.ndarray,
+                          OperatorBase] = None) -> Union[OperatorBase, float, complex]:
         """ A square binary Operator can be defined as a function over two binary strings
         of equal length. This
         method returns the value of that function for a given pair of binary strings.
@@ -300,13 +282,13 @@ class OpVec(OperatorBase):
         else:
             return self.combo_fn(evals)
 
-    def exp_i(self):
+    def exp_i(self) -> OperatorBase:
         """ Raise Operator to power e ^ (i * op)"""
         # pylint: disable=import-outside-toplevel
         from qiskit.aqua.operators import OpEvolution
         return OpEvolution(self)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Overload str() """
         main_string = "{}(\n[{}])".format(self.__class__.__name__, ',\n'.join(
             [str(op) for op in self.oplist]))
@@ -316,14 +298,14 @@ class OpVec(OperatorBase):
             main_string = '{} * '.format(self.coeff) + main_string
         return main_string
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Overload str() """
         return "{}({}, coeff={}, abelian={})".format(self.__class__.__name__,
                                                      repr(self.oplist),
                                                      self.coeff,
                                                      self.abelian)
 
-    def bind_parameters(self, param_dict):
+    def bind_parameters(self, param_dict: dict) -> OperatorBase:
         """ bind parameters """
         param_value = self.coeff
         if isinstance(self.coeff, ParameterExpression):
@@ -337,25 +319,21 @@ class OpVec(OperatorBase):
                 param_value = float(self.coeff.bind({coeff_param: value}))
         return self.traverse(lambda x: x.bind_parameters(param_dict), coeff=param_value)
 
-    # def print_details(self):
-    #     """ print details """
-    #     raise NotImplementedError
-
-    def reduce(self):
+    def reduce(self) -> OperatorBase:
         reduced_ops = [op.reduce() for op in self.oplist]
         return self.__class__(reduced_ops, coeff=self.coeff)
 
-    def to_matrix_op(self, massive=False):
+    def to_matrix_op(self, massive: bool = False) -> OperatorBase:
         """ Return a MatrixOp for this operator. """
         return self.__class__([op.to_matrix_op(massive=massive) for op in self.oplist]).reduce()
 
     # Array operations:
 
-    def __getitem__(self, offset):
+    def __getitem__(self, offset: int) -> OperatorBase:
         return self.oplist[offset]
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         return iter(self.oplist)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.oplist)

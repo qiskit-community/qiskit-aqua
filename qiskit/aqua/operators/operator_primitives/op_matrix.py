@@ -14,11 +14,13 @@
 
 """ Wrapping Pauli Primitive """
 
+from typing import Union, Optional
 import logging
 import numpy as np
 from scipy.sparse import spmatrix
 
 from qiskit.quantum_info import Operator as MatrixOperator
+from qiskit.circuit import ParameterExpression
 
 from ..operator_base import OperatorBase
 from ..operator_combos import OpSum, OpComposition, OpKron
@@ -28,19 +30,21 @@ logger = logging.getLogger(__name__)
 
 
 class OpMatrix(OpPrimitive):
-    """ Class for Wrapping Pauli Primitives
+    """ Class for Wrapping Matrix Primitives
 
     Note that all mathematical methods are not in-place, meaning that
     they return a new object, but the underlying primitives are not copied.
 
     """
 
-    def __init__(self, primitive, coeff=1.0):
+    def __init__(self, primitive: Union[list, np.ndarray, spmatrix, MatrixOperator] = None,
+                 coeff: Optional[Union[int, float, complex, ParameterExpression]] = 1.0) -> None:
         """
         Args:
-            primitive (Gate, Pauli, [[complex]], np.ndarray, QuantumCircuit, Instruction):
-            The operator primitive being wrapped.
-            coeff (int, float, complex): A coefficient multiplying the primitive
+            primitive ([[complex]], np.ndarray, MatrixOperator, spmatrix): The operator
+            primitive being wrapped.
+            coeff (int, float, complex, ParameterExpression): A coefficient multiplying the
+            primitive
         Raises:
             TypeError: invalid parameters.
             ValueError: invalid parameters.
@@ -62,17 +66,17 @@ class OpMatrix(OpPrimitive):
 
         super().__init__(primitive, coeff=coeff)
 
-    def get_primitives(self):
+    def get_primitives(self) -> set:
         """ Return a set of strings describing the primitives contained in the Operator """
         return {'Matrix'}
 
     # TODO replace with proper alphabets later?
     @property
-    def num_qubits(self):
+    def num_qubits(self) -> int:
         return len(self.primitive.input_dims())
 
     # TODO change to *other to efficiently handle lists?
-    def add(self, other):
+    def add(self, other: OperatorBase) -> OperatorBase:
         """ Addition. Overloaded by + in OperatorBase. """
         if not self.num_qubits == other.num_qubits:
             raise ValueError(
@@ -85,11 +89,11 @@ class OpMatrix(OpPrimitive):
         # Covers Paulis, Circuits, and all else.
         return OpSum([self, other])
 
-    def adjoint(self):
+    def adjoint(self) -> OperatorBase:
         """ Return operator adjoint (conjugate transpose). Overloaded by ~ in OperatorBase. """
         return OpMatrix(self.primitive.conjugate().transpose(), coeff=np.conj(self.coeff))
 
-    def equals(self, other):
+    def equals(self, other: OperatorBase) -> bool:
         """ Evaluate Equality. Overloaded by == in OperatorBase. """
         if not isinstance(other, OpPrimitive) \
                 or not isinstance(self.primitive, type(other.primitive)) \
@@ -100,7 +104,7 @@ class OpMatrix(OpPrimitive):
         # Will return NotImplementedError if not supported
 
     # TODO change to *other to handle lists? How aggressively to handle pairwise business?
-    def kron(self, other):
+    def kron(self, other: OperatorBase) -> OperatorBase:
         """ Kron
         Note: You must be conscious of Qiskit's big-endian bit
         printing convention. Meaning, X.kron(Y)
@@ -116,7 +120,7 @@ class OpMatrix(OpPrimitive):
         return OpKron([self, other])
 
     # TODO change to *other to efficiently handle lists?
-    def compose(self, other):
+    def compose(self, other: OperatorBase) -> OperatorBase:
         """ Operator Composition (Linear algebra-style, right-to-left)
 
         Note: You must be conscious of Quantum Circuit vs. Linear Algebra ordering
@@ -135,7 +139,7 @@ class OpMatrix(OpPrimitive):
 
         return OpComposition([self, other])
 
-    def to_matrix(self, massive=False):
+    def to_matrix(self, massive: bool = False) -> np.ndarray:
         """ Return numpy matrix of operator, warn if more than 16 qubits to force
         the user to set massive=True if
         they want such a large matrix. Generally big methods like this should require
@@ -151,10 +155,10 @@ class OpMatrix(OpPrimitive):
 
         return self.primitive.data * self.coeff
 
-    def to_matrix_op(self, massive=False):
+    def to_matrix_op(self, massive: bool = False) -> OperatorBase:
         return self
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Overload str() """
         prim_str = str(self.primitive)
         if self.coeff == 1.0:
@@ -162,7 +166,9 @@ class OpMatrix(OpPrimitive):
         else:
             return "{} * {}".format(self.coeff, prim_str)
 
-    def eval(self, front=None):
+    def eval(self,
+             front: Union[str, dict, np.ndarray,
+                          OperatorBase] = None) -> Union[OperatorBase, float, complex]:
         """ A square binary Operator can be defined as a function over two binary
         strings of equal length. This
         method returns the value of that function for a given pair of binary strings.
@@ -200,6 +206,6 @@ class OpMatrix(OpPrimitive):
 
         return new_front
 
-    def to_simulation_instruction(self):
-        """ returns simulation instruction """
+    def to_simulation_instruction(self) -> OperatorBase:
+        """ returns an OpCircuit holding a UnitaryGate instruction constructed from this matrix """
         return OpPrimitive(self.primitive.to_instruction(), coeff=self.coeff)

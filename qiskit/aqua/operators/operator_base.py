@@ -15,6 +15,7 @@
 """ Base Operator """
 
 from abc import ABC, abstractmethod
+import numpy as np
 
 from qiskit.circuit import ParameterExpression, ParameterVector
 
@@ -42,12 +43,12 @@ class OperatorBase(ABC):
     # TODO replace with proper alphabets later?
     @property
     @abstractmethod
-    def num_qubits(self):
+    def num_qubits(self) -> int:
         """ returns number of qubits """
         raise NotImplementedError
 
     @abstractmethod
-    def get_primitives(self):
+    def get_primitives(self) -> set:
         """ Return a set of strings describing the primitives contained in the Operator """
         raise NotImplementedError
 
@@ -93,6 +94,15 @@ class OperatorBase(ABC):
         time of processing. E.g. a conversion,
         some operators in an OpComposition can now be directly composed.
         At worst, just returns self."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def to_matrix(self, massive: bool = False) -> np.ndarray:
+        """ Return numpy vector representing StateFn evaluated on each basis state. Warn if more
+        than 16 qubits to force having to set massive=True if such a large vector is desired.
+        Generally a conversion method like this may require the use of a converter,
+        but in this case a convenience method for quick hacking and access to
+        classical tools is appropriate. """
         raise NotImplementedError
 
 # Addition / Subtraction
@@ -229,7 +239,6 @@ class OperatorBase(ABC):
         """ Kron """
         raise NotImplementedError
 
-    # TODO add lazy option?
     @abstractmethod
     def kronpower(self, other):
         """ Kron with Self Multiple Times """
@@ -258,11 +267,6 @@ class OperatorBase(ABC):
 # Printing
 
     @abstractmethod
-    def __str__(self):
+    def __str__(self) -> str:
         """Overload str() """
         raise NotImplementedError
-
-    # @abstractmethod
-    # def print_details(self):
-    #     """ print details """
-    #     raise NotImplementedError

@@ -14,11 +14,13 @@
 
 """ Expectation Algorithm Base """
 
+from typing import Optional, Union
 import logging
 import itertools
 import networkx as nx
 import numpy as np
 
+from ..operator_base import OperatorBase
 from ..operator_globals import Z, I
 from .evolution_base import EvolutionBase
 from ..operator_combos import OpVec, OpSum
@@ -35,10 +37,13 @@ class PauliTrotterEvolution(EvolutionBase):
 
     """
 
-    def __init__(self, trotter_mode='trotter', reps=1, group_paulis=True):
+    def __init__(self,
+                 trotter_mode: Optional[Union[str, TrotterizationBase]] = 'trotter',
+                 reps: Optional[int] = 1,
+                 group_paulis: Optional[bool] = True) -> None:
         """
-        Args:
-
+            An evolution algorithm, replacing exponentiated sums of Paulis by changing them each
+            to the Z basis, rotating with an rZ, changing back, and trotterizing.
         """
 
         if isinstance(trotter_mode, TrotterizationBase):
@@ -54,17 +59,17 @@ class PauliTrotterEvolution(EvolutionBase):
         return self._trotter
 
     @trotter.setter
-    def trotter(self, trotter):
+    def trotter(self, trotter: TrotterizationBase):
         self._trotter = trotter
 
-    def convert(self, operator):
+    def convert(self, operator: OperatorBase):
         if self._grouper:
             # Sort into commuting groups
             operator = self._grouper.convert(operator).reduce()
         return self._recursive_convert(operator)
 
     # pylint: disable=inconsistent-return-statements
-    def _recursive_convert(self, operator):
+    def _recursive_convert(self, operator: OperatorBase):
         if isinstance(operator, OpEvolution):
             if isinstance(operator.primitive, OpSum):
                 # if operator.primitive.abelian:
@@ -83,7 +88,7 @@ class PauliTrotterEvolution(EvolutionBase):
         else:
             return operator
 
-    def evolution_for_pauli(self, pauli_op):
+    def evolution_for_pauli(self, pauli_op: OpPauli):
         """ evolution for pauli """
         # TODO Evolve for group of commuting paulis, TODO pauli grouper
 
@@ -102,7 +107,7 @@ class PauliTrotterEvolution(EvolutionBase):
 
     # TODO
     @staticmethod
-    def compute_cnot_distance(pauli_op1, pauli_op2):
+    def compute_cnot_distance(pauli_op1: OpPauli, pauli_op2: OpPauli):
         """ compute cnot distance """
         sig_pauli1_bits = np.logical_and(pauli_op1.primitive.z, pauli_op1.primitive.x)
         sig_pauli2_bits = np.logical_and(pauli_op2.primitive.z, pauli_op2.primitive.x)
@@ -121,18 +126,15 @@ class PauliTrotterEvolution(EvolutionBase):
             return 2 * (cnot_cost_p1 + cnot_cost_p2)
 
     # TODO
-    def evolution_for_abelian_paulisum(self, op_sum):
+    def evolution_for_abelian_paulisum(self, op_sum: OpSum):
         """ evolution for abelian pauli sum """
         if not all([isinstance(op, OpPauli) for op in op_sum.oplist]):
             raise TypeError('Evolving abelian sum requires Pauli elements.')
-
-        cob = PauliChangeOfBasis()
 
         pauli_graph = nx.Graph()
         pauli_graph.add_nodes_from(op_sum.oplist)
         pauli_graph.add_weighted_edges_from([(ops[0], ops[1],
                                               self.compute_cnot_distance(ops[0], ops[1]))
                                              for ops in itertools.combinations(op_sum.oplist, 2)])
-        print(pauli_graph.edges(data=True))
         tree = nx.minimum_spanning_tree(pauli_graph)
         tree_edges = nx.dfs_edges(tree)

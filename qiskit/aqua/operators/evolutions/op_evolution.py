@@ -14,7 +14,7 @@
 
 """ Wrapping Operator Evolutions """
 
-from typing import Union
+from typing import Optional, Union
 import logging
 import numpy as np
 import scipy
@@ -41,22 +41,22 @@ class OpEvolution(OpPrimitive):
 
     def __init__(self,
                  primitive: OperatorBase,
-                 coeff: Union[int, float, complex] = 1.0) -> None:
+                 coeff: Optional[Union[int, float, complex, ParameterExpression]] = 1.0) -> None:
         """
         Args:
             primitive: The operator being wrapped.
-            coeff: A coefficient multiplying the primitive
+            coeff: A coefficient multiplying the operator
         """
         super().__init__(primitive, coeff=coeff)
 
-    def get_primitives(self):
+    def get_primitives(self) -> set:
         return self.primitive.get_primitives()
 
     @property
     def num_qubits(self):
         return self.primitive.num_qubits
 
-    def add(self, other):
+    def add(self, other: OperatorBase) -> OperatorBase:
         """ Addition. Overloaded by + in OperatorBase. """
         if not self.num_qubits == other.num_qubits:
             raise ValueError(
@@ -71,18 +71,18 @@ class OpEvolution(OpPrimitive):
 
         return OpSum([self, other])
 
-    def adjoint(self):
+    def adjoint(self) -> OperatorBase:
         """ Return operator adjoint (conjugate transpose). Overloaded by ~ in OperatorBase. """
         return OpEvolution(self.primitive.adjoint() * -1, coeff=np.conj(self.coeff))
 
-    def equals(self, other):
+    def equals(self, other: OperatorBase) -> bool:
         """ Evaluate Equality. Overloaded by == in OperatorBase. """
         if not isinstance(other, OpEvolution) or not self.coeff == other.coeff:
             return False
 
         return self.primitive == other.primitive
 
-    def kron(self, other):
+    def kron(self, other: OperatorBase) -> OperatorBase:
         """ Kron
         Note: You must be conscious of Qiskit's big-endian bit printing
         convention. Meaning, X.kron(Y)
@@ -98,7 +98,7 @@ class OpEvolution(OpPrimitive):
 
         return OpKron([self, other])
 
-    def compose(self, other):
+    def compose(self, other: OperatorBase) -> OperatorBase:
         """ Operator Composition (Linear algebra-style, right-to-left)
 
         Note: You must be conscious of Quantum Circuit vs. Linear Algebra
@@ -118,13 +118,13 @@ class OpEvolution(OpPrimitive):
 
         return OpComposition([self, other])
 
-    def to_matrix(self, massive=False):
+    def to_matrix(self, massive: bool = False) -> np.ndarray:
         """ returns matrix """
         prim_mat = 1.j * self.primitive.to_matrix()
         # pylint: disable=no-member
         return scipy.linalg.expm(prim_mat) * self.coeff
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Overload str() """
         prim_str = str(self.primitive)
         if self.coeff == 1.0:
@@ -132,14 +132,14 @@ class OpEvolution(OpPrimitive):
         else:
             return "{} * e^(i*{})".format(self.coeff, prim_str)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Overload str() """
         return "OpEvolution({}, coeff={})".format(repr(self.primitive), self.coeff)
 
-    def reduce(self):
+    def reduce(self) -> OperatorBase:
         return OpEvolution(self.primitive.reduce(), coeff=self.coeff)
 
-    def bind_parameters(self, param_dict):
+    def bind_parameters(self, param_dict: dict) -> OperatorBase:
         param_value = self.coeff
         if isinstance(self.coeff, ParameterExpression):
             unrolled_dict = self._unroll_param_dict(param_dict)
@@ -152,9 +152,11 @@ class OpEvolution(OpPrimitive):
                 # TODO what do we do about complex?
                 value = unrolled_dict[coeff_param]
                 param_value = float(self.coeff.bind({coeff_param: value}))
-        return self.__class__(self.primitive.bind_parameters(param_dict), coeff=param_value)
+        return OpEvolution(self.primitive.bind_parameters(param_dict), coeff=param_value)
 
-    def eval(self, front=None):
+    def eval(self,
+             front: Union[str, dict, np.ndarray,
+                          OperatorBase] = None) -> Union[OperatorBase, float, complex]:
         """ A square binary Operator can be defined as a function over
         two binary strings of equal length. This
         method returns the value of that function for a given pair
@@ -167,6 +169,6 @@ class OpEvolution(OpPrimitive):
         """
         return self.to_matrix_op().eval(front=front)
 
-    def to_matrix_op(self, massive=False):
+    def to_matrix_op(self, massive: bool = False) -> OperatorBase:
         """ Return a MatrixOp for this operator. """
         return OpMatrix(self.to_matrix(massive=massive))

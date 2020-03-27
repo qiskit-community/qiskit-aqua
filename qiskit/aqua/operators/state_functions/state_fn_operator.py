@@ -14,7 +14,10 @@
 
 """ An Object to represent State Functions constructed from Operators """
 
+from typing import Union
 import numpy as np
+
+from qiskit.circuit import ParameterExpression
 
 from ..operator_base import OperatorBase
 from .state_fn import StateFn
@@ -26,22 +29,18 @@ from ..operator_combos import OpVec, OpSum
 class StateFnOperator(StateFn):
     """ A class for representing state functions and measurements.
 
-    State functions are defined to be complex functions over a single binary string
-    (as compared to an operator,
-    which is defined as a function over two binary strings, or a function taking a
-    binary function to another
-    binary function). This function may be called by the eval() method.
+    State functions are defined to be complex functions over a single binary string (as
+    compared to an operator, which is defined as a function over two binary strings, or
+    a function taking a binary function to another binary function). This function may be
+    called by the eval() method.
 
     Measurements are defined to be functionals over StateFns, taking them to real values.
-    Generally, this real value
-    is interpreted to represent the probability of some classical state (binary string)
-    being observed from a
-    probabilistic or quantum system represented by a StateFn. This leads to the equivalent
-    definition, which is that
-    a measurement m is a function over binary strings producing StateFns, such that
-    the probability of measuring
-    a given binary string b from a system with StateFn f is equal to the
-    inner product between f and m(b).
+    Generally, this real value is interpreted to represent the probability of some classical
+    state (binary string) being observed from a probabilistic or quantum system represented
+    by a StateFn. This leads to the equivalent definition, which is that a measurement m is a
+    function over binary strings producing StateFns, such that the probability of measuring
+    a given binary string b from a system with StateFn f is equal to the inner product between
+    f and m(b).
 
     NOTE: State functions here are not restricted to wave functions,
     as there is no requirement of normalization.
@@ -49,24 +48,28 @@ class StateFnOperator(StateFn):
 
     # TODO maybe break up into different classes for different fn definition primitives
     # TODO allow normalization somehow?
-    def __init__(self, primitive, coeff=1.0, is_measurement=False):
+    def __init__(self,
+                 primitive: Union[OperatorBase] = None,
+                 coeff: Union[int, float, complex, ParameterExpression] = 1.0,
+                 is_measurement: bool = False) -> OperatorBase:
         """
         Args:
-            primitive(str, dict, OperatorBase, Result, np.ndarray, list)
-            coeff(int, float, complex): A coefficient by which to multiply the state
+            primitive: The operator primitive being wrapped.
+            coeff: A coefficient by which to multiply the state function
+            is_measurement: Whether the StateFn is a measurement operator
         """
 
         super().__init__(primitive, coeff=coeff, is_measurement=is_measurement)
 
-    def get_primitives(self):
+    def get_primitives(self) -> set:
         """ Return a set of strings describing the primitives contained in the Operator """
         return self.primitive.get_primitives()
 
     @property
-    def num_qubits(self):
+    def num_qubits(self) -> int:
         return self.primitive.num_qubits
 
-    def add(self, other):
+    def add(self, other: OperatorBase) -> OperatorBase:
         """ Addition. Overloaded by + in OperatorBase. """
         if not self.num_qubits == other.num_qubits:
             raise ValueError(
@@ -89,12 +92,12 @@ class StateFnOperator(StateFn):
 
         return OpSum([self, other])
 
-    def adjoint(self):
+    def adjoint(self) -> OperatorBase:
         return StateFnOperator(self.primitive.adjoint(),
                                coeff=np.conj(self.coeff),
                                is_measurement=(not self.is_measurement))
 
-    def kron(self, other):
+    def kron(self, other: OperatorBase) -> OperatorBase:
         """ Kron
         Note: You must be conscious of Qiskit's big-endian bit printing convention.
         Meaning, Plus.kron(Zero)
@@ -114,7 +117,7 @@ class StateFnOperator(StateFn):
         from .. import OpKron
         return OpKron([self, other])
 
-    def to_density_matrix(self, massive=False):
+    def to_density_matrix(self, massive: bool = False) -> np.ndarray:
         """ Return numpy matrix of density operator, warn if more than 16 qubits
         to force the user to set
         massive=True if they want such a large matrix. Generally big methods like
@@ -133,12 +136,12 @@ class StateFnOperator(StateFn):
         # TODO handle list case
         return self.primitive.to_matrix() * self.coeff
 
-    def to_matrix_op(self, massive=False):
+    def to_matrix_op(self, massive: bool = False) -> OperatorBase:
         """ Return a MatrixOp for this operator. """
         return StateFnOperator(self.primitive.to_matrix_op(massive=massive) * self.coeff,
                                is_measurement=self.is_measurement)
 
-    def to_matrix(self, massive=False):
+    def to_matrix(self, massive: bool = False) -> np.ndarray:
         """
         NOTE: THIS DOES NOT RETURN A DENSITY MATRIX, IT RETURNS A CLASSICAL MATRIX
         CONTAINING THE QUANTUM OR CLASSICAL
@@ -185,7 +188,7 @@ class StateFnOperator(StateFn):
 
         return diag_over_tree(mat)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Overload str() """
         prim_str = str(self.primitive)
         if self.coeff == 1.0:
@@ -198,7 +201,9 @@ class StateFnOperator(StateFn):
                 self.coeff)
 
     # pylint: disable=too-many-return-statements
-    def eval(self, front=None):
+    def eval(self,
+             front: Union[str, dict, np.ndarray,
+                          OperatorBase] = None) -> Union[OperatorBase, float, complex]:
         if not self.is_measurement and isinstance(front, OperatorBase):
             raise ValueError(
                 'Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '
@@ -222,7 +227,10 @@ class StateFnOperator(StateFn):
 
         return front.adjoint().eval(self.primitive.eval(front))
 
-    def sample(self, shots=1024, massive=False, reverse_endianness=False):
+    def sample(self,
+               shots: int = 1024,
+               massive: bool = False,
+               reverse_endianness: bool = False) -> dict:
         """ Sample the state function as a normalized probability distribution. Returns dict of
         bitstrings in order of probability, with values being probability. """
         raise NotImplementedError

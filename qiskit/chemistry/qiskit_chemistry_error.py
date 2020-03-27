@@ -23,6 +23,6 @@ class QiskitChemistryError(Exception):
         super(QiskitChemistryError, self).__init__(' '.join(message))
         self.message = ' '.join(message)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Return the message."""
         return repr(self.message)

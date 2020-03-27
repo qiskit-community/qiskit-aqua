@@ -14,13 +14,17 @@
 
 """ Wrapping Pauli Primitives """
 
+from typing import Union, Optional
 import logging
 import numpy as np
+from scipy.sparse import spmatrix
 
 from qiskit import QuantumCircuit
+from qiskit.circuit import ParameterExpression
 from qiskit.quantum_info import Pauli
 from qiskit.extensions.standard import RZGate, RYGate, RXGate
 
+from ..operator_base import OperatorBase
 from . import OpPrimitive
 from ..operator_combos import OpSum, OpComposition, OpKron
 
@@ -36,31 +40,33 @@ class OpPauli(OpPrimitive):
 
     """
 
-    def __init__(self, primitive, coeff=1.0):
+    def __init__(self,
+                 primitive: Union[Pauli] = None,
+                 coeff: Optional[Union[int, float, complex, ParameterExpression]] = 1.0) -> None:
         """
-        Args:
-            primitive (Gate, Pauli, [[complex]], np.ndarray, QuantumCircuit, Instruction):
-            The operator primitive being wrapped.
-            coeff (int, float, complex): A coefficient multiplying the primitive
-        Raises:
-            TypeError: invalid parameters.
+            Args:
+                primitive: The operator primitive being wrapped.
+                coeff: A coefficient multiplying the primitive.
+
+            Raises:
+                TypeError: invalid parameters.
         """
         if not isinstance(primitive, Pauli):
             raise TypeError(
                 'OpPauli can only be instantiated with Paulis, not {}'.format(type(primitive)))
         super().__init__(primitive, coeff=coeff)
 
-    def get_primitives(self):
+    def get_primitives(self) -> set:
         """ Return a set of strings describing the primitives contained in the Operator """
         return {'Pauli'}
 
     # TODO replace with proper alphabets later?
     @property
-    def num_qubits(self):
+    def num_qubits(self) -> int:
         return len(self.primitive)
 
     # TODO change to *other to efficiently handle lists?
-    def add(self, other):
+    def add(self, other: OperatorBase) -> OperatorBase:
         """ Addition. Overloaded by + in OperatorBase. """
         if not self.num_qubits == other.num_qubits:
             raise ValueError(
@@ -72,11 +78,11 @@ class OpPauli(OpPrimitive):
 
         return OpSum([self, other])
 
-    def adjoint(self):
+    def adjoint(self) -> OperatorBase:
         """ Return operator adjoint (conjugate transpose). Overloaded by ~ in OperatorBase. """
         return OpPauli(self.primitive, coeff=np.conj(self.coeff))
 
-    def equals(self, other):
+    def equals(self, other: OperatorBase) -> bool:
         """ Evaluate Equality. Overloaded by == in OperatorBase. """
         if not isinstance(other, OpPauli) or not self.coeff == other.coeff:
             return False
@@ -84,7 +90,7 @@ class OpPauli(OpPrimitive):
         return self.primitive == other.primitive
 
     # TODO change to *other to handle lists? How aggressively to handle pairwise business?
-    def kron(self, other):
+    def kron(self, other: OperatorBase) -> OperatorBase:
         """ Kron
         Note: You must be conscious of Qiskit's big-endian bit
         printing convention. Meaning, X.kron(Y)
@@ -121,7 +127,7 @@ class OpPauli(OpPrimitive):
         return OpKron([self, other])
 
     # TODO change to *other to efficiently handle lists?
-    def compose(self, other):
+    def compose(self, other: OperatorBase) -> OperatorBase:
         """ Operator Composition (Linear algebra-style, right-to-left)
 
         Note: You must be conscious of Quantum Circuit vs. Linear Algebra ordering
@@ -164,7 +170,7 @@ class OpPauli(OpPrimitive):
 
         return OpComposition([self, other])
 
-    def to_matrix(self, massive=False):
+    def to_matrix(self, massive: bool = False) -> np.ndarray:
         """ Return numpy matrix of operator, warn if more than
         16 qubits to force the user to set massive=True if
         they want such a large matrix. Generally big methods like
@@ -180,7 +186,7 @@ class OpPauli(OpPrimitive):
 
         return self.primitive.to_matrix() * self.coeff
 
-    def to_spmatrix(self, massive=False):
+    def to_spmatrix(self, massive=False) -> spmatrix:
         """ Return scipy sparse matrix of operator, warn if more than
         16 qubits to force the user to set massive=True if
         they want such a large matrix. Generally big methods like
@@ -190,13 +196,13 @@ class OpPauli(OpPrimitive):
 
         if self.num_qubits > 16 and not massive:
             raise ValueError(
-                'to_matrix will return an exponentially large matrix, '
+                'to_spmatrix will return an exponentially large matrix, '
                 'in this case {0}x{0} elements.'
                 ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
 
         return self.primitive.to_spmatrix() * self.coeff
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Overload str() """
         prim_str = str(self.primitive)
         if self.coeff == 1.0:
@@ -204,7 +210,9 @@ class OpPauli(OpPrimitive):
         else:
             return "{} * {}".format(self.coeff, prim_str)
 
-    def eval(self, front=None):
+    def eval(self,
+             front: Union[str, dict, np.ndarray,
+                          OperatorBase] = None) -> Union[OperatorBase, float, complex]:
         """ A square binary Operator can be defined as a function over
         two binary strings of equal length. This
         method returns the value of that function for a given pair of
@@ -221,7 +229,7 @@ class OpPauli(OpPrimitive):
             return self.to_matrix_op()
 
         # pylint: disable=import-outside-toplevel
-        from .. import OperatorBase, StateFn, StateFnDict, StateFnCircuit, OpVec
+        from .. import StateFn, StateFnDict, StateFnCircuit, OpVec
         from . import OpCircuit
 
         new_front = None
@@ -262,7 +270,7 @@ class OpPauli(OpPrimitive):
 
         return new_front
 
-    def exp_i(self):
+    def exp_i(self) -> OperatorBase:
         # if only one qubit is significant, we can perform the evolution
         corrected_x = self.primitive.x[::-1]
         corrected_z = self.primitive.z[::-1]
@@ -291,11 +299,11 @@ class OpPauli(OpPrimitive):
             from qiskit.aqua.operators import OpEvolution
             return OpEvolution(self)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         # Need this to be able to easily construct AbelianGraphs
         return id(self)
 
-    def commutes(self, other_op):
+    def commutes(self, other_op) -> bool:
         """ commutes """
         if not isinstance(other_op, OpPauli):
             return False
