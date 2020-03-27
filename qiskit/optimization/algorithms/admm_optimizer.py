@@ -159,7 +159,7 @@ class ADMMOptimizerResult(OptimizationResult):
 
     @property
     def state(self) -> Optional[ADMMState]:
-        """ returns samples """
+        """ returns state """
         return self._state
 
 

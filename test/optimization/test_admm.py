@@ -23,7 +23,8 @@ import numpy as np
 from cplex import SparsePair
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.optimization.algorithms import CplexOptimizer, MinimumEigenOptimizer
-from qiskit.optimization.algorithms.admm_optimizer import ADMMOptimizer, ADMMParameters
+from qiskit.optimization.algorithms.admm_optimizer import ADMMOptimizer, ADMMParameters, \
+    ADMMOptimizerResult, ADMMState
 from qiskit.optimization.problems import OptimizationProblem
 
 
@@ -46,8 +47,9 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
         solver = ADMMOptimizer(qubo_optimizer=qubo_optimizer,
                                continuous_optimizer=continuous_optimizer,
                                params=admm_params)
-        solution = solver.solve(op)
+        solution: ADMMOptimizerResult = solver.solve(op)
         self.assertIsNotNone(solution)
+        self.assertIsInstance(solution, ADMMOptimizerResult)
 
         correct_solution = [0.009127, 0.009127, 0.009127, 0.009127, 0.009127, 0.009127, 0.009127,
                             0.009127, 0.009127, 0.009127, 0.006151, 0.006151, 0.006151, 0.006151,
@@ -59,6 +61,8 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
         np.testing.assert_almost_equal(correct_solution, solution.x, 3)
         self.assertIsNotNone(solution.fval)
         np.testing.assert_almost_equal(correct_objective, solution.fval, 3)
+        self.assertIsNotNone(solution.state)
+        self.assertIsInstance(solution.state, ADMMState)
 
     @staticmethod
     def _get_miskp_problem_params() -> (int, int, float, np.ndarray, np.ndarray, np.ndarray):
@@ -99,13 +103,16 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
         solver = ADMMOptimizer(qubo_optimizer=qubo_optimizer,
                                continuous_optimizer=continuous_optimizer,
                                params=admm_params)
-        solution = solver.solve(op)
+        solution: ADMMOptimizerResult = solver.solve(op)
         self.assertIsNotNone(solution)
+        self.assertIsInstance(solution, ADMMOptimizerResult)
 
         self.assertIsNotNone(solution.x)
         np.testing.assert_almost_equal([10, 0], solution.x, 3)
         self.assertIsNotNone(solution.fval)
         np.testing.assert_almost_equal(10, solution.fval, 3)
+        self.assertIsNotNone(solution.state)
+        self.assertIsInstance(solution.state, ADMMState)
 
 
 class Miskp:
