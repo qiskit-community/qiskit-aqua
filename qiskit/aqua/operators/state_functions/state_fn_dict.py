@@ -56,7 +56,7 @@ class StateFnDict(StateFn):
     def __init__(self,
                  primitive: Union[str, dict, Result] = None,
                  coeff: Union[int, float, complex, ParameterExpression] = 1.0,
-                 is_measurement: bool = False) -> OperatorBase:
+                 is_measurement: bool = False) -> None:
         """
             Args:
                 primitive: The operator primitive being wrapped.
