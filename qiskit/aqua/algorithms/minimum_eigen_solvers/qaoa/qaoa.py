@@ -14,9 +14,11 @@
 
 """ The Quantum Approximate Optimization Algorithm. """
 
-from typing import List, Callable, Optional
+from typing import List, Callable, Optional, Union
 import logging
 import numpy as np
+
+from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import BaseOperator
 from qiskit.aqua.components.initial_states import InitialState
@@ -68,8 +70,7 @@ class QAOA(VQE):
                  aux_operators: Optional[List[BaseOperator]] = None,
                  callback: Optional[Callable[[int, np.ndarray, float, float], None]] = None,
                  auto_conversion: bool = True,
-                 quantum_instance: Optional[QuantumInstance] = None
-                 ) -> None:
+                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
         """
         Args:
             operator: Qubit operator
@@ -106,7 +107,7 @@ class QAOA(VQE):
                   :class:`~qiskit.aqua.operators.WeightedPauliOperator`
                 - for *qasm simulator or real backend:*
                   :class:`~qiskit.aqua.operators.TPBGroupedWeightedPauliOperator`
-            quantum_instance: Quantum instance to be used, needs to be set here or when the
+            quantum_instance: Quantum Instance or Backend to be used, needs to be set here or when the
                 algorithm is executed.
         """
         validate_min('p', p, 1)
