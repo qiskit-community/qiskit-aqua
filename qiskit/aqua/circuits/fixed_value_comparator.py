@@ -52,7 +52,7 @@ class FixedValueComparator(CircuitFactory):
                 of qubits / register, if None, i_target = num_state_qubits is used
         """
         super().__init__(num_state_qubits + 1)
-        self._comparator_circuit = FVC(value, num_state_qubits, geq=geq)
+        self._comparator_circuit = FVC(value=value, num_state_qubits=num_state_qubits, geq=geq)
 
         self.i_state = None
         if i_state is not None:
@@ -100,6 +100,6 @@ class FixedValueComparator(CircuitFactory):
         instr = self._comparator_circuit.to_instruction()
         qr = [q[i] for i in self.i_state] + [q[self.i_target]]
         if q_ancillas:
-            qr += [qi for qi in q_ancillas[:self.required_ancillas()]
-                   ]  # pylint:disable=unnecessary-comprehension
+            # pylint:disable=unnecessary-comprehension
+            qr += [qi for qi in q_ancillas[:self.required_ancillas()]]
         qc.append(instr, qr)
