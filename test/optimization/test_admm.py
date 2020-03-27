@@ -15,9 +15,9 @@
 """Tests of the ADMM algorithm."""
 from typing import Optional
 
-from docplex.mp.model import Model
-
 from test.optimization import QiskitOptimizationTestCase
+
+from docplex.mp.model import Model
 
 import numpy as np
 from cplex import SparsePair
@@ -37,14 +37,15 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
         op: OptimizationProblem = miskp.create_problem()
         self.assertIsNotNone(op)
 
+        admm_params = ADMMParameters()
+
         # use numpy exact diagonalization
         qubo_optimizer = MinimumEigenOptimizer(NumPyMinimumEigensolver())
         continuous_optimizer = CplexOptimizer()
 
-        admm_params = ADMMParameters(qubo_optimizer=qubo_optimizer,
-                                     continuous_optimizer=continuous_optimizer)
-
-        solver = ADMMOptimizer(params=admm_params)
+        solver = ADMMOptimizer(qubo_optimizer=qubo_optimizer,
+                               continuous_optimizer=continuous_optimizer,
+                               params=admm_params)
         solution = solver.solve(op)
         self.assertIsNotNone(solution)
 
@@ -81,6 +82,7 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
             cost_values
 
     def test_admm_maximization(self):
+        """Tests a simple maximization problem using ADMM optimizer"""
         mdl = Model('test')
         c = mdl.continuous_var(lb=0, ub=10, name='c')
         x = mdl.binary_var(name='x')
@@ -89,12 +91,14 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
         op.from_docplex(mdl)
         self.assertIsNotNone(op)
 
+        admm_params = ADMMParameters()
+
         qubo_optimizer = MinimumEigenOptimizer(NumPyMinimumEigensolver())
         continuous_optimizer = CplexOptimizer()
 
-        admm_params = ADMMParameters(qubo_optimizer=qubo_optimizer,
-                                     continuous_optimizer=continuous_optimizer)
-        solver = ADMMOptimizer(params=admm_params)
+        solver = ADMMOptimizer(qubo_optimizer=qubo_optimizer,
+                               continuous_optimizer=continuous_optimizer,
+                               params=admm_params)
         solution = solver.solve(op)
         self.assertIsNotNone(solution)
 
