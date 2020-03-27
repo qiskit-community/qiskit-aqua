@@ -18,6 +18,8 @@ import logging
 
 from abc import ABC, abstractmethod
 
+from ..operator_base import OperatorBase
+
 logger = logging.getLogger(__name__)
 
 
@@ -34,6 +36,6 @@ class ConverterBase(ABC):
     (such as the use of sparse matrices). """
 
     @abstractmethod
-    def convert(self, operator):
+    def convert(self, operator: OperatorBase) -> OperatorBase:
         """ Accept the Operator and return the converted Operator """
         raise NotImplementedError

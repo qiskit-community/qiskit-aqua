@@ -18,6 +18,7 @@ import logging
 import itertools
 import networkx as nx
 
+from ..operator_base import OperatorBase
 from ..operator_combos import OpVec, OpSum
 from ..state_functions import StateFnOperator
 from ..operator_primitives import OpPauli
@@ -31,7 +32,7 @@ class AbelianGrouper(ConverterBase):
     def __init__(self, traverse=True):
         self._traverse = traverse
 
-    def convert(self, operator):
+    def convert(self, operator: OperatorBase) -> OperatorBase:
         # pylint: disable=cyclic-import,import-outside-toplevel
         from .. import OpEvolution
 
@@ -53,7 +54,7 @@ class AbelianGrouper(ConverterBase):
         else:
             return operator
 
-    def group_paulis(self, op_vec):
+    def group_paulis(self, op_vec: OpVec) -> OpVec:
         """ group paulis """
         commutation_graph = nx.Graph()
         commutation_graph.add_nodes_from(op_vec.oplist)

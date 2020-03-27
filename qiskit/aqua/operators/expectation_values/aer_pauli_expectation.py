@@ -15,7 +15,12 @@
 """ Expectation Algorithm Base """
 
 import logging
+from typing import Union
 
+from qiskit.providers import BaseBackend
+
+from qiskit.aqua import QuantumInstance
+from ..operator_base import OperatorBase
 from .expectation_base import ExpectationBase
 from ..operator_combos import OpVec, OpSum
 from ..operator_primitives import OpPauli
@@ -30,7 +35,10 @@ class AerPauliExpectation(ExpectationBase):
 
     """
 
-    def __init__(self, operator=None, state=None, backend=None):
+    def __init__(self,
+                 operator: OperatorBase = None,
+                 state: OperatorBase = None,
+                 backend: BaseBackend = None):
         """
         Args:
 
@@ -44,34 +52,34 @@ class AerPauliExpectation(ExpectationBase):
     # TODO setters which wipe state
 
     @property
-    def operator(self):
+    def operator(self) -> OperatorBase:
         return self._operator
 
     @operator.setter
-    def operator(self, operator):
+    def operator(self, operator: OperatorBase) -> None:
         self._operator = operator
         self._snapshot_op = None
 
     @property
-    def state(self):
+    def state(self) -> OperatorBase:
         """ returns state """
         return self._state
 
     @state.setter
-    def state(self, state):
+    def state(self, state: OperatorBase) -> None:
         self._state = state
         self._snapshot_op = None
 
     @property
-    def quantum_instance(self):
+    def quantum_instance(self) -> QuantumInstance:
         """ returns quantum instance """
         return self._circuit_sampler.quantum_instance
 
     @quantum_instance.setter
-    def quantum_instance(self, quantum_instance):
+    def quantum_instance(self, quantum_instance: QuantumInstance) -> None:
         self._circuit_sampler.quantum_instance = quantum_instance
 
-    def expectation_op(self):
+    def expectation_op(self) -> OperatorBase:
         """ expectation op """
         # pylint: disable=import-outside-toplevel
         from qiskit.providers.aer.extensions import SnapshotExpectationValue
@@ -95,7 +103,9 @@ class AerPauliExpectation(ExpectationBase):
         snapshot_meas = replace_pauli_sums(self._operator)
         return snapshot_meas
 
-    def compute_expectation(self, state=None, params=None):
+    def compute_expectation(self,
+                            state: OperatorBase = None,
+                            params: dict = None) -> Union[float, complex, OperatorBase]:
         # Wipes caches in setter
         if state and not state == self.state:
             self.state = state
@@ -114,6 +124,8 @@ class AerPauliExpectation(ExpectationBase):
             # If no circuits to run (i.e. state is a Dict, eval directly)
             return StateFn(self._operator, is_measurement=True).eval(self.state)
 
-    def compute_standard_deviation(self, state=None, params=None):
+    def compute_standard_deviation(self,
+                                   state: OperatorBase = None,
+                                   params: dict = None) -> float:
         """ compute standard deviation """
         return 0.0

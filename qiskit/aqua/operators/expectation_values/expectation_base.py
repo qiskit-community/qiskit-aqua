@@ -15,13 +15,17 @@
 """ Expectation Algorithm Base """
 
 import logging
+from typing import Union
 from abc import abstractmethod
+import numpy as np
 
 from qiskit import BasicAer
+from qiskit.providers import BaseBackend
 from qiskit.aqua.utils.backend_utils import (is_statevector_backend,
                                              is_aer_qasm,
                                              has_aer)
 from qiskit.aqua import QuantumInstance
+from ..operator_base import OperatorBase
 from ..circuit_samplers import CircuitSampler
 
 logger = logging.getLogger(__name__)
@@ -34,23 +38,27 @@ class ExpectationBase:
     of that observable over the
     distribution.
 
+    # TODO make into QuantumAlgorithm to make backend business consistent?
+
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._circuit_sampler = None
 
     @property
-    def backend(self):
+    def backend(self) -> BaseBackend:
         """ returns backend """
         return self._circuit_sampler.backend
 
     @backend.setter
-    def backend(self, backend):
+    def backend(self, backend: BaseBackend) -> None:
         if backend is not None:
             self._circuit_sampler = CircuitSampler.factory(backend=backend)
 
     @staticmethod
-    def factory(operator, backend=None, state=None):
+    def factory(operator: OperatorBase,
+                backend: BaseBackend = None,
+                state: OperatorBase = None):
         """
         Args:
         Returns:
@@ -124,16 +132,20 @@ class ExpectationBase:
 
     @property
     @abstractmethod
-    def operator(self):
+    def operator(self) -> OperatorBase:
         """ returns operator """
         raise NotImplementedError
 
     @abstractmethod
-    def compute_standard_deviation(self, state=None, params=None):
-        """ compute variance """
+    def compute_expectation(self,
+                            state: OperatorBase = None,
+                            params: dict = None) -> Union[list, float, complex, np.ndarray]:
+        """ compute expectation """
         raise NotImplementedError
 
     @abstractmethod
-    def compute_expectation(self, state=None, params=None):
-        """ compute expectation """
+    def compute_standard_deviation(self,
+                                   state: OperatorBase = None,
+                                   params: dict = None) -> Union[list, float, complex, np.ndarray]:
+        """ compute variance """
         raise NotImplementedError

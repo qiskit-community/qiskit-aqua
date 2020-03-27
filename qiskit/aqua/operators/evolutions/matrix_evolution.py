@@ -16,13 +16,15 @@
 
 import logging
 
+from ..operator_base import OperatorBase
 from .evolution_base import EvolutionBase
 
 logger = logging.getLogger(__name__)
 
 
 class MatrixEvolution(EvolutionBase):
-    """ TODO
+    """ TODO - blocked on whether we can make the UnitaryGate hold the matrix and a
+    ParameterExpression for the evolution time.
 
     """
 
@@ -33,5 +35,5 @@ class MatrixEvolution(EvolutionBase):
         """
         pass
 
-    def convert(self, operator):
+    def convert(self, operator: OperatorBase) -> OperatorBase:
         pass

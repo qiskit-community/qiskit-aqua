@@ -16,6 +16,7 @@
 
 import logging
 
+from ..operator_base import OperatorBase
 from ..state_functions import StateFnDict, StateFnVector, StateFnCircuit
 from ..operator_combos import OpVec
 from .converter_base import ConverterBase
@@ -27,12 +28,15 @@ class DicttoCircuitSum(ConverterBase):
     """ Very naively convert StateFnDicts to sums of StateFnCircuits which each
     prepare the bit strings in the keys of the dict."""
 
-    def __init__(self, traverse=True, convert_dicts=True, convert_vectors=True):
+    def __init__(self,
+                 traverse: bool = True,
+                 convert_dicts: bool = True,
+                 convert_vectors: bool = True):
         self._traverse = traverse
         self._convert_dicts = convert_dicts
         self._convert_vectors = convert_vectors
 
-    def convert(self, operator):
+    def convert(self, operator: OperatorBase) -> OperatorBase:
 
         if isinstance(operator, StateFnDict) and self._convert_dicts:
             return StateFnCircuit.from_dict(operator.primitive)

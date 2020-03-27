@@ -20,6 +20,7 @@ from qiskit import QuantumCircuit
 from qiskit.quantum_info import Pauli
 from qiskit.extensions.standard import XGate, YGate, ZGate, IGate
 
+from ..operator_base import OperatorBase
 from ..operator_primitives import OpPrimitive
 from ..operator_combos import OpVec
 from .converter_base import ConverterBase
@@ -36,7 +37,7 @@ class PaulitoInstruction(ConverterBase):
         self._traverse = traverse
         self._delete_identities = delete_identities
 
-    def convert(self, operator):
+    def convert(self, operator: OperatorBase) -> OperatorBase:
 
         if isinstance(operator, Pauli):
             coeff = 1.0
@@ -53,7 +54,7 @@ class PaulitoInstruction(ConverterBase):
 
         return OpPrimitive(self.convert_pauli(operator), coeff=coeff)
 
-    def convert_pauli(self, pauli):
+    def convert_pauli(self, pauli: Pauli):
         """ convert pauli """
         # Note: Reversing endianness!!
         qc = QuantumCircuit(len(pauli))

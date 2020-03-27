@@ -21,6 +21,7 @@ from functools import partial
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.utils.backend_utils import is_aer_provider, is_statevector_backend, is_aer_qasm
+from ..operator_base import OperatorBase
 from ..operator_globals import Zero
 from ..operator_combos import OpVec
 from ..state_functions import StateFn, StateFnCircuit
@@ -82,25 +83,27 @@ class LocalSimulatorSampler(CircuitSampler):
         self._binding_mappings = None
 
     @property
-    def backend(self):
+    def backend(self) -> BaseBackend:
         """ returns backend """
         return self.quantum_instance.backend
 
     @backend.setter
-    def backend(self, backend):
+    def backend(self, backend: BaseBackend) -> None:
         self.quantum_instance = QuantumInstance(backend=backend)
 
     @property
-    def quantum_instance(self):
+    def quantum_instance(self) -> QuantumInstance:
         """ returns quantum instance """
         return self._qi
 
     @quantum_instance.setter
-    def quantum_instance(self, quantum_instance):
+    def quantum_instance(self, quantum_instance: QuantumInstance) -> None:
         self._qi = quantum_instance
 
     # pylint: disable=arguments-differ
-    def convert(self, operator, params=None):
+    def convert(self,
+                operator: OperatorBase,
+                params: dict = None):
         if self._last_op is None or not operator == self._last_op:
             # Clear caches
             self._last_op = operator
@@ -219,7 +222,7 @@ class LocalSimulatorSampler(CircuitSampler):
             sampled_statefn_dicts[id(op_c)] = c_statefns
         return sampled_statefn_dicts
 
-    def _prepare_parameterized_run_config(self, param_bindings):
+    def _prepare_parameterized_run_config(self, param_bindings: dict):
         pass
         # Wipe parameterizations, if any
         # self._qi._run_config.parameterizations = None

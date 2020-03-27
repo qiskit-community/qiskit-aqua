@@ -19,6 +19,7 @@ import logging
 
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance
+from ..operator_base import OperatorBase
 from ..operator_combos import OpVec
 from ..state_functions import StateFn, StateFnCircuit
 from ..converters import DicttoCircuitSum
@@ -29,6 +30,8 @@ logger = logging.getLogger(__name__)
 
 class IBMQSampler(CircuitSampler):
     """ A sampler for remote IBMQ backends.
+
+    TODO - make work.
 
     """
 
@@ -45,7 +48,10 @@ class IBMQSampler(CircuitSampler):
         kwargs = {} if kwargs is None else kwargs
         self._qi = quantum_instance or QuantumInstance(backend=backend, **kwargs)
 
-    def convert(self, operator):
+    def convert(self,
+                operator: OperatorBase,
+                params: dict = None):
+        """ Accept the Operator and return the converted Operator """
 
         operator_dicts_replaced = DicttoCircuitSum().convert(operator)
         reduced_op = operator_dicts_replaced.reduce()
@@ -74,10 +80,13 @@ class IBMQSampler(CircuitSampler):
 
         return replace_circuits_with_dicts(reduced_op)
 
-    def sample_circuits(self, op_circuits: List) -> Dict:
+    def sample_circuits(self,
+                        op_circuits: Optional[List] = None,
+                        param_bindings: Optional[List] = None) -> Dict:
         """
         Args:
             op_circuits: The list of circuits or StateFnCircuits to sample
+            param_bindings: a list of parameter dictionaries to bind to each circuit.
         Returns:
             Dict: dictionary of sampled state functions
         """

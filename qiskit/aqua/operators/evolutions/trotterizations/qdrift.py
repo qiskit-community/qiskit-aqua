@@ -32,10 +32,10 @@ class QDrift(TrotterizationBase):
     https://arxiv.org/abs/1811.08017.
     """
 
-    def __init__(self, reps=1):
+    def __init__(self, reps: int = 1) -> None:
         super().__init__(reps=reps)
 
-    def trotterize(self, op_sum: OpSum):
+    def trotterize(self, op_sum: OpSum) -> OpComposition:
         # We artificially make the weights positive, TODO check if this works
         weights = np.abs([op.coeff for op in op_sum.oplist])
         lambd = sum(weights)

@@ -14,7 +14,7 @@
 
 """ Expectation Algorithm Base """
 
-from typing import Optional, Callable
+from typing import Optional, Callable, Union
 import logging
 from functools import partial, reduce
 import numpy as np
@@ -22,7 +22,8 @@ import numpy as np
 from qiskit.quantum_info import Pauli
 from qiskit import QuantumCircuit
 
-from ..operator_primitives import OpPrimitive, OpPauli
+from ..operator_base import OperatorBase
+from ..operator_primitives import OpPrimitive, OpPauli, OpCircuit
 from ..operator_combos import OpVec, OpComposition
 from ..state_functions import StateFn
 from ..operator_globals import H, S, I
@@ -41,7 +42,7 @@ class PauliChangeOfBasis(ConverterBase):
     and I terms, which can be evolved or sampled natively on gate-based Quantum hardware. """
 
     def __init__(self,
-                 destination_basis: Optional[Pauli] = None,
+                 destination_basis: Optional[Union[Pauli, OpPauli]] = None,
                  traverse: bool = True,
                  replacement_fn: Optional[Callable] = None) -> None:
         """ Args:
@@ -73,12 +74,12 @@ class PauliChangeOfBasis(ConverterBase):
         self._replacement_fn = replacement_fn or PauliChangeOfBasis.operator_replacement_fn
 
     @property
-    def destination(self):
+    def destination(self) -> OpPauli:
         """ returns destination """
         return self._destination
 
     @destination.setter
-    def destination(self, dest):
+    def destination(self, dest: Union[Pauli, OpPauli]) -> None:
         if isinstance(dest, Pauli):
             dest = OpPauli(dest)
 
@@ -89,7 +90,7 @@ class PauliChangeOfBasis(ConverterBase):
 
     # TODO see whether we should make this performant by handling OpVecs of Paulis later.
     # pylint: disable=inconsistent-return-statements
-    def convert(self, operator):
+    def convert(self, operator: OperatorBase) -> OperatorBase:
         """ Given an Operator with Paulis, converts each Pauli into the basis specified
         by self._destination. More
         specifically, each Pauli p will be replaced by the composition of
@@ -121,7 +122,7 @@ class PauliChangeOfBasis(ConverterBase):
                     return opvec_of_statefns.traverse(self.convert)
 
         # TODO allow parameterized OpVec to be returned to save circuit copying.
-        elif isinstance(operator, OpVec) and self._traverse and\
+        elif isinstance(operator, OpVec) and self._traverse and \
                 'Pauli' in operator.get_primitives():
             # If opvec is abelian we can find a single post-rotation circuit
             # for the whole set. For now,
@@ -140,33 +141,36 @@ class PauliChangeOfBasis(ConverterBase):
                             'Paulis, not {}'.format(type(operator)))
 
     @staticmethod
-    def measurement_replacement_fn(cob_instr_op, dest_pauli_op):
+    def measurement_replacement_fn(cob_instr_op: OpCircuit,
+                                   dest_pauli_op: OpPauli) -> OperatorBase:
         """ measurement replacement function """
         return PauliChangeOfBasis.statefn_replacement_fn(cob_instr_op, dest_pauli_op).adjoint()
 
     @staticmethod
-    def statefn_replacement_fn(cob_instr_op, dest_pauli_op):
+    def statefn_replacement_fn(cob_instr_op: OpCircuit,
+                               dest_pauli_op: OpPauli) -> OperatorBase:
         """ state function replacement """
         return OpComposition([cob_instr_op.adjoint(), StateFn(dest_pauli_op)])
 
     @staticmethod
-    def operator_replacement_fn(cob_instr_op, dest_pauli_op):
+    def operator_replacement_fn(cob_instr_op: OpCircuit,
+                                dest_pauli_op: OpPauli) -> OperatorBase:
         """ operator replacement """
         return OpComposition([cob_instr_op.adjoint(), dest_pauli_op, cob_instr_op])
 
-    def get_tpb_pauli(self, op_vec):
+    def get_tpb_pauli(self, op_vec: OpVec) -> Pauli:
         """ get tpb pauli """
         origin_z = reduce(np.logical_or, [p_op.primitive.z for p_op in op_vec.oplist])
         origin_x = reduce(np.logical_or, [p_op.primitive.x for p_op in op_vec.oplist])
         return Pauli(x=origin_x, z=origin_z)
 
-    def get_diagonal_pauli_op(self, pauli_op):
+    def get_diagonal_pauli_op(self, pauli_op: OpPauli) -> OpPauli:
         """ get diagonal pauli operation """
         return OpPauli(Pauli(z=np.logical_or(pauli_op.primitive.z, pauli_op.primitive.x),
                              x=[False] * pauli_op.num_qubits),
                        coeff=pauli_op.coeff)
 
-    def get_diagonalizing_clifford(self, pauli):
+    def get_diagonalizing_clifford(self, pauli: Union[Pauli, OpPauli]) -> OperatorBase:
         """ Construct single-qubit rotations to {Z, I)^n
          Note, underlying Pauli bits are in Qiskit endianness!! """
         if isinstance(pauli, OpPauli):
@@ -180,7 +184,9 @@ class PauliChangeOfBasis(ConverterBase):
                                  reversed(pauli.x)])
         return x_to_z_origin.compose(y_to_x_origin)
 
-    def pad_paulis_to_equal_length(self, pauli_op1, pauli_op2):
+    def pad_paulis_to_equal_length(self,
+                                   pauli_op1: OpPauli,
+                                   pauli_op2: OpPauli) -> (OpPauli, OpPauli):
         """ pad paulis to equal length """
         num_qubits = max(pauli_op1.num_qubits, pauli_op2.num_qubits)
         pauli_1, pauli_2 = pauli_op1.primitive, pauli_op2.primitive
@@ -198,14 +204,16 @@ class PauliChangeOfBasis(ConverterBase):
         return OpPauli(pauli_1, coeff=pauli_op1.coeff), OpPauli(pauli_2, coeff=pauli_op2.coeff)
 
     # TODO
-    def construct_cnot_chain(self, diag_pauli_op1, diag_pauli_op2):
+    def construct_cnot_chain(self,
+                             diag_pauli_op1: OpPauli,
+                             diag_pauli_op2: OpPauli) -> OpPrimitive:
         """ construct cnot chain """
         # TODO be smarter about connectivity and actual distance between pauli and destination
         # TODO be smarter in general
 
-        pauli_1 = diag_pauli_op1.primitive if isinstance(diag_pauli_op1, OpPauli)\
+        pauli_1 = diag_pauli_op1.primitive if isinstance(diag_pauli_op1, OpPauli) \
             else diag_pauli_op1
-        pauli_2 = diag_pauli_op2.primitive if isinstance(diag_pauli_op2, OpPauli)\
+        pauli_2 = diag_pauli_op2.primitive if isinstance(diag_pauli_op2, OpPauli) \
             else diag_pauli_op2
         origin_sig_bits = np.logical_or(pauli_1.z, pauli_1.x)
         destination_sig_bits = np.logical_or(pauli_2.z, pauli_2.x)
@@ -267,7 +275,7 @@ class PauliChangeOfBasis(ConverterBase):
         return OpPrimitive(cnots.to_instruction())
 
     # TODO change to only accept OpPrimitive Pauli.
-    def get_cob_circuit(self, origin):
+    def get_cob_circuit(self, origin: Union[Pauli, OpPauli]) -> (OpPrimitive, OpPauli):
         """ The goal of this module is to construct a circuit which maps the +1 and -1 eigenvectors
         of the origin pauli to the +1 and -1 eigenvectors of the destination pauli. It does so by
             1) converting any |i+⟩ or |i+⟩ eigenvector bits in the origin to

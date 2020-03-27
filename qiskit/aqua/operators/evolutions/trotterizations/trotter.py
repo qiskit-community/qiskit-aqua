@@ -22,5 +22,6 @@ from .suzuki import Suzuki
 
 class Trotter(Suzuki):
     """ Simple Trotter expansion """
-    def __init__(self, reps=1):
+    def __init__(self,
+                 reps: int = 1) -> None:
         super().__init__(order=1, reps=1)

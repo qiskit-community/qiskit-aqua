@@ -53,7 +53,7 @@ class OpEvolution(OpPrimitive):
         return self.primitive.get_primitives()
 
     @property
-    def num_qubits(self):
+    def num_qubits(self) -> int:
         return self.primitive.num_qubits
 
     def add(self, other: OperatorBase) -> OperatorBase:

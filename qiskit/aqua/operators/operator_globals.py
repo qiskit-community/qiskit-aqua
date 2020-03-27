@@ -24,22 +24,34 @@ from .state_functions import StateFn
 
 # pylint: disable=invalid-name
 
-# Singletons
+# Immutable convenience objects
+
+
+def make_immutable(obj):
+    """ Delete the __setattr__ property to make the object mostly immutable. """
+
+    # TODO figure out how to get correct error message at some point
+    # def throw_immutability_exception(self, *args):
+    #     raise AquaError('Operator convenience globals are immutable.')
+
+    obj.__setattr__ = None
+    return obj
+
 
 # Paulis
-X = OpPrimitive(Pauli.from_label('X'))
-Y = OpPrimitive(Pauli.from_label('Y'))
-Z = OpPrimitive(Pauli.from_label('Z'))
-I = OpPrimitive(Pauli.from_label('I'))
+X = make_immutable(OpPrimitive(Pauli.from_label('X')))
+Y = make_immutable(OpPrimitive(Pauli.from_label('Y')))
+Z = make_immutable(OpPrimitive(Pauli.from_label('Z')))
+I = make_immutable(OpPrimitive(Pauli.from_label('I')))
 
 # Clifford+T
-CX = OpPrimitive(CXGate())
-S = OpPrimitive(SGate())
-H = OpPrimitive(HGate())
-T = OpPrimitive(TGate())
-Swap = OpPrimitive(SwapGate())
+CX = make_immutable(OpPrimitive(CXGate()))
+S = make_immutable(OpPrimitive(SGate()))
+H = make_immutable(OpPrimitive(HGate()))
+T = make_immutable(OpPrimitive(TGate()))
+Swap = make_immutable(OpPrimitive(SwapGate()))
 
-Zero = StateFn('0')
-One = StateFn('1')
-Plus = H.compose(Zero)
-Minus = H.compose(One)
+Zero = make_immutable(StateFn('0'))
+One = make_immutable(StateFn('1'))
+Plus = make_immutable(H.compose(Zero))
+Minus = make_immutable(H.compose(One))

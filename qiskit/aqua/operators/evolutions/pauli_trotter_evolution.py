@@ -40,7 +40,7 @@ class PauliTrotterEvolution(EvolutionBase):
     def __init__(self,
                  trotter_mode: Optional[Union[str, TrotterizationBase]] = 'trotter',
                  reps: Optional[int] = 1,
-                 group_paulis: Optional[bool] = True) -> None:
+                 group_paulis: Optional[bool] = False) -> None:
         """
             An evolution algorithm, replacing exponentiated sums of Paulis by changing them each
             to the Z basis, rotating with an rZ, changing back, and trotterizing.
@@ -54,7 +54,7 @@ class PauliTrotterEvolution(EvolutionBase):
         self._grouper = AbelianGrouper() if group_paulis else None
 
     @property
-    def trotter(self):
+    def trotter(self) -> TrotterizationBase:
         """ returns trotter """
         return self._trotter
 
@@ -62,7 +62,7 @@ class PauliTrotterEvolution(EvolutionBase):
     def trotter(self, trotter: TrotterizationBase):
         self._trotter = trotter
 
-    def convert(self, operator: OperatorBase):
+    def convert(self, operator: OperatorBase) -> OperatorBase:
         if self._grouper:
             # Sort into commuting groups
             operator = self._grouper.convert(operator).reduce()

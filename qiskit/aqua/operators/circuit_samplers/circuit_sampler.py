@@ -14,14 +14,18 @@
 
 """ Expectation Algorithm Base """
 
+from typing import List, Dict, Optional
 import logging
 from abc import abstractmethod
+
+from qiskit.providers import BaseBackend
 
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.utils.backend_utils import (is_ibmq_provider,
                                              is_local_backend,
                                              is_statevector_backend,
                                              is_aer_qasm)
+from ..operator_base import OperatorBase
 from ..converters import ConverterBase
 
 logger = logging.getLogger(__name__)
@@ -38,7 +42,7 @@ class CircuitSampler(ConverterBase):
 
     @staticmethod
     # pylint: disable=inconsistent-return-statements
-    def factory(backend=None):
+    def factory(backend: BaseBackend = None) -> ConverterBase:
         """ A factory method to produce the correct type of CircuitSampler
         subclass based on the primitive passed in."""
 
@@ -54,12 +58,17 @@ class CircuitSampler(ConverterBase):
             from . import IBMQSampler
             return IBMQSampler(backend=backend)
 
+    #pylint: disable=arguments-differ
     @abstractmethod
-    def convert(self, operator):
+    def convert(self,
+                operator: OperatorBase,
+                params: dict = None):
         """ Accept the Operator and return the converted Operator """
         raise NotImplementedError
 
     @abstractmethod
-    def sample_circuits(self, op_circuits):
+    def sample_circuits(self,
+                        op_circuits: Optional[List] = None,
+                        param_bindings: Optional[List] = None) -> Dict:
         """ Accept a list of op_circuits and return a list of count dictionaries for each."""
         raise NotImplementedError

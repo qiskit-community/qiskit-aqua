@@ -19,27 +19,30 @@ Simple Trotter expansion.
 
 from typing import List, Union
 from qiskit.quantum_info import Pauli
+
 from .trotterization_base import TrotterizationBase
-from ...operator_combos import OpComposition
+from ...operator_combos import OpComposition, OpSum
 
 
 class Suzuki(TrotterizationBase):
     """ Simple Trotter expansion """
-    def __init__(self, reps=1, order=2):
+    def __init__(self,
+                 reps: int = 1,
+                 order: int = 2) -> None:
         super().__init__(reps=reps)
         self._order = order
 
     @property
-    def order(self):
+    def order(self) -> int:
         """ returns order """
         return self._order
 
     @order.setter
-    def order(self, order):
+    def order(self, order: int) -> None:
         """ sets order """
         self._order = order
 
-    def trotterize(self, op_sum):
+    def trotterize(self, op_sum: OpSum) -> OpComposition:
         composition_list = Suzuki.suzuki_recursive_expansion(
             op_sum.oplist, op_sum.coeff, self.order, self.reps)
 

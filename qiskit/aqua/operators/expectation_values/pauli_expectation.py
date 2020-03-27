@@ -12,10 +12,17 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Expectation Algorithm Base """
+""" Expectation Algorithm for Pauli-basis observables by changing to diagonal basis and
+estimating average by sampling. """
 
 import logging
+from typing import Union
+import numpy as np
 
+from qiskit.providers import BaseBackend
+
+from qiskit.aqua import QuantumInstance
+from ..operator_base import OperatorBase
 from .expectation_base import ExpectationBase
 from ..operator_combos import OpVec, OpComposition
 from ..state_functions import StateFn
@@ -26,11 +33,18 @@ logger = logging.getLogger(__name__)
 
 class PauliExpectation(ExpectationBase):
     """ An Expectation Value algorithm for taking expectations of quantum states
-    specified by circuits over observables specified by Pauli Operators. Flow:
+    specified by circuits over observables specified by Pauli Operators.
+
+    Observables are changed to diagonal basis by clifford circuits and average is estimated by
+    sampling measurements in the Z-basis.
 
     """
 
-    def __init__(self, operator=None, state=None, backend=None, group_paulis=True):
+    def __init__(self,
+                 operator: OperatorBase = None,
+                 state: OperatorBase = None,
+                 backend: BaseBackend = None,
+                 group_paulis: bool = True) -> None:
         """
         Args:
 
@@ -47,37 +61,37 @@ class PauliExpectation(ExpectationBase):
     # TODO setters which wipe state
 
     @property
-    def operator(self):
+    def operator(self) -> OperatorBase:
         return self._operator
 
     @operator.setter
-    def operator(self, operator):
+    def operator(self, operator: OperatorBase) -> None:
         self._operator = operator
         self._converted_operator = None
         self._reduced_meas_op = None
         self._sampled_meas_op = None
 
     @property
-    def state(self):
+    def state(self) -> OperatorBase:
         """ returns state """
         return self._state
 
     @state.setter
-    def state(self, state):
+    def state(self, state: OperatorBase) -> None:
         self._state = state
         self._reduced_meas_op = None
         self._sampled_meas_op = None
 
     @property
-    def quantum_instance(self):
+    def quantum_instance(self) -> QuantumInstance:
         """ returns quantum instance """
         return self._circuit_sampler.quantum_instance
 
     @quantum_instance.setter
-    def quantum_instance(self, quantum_instance):
+    def quantum_instance(self, quantum_instance: QuantumInstance) -> None:
         self._circuit_sampler.quantum_instance = quantum_instance
 
-    def expectation_op(self, state=None):
+    def expectation_op(self, state: OperatorBase = None) -> OperatorBase:
         """ expectation op """
         state = state or self._state
 
@@ -98,7 +112,9 @@ class PauliExpectation(ExpectationBase):
         expec_op = self._converted_operator.compose(state)
         return expec_op.reduce()
 
-    def compute_expectation(self, state=None, params=None):
+    def compute_expectation(self,
+                            state: OperatorBase = None,
+                            params: dict = None) -> Union[list, float, complex, np.ndarray]:
         # Wipes caches in setter
         if state and not state == self.state:
             self.state = state
@@ -122,8 +138,15 @@ class PauliExpectation(ExpectationBase):
             return self._reduced_meas_op.eval()
 
     # pylint: disable=inconsistent-return-statements
-    def compute_standard_deviation(self, state=None, params=None):
-        """ compute standard deviation """
+    def compute_standard_deviation(self,
+                                   state: OperatorBase = None,
+                                   params: dict = None) -> Union[list, float, complex, np.ndarray]:
+        """ compute standard deviation
+
+        TODO Break out into two things - Standard deviation of distribution over observable (mostly
+        unchanged with increasing shots), and error of ExpectationValue estimator (decreases with
+        increasing shots)
+        """
         state = state or self.state
         if self._sampled_meas_op is None:
             self.compute_expectation(state=state, params=params)

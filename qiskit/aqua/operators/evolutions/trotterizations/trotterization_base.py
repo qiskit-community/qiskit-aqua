@@ -17,6 +17,8 @@
 import logging
 from abc import abstractmethod
 
+from ...operator_base import OperatorBase
+
 # TODO centralize handling of commuting groups
 
 logger = logging.getLogger(__name__)
@@ -27,7 +29,8 @@ class TrotterizationBase():
 
     @staticmethod
     # pylint: disable=inconsistent-return-statements
-    def factory(mode, reps=1):
+    def factory(mode: str,
+                reps: int = 1):
         """ Factory """
         if mode not in ['trotter', 'suzuki', 'qdrift']:
             raise ValueError('Trotter mode {} not supported'.format(mode))
@@ -45,20 +48,20 @@ class TrotterizationBase():
             from .qdrift import QDrift
             return QDrift(reps=reps)
 
-    def __init__(self, reps=1):
+    def __init__(self, reps: int = 1) -> None:
         self._reps = reps
 
     @property
-    def reps(self):
+    def reps(self) -> int:
         """ returns reps """
         return self._reps
 
     @reps.setter
-    def reps(self, order):
-        self._reps = order
+    def reps(self, reps: int) -> None:
+        self._reps = reps
 
     @abstractmethod
-    def trotterize(self, op_sum):
+    def trotterize(self, op_sum: OperatorBase) -> OperatorBase:
         """ trotterize """
         raise NotImplementedError
 

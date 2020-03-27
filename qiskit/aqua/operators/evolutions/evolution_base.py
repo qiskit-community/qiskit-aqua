@@ -16,6 +16,7 @@
 
 import logging
 
+from ..operator_base import OperatorBase
 from ..converters import ConverterBase
 
 logger = logging.getLogger(__name__)
@@ -32,7 +33,7 @@ class EvolutionBase(ConverterBase):
 
     @staticmethod
     # pylint: disable=inconsistent-return-statements
-    def factory(operator=None):
+    def factory(operator: OperatorBase = None) -> ConverterBase:
         """
         Args:
         Returns:
@@ -61,7 +62,7 @@ class EvolutionBase(ConverterBase):
         else:
             raise ValueError('Evolutions of Mixed Operators not yet supported.')
 
-    def convert(self, operator):
+    def convert(self, operator: OperatorBase) -> OperatorBase:
         raise NotImplementedError
 
     # TODO @abstractmethod
