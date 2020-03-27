@@ -238,7 +238,7 @@ jobs:
       python: 3.8
       script: stestr --test-path test/optimization run
     - name: "Run pip check"
-      <<<: *stage_dependencies
+      <<: *stage_dependencies
       if: tag IS blank
       script:
         - pip install cvxopt
