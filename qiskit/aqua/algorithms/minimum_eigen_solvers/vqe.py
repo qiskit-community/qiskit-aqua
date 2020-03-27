@@ -164,7 +164,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                          cost_fn=self._energy_evaluation,
                          initial_point=initial_point)
 
-        self._quantum_instance = quantum_instance
+        self.quantum_instance = quantum_instance
 
         logger.info(self.print_settings())
         self._var_form_params = None
@@ -336,7 +336,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         values = []
         params = []
         for idx, operator in enumerate(self._aux_operators):
-            if not operator.is_empty():
+            if operator is not None and not operator.is_empty():
                 temp_circuit = QuantumCircuit() + wavefn_circuit
                 circuit = operator.construct_evaluation_circuit(
                     wave_function=temp_circuit,
@@ -353,6 +353,9 @@ class VQE(VQAlgorithm, MinimumEigensolver):
             result = self._quantum_instance.execute(to_be_simulated_circuits)
 
             for idx, operator in enumerate(self._aux_operators):
+                if operator is None:
+                    values.append(None)
+                    continue
                 if operator.is_empty():
                     mean, std = 0.0, 0.0
                 else:
@@ -366,8 +369,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                 values.append((mean, std))
 
         if values:
-            aux_op_vals = np.empty([1, len(self._aux_operators), 2])
-            aux_op_vals[0, :] = np.asarray(values)
+            aux_op_vals = [np.asarray(values)]
             self._ret['aux_ops'] = aux_op_vals
 
     def compute_minimum_eigenvalue(
@@ -398,6 +400,8 @@ class VQE(VQAlgorithm, MinimumEigensolver):
             self._operator = \
                 self._config_the_best_mode(self._operator, self._quantum_instance.backend)
             for i in range(len(self._aux_operators)):
+                if self._aux_operators[i] is None:
+                    continue
                 if not self._aux_operators[i].is_empty():
                     self._aux_operators[i] = \
                         self._config_the_best_mode(self._aux_operators[i],

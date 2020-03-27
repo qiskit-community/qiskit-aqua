@@ -3,7 +3,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -29,28 +29,49 @@ from typing import Optional
 import numpy as np
 from cplex import SparseTriple
 
-from qiskit.optimization import QiskitOptimizationError
-from qiskit.optimization.algorithms import OptimizationAlgorithm, MinimumEigenOptimizer
-from qiskit.optimization.problems import OptimizationProblem
-from qiskit.optimization.results import OptimizationResult
-from qiskit.optimization.converters import (PenalizeLinearEqualityConstraints,
-                                            IntegerToBinaryConverter)
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
+
+from .optimization_algorithm import OptimizationAlgorithm
+from .minimum_eigen_optimizer import MinimumEigenOptimizer
+from ..utils.qiskit_optimization_error import QiskitOptimizationError
+from ..problems.optimization_problem import OptimizationProblem
+from ..results.optimization_result import OptimizationResult
+from ..converters.optimization_problem_to_qubo import OptimizationProblemToQubo
 
 
 class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
-    """
-    TODO
+    """ A meta-algorithm that applies the recursive optimization scheme introduce in
+    [http://arxiv.org/abs/1910.08980] on top of ``MinimumEigenOptimizer``.
     """
 
     def __init__(self, min_eigen_optimizer: MinimumEigenOptimizer, min_num_vars: int = 1,
                  min_num_vars_optimizer: Optional[OptimizationAlgorithm] = None,
                  penalty: Optional[float] = None) -> None:
+        """ Initializes the recusrive miniimum eigen optimizer.
+
+        This initializer takes a ``MinimumEigenOptimizer``, the parameters to specify until when to
+        to apply the iterative scheme, and the optimizer to be applied once the threshold number of
+        variables is reached.
+
+        Args:
+            min_eigen_optimizer: The eigen optimizer to use in every iteration.
+            min_num_vars: The minimum number of variables to apply the recursive scheme. If this
+                threshold is reached, the min_num_vars_optimizer is used.
+            min_num_vars_optimizer: This optimizer is used after the recursive scheme for the
+                problem with the remaining variables.
+            penalty: The factor that is used to scale the penalty terms corresponding to linear
+                equality constraints.
+
+        TODO: add flag to store full history.
+
+        Raises:
+            QiskitOptimizationError: In case of invalid parameters (num_min_vars < 1).
         """
-        TODO: add flag to store full history...
-        """
+
         # TODO: should also allow function that maps problem to <ZZ>-correlators?
-        #  --> would support efficient classical implementation for QAOA with depth p=1
+        # --> would support efficient classical implementation for QAOA with depth p=1
+        # --> add results class for MinimumEigenSolver that contains enough info to do so.
+
         self._min_eigen_optimizer = min_eigen_optimizer
         if min_num_vars < 1:
             raise QiskitOptimizationError('Minimal problem size needs to be >= 1!')
@@ -62,35 +83,35 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         self._penalty = penalty
 
     def is_compatible(self, problem: OptimizationProblem) -> Optional[str]:
+        """Checks whether a given problem can be solved with this optimizer.
+
+        Checks whether the given problem is compatible, i.e., whether the problem can be converted
+        to a QUBO, and otherwise, returns a message explaining the incompatibility.
+
+        Args:
+            problem: The optization problem to check compatibility.
+
+        Returns:
+            Returns ``None`` if the problem is compatible and else a string with the error message.
         """
-        TODO
-        """
-        return None
+        return OptimizationProblemToQubo.is_compatible(problem)
 
     def solve(self, problem: OptimizationProblem) -> OptimizationResult:
+        """Tries to solves the given problem using the recursive optimizer.
+
+        Runs the optimizer to try to solve the optimization problem.
+
+        Args:
+            problem: The problem to be solved.
+
+        Returns:
+            The result of the optimizer applied to the problem.
+
         """
-        # handle variable replacements via variable names
-        # --> allows to easily adjust problems and roll-out final results
-        # TODO
-        """
 
-        # analyze compatibility of problem
-        msg = self.is_compatible(problem)
-        if msg is not None:
-            raise QiskitOptimizationError('Incompatible problem: %s' % msg)
-
-        # map integer variables to binary variables
-        int_to_bin_converter = IntegerToBinaryConverter()
-        problem_ = int_to_bin_converter.encode(problem)
-
-        # penalize linear equality constraints with only binary variables
-        if self._penalty is None:
-            # TODO: should be derived from problem
-            penalty = 1e5
-        else:
-            penalty = self._penalty
-        lin_eq_converter = PenalizeLinearEqualityConstraints()
-        problem_ = lin_eq_converter.encode(problem_, penalty_factor=penalty)
+        # convert problem to QUBO
+        qubo_converter = OptimizationProblemToQubo()
+        problem_ = qubo_converter.encode(problem)
         problem_ref = deepcopy(problem_)
 
         # run recursive optimization until the resulting problem is small enough
@@ -99,24 +120,24 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
 
             # solve current problem with optimizer
             result = self._min_eigen_optimizer.solve(problem_)
-            details = result.results[0]
+            samples = result.samples
 
             # analyze results to get strongest correlation
-            states = [v[0] for v in details]
-            probs = [v[2] for v in details]
+            states = [v[0] for v in samples]
+            probs = [v[2] for v in samples]
             correlations = self._construct_correlations(states, probs)
             i, j = self._find_strongest_correlation(correlations)
 
-            xi = problem_.variables.get_names(i)
-            xj = problem_.variables.get_names(j)
+            x_i = problem_.variables.get_names(i)
+            x_j = problem_.variables.get_names(j)
             if correlations[i, j] > 0:
-                # set xi = xj
+                # set x_i = x_j
                 problem_ = problem_.substitute_variables(variables=SparseTriple([i], [j], [1]))
-                replacements[xi] = (xj, 1)
+                replacements[x_i] = (x_j, 1)
             else:
-                # set xi = 1 - xj, this is done in two steps:
-                # 1. set xi = 1 + xi
-                # 2. set xi = -xj
+                # set x_i = 1 - x_j, this is done in two steps:
+                # 1. set x_i = 1 + x_i
+                # 2. set x_i = -x_j
 
                 # 1a. get additional offset
                 offset = problem_.objective.get_offset()
@@ -131,9 +152,10 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
                         coeff += problem_.objective.get_linear(k)
                         problem_.objective.set_linear(k, coeff)
 
-                # 2. replace xi by -xj
-                problem_ = problem_.substitute_variables(variables=SparseTriple([i], [j], [-1]))
-                replacements[xi] = (xj, -1)
+                # 2. replace x_i by -x_j
+                problem_ = problem_.substitute_variables(
+                    variables=SparseTriple([i], [j], [-1]))
+                replacements[x_i] = (x_j, -1)
 
         # solve remaining problem
         result = self._min_num_vars_optimizer.solve(problem_)
@@ -159,32 +181,32 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
                 raise QiskitOptimizationError('Invalid values!')
 
         # loop over all variables to set their values
-        for xi in problem_ref.variables.get_names():
-            if xi not in var_values:
-                find_value(xi, replacements, var_values)
+        for x_i in problem_ref.variables.get_names():
+            if x_i not in var_values:
+                find_value(x_i, replacements, var_values)
 
         # construct result
         x = [var_values[name] for name in problem_ref.variables.get_names()]
         fval = result.fval
-        results = OptimizationResult(x, fval, (replacements, int_to_bin_converter))
-        results = int_to_bin_converter.decode(results)
+        results = OptimizationResult(x, fval, (replacements, qubo_converter))
+        results = qubo_converter.decode(results)
         return results
 
     def _construct_correlations(self, states, probs):
         n = len(states[0])
         correlations = np.zeros((n, n))
-        for k, p in enumerate(probs):
+        for k, prob in enumerate(probs):
             b = states[k]
             for i in range(n):
                 for j in range(i):
                     if b[i] == b[j]:
-                        correlations[i, j] += p
+                        correlations[i, j] += prob
                     else:
-                        correlations[i, j] -= p
+                        correlations[i, j] -= prob
         return correlations
 
-    def _find_strongest_correlation(self, M):
-        m_max = np.argmax(np.abs(M.flatten()))
-        i = m_max // len(M)
-        j = m_max - i*len(M)
+    def _find_strongest_correlation(self, correlations):
+        m_max = np.argmax(np.abs(correlations.flatten()))
+        i = int(m_max // len(correlations))
+        j = int(m_max - i*len(correlations))
         return (i, j)

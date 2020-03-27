@@ -12,70 +12,73 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""The converter to convert an integer problem to a binary problem."""
 
 import copy
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Optional
 
 import numpy as np
 from cplex import SparsePair
 
-from qiskit.optimization.problems.optimization_problem import OptimizationProblem
-from qiskit.optimization.results.optimization_result import OptimizationResult
+from ..problems.optimization_problem import OptimizationProblem
+from ..results.optimization_result import OptimizationResult
 
 
 class IntegerToBinaryConverter:
-    """ Convert an `OptimizationProblem` into new one by encoding integer variables
-    with binary variables.
+    """Convert an `OptimizationProblem` into new one by encoding integer with binary variables.
 
-        Examples:
-            >>> problem = OptimizationProblem()
-            >>> problem.variables.add(names=['x'], types=['I'], lb=[0], ub=[10])
-            >>> conv = IntegerToBinaryConverter()
-            >>> problem2 = conv.encode(problem)
+    Examples:
+        >>> problem = OptimizationProblem()
+        >>> problem.variables.add(names=['x'], types=['I'], lb=[0], ub=[10])
+        >>> conv = IntegerToBinaryConverter()
+        >>> problem2 = conv.encode(problem)
     """
 
     _delimiter = '@'  # users are supposed not to use this character in variable names
 
-    def __init__(self):
-        """ Constructor. It initializes the internal data structure. No args.
-        """
+    def __init__(self) -> None:
+        """Initializes the internal data structure."""
         self._src = None
         self._dst = None
         self._conv: Dict[str, List[Tuple[str, int]]] = {}
         # e.g., self._conv = {'x': [('x@1', 1), ('x@2', 2)]}
 
-    def encode(self, op: OptimizationProblem, name: str = None) -> OptimizationProblem:
-        """ Convert a problem into a new one by encoding integer variables
-        with binary variables. It does not change the input.
-            Args:
-                op: The problem to be solved, that may contain integer variables.
-              name: The name of the converted problem.
+    def encode(self, op: OptimizationProblem, name: Optional[str] = None) -> OptimizationProblem:
+        """Convert an integer problem into a new problem with binary variables.
 
-            Returns:
-                The converted problem, that contains no integer variables.
+        Args:
+            op: The problem to be solved, that may contain integer variables.
+            name: The name of the converted problem. If not provided, the name of the input
+                problem is used.
+
+        Returns:
+            The converted problem, that contains no integer variables.
         """
 
         self._src = copy.deepcopy(op)
         self._dst = OptimizationProblem()
-        if name is None:
-            self._dst.set_problem_name(self._src.get_problem_name())
-        else:
+        if name:
             self._dst.set_problem_name(name)
+        else:
+            self._dst.set_problem_name(self._src.get_problem_name())
 
         # declare variables
         names = self._src.variables.get_names()
         types = self._src.variables.get_types()
-        lb = self._src.variables.get_lower_bounds()
-        ub = self._src.variables.get_upper_bounds()
-        for i, name in enumerate(names):
+        lower_bounds = self._src.variables.get_lower_bounds()
+        upper_bounds = self._src.variables.get_upper_bounds()
+        for i, variable in enumerate(names):
             typ = types[i]
             if typ == 'I':
-                new_vars: List[Tuple[str, int]] = self._encode_var(name=name, lb=lb[i], ub=ub[i])
-                self._conv[name] = new_vars
-                self._dst.variables.add(
-                    names=[name for name, _ in new_vars], types='B' * len(new_vars))
+                new_vars: List[Tuple[str, int]] = self._encode_var(name=variable,
+                                                                   lower_bound=lower_bounds[i],
+                                                                   upper_bound=upper_bounds[i])
+                self._conv[variable] = new_vars
+                self._dst.variables.add(names=[new_name for new_name, _ in new_vars],
+                                        types='B' * len(new_vars))
             else:
-                self._dst.variables.add(names=[name], types=typ, lb=[lb[i]], ub=[ub[i]])
+                self._dst.variables.add(names=[variable], types=typ,
+                                        lb=[lower_bounds[i]], ub=[upper_bounds[i]])
 
         # replace integer variables with binary variables in the objective function
         # self.objective.subs(self._conv)
@@ -89,9 +92,9 @@ class IntegerToBinaryConverter:
 
         return self._dst
 
-    def _encode_var(self, name: str, lb: int, ub: int) -> List[Tuple[str, int]]:
+    def _encode_var(self, name: str, lower_bound: int, upper_bound: int) -> List[Tuple[str, int]]:
         # bounded-coefficient encoding proposed in arxiv:1706.01945 (Eq. (5))
-        var_range = ub - lb
+        var_range = upper_bound - lower_bound
         power = int(np.log2(var_range))
         bounded_coef = var_range - (2 ** power - 1)
 
@@ -161,8 +164,7 @@ class IntegerToBinaryConverter:
         ind = list(range(num_var))
         lst = []
         for i in ind:
-            sp = SparsePair(ind=ind, val=new_quad[i].tolist())
-            lst.append(sp)
+            lst.append(SparsePair(ind=ind, val=new_quad[i].tolist()))
         self._dst.objective.set_quadratic(lst)
 
         # set constraints whose integer variables are replaced with binary variables
@@ -175,48 +177,44 @@ class IntegerToBinaryConverter:
         lin_expr = []
 
         for i, linear_row in enumerate(linear_rows):
-            sp = SparsePair()
+            sparse_pair = SparsePair()
             for j, var_ind in enumerate(linear_row.ind):
                 coef = linear_row.val[j]
                 var_name = self._src.variables.get_names(var_ind)
 
                 if var_name in self._conv:
                     for converted_name, converted_coef in self._conv[var_name]:
-                        sp.ind.append(converted_name)
-                        sp.val.append(converted_coef * coef)
+                        sparse_pair.ind.append(converted_name)
+                        sparse_pair.val.append(converted_coef * coef)
                 else:
-                    sp.ind.append(var_name)
-                    sp.val.append(coef)
+                    sparse_pair.ind.append(var_name)
+                    sparse_pair.val.append(coef)
 
-            lin_expr.append(sp)
+            lin_expr.append(sparse_pair)
 
-        self._dst.linear_constraints.add(
-            lin_expr, linear_sense, linear_rhs, linear_ranges, linear_names)
+        self._dst.linear_constraints.add(lin_expr, linear_sense, linear_rhs, linear_ranges,
+                                         linear_names)
 
     def decode(self, result: OptimizationResult) -> OptimizationResult:
-        """ Convert a result of a converted problem into that of the original problem
-        by decoding integer variables back.
+        """Convert the encoded problem (binary variables) back to the original (integer variables).
 
-            Args:
-                result: The result of the converted problem.
+        Args:
+            result: The result of the converted problem.
 
-            Returns:
-                The result of the original problem.
+        Returns:
+            The result of the original problem.
         """
-        new_result = OptimizationResult()
         names = self._dst.variables.get_names()
         vals = result.x
         new_vals = self._decode_var(names, vals)
-        new_result.x = new_vals
-        new_result.fval = result.fval
-        new_result.results = result.results
-        return new_result
+        result.x = new_vals
+        return result
 
     def _decode_var(self, names, vals) -> List[int]:
         # decode integer values
         sol = {name: int(vals[i]) for i, name in enumerate(names)}
         new_vals = []
-        for i, name in enumerate(self._src.variables.get_names()):
+        for name in self._src.variables.get_names():
             if name in self._conv:
                 new_vals.append(sum(sol[aux] * coef for aux, coef in self._conv[name]))
             else:

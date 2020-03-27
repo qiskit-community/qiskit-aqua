@@ -14,11 +14,11 @@
 
 """ Test QuadraticConstraintInterface """
 
+from test.optimization.common import QiskitOptimizationTestCase
 from cplex import SparsePair, SparseTriple
 
 from qiskit.optimization import QiskitOptimizationError
 from qiskit.optimization.problems import OptimizationProblem
-from test.optimization.common import QiskitOptimizationTestCase
 
 
 class TestQuadraticConstraints(QiskitOptimizationTestCase):

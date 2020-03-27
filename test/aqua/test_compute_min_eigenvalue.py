@@ -23,7 +23,7 @@ from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator
 from qiskit.aqua.components.variational_forms import RY, RYRZ
 from qiskit.aqua.components.optimizers import L_BFGS_B, SPSA, SLSQP
 from qiskit.aqua.components.initial_states import Zero
-from qiskit.aqua.algorithms import VQE, ClassicalMinimumEigensolver
+from qiskit.aqua.algorithms import VQE, NumPyMinimumEigensolver
 
 
 class TestComputeMinEigenvalue(QiskitAquaTestCase):
@@ -77,7 +77,7 @@ class TestComputeMinEigenvalue(QiskitAquaTestCase):
     def test_ee(self):
         """ EE test """
         dummy_operator = MatrixOperator([[1]])
-        ee = ClassicalMinimumEigensolver()
+        ee = NumPyMinimumEigensolver()
         output = ee.compute_minimum_eigenvalue(self.qubit_op)
 
         self.assertAlmostEqual(output.eigenvalue, -1.85727503)

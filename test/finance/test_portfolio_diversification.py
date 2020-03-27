@@ -22,7 +22,7 @@ from qiskit.quantum_info import Pauli
 
 from qiskit.aqua import aqua_globals
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
-from qiskit.finance.ising.portfolio_diversification import \
+from qiskit.finance.applications.ising.portfolio_diversification import \
     (get_portfoliodiversification_solution,
      get_operator,
      get_portfoliodiversification_value)

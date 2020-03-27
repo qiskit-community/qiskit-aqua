@@ -3,7 +3,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -24,14 +24,14 @@
 
 from typing import Optional
 
+import numpy as np
+from scipy.optimize import fmin_cobyla
+
 from qiskit.optimization.algorithms import OptimizationAlgorithm
 from qiskit.optimization.results import OptimizationResult
 from qiskit.optimization.problems import OptimizationProblem
 from qiskit.optimization import QiskitOptimizationError
 from qiskit.optimization import infinity
-
-import numpy as np
-from scipy.optimize import fmin_cobyla
 
 
 class CobylaOptimizer(OptimizationAlgorithm):
@@ -111,8 +111,8 @@ class CobylaOptimizer(OptimizationAlgorithm):
 
         # check compatibility and raise exception if incompatible
         msg = self.is_compatible(problem)
-        if msg is not None:
-            raise QiskitOptimizationError('Incompatible problem: %s' % msg)
+        if msg:
+            raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
 
         # get number of variables
         num_vars = problem.variables.get_num()
@@ -125,8 +125,8 @@ class CobylaOptimizer(OptimizationAlgorithm):
         quadratic = np.zeros((num_vars, num_vars))
         for i, v in linear_dict.items():
             linear[i] = v
-        for i, vi in quadratic_dict.items():
-            for j, v in vi.items():
+        for i, v_i in quadratic_dict.items():
+            for j, v in v_i.items():
                 quadratic[i, j] = v
 
         def objective(x):
@@ -143,9 +143,9 @@ class CobylaOptimizer(OptimizationAlgorithm):
         ubs = problem.variables.get_upper_bounds()
         for i in range(num_vars):
             if lbs[i] > -infinity:
-                constraints += [lambda x: x - lbs[i]]
+                constraints += [lambda x, lbs=lbs, i=i: x - lbs[i]]
             if ubs[i] < infinity:
-                constraints += [lambda x: ubs[i] - x]
+                constraints += [lambda x, lbs=lbs, i=i: ubs[i] - x]
 
         # add linear constraints
         for i in range(problem.linear_constraints.get_num()):
@@ -158,24 +158,54 @@ class CobylaOptimizer(OptimizationAlgorithm):
 
             if sense == 'E':
                 constraints += [
-                    lambda x: rhs - np.dot(x, row_array),
-                    lambda x: np.dot(x, row_array) - rhs
+                    lambda x, rhs=rhs, row_array=row_array: rhs - np.dot(x, row_array),
+                    lambda x, rhs=rhs, row_array=row_array: np.dot(x, row_array) - rhs
                 ]
             elif sense == 'L':
-                constraints += [lambda x: rhs - np.dot(x, row_array)]
+                constraints += [lambda x, rhs=rhs, row_array=row_array: rhs - np.dot(x, row_array)]
             elif sense == 'G':
-                constraints += [lambda x: np.dot(x, row_array) - rhs]
+                constraints += [lambda x, rhs=rhs, row_array=row_array: np.dot(x, row_array) - rhs]
             else:
                 # TODO: add range constraints
                 raise QiskitOptimizationError('Unsupported constraint type!')
 
-        # TODO: add quadratic constraints
+        # add quadratic constraints
+        for i in range(problem.quadratic_constraints.get_num()):
+            rhs = problem.quadratic_constraints.get_rhs(i)
+            sense = problem.quadratic_constraints.get_senses(i)
 
-        # TODO: derive x0 from lower/upper bounds
-        x0 = np.zeros(problem.variables.get_num())
+            linear_comp = problem.quadratic_constraints.get_linear_components(i)
+            quadratic_comp = problem.quadratic_constraints.get_quadratic_components(i)
+
+            linear_array = np.zeros(num_vars)
+            for j, v in zip(linear_comp.ind, linear_comp.val):
+                linear_array[j] = v
+
+            quadratic_array = np.zeros((num_vars, num_vars))
+            for j, k, v in zip(quadratic_comp.ind1, quadratic_comp.ind2, quadratic_comp.val):
+                quadratic_array[j, k] = v
+
+            def lhs(x, linear_array=linear_array, quadratic_array=quadratic_array):
+                return np.dot(x, linear_array) + np.dot(np.dot(x, quadratic_array), x)
+
+            if sense == 'E':
+                constraints += [
+                    lambda x: rhs - lhs(x),
+                    lambda x: lhs(x) - rhs
+                ]
+            elif sense == 'L':
+                constraints += [lambda x: rhs - lhs(x)]
+            elif sense == 'G':
+                constraints += [lambda x: lhs(x) - rhs]
+            else:
+                # TODO: add range constraints
+                raise QiskitOptimizationError('Unsupported constraint type!')
+
+        # TODO: derive x_0 from lower/upper bounds
+        x_0 = np.zeros(problem.variables.get_num())
 
         # run optimization
-        x = fmin_cobyla(objective, x0, constraints, rhobeg=self._rhobeg, rhoend=self._rhoend,
+        x = fmin_cobyla(objective, x_0, constraints, rhobeg=self._rhobeg, rhoend=self._rhoend,
                         maxfun=self._maxfun, disp=self._disp, catol=self._catol)
         fval = problem.objective.get_sense() * objective(x)
 
