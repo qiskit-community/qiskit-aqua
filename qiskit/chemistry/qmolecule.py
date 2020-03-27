@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -14,6 +14,7 @@
 
 """ QMolecule """
 
+from typing import List
 import os
 import logging
 import tempfile
@@ -137,8 +138,14 @@ class QMolecule:
         return QMolecule.symbols.index(self.atom_symbol[natom].lower().capitalize())
 
     @property
-    def core_orbitals(self):
-        """ returns core orbitals """
+    def core_orbitals(self) -> List[int]:
+        """
+        Returns:
+            A list of core orbital indices.
+        """
+        if self.num_atoms is None:
+            logger.warning("Missing molecule information! Returning empty core orbital list.")
+            return []
         count = 0
         for i in range(self.num_atoms):
             z = self.Z(i)
@@ -552,8 +559,9 @@ class QMolecule:
 
             logger.info("Computed Hartree-Fock energy: %s", self.hf_energy)
             logger.info("Nuclear repulsion energy: %s", self.nuclear_repulsion_energy)
-            logger.info("One and two electron Hartree-Fock energy: %s",
-                        self.hf_energy - self.nuclear_repulsion_energy)
+            if None not in (self.hf_energy, self.nuclear_repulsion_energy):
+                logger.info("One and two electron Hartree-Fock energy: %s",
+                            self.hf_energy - self.nuclear_repulsion_energy)
             logger.info("Number of orbitals is %s", self.num_orbitals)
             logger.info("%s alpha and %s beta electrons", self.num_alpha, self.num_beta)
             logger.info("Molecule comprises %s atoms and in xyz format is ::", self.num_atoms)

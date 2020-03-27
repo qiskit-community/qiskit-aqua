@@ -29,7 +29,7 @@ configurations and capability.
 
 Note: Aqua provides some classical algorithms that take the same input data as quantum algorithms
 solving the same problem. For instance a Hamiltonian operator input to VQE can be used as an input
-to the ExactEigensolver. This may be useful for near-term quantum experiments, for problems
+to the NumPyEigensolver. This may be useful for near-term quantum experiments, for problems
 that can still be solved classically, as their outcome can be easily compared against a classical
 equivalent since the same input data can be used.
 
@@ -68,7 +68,7 @@ these on a quantum backend, whether a real device or simulator.
 ### Optional Installs
 
 * **IBM CPLEX** may be [installed](qiskit/aqua/algorithms/minimum_eigen_solvers/cplex/__init__.py#L16) 
-  to allow use of the `CPLEX_Ising` classical solver algorithm.
+  to allow use of the `ClassicalCPLEX` classical solver algorithm.
 * **PyTorch**, may be installed either using command `pip install qiskit-aqua[torch]` to install the
   package or refer to PyTorch [getting started](https://pytorch.org/get-started/locally/). PyTorch
   being installed will enable the neural networks `PyTorchDiscriminator` component to be used with
@@ -231,7 +231,7 @@ from qiskit import Aer
 backend = Aer.get_backend('statevector_simulator')
 
 result = algorithm.run(backend)
-print(result['energy'])
+print(result.eigenvalue.real)
 ```
 The program above uses a quantum computer to calculate the ground state energy of molecular Hydrogen,
 H<sub>2</sub>, where the two atoms are configured to be at a distance of 0.735 angstroms. The molecular
@@ -278,7 +278,7 @@ evaluate a fixed income asset with uncertain interest rates.
 ```python
 import numpy as np
 from qiskit import BasicAer
-from qiskit.aqua.algorithms.single_sample.amplitude_estimation.ae import AmplitudeEstimation
+from qiskit.aqua.algorithms import AmplitudeEstimation
 from qiskit.aqua.components.uncertainty_models import MultivariateNormalDistribution
 from qiskit.finance.components.uncertainty_problems import FixedIncomeExpectedValue
 
@@ -428,10 +428,10 @@ quantum_instance = QuantumInstance(backend, shots=1024, seed_simulator=seed,
                                    seed_transpiler=seed)
 result = qaoa.run(quantum_instance)
 
-x = sample_most_likely(result['eigvecs'][0])
-print('energy:', result['energy'])
-print('time:', result['eval_time'])
-print('max-cut objective:', result['energy'] + offset)
+x = sample_most_likely(result.eigenstate)
+print('energy:', result.eigenvalue.real)
+print('time:', result.optimizer_time)
+print('max-cut objective:', result.eigenvalue.real + offset)
 print('solution:', max_cut.get_graph_solution(x))
 print('solution objective:', max_cut.max_cut_value(x, w))
 ```

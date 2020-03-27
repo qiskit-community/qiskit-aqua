@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Test Cplex Ising """
+""" Test Classical Cplex """
 
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
@@ -20,11 +20,11 @@ import numpy as np
 from qiskit.aqua import aqua_globals
 from qiskit.optimization.ising import max_cut
 from qiskit.optimization.ising.common import random_graph
-from qiskit.aqua.algorithms import CPLEX_Ising
+from qiskit.aqua.algorithms import ClassicalCPLEX
 
 
-class TestCplexIsing(QiskitOptimizationTestCase):
-    """Cplex Ising tests."""
+class TestClassicalCplex(QiskitOptimizationTestCase):
+    """Classical Cplex tests."""
 
     def setUp(self):
         super().setUp()
@@ -35,7 +35,7 @@ class TestCplexIsing(QiskitOptimizationTestCase):
     def test_cplex_ising(self):
         """ cplex ising test """
         try:
-            algo = CPLEX_Ising(self.qubit_op, display=0)
+            algo = ClassicalCPLEX(self.qubit_op, display=0)
             result = algo.run()
             self.assertEqual(result['energy'], -20.5)
             x_dict = result['x_sol']

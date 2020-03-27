@@ -14,9 +14,12 @@
 
 """ The Quantum Approximate Optimization Algorithm. """
 
-from typing import List, Callable, Optional
+from typing import List, Callable, Optional, Union
 import logging
 import numpy as np
+
+from qiskit.providers import BaseBackend
+from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import BaseOperator
 from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.components.optimizers import Optimizer
@@ -27,6 +30,8 @@ from ..vqe import VQE
 logger = logging.getLogger(__name__)
 
 # pylint: disable=invalid-name
+# disable check for operator setter because of pylint bug
+# pylint: disable=no-member
 
 
 class QAOA(VQE):
@@ -57,12 +62,13 @@ class QAOA(VQE):
     be supplied.
     """
 
-    def __init__(self, operator: BaseOperator, optimizer: Optimizer, p: int = 1,
+    def __init__(self, operator: BaseOperator = None, optimizer: Optimizer = None, p: int = 1,
                  initial_state: Optional[InitialState] = None,
                  mixer: Optional[BaseOperator] = None, initial_point: Optional[np.ndarray] = None,
                  max_evals_grouped: int = 1, aux_operators: Optional[List[BaseOperator]] = None,
                  callback: Optional[Callable[[int, np.ndarray, float, float], None]] = None,
-                 auto_conversion: bool = True) -> None:
+                 auto_conversion: bool = True,
+                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
         """
         Args:
             operator: Qubit operator
@@ -99,10 +105,27 @@ class QAOA(VQE):
                   :class:`~qiskit.aqua.operators.WeightedPauliOperator`
                 - for *qasm simulator or real backend:*
                   :class:`~qiskit.aqua.operators.TPBGroupedWeightedPauliOperator`
+            quantum_instance: Quantum Instance or Backend
         """
         validate_min('p', p, 1)
-        var_form = QAOAVarForm(operator.copy(), p, initial_state=initial_state,
-                               mixer_operator=mixer)
-        super().__init__(operator, var_form, optimizer, initial_point=initial_point,
+
+        self._p = p
+        self._mixer_operator = mixer
+        self._initial_state = initial_state
+
+        # VQE will use the operator setter, during its constructor, which is overridden below and
+        # will cause the var form to be built
+        super().__init__(operator, None, optimizer, initial_point=initial_point,
                          max_evals_grouped=max_evals_grouped, aux_operators=aux_operators,
-                         callback=callback, auto_conversion=auto_conversion)
+                         callback=callback, auto_conversion=auto_conversion,
+                         quantum_instance=quantum_instance)
+
+    @VQE.operator.setter
+    def operator(self, operator: BaseOperator) -> None:
+        """ Sets operator """
+        if operator is not None:
+            self._in_operator = operator
+            self.var_form = QAOAVarForm(operator.copy(),
+                                        self._p,
+                                        initial_state=self._initial_state,
+                                        mixer_operator=self._mixer_operator)

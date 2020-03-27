@@ -140,6 +140,7 @@ eigenstate
 eigrange
 eigs
 eigvecs
+einact
 einsum
 els
 endif
@@ -159,6 +160,7 @@ excitations
 expr
 factorizers
 factr
+fcidump
 fcompiler
 fermionic
 FermionicOperator
@@ -212,6 +214,7 @@ idx
 ifdef
 ifortvars
 ign
+ignis
 ij
 ijkm
 ikmj
@@ -223,6 +226,7 @@ indvar
 init
 initializer
 initio
+inline
 innerproduct
 inreg
 instantiations
@@ -238,6 +242,7 @@ ising
 isinstance
 iso
 isub
+isym
 iteratively
 izaac
 jac
@@ -248,6 +253,7 @@ jt
 jth
 jw
 kaicher
+ket
 killoran
 kingma
 kitaev
@@ -316,6 +322,8 @@ msq
 multiclass
 multinomial
 multiprocess
+Nakanishi
+namelist
 nan
 narray
 nasdaq
@@ -325,10 +333,12 @@ ndarray
 ndarray's
 negoro
 nelder
+nelec
 neq
 nevals
 newtons's
 nfev
+nft
 nk
 nlopt
 nmo
@@ -337,6 +347,7 @@ nn
 noancilla
 noint
 noqa
+norb
 norbs
 nosignatures
 np
@@ -349,14 +360,16 @@ objval
 occ
 oe
 ok
-oneee
+onee
 online
 onwards
 oplus
 optim
 optimizer's
 optimizers
+orbsym
 org
+outpath
 overfit
 params
 parentname
@@ -427,6 +440,7 @@ rccx
 readme
 reala
 reddi
+refactor
 renormalize
 renyi
 reparameterizing
@@ -509,6 +523,7 @@ timelimit
 timestamp
 tnc
 toctree
+Todo
 toffoli
 tol
 tomo

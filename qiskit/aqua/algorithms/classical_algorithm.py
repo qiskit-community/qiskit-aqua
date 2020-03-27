@@ -20,33 +20,30 @@ class in this module.
 Doing so requires that the required algorithm interface is implemented.
 """
 
-# pylint: disable=unused-import
-
-from abc import abstractmethod
-from qiskit.aqua import QuantumInstance
-from qiskit.aqua.algorithms import QuantumAlgorithm
+from abc import ABC, abstractmethod
+from typing import Dict
+from qiskit.aqua import aqua_globals
 
 
-class ClassicalAlgorithm(QuantumAlgorithm):
+class ClassicalAlgorithm(ABC):
     """
     Base class for Classical Algorithms.
-
-    This method should initialize the module and
-    use an exception if a component of the module is available.
     """
 
-    @abstractmethod
-    def __init__(self):
-        super().__init__()
+    @property
+    def random(self):
+        """Return a numpy random."""
+        return aqua_globals.random
 
-    def run(self, quantum_instance=None, **kwargs):
-        """Execute the algorithm with selected backend.
+    def run(self) -> Dict:
+        """Execute the classical algorithm.
 
-        Args:
-            quantum_instance (QuantumInstance or BaseBackend): the experimental setting.
-            kwargs (dict): kwargs
         Returns:
             dict: results of an algorithm.
         """
 
         return self._run()
+
+    @abstractmethod
+    def _run(self) -> Dict:
+        raise NotImplementedError()

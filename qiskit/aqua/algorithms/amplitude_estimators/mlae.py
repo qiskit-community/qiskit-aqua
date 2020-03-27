@@ -19,8 +19,9 @@ import numpy as np
 from scipy.optimize import brute
 from scipy.stats import norm, chi2
 
+from qiskit.providers import BaseBackend
 from qiskit import ClassicalRegister, QuantumRegister, QuantumCircuit
-from qiskit.aqua import AquaError
+from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.utils.circuit_factory import CircuitFactory
 from qiskit.aqua.utils.validation import validate_min
 from .ae_algorithm import AmplitudeEstimationAlgorithm
@@ -45,7 +46,8 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                  a_factory: Optional[CircuitFactory] = None,
                  q_factory: Optional[CircuitFactory] = None,
                  i_objective: Optional[int] = None,
-                 likelihood_evals: Optional[int] = None) -> None:
+                 likelihood_evals: Optional[int] = None,
+                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
         r"""
         Args:
             num_oracle_circuits: The number of circuits applying different powers of the Grover
@@ -60,9 +62,10 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 with the state \|1> and 'bad' solutions with the state \|0>
             likelihood_evals: The number of gridpoints for the maximum search of the likelihood
                 function
+            quantum_instance: Quantum Instance or Backend
         """
         validate_min('num_oracle_circuits', num_oracle_circuits, 1)
-        super().__init__(a_factory, q_factory, i_objective)
+        super().__init__(a_factory, q_factory, i_objective, quantum_instance)
 
         # get parameters
         self._evaluation_schedule = [0] + [2**j for j in range(num_oracle_circuits)]
@@ -133,6 +136,9 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 self.q_factory.build_power(qc_k, q, k, q_aux)
 
             if measurement:
+                # real hardware can currently not handle operations after measurements, which might
+                # happen if the circuit gets transpiled, hence we're adding a safeguard-barrier
+                qc_k.barrier()
                 qc_k.measure(q[self.i_objective], c[0])
 
             self._circuits += [qc_k]

@@ -21,7 +21,8 @@ from scipy.stats import chi2, norm
 from scipy.optimize import bisect
 
 from qiskit import QuantumCircuit
-from qiskit.aqua import AquaError
+from qiskit.providers import BaseBackend
+from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.utils import CircuitFactory
 from qiskit.aqua.circuits import PhaseEstimationCircuit
 from qiskit.aqua.components.iqfts import IQFT, Standard
@@ -53,7 +54,8 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
                  a_factory: Optional[CircuitFactory] = None,
                  q_factory: Optional[CircuitFactory] = None,
                  i_objective: Optional[int] = None,
-                 iqft: Optional[IQFT] = None) -> None:
+                 iqft: Optional[IQFT] = None,
+                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
         r"""
         Args:
             num_eval_qubits: Number of evaluation qubits, has a min. value of 1.
@@ -64,9 +66,10 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 with the state \|1> and 'bad' solutions with the state \|0>.
             iqft: The Inverse Quantum Fourier Transform component, defaults to using a standard IQFT
                 when None
+            quantum_instance: Quantum Instance or Backend
         """
         validate_min('num_eval_qubits', num_eval_qubits, 1)
-        super().__init__(a_factory, q_factory, i_objective)
+        super().__init__(a_factory, q_factory, i_objective, quantum_instance)
 
         # get parameters
         self._m = num_eval_qubits

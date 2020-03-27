@@ -12,16 +12,16 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Test Exact LS solver """
+""" Test NumPy LS solver """
 
 import unittest
 from test.aqua import QiskitAquaTestCase
 import numpy as np
-from qiskit.aqua.algorithms import ExactLSsolver
+from qiskit.aqua.algorithms import NumPyLSsolver
 
 
-class TestExactLSsolver(QiskitAquaTestCase):
-    """ Test Exact LS solver """
+class TestNumPyLSsolver(QiskitAquaTestCase):
+    """ Test NumPy LS solver """
     def setUp(self):
         super().setUp()
         self.matrix = [[1, 2], [2, 1]]
@@ -29,7 +29,7 @@ class TestExactLSsolver(QiskitAquaTestCase):
 
     def test_els(self):
         """ ELS test """
-        algo = ExactLSsolver(self.matrix, self.vector)
+        algo = NumPyLSsolver(self.matrix, self.vector)
         result = algo.run()
         np.testing.assert_array_almost_equal(result['solution'], [1, 0])
         np.testing.assert_array_almost_equal(result['eigvals'], [3, -1])
