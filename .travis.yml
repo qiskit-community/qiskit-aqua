@@ -237,6 +237,13 @@ jobs:
       if: tag IS blank
       python: 3.8
       script: stestr --test-path test/optimization run
+    - name: "Run pip check"
+      <<<: *stage_dependencies
+      if: tag IS blank
+      script:
+        - pip install cvxopt
+        - pip install https://github.com/rpmuller/pyquante2/archive/master.zip --progress-bar off
+        - pip check
     - stage: Coverage
       name: "Combine all coverages and upload to Coveralls"
       if: tag IS blank
