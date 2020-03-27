@@ -263,8 +263,12 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         while (iteration < self._max_iter and residual > self._tol) \
                 and (elapsed_time < self._max_time):
-            op1 = self._create_step1_problem()
-            self._state.x0 = self._update_x0(op1)
+            if binary_indices:
+                op1 = self._create_step1_problem()
+                self._state.x0 = self._update_x0(op1)
+            # else, no binary variables exist,
+            # and no update to be done in this case.
+
             # debug
             self._log.debug("x0=%s", self._state.x0)
 
@@ -275,8 +279,9 @@ class ADMMOptimizer(OptimizationAlgorithm):
             self._log.debug("z=%s", self._state.z)
 
             if self._three_block:
-                op3 = self._create_step3_problem()
-                self._state.y = self._update_y(op3)
+                if binary_indices:
+                    op3 = self._create_step3_problem()
+                    self._state.y = self._update_y(op3)
                 # debug
                 self._log.debug("y=%s", self._state.y)
 
@@ -858,10 +863,12 @@ class ADMMOptimizer(OptimizationAlgorithm):
         """
 
         def quadratic_form(matrix, x, c):
-            return np.dot(x.T, np.dot(matrix, x)) + np.dot(c.T, x)
+            return np.dot(x.T, np.dot(matrix / 2, x)) + np.dot(c.T, x)
 
         obj_val = quadratic_form(self._state.q0, self._state.x0, self._state.c0)
         obj_val += quadratic_form(self._state.q1, self._state.u, self._state.c1)
+        
+        obj_val += self._state.op.objective.get_offset()
 
         return obj_val
 
