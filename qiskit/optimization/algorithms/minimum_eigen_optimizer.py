@@ -25,6 +25,7 @@ Examples:
 """
 
 from typing import Optional, Any
+import numpy as np
 
 from qiskit.aqua.algorithms import MinimumEigensolver
 
@@ -53,6 +54,24 @@ class MinimumEigenOptimizerResult(OptimizationResult):
     def samples(self, samples: Any) -> None:
         """ set samples """
         self._samples = samples
+
+    def get_correlations(self):
+        """ get <Zi x Zj> correlation matrix from samples """
+
+        states = [v[0] for v in self.samples]
+        probs = [v[2] for v in self.samples]
+
+        n = len(states[0])
+        correlations = np.zeros((n, n))
+        for k, prob in enumerate(probs):
+            b = states[k]
+            for i in range(n):
+                for j in range(i):
+                    if b[i] == b[j]:
+                        correlations[i, j] += prob
+                    else:
+                        correlations[i, j] -= prob
+        return correlations
 
 
 class MinimumEigenOptimizer(OptimizationAlgorithm):
