@@ -18,7 +18,7 @@ The Variational Quantum Eigensolver algorithm.
 See https://arxiv.org/abs/1304.3061
 """
 
-from typing import Optional, List, Callable
+from typing import Optional, List, Callable, Union
 import logging
 import functools
 import warnings
@@ -27,13 +27,12 @@ from time import time
 import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit
 from qiskit.circuit import ParameterVector
-
-from qiskit.aqua import AquaError
+from qiskit.providers import BaseBackend
+from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.operators import (TPBGroupedWeightedPauliOperator, WeightedPauliOperator,
                                    MatrixOperator, op_converter)
 from qiskit.aqua.utils.backend_utils import (is_statevector_backend,
                                              is_aer_provider)
-from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import BaseOperator
 from qiskit.aqua.components.optimizers import Optimizer, SLSQP
 from qiskit.aqua.components.variational_forms import VariationalForm, RY
@@ -91,8 +90,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                  aux_operators: Optional[List[BaseOperator]] = None,
                  callback: Optional[Callable[[int, np.ndarray, float, float], None]] = None,
                  auto_conversion: bool = True,
-                 quantum_instance: Optional[QuantumInstance] = None
-                 ) -> None:
+                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
         """
 
         Args:
@@ -127,8 +125,8 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                   :class:`~qiskit.aqua.operators.WeightedPauliOperator`
                 - for *qasm simulator or real backend:*
                   :class:`~qiskit.aqua.operators.TPBGroupedWeightedPauliOperator`
-            quantum_instance: Quantum instance to be used, needs to be set here or when the
-                algorithm is executed.
+            quantum_instance: Quantum instance or Backend to be used, needs to be set here or when
+                the algorithm is executed.
         """
         validate_min('max_evals_grouped', max_evals_grouped, 1)
 
@@ -147,6 +145,13 @@ class VQE(VQAlgorithm, MinimumEigensolver):
             initial_point = var_form.preferred_init_points
 
         self._max_evals_grouped = max_evals_grouped
+
+        super().__init__(var_form=var_form,
+                         optimizer=optimizer,
+                         cost_fn=self._energy_evaluation,
+                         initial_point=initial_point,
+                         quantum_instance=quantum_instance)
+
         self._in_operator = None
         self._operator = None
         self._in_aux_operators = None
@@ -158,13 +163,6 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         self._ret = None
         self._eval_time = None
         self._eval_count = 0
-
-        super().__init__(var_form=var_form,
-                         optimizer=optimizer,
-                         cost_fn=self._energy_evaluation,
-                         initial_point=initial_point)
-
-        self.quantum_instance = quantum_instance
 
         logger.info(self.print_settings())
         self._var_form_params = None
@@ -205,7 +203,6 @@ class VQE(VQAlgorithm, MinimumEigensolver):
     @VQAlgorithm.var_form.setter
     def var_form(self, var_form: VariationalForm):
         """ Sets variational form """
-
         VQAlgorithm.var_form.fset(self, var_form)
         if var_form:
             self._var_form_params = ParameterVector('θ', var_form.num_parameters)
