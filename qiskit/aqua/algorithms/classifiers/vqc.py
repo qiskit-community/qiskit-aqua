@@ -80,14 +80,6 @@ class VQC(VQAlgorithm):
         Raises:
             AquaError: invalid input
         """
-        # add circuit requirements
-        if isinstance(feature_map, QuantumCircuit):
-            feature_map.num_qubits = feature_map.n_qubits
-            feature_map.feature_dimension = len(feature_map.parameters)
-
-        if isinstance(var_form, QuantumCircuit):
-            var_form.num_parameters = len(var_form.parameters)
-
         super().__init__(
             var_form=var_form,
             optimizer=optimizer,
@@ -507,22 +499,23 @@ class VQC(VQAlgorithm):
         if the feature map is a circuit, the order of the parameters.
         """
         if isinstance(feature_map, QuantumCircuit):
+            # patch num_qubits and feature dimension to the circuit
+            feature_map.num_qubits = feature_map.n_qubits
+            feature_map.feature_dimension = len(feature_map.parameters)
+
             # we're setting the parameters to a new value, since to ensure they are not
             # the same as in the variational form (otherwise we'll get errors later on)
             self._num_qubits = feature_map.n_qubits
-            num_params = len(feature_map.parameters)
-            self._feature_map_params = ParameterVector('x', length=num_params)
+            self._feature_map_params = ParameterVector('x', length=feature_map.feature_dimension)
             param_dict = dict(zip(list(feature_map.parameters), self._feature_map_params))
             feature_map._substitute_parameters(param_dict)
             self._feature_map = feature_map
         elif isinstance(feature_map, FeatureMap):
             self._num_qubits = feature_map.num_qubits
-            num_params = feature_map.feature_dimension
-            self._feature_map_params = ParameterVector('x', length=num_params)
+            self._feature_map_params = ParameterVector('x', length=feature_map.feature_dimension)
             self._feature_map = feature_map
         elif feature_map is None:
             self._num_qubits = 0
-            num_params = 0
             self._feature_map_params = None
             self._feature_map = None
         else:
