@@ -120,12 +120,9 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
 
             # solve current problem with optimizer
             result = self._min_eigen_optimizer.solve(problem_)
-            samples = result.samples
 
             # analyze results to get strongest correlation
-            states = [v[0] for v in samples]
-            probs = [v[2] for v in samples]
-            correlations = self._construct_correlations(states, probs)
+            correlations = result.get_correlations()
             i, j = self._find_strongest_correlation(correlations)
 
             x_i = problem_.variables.get_names(i)
@@ -191,19 +188,6 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         results = OptimizationResult(x, fval, (replacements, qubo_converter))
         results = qubo_converter.decode(results)
         return results
-
-    def _construct_correlations(self, states, probs):
-        n = len(states[0])
-        correlations = np.zeros((n, n))
-        for k, prob in enumerate(probs):
-            b = states[k]
-            for i in range(n):
-                for j in range(i):
-                    if b[i] == b[j]:
-                        correlations[i, j] += prob
-                    else:
-                        correlations[i, j] -= prob
-        return correlations
 
     def _find_strongest_correlation(self, correlations):
         m_max = np.argmax(np.abs(correlations.flatten()))
