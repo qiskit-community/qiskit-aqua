@@ -26,7 +26,7 @@ from time import time
 
 import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit
-from qiskit.circuit import ParameterVector
+from qiskit.circuit import ParameterVector, Parameter
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.operators import (TPBGroupedWeightedPauliOperator, WeightedPauliOperator,
@@ -83,7 +83,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
 
     def __init__(self,
                  operator: Optional[BaseOperator] = None,
-                 var_form: Optional[VariationalForm] = None,
+                 var_form: Optional[Union[QuantumCircuit, VariationalForm]] = None,
                  optimizer: Optional[Optimizer] = None,
                  initial_point: Optional[np.ndarray] = None,
                  max_evals_grouped: int = 1,
@@ -140,16 +140,10 @@ class VQE(VQAlgorithm, MinimumEigensolver):
 
         # TODO after ansatz refactor we may still not be able to do this
         #      if num qubits is not set on var form
-        if initial_point is None and var_form is not None:
+        if initial_point is None and isinstance(var_form, VariationalForm):
             initial_point = var_form.preferred_init_points
 
         self._max_evals_grouped = max_evals_grouped
-
-        super().__init__(var_form=var_form,
-                         optimizer=optimizer,
-                         cost_fn=self._energy_evaluation,
-                         initial_point=initial_point,
-                         quantum_instance=quantum_instance)
 
         self._in_operator = None
         self._operator = None
@@ -163,10 +157,14 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         self._eval_time = None
         self._eval_count = 0
 
+        super().__init__(var_form=var_form,
+                         optimizer=optimizer,
+                         cost_fn=self._energy_evaluation,
+                         initial_point=initial_point,
+                         quantum_instance=quantum_instance)
+        self.var_form = var_form  # call own setter, this sets the varform parameters
+
         logger.info(self.print_settings())
-        self._var_form_params = None
-        if self.var_form is not None:
-            self._var_form_params = ParameterVector('θ', self.var_form.num_parameters)
         self._parameterized_circuits = None
 
         self.operator = operator
@@ -200,17 +198,31 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         self._in_aux_operators = aux_operators
 
     @VQAlgorithm.var_form.setter
-    def var_form(self, var_form: VariationalForm):
+    def var_form(self, var_form: Union[QuantumCircuit, VariationalForm]):
         """ Sets variational form """
-        VQAlgorithm.var_form.fset(self, var_form)
-        self._var_form_params = ParameterVector('θ', var_form.num_parameters)
-        if self.initial_point is None:
+        if var_form:
+            if isinstance(var_form, QuantumCircuit):
+                circuit_params = list(self.var_form.parameters)
+                var_form_params = ParameterVector('θ', len(circuit_params))
+                var_form._substitute_parameters(dict(zip(circuit_params, var_form_params)))
+            else:
+                var_form_params = ParameterVector('θ', var_form.num_parameters)
+
+        self._var_form_params = var_form_params
+        self._var_form = var_form
+
+        if self.initial_point is None and hasattr(var_form, 'preferred_init_points'):
             self.initial_point = var_form.preferred_init_points
         self._check_operator_varform()
 
     def _check_operator_varform(self):
         if self.operator is not None and self.var_form is not None:
-            if self.operator.num_qubits != self.var_form.num_qubits:
+            if isinstance(self.var_form, QuantumCircuit):
+                num_qubits = self.var_form.n_qubits
+            else:
+                num_qubits = self.var_form.num_qubits
+
+            if self.operator.num_qubits != num_qubits:
                 # TODO After Ansatz update we should be able to set in the
                 #      number of qubits to var form. Important since use by
                 #      application stack of VQE the user may be able to set
@@ -254,10 +266,12 @@ class VQE(VQAlgorithm, MinimumEigensolver):
             self.__class__.__name__)
         ret += "{}".format(self.setting)
         ret += "===============================================================\n"
-        if self._var_form is not None:
+        if isinstance(self._var_form, VariationalForm):
             ret += "{}".format(self._var_form.setting)
+        elif isinstance(self._var_form, QuantumCircuit):
+            ret += "varform is a custom circuit"
         else:
-            ret += 'var_form has not been set'
+            ret += "var_form has not been set"
         ret += "===============================================================\n"
         ret += "{}".format(self._optimizer.setting)
         ret += "===============================================================\n"
@@ -316,7 +330,16 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         if self.operator is None:
             raise AquaError("Operator was never provided")
 
-        wave_function = self._var_form.construct_circuit(parameter)
+        if isinstance(self.var_form, QuantumCircuit):
+            param_dict = dict(zip(self._var_form_params, parameter))
+            if all(isinstance(param, Parameter) for param in parameter):
+                wave_function = self._var_form.copy()
+                wave_function._substitute_parameters(param_dict)
+            else:
+                wave_function = self.var_form.bind_parameters(param_dict)
+        else:
+            wave_function = self.var_form.construct_circuit(parameter)
+
         circuits = self._operator.construct_evaluation_circuit(
             wave_function, statevector_mode,
             use_simulator_snapshot_mode=use_simulator_snapshot_mode,
@@ -326,7 +349,13 @@ class VQE(VQAlgorithm, MinimumEigensolver):
     def _eval_aux_ops(self, threshold=1e-12, params=None):
         if params is None:
             params = self.optimal_params
-        wavefn_circuit = self._var_form.construct_circuit(params)
+
+        if isinstance(self.var_form, QuantumCircuit):
+            param_dict = dict(zip(self._var_form_params, params))
+            wavefn_circuit = self.var_form.bind_parameters(param_dict)
+        else:
+            wavefn_circuit = self.var_form.construct_circuit(params)
+
         circuits = []
         values = []
         params = []
@@ -466,14 +495,21 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         Returns:
             Union(float, list[float]): energy of the hamiltonian of each parameter.
         """
-        num_parameter_sets = len(parameters) // self._var_form.num_parameters
+        if isinstance(self.var_form, QuantumCircuit):
+            num_parameters = len(self.var_form.parameters)
+        else:
+            num_parameters = self.var_form.num_parameters
+
+        num_parameter_sets = len(parameters) // num_parameters
         parameter_sets = np.split(parameters, num_parameter_sets)
         mean_energy = []
         std_energy = []
 
         def _build_parameterized_circuits():
-            if self._var_form.support_parameterized_circuit and \
-                    self._parameterized_circuits is None:
+            support_params = isinstance(self._var_form, QuantumCircuit) \
+                or self._var_form.support_parameterized_circuit
+
+            if support_params and self._parameterized_circuits is None:
                 parameterized_circuits = self.construct_circuit(
                     self._var_form_params,
                     statevector_mode=self._quantum_instance.is_statevector,
@@ -541,6 +577,9 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         if 'opt_params' not in self._ret:
             raise AquaError("Cannot find optimal circuit before running the "
                             "algorithm to find optimal params.")
+        if isinstance(self.var_form, QuantumCircuit):
+            param_dict = dict(zip(self._var_form_params, self._ret['opt_params']))
+            return self.var_form.bind_parameters(param_dict)
         return self._var_form.construct_circuit(self._ret['opt_params'])
 
     def get_optimal_vector(self):

@@ -29,6 +29,7 @@ import warnings
 from abc import abstractmethod
 import numpy as np
 
+from qiskit.circuit import QuantumCircuit
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import AlgorithmResult, QuantumAlgorithm
@@ -44,8 +45,9 @@ class VQAlgorithm(QuantumAlgorithm):
     """
     The Variational Quantum Algorithm Base Class.
     """
+
     def __init__(self,
-                 var_form: VariationalForm,
+                 var_form: Union[QuantumCircuit, VariationalForm],
                  optimizer: Optimizer,
                  cost_fn: Optional[Callable] = None,
                  initial_point: Optional[np.ndarray] = None,
@@ -72,12 +74,12 @@ class VQAlgorithm(QuantumAlgorithm):
         self._parameterized_circuits = None
 
     @property
-    def var_form(self) -> Optional[VariationalForm]:
+    def var_form(self) -> Optional[Union[QuantumCircuit, VariationalForm]]:
         """ Returns variational form """
         return self._var_form
 
     @var_form.setter
-    def var_form(self, var_form: VariationalForm):
+    def var_form(self, var_form: Union[QuantumCircuit, VariationalForm]):
         """ Sets variational form """
         self._var_form = var_form
 
@@ -103,7 +105,7 @@ class VQAlgorithm(QuantumAlgorithm):
 
     def find_minimum(self,
                      initial_point: Optional[np.ndarray] = None,
-                     var_form: Optional[VariationalForm] = None,
+                     var_form: Optional[Union[QuantumCircuit, VariationalForm]] = None,
                      cost_fn: Optional[Callable] = None,
                      optimizer: Optional[Optimizer] = None,
                      gradient_fn: Optional[Callable] = None) -> 'VQResult':
@@ -140,8 +142,15 @@ class VQAlgorithm(QuantumAlgorithm):
         if optimizer is None:
             raise ValueError('Optimizer neither supplied to constructor nor find minimum.')
 
-        nparms = var_form.num_parameters
-        bounds = var_form.parameter_bounds
+        if isinstance(var_form, QuantumCircuit):
+            nparms = len(var_form.parameters)
+        else:
+            nparms = var_form.num_parameters
+
+        if hasattr(var_form, 'parameter_bounds'):
+            bounds = var_form.parameter_bounds
+        else:
+            bounds = [(None, None)] * nparms
 
         if initial_point is not None and len(initial_point) != nparms:
             raise ValueError(
@@ -172,7 +181,7 @@ class VQAlgorithm(QuantumAlgorithm):
             gradient_fn = None
 
         logger.info('Starting optimizer.\nbounds=%s\ninitial point=%s', bounds, initial_point)
-        opt_params, opt_val, num_optimizer_evals = optimizer.optimize(var_form.num_parameters,
+        opt_params, opt_val, num_optimizer_evals = optimizer.optimize(nparms,
                                                                       cost_fn,
                                                                       variable_bounds=bounds,
                                                                       initial_point=initial_point,

@@ -19,7 +19,8 @@ import os
 from test.aqua import QiskitAquaTestCase
 import numpy as np
 from ddt import ddt, idata, unpack
-from qiskit import BasicAer
+from qiskit import BasicAer, QuantumCircuit
+from qiskit.circuit import Parameter
 
 from qiskit.aqua import QuantumInstance, aqua_globals, AquaError
 from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator
@@ -32,6 +33,7 @@ from qiskit.aqua.algorithms import VQE
 @ddt
 class TestVQE(QiskitAquaTestCase):
     """ Test VQE """
+
     def setUp(self):
         super().setUp()
         self.seed = 50
@@ -45,6 +47,31 @@ class TestVQE(QiskitAquaTestCase):
                        ]
         }
         self.qubit_op = WeightedPauliOperator.from_dict(pauli_dict)
+
+    def get_ryrz_circuit(self, num_qubits, depth=3):
+        """Get a circuit containing the RYRZ ansatz."""
+        num_params = 2 * (depth + 1) * num_qubits
+        params = [Parameter('_{}'.format(i)) for i in range(num_params)]
+        circuit = QuantumCircuit(num_qubits)
+        param_iter = iter(params)
+
+        def rotation_layer(circuit, param_iter):
+            for i in range(circuit.n_qubits):
+                circuit.ry(next(param_iter), i)
+                circuit.rz(next(param_iter), i)
+
+        def entanglement_layer(circuit):
+            for i in range(circuit.n_qubits):
+                for j in range(i + 1, circuit.n_qubits):
+                    circuit.cz(i, j)
+
+        for _ in range(depth):
+            rotation_layer(circuit, param_iter)
+            entanglement_layer(circuit)
+
+        rotation_layer(circuit, param_iter)
+
+        return circuit
 
     def test_vqe(self):
         """ VQE test """
@@ -63,6 +90,21 @@ class TestVQE(QiskitAquaTestCase):
                           1.14479635, -0.48416694, -0.66608349, -1.1367579,
                           -2.67097002, 3.10214631, 3.10000313, 0.37235089]
         np.testing.assert_array_almost_equal(result.optimal_point, ref_opt_params, 5)
+        self.assertIsNotNone(result.cost_function_evals)
+        self.assertIsNotNone(result.optimizer_time)
+
+    def test_vqe_with_circuit(self):
+        """ VQE test """
+        result = VQE(self.qubit_op,
+                     self.get_ryrz_circuit(self.qubit_op.num_qubits),
+                     L_BFGS_B()).run(
+                         QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                         basis_gates=['u1', 'u2', 'u3', 'cx', 'id'],
+                                         coupling_map=[[0, 1]],
+                                         seed_simulator=aqua_globals.random_seed,
+                                         seed_transpiler=aqua_globals.random_seed))
+        self.assertAlmostEqual(result.eigenvalue.real, -1.85727503)
+        np.testing.assert_array_almost_equal(result.eigenvalue.real, -1.85727503, 5)
         self.assertIsNotNone(result.cost_function_evals)
         self.assertIsNotNone(result.optimizer_time)
 
