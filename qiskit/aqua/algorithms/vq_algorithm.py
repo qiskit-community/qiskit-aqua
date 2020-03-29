@@ -66,10 +66,10 @@ class VQAlgorithm(QuantumAlgorithm):
         """
         super().__init__(quantum_instance)
 
-        self.var_form = var_form
         self._optimizer = optimizer
         self._cost_fn = cost_fn
         self._initial_point = initial_point
+        self.var_form = var_form
 
         self._parameterized_circuits = None
 
@@ -81,17 +81,22 @@ class VQAlgorithm(QuantumAlgorithm):
     @var_form.setter
     def var_form(self, var_form: Union[QuantumCircuit, VariationalForm]):
         """ Sets variational form """
-        self._var_form = var_form
-
         if isinstance(var_form, QuantumCircuit):
-            num_params = len(var_form.parameters)
-            self._var_form_params = list(var_form.parameters)
+            # patch num_parameters onto circuit
+            var_form.num_parameters = len(var_form.parameters)
+            # substitute the parameters to avoid naming conflicts
+            self._var_form_params = ParameterVector('θ', length=var_form.num_parameters)
+            param_dict = dict(zip(list(var_form.parameters), self._var_form_params))
+            var_form._substitute_parameters(param_dict)
+            self._var_form = var_form
         elif isinstance(var_form, VariationalForm):
-            num_params = var_form.num_parameters
-            self._var_form_params = ParameterVector('θ', length=num_params)
+            self._var_form_params = ParameterVector('θ', length=var_form.num_parameters)
+            self._var_form = var_form
+        elif var_form is None:
+            self._var_form = None
+            self._var_form_params = None
         else:
-            num_params = 0
-            self._var_form_params = []
+            raise ValueError('Unsupported type {} of var_form'.format(type(var_form)))
 
     @property
     def optimizer(self) -> Optional[Optimizer]:
