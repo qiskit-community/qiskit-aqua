@@ -17,7 +17,7 @@ Operator Globals
 """
 
 from qiskit.quantum_info import Pauli
-from qiskit.extensions.standard import CXGate, SGate, TGate, HGate, SwapGate
+from qiskit.extensions.standard import CXGate, SGate, TGate, HGate, SwapGate, CZGate
 
 from .operator_primitives import OpPrimitive
 from .state_functions import StateFn
@@ -38,19 +38,21 @@ def make_immutable(obj):
     return obj
 
 
-# Paulis
+# 1-Qubit Paulis
 X = make_immutable(OpPrimitive(Pauli.from_label('X')))
 Y = make_immutable(OpPrimitive(Pauli.from_label('Y')))
 Z = make_immutable(OpPrimitive(Pauli.from_label('Z')))
 I = make_immutable(OpPrimitive(Pauli.from_label('I')))
 
-# Clifford+T
+# Clifford+T, and some other common non-parameterized gates
 CX = make_immutable(OpPrimitive(CXGate()))
 S = make_immutable(OpPrimitive(SGate()))
 H = make_immutable(OpPrimitive(HGate()))
 T = make_immutable(OpPrimitive(TGate()))
 Swap = make_immutable(OpPrimitive(SwapGate()))
+CZ = make_immutable(OpPrimitive(CZGate()))
 
+# 1-Qubit Paulis
 Zero = make_immutable(StateFn('0'))
 One = make_immutable(StateFn('1'))
 Plus = make_immutable(H.compose(Zero))
