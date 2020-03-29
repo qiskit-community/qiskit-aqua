@@ -200,16 +200,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
     @VQAlgorithm.var_form.setter
     def var_form(self, var_form: Union[QuantumCircuit, VariationalForm]):
         """ Sets variational form """
-        if var_form:
-            if isinstance(var_form, QuantumCircuit):
-                circuit_params = list(self.var_form.parameters)
-                var_form_params = ParameterVector('θ', len(circuit_params))
-                var_form._substitute_parameters(dict(zip(circuit_params, var_form_params)))
-            else:
-                var_form_params = ParameterVector('θ', var_form.num_parameters)
-
-        self._var_form_params = var_form_params
-        self._var_form = var_form
+        VQAlgorithm.var_form.fset(self, var_form)
 
         if self.initial_point is None and hasattr(var_form, 'preferred_init_points'):
             self.initial_point = var_form.preferred_init_points
@@ -331,12 +322,12 @@ class VQE(VQAlgorithm, MinimumEigensolver):
             raise AquaError("Operator was never provided")
 
         if isinstance(self.var_form, QuantumCircuit):
-            param_dict = dict(zip(self._var_form_params, parameter))
             if all(isinstance(param, Parameter) for param in parameter):
+                # already parameterized with var_form_params
                 wave_function = self._var_form.copy()
-                wave_function._substitute_parameters(param_dict)
             else:
-                wave_function = self.var_form.bind_parameters(param_dict)
+                value_dict = dict(zip(self._var_form_params, parameter))
+                wave_function = self.var_form.bind_parameters(value_dict)
         else:
             wave_function = self.var_form.construct_circuit(parameter)
 
@@ -523,7 +514,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         # binding parameters here since the circuits had been transpiled
         if self._parameterized_circuits is not None:
             for idx, parameter in enumerate(parameter_sets):
-                curr_param = {self._var_form_params: parameter}
+                curr_param = {param: val for param, val in zip(self._var_form_params, parameter)}
                 for qc in self._parameterized_circuits:
                     tmp = qc.bind_parameters(curr_param)
                     tmp.name = str(idx) + tmp.name

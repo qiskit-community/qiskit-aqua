@@ -21,7 +21,7 @@ import numpy as np
 
 from sklearn.utils import shuffle
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
-from qiskit.circuit import ParameterVector
+from qiskit.circuit import ParameterVector, Parameter
 
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance, AquaError
@@ -50,8 +50,8 @@ class VQC(VQAlgorithm):
     def __init__(
             self,
             optimizer: Optimizer,
-            feature_map: FeatureMap,
-            var_form: VariationalForm,
+            feature_map: Union[QuantumCircuit, FeatureMap],
+            var_form: Union[QuantumCircuit, VariationalForm],
             training_dataset: Dict[str, np.ndarray],
             test_dataset: Optional[Dict[str, np.ndarray]] = None,
             datapoints: Optional[np.ndarray] = None,
@@ -80,6 +80,14 @@ class VQC(VQAlgorithm):
         Raises:
             AquaError: invalid input
         """
+        # add circuit requirements
+        if isinstance(feature_map, QuantumCircuit):
+            feature_map.num_qubits = feature_map.n_qubits
+            feature_map.feature_dimension = len(feature_map.parameters)
+
+        if isinstance(var_form, QuantumCircuit):
+            var_form.num_parameters = len(var_form.parameters)
+
         super().__init__(
             var_form=var_form,
             optimizer=optimizer,
@@ -120,11 +128,9 @@ class VQC(VQAlgorithm):
 
         self._eval_count = 0
         self._ret = {}
-        self._feature_map = feature_map
-        self._num_qubits = feature_map.num_qubits
-        self._var_form_params = ParameterVector('θ', self._var_form.num_parameters)
-        self._feature_map_params = ParameterVector('x', self._feature_map.feature_dimension)
         self._parameterized_circuits = None
+
+        self.feature_map = feature_map
 
     def construct_circuit(self, x, theta, measurement=False):
         """
@@ -140,8 +146,26 @@ class VQC(VQAlgorithm):
         qr = QuantumRegister(self._num_qubits, name='q')
         cr = ClassicalRegister(self._num_qubits, name='c')
         qc = QuantumCircuit(qr, cr)
-        qc += self._feature_map.construct_circuit(x, qr)
-        qc += self._var_form.construct_circuit(theta, qr)
+
+        if isinstance(self.feature_map, QuantumCircuit):
+            if all(isinstance(param, Parameter) for param in x):
+                circuit = self.feature_map.copy()
+            else:
+                value_dict = dict(zip(self._feature_map_params, x))
+                circuit = self.feature_map.bind_parameters(value_dict)
+            qc.append(circuit.to_instruction(), qr)
+        else:
+            qc += self._feature_map.construct_circuit(x, qr)
+
+        if isinstance(self.var_form, QuantumCircuit):
+            if all(isinstance(param, Parameter) for param in theta):
+                circuit = self.var_form.copy()
+            else:
+                value_dict = dict(zip(self._var_form_params, theta))
+                circuit = self.feature_map.bind_parameters(value_dict)
+            qc.append(circuit.to_instruction(), qr)
+        else:
+            qc += self._var_form.construct_circuit(theta, qr)
 
         if measurement:
             qc.barrier(qr)
@@ -165,10 +189,12 @@ class VQC(VQAlgorithm):
         theta_sets = np.split(theta, num_theta_sets)
 
         def _build_parameterized_circuits():
-            if self._var_form.support_parameterized_circuit and \
-                    self._feature_map.support_parameterized_circuit and \
-                    self._parameterized_circuits is None:
+            var_form_support = isinstance(self._var_form, QuantumCircuit) \
+                or self._var_form.support_parameterized_circuit
+            feat_map_support = isinstance(self._feature_map, QuantumCircuit) \
+                or self._feature_map.support_parameterized_circuit
 
+            if var_form_support and feat_map_support and self._parameterized_circuits is None:
                 parameterized_circuits = self.construct_circuit(
                     self._feature_map_params, self._var_form_params,
                     measurement=not self._quantum_instance.is_statevector)
@@ -257,8 +283,7 @@ class VQC(VQAlgorithm):
             quantum_instance (QuantumInstance): quantum backend with all setting
             minibatch_size (int): the size of each minibatched accuracy evaluation
         """
-        self._quantum_instance = \
-            self._quantum_instance if quantum_instance is None else quantum_instance
+        self._quantum_instance = quantum_instance or self._quantum_instance
         minibatch_size = minibatch_size if minibatch_size > 0 else self._minibatch_size
         self._batches, self._label_batches = self.batch_data(data, labels, minibatch_size)
         self._batch_index = 0
@@ -468,6 +493,33 @@ class VQC(VQAlgorithm):
             ret = self._quantum_instance.execute(qc)
             self._ret['min_vector'] = ret.get_counts(qc)
         return self._ret['min_vector']
+
+    @property
+    def feature_map(self):
+        """Return the feature map."""
+        return self._feature_map
+
+    @feature_map.setter
+    def feature_map(self, feature_map):
+        """Set the feature map.
+
+        Also sets the number of qubits, the internally stored feature map parameters and,
+        if the feature map is a circuit, the order of the parameters.
+        """
+        self._feature_map = feature_map
+
+        if isinstance(feature_map, QuantumCircuit):
+            self._num_qubits = feature_map.n_qubits
+            num_params = len(feature_map.parameters)
+            self._feature_map_params = list(feature_map.parameters)
+        elif isinstance(feature_map, FeatureMap):
+            self._num_qubits = feature_map.num_qubits
+            num_params = feature_map.feature_dimension
+            self._feature_map_params = ParameterVector('x', length=num_params)
+        else:
+            self._num_qubits = 0
+            num_params = 0
+            self._feature_map_params = []
 
     @property
     def optimal_params(self):
