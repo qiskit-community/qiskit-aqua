@@ -33,7 +33,7 @@ from qiskit.circuit import ParameterVector
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import AlgorithmResult, QuantumAlgorithm
-from qiskit.aqua.components.optimizers import Optimizer
+from qiskit.aqua.components.optimizers import Optimizer, SLSQP
 from qiskit.aqua.components.variational_forms import VariationalForm
 
 logger = logging.getLogger(__name__)
@@ -60,19 +60,20 @@ class VQAlgorithm(QuantumAlgorithm):
                 supplied on :meth:`find_minimum`.
             initial_point: An optional initial point (i.e. initial parameter values)
                 for the optimizer.
-            quantum_instance: Quantum Instance or Backend
+            quantum_instance: The Quantum Instance or Backend to run the circuits.
         Raises:
              ValueError: for invalid input
         """
         super().__init__(quantum_instance)
 
-        self._initial_point = initial_point
-        self.var_form = var_form
-
         if optimizer is None:
-            raise ValueError('Missing optimizer.')
+            logger.info('No optimizer provided, setting it to SLSPQ.')
+            optimizer = SLSQP()
+
         self._optimizer = optimizer
         self._cost_fn = cost_fn
+        self._initial_point = initial_point
+        self.var_form = var_form
 
         self._parameterized_circuits = None
 

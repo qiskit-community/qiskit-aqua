@@ -29,9 +29,7 @@ Submodules
 
 """
 
-CPX_INFBOUND = 1.0E+20
-infinity = CPX_INFBOUND
-
+from qiskit.optimization.infinity import infinity  # must be at the top of the file
 from qiskit.optimization.utils import QiskitOptimizationError
 from qiskit.optimization.problems.linear_constraint import LinearConstraintInterface
 from qiskit.optimization.problems.objective import ObjSense, ObjectiveInterface

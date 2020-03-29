@@ -107,8 +107,8 @@ class QAOA(VQE):
                   :class:`~qiskit.aqua.operators.WeightedPauliOperator`
                 - for *qasm simulator or real backend:*
                   :class:`~qiskit.aqua.operators.TPBGroupedWeightedPauliOperator`
-            quantum_instance: Quantum Instance or Backend to be used, needs to be set here or when the
-                algorithm is executed.
+            quantum_instance: Quantum instance or backend to be used, needs to be set here or when
+                the algorithm is executed.
         """
         validate_min('p', p, 1)
 
