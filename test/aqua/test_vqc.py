@@ -19,6 +19,7 @@ import unittest
 from test.aqua import QiskitAquaTestCase
 import numpy as np
 from qiskit import BasicAer
+from qiskit.circuit import ParameterVector, QuantumCircuit, Parameter
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms import VQC
 from qiskit.aqua.components.optimizers import SPSA, COBYLA
@@ -31,6 +32,7 @@ from qiskit.ml.datasets import wine, ad_hoc_data
 
 class TestVQC(QiskitAquaTestCase):
     """ Test VQC """
+
     def setUp(self):
         super().setUp()
         self.seed = 1376
@@ -68,6 +70,7 @@ class TestVQC(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(result['training_loss'],
                                              self.ref_train_loss, decimal=8)
 
+        print(vqc.optimal_params_dict)
         self.assertEqual(1.0, result['testing_accuracy'])
 
     def test_vqc_with_max_evals_grouped(self):
@@ -258,8 +261,18 @@ class TestVQC(QiskitAquaTestCase):
             if is_file_exist:
                 os.remove(self.get_resource_path(tmp_filename))
 
+    def test_same_parameters_works(self):
+        var_form = QuantumCircuit(1)
+        var_form.ry(Parameter('a'), 0)
+        feature_map = QuantumCircuit(1)
+        feature_map.rz(Parameter('a'), 0)
+        optimizer = SPSA()
+        vqc = VQC(optimizer, feature_map, var_form, self.training_data, self.testing_data)
+
+        self.assertTrue(set(vqc._var_form_params) != set(vqc._feature_map_params))
+
     def test_vqc_on_wine(self):
-        """ vqc on wine test """
+        """Test VQE on the wine test using circuits as feature map and variational form."""
         feature_dim = 4  # dimension of each data point
         training_dataset_size = 6
         testing_dataset_size = 3
@@ -270,9 +283,15 @@ class TestVQC(QiskitAquaTestCase):
                                                 plot_data=False)
         aqua_globals.random_seed = self.seed
         feature_map = SecondOrderExpansion(feature_dimension=feature_dim)
+        var_form = RYRZ(feature_map.num_qubits, depth=1)
+
+        x = ParameterVector('x', length=feature_map.feature_dimension)
+        theta = ParameterVector('t', length=var_form.num_parameters)
+        feature_map_circuit = feature_map.construct_circuit(x)
+        var_form_circuit = var_form.construct_circuit(theta)
         vqc = VQC(COBYLA(maxiter=100),
-                  feature_map,
-                  RYRZ(feature_map.num_qubits, depth=1),
+                  feature_map_circuit,
+                  var_form_circuit,
                   training_input,
                   test_input)
         result = vqc.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),

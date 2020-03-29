@@ -205,8 +205,8 @@ class VQC(VQAlgorithm):
         for thet in theta_sets:
             for datum in data:
                 if self._parameterized_circuits is not None:
-                    curr_params = {self._feature_map_params: datum,
-                                   self._var_form_params: thet}
+                    curr_params = dict(zip(self._feature_map_params, datum))
+                    curr_params.update(dict(zip(self._var_form_params, thet)))
                     circuit = self._parameterized_circuits.bind_parameters(curr_params)
                 else:
                     circuit = self.construct_circuit(
@@ -506,20 +506,27 @@ class VQC(VQAlgorithm):
         Also sets the number of qubits, the internally stored feature map parameters and,
         if the feature map is a circuit, the order of the parameters.
         """
-        self._feature_map = feature_map
-
         if isinstance(feature_map, QuantumCircuit):
+            # we're setting the parameters to a new value, since to ensure they are not
+            # the same as in the variational form (otherwise we'll get errors later on)
             self._num_qubits = feature_map.n_qubits
             num_params = len(feature_map.parameters)
-            self._feature_map_params = list(feature_map.parameters)
+            self._feature_map_params = ParameterVector('x', length=num_params)
+            param_dict = dict(zip(list(feature_map.parameters), self._feature_map_params))
+            feature_map._substitute_parameters(param_dict)
+            self._feature_map = feature_map
         elif isinstance(feature_map, FeatureMap):
             self._num_qubits = feature_map.num_qubits
             num_params = feature_map.feature_dimension
             self._feature_map_params = ParameterVector('x', length=num_params)
-        else:
+            self._feature_map = feature_map
+        elif feature_map is None:
             self._num_qubits = 0
             num_params = 0
-            self._feature_map_params = []
+            self._feature_map_params = None
+            self._feature_map = None
+        else:
+            raise ValueError('Unsupported type {} of feature_map.'.format(type(feature_map)))
 
     @property
     def optimal_params(self):
@@ -527,6 +534,12 @@ class VQC(VQAlgorithm):
         if 'opt_params' not in self._ret:
             raise AquaError("Cannot find optimal params before running the algorithm.")
         return self._ret['opt_params']
+
+    @property
+    def optimal_params_dict(self):
+        """Return the optimal parameters in a dictionary."""
+        optimal_values = self.optimal_params
+        return dict(zip(self._var_form_params, optimal_values))
 
     @property
     def ret(self):
