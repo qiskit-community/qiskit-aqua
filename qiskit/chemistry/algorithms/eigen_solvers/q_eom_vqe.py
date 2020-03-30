@@ -18,6 +18,8 @@ import logging
 
 from typing import Union, List, Optional, Callable
 import numpy as np
+from qiskit.providers import BaseBackend
+from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import VQE
 from qiskit.aqua.operators import BaseOperator, Z2Symmetries
 from qiskit.aqua.components.optimizers import Optimizer
@@ -47,7 +49,8 @@ class QEomVQE(VQE):
                  de_list: Optional[List[List[int]]] = None,
                  z2_symmetries: Optional[Z2Symmetries] = None,
                  untapered_op: Optional[BaseOperator] = None,
-                 aux_operators: Optional[List[BaseOperator]] = None) -> None:
+                 aux_operators: Optional[List[BaseOperator]] = None,
+                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
         """
         Args:
             operator: qubit operator
@@ -83,8 +86,8 @@ class QEomVQE(VQE):
             z2_symmetries: represent the Z2 symmetries
             untapered_op: if the operator is tapered, we need untapered operator
                                          during building element of EoM matrix
-            aux_operators: Auxiliary operators to be
-                                                evaluated at each eigenvalue
+            aux_operators: Auxiliary operators to be evaluated at each eigenvalue
+            quantum_instance: Quantum Instance or Backend
         Raises:
             ValueError: invalid parameter
         """
@@ -96,7 +99,8 @@ class QEomVQE(VQE):
                 num_particles))
         super().__init__(operator.copy(), var_form, optimizer, initial_point=initial_point,
                          max_evals_grouped=max_evals_grouped, aux_operators=aux_operators,
-                         callback=callback, auto_conversion=auto_conversion)
+                         callback=callback, auto_conversion=auto_conversion,
+                         quantum_instance=quantum_instance)
 
         self.qeom = QEquationOfMotion(operator, num_orbitals, num_particles,
                                       qubit_mapping, two_qubit_reduction, active_occupied,
