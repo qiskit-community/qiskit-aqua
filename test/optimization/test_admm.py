@@ -27,7 +27,6 @@ from qiskit.optimization.algorithms.admm_optimizer import ADMMOptimizer, ADMMPar
     ADMMOptimizerResult, ADMMState
 from qiskit.optimization.problems import OptimizationProblem
 
-
 class TestADMMOptimizer(QiskitOptimizationTestCase):
     """ADMM Optimizer Tests based on Mixed-Integer Setup Knapsack Problem"""
 
