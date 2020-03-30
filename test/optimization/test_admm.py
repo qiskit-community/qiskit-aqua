@@ -60,11 +60,12 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
     def test_admm_ex6(self):
         """Example 6 as a unit test. Example 6 is reported in:
         Gambella, C., & Simonetto, A. (2020).
-        Multi-block ADMM Heuristics for Mixed-Binary Optimization on Classical 
+        Multi-block ADMM Heuristics for Mixed-Binary Optimization on Classical
         and Quantum Computers.
         arXiv preprint arXiv:2001.02069."""
         mdl = Model('ex6')
 
+        # pylint:disable=invalid-name
         v = mdl.binary_var(name='v')
         w = mdl.binary_var(name='w')
         t = mdl.binary_var(name='t')
@@ -98,15 +99,16 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
         np.testing.assert_almost_equal(1., solution.fval, 3)
         self.assertIsNotNone(solution.state)
         self.assertIsInstance(solution.state, ADMMState)
-        
+
     def test_admm_ex5(self):
         """Example 5 as a unit test. Example 5 is reported in:
         Gambella, C., & Simonetto, A. (2020).
-        Multi-block ADMM Heuristics for Mixed-Binary Optimization on Classical 
+        Multi-block ADMM Heuristics for Mixed-Binary Optimization on Classical
         and Quantum Computers.
         arXiv preprint arXiv:2001.02069."""
         mdl = Model('ex5')
 
+        # pylint:disable=invalid-name
         v = mdl.binary_var(name='v')
         w = mdl.binary_var(name='w')
         t = mdl.binary_var(name='t')

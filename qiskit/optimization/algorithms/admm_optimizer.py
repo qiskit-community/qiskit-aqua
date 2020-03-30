@@ -606,9 +606,9 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # the quadratic coefficients.
         quadratic_objective = self._state.q0 +\
             2 * (
-            self._params.factor_c / 2 * np.dot(self._state.a0.transpose(), self._state.a0) +
-            self._state.rho / 2 * np.eye(binary_size)
-        )
+                self._params.factor_c / 2 * np.dot(self._state.a0.transpose(), self._state.a0) +
+                self._state.rho / 2 * np.eye(binary_size)
+                )
         for i in range(binary_size):
             for j in range(i, binary_size):
                 op1.objective.set_quadratic_coefficients(i, j, quadratic_objective[i, j])
@@ -731,7 +731,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
                 op3.objective.set_quadratic_coefficients(i, j, q_y[i, j])
 
         linear_y = - self._state.lambda_mult - self._state.rho * (
-                    self._state.x0 - self._state.z)
+            self._state.x0 - self._state.z)
         for i in range(binary_size):
             op3.objective.set_linear(i, linear_y[i])
 
@@ -826,7 +826,6 @@ class ADMMOptimizer(OptimizationAlgorithm):
                 self._state.rho = self._params.tau_incr * self._state.rho
             elif dual_residual > self._params.mu_res * primal_residual:
                 self._state.rho = self._params.tau_decr * self._state.rho
-            
 
     def _get_constraint_residual(self) -> float:
         """Compute violation of the constraints of the original problem, as:
@@ -873,7 +872,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         obj_val = quadratic_form(self._state.q0, self._state.x0, self._state.c0)
         obj_val += quadratic_form(self._state.q1, self._state.u, self._state.c1)
-        
+
         obj_val += self._state.op.objective.get_offset()
 
         return obj_val
