@@ -13,7 +13,6 @@
 # that they have been altered from the originals.
 
 """Tests of the ADMM algorithm."""
-from typing import Optional
 
 from test.optimization import QiskitOptimizationTestCase
 
@@ -59,7 +58,11 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
         self.assertIsInstance(solution.state, ADMMState)
 
     def test_admm_ex6(self):
-        """Example 6 as a unit test"""
+        """Example 6 as a unit test. Example 6 is reported in:
+        Gambella, C., & Simonetto, A. (2020).
+        Multi-block ADMM Heuristics for Mixed-Binary Optimization on Classical 
+        and Quantum Computers.
+        arXiv preprint arXiv:2001.02069."""
         mdl = Model('ex6')
 
         v = mdl.binary_var(name='v')
@@ -80,7 +83,7 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
 
         admm_params = ADMMParameters(
             rho_initial=1001, beta=1000, factor_c=900,
-            max_iter=100, three_block=True,
+            max_iter=100, three_block=True, tol=1.e-6
         )
 
         solver = ADMMOptimizer(params=admm_params, qubo_optimizer=qubo_optimizer,
@@ -90,8 +93,51 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
         self.assertIsInstance(solution, ADMMOptimizerResult)
 
         self.assertIsNotNone(solution.x)
-        np.testing.assert_almost_equal([1., 0., 1., 1.016], solution.x, 3)
+        np.testing.assert_almost_equal([1., 0., 0., 2.], solution.x, 3)
         self.assertIsNotNone(solution.fval)
-        np.testing.assert_almost_equal(6.832, solution.fval, 3)
+        np.testing.assert_almost_equal(1., solution.fval, 3)
+        self.assertIsNotNone(solution.state)
+        self.assertIsInstance(solution.state, ADMMState)
+        
+    def test_admm_ex5(self):
+        """Example 5 as a unit test. Example 5 is reported in:
+        Gambella, C., & Simonetto, A. (2020).
+        Multi-block ADMM Heuristics for Mixed-Binary Optimization on Classical 
+        and Quantum Computers.
+        arXiv preprint arXiv:2001.02069."""
+        mdl = Model('ex5')
+
+        v = mdl.binary_var(name='v')
+        w = mdl.binary_var(name='w')
+        t = mdl.binary_var(name='t')
+
+        mdl.minimize(v + w + t)
+        mdl.add_constraint(2 * v + 2 * w + t <= 3, "cons1")
+        mdl.add_constraint(v + w + t >= 1, "cons2")
+        mdl.add_constraint(v + w == 1, "cons3")
+
+        op = OptimizationProblem()
+        op.from_docplex(mdl)
+
+        qubo_optimizer = CplexOptimizer()
+
+        continuous_optimizer = CplexOptimizer()
+
+        admm_params = ADMMParameters(
+            rho_initial=1001, beta=1000, factor_c=900,
+            max_iter=100, three_block=False
+        )
+
+        solver = ADMMOptimizer(params=admm_params, qubo_optimizer=qubo_optimizer,
+                               continuous_optimizer=continuous_optimizer, )
+        solution = solver.solve(op)
+
+        self.assertIsNotNone(solution)
+        self.assertIsInstance(solution, ADMMOptimizerResult)
+
+        self.assertIsNotNone(solution.x)
+        np.testing.assert_almost_equal([1., 0., 1.], solution.x, 3)
+        self.assertIsNotNone(solution.fval)
+        np.testing.assert_almost_equal(2., solution.fval, 3)
         self.assertIsNotNone(solution.state)
         self.assertIsInstance(solution.state, ADMMState)
