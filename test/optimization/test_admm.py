@@ -28,8 +28,9 @@ from qiskit.optimization.algorithms.admm_optimizer import ADMMOptimizer, ADMMPar
 from qiskit.optimization.problems import OptimizationProblem
 
 class TestADMMOptimizer(QiskitOptimizationTestCase):
-    """ADMM Optimizer Tests based on Mixed-Integer Setup Knapsack Problem"""
+    """ADMM Optimizer Tests"""
 
+    # todo: reconsider the test
     def test_admm_miskp_eigen(self):
         """ADMM Optimizer Test based on Mixed-Integer Setup Knapsack Problem
         using NumPy eigen optimizer"""
@@ -110,6 +111,44 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
         np.testing.assert_almost_equal([10, 0], solution.x, 3)
         self.assertIsNotNone(solution.fval)
         np.testing.assert_almost_equal(10, solution.fval, 3)
+        self.assertIsNotNone(solution.state)
+        self.assertIsInstance(solution.state, ADMMState)
+
+    def test_admm_ex6(self):
+        """Example 6 as a unit test"""
+        mdl = Model('ex6')
+
+        v = mdl.binary_var(name='v')
+        w = mdl.binary_var(name='w')
+        t = mdl.binary_var(name='t')
+        u = mdl.continuous_var(name='u')
+
+        mdl.minimize(v + w + t + 5 * (u - 2) ** 2)
+        mdl.add_constraint(v + 2 * w + t + u <= 3, "cons1")
+        mdl.add_constraint(v + w + t >= 1, "cons2")
+        mdl.add_constraint(v + w == 1, "cons3")
+
+        op = OptimizationProblem()
+        op.from_docplex(mdl)
+
+        qubo_optimizer = CplexOptimizer()
+        continuous_optimizer = CplexOptimizer()
+
+        admm_params = ADMMParameters(
+            rho_initial=1001, beta=1000, factor_c=900,
+            max_iter=100, three_block=True,
+        )
+
+        solver = ADMMOptimizer(params=admm_params, qubo_optimizer=qubo_optimizer,
+                               continuous_optimizer=continuous_optimizer)
+        solution = solver.solve(op)
+        self.assertIsNotNone(solution)
+        self.assertIsInstance(solution, ADMMOptimizerResult)
+
+        self.assertIsNotNone(solution.x)
+        np.testing.assert_almost_equal([1., 0., 1., 1.016], solution.x, 3)
+        self.assertIsNotNone(solution.fval)
+        np.testing.assert_almost_equal(6.832, solution.fval, 3)
         self.assertIsNotNone(solution.state)
         self.assertIsInstance(solution.state, ADMMState)
 
