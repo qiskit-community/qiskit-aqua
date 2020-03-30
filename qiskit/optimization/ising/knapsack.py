@@ -193,7 +193,7 @@ def get_solution(x, values):
     Returns:
         numpy.ndarray: a bit string that has a '1' at the indexes
          corresponding to values that have been taken in the knapsack.
-         i.e. if the soution has a '1' at index i then
+         i.e. if the solution has a '1' at index i then
          the value values[i] has been taken in the knapsack
     """
     return x[:len(values)]
