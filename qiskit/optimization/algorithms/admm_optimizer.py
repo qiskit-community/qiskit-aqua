@@ -286,7 +286,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
                 # debug
                 self._log.debug("y=%s", self._state.y)
 
-            lambda_mult = self._update_lambda_mult()
+            self._state.lambda_mult = self._update_lambda_mult()
 
             cost_iterate = self._get_objective_value()
             constraint_residual = self._get_constraint_residual()
@@ -302,7 +302,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
             self._state.dual_residuals.append(dual_residual)
             self._state.cons_r.append(constraint_residual)
             self._state.merits.append(merit)
-            self._state.lambdas.append(np.linalg.norm(lambda_mult))
+            self._state.lambdas.append(np.linalg.norm(self._state.lambda_mult))
 
             self._state.x0_saved.append(self._state.x0)
             self._state.u_saved.append(self._state.u)
@@ -604,8 +604,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # prepare and set quadratic objective.
         # NOTE: The multiplication by 2 is needed for the solvers to parse
         # the quadratic coefficients.
-        quadratic_objective = 2 * (
-            self._state.q0 +
+        quadratic_objective = self._state.q0 +\
+            2 * (
             self._params.factor_c / 2 * np.dot(self._state.a0.transpose(), self._state.a0) +
             self._state.rho / 2 * np.eye(binary_size)
         )
@@ -616,7 +616,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # prepare and set linear objective.
         linear_objective = self._state.c0 - \
                            self._params.factor_c * np.dot(self._state.b0, self._state.a0) + \
-                           self._state.rho * (self._state.y - self._state.z)
+                           self._state.rho * (- self._state.y - self._state.z) + \
+                           self._state.lambda_mult
 
         for i in range(binary_size):
             op1.objective.set_linear(i, linear_objective[i])
@@ -647,9 +648,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         # set quadratic objective coefficients for u variables.
         if continuous_size:
-            # NOTE: The multiplication by 2 is needed for the solvers to parse
-            # the quadratic coefficients.
-            q_u = 2 * self._state.q1
+            q_u = self._state.q1
             for i in range(continuous_size):
                 for j in range(i, continuous_size):
                     op2.objective.set_quadratic_coefficients(i, j, q_u[i, j])
@@ -670,7 +669,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
                 op2.objective.set_linear(i, linear_u[i])
 
         # set linear objective for z variables.
-        linear_z = -1 * self._state.lambda_mult - self._state.rho * (self._state.x0 + self._state.y)
+        linear_z = -1 * self._state.lambda_mult - self._state.rho * (self._state.x0 - self._state.y)
         for i in range(binary_size):
             op2.objective.set_linear(i + continuous_size, linear_z[i])
 
@@ -730,7 +729,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
             for j in range(i, binary_size):
                 op3.objective.set_quadratic_coefficients(i, j, q_y[i, j])
 
-        linear_y = self._state.lambda_mult + self._state.rho * (self._state.x0 - self._state.z)
+        linear_y = - self._state.lambda_mult - self._state.rho * (
+                    self._state.x0 - self._state.z)
         for i in range(binary_size):
             op3.objective.set_linear(i, linear_y[i])
 
@@ -806,7 +806,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         """
         return self._state.lambda_mult + \
-               self._state.rho * (self._state.x0 - self._state.z + self._state.y)
+               self._state.rho * (self._state.x0 - self._state.z - self._state.y)
 
     def _update_rho(self, primal_residual: float, dual_residual: float) -> None:
         """Updating the rho parameter in ADMM.
@@ -825,6 +825,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
                 self._state.rho = self._params.tau_incr * self._state.rho
             elif dual_residual > self._params.mu_res * primal_residual:
                 self._state.rho = self._params.tau_decr * self._state.rho
+            
 
     def _get_constraint_residual(self) -> float:
         """Compute violation of the constraints of the original problem, as:

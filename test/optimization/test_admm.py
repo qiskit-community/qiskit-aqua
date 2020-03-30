@@ -51,11 +51,11 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
         self.assertIsNotNone(solution)
         self.assertIsInstance(solution, ADMMOptimizerResult)
 
-        correct_solution = [0.009127, 0.009127, 0.009127, 0.009127, 0.009127, 0.009127, 0.009127,
-                            0.009127, 0.009127, 0.009127, 0.006151, 0.006151, 0.006151, 0.006151,
-                            0.006151, 0.006151, 0.006151, 0.006151, 0.006151, 0.006151,
+        correct_solution = [0., 0., 0., 0., 0., 0., 0.,
+                            0., 0., 0., 0., 0., 0., 0.,
+                            0., 0., 0., 0., 0., 0.,
                             0., 0.]
-        correct_objective = -1.2113693
+        correct_objective = 0.0
 
         self.assertIsNotNone(solution.x)
         np.testing.assert_almost_equal(correct_solution, solution.x, 3)
