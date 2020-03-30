@@ -52,7 +52,7 @@ from qiskit.optimization.algorithms.cobyla_optimizer import CobylaOptimizer
 from qiskit.optimization.algorithms.minimum_eigen_optimizer import MinimumEigenOptimizer
 from qiskit.optimization.algorithms.recursive_minimum_eigen_optimizer import\
     RecursiveMinimumEigenOptimizer
-from qiskit.optimization.algorithms.grover_minimum_finder import GroverMinimumFinder
+from qiskit.optimization.algorithms.grover_optimizer import GroverOptimizer
 
 __all__ = ["OptimizationAlgorithm", "CplexOptimizer", "CobylaOptimizer", "MinimumEigenOptimizer",
-           "RecursiveMinimumEigenOptimizer", "GroverMinimumFinder"]
+           "RecursiveMinimumEigenOptimizer", "GroverOptimizer"]

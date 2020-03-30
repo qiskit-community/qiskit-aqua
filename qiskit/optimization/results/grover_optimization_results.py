@@ -20,20 +20,18 @@ from typing import Dict, Tuple, Union
 class GroverOptimizationResults:
     """A results object for Grover Optimization methods."""
 
-    def __init__(self, operation_counts: Dict[int, Dict[str, int]], rotations: int,
+    def __init__(self, operation_counts: Dict[int, Dict[str, int]],
                  n_input_qubits: int, n_output_qubits: int,
                  func_dict: Dict[Union[int, Tuple[int, int]], int]) -> None:
         """
         Args:
             operation_counts: The counts of each operation performed per iteration.
-            rotations: The total number of Grover rotations performed.
             n_input_qubits: The number of qubits used to represent the input.
             n_output_qubits: The number of qubits used to represent the output.
             func_dict: A dictionary representation of the function, where the keys correspond
                 to a variable, and the values are the corresponding coefficients.
         """
         self._operation_counts = operation_counts
-        self._rotations = rotations
         self._n_input_qubits = n_input_qubits
         self._n_output_qubits = n_output_qubits
         self._func_dict = func_dict
@@ -46,15 +44,6 @@ class GroverOptimizationResults:
             The counts of each operation performed per iteration.
         """
         return self._operation_counts
-
-    @property
-    def rotation_count(self) -> int:
-        """Getter of rotation_count
-
-        Returns:
-            The total number of Grover rotations.
-        """
-        return self._rotations
 
     @property
     def n_input_qubits(self) -> int:

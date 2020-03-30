@@ -12,11 +12,10 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""GroverMinimumFinder module"""
+"""GroverOptimizer module"""
 
 import logging
 from typing import Optional, Dict, Union
-import random
 import math
 import numpy as np
 from qiskit.aqua import QuantumInstance
@@ -32,10 +31,10 @@ from qiskit import Aer, QuantumCircuit
 from qiskit.providers import BaseBackend
 
 
-class GroverMinimumFinder(OptimizationAlgorithm):
+class GroverOptimizer(OptimizationAlgorithm):
     """Uses Grover Adaptive Search (GAS) to find the minimum of a QUBO function."""
 
-    def __init__(self, num_iterations: int = 3,
+    def __init__(self, num_value_qubits: int, num_iterations: int = 3,
                  quantum_instance: Optional[Union[BaseBackend, QuantumInstance]] = None) -> None:
         """
         Args:
@@ -43,6 +42,7 @@ class GroverMinimumFinder(OptimizationAlgorithm):
                 no improvement.
             quantum_instance: Instance of selected backend, defaults to Aer's statevector simulator.
         """
+        self._num_value_qubits = num_value_qubits
         self._n_iterations = num_iterations
         if quantum_instance is None or isinstance(quantum_instance, BaseBackend):
             backend = quantum_instance or Aer.get_backend('statevector_simulator')
@@ -84,16 +84,13 @@ class GroverMinimumFinder(OptimizationAlgorithm):
         qubo_converter = OptimizationProblemToQubo()
         problem_ = qubo_converter.encode(problem)
 
-        # TODO: How to get from Optimization Problem?
-        num_output_qubits = 6
-
         # Variables for tracking the optimum.
         optimum_found = False
         optimum_key = math.inf
         optimum_value = math.inf
         threshold = 0
         n_key = problem_.variables.get_num()
-        n_value = num_output_qubits
+        n_value = self._num_value_qubits
 
         # Variables for tracking the solutions encountered.
         num_solutions = 2**n_key
@@ -104,89 +101,57 @@ class GroverMinimumFinder(OptimizationAlgorithm):
         operation_count = {}
         iteration = 0
 
-        # Variables for stopping if we've hit the rotation max.
-        rotations = 0
-        max_rotations = int(np.ceil(100*np.pi/4))
-
         # Initialize oracle helper object.
         orig_constant = problem_.objective.get_offset()
         measurement = not self._quantum_instance.is_statevector
         opt_prob_converter = OptimizationProblemToNegativeValueOracle(n_value,
                                                                       measurement)
 
+        loops_with_no_improvement = 0
         while not optimum_found:
-            m = 1
-            improvement_found = False
-
             # Get oracle O and the state preparation operator A for the current threshold.
             problem_.objective.set_offset(orig_constant - threshold)
             a_operator, oracle, func_dict = opt_prob_converter.encode(problem_)
 
-            # Iterate until we measure a negative.
-            loops_with_no_improvement = 0
-            while not improvement_found:
-                # Determine the number of rotations.
-                loops_with_no_improvement += 1
-                rotation_count = int(np.ceil(random.uniform(0, m-1)))
-                rotations += rotation_count
+            # Apply Grover's Algorithm to find values below the threshold.
+            grover = Grover(oracle, init_state=a_operator, incremental=True)
+            circuit = grover.construct_circuit(measurement=self._quantum_instance.is_statevector)
 
-                # Apply Grover's Algorithm to find values below the threshold.
-                if rotation_count > 0:
-                    grover = Grover(oracle, init_state=a_operator, num_iterations=rotation_count)
-                    circuit = grover.construct_circuit(
-                        measurement=self._quantum_instance.is_statevector
-                        )
+            # Get the next outcome.
+            outcome = self._measure(circuit, n_key, n_value)
+            k = int(outcome[0:n_key], 2)
+            v = outcome[n_key:n_key + n_value]
+            int_v = self._bin_to_int(v, n_value) + threshold
+            v = self._twos_complement(int_v, n_value)
+            self._logger.info('Outcome: %s', outcome)
+            self._logger.info('Value: %s = %s', v, int_v)
 
-                else:
-                    circuit = a_operator._circuit
-
-                # Get the next outcome.
-                outcome = self._measure(circuit, n_key, n_value)
-                k = int(outcome[0:n_key], 2)
-                v = outcome[n_key:n_key + n_value]
-
-                # Convert the binary string to integer.
-                int_v = self._bin_to_int(v, n_value) + threshold
-                v = self._twos_complement(int_v, n_value)
-
-                self._logger.info('Iterations: %s', rotation_count)
-                self._logger.info('Outcome: %s', outcome)
-                self._logger.info('Value: %s = %s', v, int_v)
-
-                # If the value is an improvement, we update the iteration parameters (e.g. oracle).
-                if int_v < optimum_value:
-                    optimum_key = k
-                    optimum_value = int_v
-                    self._logger.info('Current Optimum Key: %s', optimum_key)
-                    self._logger.info('Current Optimum Value: %s', optimum_value)
-                    if v.startswith('1'):
-                        improvement_found = True
-                        threshold = optimum_value
-                else:
-                    # No better number after the max number of iterations, so we assume the optimal.
-                    if loops_with_no_improvement >= self._n_iterations:
-                        improvement_found = True
-                        optimum_found = True
-
-                    # Using Durr and Hoyer method, increase m.
-                    # TODO: Give option for a rotation schedule, or for different lambda's.
-                    m = int(np.ceil(min(m * 8/7, 2**(n_key / 2))))
-                    self._logger.info('No Improvement. M: %s', m)
-
-                # Check if we've already seen this value.
-                if k not in keys_measured:
-                    keys_measured.append(k)
-
-                # Stop if we've seen all the keys or hit the rotation max.
-                if len(keys_measured) == num_solutions or rotations >= max_rotations:
-                    improvement_found = True
+            # If the value is an improvement, we update the iteration parameters (e.g. oracle).
+            if int_v < optimum_value:
+                optimum_key = k
+                optimum_value = int_v
+                self._logger.info('Current Optimum Key: %s', optimum_key)
+                self._logger.info('Current Optimum Value: %s', optimum_value)
+                if v.startswith('1'):
+                    threshold = optimum_value
+            else:
+                # No better number after the max number of iterations, so we assume the optimal.
+                if loops_with_no_improvement >= self._n_iterations:
                     optimum_found = True
 
-                # Track the operation count.
-                operations = circuit.count_ops()
-                operation_count[iteration] = operations
-                iteration += 1
-                self._logger.info('Operation Count: %s\n', operations)
+            # Check if we've already seen this value.
+            if k not in keys_measured:
+                keys_measured.append(k)
+
+            # Stop if we've seen all the keys.
+            if len(keys_measured) == num_solutions:
+                optimum_found = True
+
+            # Track the operation count.
+            operations = circuit.count_ops()
+            operation_count[iteration] = operations
+            iteration += 1
+            self._logger.info('Operation Count: %s\n', operations)
 
         # Get original key and value pairs.
         func_dict[-1] = orig_constant
@@ -198,8 +163,7 @@ class GroverMinimumFinder(OptimizationAlgorithm):
         opt_x = [1 if s == '1' else 0 for s in ('{0:%sb}' % n_key).format(optimum_key)]
 
         # Build the results object.
-        grover_results = GroverOptimizationResults(operation_count, rotations, n_key, n_value,
-                                                   func_dict)
+        grover_results = GroverOptimizationResults(operation_count, n_key, n_value, func_dict)
         result = OptimizationResult(x=opt_x, fval=solutions[optimum_key],
                                     results={"grover_results": grover_results,
                                              "qubo_converter": qubo_converter})
