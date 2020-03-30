@@ -272,12 +272,21 @@ class ADMMOptimizer(OptimizationAlgorithm):
             # and no update to be done in this case.
             # debug
             self._log.debug("x0=%s", self._state.x0)
+            # Claudio
+            op1.write('op1.lp')
+            print(op1.write_as_string())
+            print("x0=%s", self._state.x0)
 
             op2 = self._create_step2_problem()
             self._state.u, self._state.z = self._update_x1(op2)
             # debug
             self._log.debug("u=%s", self._state.u)
             self._log.debug("z=%s", self._state.z)
+            # Claudio
+            op2.write('op2.lp')
+            print(op2.write_as_string())
+            print("u=%s", self._state.u)
+            print("z=%s", self._state.z)
 
             if self._params.three_block:
                 if binary_indices:
@@ -285,6 +294,10 @@ class ADMMOptimizer(OptimizationAlgorithm):
                     self._state.y = self._update_y(op3)
                 # debug
                 self._log.debug("y=%s", self._state.y)
+                # Claudio
+                op3.write('op3.lp')
+                print(op3.write_as_string())
+                print("y=%s", self._state.y)
 
             self._state.lambda_mult = self._update_lambda_mult()
 
@@ -616,7 +629,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # prepare and set linear objective.
         linear_objective = self._state.c0 - \
                            self._params.factor_c * np.dot(self._state.b0, self._state.a0) + \
-                           self._state.rho * (- self._state.y - self._state.z) + \
+                           self._state.rho * (- self._state.y - self._state.z) +\
                            self._state.lambda_mult
 
         for i in range(binary_size):
@@ -729,8 +742,9 @@ class ADMMOptimizer(OptimizationAlgorithm):
             for j in range(i, binary_size):
                 op3.objective.set_quadratic_coefficients(i, j, q_y[i, j])
 
+        # linear_y = self._state.lambda_mult + self._state.rho * (self._state.x0 - self._state.z) #Claudio
         linear_y = - self._state.lambda_mult - self._state.rho * (
-                    self._state.x0 - self._state.z)
+                    self._state.x0 - self._state.z)  # Claudio
         for i in range(binary_size):
             op3.objective.set_linear(i, linear_y[i])
 
