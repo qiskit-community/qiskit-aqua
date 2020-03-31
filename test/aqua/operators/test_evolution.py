@@ -21,7 +21,7 @@ import numpy as np
 from qiskit.circuit import ParameterVector
 
 from qiskit.aqua.operators import (X, Y, Z, I, CX, H, OpVec, OpCircuit, Zero, EvolutionBase,
-                                   OpEvolution, PauliTrotterEvolution, QDrift)
+                                   EvolutionOp, PauliTrotterEvolution, QDrift)
 
 
 # pylint: disable=invalid-name
@@ -137,8 +137,8 @@ class TestEvolution(QiskitAquaTestCase):
         last_coeff = None
         # Check that all types are correct and all coefficients are equals
         for op in trotterization.oplist:
-            self.assertIsInstance(op, (OpEvolution, OpCircuit))
-            if isinstance(op, OpEvolution):
+            self.assertIsInstance(op, (EvolutionOp, OpCircuit))
+            if isinstance(op, EvolutionOp):
                 if last_coeff:
                     self.assertEqual(op.primitive.coeff, last_coeff)
                 else:

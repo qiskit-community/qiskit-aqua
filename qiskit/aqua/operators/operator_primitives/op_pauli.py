@@ -296,8 +296,8 @@ class OpPauli(OpPrimitive):
             # Need to use overloaded operators here in case left_pad == I^0
             return left_pad ^ rot_op ^ right_pad
         else:
-            from qiskit.aqua.operators import OpEvolution
-            return OpEvolution(self)
+            from qiskit.aqua.operators import EvolutionOp
+            return EvolutionOp(self)
 
     def __hash__(self) -> int:
         # Need this to be able to easily construct AbelianGraphs

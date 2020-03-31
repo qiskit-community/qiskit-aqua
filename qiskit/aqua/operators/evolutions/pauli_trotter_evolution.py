@@ -26,7 +26,7 @@ from .evolution_base import EvolutionBase
 from ..operator_combos import OpVec, OpSum
 from ..operator_primitives import OpPauli
 from ..converters import PauliBasisChange, AbelianGrouper
-from .op_evolution import OpEvolution
+from .evolution_op import EvolutionOp
 from .trotterizations import TrotterizationBase
 
 logger = logging.getLogger(__name__)
@@ -70,7 +70,7 @@ class PauliTrotterEvolution(EvolutionBase):
 
     # pylint: disable=inconsistent-return-statements
     def _recursive_convert(self, operator: OperatorBase):
-        if isinstance(operator, OpEvolution):
+        if isinstance(operator, EvolutionOp):
             if isinstance(operator.primitive, OpSum):
                 # if operator.primitive.abelian:
                 #     return self.evolution_for_abelian_paulisum(operator.primitive)

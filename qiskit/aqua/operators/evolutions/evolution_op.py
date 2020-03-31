@@ -28,10 +28,10 @@ from ..operator_combos import OpSum, OpComposition, OpKron
 logger = logging.getLogger(__name__)
 
 
-class OpEvolution(OpPrimitive):
+class EvolutionOp(OpPrimitive):
     """ Class for wrapping Operator Evolutions for compilation by an Evolution
     method later, essentially acting as a
-    placeholder. Note that OpEvolution is a weird case of OpPrimitive.
+    placeholder. Note that EvolutionOp is a weird case of OpPrimitive.
     It happens to be that it fits into the
     OpPrimitive interface nearly perfectly, and it essentially
     represents a placeholder for an OpPrimitive later,
@@ -63,8 +63,8 @@ class OpEvolution(OpPrimitive):
                 'Sum over operators with different numbers of qubits, {} and {}, is not well '
                 'defined'.format(self.num_qubits, other.num_qubits))
 
-        if isinstance(other, OpEvolution) and self.primitive == other.primitive:
-            return OpEvolution(self.primitive, coeff=self.coeff + other.coeff)
+        if isinstance(other, EvolutionOp) and self.primitive == other.primitive:
+            return EvolutionOp(self.primitive, coeff=self.coeff + other.coeff)
 
         if isinstance(other, OpSum):
             return OpSum([self] + other.oplist)
@@ -73,11 +73,11 @@ class OpEvolution(OpPrimitive):
 
     def adjoint(self) -> OperatorBase:
         """ Return operator adjoint (conjugate transpose). Overloaded by ~ in OperatorBase. """
-        return OpEvolution(self.primitive.adjoint() * -1, coeff=np.conj(self.coeff))
+        return EvolutionOp(self.primitive.adjoint() * -1, coeff=np.conj(self.coeff))
 
     def equals(self, other: OperatorBase) -> bool:
         """ Evaluate Equality. Overloaded by == in OperatorBase. """
-        if not isinstance(other, OpEvolution) or not self.coeff == other.coeff:
+        if not isinstance(other, EvolutionOp) or not self.coeff == other.coeff:
             return False
 
         return self.primitive == other.primitive
@@ -134,10 +134,10 @@ class OpEvolution(OpPrimitive):
 
     def __repr__(self) -> str:
         """Overload str() """
-        return "OpEvolution({}, coeff={})".format(repr(self.primitive), self.coeff)
+        return "EvolutionOp({}, coeff={})".format(repr(self.primitive), self.coeff)
 
     def reduce(self) -> OperatorBase:
-        return OpEvolution(self.primitive.reduce(), coeff=self.coeff)
+        return EvolutionOp(self.primitive.reduce(), coeff=self.coeff)
 
     def bind_parameters(self, param_dict: dict) -> OperatorBase:
         param_value = self.coeff
@@ -152,7 +152,7 @@ class OpEvolution(OpPrimitive):
                 # TODO what do we do about complex?
                 value = unrolled_dict[coeff_param]
                 param_value = float(self.coeff.bind({coeff_param: value}))
-        return OpEvolution(self.primitive.bind_parameters(param_dict), coeff=param_value)
+        return EvolutionOp(self.primitive.bind_parameters(param_dict), coeff=param_value)
 
     def eval(self,
              front: Union[str, dict, np.ndarray,
@@ -163,7 +163,7 @@ class OpEvolution(OpPrimitive):
         of binary strings. For more information,
         see the eval method in operator_base.py.
 
-        For OpEvolutions which haven't been converted by an Evolution
+        For EvolutionOps which haven't been converted by an Evolution
         method yet, our only option is to convert to an
         OpMatrix and eval with that.
         """

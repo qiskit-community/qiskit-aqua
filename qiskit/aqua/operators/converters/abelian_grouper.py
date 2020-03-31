@@ -34,7 +34,7 @@ class AbelianGrouper(ConverterBase):
 
     def convert(self, operator: OperatorBase) -> OperatorBase:
         # pylint: disable=cyclic-import,import-outside-toplevel
-        from .. import OpEvolution
+        from .. import EvolutionOp
 
         if isinstance(operator, OpVec):
             if isinstance(operator, OpSum) and all([isinstance(op, OpPauli)
@@ -49,8 +49,8 @@ class AbelianGrouper(ConverterBase):
             return StateFnOperator(self.convert(operator.primitive),
                                    is_measurement=operator.is_measurement,
                                    coeff=operator.coeff)
-        elif isinstance(operator, OpEvolution) and self._traverse:
-            return OpEvolution(self.convert(operator.primitive), coeff=operator.coeff)
+        elif isinstance(operator, EvolutionOp) and self._traverse:
+            return EvolutionOp(self.convert(operator.primitive), coeff=operator.coeff)
         else:
             return operator
 

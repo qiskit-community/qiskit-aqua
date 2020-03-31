@@ -285,8 +285,8 @@ class OpVec(OperatorBase):
     def exp_i(self) -> OperatorBase:
         """ Raise Operator to power e ^ (i * op)"""
         # pylint: disable=import-outside-toplevel
-        from qiskit.aqua.operators import OpEvolution
-        return OpEvolution(self)
+        from qiskit.aqua.operators import EvolutionOp
+        return EvolutionOp(self)
 
     def __str__(self) -> str:
         """Overload str() """

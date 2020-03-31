@@ -72,7 +72,7 @@ from .converters import (ConverterBase, PauliBasisChange, PauliToInstruction,
 from .expectation_values import (ExpectationBase, PauliExpectation, MatrixExpectation,
                                  AerPauliExpectation)
 from .circuit_samplers import CircuitSampler, LocalSimulatorSampler, IBMQSampler
-from .evolutions import (EvolutionBase, OpEvolution, PauliTrotterEvolution, TrotterizationBase,
+from .evolutions import (EvolutionBase, EvolutionOp, PauliTrotterEvolution, TrotterizationBase,
                          Trotter, Suzuki, QDrift)
 
 # Singletons
