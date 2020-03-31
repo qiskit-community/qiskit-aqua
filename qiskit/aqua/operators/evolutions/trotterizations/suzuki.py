@@ -21,7 +21,7 @@ from typing import List, Union
 from qiskit.quantum_info import Pauli
 
 from .trotterization_base import TrotterizationBase
-from ...operator_combos import OpComposition, OpSum
+from ...combo_operators import ComposedOp, SummedOp
 
 
 class Suzuki(TrotterizationBase):
@@ -42,11 +42,11 @@ class Suzuki(TrotterizationBase):
         """ sets order """
         self._order = order
 
-    def trotterize(self, op_sum: OpSum) -> OpComposition:
+    def trotterize(self, op_sum: SummedOp) -> ComposedOp:
         composition_list = Suzuki.suzuki_recursive_expansion(
             op_sum.oplist, op_sum.coeff, self.order, self.reps)
 
-        single_rep = OpComposition(composition_list)
+        single_rep = ComposedOp(composition_list)
         full_evo = single_rep.power(self.reps)
         return full_evo.reduce()
 

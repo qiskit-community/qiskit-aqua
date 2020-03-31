@@ -30,7 +30,7 @@ from qiskit.circuit import ParameterVector
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.operators import (OperatorBase, ExpectationBase, CircuitStateFn,
-                                   LegacyBaseOperator, OpVec, I)
+                                   LegacyBaseOperator, ListOp, I)
 from qiskit.aqua.operators.legacy import (MatrixOperator, WeightedPauliOperator,
                                           TPBGroupedWeightedPauliOperator)
 from qiskit.aqua.components.optimizers import Optimizer, SLSQP
@@ -108,7 +108,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                 possible when a finite difference gradient is used by the optimizer such that
                 multiple points to compute the gradient can be passed and if computed in parallel
                 improve overall execution time.
-            aux_operators: Optional OpVec or list of auxiliary operators to be evaluated with the
+            aux_operators: Optional ListOp or list of auxiliary operators to be evaluated with the
                 eigenstate of the minimum eigenvalue main result and their expectation values
                 returned. For instance in chemistry these can be dipole operators, total particle
                 count operators so we can get values for these at the ground state.
@@ -201,11 +201,11 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         self._aux_op_nones = None
         if isinstance(aux_operators, list):
             self._aux_op_nones = [op is None for op in aux_operators]
-            zero_op = I.kronpower(self.operator.num_qubits) * 0.0
+            zero_op = I.tensorpower(self.operator.num_qubits) * 0.0
             converted = [op.to_opflow() if op else zero_op for op in aux_operators]
             # For some reason Chemistry passes aux_ops with 0 qubits and paulis sometimes. TODO fix
             converted = [zero_op if op == 0 else op for op in converted]
-            aux_operators = OpVec(converted)
+            aux_operators = ListOp(converted)
         elif isinstance(aux_operators, LegacyBaseOperator):
             aux_operators = [aux_operators.to_opflow()]
         self._aux_operators = aux_operators

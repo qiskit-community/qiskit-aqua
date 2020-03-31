@@ -24,11 +24,11 @@ from qiskit.circuit import ParameterExpression
 from ..operator_base import OperatorBase
 
 
-class OpVec(OperatorBase):
+class ListOp(OperatorBase):
     """ A class for storing and manipulating lists of operators.
     Vec here refers to the fact that this class serves
     as a base class for other Operator combinations which store
-    a list of operators, such as OpSum or OpKron,
+    a list of operators, such as SummedOp or TensoredOp,
     but also refers to the "vec" mathematical operation.
     """
 
@@ -72,11 +72,11 @@ class OpVec(OperatorBase):
     # TODO: Keep this property for evals or just enact distribution at composition time?
     @property
     def distributive(self) -> bool:
-        """ Indicates whether the OpVec or subclass is distributive under composition.
-        OpVec and OpSum are,
-        meaning that opv @ op = opv[0] @ op + opv[1] @ op +... (plus for OpSum,
-        vec for OpVec, etc.),
-        while OpComposition and OpKron do not behave this way."""
+        """ Indicates whether the ListOp or subclass is distributive under composition.
+        ListOp and SummedOp are,
+        meaning that opv @ op = opv[0] @ op + opv[1] @ op +... (plus for SummedOp,
+        vec for ListOp, etc.),
+        while ComposedOp and TensoredOp do not behave this way."""
         return True
 
     @property
@@ -98,7 +98,7 @@ class OpVec(OperatorBase):
 
     # TODO change to *other to efficiently handle lists?
     def add(self, other: OperatorBase) -> OperatorBase:
-        """ Addition. Overloaded by + in OperatorBase. OpSum overrides with its own add(). """
+        """ Addition. Overloaded by + in OperatorBase. SummedOp overrides with its own add(). """
         if self == other:
             return self.mul(2.0)
 
@@ -109,8 +109,8 @@ class OpVec(OperatorBase):
 
         # Avoid circular dependency
         # pylint: disable=cyclic-import,import-outside-toplevel
-        from .op_sum import OpSum
-        return OpSum([self, other])
+        from .summed_op import SummedOp
+        return SummedOp([self, other])
 
     def neg(self) -> OperatorBase:
         """ Negate. Overloaded by - in OperatorBase. """
@@ -119,10 +119,10 @@ class OpVec(OperatorBase):
     def adjoint(self) -> OperatorBase:
         """ Return operator adjoint (conjugate transpose). Overloaded by ~ in OperatorBase.
 
-        Works for OpSum, OpCompose, OpVec, OpKron, at least.
+        Works for SummedOp, ComposedOp, ListOp, TensoredOp, at least.
         New combos must check whether they need to overload this.
         """
-        # TODO test this a lot... probably different for OpKron.
+        # TODO test this a lot... probably different for TensoredOp.
         # TODO do this lazily? Basically rebuilds the entire tree,
         #  and ops and adjoints almost always come in pairs.
         return self.__class__([op.adjoint() for op in self.oplist], coeff=np.conj(self.coeff))
@@ -154,10 +154,10 @@ class OpVec(OperatorBase):
                              '{} of type {}.'.format(scalar, type(scalar)))
         return self.__class__(self.oplist, coeff=self.coeff * scalar)
 
-    def kron(self, other: OperatorBase) -> OperatorBase:
-        """ Kron
+    def tensor(self, other: OperatorBase) -> OperatorBase:
+        """ Tensor product
         Note: You must be conscious of Qiskit's big-endian bit printing convention.
-        Meaning, X.kron(Y)
+        Meaning, X.tensor(Y)
         produces an X on qubit 0 and an Y on qubit 1, or X⨂Y, but would produce a
         QuantumCircuit which looks like
         -[Y]-
@@ -166,27 +166,27 @@ class OpVec(OperatorBase):
         """
         # TODO do this lazily for some primitives (Matrix), and eager
         #  for others (Pauli, Instruction)?
-        # NOTE: Doesn't work for OpComposition!
+        # NOTE: Doesn't work for ComposedOp!
         # if eager and isinstance(other, PrimitiveOp):
-        #     return self.__class__([op.kron(other) for op in self.oplist], coeff=self.coeff)
+        #     return self.__class__([op.tensor(other) for op in self.oplist], coeff=self.coeff)
 
         # Avoid circular dependency
         # pylint: disable=cyclic-import,import-outside-toplevel
-        from .op_kron import OpKron
-        return OpKron([self, other])
+        from .tensored_op import TensoredOp
+        return TensoredOp([self, other])
 
-    def kronpower(self, other: int) -> Union[OperatorBase, int]:
-        """ Kron with Self Multiple Times """
+    def tensorpower(self, other: int) -> Union[OperatorBase, int]:
+        """ Tensor product with Self Multiple Times """
         # Hack to make op1^(op2^0) work as intended.
         if other == 0:
             return 1
         if not isinstance(other, int) or other <= 0:
-            raise TypeError('Kronpower can only take positive int arguments')
+            raise TypeError('Tensorpower can only take positive int arguments')
 
         # Avoid circular dependency
         # pylint: disable=cyclic-import,import-outside-toplevel
-        from .op_kron import OpKron
-        return OpKron([self] * other)
+        from .tensored_op import TensoredOp
+        return TensoredOp([self] * other)
 
     # TODO change to *other to efficiently handle lists?
     def compose(self, other: OperatorBase) -> OperatorBase:
@@ -206,8 +206,8 @@ class OpVec(OperatorBase):
 
         # Avoid circular dependency
         # pylint: disable=cyclic-import,import-outside-toplevel
-        from .op_composition import OpComposition
-        return OpComposition([self, other])
+        from .composed_op import ComposedOp
+        return ComposedOp([self, other])
 
     def power(self, other: int) -> OperatorBase:
         """ Compose with Self Multiple Times """
@@ -216,8 +216,8 @@ class OpVec(OperatorBase):
 
         # Avoid circular dependency
         # pylint: disable=cyclic-import,import-outside-toplevel
-        from .op_composition import OpComposition
-        return OpComposition([self] * other)
+        from .composed_op import ComposedOp
+        return ComposedOp([self] * other)
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
         """ Return numpy vector representing StateFn evaluated on each basis state. Warn if more
@@ -263,14 +263,14 @@ class OpVec(OperatorBase):
         For more information,
         see the eval method in operator_base.py.
 
-        OpVec's eval recursively evaluates each Operator in self.oplist's eval,
+        ListOp's eval recursively evaluates each Operator in self.oplist's eval,
         and returns a value based on the
         recombination function.
 
 
-        # TODO this doesn't work for compositions and krons! Needs to be to_matrix.
+        # TODO this doesn't work for compositions and tensors! Needs to be to_matrix.
         """
-        # The below code only works for distributive OpVecs, e.g. OpVec and OpSum
+        # The below code only works for distributive ListOps, e.g. ListOp and SummedOp
         if not self.distributive:
             return NotImplementedError
 
@@ -285,8 +285,8 @@ class OpVec(OperatorBase):
     def exp_i(self) -> OperatorBase:
         """ Raise Operator to power e ^ (i * op)"""
         # pylint: disable=import-outside-toplevel
-        from qiskit.aqua.operators import EvolutionOp
-        return EvolutionOp(self)
+        from qiskit.aqua.operators import EvolvedOp
+        return EvolvedOp(self)
 
     def __str__(self) -> str:
         """Overload str() """
@@ -311,7 +311,7 @@ class OpVec(OperatorBase):
         if isinstance(self.coeff, ParameterExpression):
             unrolled_dict = self._unroll_param_dict(param_dict)
             if isinstance(unrolled_dict, list):
-                return OpVec([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
+                return ListOp([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
             coeff_param = list(self.coeff.parameters)[0]
             if coeff_param in unrolled_dict:
                 # TODO what do we do about complex?

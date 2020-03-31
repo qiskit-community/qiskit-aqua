@@ -21,8 +21,8 @@ from qiskit.quantum_info import Pauli
 from qiskit.extensions.standard import XGate, YGate, ZGate, IGate
 
 from ..operator_base import OperatorBase
-from ..operator_primitives import PrimitiveOp
-from ..operator_combos import OpVec
+from ..primitive_operators import PrimitiveOp
+from ..combo_operators import ListOp
 from .converter_base import ConverterBase
 
 # pylint: disable=invalid-name
@@ -44,8 +44,8 @@ class PauliToInstruction(ConverterBase):
         elif isinstance(operator, PrimitiveOp) and isinstance(operator.primitive, Pauli):
             operator = operator.primitive
             coeff = operator.coeff
-        # TODO allow parameterized OpVec to be returned to save circuit copying.
-        elif isinstance(operator, OpVec) and self._traverse and \
+        # TODO allow parameterized ListOp to be returned to save circuit copying.
+        elif isinstance(operator, ListOp) and self._traverse and \
                 'Pauli' in operator.get_primitives():
             return operator.traverse(self.convert)
         else:

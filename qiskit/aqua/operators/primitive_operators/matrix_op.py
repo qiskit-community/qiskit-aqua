@@ -23,7 +23,7 @@ from qiskit.quantum_info import Operator as MatrixOperator
 from qiskit.circuit import ParameterExpression
 
 from ..operator_base import OperatorBase
-from ..operator_combos import OpSum, OpComposition, OpKron
+from ..combo_operators import SummedOp, ComposedOp, TensoredOp
 from .primitive_op import PrimitiveOp
 
 logger = logging.getLogger(__name__)
@@ -87,7 +87,7 @@ class MatrixOp(PrimitiveOp):
             return MatrixOp((self.coeff * self.primitive) + (other.coeff * other.primitive))
 
         # Covers Paulis, Circuits, and all else.
-        return OpSum([self, other])
+        return SummedOp([self, other])
 
     def adjoint(self) -> OperatorBase:
         """ Return operator adjoint (conjugate transpose). Overloaded by ~ in OperatorBase. """
@@ -104,10 +104,10 @@ class MatrixOp(PrimitiveOp):
         # Will return NotImplementedError if not supported
 
     # TODO change to *other to handle lists? How aggressively to handle pairwise business?
-    def kron(self, other: OperatorBase) -> OperatorBase:
-        """ Kron
+    def tensor(self, other: OperatorBase) -> OperatorBase:
+        """ Tensor product
         Note: You must be conscious of Qiskit's big-endian bit
-        printing convention. Meaning, X.kron(Y)
+        printing convention. Meaning, X.tensor(Y)
         produces an X on qubit 0 and an Y on qubit 1, or X⨂Y,
         but would produce a QuantumCircuit which looks like
         -[Y]-
@@ -117,7 +117,7 @@ class MatrixOp(PrimitiveOp):
         if isinstance(other.primitive, MatrixOperator):
             return MatrixOp(self.primitive.tensor(other.primitive), coeff=self.coeff * other.coeff)
 
-        return OpKron([self, other])
+        return TensoredOp([self, other])
 
     # TODO change to *other to efficiently handle lists?
     def compose(self, other: OperatorBase) -> OperatorBase:
@@ -137,7 +137,7 @@ class MatrixOp(PrimitiveOp):
             return MatrixOp(self.primitive.compose(other.primitive, front=True),
                             coeff=self.coeff * other.coeff)
 
-        return OpComposition([self, other])
+        return ComposedOp([self, other])
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
         """ Return numpy matrix of operator, warn if more than 16 qubits to force
@@ -185,7 +185,7 @@ class MatrixOp(PrimitiveOp):
             return self
 
         # pylint: disable=cyclic-import,import-outside-toplevel
-        from ..operator_combos import OpVec
+        from ..combo_operators import ListOp
         from ..state_functions import StateFn, OperatorStateFn
 
         new_front = None
@@ -194,7 +194,7 @@ class MatrixOp(PrimitiveOp):
         if not isinstance(front, OperatorBase):
             front = StateFn(front, is_measurement=False)
 
-        if isinstance(front, OpVec) and front.distributive:
+        if isinstance(front, ListOp) and front.distributive:
             new_front = front.combo_fn([self.eval(front.coeff * front_elem)
                                         for front_elem in front.oplist])
 

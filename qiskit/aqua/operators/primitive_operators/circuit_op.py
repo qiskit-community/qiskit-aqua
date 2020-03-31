@@ -23,7 +23,7 @@ from qiskit.extensions.standard import IGate
 from qiskit.circuit import Instruction, ParameterExpression
 
 from ..operator_base import OperatorBase
-from ..operator_combos import OpSum, OpComposition, OpKron
+from ..combo_operators import SummedOp, ComposedOp, TensoredOp
 from .primitive_op import PrimitiveOp
 
 logger = logging.getLogger(__name__)
@@ -78,7 +78,7 @@ class CircuitOp(PrimitiveOp):
             return CircuitOp(self.primitive, coeff=self.coeff + other.coeff)
 
         # Covers all else.
-        return OpSum([self, other])
+        return SummedOp([self, other])
 
     def adjoint(self) -> OperatorBase:
         """ Return operator adjoint (conjugate transpose). Overloaded by ~ in OperatorBase. """
@@ -95,10 +95,10 @@ class CircuitOp(PrimitiveOp):
         # Will return NotImplementedError if not supported
 
     # TODO change to *other to handle lists? How aggressively to handle pairwise business?
-    def kron(self, other: OperatorBase) -> OperatorBase:
-        """ Kron
+    def tensor(self, other: OperatorBase) -> OperatorBase:
+        """ Tensor product
         Note: You must be conscious of Qiskit's big-endian bit printing
-        convention. Meaning, X.kron(Y)
+        convention. Meaning, X.tensor(Y)
         produces an X on qubit 0 and an Y on qubit 1, or X⨂Y, but would produce a
         QuantumCircuit which looks like
         -[Y]-
@@ -122,7 +122,7 @@ class CircuitOp(PrimitiveOp):
             # TODO Figure out what to do with cbits?
             return CircuitOp(new_qc.decompose().to_instruction(), coeff=self.coeff * other.coeff)
 
-        return OpKron([self, other])
+        return TensoredOp([self, other])
 
     # TODO change to *other to efficiently handle lists?
     def compose(self, other: OperatorBase) -> OperatorBase:
@@ -163,7 +163,7 @@ class CircuitOp(PrimitiveOp):
             else:
                 return CircuitOp(new_qc.to_instruction(), coeff=self.coeff * other.coeff)
 
-        return OpComposition([self, other])
+        return ComposedOp([self, other])
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
         """ Return numpy matrix of operator, warn if more than 16 qubits
@@ -204,8 +204,8 @@ class CircuitOp(PrimitiveOp):
             unrolled_dict = self._unroll_param_dict(param_dict)
             if isinstance(unrolled_dict, list):
                 # pylint: disable=import-outside-toplevel
-                from ..operator_combos.op_vec import OpVec
-                return OpVec([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
+                from ..combo_operators.list_op import ListOp
+                return ListOp([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
             if self.coeff in unrolled_dict:
                 # TODO what do we do about complex?
                 param_value = float(self.coeff.bind(unrolled_dict[self.coeff]))
@@ -230,10 +230,10 @@ class CircuitOp(PrimitiveOp):
 
         # pylint: disable=import-outside-toplevel
         from ..state_functions import CircuitStateFn
-        from ..operator_combos import OpVec
+        from ..combo_operators import ListOp
         from .pauli_op import PauliOp
 
-        if isinstance(front, OpVec) and front.distributive:
+        if isinstance(front, ListOp) and front.distributive:
             return front.combo_fn([self.eval(front.coeff * front_elem)
                                    for front_elem in front.oplist])
 

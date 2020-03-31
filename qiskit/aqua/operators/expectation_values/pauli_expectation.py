@@ -24,7 +24,7 @@ from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance
 from ..operator_base import OperatorBase
 from .expectation_base import ExpectationBase
-from ..operator_combos import OpVec, OpComposition
+from ..combo_operators import ListOp, ComposedOp
 from ..state_functions import StateFn
 from ..converters import PauliBasisChange, AbelianGrouper
 
@@ -97,7 +97,7 @@ class PauliExpectation(ExpectationBase):
 
         if not self._converted_operator:
             # Construct measurement from operator
-            if self._grouper and isinstance(self._operator, OpVec):
+            if self._grouper and isinstance(self._operator, ListOp):
                 grouped = self._grouper.convert(self.operator)
                 meas = StateFn(grouped, is_measurement=True)
             else:
@@ -152,14 +152,14 @@ class PauliExpectation(ExpectationBase):
             self.compute_expectation(state=state, params=params)
 
         def sum_variance(operator):
-            if isinstance(operator, OpComposition):
+            if isinstance(operator, ComposedOp):
                 sfdict = operator.oplist[1]
                 measurement = operator.oplist[0]
                 average = measurement.eval(sfdict)
                 variance = sum([(v * (measurement.eval(b) - average))**2
                                 for (b, v) in sfdict.primitive.items()])
                 return (operator.coeff * variance)**.5
-            elif isinstance(operator, OpVec):
+            elif isinstance(operator, ListOp):
                 return operator._combo_fn([sum_variance(op) for op in operator.oplist])
 
         return sum_variance(self._sampled_meas_op)

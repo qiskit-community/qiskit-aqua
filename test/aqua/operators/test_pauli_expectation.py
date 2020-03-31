@@ -20,7 +20,7 @@ import itertools
 import numpy as np
 
 from qiskit.aqua.operators import (X, Y, Z, I, CX, H, S,
-                                   OpVec, Zero, One, Plus, Minus,
+                                   ListOp, Zero, One, Plus, Minus,
                                    PauliExpectation, AbelianGrouper,
                                    CircuitSampler)
 
@@ -57,7 +57,7 @@ class TestPauliExpectation(QiskitAquaTestCase):
     def test_pauli_expect_op_vector(self):
         """ pauli expect op vector test """
         backend = BasicAer.get_backend('qasm_simulator')
-        paulis_op = OpVec([X, Y, Z, I])
+        paulis_op = ListOp([X, Y, Z, I])
         expect = PauliExpectation(operator=paulis_op, backend=backend)
 
         plus_mean = expect.compute_expectation(Plus)
@@ -95,7 +95,7 @@ class TestPauliExpectation(QiskitAquaTestCase):
     def test_pauli_expect_state_vector(self):
         """ pauli expect state vector test """
         backend = BasicAer.get_backend('qasm_simulator')
-        states_op = OpVec([One, Zero, Plus, Minus])
+        states_op = ListOp([One, Zero, Plus, Minus])
 
         paulis_op = X
         expect = PauliExpectation(operator=paulis_op, backend=backend)
@@ -105,8 +105,8 @@ class TestPauliExpectation(QiskitAquaTestCase):
     def test_pauli_expect_op_vector_state_vector(self):
         """ pauli expect op vector state vector test """
         backend = BasicAer.get_backend('qasm_simulator')
-        paulis_op = OpVec([X, Y, Z, I])
-        states_op = OpVec([One, Zero, Plus, Minus])
+        paulis_op = ListOp([X, Y, Z, I])
+        states_op = ListOp([One, Zero, Plus, Minus])
 
         expect = PauliExpectation(operator=paulis_op, backend=backend)
         means = expect.compute_expectation(states_op)
@@ -122,11 +122,11 @@ class TestPauliExpectation(QiskitAquaTestCase):
 
         backend = BasicAer.get_backend('qasm_simulator')
         qs = 45
-        states_op = OpVec([Zero ^ qs,
-                           One ^ qs,
-                           (Zero ^ qs) + (One ^ qs)])
-        paulis_op = OpVec([Z ^ qs,
-                           (I ^ Z ^ I) ^ int(qs / 3)])
+        states_op = ListOp([Zero ^ qs,
+                            One ^ qs,
+                            (Zero ^ qs) + (One ^ qs)])
+        paulis_op = ListOp([Z ^ qs,
+                            (I ^ Z ^ I) ^ int(qs / 3)])
         expect = PauliExpectation(operator=paulis_op, backend=backend)
         means = expect.compute_expectation(states_op)
         np.testing.assert_array_almost_equal(means, [[1, -1, 0],

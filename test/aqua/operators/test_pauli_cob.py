@@ -19,7 +19,7 @@ from test.aqua import QiskitAquaTestCase
 import itertools
 import numpy as np
 
-from qiskit.aqua.operators import X, Y, Z, I, OpSum, OpComposition
+from qiskit.aqua.operators import X, Y, Z, I, SummedOp, ComposedOp
 from qiskit.aqua.operators.converters import PauliBasisChange
 
 
@@ -84,7 +84,7 @@ class TestPauliCoB(QiskitAquaTestCase):
             converter = PauliBasisChange(destination_basis=dest, traverse=True)
 
             cob = converter.convert(pauli)
-            self.assertIsInstance(cob, OpSum)
+            self.assertIsInstance(cob, SummedOp)
             inst = [None] * len(pauli.oplist)
             ret_dest = [None] * len(pauli.oplist)
             cob_mat = [None] * len(pauli.oplist)
@@ -96,7 +96,7 @@ class TestPauliCoB(QiskitAquaTestCase):
                 # print(pauli.oplist[i].to_matrix())
                 # print(np.round(inst[i].adjoint().to_matrix() @ cob.oplist[i].to_matrix()))
 
-                self.assertIsInstance(cob.oplist[i], OpComposition)
+                self.assertIsInstance(cob.oplist[i], ComposedOp)
                 cob_mat[i] = cob.oplist[i].to_matrix()
                 np.testing.assert_array_almost_equal(pauli.oplist[i].to_matrix(), cob_mat[i])
             np.testing.assert_array_almost_equal(pauli.to_matrix(), sum(cob_mat))

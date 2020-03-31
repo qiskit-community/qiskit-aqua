@@ -26,7 +26,7 @@ from qiskit.extensions.standard import RZGate, RYGate, RXGate
 
 from ..operator_base import OperatorBase
 from . import PrimitiveOp
-from ..operator_combos import OpSum, OpComposition, OpKron
+from ..combo_operators import SummedOp, ComposedOp, TensoredOp
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +76,7 @@ class PauliOp(PrimitiveOp):
         if isinstance(other, PauliOp) and self.primitive == other.primitive:
             return PauliOp(self.primitive, coeff=self.coeff + other.coeff)
 
-        return OpSum([self, other])
+        return SummedOp([self, other])
 
     def adjoint(self) -> OperatorBase:
         """ Return operator adjoint (conjugate transpose). Overloaded by ~ in OperatorBase. """
@@ -90,10 +90,10 @@ class PauliOp(PrimitiveOp):
         return self.primitive == other.primitive
 
     # TODO change to *other to handle lists? How aggressively to handle pairwise business?
-    def kron(self, other: OperatorBase) -> OperatorBase:
-        """ Kron
+    def tensor(self, other: OperatorBase) -> OperatorBase:
+        """ Tensor product
         Note: You must be conscious of Qiskit's big-endian bit
-        printing convention. Meaning, X.kron(Y)
+        printing convention. Meaning, X.tensor(Y)
         produces an X on qubit 0 and an Y on qubit 1, or X⨂Y,
         but would produce a
         QuantumCircuit which looks like
@@ -105,7 +105,7 @@ class PauliOp(PrimitiveOp):
 
         # Both Paulis
         if isinstance(other, PauliOp):
-            # TODO change Pauli kron in Terra to have optional in place
+            # TODO change Pauli tensor product in Terra to have optional in place
             op_copy = Pauli(x=other.primitive.x, z=other.primitive.z)
             # NOTE!!! REVERSING QISKIT ENDIANNESS HERE
             return PauliOp(op_copy.kron(self.primitive), coeff=self.coeff * other.coeff)
@@ -124,7 +124,7 @@ class PauliOp(PrimitiveOp):
             # TODO Figure out what to do with cbits?
             return CircuitOp(new_qc.decompose().to_instruction(), coeff=self.coeff * other.coeff)
 
-        return OpKron([self, other])
+        return TensoredOp([self, other])
 
     # TODO change to *other to efficiently handle lists?
     def compose(self, other: OperatorBase) -> OperatorBase:
@@ -168,7 +168,7 @@ class PauliOp(PrimitiveOp):
                 return CircuitOp(new_qc.decompose().to_instruction(),
                                  coeff=self.coeff * other.coeff)
 
-        return OpComposition([self, other])
+        return ComposedOp([self, other])
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
         """ Return numpy matrix of operator, warn if more than
@@ -229,7 +229,7 @@ class PauliOp(PrimitiveOp):
             return self.to_matrix_op()
 
         # pylint: disable=import-outside-toplevel
-        from .. import StateFn, DictStateFn, CircuitStateFn, OpVec
+        from .. import StateFn, DictStateFn, CircuitStateFn, ListOp
         from . import CircuitOp
 
         new_front = None
@@ -238,7 +238,7 @@ class PauliOp(PrimitiveOp):
         if not isinstance(front, OperatorBase):
             front = StateFn(front, is_measurement=False)
 
-        if isinstance(front, OpVec) and front.distributive:
+        if isinstance(front, ListOp) and front.distributive:
             new_front = front.combo_fn([self.eval(front.coeff * front_elem)
                                         for front_elem in front.oplist])
 
@@ -291,13 +291,13 @@ class PauliOp(PrimitiveOp):
                 rot_op = PrimitiveOp(RXGate(self.coeff))
 
             from .. import I
-            left_pad = I.kronpower(sig_qubit_index)
-            right_pad = I.kronpower(self.num_qubits - sig_qubit_index - 1)
+            left_pad = I.tensorpower(sig_qubit_index)
+            right_pad = I.tensorpower(self.num_qubits - sig_qubit_index - 1)
             # Need to use overloaded operators here in case left_pad == I^0
             return left_pad ^ rot_op ^ right_pad
         else:
-            from qiskit.aqua.operators import EvolutionOp
-            return EvolutionOp(self)
+            from qiskit.aqua.operators import EvolvedOp
+            return EvolvedOp(self)
 
     def __hash__(self) -> int:
         # Need this to be able to easily construct AbelianGraphs

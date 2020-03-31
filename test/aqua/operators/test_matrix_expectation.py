@@ -19,7 +19,7 @@ from test.aqua import QiskitAquaTestCase
 import itertools
 import numpy as np
 
-from qiskit.aqua.operators import X, Y, Z, I, CX, H, S, OpVec
+from qiskit.aqua.operators import X, Y, Z, I, CX, H, S, ListOp
 from qiskit.aqua.operators import Zero, One, Plus, Minus
 
 from qiskit.aqua.operators.expectation_values import MatrixExpectation
@@ -52,7 +52,7 @@ class TestMatrixExpectation(QiskitAquaTestCase):
 
     def test_matrix_expect_op_vector(self):
         """ matrix expect op vector test """
-        paulis_op = OpVec([X, Y, Z, I])
+        paulis_op = ListOp([X, Y, Z, I])
 
         expect = MatrixExpectation(operator=paulis_op)
         plus_mean = expect.compute_expectation(Plus)
@@ -87,7 +87,7 @@ class TestMatrixExpectation(QiskitAquaTestCase):
 
     def test_matrix_expect_state_vector(self):
         """ matrix expect state vector test """
-        states_op = OpVec([One, Zero, Plus, Minus])
+        states_op = ListOp([One, Zero, Plus, Minus])
 
         paulis_op = X
         expect = MatrixExpectation(operator=paulis_op)
@@ -96,8 +96,8 @@ class TestMatrixExpectation(QiskitAquaTestCase):
 
     def test_matrix_expect_op_vector_state_vector(self):
         """ matrix expect op vector state vector test """
-        paulis_op = OpVec([X, Y, Z, I])
-        states_op = OpVec([One, Zero, Plus, Minus])
+        paulis_op = ListOp([X, Y, Z, I])
+        states_op = ListOp([One, Zero, Plus, Minus])
 
         expect = MatrixExpectation(operator=paulis_op)
         means = expect.compute_expectation(states_op)

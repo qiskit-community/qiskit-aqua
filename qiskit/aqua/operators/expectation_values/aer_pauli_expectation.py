@@ -22,8 +22,8 @@ from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance
 from ..operator_base import OperatorBase
 from .expectation_base import ExpectationBase
-from ..operator_combos import OpVec, OpSum
-from ..operator_primitives import PauliOp
+from ..combo_operators import ListOp, SummedOp
+from ..primitive_operators import PauliOp
 from ..state_functions import StateFn, CircuitStateFn
 
 logger = logging.getLogger(__name__)
@@ -87,7 +87,7 @@ class AerPauliExpectation(ExpectationBase):
         # Construct snapshot op
         # pylint: disable=inconsistent-return-statements
         def replace_pauli_sums(operator):
-            if isinstance(operator, OpSum):
+            if isinstance(operator, SummedOp):
                 paulis = [[meas.coeff, meas.primitive] for meas in operator.oplist]
                 snapshot_instruction = SnapshotExpectationValue('expval', paulis, variance=True)
                 snapshot_op = CircuitStateFn(snapshot_instruction, is_measurement=True)
@@ -97,7 +97,7 @@ class AerPauliExpectation(ExpectationBase):
                 snapshot_instruction = SnapshotExpectationValue('expval', paulis, variance=True)
                 snapshot_op = CircuitStateFn(snapshot_instruction, is_measurement=True)
                 return snapshot_op
-            if isinstance(operator, OpVec):
+            if isinstance(operator, ListOp):
                 return operator.traverse(replace_pauli_sums)
 
         snapshot_meas = replace_pauli_sums(self._operator)

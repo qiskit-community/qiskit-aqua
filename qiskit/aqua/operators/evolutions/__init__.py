@@ -18,18 +18,18 @@ the exponential of an operator.
 """
 
 from .evolution_base import EvolutionBase
-from .evolution_op import EvolutionOp
+from .evolved_op import EvolvedOp
 from .pauli_trotter_evolution import PauliTrotterEvolution
 from .matrix_evolution import MatrixEvolution
 from .trotterizations import TrotterizationBase, Trotter, Suzuki, QDrift
 
 # TODO matrix evolution
 # TODO quantum signal processing
-# TODO evolve by density matrix (need to add iexp to state_fn_operator)
+# TODO evolve by density matrix (need to add iexp to operator_state_fn)
 # TODO linear combination evolution
 
 __all__ = ['EvolutionBase',
-           'EvolutionOp',
+           'EvolvedOp',
            'PauliTrotterEvolution',
            'MatrixEvolution',
            'TrotterizationBase',

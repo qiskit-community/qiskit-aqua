@@ -36,7 +36,7 @@ class TestStateOpMeasEvals(QiskitAquaTestCase):
         """ wf evals x test """
         qbits = 4
         wf = ((Zero ^ qbits) + (One ^ qbits)) * (1 / 2 ** .5)
-        # Note: wf = Plus^qbits fails because OpKron can't handle it.
+        # Note: wf = Plus^qbits fails because TensoredOp can't handle it.
         wf_vec = StateFn(wf.to_matrix())
         op = X ^ qbits
         # op = I^6

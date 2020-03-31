@@ -23,10 +23,10 @@ import numpy as np
 from ..operator_base import OperatorBase
 from ..operator_globals import Z, I
 from .evolution_base import EvolutionBase
-from ..operator_combos import OpVec, OpSum
-from ..operator_primitives import PauliOp
+from ..combo_operators import ListOp, SummedOp
+from ..primitive_operators import PauliOp
 from ..converters import PauliBasisChange, AbelianGrouper
-from .evolution_op import EvolutionOp
+from .evolved_op import EvolvedOp
 from .trotterizations import TrotterizationBase
 
 logger = logging.getLogger(__name__)
@@ -70,8 +70,8 @@ class PauliTrotterEvolution(EvolutionBase):
 
     # pylint: disable=inconsistent-return-statements
     def _recursive_convert(self, operator: OperatorBase):
-        if isinstance(operator, EvolutionOp):
-            if isinstance(operator.primitive, OpSum):
+        if isinstance(operator, EvolvedOp):
+            if isinstance(operator.primitive, SummedOp):
                 # if operator.primitive.abelian:
                 #     return self.evolution_for_abelian_paulisum(operator.primitive)
                 # else:
@@ -79,11 +79,11 @@ class PauliTrotterEvolution(EvolutionBase):
                 return self._recursive_convert(trotterized)
             elif isinstance(operator.primitive, PauliOp):
                 return self.evolution_for_pauli(operator.primitive)
-            # Covers OpVec, OpComposition, OpKron
-            elif isinstance(operator.primitive, OpVec):
+            # Covers ListOp, ComposedOp, TensoredOp
+            elif isinstance(operator.primitive, ListOp):
                 converted_ops = [self._recursive_convert(op) for op in operator.primitive.oplist]
                 return operator.__class__(converted_ops, coeff=operator.coeff)
-        elif isinstance(operator, OpVec):
+        elif isinstance(operator, ListOp):
             return operator.traverse(self.convert).reduce()
         else:
             return operator
@@ -101,7 +101,7 @@ class PauliTrotterEvolution(EvolutionBase):
         # to produce correct CoB circuit
         sig_bits = np.logical_or(pauli_op.primitive.z, pauli_op.primitive.x)
         a_sig_bit = int(max(np.extract(sig_bits, np.arange(pauli_op.num_qubits)[::-1])))
-        destination = (I.kronpower(a_sig_bit)) ^ (Z * pauli_op.coeff)
+        destination = (I.tensorpower(a_sig_bit)) ^ (Z * pauli_op.coeff)
         cob = PauliBasisChange(destination_basis=destination, replacement_fn=replacement_fn)
         return cob.convert(pauli_op)
 
@@ -126,7 +126,7 @@ class PauliTrotterEvolution(EvolutionBase):
             return 2 * (cnot_cost_p1 + cnot_cost_p2)
 
     # TODO
-    def evolution_for_abelian_paulisum(self, op_sum: OpSum):
+    def evolution_for_abelian_paulisum(self, op_sum: SummedOp):
         """ evolution for abelian pauli sum """
         if not all([isinstance(op, PauliOp) for op in op_sum.oplist]):
             raise TypeError('Evolving abelian sum requires Pauli elements.')

@@ -23,7 +23,7 @@ from scipy import sparse as scisparse
 
 from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms import ClassicalAlgorithm
-from qiskit.aqua.operators import LegacyBaseOperator, I, StateFn, OpVec
+from qiskit.aqua.operators import LegacyBaseOperator, I, StateFn, ListOp
 from qiskit.aqua.utils.validation import validate_min
 from .eigen_solver_result import EigensolverResult
 
@@ -101,7 +101,7 @@ class NumPyEigensolver(ClassicalAlgorithm):
                 [aux_operators] if not isinstance(aux_operators, list) else aux_operators
             converted = [op.to_opflow() if op is not None else None for op in aux_operators]
             # For some reason Chemistry passes aux_ops with 0 qubits and paulis sometimes. TODO fix
-            zero_op = I.kronpower(self.operator.num_qubits) * 0.0
+            zero_op = I.tensorpower(self.operator.num_qubits) * 0.0
             converted = [zero_op if op == 0 else op for op in converted]
             self._aux_operators = converted
 
@@ -205,7 +205,7 @@ class NumPyEigensolver(ClassicalAlgorithm):
         if 'eigvals' in self._ret:
             result.eigenvalues = self._ret['eigvals']
         if 'eigvecs' in self._ret:
-            result.eigenstates = OpVec([StateFn(vec) for vec in self._ret['eigvecs']])
+            result.eigenstates = ListOp([StateFn(vec) for vec in self._ret['eigvecs']])
         if 'aux_ops' in self._ret:
             result.aux_operator_eigenvalues = self._ret['aux_ops']
 

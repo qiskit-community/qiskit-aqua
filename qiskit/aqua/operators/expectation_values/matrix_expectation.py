@@ -67,7 +67,7 @@ class MatrixExpectation(ExpectationBase):
     def compute_expectation(self,
                             state: OperatorBase = None,
                             params: dict = None) -> Union[list, float, complex, np.ndarray]:
-        # Making the matrix into a measurement allows us to handle OpVec states, dicts, etc.
+        # Making the matrix into a measurement allows us to handle ListOp states, dicts, etc.
         if not self._matrix_op:
             self._matrix_op = StateFn(self._operator, is_measurement=True).to_matrix_op()
 

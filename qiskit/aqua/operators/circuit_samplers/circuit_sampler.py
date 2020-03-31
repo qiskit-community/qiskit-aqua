@@ -58,7 +58,7 @@ class CircuitSampler(ConverterBase):
             from . import IBMQSampler
             return IBMQSampler(backend=backend)
 
-    #pylint: disable=arguments-differ
+    # pylint: disable=arguments-differ
     @abstractmethod
     def convert(self,
                 operator: OperatorBase,

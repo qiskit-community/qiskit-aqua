@@ -22,7 +22,7 @@ from qiskit.circuit import ParameterExpression
 
 from ..operator_base import OperatorBase
 from . import StateFn
-from ..operator_combos import OpVec
+from ..combo_operators import ListOp
 
 
 class VectorStateFn(StateFn):
@@ -89,18 +89,18 @@ class VectorStateFn(StateFn):
             return VectorStateFn((self.coeff * self.primitive).add(other.primitive * other.coeff),
                                  is_measurement=self._is_measurement)
         # pylint: disable=cyclic-import,import-outside-toplevel
-        from .. import OpSum
-        return OpSum([self, other])
+        from .. import SummedOp
+        return SummedOp([self, other])
 
     def adjoint(self) -> OperatorBase:
         return VectorStateFn(self.primitive.conjugate(),
                              coeff=np.conj(self.coeff),
                              is_measurement=(not self.is_measurement))
 
-    def kron(self, other: OperatorBase) -> OperatorBase:
-        """ Kron
+    def tensor(self, other: OperatorBase) -> OperatorBase:
+        """ Tensor product
         Note: You must be conscious of Qiskit's big-endian bit printing convention.
-        Meaning, Plus.kron(Zero)
+        Meaning, Plus.tensor(Zero)
         produces a |+⟩ on qubit 0 and a |0⟩ on qubit 1, or |+⟩⨂|0⟩,
         but would produce a QuantumCircuit like
         |0⟩--
@@ -114,8 +114,8 @@ class VectorStateFn(StateFn):
                            coeff=self.coeff * other.coeff,
                            is_measurement=self.is_measurement)
         # pylint: disable=cyclic-import,import-outside-toplevel
-        from .. import OpKron
-        return OpKron([self, other])
+        from .. import TensoredOp
+        return TensoredOp([self, other])
 
     def to_density_matrix(self, massive: bool = False) -> np.ndarray:
         """ Return numpy matrix of density operator, warn if more than 16 qubits
@@ -192,7 +192,7 @@ class VectorStateFn(StateFn):
                 'Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '
                 'sf.adjoint() first to convert to measurement.')
 
-        if isinstance(front, OpVec) and front.distributive:
+        if isinstance(front, ListOp) and front.distributive:
             return front.combo_fn([self.eval(front.coeff * front_elem)
                                    for front_elem in front.oplist])
 

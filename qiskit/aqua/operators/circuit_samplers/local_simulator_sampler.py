@@ -23,7 +23,7 @@ from qiskit.aqua import QuantumInstance
 from qiskit.aqua.utils.backend_utils import is_aer_provider, is_statevector_backend, is_aer_qasm
 from ..operator_base import OperatorBase
 from ..operator_globals import Zero
-from ..operator_combos import OpVec
+from ..combo_operators import ListOp
 from ..state_functions import StateFn, CircuitStateFn
 from ..converters import DictToCircuitSum
 from .circuit_sampler import CircuitSampler
@@ -135,15 +135,15 @@ class LocalSimulatorSampler(CircuitSampler):
         def replace_circuits_with_dicts(operator, param_index=0):
             if isinstance(operator, CircuitStateFn):
                 return sampled_statefn_dicts[id(operator)][param_index]
-            elif isinstance(operator, OpVec):
+            elif isinstance(operator, ListOp):
                 return operator.traverse(partial(replace_circuits_with_dicts,
                                                  param_index=param_index))
             else:
                 return operator
 
         if params:
-            return OpVec([replace_circuits_with_dicts(self._reduced_op_cache, param_index=i)
-                          for i in range(num_parameterizations)])
+            return ListOp([replace_circuits_with_dicts(self._reduced_op_cache, param_index=i)
+                           for i in range(num_parameterizations)])
         else:
             return replace_circuits_with_dicts(self._reduced_op_cache, param_index=0)
 
@@ -151,7 +151,7 @@ class LocalSimulatorSampler(CircuitSampler):
     def _extract_circuitstatefns(self, operator):
         if isinstance(operator, CircuitStateFn):
             self._circuit_ops_cache[id(operator)] = operator
-        elif isinstance(operator, OpVec):
+        elif isinstance(operator, ListOp):
             for op in operator.oplist:
                 self._extract_circuitstatefns(op)
         else:

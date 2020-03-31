@@ -20,7 +20,7 @@ import logging
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance
 from ..operator_base import OperatorBase
-from ..operator_combos import OpVec
+from ..combo_operators import ListOp
 from ..state_functions import StateFn, CircuitStateFn
 from ..converters import DictToCircuitSum
 from .circuit_sampler import CircuitSampler
@@ -61,7 +61,7 @@ class IBMQSampler(CircuitSampler):
         def extract_circuitstatefns(operator):
             if isinstance(operator, CircuitStateFn):
                 op_circuits[str(operator)] = operator
-            elif isinstance(operator, OpVec):
+            elif isinstance(operator, ListOp):
                 for op in operator.oplist:
                     extract_circuitstatefns(op)
             else:
@@ -73,7 +73,7 @@ class IBMQSampler(CircuitSampler):
         def replace_circuits_with_dicts(operator):
             if isinstance(operator, CircuitStateFn):
                 return sampled_statefn_dicts[str(operator)]
-            elif isinstance(operator, OpVec):
+            elif isinstance(operator, ListOp):
                 return operator.traverse(replace_circuits_with_dicts)
             else:
                 return operator

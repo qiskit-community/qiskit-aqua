@@ -19,9 +19,9 @@ import itertools
 import networkx as nx
 
 from ..operator_base import OperatorBase
-from ..operator_combos import OpVec, OpSum
+from ..combo_operators import ListOp, SummedOp
 from ..state_functions import OperatorStateFn
-from ..operator_primitives import PauliOp
+from ..primitive_operators import PauliOp
 from .converter_base import ConverterBase
 
 logger = logging.getLogger(__name__)
@@ -34,11 +34,11 @@ class AbelianGrouper(ConverterBase):
 
     def convert(self, operator: OperatorBase) -> OperatorBase:
         # pylint: disable=cyclic-import,import-outside-toplevel
-        from .. import EvolutionOp
+        from .. import EvolvedOp
 
-        if isinstance(operator, OpVec):
-            if isinstance(operator, OpSum) and all([isinstance(op, PauliOp)
-                                                    for op in operator.oplist]):
+        if isinstance(operator, ListOp):
+            if isinstance(operator, SummedOp) and all([isinstance(op, PauliOp)
+                                                       for op in operator.oplist]):
                 # For now, we only support graphs over Paulis.
                 return self.group_paulis(operator)
             elif self._traverse:
@@ -49,12 +49,12 @@ class AbelianGrouper(ConverterBase):
             return OperatorStateFn(self.convert(operator.primitive),
                                    is_measurement=operator.is_measurement,
                                    coeff=operator.coeff)
-        elif isinstance(operator, EvolutionOp) and self._traverse:
-            return EvolutionOp(self.convert(operator.primitive), coeff=operator.coeff)
+        elif isinstance(operator, EvolvedOp) and self._traverse:
+            return EvolvedOp(self.convert(operator.primitive), coeff=operator.coeff)
         else:
             return operator
 
-    def group_paulis(self, op_vec: OpVec) -> OpVec:
+    def group_paulis(self, op_vec: ListOp) -> ListOp:
         """ group paulis """
         commutation_graph = nx.Graph()
         commutation_graph.add_nodes_from(op_vec.oplist)

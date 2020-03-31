@@ -20,7 +20,7 @@ Simple Trotter expansion.
 import numpy as np
 
 from .trotterization_base import TrotterizationBase
-from ...operator_combos import OpSum, OpComposition
+from ...combo_operators import SummedOp, ComposedOp
 
 
 # pylint: disable=invalid-name
@@ -35,7 +35,7 @@ class QDrift(TrotterizationBase):
     def __init__(self, reps: int = 1) -> None:
         super().__init__(reps=reps)
 
-    def trotterize(self, op_sum: OpSum) -> OpComposition:
+    def trotterize(self, op_sum: SummedOp) -> ComposedOp:
         # We artificially make the weights positive, TODO check if this works
         weights = np.abs([op.coeff for op in op_sum.oplist])
         lambd = sum(weights)
@@ -47,4 +47,4 @@ class QDrift(TrotterizationBase):
         scaled_ops = [(op * (factor / op.coeff)).exp_i() for op in op_sum.oplist]
         sampled_ops = np.random.choice(scaled_ops, size=(int(N * self.reps),), p=weights / lambd)
 
-        return OpComposition(sampled_ops).reduce()
+        return ComposedOp(sampled_ops).reduce()

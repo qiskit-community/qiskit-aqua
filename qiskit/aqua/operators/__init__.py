@@ -63,16 +63,16 @@ from .legacy import (LegacyBaseOperator, WeightedPauliOperator, Z2Symmetries,
 
 # New Operators
 from .operator_base import OperatorBase
-from .operator_primitives import PrimitiveOp, PauliOp, MatrixOp, CircuitOp
+from .primitive_operators import PrimitiveOp, PauliOp, MatrixOp, CircuitOp
 from .state_functions import (StateFn, DictStateFn, VectorStateFn,
                               CircuitStateFn, OperatorStateFn)
-from .operator_combos import OpVec, OpSum, OpComposition, OpKron
+from .combo_operators import ListOp, SummedOp, ComposedOp, TensoredOp
 from .converters import (ConverterBase, PauliBasisChange, PauliToInstruction,
                          DictToCircuitSum, AbelianGrouper)
 from .expectation_values import (ExpectationBase, PauliExpectation, MatrixExpectation,
                                  AerPauliExpectation)
 from .circuit_samplers import CircuitSampler, LocalSimulatorSampler, IBMQSampler
-from .evolutions import (EvolutionBase, EvolutionOp, PauliTrotterEvolution, TrotterizationBase,
+from .evolutions import (EvolutionBase, EvolvedOp, PauliTrotterEvolution, TrotterizationBase,
                          Trotter, Suzuki, QDrift)
 
 # Singletons
@@ -91,7 +91,7 @@ __all__ = [
     'OperatorBase',
     'PrimitiveOp', 'PauliOp', 'MatrixOp', 'CircuitOp',
     'StateFn', 'DictStateFn', 'VectorStateFn', 'CircuitStateFn', 'OperatorStateFn',
-    'OpVec', 'OpSum', 'OpComposition', 'OpKron',
+    'ListOp', 'SummedOp', 'ComposedOp', 'TensoredOp',
     # Singletons
     'X', 'Y', 'Z', 'I', 'CX', 'S', 'H', 'T', 'Swap', 'Zero', 'One', 'Plus', 'Minus'
 ]

@@ -21,7 +21,7 @@ from qiskit import QuantumCircuit, BasicAer, execute, ClassicalRegister
 from qiskit.quantum_info import Statevector
 
 from qiskit.aqua.operators import (StateFn, Zero, One, Plus, Minus, PrimitiveOp,
-                                   OpSum, H, I, Z, X, Y, CircuitStateFn)
+                                   SummedOp, H, I, Z, X, Y, CircuitStateFn)
 
 
 # pylint: disable=invalid-name
@@ -104,14 +104,14 @@ class TestStateConstruction(QiskitAquaTestCase):
         self.assertEqual(wf.primitive, {'000000': (3 + 0.1j), '101010': (2 + 0j),
                                         '111111': (1.2 + 0j)})
 
-    def test_state_fn_circuit_from_dict_as_sum(self):
+    def test_circuit_state_fn_from_dict_as_sum(self):
         """state fn circuit from dict as sum test """
         statedict = {'1010101': .5,
                      '1000000': .1,
                      '0000000': .2j,
                      '1111111': 0.5j}
         sfc_sum = CircuitStateFn.from_dict(statedict)
-        self.assertIsInstance(sfc_sum, OpSum)
+        self.assertIsInstance(sfc_sum, SummedOp)
         for sfc_op in sfc_sum.oplist:
             self.assertIsInstance(sfc_op, CircuitStateFn)
             samples = sfc_op.sample()
@@ -119,7 +119,7 @@ class TestStateConstruction(QiskitAquaTestCase):
             self.assertEqual(sfc_op.coeff, statedict[list(samples.keys())[0]])
         np.testing.assert_array_almost_equal(StateFn(statedict).to_matrix(), sfc_sum.to_matrix())
 
-    def test_state_fn_circuit_from_dict_initialize(self):
+    def test_circuit_state_fn_from_dict_initialize(self):
         """ state fn circuit from dict initialize test """
         statedict = {'101': .5,
                      '100': .1,

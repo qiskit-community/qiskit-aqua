@@ -19,10 +19,10 @@ import copy
 from functools import reduce, partial
 
 from ..operator_base import OperatorBase
-from .op_vec import OpVec
+from .list_op import ListOp
 
 
-class OpSum(OpVec):
+class SummedOp(ListOp):
     """ Eager Operator Sum Container """
     def __init__(self,
                  oplist: List[OperatorBase],
@@ -44,11 +44,11 @@ class OpSum(OpVec):
     # TODO: Keep this property for evals or just enact distribution at composition time?
     @property
     def distributive(self) -> bool:
-        """ Indicates whether the OpVec or subclass is distributive
-        under composition. OpVec and OpSum are,
+        """ Indicates whether the ListOp or subclass is distributive
+        under composition. ListOp and SummedOp are,
         meaning that opv @ op = opv[0] @ op + opv[1] @
-        op +... (plus for OpSum, vec for OpVec, etc.),
-        while OpComposition and OpKron do not behave this way."""
+        op +... (plus for SummedOp, vec for ListOp, etc.),
+        while ComposedOp and TensoredOp do not behave this way."""
         return True
 
     # TODO change to *other to efficiently handle lists?
@@ -56,21 +56,21 @@ class OpSum(OpVec):
         """ Addition. Overloaded by + in OperatorBase. """
         if self == other:
             return self.mul(2.0)
-        elif isinstance(other, OpSum):
+        elif isinstance(other, SummedOp):
             self_new_ops = [op.mul(self.coeff) for op in self.oplist]
             other_new_ops = [op.mul(other.coeff) for op in other.oplist]
-            return OpSum(self_new_ops + other_new_ops)
+            return SummedOp(self_new_ops + other_new_ops)
         elif other in self.oplist:
             new_oplist = copy.copy(self.oplist)
             other_index = self.oplist.index(other)
             new_oplist[other_index] = new_oplist[other_index] + other
-            return OpSum(new_oplist, coeff=self.coeff)
-        return OpSum(self.oplist + [other], coeff=self.coeff)
+            return SummedOp(new_oplist, coeff=self.coeff)
+        return SummedOp(self.oplist + [other], coeff=self.coeff)
 
     # TODO implement override, given permutation invariance?
     # def equals(self, other):
     #     """ Evaluate Equality. Overloaded by == in OperatorBase. """
-    #     if not isinstance(other, OpSum) or not len(self.oplist) == len(other.oplist):
+    #     if not isinstance(other, SummedOp) or not len(self.oplist) == len(other.oplist):
     #         return False
     #     # TODO test this a lot
     #     # Should be sorting invariant, if not done stupidly
@@ -81,7 +81,7 @@ class OpSum(OpVec):
     def reduce(self) -> OperatorBase:
         reduced_ops = [op.reduce() for op in self.oplist]
         reduced_ops = reduce(lambda x, y: x.add(y), reduced_ops) * self.coeff
-        if isinstance(reduced_ops, OpSum) and len(reduced_ops.oplist) == 1:
+        if isinstance(reduced_ops, SummedOp) and len(reduced_ops.oplist) == 1:
             return reduced_ops.oplist[0]
         else:
             return reduced_ops

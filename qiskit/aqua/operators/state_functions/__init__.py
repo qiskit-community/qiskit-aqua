@@ -17,10 +17,10 @@ State Functions
 """
 
 from .state_fn import StateFn
-from .state_fn_dict import DictStateFn
-from .state_fn_operator import OperatorStateFn
-from .state_fn_vector import VectorStateFn
-from .state_fn_circuit import CircuitStateFn
+from .dict_state_fn import DictStateFn
+from .operator_state_fn import OperatorStateFn
+from .vector_state_fn import VectorStateFn
+from .circuit_state_fn import CircuitStateFn
 
 __all__ = ['StateFn',
            'DictStateFn',

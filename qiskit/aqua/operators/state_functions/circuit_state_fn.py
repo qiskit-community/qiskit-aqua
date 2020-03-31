@@ -22,7 +22,7 @@ from qiskit.circuit import Instruction, ParameterExpression
 from qiskit.extensions import Initialize, IGate
 
 from ..operator_base import OperatorBase
-from ..operator_combos import OpSum
+from ..combo_operators import SummedOp
 from .state_fn import StateFn
 
 
@@ -94,7 +94,7 @@ class CircuitStateFn(StateFn):
             if len(statefn_circuits) == 1:
                 return statefn_circuits[0]
             else:
-                return OpSum(statefn_circuits)
+                return SummedOp(statefn_circuits)
         else:
             sf_dict = StateFn(density_dict)
             return CircuitStateFn.from_vector(sf_dict.to_matrix())
@@ -127,7 +127,7 @@ class CircuitStateFn(StateFn):
             return CircuitStateFn(self.primitive, coeff=self.coeff + other.coeff)
 
         # Covers all else.
-        return OpSum([self, other])
+        return SummedOp([self, other])
 
     def adjoint(self) -> OperatorBase:
         return CircuitStateFn(self.primitive.inverse(),
@@ -165,13 +165,13 @@ class CircuitStateFn(StateFn):
             return self.compose(CircuitOp(other.primitive,
                                           other.coeff)).compose(Zero ^ self.num_qubits)
 
-        from qiskit.aqua.operators import OpComposition
-        return OpComposition([new_self, other])
+        from qiskit.aqua.operators import ComposedOp
+        return ComposedOp([new_self, other])
 
-    def kron(self, other: OperatorBase) -> OperatorBase:
-        """ Kron
+    def tensor(self, other: OperatorBase) -> OperatorBase:
+        """ Tensor product
         Note: You must be conscious of Qiskit's big-endian bit printing convention.
-        Meaning, Plus.kron(Zero)
+        Meaning, Plus.tensor(Zero)
         produces a |+⟩ on qubit 0 and a |0⟩ on qubit 1, or |+⟩⨂|0⟩, but would produce
         a QuantumCircuit like
         |0⟩--
@@ -190,8 +190,8 @@ class CircuitStateFn(StateFn):
             return CircuitStateFn(new_qc.decompose().to_instruction(),
                                   coeff=self.coeff * other.coeff)
         # pylint: disable=cyclic-import,import-outside-toplevel
-        from qiskit.aqua.operators import OpKron
-        return OpKron([self, other])
+        from qiskit.aqua.operators import TensoredOp
+        return TensoredOp([self, other])
 
     def to_density_matrix(self, massive: bool = False) -> np.ndarray:
         """ Return numpy matrix of density operator, warn if more than 16 qubits to
@@ -272,8 +272,8 @@ class CircuitStateFn(StateFn):
             unrolled_dict = self._unroll_param_dict(param_dict)
             if isinstance(unrolled_dict, list):
                 # pylint: disable=import-outside-toplevel
-                from ..operator_combos.op_vec import OpVec
-                return OpVec([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
+                from ..combo_operators.list_op import ListOp
+                return ListOp([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
             if self.coeff in unrolled_dict:
                 # TODO what do we do about complex?
                 param_value = float(self.coeff.bind(unrolled_dict[self.coeff]))
@@ -290,10 +290,10 @@ class CircuitStateFn(StateFn):
                 'sf.adjoint() first to convert to measurement.')
 
         # pylint: disable=import-outside-toplevel
-        from ..operator_combos import OpVec
-        from ..operator_primitives import PauliOp, CircuitOp
+        from ..combo_operators import ListOp
+        from ..primitive_operators import PauliOp, CircuitOp
 
-        if isinstance(front, OpVec) and front.distributive:
+        if isinstance(front, ListOp) and front.distributive:
             return front.combo_fn([self.eval(front.coeff * front_elem)
                                    for front_elem in front.oplist])
 

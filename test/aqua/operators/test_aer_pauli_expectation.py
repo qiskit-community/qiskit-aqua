@@ -20,7 +20,7 @@ import itertools
 import numpy as np
 
 from qiskit.aqua.operators import (X, Y, Z, I, CX, H, S,
-                                   OpVec, Zero, One, Plus, Minus,
+                                   ListOp, Zero, One, Plus, Minus,
                                    AerPauliExpectation)
 
 from qiskit import Aer
@@ -52,9 +52,9 @@ class TestAerPauliExpectation(QiskitAquaTestCase):
             np.testing.assert_array_almost_equal(mean, matmulmean, decimal=1)
 
     def test_pauli_expect_op_vector(self):
-        """ Test for expectation over OpVec of observables. """
+        """ Test for expectation over ListOp of observables. """
         backend = Aer.get_backend('qasm_simulator')
-        paulis_op = OpVec([X, Y, Z, I])
+        paulis_op = ListOp([X, Y, Z, I])
         expect = AerPauliExpectation(operator=paulis_op, backend=backend)
 
         plus_mean = expect.compute_expectation(Plus)
@@ -90,9 +90,9 @@ class TestAerPauliExpectation(QiskitAquaTestCase):
                                                  decimal=1)
 
     def test_pauli_expect_state_vector(self):
-        """ Test over OpVec of states """
+        """ Test over ListOp of states """
         backend = Aer.get_backend('qasm_simulator')
-        states_op = OpVec([One, Zero, Plus, Minus])
+        states_op = ListOp([One, Zero, Plus, Minus])
 
         paulis_op = X
         expect = AerPauliExpectation(operator=paulis_op, backend=backend)
@@ -100,12 +100,12 @@ class TestAerPauliExpectation(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(means, [0, 0, 1, -1], decimal=1)
 
     def test_pauli_expect_op_vector_state_vector(self):
-        """ Test over OpVec of Observables and OpVec of states."""
+        """ Test over ListOp of Observables and ListOp of states."""
         backend = Aer.get_backend('qasm_simulator')
         # TODO Bug in Aer with Y Measurements!!
-        # paulis_op = OpVec([X, Y, Z, I])
-        paulis_op = OpVec([X, Z, I])
-        states_op = OpVec([One, Zero, Plus, Minus])
+        # paulis_op = ListOp([X, Y, Z, I])
+        paulis_op = ListOp([X, Z, I])
+        states_op = ListOp([One, Zero, Plus, Minus])
 
         expect = AerPauliExpectation(operator=paulis_op, backend=backend)
         means = expect.compute_expectation(states_op)

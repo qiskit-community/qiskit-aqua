@@ -21,7 +21,7 @@ from qiskit.circuit import ParameterExpression
 
 from ..operator_base import OperatorBase
 from .state_fn import StateFn
-from ..operator_combos import OpVec, OpSum
+from ..combo_operators import ListOp, SummedOp
 
 
 # pylint: disable=invalid-name
@@ -90,17 +90,17 @@ class OperatorStateFn(StateFn):
                     (self.coeff * self.primitive).add(other.primitive * other.coeff),
                     is_measurement=self._is_measurement)
 
-        return OpSum([self, other])
+        return SummedOp([self, other])
 
     def adjoint(self) -> OperatorBase:
         return OperatorStateFn(self.primitive.adjoint(),
                                coeff=np.conj(self.coeff),
                                is_measurement=(not self.is_measurement))
 
-    def kron(self, other: OperatorBase) -> OperatorBase:
-        """ Kron
+    def tensor(self, other: OperatorBase) -> OperatorBase:
+        """ Tensor product
         Note: You must be conscious of Qiskit's big-endian bit printing convention.
-        Meaning, Plus.kron(Zero)
+        Meaning, Plus.tensor(Zero)
         produces a |+⟩ on qubit 0 and a |0⟩ on qubit 1, or |+⟩⨂|0⟩, but would produce
         a QuantumCircuit like
         |0⟩--
@@ -110,12 +110,12 @@ class OperatorStateFn(StateFn):
         # TODO accept primitives directly in addition to PrimitiveOp?
 
         if isinstance(other, OperatorStateFn):
-            return StateFn(self.primitive.kron(other.primitive),
+            return StateFn(self.primitive.tensor(other.primitive),
                            coeff=self.coeff * other.coeff,
                            is_measurement=self.is_measurement)
         # pylint: disable=cyclic-import,import-outside-toplevel
-        from .. import OpKron
-        return OpKron([self, other])
+        from .. import TensoredOp
+        return TensoredOp([self, other])
 
     def to_density_matrix(self, massive: bool = False) -> np.ndarray:
         """ Return numpy matrix of density operator, warn if more than 16 qubits
@@ -175,7 +175,7 @@ class OperatorStateFn(StateFn):
         mat = self.primitive.to_matrix()
         # TODO change to sum of eigenvectors?
 
-        # OpVec primitives can return lists of matrices (or trees for nested OpVecs),
+        # ListOp primitives can return lists of matrices (or trees for nested ListOps),
         # so we need to recurse over the
         # possible tree.
         def diag_over_tree(t):
@@ -212,16 +212,16 @@ class OperatorStateFn(StateFn):
         if not isinstance(front, OperatorBase):
             front = StateFn(front)
 
-        if isinstance(self.primitive, OpVec) and self.primitive.distributive:
+        if isinstance(self.primitive, ListOp) and self.primitive.distributive:
             evals = [OperatorStateFn(op, coeff=self.coeff, is_measurement=self.is_measurement).eval(
                 front) for op in self.primitive.oplist]
             return self.primitive.combo_fn(evals)
 
-        # Need an OpVec-specific carve-out here to make sure measurement over an OpVec doesn't
-        # produce two-dimensional OpVec from composing from both sides of primitive.
+        # Need an ListOp-specific carve-out here to make sure measurement over an ListOp doesn't
+        # produce two-dimensional ListOp from composing from both sides of primitive.
         # Can't use isinstance because this would include subclasses.
         # pylint: disable=unidiomatic-typecheck
-        if type(front) == OpVec:
+        if type(front) == ListOp:
             return front.combo_fn([self.eval(front.coeff * front_elem)
                                    for front_elem in front.oplist])
 

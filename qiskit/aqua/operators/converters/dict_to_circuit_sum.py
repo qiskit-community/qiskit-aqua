@@ -18,7 +18,7 @@ import logging
 
 from ..operator_base import OperatorBase
 from ..state_functions import DictStateFn, VectorStateFn, CircuitStateFn
-from ..operator_combos import OpVec
+from ..combo_operators import ListOp
 from .converter_base import ConverterBase
 
 logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ class DictToCircuitSum(ConverterBase):
             return CircuitStateFn.from_dict(operator.primitive)
         if isinstance(operator, VectorStateFn) and self._convert_vectors:
             return CircuitStateFn.from_vector(operator.to_matrix(massive=True))
-        elif isinstance(operator, OpVec) and 'Dict' in operator.get_primitives():
+        elif isinstance(operator, ListOp) and 'Dict' in operator.get_primitives():
             return operator.traverse(self.convert)
         else:
             return operator

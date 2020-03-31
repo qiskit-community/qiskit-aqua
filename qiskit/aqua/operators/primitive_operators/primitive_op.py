@@ -122,19 +122,19 @@ class PrimitiveOp(OperatorBase):
         # Need to return self.__class__ in case the object is one of the inherited OpPrimitives
         return self.__class__(self.primitive, coeff=self.coeff * scalar)
 
-    def kron(self, other: OperatorBase) -> OperatorBase:
+    def tensor(self, other: OperatorBase) -> OperatorBase:
         raise NotImplementedError
 
-    def kronpower(self, other: int) -> Union[OperatorBase, int]:
-        """ Kron with Self Multiple Times """
+    def tensorpower(self, other: int) -> Union[OperatorBase, int]:
+        """ Tensor product with Self Multiple Times """
         # Hack to make Z^(I^0) work as intended.
         if other == 0:
             return 1
         if not isinstance(other, int) or other < 0:
-            raise TypeError('Kronpower can only take positive int arguments')
+            raise TypeError('Tensorpower can only take positive int arguments')
         temp = PrimitiveOp(self.primitive, coeff=self.coeff)
         for _ in range(other - 1):
-            temp = temp.kron(self)
+            temp = temp.tensor(self)
         return temp
 
     def compose(self, other: OperatorBase) -> OperatorBase:
@@ -165,8 +165,8 @@ class PrimitiveOp(OperatorBase):
     def exp_i(self) -> OperatorBase:
         """ Raise Operator to power e ^ (i * op)"""
         # pylint: disable=cyclic-import,import-outside-toplevel
-        from qiskit.aqua.operators import EvolutionOp
-        return EvolutionOp(self)
+        from qiskit.aqua.operators import EvolvedOp
+        return EvolvedOp(self)
 
     def __str__(self) -> str:
         """Overload str() """
@@ -189,8 +189,8 @@ class PrimitiveOp(OperatorBase):
             unrolled_dict = self._unroll_param_dict(param_dict)
             if isinstance(unrolled_dict, list):
                 # pylint: disable=import-outside-toplevel
-                from ..operator_combos.op_vec import OpVec
-                return OpVec([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
+                from ..combo_operators.list_op import ListOp
+                return ListOp([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
             coeff_param = list(self.coeff.parameters)[0]
             if coeff_param in unrolled_dict:
                 # TODO what do we do about complex?

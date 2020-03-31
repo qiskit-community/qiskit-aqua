@@ -156,10 +156,10 @@ class StateFn(OperatorBase):
                               coeff=self.coeff * scalar,
                               is_measurement=self.is_measurement)
 
-    def kron(self, other: OperatorBase) -> OperatorBase:
-        """ Kron
+    def tensor(self, other: OperatorBase) -> OperatorBase:
+        """ Tensor product
         Note: You must be conscious of Qiskit's big-endian bit printing
-        convention. Meaning, Plus.kron(Zero)
+        convention. Meaning, Plus.tensor(Zero)
         produces a |+⟩ on qubit 0 and a |0⟩ on qubit 1, or |+⟩⨂|0⟩, but
         would produce a QuantumCircuit like
         |0⟩--
@@ -169,15 +169,15 @@ class StateFn(OperatorBase):
         """
         raise NotImplementedError
 
-    def kronpower(self, other: int) -> Union[OperatorBase, int]:
-        """ Kron with Self Multiple Times """
+    def tensorpower(self, other: int) -> Union[OperatorBase, int]:
+        """ Tensor product with Self Multiple Times """
         if not isinstance(other, int) or other <= 0:
-            raise TypeError('Kronpower can only take positive int arguments')
+            raise TypeError('Tensorpower can only take positive int arguments')
         temp = StateFn(self.primitive,
                        coeff=self.coeff,
                        is_measurement=self.is_measurement)
         for _ in range(other - 1):
-            temp = temp.kron(self)
+            temp = temp.tensor(self)
         return temp
 
     def _check_zero_for_composition_and_expand(self, other: OperatorBase) \
@@ -239,8 +239,8 @@ class StateFn(OperatorBase):
             return StateFn(other.primitive, is_measurement=self.is_measurement,
                            coeff=self.coeff * other.coeff)
 
-        from qiskit.aqua.operators import OpComposition
-        return OpComposition([new_self, other])
+        from qiskit.aqua.operators import ComposedOp
+        return ComposedOp([new_self, other])
 
     def power(self, other: int) -> OperatorBase:
         """ Compose with Self Multiple Times, undefined for StateFns. """
@@ -286,8 +286,8 @@ class StateFn(OperatorBase):
             unrolled_dict = self._unroll_param_dict(param_dict)
             if isinstance(unrolled_dict, list):
                 # pylint: disable=import-outside-toplevel
-                from ..operator_combos.op_vec import OpVec
-                return OpVec([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
+                from ..combo_operators.list_op import ListOp
+                return ListOp([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
             coeff_param = list(self.coeff.parameters)[0]
             if coeff_param in unrolled_dict:
                 # TODO what do we do about complex?
@@ -311,7 +311,7 @@ class StateFn(OperatorBase):
     def to_matrix_op(self, massive: bool = False) -> OperatorBase:
         """ Return a VectorStateFn for this StateFn. """
         # pylint: disable=import-outside-toplevel
-        from .state_fn_vector import VectorStateFn
+        from .vector_state_fn import VectorStateFn
         return VectorStateFn(self.to_matrix(massive=massive), is_measurement=self.is_measurement)
 
     def sample(self,

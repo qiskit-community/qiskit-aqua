@@ -16,12 +16,12 @@
 Operator Combos
 """
 
-from .op_vec import OpVec
-from .op_sum import OpSum
-from .op_composition import OpComposition
-from .op_kron import OpKron
+from .list_op import ListOp
+from .summed_op import SummedOp
+from .composed_op import ComposedOp
+from .tensored_op import TensoredOp
 
-__all__ = ['OpVec',
-           'OpSum',
-           'OpKron',
-           'OpComposition']
+__all__ = ['ListOp',
+           'SummedOp',
+           'TensoredOp',
+           'ComposedOp']

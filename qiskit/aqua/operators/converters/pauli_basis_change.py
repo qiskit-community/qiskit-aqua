@@ -23,8 +23,8 @@ from qiskit.quantum_info import Pauli
 from qiskit import QuantumCircuit
 
 from ..operator_base import OperatorBase
-from ..operator_primitives import PrimitiveOp, PauliOp, CircuitOp
-from ..operator_combos import OpVec, OpComposition
+from ..primitive_operators import PrimitiveOp, PauliOp, CircuitOp
+from ..combo_operators import ListOp, ComposedOp
 from ..state_functions import StateFn
 from ..operator_globals import H, S, I
 from .converter_base import ConverterBase
@@ -50,15 +50,15 @@ class PauliBasisChange(ConverterBase):
             will be converted. If None is
             specified, the destination basis will be the {I,Z}^n basis requiring only
             single qubit rotations.
-            traverse: If true and the operator passed into convert is an OpVec,
-            traverse the OpVec,
+            traverse: If true and the operator passed into convert is an ListOp,
+            traverse the ListOp,
             applying the conversion to every applicable operator within the oplist.
             replacement_fn: A function specifying what to do with the CoB
             instruction and destination
             Pauli when converting an Operator and replacing converted values.
             By default, this will be
                 1) For StateFns (or Measurements): replacing the StateFn with
-                OpComposition(StateFn(d), c) where c
+                ComposedOp(StateFn(d), c) where c
                 is the conversion circuit and d is the destination Pauli,
                 so the overall beginning and ending operators are equivalent.
                 2) For non-StateFn Operators: replacing the origin p with c·d·c†,
@@ -88,7 +88,7 @@ class PauliBasisChange(ConverterBase):
                             'not {}.'.format(type(dest)))
         self._destination = dest
 
-    # TODO see whether we should make this performant by handling OpVecs of Paulis later.
+    # TODO see whether we should make this performant by handling ListOps of Paulis later.
     # pylint: disable=inconsistent-return-statements
     def convert(self, operator: OperatorBase) -> OperatorBase:
         """ Given an Operator with Paulis, converts each Pauli into the basis specified
@@ -105,7 +105,7 @@ class PauliBasisChange(ConverterBase):
             if isinstance(operator.primitive, PrimitiveOp):
                 cob_instr_op, dest_pauli_op = self.get_cob_circuit(operator.primitive)
                 return self._replacement_fn(cob_instr_op, dest_pauli_op)
-            # TODO make a canonical "distribute" or graph swap as method in OpVec?
+            # TODO make a canonical "distribute" or graph swap as method in ListOp?
             elif operator.primitive.distributive:
                 if operator.primitive.abelian:
                     origin_pauli = self.get_tpb_pauli(operator.primitive)
@@ -117,14 +117,14 @@ class PauliBasisChange(ConverterBase):
                 else:
                     sf_list = [StateFn(op, is_measurement=operator.is_measurement)
                                for op in operator.primitive.oplist]
-                    opvec_of_statefns = operator.primitive.__class__(oplist=sf_list,
-                                                                     coeff=operator.coeff)
-                    return opvec_of_statefns.traverse(self.convert)
+                    listop_of_statefns = operator.primitive.__class__(oplist=sf_list,
+                                                                      coeff=operator.coeff)
+                    return listop_of_statefns.traverse(self.convert)
 
-        # TODO allow parameterized OpVec to be returned to save circuit copying.
-        elif isinstance(operator, OpVec) and self._traverse and \
+        # TODO allow parameterized ListOp to be returned to save circuit copying.
+        elif isinstance(operator, ListOp) and self._traverse and \
                 'Pauli' in operator.get_primitives():
-            # If opvec is abelian we can find a single post-rotation circuit
+            # If ListOp is abelian we can find a single post-rotation circuit
             # for the whole set. For now,
             # assume operator can only be abelian if all elements are
             # Paulis (enforced in AbelianGrouper).
@@ -150,15 +150,15 @@ class PauliBasisChange(ConverterBase):
     def statefn_replacement_fn(cob_instr_op: CircuitOp,
                                dest_pauli_op: PauliOp) -> OperatorBase:
         """ state function replacement """
-        return OpComposition([cob_instr_op.adjoint(), StateFn(dest_pauli_op)])
+        return ComposedOp([cob_instr_op.adjoint(), StateFn(dest_pauli_op)])
 
     @staticmethod
     def operator_replacement_fn(cob_instr_op: CircuitOp,
                                 dest_pauli_op: PauliOp) -> OperatorBase:
         """ operator replacement """
-        return OpComposition([cob_instr_op.adjoint(), dest_pauli_op, cob_instr_op])
+        return ComposedOp([cob_instr_op.adjoint(), dest_pauli_op, cob_instr_op])
 
-    def get_tpb_pauli(self, op_vec: OpVec) -> Pauli:
+    def get_tpb_pauli(self, op_vec: ListOp) -> Pauli:
         """ get tpb pauli """
         origin_z = reduce(np.logical_or, [p_op.primitive.z for p_op in op_vec.oplist])
         origin_x = reduce(np.logical_or, [p_op.primitive.x for p_op in op_vec.oplist])
@@ -176,12 +176,12 @@ class PauliBasisChange(ConverterBase):
         if isinstance(pauli, PauliOp):
             pauli = pauli.primitive
 
-        kronall = partial(reduce, lambda x, y: x.kron(y))
+        tensorall = partial(reduce, lambda x, y: x.tensor(y))
 
-        y_to_x_origin = kronall([S if has_y else I for has_y in
-                                 reversed(np.logical_and(pauli.x, pauli.z))]).adjoint()
-        x_to_z_origin = kronall([H if has_x else I for has_x in
-                                 reversed(pauli.x)])
+        y_to_x_origin = tensorall([S if has_y else I for has_y in
+                                   reversed(np.logical_and(pauli.x, pauli.z))]).adjoint()
+        x_to_z_origin = tensorall([H if has_x else I for has_x in
+                                   reversed(pauli.x)])
         return x_to_z_origin.compose(y_to_x_origin)
 
     def pad_paulis_to_equal_length(self,

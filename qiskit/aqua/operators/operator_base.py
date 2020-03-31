@@ -92,7 +92,7 @@ class OperatorBase(ABC):
     def reduce(self):
         """ Try collapsing the Operator structure, usually after some
         time of processing. E.g. a conversion,
-        some operators in an OpComposition can now be directly composed.
+        some operators in an ComposedOp can now be directly composed.
         At worst, just returns self."""
         raise NotImplementedError
 
@@ -191,19 +191,19 @@ class OperatorBase(ABC):
         raise NotImplementedError
 
     def __xor__(self, other):
-        """ Overload ^ for kron or kronpower if ^ is int"""
+        """ Overload ^ for tensor or tensorpower if ^ is int"""
         if isinstance(other, int):
-            return self.kronpower(other)
+            return self.tensorpower(other)
         else:
-            return self.kron(other)
+            return self.tensor(other)
 
     # Hack to make (I^0)^Z work as intended.
     def __rxor__(self, other):
-        """ Overload ^ for kron or kronpower if ^ is int"""
+        """ Overload ^ for tensor or tensorpower if ^ is int"""
         if other == 1:
             return self
         else:
-            return other.kron(self)
+            return other.tensor(self)
 
     # Copy from terra, except the list unrolling:
     @staticmethod
@@ -235,13 +235,13 @@ class OperatorBase(ABC):
         return {k: v[i] for (k, v) in unrolled_dict.items()}
 
     @abstractmethod
-    def kron(self, other):
-        """ Kron """
+    def tensor(self, other):
+        """ Tensor product """
         raise NotImplementedError
 
     @abstractmethod
-    def kronpower(self, other):
-        """ Kron with Self Multiple Times """
+    def tensorpower(self, other):
+        """ Tensor product with Self Multiple Times """
         raise NotImplementedError
 
 # Composition

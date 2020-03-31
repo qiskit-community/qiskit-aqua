@@ -22,16 +22,16 @@ import scipy
 from qiskit.circuit import ParameterExpression
 
 from ..operator_base import OperatorBase
-from ..operator_primitives import PrimitiveOp, MatrixOp
-from ..operator_combos import OpSum, OpComposition, OpKron
+from ..primitive_operators import PrimitiveOp, MatrixOp
+from ..combo_operators import SummedOp, ComposedOp, TensoredOp
 
 logger = logging.getLogger(__name__)
 
 
-class EvolutionOp(PrimitiveOp):
+class EvolvedOp(PrimitiveOp):
     """ Class for wrapping Operator Evolutions for compilation by an Evolution
     method later, essentially acting as a
-    placeholder. Note that EvolutionOp is a weird case of PrimitiveOp.
+    placeholder. Note that EvolvedOp is a weird case of PrimitiveOp.
     It happens to be that it fits into the
     PrimitiveOp interface nearly perfectly, and it essentially
     represents a placeholder for an PrimitiveOp later,
@@ -63,29 +63,29 @@ class EvolutionOp(PrimitiveOp):
                 'Sum over operators with different numbers of qubits, {} and {}, is not well '
                 'defined'.format(self.num_qubits, other.num_qubits))
 
-        if isinstance(other, EvolutionOp) and self.primitive == other.primitive:
-            return EvolutionOp(self.primitive, coeff=self.coeff + other.coeff)
+        if isinstance(other, EvolvedOp) and self.primitive == other.primitive:
+            return EvolvedOp(self.primitive, coeff=self.coeff + other.coeff)
 
-        if isinstance(other, OpSum):
-            return OpSum([self] + other.oplist)
+        if isinstance(other, SummedOp):
+            return SummedOp([self] + other.oplist)
 
-        return OpSum([self, other])
+        return SummedOp([self, other])
 
     def adjoint(self) -> OperatorBase:
         """ Return operator adjoint (conjugate transpose). Overloaded by ~ in OperatorBase. """
-        return EvolutionOp(self.primitive.adjoint() * -1, coeff=np.conj(self.coeff))
+        return EvolvedOp(self.primitive.adjoint() * -1, coeff=np.conj(self.coeff))
 
     def equals(self, other: OperatorBase) -> bool:
         """ Evaluate Equality. Overloaded by == in OperatorBase. """
-        if not isinstance(other, EvolutionOp) or not self.coeff == other.coeff:
+        if not isinstance(other, EvolvedOp) or not self.coeff == other.coeff:
             return False
 
         return self.primitive == other.primitive
 
-    def kron(self, other: OperatorBase) -> OperatorBase:
-        """ Kron
+    def tensor(self, other: OperatorBase) -> OperatorBase:
+        """ Tensor product
         Note: You must be conscious of Qiskit's big-endian bit printing
-        convention. Meaning, X.kron(Y)
+        convention. Meaning, X.tensor(Y)
         produces an X on qubit 0 and an Y on qubit 1, or X⨂Y, but would produce
         a QuantumCircuit which looks
         like
@@ -93,10 +93,10 @@ class EvolutionOp(PrimitiveOp):
         -[X]-
         Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
         """
-        if isinstance(other, OpKron):
-            return OpKron([self] + other.oplist)
+        if isinstance(other, TensoredOp):
+            return TensoredOp([self] + other.oplist)
 
-        return OpKron([self, other])
+        return TensoredOp([self, other])
 
     def compose(self, other: OperatorBase) -> OperatorBase:
         """ Operator Composition (Linear algebra-style, right-to-left)
@@ -113,10 +113,10 @@ class EvolutionOp(PrimitiveOp):
 
         other = self._check_zero_for_composition_and_expand(other)
 
-        if isinstance(other, OpComposition):
-            return OpComposition([self] + other.oplist)
+        if isinstance(other, ComposedOp):
+            return ComposedOp([self] + other.oplist)
 
-        return OpComposition([self, other])
+        return ComposedOp([self, other])
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
         """ returns matrix """
@@ -134,10 +134,10 @@ class EvolutionOp(PrimitiveOp):
 
     def __repr__(self) -> str:
         """Overload str() """
-        return "EvolutionOp({}, coeff={})".format(repr(self.primitive), self.coeff)
+        return "EvolvedOp({}, coeff={})".format(repr(self.primitive), self.coeff)
 
     def reduce(self) -> OperatorBase:
-        return EvolutionOp(self.primitive.reduce(), coeff=self.coeff)
+        return EvolvedOp(self.primitive.reduce(), coeff=self.coeff)
 
     def bind_parameters(self, param_dict: dict) -> OperatorBase:
         param_value = self.coeff
@@ -145,14 +145,14 @@ class EvolutionOp(PrimitiveOp):
             unrolled_dict = self._unroll_param_dict(param_dict)
             if isinstance(unrolled_dict, list):
                 # pylint: disable=import-outside-toplevel
-                from ..operator_combos.op_vec import OpVec
-                return OpVec([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
+                from ..combo_operators.list_op import ListOp
+                return ListOp([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
             coeff_param = list(self.coeff.parameters)[0]
             if coeff_param in unrolled_dict:
                 # TODO what do we do about complex?
                 value = unrolled_dict[coeff_param]
                 param_value = float(self.coeff.bind({coeff_param: value}))
-        return EvolutionOp(self.primitive.bind_parameters(param_dict), coeff=param_value)
+        return EvolvedOp(self.primitive.bind_parameters(param_dict), coeff=param_value)
 
     def eval(self,
              front: Union[str, dict, np.ndarray,
@@ -163,7 +163,7 @@ class EvolutionOp(PrimitiveOp):
         of binary strings. For more information,
         see the eval method in operator_base.py.
 
-        For EvolutionOps which haven't been converted by an Evolution
+        For EvolvedOps which haven't been converted by an Evolution
         method yet, our only option is to convert to an
         MatrixOp and eval with that.
         """
