@@ -22,22 +22,22 @@ import scipy
 from qiskit.circuit import ParameterExpression
 
 from ..operator_base import OperatorBase
-from ..operator_primitives import OpPrimitive, OpMatrix
+from ..operator_primitives import PrimitiveOp, MatrixOp
 from ..operator_combos import OpSum, OpComposition, OpKron
 
 logger = logging.getLogger(__name__)
 
 
-class EvolutionOp(OpPrimitive):
+class EvolutionOp(PrimitiveOp):
     """ Class for wrapping Operator Evolutions for compilation by an Evolution
     method later, essentially acting as a
-    placeholder. Note that EvolutionOp is a weird case of OpPrimitive.
+    placeholder. Note that EvolutionOp is a weird case of PrimitiveOp.
     It happens to be that it fits into the
-    OpPrimitive interface nearly perfectly, and it essentially
-    represents a placeholder for an OpPrimitive later,
+    PrimitiveOp interface nearly perfectly, and it essentially
+    represents a placeholder for an PrimitiveOp later,
     even though it doesn't actually hold a primitive object. We could
     have chosen for it to be an OperatorBase,
-    but would have ended up copying and pasting a lot of code from OpPrimitive."""
+    but would have ended up copying and pasting a lot of code from PrimitiveOp."""
 
     def __init__(self,
                  primitive: OperatorBase,
@@ -109,7 +109,7 @@ class EvolutionOp(OpPrimitive):
         Because Terra prints circuits with the initial state at the
         left side of the circuit.
         """
-        # TODO accept primitives directly in addition to OpPrimitive?
+        # TODO accept primitives directly in addition to PrimitiveOp?
 
         other = self._check_zero_for_composition_and_expand(other)
 
@@ -165,10 +165,10 @@ class EvolutionOp(OpPrimitive):
 
         For EvolutionOps which haven't been converted by an Evolution
         method yet, our only option is to convert to an
-        OpMatrix and eval with that.
+        MatrixOp and eval with that.
         """
         return self.to_matrix_op().eval(front=front)
 
     def to_matrix_op(self, massive: bool = False) -> OperatorBase:
         """ Return a MatrixOp for this operator. """
-        return OpMatrix(self.to_matrix(massive=massive))
+        return MatrixOp(self.to_matrix(massive=massive))

@@ -24,12 +24,12 @@ from qiskit.circuit import Instruction, ParameterExpression
 
 from ..operator_base import OperatorBase
 from ..operator_combos import OpSum, OpComposition, OpKron
-from .op_primitive import OpPrimitive
+from .primitive_op import PrimitiveOp
 
 logger = logging.getLogger(__name__)
 
 
-class OpCircuit(OpPrimitive):
+class CircuitOp(PrimitiveOp):
     """ Class for Wrapping Circuit Primitives
 
     Note that all mathematical methods are not in-place, meaning that they return a
@@ -52,7 +52,7 @@ class OpCircuit(OpPrimitive):
             primitive = primitive.to_instruction()
 
         if not isinstance(primitive, Instruction):
-            raise TypeError('OpCircuit can only be instantiated with '
+            raise TypeError('CircuitOp can only be instantiated with '
                             'Instruction, not {}'.format(type(primitive)))
 
         super().__init__(primitive, coeff=coeff)
@@ -74,19 +74,19 @@ class OpCircuit(OpPrimitive):
                 'Sum over operators with different numbers of qubits, {} and {}, is not well '
                 'defined'.format(self.num_qubits, other.num_qubits))
 
-        if isinstance(other, OpCircuit) and self.primitive == other.primitive:
-            return OpCircuit(self.primitive, coeff=self.coeff + other.coeff)
+        if isinstance(other, CircuitOp) and self.primitive == other.primitive:
+            return CircuitOp(self.primitive, coeff=self.coeff + other.coeff)
 
         # Covers all else.
         return OpSum([self, other])
 
     def adjoint(self) -> OperatorBase:
         """ Return operator adjoint (conjugate transpose). Overloaded by ~ in OperatorBase. """
-        return OpCircuit(self.primitive.inverse(), coeff=np.conj(self.coeff))
+        return CircuitOp(self.primitive.inverse(), coeff=np.conj(self.coeff))
 
     def equals(self, other: OperatorBase) -> bool:
         """ Evaluate Equality. Overloaded by == in OperatorBase. """
-        if not isinstance(other, OpPrimitive) \
+        if not isinstance(other, PrimitiveOp) \
                 or not isinstance(self.primitive, type(other.primitive)) \
                 or not self.coeff == other.coeff:
             return False
@@ -105,22 +105,22 @@ class OpCircuit(OpPrimitive):
         -[X]-
         Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
         """
-        # TODO accept primitives directly in addition to OpPrimitive?
+        # TODO accept primitives directly in addition to PrimitiveOp?
         # pylint: disable=cyclic-import,import-outside-toplevel
-        from . import OpPauli
-        if isinstance(other, OpPauli):
+        from . import PauliOp
+        if isinstance(other, PauliOp):
             from qiskit.aqua.operators.converters import PauliToInstruction
-            other = OpCircuit(PauliToInstruction().convert_pauli(other.primitive),
+            other = CircuitOp(PauliToInstruction().convert_pauli(other.primitive),
                               coeff=other.coeff)
 
-        if isinstance(other, OpCircuit):
+        if isinstance(other, CircuitOp):
             new_qc = QuantumCircuit(self.num_qubits + other.num_qubits)
             # NOTE!!! REVERSING QISKIT ENDIANNESS HERE
             new_qc.append(other.primitive, new_qc.qubits[0:other.primitive.num_qubits])
             new_qc.append(self.primitive, new_qc.qubits[other.primitive.num_qubits:])
             # TODO Fix because converting to dag just to append is nuts
             # TODO Figure out what to do with cbits?
-            return OpCircuit(new_qc.decompose().to_instruction(), coeff=self.coeff * other.coeff)
+            return CircuitOp(new_qc.decompose().to_instruction(), coeff=self.coeff * other.coeff)
 
         return OpKron([self, other])
 
@@ -134,34 +134,34 @@ class OpCircuit(OpPrimitive):
         -[Y]-[X]-
         Because Terra prints circuits with the initial state at the left side of the circuit.
         """
-        # TODO accept primitives directly in addition to OpPrimitive?
+        # TODO accept primitives directly in addition to PrimitiveOp?
 
         other = self._check_zero_for_composition_and_expand(other)
         # pylint: disable=cyclic-import,import-outside-toplevel
         from ..operator_globals import Zero
-        from ..state_functions import StateFnCircuit
+        from ..state_functions import CircuitStateFn
         if other == Zero ^ self.num_qubits:
-            return StateFnCircuit(self.primitive, coeff=self.coeff)
+            return CircuitStateFn(self.primitive, coeff=self.coeff)
 
-        from . import OpPauli
-        if isinstance(other, OpPauli):
+        from . import PauliOp
+        if isinstance(other, PauliOp):
             from qiskit.aqua.operators.converters import PauliToInstruction
-            other = OpCircuit(PauliToInstruction().convert_pauli(other.primitive),
+            other = CircuitOp(PauliToInstruction().convert_pauli(other.primitive),
                               coeff=other.coeff)
 
-        if isinstance(other, (OpCircuit, StateFnCircuit)):
+        if isinstance(other, (CircuitOp, CircuitStateFn)):
             new_qc = QuantumCircuit(self.num_qubits)
             new_qc.append(other.primitive, qargs=range(self.num_qubits))
             new_qc.append(self.primitive, qargs=range(self.num_qubits))
             # TODO Fix because converting to dag just to append is nuts
             # TODO Figure out what to do with cbits?
             new_qc = new_qc.decompose()
-            if isinstance(other, StateFnCircuit):
-                return StateFnCircuit(new_qc.to_instruction(),
+            if isinstance(other, CircuitStateFn):
+                return CircuitStateFn(new_qc.to_instruction(),
                                       is_measurement=other.is_measurement,
                                       coeff=self.coeff * other.coeff)
             else:
-                return OpCircuit(new_qc.to_instruction(), coeff=self.coeff * other.coeff)
+                return CircuitOp(new_qc.to_instruction(), coeff=self.coeff * other.coeff)
 
         return OpComposition([self, other])
 
@@ -229,22 +229,22 @@ class OpCircuit(OpPrimitive):
         """
 
         # pylint: disable=import-outside-toplevel
-        from ..state_functions import StateFnCircuit
+        from ..state_functions import CircuitStateFn
         from ..operator_combos import OpVec
-        from .op_pauli import OpPauli
+        from .pauli_op import PauliOp
 
         if isinstance(front, OpVec) and front.distributive:
             return front.combo_fn([self.eval(front.coeff * front_elem)
                                    for front_elem in front.oplist])
 
         # Composable with circuit
-        if isinstance(front, (OpPauli, StateFnCircuit, OpCircuit)):
+        if isinstance(front, (PauliOp, CircuitStateFn, CircuitOp)):
             return self.compose(front)
 
         return self.to_matrix_op().eval(front=front)
 
     def to_circuit(self) -> QuantumCircuit:
-        """ Convert OpCircuit to circuit """
+        """ Convert CircuitOp to circuit """
         qc = QuantumCircuit(self.num_qubits)
         qc.append(self.primitive, qargs=range(self.primitive.num_qubits))
         return qc

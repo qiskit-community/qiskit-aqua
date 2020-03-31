@@ -20,7 +20,7 @@ import numpy as np
 
 from qiskit.circuit import ParameterVector
 
-from qiskit.aqua.operators import (X, Y, Z, I, CX, H, OpVec, OpCircuit, Zero, EvolutionBase,
+from qiskit.aqua.operators import (X, Y, Z, I, CX, H, OpVec, CircuitOp, Zero, EvolutionBase,
                                    EvolutionOp, PauliTrotterEvolution, QDrift)
 
 
@@ -104,7 +104,7 @@ class TestEvolution(QiskitAquaTestCase):
         for p in thetas:
             self.assertIn(p, evo.to_circuit().parameters)
 
-    # TODO test with other Op types than StateFnCircuit
+    # TODO test with other Op types than CircuitStateFn
     def test_bind_parameter_list(self):
         """ bind parameters list test """
         thetas = ParameterVector('θ', length=6)
@@ -137,7 +137,7 @@ class TestEvolution(QiskitAquaTestCase):
         last_coeff = None
         # Check that all types are correct and all coefficients are equals
         for op in trotterization.oplist:
-            self.assertIsInstance(op, (EvolutionOp, OpCircuit))
+            self.assertIsInstance(op, (EvolutionOp, CircuitOp))
             if isinstance(op, EvolutionOp):
                 if last_coeff:
                     self.assertEqual(op.primitive.coeff, last_coeff)

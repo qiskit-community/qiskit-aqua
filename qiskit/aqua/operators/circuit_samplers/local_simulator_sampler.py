@@ -24,7 +24,7 @@ from qiskit.aqua.utils.backend_utils import is_aer_provider, is_statevector_back
 from ..operator_base import OperatorBase
 from ..operator_globals import Zero
 from ..operator_combos import OpVec
-from ..state_functions import StateFn, StateFnCircuit
+from ..state_functions import StateFn, CircuitStateFn
 from ..converters import DictToCircuitSum
 from .circuit_sampler import CircuitSampler
 
@@ -117,7 +117,7 @@ class LocalSimulatorSampler(CircuitSampler):
 
         if not self._circuit_ops_cache:
             self._circuit_ops_cache = {}
-            self._extract_statefncircuits(self._reduced_op_cache)
+            self._extract_circuitstatefns(self._reduced_op_cache)
 
         if params:
             num_parameterizations = len(list(params.values())[0])
@@ -133,7 +133,7 @@ class LocalSimulatorSampler(CircuitSampler):
                                                      param_bindings=param_bindings)
 
         def replace_circuits_with_dicts(operator, param_index=0):
-            if isinstance(operator, StateFnCircuit):
+            if isinstance(operator, CircuitStateFn):
                 return sampled_statefn_dicts[id(operator)][param_index]
             elif isinstance(operator, OpVec):
                 return operator.traverse(partial(replace_circuits_with_dicts,
@@ -148,12 +148,12 @@ class LocalSimulatorSampler(CircuitSampler):
             return replace_circuits_with_dicts(self._reduced_op_cache, param_index=0)
 
     # pylint: disable=inconsistent-return-statements
-    def _extract_statefncircuits(self, operator):
-        if isinstance(operator, StateFnCircuit):
+    def _extract_circuitstatefns(self, operator):
+        if isinstance(operator, CircuitStateFn):
             self._circuit_ops_cache[id(operator)] = operator
         elif isinstance(operator, OpVec):
             for op in operator.oplist:
-                self._extract_statefncircuits(op)
+                self._extract_circuitstatefns(op)
         else:
             return operator
 
@@ -162,13 +162,13 @@ class LocalSimulatorSampler(CircuitSampler):
                         param_bindings: Optional[List] = None) -> Dict:
         """
         Args:
-            op_circuits: The list of circuits or StateFnCircuits to sample
+            op_circuits: The list of circuits or CircuitStateFns to sample
             param_bindings: bindings
         Returns:
             Dict: dictionary of sampled state functions
         """
         if op_circuits or not self._transpiled_circ_cache:
-            if all([isinstance(circ, StateFnCircuit) for circ in op_circuits]):
+            if all([isinstance(circ, CircuitStateFn) for circ in op_circuits]):
                 if self._statevector:
                     circuits = [op_c.to_circuit(meas=False) for op_c in op_circuits]
                 else:

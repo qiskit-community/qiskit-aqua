@@ -21,7 +21,7 @@ from qiskit.quantum_info import Pauli
 from qiskit.extensions.standard import XGate, YGate, ZGate, IGate
 
 from ..operator_base import OperatorBase
-from ..operator_primitives import OpPrimitive
+from ..operator_primitives import PrimitiveOp
 from ..operator_combos import OpVec
 from .converter_base import ConverterBase
 
@@ -41,7 +41,7 @@ class PauliToInstruction(ConverterBase):
 
         if isinstance(operator, Pauli):
             coeff = 1.0
-        elif isinstance(operator, OpPrimitive) and isinstance(operator.primitive, Pauli):
+        elif isinstance(operator, PrimitiveOp) and isinstance(operator.primitive, Pauli):
             operator = operator.primitive
             coeff = operator.coeff
         # TODO allow parameterized OpVec to be returned to save circuit copying.
@@ -52,7 +52,7 @@ class PauliToInstruction(ConverterBase):
             raise TypeError('PauliToInstruction can only accept OperatorBase objects or '
                             'Paulis, not {}'.format(type(operator)))
 
-        return OpPrimitive(self.convert_pauli(operator), coeff=coeff)
+        return PrimitiveOp(self.convert_pauli(operator), coeff=coeff)
 
     def convert_pauli(self, pauli: Pauli):
         """ convert pauli """

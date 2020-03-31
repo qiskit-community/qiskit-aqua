@@ -17,13 +17,13 @@ State Functions
 """
 
 from .state_fn import StateFn
-from .state_fn_dict import StateFnDict
-from .state_fn_operator import StateFnOperator
-from .state_fn_vector import StateFnVector
-from .state_fn_circuit import StateFnCircuit
+from .state_fn_dict import DictStateFn
+from .state_fn_operator import OperatorStateFn
+from .state_fn_vector import VectorStateFn
+from .state_fn_circuit import CircuitStateFn
 
 __all__ = ['StateFn',
-           'StateFnDict',
-           'StateFnVector',
-           'StateFnCircuit',
-           'StateFnOperator']
+           'DictStateFn',
+           'VectorStateFn',
+           'CircuitStateFn',
+           'OperatorStateFn']

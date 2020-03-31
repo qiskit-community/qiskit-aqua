@@ -26,7 +26,7 @@ from ..operator_combos import OpVec, OpSum
 
 # pylint: disable=invalid-name
 
-class StateFnOperator(StateFn):
+class OperatorStateFn(StateFn):
     """ A class for representing state functions and measurements.
 
     State functions are defined to be complex functions over a single binary string (as
@@ -77,23 +77,23 @@ class StateFnOperator(StateFn):
                 'defined'.format(self.num_qubits, other.num_qubits))
 
         # Right now doesn't make sense to add a StateFn to a Measurement
-        if isinstance(other, StateFnOperator) and self.is_measurement == other.is_measurement:
+        if isinstance(other, OperatorStateFn) and self.is_measurement == other.is_measurement:
             if isinstance(self.primitive.primitive, type(other.primitive.primitive)) and \
                     self.primitive == other.primitive:
                 return StateFn(self.primitive,
                                coeff=self.coeff + other.coeff,
                                is_measurement=self.is_measurement)
             # Covers MatrixOperator, Statevector and custom.
-            elif isinstance(other, StateFnOperator):
+            elif isinstance(other, OperatorStateFn):
                 # Also assumes scalar multiplication is available
-                return StateFnOperator(
+                return OperatorStateFn(
                     (self.coeff * self.primitive).add(other.primitive * other.coeff),
                     is_measurement=self._is_measurement)
 
         return OpSum([self, other])
 
     def adjoint(self) -> OperatorBase:
-        return StateFnOperator(self.primitive.adjoint(),
+        return OperatorStateFn(self.primitive.adjoint(),
                                coeff=np.conj(self.coeff),
                                is_measurement=(not self.is_measurement))
 
@@ -107,9 +107,9 @@ class StateFnOperator(StateFn):
         |+⟩--
         Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
         """
-        # TODO accept primitives directly in addition to OpPrimitive?
+        # TODO accept primitives directly in addition to PrimitiveOp?
 
-        if isinstance(other, StateFnOperator):
+        if isinstance(other, OperatorStateFn):
             return StateFn(self.primitive.kron(other.primitive),
                            coeff=self.coeff * other.coeff,
                            is_measurement=self.is_measurement)
@@ -138,7 +138,7 @@ class StateFnOperator(StateFn):
 
     def to_matrix_op(self, massive: bool = False) -> OperatorBase:
         """ Return a MatrixOp for this operator. """
-        return StateFnOperator(self.primitive.to_matrix_op(massive=massive) * self.coeff,
+        return OperatorStateFn(self.primitive.to_matrix_op(massive=massive) * self.coeff,
                                is_measurement=self.is_measurement)
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
@@ -213,7 +213,7 @@ class StateFnOperator(StateFn):
             front = StateFn(front)
 
         if isinstance(self.primitive, OpVec) and self.primitive.distributive:
-            evals = [StateFnOperator(op, coeff=self.coeff, is_measurement=self.is_measurement).eval(
+            evals = [OperatorStateFn(op, coeff=self.coeff, is_measurement=self.is_measurement).eval(
                 front) for op in self.primitive.oplist]
             return self.primitive.combo_fn(evals)
 

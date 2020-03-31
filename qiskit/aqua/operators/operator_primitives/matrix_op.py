@@ -24,12 +24,12 @@ from qiskit.circuit import ParameterExpression
 
 from ..operator_base import OperatorBase
 from ..operator_combos import OpSum, OpComposition, OpKron
-from .op_primitive import OpPrimitive
+from .primitive_op import PrimitiveOp
 
 logger = logging.getLogger(__name__)
 
 
-class OpMatrix(OpPrimitive):
+class MatrixOp(PrimitiveOp):
     """ Class for Wrapping Matrix Primitives
 
     Note that all mathematical methods are not in-place, meaning that
@@ -58,7 +58,7 @@ class OpMatrix(OpPrimitive):
 
         if not isinstance(primitive, MatrixOperator):
             raise TypeError(
-                'OpMatrix can only be instantiated with MatrixOperator, '
+                'MatrixOp can only be instantiated with MatrixOperator, '
                 'not {}'.format(type(primitive)))
 
         if not primitive.input_dims() == primitive.output_dims():
@@ -83,19 +83,19 @@ class OpMatrix(OpPrimitive):
                 'Sum over operators with different numbers of qubits, {} and {}, is not well '
                 'defined'.format(self.num_qubits, other.num_qubits))
 
-        if isinstance(other, OpMatrix):
-            return OpMatrix((self.coeff * self.primitive) + (other.coeff * other.primitive))
+        if isinstance(other, MatrixOp):
+            return MatrixOp((self.coeff * self.primitive) + (other.coeff * other.primitive))
 
         # Covers Paulis, Circuits, and all else.
         return OpSum([self, other])
 
     def adjoint(self) -> OperatorBase:
         """ Return operator adjoint (conjugate transpose). Overloaded by ~ in OperatorBase. """
-        return OpMatrix(self.primitive.conjugate().transpose(), coeff=np.conj(self.coeff))
+        return MatrixOp(self.primitive.conjugate().transpose(), coeff=np.conj(self.coeff))
 
     def equals(self, other: OperatorBase) -> bool:
         """ Evaluate Equality. Overloaded by == in OperatorBase. """
-        if not isinstance(other, OpPrimitive) \
+        if not isinstance(other, PrimitiveOp) \
                 or not isinstance(self.primitive, type(other.primitive)) \
                 or not self.coeff == other.coeff:
             return False
@@ -115,7 +115,7 @@ class OpMatrix(OpPrimitive):
         Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
         """
         if isinstance(other.primitive, MatrixOperator):
-            return OpMatrix(self.primitive.tensor(other.primitive), coeff=self.coeff * other.coeff)
+            return MatrixOp(self.primitive.tensor(other.primitive), coeff=self.coeff * other.coeff)
 
         return OpKron([self, other])
 
@@ -129,12 +129,12 @@ class OpMatrix(OpPrimitive):
         -[Y]-[X]-
         Because Terra prints circuits with the initial state at the left side of the circuit.
         """
-        # TODO accept primitives directly in addition to OpPrimitive?
+        # TODO accept primitives directly in addition to PrimitiveOp?
 
         other = self._check_zero_for_composition_and_expand(other)
 
-        if isinstance(other, OpMatrix):
-            return OpMatrix(self.primitive.compose(other.primitive, front=True),
+        if isinstance(other, MatrixOp):
+            return MatrixOp(self.primitive.compose(other.primitive, front=True),
                             coeff=self.coeff * other.coeff)
 
         return OpComposition([self, other])
@@ -186,7 +186,7 @@ class OpMatrix(OpPrimitive):
 
         # pylint: disable=cyclic-import,import-outside-toplevel
         from ..operator_combos import OpVec
-        from ..state_functions import StateFn, StateFnOperator
+        from ..state_functions import StateFn, OperatorStateFn
 
         new_front = None
 
@@ -198,8 +198,8 @@ class OpMatrix(OpPrimitive):
             new_front = front.combo_fn([self.eval(front.coeff * front_elem)
                                         for front_elem in front.oplist])
 
-        elif isinstance(front, StateFnOperator):
-            new_front = StateFnOperator(self.adjoint().compose(front.to_matrix_op()).compose(self))
+        elif isinstance(front, OperatorStateFn):
+            new_front = OperatorStateFn(self.adjoint().compose(front.to_matrix_op()).compose(self))
 
         elif isinstance(front, OperatorBase):
             new_front = StateFn(self.to_matrix() @ front.to_matrix())
@@ -207,5 +207,5 @@ class OpMatrix(OpPrimitive):
         return new_front
 
     def to_simulation_instruction(self) -> OperatorBase:
-        """ returns an OpCircuit holding a UnitaryGate instruction constructed from this matrix """
-        return OpPrimitive(self.primitive.to_instruction(), coeff=self.coeff)
+        """ returns an CircuitOp holding a UnitaryGate instruction constructed from this matrix """
+        return PrimitiveOp(self.primitive.to_instruction(), coeff=self.coeff)

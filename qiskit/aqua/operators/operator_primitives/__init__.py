@@ -16,12 +16,12 @@
 Operator Primitives
 """
 
-from .op_primitive import OpPrimitive
-from .op_pauli import OpPauli
-from .op_matrix import OpMatrix
-from .op_circuit import OpCircuit
+from .primitive_op import PrimitiveOp
+from .pauli_op import PauliOp
+from .matrix_op import MatrixOp
+from .circuit_op import CircuitOp
 
-__all__ = ['OpPrimitive',
-           'OpPauli',
-           'OpMatrix',
-           'OpCircuit']
+__all__ = ['PrimitiveOp',
+           'PauliOp',
+           'MatrixOp',
+           'CircuitOp']

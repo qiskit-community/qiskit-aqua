@@ -26,7 +26,7 @@ from ..operator_combos import OpSum
 from .state_fn import StateFn
 
 
-class StateFnCircuit(StateFn):
+class CircuitStateFn(StateFn):
     """ A class for representing state functions and measurements.
 
     State functions are defined to be complex functions over a single binary string
@@ -70,7 +70,7 @@ class StateFnCircuit(StateFn):
             primitive = primitive.to_instruction()
 
         if not isinstance(primitive, Instruction):
-            raise TypeError('StateFnCircuit can only be instantiated '
+            raise TypeError('CircuitStateFn can only be instantiated '
                             'with Instruction, not {}'.format(type(primitive)))
 
         super().__init__(primitive, coeff=coeff, is_measurement=is_measurement)
@@ -89,7 +89,7 @@ class StateFnCircuit(StateFn):
                 for (index, bit) in enumerate(reversed(bstr)):
                     if bit == '1':
                         qc.x(index)
-                sf_circuit = StateFnCircuit(qc, coeff=prob)
+                sf_circuit = CircuitStateFn(qc, coeff=prob)
                 statefn_circuits += [sf_circuit]
             if len(statefn_circuits) == 1:
                 return statefn_circuits[0]
@@ -97,7 +97,7 @@ class StateFnCircuit(StateFn):
                 return OpSum(statefn_circuits)
         else:
             sf_dict = StateFn(density_dict)
-            return StateFnCircuit.from_vector(sf_dict.to_matrix())
+            return CircuitStateFn.from_vector(sf_dict.to_matrix())
 
     @staticmethod
     def from_vector(statevector: np.ndarray) -> OperatorBase:
@@ -106,7 +106,7 @@ class StateFnCircuit(StateFn):
         normalized_sv = statevector / normalization_coeff
         if not np.all(np.abs(statevector) == statevector):
             raise ValueError('Qiskit circuit Initializer cannot handle non-positive statevectors.')
-        return StateFnCircuit(Initialize(normalized_sv), coeff=normalization_coeff)
+        return CircuitStateFn(Initialize(normalized_sv), coeff=normalization_coeff)
 
     def get_primitives(self) -> set:
         """ Return a set of strings describing the primitives contained in the Operator """
@@ -123,14 +123,14 @@ class StateFnCircuit(StateFn):
                              '{} and {}, is not well '
                              'defined'.format(self.num_qubits, other.num_qubits))
 
-        if isinstance(other, StateFnCircuit) and self.primitive == other.primitive:
-            return StateFnCircuit(self.primitive, coeff=self.coeff + other.coeff)
+        if isinstance(other, CircuitStateFn) and self.primitive == other.primitive:
+            return CircuitStateFn(self.primitive, coeff=self.coeff + other.coeff)
 
         # Covers all else.
         return OpSum([self, other])
 
     def adjoint(self) -> OperatorBase:
-        return StateFnCircuit(self.primitive.inverse(),
+        return CircuitStateFn(self.primitive.inverse(),
                               coeff=np.conj(self.coeff),
                               is_measurement=(not self.is_measurement))
 
@@ -147,22 +147,22 @@ class StateFnCircuit(StateFn):
         new_self, other = self._check_zero_for_composition_and_expand(other)
 
         # pylint: disable=cyclic-import,import-outside-toplevel
-        from qiskit.aqua.operators import OpCircuit, OpPauli
+        from qiskit.aqua.operators import CircuitOp, PauliOp
 
-        if isinstance(other, (OpCircuit, OpPauli)):
-            op_circuit_self = OpCircuit(self.primitive)
+        if isinstance(other, (CircuitOp, PauliOp)):
+            op_circuit_self = CircuitOp(self.primitive)
 
             # Avoid reimplementing compose logic
             composed_op_circs = op_circuit_self.compose(other)
 
-            # Returning StateFnCircuit
-            return StateFnCircuit(composed_op_circs.primitive,
+            # Returning CircuitStateFn
+            return CircuitStateFn(composed_op_circs.primitive,
                                   is_measurement=self.is_measurement,
                                   coeff=self.coeff * other.coeff)
 
-        if isinstance(other, StateFnCircuit) and self.is_measurement:
+        if isinstance(other, CircuitStateFn) and self.is_measurement:
             from .. import Zero
-            return self.compose(OpCircuit(other.primitive,
+            return self.compose(CircuitOp(other.primitive,
                                           other.coeff)).compose(Zero ^ self.num_qubits)
 
         from qiskit.aqua.operators import OpComposition
@@ -178,16 +178,16 @@ class StateFnCircuit(StateFn):
         |+⟩--
         Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
         """
-        # TODO accept primitives directly in addition to OpPrimitive?
+        # TODO accept primitives directly in addition to PrimitiveOp?
 
-        if isinstance(other, StateFnCircuit):
+        if isinstance(other, CircuitStateFn):
             new_qc = QuantumCircuit(self.num_qubits + other.num_qubits)
             # NOTE!!! REVERSING QISKIT ENDIANNESS HERE
             new_qc.append(other.primitive, new_qc.qubits[0:other.primitive.num_qubits])
             new_qc.append(self.primitive, new_qc.qubits[other.primitive.num_qubits:])
             # TODO Fix because converting to dag just to append is nuts
             # TODO Figure out what to do with cbits?
-            return StateFnCircuit(new_qc.decompose().to_instruction(),
+            return CircuitStateFn(new_qc.decompose().to_instruction(),
                                   coeff=self.coeff * other.coeff)
         # pylint: disable=cyclic-import,import-outside-toplevel
         from qiskit.aqua.operators import OpKron
@@ -210,7 +210,7 @@ class StateFnCircuit(StateFn):
                 ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
 
         # TODO handle list case
-        # Rely on StateFnVectors logic here.
+        # Rely on VectorStateFn's logic here.
         return StateFn(self.primitive.to_matrix() * self.coeff).to_density_matrix()
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
@@ -291,14 +291,14 @@ class StateFnCircuit(StateFn):
 
         # pylint: disable=import-outside-toplevel
         from ..operator_combos import OpVec
-        from ..operator_primitives import OpPauli, OpCircuit
+        from ..operator_primitives import PauliOp, CircuitOp
 
         if isinstance(front, OpVec) and front.distributive:
             return front.combo_fn([self.eval(front.coeff * front_elem)
                                    for front_elem in front.oplist])
 
         # Composable with circuit
-        if isinstance(front, (OpPauli, StateFnCircuit, OpCircuit)):
+        if isinstance(front, (PauliOp, CircuitStateFn, CircuitOp)):
             new_front = self.compose(front)
             return new_front
 

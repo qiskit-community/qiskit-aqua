@@ -63,9 +63,9 @@ from .legacy import (LegacyBaseOperator, WeightedPauliOperator, Z2Symmetries,
 
 # New Operators
 from .operator_base import OperatorBase
-from .operator_primitives import OpPrimitive, OpPauli, OpMatrix, OpCircuit
-from .state_functions import (StateFn, StateFnDict, StateFnVector,
-                              StateFnCircuit, StateFnOperator)
+from .operator_primitives import PrimitiveOp, PauliOp, MatrixOp, CircuitOp
+from .state_functions import (StateFn, DictStateFn, VectorStateFn,
+                              CircuitStateFn, OperatorStateFn)
 from .operator_combos import OpVec, OpSum, OpComposition, OpKron
 from .converters import (ConverterBase, PauliBasisChange, PauliToInstruction,
                          DictToCircuitSum, AbelianGrouper)
@@ -89,8 +89,8 @@ __all__ = [
     'MatrixOperator',
     # New
     'OperatorBase',
-    'OpPrimitive', 'OpPauli', 'OpMatrix', 'OpCircuit',
-    'StateFn', 'StateFnDict', 'StateFnVector', 'StateFnCircuit', 'StateFnOperator',
+    'PrimitiveOp', 'PauliOp', 'MatrixOp', 'CircuitOp',
+    'StateFn', 'DictStateFn', 'VectorStateFn', 'CircuitStateFn', 'OperatorStateFn',
     'OpVec', 'OpSum', 'OpComposition', 'OpKron',
     # Singletons
     'X', 'Y', 'Z', 'I', 'CX', 'S', 'H', 'T', 'Swap', 'Zero', 'One', 'Plus', 'Minus'

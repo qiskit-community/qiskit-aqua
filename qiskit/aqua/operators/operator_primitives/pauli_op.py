@@ -25,13 +25,13 @@ from qiskit.quantum_info import Pauli
 from qiskit.extensions.standard import RZGate, RYGate, RXGate
 
 from ..operator_base import OperatorBase
-from . import OpPrimitive
+from . import PrimitiveOp
 from ..operator_combos import OpSum, OpComposition, OpKron
 
 logger = logging.getLogger(__name__)
 
 
-class OpPauli(OpPrimitive):
+class PauliOp(PrimitiveOp):
     """ Class for Wrapping Pauli Primitives
 
     Note that all mathematical methods are not in-place,
@@ -53,7 +53,7 @@ class OpPauli(OpPrimitive):
         """
         if not isinstance(primitive, Pauli):
             raise TypeError(
-                'OpPauli can only be instantiated with Paulis, not {}'.format(type(primitive)))
+                'PauliOp can only be instantiated with Paulis, not {}'.format(type(primitive)))
         super().__init__(primitive, coeff=coeff)
 
     def get_primitives(self) -> set:
@@ -73,18 +73,18 @@ class OpPauli(OpPrimitive):
                 'Sum over operators with different numbers of qubits, {} and {}, is not well '
                 'defined'.format(self.num_qubits, other.num_qubits))
 
-        if isinstance(other, OpPauli) and self.primitive == other.primitive:
-            return OpPauli(self.primitive, coeff=self.coeff + other.coeff)
+        if isinstance(other, PauliOp) and self.primitive == other.primitive:
+            return PauliOp(self.primitive, coeff=self.coeff + other.coeff)
 
         return OpSum([self, other])
 
     def adjoint(self) -> OperatorBase:
         """ Return operator adjoint (conjugate transpose). Overloaded by ~ in OperatorBase. """
-        return OpPauli(self.primitive, coeff=np.conj(self.coeff))
+        return PauliOp(self.primitive, coeff=np.conj(self.coeff))
 
     def equals(self, other: OperatorBase) -> bool:
         """ Evaluate Equality. Overloaded by == in OperatorBase. """
-        if not isinstance(other, OpPauli) or not self.coeff == other.coeff:
+        if not isinstance(other, PauliOp) or not self.coeff == other.coeff:
             return False
 
         return self.primitive == other.primitive
@@ -101,19 +101,19 @@ class OpPauli(OpPrimitive):
         -[X]-
         Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
         """
-        # TODO accept primitives directly in addition to OpPrimitive?
+        # TODO accept primitives directly in addition to PrimitiveOp?
 
         # Both Paulis
-        if isinstance(other, OpPauli):
+        if isinstance(other, PauliOp):
             # TODO change Pauli kron in Terra to have optional in place
             op_copy = Pauli(x=other.primitive.x, z=other.primitive.z)
             # NOTE!!! REVERSING QISKIT ENDIANNESS HERE
-            return OpPauli(op_copy.kron(self.primitive), coeff=self.coeff * other.coeff)
+            return PauliOp(op_copy.kron(self.primitive), coeff=self.coeff * other.coeff)
 
         # Both Instructions/Circuits
         # pylint: disable=cyclic-import,import-outside-toplevel
-        from . import OpCircuit
-        if isinstance(other, OpCircuit):
+        from . import CircuitOp
+        if isinstance(other, CircuitOp):
             from qiskit.aqua.operators.converters import PauliToInstruction
             converted_primitive = PauliToInstruction().convert_pauli(self.primitive)
             new_qc = QuantumCircuit(self.num_qubits + other.num_qubits)
@@ -122,7 +122,7 @@ class OpPauli(OpPrimitive):
             new_qc.append(converted_primitive, new_qc.qubits[other.num_qubits:])
             # TODO Fix because converting to dag just to append is nuts
             # TODO Figure out what to do with cbits?
-            return OpCircuit(new_qc.decompose().to_instruction(), coeff=self.coeff * other.coeff)
+            return CircuitOp(new_qc.decompose().to_instruction(), coeff=self.coeff * other.coeff)
 
         return OpKron([self, other])
 
@@ -136,7 +136,7 @@ class OpPauli(OpPrimitive):
         -[Y]-[X]-
         Because Terra prints circuits with the initial state at the left side of the circuit.
         """
-        # TODO accept primitives directly in addition to OpPrimitive?
+        # TODO accept primitives directly in addition to PrimitiveOp?
 
         other = self._check_zero_for_composition_and_expand(other)
 
@@ -145,14 +145,14 @@ class OpPauli(OpPrimitive):
             return other * self.coeff
 
         # Both Paulis
-        if isinstance(other, OpPauli):
+        if isinstance(other, PauliOp):
             product, phase = Pauli.sgn_prod(self.primitive, other.primitive)
-            return OpPrimitive(product, coeff=self.coeff * other.coeff * phase)
+            return PrimitiveOp(product, coeff=self.coeff * other.coeff * phase)
 
         # pylint: disable=cyclic-import,import-outside-toplevel
-        from . import OpCircuit
-        from .. import StateFnCircuit
-        if isinstance(other, (OpCircuit, StateFnCircuit)):
+        from . import CircuitOp
+        from .. import CircuitStateFn
+        if isinstance(other, (CircuitOp, CircuitStateFn)):
             from qiskit.aqua.operators.converters import PauliToInstruction
             converted_primitive = PauliToInstruction().convert_pauli(self.primitive)
             new_qc = QuantumCircuit(self.num_qubits)
@@ -160,12 +160,12 @@ class OpPauli(OpPrimitive):
             new_qc.append(converted_primitive, qargs=range(self.num_qubits))
             # TODO Fix because converting to dag just to append is nuts
             # TODO Figure out what to do with cbits?
-            if isinstance(other, StateFnCircuit):
-                return StateFnCircuit(new_qc.decompose().to_instruction(),
+            if isinstance(other, CircuitStateFn):
+                return CircuitStateFn(new_qc.decompose().to_instruction(),
                                       is_measurement=other.is_measurement,
                                       coeff=self.coeff * other.coeff)
             else:
-                return OpCircuit(new_qc.decompose().to_instruction(),
+                return CircuitOp(new_qc.decompose().to_instruction(),
                                  coeff=self.coeff * other.coeff)
 
         return OpComposition([self, other])
@@ -229,8 +229,8 @@ class OpPauli(OpPrimitive):
             return self.to_matrix_op()
 
         # pylint: disable=import-outside-toplevel
-        from .. import StateFn, StateFnDict, StateFnCircuit, OpVec
-        from . import OpCircuit
+        from .. import StateFn, DictStateFn, CircuitStateFn, OpVec
+        from . import CircuitOp
 
         new_front = None
 
@@ -242,7 +242,7 @@ class OpPauli(OpPrimitive):
             new_front = front.combo_fn([self.eval(front.coeff * front_elem)
                                         for front_elem in front.oplist])
 
-        elif isinstance(front, StateFnDict):
+        elif isinstance(front, DictStateFn):
             new_dict = {}
             corrected_x_bits = self.primitive.x[::-1]
             corrected_z_bits = self.primitive.z[::-1]
@@ -260,11 +260,11 @@ class OpPauli(OpPrimitive):
         elif isinstance(front, StateFn) and front.is_measurement:
             raise ValueError('Operator composed with a measurement is undefined.')
 
-        # Composable types with OpPauli
-        elif isinstance(front, (OpPauli, OpCircuit, StateFnCircuit)):
+        # Composable types with PauliOp
+        elif isinstance(front, (PauliOp, CircuitOp, CircuitStateFn)):
             new_front = self.compose(front)
 
-        # Covers StateFnVector and StateFnOperator
+        # Covers VectorStateFn and OperatorStateFn
         elif isinstance(front, OperatorBase):
             new_front = self.to_matrix_op().eval(front.to_matrix_op())
 
@@ -279,16 +279,16 @@ class OpPauli(OpPrimitive):
         if np.sum(sig_qubits) == 0:
             # e^I is just a global phase, but we can keep track of it! Should we?
             # For now, just return identity
-            return OpPauli(self.primitive)
+            return PauliOp(self.primitive)
         if np.sum(sig_qubits) == 1:
             sig_qubit_index = sig_qubits.tolist().index(True)
             # Y rotation
             if corrected_x[sig_qubit_index] and corrected_z[sig_qubit_index]:
-                rot_op = OpPrimitive(RYGate(self.coeff))
+                rot_op = PrimitiveOp(RYGate(self.coeff))
             elif corrected_z[sig_qubit_index]:
-                rot_op = OpPrimitive(RZGate(self.coeff))
+                rot_op = PrimitiveOp(RZGate(self.coeff))
             elif corrected_x[sig_qubit_index]:
-                rot_op = OpPrimitive(RXGate(self.coeff))
+                rot_op = PrimitiveOp(RXGate(self.coeff))
 
             from .. import I
             left_pad = I.kronpower(sig_qubit_index)
@@ -305,7 +305,7 @@ class OpPauli(OpPrimitive):
 
     def commutes(self, other_op) -> bool:
         """ commutes """
-        if not isinstance(other_op, OpPauli):
+        if not isinstance(other_op, PauliOp):
             return False
         # Don't use compose because parameters will break this
         self_bits = self.primitive.z.astype(int) + 2 * self.primitive.x.astype(int)

@@ -104,7 +104,7 @@ class OpVec(OperatorBase):
 
         # TODO do this lazily for some primitives (Pauli, Instruction),
         # and eager for others (Matrix)?
-        # if eager and isinstance(other, OpPrimitive):
+        # if eager and isinstance(other, PrimitiveOp):
         #     return self.__class__([op.add(other) for op in self.oplist], coeff=self.coeff)
 
         # Avoid circular dependency
@@ -167,7 +167,7 @@ class OpVec(OperatorBase):
         # TODO do this lazily for some primitives (Matrix), and eager
         #  for others (Pauli, Instruction)?
         # NOTE: Doesn't work for OpComposition!
-        # if eager and isinstance(other, OpPrimitive):
+        # if eager and isinstance(other, PrimitiveOp):
         #     return self.__class__([op.kron(other) for op in self.oplist], coeff=self.coeff)
 
         # Avoid circular dependency
@@ -201,7 +201,7 @@ class OpVec(OperatorBase):
 
         # TODO do this lazily for some primitives (Matrix), and eager
         #  for others (Pauli, Instruction)?
-        # if eager and isinstance(other, OpPrimitive):
+        # if eager and isinstance(other, PrimitiveOp):
         #     return self.__class__([op.compose(other) for op in self.oplist], coeff=self.coeff)
 
         # Avoid circular dependency

@@ -20,8 +20,8 @@ import numpy as np
 from qiskit import QuantumCircuit, BasicAer, execute, ClassicalRegister
 from qiskit.quantum_info import Statevector
 
-from qiskit.aqua.operators import (StateFn, Zero, One, Plus, Minus, OpPrimitive,
-                                   OpSum, H, I, Z, X, Y, StateFnCircuit)
+from qiskit.aqua.operators import (StateFn, Zero, One, Plus, Minus, PrimitiveOp,
+                                   OpSum, H, I, Z, X, Y, CircuitStateFn)
 
 
 # pylint: disable=invalid-name
@@ -69,7 +69,7 @@ class TestStateConstruction(QiskitAquaTestCase):
         qc.h(0)
         sv_res = execute(qc, BasicAer.get_backend('statevector_simulator')).result()
         sv_vector = sv_res.get_statevector()
-        qc_op = OpPrimitive(qc)
+        qc_op = PrimitiveOp(qc)
 
         qc.add_register(ClassicalRegister(3))
         qc.measure(range(3), range(3))
@@ -110,10 +110,10 @@ class TestStateConstruction(QiskitAquaTestCase):
                      '1000000': .1,
                      '0000000': .2j,
                      '1111111': 0.5j}
-        sfc_sum = StateFnCircuit.from_dict(statedict)
+        sfc_sum = CircuitStateFn.from_dict(statedict)
         self.assertIsInstance(sfc_sum, OpSum)
         for sfc_op in sfc_sum.oplist:
-            self.assertIsInstance(sfc_op, StateFnCircuit)
+            self.assertIsInstance(sfc_op, CircuitStateFn)
             samples = sfc_op.sample()
             self.assertIn(list(samples.keys())[0], statedict)
             self.assertEqual(sfc_op.coeff, statedict[list(samples.keys())[0]])
@@ -125,8 +125,8 @@ class TestStateConstruction(QiskitAquaTestCase):
                      '100': .1,
                      '000': .2,
                      '111': .5}
-        sfc = StateFnCircuit.from_dict(statedict)
-        self.assertIsInstance(sfc, StateFnCircuit)
+        sfc = CircuitStateFn.from_dict(statedict)
+        self.assertIsInstance(sfc, CircuitStateFn)
         samples = sfc.sample()
         np.testing.assert_array_almost_equal(StateFn(statedict).to_matrix(),
                                              np.round(sfc.to_matrix(), decimals=1))
@@ -136,7 +136,7 @@ class TestStateConstruction(QiskitAquaTestCase):
             self.assertAlmostEqual(v, np.abs(statedict[k])**.5, delta=.5)
 
         # Follows same code path as above, but testing to be thorough
-        sfc_vector = StateFnCircuit.from_vector(StateFn(statedict).to_matrix())
+        sfc_vector = CircuitStateFn.from_vector(StateFn(statedict).to_matrix())
         np.testing.assert_array_almost_equal(StateFn(statedict).to_matrix(), sfc_vector.to_matrix())
 
     def test_sampling(self):
@@ -145,7 +145,7 @@ class TestStateConstruction(QiskitAquaTestCase):
                      '100': .1,
                      '000': .2,
                      '111': .5}
-        sfc = StateFnCircuit.from_dict(statedict)
+        sfc = CircuitStateFn.from_dict(statedict)
         circ_samples = sfc.sample()
         dict_samples = StateFn(statedict).sample()
         vec_samples = StateFn(statedict).to_matrix_op().sample()

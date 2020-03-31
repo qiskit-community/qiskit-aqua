@@ -29,7 +29,7 @@ from qiskit.circuit import ParameterVector
 
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance, AquaError
-from qiskit.aqua.operators import (OperatorBase, ExpectationBase, StateFnCircuit,
+from qiskit.aqua.operators import (OperatorBase, ExpectationBase, CircuitStateFn,
                                    LegacyBaseOperator, OpVec, I)
 from qiskit.aqua.operators.legacy import (MatrixOperator, WeightedPauliOperator,
                                           TPBGroupedWeightedPauliOperator)
@@ -371,7 +371,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         # Create a new ExpectationBase object to evaluate the auxops.
         expect = self.expectation_value.__class__(operator=self.aux_operators,
                                                   backend=self._quantum_instance,
-                                                  state=StateFnCircuit(self.get_optimal_circuit()))
+                                                  state=CircuitStateFn(self.get_optimal_circuit()))
         values = np.real(expect.compute_expectation())
         # Discard values below threshold
         # TODO remove reshape when ._ret is deprecated
@@ -407,7 +407,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                                                               backend=self._quantum_instance)
 
         if not self._expectation_value.state:
-            ansatz_circuit_op = StateFnCircuit(
+            ansatz_circuit_op = CircuitStateFn(
                 self._var_form.construct_circuit(self._var_form_params))
             self._expectation_value.state = ansatz_circuit_op
         param_bindings = {self._var_form_params: parameter_sets}

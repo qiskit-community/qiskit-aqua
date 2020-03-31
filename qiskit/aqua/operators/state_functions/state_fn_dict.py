@@ -27,7 +27,7 @@ from . import StateFn
 from ..operator_combos import OpVec
 
 
-class StateFnDict(StateFn):
+class DictStateFn(StateFn):
     """ A class for representing state functions and measurements.
 
     State functions are defined to be complex functions over a single binary string
@@ -87,7 +87,7 @@ class StateFnDict(StateFn):
 
         if not isinstance(primitive, dict):
             raise TypeError(
-                'StateFnDict can only be instantiated with dict, '
+                'DictStateFn can only be instantiated with dict, '
                 'string, or Qiskit Result, not {}'.format(type(primitive)))
 
         super().__init__(primitive, coeff=coeff, is_measurement=is_measurement)
@@ -108,10 +108,10 @@ class StateFnDict(StateFn):
                 'defined'.format(self.num_qubits, other.num_qubits))
 
         # Right now doesn't make sense to add a StateFn to a Measurement
-        if isinstance(other, StateFnDict) and self.is_measurement == other.is_measurement:
+        if isinstance(other, DictStateFn) and self.is_measurement == other.is_measurement:
             # TODO add compatibility with vector and Operator?
             if self.primitive == other.primitive:
-                return StateFnDict(self.primitive,
+                return DictStateFn(self.primitive,
                                    coeff=self.coeff + other.coeff,
                                    is_measurement=self.is_measurement)
             else:
@@ -125,7 +125,7 @@ class StateFnDict(StateFn):
         return OpSum([self, other])
 
     def adjoint(self) -> OperatorBase:
-        return StateFnDict({b: np.conj(v) for (b, v) in self.primitive.items()},
+        return DictStateFn({b: np.conj(v) for (b, v) in self.primitive.items()},
                            coeff=np.conj(self.coeff),
                            is_measurement=(not self.is_measurement))
 
@@ -139,10 +139,10 @@ class StateFnDict(StateFn):
         |+⟩--
         Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
         """
-        # TODO accept primitives directly in addition to OpPrimitive?
+        # TODO accept primitives directly in addition to PrimitiveOp?
 
         # Both dicts
-        if isinstance(other, StateFnDict):
+        if isinstance(other, DictStateFn):
             new_dict = {k1 + k2: v1 * v2 for ((k1, v1,), (k2, v2)) in
                         itertools.product(self.primitive.items(), other.primitive.items())}
             return StateFn(new_dict,
@@ -233,10 +233,10 @@ class StateFnDict(StateFn):
         """Overload str() """
         prim_str = str(self.primitive)
         if self.coeff == 1.0:
-            return "{}({})".format('StateFnDict' if not self.is_measurement
+            return "{}({})".format('DictStateFn' if not self.is_measurement
                                    else 'MeasurementDict', prim_str)
         else:
-            return "{}({}) * {}".format('StateFnDict' if not self.is_measurement
+            return "{}({}) * {}".format('DictStateFn' if not self.is_measurement
                                         else 'MeasurementDict',
                                         prim_str,
                                         self.coeff)
@@ -262,23 +262,23 @@ class StateFnDict(StateFn):
         # If the primitive is a lookup of bitstrings,
         # we define all missing strings to have a function value of
         # zero.
-        if isinstance(front, StateFnDict):
+        if isinstance(front, DictStateFn):
             return sum([v * front.primitive.get(b, 0) for (b, v) in
                         self.primitive.items()]) * self.coeff * front.coeff
 
         # All remaining possibilities only apply when self.is_measurement is True
 
         # pylint: disable=cyclic-import,import-outside-toplevel
-        from . import StateFnVector
-        if isinstance(front, StateFnVector):
+        from . import VectorStateFn
+        if isinstance(front, VectorStateFn):
             # TODO does it need to be this way for measurement?
             # return sum([v * front.primitive.data[int(b, 2)] *
             # np.conj(front.primitive.data[int(b, 2)])
             return sum([v * front.primitive.data[int(b, 2)]
                         for (b, v) in self.primitive.items()]) * self.coeff
 
-        from . import StateFnOperator
-        if isinstance(front, StateFnOperator):
+        from . import OperatorStateFn
+        if isinstance(front, OperatorStateFn):
             return front.adjoint().eval(self.adjoint())
 
         # All other OperatorBases go here

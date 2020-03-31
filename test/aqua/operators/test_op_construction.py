@@ -22,7 +22,7 @@ from qiskit import QuantumCircuit
 from qiskit.quantum_info.operators import Operator, Pauli
 from qiskit.extensions.standard import CZGate
 
-from qiskit.aqua.operators import X, Y, Z, I, CX, T, H, OpPrimitive, OpSum
+from qiskit.aqua.operators import X, Y, Z, I, CX, T, H, PrimitiveOp, OpSum
 
 
 # pylint: disable=invalid-name
@@ -65,21 +65,21 @@ class TestOpConstruction(QiskitAquaTestCase):
         self.assertEqual(Y.eval('1').eval('1'), 0)
 
         # Check that Pauli logic eval returns same as matrix logic
-        self.assertEqual(OpPrimitive(Z.to_matrix()).eval('0').eval('0'), 1)
-        self.assertEqual(OpPrimitive(Z.to_matrix()).eval('1').eval('0'), 0)
-        self.assertEqual(OpPrimitive(Z.to_matrix()).eval('0').eval('1'), 0)
-        self.assertEqual(OpPrimitive(Z.to_matrix()).eval('1').eval('1'), -1)
-        self.assertEqual(OpPrimitive(X.to_matrix()).eval('0').eval('0'), 0)
-        self.assertEqual(OpPrimitive(X.to_matrix()).eval('1').eval('0'), 1)
-        self.assertEqual(OpPrimitive(X.to_matrix()).eval('0').eval('1'), 1)
-        self.assertEqual(OpPrimitive(X.to_matrix()).eval('1').eval('1'), 0)
-        self.assertEqual(OpPrimitive(Y.to_matrix()).eval('0').eval('0'), 0)
-        self.assertEqual(OpPrimitive(Y.to_matrix()).eval('1').eval('0'), -1j)
-        self.assertEqual(OpPrimitive(Y.to_matrix()).eval('0').eval('1'), 1j)
-        self.assertEqual(OpPrimitive(Y.to_matrix()).eval('1').eval('1'), 0)
+        self.assertEqual(PrimitiveOp(Z.to_matrix()).eval('0').eval('0'), 1)
+        self.assertEqual(PrimitiveOp(Z.to_matrix()).eval('1').eval('0'), 0)
+        self.assertEqual(PrimitiveOp(Z.to_matrix()).eval('0').eval('1'), 0)
+        self.assertEqual(PrimitiveOp(Z.to_matrix()).eval('1').eval('1'), -1)
+        self.assertEqual(PrimitiveOp(X.to_matrix()).eval('0').eval('0'), 0)
+        self.assertEqual(PrimitiveOp(X.to_matrix()).eval('1').eval('0'), 1)
+        self.assertEqual(PrimitiveOp(X.to_matrix()).eval('0').eval('1'), 1)
+        self.assertEqual(PrimitiveOp(X.to_matrix()).eval('1').eval('1'), 0)
+        self.assertEqual(PrimitiveOp(Y.to_matrix()).eval('0').eval('0'), 0)
+        self.assertEqual(PrimitiveOp(Y.to_matrix()).eval('1').eval('0'), -1j)
+        self.assertEqual(PrimitiveOp(Y.to_matrix()).eval('0').eval('1'), 1j)
+        self.assertEqual(PrimitiveOp(Y.to_matrix()).eval('1').eval('1'), 0)
 
         pauli_op = Z ^ I ^ X ^ Y
-        mat_op = OpPrimitive(pauli_op.to_matrix())
+        mat_op = PrimitiveOp(pauli_op.to_matrix())
         full_basis = list(map(''.join, itertools.product('01', repeat=pauli_op.num_qubits)))
         for bstr1, bstr2 in itertools.product(full_basis, full_basis):
             # print('{} {} {} {}'.format(bstr1, bstr2, pauli_op.eval(bstr1, bstr2),
@@ -88,9 +88,9 @@ class TestOpConstruction(QiskitAquaTestCase):
                                                  mat_op.eval(bstr1).eval(bstr2))
 
         gnarly_op = OpSum([(H ^ I ^ Y).compose(X ^ X ^ Z).kron(Z),
-                           OpPrimitive(Operator.from_label('+r0I')),
+                           PrimitiveOp(Operator.from_label('+r0I')),
                            3 * (X ^ CX ^ T)], coeff=3 + .2j)
-        gnarly_mat_op = OpPrimitive(gnarly_op.to_matrix())
+        gnarly_mat_op = PrimitiveOp(gnarly_op.to_matrix())
         full_basis = list(map(''.join, itertools.product('01', repeat=gnarly_op.num_qubits)))
         for bstr1, bstr2 in itertools.product(full_basis, full_basis):
             np.testing.assert_array_almost_equal(gnarly_op.eval(bstr1).eval(bstr2),
@@ -103,7 +103,7 @@ class TestOpConstruction(QiskitAquaTestCase):
         qc = QuantumCircuit(2)
         qc.append(cz.primitive, qargs=range(2))
 
-        ref_cz_mat = OpPrimitive(CZGate()).to_matrix()
+        ref_cz_mat = PrimitiveOp(CZGate()).to_matrix()
         np.testing.assert_array_almost_equal(cz.to_matrix(), ref_cz_mat)
 
     def test_io_consistency(self):
@@ -136,11 +136,11 @@ class TestOpConstruction(QiskitAquaTestCase):
 
         # Check if numpy array instantiation is the same as from Operator
         matrix_op = Operator.from_label('+r')
-        np.testing.assert_array_almost_equal(OpPrimitive(matrix_op).to_matrix(),
-                                             OpPrimitive(matrix_op.data).to_matrix())
+        np.testing.assert_array_almost_equal(PrimitiveOp(matrix_op).to_matrix(),
+                                             PrimitiveOp(matrix_op.data).to_matrix())
         # Ditto list of lists
-        np.testing.assert_array_almost_equal(OpPrimitive(matrix_op.data.tolist()).to_matrix(),
-                                             OpPrimitive(matrix_op.data).to_matrix())
+        np.testing.assert_array_almost_equal(PrimitiveOp(matrix_op.data.tolist()).to_matrix(),
+                                             PrimitiveOp(matrix_op.data).to_matrix())
 
         # TODO make sure this works once we resolve endianness mayhem
         # qc = QuantumCircuit(3)
@@ -173,14 +173,14 @@ class TestOpConstruction(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(op5.to_matrix(), np.dot(op4.to_matrix(),
                                                                      (H ^ I).to_matrix()))
 
-        op6 = op5 + OpPrimitive(Operator.from_label('+r').data)
+        op6 = op5 + PrimitiveOp(Operator.from_label('+r').data)
         np.testing.assert_array_almost_equal(
             op6.to_matrix(), op5.to_matrix() + Operator.from_label('+r').data)
 
     def test_adjoint(self):
         """ adjoint test """
         gnarly_op = 3 * (H ^ I ^ Y).compose(X ^ X ^ Z).kron(T ^ Z) + \
-            OpPrimitive(Operator.from_label('+r0IX').data)
+                    PrimitiveOp(Operator.from_label('+r0IX').data)
         np.testing.assert_array_almost_equal(np.conj(np.transpose(gnarly_op.to_matrix())),
                                              gnarly_op.adjoint().to_matrix())
 
@@ -189,5 +189,5 @@ class TestOpConstruction(QiskitAquaTestCase):
         self.assertEqual(X.get_primitives(), {'Pauli'})
 
         gnarly_op = 3 * (H ^ I ^ Y).compose(X ^ X ^ Z).kron(T ^ Z) + \
-            OpPrimitive(Operator.from_label('+r0IX').data)
+                    PrimitiveOp(Operator.from_label('+r0IX').data)
         self.assertEqual(gnarly_op.get_primitives(), {'QuantumCircuit', 'Matrix'})

@@ -29,7 +29,7 @@ from ..operator_base import OperatorBase
 logger = logging.getLogger(__name__)
 
 
-class OpPrimitive(OperatorBase):
+class PrimitiveOp(OperatorBase):
     """ Class for Wrapping Operator Primitives
 
     Note that all mathematical methods are not in-place,
@@ -45,24 +45,24 @@ class OpPrimitive(OperatorBase):
                                  np.ndarray, spmatrix, MatrixOperator, Pauli] = None,
                 coeff: Optional[Union[int, float, complex,
                                       ParameterExpression]] = 1.0) -> OperatorBase:
-        """ A factory method to produce the correct type of OpPrimitive subclass
+        """ A factory method to produce the correct type of PrimitiveOp subclass
         based on the primitive passed in. Primitive and coeff arguments are passed into
         subclass's init() as-is automatically by new()."""
-        if cls.__name__ != OpPrimitive.__name__:
+        if cls.__name__ != PrimitiveOp.__name__:
             return super().__new__(cls)
 
         # pylint: disable=cyclic-import,import-outside-toplevel
         if isinstance(primitive, (Instruction, QuantumCircuit)):
-            from .op_circuit import OpCircuit
-            return OpCircuit.__new__(OpCircuit)
+            from .circuit_op import CircuitOp
+            return CircuitOp.__new__(CircuitOp)
 
         if isinstance(primitive, (list, np.ndarray, spmatrix, MatrixOperator)):
-            from .op_matrix import OpMatrix
-            return OpMatrix.__new__(OpMatrix)
+            from .matrix_op import MatrixOp
+            return MatrixOp.__new__(MatrixOp)
 
         if isinstance(primitive, Pauli):
-            from .op_pauli import OpPauli
-            return OpPauli.__new__(OpPauli)
+            from .pauli_op import PauliOp
+            return PauliOp.__new__(PauliOp)
 
     def __init__(self,
                  primitive: Union[Instruction, QuantumCircuit, list,
@@ -132,7 +132,7 @@ class OpPrimitive(OperatorBase):
             return 1
         if not isinstance(other, int) or other < 0:
             raise TypeError('Kronpower can only take positive int arguments')
-        temp = OpPrimitive(self.primitive, coeff=self.coeff)
+        temp = PrimitiveOp(self.primitive, coeff=self.coeff)
         for _ in range(other - 1):
             temp = temp.kron(self)
         return temp
@@ -157,7 +157,7 @@ class OpPrimitive(OperatorBase):
         """ Compose with Self Multiple Times """
         if not isinstance(other, int) or other <= 0:
             raise TypeError('power can only take positive int arguments')
-        temp = OpPrimitive(self.primitive, coeff=self.coeff)
+        temp = PrimitiveOp(self.primitive, coeff=self.coeff)
         for _ in range(other - 1):
             temp = temp.compose(self)
         return temp
@@ -174,7 +174,7 @@ class OpPrimitive(OperatorBase):
 
     def __repr__(self) -> str:
         """Overload str() """
-        return "OpPrimitive({}, coeff={})".format(repr(self.primitive), self.coeff)
+        return "PrimitiveOp({}, coeff={})".format(repr(self.primitive), self.coeff)
 
     def eval(self,
              front: Union[str, dict, np.ndarray,
@@ -199,7 +199,7 @@ class OpPrimitive(OperatorBase):
         return self.__class__(self.primitive, coeff=param_value)
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
-        """ Return matrix representing OpPrimitive evaluated on each pair of basis states."""
+        """ Return matrix representing PrimitiveOp evaluated on each pair of basis states."""
         raise NotImplementedError
 
     # Nothing to collapse here.
@@ -209,5 +209,5 @@ class OpPrimitive(OperatorBase):
     def to_matrix_op(self, massive: bool = False) -> OperatorBase:
         """ Return a MatrixOp for this operator. """
         # pylint: disable=import-outside-toplevel
-        from .op_matrix import OpMatrix
-        return OpMatrix(self.to_matrix(massive=massive))
+        from .matrix_op import MatrixOp
+        return MatrixOp(self.to_matrix(massive=massive))

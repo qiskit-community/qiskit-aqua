@@ -25,7 +25,7 @@ from . import StateFn
 from ..operator_combos import OpVec
 
 
-class StateFnVector(StateFn):
+class VectorStateFn(StateFn):
     """ A class for representing state functions and measurements.
 
     State functions are defined to be complex functions over a single binary string
@@ -84,16 +84,16 @@ class StateFnVector(StateFn):
                 'defined'.format(self.num_qubits, other.num_qubits))
 
         # Right now doesn't make sense to add a StateFn to a Measurement
-        if isinstance(other, StateFnVector) and self.is_measurement == other.is_measurement:
+        if isinstance(other, VectorStateFn) and self.is_measurement == other.is_measurement:
             # Covers MatrixOperator, Statevector and custom.
-            return StateFnVector((self.coeff * self.primitive).add(other.primitive * other.coeff),
+            return VectorStateFn((self.coeff * self.primitive).add(other.primitive * other.coeff),
                                  is_measurement=self._is_measurement)
         # pylint: disable=cyclic-import,import-outside-toplevel
         from .. import OpSum
         return OpSum([self, other])
 
     def adjoint(self) -> OperatorBase:
-        return StateFnVector(self.primitive.conjugate(),
+        return VectorStateFn(self.primitive.conjugate(),
                              coeff=np.conj(self.coeff),
                              is_measurement=(not self.is_measurement))
 
@@ -107,9 +107,9 @@ class StateFnVector(StateFn):
         |+⟩--
         Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
         """
-        # TODO accept primitives directly in addition to OpPrimitive?
+        # TODO accept primitives directly in addition to PrimitiveOp?
 
-        if isinstance(other, StateFnVector):
+        if isinstance(other, VectorStateFn):
             return StateFn(self.primitive.tensor(other.primitive),
                            coeff=self.coeff * other.coeff,
                            is_measurement=self.is_measurement)
@@ -175,10 +175,10 @@ class StateFnVector(StateFn):
         """Overload str() """
         prim_str = str(self.primitive)
         if self.coeff == 1.0:
-            return "{}({})".format('StateFnVector' if not self.is_measurement
+            return "{}({})".format('VectorStateFn' if not self.is_measurement
                                    else 'MeasurementVector', prim_str)
         else:
-            return "{}({}) * {}".format('StateFnVector' if not self.is_measurement
+            return "{}({}) * {}".format('VectorStateFn' if not self.is_measurement
                                         else 'MeasurementVector',
                                         prim_str,
                                         self.coeff)
@@ -200,16 +200,16 @@ class StateFnVector(StateFn):
             front = StateFn(front)
 
         # pylint: disable=cyclic-import,import-outside-toplevel
-        from . import StateFnDict, StateFnOperator
-        if isinstance(front, StateFnDict):
+        from . import DictStateFn, OperatorStateFn
+        if isinstance(front, DictStateFn):
             return sum([v * self.primitive.data[int(b, 2)] * front.coeff
                         for (b, v) in front.primitive.items()]) * self.coeff
 
-        if isinstance(front, StateFnVector):
+        if isinstance(front, VectorStateFn):
             # Need to extract the element or np.array([1]) is returned.
             return np.dot(self.to_matrix(), front.to_matrix())[0]
 
-        if isinstance(front, StateFnOperator):
+        if isinstance(front, OperatorStateFn):
             return front.adjoint().eval(self.primitive) * self.coeff
 
         return front.adjoint().eval(self.adjoint().primitive).adjoint() * self.coeff

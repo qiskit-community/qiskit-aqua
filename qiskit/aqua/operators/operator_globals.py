@@ -19,7 +19,7 @@ Operator Globals
 from qiskit.quantum_info import Pauli
 from qiskit.extensions.standard import CXGate, SGate, TGate, HGate, SwapGate, CZGate
 
-from .operator_primitives import OpPrimitive
+from .operator_primitives import PrimitiveOp
 from .state_functions import StateFn
 
 # pylint: disable=invalid-name
@@ -39,18 +39,18 @@ def make_immutable(obj):
 
 
 # 1-Qubit Paulis
-X = make_immutable(OpPrimitive(Pauli.from_label('X')))
-Y = make_immutable(OpPrimitive(Pauli.from_label('Y')))
-Z = make_immutable(OpPrimitive(Pauli.from_label('Z')))
-I = make_immutable(OpPrimitive(Pauli.from_label('I')))
+X = make_immutable(PrimitiveOp(Pauli.from_label('X')))
+Y = make_immutable(PrimitiveOp(Pauli.from_label('Y')))
+Z = make_immutable(PrimitiveOp(Pauli.from_label('Z')))
+I = make_immutable(PrimitiveOp(Pauli.from_label('I')))
 
 # Clifford+T, and some other common non-parameterized gates
-CX = make_immutable(OpPrimitive(CXGate()))
-S = make_immutable(OpPrimitive(SGate()))
-H = make_immutable(OpPrimitive(HGate()))
-T = make_immutable(OpPrimitive(TGate()))
-Swap = make_immutable(OpPrimitive(SwapGate()))
-CZ = make_immutable(OpPrimitive(CZGate()))
+CX = make_immutable(PrimitiveOp(CXGate()))
+S = make_immutable(PrimitiveOp(SGate()))
+H = make_immutable(PrimitiveOp(HGate()))
+T = make_immutable(PrimitiveOp(TGate()))
+Swap = make_immutable(PrimitiveOp(SwapGate()))
+CZ = make_immutable(PrimitiveOp(CZGate()))
 
 # 1-Qubit Paulis
 Zero = make_immutable(StateFn('0'))

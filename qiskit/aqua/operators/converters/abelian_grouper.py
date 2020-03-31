@@ -20,8 +20,8 @@ import networkx as nx
 
 from ..operator_base import OperatorBase
 from ..operator_combos import OpVec, OpSum
-from ..state_functions import StateFnOperator
-from ..operator_primitives import OpPauli
+from ..state_functions import OperatorStateFn
+from ..operator_primitives import PauliOp
 from .converter_base import ConverterBase
 
 logger = logging.getLogger(__name__)
@@ -37,7 +37,7 @@ class AbelianGrouper(ConverterBase):
         from .. import EvolutionOp
 
         if isinstance(operator, OpVec):
-            if isinstance(operator, OpSum) and all([isinstance(op, OpPauli)
+            if isinstance(operator, OpSum) and all([isinstance(op, PauliOp)
                                                     for op in operator.oplist]):
                 # For now, we only support graphs over Paulis.
                 return self.group_paulis(operator)
@@ -45,8 +45,8 @@ class AbelianGrouper(ConverterBase):
                 return operator.traverse(self.convert)
             else:
                 return operator
-        elif isinstance(operator, StateFnOperator) and self._traverse:
-            return StateFnOperator(self.convert(operator.primitive),
+        elif isinstance(operator, OperatorStateFn) and self._traverse:
+            return OperatorStateFn(self.convert(operator.primitive),
                                    is_measurement=operator.is_measurement,
                                    coeff=operator.coeff)
         elif isinstance(operator, EvolutionOp) and self._traverse:

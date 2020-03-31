@@ -23,8 +23,8 @@ from qiskit.aqua import QuantumInstance
 from ..operator_base import OperatorBase
 from .expectation_base import ExpectationBase
 from ..operator_combos import OpVec, OpSum
-from ..operator_primitives import OpPauli
-from ..state_functions import StateFn, StateFnCircuit
+from ..operator_primitives import PauliOp
+from ..state_functions import StateFn, CircuitStateFn
 
 logger = logging.getLogger(__name__)
 
@@ -90,12 +90,12 @@ class AerPauliExpectation(ExpectationBase):
             if isinstance(operator, OpSum):
                 paulis = [[meas.coeff, meas.primitive] for meas in operator.oplist]
                 snapshot_instruction = SnapshotExpectationValue('expval', paulis, variance=True)
-                snapshot_op = StateFnCircuit(snapshot_instruction, is_measurement=True)
+                snapshot_op = CircuitStateFn(snapshot_instruction, is_measurement=True)
                 return snapshot_op
-            if isinstance(operator, OpPauli):
+            if isinstance(operator, PauliOp):
                 paulis = [[operator.coeff, operator.primitive]]
                 snapshot_instruction = SnapshotExpectationValue('expval', paulis, variance=True)
-                snapshot_op = StateFnCircuit(snapshot_instruction, is_measurement=True)
+                snapshot_op = CircuitStateFn(snapshot_instruction, is_measurement=True)
                 return snapshot_op
             if isinstance(operator, OpVec):
                 return operator.traverse(replace_pauli_sums)

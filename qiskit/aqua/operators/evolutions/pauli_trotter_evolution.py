@@ -24,7 +24,7 @@ from ..operator_base import OperatorBase
 from ..operator_globals import Z, I
 from .evolution_base import EvolutionBase
 from ..operator_combos import OpVec, OpSum
-from ..operator_primitives import OpPauli
+from ..operator_primitives import PauliOp
 from ..converters import PauliBasisChange, AbelianGrouper
 from .evolution_op import EvolutionOp
 from .trotterizations import TrotterizationBase
@@ -77,7 +77,7 @@ class PauliTrotterEvolution(EvolutionBase):
                 # else:
                 trotterized = self.trotter.trotterize(operator.primitive)
                 return self._recursive_convert(trotterized)
-            elif isinstance(operator.primitive, OpPauli):
+            elif isinstance(operator.primitive, PauliOp):
                 return self.evolution_for_pauli(operator.primitive)
             # Covers OpVec, OpComposition, OpKron
             elif isinstance(operator.primitive, OpVec):
@@ -88,7 +88,7 @@ class PauliTrotterEvolution(EvolutionBase):
         else:
             return operator
 
-    def evolution_for_pauli(self, pauli_op: OpPauli):
+    def evolution_for_pauli(self, pauli_op: PauliOp):
         """ evolution for pauli """
         # TODO Evolve for group of commuting paulis, TODO pauli grouper
 
@@ -107,7 +107,7 @@ class PauliTrotterEvolution(EvolutionBase):
 
     # TODO
     @staticmethod
-    def compute_cnot_distance(pauli_op1: OpPauli, pauli_op2: OpPauli):
+    def compute_cnot_distance(pauli_op1: PauliOp, pauli_op2: PauliOp):
         """ compute cnot distance """
         sig_pauli1_bits = np.logical_and(pauli_op1.primitive.z, pauli_op1.primitive.x)
         sig_pauli2_bits = np.logical_and(pauli_op2.primitive.z, pauli_op2.primitive.x)
@@ -128,7 +128,7 @@ class PauliTrotterEvolution(EvolutionBase):
     # TODO
     def evolution_for_abelian_paulisum(self, op_sum: OpSum):
         """ evolution for abelian pauli sum """
-        if not all([isinstance(op, OpPauli) for op in op_sum.oplist]):
+        if not all([isinstance(op, PauliOp) for op in op_sum.oplist]):
             raise TypeError('Evolving abelian sum requires Pauli elements.')
 
         pauli_graph = nx.Graph()

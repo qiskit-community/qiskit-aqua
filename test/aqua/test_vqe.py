@@ -22,7 +22,7 @@ from ddt import ddt, idata, unpack
 from qiskit import BasicAer
 
 from qiskit.aqua import QuantumInstance, aqua_globals, AquaError
-from qiskit.aqua.operators import WeightedPauliOperator, OpPrimitive
+from qiskit.aqua.operators import WeightedPauliOperator, PrimitiveOp
 from qiskit.aqua.components.variational_forms import RY, RYRZ
 from qiskit.aqua.components.optimizers import L_BFGS_B, COBYLA, SPSA, SLSQP
 from qiskit.aqua.components.initial_states import Zero
@@ -234,7 +234,7 @@ class TestVQE(QiskitAquaTestCase):
         result = vqe.run()
         self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=5)
 
-        operator = OpPrimitive(np.array([[1, 0, 0, 0],
+        operator = PrimitiveOp(np.array([[1, 0, 0, 0],
                                          [0, -1, 0, 0],
                                          [0, 0, 2, 0],
                                          [0, 0, 0, 3]]))

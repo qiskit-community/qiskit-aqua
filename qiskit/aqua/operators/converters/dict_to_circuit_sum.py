@@ -17,7 +17,7 @@
 import logging
 
 from ..operator_base import OperatorBase
-from ..state_functions import StateFnDict, StateFnVector, StateFnCircuit
+from ..state_functions import DictStateFn, VectorStateFn, CircuitStateFn
 from ..operator_combos import OpVec
 from .converter_base import ConverterBase
 
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 class DictToCircuitSum(ConverterBase):
-    """ Very naively convert StateFnDicts to sums of StateFnCircuits which each
+    """ Very naively convert DictStateFns to sums of CircuitStateFns which each
     prepare the bit strings in the keys of the dict."""
 
     def __init__(self,
@@ -38,10 +38,10 @@ class DictToCircuitSum(ConverterBase):
 
     def convert(self, operator: OperatorBase) -> OperatorBase:
 
-        if isinstance(operator, StateFnDict) and self._convert_dicts:
-            return StateFnCircuit.from_dict(operator.primitive)
-        if isinstance(operator, StateFnVector) and self._convert_vectors:
-            return StateFnCircuit.from_vector(operator.to_matrix(massive=True))
+        if isinstance(operator, DictStateFn) and self._convert_dicts:
+            return CircuitStateFn.from_dict(operator.primitive)
+        if isinstance(operator, VectorStateFn) and self._convert_vectors:
+            return CircuitStateFn.from_vector(operator.to_matrix(massive=True))
         elif isinstance(operator, OpVec) and 'Dict' in operator.get_primitives():
             return operator.traverse(self.convert)
         else:

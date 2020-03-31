@@ -96,14 +96,14 @@ class WeightedPauliOperator(LegacyBaseOperator):
     def to_opflow(self, reverse_endianness=False):
         """ to op flow """
         # pylint: disable=import-outside-toplevel
-        from qiskit.aqua.operators import OpPrimitive
+        from qiskit.aqua.operators import PrimitiveOp
 
-        op_paulis = []
+        pauli_ops = []
         for [w, p] in self.paulis:
             # TODO figure out complex parameters!!
             pauli = Pauli.from_label(str(p)[::-1]) if reverse_endianness else p
-            op_paulis += [OpPrimitive(pauli, coeff=np.real(w))]
-        return sum(op_paulis)
+            pauli_ops += [PrimitiveOp(pauli, coeff=np.real(w))]
+        return sum(pauli_ops)
 
     @property
     def paulis(self):

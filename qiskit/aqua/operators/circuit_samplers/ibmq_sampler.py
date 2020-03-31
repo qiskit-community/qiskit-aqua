@@ -21,7 +21,7 @@ from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance
 from ..operator_base import OperatorBase
 from ..operator_combos import OpVec
-from ..state_functions import StateFn, StateFnCircuit
+from ..state_functions import StateFn, CircuitStateFn
 from ..converters import DictToCircuitSum
 from .circuit_sampler import CircuitSampler
 
@@ -58,20 +58,20 @@ class IBMQSampler(CircuitSampler):
         op_circuits = {}
 
         # pylint: disable=inconsistent-return-statements
-        def extract_statefncircuits(operator):
-            if isinstance(operator, StateFnCircuit):
+        def extract_circuitstatefns(operator):
+            if isinstance(operator, CircuitStateFn):
                 op_circuits[str(operator)] = operator
             elif isinstance(operator, OpVec):
                 for op in operator.oplist:
-                    extract_statefncircuits(op)
+                    extract_circuitstatefns(op)
             else:
                 return operator
 
-        extract_statefncircuits(reduced_op)
+        extract_circuitstatefns(reduced_op)
         sampled_statefn_dicts = self.sample_circuits(list(op_circuits.values()))
 
         def replace_circuits_with_dicts(operator):
-            if isinstance(operator, StateFnCircuit):
+            if isinstance(operator, CircuitStateFn):
                 return sampled_statefn_dicts[str(operator)]
             elif isinstance(operator, OpVec):
                 return operator.traverse(replace_circuits_with_dicts)
@@ -85,12 +85,12 @@ class IBMQSampler(CircuitSampler):
                         param_bindings: Optional[List] = None) -> Dict:
         """
         Args:
-            op_circuits: The list of circuits or StateFnCircuits to sample
+            op_circuits: The list of circuits or CircuitStateFns to sample
             param_bindings: a list of parameter dictionaries to bind to each circuit.
         Returns:
             Dict: dictionary of sampled state functions
         """
-        if all([isinstance(circ, StateFnCircuit) for circ in op_circuits]):
+        if all([isinstance(circ, CircuitStateFn) for circ in op_circuits]):
             circuits = [op_c.to_circuit(meas=True) for op_c in op_circuits]
         else:
             circuits = op_circuits
