@@ -153,8 +153,8 @@ class ADMMOptimizerResult(OptimizationResult):
     """ ADMMOptimizer Result."""
 
     def __init__(self, x: Optional[Any] = None, fval: Optional[Any] = None,
-                 state: Optional[ADMMState] = None) -> None:
-        super().__init__(x, fval, state)
+                 state: Optional[ADMMState] = None, results: Optional[Any] = None) -> None:
+        super().__init__(x, fval, results)
         self._state = state
 
     @property
