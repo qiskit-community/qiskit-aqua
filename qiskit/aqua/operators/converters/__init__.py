@@ -18,16 +18,15 @@ Converters
 """
 
 from .converter_base import ConverterBase
-from .pauli_cob import PauliChangeOfBasis
-from .pauli_to_instruction import PaulitoInstruction
-from .dict_to_circuit_sum import DicttoCircuitSum
+from .pauli_basis_change import PauliBasisChange
+from .pauli_to_instruction import PauliToInstruction
+from .dict_to_circuit_sum import DictToCircuitSum
 from .abelian_grouper import AbelianGrouper
 
 # TODO MatrixToPauliSum
-# TODO MatrixToSimInstruction
 
 __all__ = ['ConverterBase',
-           'PauliChangeOfBasis',
-           'PaulitoInstruction',
-           'DicttoCircuitSum',
+           'PauliBasisChange',
+           'PauliToInstruction',
+           'DictToCircuitSum',
            'AbelianGrouper']

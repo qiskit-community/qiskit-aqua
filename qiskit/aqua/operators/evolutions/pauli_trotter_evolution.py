@@ -25,7 +25,7 @@ from ..operator_globals import Z, I
 from .evolution_base import EvolutionBase
 from ..operator_combos import OpVec, OpSum
 from ..operator_primitives import OpPauli
-from ..converters import PauliChangeOfBasis, AbelianGrouper
+from ..converters import PauliBasisChange, AbelianGrouper
 from .op_evolution import OpEvolution
 from .trotterizations import TrotterizationBase
 
@@ -97,12 +97,12 @@ class PauliTrotterEvolution(EvolutionBase):
             # Remember, circuit composition order is mirrored operator composition order.
             return cob_instr_op.adjoint().compose(z_evolution).compose(cob_instr_op)
 
-        # Note: PauliChangeOfBasis will pad destination with identities
+        # Note: PauliBasisChange will pad destination with identities
         # to produce correct CoB circuit
         sig_bits = np.logical_or(pauli_op.primitive.z, pauli_op.primitive.x)
         a_sig_bit = int(max(np.extract(sig_bits, np.arange(pauli_op.num_qubits)[::-1])))
         destination = (I.kronpower(a_sig_bit)) ^ (Z * pauli_op.coeff)
-        cob = PauliChangeOfBasis(destination_basis=destination, replacement_fn=replacement_fn)
+        cob = PauliBasisChange(destination_basis=destination, replacement_fn=replacement_fn)
         return cob.convert(pauli_op)
 
     # TODO

@@ -32,7 +32,7 @@ from .converter_base import ConverterBase
 logger = logging.getLogger(__name__)
 
 
-class PauliChangeOfBasis(ConverterBase):
+class PauliBasisChange(ConverterBase):
     """ Converter for changing Paulis into other bases. By default,
     Pauli {Z,I}^n is used as the destination basis.
     Meaning, if a Pauli containing X or Y terms is passed in, which cannot be
@@ -71,7 +71,7 @@ class PauliChangeOfBasis(ConverterBase):
         else:
             self._destination = None
         self._traverse = traverse
-        self._replacement_fn = replacement_fn or PauliChangeOfBasis.operator_replacement_fn
+        self._replacement_fn = replacement_fn or PauliBasisChange.operator_replacement_fn
 
     @property
     def destination(self) -> OpPauli:
@@ -84,7 +84,7 @@ class PauliChangeOfBasis(ConverterBase):
             dest = OpPauli(dest)
 
         if not isinstance(dest, OpPauli):
-            raise TypeError('PauliChangeOfBasis can only convert into Pauli bases, '
+            raise TypeError('PauliBasisChange can only convert into Pauli bases, '
                             'not {}.'.format(type(dest)))
         self._destination = dest
 
@@ -137,14 +137,14 @@ class PauliChangeOfBasis(ConverterBase):
             else:
                 return operator.traverse(self.convert)
         else:
-            raise TypeError('PauliChangeOfBasis can only accept OperatorBase objects or '
+            raise TypeError('PauliBasisChange can only accept OperatorBase objects or '
                             'Paulis, not {}'.format(type(operator)))
 
     @staticmethod
     def measurement_replacement_fn(cob_instr_op: OpCircuit,
                                    dest_pauli_op: OpPauli) -> OperatorBase:
         """ measurement replacement function """
-        return PauliChangeOfBasis.statefn_replacement_fn(cob_instr_op, dest_pauli_op).adjoint()
+        return PauliBasisChange.statefn_replacement_fn(cob_instr_op, dest_pauli_op).adjoint()
 
     @staticmethod
     def statefn_replacement_fn(cob_instr_op: OpCircuit,

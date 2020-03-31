@@ -20,7 +20,7 @@ import itertools
 import numpy as np
 
 from qiskit.aqua.operators import X, Y, Z, I, OpSum, OpComposition
-from qiskit.aqua.operators.converters import PauliChangeOfBasis
+from qiskit.aqua.operators.converters import PauliBasisChange
 
 
 class TestPauliCoB(QiskitAquaTestCase):
@@ -32,7 +32,7 @@ class TestPauliCoB(QiskitAquaTestCase):
         dests = [None, Y]
         for pauli, dest in itertools.product(singles, dests):
             # print(pauli)
-            converter = PauliChangeOfBasis(destination_basis=dest)
+            converter = PauliBasisChange(destination_basis=dest)
             inst, dest = converter.get_cob_circuit(pauli.primitive)
             cob = converter.convert(pauli)
             np.testing.assert_array_almost_equal(
@@ -45,7 +45,7 @@ class TestPauliCoB(QiskitAquaTestCase):
         """ pauli cob two qubit test """
         multis = [Y ^ X, Z ^ Y, I ^ Z, Z ^ I, X ^ X, I ^ X]
         for pauli, dest in itertools.product(multis, reversed(multis)):
-            converter = PauliChangeOfBasis(destination_basis=dest)
+            converter = PauliBasisChange(destination_basis=dest)
             inst, dest = converter.get_cob_circuit(pauli.primitive)
             cob = converter.convert(pauli)
             np.testing.assert_array_almost_equal(
@@ -61,7 +61,7 @@ class TestPauliCoB(QiskitAquaTestCase):
         for pauli, dest in itertools.product(multis, reversed(multis)):
             # print(pauli)
             # print(dest)
-            converter = PauliChangeOfBasis(destination_basis=dest)
+            converter = PauliBasisChange(destination_basis=dest)
             inst, dest = converter.get_cob_circuit(pauli.primitive)
             cob = converter.convert(pauli)
             # print(inst)
@@ -81,7 +81,7 @@ class TestPauliCoB(QiskitAquaTestCase):
         for pauli, dest in zip(multis, dests):
             # print(pauli)
             # print(dest)
-            converter = PauliChangeOfBasis(destination_basis=dest, traverse=True)
+            converter = PauliBasisChange(destination_basis=dest, traverse=True)
 
             cob = converter.convert(pauli)
             self.assertIsInstance(cob, OpSum)

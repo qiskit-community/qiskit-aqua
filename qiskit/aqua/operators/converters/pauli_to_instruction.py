@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 _pauli_to_gate_mapping = {'X': XGate(), 'Y': YGate(), 'Z': ZGate(), 'I': IGate()}
 
 
-class PaulitoInstruction(ConverterBase):
+class PauliToInstruction(ConverterBase):
     """ Expectation Algorithm Base """
     def __init__(self, traverse=True, delete_identities=False):
         self._traverse = traverse

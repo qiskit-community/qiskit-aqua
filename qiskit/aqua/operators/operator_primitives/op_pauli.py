@@ -114,8 +114,8 @@ class OpPauli(OpPrimitive):
         # pylint: disable=cyclic-import,import-outside-toplevel
         from . import OpCircuit
         if isinstance(other, OpCircuit):
-            from qiskit.aqua.operators.converters import PaulitoInstruction
-            converted_primitive = PaulitoInstruction().convert_pauli(self.primitive)
+            from qiskit.aqua.operators.converters import PauliToInstruction
+            converted_primitive = PauliToInstruction().convert_pauli(self.primitive)
             new_qc = QuantumCircuit(self.num_qubits + other.num_qubits)
             # NOTE!!! REVERSING QISKIT ENDIANNESS HERE
             new_qc.append(other.primitive, new_qc.qubits[0:other.num_qubits])
@@ -153,8 +153,8 @@ class OpPauli(OpPrimitive):
         from . import OpCircuit
         from .. import StateFnCircuit
         if isinstance(other, (OpCircuit, StateFnCircuit)):
-            from qiskit.aqua.operators.converters import PaulitoInstruction
-            converted_primitive = PaulitoInstruction().convert_pauli(self.primitive)
+            from qiskit.aqua.operators.converters import PauliToInstruction
+            converted_primitive = PauliToInstruction().convert_pauli(self.primitive)
             new_qc = QuantumCircuit(self.num_qubits)
             new_qc.append(other.primitive, qargs=range(self.num_qubits))
             new_qc.append(converted_primitive, qargs=range(self.num_qubits))

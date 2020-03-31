@@ -109,8 +109,8 @@ class OpCircuit(OpPrimitive):
         # pylint: disable=cyclic-import,import-outside-toplevel
         from . import OpPauli
         if isinstance(other, OpPauli):
-            from qiskit.aqua.operators.converters import PaulitoInstruction
-            other = OpCircuit(PaulitoInstruction().convert_pauli(other.primitive),
+            from qiskit.aqua.operators.converters import PauliToInstruction
+            other = OpCircuit(PauliToInstruction().convert_pauli(other.primitive),
                               coeff=other.coeff)
 
         if isinstance(other, OpCircuit):
@@ -145,8 +145,8 @@ class OpCircuit(OpPrimitive):
 
         from . import OpPauli
         if isinstance(other, OpPauli):
-            from qiskit.aqua.operators.converters import PaulitoInstruction
-            other = OpCircuit(PaulitoInstruction().convert_pauli(other.primitive),
+            from qiskit.aqua.operators.converters import PauliToInstruction
+            other = OpCircuit(PauliToInstruction().convert_pauli(other.primitive),
                               coeff=other.coeff)
 
         if isinstance(other, (OpCircuit, StateFnCircuit)):

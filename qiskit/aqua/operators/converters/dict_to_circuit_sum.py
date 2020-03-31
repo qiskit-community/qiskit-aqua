@@ -24,7 +24,7 @@ from .converter_base import ConverterBase
 logger = logging.getLogger(__name__)
 
 
-class DicttoCircuitSum(ConverterBase):
+class DictToCircuitSum(ConverterBase):
     """ Very naively convert StateFnDicts to sums of StateFnCircuits which each
     prepare the bit strings in the keys of the dict."""
 

@@ -26,7 +26,7 @@ from ..operator_base import OperatorBase
 from .expectation_base import ExpectationBase
 from ..operator_combos import OpVec, OpComposition
 from ..state_functions import StateFn
-from ..converters import PauliChangeOfBasis, AbelianGrouper
+from ..converters import PauliBasisChange, AbelianGrouper
 
 logger = logging.getLogger(__name__)
 
@@ -103,8 +103,8 @@ class PauliExpectation(ExpectationBase):
             else:
                 meas = StateFn(self._operator, is_measurement=True)
             # Convert the measurement into a classical
-            # basis (PauliChangeOfBasis chooses this basis by default).
-            cob = PauliChangeOfBasis(replacement_fn=PauliChangeOfBasis.measurement_replacement_fn)
+            # basis (PauliBasisChange chooses this basis by default).
+            cob = PauliBasisChange(replacement_fn=PauliBasisChange.measurement_replacement_fn)
             self._converted_operator = cob.convert(meas)
             # TODO self._converted_operator =
             #  PauliExpectation.group_equal_measurements(self._converted_operator)

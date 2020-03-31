@@ -22,7 +22,7 @@ from qiskit.aqua import QuantumInstance
 from ..operator_base import OperatorBase
 from ..operator_combos import OpVec
 from ..state_functions import StateFn, StateFnCircuit
-from ..converters import DicttoCircuitSum
+from ..converters import DictToCircuitSum
 from .circuit_sampler import CircuitSampler
 
 logger = logging.getLogger(__name__)
@@ -53,7 +53,7 @@ class IBMQSampler(CircuitSampler):
                 params: dict = None):
         """ Accept the Operator and return the converted Operator """
 
-        operator_dicts_replaced = DicttoCircuitSum().convert(operator)
+        operator_dicts_replaced = DictToCircuitSum().convert(operator)
         reduced_op = operator_dicts_replaced.reduce()
         op_circuits = {}
 
