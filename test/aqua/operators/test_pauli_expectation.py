@@ -17,6 +17,7 @@
 from test.aqua import QiskitAquaTestCase
 
 import itertools
+import unittest
 import numpy as np
 
 from qiskit.aqua.operators import (X, Y, Z, I, CX, H, S,
@@ -24,7 +25,7 @@ from qiskit.aqua.operators import (X, Y, Z, I, CX, H, S,
                                    PauliExpectation, AbelianGrouper,
                                    CircuitSampler)
 
-from qiskit import BasicAer
+from qiskit import BasicAer, IBMQ
 
 
 # pylint: disable=invalid-name
@@ -174,3 +175,19 @@ class TestPauliExpectation(QiskitAquaTestCase):
         sampler._extract_circuitstatefns(expect_op_grouped)
         num_circuits_grouped = len(sampler._circuit_ops_cache)
         self.assertEqual(num_circuits_grouped, 2)
+
+    @unittest.skip(reason="IBMQ testing not available in general.")
+    def test_ibmq_grouped_pauli_expectation(self):
+        """ pauli expect op vector state vector test """
+        p = IBMQ.load_account()
+        backend = p.get_backend('ibmq_qasm_simulator')
+        paulis_op = ListOp([X, Y, Z, I])
+        states_op = ListOp([One, Zero, Plus, Minus])
+
+        expect = PauliExpectation(operator=paulis_op, backend=backend)
+        means = expect.compute_expectation(states_op)
+        valids = [[+0, 0, 1, -1],
+                  [+0, 0, 0, 0],
+                  [-1, 1, 0, -0],
+                  [+1, 1, 1, 1]]
+        np.testing.assert_array_almost_equal(means, valids, decimal=1)
