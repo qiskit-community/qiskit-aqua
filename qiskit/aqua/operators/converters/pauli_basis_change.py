@@ -178,6 +178,7 @@ class PauliBasisChange(ConverterBase):
 
         tensorall = partial(reduce, lambda x, y: x.tensor(y))
 
+        # pylint: disable=bad-reversed-sequence
         y_to_x_origin = tensorall([S if has_y else I for has_y in
                                    reversed(np.logical_and(pauli.x, pauli.z))]).adjoint()
         x_to_z_origin = tensorall([H if has_x else I for has_x in
@@ -310,11 +311,11 @@ class PauliBasisChange(ConverterBase):
 
         if not isinstance(origin, PauliOp):
             raise TypeError(
-                'PauliCoB can only convert Pauli-based OpPrimitives, not {}'.format(type(
+                'PauliBasisChange can only convert Pauli-based OpPrimitives, not {}'.format(type(
                     PrimitiveOp.primitive)))
 
         # If no destination specified, assume nearest Pauli in {Z,I}^n basis,
-        # the standard CoB for expectation
+        # the standard basis change for expectations.
         destination = self.destination or self.get_diagonal_pauli_op(origin)
 
         # Pad origin or destination if either are not as long as the other
