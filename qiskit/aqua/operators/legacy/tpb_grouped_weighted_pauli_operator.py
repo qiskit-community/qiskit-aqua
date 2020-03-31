@@ -115,7 +115,7 @@ class TPBGroupedWeightedPauliOperator(WeightedPauliOperator):
         """
         paulis = weighted_pauli_operator.paulis
         temp_paulis = copy.deepcopy(paulis)
-        n = paulis[0][1].numberofqubits
+        n = paulis[0][1].num_qubits
         grouped_paulis = []
         sorted_paulis = []
 
