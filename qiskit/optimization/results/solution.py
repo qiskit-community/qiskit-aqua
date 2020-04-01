@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -49,7 +49,7 @@ class SolutionInterface(BaseInterface):
         """Returns the status of the solution.
 
         Returns an attribute of Cplex.solution.status.
-        For interpretations of the status codes, see the 
+        For interpretations of the status codes, see the
         reference manual of the CPLEX Callable Library,
         especially the group optim.cplex.callable.solutionstatus
 

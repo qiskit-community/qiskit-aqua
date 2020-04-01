@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -17,8 +17,6 @@ import numbers
 from collections.abc import Sequence
 from logging import getLogger
 from typing import Callable, List
-
-from cplex import SparsePair
 
 from qiskit.optimization.utils import BaseInterface, QiskitOptimizationError
 
@@ -142,7 +140,7 @@ class ObjectiveInterface(BaseInterface):
             [SparsePair(ind = [0], val = [1.0]), SparsePair(ind = [1], val = [2.0]),
                 SparsePair(ind = [2], val = [3.0])]
         """
-
+        from cplex import SparsePair
         # clear data
         self._quadratic = {}
 
@@ -374,6 +372,7 @@ class ObjectiveInterface(BaseInterface):
         """
 
         def _get(i):
+            from cplex import SparsePair
             qi = self._quadratic.get(i, {})
             return SparsePair(list(qi.keys()), list(qi.values()))
 

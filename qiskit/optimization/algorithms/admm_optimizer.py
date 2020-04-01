@@ -25,7 +25,6 @@ from qiskit.optimization.problems.optimization_problem import OptimizationProble
 from qiskit.optimization.problems.variables import CPX_BINARY, CPX_CONTINUOUS
 from qiskit.optimization.results.optimization_result import OptimizationResult
 
-
 UPDATE_RHO_BY_TEN_PERCENT = 0
 UPDATE_RHO_BY_RESIDUALS = 1
 
@@ -490,8 +489,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
             else:
                 raise ValueError(
                     "Linear constraint with the 'E' sense must contain only binary variables, "
-                    "row indices: {}, binary variable indices: {}"
-                    .format(row, self._state.binary_indices))
+                    "row indices: {}, binary variable indices: {}".format(
+                        row, self._state.binary_indices))
 
         return self._create_ndarrays(matrix, vector, len(self._state.binary_indices))
 
@@ -594,9 +593,9 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # NOTE: The multiplication by 2 is needed for the solvers to parse
         # the quadratic coefficients.
         quadratic_objective = 2 * (
-            self._state.q0 +
-            self._factor_c / 2 * np.dot(self._state.a0.transpose(), self._state.a0) +
-            self._state.rho / 2 * np.eye(binary_size)
+                self._state.q0 +
+                self._factor_c / 2 * np.dot(self._state.a0.transpose(), self._state.a0) +
+                self._state.rho / 2 * np.eye(binary_size)
         )
         for i in range(binary_size):
             for j in range(i, binary_size):
@@ -604,8 +603,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         # prepare and set linear objective.
         linear_objective = self._state.c0 - \
-                           self._factor_c * np.dot(self._state.b0, self._state.a0) + \
-                           self._state.rho * (self._state.y - self._state.z)
+            self._factor_c * np.dot(self._state.b0, self._state.a0) + \
+            self._state.rho * (self._state.y - self._state.z)
 
         for i in range(binary_size):
             op1.objective.set_linear(i, linear_objective[i])
@@ -681,7 +680,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
             constraint_count = self._state.a2.shape[0]
             lin_expr = [SparsePair(ind=list(range(continuous_size + binary_size)),
                                    val=self._state.a3[i, :].tolist() +
-                                   self._state.a2[i, :].tolist())
+                        self._state.a2[i, :].tolist())
                         for i in range(constraint_count)]
             op2.linear_constraints.add(lin_expr=lin_expr,
                                        senses=["L"] * constraint_count,
@@ -793,7 +792,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         """
         return self._state.lambda_mult + \
-               self._state.rho * (self._state.x0 - self._state.z + self._state.y)
+            self._state.rho * (self._state.x0 - self._state.z + self._state.y)
 
     def _update_rho(self, primal_residual: float, dual_residual: float) -> None:
         """Updating the rho parameter in ADMM.

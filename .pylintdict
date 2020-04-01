@@ -22,6 +22,7 @@ api
 appfactory
 arcsin
 args
+Armijo
 asmatrix
 ast
 atol
@@ -111,6 +112,7 @@ deriv
 deutsch
 devs
 devsglobals
+diagonalization
 diagonalize
 diagonalizing
 dict
@@ -267,6 +269,7 @@ kumar
 kwargs
 labelled
 ldots
+lefthand
 len
 leq
 lhs
@@ -454,6 +457,7 @@ rhf
 rhobeg
 rhs
 rightarrow
+righthand
 rohf
 rosen
 rsgtu
@@ -499,6 +503,7 @@ subclasses
 subdirectories
 subgraph
 subpattern
+subscriptable
 subspaces
 succ
 sudo

@@ -15,8 +15,6 @@
 """The optimization problem."""
 
 from docplex.mp.model import Model
-from cplex import Cplex, SparsePair
-from cplex.exceptions import CplexSolverError
 
 from qiskit.optimization.problems.linear_constraint import LinearConstraintInterface
 from qiskit.optimization.problems.objective import ObjectiveInterface
@@ -56,7 +54,7 @@ class OptimizationProblem:
         When the with block is finished, the end() method will be called
         automatically.
         """
-
+        from cplex.exceptions import CplexSolverError
         if len(args) > 1:
             raise QiskitOptimizationError("Too many arguments to OptimizationProblem()")
         self._disposed = False
@@ -94,6 +92,7 @@ class OptimizationProblem:
 
     def from_cplex(self, op):
         # make sure current problem is clean
+        from cplex.exceptions import CplexSolverError
         self._disposed = False
         try:
             self._name = op.get_problem_name()
@@ -160,6 +159,7 @@ class OptimizationProblem:
         # TODO: add quadratic constraints
 
     def from_docplex(self, model: Model):
+        from cplex.exceptions import CplexSolverError
         cplex = model.get_cplex()
         try:
             cplex.set_problem_name(model.get_name())
@@ -169,6 +169,7 @@ class OptimizationProblem:
         self.from_cplex(cplex)
 
     def to_cplex(self):
+        from cplex import Cplex
         # create empty CPLEX model
         op = Cplex()
         if self.get_problem_name() is not None:
@@ -243,6 +244,7 @@ class OptimizationProblem:
         >>> op = qiskit.optimization.OptimizationProblem()
         >>> op.read("lpex.mps")
         """
+        from cplex import Cplex
         cplex = Cplex()
         cplex.read(filename, filetype)
         self.from_cplex(cplex)
@@ -371,7 +373,7 @@ class OptimizationProblem:
         variables: SparseTriple (replace variables by weighted other variable
         need to copy everything using name reference to make sure that indices are matched correctly
         """
-
+        from cplex import SparsePair
         # guarantee that there is no overlap between variables to be replaced and combine input
         vars_to_be_replaced = {}
         if constants is not None:

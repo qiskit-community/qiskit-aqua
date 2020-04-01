@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -14,8 +14,6 @@
 
 import copy
 from collections.abc import Sequence
-
-from cplex import SparsePair
 
 from qiskit.optimization.utils.base import BaseInterface
 from qiskit.optimization.utils.helpers import init_list_args, NameIndex
@@ -122,7 +120,7 @@ class LinearConstraintInterface(BaseInterface):
         >>> op.linear_constraints.get_rhs()
         [0.0, 1.0, -1.0, 2.0]
         """
-
+        from cplex import SparsePair
         arg_list = init_list_args(lin_expr, senses, rhs, range_values, names)
         arg_lengths = [len(x) for x in arg_list]
         if len(arg_lengths) == 0:
@@ -388,6 +386,7 @@ class LinearConstraintInterface(BaseInterface):
         """
 
         def _set(i, v):
+            from cplex import SparsePair
             if isinstance(v, SparsePair):
                 zip_iter = zip(v.ind, v.val)
             elif isinstance(v, Sequence) and len(v) == 2:

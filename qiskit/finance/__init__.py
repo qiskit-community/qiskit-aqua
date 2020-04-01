@@ -13,7 +13,7 @@
 # that they have been altered from the originals.
 """
 ==========================================================
-Finance application stack for Aqua (:mod:`qiskit.finance`)
+Finance stack for Aqua (:mod:`qiskit.finance`)
 ==========================================================
 This is the finance domain logic....
 
@@ -25,9 +25,9 @@ Submodules
 .. autosummary::
    :toctree:
 
+   applications
    components
    data_providers
-   ising
 
 """
 

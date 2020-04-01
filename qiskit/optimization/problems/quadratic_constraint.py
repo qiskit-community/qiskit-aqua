@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -16,8 +16,6 @@ import copy
 from collections.abc import Sequence
 from logging import getLogger
 from typing import List, Dict, Tuple, Callable
-
-from cplex import SparsePair, SparseTriple
 
 from qiskit.optimization.utils.base import BaseInterface
 from qiskit.optimization.utils.helpers import NameIndex
@@ -33,8 +31,8 @@ class QuadraticConstraintInterface(BaseInterface):
         """Creates a new QuadraticConstraintInterface.
 
         The quadratic constraints interface is exposed by the top-level
-        `OptimizationProblem` class as `OptimizationProblem.quadratic_constraints`.  This constructor
-        is not meant to be used externally.
+        `OptimizationProblem` class as `OptimizationProblem.quadratic_constraints`.
+        This constructor is not meant to be used externally.
         """
         super(QuadraticConstraintInterface, self).__init__()
         self._rhs = []
@@ -111,6 +109,7 @@ class QuadraticConstraintInterface(BaseInterface):
         ...                             sense = "G")
         0
         """
+        from cplex import SparsePair, SparseTriple
         # We only ever create one quadratic constraint at a time.
 
         # check constraint name

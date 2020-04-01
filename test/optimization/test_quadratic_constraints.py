@@ -53,10 +53,10 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
         self.assertListEqual(quad.get_senses(), ['E'])
         self.assertListEqual(quad.get_linear_num_nonzeros(), [2])
         self.assertListEqual(quad.get_quad_num_nonzeros(), [2])
-        l = quad.get_linear_components()
-        self.assertEqual(len(l), 1)
-        self.assertListEqual(l[0].ind, [0, 2])
-        self.assertListEqual(l[0].val, [1.0, -1.0])
+        la = quad.get_linear_components()
+        self.assertEqual(len(la), 1)
+        self.assertListEqual(la[0].ind, [0, 2])
+        self.assertListEqual(la[0].val, [1.0, -1.0])
         q = quad.get_quadratic_components()
         self.assertEqual(len(q), 1)
         self.assertListEqual(q[0].ind1, [1, 2])
@@ -66,20 +66,20 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
     def test_get_num(self):
         op = OptimizationProblem()
         op.variables.add(names=['x', 'y'])
-        l = SparsePair(ind=['x'], val=[1.0])
+        la = SparsePair(ind=['x'], val=[1.0])
         q = SparseTriple(ind1=['x'], ind2=['y'], val=[1.0])
         n = 10
         for i in range(n):
-            self.assertEqual(op.quadratic_constraints.add(name=str(i), lin_expr=l, quad_expr=q), i)
+            self.assertEqual(op.quadratic_constraints.add(name=str(i), lin_expr=la, quad_expr=q), i)
         self.assertEqual(op.quadratic_constraints.get_num(), n)
 
     def test_add(self):
         op = OptimizationProblem()
         op.variables.add(names=['x', 'y'])
-        l = SparsePair(ind=['x'], val=[1.0])
+        la = SparsePair(ind=['x'], val=[1.0])
         q = SparseTriple(ind1=['x'], ind2=['y'], val=[1.0])
         self.assertEqual(op.quadratic_constraints.add(
-            name='my quad', lin_expr=l, quad_expr=q, rhs=1.0, sense='G'), 0)
+            name='my quad', lin_expr=la, quad_expr=q, rhs=1.0, sense='G'), 0)
 
     def test_delete(self):
         op = OptimizationProblem()
