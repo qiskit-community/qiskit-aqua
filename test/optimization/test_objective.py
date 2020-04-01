@@ -15,17 +15,13 @@
 """ Test ObjectiveInterface """
 
 import unittest
-from cplex import SparsePair
-
-from qiskit.optimization import OptimizationProblem
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
+from cplex import SparsePair
+from qiskit.optimization import OptimizationProblem
 
 
 class TestObjective(QiskitOptimizationTestCase):
     """Test ObjectiveInterface"""
-
-    def setUp(self):
-        super().setUp()
 
     def test_obj_sense(self):
         """ test obj sense """
@@ -165,33 +161,33 @@ class TestObjective(QiskitOptimizationTestCase):
         op.variables.add(names=[str(i) for i in range(n)])
         obj = op.objective
         obj.set_quadratic([1.5 * i for i in range(n)])
-        sp = obj.get_quadratic(8)
-        self.assertListEqual(sp.ind, [8])
-        self.assertListEqual(sp.val, [12.0])
+        s_p = obj.get_quadratic(8)
+        self.assertListEqual(s_p.ind, [8])
+        self.assertListEqual(s_p.val, [12.0])
 
-        sp = obj.get_quadratic('1', 3)
-        self.assertListEqual(sp[0].ind, [1])
-        self.assertListEqual(sp[0].val, [1.5])
-        self.assertListEqual(sp[1].ind, [2])
-        self.assertListEqual(sp[1].val, [3.0])
-        self.assertListEqual(sp[2].ind, [3])
-        self.assertListEqual(sp[2].val, [4.5])
+        s_p = obj.get_quadratic('1', 3)
+        self.assertListEqual(s_p[0].ind, [1])
+        self.assertListEqual(s_p[0].val, [1.5])
+        self.assertListEqual(s_p[1].ind, [2])
+        self.assertListEqual(s_p[1].val, [3.0])
+        self.assertListEqual(s_p[2].ind, [3])
+        self.assertListEqual(s_p[2].val, [4.5])
 
-        sp = obj.get_quadratic([3, '1', 5])
-        self.assertListEqual(sp[0].ind, [3])
-        self.assertListEqual(sp[0].val, [4.5])
-        self.assertListEqual(sp[1].ind, [1])
-        self.assertListEqual(sp[1].val, [1.5])
-        self.assertListEqual(sp[2].ind, [5])
-        self.assertListEqual(sp[2].val, [7.5])
+        s_p = obj.get_quadratic([3, '1', 5])
+        self.assertListEqual(s_p[0].ind, [3])
+        self.assertListEqual(s_p[0].val, [4.5])
+        self.assertListEqual(s_p[1].ind, [1])
+        self.assertListEqual(s_p[1].val, [1.5])
+        self.assertListEqual(s_p[2].ind, [5])
+        self.assertListEqual(s_p[2].val, [7.5])
 
-        sp = obj.get_quadratic(range(n))
+        s_p = obj.get_quadratic(range(n))
         for i in range(n):
-            self.assertListEqual(sp[i].ind, [i])
-            self.assertListEqual(sp[i].val, [1.5 * i])
+            self.assertListEqual(s_p[i].ind, [i])
+            self.assertListEqual(s_p[i].val, [1.5 * i])
 
-    def test_get_quadratic(self):
-        """ test get quadratic """
+    def test_get_quadratic2(self):
+        """ test get quadratic 2 """
         op = OptimizationProblem()
         n = 3
         op.variables.add(names=[str(i) for i in range(n)])

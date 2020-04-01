@@ -161,12 +161,12 @@ class ObjectiveInterface(BaseInterface):
             for i, val in enumerate(args):
                 _set(i, i, val)
         else:
-            for i, sp in enumerate(args):
-                if isinstance(sp, SparsePair):
-                    for j, val in zip(sp.ind, sp.val):
+            for i, s_p in enumerate(args):
+                if isinstance(s_p, SparsePair):
+                    for j, val in zip(s_p.ind, s_p.val):
                         _set(i, j, val)
-                elif isinstance(sp, Sequence) and len(sp) == 2:
-                    for j, val in zip(sp[0], sp[1]):
+                elif isinstance(s_p, Sequence) and len(s_p) == 2:
+                    for j, val in zip(s_p[0], s_p[1]):
                         _set(i, j, val)
                 else:
                     raise QiskitOptimizationError(
@@ -373,8 +373,8 @@ class ObjectiveInterface(BaseInterface):
 
         def _get(i):
             from cplex import SparsePair
-            qi = self._quadratic.get(i, {})
-            return SparsePair(list(qi.keys()), list(qi.values()))
+            q_i = self._quadratic.get(i, {})
+            return SparsePair(list(q_i.keys()), list(q_i.values()))
 
         if len(args) == 0:
             return copy.deepcopy(self._quadratic)

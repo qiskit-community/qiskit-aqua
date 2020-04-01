@@ -19,6 +19,8 @@ from qiskit.optimization.utils.base import BaseInterface
 from qiskit.optimization.utils.helpers import init_list_args, NameIndex
 from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
 
+# pylint: disable=invalid-name
+
 CPX_CONTINUOUS = 'C'
 CPX_BINARY = 'B'
 CPX_INTEGER = 'I'

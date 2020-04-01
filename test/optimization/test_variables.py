@@ -15,15 +15,12 @@
 """ Test VariablesInterface """
 
 import unittest
-from qiskit.optimization.problems import OptimizationProblem
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
+from qiskit.optimization.problems import OptimizationProblem
 
 
 class TestVariables(QiskitOptimizationTestCase):
     """Test VariablesInterface."""
-
-    def setUp(self):
-        super().setUp()
 
     def test_type(self):
         """ test type """
@@ -47,43 +44,43 @@ class TestVariables(QiskitOptimizationTestCase):
     def test_get_num(self):
         """ test get num """
         op = OptimizationProblem()
-        t = op.variables.type
-        op.variables.add(types=[t.continuous, t.binary, t.integer])
+        typ = op.variables.type
+        op.variables.add(types=[typ.continuous, typ.binary, typ.integer])
         self.assertEqual(op.variables.get_num(), 3)
 
     def test_get_num_continuous(self):
         """ test get num continuous """
         op = OptimizationProblem()
-        t = op.variables.type
-        op.variables.add(types=[t.continuous, t.binary, t.integer])
+        typ = op.variables.type
+        op.variables.add(types=[typ.continuous, typ.binary, typ.integer])
         self.assertEqual(op.variables.get_num_continuous(), 1)
 
     def test_get_num_integer(self):
         """ test get num integer """
         op = OptimizationProblem()
-        t = op.variables.type
-        op.variables.add(types=[t.continuous, t.binary, t.integer])
+        typ = op.variables.type
+        op.variables.add(types=[typ.continuous, typ.binary, typ.integer])
         self.assertEqual(op.variables.get_num_integer(), 1)
 
     def test_get_num_binary(self):
         """ test get num binary """
         op = OptimizationProblem()
-        t = op.variables.type
-        op.variables.add(types=[t.semi_continuous, t.binary, t.integer])
+        typ = op.variables.type
+        op.variables.add(types=[typ.semi_continuous, typ.binary, typ.integer])
         self.assertEqual(op.variables.get_num_binary(), 1)
 
     def test_get_num_semicontinuous(self):
         """ test get num semi continuous """
         op = OptimizationProblem()
-        t = op.variables.type
-        op.variables.add(types=[t.semi_continuous, t.semi_integer, t.semi_integer])
+        typ = op.variables.type
+        op.variables.add(types=[typ.semi_continuous, typ.semi_integer, typ.semi_integer])
         self.assertEqual(op.variables.get_num_semicontinuous(), 1)
 
     def test_get_num_semiinteger(self):
         """ test get num semi integer """
         op = OptimizationProblem()
-        t = op.variables.type
-        op.variables.add(types=[t.semi_continuous, t.semi_integer, t.semi_integer])
+        typ = op.variables.type
+        op.variables.add(types=[typ.semi_continuous, typ.semi_integer, typ.semi_integer])
         self.assertEqual(op.variables.get_num_semiinteger(), 2)
 
     def test_add(self):
@@ -142,8 +139,8 @@ class TestVariables(QiskitOptimizationTestCase):
     def test_set_names(self):
         """ test set names """
         op = OptimizationProblem()
-        t = op.variables.type
-        op.variables.add(types=[t.continuous, t.binary, t.integer])
+        typ = op.variables.type
+        op.variables.add(types=[typ.continuous, typ.binary, typ.integer])
         op.variables.set_names(0, "first")
         op.variables.set_names([(2, "third"), (1, "second")])
         self.assertListEqual(op.variables.get_names(), ['first', 'second', 'third'])
@@ -195,13 +192,13 @@ class TestVariables(QiskitOptimizationTestCase):
         self.assertListEqual(op.variables.get_names(),
                              ['x0', 'x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8', 'x9'])
 
-    def test_set_types(self):
-        """ test set types """
+    def test_set_types2(self):
+        """ test set types 2 """
         op = OptimizationProblem()
-        t = op.variables.type
+        typ = op.variables.type
         op.variables.add(names=[str(i) for i in range(5)],
-                         types=[t.continuous, t.integer,
-                                t.binary, t.semi_continuous, t.semi_integer])
+                         types=[typ.continuous, typ.integer,
+                                typ.binary, typ.semi_continuous, typ.semi_integer])
         self.assertEqual(op.variables.get_num(), 5)
         self.assertEqual(op.variables.get_types(3), 'S')
 

@@ -39,14 +39,14 @@ class TestOptimizationProblem(QiskitOptimizationTestCase):
     def test_constructor2(self):
         """ test constructor 2 """
         with self.assertRaises(QiskitOptimizationError):
-            op = qiskit.optimization.OptimizationProblem("unknown")
+            _ = qiskit.optimization.OptimizationProblem("unknown")
         # If filename does not exist, an exception is raised.
 
     def test_constructor3(self):
         """ test constructor 3 """
         # we can pass at most one argument
         with self.assertRaises(QiskitOptimizationError):
-            op = qiskit.optimization.OptimizationProblem("test", "west")
+            _ = qiskit.optimization.OptimizationProblem("test", "west")
 
     def test_constructor_context(self):
         """ test constructor context """
@@ -71,20 +71,20 @@ class TestOptimizationProblem(QiskitOptimizationTestCase):
         """ test write 1 """
         op = qiskit.optimization.OptimizationProblem()
         op.variables.add(names=['x1', 'x2', 'x3'])
-        f, fn = tempfile.mkstemp(suffix='.lp')
-        os.close(f)
-        op.write(fn)
-        assert os.path.exists(fn) == 1
+        file, filename = tempfile.mkstemp(suffix='.lp')
+        os.close(file)
+        op.write(filename)
+        assert os.path.exists(filename) == 1
 
     def test_write2(self):
         """ test write 2 """
         op1 = qiskit.optimization.OptimizationProblem()
         op1.variables.add(names=['x1', 'x2', 'x3'])
-        f, fn = tempfile.mkstemp(suffix='.lp')
-        os.close(f)
-        op1.write(fn)
+        file, filename = tempfile.mkstemp(suffix='.lp')
+        os.close(file)
+        op1.write(filename)
         op2 = qiskit.optimization.OptimizationProblem()
-        op2.read(fn)
+        op2.read(filename)
         self.assertEqual(op2.variables.get_num(), 3)
 
     def test_write3(self):
@@ -92,11 +92,12 @@ class TestOptimizationProblem(QiskitOptimizationTestCase):
         op = qiskit.optimization.OptimizationProblem()
         op.variables.add(names=['x1', 'x2', 'x3'])
 
-        class NoOpStream(object):
+        class NoOpStream:
+            """ stream """
             def __init__(self):
                 self.was_called = False
 
-            def write(self, bytes):
+            def write(self, byt):
                 """ write """
                 self.was_called = True
                 pass

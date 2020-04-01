@@ -568,11 +568,11 @@ class ADMMOptimizer(OptimizationAlgorithm):
                     row_indices & continuous_index_set) != 0:
                 self._assign_row_values(matrix, vector, constraint_index, all_variables)
 
-        matrix, b2 = self._create_ndarrays(matrix, vector, len(all_variables))
+        matrix, b_2 = self._create_ndarrays(matrix, vector, len(all_variables))
         # a2
-        a2 = matrix[:, 0:len(self._state.binary_indices)]
-        a3 = matrix[:, len(self._state.binary_indices):]
-        return a2, a3, b2
+        a_2 = matrix[:, 0:len(self._state.binary_indices)]
+        a_3 = matrix[:, len(self._state.binary_indices):]
+        return a_2, a_3, b_2
 
     def _create_step1_problem(self) -> OptimizationProblem:
         """Creates a step 1 sub-problem.
@@ -777,9 +777,9 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         it_best_merits = self._state.merits.index(
             min(list(map(lambda x: self._state.sense * x, self._state.merits))))
-        x0 = self._state.x0_saved[it_best_merits]
-        u = self._state.u_saved[it_best_merits]
-        sol = [x0, u]
+        x_0 = self._state.x0_saved[it_best_merits]
+        u_s = self._state.u_saved[it_best_merits]
+        sol = [x_0, u_s]
         sol_val = self._state.cost_iterates[it_best_merits]
         return sol, sol_val
 

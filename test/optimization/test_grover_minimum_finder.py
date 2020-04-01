@@ -29,11 +29,9 @@ class TestGroverMinimumFinder(QiskitOptimizationTestCase):
         """Validate the results object returned by GroverMinimumFinder."""
         # Get measured values.
         grover_results = results.results['grover_results']
-        op_key = results.x
-        op_value = results.fval
+
         iterations = len(grover_results.operation_counts)
         rot = grover_results.rotation_count
-        func = grover_results.func_dict
 
         # Get expected value.
         solver = MinimumEigenOptimizer(NumPyMinimumEigensolver())

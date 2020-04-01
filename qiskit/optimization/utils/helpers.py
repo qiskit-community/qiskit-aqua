@@ -74,11 +74,11 @@ class NameIndex(object):
         if len(args) == 0:
             return list(self._dict.values())
         elif len(args) == 1:
-            a0 = args[0]
-            if isinstance(a0, (int, str)):
-                return self._convert_one(a0)
-            elif isinstance(a0, Sequence):
-                return [self._convert_one(e) for e in a0]
+            a_0 = args[0]
+            if isinstance(a_0, (int, str)):
+                return self._convert_one(a_0)
+            elif isinstance(a_0, Sequence):
+                return [self._convert_one(e) for e in a_0]
             else:
                 raise QiskitOptimizationError('Invalid argument: {}'.format(args))
         elif len(args) == 2:

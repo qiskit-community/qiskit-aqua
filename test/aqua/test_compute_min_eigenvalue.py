@@ -76,8 +76,8 @@ class TestComputeMinEigenvalue(QiskitAquaTestCase):
     def test_ee(self):
         """ EE test """
         dummy_operator = MatrixOperator([[1]])
-        ee = NumPyMinimumEigensolver()
-        output = ee.compute_minimum_eigenvalue(self.qubit_op)
+        nee = NumPyMinimumEigensolver()
+        output = nee.compute_minimum_eigenvalue(self.qubit_op)
 
         self.assertAlmostEqual(output.eigenvalue, -1.85727503)
 

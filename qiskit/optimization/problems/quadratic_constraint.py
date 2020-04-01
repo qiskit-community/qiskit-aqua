@@ -16,7 +16,7 @@ import copy
 from collections.abc import Sequence
 from logging import getLogger
 from typing import List, Dict, Tuple, Callable
-
+from cplex import SparsePair, SparseTriple
 from qiskit.optimization.utils.base import BaseInterface
 from qiskit.optimization.utils.helpers import NameIndex
 from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
@@ -109,7 +109,6 @@ class QuadraticConstraintInterface(BaseInterface):
         ...                             sense = "G")
         0
         """
-        from cplex import SparsePair, SparseTriple
         # We only ever create one quadratic constraint at a time.
 
         # check constraint name
@@ -132,10 +131,10 @@ class QuadraticConstraintInterface(BaseInterface):
         else:
             raise QiskitOptimizationError('Invalid lin_expr: {}'.format(lin_expr))
         for i, val in zip(ind, val):
-            i2 = self._varindex(i)
-            if i2 in lin_expr_dict:
+            i_2 = self._varindex(i)
+            if i_2 in lin_expr_dict:
                 logger.warning('lin_expr contains duplicate index: {}'.format(i))
-            lin_expr_dict[i2] = val
+            lin_expr_dict[i_2] = val
         self._lin_expr.append(lin_expr_dict)
 
         # quadratic terms
@@ -152,13 +151,13 @@ class QuadraticConstraintInterface(BaseInterface):
         else:
             raise QiskitOptimizationError('Invalid quad_expr: {}'.format(quad_expr))
         for i, j, val in zip(ind1, ind2, val):
-            i2 = self._varindex(i)
-            j2 = self._varindex(j)
-            if i2 < j2:
-                i2, j2 = j2, i2
-            if (i2, j2) in quad_expr_dict:
+            i_2 = self._varindex(i)
+            j_2 = self._varindex(j)
+            if i_2 < j_2:
+                i_2, j_2 = j_2, i_2
+            if (i_2, j_2) in quad_expr_dict:
                 logger.warning('quad_expr contains duplicate index: {} {}'.format(i, j))
-            quad_expr_dict[i2, j2] = val
+            quad_expr_dict[i_2, j_2] = val
         self._quad_expr.append(quad_expr_dict)
 
         if sense not in ['L', 'G', 'E']:

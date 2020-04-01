@@ -153,12 +153,12 @@ class LinearConstraintInterface(BaseInterface):
 
         if not lin_expr:
             lin_expr = [SparsePair()] * max_length
-        for sp in lin_expr:
+        for s_p in lin_expr:
             lin_expr_dict = {}
-            if isinstance(sp, SparsePair):
-                zip_iter = zip(sp.ind, sp.val)
-            elif isinstance(sp, Sequence) and len(sp) == 2:
-                zip_iter = zip(sp[0], sp[1])
+            if isinstance(s_p, SparsePair):
+                zip_iter = zip(s_p.ind, s_p.val)
+            elif isinstance(s_p, Sequence) and len(s_p) == 2:
+                zip_iter = zip(s_p[0], s_p[1])
             else:
                 raise QiskitOptimizationError('Invalid lin_expr: {}'.format(lin_expr))
             for i, val in zip_iter:
@@ -763,8 +763,8 @@ class LinearConstraintInterface(BaseInterface):
         """
         nnz = 0
         for c in self._lin_expr:
-            for e in c.values():
-                if e != 0.0:
+            for e_e in c.values():
+                if e_e != 0.0:
                     nnz += 1
         return nnz
 

@@ -16,11 +16,9 @@
 
 import unittest
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
-
+from ddt import ddt, data
 from qiskit.optimization.algorithms import CplexOptimizer
 from qiskit.optimization.problems import OptimizationProblem
-
-from ddt import ddt, data
 
 
 @ddt
@@ -34,7 +32,7 @@ class TestCplexOptimizer(QiskitOptimizationTestCase):
         self.cplex_optimizer = CplexOptimizer()
 
     @data(
-        ('op_ip1.lp',  [0, 2], 6),
+        ('op_ip1.lp', [0, 2], 6),
         ('op_mip1.lp', [1, 1, 0], 6),
         ('op_lp1.lp', [0.25, 1.75], 5.8750)
     )
@@ -54,3 +52,7 @@ class TestCplexOptimizer(QiskitOptimizationTestCase):
         # analyze results
         self.assertAlmostEqual(result.fval, fval)
         self.assertAlmostEqual(result.x, x)
+
+
+if __name__ == '__main__':
+    unittest.main()

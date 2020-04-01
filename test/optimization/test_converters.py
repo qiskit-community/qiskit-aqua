@@ -15,19 +15,16 @@
 """ Test Converters """
 
 import unittest
+from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 from cplex import SparsePair
 
 from qiskit.optimization import OptimizationProblem, QiskitOptimizationError
 from qiskit.optimization.converters import InequalityToEqualityConverter, \
     OptimizationProblemToOperator, IntegerToBinaryConverter, PenalizeLinearEqualityConstraints
-from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 
 
 class TestConverters(QiskitOptimizationTestCase):
     """Test Converters"""
-
-    def setUp(self):
-        super().setUp()
 
     def test_empty_problem(self):
         """ test empty problem """
@@ -39,7 +36,7 @@ class TestConverters(QiskitOptimizationTestCase):
         conv = PenalizeLinearEqualityConstraints()
         op = conv.encode(op)
         conv = OptimizationProblemToOperator()
-        qubitop, shift = conv.encode(op)
+        _, shift = conv.encode(op)
         self.assertEqual(shift, 0.0)
 
     def test_inequality_binary(self):
@@ -143,12 +140,12 @@ class TestConverters(QiskitOptimizationTestCase):
         names = op2.variables.get_names()
         self.assertIn('x', names)
         self.assertIn('z', names)
-        vars = op2.variables
-        self.assertEqual(vars.get_lower_bounds('x'), 0.0)
-        self.assertEqual(vars.get_lower_bounds('z'), 0.0)
-        self.assertEqual(vars.get_upper_bounds('x'), 1.0)
-        self.assertEqual(vars.get_upper_bounds('z'), 10.0)
-        self.assertListEqual(vars.get_types(['x', 'z']), ['B', 'C'])
+        variables = op2.variables
+        self.assertEqual(variables.get_lower_bounds('x'), 0.0)
+        self.assertEqual(variables.get_lower_bounds('z'), 0.0)
+        self.assertEqual(variables.get_upper_bounds('x'), 1.0)
+        self.assertEqual(variables.get_upper_bounds('z'), 10.0)
+        self.assertListEqual(variables.get_types(['x', 'z']), ['B', 'C'])
 
 
 if __name__ == '__main__':
