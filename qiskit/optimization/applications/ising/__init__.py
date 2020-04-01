@@ -36,6 +36,7 @@ Ising Models
    tsp
    vehicle_routing
    vertex_cover
+   knapsack
 
 Automatic Ising Model Generator from DoCPLEX Model
 ==================================================
