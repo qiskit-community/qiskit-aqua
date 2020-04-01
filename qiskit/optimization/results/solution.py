@@ -17,7 +17,6 @@ from qiskit.optimization.results.quality_metrics import QualityMetrics
 from qiskit.optimization.results.solution_status import SolutionStatus
 
 from qiskit.optimization.utils.base import BaseInterface
-from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
 
 
 class SolutionInterface(BaseInterface):

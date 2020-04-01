@@ -13,10 +13,6 @@
 # that they have been altered from the originals.
 
 
-from qiskit.optimization.utils.base import BaseInterface
-from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
-
-
 class QualityMetrics(object):
     """A class containing measures of the quality of a solution.
 

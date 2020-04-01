@@ -677,7 +677,9 @@ class VariablesInterface(BaseInterface):
         return self._getter(_get, keys)
 
     def get_cols(self, *args):
+        """ get cols """
         raise NotImplementedError("Please use LinearConstraintInterface instead.")
 
     def get_obj(self, *args):
+        """ get obj """
         raise NotImplementedError("Please use ObjectiveInterface instead.")

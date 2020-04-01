@@ -14,12 +14,13 @@
 
 """ Test Converters """
 
+import unittest
 from cplex import SparsePair
 
 from qiskit.optimization import OptimizationProblem, QiskitOptimizationError
 from qiskit.optimization.converters import InequalityToEqualityConverter, \
     OptimizationProblemToOperator, IntegerToBinaryConverter, PenalizeLinearEqualityConstraints
-from test.optimization.common import QiskitOptimizationTestCase
+from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 
 
 class TestConverters(QiskitOptimizationTestCase):
@@ -29,6 +30,7 @@ class TestConverters(QiskitOptimizationTestCase):
         super().setUp()
 
     def test_empty_problem(self):
+        """ test empty problem """
         op = OptimizationProblem()
         conv = InequalityToEqualityConverter()
         op = conv.encode(op)
@@ -41,6 +43,7 @@ class TestConverters(QiskitOptimizationTestCase):
         self.assertEqual(shift, 0.0)
 
     def test_inequality_binary(self):
+        """ test inequality binary """
         op = OptimizationProblem()
         op.variables.add(names=['x', 'y', 'z'], types='B' * 3)
         op.linear_constraints.add(
@@ -61,6 +64,7 @@ class TestConverters(QiskitOptimizationTestCase):
         self.assertListEqual(cst.get_rhs(), [1, 2, 3])
 
     def test_inequality_integer(self):
+        """ test inequality integer """
         op = OptimizationProblem()
         op.variables.add(names=['x', 'y', 'z'], types='I' * 3, lb=[-3] * 3, ub=[3] * 3)
         op.linear_constraints.add(
@@ -81,6 +85,7 @@ class TestConverters(QiskitOptimizationTestCase):
         self.assertListEqual(cst.get_rhs(), [1, 2, 3])
 
     def test_penalize_sense(self):
+        """ test penalize sense """
         op = OptimizationProblem()
         op.variables.add(names=['x', 'y', 'z'], types='B' * 3)
         op.linear_constraints.add(
@@ -96,6 +101,7 @@ class TestConverters(QiskitOptimizationTestCase):
         self.assertRaises(QiskitOptimizationError, lambda: conv.encode(op))
 
     def test_penalize_binary(self):
+        """ test penalize binary """
         op = OptimizationProblem()
         op.variables.add(names=['x', 'y', 'z'], types='B' * 3)
         op.linear_constraints.add(
@@ -111,6 +117,7 @@ class TestConverters(QiskitOptimizationTestCase):
         self.assertEqual(op2.linear_constraints.get_num(), 0)
 
     def test_penalize_integer(self):
+        """ test penalize integer """
         op = OptimizationProblem()
         op.variables.add(names=['x', 'y', 'z'], types='I' * 3, lb=[-3] * 3, ub=[3] * 3)
         op.linear_constraints.add(
@@ -126,6 +133,7 @@ class TestConverters(QiskitOptimizationTestCase):
         self.assertEqual(op2.linear_constraints.get_num(), 0)
 
     def test_integer_to_binary(self):
+        """ test integer to binary """
         op = OptimizationProblem()
         op.variables.add(names=['x', 'y', 'z'], types='BIC', lb=[0, 0, 0], ub=[1, 5, 10])
         self.assertEqual(op.variables.get_num(), 3)
@@ -141,3 +149,7 @@ class TestConverters(QiskitOptimizationTestCase):
         self.assertEqual(vars.get_upper_bounds('x'), 1.0)
         self.assertEqual(vars.get_upper_bounds('z'), 10.0)
         self.assertListEqual(vars.get_types(['x', 'z']), ['B', 'C'])
+
+
+if __name__ == '__main__':
+    unittest.main()

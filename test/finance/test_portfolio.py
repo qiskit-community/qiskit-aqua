@@ -14,6 +14,7 @@
 
 """ Test Portfolio """
 
+import unittest
 from test.finance import QiskitFinanceTestCase
 
 import datetime
@@ -77,3 +78,7 @@ class TestPortfolio(QiskitFinanceTestCase):
             selection, self.muu, self.sigma, self.risk, self.budget, self.penalty)
         np.testing.assert_array_equal(selection, [1, 0, 0, 1])
         self.assertAlmostEqual(value, -0.0055989)
+
+
+if __name__ == '__main__':
+    unittest.main()

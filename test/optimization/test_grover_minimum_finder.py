@@ -14,6 +14,7 @@
 
 """Test Grover Minimum Finder."""
 
+import unittest
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
@@ -91,3 +92,7 @@ class TestGroverMinimumFinder(QiskitOptimizationTestCase):
         gmf = GroverMinimumFinder(num_iterations=n_iter)
         results = gmf.solve(op)
         self.validate_results(op, results, 10)
+
+
+if __name__ == '__main__':
+    unittest.main()

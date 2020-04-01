@@ -91,6 +91,7 @@ class OptimizationProblem:
                 raise QiskitOptimizationError('Could not load file: %s' % args[0])
 
     def from_cplex(self, op):
+        """ from cplex """
         # make sure current problem is clean
         from cplex.exceptions import CplexSolverError
         self._disposed = False
@@ -159,6 +160,7 @@ class OptimizationProblem:
         # TODO: add quadratic constraints
 
     def from_docplex(self, model: Model):
+        """ from docplex """
         from cplex.exceptions import CplexSolverError
         cplex = model.get_cplex()
         try:
@@ -169,6 +171,7 @@ class OptimizationProblem:
         self.from_cplex(cplex)
 
     def to_cplex(self):
+        """ to cplex """
         from cplex import Cplex
         # create empty CPLEX model
         op = Cplex()

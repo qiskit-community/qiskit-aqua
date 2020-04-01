@@ -13,7 +13,7 @@
 # that they have been altered from the originals.
 
 
-from typing import Union, List, Dict, Sequence
+from typing import Union, List, Sequence
 
 from qiskit.optimization.utils import QiskitOptimizationError
 

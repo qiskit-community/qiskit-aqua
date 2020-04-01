@@ -27,7 +27,6 @@
 from copy import deepcopy
 from typing import Optional
 import numpy as np
-from cplex import SparseTriple
 
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 
@@ -108,7 +107,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
             The result of the optimizer applied to the problem.
 
         """
-
+        from cplex import SparseTriple
         # convert problem to QUBO
         qubo_converter = OptimizationProblemToQubo()
         problem_ = qubo_converter.encode(problem)

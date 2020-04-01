@@ -14,10 +14,11 @@
 
 """ Test ObjectiveInterface """
 
+import unittest
 from cplex import SparsePair
 
 from qiskit.optimization import OptimizationProblem
-from test.optimization.common import QiskitOptimizationTestCase
+from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 
 
 class TestObjective(QiskitOptimizationTestCase):
@@ -27,6 +28,7 @@ class TestObjective(QiskitOptimizationTestCase):
         super().setUp()
 
     def test_obj_sense(self):
+        """ test obj sense """
         op = OptimizationProblem()
         self.assertEqual(op.objective.sense.minimize, 1)
         self.assertEqual(op.objective.sense.maximize, -1)
@@ -48,6 +50,7 @@ class TestObjective(QiskitOptimizationTestCase):
         pass
 
     def test_set_linear(self):
+        """ test set linear """
         op = OptimizationProblem()
         n = 4
         op.variables.add(names=[str(i) for i in range(n)])
@@ -62,11 +65,13 @@ class TestObjective(QiskitOptimizationTestCase):
         self.assertListEqual(op.objective.get_linear(range(n)), [1.0, 0.5, 2.0, -1.0])
 
     def test_set_empty_quadratic(self):
+        """ test set empty quadratic """
         op = OptimizationProblem()
         op.objective.set_quadratic([])
         self.assertRaises(TypeError, lambda: op.objective.set_quadratic())
 
     def test_set_quadratic(self):
+        """ test set quadratic """
         op = OptimizationProblem()
         n = 3
         op.variables.add(names=[str(i) for i in range(n)])
@@ -92,6 +97,7 @@ class TestObjective(QiskitOptimizationTestCase):
         self.assertListEqual(lst[2].val, [3.0])
 
     def test_set_quadratic_coefficients(self):
+        """ test set quadratic coefficients """
         op = OptimizationProblem()
         n = 3
         op.variables.add(names=[str(i) for i in range(n)])
@@ -124,6 +130,7 @@ class TestObjective(QiskitOptimizationTestCase):
         self.assertListEqual(lst[2].val, [3.0])
 
     def test_set_senses(self):
+        """ test set senses """
         op = OptimizationProblem()
         self.assertEqual(op.objective.sense[op.objective.get_sense()], 'minimize')
         op.objective.set_sense(op.objective.sense.maximize)
@@ -132,11 +139,13 @@ class TestObjective(QiskitOptimizationTestCase):
         self.assertEqual(op.objective.sense[op.objective.get_sense()], 'minimize')
 
     def test_set_name(self):
+        """ test set name """
         op = OptimizationProblem()
         op.objective.set_name('cost')
         self.assertEqual(op.objective.get_name(), 'cost')
 
     def test_get_linear(self):
+        """ test get linear """
         op = OptimizationProblem()
         n = 10
         op.variables.add(names=[str(i) for i in range(n)])
@@ -150,6 +159,7 @@ class TestObjective(QiskitOptimizationTestCase):
                              [0.0, 1.5, 3.0, 4.5, 6.0, 7.5, 9.0, 10.5, 12.0, 13.5])
 
     def test_get_quadratic(self):
+        """ test get quadratic """
         op = OptimizationProblem()
         n = 10
         op.variables.add(names=[str(i) for i in range(n)])
@@ -181,6 +191,7 @@ class TestObjective(QiskitOptimizationTestCase):
             self.assertListEqual(sp[i].val, [1.5 * i])
 
     def test_get_quadratic(self):
+        """ test get quadratic """
         op = OptimizationProblem()
         n = 3
         op.variables.add(names=[str(i) for i in range(n)])
@@ -192,6 +203,7 @@ class TestObjective(QiskitOptimizationTestCase):
                              [5.0, 2.0, 3.0])
 
     def test_get_sense(self):
+        """ test get sense """
         op = OptimizationProblem()
         self.assertEqual(op.objective.sense[op.objective.get_sense()], 'minimize')
         op.objective.set_sense(op.objective.sense.maximize)
@@ -200,11 +212,13 @@ class TestObjective(QiskitOptimizationTestCase):
         self.assertEqual(op.objective.sense[op.objective.get_sense()], 'minimize')
 
     def test_get_name(self):
+        """ test get name """
         op = OptimizationProblem()
         op.objective.set_name('cost')
         self.assertEqual(op.objective.get_name(), 'cost')
 
     def test_get_num_quadratic_variables(self):
+        """ test get num quadratic vraiables """
         op = OptimizationProblem()
         n = 3
         op.variables.add(names=[str(i) for i in range(n)])
@@ -217,6 +231,7 @@ class TestObjective(QiskitOptimizationTestCase):
         self.assertEqual(obj.get_num_quadratic_variables(), 3)
 
     def test_get_num_quadratic_nonzeros(self):
+        """ test get num quadratic non zeros """
         op = OptimizationProblem()
         n = 3
         op.variables.add(names=[str(i) for i in range(n)])
@@ -229,7 +244,12 @@ class TestObjective(QiskitOptimizationTestCase):
         self.assertEqual(obj.get_num_quadratic_nonzeros(), 3)
 
     def test_offset(self):
+        """ test offset """
         op = OptimizationProblem()
         self.assertEqual(op.objective.get_offset(), 0.0)
         op.objective.set_offset(3.14)
         self.assertEqual(op.objective.get_offset(), 3.14)
+
+
+if __name__ == '__main__':
+    unittest.main()

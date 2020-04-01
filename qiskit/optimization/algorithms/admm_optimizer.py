@@ -593,9 +593,9 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # NOTE: The multiplication by 2 is needed for the solvers to parse
         # the quadratic coefficients.
         quadratic_objective = 2 * (
-                self._state.q0 +
-                self._factor_c / 2 * np.dot(self._state.a0.transpose(), self._state.a0) +
-                self._state.rho / 2 * np.eye(binary_size)
+            self._state.q0 +
+            self._factor_c / 2 * np.dot(self._state.a0.transpose(), self._state.a0) +
+            self._state.rho / 2 * np.eye(binary_size)
         )
         for i in range(binary_size):
             for j in range(i, binary_size):
@@ -680,7 +680,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
             constraint_count = self._state.a2.shape[0]
             lin_expr = [SparsePair(ind=list(range(continuous_size + binary_size)),
                                    val=self._state.a3[i, :].tolist() +
-                        self._state.a2[i, :].tolist())
+                                   self._state.a2[i, :].tolist())
                         for i in range(constraint_count)]
             op2.linear_constraints.add(lin_expr=lin_expr,
                                        senses=["L"] * constraint_count,

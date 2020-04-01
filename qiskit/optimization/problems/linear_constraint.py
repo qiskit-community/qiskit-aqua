@@ -737,6 +737,7 @@ class LinearConstraintInterface(BaseInterface):
         """
 
         def _get(i):
+            from cplex import SparsePair
             keys = list(self._lin_expr[i].keys())
             keys.sort()
             return SparsePair(keys, [self._lin_expr[i][k] for k in keys])
@@ -805,4 +806,5 @@ class LinearConstraintInterface(BaseInterface):
         return self._getter(_get, keys)
 
     def get_histogram(self):
+        """ get histogram """
         raise NotImplementedError("histrogram is not implemented")

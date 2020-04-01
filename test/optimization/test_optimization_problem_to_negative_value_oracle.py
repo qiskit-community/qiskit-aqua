@@ -14,6 +14,7 @@
 
 """Test Optimization Problem to Negative Value Oracle."""
 
+import unittest
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 from qiskit.optimization.converters import OptimizationProblemToNegativeValueOracle
@@ -138,3 +139,7 @@ class TestOptimizationProblemToNegativeValueOracle(QiskitOptimizationTestCase):
 
         self._validate_function(func_dict, problem)
         self._validate_operator(func_dict, len(linear), num_value, a_operator)
+
+
+if __name__ == '__main__':
+    unittest.main()

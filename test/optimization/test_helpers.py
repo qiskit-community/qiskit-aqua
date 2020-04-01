@@ -14,9 +14,10 @@
 
 """ Test helpers """
 
+import unittest
 from qiskit.optimization.utils.helpers import NameIndex, init_list_args
 from qiskit.optimization import QiskitOptimizationError
-from test.optimization.common import QiskitOptimizationTestCase
+from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 
 
 class TestHelpers(QiskitOptimizationTestCase):
@@ -26,10 +27,12 @@ class TestHelpers(QiskitOptimizationTestCase):
         super().setUp()
 
     def test_init_list_args(self):
+        """ test init list args """
         a = init_list_args(1, [2], None)
         self.assertTupleEqual(a, (1, [2], []))
 
     def test_name_index1(self):
+        """ test name index 1 """
         a = NameIndex()
         self.assertEqual(a.convert('1'), 0)
         self.assertListEqual(a.convert(['2', '3']), [1, 2])
@@ -39,6 +42,7 @@ class TestHelpers(QiskitOptimizationTestCase):
         self.assertListEqual(a.convert('1', '2'), [0, 1])
 
     def test_name_index2(self):
+        """ test name index 2 """
         a = NameIndex()
         a.build(['1', '2', '3'])
         self.assertEqual(a.convert('1'), 0)
@@ -47,8 +51,13 @@ class TestHelpers(QiskitOptimizationTestCase):
         self.assertListEqual(a.convert('1', '2'), [0, 1])
 
     def test_name_index3(self):
+        """ test name index 3 """
         a = NameIndex()
         with self.assertRaises(QiskitOptimizationError):
             a.convert({})
         with self.assertRaises(QiskitOptimizationError):
             a.convert(1, 2, 3)
+
+
+if __name__ == '__main__':
+    unittest.main()

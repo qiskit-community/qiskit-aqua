@@ -13,6 +13,8 @@
 # that they have been altered from the originals.
 
 """Tests of the ADMM algorithm."""
+
+import unittest
 from typing import Optional
 
 from test.optimization import QiskitOptimizationTestCase
@@ -208,3 +210,7 @@ class Miskp:
         self._create_constraints()
 
         return self.op
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -14,8 +14,8 @@
 
 """ Test Cplex Optimizer """
 
-from test.optimization.common import QiskitOptimizationTestCase
-import numpy as np
+import unittest
+from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 
 from qiskit.optimization.algorithms import CplexOptimizer
 from qiskit.optimization.problems import OptimizationProblem

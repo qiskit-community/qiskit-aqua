@@ -14,10 +14,9 @@
 
 """ Test VariablesInterface """
 
-from cplex import infinity
-
+import unittest
 from qiskit.optimization.problems import OptimizationProblem
-from test.optimization.common import QiskitOptimizationTestCase
+from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 
 
 class TestVariables(QiskitOptimizationTestCase):
@@ -27,11 +26,13 @@ class TestVariables(QiskitOptimizationTestCase):
         super().setUp()
 
     def test_type(self):
+        """ test type """
         op = OptimizationProblem()
         self.assertEqual(op.variables.type.binary, 'B')
         self.assertEqual(op.variables.type['B'], 'binary')
 
     def test_initial(self):
+        """ test initial """
         op = OptimizationProblem()
         op.variables.add(names=["x0", "x1", "x2"])
         self.assertListEqual(op.variables.get_lower_bounds(), [0.0, 0.0, 0.0])
@@ -44,42 +45,50 @@ class TestVariables(QiskitOptimizationTestCase):
         self.assertEqual(op.variables.get_num_binary(), 1)
 
     def test_get_num(self):
+        """ test get num """
         op = OptimizationProblem()
         t = op.variables.type
         op.variables.add(types=[t.continuous, t.binary, t.integer])
         self.assertEqual(op.variables.get_num(), 3)
 
     def test_get_num_continuous(self):
+        """ test get num continuous """
         op = OptimizationProblem()
         t = op.variables.type
         op.variables.add(types=[t.continuous, t.binary, t.integer])
         self.assertEqual(op.variables.get_num_continuous(), 1)
 
     def test_get_num_integer(self):
+        """ test get num integer """
         op = OptimizationProblem()
         t = op.variables.type
         op.variables.add(types=[t.continuous, t.binary, t.integer])
         self.assertEqual(op.variables.get_num_integer(), 1)
 
     def test_get_num_binary(self):
+        """ test get num binary """
         op = OptimizationProblem()
         t = op.variables.type
         op.variables.add(types=[t.semi_continuous, t.binary, t.integer])
         self.assertEqual(op.variables.get_num_binary(), 1)
 
     def test_get_num_semicontinuous(self):
+        """ test get num semi continuous """
         op = OptimizationProblem()
         t = op.variables.type
         op.variables.add(types=[t.semi_continuous, t.semi_integer, t.semi_integer])
         self.assertEqual(op.variables.get_num_semicontinuous(), 1)
 
     def test_get_num_semiinteger(self):
+        """ test get num semi integer """
         op = OptimizationProblem()
         t = op.variables.type
         op.variables.add(types=[t.semi_continuous, t.semi_integer, t.semi_integer])
         self.assertEqual(op.variables.get_num_semiinteger(), 2)
 
     def test_add(self):
+        """ add test """
+        from cplex import infinity
         op = OptimizationProblem()
         op.linear_constraints.add(names=["c0", "c1", "c2"])
         op.variables.add(types=[op.variables.type.integer] * 3)
@@ -97,6 +106,7 @@ class TestVariables(QiskitOptimizationTestCase):
             [infinity, infinity, infinity, 100.0, infinity, infinity])
 
     def test_delete(self):
+        """ test delete """
         op = OptimizationProblem()
         op.variables.add(names=[str(i) for i in range(10)])
         self.assertEqual(op.variables.get_num(), 10)
@@ -113,6 +123,7 @@ class TestVariables(QiskitOptimizationTestCase):
         self.assertListEqual(op.variables.get_names(), [])
 
     def test_set_lower_bounds(self):
+        """ test set lower bounds """
         op = OptimizationProblem()
         op.variables.add(names=["x0", "x1", "x2"])
         op.variables.set_lower_bounds(0, 1.0)
@@ -121,6 +132,7 @@ class TestVariables(QiskitOptimizationTestCase):
         self.assertListEqual(op.variables.get_lower_bounds(), [1.0, -1.0, 3.0])
 
     def test_set_upper_bounds(self):
+        """ test set upper bounds """
         op = OptimizationProblem()
         op.variables.add(names=["x0", "x1", "x2"])
         op.variables.set_upper_bounds(0, 1.0)
@@ -128,6 +140,7 @@ class TestVariables(QiskitOptimizationTestCase):
         self.assertListEqual(op.variables.get_upper_bounds(), [1.0, 10.0, 3.0])
 
     def test_set_names(self):
+        """ test set names """
         op = OptimizationProblem()
         t = op.variables.type
         op.variables.add(types=[t.continuous, t.binary, t.integer])
@@ -136,6 +149,7 @@ class TestVariables(QiskitOptimizationTestCase):
         self.assertListEqual(op.variables.get_names(), ['first', 'second', 'third'])
 
     def test_set_types(self):
+        """ test set types """
         op = OptimizationProblem()
         op.variables.add(names=[str(i) for i in range(5)])
         op.variables.set_types(0, op.variables.type.continuous)
@@ -147,6 +161,7 @@ class TestVariables(QiskitOptimizationTestCase):
         self.assertEqual(op.variables.type[op.variables.get_types(0)], 'continuous')
 
     def test_get_lower_bounds(self):
+        """ test get lower bounds """
         op = OptimizationProblem()
         op.variables.add(lb=[1.5 * i for i in range(10)],
                          names=[str(i) for i in range(10)])
@@ -158,6 +173,7 @@ class TestVariables(QiskitOptimizationTestCase):
                          [0.0, 1.5, 3.0, 4.5, 6.0, 7.5, 9.0, 10.5, 12.0, 13.5])
 
     def test_get_upper_bounds(self):
+        """ test get upper bounds """
         op = OptimizationProblem()
         op.variables.add(ub=[(1.5 * i) + 1.0 for i in range(10)],
                          names=[str(i) for i in range(10)])
@@ -169,6 +185,7 @@ class TestVariables(QiskitOptimizationTestCase):
                              [1.0, 2.5, 4.0, 5.5, 7.0, 8.5, 10.0, 11.5, 13.0, 14.5])
 
     def test_get_names(self):
+        """ test get names """
         op = OptimizationProblem()
         op.variables.add(names=['x' + str(i) for i in range(10)])
         self.assertEqual(op.variables.get_num(), 10)
@@ -179,6 +196,7 @@ class TestVariables(QiskitOptimizationTestCase):
                              ['x0', 'x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8', 'x9'])
 
     def test_set_types(self):
+        """ test set types """
         op = OptimizationProblem()
         t = op.variables.type
         op.variables.add(names=[str(i) for i in range(5)],
@@ -197,22 +215,26 @@ class TestVariables(QiskitOptimizationTestCase):
         self.assertEqual(types, ['C', 'I', 'B', 'S', 'N'])
 
     def test_get_cols(self):
+        """ test get cols """
         op = OptimizationProblem()
         with self.assertRaises(NotImplementedError):
             op.variables.get_cols()
 
     def test_get_obj(self):
+        """ test get obj """
         op = OptimizationProblem()
         with self.assertRaises(NotImplementedError):
             op.variables.get_obj()
 
     def test_get_indices(self):
+        """ test get indices """
         op = OptimizationProblem()
         op.variables.add(names=['a', 'b'])
         self.assertEqual(op.variables.get_indices('a'), 0)
         self.assertListEqual(op.variables.get_indices(['a', 'b']), [0, 1])
 
     def test_add2(self):
+        """ test add2 """
         op = OptimizationProblem()
         op.variables.add(names=['x'])
         self.assertEqual(op.variables.get_indices('x'), 0)
@@ -223,9 +245,15 @@ class TestVariables(QiskitOptimizationTestCase):
         self.assertListEqual(op.variables.get_indices(), [0, 1])
 
     def test_default_bounds(self):
+        """  test default bounds """
+        from cplex import infinity
         op = OptimizationProblem()
         types = ['B', 'I', 'C', 'S', 'N']
         op.variables.add(names=types, types=types)
         self.assertListEqual(op.variables.get_lower_bounds(), [0.0] * 5)
         # the upper bound of binary variable is 1.
         self.assertListEqual(op.variables.get_upper_bounds(), [1.0] + [infinity] * 4)
+
+
+if __name__ == '__main__':
+    unittest.main()

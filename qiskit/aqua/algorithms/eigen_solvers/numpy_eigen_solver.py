@@ -14,7 +14,7 @@
 
 """The Eigensolver algorithm."""
 
-from typing import List, Optional, Tuple
+from typing import List, Optional
 import logging
 import pprint
 import warnings
@@ -191,7 +191,7 @@ class NumPyEigensolver(ClassicalAlgorithm):
         Returns:
             dict: Dictionary of results
         Raises:
-             ValueError: if no operator has been provided
+             AquaError: if no operator has been provided
         """
         if self._operator is None:
             raise AquaError("Operator was never provided")

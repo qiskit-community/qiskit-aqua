@@ -18,7 +18,6 @@
 from qiskit.aqua.operators import MatrixOperator
 from typing import Union, List, Tuple
 from qiskit import QuantumCircuit, BasicAer, execute
-from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator
 import numpy
 
