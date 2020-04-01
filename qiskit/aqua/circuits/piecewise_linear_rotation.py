@@ -17,7 +17,7 @@
 import warnings
 import numpy as np
 
-from qiskit.circuit.library.arithmetic import PiecewiseLinearRotation as PWLR
+from qiskit.circuit.library.arithmetic import PiecewiseLinearPauliRotations as PWLR
 from qiskit.aqua.utils import CircuitFactory
 
 # pylint: disable=invalid-name

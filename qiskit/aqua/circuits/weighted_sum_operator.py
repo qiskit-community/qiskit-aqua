@@ -20,7 +20,7 @@ import logging
 
 import numpy as np
 
-from qiskit.circuit.library.arithmetic import WeightedSumOperator as WSO
+from qiskit.circuit.library.arithmetic import WeightedAdder as WSO
 from qiskit.aqua import AquaError
 from qiskit.aqua.utils.circuit_factory import CircuitFactory
 

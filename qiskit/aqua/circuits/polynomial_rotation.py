@@ -21,7 +21,7 @@ from itertools import product
 from sympy.ntheory.multinomial import multinomial_coefficients
 import numpy as np
 
-from qiskit.circuit.library.arithmetic import PolynomialRotation as PR
+from qiskit.circuit.library.arithmetic import PolynomialPauliRotations as PR
 from qiskit.aqua.utils import CircuitFactory
 
 # pylint: disable=invalid-name

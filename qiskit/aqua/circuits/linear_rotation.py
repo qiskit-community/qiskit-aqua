@@ -16,7 +16,7 @@
 
 import warnings
 
-from qiskit.circuit.library.arithmetic import LinearRotation as LR
+from qiskit.circuit.library.arithmetic import LinearPauliRotations as LR
 from qiskit.aqua.utils import CircuitFactory
 
 
