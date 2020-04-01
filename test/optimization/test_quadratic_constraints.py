@@ -329,7 +329,7 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
         self.assertListEqual(s[3].val, [1.0, 2.0, 3.0, 4.0])
 
     def test_get_names(self):
-        """ tet get names """
+        """ test get names """
         op = OptimizationProblem()
         op.variables.add(names=[str(i) for i in range(11)])
         q = op.quadratic_constraints

@@ -218,7 +218,7 @@ class TestObjective(QiskitOptimizationTestCase):
         self.assertEqual(op.objective.get_name(), 'cost')
 
     def test_get_num_quadratic_variables(self):
-        """ test get num quadratic vraiables """
+        """ test get num quadratic variables """
         op = OptimizationProblem()
         n = 3
         op.variables.add(names=[str(i) for i in range(n)])

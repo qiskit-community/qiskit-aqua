@@ -75,7 +75,7 @@ class CobylaOptimizer(OptimizationAlgorithm):
         continuous variables, and otherwise, returns a message explaining the incompatibility.
 
         Args:
-            problem: The optization problem to check compatibility.
+            problem: The optimization problem to check compatibility.
 
         Returns:
             Returns ``None`` if the problem is compatible and else a string with the error message.

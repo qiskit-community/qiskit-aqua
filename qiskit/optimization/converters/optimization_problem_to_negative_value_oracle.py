@@ -31,7 +31,7 @@ class OptimizationProblemToNegativeValueOracle:
     """Converts an optimization problem (QUBO) to a negative value oracle.
 
     In addition, a state preparation operator is generated from the coefficients and constant of a
-    QUBO, which can be used to encode the function into a quantum state. In conjuction, this oracle
+    QUBO, which can be used to encode the function into a quantum state. In conjunction, this oracle
     and operator can be used to flag the negative values of a QUBO encoded in a quantum state.
     """
 

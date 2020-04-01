@@ -46,7 +46,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
     def __init__(self, min_eigen_optimizer: MinimumEigenOptimizer, min_num_vars: int = 1,
                  min_num_vars_optimizer: Optional[OptimizationAlgorithm] = None,
                  penalty: Optional[float] = None) -> None:
-        """ Initializes the recusrive miniimum eigen optimizer.
+        """ Initializes the recursive minimum eigen optimizer.
 
         This initializer takes a ``MinimumEigenOptimizer``, the parameters to specify until when to
         to apply the iterative scheme, and the optimizer to be applied once the threshold number of
@@ -88,7 +88,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         to a QUBO, and otherwise, returns a message explaining the incompatibility.
 
         Args:
-            problem: The optization problem to check compatibility.
+            problem: The optimization problem to check compatibility.
 
         Returns:
             Returns ``None`` if the problem is compatible and else a string with the error message.

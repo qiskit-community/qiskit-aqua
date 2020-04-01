@@ -31,7 +31,7 @@ class OptimizationAlgorithm:
         """Checks whether a given problem can be solved with the optimizer implementing this method.
 
         Args:
-            problem: The optization problem to check compatibility.
+            problem: The optimization problem to check compatibility.
 
         Returns:
             Returns ``None`` if the problem is compatible and else a string with the error message.

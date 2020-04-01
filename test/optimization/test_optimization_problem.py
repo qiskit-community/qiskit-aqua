@@ -127,7 +127,7 @@ class TestOptimizationProblem(QiskitOptimizationTestCase):
         self.assertEqual(op.problem_type[op.get_problem_type()], 'QP')
 
     def test_problem_type2(self):
-        """ test problemm type 2"""
+        """ test problem type 2"""
         op = qiskit.optimization.OptimizationProblem()
         op.set_problem_type(op.problem_type.LP)
         self.assertEqual(op.get_problem_type(),

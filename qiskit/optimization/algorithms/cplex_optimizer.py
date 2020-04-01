@@ -77,7 +77,7 @@ class CplexOptimizer(OptimizationAlgorithm):
         to be non-convex. This case could be addressed by setting CPLEX parameters accordingly.
 
         Args:
-            problem: The optization problem to check compatibility.
+            problem: The optimization problem to check compatibility.
 
         Returns:
             Returns ``None`` if the problem is compatible and else a string with the error message.

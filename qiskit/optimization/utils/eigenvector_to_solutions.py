@@ -13,7 +13,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Auxilliary methods to translate eigenvectors into optimization results."""
+"""Auxiliary methods to translate eigenvectors into optimization results."""
 
 from qiskit.aqua.operators import MatrixOperator
 from typing import Union, List, Tuple

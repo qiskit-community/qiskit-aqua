@@ -86,7 +86,7 @@ class IntegerToBinaryConverter:
         # replace integer variables with binary variables in the constrains
         # self.linear_constraints.subs(self._conv)
         # self.quadratic_constraints.subs(self._conv)
-        # note: `subs` substibutes variables with sets of auxiliary variables
+        # note: `subs` substitutes variables with sets of auxiliary variables
 
         self._substitute_int_var()
 

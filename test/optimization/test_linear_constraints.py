@@ -93,7 +93,7 @@ class TestLinearConstraints(QiskitOptimizationTestCase):
         self.assertListEqual(op.linear_constraints.get_senses(), ['E', 'G', 'R', 'L'])
 
     def test_set_linear_components(self):
-        """ test set lieear components """
+        """ test set linear components """
         op = OptimizationProblem()
         op.linear_constraints.add(names=["c0", "c1", "c2", "c3"])
         op.variables.add(names=["x0", "x1"])

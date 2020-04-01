@@ -26,7 +26,7 @@ from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizati
 
 
 class OptimizationProblem:
-    """A class encapsulating an optimization problem, modelled after Python CPLEX API.
+    """A class encapsulating an optimization problem, modeled after Python CPLEX API.
 
     An instance of the OptimizationProblem class provides methods for creating,
     modifying, and querying an optimization problem, solving it, and
