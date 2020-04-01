@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,23 +12,20 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-
 """
-=======================================================
-Ising Models (:mod:`qiskit.finance.applications.ising`)
-=======================================================
-Ising models for finance problems
+=================================================================================
+Optimization application stack for Aqua (:mod:`qiskit.optimization.applications`)
+=================================================================================
+This is the Optimization applications domain logic....
 
-.. currentmodule:: qiskit.finance.applications.ising
+.. currentmodule:: qiskit.optimization.applications
 
-Ising Models
-============
+Submodules
+==========
 
 .. autosummary::
-   :toctree: ../stubs/
-   :nosignatures:
+   :toctree:
 
-   portfolio
-   portfolio_diversification
+   ising
 
 """

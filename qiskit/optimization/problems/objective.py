@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Problems Objective module"""
+
 import copy
 import numbers
 from collections.abc import Sequence
@@ -26,7 +28,7 @@ CPX_MIN = 1
 logger = getLogger(__name__)
 
 
-class ObjSense(object):
+class ObjSense:
     """Constants defining the sense of the objective function."""
     maximize = CPX_MAX
     minimize = CPX_MIN
@@ -47,6 +49,7 @@ class ObjSense(object):
             return 'maximize'
         if item == CPX_MIN:
             return 'minimize'
+        return None
 
 
 class ObjectiveInterface(BaseInterface):

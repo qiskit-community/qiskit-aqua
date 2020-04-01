@@ -99,6 +99,7 @@ class TestOptimizationProblem(QiskitOptimizationTestCase):
 
             def write(self, byt):
                 """ write """
+                # pylint: disable=unused-argument
                 self.was_called = True
                 pass
 

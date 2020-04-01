@@ -12,13 +12,14 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Helper Utilities """
 
 from typing import Union, List, Sequence
 
 from qiskit.optimization.utils import QiskitOptimizationError
 
 
-class NameIndex(object):
+class NameIndex:
     """Convert a string name into an integer index.
     This is used for the implementation of `BaseInterface.get_indices`.
     """

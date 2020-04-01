@@ -15,11 +15,10 @@
 
 """Auxiliary methods to translate eigenvectors into optimization results."""
 
-from qiskit.aqua.operators import MatrixOperator
 from typing import Union, List, Tuple
+import numpy
 from qiskit import QuantumCircuit, BasicAer, execute
 from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator
-import numpy
 
 
 def eigenvector_to_solutions(eigenvector: Union[dict, numpy.ndarray],
@@ -42,6 +41,10 @@ def eigenvector_to_solutions(eigenvector: Union[dict, numpy.ndarray],
         For each computational basis state contained in the eigenvector, return the basis
         state as bitstring along with the operator evaluated at that bitstring and the
         probability of sampling this bitstring from the eigenvector.
+
+    Raises:
+        TypeError: Invalid Argument
+
     """
     solutions = []
     if isinstance(eigenvector, dict):

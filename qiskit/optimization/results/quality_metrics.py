@@ -12,8 +12,10 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Quality Metrics """
 
-class QualityMetrics(object):
+
+class QualityMetrics:
     """A class containing measures of the quality of a solution.
 
     The __str__ method of this class prints all available measures of
@@ -72,6 +74,7 @@ class QualityMetrics(object):
     """
 
     def __init__(self, soln=-1):
+        # pylint: disable=unused-argument
         self._tostring = ""
 
     def __str__(self):

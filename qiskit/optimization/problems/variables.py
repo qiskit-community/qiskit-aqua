@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Constants defining variable types """
+
 import copy
 
 from qiskit.optimization import infinity
@@ -28,7 +30,7 @@ CPX_SEMICONT = 'S'
 CPX_SEMIINT = 'N'
 
 
-class VarTypes(object):
+class VarTypes:
     """Constants defining variable types
 
     These constants are compatible with IBM ILOG CPLEX.
@@ -63,6 +65,7 @@ class VarTypes(object):
             return 'semi_integer'
         if item == CPX_SEMICONT:
             return 'semi_continuous'
+        return None
 
 
 class VariablesInterface(BaseInterface):
@@ -208,22 +211,24 @@ class VariablesInterface(BaseInterface):
             Use `objective` and `linear_constraint` instead.
 
         Args:
-            obj: a list of floats specifying the linear objective coefficients of the variables.
+            obj(List): a list of floats specifying the linear objective coefficients
+                        of the variables.
 
-            lb: a list of floats specifying the lower bounds on the variables.
+            lb(List): a list of floats specifying the lower bounds on the variables.
 
-            ub: a list of floats specifying the upper bounds on the variables.
+            ub(List): a list of floats specifying the upper bounds on the variables.
 
-            types: must be either a list of single-character strings or a string containing
+            types(List): must be either a list of single-character strings or a string containing
                 the types of the variables.
 
                 Note
                     If types is specified, the problem type will be a MIP, even if all variables are
                     specified to be continuous.
 
-            names: a list of strings.
+            names(List): a list of strings.
 
-            columns: may be either a list of sparse vectors or a matrix in list-of-lists format.
+            columns(List): may be either a list of sparse vectors or a matrix
+                            in list-of-lists format.
 
                 Note
                   The entries of columns must not contain duplicate indices.
@@ -232,7 +237,10 @@ class VariablesInterface(BaseInterface):
                   an exception will be raised.
 
         Returns:
-            an iterator containing the indices of the added variables.
+            List: an iterator containing the indices of the added variables.
+
+        Raises:
+            QiskitOptimizationError: Invalid arguments
 
         Example usage:
 

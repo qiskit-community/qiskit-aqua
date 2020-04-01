@@ -12,6 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""Methods for querying the solution to an optimization problem."""
 
 from qiskit.optimization.results.quality_metrics import QualityMetrics
 from qiskit.optimization.results.solution_status import SolutionStatus
@@ -36,7 +37,8 @@ class SolutionInterface(BaseInterface):
         as Cplex.solution.  This constructor is not meant to be used
         externally.
         """
-        super(SolutionInterface, self).__init__()
+        # pylint: disable=useless-super-delegation
+        super().__init__()
         # self.progress = ProgressInterface(self)
         # """See `ProgressInterface()` """
         # self.MIP = MIPSolutionInterface(self)
@@ -93,6 +95,7 @@ class SolutionInterface(BaseInterface):
         >>> c.solution.get_status_string()
         'optimal'
         """
+        # pylint: disable=unused-argument
         # if status_code is None:
         #    status_code = self.get_status()
         return None
@@ -145,6 +148,7 @@ class SolutionInterface(BaseInterface):
         >>> c.solution.get_values([0, 4, 5])
         [25.5, 0.0, 80.0]
         """
+        # pylint: disable=unused-argument
         return None
 
     def get_integer_quality(self, which):
@@ -249,4 +253,5 @@ class SolutionInterface(BaseInterface):
         >>> c.solve()
         >>> c.solution.write("lpex.sol")
         """
-        None
+        # pylint: disable=unused-argument
+        pass

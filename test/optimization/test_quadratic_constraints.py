@@ -131,9 +131,9 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
         op.variables.add(names=[str(i) for i in range(11)], types="B" * 11)
         q = op.quadratic_constraints
         n = 10
-        [q.add(name=str(i),
-               lin_expr=[range(i), [1.0 * (j + 1.0) for j in range(i)]])
-         for i in range(n)]
+        _ = [q.add(name=str(i),
+                   lin_expr=[range(i), [1.0 * (j + 1.0) for j in range(i)]])
+             for i in range(n)]
         self.assertEqual(q.get_num(), n)
         self.assertEqual(q.get_linear_num_nonzeros(8), 8)
         self.assertListEqual(q.get_linear_num_nonzeros('1', 3), [1, 2, 3])
@@ -179,9 +179,9 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
         op = OptimizationProblem()
         op.variables.add(names=[str(i) for i in range(11)], types="B" * 11)
         q = op.quadratic_constraints
-        [q.add(name=str(i),
-               lin_expr=[range(i), [1.0 * (j + 1.0) for j in range(i)]])
-         for i in range(10)]
+        _ = [q.add(name=str(i),
+                   lin_expr=[range(i), [1.0 * (j + 1.0) for j in range(i)]])
+             for i in range(10)]
         s_c = q.get_linear_components(8)
         self.assertListEqual(s_c.ind, [0, 1, 2, 3, 4, 5, 6, 7])
         self.assertListEqual(s_c.val, [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])
@@ -221,9 +221,9 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
         op = OptimizationProblem()
         op.variables.add(names=[str(i) for i in range(11)])
         q = op.quadratic_constraints
-        [q.add(name=str(i),
-               quad_expr=[range(i), range(i), [1.0 * (j + 1.0) for j in range(i)]])
-         for i in range(1, 11)]
+        _ = [q.add(name=str(i),
+                   quad_expr=[range(i), range(i), [1.0 * (j + 1.0) for j in range(i)]])
+             for i in range(1, 11)]
         self.assertEqual(q.get_num(), 10)
         self.assertEqual(q.get_quad_num_nonzeros(8), 9)
         self.assertListEqual(q.get_quad_num_nonzeros('1', 2), [1, 2, 3])
@@ -275,9 +275,9 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
         op = OptimizationProblem()
         op.variables.add(names=[str(i) for i in range(11)])
         q = op.quadratic_constraints
-        [q.add(name=str(i),
-               quad_expr=[range(i), range(i), [1.0 * (j + 1.0) for j in range(i)]])
-         for i in range(1, 11)]
+        _ = [q.add(name=str(i),
+                   quad_expr=[range(i), range(i), [1.0 * (j + 1.0) for j in range(i)]])
+             for i in range(1, 11)]
         s_c = q.get_quadratic_components(8)
         self.assertListEqual(s_c.ind1, [0, 1, 2, 3, 4, 5, 6, 7, 8])
         self.assertListEqual(s_c.ind2, [0, 1, 2, 3, 4, 5, 6, 7, 8])
@@ -331,9 +331,9 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
         op = OptimizationProblem()
         op.variables.add(names=[str(i) for i in range(11)])
         q = op.quadratic_constraints
-        [q.add(name="q" + str(i),
-               quad_expr=[range(i), range(i), [1.0 * (j + 1.0) for j in range(i)]])
-         for i in range(1, 11)]
+        _ = [q.add(name="q" + str(i),
+                   quad_expr=[range(i), range(i), [1.0 * (j + 1.0) for j in range(i)]])
+             for i in range(1, 11)]
         self.assertEqual(q.get_num(), 10)
         self.assertEqual(q.get_names(8), 'q9')
         self.assertListEqual(q.get_names(1, 3), ['q2', 'q3', 'q4'])

@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""Methods for adding, modifying, and querying linear constraints."""
+
 import copy
 from collections.abc import Sequence
 

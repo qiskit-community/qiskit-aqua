@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Types of problems """
+
 # pylint: disable=invalid-name
 
 CPXPROB_LP = 0
@@ -27,7 +29,7 @@ CPXPROB_MIQCP = 11
 CPXPROB_NODEQCP = 12
 
 
-class ProblemType(object):
+class ProblemType:
     """
     Types of problems the OptimizationProblem class can encapsulate.
     These types are compatible with those of IBM ILOG CPLEX.
@@ -59,6 +61,7 @@ class ProblemType(object):
         >>> op.problem_type[0]
         'LP'
         """
+        # pylint: disable=too-many-return-statements
         if item == CPXPROB_LP:
             return 'LP'
         if item == CPXPROB_MILP:
@@ -81,3 +84,4 @@ class ProblemType(object):
             return 'MIQCP'
         if item == CPXPROB_NODEQCP:
             return 'node_QCP'
+        return None

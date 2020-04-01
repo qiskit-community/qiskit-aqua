@@ -245,7 +245,7 @@ class TestLinearConstraints(QiskitOptimizationTestCase):
     def test_get_histogram(self):
         """ test get histogram """
         op = OptimizationProblem()
-        self.assertRaises(NotImplementedError, lambda: op.linear_constraints.get_histogram())
+        self.assertRaises(NotImplementedError, op.linear_constraints.get_histogram())
 
 
 if __name__ == '__main__':

@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Optimization Exception """
+
 
 class QiskitOptimizationError(Exception):
     """Class for errors returned by Qiskit Optimization libraries functions.

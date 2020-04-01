@@ -141,6 +141,7 @@ class CobylaOptimizer(OptimizationAlgorithm):
         # add variable lower and upper bounds
         lbs = problem.variables.get_lower_bounds()
         ubs = problem.variables.get_upper_bounds()
+        # pylint: disable=invalid-sequence-index
         for i in range(num_vars):
             if lbs[i] > -infinity:
                 constraints += [lambda x, lbs=lbs, i=i: x - lbs[i]]
