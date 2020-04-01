@@ -51,7 +51,10 @@ class LinearRotation(CircuitFactory):
         super().__init__(num_state_qubits + 1)
 
         # store the circuit
-        self._linear_rotation_circuit = LR(slope, offset, num_state_qubits, basis)
+        self._linear_rotation_circuit = LR(num_state_qubits=num_state_qubits,
+                                           slope=slope,
+                                           offset=offset,
+                                           basis=basis)
 
         # store parameters
         self.num_control_qubits = num_state_qubits

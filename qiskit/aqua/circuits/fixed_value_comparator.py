@@ -16,7 +16,7 @@
 
 import numpy as np
 
-from qiskit.circuit.library.arithmetic import FixedValueComparator as FVC
+from qiskit.circuit.library import IntegerComparator as FVC
 from qiskit.aqua.utils.circuit_factory import CircuitFactory
 from qiskit.aqua.circuits.gates import logical_or  # pylint: disable=unused-import
 

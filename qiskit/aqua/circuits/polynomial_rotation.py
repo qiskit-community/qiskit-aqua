@@ -19,7 +19,6 @@ Polynomially controlled Pauli-rotations
 import warnings
 from itertools import product
 from sympy.ntheory.multinomial import multinomial_coefficients
-import numpy as np
 
 from qiskit.circuit.library.arithmetic import PolynomialPauliRotations as PR
 from qiskit.aqua.utils import CircuitFactory
