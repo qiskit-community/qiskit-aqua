@@ -45,9 +45,9 @@ class PauliGraph:
         return tuple(pauli_operators), tuple(pauli_weights)  # fix their ordering
 
     def _get_nqbits(self):
-        nqbits = self.nodes[0].numberofqubits
+        nqbits = self.nodes[0].num_qubits
         for i in range(1, len(self.nodes)):
-            assert nqbits == self.nodes[i].numberofqubits, "different number of qubits"
+            assert nqbits == self.nodes[i].num_qubits, "different number of qubits"
         return nqbits
 
     def _create_edges(self):
