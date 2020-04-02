@@ -28,10 +28,10 @@ Results Objects
    grover_optimization_results
 
 ========================================================
-Optimization stack for Aqua (:mod:`qiskit.optimization`)
+Optimization stack for Aqua (:mod:`qiskit.optimization.results`)
 ========================================================
 
-.. currentmodule:: qiskit.optimization.solutions
+.. currentmodule:: qiskit.optimization.results
 
 Structures for defining a solution with metrics of its quality etc
 ==========

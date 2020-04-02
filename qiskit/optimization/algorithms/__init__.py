@@ -13,11 +13,11 @@
 # that they have been altered from the originals.
 
 """
-========================================================
-Optimization stack for Aqua (:mod:`qiskit.optimization`)
-========================================================
+===================================================================
+Optimization stack for Aqua (:mod:`qiskit.optimization.algorithms`)
+===================================================================
 
-Algorithms for optimization problems.
+Algorithms for optimization algorithms.
 
 .. currentmodule:: qiskit.optimization.algorithms
 
@@ -46,14 +46,13 @@ Algorithms
 
 """
 
-from qiskit.optimization.algorithms.admm_optimizer import ADMMOptimizer
-from qiskit.optimization.algorithms.optimization_algorithm import OptimizationAlgorithm
-from qiskit.optimization.algorithms.cplex_optimizer import CplexOptimizer
-from qiskit.optimization.algorithms.cobyla_optimizer import CobylaOptimizer
-from qiskit.optimization.algorithms.minimum_eigen_optimizer import MinimumEigenOptimizer
-from qiskit.optimization.algorithms.recursive_minimum_eigen_optimizer import\
-    RecursiveMinimumEigenOptimizer
-from qiskit.optimization.algorithms.grover_minimum_finder import GroverMinimumFinder
+from .admm_optimizer import ADMMOptimizer
+from .optimization_algorithm import OptimizationAlgorithm
+from .cplex_optimizer import CplexOptimizer
+from .cobyla_optimizer import CobylaOptimizer
+from .minimum_eigen_optimizer import MinimumEigenOptimizer
+from .recursive_minimum_eigen_optimizer import RecursiveMinimumEigenOptimizer
+from .grover_minimum_finder import GroverMinimumFinder
 
 __all__ = ["ADMMOptimizer", "OptimizationAlgorithm", "CplexOptimizer", "CobylaOptimizer",
            "MinimumEigenOptimizer", "RecursiveMinimumEigenOptimizer", "GroverMinimumFinder"]

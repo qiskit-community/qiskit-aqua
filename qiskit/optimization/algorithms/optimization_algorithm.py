@@ -15,7 +15,7 @@
 
 """An abstract class for optimization algorithms in Qiskit Optimization."""
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
 from typing import Optional
 
@@ -23,7 +23,7 @@ from ..problems.optimization_problem import OptimizationProblem
 from ..results.optimization_result import OptimizationResult
 
 
-class OptimizationAlgorithm:
+class OptimizationAlgorithm(ABC):
     """An abstract class for optimization algorithms in Qiskit Optimization."""
 
     @abstractmethod

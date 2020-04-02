@@ -11,21 +11,3 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-
-"""
-=================================================================================
-Optimization application stack for Aqua (:mod:`qiskit.optimization.applications`)
-=================================================================================
-This is the Optimization applications domain logic....
-
-.. currentmodule:: qiskit.optimization.applications
-
-Submodules
-==========
-
-.. autosummary::
-   :toctree:
-
-   ising
-
-"""

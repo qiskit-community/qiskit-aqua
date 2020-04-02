@@ -11,21 +11,3 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-
-"""
-=======================================================================
-Finance application stack for Aqua (:mod:`qiskit.finance.applications`)
-=======================================================================
-This is the finance applications domain logic....
-
-.. currentmodule:: qiskit.finance.applications
-
-Submodules
-==========
-
-.. autosummary::
-   :toctree:
-
-   ising
-
-"""

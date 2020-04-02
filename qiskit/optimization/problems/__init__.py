@@ -13,9 +13,9 @@
 # that they have been altered from the originals.
 
 """
-========================================================
-Optimization stack for Aqua (:mod:`qiskit.optimization`)
-========================================================
+=================================================================
+Optimization stack for Aqua (:mod:`qiskit.optimization.problems`)
+=================================================================
 
 .. currentmodule:: qiskit.optimization.problems
 
@@ -23,13 +23,15 @@ Structures for defining an optimization problem and its solution
 ==========
 
 .. autosummary::
-   :toctree:
+   :toctree: ../stubs/
+   :nosignatures:
 
-   OptimizationProblem
-   VariablesInterface
-   ObjectiveInterface
    LinearConstraintInterface
+   ObjSense
+   ObjectiveInterface
+   OptimizationProblem
    QuadraticConstraintInterface
+   VariablesInterface
 
 N.B. Additional classes LinearConstraintInterface, QuadraticConstraintInterface,
 ObjectiveInterface, and VariablesInterface
@@ -38,8 +40,16 @@ an instantiated OptimizationProblem.
 
 """
 
-from qiskit.optimization.problems.optimization_problem import OptimizationProblem
-from qiskit.optimization.problems.linear_constraint import LinearConstraintInterface
-from qiskit.optimization.problems.objective import ObjSense, ObjectiveInterface
+from .linear_constraint import LinearConstraintInterface
+from .objective import ObjSense, ObjectiveInterface
+from .optimization_problem import OptimizationProblem
+from .quadratic_constraint import QuadraticConstraintInterface
+from .variables import VariablesInterface
 
-__all__ = ["OptimizationProblem", "LinearConstraintInterface", "ObjSense", "ObjectiveInterface"]
+__all__ = ['LinearConstraintInterface',
+           'ObjSense',
+           'ObjectiveInterface',
+           'OptimizationProblem',
+           'QuadraticConstraintInterface',
+           'VariablesInterface'
+           ]

@@ -23,7 +23,8 @@ Submodules
 ==========
 
 .. autosummary::
-   :toctree:
+   :toctree: ../stubs/
+   :nosignatures:
 
    applications
    components
