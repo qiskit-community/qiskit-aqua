@@ -14,6 +14,7 @@
 
 """ Test TSP (Traveling Salesman Problem) """
 
+import unittest
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 
@@ -41,3 +42,7 @@ class TestTSP(QiskitOptimizationTestCase):
         x = sample_most_likely(result.eigenstate)
         order = tsp.get_tsp_solution(x)
         np.testing.assert_array_equal(order, [1, 2, 0])
+
+
+if __name__ == '__main__':
+    unittest.main()

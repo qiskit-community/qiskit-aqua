@@ -17,7 +17,7 @@ Ising Models (:mod:`qiskit.optimization.applications.ising`)
 ============================================================
 Ising models for optimization problems
 
-.. currentmodule:: qiskit.optimization.ising
+.. currentmodule:: qiskit.optimization.applications.ising
 
 Ising Models
 ============
@@ -36,6 +36,7 @@ Ising Models
    tsp
    vehicle_routing
    vertex_cover
+   knapsack
 
 Automatic Ising Model Generator from DoCPLEX Model
 ==================================================

@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,13 +12,13 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""Methods for adding, modifying, and querying quadratic constraints."""
+
 import copy
 from collections.abc import Sequence
 from logging import getLogger
 from typing import List, Dict, Tuple, Callable
-
 from cplex import SparsePair, SparseTriple
-
 from qiskit.optimization.utils.base import BaseInterface
 from qiskit.optimization.utils.helpers import NameIndex
 from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
@@ -33,8 +33,8 @@ class QuadraticConstraintInterface(BaseInterface):
         """Creates a new QuadraticConstraintInterface.
 
         The quadratic constraints interface is exposed by the top-level
-        `OptimizationProblem` class as `OptimizationProblem.quadratic_constraints`.  This constructor
-        is not meant to be used externally.
+        `OptimizationProblem` class as `OptimizationProblem.quadratic_constraints`.
+        This constructor is not meant to be used externally.
         """
         super(QuadraticConstraintInterface, self).__init__()
         self._rhs = []
@@ -69,7 +69,7 @@ class QuadraticConstraintInterface(BaseInterface):
         Takes up to five keyword arguments:
 
         Args:
-            lin_expr : either a SparsePair or a list of two lists specifying
+            lin_expr(List): either a SparsePair or a list of two lists specifying
                 the linear component of the constraint.
 
                 Note
@@ -78,7 +78,7 @@ class QuadraticConstraintInterface(BaseInterface):
                     or a combination of index and name, an exception will be
                     raised.
 
-            quad_expr : either a SparseTriple or a list of three lists
+            quad_expr(List): either a SparseTriple or a list of three lists
                 specifying the quadratic component of the constraint.
 
                 Note
@@ -87,14 +87,14 @@ class QuadraticConstraintInterface(BaseInterface):
                     names, or a combination of indices and names, an exception
                     will be raised.
 
-            sense : either "L", "G", or "E"
+            sense(str): either "L", "G", or "E"
 
-            rhs : a float specifying the righthand side of the constraint.
+            rhs(float): a float specifying the righthand side of the constraint.
 
-            name : the name of the constraint.
+            name(str) : the name of the constraint.
 
         Returns:
-             The index of the added quadratic constraint.
+             int: The index of the added quadratic constraint.
 
         Raises:
             QiskitOptimizationError: if invalid argument is given.
@@ -133,10 +133,10 @@ class QuadraticConstraintInterface(BaseInterface):
         else:
             raise QiskitOptimizationError('Invalid lin_expr: {}'.format(lin_expr))
         for i, val in zip(ind, val):
-            i2 = self._varindex(i)
-            if i2 in lin_expr_dict:
-                logger.warning('lin_expr contains duplicate index: {}'.format(i))
-            lin_expr_dict[i2] = val
+            i_2 = self._varindex(i)
+            if i_2 in lin_expr_dict:
+                logger.warning('lin_expr contains duplicate index: %d', i)
+            lin_expr_dict[i_2] = val
         self._lin_expr.append(lin_expr_dict)
 
         # quadratic terms
@@ -153,19 +153,19 @@ class QuadraticConstraintInterface(BaseInterface):
         else:
             raise QiskitOptimizationError('Invalid quad_expr: {}'.format(quad_expr))
         for i, j, val in zip(ind1, ind2, val):
-            i2 = self._varindex(i)
-            j2 = self._varindex(j)
-            if i2 < j2:
-                i2, j2 = j2, i2
-            if (i2, j2) in quad_expr_dict:
-                logger.warning('quad_expr contains duplicate index: {} {}'.format(i, j))
-            quad_expr_dict[i2, j2] = val
+            i_2 = self._varindex(i)
+            j_2 = self._varindex(j)
+            if i_2 < j_2:
+                i_2, j_2 = j_2, i_2
+            if (i_2, j_2) in quad_expr_dict:
+                logger.warning('quad_expr contains duplicate index: %d %d', i, j)
+            quad_expr_dict[i_2, j_2] = val
         self._quad_expr.append(quad_expr_dict)
 
         if sense not in ['L', 'G', 'E']:
             raise QiskitOptimizationError('Invalid sense: {}'.format(sense))
-        else:
-            self._senses.append(sense)
+
+        self._senses.append(sense)
         self._rhs.append(rhs)
 
         return self._index.convert(name)

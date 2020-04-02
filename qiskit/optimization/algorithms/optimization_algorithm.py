@@ -15,7 +15,7 @@
 
 """An abstract class for optimization algorithms in Qiskit Optimization."""
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
 from typing import Optional
 
@@ -23,7 +23,7 @@ from ..problems.optimization_problem import OptimizationProblem
 from ..results.optimization_result import OptimizationResult
 
 
-class OptimizationAlgorithm:
+class OptimizationAlgorithm(ABC):
     """An abstract class for optimization algorithms in Qiskit Optimization."""
 
     @abstractmethod
@@ -31,7 +31,7 @@ class OptimizationAlgorithm:
         """Checks whether a given problem can be solved with the optimizer implementing this method.
 
         Args:
-            problem: The optization problem to check compatibility.
+            problem: The optimization problem to check compatibility.
 
         Returns:
             Returns ``None`` if the problem is compatible and else a string with the error message.

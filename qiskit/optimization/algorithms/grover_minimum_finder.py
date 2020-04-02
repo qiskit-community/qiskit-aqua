@@ -32,6 +32,9 @@ from qiskit import Aer, QuantumCircuit
 from qiskit.providers import BaseBackend
 
 
+logger = logging.getLogger(__name__)
+
+
 class GroverMinimumFinder(OptimizationAlgorithm):
     """Uses Grover Adaptive Search (GAS) to find the minimum of a QUBO function."""
 
@@ -48,7 +51,6 @@ class GroverMinimumFinder(OptimizationAlgorithm):
             backend = quantum_instance or Aer.get_backend('statevector_simulator')
             quantum_instance = QuantumInstance(backend)
         self._quantum_instance = quantum_instance
-        self._logger = logging.getLogger(__name__)
 
     def is_compatible(self, problem: OptimizationProblem) -> Optional[str]:
         """Checks whether a given problem can be solved with this optimizer.
@@ -57,7 +59,7 @@ class GroverMinimumFinder(OptimizationAlgorithm):
         to a QUBO, and otherwise, returns a message explaining the incompatibility.
 
         Args:
-            problem: The optization problem to check compatibility.
+            problem: The optimization problem to check compatibility.
 
         Returns:
             Returns ``None`` if the problem is compatible and else a string with the error message.
@@ -135,7 +137,7 @@ class GroverMinimumFinder(OptimizationAlgorithm):
                     grover = Grover(oracle, init_state=a_operator, num_iterations=rotation_count)
                     circuit = grover.construct_circuit(
                         measurement=self._quantum_instance.is_statevector
-                        )
+                    )
 
                 else:
                     circuit = a_operator._circuit
@@ -149,16 +151,16 @@ class GroverMinimumFinder(OptimizationAlgorithm):
                 int_v = self._bin_to_int(v, n_value) + threshold
                 v = self._twos_complement(int_v, n_value)
 
-                self._logger.info('Iterations: %s', rotation_count)
-                self._logger.info('Outcome: %s', outcome)
-                self._logger.info('Value: %s = %s', v, int_v)
+                logger.info('Iterations: %s', rotation_count)
+                logger.info('Outcome: %s', outcome)
+                logger.info('Value: %s = %s', v, int_v)
 
                 # If the value is an improvement, we update the iteration parameters (e.g. oracle).
                 if int_v < optimum_value:
                     optimum_key = k
                     optimum_value = int_v
-                    self._logger.info('Current Optimum Key: %s', optimum_key)
-                    self._logger.info('Current Optimum Value: %s', optimum_value)
+                    logger.info('Current Optimum Key: %s', optimum_key)
+                    logger.info('Current Optimum Value: %s', optimum_value)
                     if v.startswith('1'):
                         improvement_found = True
                         threshold = optimum_value
@@ -171,7 +173,7 @@ class GroverMinimumFinder(OptimizationAlgorithm):
                     # Using Durr and Hoyer method, increase m.
                     # TODO: Give option for a rotation schedule, or for different lambda's.
                     m = int(np.ceil(min(m * 8/7, 2**(n_key / 2))))
-                    self._logger.info('No Improvement. M: %s', m)
+                    logger.info('No Improvement. M: %s', m)
 
                 # Check if we've already seen this value.
                 if k not in keys_measured:
@@ -186,7 +188,7 @@ class GroverMinimumFinder(OptimizationAlgorithm):
                 operations = circuit.count_ops()
                 operation_count[iteration] = operations
                 iteration += 1
-                self._logger.info('Operation Count: %s\n', operations)
+                logger.info('Operation Count: %s\n', operations)
 
         # Get original key and value pairs.
         func_dict[-1] = orig_constant
@@ -217,7 +219,7 @@ class GroverMinimumFinder(OptimizationAlgorithm):
         # Pick a random outcome.
         freq[len(freq)-1] = (freq[len(freq)-1][0], 1 - sum([x[1] for x in freq[0:len(freq)-1]]))
         idx = np.random.choice(len(freq), 1, p=[x[1] for x in freq])[0]
-        self._logger.info('Frequencies: %s', freq)
+        logger.info('Frequencies: %s', freq)
 
         return freq[idx][0]
 

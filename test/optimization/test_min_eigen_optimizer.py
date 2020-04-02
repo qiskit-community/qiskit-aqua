@@ -14,7 +14,8 @@
 
 """ Test Min Eigen Optimizer """
 
-from test.optimization.common import QiskitOptimizationTestCase
+import unittest
+from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 from ddt import ddt, data
 
 from qiskit import BasicAer
@@ -78,3 +79,7 @@ class TestMinEigenOptimizer(QiskitOptimizationTestCase):
 
         # analyze results
         self.assertAlmostEqual(cplex_result.fval, result.fval)
+
+
+if __name__ == '__main__':
+    unittest.main()

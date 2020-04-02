@@ -25,6 +25,7 @@ Examples:
 """
 
 from typing import Optional, Any
+import numpy as np
 
 from qiskit.aqua.algorithms import MinimumEigensolver
 
@@ -54,6 +55,24 @@ class MinimumEigenOptimizerResult(OptimizationResult):
         """ set samples """
         self._samples = samples
 
+    def get_correlations(self):
+        """ get <Zi x Zj> correlation matrix from samples """
+
+        states = [v[0] for v in self.samples]
+        probs = [v[2] for v in self.samples]
+
+        n = len(states[0])
+        correlations = np.zeros((n, n))
+        for k, prob in enumerate(probs):
+            b = states[k]
+            for i in range(n):
+                for j in range(i):
+                    if b[i] == b[j]:
+                        correlations[i, j] += prob
+                    else:
+                        correlations[i, j] -= prob
+        return correlations
+
 
 class MinimumEigenOptimizer(OptimizationAlgorithm):
     """A wrapper for minimum eigen solvers from Qiskit Aqua to be used within Qiskit Optimization.
@@ -65,7 +84,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
     the linear equality constraints as weighted penalty terms to the objective function. The
     resulting QUBO is then translated into an Ising Hamiltonian whose minimal eigen vector and
     corresponding eigenstate correspond to the optimal solution of the original optimization
-    problem. The provided minimum eigen solver is then used to approximate the groundstate of the
+    problem. The provided minimum eigen solver is then used to approximate the ground state of the
     Hamiltonian to find a good solution for the optimization problem.
     """
 
@@ -73,13 +92,13 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
                  ) -> None:
         """Initializes the minimum eigen optimizer.
 
-        This initializer takes the minimum eigen solver to be used to approximate the groundstate
+        This initializer takes the minimum eigen solver to be used to approximate the ground state
         of the resulting Hamiltonian as well as a optional penalty factor to scale penalty terms
         representing linear equality constraints. If no penalty factor is provided, a default
         is computed during the algorithm (TODO).
 
         Args:
-            min_eigen_solver: The eigen solver to find the groundstate of the Hamiltonian.
+            min_eigen_solver: The eigen solver to find the ground state of the Hamiltonian.
             penalty: The penalty factor to be used, or ``None`` for applying a default logic.
         """
         self._min_eigen_solver = min_eigen_solver
@@ -92,7 +111,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         to a QUBO, and otherwise, returns a message explaining the incompatibility.
 
         Args:
-            problem: The optization problem to check compatibility.
+            problem: The optimization problem to check compatibility.
 
         Returns:
             Returns ``None`` if the problem is compatible and else a string with the error message.

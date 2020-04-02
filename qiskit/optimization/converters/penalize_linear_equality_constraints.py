@@ -106,14 +106,14 @@ class PenalizeLinearEqualityConstraints:
 
             # linear parts of penalty*(Constant-func)**2: penalty*(-2*Constant*func)
             for var_ind, coef in zip(row.ind, row.val):
-                # if var_ind already exisits in the linear terms dic, add a penalty term
+                # if var_ind already exists in the linear terms dic, add a penalty term
                 # into existing value else create new key and value in the linear_term dict
                 linear_terms[var_ind] += penalty_factor * -2 * coef * constant
 
             # quadratic parts of penalty*(Constant-func)**2: penalty*(func**2)
             for var_ind_1, coef_1 in zip(row.ind, row.val):
                 for var_ind_2, coef_2 in zip(row.ind, row.val):
-                    # if var_ind_1 and var_ind_2 already exisit in the quadratic terms dic,
+                    # if var_ind_1 and var_ind_2 already exist in the quadratic terms dic,
                     # add a penalty term into existing value
                     # else create new key and value in the quadratic term dict
 

@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,9 +12,9 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""The optimization problem."""
+
 from docplex.mp.model import Model
-from cplex import Cplex, SparsePair
-from cplex.exceptions import CplexSolverError
 
 from qiskit.optimization.problems.linear_constraint import LinearConstraintInterface
 from qiskit.optimization.problems.objective import ObjectiveInterface
@@ -25,9 +25,8 @@ from qiskit.optimization.results.solution import SolutionInterface
 from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
 
 
-class OptimizationProblem(object):
-    """A class encapsulating an optimization problem, modelled after
-    Python CPLEX API.
+class OptimizationProblem:
+    """A class encapsulating an optimization problem, modeled after Python CPLEX API.
 
     An instance of the OptimizationProblem class provides methods for creating,
     modifying, and querying an optimization problem, solving it, and
@@ -55,33 +54,33 @@ class OptimizationProblem(object):
         When the with block is finished, the end() method will be called
         automatically.
         """
-
+        from cplex.exceptions import CplexSolverError
         if len(args) > 1:
             raise QiskitOptimizationError("Too many arguments to OptimizationProblem()")
         self._disposed = False
         self._name = None
 
+        # see `qiskit.optimization.VariablesInterface()`
         self.variables = VariablesInterface()
-        """See `qiskit.optimization.VariablesInterface()` """
 
-        self.linear_constraints = LinearConstraintInterface(
-            varindex=self.variables.get_indices)
-        """See `qiskit.optimization.LinearConstraintInterface()` """
+        # see `qiskit.optimization.LinearConstraintInterface()`
+        self.linear_constraints = LinearConstraintInterface(varindex=self.variables.get_indices)
 
+        # see `qiskit.optimization.QuadraticConstraintInterface()`
         self.quadratic_constraints = QuadraticConstraintInterface(
-            varindex=self.variables.get_indices)
-        """See `qiskit.optimization.QuadraticConstraintInterface()` """
+            varindex=self.variables.get_indices
+        )
 
+        # see `qiskit.optimization.ObjectiveInterface()`
         # pylint: disable=unexpected-keyword-arg
         self.objective = ObjectiveInterface(varindex=self.variables.get_indices)
-        """See `qiskit.optimization.ObjectiveInterface()` """
 
+        # see `qiskit.optimization.SolutionInterface()`
         self.solution = SolutionInterface()
-        """See `qiskit.optimization.SolutionInterface()` """
 
+        # see `qiskit.optimization.ProblemType()` -- essentially conversions from integers to
+        # strings and back
         self.problem_type = ProblemType()
-        """See `qiskit.optimization.ProblemType()` --
-        essentially conversions from integers to strings and back"""
         self.my_problem_type = 0
 
         # read from file in case filename is given
@@ -92,8 +91,9 @@ class OptimizationProblem(object):
                 raise QiskitOptimizationError('Could not load file: %s' % args[0])
 
     def from_cplex(self, op):
-
+        """ from cplex """
         # make sure current problem is clean
+        from cplex.exceptions import CplexSolverError
         self._disposed = False
         try:
             self._name = op.get_problem_name()
@@ -141,8 +141,8 @@ class OptimizationProblem(object):
             self.objective.set_linear(i, v)
 
         # set quadratic objective terms
-        for i, sp in enumerate(op.objective.get_quadratic()):
-            for j, v in zip(sp.ind, sp.val):
+        for i, sparse_pair in enumerate(op.objective.get_quadratic()):
+            for j, v in zip(sparse_pair.ind, sparse_pair.val):
                 self.objective.set_quadratic_coefficients(i, j, v)
 
         # set objective offset
@@ -160,6 +160,8 @@ class OptimizationProblem(object):
         # TODO: add quadratic constraints
 
     def from_docplex(self, model: Model):
+        """ from docplex """
+        from cplex.exceptions import CplexSolverError
         cplex = model.get_cplex()
         try:
             cplex.set_problem_name(model.get_name())
@@ -169,7 +171,8 @@ class OptimizationProblem(object):
         self.from_cplex(cplex)
 
     def to_cplex(self):
-
+        """ to cplex """
+        from cplex import Cplex
         # create empty CPLEX model
         op = Cplex()
         if self.get_problem_name() is not None:
@@ -197,8 +200,8 @@ class OptimizationProblem(object):
             op.objective.set_linear(i, v)
 
         # set quadratic objective terms
-        for i, vi in self.objective.get_quadratic().items():
-            for j, v in vi.items():
+        for i, v_i in self.objective.get_quadratic().items():
+            for j, v in v_i.items():
                 op.objective.set_quadratic_coefficients(i, j, v)
 
         # set objective offset
@@ -218,8 +221,7 @@ class OptimizationProblem(object):
         return op
 
     def end(self):
-        """Releases the OptimizationProblem object.
-        """
+        """Releases the OptimizationProblem object."""
         if self._disposed:
             return
         self._disposed = True
@@ -229,11 +231,11 @@ class OptimizationProblem(object):
         self.end()
 
     def __enter__(self):
-        """ To implement a ContextManager, as in Cplex. """
+        """To implement a ContextManager, as in Cplex."""
         return self
 
     def __exit__(self, *exc):
-        """ To implement a ContextManager, as in Cplex. """
+        """To implement a ContextManager, as in Cplex."""
         return False
 
     def read(self, filename, filetype=""):
@@ -245,6 +247,7 @@ class OptimizationProblem(object):
         >>> op = qiskit.optimization.OptimizationProblem()
         >>> op.read("lpex.mps")
         """
+        from cplex import Cplex
         cplex = Cplex()
         cplex.read(filename, filetype)
         self.from_cplex(cplex)
@@ -355,22 +358,25 @@ class OptimizationProblem(object):
           OptimizationProblem.solution.get_status() to query the status of the current
           solution.
         """
-        None
         # TODO: Implement me
+        pass
 
     def set_problem_name(self, name):
+        """Set the problem name."""
         self._name = name
 
     def get_problem_name(self):
+        """Get the problem name."""
         return self._name
 
     def substitute_variables(self, constants=None, variables=None):
-        """
+        """Substitute variables of the problem.
+
         constants: SparsePair (replace variable by constant)
         variables: SparseTriple (replace variables by weighted other variable
         need to copy everything using name reference to make sure that indices are matched correctly
         """
-
+        from cplex import SparsePair
         # guarantee that there is no overlap between variables to be replaced and combine input
         vars_to_be_replaced = {}
         if constants is not None:
@@ -407,19 +413,19 @@ class OptimizationProblem(object):
 
         # copy variables that are not replaced
         # TODO: what about columns?
-        for name, var_type, lb, ub in zip(
+        for name, var_type, lower_bound, upper_bound in zip(
                 self.variables.get_names(),
                 self.variables.get_types(),
                 self.variables.get_lower_bounds(),
                 self.variables.get_upper_bounds(),
         ):
             if name not in vars_to_be_replaced:
-                op.variables.add(lb=[lb], ub=[ub], types=[var_type], names=[name])
+                op.variables.add(lb=[lower_bound], ub=[upper_bound], types=[var_type], names=[name])
             else:
                 # check that replacement satisfies bounds
                 repl = vars_to_be_replaced[name]
                 if len(repl) == 1:
-                    if not (lb <= repl[0] <= ub):
+                    if not lower_bound <= repl[0] <= upper_bound:
                         raise QiskitOptimizationError('Infeasible substitution for variable')
 
         # initialize offset
@@ -442,8 +448,8 @@ class OptimizationProblem(object):
                 op.objective.set_linear(i_name, w_i)
 
         # construct quadratic part of objective
-        for i, vi in self.objective.get_quadratic().items():
-            for j, v in vi.items():
+        for i, v_i in self.objective.get_quadratic().items():
+            for j, v in v_i.items():
                 i = self.variables.get_indices(i)
                 j = self.variables.get_indices(j)
                 i_name = self.variables.get_names(i)
@@ -508,22 +514,22 @@ class OptimizationProblem(object):
                         if k_name in vars_to_be_replaced.keys():
                             raise QiskitOptimizationError(
                                 'Cannot substitute by variable that gets substituted itself.')
-                        l = self.variables.get_indices(j_repl[0])
-                        l_name = self.variables.get_names(l)
-                        if l_name in vars_to_be_replaced.keys():
+                        m = self.variables.get_indices(j_repl[0])
+                        m_name = self.variables.get_names(m)
+                        if m_name in vars_to_be_replaced.keys():
                             raise QiskitOptimizationError(
                                 'Cannot substitute by variable that gets substituted itself.')
-                        w_kl = op.objective.get_quadratic_coefficients(k_name, l_name)
+                        w_kl = op.objective.get_quadratic_coefficients(k_name, m_name)
                         w_kl += w_ij * i_repl[1] * j_repl[1]
-                        op.objective.set_quadratic_coefficients(k_name, l_name, w_kl)
+                        op.objective.set_quadratic_coefficients(k_name, m_name, w_kl)
                 else:
                     # nothing to be replaced, just copy coefficients
                     if i == j:
                         w_ij = sum([self.objective.get_quadratic_coefficients(i_name, j_name),
-                                   op.objective.get_quadratic_coefficients(i_name, j_name)])
+                                    op.objective.get_quadratic_coefficients(i_name, j_name)])
                     else:
                         w_ij = sum([self.objective.get_quadratic_coefficients(i_name, j_name) / 2,
-                                   op.objective.get_quadratic_coefficients(i_name, j_name)])
+                                    op.objective.get_quadratic_coefficients(i_name, j_name)])
                     op.objective.set_quadratic_coefficients(i_name, j_name, w_ij)
 
         # set offset

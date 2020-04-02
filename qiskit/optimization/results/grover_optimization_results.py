@@ -41,7 +41,7 @@ class GroverOptimizationResults:
     @property
     def operation_counts(self) -> Dict[int, Dict[str, int]]:
         """Get the operation counts.
-        
+
         Returns:
             The counts of each operation performed per iteration.
         """

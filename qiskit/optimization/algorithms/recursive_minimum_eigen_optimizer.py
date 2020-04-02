@@ -27,7 +27,6 @@
 from copy import deepcopy
 from typing import Optional
 import numpy as np
-from cplex import SparseTriple
 
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 
@@ -47,7 +46,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
     def __init__(self, min_eigen_optimizer: MinimumEigenOptimizer, min_num_vars: int = 1,
                  min_num_vars_optimizer: Optional[OptimizationAlgorithm] = None,
                  penalty: Optional[float] = None) -> None:
-        """ Initializes the recusrive miniimum eigen optimizer.
+        """ Initializes the recursive minimum eigen optimizer.
 
         This initializer takes a ``MinimumEigenOptimizer``, the parameters to specify until when to
         to apply the iterative scheme, and the optimizer to be applied once the threshold number of
@@ -89,7 +88,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         to a QUBO, and otherwise, returns a message explaining the incompatibility.
 
         Args:
-            problem: The optization problem to check compatibility.
+            problem: The optimization problem to check compatibility.
 
         Returns:
             Returns ``None`` if the problem is compatible and else a string with the error message.
@@ -108,7 +107,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
             The result of the optimizer applied to the problem.
 
         """
-
+        from cplex import SparseTriple
         # convert problem to QUBO
         qubo_converter = OptimizationProblemToQubo()
         problem_ = qubo_converter.encode(problem)
@@ -120,12 +119,9 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
 
             # solve current problem with optimizer
             result = self._min_eigen_optimizer.solve(problem_)
-            samples = result.samples
 
             # analyze results to get strongest correlation
-            states = [v[0] for v in samples]
-            probs = [v[2] for v in samples]
-            correlations = self._construct_correlations(states, probs)
+            correlations = result.get_correlations()
             i, j = self._find_strongest_correlation(correlations)
 
             x_i = problem_.variables.get_names(i)
@@ -191,19 +187,6 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         results = OptimizationResult(x, fval, (replacements, qubo_converter))
         results = qubo_converter.decode(results)
         return results
-
-    def _construct_correlations(self, states, probs):
-        n = len(states[0])
-        correlations = np.zeros((n, n))
-        for k, prob in enumerate(probs):
-            b = states[k]
-            for i in range(n):
-                for j in range(i):
-                    if b[i] == b[j]:
-                        correlations[i, j] += prob
-                    else:
-                        correlations[i, j] -= prob
-        return correlations
 
     def _find_strongest_correlation(self, correlations):
         m_max = np.argmax(np.abs(correlations.flatten()))

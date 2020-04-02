@@ -12,8 +12,9 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Test Optimization Problem to Negative Value Oracle """
+"""Test Optimization Problem to Negative Value Oracle."""
 
+import unittest
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 from qiskit.optimization.converters import OptimizationProblemToNegativeValueOracle
@@ -70,7 +71,7 @@ class TestOptimizationProblemToNegativeValueOracle(QiskitOptimizationTestCase):
 
     @staticmethod
     def _bin_to_int(v, num_value_bits):
-        if v.startswith("1"):
+        if v.startswith('1'):
             int_v = int(v, 2) - 2 ** num_value_bits
         else:
             int_v = int(v, 2)
@@ -78,14 +79,14 @@ class TestOptimizationProblemToNegativeValueOracle(QiskitOptimizationTestCase):
         return int_v
 
     def test_optnvo_3_linear_2_quadratic_no_constant(self):
-        """ Test with 3 linear coefficients, 2 quadratic, and no constant """
+        """Test with 3 linear coefficients, 2 quadratic, and no constant."""
         # Circuit parameters.
         num_value = 4
 
         # Input.
         problem = OptimizationProblem()
-        problem.variables.add(names=["x0", "x1", "x2"], types='BBB')
-        linear = [("x0", -1), ("x1", 2), ("x2", -3)]
+        problem.variables.add(names=['x0', 'x1', 'x2'], types='BBB')
+        linear = [('x0', -1), ('x1', 2), ('x2', -3)]
         problem.objective.set_linear(linear)
         problem.objective.set_quadratic_coefficients('x0', 'x2', -2)
         problem.objective.set_quadratic_coefficients('x1', 'x2', -1)
@@ -98,14 +99,14 @@ class TestOptimizationProblemToNegativeValueOracle(QiskitOptimizationTestCase):
         self._validate_operator(func_dict, len(linear), num_value, a_operator)
 
     def test_optnvo_4_key_all_negative(self):
-        """ Test with all negative values """
+        """Test with all negative values."""
         # Circuit parameters.
         num_value = 5
 
         # Input.
         problem = OptimizationProblem()
-        problem.variables.add(names=["x0", "x1", "x2"], types='BBB')
-        linear = [("x0", -1), ("x1", -2), ("x2", -1)]
+        problem.variables.add(names=['x0', 'x1', 'x2'], types='BBB')
+        linear = [('x0', -1), ('x1', -2), ('x2', -1)]
         problem.objective.set_linear(linear)
         problem.objective.set_quadratic_coefficients('x0', 'x1', -1)
         problem.objective.set_quadratic_coefficients('x0', 'x2', -2)
@@ -120,18 +121,17 @@ class TestOptimizationProblemToNegativeValueOracle(QiskitOptimizationTestCase):
         self._validate_operator(func_dict, len(linear), num_value, a_operator)
 
     def test_optnvo_6_key(self):
-        """ Test with 6 linear coefficients, negative quadratics, no constant """
+        """Test with 6 linear coefficients, negative quadratics, no constant."""
         # Circuit parameters.
         num_value = 4
 
         # Input.
         problem = OptimizationProblem()
-        problem.variables.add(names=["x0", "x1", "x2", "x3", "x4", "x5"], types='BBBBBB')
-        linear = [("x0", -1), ("x1", -2), ("x2", -1), ("x3", 0), ("x4", 1), ("x5", 2)]
+        problem.variables.add(names=['x0', 'x1', 'x2', 'x3', 'x4', 'x5'], types='BBBBBB')
+        linear = [('x0', -1), ('x1', -2), ('x2', -1), ('x3', 0), ('x4', 1), ('x5', 2)]
         problem.objective.set_linear(linear)
         problem.objective.set_quadratic_coefficients('x0', 'x3', -1)
         problem.objective.set_quadratic_coefficients('x1', 'x5', -2)
-        constant = 0
 
         # Convert to dictionary format with operator/oracle.
         converter = OptimizationProblemToNegativeValueOracle(num_value)
@@ -139,3 +139,7 @@ class TestOptimizationProblemToNegativeValueOracle(QiskitOptimizationTestCase):
 
         self._validate_function(func_dict, problem)
         self._validate_operator(func_dict, len(linear), num_value, a_operator)
+
+
+if __name__ == '__main__':
+    unittest.main()

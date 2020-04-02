@@ -38,7 +38,7 @@ class InequalityToEqualityConverter:
     _delimiter = '@'  # users are supposed not to use this character in variable names
 
     def __init__(self) -> None:
-        """Initialize the interal variables."""
+        """Initialize the integral variables."""
 
         self._src = None
         self._dst = None

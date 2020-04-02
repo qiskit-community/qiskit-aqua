@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -14,15 +14,13 @@
 
 """ Test Cobyla Optimizer """
 
-
-from test.optimization.common import QiskitOptimizationTestCase
+import unittest
+from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 
 from ddt import ddt, data
 
 from qiskit.optimization.algorithms import CobylaOptimizer
 from qiskit.optimization.problems import OptimizationProblem
-
-from cplex import SparsePair, SparseTriple
 
 
 @ddt
@@ -56,7 +54,7 @@ class TestCobylaOptimizer(QiskitOptimizationTestCase):
 
     def test_cobyla_optimizer_with_quadratic_constraint(self):
         """ Cobyla Optimizer Test """
-
+        from cplex import SparsePair, SparseTriple
         # load optimization problem
         problem = OptimizationProblem()
         problem.variables.add(lb=[0, 0], ub=[1, 1], types='CC')
@@ -72,3 +70,7 @@ class TestCobylaOptimizer(QiskitOptimizationTestCase):
 
         # analyze results
         self.assertAlmostEqual(result.fval, 1.0, places=2)
+
+
+if __name__ == '__main__':
+    unittest.main()

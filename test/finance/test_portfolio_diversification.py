@@ -14,6 +14,7 @@
 
 """ Test Portfolio Diversification Optimization """
 
+import unittest
 import math
 from test.finance import QiskitFinanceTestCase
 
@@ -243,3 +244,7 @@ class TestPortfolioDiversification(QiskitFinanceTestCase):
         if x is not None:
             np.testing.assert_approx_equal(ground_level, classical_cost)
             np.testing.assert_array_almost_equal(quantum_solution, x, 5)
+
+
+if __name__ == '__main__':
+    unittest.main()

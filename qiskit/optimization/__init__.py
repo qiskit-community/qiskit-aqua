@@ -25,20 +25,19 @@ Submodules
 .. autosummary::
    :toctree:
 
-   OptimizationProblem
-
 """
 
-CPX_INFBOUND = 1.0E+20
-infinity = CPX_INFBOUND
-
-from qiskit.optimization.utils import QiskitOptimizationError
-from qiskit.optimization.problems.linear_constraint import LinearConstraintInterface
-from qiskit.optimization.problems.objective import ObjSense, ObjectiveInterface
-from qiskit.optimization.problems.optimization_problem import OptimizationProblem
+from .infinity import infinity  # must be at the top of the file
+from .utils import QiskitOptimizationError
+from .problems import OptimizationProblem
 from ._logging import (get_qiskit_optimization_logging,
                        set_qiskit_optimization_logging)
+from .util import get_qubo_solutions
 
-__all__ = ["OptimizationProblem", "QiskitOptimizationError", "LinearConstraintInterface",
-           "ObjSense", "ObjectiveInterface", "infinity", 'get_qiskit_optimization_logging',
-           'set_qiskit_optimization_logging']
+__all__ = ['OptimizationProblem',
+           'QiskitOptimizationError',
+           'get_qiskit_optimization_logging',
+           'set_qiskit_optimization_logging',
+           'infinity',
+           'get_qubo_solutions'
+           ]

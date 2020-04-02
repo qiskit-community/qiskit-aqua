@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,13 +12,14 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Helper Utilities """
 
-from typing import Union, List, Dict, Sequence
+from typing import Union, List, Sequence
 
 from qiskit.optimization.utils import QiskitOptimizationError
 
 
-class NameIndex(object):
+class NameIndex:
     """Convert a string name into an integer index.
     This is used for the implementation of `BaseInterface.get_indices`.
     """
@@ -74,11 +75,11 @@ class NameIndex(object):
         if len(args) == 0:
             return list(self._dict.values())
         elif len(args) == 1:
-            a0 = args[0]
-            if isinstance(a0, (int, str)):
-                return self._convert_one(a0)
-            elif isinstance(a0, Sequence):
-                return [self._convert_one(e) for e in a0]
+            a_0 = args[0]
+            if isinstance(a_0, (int, str)):
+                return self._convert_one(a_0)
+            elif isinstance(a_0, Sequence):
+                return [self._convert_one(e) for e in a_0]
             else:
                 raise QiskitOptimizationError('Invalid argument: {}'.format(args))
         elif len(args) == 2:

@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,23 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""Infinity constant from CPLEX optimization."""
 
-"""
-=======================================================
-Ising Models (:mod:`qiskit.finance.applications.ising`)
-=======================================================
-Ising models for finance problems
-
-.. currentmodule:: qiskit.finance.applications.ising
-
-Ising Models
-============
-
-.. autosummary::
-   :toctree: ../stubs/
-   :nosignatures:
-
-   portfolio
-   portfolio_diversification
-
-"""
+CPX_INFBOUND = 1.0E+20
+infinity = CPX_INFBOUND  # pylint: disable=invalid-name

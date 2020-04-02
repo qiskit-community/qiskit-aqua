@@ -14,7 +14,7 @@
 
 """
 ========================================================
-Optimization stack for Aqua (:mod:`qiskit.optimization`)
+Optimization stack for Aqua (:mod:`qiskit.optimization.converters`)
 ========================================================
 
 .. currentmodule:: qiskit.optimization.converters
@@ -24,24 +24,18 @@ Structures for converting optimization problems
 
 """
 
-from qiskit.optimization.converters.optimization_problem_to_negative_value_oracle import\
-    OptimizationProblemToNegativeValueOracle
-from qiskit.optimization.converters.inequality_to_equality_converter import\
-    InequalityToEqualityConverter
-from qiskit.optimization.converters.integer_to_binary_converter import\
-    IntegerToBinaryConverter
-from qiskit.optimization.converters.optimization_problem_to_operator import\
-    OptimizationProblemToOperator
-from qiskit.optimization.converters.penalize_linear_equality_constraints import\
-    PenalizeLinearEqualityConstraints
-from qiskit.optimization.converters.optimization_problem_to_qubo import\
-    OptimizationProblemToQubo
+from .optimization_problem_to_negative_value_oracle import OptimizationProblemToNegativeValueOracle
+from .inequality_to_equality_converter import InequalityToEqualityConverter
+from .integer_to_binary_converter import IntegerToBinaryConverter
+from .optimization_problem_to_operator import OptimizationProblemToOperator
+from .penalize_linear_equality_constraints import PenalizeLinearEqualityConstraints
+from .optimization_problem_to_qubo import OptimizationProblemToQubo
 
 __all__ = [
     "InequalityToEqualityConverter",
     "IntegerToBinaryConverter",
-    "OptimizationProblemToOperator",
     "OptimizationProblemToNegativeValueOracle",
+    "OptimizationProblemToOperator",
+    "OptimizationProblemToQubo",
     "PenalizeLinearEqualityConstraints",
-    "OptimizationProblemToQubo"
 ]

@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,10 +12,10 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""Methods for adding, modifying, and querying linear constraints."""
+
 import copy
 from collections.abc import Sequence
-
-from cplex import SparsePair
 
 from qiskit.optimization.utils.base import BaseInterface
 from qiskit.optimization.utils.helpers import init_list_args, NameIndex
@@ -122,7 +122,7 @@ class LinearConstraintInterface(BaseInterface):
         >>> op.linear_constraints.get_rhs()
         [0.0, 1.0, -1.0, 2.0]
         """
-
+        from cplex import SparsePair
         arg_list = init_list_args(lin_expr, senses, rhs, range_values, names)
         arg_lengths = [len(x) for x in arg_list]
         if len(arg_lengths) == 0:
@@ -155,12 +155,12 @@ class LinearConstraintInterface(BaseInterface):
 
         if not lin_expr:
             lin_expr = [SparsePair()] * max_length
-        for sp in lin_expr:
+        for s_p in lin_expr:
             lin_expr_dict = {}
-            if isinstance(sp, SparsePair):
-                zip_iter = zip(sp.ind, sp.val)
-            elif isinstance(sp, Sequence) and len(sp) == 2:
-                zip_iter = zip(sp[0], sp[1])
+            if isinstance(s_p, SparsePair):
+                zip_iter = zip(s_p.ind, s_p.val)
+            elif isinstance(s_p, Sequence) and len(s_p) == 2:
+                zip_iter = zip(s_p[0], s_p[1])
             else:
                 raise QiskitOptimizationError('Invalid lin_expr: {}'.format(lin_expr))
             for i, val in zip_iter:
@@ -388,6 +388,7 @@ class LinearConstraintInterface(BaseInterface):
         """
 
         def _set(i, v):
+            from cplex import SparsePair
             if isinstance(v, SparsePair):
                 zip_iter = zip(v.ind, v.val)
             elif isinstance(v, Sequence) and len(v) == 2:
@@ -738,6 +739,7 @@ class LinearConstraintInterface(BaseInterface):
         """
 
         def _get(i):
+            from cplex import SparsePair
             keys = list(self._lin_expr[i].keys())
             keys.sort()
             return SparsePair(keys, [self._lin_expr[i][k] for k in keys])
@@ -763,8 +765,8 @@ class LinearConstraintInterface(BaseInterface):
         """
         nnz = 0
         for c in self._lin_expr:
-            for e in c.values():
-                if e != 0.0:
+            for e_e in c.values():
+                if e_e != 0.0:
                     nnz += 1
         return nnz
 
@@ -806,4 +808,5 @@ class LinearConstraintInterface(BaseInterface):
         return self._getter(_get, keys)
 
     def get_histogram(self):
-        raise NotImplementedError("histrogram is not implemented")
+        """ get histogram """
+        raise NotImplementedError("histogram is not implemented")

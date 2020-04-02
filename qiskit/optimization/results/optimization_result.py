@@ -33,7 +33,7 @@ class OptimizationResult:
     def __init__(self, x: Optional[Any] = None, fval: Optional[Any] = None,
                  results: Optional[Any] = None) -> None:
         """Initialize the optimization result."""
-        self._x = x
+        self._val = x
         self._fval = fval
         self._results = results
 
@@ -47,7 +47,7 @@ class OptimizationResult:
         Returns:
             The optimal value found in the optimization.
         """
-        return self._x
+        return self._val
 
     @property
     def fval(self) -> Any:
@@ -76,7 +76,7 @@ class OptimizationResult:
         Args:
             x: The new optimal value.
         """
-        self._x = x
+        self._val = x
 
     @fval.setter
     def fval(self, fval: Any) -> None:

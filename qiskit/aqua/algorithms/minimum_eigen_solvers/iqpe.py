@@ -16,13 +16,15 @@ The Iterative Quantum Phase Estimation Algorithm.
 See https://arxiv.org/abs/quant-ph/0610214
 """
 
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Union
 import logging
 import warnings
 import numpy as np
 
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.quantum_info import Pauli
+from qiskit.providers import BaseBackend
+from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import (WeightedPauliOperator, suzuki_expansion_slice_pauli_list,
                                    evolution_instruction, op_converter)
 from qiskit.aqua.utils import get_subsystem_density_matrix
@@ -58,7 +60,8 @@ class IQPEMinimumEigensolver(QuantumAlgorithm, MinimumEigensolver):
                  num_iterations: int = 1,
                  expansion_mode: str = 'suzuki',
                  expansion_order: int = 2,
-                 shallow_circuit_concat: bool = False) -> None:
+                 shallow_circuit_concat: bool = False,
+                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
         """
 
         Args:
@@ -70,12 +73,13 @@ class IQPEMinimumEigensolver(QuantumAlgorithm, MinimumEigensolver):
             expansion_order: The suzuki expansion order, has a min. value of 1.
             shallow_circuit_concat: Set True to use shallow (cheap) mode for circuit concatenation
                 of evolution slices. By default this is False.
+            quantum_instance: Quantum Instance or Backend
         """
         validate_min('num_time_slices', num_time_slices, 1)
         validate_min('num_iterations', num_iterations, 1)
         validate_in_set('expansion_mode', expansion_mode, {'trotter', 'suzuki'})
         validate_min('expansion_order', expansion_order, 1)
-        super().__init__()
+        super().__init__(quantum_instance)
         self._state_in = state_in
         self._num_time_slices = num_time_slices
         self._num_iterations = num_iterations
