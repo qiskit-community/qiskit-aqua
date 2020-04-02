@@ -14,6 +14,7 @@
 
 """ Test Stable Set """
 
+import unittest
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 from qiskit import BasicAer
@@ -62,3 +63,7 @@ class TestStableSet(QiskitOptimizationTestCase):
         ising_sol = stable_set.get_graph_solution(x)
         np.testing.assert_array_equal(ising_sol, [0, 0, 1, 1, 1])
         self.assertEqual(stable_set.stable_set_value(x, self.w), (3.0, False))
+
+
+if __name__ == '__main__':
+    unittest.main()

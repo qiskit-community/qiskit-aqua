@@ -14,41 +14,47 @@
 
 """ Test helpers """
 
+import unittest
+from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 from qiskit.optimization.utils.helpers import NameIndex, init_list_args
 from qiskit.optimization import QiskitOptimizationError
-from test.optimization.common import QiskitOptimizationTestCase
 
 
 class TestHelpers(QiskitOptimizationTestCase):
     """Test helpers."""
 
-    def setUp(self):
-        super().setUp()
-
     def test_init_list_args(self):
-        a = init_list_args(1, [2], None)
-        self.assertTupleEqual(a, (1, [2], []))
+        """ test init list args """
+        args = init_list_args(1, [2], None)
+        self.assertTupleEqual(args, (1, [2], []))
 
     def test_name_index1(self):
-        a = NameIndex()
-        self.assertEqual(a.convert('1'), 0)
-        self.assertListEqual(a.convert(['2', '3']), [1, 2])
-        self.assertEqual(a.convert('1'), 0)
-        self.assertListEqual(a.convert(), [0, 1, 2])
-        self.assertListEqual(a.convert('1', '3'), [0, 1, 2])
-        self.assertListEqual(a.convert('1', '2'), [0, 1])
+        """ test name index 1 """
+        n_i = NameIndex()
+        self.assertEqual(n_i.convert('1'), 0)
+        self.assertListEqual(n_i.convert(['2', '3']), [1, 2])
+        self.assertEqual(n_i.convert('1'), 0)
+        self.assertListEqual(n_i.convert(), [0, 1, 2])
+        self.assertListEqual(n_i.convert('1', '3'), [0, 1, 2])
+        self.assertListEqual(n_i.convert('1', '2'), [0, 1])
 
     def test_name_index2(self):
-        a = NameIndex()
-        a.build(['1', '2', '3'])
-        self.assertEqual(a.convert('1'), 0)
-        self.assertListEqual(a.convert(), [0, 1, 2])
-        self.assertListEqual(a.convert('1', '3'), [0, 1, 2])
-        self.assertListEqual(a.convert('1', '2'), [0, 1])
+        """ test name index 2 """
+        n_i = NameIndex()
+        n_i.build(['1', '2', '3'])
+        self.assertEqual(n_i.convert('1'), 0)
+        self.assertListEqual(n_i.convert(), [0, 1, 2])
+        self.assertListEqual(n_i.convert('1', '3'), [0, 1, 2])
+        self.assertListEqual(n_i.convert('1', '2'), [0, 1])
 
     def test_name_index3(self):
-        a = NameIndex()
+        """ test name index 3 """
+        n_i = NameIndex()
         with self.assertRaises(QiskitOptimizationError):
-            a.convert({})
+            n_i.convert({})
         with self.assertRaises(QiskitOptimizationError):
-            a.convert(1, 2, 3)
+            n_i.convert(1, 2, 3)
+
+
+if __name__ == '__main__':
+    unittest.main()

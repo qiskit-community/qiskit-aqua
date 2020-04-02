@@ -31,6 +31,9 @@ from qiskit import Aer, QuantumCircuit
 from qiskit.providers import BaseBackend
 
 
+logger = logging.getLogger(__name__)
+
+
 class GroverOptimizer(OptimizationAlgorithm):
     """Uses Grover Adaptive Search (GAS) to find the minimum of a QUBO function."""
 
@@ -38,6 +41,7 @@ class GroverOptimizer(OptimizationAlgorithm):
                  quantum_instance: Optional[Union[BaseBackend, QuantumInstance]] = None) -> None:
         """
         Args:
+            num_value_qubits: The number of value qubits.
             num_iterations: The number of iterations the algorithm will search with
                 no improvement.
             quantum_instance: Instance of selected backend, defaults to Aer's statevector simulator.
@@ -48,7 +52,6 @@ class GroverOptimizer(OptimizationAlgorithm):
             backend = quantum_instance or Aer.get_backend('statevector_simulator')
             quantum_instance = QuantumInstance(backend)
         self._quantum_instance = quantum_instance
-        self._logger = logging.getLogger(__name__)
 
     def is_compatible(self, problem: OptimizationProblem) -> Optional[str]:
         """Checks whether a given problem can be solved with this optimizer.
@@ -57,7 +60,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         to a QUBO, and otherwise, returns a message explaining the incompatibility.
 
         Args:
-            problem: The optization problem to check compatibility.
+            problem: The optimization problem to check compatibility.
 
         Returns:
             Returns ``None`` if the problem is compatible and else a string with the error message.
@@ -123,15 +126,15 @@ class GroverOptimizer(OptimizationAlgorithm):
             v = outcome[n_key:n_key + n_value]
             int_v = self._bin_to_int(v, n_value) + threshold
             v = self._twos_complement(int_v, n_value)
-            self._logger.info('Outcome: %s', outcome)
-            self._logger.info('Value: %s = %s', v, int_v)
+            logger.info('Outcome: %s', outcome)
+            logger.info('Value: %s = %s', v, int_v)
 
             # If the value is an improvement, we update the iteration parameters (e.g. oracle).
             if int_v < optimum_value:
                 optimum_key = k
                 optimum_value = int_v
-                self._logger.info('Current Optimum Key: %s', optimum_key)
-                self._logger.info('Current Optimum Value: %s', optimum_value)
+                logger.info('Current Optimum Key: %s', optimum_key)
+                logger.info('Current Optimum Value: %s', optimum_value)
                 if v.startswith('1'):
                     threshold = optimum_value
             else:
@@ -151,7 +154,7 @@ class GroverOptimizer(OptimizationAlgorithm):
             operations = circuit.count_ops()
             operation_count[iteration] = operations
             iteration += 1
-            self._logger.info('Operation Count: %s\n', operations)
+            logger.info('Operation Count: %s\n', operations)
 
         # Get original key and value pairs.
         func_dict[-1] = orig_constant
@@ -181,7 +184,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         # Pick a random outcome.
         freq[len(freq)-1] = (freq[len(freq)-1][0], 1 - sum([x[1] for x in freq[0:len(freq)-1]]))
         idx = np.random.choice(len(freq), 1, p=[x[1] for x in freq])[0]
-        self._logger.info('Frequencies: %s', freq)
+        logger.info('Frequencies: %s', freq)
 
         return freq[idx][0]
 

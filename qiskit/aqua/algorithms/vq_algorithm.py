@@ -22,7 +22,7 @@ of this class to carry out the optimization. Alternatively, all of the functions
 overridden to opt-out of this infrastructure but still meet the interface requirements.
 """
 
-from typing import Optional, Callable
+from typing import Optional, Callable, Union
 import time
 import logging
 import warnings
@@ -30,8 +30,10 @@ from abc import abstractmethod
 import numpy as np
 
 from qiskit.circuit import ParameterVector
+from qiskit.providers import BaseBackend
+from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import AlgorithmResult, QuantumAlgorithm
-from qiskit.aqua.components.optimizers import Optimizer
+from qiskit.aqua.components.optimizers import Optimizer, SLSQP
 from qiskit.aqua.components.variational_forms import VariationalForm
 
 logger = logging.getLogger(__name__)
@@ -48,7 +50,8 @@ class VQAlgorithm(QuantumAlgorithm):
                  var_form: Optional[VariationalForm] = None,
                  optimizer: Optional[Optimizer] = None,
                  cost_fn: Optional[Callable] = None,
-                 initial_point: Optional[np.ndarray] = None) -> None:
+                 initial_point: Optional[np.ndarray] = None,
+                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
         """
         Args:
             var_form: An optional parameterized variational form (ansatz).
@@ -57,18 +60,20 @@ class VQAlgorithm(QuantumAlgorithm):
                 supplied on :meth:`find_minimum`.
             initial_point: An optional initial point (i.e. initial parameter values)
                 for the optimizer.
+            quantum_instance: The Quantum Instance or Backend to run the circuits.
         Raises:
              ValueError: for invalid input
         """
-        super().__init__()
-
-        self._initial_point = initial_point
-        self.var_form = var_form
+        super().__init__(quantum_instance)
 
         if optimizer is None:
-            raise ValueError('Missing optimizer.')
+            logger.info('No optimizer provided, setting it to SLSPQ.')
+            optimizer = SLSQP()
+
         self._optimizer = optimizer
         self._cost_fn = cost_fn
+        self._initial_point = initial_point
+        self.var_form = var_form
 
         self._parameterized_circuits = None
 

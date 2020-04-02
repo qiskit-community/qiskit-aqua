@@ -85,3 +85,6 @@ class TestQAOA(QiskitOptimizationTestCase):
         self.log.debug('solution objective: %s', max_cut.max_cut_value(x, w))
         self.assertIn(''.join([str(int(i)) for i in graph_solution]), solutions)
 
+
+if __name__ == '__main__':
+    unittest.main()

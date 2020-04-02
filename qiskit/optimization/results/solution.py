@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,12 +12,12 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""Methods for querying the solution to an optimization problem."""
 
 from qiskit.optimization.results.quality_metrics import QualityMetrics
 from qiskit.optimization.results.solution_status import SolutionStatus
 
 from qiskit.optimization.utils.base import BaseInterface
-from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
 
 
 class SolutionInterface(BaseInterface):
@@ -37,7 +37,8 @@ class SolutionInterface(BaseInterface):
         as Cplex.solution.  This constructor is not meant to be used
         externally.
         """
-        super(SolutionInterface, self).__init__()
+        # pylint: disable=useless-super-delegation
+        super().__init__()
         # self.progress = ProgressInterface(self)
         # """See `ProgressInterface()` """
         # self.MIP = MIPSolutionInterface(self)
@@ -49,7 +50,7 @@ class SolutionInterface(BaseInterface):
         """Returns the status of the solution.
 
         Returns an attribute of Cplex.solution.status.
-        For interpretations of the status codes, see the 
+        For interpretations of the status codes, see the
         reference manual of the CPLEX Callable Library,
         especially the group optim.cplex.callable.solutionstatus
 
@@ -94,6 +95,7 @@ class SolutionInterface(BaseInterface):
         >>> c.solution.get_status_string()
         'optimal'
         """
+        # pylint: disable=unused-argument
         # if status_code is None:
         #    status_code = self.get_status()
         return None
@@ -146,6 +148,7 @@ class SolutionInterface(BaseInterface):
         >>> c.solution.get_values([0, 4, 5])
         [25.5, 0.0, 80.0]
         """
+        # pylint: disable=unused-argument
         return None
 
     def get_integer_quality(self, which):
@@ -250,4 +253,5 @@ class SolutionInterface(BaseInterface):
         >>> c.solve()
         >>> c.solution.write("lpex.sol")
         """
-        None
+        # pylint: disable=unused-argument
+        pass

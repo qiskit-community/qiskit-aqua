@@ -3,7 +3,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -15,24 +15,26 @@
 
 """A wrapper for minimum eigen solvers from Qiskit Aqua to be used within Qiskit Optimization.
 
-    Examples:
-        >>> # specify problem here
-        >>> problem = OptimizationProblem()
-        >>> # specify minimum eigen solver to be used, e.g., QAOA
-        >>> qaoa = QAOA(...)
-        >>> # construct minimum eigen optimizer
-        >>> optimizer = MinimumEigenOptimizer(qaoa)
-        >>> result = optimizer.solve(problem)
+Examples:
+    >>> problem = OptimizationProblem()
+    >>> # specify problem here
+    >>> # specify minimum eigen solver to be used, e.g., QAOA
+    >>> qaoa = QAOA(...)
+    >>> optimizer = MinEigenOptimizer(qaoa)
+    >>> result = optimizer.solve(problem)
 """
 
 from typing import Optional, Any
+import numpy as np
 
 from qiskit.aqua.algorithms import MinimumEigensolver
-from qiskit.optimization.problems import OptimizationProblem
-from qiskit.optimization.algorithms import OptimizationAlgorithm
-from qiskit.optimization.converters import OptimizationProblemToQubo, OptimizationProblemToOperator
-from qiskit.optimization.utils import eigenvector_to_solutions
-from qiskit.optimization.results import OptimizationResult
+
+from .optimization_algorithm import OptimizationAlgorithm
+from ..problems.optimization_problem import OptimizationProblem
+from ..utils.eigenvector_to_solutions import eigenvector_to_solutions
+from ..converters.optimization_problem_to_operator import OptimizationProblemToOperator
+from ..converters.optimization_problem_to_qubo import OptimizationProblemToQubo
+from ..results.optimization_result import OptimizationResult
 
 
 class MinimumEigenOptimizerResult(OptimizationResult):
@@ -53,6 +55,24 @@ class MinimumEigenOptimizerResult(OptimizationResult):
         """ set samples """
         self._samples = samples
 
+    def get_correlations(self):
+        """ get <Zi x Zj> correlation matrix from samples """
+
+        states = [v[0] for v in self.samples]
+        probs = [v[2] for v in self.samples]
+
+        n = len(states[0])
+        correlations = np.zeros((n, n))
+        for k, prob in enumerate(probs):
+            b = states[k]
+            for i in range(n):
+                for j in range(i):
+                    if b[i] == b[j]:
+                        correlations[i, j] += prob
+                    else:
+                        correlations[i, j] -= prob
+        return correlations
+
 
 class MinimumEigenOptimizer(OptimizationAlgorithm):
     """A wrapper for minimum eigen solvers from Qiskit Aqua to be used within Qiskit Optimization.
@@ -64,22 +84,21 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
     the linear equality constraints as weighted penalty terms to the objective function. The
     resulting QUBO is then translated into an Ising Hamiltonian whose minimal eigen vector and
     corresponding eigenstate correspond to the optimal solution of the original optimization
-    problem. The provided minimum eigen solver is then used to approximate the groundstate of the
+    problem. The provided minimum eigen solver is then used to approximate the ground state of the
     Hamiltonian to find a good solution for the optimization problem.
-
     """
 
     def __init__(self, min_eigen_solver: MinimumEigensolver, penalty: Optional[float] = None
                  ) -> None:
         """Initializes the minimum eigen optimizer.
 
-        This initializer takes the minimum eigen solver to be used to approximate the groundstate
+        This initializer takes the minimum eigen solver to be used to approximate the ground state
         of the resulting Hamiltonian as well as a optional penalty factor to scale penalty terms
         representing linear equality constraints. If no penalty factor is provided, a default
         is computed during the algorithm (TODO).
 
         Args:
-            min_eigen_solver: The eigen solver to find the groundstate of the Hamiltonian.
+            min_eigen_solver: The eigen solver to find the ground state of the Hamiltonian.
             penalty: The penalty factor to be used, or ``None`` for applying a default logic.
         """
         self._min_eigen_solver = min_eigen_solver
@@ -92,7 +111,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         to a QUBO, and otherwise, returns a message explaining the incompatibility.
 
         Args:
-            problem: The optization problem to check compatibility.
+            problem: The optimization problem to check compatibility.
 
         Returns:
             Returns ``None`` if the problem is compatible and else a string with the error message.

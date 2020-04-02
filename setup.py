@@ -33,7 +33,6 @@ requirements = [
     "numpy>=1.13",
     "psutil>=5",
     "scikit-learn>=0.20.0",
-    "cvxopt; python_version < '3.8' or sys_platform != 'win32'",
     "dlx",
     "docplex",
     "fastdtw",
@@ -42,6 +41,7 @@ requirements = [
     "h5py",
     "networkx>=2.2",
     "pyscf; sys_platform == 'linux' or (python_version < '3.8' and sys_platform != 'win32')",
+    "cplex; python_version < '3.8'",
 ]
 
 if not hasattr(setuptools, 'find_namespace_packages') or not inspect.ismethod(setuptools.find_namespace_packages):

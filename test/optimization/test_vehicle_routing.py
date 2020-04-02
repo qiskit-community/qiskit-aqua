@@ -14,6 +14,7 @@
 
 """ Test Vehicle Routing """
 
+import unittest
 from test.optimization import QiskitOptimizationTestCase
 
 import numpy as np
@@ -64,3 +65,7 @@ class TestVehicleRouting(QiskitOptimizationTestCase):
         result = NumPyMinimumEigensolver(self.qubit_op).run()
         arr = np.array([0., 0., 0., 1.])
         np.testing.assert_array_almost_equal(arr, result.eigenstate, 4)
+
+
+if __name__ == '__main__':
+    unittest.main()

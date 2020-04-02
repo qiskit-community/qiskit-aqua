@@ -14,6 +14,7 @@
 
 """ Test Docplex """
 
+import unittest
 from math import fsum, isclose
 from test.optimization import QiskitOptimizationTestCase
 
@@ -320,3 +321,7 @@ class TestDocplex(QiskitOptimizationTestCase):
 
         # Compare objective
         self.assertEqual(result.eigenvalue.real + offset, expected_result)
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -14,6 +14,7 @@
 
 """ Test Graph Partition """
 
+import unittest
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 from qiskit import BasicAer
@@ -84,3 +85,7 @@ class TestGraphPartition(QiskitOptimizationTestCase):
         np.testing.assert_array_equal(ising_sol, [0, 1, 0, 1])
         oracle = self._brute_force()
         self.assertEqual(graph_partition.objective_value(x, self.w), oracle)
+
+
+if __name__ == '__main__':
+    unittest.main()

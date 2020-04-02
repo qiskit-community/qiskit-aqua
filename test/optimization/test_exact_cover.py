@@ -14,6 +14,7 @@
 
 """ Test Exact Cover """
 
+import unittest
 import json
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
@@ -81,3 +82,7 @@ class TestExactCover(QiskitOptimizationTestCase):
         oracle = self._brute_force()
         self.assertEqual(exact_cover.check_solution_satisfiability(ising_sol, self.list_of_subsets),
                          oracle)
+
+
+if __name__ == '__main__':
+    unittest.main()

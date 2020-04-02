@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,13 +12,13 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Problems Objective module"""
+
 import copy
 import numbers
 from collections.abc import Sequence
 from logging import getLogger
 from typing import Callable, List
-
-from cplex import SparsePair
 
 from qiskit.optimization.utils import BaseInterface, QiskitOptimizationError
 
@@ -28,7 +28,7 @@ CPX_MIN = 1
 logger = getLogger(__name__)
 
 
-class ObjSense(object):
+class ObjSense:
     """Constants defining the sense of the objective function."""
     maximize = CPX_MAX
     minimize = CPX_MIN
@@ -49,6 +49,7 @@ class ObjSense(object):
             return 'maximize'
         if item == CPX_MIN:
             return 'minimize'
+        return None
 
 
 class ObjectiveInterface(BaseInterface):
@@ -142,7 +143,7 @@ class ObjectiveInterface(BaseInterface):
             [SparsePair(ind = [0], val = [1.0]), SparsePair(ind = [1], val = [2.0]),
                 SparsePair(ind = [2], val = [3.0])]
         """
-
+        from cplex import SparsePair
         # clear data
         self._quadratic = {}
 
@@ -163,12 +164,12 @@ class ObjectiveInterface(BaseInterface):
             for i, val in enumerate(args):
                 _set(i, i, val)
         else:
-            for i, sp in enumerate(args):
-                if isinstance(sp, SparsePair):
-                    for j, val in zip(sp.ind, sp.val):
+            for i, s_p in enumerate(args):
+                if isinstance(s_p, SparsePair):
+                    for j, val in zip(s_p.ind, s_p.val):
                         _set(i, j, val)
-                elif isinstance(sp, Sequence) and len(sp) == 2:
-                    for j, val in zip(sp[0], sp[1]):
+                elif isinstance(s_p, Sequence) and len(s_p) == 2:
+                    for j, val in zip(s_p[0], s_p[1]):
                         _set(i, j, val)
                 else:
                     raise QiskitOptimizationError(
@@ -374,8 +375,9 @@ class ObjectiveInterface(BaseInterface):
         """
 
         def _get(i):
-            qi = self._quadratic.get(i, {})
-            return SparsePair(list(qi.keys()), list(qi.values()))
+            from cplex import SparsePair
+            q_i = self._quadratic.get(i, {})
+            return SparsePair(list(q_i.keys()), list(q_i.values()))
 
         if len(args) == 0:
             return copy.deepcopy(self._quadratic)

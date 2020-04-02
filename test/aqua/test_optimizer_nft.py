@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020
+# (C) Copyright IBM 2020
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Test of AQGD optimizer """
+""" Test of NFT optimizer """
 
 from test.aqua import QiskitAquaTestCase
 from qiskit import BasicAer
@@ -20,12 +20,12 @@ from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.aqua.components.variational_forms import RY
-from qiskit.aqua.components.optimizers import AQGD
+from qiskit.aqua.components.optimizers import NFT
 from qiskit.aqua.algorithms import VQE
 
 
-class TestAQGD(QiskitAquaTestCase):
-    """ Test AQGD optimizer using RY for analytic gradient with VQE """
+class TestOptimizerNFT(QiskitAquaTestCase):
+    """ Test NFT optimizer using RY with VQE """
 
     def setUp(self):
         super().setUp()
@@ -41,13 +41,13 @@ class TestAQGD(QiskitAquaTestCase):
         }
         self.qubit_op = WeightedPauliOperator.from_dict(pauli_dict)
 
-    def test_aqgd(self):
-        """ test AQGD optimizer by using it """
+    def test_nft(self):
+        """ Test NFT optimizer by using it """
 
         result = VQE(self.qubit_op,
                      RY(self.qubit_op.num_qubits),
-                     AQGD(momentum=0.0)).run(
+                     NFT()).run(
                          QuantumInstance(BasicAer.get_backend('statevector_simulator'),
                                          seed_simulator=aqua_globals.random_seed,
                                          seed_transpiler=aqua_globals.random_seed))
-        self.assertAlmostEqual(result.eigenvalue.real, -1.85727, places=5)
+        self.assertAlmostEqual(result.eigenvalue.real, -1.857275, places=6)

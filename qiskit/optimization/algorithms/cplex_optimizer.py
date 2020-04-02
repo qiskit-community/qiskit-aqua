@@ -3,7 +3,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -15,22 +15,21 @@
 
 """The CPLEX optimizer wrapped to be used within Qiskit Optimization.
 
-    Examples:
-        >>> problem = OptimizationProblem()
-        >>> # specify problem here
-        >>> optimizer = CplexOptimizer()
-        >>> result = optimizer.solve(problem)
+Examples:
+    >>> problem = OptimizationProblem()
+    >>> # specify problem here
+    >>> optimizer = CplexOptimizer()
+    >>> result = optimizer.solve(problem)
 """
 
 from typing import Optional
-
 from cplex import ParameterSet
 from cplex.exceptions import CplexSolverError
 
-from qiskit.optimization import QiskitOptimizationError
-from qiskit.optimization.algorithms import OptimizationAlgorithm
-from qiskit.optimization.results import OptimizationResult
-from qiskit.optimization.problems import OptimizationProblem
+from .optimization_algorithm import OptimizationAlgorithm
+from ..utils.qiskit_optimization_error import QiskitOptimizationError
+from ..results.optimization_result import OptimizationResult
+from ..problems.optimization_problem import OptimizationProblem
 
 
 class CplexOptimizer(OptimizationAlgorithm):
@@ -78,7 +77,7 @@ class CplexOptimizer(OptimizationAlgorithm):
         to be non-convex. This case could be addressed by setting CPLEX parameters accordingly.
 
         Args:
-            problem: The optization problem to check compatibility.
+            problem: The optimization problem to check compatibility.
 
         Returns:
             Returns ``None`` if the problem is compatible and else a string with the error message.
@@ -111,7 +110,7 @@ class CplexOptimizer(OptimizationAlgorithm):
         try:
             cplex.solve()
         except CplexSolverError:
-            raise QiskitOptimizationError("Non convex/symmetric matrix.")
+            raise QiskitOptimizationError('Non convex/symmetric matrix.')
 
         # process results
         sol = cplex.solution

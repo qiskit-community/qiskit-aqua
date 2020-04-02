@@ -26,6 +26,7 @@ class MinEigenSolver:
 
     @abstractmethod
     def compute_min_eigenvalue(self, operator=None):
+        """ computes minimum eigen value """
         raise NotImplementedError()
 
     # Cannot implement this, since ExactEigenSolver and VQE both inherit from

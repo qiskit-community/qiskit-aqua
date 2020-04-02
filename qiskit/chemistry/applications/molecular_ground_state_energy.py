@@ -18,14 +18,13 @@ from typing import List, Optional, Callable, Union
 
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.algorithms import MinimumEigensolver, AlgorithmResult, MinimumEigensolverResult, \
-    VQE
+from qiskit.aqua.algorithms import MinimumEigensolver, VQE
 from qiskit.aqua.operators import Z2Symmetries
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.components.initial_states import HartreeFock
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.core import (Hamiltonian, TransformationType, QubitMappingType,
-                                   ChemistryOperator)
+                                   ChemistryOperator, MolecularGroundStateResult)
 from qiskit.chemistry.drivers import BaseDriver
 
 
@@ -39,7 +38,8 @@ class MolecularGroundStateEnergy:
                  qubit_mapping: QubitMappingType = QubitMappingType.PARITY,
                  two_qubit_reduction: bool = True,
                  freeze_core: bool = False,
-                 orbital_reduction: Optional[List[int]] = None) -> None:
+                 orbital_reduction: Optional[List[int]] = None,
+                 z2symmetry_reduction: Optional[Union[str, List[int]]] = None) -> None:
         """
         Args:
             driver: Chemistry driver
@@ -51,6 +51,14 @@ class MolecularGroundStateEnergy:
                                  when parity mapping only
             freeze_core: Whether to freeze core orbitals when possible
             orbital_reduction: Orbital list to be frozen or removed
+            z2symmetry_reduction: If z2 symmetry reduction should be applied to the qubit operators
+                that are computed. Setting 'auto' will
+                use an automatic computation of the correct sector. If from other experiments, with
+                the z2symmetry logic, the sector is known, then the tapering values of that sector
+                can be provided (a list of int of values -1, and 1). The default is None
+                meaning no symmetry reduction is done.
+                See also :class:`~qiskit.chemistry.core.Hamiltonian` which has the core
+                processing behind this class.
         """
         self._driver = driver
         self._solver = solver
@@ -59,7 +67,7 @@ class MolecularGroundStateEnergy:
         self._two_qubit_reduction = two_qubit_reduction
         self._freeze_core = freeze_core
         self._orbital_reduction = orbital_reduction
-        self._z2_symmetries = None
+        self._z2symmetry_reduction = z2symmetry_reduction
 
     @property
     def driver(self) -> BaseDriver:
@@ -81,9 +89,9 @@ class MolecularGroundStateEnergy:
         self._solver = solver
 
     def compute_energy(self,
-                       callback: Optional[Callable[[List, int, str, bool, Optional[Z2Symmetries]],
+                       callback: Optional[Callable[[List, int, str, bool, Z2Symmetries],
                                                    MinimumEigensolver]] = None
-                       ) -> 'MolecularGroundStateEnergyResult':
+                       ) -> MolecularGroundStateResult:
         """
         Compute the ground state energy of the molecule that was supplied via the driver
 
@@ -96,7 +104,7 @@ class MolecularGroundStateEnergy:
                 for use as the solver here.
 
         Returns:
-            A MolecularGroundStateEnergyResult
+            A molecular ground state result
         Raises:
             QiskitChemistryError: If no MinimumEigensolver was given and no callback is being
                                   used that could supply one instead.
@@ -109,31 +117,27 @@ class MolecularGroundStateEnergy:
                            qubit_mapping=self._qubit_mapping,
                            two_qubit_reduction=self._two_qubit_reduction,
                            freeze_core=self._freeze_core,
-                           orbital_reduction=self._orbital_reduction)
+                           orbital_reduction=self._orbital_reduction,
+                           z2symmetry_reduction=self._z2symmetry_reduction)
         operator, aux_operators = core.run(q_molecule)
 
         if callback is not None:
             num_particles = core.molecule_info[ChemistryOperator.INFO_NUM_PARTICLES]
             num_orbitals = core.molecule_info[ChemistryOperator.INFO_NUM_ORBITALS]
+            two_qubit_reduction = core.molecule_info[ChemistryOperator.INFO_TWO_QUBIT_REDUCTION]
+            z2_symmetries = core.molecule_info[ChemistryOperator.INFO_Z2SYMMETRIES]
             self.solver = callback(num_particles, num_orbitals,
-                                   self._qubit_mapping.value, self._two_qubit_reduction,
-                                   self._z2_symmetries)
+                                   self._qubit_mapping.value, two_qubit_reduction,
+                                   z2_symmetries)
 
         aux_operators = aux_operators if self.solver.supports_aux_operators() else None
 
         raw_result = self.solver.compute_minimum_eigenvalue(operator, aux_operators)
-        lines, core_result = core.process_algorithm_result(raw_result)
-
-        mgse = MolecularGroundStateEnergyResult()
-        mgse.energy = core_result['energy']
-        mgse.printable = lines
-        mgse.raw_result = raw_result
-
-        return mgse
+        return core.process_algorithm_result(raw_result)
 
     @staticmethod
     def get_default_solver(quantum_instance: Union[QuantumInstance, BaseBackend]) ->\
-            Optional[Callable[[List, int, str, bool, Optional[Z2Symmetries]], MinimumEigensolver]]:
+            Optional[Callable[[List, int, str, bool, Z2Symmetries], MinimumEigensolver]]:
         """
         Get the default solver callback that can be used with :meth:`compute_energy`
         Args:
@@ -146,9 +150,8 @@ class MolecularGroundStateEnergy:
         def cb_default_solver(num_particles, num_orbitals,
                               qubit_mapping, two_qubit_reduction, z2_symmetries):
             """ Default solver """
-            sq_list = z2_symmetries.sq_list if z2_symmetries is not None else None
             initial_state = HartreeFock(2, num_orbitals, num_particles, qubit_mapping,
-                                        two_qubit_reduction, sq_list)
+                                        two_qubit_reduction, z2_symmetries.sq_list)
             var_form = UCCSD(2, depth=1,
                              num_orbitals=num_orbitals,
                              num_particles=num_particles,
@@ -160,41 +163,3 @@ class MolecularGroundStateEnergy:
             vqe.quantum_instance = quantum_instance
             return vqe
         return cb_default_solver
-
-
-class MolecularGroundStateEnergyResult(AlgorithmResult):
-    """ Ground state energy result."""
-
-    @property
-    def energy(self) -> float:
-        """ Returns energy """
-        return self.get('energy')
-
-    @energy.setter
-    def energy(self, value: float) -> None:
-        """ Sets energy """
-        self.data['energy'] = value
-
-    @property
-    def printable(self) -> List[str]:
-        """ Returns printable """
-        return self.get('printable')
-
-    @printable.setter
-    def printable(self, value: List[str]) -> None:
-        """ Sets printable """
-        self.data['printable'] = value
-
-    def print_result(self) -> None:
-        """ Prints the printable result """
-        print(*self.printable, sep='\n')
-
-    @property
-    def raw_result(self) -> MinimumEigensolverResult:
-        """ Returns raw result from MinimumEigensolver """
-        return self.get('raw_result')
-
-    @raw_result.setter
-    def raw_result(self, value: MinimumEigensolverResult) -> None:
-        """ Sets raw result from MinimumEigensolver  """
-        self.data['raw_result'] = value

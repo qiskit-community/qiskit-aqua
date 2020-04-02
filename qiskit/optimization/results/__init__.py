@@ -28,10 +28,10 @@ Results Objects
    grover_optimization_results
 
 ========================================================
-Optimization stack for Aqua (:mod:`qiskit.optimization`)
+Optimization stack for Aqua (:mod:`qiskit.optimization.results`)
 ========================================================
 
-.. currentmodule:: qiskit.optimization.solutions
+.. currentmodule:: qiskit.optimization.results
 
 Structures for defining a solution with metrics of its quality etc
 ==========
@@ -44,11 +44,11 @@ Structures for defining a solution with metrics of its quality etc
 
 """
 
+from .quality_metrics import QualityMetrics
+from .solution import SolutionInterface
+from .solution_status import SolutionStatus
+from .optimization_result import OptimizationResult
 from .grover_optimization_results import GroverOptimizationResults
-from qiskit.optimization.results.quality_metrics import QualityMetrics
-from qiskit.optimization.results.solution import SolutionInterface
-from qiskit.optimization.results.solution_status import SolutionStatus
-from qiskit.optimization.results.optimization_result import OptimizationResult
 
 __all__ = ["SolutionStatus", "QualityMetrics", "SolutionStatus", "OptimizationResult",
            "GroverOptimizationResults"]

@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,12 +12,10 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-
-from qiskit.optimization.utils.base import BaseInterface
-from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
+""" Quality Metrics """
 
 
-class QualityMetrics(object):
+class QualityMetrics:
     """A class containing measures of the quality of a solution.
 
     The __str__ method of this class prints all available measures of
@@ -76,6 +74,7 @@ class QualityMetrics(object):
     """
 
     def __init__(self, soln=-1):
+        # pylint: disable=unused-argument
         self._tostring = ""
 
     def __str__(self):
