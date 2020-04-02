@@ -64,7 +64,8 @@ class TestObjective(QiskitOptimizationTestCase):
         """ test set empty quadratic """
         op = OptimizationProblem()
         op.objective.set_quadratic([])
-        self.assertRaises(TypeError, op.objective.set_quadratic())
+        with self.assertRaises(TypeError):
+            op.objective.set_quadratic()
 
     def test_set_quadratic(self):
         """ test set quadratic """

@@ -809,4 +809,4 @@ class LinearConstraintInterface(BaseInterface):
 
     def get_histogram(self):
         """ get histogram """
-        raise NotImplementedError("histrogram is not implemented")
+        raise NotImplementedError("histogram is not implemented")

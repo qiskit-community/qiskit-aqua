@@ -23,10 +23,8 @@ Submodules
 ==========
 
 .. autosummary::
-   :toctree: ../stubs/
-   :nosignatures:
+   :toctree:
 
-   applications
    components
    data_providers
 
