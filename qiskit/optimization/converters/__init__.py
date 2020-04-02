@@ -24,12 +24,12 @@ Structures for converting optimization problems
 
 """
 
+from .optimization_problem_to_negative_value_oracle import OptimizationProblemToNegativeValueOracle
 from .inequality_to_equality_converter import InequalityToEqualityConverter
 from .integer_to_binary_converter import IntegerToBinaryConverter
-from .optimization_problem_to_negative_value_oracle import OptimizationProblemToNegativeValueOracle
 from .optimization_problem_to_operator import OptimizationProblemToOperator
-from .optimization_problem_to_qubo import OptimizationProblemToQubo
 from .penalize_linear_equality_constraints import PenalizeLinearEqualityConstraints
+from .optimization_problem_to_qubo import OptimizationProblemToQubo
 
 __all__ = [
     "InequalityToEqualityConverter",

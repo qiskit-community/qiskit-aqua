@@ -27,11 +27,11 @@ Submodules
 
 """
 
+from .infinity import infinity  # must be at the top of the file
 from .utils import QiskitOptimizationError
 from .problems import OptimizationProblem
 from ._logging import (get_qiskit_optimization_logging,
                        set_qiskit_optimization_logging)
-from .infinity import infinity
 from .util import get_qubo_solutions
 
 __all__ = ['OptimizationProblem',
