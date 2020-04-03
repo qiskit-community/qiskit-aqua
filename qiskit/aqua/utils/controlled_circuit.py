@@ -15,8 +15,9 @@
 """ controlled circuit """
 
 import numpy as np
-from qiskit import compiler
 from qiskit.circuit import QuantumCircuit
+from qiskit.converters import circuit_to_dag, dag_to_circuit
+from qiskit.transpiler.passes import Unroller
 
 
 # pylint: disable=invalid-name
@@ -103,8 +104,9 @@ def get_controlled_circuit(circuit, ctl_qubit, tgt_circuit=None, use_basis_gates
             qc.add_register(creg)
         clbits.extend(creg)
 
-    # get all operations from compiled circuit
-    ops = compiler.transpile(circuit, basis_gates=['u1', 'u2', 'u3', 'cx', 'id']).data
+    # get all operations
+    unroller = Unroller(basis=['u1', 'u2', 'u3', 'cx'])
+    ops = dag_to_circuit(unroller.run(circuit_to_dag(circuit))).data
 
     # process all basis gates to add control
     if not qc.has_register(ctl_qubit.register):
