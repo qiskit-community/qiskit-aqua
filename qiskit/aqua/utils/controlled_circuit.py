@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -17,8 +17,6 @@
 import numpy as np
 from qiskit import compiler
 from qiskit.circuit import QuantumCircuit
-from qiskit.transpiler.passes import Unroller
-from qiskit.transpiler import PassManager
 
 
 # pylint: disable=invalid-name
@@ -86,8 +84,6 @@ def get_controlled_circuit(circuit, ctl_qubit, tgt_circuit=None, use_basis_gates
     Raises:
         RuntimeError: unexpected operation
     """
-    # pylint: disable=import-outside-toplevel
-    from qiskit import BasicAer
     if tgt_circuit is not None:
         qc = tgt_circuit
     else:
@@ -108,13 +104,7 @@ def get_controlled_circuit(circuit, ctl_qubit, tgt_circuit=None, use_basis_gates
         clbits.extend(creg)
 
     # get all operations from compiled circuit
-    unroller = Unroller(basis=['u1', 'u2', 'u3', 'cx', 'id'])
-    p_m = PassManager(passes=[unroller])
-    ops = compiler.transpile(
-        circuit,
-        BasicAer.get_backend('qasm_simulator'),
-        pass_manager=p_m
-    ).data
+    ops = compiler.transpile(circuit, basis_gates=['u1', 'u2', 'u3', 'cx', 'id']).data
 
     # process all basis gates to add control
     if not qc.has_register(ctl_qubit.register):
