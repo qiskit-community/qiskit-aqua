@@ -84,10 +84,9 @@ class VQAlgorithm(QuantumAlgorithm):
         if isinstance(var_form, QuantumCircuit):
             # patch num_parameters onto circuit
             var_form.num_parameters = len(var_form.parameters)
-            # substitute the parameters to avoid naming conflicts
-            self._var_form_params = ParameterVector('θ', length=var_form.num_parameters)
-            param_dict = dict(zip(list(var_form.parameters), self._var_form_params))
-            var_form._substitute_parameters(param_dict)
+
+            # store the parameters
+            self._var_form_params = list(var_form.parameters)
             self._var_form = var_form
         elif isinstance(var_form, VariationalForm):
             self._var_form_params = ParameterVector('θ', length=var_form.num_parameters)

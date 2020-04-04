@@ -22,7 +22,7 @@ import numpy as np
 
 from sklearn.utils import shuffle
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
-from qiskit.circuit import ParameterVector, Parameter
+from qiskit.circuit import ParameterVector, Parameter, ParameterExpression
 
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance, AquaError
@@ -136,7 +136,17 @@ class VQC(VQAlgorithm):
 
         Returns:
             QuantumCircuit: the circuit
+
+        Raises:
+            AquaError: If ``x`` and ``theta`` share parameters with the same name.
         """
+        # check x and theta do not have parameters of the same name
+        x_names = [param.name for param in x if isinstance(param, ParameterExpression)]
+        theta_names = [param.name for param in theta if isinstance(param, ParameterExpression)]
+        if any(x_name in theta_names for x_name in x_names):
+            raise AquaError('Variational form and feature map are not allowed to share parameters '
+                            'with the same name!')
+
         qr = QuantumRegister(self._num_qubits, name='q')
         cr = ClassicalRegister(self._num_qubits, name='c')
         qc = QuantumCircuit(qr, cr)
@@ -505,15 +515,12 @@ class VQC(VQAlgorithm):
         if the feature map is a circuit, the order of the parameters.
         """
         if isinstance(feature_map, QuantumCircuit):
-            # patch num_qubits and feature dimension to the circuit
+            # patch the feature dimension to the circuit
             feature_map.feature_dimension = len(feature_map.parameters)
 
-            # we're setting the parameters to a new value, since to ensure they are not
-            # the same as in the variational form (otherwise we'll get errors later on)
+            # store the parameters
             self._num_qubits = feature_map.num_qubits
-            self._feature_map_params = ParameterVector('x', length=feature_map.feature_dimension)
-            param_dict = dict(zip(list(feature_map.parameters), self._feature_map_params))
-            feature_map._substitute_parameters(param_dict)
+            self._feature_map_params = list(feature_map.parameters)
             self._feature_map = feature_map
         elif isinstance(feature_map, FeatureMap):
             self._num_qubits = feature_map.num_qubits

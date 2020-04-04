@@ -20,7 +20,7 @@ from test.aqua import QiskitAquaTestCase
 import numpy as np
 from qiskit import BasicAer
 from qiskit.circuit import ParameterVector, QuantumCircuit, Parameter
-from qiskit.aqua import QuantumInstance, aqua_globals
+from qiskit.aqua import QuantumInstance, aqua_globals, AquaError
 from qiskit.aqua.algorithms import VQC
 from qiskit.aqua.components.optimizers import SPSA, COBYLA
 from qiskit.aqua.components.feature_maps import SecondOrderExpansion, RawFeatureVector
@@ -260,7 +260,7 @@ class TestVQC(QiskitAquaTestCase):
             if is_file_exist:
                 os.remove(self.get_resource_path(tmp_filename))
 
-    def test_same_parameter_names_works(self):
+    def test_same_parameter_names_raises(self):
         """Test that the varform and feature map can have parameters with the same name."""
         var_form = QuantumCircuit(1)
         var_form.ry(Parameter('a'), 0)
@@ -269,7 +269,8 @@ class TestVQC(QiskitAquaTestCase):
         optimizer = SPSA()
         vqc = VQC(optimizer, feature_map, var_form, self.training_data, self.testing_data)
 
-        self.assertTrue(set(vqc._var_form_params) != set(vqc._feature_map_params))
+        with self.assertRaises(AquaError):
+            _ = vqc.run(BasicAer.get_backend('statevector_simulator'))
 
     def test_feature_map_without_parameters(self):
         """Test that specifying a feature map with 0 parameters raises a warning."""
