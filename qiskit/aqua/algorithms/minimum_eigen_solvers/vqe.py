@@ -12,8 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
-The Variational Quantum Eigensolver algorithm.
+"""The Variational Quantum Eigensolver algorithm.
 
 See https://arxiv.org/abs/1304.3061
 """
@@ -47,8 +46,7 @@ logger = logging.getLogger(__name__)
 
 
 class VQE(VQAlgorithm, MinimumEigensolver):
-    r"""
-    The Variational Quantum Eigensolver algorithm.
+    r"""The Variational Quantum Eigensolver algorithm.
 
     `VQE <https://arxiv.org/abs/1304.3061>`__ is a hybrid algorithm that uses a
     variational technique and interleaves quantum and classical computations in order to find
@@ -95,7 +93,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
 
         Args:
             operator: Qubit operator of the Hamiltonian
-            var_form: A parameterized variational form (ansatz).
+            var_form: A parameterized circuit used as Ansatz for the wave function.
             optimizer: A classical optimizer.
             initial_point: An optional initial point (i.e. initial parameter values)
                 for the optimizer. If ``None`` then VQE will look to the variational form for a
