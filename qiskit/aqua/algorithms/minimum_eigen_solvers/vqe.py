@@ -26,7 +26,7 @@ from time import time
 
 import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit
-from qiskit.circuit import ParameterVector, Parameter
+from qiskit.circuit import Parameter
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.operators import (TPBGroupedWeightedPauliOperator, WeightedPauliOperator,
@@ -208,10 +208,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
 
     def _check_operator_varform(self):
         if self.operator is not None and self.var_form is not None:
-            if isinstance(self.var_form, QuantumCircuit):
-                num_qubits = self.var_form.n_qubits
-            else:
-                num_qubits = self.var_form.num_qubits
+            num_qubits = self.var_form.num_qubits
 
             if self.operator.num_qubits != num_qubits:
                 # TODO After Ansatz update we should be able to set in the
@@ -486,10 +483,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         Returns:
             Union(float, list[float]): energy of the hamiltonian of each parameter.
         """
-        if isinstance(self.var_form, QuantumCircuit):
-            num_parameters = len(self.var_form.parameters)
-        else:
-            num_parameters = self.var_form.num_parameters
+        num_parameters = self.var_form.num_parameters
 
         num_parameter_sets = len(parameters) // num_parameters
         parameter_sets = np.split(parameters, num_parameter_sets)
