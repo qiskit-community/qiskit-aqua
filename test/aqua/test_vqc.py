@@ -70,7 +70,6 @@ class TestVQC(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(result['training_loss'],
                                              self.ref_train_loss, decimal=8)
 
-        print(vqc.optimal_params_dict)
         self.assertEqual(1.0, result['testing_accuracy'])
 
     def test_vqc_with_max_evals_grouped(self):
@@ -261,7 +260,8 @@ class TestVQC(QiskitAquaTestCase):
             if is_file_exist:
                 os.remove(self.get_resource_path(tmp_filename))
 
-    def test_same_parameters_works(self):
+    def test_same_parameter_names_works(self):
+        """Test that the varform and feature map can have parameters with the same name."""
         var_form = QuantumCircuit(1)
         var_form.ry(Parameter('a'), 0)
         feature_map = QuantumCircuit(1)
@@ -270,6 +270,16 @@ class TestVQC(QiskitAquaTestCase):
         vqc = VQC(optimizer, feature_map, var_form, self.training_data, self.testing_data)
 
         self.assertTrue(set(vqc._var_form_params) != set(vqc._feature_map_params))
+
+    def test_feature_map_without_parameters(self):
+        """Test that specifying a feature map with 0 parameters raises a warning."""
+        var_form = QuantumCircuit(1)
+        var_form.ry(Parameter('a'), 0)
+        feature_map = QuantumCircuit(1)
+        feature_map.rx(0.2, 0)
+        optimizer = SPSA()
+        with self.assertWarns(UserWarning):
+            _ = VQC(optimizer, feature_map, var_form, self.training_data, self.testing_data)
 
     def test_vqc_on_wine(self):
         """Test VQE on the wine test using circuits as feature map and variational form."""
