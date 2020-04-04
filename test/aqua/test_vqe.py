@@ -106,7 +106,7 @@ class TestVQE(QiskitAquaTestCase):
         self.assertIsNotNone(result.optimizer_time)
 
     def test_vqe_no_varform_params(self):
-        """ a """
+        """Test specifying a variational form with no parameters raises an error."""
         circuit = QuantumCircuit(self.qubit_op.num_qubits)
         for i in range(circuit.num_qubits):
             circuit.h(i)
@@ -114,7 +114,7 @@ class TestVQE(QiskitAquaTestCase):
             circuit.rx(0.2, i)
 
         with self.assertRaises(AquaError):
-            vqe = VQE(self.qubit_op, circuit)
+            _ = VQE(self.qubit_op, circuit)
 
     @idata([
         [SLSQP, 5, 4],
