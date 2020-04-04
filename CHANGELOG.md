@@ -25,6 +25,7 @@ Added
 -   Algorithm interface and result classes (#849) 
 -   Chemistry FCIDump file driver (#859)
 -   Chemistry stack automatic Z2 symmetry reduction (#870)
+-   Ising Optimization: The 0-1 Knapsack problem (#878)
 
 Changed
 -------
