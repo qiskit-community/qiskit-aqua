@@ -12,9 +12,10 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" The Variational Quantum Classifier algorithm """
+"""The Variational Quantum Classifier algorithm."""
 
 from typing import Optional, Callable, Dict, Union
+import warnings
 import logging
 import math
 import numpy as np
@@ -38,8 +39,7 @@ logger = logging.getLogger(__name__)
 
 
 class VQC(VQAlgorithm):
-    """
-    The Variational Quantum Classifier algorithm.
+    """The Variational Quantum Classifier algorithm.
 
     Similar to :class:`QSVM`, the VQC algorithm also applies to classification problems.
     VQC uses the variational method to solve such problems in a quantum processor.  Specifically,
@@ -75,10 +75,12 @@ class VQC(VQAlgorithm):
                 These are: the evaluation count, parameters of the variational form,
                 the evaluated value, the index of data batch.
             quantum_instance: Quantum Instance or Backend
+
         Note:
             We use `label` to denotes numeric results and `class` the class names (str).
+
         Raises:
-            AquaError: invalid input
+            AquaError: Missing feature map or missing training dataset.
         """
         super().__init__(
             var_form=var_form,
@@ -125,13 +127,13 @@ class VQC(VQAlgorithm):
         self.feature_map = feature_map
 
     def construct_circuit(self, x, theta, measurement=False):
-        """
-        Construct circuit based on data and parameters in variational form.
+        """Construct circuit based on data and parameters in variational form.
 
         Args:
             x (numpy.ndarray): 1-D array with D dimension
             theta (list[numpy.ndarray]): list of 1-D array, parameters sets for variational form
             measurement (bool): flag to add measurement
+
         Returns:
             QuantumCircuit: the circuit
         """
@@ -165,12 +167,12 @@ class VQC(VQAlgorithm):
         return qc
 
     def _get_prediction(self, data, theta):
-        """
-        Make prediction on data based on each theta.
+        """Make prediction on data based on each theta.
 
         Args:
             data (numpy.ndarray): 2-D array, NxD, N data points, each with D dimension
             theta (list[numpy.ndarray]): list of 1-D array, parameters sets for variational form
+
         Returns:
             Union(numpy.ndarray or [numpy.ndarray], numpy.ndarray or [numpy.ndarray]):
                 list of NxK array, list of Nx1 array
@@ -319,8 +321,10 @@ class VQC(VQAlgorithm):
     # temporary fix: this code should be unified with the gradient api in optimizer.py
     def _gradient_function_wrapper(self, theta):
         """Compute and return the gradient at the point theta.
+
         Args:
             theta (numpy.ndarray): 1-d array
+
         Returns:
             numpy.ndarray: 1-d array with the same shape as theta. The  gradient computed
         """
@@ -369,6 +373,7 @@ class VQC(VQAlgorithm):
             quantum_instance (QuantumInstance): quantum backend with all setting
             minibatch_size (int): the size of each minibatched accuracy evaluation
             params (list): list of parameters to populate in the variational form
+
         Returns:
             float: classification accuracy
         """
@@ -408,6 +413,7 @@ class VQC(VQAlgorithm):
             quantum_instance (QuantumInstance): quantum backend with all setting
             minibatch_size (int): the size of each minibatched accuracy evaluation
             params (list): list of parameters to populate in the variational form
+
         Returns:
             list: for each data point, generates the predicted probability for each class
             list: for each data point, generates the predicted label (that with the highest prob)
@@ -500,12 +506,11 @@ class VQC(VQAlgorithm):
         """
         if isinstance(feature_map, QuantumCircuit):
             # patch num_qubits and feature dimension to the circuit
-            feature_map.num_qubits = feature_map.n_qubits
             feature_map.feature_dimension = len(feature_map.parameters)
 
             # we're setting the parameters to a new value, since to ensure they are not
             # the same as in the variational form (otherwise we'll get errors later on)
-            self._num_qubits = feature_map.n_qubits
+            self._num_qubits = feature_map.num_qubits
             self._feature_map_params = ParameterVector('x', length=feature_map.feature_dimension)
             param_dict = dict(zip(list(feature_map.parameters), self._feature_map_params))
             feature_map._substitute_parameters(param_dict)
@@ -520,6 +525,10 @@ class VQC(VQAlgorithm):
             self._feature_map = None
         else:
             raise ValueError('Unsupported type {} of feature_map.'.format(type(feature_map)))
+
+        if self._feature_map and self._feature_map.feature_dimension == 0:
+            warnings.warn('The feature map has no parameters that can be optimized to represent '
+                          'the data. This will most likely cause the VQC to fail.')
 
     @property
     def optimal_params(self):
@@ -628,15 +637,18 @@ def assign_label(measured_key, num_classes):
 
 
 def cost_estimate(probs, gt_labels, shots=None):  # pylint: disable=unused-argument
-    """Calculate cross entropy
-    # shots is kept since it may be needed in future.
+    """Calculate cross entropy.
 
     Args:
         shots (int): the number of shots used in quantum computing
         probs (numpy.ndarray): NxK array, N is the number of data and K is the number of class
         gt_labels (numpy.ndarray): Nx1 array
+
     Returns:
         float: cross entropy loss between estimated probs and gt_labels
+
+    Note:
+        shots is kept since it may be needed in future.
     """
     mylabels = np.zeros(probs.shape)
     for i in range(gt_labels.shape[0]):
@@ -661,6 +673,7 @@ def cost_estimate_sigmoid(shots, probs, gt_labels):
         shots (int): the number of shots used in quantum computing
         probs (numpy.ndarray): NxK array, N is the number of data and K is the number of class
         gt_labels (numpy.ndarray): Nx1 array
+
     Returns:
         float: sigmoid cross entropy loss between estimated probs and gt_labels
     """
@@ -677,6 +690,7 @@ def return_probabilities(counts, num_classes):
     Args:
         counts (list[dict]): N data and each with a dict recording the counts
         num_classes (int): number of classes
+
     Returns:
         numpy.ndarray: NxK array
     """
