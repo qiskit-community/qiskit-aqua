@@ -12,16 +12,15 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Constants defining variable types """
+"""Variable interface"""
 
 import copy
+from typing import List, Optional, Union
 
 from qiskit.optimization import infinity
 from qiskit.optimization.utils.base import BaseInterface
 from qiskit.optimization.utils.helpers import init_list_args, NameIndex
 from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
-
-# pylint: disable=invalid-name
 
 CPX_CONTINUOUS = 'C'
 CPX_BINARY = 'B'
@@ -43,8 +42,14 @@ class VarTypes:
     semi_integer = CPX_SEMIINT
     semi_continuous = CPX_SEMICONT
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: str) -> str:
         """Converts a constant to a string.
+
+        Returns:
+            Variable type name.
+
+        Raises:
+            QiskitOptimizationError: if the argument is not a valid type.
 
         Example usage:
 
@@ -65,7 +70,7 @@ class VarTypes:
             return 'semi_integer'
         if item == CPX_SEMICONT:
             return 'semi_continuous'
-        return None
+        raise QiskitOptimizationError('Invalid variable type: {}'.format(item))
 
 
 class VariablesInterface(BaseInterface):
@@ -97,7 +102,6 @@ class VariablesInterface(BaseInterface):
     """
 
     type = VarTypes()
-    """See `VarTypes()` """
 
     def __init__(self):
         """Creates a new VariablesInterface.
@@ -115,7 +119,7 @@ class VariablesInterface(BaseInterface):
         # self._columns = []
         self._index = NameIndex()
 
-    def get_num(self):
+    def get_num(self) -> int:
         """Returns the number of variables in the problem.
 
         Example usage:
@@ -129,7 +133,7 @@ class VariablesInterface(BaseInterface):
         """
         return len(self._names)
 
-    def get_num_continuous(self):
+    def get_num_continuous(self) -> int:
         """Returns the number of continuous variables in the problem.
 
         Example usage:
@@ -143,7 +147,7 @@ class VariablesInterface(BaseInterface):
         """
         return self._types.count(VarTypes.continuous)
 
-    def get_num_integer(self):
+    def get_num_integer(self) -> int:
         """Returns the number of integer variables in the problem.
 
         Example usage:
@@ -157,7 +161,7 @@ class VariablesInterface(BaseInterface):
         """
         return self._types.count(VarTypes.integer)
 
-    def get_num_binary(self):
+    def get_num_binary(self) -> int:
         """Returns the number of binary variables in the problem.
 
         Example usage:
@@ -171,7 +175,7 @@ class VariablesInterface(BaseInterface):
         """
         return self._types.count(VarTypes.binary)
 
-    def get_num_semicontinuous(self):
+    def get_num_semicontinuous(self) -> int:
         """Returns the number of semi-continuous variables in the problem.
 
         Example usage:
@@ -185,7 +189,7 @@ class VariablesInterface(BaseInterface):
         """
         return self._types.count(VarTypes.semi_continuous)
 
-    def get_num_semiinteger(self):
+    def get_num_semiinteger(self) -> int:
         """Returns the number of semi-integer variables in the problem.
 
         Example usage:
@@ -199,11 +203,13 @@ class VariablesInterface(BaseInterface):
         """
         return self._types.count(VarTypes.semi_integer)
 
-    def add(self, obj=None, lb=None, ub=None, types="", names=None, columns=None):
+    # pylint: disable=invalid-name
+    def add(self, obj: None = None, lb: Optional[List[float]] = None,
+            ub: Optional[List[float]] = None, types: str = "", names: Optional[List[str]] = None,
+            columns: None = None) -> range:
         """Adds variables and related data to the problem.
 
         variables.add accepts the keyword arguments obj, lb, ub, types, names, and columns.
-
         If more than one argument is specified, all arguments must have the same length.
 
         Note
@@ -211,36 +217,28 @@ class VariablesInterface(BaseInterface):
             Use `objective` and `linear_constraint` instead.
 
         Args:
-            obj(List): a list of floats specifying the linear objective coefficients
-                        of the variables.
+            lb: a list of floats specifying the lower bounds on the variables.
 
-            lb(List): a list of floats specifying the lower bounds on the variables.
+            ub: a list of floats specifying the upper bounds on the variables.
 
-            ub(List): a list of floats specifying the upper bounds on the variables.
-
-            types(List): must be either a list of single-character strings or a string containing
+            types: must be either a list of single-character strings or a string containing
                 the types of the variables.
 
                 Note
                     If types is specified, the problem type will be a MIP, even if all variables are
                     specified to be continuous.
 
-            names(List): a list of strings.
+            names: a list of strings.
 
-            columns(List): may be either a list of sparse vectors or a matrix
-                            in list-of-lists format.
+            obj: not supported by Qiskit Aqua. Use `objective` instead.
 
-                Note
-                  The entries of columns must not contain duplicate indices.
-                  If an entry of columns references a row more than once,
-                  either by index, name, or a combination of index and name,
-                  an exception will be raised.
+            columns: not supported by Qiskit Aqua. Use `linear_constraints` instead.
 
         Returns:
-            List: an iterator containing the indices of the added variables.
+            an iterator containing the indices of the added variables.
 
         Raises:
-            QiskitOptimizationError: Invalid arguments
+            QiskitOptimizationError: if arguments are not valid.
 
         Example usage:
 
@@ -270,37 +268,36 @@ class VariablesInterface(BaseInterface):
             raise QiskitOptimizationError(
                 "Please use LinearConstraintInterface instead of columns.")
 
+        start = self.get_num()
         arg_list = init_list_args(lb, ub, types, names)
         arg_lengths = [len(x) for x in arg_list]
         if len(arg_lengths) == 0:
-            return range(0)
+            return range(start, start)
         max_length = max(arg_lengths)
+        if max_length == 0:
+            return range(start, start)
         for arg_length in arg_lengths:
             if arg_length > 0 and arg_length != max_length:
                 raise QiskitOptimizationError("inconsistent arguments")
 
-        if not lb:
-            lb = [0.0] * max_length
-        self._lb.extend(lb)
-
-        if not ub:
-            ub = [infinity] * max_length
-        self._ub.extend(ub)
-
-        if not types:
-            types = [VarTypes.continuous] * max_length
+        lb = lb or [0] * max_length
+        ub = ub or [infinity] * max_length
+        types = types or [VarTypes.continuous] * max_length
         for i, t in enumerate(types):
-            if t == VarTypes.binary:
-                self._ub[i] = 1.0
+            if t == VarTypes.binary and ub[i] == infinity:
+                ub[i] = 1
+        self._lb.extend(lb)
+        self._ub.extend(ub)
         self._types.extend(types)
 
-        if not names:
-            names = ["x" + str(cnt)
-                     for cnt in range(len(self._names), len(self._names) + max_length)]
+        names = names or [''] * max_length
+        for i, name in enumerate(names):
+            if name == '':
+                names[i] = 'x' + str(start + i + 1)
         self._names.extend(names)
         self._index.build(self._names)
 
-        return range(len(self._names) - max_length, len(self._names))
+        return range(start, start + max_length)
 
     def delete(self, *args):
         """Deletes variables from the problem.
@@ -325,9 +322,6 @@ class VariablesInterface(BaseInterface):
           inclusive of end. Equivalent to
           variables.delete(range(begin, end + 1)). This will give the
           best performance when deleting batches of variables.
-
-        See CPXdelcols in the Callable Library Reference Manual for
-        more detail.
 
         Example usage:
 
@@ -514,7 +508,7 @@ class VariablesInterface(BaseInterface):
 
         self._setter(_set, *args)
 
-    def get_lower_bounds(self, *args):
+    def get_lower_bounds(self, *args) -> Union[float, List[float]]:
         """Returns the lower bounds on variables from the problem.
 
         There are four forms by which variables.get_lower_bounds may be called.
@@ -556,7 +550,7 @@ class VariablesInterface(BaseInterface):
         keys = self._index.convert(*args)
         return self._getter(_get, keys)
 
-    def get_upper_bounds(self, *args):
+    def get_upper_bounds(self, *args) -> Union[float, List[float]]:
         """Returns the upper bounds on variables from the problem.
 
         There are four forms by which variables.get_upper_bounds may be called.
@@ -604,7 +598,7 @@ class VariablesInterface(BaseInterface):
         keys = self._index.convert(*args)
         return self._getter(_get, keys)
 
-    def get_names(self, *args):
+    def get_names(self, *args) -> Union[str, List[str]]:
         """Returns the names of variables from the problem.
 
         There are four forms by which variables.get_names may be called.
@@ -643,7 +637,7 @@ class VariablesInterface(BaseInterface):
         keys = self._index.convert(*args)
         return self._getter(_get, keys)
 
-    def get_types(self, *args):
+    def get_types(self, *args) -> Union[str, List[str]]:
         """Returns the types of variables from the problem.
 
         There are four forms by which variables.types may be called.
@@ -687,9 +681,9 @@ class VariablesInterface(BaseInterface):
         return self._getter(_get, keys)
 
     def get_cols(self, *args):
-        """ get cols """
+        """get_cols is not supported"""
         raise NotImplementedError("Please use LinearConstraintInterface instead.")
 
     def get_obj(self, *args):
-        """ get obj """
+        """get_obj is not supported"""
         raise NotImplementedError("Please use ObjectiveInterface instead.")

@@ -14,6 +14,8 @@
 
 """ Types of problems """
 
+from qiskit.optimization import QiskitOptimizationError
+
 # pylint: disable=invalid-name
 
 CPXPROB_LP = 0
@@ -38,6 +40,7 @@ class ProblemType:
     for LP, QP, and QCP or the topic titled Discrete Optimization
     for MILP, FIXEDMILP, NODELP, NODEQP, MIQCP, NODEQCP.
     """
+    # pylint: disable=invalid-name
     LP = CPXPROB_LP
     MILP = CPXPROB_MILP
     fixed_MILP = CPXPROB_FIXEDMILP
@@ -50,12 +53,19 @@ class ProblemType:
     MIQCP = CPXPROB_MIQCP
     node_QCP = CPXPROB_NODEQCP
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: int) -> str:
         """Converts a constant to a string.
+
+        Returns:
+            Problem type name.
+
+        Raises:
+            QiskitOptimizationError: if the argument is not valid.
 
         Example usage:
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
         >>> op.problem_type.LP
         0
         >>> op.problem_type[0]
@@ -84,4 +94,4 @@ class ProblemType:
             return 'MIQCP'
         if item == CPXPROB_NODEQCP:
             return 'node_QCP'
-        return None
+        raise QiskitOptimizationError('Invalid problem type: {}'.format(item))

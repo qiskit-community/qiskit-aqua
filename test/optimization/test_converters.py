@@ -219,7 +219,8 @@ class TestConverters(QiskitOptimizationTestCase):
         )
         self.assertEqual(op.linear_constraints.get_num(), 3)
         conv = PenalizeLinearEqualityConstraints()
-        self.assertRaises(QiskitOptimizationError, lambda: conv.encode(op))
+        with self.assertRaises(QiskitOptimizationError):
+            conv.encode(op)
 
     def test_penalize_binary(self):
         """ Test PenalizeLinearEqualityConstraints with binary variables """
