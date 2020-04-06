@@ -340,5 +340,6 @@ class TestDocplex(QiskitOptimizationTestCase):
         actual_sol = result['eigenstate'].tolist()
         self.assertListEqual(actual_sol, [0, 0, 0, 1])
 
-    if __name__ == '__main__':
-        unittest.main()
+
+if __name__ == '__main__':
+    unittest.main()

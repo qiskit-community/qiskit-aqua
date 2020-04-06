@@ -14,6 +14,7 @@
 
 """Tests of the ADMM algorithm."""
 
+import unittest
 from test.optimization import QiskitOptimizationTestCase
 
 from docplex.mp.model import Model
@@ -144,3 +145,7 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
         np.testing.assert_almost_equal(2., solution.fval, 3)
         self.assertIsNotNone(solution.state)
         self.assertIsInstance(solution.state, ADMMState)
+
+
+if __name__ == '__main__':
+    unittest.main()

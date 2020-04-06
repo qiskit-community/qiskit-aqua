@@ -261,5 +261,6 @@ class TestLinearConstraints(QiskitOptimizationTestCase):
         self.assertListEqual(op.linear_constraints.get_names(),
                              ['c1', 'c2', 'c3', 'a', 'c5', 'c'])
 
-    if __name__ == '__main__':
-        unittest.main()
+
+if __name__ == '__main__':
+    unittest.main()
