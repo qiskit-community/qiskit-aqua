@@ -105,6 +105,9 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         Returns:
             The result of the optimizer applied to the problem.
 
+        Raises:
+            QiskitOptimizationError: Infeasible due to variable substitution
+
         """
         from cplex import SparseTriple
         # convert problem to QUBO
