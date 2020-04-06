@@ -160,13 +160,13 @@ def get_operator(mdl: Model, auto_penalty: bool = True,
 
     # convert constraints into penalty terms.
     for constraint in mdl.iter_constraints():
-        constant = constraint.right_expr.get_constant()
+        constant = constraint.cplex_num_rhs()
 
         # constant parts of penalty*(Constant-func)**2: penalty*(Constant**2)
         shift += penalty * constant ** 2
 
         # linear parts of penalty*(Constant-func)**2: penalty*(-2*Constant*func)
-        for __l in constraint.left_expr.iter_terms():
+        for __l in constraint.iter_net_linear_coefs():
             z_p = np.zeros(num_nodes, dtype=np.bool)
             index = q_d[__l[0]]
             weight = __l[1]
@@ -176,8 +176,8 @@ def get_operator(mdl: Model, auto_penalty: bool = True,
             shift += -penalty * constant * weight
 
         # quadratic parts of penalty*(Constant-func)**2: penalty*(func**2)
-        for __l in constraint.left_expr.iter_terms():
-            for l_2 in constraint.left_expr.iter_terms():
+        for __l in constraint.iter_net_linear_coefs():
+            for l_2 in constraint.iter_net_linear_coefs():
                 index1 = q_d[__l[0]]
                 index2 = q_d[l_2[0]]
                 weight1 = __l[1]
@@ -258,8 +258,8 @@ def _auto_define_penalty(mdl: Model, default_penalty: float = 1e5) -> float:
     # if a constraint has float coefficient, return 1e5 for the penalty coefficient.
     terms = []
     for constraint in mdl.iter_constraints():
-        terms.append(constraint.right_expr.get_constant())
-        terms.extend(term[1] for term in constraint.left_expr.iter_terms())
+        terms.append(constraint.cplex_num_rhs())
+        terms.extend(term[1] for term in constraint.iter_net_linear_coefs())
     if any(isinstance(term, float) and not term.is_integer() for term in terms):
         logger.warning('Using %f for the penalty coefficient because a float coefficient exists '
                        'in constraints. \nThe value could be too small. '
