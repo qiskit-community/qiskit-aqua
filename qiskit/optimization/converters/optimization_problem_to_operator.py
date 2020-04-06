@@ -57,12 +57,10 @@ class OptimizationProblemToOperator:
             raise QiskitOptimizationError('The type of variable must be a binary variable.')
 
         # if constraints exist, raise an error
-        linear_names = self._src.linear_constraints.get_names()
-        if len(linear_names) > 0:
+        if self._src.linear_constraints.get_num() > 0 \
+                or self._src.quadratic_constraints.get_num() > 0:
             raise QiskitOptimizationError('An constraint exists. '
                                           'The method supports only model with no constraints.')
-
-        # TODO: check for quadratic constraints as well
 
         # assign variables of the model to qubits.
         _q_d = {}

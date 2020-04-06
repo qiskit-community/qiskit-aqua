@@ -15,13 +15,14 @@
 """The converter to convert an integer problem to a binary problem."""
 
 import copy
-from typing import List, Tuple, Dict, Optional
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 from cplex import SparsePair
 
 from ..problems.optimization_problem import OptimizationProblem
 from ..results.optimization_result import OptimizationResult
+from ..utils.qiskit_optimization_error import QiskitOptimizationError
 
 
 class IntegerToBinaryConverter:
@@ -79,14 +80,6 @@ class IntegerToBinaryConverter:
             else:
                 self._dst.variables.add(names=[variable], types=typ,
                                         lb=[lower_bounds[i]], ub=[upper_bounds[i]])
-
-        # replace integer variables with binary variables in the objective function
-        # self.objective.subs(self._conv)
-
-        # replace integer variables with binary variables in the constrains
-        # self.linear_constraints.subs(self._conv)
-        # self.quadratic_constraints.subs(self._conv)
-        # note: `subs` substitutes variables with sets of auxiliary variables
 
         self._substitute_int_var()
 
@@ -194,6 +187,10 @@ class IntegerToBinaryConverter:
 
         self._dst.linear_constraints.add(lin_expr, linear_sense, linear_rhs, linear_ranges,
                                          linear_names)
+
+        # TODO: add quadratic constraints
+        if self._src.quadratic_constraints.get_num() > 0:
+            raise QiskitOptimizationError('Quadratic constraints are not yet supported.')
 
     def decode(self, result: OptimizationResult) -> OptimizationResult:
         """Convert the encoded problem (binary variables) back to the original (integer variables).

@@ -152,6 +152,10 @@ class InequalityToEqualityConverter:
             else:
                 raise QiskitOptimizationError('Type of sense in ' + variable + 'is not supported')
 
+        # TODO: add quadratic constraints
+        if self._src.quadratic_constraints.get_num() > 0:
+            raise QiskitOptimizationError('Quadratic constraints are not yet supported.')
+
         return self._dst
 
     def decode(self, result: OptimizationResult) -> OptimizationResult:
