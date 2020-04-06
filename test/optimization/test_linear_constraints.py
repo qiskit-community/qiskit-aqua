@@ -16,7 +16,9 @@
 
 import unittest
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
+
 from cplex import SparsePair
+
 from qiskit.optimization import OptimizationProblem
 
 
@@ -248,6 +250,16 @@ class TestLinearConstraints(QiskitOptimizationTestCase):
         with self.assertRaises(NotImplementedError):
             op.linear_constraints.get_histogram()
 
+    def test_empty_names(self):
+        """ test empty names """
+        op = OptimizationProblem()
+        r = op.linear_constraints.add(names=['', '', ''])
+        self.assertListEqual(op.linear_constraints.get_names(), ['c1', 'c2', 'c3'])
+        self.assertEqual(r, range(0, 3))
+        r = op.linear_constraints.add(names=['a', '', 'c'])
+        self.assertEqual(r, range(3, 6))
+        self.assertListEqual(op.linear_constraints.get_names(),
+                             ['c1', 'c2', 'c3', 'a', 'c5', 'c'])
 
-if __name__ == '__main__':
-    unittest.main()
+    if __name__ == '__main__':
+        unittest.main()

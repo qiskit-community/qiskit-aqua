@@ -119,15 +119,14 @@ class CobylaOptimizer(OptimizationAlgorithm):
 
         # construct objective function from linear and quadratic part of objective
         offset = problem.objective.get_offset()
-        linear_dict = problem.objective.get_linear()
-        quadratic_dict = problem.objective.get_quadratic()
+        linear_dict = problem.objective.get_linear_dict()
+        quadratic_dict = problem.objective.get_quadratic_dict()
         linear = np.zeros(num_vars)
         quadratic = np.zeros((num_vars, num_vars))
         for i, v in linear_dict.items():
             linear[i] = v
-        for i, v_i in quadratic_dict.items():
-            for j, v in v_i.items():
-                quadratic[i, j] = v
+        for (i, j), v in quadratic_dict.items():
+            quadratic[i, j] = v
 
         def objective(x):
             value = problem.objective.get_sense() * (

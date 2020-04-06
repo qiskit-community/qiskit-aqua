@@ -113,7 +113,7 @@ class IntegerToBinaryConverter:
         self._dst.objective.set_offset(self._src.objective.get_offset())
 
         # set linear terms of objective function
-        src_obj_linear = self._src.objective.get_linear()
+        src_obj_linear = self._src.objective.get_linear_dict()
 
         for src_var_index in src_obj_linear:
             coef = src_obj_linear[src_var_index]
@@ -127,32 +127,30 @@ class IntegerToBinaryConverter:
                 self._dst.objective.set_linear(var_name, coef)
 
         # set quadratic terms of objective function
-        src_obj_quad = self._src.objective.get_quadratic()
+        src_obj_quad = self._src.objective.get_quadratic_dict()
 
         num_var = self._dst.variables.get_num()
         new_quad = np.zeros((num_var, num_var))
 
-        for row in src_obj_quad:
-            for col in src_obj_quad[row]:
-                row_var_name = self._src.variables.get_names(row)
-                col_var_name = self._src.variables.get_names(col)
-                coef = src_obj_quad[row][col]
+        for (row, col), coef in src_obj_quad.items():
+            row_var_name = self._src.variables.get_names(row)
+            col_var_name = self._src.variables.get_names(col)
 
-                if row_var_name in self._conv:
-                    row_vars = self._conv[row_var_name]
-                else:
-                    row_vars = [(row_var_name, 1)]
+            if row_var_name in self._conv:
+                row_vars = self._conv[row_var_name]
+            else:
+                row_vars = [(row_var_name, 1)]
 
-                if col_var_name in self._conv:
-                    col_vars = self._conv[col_var_name]
-                else:
-                    col_vars = [(col_var_name, 1)]
+            if col_var_name in self._conv:
+                col_vars = self._conv[col_var_name]
+            else:
+                col_vars = [(col_var_name, 1)]
 
-                for new_row, row_coef in row_vars:
-                    for new_col, col_coef in col_vars:
-                        row_index = self._dst.variables.get_indices(new_row)
-                        col_index = self._dst.variables.get_indices(new_col)
-                        new_quad[row_index, col_index] = coef * row_coef * col_coef
+            for new_row, row_coef in row_vars:
+                for new_col, col_coef in col_vars:
+                    row_index = self._dst.variables.get_indices(new_row)
+                    col_index = self._dst.variables.get_indices(new_col)
+                    new_quad[row_index, col_index] = coef * row_coef * col_coef
 
         ind = list(range(num_var))
         lst = []

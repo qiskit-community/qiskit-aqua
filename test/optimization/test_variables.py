@@ -16,7 +16,10 @@
 
 import unittest
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
-from qiskit.optimization.problems import OptimizationProblem
+
+from cplex import infinity
+
+from qiskit.optimization import OptimizationProblem, QiskitOptimizationError
 
 
 class TestVariables(QiskitOptimizationTestCase):
@@ -85,7 +88,6 @@ class TestVariables(QiskitOptimizationTestCase):
 
     def test_add(self):
         """ add test """
-        from cplex import infinity
         op = OptimizationProblem()
         op.linear_constraints.add(names=["c0", "c1", "c2"])
         op.variables.add(types=[op.variables.type.integer] * 3)
@@ -243,13 +245,41 @@ class TestVariables(QiskitOptimizationTestCase):
 
     def test_default_bounds(self):
         """  test default bounds """
-        from cplex import infinity
         op = OptimizationProblem()
         types = ['B', 'I', 'C', 'S', 'N']
         op.variables.add(names=types, types=types)
         self.assertListEqual(op.variables.get_lower_bounds(), [0.0] * 5)
         # the upper bound of binary variable is 1.
         self.assertListEqual(op.variables.get_upper_bounds(), [1.0] + [infinity] * 4)
+
+    def test_empty_names(self):
+        """ test empty names """
+        op = OptimizationProblem()
+        r = op.variables.add(names=['', '', ''])
+        self.assertEqual(r, range(0, 3))
+        self.assertListEqual(op.variables.get_names(), ['x1', 'x2', 'x3'])
+        r = op.variables.add(names=['a', '', 'c'])
+        self.assertEqual(r, range(3, 6))
+        self.assertListEqual(op.variables.get_names(),
+                             ['x1', 'x2', 'x3', 'a', 'x5', 'c'])
+
+    def test_duplicate_names(self):
+        """ test duplicate names """
+        op = OptimizationProblem()
+        op.variables.add(names=['', '', ''])
+        with self.assertRaises(QiskitOptimizationError):
+            op.variables.add(names=['a', 'a'])
+        with self.assertRaises(QiskitOptimizationError):
+            op.variables.add(names=['x1'])
+
+    def test_add3(self):
+        """ test add 3 """
+        op = OptimizationProblem()
+        op.variables.add(names=['c'], types=['C'], lb=[-10], ub=[10])
+        op.variables.add(names=['b'], types=['B'], lb=[-10], ub=[10])
+        op.variables.add(names=['b2'], types=['B'])
+        self.assertListEqual(op.variables.get_lower_bounds(), [-10, -10, 0])
+        self.assertListEqual(op.variables.get_upper_bounds(), [10, 10, 1])
 
 
 if __name__ == '__main__':

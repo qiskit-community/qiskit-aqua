@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 
 # This code is part of Qiskit.
@@ -128,7 +127,10 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
             x_j = problem_.variables.get_names(j)
             if correlations[i, j] > 0:
                 # set x_i = x_j
-                problem_ = problem_.substitute_variables(variables=SparseTriple([i], [j], [1]))
+                problem_, status = problem_.substitute_variables(
+                    variables=SparseTriple([i], [j], [1]))
+                if status == problem_.substitution_status.infeasible:
+                    raise QiskitOptimizationError('Infeasible due to variable substitution')
                 replacements[x_i] = (x_j, 1)
             else:
                 # set x_i = 1 - x_j, this is done in two steps:
@@ -149,8 +151,10 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
                         problem_.objective.set_linear(k, coeff)
 
                 # 2. replace x_i by -x_j
-                problem_ = problem_.substitute_variables(
+                problem_, status = problem_.substitute_variables(
                     variables=SparseTriple([i], [j], [-1]))
+                if status == problem_.substitution_status.infeasible:
+                    raise QiskitOptimizationError('Infeasible due to variable substitution')
                 replacements[x_i] = (x_j, -1)
 
         # solve remaining problem
