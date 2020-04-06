@@ -41,8 +41,7 @@ logger = logging.getLogger(__name__)
 
 
 class QSVM(QuantumAlgorithm):
-    """
-    Quantum SVM algorithm.
+    """Quantum SVM algorithm.
 
     A key concept in classification methods is that of a kernel. Data cannot typically be
     separated by a hyperplane in its original space. A common technique used to find such a
@@ -76,7 +75,7 @@ class QSVM(QuantumAlgorithm):
 
     BATCH_SIZE = 1000
 
-    def __init__(self, feature_map: FeatureMap,
+    def __init__(self, feature_map: Union[QuantumCircuit, FeatureMap],
                  training_dataset: Optional[Dict[str, np.ndarray]] = None,
                  test_dataset: Optional[Dict[str, np.ndarray]] = None,
                  datapoints: Optional[np.ndarray] = None,
@@ -122,6 +121,15 @@ class QSVM(QuantumAlgorithm):
         self.feature_map = feature_map
         self.num_qubits = self.feature_map.num_qubits
 
+        if isinstance(feature_map, FeatureMap):
+            self.feature_map_params_x = ParameterVector('x', feature_map.feature_dimension)
+            self.feature_map_params_y = ParameterVector('y', feature_map.feature_dimension)
+        else:  # QuantumCircuit
+            # patch the feature dimension attribute to the circuit
+            self.feature_map.feature_dimension = len(feature_map.parameters)
+            self.feature_map_params_x = list(feature_map.parameters)
+            self.feature_map_params_y = ParameterVector('y', feature_map.feature_dimension)
+
         if multiclass_extension is None:
             qsvm_instance = _QSVM_Binary(self)
         else:
@@ -145,7 +153,12 @@ class QSVM(QuantumAlgorithm):
         qc = QuantumCircuit(q, c)
 
         # write input state from sample distribution
-        qc += feature_map.construct_circuit(x1, q)
+        if isinstance(feature_map, FeatureMap):
+            qc += feature_map.construct_circuit(x1, q)
+        else:
+            param_dict = dict(zip(self.feature_map_params_x, params))
+            qc += _assign_params(feature_map)
+
         if not is_statevector_sim:
             qc += feature_map.construct_circuit(x2, q).inverse()
             if measurement:
@@ -488,3 +501,11 @@ class QSVM(QuantumAlgorithm):
             if not isinstance(datapoints, np.ndarray):
                 datapoints = np.asarray(datapoints)
             self.datapoints = datapoints
+
+
+def _assign_parameters(circuit, param_dict):
+    if all(isinstance(param, Parameter) for param in param_dict.keys()):
+        circuit._substitute_parameters(param_dict)
+    else:
+        circuit = circuit.bind_parameters(param_dict)
+    return circuit
