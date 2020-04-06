@@ -14,6 +14,7 @@
 
 " Test MatrixExpectation"
 
+import unittest
 from test.aqua import QiskitAquaTestCase
 
 import itertools
@@ -106,3 +107,7 @@ class TestMatrixExpectation(QiskitAquaTestCase):
                   [-1, 1, 0, -0],
                   [+1, 1, 1, 1]]
         np.testing.assert_array_almost_equal(means, valids)
+
+
+if __name__ == '__main__':
+    unittest.main()

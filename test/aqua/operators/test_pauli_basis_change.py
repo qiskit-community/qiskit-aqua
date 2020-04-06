@@ -14,6 +14,7 @@
 
 """ Test Pauli Change of Basis Converter """
 
+import unittest
 from test.aqua import QiskitAquaTestCase
 
 import itertools
@@ -100,3 +101,7 @@ class TestPauliCoB(QiskitAquaTestCase):
                 cob_mat[i] = cob.oplist[i].to_matrix()
                 np.testing.assert_array_almost_equal(pauli.oplist[i].to_matrix(), cob_mat[i])
             np.testing.assert_array_almost_equal(pauli.to_matrix(), sum(cob_mat))
+
+
+if __name__ == '__main__':
+    unittest.main()

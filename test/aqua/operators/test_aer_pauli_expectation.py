@@ -14,6 +14,7 @@
 
 """ Test AerPauliExpectation """
 
+import unittest
 from test.aqua import QiskitAquaTestCase
 
 import itertools
@@ -118,3 +119,7 @@ class TestAerPauliExpectation(QiskitAquaTestCase):
     def test_parameterized_qobj(self):
         """ Test direct-to-aer parameter passing in Qobj header. """
         pass
+
+
+if __name__ == '__main__':
+    unittest.main()

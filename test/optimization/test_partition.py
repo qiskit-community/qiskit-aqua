@@ -14,6 +14,7 @@
 
 """ Test Partition """
 
+import unittest
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 from qiskit import BasicAer
@@ -56,3 +57,7 @@ class TestSetPacking(QiskitOptimizationTestCase):
         x = sample_most_likely(result['eigvecs'][0])
         self.assertNotEqual(x[0], x[1])
         self.assertNotEqual(x[2], x[1])  # hardcoded oracle
+
+
+if __name__ == '__main__':
+    unittest.main()

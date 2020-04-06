@@ -14,6 +14,7 @@
 
 """ Test PauliExpectation """
 
+import unittest
 from test.aqua import QiskitAquaTestCase
 
 import numpy as np
@@ -143,3 +144,7 @@ class TestEvolution(QiskitAquaTestCase):
                     self.assertEqual(op.primitive.coeff, last_coeff)
                 else:
                     last_coeff = op.primitive.coeff
+
+
+if __name__ == '__main__':
+    unittest.main()

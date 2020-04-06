@@ -14,6 +14,7 @@
 
 """ Test Operator construction, including OpPrimitives and singletons. """
 
+import unittest
 from test.aqua import QiskitAquaTestCase
 import numpy as np
 
@@ -133,7 +134,7 @@ class TestStateConstruction(QiskitAquaTestCase):
         for k, v in samples.items():
             self.assertIn(k, statedict)
             # It's ok if these are far apart because the dict is sampled.
-            self.assertAlmostEqual(v, np.abs(statedict[k])**.5, delta=.5)
+            self.assertAlmostEqual(v, np.abs(statedict[k]) ** .5, delta=.5)
 
         # Follows same code path as above, but testing to be thorough
         sfc_vector = CircuitStateFn.from_vector(StateFn(statedict).to_matrix())
@@ -153,5 +154,9 @@ class TestStateConstruction(QiskitAquaTestCase):
             self.assertIn(k, dict_samples)
             self.assertIn(k, vec_samples)
             # It's ok if these are far apart because the dict is sampled.
-            self.assertAlmostEqual(v, np.abs(dict_samples[k])**.5, delta=.5)
-            self.assertAlmostEqual(v, np.abs(vec_samples[k])**.5, delta=.5)
+            self.assertAlmostEqual(v, np.abs(dict_samples[k]) ** .5, delta=.5)
+            self.assertAlmostEqual(v, np.abs(vec_samples[k]) ** .5, delta=.5)
+
+
+if __name__ == '__main__':
+    unittest.main()

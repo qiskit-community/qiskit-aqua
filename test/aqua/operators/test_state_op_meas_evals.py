@@ -14,6 +14,7 @@
 
 """ Test Operator construction, including OpPrimitives and singletons. """
 
+import unittest
 from test.aqua import QiskitAquaTestCase
 from qiskit.aqua.operators import StateFn, Zero, One, H, X
 
@@ -54,3 +55,7 @@ class TestStateOpMeasEvals(QiskitAquaTestCase):
         self.assertAlmostEqual(wf_vec.adjoint().eval(op.eval(wf)), .25)
         self.assertAlmostEqual(wf.adjoint().eval(op.eval(wf_vec)), .25)
         self.assertAlmostEqual(wf_vec.adjoint().eval(op.eval(wf_vec)), .25)
+
+
+if __name__ == '__main__':
+    unittest.main()

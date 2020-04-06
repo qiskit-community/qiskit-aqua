@@ -14,6 +14,7 @@
 
 """ Test Classical Cplex """
 
+import unittest
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 
@@ -45,3 +46,7 @@ class TestClassicalCplex(QiskitOptimizationTestCase):
             self.assertEqual(max_cut.max_cut_value(x, self.w), 24)
         except NameError as ex:
             self.skipTest(str(ex))
+
+
+if __name__ == '__main__':
+    unittest.main()

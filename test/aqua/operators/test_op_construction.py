@@ -14,6 +14,7 @@
 
 """ Test Operator construction, including OpPrimitives and singletons. """
 
+import unittest
 from test.aqua import QiskitAquaTestCase
 import itertools
 import numpy as np
@@ -191,3 +192,7 @@ class TestOpConstruction(QiskitAquaTestCase):
         gnarly_op = 3 * (H ^ I ^ Y).compose(X ^ X ^ Z).tensor(T ^ Z) + \
             PrimitiveOp(Operator.from_label('+r0IX').data)
         self.assertEqual(gnarly_op.get_primitives(), {'QuantumCircuit', 'Matrix'})
+
+
+if __name__ == '__main__':
+    unittest.main()

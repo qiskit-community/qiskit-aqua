@@ -14,6 +14,7 @@
 
 """ Test Graph Partition """
 
+import unittest
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 from qiskit import BasicAer
@@ -42,7 +43,7 @@ class TestGraphPartition(QiskitOptimizationTestCase):
             return [int(digit) for digit in result]  # [2:] to chop off the "0b" part
 
         nodes = self.num_nodes
-        maximum = 2**nodes
+        maximum = 2 ** nodes
         minimal_v = np.inf
         for i in range(maximum):
             cur = bitfield(i, nodes)
@@ -87,3 +88,7 @@ class TestGraphPartition(QiskitOptimizationTestCase):
                          graph_partition.objective_value(ising_sol, self.w))
         oracle = self._brute_force()
         self.assertEqual(graph_partition.objective_value(x, self.w), oracle)
+
+
+if __name__ == '__main__':
+    unittest.main()
