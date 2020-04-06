@@ -320,3 +320,21 @@ class TestDocplex(QiskitOptimizationTestCase):
 
         # Compare objective
         self.assertEqual(result.eigenvalue.real + offset, expected_result)
+
+    def test_constants_in_left_side_and_variables_in_right_side(self):
+        """ Test Constant values on the left-hand side of constraints and
+        variables on the right-hand side of constraints for the DOcplex translator"""
+        mdl = Model('left_constants_and_right_variables')
+        x = mdl.binary_var(name='x')
+        y = mdl.binary_var(name='y')
+        mdl.maximize(mdl.sum(x + y))
+        mdl.add_constraint(x == y)
+
+        qubit_op, offset = docplex.get_operator(mdl)
+        print(qubit_op.print_details())
+        e_e = NumPyMinimumEigensolver(qubit_op)
+        result = e_e.run()
+
+        self.assertEqual(result['eigenvalue'] + offset, -2)
+        actual_sol = result['eigenstate'].tolist()
+        self.assertListEqual(actual_sol, [0, 0, 0, 1])
