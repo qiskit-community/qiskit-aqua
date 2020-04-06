@@ -199,7 +199,7 @@ class NumPyEigensolver(ClassicalAlgorithm):
         Returns:
             dict: Dictionary of results
         Raises:
-             AquaError: if no operator has been provided
+            AquaError: if no operator has been provided
         """
         if self._operator is None:
             raise AquaError("Operator was never provided")
