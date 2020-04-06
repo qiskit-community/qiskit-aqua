@@ -1,0 +1,38 @@
+test_auto_define_penalty (test.optimization.test_docplex.TestDocplex)
+Auto define Penalty test ... Using 100000.000000 for the penalty coefficient because a float coefficient exists in constraints. 
+The value could be too small. If so, set the penalty coefficient manually.
+ok
+test_constants_in_left_side_and_variables_in_right_side (test.optimization.test_docplex.TestDocplex)
+Test Constant values on the left-hand side of constraints and ... ERROR
+test_docplex_constant_and_quadratic_terms_in_object_function (test.optimization.test_docplex.TestDocplex)
+Docplex Constant and Quadratic terms in Object function test ... IZ	(0.5+0j)
+ZI	(0.5+0j)
+ZZ	(-1.5+0j)
+
+ok
+test_docplex_integer_constraints (test.optimization.test_docplex.TestDocplex)
+Docplex Integer Constraints test ... ok
+test_docplex_maxcut (test.optimization.test_docplex.TestDocplex)
+Docplex maxcut test ... ok
+test_docplex_tsp (test.optimization.test_docplex.TestDocplex)
+Docplex tsp test ... ok
+test_validation (test.optimization.test_docplex.TestDocplex)
+Validation Test ... The type of Variable x_0 is integer. It must be a binary variable. 
+The type of Variable x_1 is integer. It must be a binary variable. 
+The type of Variable x_2 is integer. It must be a binary variable. 
+Constraint x_0+x_1+x_2 <= 1 is not an equality constraint.
+ok
+
+======================================================================
+ERROR: test_constants_in_left_side_and_variables_in_right_side (test.optimization.test_docplex.TestDocplex)
+Test Constant values on the left-hand side of constraints and
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/manoel/projects/dongreenberg/aqua/test/optimization/test_docplex.py", line 340, in test_constants_in_left_side_and_variables_in_right_side
+    actual_sol = result['eigenstate'].to_matrix().tolist().to_list()
+AttributeError: 'list' object has no attribute 'to_list'
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.221s
+
+FAILED (errors=1)

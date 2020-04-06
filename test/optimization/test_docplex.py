@@ -337,7 +337,7 @@ class TestDocplex(QiskitOptimizationTestCase):
         result = e_e.run()
 
         self.assertEqual(result['eigenvalue'] + offset, -2)
-        actual_sol = result['eigenstate'].tolist()
+        actual_sol = result['eigenstate'].to_matrix().tolist()
         self.assertListEqual(actual_sol, [0, 0, 0, 1])
 
 
