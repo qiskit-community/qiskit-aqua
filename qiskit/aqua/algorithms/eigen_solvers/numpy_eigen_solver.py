@@ -131,12 +131,22 @@ class NumPyEigensolver(ClassicalAlgorithm):
                 self._k = self._in_k
 
     def _solve(self):
-        if self._k >= 2**(self._operator.num_qubits) - 1:
-            logger.debug("SciPy doesn't support to get all eigenvalues, using NumPy instead.")
-            eigval, eigvec = np.linalg.eig(self._operator.to_matrix())
+        sp_mat = self._operator.to_spmatrix()
+        # If matrix is diagonal, the elements on the diagonal are the eigenvalues. Solve by sorting.
+        if scisparse.csr_matrix(sp_mat.diagonal()).nnz == sp_mat.nnz:
+            diag = sp_mat.diagonal()
+            eigval = np.sort(diag)[:self._k]
+            temp = np.argsort(diag)[:self._k]
+            eigvec = np.zeros((sp_mat.shape[0], self._k))
+            for i, idx in enumerate(temp):
+                eigvec[idx, i] = 1.0
         else:
-            eigval, eigvec = scisparse.linalg.eigs(self._operator.to_spmatrix(),
-                                                   k=self._k, which='SR')
+            if self._k >= 2**(self._operator.num_qubits) - 1:
+                logger.debug("SciPy doesn't support to get all eigenvalues, using NumPy instead.")
+                eigval, eigvec = np.linalg.eig(self._operator.to_matrix())
+            else:
+                eigval, eigvec = scisparse.linalg.eigs(self._operator.to_spmatrix(),
+                                                       k=self._k, which='SR')
         if self._k > 1:
             idx = eigval.argsort()
             eigval = eigval[idx]
