@@ -4,7 +4,7 @@ ddt>=1.2.0
 pycodestyle
 pylint>=2.4.3
 pylintfileheader>=0.0.2
-Sphinx>=1.8.3
+Sphinx>=1.8.3,<3.0
 sphinx-rtd-theme>=0.4.0
 sphinx-tabs>=1.1.11
 sphinx-autodoc-typehints
