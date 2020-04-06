@@ -323,7 +323,7 @@ class TestDocplex(QiskitOptimizationTestCase):
 
     def test_constants_in_left_side_and_variables_in_right_side(self):
         """ Test Constant values on the left-hand side of constraints and
-        variables on the right-hand side of constraints for the DOcplex translater"""
+        variables on the right-hand side of constraints for the DOcplex translator"""
         mdl = Model('left_constants_and_right_variables')
         x = mdl.binary_var(name='x')
         y = mdl.binary_var(name='y')
