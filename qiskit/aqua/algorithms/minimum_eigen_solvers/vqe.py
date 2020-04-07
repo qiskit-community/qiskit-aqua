@@ -204,11 +204,10 @@ class VQE(VQAlgorithm, MinimumEigensolver):
     def var_form(self, var_form: VariationalForm):
         """ Sets variational form """
         VQAlgorithm.var_form.fset(self, var_form)
-        if var_form:
-            self._var_form_params = ParameterVector('θ', var_form.num_parameters)
-            if self.initial_point is None:
-                self.initial_point = var_form.preferred_init_points
-            self._check_operator_varform()
+        self._var_form_params = ParameterVector('θ', var_form.num_parameters)
+        if self.initial_point is None:
+            self.initial_point = var_form.preferred_init_points
+        self._check_operator_varform()
 
     def _check_operator_varform(self):
         if self.operator is not None and self.var_form is not None:

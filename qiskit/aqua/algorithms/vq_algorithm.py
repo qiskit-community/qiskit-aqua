@@ -86,8 +86,7 @@ class VQAlgorithm(QuantumAlgorithm):
     def var_form(self, var_form: VariationalForm):
         """ Sets variational form """
         self._var_form = var_form
-        if var_form:
-            self._var_form_params = ParameterVector('θ', var_form.num_parameters)
+        self._var_form_params = ParameterVector('θ', var_form.num_parameters)
 
     @property
     def optimizer(self) -> Optional[Optimizer]:
