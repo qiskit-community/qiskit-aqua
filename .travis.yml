@@ -138,7 +138,7 @@ jobs:
         - pip install cvxopt
         - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script:
-        - stestr --test-path test/aqua run --blacklist-file selection.txt 2>&1 | tee out.txt
+        - stestr --test-path test/aqua run --blacklist-file selection.txt 2> >(tee /dev/stderr out.txt > /dev/null)
         - coverage3 combine
         - mv .coverage aqua1.dat
         - python tools/extract_deprecation.py -file out.txt -output aqua137.dep
@@ -153,7 +153,7 @@ jobs:
       before_script:
         - pip install cvxopt
       script:
-        - stestr --test-path test/aqua run --blacklist-file selection.txt 2>&1 | tee out.txt
+        - stestr --test-path test/aqua run --blacklist-file selection.txt 2> >(tee /dev/stderr out.txt > /dev/null)
         - python tools/extract_deprecation.py -file out.txt -output aqua138.dep
     - name: "Test Aqua 2 Python 3.7"
       <<: *stage_test_aqua
@@ -168,7 +168,7 @@ jobs:
         - pip install cvxopt
         - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script:
-        - stestr --test-path test/aqua run --whitelist-file selection.txt 2>&1 | tee out.txt
+        - stestr --test-path test/aqua run --whitelist-file selection.txt 2> >(tee /dev/stderr out.txt > /dev/null)
         - coverage3 combine
         - mv .coverage aqua2.dat
         - python tools/extract_deprecation.py -file out.txt -output aqua237.dep
@@ -183,7 +183,7 @@ jobs:
       before_script:
         - pip install cvxopt
       script:
-        - stestr --test-path test/aqua run --whitelist-file selection.txt 2>&1 | tee out.txt
+        - stestr --test-path test/aqua run --whitelist-file selection.txt 2> >(tee /dev/stderr out.txt > /dev/null)
         - python tools/extract_deprecation.py -file out.txt -output aqua238.dep
     - name: "Test Chemistry Python 3.7"
       <<: *stage_dependencies
@@ -206,7 +206,7 @@ jobs:
       before_script:
         - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script:
-        - stestr --test-path test/chemistry run 2>&1 | tee out.txt
+        - stestr --test-path test/chemistry run 2> >(tee /dev/stderr out.txt > /dev/null)
         - coverage3 combine
         - mv .coverage chemistry.dat
         - python tools/extract_deprecation.py -file out.txt -output chemistry37.dep
@@ -226,7 +226,7 @@ jobs:
         # Installing pyquante2 master branch...
         - pip install https://github.com/rpmuller/pyquante2/archive/master.zip --progress-bar off
       script:
-        - stestr --test-path test/chemistry run 2>&1 | tee out.txt
+        - stestr --test-path test/chemistry run 2> >(tee /dev/stderr out.txt > /dev/null)
         - python tools/extract_deprecation.py -file out.txt -output chemistry38.dep
     - name: "Test Finance Python 3.7"
       <<: *stage_dependencies
@@ -240,7 +240,7 @@ jobs:
       before_script:
         - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script:
-        - stestr --test-path test/finance run 2>&1 | tee out.txt
+        - stestr --test-path test/finance run 2> >(tee /dev/stderr out.txt > /dev/null)
         - coverage3 combine
         - mv .coverage finance.dat
         - python tools/extract_deprecation.py -file out.txt -output finance37.dep
@@ -253,7 +253,7 @@ jobs:
           paths: finance38.dep
       python: 3.8
       script:
-        - stestr --test-path test/finance run 2>&1 | tee out.txt
+        - stestr --test-path test/finance run 2> >(tee /dev/stderr out.txt > /dev/null)
         - python tools/extract_deprecation.py -file out.txt -output finance38.dep
     - name: "Test Machine Learning Python 3.7"
       <<: *stage_dependencies
@@ -267,7 +267,7 @@ jobs:
       before_script:
         - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script:
-        - stestr --test-path test/ml run 2>&1 | tee out.txt
+        - stestr --test-path test/ml run 2> >(tee /dev/stderr out.txt > /dev/null)
         - coverage3 combine
         - mv .coverage ml.dat
         - python tools/extract_deprecation.py -file out.txt -output ml37.dep
@@ -280,7 +280,7 @@ jobs:
           paths: ml38.dep
       python: 3.8
       script:
-        - stestr --test-path test/ml run 2>&1 | tee out.txt
+        - stestr --test-path test/ml run 2> >(tee /dev/stderr out.txt > /dev/null)
         - python tools/extract_deprecation.py -file out.txt -output ml38.dep
     - name: "Test Optimization Python 3.7"
       <<: *stage_dependencies
@@ -294,7 +294,7 @@ jobs:
       before_script:
         - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script:
-        - stestr --test-path test/optimization run 2>&1 | tee out.txt
+        - stestr --test-path test/optimization run 2> >(tee /dev/stderr out.txt > /dev/null)
         - coverage3 combine
         - mv .coverage optimization.dat
         - python tools/extract_deprecation.py -file out.txt -output optimization37.dep
@@ -307,7 +307,7 @@ jobs:
           paths: optimization38.dep
       python: 3.8
       script:
-        - stestr --test-path test/optimization run 2>&1 | tee out.txt
+        - stestr --test-path test/optimization run 2> >(tee /dev/stderr out.txt > /dev/null)
         - python tools/extract_deprecation.py -file out.txt -output optimization38.dep
     - name: "Run pip check"
       <<: *stage_dependencies
