@@ -14,10 +14,10 @@
 
 """ Test PauliExpectation """
 
+import unittest
 from test.aqua import QiskitAquaTestCase
 
 import itertools
-import unittest
 import numpy as np
 
 from qiskit.aqua.operators import (X, Y, Z, I, CX, H, S,
@@ -191,3 +191,7 @@ class TestPauliExpectation(QiskitAquaTestCase):
                   [-1, 1, 0, -0],
                   [+1, 1, 1, 1]]
         np.testing.assert_array_almost_equal(means, valids, decimal=1)
+
+
+if __name__ == '__main__':
+    unittest.main()

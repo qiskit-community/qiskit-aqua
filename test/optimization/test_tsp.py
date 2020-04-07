@@ -14,6 +14,7 @@
 
 """ Test TSP (Traveling Salesman Problem) """
 
+import unittest
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 
@@ -43,3 +44,7 @@ class TestTSP(QiskitOptimizationTestCase):
         order = tsp.get_tsp_solution(x)
         np.testing.assert_equal(tsp.tsp_value(order, self.ins.w),
                                 tsp.tsp_value([1, 2, 0], self.ins.w))
+
+
+if __name__ == '__main__':
+    unittest.main()

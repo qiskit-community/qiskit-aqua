@@ -14,6 +14,7 @@
 
 """ Text Vertex Cover """
 
+import unittest
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 from qiskit import BasicAer
@@ -44,7 +45,7 @@ class TestVertexCover(QiskitOptimizationTestCase):
             return [int(digit) for digit in result]  # [2:] to chop off the "0b" part
 
         nodes = self.num_nodes
-        maximum = 2**nodes
+        maximum = 2 ** nodes
         minimal_v = np.inf
         for i in range(maximum):
             cur = bitfield(i, nodes)
@@ -83,3 +84,7 @@ class TestVertexCover(QiskitOptimizationTestCase):
         sol = vertex_cover.get_graph_solution(x)
         oracle = self._brute_force()
         self.assertEqual(np.count_nonzero(sol), oracle)
+
+
+if __name__ == '__main__':
+    unittest.main()
