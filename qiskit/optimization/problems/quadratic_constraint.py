@@ -39,7 +39,7 @@ class QuadraticConstraintInterface(BaseInterface):
         `OptimizationProblem` class as `OptimizationProblem.quadratic_constraints`.
         This constructor is not meant to be used externally.
         """
-        super(QuadraticConstraintInterface, self).__init__()
+        super().__init__()
         self._rhs = []
         self._senses = []
         self._names = []

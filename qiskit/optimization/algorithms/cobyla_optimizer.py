@@ -13,14 +13,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""The COBYLA optimizer wrapped to be used within Qiskit Optimization.
-
-    Examples:
-        >>> problem = OptimizationProblem()
-        >>> # specify problem here
-        >>> optimizer = CobylaOptimizer()
-        >>> result = optimizer.solve(problem)
-"""
+"""The COBYLA optimizer wrapped to be used within Qiskit Optimization."""
 
 from typing import Optional
 
@@ -41,6 +34,12 @@ class CobylaOptimizer(OptimizationAlgorithm):
     (https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.optimize.fmin_cobyla.html)
     to be used within Qiskit Optimization.
     The arguments for ``fmin_cobyla`` are passed via the constructor.
+
+    Examples:
+        >>> problem = OptimizationProblem()
+        >>> # specify problem here
+        >>> optimizer = CobylaOptimizer()
+        >>> result = optimizer.solve(problem)
     """
 
     def __init__(self, rhobeg: float = 1.0, rhoend: float = 1e-4, maxfun: int = 1000,
@@ -48,7 +47,7 @@ class CobylaOptimizer(OptimizationAlgorithm):
         """Initializes the CobylaOptimizer.
 
         This initializer takes the algorithmic parameters of COBYLA and stores them for later use
-        of ``fmin_cobyla`` when ``solve()`` is invoked.
+        of ``fmin_cobyla`` when :meth:`solve` is invoked.
         This optimizer can be applied to find a (local) optimum for problems consisting of only
         continuous variables.
 

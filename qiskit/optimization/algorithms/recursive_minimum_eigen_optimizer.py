@@ -28,6 +28,7 @@ from typing import Optional
 import numpy as np
 
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
+from qiskit.aqua.utils.validation import validate_min
 
 from .optimization_algorithm import OptimizationAlgorithm
 from .minimum_eigen_optimizer import MinimumEigenOptimizer
@@ -70,9 +71,9 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         # --> would support efficient classical implementation for QAOA with depth p=1
         # --> add results class for MinimumEigenSolver that contains enough info to do so.
 
+        validate_min('min_num_vars', min_num_vars, 1)
+
         self._min_eigen_optimizer = min_eigen_optimizer
-        if min_num_vars < 1:
-            raise QiskitOptimizationError('Minimal problem size needs to be >= 1!')
         self._min_num_vars = min_num_vars
         if min_num_vars_optimizer:
             self._min_num_vars_optimizer = min_num_vars_optimizer
