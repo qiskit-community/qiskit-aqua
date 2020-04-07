@@ -63,10 +63,16 @@ class QAOA(VQE):
     be supplied.
     """
 
-    def __init__(self, operator: OperatorBase = None, optimizer: Optimizer = None, p: int = 1,
+    def __init__(self,
+                 operator: Union[OperatorBase, LegacyBaseOperator] = None,
+                 optimizer: Optimizer = None,
+                 p: int = 1,
                  initial_state: Optional[InitialState] = None,
-                 mixer: Optional[OperatorBase] = None, initial_point: Optional[np.ndarray] = None,
-                 max_evals_grouped: int = 1, aux_operators: Optional[List[OperatorBase]] = None,
+                 mixer: Optional[OperatorBase] = None,
+                 initial_point: Optional[np.ndarray] = None,
+                 max_evals_grouped: int = 1,
+                 aux_operators: Optional[List[Optional[Union[OperatorBase, LegacyBaseOperator]]]] =
+                 None,
                  callback: Optional[Callable[[int, np.ndarray, float, float], None]] = None,
                  quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
         """
@@ -106,13 +112,17 @@ class QAOA(VQE):
 
         # VQE will use the operator setter, during its constructor, which is overridden below and
         # will cause the var form to be built
-        super().__init__(operator, None, optimizer, initial_point=initial_point,
+        super().__init__(operator,
+                         None,
+                         optimizer,
+                         initial_point=initial_point,
                          max_evals_grouped=max_evals_grouped,
                          callback=callback,
-                         quantum_instance=quantum_instance)
+                         quantum_instance=quantum_instance,
+                         aux_operators=aux_operators)
 
     @VQE.operator.setter
-    def operator(self, operator: OperatorBase) -> None:
+    def operator(self, operator: Union[OperatorBase, LegacyBaseOperator]) -> None:
         """ Sets operator """
         if operator is not None:
             if isinstance(operator, LegacyBaseOperator):

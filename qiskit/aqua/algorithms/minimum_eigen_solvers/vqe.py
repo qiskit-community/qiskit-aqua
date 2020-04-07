@@ -29,14 +29,12 @@ from qiskit.circuit import ParameterVector
 
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance, AquaError
+from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.operators import (OperatorBase, ExpectationBase, CircuitStateFn,
                                    LegacyBaseOperator, ListOp, I)
-from qiskit.aqua.operators.legacy import (MatrixOperator, WeightedPauliOperator,
-                                          TPBGroupedWeightedPauliOperator)
 from qiskit.aqua.components.optimizers import Optimizer, SLSQP
 from qiskit.aqua.components.variational_forms import VariationalForm, RY
 from qiskit.aqua.utils.validation import validate_min
-from qiskit.aqua.utils.backend_utils import is_aer_provider
 from ..vq_algorithm import VQAlgorithm, VQResult
 from .minimum_eigen_solver import MinimumEigensolver, MinimumEigensolverResult
 
@@ -82,15 +80,15 @@ class VQE(VQAlgorithm, MinimumEigensolver):
     """
 
     def __init__(self,
-                 operator: Optional[OperatorBase] = None,
+                 operator: Optional[Union[OperatorBase, LegacyBaseOperator]] = None,
                  var_form: Optional[VariationalForm] = None,
                  optimizer: Optional[Optimizer] = None,
                  initial_point: Optional[np.ndarray] = None,
                  expectation_value: Optional[ExpectationBase] = None,
                  max_evals_grouped: int = 1,
-                 aux_operators: Optional[OperatorBase] = None,
+                 aux_operators: Optional[List[Optional[Union[OperatorBase, LegacyBaseOperator]]]] =
+                 None,
                  callback: Optional[Callable[[int, np.ndarray, float, float], None]] = None,
-                 # TODO delete all instances of auto_conversion
                  quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
         """
 
@@ -101,14 +99,15 @@ class VQE(VQAlgorithm, MinimumEigensolver):
             initial_point: An optional initial point (i.e. initial parameter values)
                 for the optimizer. If ``None`` then VQE will look to the variational form for a
                 preferred point and if not will simply compute a random one.
-            expectation_value: expectation value
+            expectation_value: The Expectation Value algorithm for taking average value of the
+                Observable over the var_form state function.
             max_evals_grouped: Max number of evaluations performed simultaneously. Signals the
                 given optimizer that more than one set of parameters can be supplied so that
                 potentially the expectation values can be computed in parallel. Typically this is
                 possible when a finite difference gradient is used by the optimizer such that
                 multiple points to compute the gradient can be passed and if computed in parallel
                 improve overall execution time.
-            aux_operators: Optional ListOp or list of auxiliary operators to be evaluated with the
+            aux_operators: Optional list of auxiliary operators to be evaluated with the
                 eigenstate of the minimum eigenvalue main result and their expectation values
                 returned. For instance in chemistry these can be dipole operators, total particle
                 count operators so we can get values for these at the ground state.
@@ -120,10 +119,6 @@ class VQE(VQAlgorithm, MinimumEigensolver):
             quantum_instance: Quantum Instance or Backend
         """
         validate_min('max_evals_grouped', max_evals_grouped, 1)
-        # TODO delete all instances of self._use_simulator_snapshot_mode
-        self._use_simulator_snapshot_mode = False
-        # TODO delete instances of self._auto_conversion
-        self._auto_conversion = False
         if var_form is None:
             # TODO after ansatz refactor num qubits can be set later so we do not have to have
             #      an operator to create a default
@@ -150,7 +145,6 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         self._optimizer.set_max_evals_grouped(max_evals_grouped)
         self._callback = callback
 
-        # TODO if we ingest backend we can set expectation through the factory here.
         self._expectation_value = expectation_value
         self.operator = operator
         self.aux_operators = aux_operators
@@ -168,34 +162,54 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         return self._operator
 
     @operator.setter
-    def operator(self, operator: OperatorBase) -> None:
+    def operator(self, operator: Union[OperatorBase, LegacyBaseOperator]) -> None:
         """ set operator """
         if isinstance(operator, LegacyBaseOperator):
             operator = operator.to_opflow()
         self._operator = operator
         self._check_operator_varform()
         if self._expectation_value is not None:
-            self._expectation_value.operator = self._operator
+            self.expectation_value.operator = self._operator
+        else:
+            self._try_set_expectation_value_from_factory()
+
+    def _try_set_expectation_value_from_factory(self):
+        if self.operator and self.quantum_instance:
+            self.expectation_value = ExpectationBase.factory(operator=self.operator,
+                                                             backend=self.quantum_instance)
+
+    @QuantumAlgorithm.quantum_instance.setter
+    def quantum_instance(self, quantum_instance: Union[QuantumInstance, BaseBackend]) -> None:
+        """ set quantum_instance """
+        if isinstance(quantum_instance, BaseBackend):
+            quantum_instance = QuantumInstance(quantum_instance)
+        self._quantum_instance = quantum_instance
+        if self._expectation_value is not None:
+            self.expectation_value.backend = self.quantum_instance
+        else:
+            self._try_set_expectation_value_from_factory()
 
     @property
-    def expectation_value(self):
-        """ Makes aux ops obsolete, as we can now just take
-        the expectations of the ops directly. """
+    def expectation_value(self) -> ExpectationBase:
+        """ The Expectation Value algorithm used to compute the value of the observable at each
+        update step. """
         return self._expectation_value
 
     @expectation_value.setter
-    def expectation_value(self, exp):
-        # TODO throw an error if operator is different from exp's operator?
-        #  Or don't store it at all, only in exp?
+    def expectation_value(self, exp: ExpectationBase) -> None:
         self._expectation_value = exp
+        if self.operator:
+            self._expectation_value.operator = self.operator
 
     @property
-    def aux_operators(self) -> List[LegacyBaseOperator]:
+    def aux_operators(self) -> Optional[List[Optional[OperatorBase]]]:
         """ Returns aux operators """
         return self._aux_operators
 
     @aux_operators.setter
-    def aux_operators(self, aux_operators: List[LegacyBaseOperator]) -> None:
+    def aux_operators(self,
+                      aux_operators: Optional[List[Optional[Union[OperatorBase,
+                                                                  LegacyBaseOperator]]]]) -> None:
         """ Set aux operators """
         # This is all terrible code to deal with weight 0-qubit None aux_ops.
         self._aux_op_nones = None
@@ -203,7 +217,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
             self._aux_op_nones = [op is None for op in aux_operators]
             zero_op = I.tensorpower(self.operator.num_qubits) * 0.0
             converted = [op.to_opflow() if op else zero_op for op in aux_operators]
-            # For some reason Chemistry passes aux_ops with 0 qubits and paulis sometimes. TODO fix
+            # For some reason Chemistry passes aux_ops with 0 qubits and paulis sometimes.
             converted = [zero_op if op == 0 else op for op in converted]
             aux_operators = ListOp(converted)
         elif isinstance(aux_operators, LegacyBaseOperator):
@@ -287,44 +301,8 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         Raises:
             AquaError: wrong setting of operator and backend.
         """
-        # TODO delete instances of self._auto_conversion
-        # TODO delete all instances of self._use_simulator_snapshot_mode
-        # TODO make Expectations throw warnings more aggressively for
-        #  incompatible operator primitives
-
         if self.operator is None:
             raise AquaError("Operator was never provided")
-
-        self._operator = self.operator
-
-        if self._expectation_value is None:
-            self._expectation_value = ExpectationBase.factory(operator=self._operator,
-                                                              backend=self._quantum_instance)
-        self._aux_operators = self.aux_operators
-        if self._auto_conversion:
-            self._operator = \
-                self._config_the_best_mode(self._operator, self._quantum_instance.backend)
-            for i in range(len(self._aux_operators)):
-                if self._aux_operators[i] is None:
-                    continue
-                if not self._aux_operators[i].is_empty():
-                    self._aux_operators[i] = \
-                        self._config_the_best_mode(self._aux_operators[i],
-                                                   self._quantum_instance.backend)
-
-        # sanity check
-        if isinstance(self._operator, MatrixOperator) and not self._quantum_instance.is_statevector:
-            raise AquaError("Non-statevector simulator can not work "
-                            "with `MatrixOperator`, either turn ON "
-                            "auto_conversion or use the proper "
-                            "combination between operator and backend.")
-
-        self._use_simulator_snapshot_mode = (
-            is_aer_provider(self._quantum_instance.backend)
-            and self._quantum_instance.run_config.shots == 1
-            and not self._quantum_instance.noise_config
-            and isinstance(self._operator,
-                           (WeightedPauliOperator, TPBGroupedWeightedPauliOperator)))
 
         self._quantum_instance.circuit_summary = True
 
@@ -376,7 +354,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         # Discard values below threshold
         # TODO remove reshape when ._ret is deprecated
         aux_op_results = (values * (np.abs(values) > threshold))
-        # Terribly hacky code to deal with weird legacy aux_op behavior
+        # Deal with the aux_op behavior where there can be Nones or Zero qubit Paulis in the list
         self._ret['aux_ops'] = [None if is_none else [result]
                                 for (is_none, result) in zip(self._aux_op_nones, aux_op_results)]
         self._ret['aux_ops'] = np.array([self._ret['aux_ops']])
@@ -401,10 +379,9 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         num_parameter_sets = len(parameters) // self._var_form.num_parameters
         parameter_sets = np.split(parameters, num_parameter_sets)
 
-        # TODO this is a hack to make AdaptVQE work, but it should fixed in adapt and deleted.
-        if self._expectation_value is None:
-            self._expectation_value = ExpectationBase.factory(operator=self._operator,
-                                                              backend=self._quantum_instance)
+        # If ExpectationValue was never created, create one now.
+        if not self.expectation_value:
+            self._try_set_expectation_value_from_factory()
 
         if not self._expectation_value.state:
             ansatz_circuit_op = CircuitStateFn(
@@ -421,11 +398,8 @@ class VQE(VQAlgorithm, MinimumEigensolver):
             for i, param_set in enumerate(parameter_sets):
                 self._eval_count += 1
                 self._callback(self._eval_count, param_set, means[i], stds[i])
-        # TODO I would like to change the callback to the following, to allow one to access an
-        #  accurate picture of the evaluation steps, and to distinguish between single
-        #  energy and gradient evaluations.
-        if self._callback is not None and False:
-            self._callback(self._eval_count, parameter_sets, means, stds)
+        else:
+            self._eval_count += len(means)
 
         end_time = time()
         logger.info('Energy evaluation returned %s - %.5f (ms), eval count: %s',

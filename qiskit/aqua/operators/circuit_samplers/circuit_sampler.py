@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Expectation Algorithm Base """
+""" Circuit Sampler Base """
 
 from typing import List, Dict, Optional
 import logging
@@ -32,11 +32,8 @@ logger = logging.getLogger(__name__)
 
 
 class CircuitSampler(ConverterBase):
-    """ A base for Expectation Value algorithms. An expectation
-    value algorithm takes an operator Observable,
-    a backend, and a state distribution function,
-    and computes the expected value of that observable over the
-    distribution.
+    """ A base for Circuit Samplers. A circuit sampler is a converter for replacing
+    CircuitStateFns with DictSateFns representing samples of the StateFn.
 
     """
 
@@ -62,7 +59,7 @@ class CircuitSampler(ConverterBase):
     @abstractmethod
     def convert(self,
                 operator: OperatorBase,
-                params: dict = None):
+                params: dict = None) -> OperatorBase:
         """ Accept the Operator and return the converted Operator """
         raise NotImplementedError
 

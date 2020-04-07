@@ -138,3 +138,4 @@ class PauliTrotterEvolution(EvolutionBase):
                                              for ops in itertools.combinations(op_sum.oplist, 2)])
         tree = nx.minimum_spanning_tree(pauli_graph)
         tree_edges = nx.dfs_edges(tree)
+        assert tree_edges

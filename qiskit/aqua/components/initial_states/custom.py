@@ -14,7 +14,7 @@
 
 """The custom initial state."""
 
-from typing import Optional
+from typing import Optional, Union
 import logging
 import numpy as np
 
@@ -61,7 +61,7 @@ class Custom(InitialState):
     def __init__(self,
                  num_qubits: int,
                  state: str = 'zero',
-                 state_vector: Optional[np.ndarray] = None,
+                 state_vector: Optional[Union[np.ndarray, StateFn]] = None,
                  circuit: Optional[QuantumCircuit] = None) -> None:
         """
         Args:
@@ -85,6 +85,7 @@ class Custom(InitialState):
         self._circuit = None
         if isinstance(state_vector, StateFn):
             state_vector = state_vector.to_matrix()
+        # pylint: disable=comparison-with-callable
         if circuit is not None:
             if circuit.width() != num_qubits:
                 logger.warning('The specified num_qubits and '

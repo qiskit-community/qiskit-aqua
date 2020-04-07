@@ -27,8 +27,7 @@ from qiskit import ClassicalRegister
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.algorithms import VQAlgorithm, VQE, VQEResult
 from qiskit.chemistry.components.variational_forms import UCCSD
-from qiskit.aqua.operators import TPBGroupedWeightedPauliOperator, WeightedPauliOperator
-from qiskit.aqua.utils.backend_utils import is_aer_statevector_backend
+from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.aqua.operators import LegacyBaseOperator
 from qiskit.aqua.components.optimizers import Optimizer
 from qiskit.aqua.components.variational_forms import VariationalForm
@@ -77,7 +76,6 @@ class VQEAdapt(VQAlgorithm):
                          optimizer=optimizer,
                          initial_point=initial_point,
                          quantum_instance=quantum_instance)
-        self._use_simulator_snapshot_mode = None
         self._ret = None
         self._optimizer.set_max_evals_grouped(max_evals_grouped)
         if initial_point is None:
@@ -122,8 +120,6 @@ class VQEAdapt(VQAlgorithm):
             # construct auxiliary VQE instance
             vqe = VQE(operator, var_form, optimizer)
             vqe.quantum_instance = self.quantum_instance
-            # vqe._operator = vqe._config_the_best_mode(operator, self.quantum_instance.backend)
-            vqe._use_simulator_snapshot_mode = self._use_simulator_snapshot_mode
             # evaluate energies
             parameter_sets = theta + [-delta] + theta + [delta]
             energy_results = vqe._energy_evaluation(np.asarray(parameter_sets))
@@ -148,9 +144,6 @@ class VQEAdapt(VQAlgorithm):
         self._ret = {}  # TODO should be eliminated
         # self._operator = VQE._config_the_best_mode(self, self._operator,
         #                                            self._quantum_instance.backend)
-        self._use_simulator_snapshot_mode = \
-            is_aer_statevector_backend(self._quantum_instance.backend) \
-            and isinstance(self._operator, (WeightedPauliOperator, TPBGroupedWeightedPauliOperator))
         self._quantum_instance.circuit_summary = True
 
         cycle_regex = re.compile(r'(.+)( \1)+')

@@ -14,12 +14,12 @@
 
 """The Numpy Minimum Eigensolver algorithm."""
 
-from typing import List, Optional
+from typing import List, Optional, Union
 import logging
 import pprint
 
 from qiskit.aqua.algorithms import ClassicalAlgorithm, NumPyEigensolver
-from qiskit.aqua.operators import LegacyBaseOperator
+from qiskit.aqua.operators import OperatorBase, LegacyBaseOperator
 from .minimum_eigen_solver import MinimumEigensolver, MinimumEigensolverResult
 
 logger = logging.getLogger(__name__)
@@ -43,19 +43,21 @@ class NumPyMinimumEigensolver(ClassicalAlgorithm, MinimumEigensolver):
         self._ret = {}  # TODO remove
 
     @property
-    def operator(self) -> LegacyBaseOperator:
+    def operator(self) -> Optional[OperatorBase]:
         return self._ces.operator
 
     @operator.setter
-    def operator(self, operator: LegacyBaseOperator) -> None:
+    def operator(self, operator: Union[OperatorBase, LegacyBaseOperator]) -> None:
         self._ces.operator = operator
 
     @property
-    def aux_operators(self) -> List[LegacyBaseOperator]:
+    def aux_operators(self) -> Optional[List[Optional[OperatorBase]]]:
         return self._ces.aux_operators
 
     @aux_operators.setter
-    def aux_operators(self, aux_operators: List[LegacyBaseOperator]) -> None:
+    def aux_operators(self,
+                      aux_operators: Optional[List[Optional[Union[OperatorBase,
+                                                                  LegacyBaseOperator]]]]) -> None:
         self._ces.aux_operators = aux_operators
 
     def supports_aux_operators(self) -> bool:

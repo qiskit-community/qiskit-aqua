@@ -75,7 +75,7 @@ from .circuit_samplers import CircuitSampler, LocalSimulatorSampler, IBMQSampler
 from .evolutions import (EvolutionBase, EvolvedOp, PauliTrotterEvolution, TrotterizationBase,
                          Trotter, Suzuki, QDrift)
 
-# Singletons
+# Convenience immutable instances
 from .operator_globals import X, Y, Z, I, CX, S, H, T, Swap, Zero, One, Plus, Minus
 
 __all__ = [
@@ -92,6 +92,6 @@ __all__ = [
     'PrimitiveOp', 'PauliOp', 'MatrixOp', 'CircuitOp',
     'StateFn', 'DictStateFn', 'VectorStateFn', 'CircuitStateFn', 'OperatorStateFn',
     'ListOp', 'SummedOp', 'ComposedOp', 'TensoredOp',
-    # Singletons
+    # Convenience immutable instances
     'X', 'Y', 'Z', 'I', 'CX', 'S', 'H', 'T', 'Swap', 'Zero', 'One', 'Plus', 'Minus'
 ]

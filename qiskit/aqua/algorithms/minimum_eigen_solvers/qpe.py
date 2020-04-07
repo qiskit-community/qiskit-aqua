@@ -62,7 +62,6 @@ class QPEMinimumEigensolver(QuantumAlgorithm, MinimumEigensolver):
                  operator: Optional[LegacyBaseOperator] = None,
                  state_in: Optional[InitialState] = None,
                  iqft: Optional[IQFT] = None,
-                 # TODO rename to reps
                  num_time_slices: int = 1,
                  num_ancillae: int = 1,
                  expansion_mode: str = 'trotter',
@@ -112,7 +111,6 @@ class QPEMinimumEigensolver(QuantumAlgorithm, MinimumEigensolver):
         self._pauli_list = None
         self._phase_estimation_circuit = None
         if operator:
-            # TODO MatrixToPauli converter
             self._operator = op_converter.to_weighted_pauli_operator(operator.copy())
             self._ret['translation'] = sum([abs(p[0]) for p in self._operator.reorder_paulis()])
             self._ret['stretch'] = 0.5 / self._ret['translation']

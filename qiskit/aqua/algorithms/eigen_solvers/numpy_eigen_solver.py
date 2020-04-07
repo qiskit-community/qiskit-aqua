@@ -14,7 +14,7 @@
 
 """The Eigensolver algorithm."""
 
-from typing import List, Optional
+from typing import List, Optional, Union
 import logging
 import pprint
 import warnings
@@ -23,7 +23,7 @@ from scipy import sparse as scisparse
 
 from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms import ClassicalAlgorithm
-from qiskit.aqua.operators import LegacyBaseOperator, I, StateFn, ListOp
+from qiskit.aqua.operators import OperatorBase, LegacyBaseOperator, I, StateFn, ListOp
 from qiskit.aqua.utils.validation import validate_min
 from .eigen_solver_result import EigensolverResult
 
@@ -46,8 +46,12 @@ class NumPyEigensolver(ClassicalAlgorithm):
         operator size, mostly in terms of number of qubits it represents, gets larger.
     """
 
-    def __init__(self, operator: Optional[LegacyBaseOperator] = None, k: int = 1,
-                 aux_operators: Optional[List[LegacyBaseOperator]] = None) -> None:
+    def __init__(self,
+                 operator: Optional[Union[OperatorBase, LegacyBaseOperator]] = None,
+                 k: int = 1,
+                 aux_operators: Optional[List[Optional[Union[OperatorBase, LegacyBaseOperator]]]] =
+                 None) -> \
+            None:
         """
         Args:
             operator: Operator instance. If None is supplied it must be provided later before
@@ -71,12 +75,12 @@ class NumPyEigensolver(ClassicalAlgorithm):
         self._ret = {}
 
     @property
-    def operator(self) -> LegacyBaseOperator:
+    def operator(self) -> Optional[OperatorBase]:
         """ returns operator """
         return self._operator
 
     @operator.setter
-    def operator(self, operator: LegacyBaseOperator) -> None:
+    def operator(self, operator: Union[OperatorBase, LegacyBaseOperator]) -> None:
         """ set operator """
         if isinstance(operator, LegacyBaseOperator):
             operator = operator.to_opflow()
@@ -87,12 +91,14 @@ class NumPyEigensolver(ClassicalAlgorithm):
             self._check_set_k()
 
     @property
-    def aux_operators(self) -> List[LegacyBaseOperator]:
+    def aux_operators(self) -> Optional[List[Optional[OperatorBase]]]:
         """ returns aux operators """
         return self._aux_operators
 
     @aux_operators.setter
-    def aux_operators(self, aux_operators: List[LegacyBaseOperator]) -> None:
+    def aux_operators(self,
+                      aux_operators: Optional[List[Optional[Union[OperatorBase,
+                                                                  LegacyBaseOperator]]]]) -> None:
         """ set aux operators """
         if aux_operators is None:
             self._aux_operators = []
@@ -180,7 +186,7 @@ class NumPyEigensolver(ClassicalAlgorithm):
                 values.append(None)
                 continue
             value = 0.0
-            if not operator.coeff == 0:
+            if operator.coeff != 0:
                 mat = operator.to_spmatrix()
                 # Terra doesn't support sparse yet, so do the matmul directly if so
                 # This is necessary for the particle_hole and other chemistry tests because the

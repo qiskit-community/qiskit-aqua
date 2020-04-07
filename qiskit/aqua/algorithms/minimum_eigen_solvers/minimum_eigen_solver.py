@@ -19,7 +19,7 @@ from typing import List, Optional, Union, Dict
 
 import numpy as np
 from qiskit.aqua.algorithms import AlgorithmResult
-from qiskit.aqua.operators import LegacyBaseOperator
+from qiskit.aqua.operators import OperatorBase, LegacyBaseOperator
 
 
 class MinimumEigensolver(ABC):
@@ -67,25 +67,27 @@ class MinimumEigensolver(ABC):
 
     @property
     @abstractmethod
-    def operator(self) -> LegacyBaseOperator:
+    def operator(self) -> Optional[OperatorBase]:
         """ returns operator """
         pass
 
     @operator.setter
     @abstractmethod
-    def operator(self, operator: LegacyBaseOperator) -> None:
+    def operator(self, operator: Union[OperatorBase, LegacyBaseOperator]) -> None:
         """ set operator """
         pass
 
     @property
-    # @abstractmethod
-    def aux_operators(self) -> List[LegacyBaseOperator]:
+    @abstractmethod
+    def aux_operators(self) -> Optional[List[Optional[OperatorBase]]]:
         """ returns aux operators """
         pass
 
     @aux_operators.setter
-    # @abstractmethod
-    def aux_operators(self, aux_operators: List[LegacyBaseOperator]) -> None:
+    @abstractmethod
+    def aux_operators(self,
+                      aux_operators: Optional[List[Optional[Union[OperatorBase,
+                                                                  LegacyBaseOperator]]]]) -> None:
         """ set aux operators """
         pass
 
