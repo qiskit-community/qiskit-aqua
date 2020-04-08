@@ -59,9 +59,9 @@ The following is an example of use.
 
 """
 
+from typing import Tuple
 import logging
 from math import fsum
-import warnings
 
 import numpy as np
 from docplex.mp.constants import ComparisonType
@@ -74,20 +74,19 @@ from qiskit.aqua.operators import WeightedPauliOperator
 logger = logging.getLogger(__name__)
 
 
-def get_operator(mdl, auto_penalty=True, default_penalty=1e5):
-    """
-    Generate Ising Hamiltonian from a model of DOcplex.
+def get_operator(mdl: Model, auto_penalty: bool = True,
+                 default_penalty: float = 1e5) -> Tuple[WeightedPauliOperator, float]:
+    """Generate Ising Hamiltonian from a model of DOcplex.
 
     Args:
-        mdl (docplex.mp.model.Model): A model of DOcplex for a optimization problem.
-        auto_penalty (bool): If true, the penalty coefficient is automatically defined
+        mdl: A model of DOcplex for a optimization problem.
+        auto_penalty: If true, the penalty coefficient is automatically defined
                              by "_auto_define_penalty()".
-        default_penalty (float): The default value of the penalty coefficient for the constraints.
+        default_penalty: The default value of the penalty coefficient for the constraints.
             This value is used if "auto_penalty" is False.
 
     Returns:
-        tuple(operators.WeightedPauliOperator, float): operator for the Hamiltonian and a
-        constant shift for the obj function.
+        Operator for the Hamiltonian and a constant shift for the obj function.
     """
 
     _validate_input_model(mdl)
@@ -208,15 +207,14 @@ def get_operator(mdl, auto_penalty=True, default_penalty=1e5):
     return qubit_op, shift
 
 
-def _validate_input_model(mdl):
-    """
-    Check whether an input model is valid. If not, raise an AquaError
+def _validate_input_model(mdl: Model) -> None:
+    """Check whether an input model is valid. If not, raise an AquaError.
 
     Args:
-         mdl (docplex.mp.model.Model): A model of DOcplex for a optimization problem.
+         mdl: A model of DOcplex for a optimization problem.
 
     Raises:
-        AquaError: Unsupported input model
+        AquaError: Unsupported input model.
     """
     valid = True
 
@@ -241,18 +239,17 @@ def _validate_input_model(mdl):
         raise AquaError('The input model has unsupported elements.')
 
 
-def _auto_define_penalty(mdl, default_penalty=1e5):
-    """
-    Automatically define the penalty coefficient.
+def _auto_define_penalty(mdl: Model, default_penalty: float = 1e5) -> float:
+    """Automatically define the penalty coefficient.
+
     This returns object function's (upper bound - lower bound + 1).
 
-
     Args:
-        mdl (docplex.mp.model.Model): A model of DOcplex for a optimization problem.
-        default_penalty (float): The default value of the penalty coefficient for the constraints.
+        mdl: A model of DOcplex for a optimization problem.
+        default_penalty: The default value of the penalty coefficient for the constraints.
 
     Returns:
-        float: The penalty coefficient for the Hamiltonian.
+        The penalty coefficient for the Hamiltonian.
     """
 
     # if a constraint has float coefficient, return 1e5 for the penalty coefficient.
@@ -275,21 +272,3 @@ def _auto_define_penalty(mdl, default_penalty=1e5):
     penalties.extend(abs(i[1]) for i in mdl.get_objective_expr().iter_quads())
 
     return fsum(penalties)
-
-
-def sample_most_likely(state_vector):
-    """ sample most likely """
-    # pylint: disable=import-outside-toplevel
-    from .common import sample_most_likely as redirect_func
-    warnings.warn("sample_most_likely function has been moved to qiskit.optimization.ising.common, "
-                  "the method here will be removed after Aqua 0.7+",
-                  DeprecationWarning)
-    return redirect_func(state_vector=state_vector)
-
-
-def get_qubitops(mdl, auto_penalty=True, default_penalty=1e5):
-    """ get qubit ops """
-    warnings.warn("get_qubitops function has been changed to get_operator."
-                  " The method here will be removed after Aqua 0.7+",
-                  DeprecationWarning)
-    return get_operator(mdl, auto_penalty, default_penalty)

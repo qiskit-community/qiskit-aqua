@@ -13,16 +13,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""A wrapper for minimum eigen solvers from Qiskit Aqua to be used within Qiskit Optimization.
-
-Examples:
-    >>> problem = QuadraticProgram()
-    >>> # specify problem here
-    >>> # specify minimum eigen solver to be used, e.g., QAOA
-    >>> qaoa = QAOA(...)
-    >>> optimizer = MinEigenOptimizer(qaoa)
-    >>> result = optimizer.solve(problem)
-"""
+"""A wrapper for minimum eigen solvers from Qiskit Aqua to be used within Qiskit Optimization."""
 
 from typing import Optional, Any
 import numpy as np
@@ -86,6 +77,14 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
     corresponding eigenstate correspond to the optimal solution of the original optimization
     problem. The provided minimum eigen solver is then used to approximate the ground state of the
     Hamiltonian to find a good solution for the optimization problem.
+
+    Examples:
+        >>> problem = OptimizationProblem()
+        >>> # specify problem here
+        >>> # specify minimum eigen solver to be used, e.g., QAOA
+        >>> qaoa = QAOA(...)
+        >>> optimizer = MinEigenOptimizer(qaoa)
+        >>> result = optimizer.solve(problem)
     """
 
     def __init__(self, min_eigen_solver: MinimumEigensolver, penalty: Optional[float] = None
