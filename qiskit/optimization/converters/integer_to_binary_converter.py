@@ -16,13 +16,21 @@
 
 import copy
 from typing import Dict, List, Optional, Tuple
-
+import logging
 import numpy as np
-from cplex import SparsePair
 
 from ..problems.optimization_problem import OptimizationProblem
 from ..results.optimization_result import OptimizationResult
 from ..utils.qiskit_optimization_error import QiskitOptimizationError
+
+logger = logging.getLogger(__name__)
+
+_HAS_CPLEX = False
+try:
+    from cplex import SparsePair
+    _HAS_CPLEX = True
+except ImportError:
+    logger.info('CPLEX is not installed.')
 
 
 class IntegerToBinaryConverter:
@@ -39,6 +47,9 @@ class IntegerToBinaryConverter:
 
     def __init__(self) -> None:
         """Initializes the internal data structure."""
+        if not _HAS_CPLEX:
+            raise NameError('CPLEX is not installed.')
+
         self._src = None
         self._dst = None
         self._conv: Dict[str, List[Tuple[str, int]]] = {}

@@ -18,11 +18,19 @@ import os.path
 import tempfile
 import unittest
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
-
-from cplex import Cplex, SparsePair, SparseTriple, infinity
+import logging
 
 from qiskit.optimization import OptimizationProblem, QiskitOptimizationError
 from qiskit.optimization.problems.optimization_problem import SubstitutionStatus
+
+logger = logging.getLogger(__name__)
+
+_HAS_CPLEX = False
+try:
+    from cplex import Cplex, SparsePair, SparseTriple, infinity
+    _HAS_CPLEX = True
+except ImportError:
+    logger.info('CPLEX is not installed.')
 
 
 class TestOptimizationProblem(QiskitOptimizationTestCase):
@@ -31,6 +39,9 @@ class TestOptimizationProblem(QiskitOptimizationTestCase):
 
     def setUp(self):
         super().setUp()
+        if not _HAS_CPLEX:
+            self.skipTest('CPLEX is not installed.')
+
         self.resource_file = './test/optimization/resources/op_ip2.lp'
 
     def test_constructor1(self):

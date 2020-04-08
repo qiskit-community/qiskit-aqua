@@ -54,31 +54,33 @@ class TestMinEigenOptimizer(QiskitOptimizationTestCase):
     )
     def test_min_eigen_optimizer(self, config):
         """ Min Eigen Optimizer Test """
+        try:
+            # unpack configuration
+            min_eigen_solver_name, backend, filename = config
 
-        # unpack configuration
-        min_eigen_solver_name, backend, filename = config
+            # get minimum eigen solver
+            min_eigen_solver = self.min_eigen_solvers[min_eigen_solver_name]
+            if backend:
+                min_eigen_solver.quantum_instance = BasicAer.get_backend(backend)
 
-        # get minimum eigen solver
-        min_eigen_solver = self.min_eigen_solvers[min_eigen_solver_name]
-        if backend:
-            min_eigen_solver.quantum_instance = BasicAer.get_backend(backend)
+            # construct minimum eigen optimizer
+            min_eigen_optimizer = MinimumEigenOptimizer(min_eigen_solver)
 
-        # construct minimum eigen optimizer
-        min_eigen_optimizer = MinimumEigenOptimizer(min_eigen_solver)
+            # load optimization problem
+            problem = OptimizationProblem()
+            problem.read(self.resource_path + filename)
 
-        # load optimization problem
-        problem = OptimizationProblem()
-        problem.read(self.resource_path + filename)
+            # solve problem with cplex
+            cplex = CplexOptimizer()
+            cplex_result = cplex.solve(problem)
 
-        # solve problem with cplex
-        cplex = CplexOptimizer()
-        cplex_result = cplex.solve(problem)
+            # solve problem
+            result = min_eigen_optimizer.solve(problem)
 
-        # solve problem
-        result = min_eigen_optimizer.solve(problem)
-
-        # analyze results
-        self.assertAlmostEqual(cplex_result.fval, result.fval)
+            # analyze results
+            self.assertAlmostEqual(cplex_result.fval, result.fval)
+        except NameError as ex:
+            self.skipTest(str(ex))
 
 
 if __name__ == '__main__':
