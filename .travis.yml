@@ -130,37 +130,61 @@ jobs:
       if: tag IS blank
       workspaces:
         create:
-          name: aqua1
-          paths: aqua1.dat
+          name: aqua137
+          paths:
+            - aqua1.dat
+            - aqua137.dep
       before_script:
         - pip install cvxopt
         - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
-      script: stestr --test-path test/aqua run --blacklist-file selection.txt && coverage3 combine && mv .coverage aqua1.dat
+      script:
+        - stestr --test-path test/aqua run --blacklist-file selection.txt 2> >(tee /dev/stderr out.txt > /dev/null)
+        - coverage3 combine
+        - mv .coverage aqua1.dat
+        - python tools/extract_deprecation.py -file out.txt -output aqua137.dep
     - name: "Test Aqua 1 Python 3.8"
       <<: *stage_test_aqua
       if: tag IS blank
+      workspaces:
+        create:
+          name: aqua138
+          paths: aqua138.dep
       python: 3.8
       before_script:
         - pip install cvxopt
-      script: stestr --test-path test/aqua run --blacklist-file selection.txt
+      script:
+        - stestr --test-path test/aqua run --blacklist-file selection.txt 2> >(tee /dev/stderr out.txt > /dev/null)
+        - python tools/extract_deprecation.py -file out.txt -output aqua138.dep
     - name: "Test Aqua 2 Python 3.7"
       <<: *stage_test_aqua
       if: tag IS blank
       workspaces:
         create:
-          name: aqua2
-          paths: aqua2.dat
+          name: aqua237
+          paths:
+            - aqua2.dat
+            - aqua237.dep
       before_script:
         - pip install cvxopt
         - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
-      script: stestr --test-path test/aqua run --whitelist-file selection.txt && coverage3 combine && mv .coverage aqua2.dat
+      script:
+        - stestr --test-path test/aqua run --whitelist-file selection.txt 2> >(tee /dev/stderr out.txt > /dev/null)
+        - coverage3 combine
+        - mv .coverage aqua2.dat
+        - python tools/extract_deprecation.py -file out.txt -output aqua237.dep
     - name: "Test Aqua 2 Python 3.8"
       <<: *stage_test_aqua
       if: tag IS blank
+      workspaces:
+        create:
+          name: aqua238
+          paths: aqua238.dep
       python: 3.8
       before_script:
         - pip install cvxopt
-      script: stestr --test-path test/aqua run --whitelist-file selection.txt
+      script:
+        - stestr --test-path test/aqua run --whitelist-file selection.txt 2> >(tee /dev/stderr out.txt > /dev/null)
+        - python tools/extract_deprecation.py -file out.txt -output aqua238.dep
     - name: "Test Chemistry Python 3.7"
       <<: *stage_dependencies
       if: tag IS blank
@@ -169,8 +193,10 @@ jobs:
         - OPENBLAS_NUM_THREADS=1
       workspaces:
         create:
-          name: chemistry
-          paths: chemistry.dat
+          name: chemistry37
+          paths:
+            - chemistry.dat
+            - chemistry37.dep
       install:
         # install gaussian dependency libgfortran 5
         - sudo apt-get -y update
@@ -179,10 +205,18 @@ jobs:
         - pip install https://github.com/rpmuller/pyquante2/archive/master.zip --progress-bar off
       before_script:
         - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
-      script: stestr --test-path test/chemistry run && coverage3 combine && mv .coverage chemistry.dat
+      script:
+        - stestr --test-path test/chemistry run 2> >(tee /dev/stderr out.txt > /dev/null)
+        - coverage3 combine
+        - mv .coverage chemistry.dat
+        - python tools/extract_deprecation.py -file out.txt -output chemistry37.dep
     - name: "Test Chemistry Python 3.8"
       <<: *stage_dependencies
       if: tag IS blank
+      workspaces:
+        create:
+          name: chemistry38
+          paths: chemistry38.dep
       python: 3.8
       env: OPENBLAS_NUM_THREADS=1
       install:
@@ -191,52 +225,90 @@ jobs:
         - sudo apt-get -y install libgfortran5
         # Installing pyquante2 master branch...
         - pip install https://github.com/rpmuller/pyquante2/archive/master.zip --progress-bar off
-      script: stestr --test-path test/chemistry run
+      script:
+        - stestr --test-path test/chemistry run 2> >(tee /dev/stderr out.txt > /dev/null)
+        - python tools/extract_deprecation.py -file out.txt -output chemistry38.dep
     - name: "Test Finance Python 3.7"
       <<: *stage_dependencies
       if: tag IS blank
       workspaces:
         create:
-          name: finance
-          paths: finance.dat
+          name: finance37
+          paths:
+            - finance.dat
+            - finance37.dep
       before_script:
         - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
-      script: stestr --test-path test/finance run && coverage3 combine && mv .coverage finance.dat
+      script:
+        - stestr --test-path test/finance run 2> >(tee /dev/stderr out.txt > /dev/null)
+        - coverage3 combine
+        - mv .coverage finance.dat
+        - python tools/extract_deprecation.py -file out.txt -output finance37.dep
     - name: "Test Finance Python 3.8"
       <<: *stage_dependencies
       if: tag IS blank
+      workspaces:
+        create:
+          name: finance38
+          paths: finance38.dep
       python: 3.8
-      script: stestr --test-path test/finance run
+      script:
+        - stestr --test-path test/finance run 2> >(tee /dev/stderr out.txt > /dev/null)
+        - python tools/extract_deprecation.py -file out.txt -output finance38.dep
     - name: "Test Machine Learning Python 3.7"
       <<: *stage_dependencies
       if: tag IS blank
       workspaces:
         create:
-          name: ml
-          paths: ml.dat
+          name: ml37
+          paths:
+            - ml.dat
+            - ml37.dep
       before_script:
         - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
-      script: stestr --test-path test/ml run && coverage3 combine && mv .coverage ml.dat
+      script:
+        - stestr --test-path test/ml run 2> >(tee /dev/stderr out.txt > /dev/null)
+        - coverage3 combine
+        - mv .coverage ml.dat
+        - python tools/extract_deprecation.py -file out.txt -output ml37.dep
     - name: "Test Machine Learning Python 3.8"
       <<: *stage_dependencies
       if: tag IS blank
+      workspaces:
+        create:
+          name: ml38
+          paths: ml38.dep
       python: 3.8
-      script: stestr --test-path test/ml run
+      script:
+        - stestr --test-path test/ml run 2> >(tee /dev/stderr out.txt > /dev/null)
+        - python tools/extract_deprecation.py -file out.txt -output ml38.dep
     - name: "Test Optimization Python 3.7"
       <<: *stage_dependencies
       if: tag IS blank
       workspaces:
         create:
-          name: optimization
-          paths: optimization.dat
+          name: optimization37
+          paths:
+            - optimization.dat
+            - optimization37.dep
       before_script:
         - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
-      script: stestr --test-path test/optimization run && coverage3 combine && mv .coverage optimization.dat
+      script:
+        - stestr --test-path test/optimization run 2> >(tee /dev/stderr out.txt > /dev/null)
+        - coverage3 combine
+        - mv .coverage optimization.dat
+        - python tools/extract_deprecation.py -file out.txt -output optimization37.dep
     - name: "Test Optimization Python 3.8"
       <<: *stage_dependencies
       if: tag IS blank
+      workspaces:
+        create:
+          name: optimization38
+          paths: optimization38.dep
       python: 3.8
-      script: stestr --test-path test/optimization run
+      script:
+        - stestr --test-path test/optimization run 2> >(tee /dev/stderr out.txt > /dev/null)
+        - python tools/extract_deprecation.py -file out.txt -output optimization38.dep
     - name: "Run pip check"
       <<: *stage_dependencies
       if: tag IS blank
@@ -244,17 +316,36 @@ jobs:
         - pip install cvxopt
         - pip install https://github.com/rpmuller/pyquante2/archive/master.zip --progress-bar off
         - pip check
+    - stage: Deprecation Messages
+      name: "Print deprecation messages"
+      if: tag IS blank
+      workspaces:
+        use:
+          - aqua137
+          - aqua138
+          - aqua237
+          - aqua238
+          - chemistry37
+          - chemistry38
+          - finance37
+          - finance38
+          - ml37
+          - ml38
+          - optimization37
+          - optimization38
+      script:
+        - sort -f -u aqua137.dep aqua138.dep aqua237.dep aqua238.dep chemistry37.dep chemistry38.dep finance37.dep finance38.dep ml37.dep ml38.dep optimization37.dep optimization38.dep || true
     - stage: Coverage
       name: "Combine all coverages and upload to Coveralls"
       if: tag IS blank
       workspaces:
         use:
-          - aqua1
-          - aqua2
-          - chemistry
-          - finance
-          - ml
-          - optimization
+          - aqua137
+          - aqua237
+          - chemistry37
+          - finance37
+          - ml37
+          - optimization37
       install:
         - pip install -U coverage coveralls diff-cover
       script:

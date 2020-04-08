@@ -12,20 +12,23 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Problems Objective module"""
+"""Objective function interface"""
 
 import copy
 import numbers
 from collections.abc import Sequence
 from logging import getLogger
-from typing import Callable, List
+from typing import Callable, List, Union, Dict, Tuple
+
+from cplex import SparsePair
+from scipy.sparse import dok_matrix
 
 from qiskit.optimization.utils import BaseInterface, QiskitOptimizationError
 
+logger = getLogger(__name__)
+
 CPX_MAX = -1
 CPX_MIN = 1
-
-logger = getLogger(__name__)
 
 
 class ObjSense:
@@ -33,8 +36,14 @@ class ObjSense:
     maximize = CPX_MAX
     minimize = CPX_MIN
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: int) -> str:
         """Converts a constant to a string.
+
+        Returns:
+            Sense name.
+
+        Raises:
+            QiskitOptimizationError: if the argument is not a valid number.
 
         Example usage:
 
@@ -49,20 +58,25 @@ class ObjSense:
             return 'maximize'
         if item == CPX_MIN:
             return 'minimize'
-        return None
+        raise QiskitOptimizationError("Invalid sense: {}".format(item))
 
 
 class ObjectiveInterface(BaseInterface):
     """Contains methods for querying and modifying the objective function."""
 
     sense = ObjSense()
-    """See `ObjSense()`"""
 
     def __init__(self, varindex: Callable):
+        """Creates a new ObjectiveInterface.
+
+        The objective function interface is exposed by the top-level
+        `OptimizationProblem` class as `OptimizationProblem.objective`.
+        This constructor is not meant to be used externally.
+        """
         super(ObjectiveInterface, self).__init__()
         self._linear = {}
-        self._quadratic = {}
-        self._name = 'Objective'
+        self._quadratic = dok_matrix((0, 0))
+        self._name = 'obj1'
         self._sense = ObjSense.minimize
         self._offset = 0.0
         self._varindex = varindex
@@ -107,7 +121,7 @@ class ObjectiveInterface(BaseInterface):
 
         self._setter(_set, *args)
 
-    def set_quadratic(self, args: List):
+    def set_quadratic(self, coef: Union[List[float], List[SparsePair], List[Sequence]]):
         """Sets the quadratic part of the objective function.
 
         Call this method with a list with length equal to the number
@@ -143,56 +157,51 @@ class ObjectiveInterface(BaseInterface):
             [SparsePair(ind = [0], val = [1.0]), SparsePair(ind = [1], val = [2.0]),
                 SparsePair(ind = [2], val = [3.0])]
         """
-        from cplex import SparsePair
+
         # clear data
-        self._quadratic = {}
+        self._quadratic = dok_matrix((0, 0))
 
         def _set(i, j, val):
             if val == 0:
                 return
             i = self._varindex(i)
             j = self._varindex(j)
-            if i not in self._quadratic:
-                self._quadratic[i] = {}
-            if j not in self._quadratic:
-                self._quadratic[j] = {}
-            self._quadratic[i][j] = self._quadratic[j][i] = val
+            max_ij = max(i, j)
+            if max_ij >= self._quadratic.shape[0]:
+                self._quadratic.resize(max_ij + 1, max_ij + 1)
+            self._quadratic[i, j] = val
 
-        if len(args) == 0:
-            logger.warning('Empty argument %s', args)
-        elif isinstance(args[0], numbers.Number):
-            for i, val in enumerate(args):
+        if len(coef) == 0:
+            logger.warning('Empty argument for objective.set_quadratic')
+        elif isinstance(coef[0], numbers.Number):
+            for i, val in enumerate(coef):
                 _set(i, i, val)
         else:
-            for i, s_p in enumerate(args):
-                if isinstance(s_p, SparsePair):
-                    for j, val in zip(s_p.ind, s_p.val):
+            for i, spair in enumerate(coef):
+                if isinstance(spair, SparsePair):
+                    for j, val in zip(spair.ind, spair.val):
                         _set(i, j, val)
-                elif isinstance(s_p, Sequence) and len(s_p) == 2:
-                    for j, val in zip(s_p[0], s_p[1]):
+                elif isinstance(spair, Sequence) and len(spair) == 2:
+                    for j, val in zip(spair[0], spair[1]):
                         _set(i, j, val)
                 else:
                     raise QiskitOptimizationError(
                         "set_quadratic expects a list of the length equal to the number of "
                         "variables, where each entry has a pair of the indices of the other "
-                        "variables and values, or the corresponding SparsePair")
+                        "variables and values, or the corresponding SparsePair"
+                        "{}".format(coef)
+                    )
 
     def set_quadratic_coefficients(self, *args):
         """Sets coefficients of the quadratic component of the objective function.
 
-        To set a single coefficient, call this method as
-
         objective.set_quadratic_coefficients(v1, v2, val)
-
-        where v1 and v2 are names or indices of variables and val is
-        the value for the coefficient.
-
-        To set multiple coefficients, call this method as
+            set a single coefficient where v1 and v2 are names or indices of variables and val is
+            the value for the coefficient.
 
         objective.set_quadratic_coefficients(sequence)
-
-        where sequence is a list or tuple of triples (v1, v2, val) as
-        described above.
+            set multiple coefficients where sequence is a list or tuple of triples (v1, v2, val) as
+            described above.
 
         Note
           Since the quadratic objective function must be symmetric, each
@@ -224,38 +233,27 @@ class ObjectiveInterface(BaseInterface):
         """
 
         def _set(i, j, val):
-            # set a value or delete an element if val is zero
             i = self._varindex(i)
             j = self._varindex(j)
-            if val == 0:
-                if i in self._quadratic and j in self._quadratic[i]:
-                    del self._quadratic[i][j]
-                    if len(self._quadratic[i]) == 0:
-                        del self._quadratic[i]
-                if j in self._quadratic and i in self._quadratic[j]:
-                    del self._quadratic[j][i]
-                    if len(self._quadratic[j]) == 0:
-                        del self._quadratic[j]
-            else:
-                if i not in self._quadratic:
-                    self._quadratic[i] = {}
-                if j not in self._quadratic:
-                    self._quadratic[j] = {}
-                self._quadratic[i][j] = self._quadratic[j][i] = val
+            max_ij = max(i, j)
+            if max_ij >= self._quadratic.shape[0]:
+                self._quadratic.resize(max_ij + 1, max_ij + 1)
+            # set a value at symmetric positions
+            self._quadratic[i, j] = val
+            self._quadratic[j, i] = val
 
-        if (len(args) == 1 and isinstance(args[0], Sequence)) or len(args) == 3:
-            # valid arguments. go through.
-            pass
-        else:
-            raise QiskitOptimizationError("Wrong number of arguments: {}".format(args))
-        if len(args) == 3:
+        if len(args) == 1:
+            if not isinstance(args[0], Sequence):
+                raise QiskitOptimizationError("Wrong number of arguments: {}".format(args))
+            arg_list = args[0]
+        elif len(args) == 3:
             arg_list = [args]
         else:
-            arg_list = args[0]
+            raise QiskitOptimizationError("Wrong number of arguments: {}".format(args))
         for i, j, val in arg_list:
             _set(i, j, val)
 
-    def set_sense(self, sense):
+    def set_sense(self, sense: int):
         """Sets the sense of the objective function.
 
         The argument to this method must be either
@@ -279,7 +277,7 @@ class ObjectiveInterface(BaseInterface):
                 "sense should be one of [CPX_MAX, CPX_MIN], i.e., objective.sense.minimize or " +
                 "objective.sense.maximize.")
 
-    def set_name(self, name):
+    def set_name(self, name: str):
         """Sets the name of the objective function.
 
         Example usage:
@@ -292,7 +290,7 @@ class ObjectiveInterface(BaseInterface):
         """
         self._name = name
 
-    def get_linear(self, *args):
+    def get_linear(self, *args) -> Union[float, List[float]]:
         """Returns the linear coefficients of a set of variables.
 
         Can be called by four forms.
@@ -329,12 +327,24 @@ class ObjectiveInterface(BaseInterface):
         def _get(i):
             return self._linear.get(i, 0.0)
 
-        if len(args) == 0:
-            return copy.deepcopy(self._linear)
         keys = self._varindex(*args)
         return self._getter(_get, keys)
 
-    def get_quadratic(self, *args):
+    def get_linear_dict(self) -> Dict[int, float]:
+        """Return the linear coefficients of a set of variables in a dictionary form.
+
+        Example usage:
+
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
+        >>> op.variables.add(names=['x', 'y'])
+        >>> op.objective.set_linear([('x', 1), ('y', 2)])
+        >>> print(op.objective.get_linear_dict())
+        {0: 1, 1: 2}
+        """
+        return copy.deepcopy(self._linear)
+
+    def get_quadratic(self, *args) -> Union[SparsePair, List[SparsePair]]:
         """Returns a set of columns of the quadratic component of the objective function.
 
         Returns a SparsePair instance or a list of SparsePair instances.
@@ -363,6 +373,11 @@ class ObjectiveInterface(BaseInterface):
         >>> op.objective.set_quadratic([1.5 * i for i in range(10)])
         >>> op.objective.get_quadratic(8)
         SparsePair(ind = [8], val = [12.0])
+        >>> for q in c.objective.get_quadratic("1", 3):
+        ...     print(q)
+        SparsePair(ind = [1], val = [1.5])
+        SparsePair(ind = [2], val = [3.0])
+        SparsePair(ind = [3], val = [4.5])
         >>> op.objective.get_quadratic([3,"1",5])
         [SparsePair(ind = [3], val = [4.5]), SparsePair(ind = [1], val = [1.5]),
             SparsePair(ind = [5], val = [7.5])]
@@ -375,30 +390,35 @@ class ObjectiveInterface(BaseInterface):
         """
 
         def _get(i):
-            from cplex import SparsePair
-            q_i = self._quadratic.get(i, {})
-            return SparsePair(list(q_i.keys()), list(q_i.values()))
+            row = self._quadratic[i] if i < self._quadratic.shape[0] else {}
+            return SparsePair([j for _, j in row.keys()], list(row.values()))
 
-        if len(args) == 0:
-            return copy.deepcopy(self._quadratic)
         keys = self._varindex(*args)
         return self._getter(_get, keys)
 
-    def get_quadratic_coefficients(self, *args):
+    def get_quadratic_dict(self) -> Dict[Tuple[int, int], float]:
+        """Return the linear coefficients of a set of variables in a dictionary form.
+
+        Example usage:
+
+        >>> from qiskit.optimization import OptimizationProblem
+        >>> op = OptimizationProblem()
+        >>> op.variables.add(names=['x', 'y'])
+        >>> op.objective.set_quadratic_coefficients([('x', 'x', 1), ('x', 'y', 2)])
+        >>> print(op.objective.get_quadratic_dict())
+        {(0, 0): 1, (0, 1): 2, (1, 0): 2}
+        """
+        return dict(self._quadratic.items())
+
+    def get_quadratic_coefficients(self, *args) -> Union[float, List[float]]:
         """Returns individual coefficients from the quadratic objective function.
 
-        To query a single coefficient, call this as
-
         objective.get_quadratic_coefficients(v1, v2)
-
-        where v1 and v2 are indices or names of variables.
-
-        To query multiple coefficients, call this method as
+          query a single coefficient where v1 and v2 are indices or names of variables.
 
         objective.get_quadratic_coefficients(sequence)
-
-        where sequence is a list or tuple of pairs (v1, v2) as
-        described above.
+          query multiple coefficients where sequence is a list or tuple of pairs (v1, v2) as
+          described above.
 
         >>> from qiskit.optimization import OptimizationProblem
         >>> op = OptimizationProblem()
@@ -411,13 +431,16 @@ class ObjectiveInterface(BaseInterface):
         [5.0, 2.0, 3.0]
         """
 
-        def _get(args):
-            i, j = args
-            return self._quadratic.get(i, {}).get(j, 0)
+        def _get(pair):
+            i, j = pair
+            max_ij = max(i, j)
+            if max_ij >= self._quadratic.shape[0]:
+                return 0
+            return self._quadratic.get((i, j), 0)
 
         if len(args) == 0:
-            return copy.deepcopy(self._quadratic)
-        elif len(args) == 1 and isinstance(args[0], Sequence):
+            raise QiskitOptimizationError('Wrong number of arguments')
+        if len(args) == 1 and isinstance(args[0], Sequence):
             i, j = zip(*args[0])
             i = self._varindex(i)
             j = self._varindex(j)
@@ -430,7 +453,7 @@ class ObjectiveInterface(BaseInterface):
         else:
             raise QiskitOptimizationError('Invalid arguments {}'.format(args))
 
-    def get_sense(self):
+    def get_sense(self) -> int:
         """Returns the sense of the objective function.
 
         Example usage:
@@ -448,7 +471,7 @@ class ObjectiveInterface(BaseInterface):
         """
         return self._sense
 
-    def get_name(self):
+    def get_name(self) -> str:
         """Returns the name of the objective function.
 
         Example usage:
@@ -459,11 +482,9 @@ class ObjectiveInterface(BaseInterface):
         >>> op.objective.get_name()
         'cost'
         """
-        if not self._name:
-            logger.warning('No name of exists for objective')
         return self._name
 
-    def get_num_quadratic_variables(self):
+    def get_num_quadratic_variables(self) -> int:
         """Returns the number of variables with quadratic coefficients.
 
         Example usage:
@@ -481,9 +502,13 @@ class ObjectiveInterface(BaseInterface):
         >>> op.objective.get_num_quadratic_variables()
         3
         """
-        return len(self._quadratic)
+        num = 0
+        for i in range(self._quadratic.shape[0]):
+            if self._quadratic[i].nnz > 0:
+                num += 1
+        return num
 
-    def get_num_quadratic_nonzeros(self):
+    def get_num_quadratic_nonzeros(self) -> int:
         """Returns the number of nonzeros in the quadratic objective function.
 
         Example usage:
@@ -501,9 +526,9 @@ class ObjectiveInterface(BaseInterface):
         >>> op.objective.get_num_quadratic_nonzeros()
         3
         """
-        return sum(len(v) for v in self._quadratic.values())
+        return self._quadratic.nnz
 
-    def get_offset(self):
+    def get_offset(self) -> float:
         """Returns the constant offset of the objective function for a problem.
 
         Example usage:
@@ -516,7 +541,7 @@ class ObjectiveInterface(BaseInterface):
         """
         return self._offset
 
-    def set_offset(self, offset):
+    def set_offset(self, offset: float):
         """Sets the constant offset of the objective function for a problem.
 
         Example usage:

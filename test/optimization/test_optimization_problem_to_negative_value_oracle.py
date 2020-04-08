@@ -27,13 +27,13 @@ class TestOptimizationProblemToNegativeValueOracle(QiskitOptimizationTestCase):
     """OPtNVO Tests"""
 
     def _validate_function(self, func_dict, problem):
-        linear = problem.objective.get_linear()
-        quadratic = problem.objective.get_quadratic()
+        linear = problem.objective.get_linear_dict()
+        quadratic = problem.objective.get_quadratic_dict()
         for key in func_dict:
             if isinstance(key, int) and key >= 0:
                 self.assertEqual(linear[key], func_dict[key])
             elif isinstance(key, tuple):
-                self.assertEqual(quadratic[key[0]][key[1]], func_dict[key])
+                self.assertEqual(quadratic[key[0], key[1]], func_dict[key])
             else:
                 self.assertEqual(problem.objective.get_offset(), func_dict[key])
 

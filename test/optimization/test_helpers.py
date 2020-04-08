@@ -16,8 +16,9 @@
 
 import unittest
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
-from qiskit.optimization.utils.helpers import NameIndex, init_list_args
+
 from qiskit.optimization import QiskitOptimizationError
+from qiskit.optimization.utils.helpers import NameIndex, init_list_args
 
 
 class TestHelpers(QiskitOptimizationTestCase):
@@ -30,30 +31,39 @@ class TestHelpers(QiskitOptimizationTestCase):
 
     def test_name_index1(self):
         """ test name index 1 """
-        n_i = NameIndex()
-        self.assertEqual(n_i.convert('1'), 0)
-        self.assertListEqual(n_i.convert(['2', '3']), [1, 2])
-        self.assertEqual(n_i.convert('1'), 0)
-        self.assertListEqual(n_i.convert(), [0, 1, 2])
-        self.assertListEqual(n_i.convert('1', '3'), [0, 1, 2])
-        self.assertListEqual(n_i.convert('1', '2'), [0, 1])
+        nidx = NameIndex()
+        nidx.build(['1', '2', '3'])
+        self.assertEqual(nidx.convert('1'), 0)
+        self.assertListEqual(nidx.convert(['2', '3']), [1, 2])
+        self.assertEqual(nidx.convert('1'), 0)
+        self.assertListEqual(nidx.convert(), [0, 1, 2])
+        self.assertListEqual(nidx.convert('1', '3'), [0, 1, 2])
+        self.assertListEqual(nidx.convert('1', '2'), [0, 1])
 
     def test_name_index2(self):
         """ test name index 2 """
-        n_i = NameIndex()
-        n_i.build(['1', '2', '3'])
-        self.assertEqual(n_i.convert('1'), 0)
-        self.assertListEqual(n_i.convert(), [0, 1, 2])
-        self.assertListEqual(n_i.convert('1', '3'), [0, 1, 2])
-        self.assertListEqual(n_i.convert('1', '2'), [0, 1])
+        nidx = NameIndex()
+        nidx.build(['1', '2', '3'])
+        self.assertEqual(nidx.convert('1'), 0)
+        self.assertListEqual(nidx.convert(), [0, 1, 2])
+        self.assertListEqual(nidx.convert('1', '3'), [0, 1, 2])
+        self.assertListEqual(nidx.convert('1', '2'), [0, 1])
 
     def test_name_index3(self):
         """ test name index 3 """
-        n_i = NameIndex()
+        nidx = NameIndex()
         with self.assertRaises(QiskitOptimizationError):
-            n_i.convert({})
+            nidx.convert({})
         with self.assertRaises(QiskitOptimizationError):
-            n_i.convert(1, 2, 3)
+            nidx.convert(1, 2, 3)
+        nidx.build(['x', 'y', 'z'])
+        self.assertEqual(nidx.convert(1), 1)
+        with self.assertRaises(QiskitOptimizationError):
+            nidx.convert(4)
+        self.assertEqual(nidx.convert('z'), 2)
+        with self.assertRaises(QiskitOptimizationError):
+            nidx.convert('a')
+            nidx.convert(1, 2, 3)
 
 
 if __name__ == '__main__':

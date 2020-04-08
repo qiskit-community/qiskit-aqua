@@ -16,12 +16,13 @@
 
 import logging
 from typing import Tuple, Dict, Union
+
 import numpy as np
 
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
-from qiskit.aqua.components.oracles import CustomCircuitOracle
 from qiskit.aqua.components.initial_states import Custom
 from qiskit.aqua.components.iqfts import Standard as IQFT
+from qiskit.aqua.components.oracles import CustomCircuitOracle
 from qiskit.optimization.problems import OptimizationProblem
 
 logger = logging.getLogger(__name__)
@@ -59,23 +60,22 @@ class OptimizationProblemToNegativeValueOracle:
         """
 
         # get linear part of objective
-        linear_dict = problem.objective.get_linear()
+        linear_dict = problem.objective.get_linear_dict()
         linear_coeff = np.zeros(problem.variables.get_num())
         for i, v in linear_dict.items():
             linear_coeff[i] = v
 
         # get quadratic part of objective
-        quadratic_dict = problem.objective.get_quadratic()
+        quadratic_dict = problem.objective.get_quadratic_dict()
         quadratic_coeff = {}
-        for i, j_value_dict in quadratic_dict.items():
-            for j, value in j_value_dict.items():
-                if i <= j:
-                    # divide by 2 since problem considers xQx/2.
-                    coeff = quadratic_coeff.get((i, j), 0)
-                    quadratic_coeff[(i, j)] = value / 2 + coeff
-                else:
-                    coeff = quadratic_coeff.get((j, i), 0)
-                    quadratic_coeff[(j, i)] = value / 2 + coeff
+        for (i, j), value in quadratic_dict.items():
+            if i <= j:
+                # divide by 2 since problem considers xQx/2.
+                coeff = quadratic_coeff.get((i, j), 0)
+                quadratic_coeff[(i, j)] = value / 2 + coeff
+            else:
+                coeff = quadratic_coeff.get((j, i), 0)
+                quadratic_coeff[(j, i)] = value / 2 + coeff
 
         constant = problem.objective.get_offset()
 

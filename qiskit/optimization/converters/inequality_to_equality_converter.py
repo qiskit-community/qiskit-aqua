@@ -99,13 +99,12 @@ class InequalityToEqualityConverter:
         self._dst.objective.set_offset(self._src.objective.get_offset())
 
         # set linear objective terms
-        for i, v in self._src.objective.get_linear().items():
+        for i, v in self._src.objective.get_linear_dict().items():
             self._dst.objective.set_linear(i, v)
 
         # set quadratic objective terms
-        for i, v_i in self._src.objective.get_quadratic().items():
-            for j, v in v_i.items():
-                self._dst.objective.set_quadratic_coefficients(i, j, v)
+        for (i, j), v in self._src.objective.get_quadratic_dict().items():
+            self._dst.objective.set_quadratic_coefficients(i, j, v)
 
         # set linear constraints
         names = self._src.linear_constraints.get_names()
@@ -151,6 +150,10 @@ class InequalityToEqualityConverter:
 
             else:
                 raise QiskitOptimizationError('Type of sense in ' + variable + 'is not supported')
+
+        # TODO: add quadratic constraints
+        if self._src.quadratic_constraints.get_num() > 0:
+            raise QiskitOptimizationError('Quadratic constraints are not yet supported.')
 
         return self._dst
 

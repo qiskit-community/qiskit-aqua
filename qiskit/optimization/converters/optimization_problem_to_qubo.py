@@ -45,14 +45,13 @@ class OptimizationProblemToQubo:
         self._penalty = penalty
 
     def encode(self, problem: OptimizationProblem) -> OptimizationProblem:
-        """ Convert a problem with inequality constraints into new one with only equality
-        constraints.
+        """ Convert a problem with linear equality constraints into new one with a QUBO form.
 
         Args:
-            problem: The problem to be solved, that may contain inequality constraints.
+            problem: The problem with linear equality constraints to be solved.
 
         Returns:
-            The converted problem, that contain only equality constraints.
+            The problem converted in QUBO format.
 
         Raises:
             QiskitOptimizationError: In case of an incompatible problem.
