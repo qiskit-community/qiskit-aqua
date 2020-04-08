@@ -26,7 +26,7 @@ from qiskit.aqua.components.optimizers import COBYLA
 
 from qiskit.optimization.algorithms import (MinimumEigenOptimizer, CplexOptimizer,
                                             RecursiveMinimumEigenOptimizer)
-from qiskit.optimization.problems import OptimizationProblem
+from qiskit.optimization.problems import QuadraticProgram
 
 
 @ddt
@@ -81,7 +81,7 @@ class TestRecursiveMinEigenOptimizer(QiskitOptimizationTestCase):
                                                                        min_num_vars=4)
 
         # load optimization problem
-        problem = OptimizationProblem()
+        problem = QuadraticProgram()
         problem.read(self.resource_path + filename)
 
         # solve problem with cplex

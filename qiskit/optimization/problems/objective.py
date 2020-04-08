@@ -47,8 +47,8 @@ class ObjSense:
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> op.objective.sense.minimize
         1
         >>> op.objective.sense[1]
@@ -70,7 +70,7 @@ class ObjectiveInterface(BaseInterface):
         """Creates a new ObjectiveInterface.
 
         The objective function interface is exposed by the top-level
-        `OptimizationProblem` class as `OptimizationProblem.objective`.
+        `QuadraticProgram` class as `QuadraticProgram.objective`.
         This constructor is not meant to be used externally.
         """
         super(ObjectiveInterface, self).__init__()
@@ -96,8 +96,8 @@ class ObjectiveInterface(BaseInterface):
           above.  Changes the coefficients for the specified
           variables to the given values.
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = [str(i) for i in range(4)])
         >>> op.objective.get_linear()
         [0.0, 0.0, 0.0, 0.0]
@@ -142,8 +142,8 @@ class ObjectiveInterface(BaseInterface):
           quadratic objective function, use the method
           set_quadratic_coefficients.
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = [str(i) for i in range(3)])
         >>> op.objective.set_quadratic([SparsePair(ind = [0, 1, 2], val = [1.0, -2.0, 0.5]),\
                                        SparsePair(ind = [0, 1], val = [-2.0, -1.0]),\
@@ -215,8 +215,8 @@ class ObjectiveInterface(BaseInterface):
           can be time consuming. Instead, use the method set_quadratic to set
           the quadratic part of the objective efficiently.
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = [str(i) for i in range(3)])
         >>> op.objective.set_quadratic_coefficients(0, 1, 1.0)
         >>> op.objective.get_quadratic()
@@ -259,8 +259,8 @@ class ObjectiveInterface(BaseInterface):
         The argument to this method must be either
         objective.sense.minimize or objective.sense.maximize.
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> op.objective.sense[op.objective.get_sense()]
         'minimize'
         >>> op.objective.set_sense(op.objective.sense.maximize)
@@ -282,8 +282,8 @@ class ObjectiveInterface(BaseInterface):
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> op.objective.set_name("cost")
         >>> op.objective.get_name()
         'cost'
@@ -310,8 +310,8 @@ class ObjectiveInterface(BaseInterface):
           indices the members of s.  Equivalent to
           [objective.get_linear(i) for i in s]
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(obj = [1.5 * i for i in range(10)],\
                             names = [str(i) for i in range(10)])
         >>> op.variables.get_num()
@@ -335,8 +335,8 @@ class ObjectiveInterface(BaseInterface):
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> op.variables.add(names=['x', 'y'])
         >>> op.objective.set_linear([('x', 1), ('y', 2)])
         >>> print(op.objective.get_linear_dict())
@@ -365,8 +365,8 @@ class ObjectiveInterface(BaseInterface):
           with the variables with indices the members of s.
           Equivalent to [objective.get_quadratic(i) for i in s]
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = [str(i) for i in range(10)])
         >>> op.variables.get_num()
         10
@@ -401,8 +401,8 @@ class ObjectiveInterface(BaseInterface):
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> op.variables.add(names=['x', 'y'])
         >>> op.objective.set_quadratic_coefficients([('x', 'x', 1), ('x', 'y', 2)])
         >>> print(op.objective.get_quadratic_dict())
@@ -420,8 +420,8 @@ class ObjectiveInterface(BaseInterface):
           query multiple coefficients where sequence is a list or tuple of pairs (v1, v2) as
           described above.
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = [str(i) for i in range(3)])
         >>> op.objective.set_quadratic_coefficients(0, 1, 1.0)
         >>> op.objective.get_quadratic_coefficients("1", 0)
@@ -458,8 +458,8 @@ class ObjectiveInterface(BaseInterface):
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> op.objective.sense[op.objective.get_sense()]
         'minimize'
         >>> op.objective.set_sense(op.objective.sense.maximize)
@@ -476,8 +476,8 @@ class ObjectiveInterface(BaseInterface):
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> op.objective.set_name("cost")
         >>> op.objective.get_name()
         'cost'
@@ -489,8 +489,8 @@ class ObjectiveInterface(BaseInterface):
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = [str(i) for i in range(3)])
         >>> op.objective.set_quadratic_coefficients(0, 1, 1.0)
         >>> op.objective.get_num_quadratic_variables()
@@ -513,8 +513,8 @@ class ObjectiveInterface(BaseInterface):
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = [str(i) for i in range(3)])
         >>> op.objective.set_quadratic_coefficients(0, 1, 1.0)
         >>> op.objective.get_num_quadratic_nonzeros()
@@ -533,8 +533,8 @@ class ObjectiveInterface(BaseInterface):
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> offset = op.objective.get_offset()
         >>> abs(offset - 0.0) < 1e-6
         True
@@ -546,8 +546,8 @@ class ObjectiveInterface(BaseInterface):
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> op.objective.set_offset(3.14)
         >>> offset = op.objective.get_offset()
         >>> abs(offset - 3.14) < 1e-6

@@ -13,7 +13,7 @@
 # that they have been altered from the originals.
 
 
-"""The converter from an ```OptimizationProblem``` to ``Operator``."""
+"""The converter from an ```QuadraticProgram``` to ``Operator``."""
 
 from typing import Dict, Tuple
 
@@ -22,11 +22,11 @@ from qiskit.quantum_info import Pauli
 
 from qiskit.aqua.operators import WeightedPauliOperator
 
-from ..problems.optimization_problem import OptimizationProblem
+from ..problems.quadratic_program import QuadraticProgram
 from ..utils.qiskit_optimization_error import QiskitOptimizationError
 
 
-class OptimizationProblemToOperator:
+class QuadraticProgramToOperator:
     """Convert an optimization problem into a qubit operator."""
 
     def __init__(self) -> None:
@@ -35,7 +35,7 @@ class OptimizationProblemToOperator:
         self._q_d: Dict[int, int] = {}
         # e.g., self._q_d = {0: 0}
 
-    def encode(self, op: OptimizationProblem) -> Tuple[WeightedPauliOperator, float]:
+    def encode(self, op: QuadraticProgram) -> Tuple[WeightedPauliOperator, float]:
         """Convert a problem into a qubit operator
 
         Args:

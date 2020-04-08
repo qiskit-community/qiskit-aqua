@@ -25,7 +25,7 @@ from qiskit.aqua.algorithms import QAOA
 from qiskit.aqua.components.optimizers import COBYLA
 
 from qiskit.optimization.algorithms import MinimumEigenOptimizer, CplexOptimizer
-from qiskit.optimization.problems import OptimizationProblem
+from qiskit.optimization.problems import QuadraticProgram
 
 
 @ddt
@@ -67,7 +67,7 @@ class TestMinEigenOptimizer(QiskitOptimizationTestCase):
         min_eigen_optimizer = MinimumEigenOptimizer(min_eigen_solver)
 
         # load optimization problem
-        problem = OptimizationProblem()
+        problem = QuadraticProgram()
         problem.read(self.resource_path + filename)
 
         # solve problem with cplex

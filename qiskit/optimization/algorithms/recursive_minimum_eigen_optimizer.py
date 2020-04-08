@@ -15,7 +15,7 @@
 """A recursive minimal eigen optimizer in Qiskit Optimization.
 
     Examples:
-        >>> problem = OptimizationProblem()
+        >>> problem = QuadraticProgram()
         >>> # specify problem here
         >>> # specify minimum eigen solver to be used, e.g., QAOA
         >>> qaoa = QAOA(...)
@@ -32,9 +32,9 @@ from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from .optimization_algorithm import OptimizationAlgorithm
 from .minimum_eigen_optimizer import MinimumEigenOptimizer
 from ..utils.qiskit_optimization_error import QiskitOptimizationError
-from ..problems.optimization_problem import OptimizationProblem
+from ..problems.quadratic_program import QuadraticProgram
 from ..results.optimization_result import OptimizationResult
-from ..converters.optimization_problem_to_qubo import OptimizationProblemToQubo
+from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
 
 
 class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
@@ -80,7 +80,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
             self._min_num_vars_optimizer = MinimumEigenOptimizer(NumPyMinimumEigensolver())
         self._penalty = penalty
 
-    def is_compatible(self, problem: OptimizationProblem) -> Optional[str]:
+    def is_compatible(self, problem: QuadraticProgram) -> Optional[str]:
         """Checks whether a given problem can be solved with this optimizer.
 
         Checks whether the given problem is compatible, i.e., whether the problem can be converted
@@ -92,9 +92,9 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         Returns:
             Returns ``None`` if the problem is compatible and else a string with the error message.
         """
-        return OptimizationProblemToQubo.is_compatible(problem)
+        return QuadraticProgramToQubo.is_compatible(problem)
 
-    def solve(self, problem: OptimizationProblem) -> OptimizationResult:
+    def solve(self, problem: QuadraticProgram) -> OptimizationResult:
         """Tries to solves the given problem using the recursive optimizer.
 
         Runs the optimizer to try to solve the optimization problem.
@@ -111,7 +111,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         """
         from cplex import SparseTriple
         # convert problem to QUBO
-        qubo_converter = OptimizationProblemToQubo()
+        qubo_converter = QuadraticProgramToQubo()
         problem_ = qubo_converter.encode(problem)
         problem_ref = deepcopy(problem_)
 

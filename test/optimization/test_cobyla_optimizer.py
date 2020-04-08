@@ -20,7 +20,7 @@ from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 from ddt import ddt, data
 
 from qiskit.optimization.algorithms import CobylaOptimizer
-from qiskit.optimization.problems import OptimizationProblem
+from qiskit.optimization.problems import QuadraticProgram
 
 
 @ddt
@@ -43,7 +43,7 @@ class TestCobylaOptimizer(QiskitOptimizationTestCase):
         filename, fval = config
 
         # load optimization problem
-        problem = OptimizationProblem()
+        problem = QuadraticProgram()
         problem.read(self.resource_path + filename)
 
         # solve problem with cobyla
@@ -56,7 +56,7 @@ class TestCobylaOptimizer(QiskitOptimizationTestCase):
         """ Cobyla Optimizer Test """
         from cplex import SparsePair, SparseTriple
         # load optimization problem
-        problem = OptimizationProblem()
+        problem = QuadraticProgram()
         problem.variables.add(lb=[0, 0], ub=[1, 1], types='CC')
         problem.objective.set_linear([(0, 1), (1, 1)])
 

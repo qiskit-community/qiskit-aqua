@@ -19,7 +19,7 @@ from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 
 from cplex import infinity
 
-from qiskit.optimization import OptimizationProblem, QiskitOptimizationError
+from qiskit.optimization import QuadraticProgram, QiskitOptimizationError
 
 
 class TestVariables(QiskitOptimizationTestCase):
@@ -27,13 +27,13 @@ class TestVariables(QiskitOptimizationTestCase):
 
     def test_type(self):
         """ test type """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         self.assertEqual(op.variables.type.binary, 'B')
         self.assertEqual(op.variables.type['B'], 'binary')
 
     def test_initial(self):
         """ test initial """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=["x0", "x1", "x2"])
         self.assertListEqual(op.variables.get_lower_bounds(), [0.0, 0.0, 0.0])
         op.variables.set_lower_bounds(0, 1.0)
@@ -46,49 +46,49 @@ class TestVariables(QiskitOptimizationTestCase):
 
     def test_get_num(self):
         """ test get num """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         typ = op.variables.type
         op.variables.add(types=[typ.continuous, typ.binary, typ.integer])
         self.assertEqual(op.variables.get_num(), 3)
 
     def test_get_num_continuous(self):
         """ test get num continuous """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         typ = op.variables.type
         op.variables.add(types=[typ.continuous, typ.binary, typ.integer])
         self.assertEqual(op.variables.get_num_continuous(), 1)
 
     def test_get_num_integer(self):
         """ test get num integer """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         typ = op.variables.type
         op.variables.add(types=[typ.continuous, typ.binary, typ.integer])
         self.assertEqual(op.variables.get_num_integer(), 1)
 
     def test_get_num_binary(self):
         """ test get num binary """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         typ = op.variables.type
         op.variables.add(types=[typ.semi_continuous, typ.binary, typ.integer])
         self.assertEqual(op.variables.get_num_binary(), 1)
 
     def test_get_num_semicontinuous(self):
         """ test get num semi continuous """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         typ = op.variables.type
         op.variables.add(types=[typ.semi_continuous, typ.semi_integer, typ.semi_integer])
         self.assertEqual(op.variables.get_num_semicontinuous(), 1)
 
     def test_get_num_semiinteger(self):
         """ test get num semi integer """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         typ = op.variables.type
         op.variables.add(types=[typ.semi_continuous, typ.semi_integer, typ.semi_integer])
         self.assertEqual(op.variables.get_num_semiinteger(), 2)
 
     def test_add(self):
         """ add test """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.linear_constraints.add(names=["c0", "c1", "c2"])
         op.variables.add(types=[op.variables.type.integer] * 3)
         op.variables.add(
@@ -106,7 +106,7 @@ class TestVariables(QiskitOptimizationTestCase):
 
     def test_delete(self):
         """ test delete """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=[str(i) for i in range(10)])
         self.assertEqual(op.variables.get_num(), 10)
         self.assertListEqual(op.variables.get_names(),
@@ -123,7 +123,7 @@ class TestVariables(QiskitOptimizationTestCase):
 
     def test_set_lower_bounds(self):
         """ test set lower bounds """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=["x0", "x1", "x2"])
         op.variables.set_lower_bounds(0, 1.0)
         self.assertListEqual(op.variables.get_lower_bounds(), [1.0, 0.0, 0.0])
@@ -132,7 +132,7 @@ class TestVariables(QiskitOptimizationTestCase):
 
     def test_set_upper_bounds(self):
         """ test set upper bounds """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=["x0", "x1", "x2"])
         op.variables.set_upper_bounds(0, 1.0)
         op.variables.set_upper_bounds([("x1", 10.0), (2, 3.0)])
@@ -140,7 +140,7 @@ class TestVariables(QiskitOptimizationTestCase):
 
     def test_set_names(self):
         """ test set names """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         typ = op.variables.type
         op.variables.add(types=[typ.continuous, typ.binary, typ.integer])
         op.variables.set_names(0, "first")
@@ -149,7 +149,7 @@ class TestVariables(QiskitOptimizationTestCase):
 
     def test_set_types(self):
         """ test set types """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=[str(i) for i in range(5)])
         op.variables.set_types(0, op.variables.type.continuous)
         op.variables.set_types([("1", op.variables.type.integer),
@@ -161,7 +161,7 @@ class TestVariables(QiskitOptimizationTestCase):
 
     def test_get_lower_bounds(self):
         """ test get lower bounds """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(lb=[1.5 * i for i in range(10)],
                          names=[str(i) for i in range(10)])
         self.assertEqual(op.variables.get_num(), 10)
@@ -173,7 +173,7 @@ class TestVariables(QiskitOptimizationTestCase):
 
     def test_get_upper_bounds(self):
         """ test get upper bounds """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(ub=[(1.5 * i) + 1.0 for i in range(10)],
                          names=[str(i) for i in range(10)])
         self.assertEqual(op.variables.get_num(), 10)
@@ -185,7 +185,7 @@ class TestVariables(QiskitOptimizationTestCase):
 
     def test_get_names(self):
         """ test get names """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=['x' + str(i) for i in range(10)])
         self.assertEqual(op.variables.get_num(), 10)
         self.assertEqual(op.variables.get_names(8), 'x8')
@@ -196,7 +196,7 @@ class TestVariables(QiskitOptimizationTestCase):
 
     def test_set_types2(self):
         """ test set types 2 """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         typ = op.variables.type
         op.variables.add(names=[str(i) for i in range(5)],
                          types=[typ.continuous, typ.integer,
@@ -215,26 +215,26 @@ class TestVariables(QiskitOptimizationTestCase):
 
     def test_get_cols(self):
         """ test get cols """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         with self.assertRaises(NotImplementedError):
             op.variables.get_cols()
 
     def test_get_obj(self):
         """ test get obj """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         with self.assertRaises(NotImplementedError):
             op.variables.get_obj()
 
     def test_get_indices(self):
         """ test get indices """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=['a', 'b'])
         self.assertEqual(op.variables.get_indices('a'), 0)
         self.assertListEqual(op.variables.get_indices(['a', 'b']), [0, 1])
 
     def test_add2(self):
         """ test add2 """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=['x'])
         self.assertEqual(op.variables.get_indices('x'), 0)
         self.assertListEqual(op.variables.get_indices(), [0])
@@ -245,7 +245,7 @@ class TestVariables(QiskitOptimizationTestCase):
 
     def test_default_bounds(self):
         """  test default bounds """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         types = ['B', 'I', 'C', 'S', 'N']
         op.variables.add(names=types, types=types)
         self.assertListEqual(op.variables.get_lower_bounds(), [0.0] * 5)
@@ -254,7 +254,7 @@ class TestVariables(QiskitOptimizationTestCase):
 
     def test_empty_names(self):
         """ test empty names """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         r = op.variables.add(names=['', '', ''])
         self.assertEqual(r, range(0, 3))
         self.assertListEqual(op.variables.get_names(), ['x1', 'x2', 'x3'])
@@ -265,7 +265,7 @@ class TestVariables(QiskitOptimizationTestCase):
 
     def test_duplicate_names(self):
         """ test duplicate names """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=['', '', ''])
         with self.assertRaises(QiskitOptimizationError):
             op.variables.add(names=['a', 'a'])
@@ -274,7 +274,7 @@ class TestVariables(QiskitOptimizationTestCase):
 
     def test_add3(self):
         """ test add 3 """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=['c'], types=['C'], lb=[-10], ub=[10])
         op.variables.add(names=['b'], types=['B'], lb=[-10], ub=[10])
         op.variables.add(names=['b2'], types=['B'])

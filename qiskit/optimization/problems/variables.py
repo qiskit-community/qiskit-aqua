@@ -53,8 +53,8 @@ class VarTypes:
 
         Example usage:
 
-        >>> from qiskit.optimization.problems import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization.problems import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> op.variables.type.binary
         'B'
         >>> op.variables.type['B']
@@ -78,8 +78,8 @@ class VariablesInterface(BaseInterface):
 
     Example usage:
 
-    >>> from qiskit.optimization import OptimizationProblem
-    >>> op = OptimizationProblem()
+    >>> from qiskit.optimization import QuadraticProgram
+    >>> op = QuadraticProgram()
     >>> indices = op.variables.add(names = ["x0", "x1", "x2"])
     >>> # default values for lower_bounds are 0.0
     >>> op.variables.get_lower_bounds()
@@ -106,8 +106,8 @@ class VariablesInterface(BaseInterface):
     def __init__(self):
         """Creates a new VariablesInterface.
 
-        The variables interface is exposed by the top-level `OptimizationProblem` class
-        as `OptimizationProblem.variables`.  This constructor is not meant to be used
+        The variables interface is exposed by the top-level `QuadraticProgram` class
+        as `QuadraticProgram.variables`.  This constructor is not meant to be used
         externally.
         """
         super(VariablesInterface, self).__init__()
@@ -124,8 +124,8 @@ class VariablesInterface(BaseInterface):
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> t = op.variables.type
         >>> indices = op.variables.add(types = [t.continuous, t.binary, t.integer])
         >>> op.variables.get_num()
@@ -138,8 +138,8 @@ class VariablesInterface(BaseInterface):
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> t = op.variables.type
         >>> indices = op.variables.add(types = [t.continuous, t.binary, t.integer])
         >>> op.variables.get_num_continuous()
@@ -152,8 +152,8 @@ class VariablesInterface(BaseInterface):
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> t = op.variables.type
         >>> indices = op.variables.add(types = [t.continuous, t.binary, t.integer])
         >>> op.variables.get_num_integer()
@@ -166,8 +166,8 @@ class VariablesInterface(BaseInterface):
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> t = op.variables.type
         >>> indices = op.variables.add(types = [t.semi_continuous, t.binary, t.integer])
         >>> op.variables.get_num_binary()
@@ -180,8 +180,8 @@ class VariablesInterface(BaseInterface):
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> t = op.variables.type
         >>> indices = op.variables.add(types = [t.semi_continuous, t.semi_integer, t.semi_integer])
         >>> op.variables.get_num_semicontinuous()
@@ -194,8 +194,8 @@ class VariablesInterface(BaseInterface):
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> t = op.variables.type
         >>> indices = op.variables.add(types = [t.semi_continuous, t.semi_integer, t.semi_integer])
         >>> op.variables.get_num_semiinteger()
@@ -242,9 +242,9 @@ class VariablesInterface(BaseInterface):
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
+        >>> from qiskit.optimization import QuadraticProgram
         >>> from cplex import SparsePair, infinity
-        >>> op = OptimizationProblem()
+        >>> op = QuadraticProgram()
         >>> indices = op.linear_constraints.add(names = ["c0", "c1", "c2"])
         >>> indices = op.variables.add(obj = [1.0, 2.0, 3.0],\
                                       types = [op.variables.type.integer] * 3)
@@ -325,8 +325,8 @@ class VariablesInterface(BaseInterface):
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names=[str(i) for i in range(10)])
         >>> op.variables.get_num()
         10
@@ -384,8 +384,8 @@ class VariablesInterface(BaseInterface):
           the corresponding values.  Equivalent to
           [variables.set_lower_bounds(pair[0], pair[1]) for pair in seq_of_pairs].
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = ["x0", "x1", "x2"])
         >>> op.variables.set_lower_bounds(0, 1.0)
         >>> op.variables.get_lower_bounds()
@@ -418,8 +418,8 @@ class VariablesInterface(BaseInterface):
           the corresponding values.  Equivalent to
           [variables.set_upper_bounds(pair[0], pair[1]) for pair in seq_of_pairs].
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = ["x0", "x1", "x2"])
         >>> op.variables.set_upper_bounds(0, 1.0)
         >>> op.variables.set_upper_bounds([("x1", 10.0), (2, 3.0)])
@@ -449,8 +449,8 @@ class VariablesInterface(BaseInterface):
           corresponding strings.  Equivalent to
           [variables.set_names(pair[0], pair[1]) for pair in seq_of_pairs].
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> t = op.variables.type
         >>> indices = op.variables.add(types = [t.continuous, t.binary, t.integer])
         >>> op.variables.set_names(0, "first")
@@ -486,8 +486,8 @@ class VariablesInterface(BaseInterface):
           If the types are set, the problem will be treated as a MIP,
           even if all variable types are continuous.
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = [str(i) for i in range(5)])
         >>> op.variables.set_types(0, op.variables.type.continuous)
         >>> op.variables.set_types([("1", op.variables.type.integer),\
@@ -526,8 +526,8 @@ class VariablesInterface(BaseInterface):
           of s.  Equivalent to
           [variables.get_lower_bounds(i) for i in s]
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(lb = [1.5 * i for i in range(10)],\
                                       names = [str(i) for i in range(10)])
         >>> op.variables.get_num()
@@ -574,8 +574,8 @@ class VariablesInterface(BaseInterface):
           begin and end, inclusive of end. Equivalent to
           variables.get_upper_bounds(range(begin, end + 1)).
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(ub = [(1.5 * i) + 1.0 for i in range(10)],\
                                       names = [str(i) for i in range(10)])
         >>> op.variables.get_num()
@@ -614,8 +614,8 @@ class VariablesInterface(BaseInterface):
           names of the variables with indices the members of s.
           Equivalent to [variables.get_names(i) for i in s]
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = ['x' + str(i) for i in range(10)])
         >>> op.variables.get_num()
         10
@@ -654,8 +654,8 @@ class VariablesInterface(BaseInterface):
           the types of the variables with indices the members of s.
           Equivalent to [variables.get_types(i) for i in s]
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> t = op.variables.type
         >>> indices = op.variables.add(names = [str(i) for i in range(5)],\
                                       types = [t.continuous, t.integer,\

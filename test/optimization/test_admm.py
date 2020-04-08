@@ -24,7 +24,7 @@ from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.optimization.algorithms import CplexOptimizer, MinimumEigenOptimizer
 from qiskit.optimization.algorithms.admm_optimizer import ADMMOptimizer, ADMMParameters, \
     ADMMOptimizerResult, ADMMState
-from qiskit.optimization.problems import OptimizationProblem
+from qiskit.optimization.problems import QuadraticProgram
 
 
 class TestADMMOptimizer(QiskitOptimizationTestCase):
@@ -36,7 +36,7 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
         c = mdl.continuous_var(lb=0, ub=10, name='c')
         x = mdl.binary_var(name='x')
         mdl.maximize(c + x * x)
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.from_docplex(mdl)
         self.assertIsNotNone(op)
 
@@ -78,7 +78,7 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
         mdl.add_constraint(v + w + t >= 1, "cons2")
         mdl.add_constraint(v + w == 1, "cons3")
 
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.from_docplex(mdl)
 
         qubo_optimizer = CplexOptimizer()
@@ -120,7 +120,7 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
         mdl.add_constraint(v + w + t >= 1, "cons2")
         mdl.add_constraint(v + w == 1, "cons3")
 
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.from_docplex(mdl)
 
         qubo_optimizer = CplexOptimizer()
