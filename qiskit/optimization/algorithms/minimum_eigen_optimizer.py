@@ -79,7 +79,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
     Hamiltonian to find a good solution for the optimization problem.
 
     Examples:
-        >>> problem = OptimizationProblem()
+        >>> problem = QuadraticProgram()
         >>> # specify problem here
         >>> # specify minimum eigen solver to be used, e.g., QAOA
         >>> qaoa = QAOA(...)

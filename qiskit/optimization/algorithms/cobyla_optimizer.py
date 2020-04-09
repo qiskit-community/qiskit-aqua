@@ -36,7 +36,7 @@ class CobylaOptimizer(OptimizationAlgorithm):
     The arguments for ``fmin_cobyla`` are passed via the constructor.
 
     Examples:
-        >>> problem = OptimizationProblem()
+        >>> problem = QuadraticProgram()
         >>> # specify problem here
         >>> optimizer = CobylaOptimizer()
         >>> result = optimizer.solve(problem)

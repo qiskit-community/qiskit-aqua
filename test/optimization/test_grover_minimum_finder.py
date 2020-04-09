@@ -19,7 +19,7 @@ from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.optimization.algorithms import GroverMinimumFinder, MinimumEigenOptimizer
-from qiskit.optimization.problems import OptimizationProblem
+from qiskit.optimization.problems import QuadraticProgram
 
 
 class TestGroverMinimumFinder(QiskitOptimizationTestCase):
@@ -47,7 +47,7 @@ class TestGroverMinimumFinder(QiskitOptimizationTestCase):
         """Test for when the answer is zero."""
         try:
             # Input.
-            op = OptimizationProblem()
+            op = QuadraticProgram()
             op.variables.add(names=['x0', 'x1'], types='BB')
             linear = [('x0', 0), ('x1', 0)]
             op.objective.set_linear(linear)
@@ -64,7 +64,7 @@ class TestGroverMinimumFinder(QiskitOptimizationTestCase):
         """Test for simple case, with 2 linear coeffs and no quadratic coeffs or constants."""
         try:
             # Input.
-            op = OptimizationProblem()
+            op = QuadraticProgram()
             op.variables.add(names=['x0', 'x1'], types='BB')
             linear = [('x0', -1), ('x1', 2)]
             op.objective.set_linear(linear)
@@ -81,7 +81,7 @@ class TestGroverMinimumFinder(QiskitOptimizationTestCase):
         """Test the example from https://arxiv.org/abs/1912.04088."""
         try:
             # Input.
-            op = OptimizationProblem()
+            op = QuadraticProgram()
             op.variables.add(names=['x0', 'x1', 'x2'], types='BBB')
 
             linear = [('x0', -1), ('x1', 2), ('x2', -3)]
