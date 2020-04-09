@@ -16,9 +16,8 @@
 import logging
 import time
 from typing import List, Optional, Any
-
 import numpy as np
-from cplex import SparsePair, SparseTriple
+
 from qiskit.optimization.algorithms.cplex_optimizer import CplexOptimizer
 from qiskit.optimization.algorithms.optimization_algorithm import OptimizationAlgorithm
 from qiskit.optimization.problems.optimization_problem import OptimizationProblem
@@ -27,6 +26,15 @@ from qiskit.optimization.results.optimization_result import OptimizationResult
 
 UPDATE_RHO_BY_TEN_PERCENT = 0
 UPDATE_RHO_BY_RESIDUALS = 1
+
+logger = logging.getLogger(__name__)
+
+_HAS_CPLEX = False
+try:
+    from cplex import SparsePair
+    _HAS_CPLEX = True
+except ImportError:
+    logger.info('CPLEX is not installed.')
 
 
 class ADMMParameters:
@@ -180,7 +188,12 @@ class ADMMOptimizer(OptimizationAlgorithm):
             continuous_optimizer: An instance of OptimizationAlgorithm that can solve
                 continuous problems.
             params: An instance of ADMMParameters.
+
+        Raises:
+            NameError: CPLEX is not installed.
         """
+        if not _HAS_CPLEX:
+            raise NameError('CPLEX is not installed.')
 
         super().__init__()
         self._log = logging.getLogger(__name__)

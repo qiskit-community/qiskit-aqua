@@ -25,6 +25,7 @@
 
 from copy import deepcopy
 from typing import Optional
+import logging
 import numpy as np
 
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
@@ -36,6 +37,15 @@ from ..utils.qiskit_optimization_error import QiskitOptimizationError
 from ..problems.optimization_problem import OptimizationProblem
 from ..results.optimization_result import OptimizationResult
 from ..converters.optimization_problem_to_qubo import OptimizationProblemToQubo
+
+logger = logging.getLogger(__name__)
+
+_HAS_CPLEX = False
+try:
+    from cplex import SparseTriple
+    _HAS_CPLEX = True
+except ImportError:
+    logger.info('CPLEX is not installed.')
 
 
 class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
@@ -65,11 +75,14 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
 
         Raises:
             QiskitOptimizationError: In case of invalid parameters (num_min_vars < 1).
+            NameError: CPLEX is not installed.
         """
 
         # TODO: should also allow function that maps problem to <ZZ>-correlators?
         # --> would support efficient classical implementation for QAOA with depth p=1
         # --> add results class for MinimumEigenSolver that contains enough info to do so.
+        if not _HAS_CPLEX:
+            raise NameError('CPLEX is not installed.')
 
         validate_min('min_num_vars', min_num_vars, 1)
 
@@ -110,7 +123,6 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
             QiskitOptimizationError: Infeasible due to variable substitution
 
         """
-        from cplex import SparseTriple
         # convert problem to QUBO
         qubo_converter = OptimizationProblemToQubo()
         problem_ = qubo_converter.encode(problem)

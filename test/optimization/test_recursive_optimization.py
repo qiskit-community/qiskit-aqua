@@ -69,30 +69,32 @@ class TestRecursiveMinEigenOptimizer(QiskitOptimizationTestCase):
     @unpack
     def test_recursive_min_eigen_optimizer(self, solver, simulator, filename):
         """ Min Eigen Optimizer Test """
+        try:
+            # get minimum eigen solver
+            min_eigen_solver = self.min_eigen_solvers[solver]
+            if simulator:
+                min_eigen_solver.quantum_instance = self.qinstances[simulator]
 
-        # get minimum eigen solver
-        min_eigen_solver = self.min_eigen_solvers[solver]
-        if simulator:
-            min_eigen_solver.quantum_instance = self.qinstances[simulator]
+            # construct minimum eigen optimizer
+            min_eigen_optimizer = MinimumEigenOptimizer(min_eigen_solver)
+            recursive_min_eigen_optimizer = RecursiveMinimumEigenOptimizer(min_eigen_optimizer,
+                                                                           min_num_vars=4)
 
-        # construct minimum eigen optimizer
-        min_eigen_optimizer = MinimumEigenOptimizer(min_eigen_solver)
-        recursive_min_eigen_optimizer = RecursiveMinimumEigenOptimizer(min_eigen_optimizer,
-                                                                       min_num_vars=4)
+            # load optimization problem
+            problem = OptimizationProblem()
+            problem.read(self.resource_path + filename)
 
-        # load optimization problem
-        problem = OptimizationProblem()
-        problem.read(self.resource_path + filename)
+            # solve problem with cplex
+            cplex = CplexOptimizer()
+            cplex_result = cplex.solve(problem)
 
-        # solve problem with cplex
-        cplex = CplexOptimizer()
-        cplex_result = cplex.solve(problem)
+            # solve problem
+            result = recursive_min_eigen_optimizer.solve(problem)
 
-        # solve problem
-        result = recursive_min_eigen_optimizer.solve(problem)
-
-        # analyze results
-        self.assertAlmostEqual(cplex_result.fval, result.fval)
+            # analyze results
+            self.assertAlmostEqual(cplex_result.fval, result.fval)
+        except NameError as ex:
+            self.skipTest(str(ex))
 
 
 if __name__ == '__main__':

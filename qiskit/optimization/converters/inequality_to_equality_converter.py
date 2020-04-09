@@ -17,12 +17,20 @@
 import copy
 import math
 from typing import List, Tuple, Dict, Optional
-
-from cplex import SparsePair
+import logging
 
 from ..problems.optimization_problem import OptimizationProblem
 from ..results.optimization_result import OptimizationResult
 from ..utils.qiskit_optimization_error import QiskitOptimizationError
+
+logger = logging.getLogger(__name__)
+
+_HAS_CPLEX = False
+try:
+    from cplex import SparsePair
+    _HAS_CPLEX = True
+except ImportError:
+    logger.info('CPLEX is not installed.')
 
 
 class InequalityToEqualityConverter:
@@ -39,6 +47,8 @@ class InequalityToEqualityConverter:
 
     def __init__(self) -> None:
         """Initialize the integral variables."""
+        if not _HAS_CPLEX:
+            raise NameError('CPLEX is not installed.')
 
         self._src = None
         self._dst = None

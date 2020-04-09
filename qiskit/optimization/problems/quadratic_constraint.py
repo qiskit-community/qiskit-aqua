@@ -16,17 +16,23 @@
 
 import copy
 from collections.abc import Sequence
-from logging import getLogger
+import logging
 from typing import List, Dict, Callable, Union, Optional
 
-from cplex import SparsePair, SparseTriple
 from scipy.sparse import dok_matrix
 
 from qiskit.optimization.utils.base import BaseInterface
 from qiskit.optimization.utils.helpers import NameIndex
 from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
 
-logger = getLogger(__name__)
+logger = logging.getLogger(__name__)
+
+_HAS_CPLEX = False
+try:
+    from cplex import SparsePair, SparseTriple
+    _HAS_CPLEX = True
+except ImportError:
+    logger.info('CPLEX is not installed.')
 
 
 class QuadraticConstraintInterface(BaseInterface):
@@ -39,6 +45,9 @@ class QuadraticConstraintInterface(BaseInterface):
         `OptimizationProblem` class as `OptimizationProblem.quadratic_constraints`.
         This constructor is not meant to be used externally.
         """
+        if not _HAS_CPLEX:
+            raise NameError('CPLEX is not installed.')
+
         super().__init__()
         self._rhs = []
         self._senses = []
@@ -66,7 +75,9 @@ class QuadraticConstraintInterface(BaseInterface):
         """
         return len(self._names)
 
-    def add(self, lin_expr: Optional[SparsePair] = None, quad_expr: Optional[SparseTriple] = None,
+    def add(self,
+            lin_expr: Optional['SparsePair'] = None,
+            quad_expr: Optional['SparseTriple'] = None,
             sense: str = "L", rhs: float = 0.0, name: str = "") -> int:
         """Adds a quadratic constraint to the problem.
 
@@ -412,7 +423,7 @@ class QuadraticConstraintInterface(BaseInterface):
         keys = self._index.convert(*args)
         return self._getter(_nonzero, keys)
 
-    def get_linear_components(self, *args) -> Union[SparsePair, List[SparsePair]]:
+    def get_linear_components(self, *args) -> Union['SparsePair', List['SparsePair']]:
         """Returns the linear part of a set of quadratic constraints.
 
         Returns a list of SparsePair instances or one SparsePair instance.
@@ -533,7 +544,7 @@ class QuadraticConstraintInterface(BaseInterface):
         keys = self._index.convert(*args)
         return self._getter(_nonzero, keys)
 
-    def get_quadratic_components(self, *args) -> Union[SparseTriple, List[SparseTriple]]:
+    def get_quadratic_components(self, *args) -> Union['SparseTriple', List['SparseTriple']]:
         """Returns the quadratic part of a set of quadratic constraints.
 
         Can be called by four forms.
