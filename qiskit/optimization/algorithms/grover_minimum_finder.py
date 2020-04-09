@@ -52,7 +52,7 @@ class GroverMinimumFinder(OptimizationAlgorithm):
             quantum_instance = QuantumInstance(backend)
         self._quantum_instance = quantum_instance
 
-    def is_compatible(self, problem: OptimizationProblem) -> bool:
+    def get_incompatibility(self, problem: OptimizationProblem) -> str:
         """Checks whether a given problem can be solved with this optimizer.
 
         Checks whether the given problem is compatible, i.e., whether the problem can be converted
@@ -62,9 +62,9 @@ class GroverMinimumFinder(OptimizationAlgorithm):
             problem: The optimization problem to check compatibility.
 
         Returns:
-            True, if the problem is compatible and else raise an error.
+            A message describing the incompatibility.
         """
-        return OptimizationProblemToQubo.is_compatible(problem)
+        return OptimizationProblemToQubo.get_incompatibility(problem)
 
     def solve(self, problem: OptimizationProblem) -> OptimizationResult:
         """Tries to solves the given problem using the optimizer.

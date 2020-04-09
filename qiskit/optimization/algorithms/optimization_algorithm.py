@@ -25,6 +25,16 @@ class OptimizationAlgorithm(ABC):
     """An abstract class for optimization algorithms in Qiskit Optimization."""
 
     @abstractmethod
+    def get_incompatibility(self, problem: OptimizationProblem) -> str:
+        """Checks whether a given problem can be solved with the optimizer implementing this method.
+
+        Args:
+            problem: The optimization problem to check compatibility.
+
+        Returns:
+            Returns the incompatibility message. If the message is empty no issues were found.
+        """
+
     def is_compatible(self, problem: OptimizationProblem) -> bool:
         """Checks whether a given problem can be solved with the optimizer implementing this method.
 
@@ -32,9 +42,9 @@ class OptimizationAlgorithm(ABC):
             problem: The optimization problem to check compatibility.
 
         Returns:
-            Returns True if the problem is compatible, otherwise raises an error.
+            Returns True if the problem is compatible, False otherwise.
         """
-        raise NotImplementedError
+        return len(self.get_incompatibility(problem)) > 0
 
     @abstractmethod
     def solve(self, problem: OptimizationProblem) -> OptimizationResult:

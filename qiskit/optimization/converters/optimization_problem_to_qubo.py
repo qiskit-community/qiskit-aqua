@@ -88,7 +88,7 @@ class OptimizationProblemToQubo:
         return self._int_to_bin.decode(result)
 
     @staticmethod
-    def is_compatible(problem: OptimizationProblem) -> bool:
+    def get_incompatibility(problem: OptimizationProblem) -> bool:
         """Checks whether a given problem can be cast to a QUBO.
 
         An optimization problem can be converted to a QUBO (Quadratic Unconstrained Binary
@@ -126,7 +126,15 @@ class OptimizationProblemToQubo:
             msg += 'Quadratic constraints are not supported. '
 
         # if an error occurred, return error message, otherwise, return None
-        if len(msg) > 0:
-            raise QiskitOptimizationError('Cannot convert the problem to QUBO: %s' % msg)
+        return msg
 
-        return True
+    def is_compatible(self, problem: OptimizationProblem) -> bool:
+        """Checks whether a given problem can be solved with the optimizer implementing this method.
+
+        Args:
+            problem: The optimization problem to check compatibility.
+
+        Returns:
+            Returns True if the problem is compatible, False otherwise.
+        """
+        return len(self.get_incompatibility(problem)) > 0
