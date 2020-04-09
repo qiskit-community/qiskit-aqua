@@ -731,20 +731,20 @@ class ADMMOptimizer(OptimizationAlgorithm):
         #  Step 2:
         #  Quadratic_constraint: z**2 + u**2 <= 1
         #  Vars: 0<=z<=1, L <= u <= U
-        for linear, quad, sense, rhs \
-                in zip(self._state.op.quadratic_constraints.get_linear_components(),
-                       self._state.quadratic_constraints.get_quadratic_components(),
-                       self._state.quadratic_constraints.get_senses(),
-                       self._state.quadratic_constraints.get_rhs()):
-            # types in the loop: SparsePair, SparseTriple, character, float
-            print(linear, quad, sense, rhs)
-            new_linear = SparsePair(ind=self._binary_indices_to_continuous(linear.ins),
-                                    val=linear.val)
-            new_quadratic = SparseTriple(ind1=self._binary_indices_to_continuous(quad.ind1),
-                                         ind2=self._binary_indices_to_continuous(quad.ind2),
-                                         val=quad.val)
-            op2.quadratic_constraints.add(lin_expr=new_linear, quad_expr=new_quadratic,
-                                          sense=sense, rhs=rhs)
+        # for linear, quad, sense, rhs \
+        #         in zip(self._state.op.quadratic_constraints.get_linear_components(),
+        #                self._state.op.quadratic_constraints.get_quadratic_components(),
+        #                self._state.op.quadratic_constraints.get_senses(),
+        #                self._state.op.quadratic_constraints.get_rhs()):
+        #     # types in the loop: SparsePair, SparseTriple, character, float
+        #     print(linear, quad, sense, rhs)
+        #     new_linear = SparsePair(ind=self._binary_indices_to_continuous(linear.ins),
+        #                             val=linear.val)
+        #     new_quadratic = SparseTriple(ind1=self._binary_indices_to_continuous(quad.ind1),
+        #                                  ind2=self._binary_indices_to_continuous(quad.ind2),
+        #                                  val=quad.val)
+        #     op2.quadratic_constraints.add(lin_expr=new_linear, quad_expr=new_quadratic,
+        #                                   sense=sense, rhs=rhs)
 
         return op2
 
