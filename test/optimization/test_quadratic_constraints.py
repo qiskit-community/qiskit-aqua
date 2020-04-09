@@ -19,7 +19,7 @@ from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 import logging
 
 from qiskit.optimization import QiskitOptimizationError
-from qiskit.optimization.problems import OptimizationProblem
+from qiskit.optimization.problems import QuadraticProgram
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +41,7 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
 
     def test_initial1(self):
         """ test initial 1"""
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         c_1 = op.quadratic_constraints.add(name='c1')
         c_2 = op.quadratic_constraints.add(name='c2')
         c_3 = op.quadratic_constraints.add(name='c3')
@@ -53,7 +53,7 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
 
     def test_initial2(self):
         """ test initial 2"""
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=['x1', 'x2', 'x3'], types='B' * 3)
         op.quadratic_constraints.add(
             lin_expr=SparsePair(ind=['x1', 'x3'], val=[1.0, -1.0]),
@@ -80,7 +80,7 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
 
     def test_initial3(self):
         """ test initial 3"""
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=['x', 'y'])
         with self.assertRaises(QiskitOptimizationError):
             op.quadratic_constraints.add(lin_expr=([0, 0], [1, 1]))
@@ -88,7 +88,7 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
 
     def test_get_num(self):
         """ test get num """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=['x', 'y'])
         lin = SparsePair(ind=['x'], val=[1.0])
         q = SparseTriple(ind1=['x'], ind2=['y'], val=[1.0])
@@ -100,7 +100,7 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
 
     def test_add(self):
         """ test add """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=['x', 'y'])
         lin = SparsePair(ind=['x'], val=[1.0])
         q = SparseTriple(ind1=['x'], ind2=['y'], val=[1.0])
@@ -109,7 +109,7 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
 
     def test_delete(self):
         """ test delete """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         q_0 = [op.quadratic_constraints.add(name=str(i)) for i in range(10)]
         self.assertListEqual(q_0, list(range(10)))
         q = op.quadratic_constraints
@@ -125,7 +125,7 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
 
     def test_get_rhs(self):
         """ test get rhs  """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=[str(i) for i in range(10)])
         q_0 = [op.quadratic_constraints.add(rhs=1.5 * i, name=str(i)) for i in range(10)]
         self.assertListEqual(q_0, list(range(10)))
@@ -138,7 +138,7 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
 
     def test_get_senses(self):
         """ test get senses """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=["x0"])
         q = op.quadratic_constraints
         q_0 = [q.add(name=str(i), sense=j) for i, j in enumerate('GGLL')]
@@ -150,7 +150,7 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
 
     def test_get_linear_num_nonzeros(self):
         """ test get linear num non zeros """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=[str(i) for i in range(11)], types="B" * 11)
         q = op.quadratic_constraints
         n = 10
@@ -165,7 +165,7 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
 
     def test_get_linear_components(self):
         """ test get linear components """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=[str(i) for i in range(4)], types="B" * 4)
         q = op.quadratic_constraints
         z = [q.add(name=str(i),
@@ -199,7 +199,7 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
 
     def test_get_linear_components2(self):
         """ test get linear components 2 """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=[str(i) for i in range(11)], types="B" * 11)
         q = op.quadratic_constraints
         _ = [q.add(name=str(i),
@@ -241,7 +241,7 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
 
     def test_quad_num_nonzeros(self):
         """ test quad num non zeros """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=[str(i) for i in range(11)])
         q = op.quadratic_constraints
         _ = [q.add(name=str(i),
@@ -255,7 +255,7 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
 
     def test_get_quadratic_components(self):
         """ test get quadratic components """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=[str(i) for i in range(4)])
         q = op.quadratic_constraints
         z = [q.add(name="q{0}".format(i),
@@ -295,7 +295,7 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
 
     def test_get_quadratic_components2(self):
         """ test get quadratic components 2 """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=[str(i) for i in range(11)])
         q = op.quadratic_constraints
         _ = [q.add(name=str(i),
@@ -351,7 +351,7 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
 
     def test_get_names(self):
         """ test get names """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=[str(i) for i in range(11)])
         q = op.quadratic_constraints
         _ = [q.add(name="q" + str(i),
@@ -366,7 +366,7 @@ class TestQuadraticConstraints(QiskitOptimizationTestCase):
 
     def test_empty_names(self):
         """ test empty names """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=['x'])
         op.quadratic_constraints.add(name='a')
         op.quadratic_constraints.add(name='')

@@ -21,9 +21,9 @@ import math
 import numpy as np
 from qiskit.aqua import QuantumInstance
 from qiskit.optimization.algorithms import OptimizationAlgorithm
-from qiskit.optimization.problems import OptimizationProblem
-from qiskit.optimization.converters import (OptimizationProblemToQubo,
-                                            OptimizationProblemToNegativeValueOracle)
+from qiskit.optimization.problems import QuadraticProgram
+from qiskit.optimization.converters import (QuadraticProgramToQubo,
+                                            QuadraticProgramToNegativeValueOracle)
 from qiskit.optimization.results import GroverOptimizationResults
 from qiskit.optimization.results import OptimizationResult
 from qiskit.optimization.util import get_qubo_solutions
@@ -52,7 +52,7 @@ class GroverMinimumFinder(OptimizationAlgorithm):
             quantum_instance = QuantumInstance(backend)
         self._quantum_instance = quantum_instance
 
-    def is_compatible(self, problem: OptimizationProblem) -> Optional[str]:
+    def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
         """Checks whether a given problem can be solved with this optimizer.
 
         Checks whether the given problem is compatible, i.e., whether the problem can be converted
@@ -62,11 +62,11 @@ class GroverMinimumFinder(OptimizationAlgorithm):
             problem: The optimization problem to check compatibility.
 
         Returns:
-            Returns ``None`` if the problem is compatible and else a string with the error message.
+            A message describing the incompatibility.
         """
-        return OptimizationProblemToQubo.is_compatible(problem)
+        return QuadraticProgramToQubo.get_compatibility_msg(problem)
 
-    def solve(self, problem: OptimizationProblem) -> OptimizationResult:
+    def solve(self, problem: QuadraticProgram) -> OptimizationResult:
         """Tries to solves the given problem using the optimizer.
 
         Runs the optimizer to try to solve the optimization problem. If problem is not convex,
@@ -82,8 +82,8 @@ class GroverMinimumFinder(OptimizationAlgorithm):
             QiskitOptimizationError: If the problem is incompatible with the optimizer.
         """
 
-        # convert problem to QUBO
-        qubo_converter = OptimizationProblemToQubo()
+        # convert problem to QUBO, this implicitly checks if the problem is compatible
+        qubo_converter = QuadraticProgramToQubo()
         problem_ = qubo_converter.encode(problem)
 
         # TODO: How to get from Optimization Problem?
@@ -113,8 +113,8 @@ class GroverMinimumFinder(OptimizationAlgorithm):
         # Initialize oracle helper object.
         orig_constant = problem_.objective.get_offset()
         measurement = not self._quantum_instance.is_statevector
-        opt_prob_converter = OptimizationProblemToNegativeValueOracle(n_value,
-                                                                      measurement)
+        opt_prob_converter = QuadraticProgramToNegativeValueOracle(n_value,
+                                                                   measurement)
 
         while not optimum_found:
             m = 1

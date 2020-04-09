@@ -17,13 +17,13 @@
 import unittest
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
-from qiskit.optimization.converters import OptimizationProblemToNegativeValueOracle
+from qiskit.optimization.converters import QuadraticProgramToNegativeValueOracle
 from qiskit.optimization.util import get_qubo_solutions
 from qiskit import QuantumCircuit, Aer, execute
-from qiskit.optimization.problems import OptimizationProblem
+from qiskit.optimization.problems import QuadraticProgram
 
 
-class TestOptimizationProblemToNegativeValueOracle(QiskitOptimizationTestCase):
+class TestQuadraticProgramToNegativeValueOracle(QiskitOptimizationTestCase):
     """OPtNVO Tests"""
 
     def _validate_function(self, func_dict, problem):
@@ -85,7 +85,7 @@ class TestOptimizationProblemToNegativeValueOracle(QiskitOptimizationTestCase):
             num_value = 4
 
             # Input.
-            problem = OptimizationProblem()
+            problem = QuadraticProgram()
             problem.variables.add(names=['x0', 'x1', 'x2'], types='BBB')
             linear = [('x0', -1), ('x1', 2), ('x2', -3)]
             problem.objective.set_linear(linear)
@@ -93,7 +93,7 @@ class TestOptimizationProblemToNegativeValueOracle(QiskitOptimizationTestCase):
             problem.objective.set_quadratic_coefficients('x1', 'x2', -1)
 
             # Convert to dictionary format with operator/oracle.
-            converter = OptimizationProblemToNegativeValueOracle(num_value)
+            converter = QuadraticProgramToNegativeValueOracle(num_value)
             a_operator, _, func_dict = converter.encode(problem)
 
             self._validate_function(func_dict, problem)
@@ -108,7 +108,7 @@ class TestOptimizationProblemToNegativeValueOracle(QiskitOptimizationTestCase):
             num_value = 5
 
             # Input.
-            problem = OptimizationProblem()
+            problem = QuadraticProgram()
             problem.variables.add(names=['x0', 'x1', 'x2'], types='BBB')
             linear = [('x0', -1), ('x1', -2), ('x2', -1)]
             problem.objective.set_linear(linear)
@@ -118,7 +118,7 @@ class TestOptimizationProblemToNegativeValueOracle(QiskitOptimizationTestCase):
             problem.objective.set_offset(-1)
 
             # Convert to dictionary format with operator/oracle.
-            converter = OptimizationProblemToNegativeValueOracle(num_value)
+            converter = QuadraticProgramToNegativeValueOracle(num_value)
             a_operator, _, func_dict = converter.encode(problem)
 
             self._validate_function(func_dict, problem)
@@ -133,7 +133,7 @@ class TestOptimizationProblemToNegativeValueOracle(QiskitOptimizationTestCase):
             num_value = 4
 
             # Input.
-            problem = OptimizationProblem()
+            problem = QuadraticProgram()
             problem.variables.add(names=['x0', 'x1', 'x2', 'x3', 'x4', 'x5'], types='BBBBBB')
             linear = [('x0', -1), ('x1', -2), ('x2', -1), ('x3', 0), ('x4', 1), ('x5', 2)]
             problem.objective.set_linear(linear)
@@ -141,7 +141,7 @@ class TestOptimizationProblemToNegativeValueOracle(QiskitOptimizationTestCase):
             problem.objective.set_quadratic_coefficients('x1', 'x5', -2)
 
             # Convert to dictionary format with operator/oracle.
-            converter = OptimizationProblemToNegativeValueOracle(num_value)
+            converter = QuadraticProgramToNegativeValueOracle(num_value)
             a_operator, _, func_dict = converter.encode(problem)
 
             self._validate_function(func_dict, problem)

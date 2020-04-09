@@ -13,14 +13,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""The CPLEX optimizer wrapped to be used within Qiskit Optimization.
-
-Examples:
-    >>> problem = OptimizationProblem()
-    >>> # specify problem here
-    >>> optimizer = CplexOptimizer()
-    >>> result = optimizer.solve(problem)
-"""
+"""The CPLEX optimizer wrapped to be used within Qiskit Optimization."""
 
 from typing import Optional
 import logging
@@ -28,7 +21,7 @@ import logging
 from .optimization_algorithm import OptimizationAlgorithm
 from ..utils.qiskit_optimization_error import QiskitOptimizationError
 from ..results.optimization_result import OptimizationResult
-from ..problems.optimization_problem import OptimizationProblem
+from ..problems.quadratic_program import QuadraticProgram
 
 logger = logging.getLogger(__name__)
 
@@ -46,17 +39,18 @@ class CplexOptimizer(OptimizationAlgorithm):
     This class provides a wrapper for ``cplex.Cplex`` (https://pypi.org/project/cplex/)
     to be used within Qiskit Optimization.
 
-    TODO: The arguments for ``Cplex`` are passed via the constructor.
+    Examples:
+    >>> problem = QuadraticProgram()
+    >>> # specify problem here
+    >>> optimizer = CplexOptimizer()
+    >>> result = optimizer.solve(problem)
     """
 
-    def __init__(self, parameter_set: Optional['ParameterSet'] = None) -> None:
+    def __init__(self, disp: Optional[bool] = False) -> None:
         """Initializes the CplexOptimizer.
 
-        TODO: This initializer takes the algorithmic parameters of CPLEX and stores them for later
-            use when ``solve()`` is invoked.
-
         Args:
-            parameter_set: The CPLEX parameter set
+            disp: Whether to print CPLEX output or not.
 
         Raises:
             NameError: CPLEX is not installed.
@@ -64,41 +58,42 @@ class CplexOptimizer(OptimizationAlgorithm):
         if not _HAS_CPLEX:
             raise NameError('CPLEX is not installed.')
 
-        self._parameter_set = parameter_set
+        self._disp = disp
 
     @property
-    def parameter_set(self) -> Optional['ParameterSet']:
-        """Returns the parameter set.
-        Returns the algorithmic parameters for CPLEX.
+    def disp(self) -> bool:
+        """Returns the display setting.
+
         Returns:
-            The CPLEX parameter set.
+            Whether to print CPLEX information or not.
         """
-        return self._parameter_set
+        return self._disp
 
-    @parameter_set.setter
-    def parameter_set(self, parameter_set: Optional['ParameterSet']):
-        """Set the parameter set.
+    @disp.setter
+    def disp(self, disp: bool):
+        """Set the display setting.
         Args:
-            parameter_set: The new parameter set.
+            disp: The display setting.
         """
-        self._parameter_set = parameter_set
+        self._disp = disp
 
-    def is_compatible(self, problem: OptimizationProblem) -> Optional[str]:
+    # pylint:disable=unused-argument
+    def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
         """Checks whether a given problem can be solved with this optimizer.
 
-        Returns ``True`` since CPLEX accepts all problems that can be modeled using the
-        ``OptimizationProblem``. CPLEX may throw an exception in case the problem is determined
-        to be non-convex. This case could be addressed by setting CPLEX parameters accordingly.
+        Returns ``''`` since CPLEX accepts all problems that can be modeled using the
+        ``QuadraticProgram``. CPLEX may throw an exception in case the problem is determined
+        to be non-convex.
 
         Args:
             problem: The optimization problem to check compatibility.
 
         Returns:
-            Returns ``None`` if the problem is compatible and else a string with the error message.
+            An empty string.
         """
-        return None
+        return ''
 
-    def solve(self, problem: OptimizationProblem) -> OptimizationResult:
+    def solve(self, problem: QuadraticProgram) -> OptimizationResult:
         """Tries to solves the given problem using the optimizer.
 
         Runs the optimizer to try to solve the optimization problem. If problem is not convex,
@@ -117,7 +112,13 @@ class CplexOptimizer(OptimizationAlgorithm):
         # convert to CPLEX problem
         cplex = problem.to_cplex()
 
-        # set parameters
+        # set display setting
+        if not self.disp:
+            cplex.set_log_stream(None)
+            cplex.set_error_stream(None)
+            cplex.set_warning_stream(None)
+            cplex.set_results_stream(None)
+
         # TODO: need to find a good way to set the parameters
 
         # solve problem

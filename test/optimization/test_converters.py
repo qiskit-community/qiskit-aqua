@@ -17,15 +17,15 @@
 import unittest
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 import logging
+from docplex.mp.model import Model
 
 from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
-from docplex.mp.model import Model
-from qiskit.optimization import OptimizationProblem, QiskitOptimizationError
+from qiskit.optimization import QuadraticProgram, QiskitOptimizationError
 from qiskit.optimization.results import OptimizationResult
 from qiskit.optimization.converters import (
     InequalityToEqualityConverter,
-    OptimizationProblemToOperator,
+    QuadraticProgramToOperator,
     IntegerToBinaryConverter,
     PenalizeLinearEqualityConstraints,
 )
@@ -69,60 +69,60 @@ class TestConverters(QiskitOptimizationTestCase):
 
     def test_empty_problem(self):
         """ Test empty problem """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         conv = InequalityToEqualityConverter()
         op = conv.encode(op)
         conv = IntegerToBinaryConverter()
         op = conv.encode(op)
         conv = PenalizeLinearEqualityConstraints()
         op = conv.encode(op)
-        conv = OptimizationProblemToOperator()
+        conv = QuadraticProgramToOperator()
         _, shift = conv.encode(op)
         self.assertEqual(shift, 0.0)
 
     def test_valid_variable_type(self):
-        """Validate the types of the variables for OptimizationProblemToOperator."""
+        """Validate the types of the variables for QuadraticProgramToOperator."""
         # Integer variable
         with self.assertRaises(QiskitOptimizationError):
-            op = OptimizationProblem()
+            op = QuadraticProgram()
             op.variables.add(names=['x'], types='I')
-            conv = OptimizationProblemToOperator()
+            conv = QuadraticProgramToOperator()
             _ = conv.encode(op)
         # Continuous variable
         with self.assertRaises(QiskitOptimizationError):
-            op = OptimizationProblem()
+            op = QuadraticProgram()
             op.variables.add(names=['x'], types='C')
-            conv = OptimizationProblemToOperator()
+            conv = QuadraticProgramToOperator()
             _ = conv.encode(op)
         # Semi-Continuous variable
         with self.assertRaises(QiskitOptimizationError):
-            op = OptimizationProblem()
+            op = QuadraticProgram()
             op.variables.add(names=['x'], types='S')
-            conv = OptimizationProblemToOperator()
+            conv = QuadraticProgramToOperator()
             _ = conv.encode(op)
         # Semi-Integer variable
         with self.assertRaises(QiskitOptimizationError):
-            op = OptimizationProblem()
+            op = QuadraticProgram()
             op.variables.add(names=['x'], types='N')
-            conv = OptimizationProblemToOperator()
+            conv = QuadraticProgramToOperator()
             _ = conv.encode(op)
         # validate the types of the variables for InequalityToEqualityConverter
         # Semi-Continuous variable
         with self.assertRaises(QiskitOptimizationError):
-            op = OptimizationProblem()
+            op = QuadraticProgram()
             op.variables.add(names=['x'], types='S')
             conv = InequalityToEqualityConverter()
             _ = conv.encode(op)
         # Semi-Integer variable
         with self.assertRaises(QiskitOptimizationError):
-            op = OptimizationProblem()
+            op = QuadraticProgram()
             op.variables.add(names=['x'], types='N')
             conv = InequalityToEqualityConverter()
             _ = conv.encode(op)
 
     def test_inequality_binary(self):
         """ Test InequalityToEqualityConverter with binary variables """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=['x', 'y', 'z'], types='B' * 3)
         op.linear_constraints.add(
             lin_expr=[
@@ -148,7 +148,7 @@ class TestConverters(QiskitOptimizationTestCase):
 
     def test_inequality_integer(self):
         """ Test InequalityToEqualityConverter with integer variables """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=['x', 'y', 'z'], types='I' * 3, lb=[-3] * 3, ub=[3] * 3)
         op.linear_constraints.add(
             lin_expr=[
@@ -174,7 +174,7 @@ class TestConverters(QiskitOptimizationTestCase):
 
     def test_inequality_mode_integer(self):
         """ Test integer mode of InequalityToEqualityConverter() """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=['x', 'y', 'z'], types='B' * 3)
         op.linear_constraints.add(
             lin_expr=[
@@ -193,7 +193,7 @@ class TestConverters(QiskitOptimizationTestCase):
 
     def test_inequality_mode_continuous(self):
         """ Test continuous mode of InequalityToEqualityConverter() """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=['x', 'y', 'z'], types='B' * 3)
         op.linear_constraints.add(
             lin_expr=[
@@ -212,7 +212,7 @@ class TestConverters(QiskitOptimizationTestCase):
 
     def test_inequality_mode_auto(self):
         """ Test auto mode of InequalityToEqualityConverter() """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=['x', 'y', 'z'], types='B' * 3)
         op.linear_constraints.add(
             lin_expr=[
@@ -231,7 +231,7 @@ class TestConverters(QiskitOptimizationTestCase):
 
     def test_penalize_sense(self):
         """ Test PenalizeLinearEqualityConstraints with senses """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=['x', 'y', 'z'], types='B' * 3)
         op.linear_constraints.add(
             lin_expr=[
@@ -250,7 +250,7 @@ class TestConverters(QiskitOptimizationTestCase):
 
     def test_penalize_binary(self):
         """ Test PenalizeLinearEqualityConstraints with binary variables """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=['x', 'y', 'z'], types='B' * 3)
         op.linear_constraints.add(
             lin_expr=[
@@ -268,7 +268,7 @@ class TestConverters(QiskitOptimizationTestCase):
 
     def test_penalize_integer(self):
         """ Test PenalizeLinearEqualityConstraints with integer variables """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=['x', 'y', 'z'], types='I' * 3, lb=[-3] * 3, ub=[3] * 3)
         op.linear_constraints.add(
             lin_expr=[
@@ -286,7 +286,7 @@ class TestConverters(QiskitOptimizationTestCase):
 
     def test_integer_to_binary(self):
         """ Test integer to binary """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=['x', 'y', 'z'], types='BIC', lb=[0, 0, 0], ub=[1, 6, 10])
         op.objective.set_linear([('x', 1), ('y', 2), ('z', 1)])
         op.linear_constraints.add(
@@ -314,7 +314,7 @@ class TestConverters(QiskitOptimizationTestCase):
 
     def test_binary_to_integer(self):
         """ Test binary to integer """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=['x', 'y', 'z'], types='BIB', lb=[0, 0, 0], ub=[1, 7, 1])
         op.objective.set_linear([('x', 2), ('y', 1), ('z', 1)])
         op.linear_constraints.add(
@@ -333,7 +333,7 @@ class TestConverters(QiskitOptimizationTestCase):
 
     def test_optimizationproblem_to_operator(self):
         """ Test optimization problem to operators"""
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=['a', 'b', 'c', 'd'], types='B' * 4)
         op.objective.set_linear([('a', 1), ('b', 1), ('c', 1), ('d', 1)])
         op.linear_constraints.add(
@@ -344,7 +344,7 @@ class TestConverters(QiskitOptimizationTestCase):
         )
         op.objective.set_sense(-1)
         penalize = PenalizeLinearEqualityConstraints()
-        op2ope = OptimizationProblemToOperator()
+        op2ope = QuadraticProgramToOperator()
         op2 = penalize.encode(op)
         qubitop, offset = op2ope.encode(op2)
         self.assertListEqual(qubitop.paulis, QUBIT_OP_MAXIMIZE_SAMPLE.paulis)
@@ -354,7 +354,7 @@ class TestConverters(QiskitOptimizationTestCase):
         """ Test quadratic constraints"""
         # IntegerToBinaryConverter
         with self.assertRaises(QiskitOptimizationError):
-            op = OptimizationProblem()
+            op = QuadraticProgram()
             op.variables.add(names=['x', 'y'])
             l_expr = SparsePair(ind=['x'], val=[1.0])
             q_expr = [['x'], ['y'], [1]]
@@ -363,7 +363,7 @@ class TestConverters(QiskitOptimizationTestCase):
             _ = conv.encode(op)
         # InequalityToEqualityConverter
         with self.assertRaises(QiskitOptimizationError):
-            op = OptimizationProblem()
+            op = QuadraticProgram()
             op.variables.add(names=['x', 'y'])
             l_expr = SparsePair(ind=['x'], val=[1.0])
             q_expr = [['x'], ['y'], [1]]
@@ -377,7 +377,7 @@ class TestConverters(QiskitOptimizationTestCase):
         c = mdl.continuous_var(lb=0, ub=10.9, name='c')
         x = mdl.binary_var(name='x')
         mdl.maximize(c + x * x)
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.from_docplex(mdl)
         converter = IntegerToBinaryConverter()
         op = converter.encode(op)

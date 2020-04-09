@@ -19,7 +19,7 @@ from typing import Dict, List, Optional, Tuple
 import logging
 import numpy as np
 
-from ..problems.optimization_problem import OptimizationProblem
+from ..problems.quadratic_program import QuadraticProgram
 from ..results.optimization_result import OptimizationResult
 from ..utils.qiskit_optimization_error import QiskitOptimizationError
 
@@ -34,13 +34,19 @@ except ImportError:
 
 
 class IntegerToBinaryConverter:
-    """Convert an `OptimizationProblem` into new one by encoding integer with binary variables.
+    """Convert an `QuadraticProgram` into new one by encoding integer with binary variables.
+
+    This bounded-coefficient encoding used in this converted is proposed in [1], Eq. (5).
 
     Examples:
-        >>> problem = OptimizationProblem()
+        >>> problem = QuadraticProgram()
         >>> problem.variables.add(names=['x'], types=['I'], lb=[0], ub=[10])
         >>> conv = IntegerToBinaryConverter()
         >>> problem2 = conv.encode(problem)
+
+    References:
+        [1]: Sahar Karimi, Pooya Ronagh (2017), Practical Integer-to-Binary Mapping for Quantum
+            Annealers. arxiv.org:1706.01945.
     """
 
     _delimiter = '@'  # users are supposed not to use this character in variable names
@@ -55,7 +61,7 @@ class IntegerToBinaryConverter:
         self._conv: Dict[str, List[Tuple[str, int]]] = {}
         # e.g., self._conv = {'x': [('x@1', 1), ('x@2', 2)]}
 
-    def encode(self, op: OptimizationProblem, name: Optional[str] = None) -> OptimizationProblem:
+    def encode(self, op: QuadraticProgram, name: Optional[str] = None) -> QuadraticProgram:
         """Convert an integer problem into a new problem with binary variables.
 
         Args:
@@ -68,7 +74,7 @@ class IntegerToBinaryConverter:
         """
 
         self._src = copy.deepcopy(op)
-        self._dst = OptimizationProblem()
+        self._dst = QuadraticProgram()
         if name:
             self._dst.set_problem_name(name)
         else:
@@ -99,7 +105,6 @@ class IntegerToBinaryConverter:
         return self._dst
 
     def _encode_var(self, name: str, lower_bound: int, upper_bound: int) -> List[Tuple[str, int]]:
-        # bounded-coefficient encoding proposed in arxiv:1706.01945 (Eq. (5))
         var_range = upper_bound - lower_bound
         power = int(np.log2(var_range))
         bounded_coef = var_range - (2 ** power - 1)

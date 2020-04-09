@@ -401,7 +401,7 @@ online
 onwards
 oplus
 optim
-OptimizationProblem
+QuadraticProgram
 optimizer's
 optimizers
 orbsym

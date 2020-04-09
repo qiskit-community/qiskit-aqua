@@ -19,7 +19,7 @@ import math
 from typing import List, Tuple, Dict, Optional
 import logging
 
-from ..problems.optimization_problem import OptimizationProblem
+from ..problems.quadratic_program import QuadraticProgram
 from ..results.optimization_result import OptimizationResult
 from ..utils.qiskit_optimization_error import QiskitOptimizationError
 
@@ -37,7 +37,7 @@ class InequalityToEqualityConverter:
     """Convert inequality constraints into equality constraints by introducing slack variables.
 
     Examples:
-        >>> problem = OptimizationProblem()
+        >>> problem = QuadraticProgram()
         >>> # define a problem
         >>> conv = InequalityToEqualityConverter()
         >>> problem2 = conv.encode(problem)
@@ -46,7 +46,7 @@ class InequalityToEqualityConverter:
     _delimiter = '@'  # users are supposed not to use this character in variable names
 
     def __init__(self) -> None:
-        """Initialize the integral variables."""
+        """Initialize the inequality to equality variable converter."""
         if not _HAS_CPLEX:
             raise NameError('CPLEX is not installed.')
 
@@ -55,8 +55,8 @@ class InequalityToEqualityConverter:
         self._conv: Dict[str, List[Tuple[str, int]]] = {}
         # e.g., self._conv = {'c1': [c1@slack_var]}
 
-    def encode(self, op: OptimizationProblem, name: Optional[str] = None,
-               mode: str = 'auto') -> OptimizationProblem:
+    def encode(self, op: QuadraticProgram, name: Optional[str] = None,
+               mode: str = 'auto') -> QuadraticProgram:
         """Convert a problem with inequality constraints into one with only equality constraints.
 
         Args:
@@ -77,7 +77,7 @@ class InequalityToEqualityConverter:
             QiskitOptimizationError: If an unsupported sense is specified.
         """
         self._src = copy.deepcopy(op)
-        self._dst = OptimizationProblem()
+        self._dst = QuadraticProgram()
 
         # declare variables
         names = self._src.variables.get_names()

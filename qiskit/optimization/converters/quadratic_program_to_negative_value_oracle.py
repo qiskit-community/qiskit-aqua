@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""OptimizationProblemToNegativeValueOracle module"""
+"""QuadraticProgramToNegativeValueOracle module"""
 
 import logging
 from typing import Tuple, Dict, Union
@@ -23,17 +23,23 @@ from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from qiskit.aqua.components.initial_states import Custom
 from qiskit.aqua.components.iqfts import Standard as IQFT
 from qiskit.aqua.components.oracles import CustomCircuitOracle
-from qiskit.optimization.problems import OptimizationProblem
+from qiskit.optimization.problems import QuadraticProgram
 
 logger = logging.getLogger(__name__)
 
 
-class OptimizationProblemToNegativeValueOracle:
+class QuadraticProgramToNegativeValueOracle:
     """Converts an optimization problem (QUBO) to a negative value oracle.
 
     In addition, a state preparation operator is generated from the coefficients and constant of a
     QUBO, which can be used to encode the function into a quantum state. In conjunction, this oracle
     and operator can be used to flag the negative values of a QUBO encoded in a quantum state.
+
+    The construction of the oracle is discussed in [1].
+
+    References:
+        [1]: Gilliam et al., Grover Adaptive Search for Constrained Polynomial Binary Optimization.
+            arxiv:1912.04088.
     """
 
     def __init__(self, num_output_qubits: int, measurement: bool = False) -> None:
@@ -46,7 +52,7 @@ class OptimizationProblemToNegativeValueOracle:
         self._num_value = num_output_qubits
         self._measurement = measurement
 
-    def encode(self, problem: OptimizationProblem) -> \
+    def encode(self, problem: QuadraticProgram) -> \
             Tuple[Custom, CustomCircuitOracle, Dict[Union[int, Tuple[int, int]], int]]:
         """A helper function that converts a QUBO into an oracle that recognizes negative numbers.
 

@@ -20,7 +20,7 @@ import numpy as np
 
 from qiskit.optimization.algorithms.cplex_optimizer import CplexOptimizer
 from qiskit.optimization.algorithms.optimization_algorithm import OptimizationAlgorithm
-from qiskit.optimization.problems.optimization_problem import OptimizationProblem
+from qiskit.optimization.problems.quadratic_program import QuadraticProgram
 from qiskit.optimization.problems.variables import CPX_BINARY, CPX_CONTINUOUS
 from qiskit.optimization.results.optimization_result import OptimizationResult
 
@@ -92,7 +92,7 @@ class ADMMState:
     """
 
     def __init__(self,
-                 op: OptimizationProblem,
+                 op: QuadraticProgram,
                  binary_indices: List[int],
                  continuous_indices: List[int],
                  rho_initial: float) -> None:
@@ -210,21 +210,26 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # the solve method.
         self._state: Optional[ADMMState] = None
 
-    def is_compatible(self, problem: OptimizationProblem) -> Optional[str]:
+    def get_compatibility_msg(self, problem: QuadraticProgram) -> Optional[str]:
         """Checks whether a given problem can be solved with the optimizer implementing this method.
 
         Args:
             problem: The optimization problem to check compatibility.
 
         Returns:
-            Returns ``None`` if the problem is compatible and else a string with the error message.
+            Returns True if the problem is compatible, otherwise raises an error.
+
+        Raises:
+            QiskitOptimizationError: If the problem is not compatible with the ADMM optimizer.
         """
+
+        msg = ''
 
         # 1. only binary and continuous variables are supported
         for var_type in problem.variables.get_types():
             if var_type not in (CPX_BINARY, CPX_CONTINUOUS):
                 # variable is not binary and not continuous.
-                return "Only binary and continuous variables are supported"
+                msg += 'Only binary and continuous variables are supported. '
 
         binary_indices = self._get_variable_indices(problem, CPX_BINARY)
         continuous_indices = self._get_variable_indices(problem, CPX_CONTINUOUS)
@@ -235,17 +240,18 @@ class ADMMOptimizer(OptimizationAlgorithm):
                 coeff = problem.objective.get_quadratic_coefficients(binary_index, continuous_index)
                 if coeff != 0:
                     # binary and continuous vars are mixed.
-                    return "Binary and continuous variables are not separable in the objective"
+                    msg += 'Binary and continuous variables are not separable in the objective. '
 
         # 3. no quadratic constraints are supported.
         quad_constraints = problem.quadratic_constraints.get_num()
         if quad_constraints is not None and quad_constraints > 0:
             # quadratic constraints are not supported.
-            return "Quadratic constraints are not supported"
+            msg += 'Quadratic constraints are not supported. '
 
-        return None
+        # if an error occurred, return error message, otherwise, return None
+        return msg
 
-    def solve(self, problem: OptimizationProblem) -> ADMMOptimizerResult:
+    def solve(self, problem: QuadraticProgram) -> ADMMOptimizerResult:
         """Tries to solves the given problem using ADMM algorithm.
 
         Args:
@@ -337,7 +343,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         return result
 
     @staticmethod
-    def _get_variable_indices(op: OptimizationProblem, var_type: str) -> List[int]:
+    def _get_variable_indices(op: QuadraticProgram, var_type: str) -> List[int]:
         """Returns a list of indices of the variables of the specified type.
 
         Args:
@@ -597,13 +603,13 @@ class ADMMOptimizer(OptimizationAlgorithm):
         a_3 = matrix[:, len(self._state.binary_indices):]
         return a_2, a_3, b_2
 
-    def _create_step1_problem(self) -> OptimizationProblem:
+    def _create_step1_problem(self) -> QuadraticProgram:
         """Creates a step 1 sub-problem.
 
         Returns:
             A newly created optimization problem.
         """
-        op1 = OptimizationProblem()
+        op1 = QuadraticProgram()
 
         binary_size = len(self._state.binary_indices)
         # create the same binary variables.
@@ -619,7 +625,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
             2 * (
                 self._params.factor_c / 2 * np.dot(self._state.a0.transpose(), self._state.a0) +
                 self._state.rho / 2 * np.eye(binary_size)
-                )
+            )
         for i in range(binary_size):
             for j in range(i, binary_size):
                 op1.objective.set_quadratic_coefficients(i, j, quadratic_objective[i, j])
@@ -634,13 +640,13 @@ class ADMMOptimizer(OptimizationAlgorithm):
             op1.objective.set_linear(i, linear_objective[i])
         return op1
 
-    def _create_step2_problem(self) -> OptimizationProblem:
+    def _create_step2_problem(self) -> QuadraticProgram:
         """Creates a step 2 sub-problem.
 
         Returns:
             A newly created optimization problem.
         """
-        op2 = OptimizationProblem()
+        op2 = QuadraticProgram()
 
         continuous_size = len(self._state.continuous_indices)
         binary_size = len(self._state.binary_indices)
@@ -752,13 +758,13 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # todo: implement
         return binary_indices
 
-    def _create_step3_problem(self) -> OptimizationProblem:
+    def _create_step3_problem(self) -> QuadraticProgram:
         """Creates a step 3 sub-problem.
 
         Returns:
             A newly created optimization problem.
         """
-        op3 = OptimizationProblem()
+        op3 = QuadraticProgram()
         # add y variables.
         binary_size = len(self._state.binary_indices)
         op3.variables.add(names=["y_" + str(i + 1) for i in range(binary_size)],
@@ -780,22 +786,22 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         return op3
 
-    def _update_x0(self, op1: OptimizationProblem) -> np.ndarray:
-        """Solves the Step1 OptimizationProblem via the qubo optimizer.
+    def _update_x0(self, op1: QuadraticProgram) -> np.ndarray:
+        """Solves the Step1 QuadraticProgram via the qubo optimizer.
 
         Args:
-            op1: the Step1 OptimizationProblem.
+            op1: the Step1 QuadraticProgram.
 
         Returns:
             A solution of the Step1, as a numpy array.
         """
         return np.asarray(self._qubo_optimizer.solve(op1).x)
 
-    def _update_x1(self, op2: OptimizationProblem) -> (np.ndarray, np.ndarray):
-        """Solves the Step2 OptimizationProblem via the continuous optimizer.
+    def _update_x1(self, op2: QuadraticProgram) -> (np.ndarray, np.ndarray):
+        """Solves the Step2 QuadraticProgram via the continuous optimizer.
 
         Args:
-            op2: the Step2 OptimizationProblem
+            op2: the Step2 QuadraticProgram
 
         Returns:
             A solution of the Step2, as a pair of numpy arrays.
@@ -808,11 +814,11 @@ class ADMMOptimizer(OptimizationAlgorithm):
         vars_z = np.asarray(vars_op2[len(self._state.continuous_indices):])
         return vars_u, vars_z
 
-    def _update_y(self, op3: OptimizationProblem) -> np.ndarray:
-        """Solves the Step3 OptimizationProblem via the continuous optimizer.
+    def _update_y(self, op3: QuadraticProgram) -> np.ndarray:
+        """Solves the Step3 QuadraticProgram via the continuous optimizer.
 
         Args:
-            op3: the Step3 OptimizationProblem
+            op3: the Step3 QuadraticProgram
 
         Returns:
             A solution of the Step3, as a numpy array.

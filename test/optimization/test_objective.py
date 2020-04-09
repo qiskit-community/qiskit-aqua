@@ -18,7 +18,7 @@ import unittest
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 import logging
 
-from qiskit.optimization import OptimizationProblem, QiskitOptimizationError
+from qiskit.optimization import QuadraticProgram, QiskitOptimizationError
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ class TestObjective(QiskitOptimizationTestCase):
 
     def test_obj_sense(self):
         """ test obj sense """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         self.assertEqual(op.objective.sense.minimize, 1)
         self.assertEqual(op.objective.sense.maximize, -1)
         self.assertEqual(op.objective.sense[1], 'minimize')
@@ -48,7 +48,7 @@ class TestObjective(QiskitOptimizationTestCase):
 
     def test_set_linear(self):
         """ test set linear """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         n = 4
         op.variables.add(names=[str(i) for i in range(n)])
         self.assertListEqual(op.objective.get_linear(), [0.0, 0.0, 0.0, 0.0])
@@ -65,14 +65,14 @@ class TestObjective(QiskitOptimizationTestCase):
 
     def test_set_empty_quadratic(self):
         """ test set empty quadratic """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         self.assertIsNone(op.objective.set_quadratic([]))
         with self.assertRaises(TypeError):
             op.objective.set_quadratic()
 
     def test_set_quadratic(self):
         """ test set quadratic """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         n = 3
         op.variables.add(names=[str(i) for i in range(n)])
         obj = op.objective
@@ -107,7 +107,7 @@ class TestObjective(QiskitOptimizationTestCase):
 
     def test_get_quadratic_dict(self):
         """ test get quadratic dict """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=['x', 'y'])
         op.objective.set_quadratic_coefficients([('x', 'x', 1), ('x', 'y', 2)])
         self.assertDictEqual(op.objective.get_quadratic_dict(),
@@ -115,7 +115,7 @@ class TestObjective(QiskitOptimizationTestCase):
 
     def test_set_quadratic_coefficients(self):
         """ test set quadratic coefficients """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         n = 3
         op.variables.add(names=[str(i) for i in range(n)])
         obj = op.objective
@@ -150,7 +150,7 @@ class TestObjective(QiskitOptimizationTestCase):
 
     def test_set_senses(self):
         """ test set senses """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         self.assertEqual(op.objective.sense[op.objective.get_sense()], 'minimize')
         op.objective.set_sense(op.objective.sense.maximize)
         self.assertEqual(op.objective.sense[op.objective.get_sense()], 'maximize')
@@ -159,13 +159,13 @@ class TestObjective(QiskitOptimizationTestCase):
 
     def test_set_name(self):
         """ test set name """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.objective.set_name('cost')
         self.assertEqual(op.objective.get_name(), 'cost')
 
     def test_get_linear(self):
         """ test get linear """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         n = 10
         op.variables.add(names=[str(i) for i in range(n)])
         obj = op.objective
@@ -179,14 +179,14 @@ class TestObjective(QiskitOptimizationTestCase):
 
     def test_get_linear_dict(self):
         """ test get linear dict """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=['x', 'y'])
         op.objective.set_linear([('x', 1), ('y', 2)])
         self.assertDictEqual(op.objective.get_linear_dict(), {0: 1, 1: 2})
 
     def test_get_quadratic(self):
         """ test get quadratic """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         n = 10
         op.variables.add(names=[str(i) for i in range(n)])
         obj = op.objective
@@ -222,7 +222,7 @@ class TestObjective(QiskitOptimizationTestCase):
 
     def test_get_quadratic_coefficients(self):
         """ test get quadratic coefficients """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         n = 3
         op.variables.add(names=[str(i) for i in range(n)])
         obj = op.objective
@@ -236,7 +236,7 @@ class TestObjective(QiskitOptimizationTestCase):
 
     def test_get_sense(self):
         """ test get sense """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         self.assertEqual(op.objective.sense[op.objective.get_sense()], 'minimize')
         op.objective.set_sense(op.objective.sense.maximize)
         self.assertEqual(op.objective.sense[op.objective.get_sense()], 'maximize')
@@ -245,13 +245,13 @@ class TestObjective(QiskitOptimizationTestCase):
 
     def test_get_name(self):
         """ test get name """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.objective.set_name('cost')
         self.assertEqual(op.objective.get_name(), 'cost')
 
     def test_get_num_quadratic_variables(self):
         """ test get num quadratic variables """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         n = 3
         op.variables.add(names=[str(i) for i in range(n)])
         obj = op.objective
@@ -264,7 +264,7 @@ class TestObjective(QiskitOptimizationTestCase):
 
     def test_get_num_quadratic_nonzeros(self):
         """ test get num quadratic non zeros """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         n = 3
         op.variables.add(names=[str(i) for i in range(n)])
         obj = op.objective
@@ -277,14 +277,14 @@ class TestObjective(QiskitOptimizationTestCase):
 
     def test_offset(self):
         """ test offset """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         self.assertEqual(op.objective.get_offset(), 0.0)
         op.objective.set_offset(3.14)
         self.assertEqual(op.objective.get_offset(), 3.14)
 
     def test_set_quadratic_coefficients2(self):
         """ test set quadratic coefficients 2 """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         n = 2
         op.variables.add(names=[str(i) for i in range(n)])
         obj = op.objective
@@ -297,7 +297,7 @@ class TestObjective(QiskitOptimizationTestCase):
 
     def test_default_name(self):
         """ test default name """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         self.assertEqual(op.objective.get_name(), 'obj1')
 
 
