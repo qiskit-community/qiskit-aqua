@@ -29,7 +29,7 @@ class TestCplexOptimizer(QiskitOptimizationTestCase):
         super().setUp()
         try:
             self.resource_path = './test/optimization/resources/'
-            self.cplex_optimizer = CplexOptimizer()
+            self.cplex_optimizer = CplexOptimizer(disp=False)
         except NameError as ex:
             self.skipTest(str(ex))
 

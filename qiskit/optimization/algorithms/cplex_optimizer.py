@@ -13,14 +13,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""The CPLEX optimizer wrapped to be used within Qiskit Optimization.
-
-Examples:
-    >>> problem = QuadraticProgram()
-    >>> # specify problem here
-    >>> optimizer = CplexOptimizer()
-    >>> result = optimizer.solve(problem)
-"""
+"""The CPLEX optimizer wrapped to be used within Qiskit Optimization."""
 
 from typing import Optional
 import logging
@@ -46,10 +39,14 @@ class CplexOptimizer(OptimizationAlgorithm):
     This class provides a wrapper for ``cplex.Cplex`` (https://pypi.org/project/cplex/)
     to be used within Qiskit Optimization.
 
-    TODO: The arguments for ``Cplex`` are passed via the constructor.
+    Examples:
+    >>> problem = QuadraticProgram()
+    >>> # specify problem here
+    >>> optimizer = CplexOptimizer()
+    >>> result = optimizer.solve(problem)
     """
 
-    def __init__(self, disp: Optional[bool] = None) -> None:
+    def __init__(self, disp: Optional[bool] = False) -> None:
         """Initializes the CplexOptimizer.
 
         Args:
@@ -64,7 +61,7 @@ class CplexOptimizer(OptimizationAlgorithm):
         self._disp = disp
 
     @property
-    def disp(self) -> Optional[bool]:
+    def disp(self) -> bool:
         """Returns the display setting.
 
         Returns:
@@ -73,7 +70,7 @@ class CplexOptimizer(OptimizationAlgorithm):
         return self._disp
 
     @disp.setter
-    def disp(self, disp: Optional[bool]):
+    def disp(self, disp: bool):
         """Set the display setting.
         Args:
             disp: The display setting.
@@ -86,7 +83,7 @@ class CplexOptimizer(OptimizationAlgorithm):
 
         Returns ``''`` since CPLEX accepts all problems that can be modeled using the
         ``QuadraticProgram``. CPLEX may throw an exception in case the problem is determined
-        to be non-convex. This case could be addressed by setting CPLEX parameters accordingly.
+        to be non-convex.
 
         Args:
             problem: The optimization problem to check compatibility.
@@ -115,7 +112,13 @@ class CplexOptimizer(OptimizationAlgorithm):
         # convert to CPLEX problem
         cplex = problem.to_cplex()
 
-        # set parameters
+        # set display setting
+        if not self.disp:
+            cplex.set_log_stream(None)
+            cplex.set_error_stream(None)
+            cplex.set_warning_stream(None)
+            cplex.set_results_stream(None)
+
         # TODO: need to find a good way to set the parameters
 
         # solve problem
