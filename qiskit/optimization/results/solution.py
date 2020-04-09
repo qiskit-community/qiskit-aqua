@@ -63,7 +63,7 @@ class SolutionInterface(BaseInterface):
         >>> c.solution.get_status()
         1
         """
-        return None
+        raise NotImplementedError
 
     def get_method(self):
         """Returns the method used to solve the problem.
@@ -79,7 +79,7 @@ class SolutionInterface(BaseInterface):
         >>> c.solution.get_method()
         2
         """
-        return None
+        raise NotImplementedError
 
     def get_status_string(self, status_code=None):
         """Returns a string describing the status of the solution.
@@ -98,7 +98,7 @@ class SolutionInterface(BaseInterface):
         # pylint: disable=unused-argument
         # if status_code is None:
         #    status_code = self.get_status()
-        return None
+        raise NotImplementedError
 
     def get_objective_value(self):
         """Returns the value of the objective function.
@@ -114,7 +114,7 @@ class SolutionInterface(BaseInterface):
         >>> c.solution.get_objective_value()
         -202.5
         """
-        return None
+        raise NotImplementedError
 
     def get_values(self, *args):
         """Returns the values of a set of variables at the solution.
@@ -149,7 +149,7 @@ class SolutionInterface(BaseInterface):
         [25.5, 0.0, 80.0]
         """
         # pylint: disable=unused-argument
-        return None
+        raise NotImplementedError
 
     def get_integer_quality(self, which):
         """Returns a measure of the quality of the solution.
@@ -168,10 +168,11 @@ class SolutionInterface(BaseInterface):
         >>> c.solution.get_integer_quality([m.max_x, m.max_dual_infeasibility])
         [18, -1]
         """
-        if isinstance(which, int):
-            return None
-        else:
-            return [None for a in which]
+        # if isinstance(which, int):
+        #     return None
+        # else:
+        #     return [None for a in which]
+        raise NotImplementedError
 
     def get_float_quality(self, which):
         """Returns a measure of the quality of the solution.
@@ -193,10 +194,11 @@ class SolutionInterface(BaseInterface):
         >>> c.solution.get_float_quality([m.max_x, m.max_dual_infeasibility])
         [500.0, 0.0]
         """
-        if isinstance(which, int):
-            return None
-        else:
-            return [None for a in which]
+        # if isinstance(which, int):
+        #     return None
+        # else:
+        #     return [None for a in which]
+        raise NotImplementedError
 
     def get_solution_type(self):
         """Returns the type of the solution.
@@ -212,7 +214,7 @@ class SolutionInterface(BaseInterface):
         >>> c.solution.get_solution_type()
         1
         """
-        return None
+        raise NotImplementedError
 
     def is_primal_feasible(self):
         """Returns whether or not the solution is known to be primal feasible.
@@ -231,7 +233,7 @@ class SolutionInterface(BaseInterface):
         >>> c.solution.is_primal_feasible()
         True
         """
-        return None
+        raise NotImplementedError
 
     def get_quality_metrics(self):
         """Returns an object containing measures of the solution quality.
@@ -254,4 +256,4 @@ class SolutionInterface(BaseInterface):
         >>> c.solution.write("lpex.sol")
         """
         # pylint: disable=unused-argument
-        pass
+        raise NotImplementedError
