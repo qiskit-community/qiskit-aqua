@@ -49,14 +49,11 @@ class CplexOptimizer(OptimizationAlgorithm):
     TODO: The arguments for ``Cplex`` are passed via the constructor.
     """
 
-    def __init__(self, parameter_set: Optional['ParameterSet'] = None) -> None:
+    def __init__(self, disp: Optional[bool] = None) -> None:
         """Initializes the CplexOptimizer.
 
-        TODO: This initializer takes the algorithmic parameters of CPLEX and stores them for later
-            use when ``solve()`` is invoked.
-
         Args:
-            parameter_set: The CPLEX parameter set
+            disp: Whether to print CPLEX output or not.
 
         Raises:
             NameError: CPLEX is not installed.
@@ -64,24 +61,24 @@ class CplexOptimizer(OptimizationAlgorithm):
         if not _HAS_CPLEX:
             raise NameError('CPLEX is not installed.')
 
-        self._parameter_set = parameter_set
+        self._disp = disp
 
     @property
-    def parameter_set(self) -> Optional['ParameterSet']:
-        """Returns the parameter set.
-        Returns the algorithmic parameters for CPLEX.
-        Returns:
-            The CPLEX parameter set.
-        """
-        return self._parameter_set
+    def disp(self) -> Optional[bool]:
+        """Returns the display setting.
 
-    @parameter_set.setter
-    def parameter_set(self, parameter_set: Optional['ParameterSet']):
-        """Set the parameter set.
-        Args:
-            parameter_set: The new parameter set.
+        Returns:
+            Whether to print CPLEX information or not.
         """
-        self._parameter_set = parameter_set
+        return self._disp
+
+    @disp.setter
+    def disp(self, disp: Optional[bool]):
+        """Set the display setting.
+        Args:
+            disp: The display setting.
+        """
+        self._disp = disp
 
     def is_compatible(self, problem: QuadraticProgram) -> Optional[str]:
         """Checks whether a given problem can be solved with this optimizer.
