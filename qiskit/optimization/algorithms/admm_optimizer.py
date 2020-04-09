@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 _HAS_CPLEX = False
 try:
-    from cplex import SparsePair
+    from cplex import SparsePair, SparseTriple
     _HAS_CPLEX = True
 except ImportError:
     logger.info('CPLEX is not installed.')
