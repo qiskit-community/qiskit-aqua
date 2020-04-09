@@ -200,7 +200,8 @@ class TwoLocalAnsatz(Ansatz):
                     sub_circuit = QuantumCircuit(self._num_qubits)
                     sub_circuit.append(gate, [control, target], [])
                     update = dict(zip(list(sub_circuit.parameters), params))
-                    sub_circuit._substitute_parameters(update)
+                    for old_parameter, new_parameter in update.items():
+                        sub_circuit._substitute_parameter(old_parameter, new_parameter)
 
                     # add the gate
                     circuit.extend(sub_circuit)
@@ -246,7 +247,8 @@ class TwoLocalAnsatz(Ansatz):
                         sub_circuit = QuantumCircuit(self._num_qubits)
                         sub_circuit.append(gate, [qubit], [])
                         update = dict(zip(list(sub_circuit.parameters), params))
-                        sub_circuit._substitute_parameters(update)
+                        for old_parameter, new_parameter in update.items():
+                            sub_circuit._substitute_parameter(old_parameter, new_parameter)
 
                         # add the gate
                         circuit.extend(sub_circuit)

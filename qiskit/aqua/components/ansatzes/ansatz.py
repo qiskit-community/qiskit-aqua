@@ -215,7 +215,8 @@ class Ansatz:
         if params is not None and self._overwrite_block_parameters:
             update = dict(zip(circuit.parameters, params))
             circuit = circuit.copy()
-            circuit._substitute_parameters(update)
+            for old_parameter, new_parameter in update.items():
+                circuit._substitute_parameter(old_parameter, new_parameter)
 
         return circuit
 
@@ -335,7 +336,8 @@ class Ansatz:
             The parameters to be used in the underlying circuit.
         """
         if self._circuit:
-            self._circuit._substitute_parameters(dict(zip(self._base_params, parameters)))
+            for old_parameter, new_parameter in dict(zip(self._base_params, parameters)).items():
+                self._circuit._substitute_parameter(old_parameter, new_parameter)
         self._base_params = parameters
 
     @property
@@ -753,7 +755,8 @@ class Ansatz:
         elif all(isinstance(param, Parameter) for param in params):
             param_dict = dict(zip(self.base_parameters, params))
             circuit_copy = self._circuit.copy()
-            circuit_copy._substitute_parameters(param_dict)
+            for old_parameter, new_parameter in param_dict.items():
+                circuit_copy._substitute_parameter(old_parameter, new_parameter)
 
         # otherwise the input type is not supported
         else:

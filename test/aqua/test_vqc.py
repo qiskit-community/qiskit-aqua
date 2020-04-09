@@ -22,7 +22,7 @@ from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms import VQC
 from qiskit.aqua.components.optimizers import SPSA, COBYLA
-from qiskit.aqua.components.feature_maps import SecondOrderExpansion, RawFeatureVector
+from qiskit.aqua.components.ansatzes.feature_maps import SecondOrderExpansion, RawFeatureVector
 from qiskit.aqua.components.variational_forms import RYRZ, RY
 from qiskit.aqua.components.optimizers import L_BFGS_B
 from qiskit.aqua.utils import get_feature_dimension

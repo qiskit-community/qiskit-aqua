@@ -332,7 +332,7 @@ from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms import VQC
 from qiskit.aqua.components.optimizers import COBYLA
-from qiskit.aqua.components.feature_maps import RawFeatureVector
+from qiskit.aqua.components.ansatzes.feature_maps import RawFeatureVector
 from qiskit.aqua.components.variational_forms import RYRZ
 from qiskit.ml.datasets import wine
 

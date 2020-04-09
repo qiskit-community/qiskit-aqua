@@ -19,7 +19,7 @@ from test.aqua import QiskitAquaTestCase
 import numpy as np
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance, aqua_globals
-from qiskit.aqua.components.feature_maps import SecondOrderExpansion
+from qiskit.aqua.components.ansatzes.feature_maps import SecondOrderExpansion
 from qiskit.aqua.components.multiclass_extensions import (ErrorCorrectingCode,
                                                           AllPairs,
                                                           OneAgainstRest)

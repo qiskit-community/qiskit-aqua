@@ -25,5 +25,5 @@ from .feature_map import FeatureMap
 
 warnings.warn('The qiskit.aqua.components.feature_maps module is deprecated and will be removed '
               'no later than the release of Aqua 0.7. The feature maps '
-              'are now located in qiskit.aqua.components.ansatze.feature.maps.',
+              'are now located in qiskit.aqua.components.ansatzes.feature_maps.',
               DeprecationWarning, stacklevel=2)
