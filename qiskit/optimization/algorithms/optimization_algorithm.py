@@ -25,7 +25,7 @@ class OptimizationAlgorithm(ABC):
     """An abstract class for optimization algorithms in Qiskit Optimization."""
 
     @abstractmethod
-    def get_incompatibility(self, problem: QuadraticProgram) -> str:
+    def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
         """Checks whether a given problem can be solved with the optimizer implementing this method.
 
         Args:
@@ -44,7 +44,7 @@ class OptimizationAlgorithm(ABC):
         Returns:
             Returns True if the problem is compatible, False otherwise.
         """
-        return len(self.get_incompatibility(problem)) > 0
+        return len(self.get_compatibility_msg(problem)) > 0
 
     @abstractmethod
     def solve(self, problem: QuadraticProgram) -> OptimizationResult:

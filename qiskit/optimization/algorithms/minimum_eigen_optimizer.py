@@ -103,7 +103,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         self._min_eigen_solver = min_eigen_solver
         self._penalty = penalty
 
-    def get_incompatibility(self, problem: QuadraticProgram) -> str:
+    def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
         """Checks whether a given problem can be solved with this optimizer.
 
         Checks whether the given problem is compatible, i.e., whether the problem can be converted
@@ -115,7 +115,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         Returns:
             A message describing the incompatibility.
         """
-        return QuadraticProgramToQubo.get_incompatibility(problem)
+        return QuadraticProgramToQubo.get_compatibility_msg(problem)
 
     def solve(self, problem: QuadraticProgram) -> MinimumEigenOptimizerResult:
         """Tries to solves the given problem using the optimizer.

@@ -210,7 +210,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # the solve method.
         self._state: Optional[ADMMState] = None
 
-    def get_incompatibility(self, problem: QuadraticProgram) -> Optional[str]:
+    def get_compatibility_msg(self, problem: QuadraticProgram) -> Optional[str]:
         """Checks whether a given problem can be solved with the optimizer implementing this method.
 
         Args:

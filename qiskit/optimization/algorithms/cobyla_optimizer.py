@@ -67,7 +67,7 @@ class CobylaOptimizer(OptimizationAlgorithm):
         self._disp = disp
         self._catol = catol
 
-    def get_incompatibility(self, problem: QuadraticProgram) -> str:
+    def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
         """Checks whether a given problem can be solved with this optimizer.
 
         Checks whether the given problem is compatible, i.e., whether the problem contains only
@@ -100,7 +100,7 @@ class CobylaOptimizer(OptimizationAlgorithm):
             QiskitOptimizationError: If the problem is incompatible with the optimizer.
         """
         # check compatibility and raise exception if incompatible
-        msg = self.get_incompatibility(problem)
+        msg = self.get_compatibility_msg(problem)
         if len(msg) > 0:
             raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
 

@@ -85,7 +85,7 @@ class QuadraticProgramToQubo:
         return self._int_to_bin.decode(result)
 
     @staticmethod
-    def get_incompatibility(problem: QuadraticProgram) -> bool:
+    def get_compatibility_msg(problem: QuadraticProgram) -> bool:
         """Checks whether a given problem can be cast to a QUBO.
 
         A quadratic program can be converted to a QUBO (Quadratic Unconstrained Binary
@@ -134,4 +134,4 @@ class QuadraticProgramToQubo:
         Returns:
             Returns True if the problem is compatible, False otherwise.
         """
-        return len(self.get_incompatibility(problem)) > 0
+        return len(self.get_compatibility_msg(problem)) > 0
