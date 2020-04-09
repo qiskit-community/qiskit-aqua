@@ -17,10 +17,10 @@
 import unittest
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 import logging
+from docplex.mp.model import Model
 
 from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
-from docplex.mp.model import Model
 from qiskit.optimization import OptimizationProblem, QiskitOptimizationError
 from qiskit.optimization.results import OptimizationResult
 from qiskit.optimization.converters import (
