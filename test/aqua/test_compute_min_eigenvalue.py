@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -21,8 +21,7 @@ from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator
 from qiskit.aqua.components.variational_forms import RY, RYRZ
-from qiskit.aqua.components.optimizers import L_BFGS_B, SPSA, SLSQP
-from qiskit.aqua.components.initial_states import Zero
+from qiskit.aqua.components.optimizers import L_BFGS_B, SPSA
 from qiskit.aqua.algorithms import VQE, NumPyMinimumEigensolver
 
 
@@ -77,8 +76,8 @@ class TestComputeMinEigenvalue(QiskitAquaTestCase):
     def test_ee(self):
         """ EE test """
         dummy_operator = MatrixOperator([[1]])
-        ee = NumPyMinimumEigensolver()
-        output = ee.compute_minimum_eigenvalue(self.qubit_op)
+        nee = NumPyMinimumEigensolver()
+        output = nee.compute_minimum_eigenvalue(self.qubit_op)
 
         self.assertAlmostEqual(output.eigenvalue, -1.85727503)
 

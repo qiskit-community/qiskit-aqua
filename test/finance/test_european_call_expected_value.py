@@ -14,6 +14,7 @@
 
 """ Test European Call Expected Value uncertainty problem """
 
+import unittest
 from test.finance import QiskitFinanceTestCase
 
 import numpy as np
@@ -71,3 +72,7 @@ class TestEuropeanCallExpectedValue(QiskitFinanceTestCase):
         result = algo.run(quantum_instance=BasicAer.get_backend('statevector_simulator'))
         self.assertAlmostEqual(result['estimation'], 1.2580, places=4)
         self.assertAlmostEqual(result['max_probability'], 0.8785, places=4)
+
+
+if __name__ == '__main__':
+    unittest.main()

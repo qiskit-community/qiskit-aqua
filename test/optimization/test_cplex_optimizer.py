@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -14,13 +14,11 @@
 
 """ Test Cplex Optimizer """
 
-from test.optimization.common import QiskitOptimizationTestCase
-import numpy as np
-
-from qiskit.optimization.algorithms import CplexOptimizer
-from qiskit.optimization.problems import OptimizationProblem
-
+import unittest
+from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 from ddt import ddt, data
+from qiskit.optimization.algorithms import CplexOptimizer
+from qiskit.optimization.problems import QuadraticProgram
 
 
 @ddt
@@ -29,23 +27,24 @@ class TestCplexOptimizer(QiskitOptimizationTestCase):
 
     def setUp(self):
         super().setUp()
-
-        self.resource_path = './test/optimization/resources/'
-        self.cplex_optimizer = CplexOptimizer()
+        try:
+            self.resource_path = './test/optimization/resources/'
+            self.cplex_optimizer = CplexOptimizer()
+        except NameError as ex:
+            self.skipTest(str(ex))
 
     @data(
-        ('op_ip1.lp',  [0, 2], 6),
+        ('op_ip1.lp', [0, 2], 6),
         ('op_mip1.lp', [1, 1, 0], 6),
         ('op_lp1.lp', [0.25, 1.75], 5.8750)
     )
     def test_cplex_optimizer(self, config):
         """ Cplex Optimizer Test """
-
         # unpack configuration
         filename, x, fval = config
 
         # load optimization problem
-        problem = OptimizationProblem()
+        problem = QuadraticProgram()
         problem.read(self.resource_path + filename)
 
         # solve problem with cplex
@@ -54,3 +53,7 @@ class TestCplexOptimizer(QiskitOptimizationTestCase):
         # analyze results
         self.assertAlmostEqual(result.fval, fval)
         self.assertAlmostEqual(result.x, x)
+
+
+if __name__ == '__main__':
+    unittest.main()

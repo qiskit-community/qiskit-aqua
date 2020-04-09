@@ -12,26 +12,28 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""Converter to convert a problem with equality constraints to unconstrained with penalty terms."""
+
+from typing import Optional
+
 import copy
 from collections import defaultdict
 
-from qiskit.optimization.problems.optimization_problem import OptimizationProblem
-from qiskit.optimization.utils import QiskitOptimizationError
+from ..problems.quadratic_program import QuadraticProgram
+from ..utils.qiskit_optimization_error import QiskitOptimizationError
 
 
 class PenalizeLinearEqualityConstraints:
-    """ Convert a problem with only equality constraints into an unconstrained problem
-    with penalty terms associated with the constraints.
-    """
+    """Convert a problem with only equality constraints to unconstrained with penalty terms."""
 
     def __init__(self):
-        """ Constructor. Initialize the internal data structure. No args.
-        """
+        """Initialize the internal data structure."""
         self._src = None
         self._dst = None
 
-    def encode(self, op: OptimizationProblem, penalty_factor: float = 1e5, name: str = None):
-        """ Convert a problem with equality constraints into an unconstrained problem.
+    def encode(self, op: QuadraticProgram, penalty_factor: float = 1e5,
+               name: Optional[str] = None) -> QuadraticProgram:
+        """Convert a problem with equality constraints into an unconstrained problem.
 
         Args:
             op: The problem to be solved, that does not contain inequality constraints.
@@ -41,13 +43,15 @@ class PenalizeLinearEqualityConstraints:
         Returns:
             The converted problem, that is an unconstrained problem.
 
+        Raises:
+            QiskitOptimizationError: If an inequality constraint exists.
         """
 
         # TODO: test compatibility, how to react in case of incompatibility?
 
-        # create empty OptimizationProblem model
+        # create empty QuadraticProgram model
         self._src = copy.deepcopy(op)  # deep copy
-        self._dst = OptimizationProblem()
+        self._dst = QuadraticProgram()
 
         # set variables (obj is set via objective interface)
         var_names = self._src.variables.get_names()
@@ -71,14 +75,13 @@ class PenalizeLinearEqualityConstraints:
         offset = self._src.objective.get_offset()
 
         # store original linear objective terms
-        linear_terms = defaultdict(int)
-        for i, v in self._src.objective.get_linear().items():
+        linear_terms = defaultdict(float)
+        for i, v in self._src.objective.get_linear_dict().items():
             linear_terms[i] = v
 
         # store original quadratic objective terms
-        quadratic_terms = defaultdict(lambda: defaultdict(int))
-        for i, v in self._src.objective.get_quadratic().items():
-            quadratic_terms[i].update(v)
+        quadratic_terms = defaultdict(float)
+        quadratic_terms.update(self._src.objective.get_quadratic_dict().items())
 
         # get linear constraints' data
         linear_rows = self._src.linear_constraints.get_rows()
@@ -102,20 +105,20 @@ class PenalizeLinearEqualityConstraints:
 
             # linear parts of penalty*(Constant-func)**2: penalty*(-2*Constant*func)
             for var_ind, coef in zip(row.ind, row.val):
-                # if var_ind already exisits in the linear terms dic, add a penalty term
+                # if var_ind already exists in the linear terms dic, add a penalty term
                 # into existing value else create new key and value in the linear_term dict
                 linear_terms[var_ind] += penalty_factor * -2 * coef * constant
 
             # quadratic parts of penalty*(Constant-func)**2: penalty*(func**2)
             for var_ind_1, coef_1 in zip(row.ind, row.val):
                 for var_ind_2, coef_2 in zip(row.ind, row.val):
-                    # if var_ind_1 and var_ind_2 already exisit in the quadratic terms dic,
+                    # if var_ind_1 and var_ind_2 already exist in the quadratic terms dic,
                     # add a penalty term into existing value
                     # else create new key and value in the quadratic term dict
 
                     # according to implementation of quadratic terms in OptimizationModel,
                     # multiply by 2
-                    quadratic_terms[var_ind_1][var_ind_2] += penalty_factor * coef_1 * coef_2 * 2
+                    quadratic_terms[var_ind_1, var_ind_2] += penalty_factor * coef_1 * coef_2 * 2
 
         # set objective offset
         self._dst.objective.set_offset(offset)
@@ -125,8 +128,7 @@ class PenalizeLinearEqualityConstraints:
             self._dst.objective.set_linear(i, v)
 
         # set quadratic objective terms
-        for i, vi in quadratic_terms.items():
-            for j, v in vi.items():
-                self._dst.objective.set_quadratic_coefficients(i, j, v)
+        for (i, j), v in quadratic_terms.items():
+            self._dst.objective.set_quadratic_coefficients(i, j, v)
 
         return self._dst

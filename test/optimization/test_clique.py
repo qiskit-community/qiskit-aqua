@@ -14,6 +14,7 @@
 
 """ Test Clique """
 
+import unittest
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 from qiskit import BasicAer
@@ -80,3 +81,7 @@ class TestClique(QiskitOptimizationTestCase):
         np.testing.assert_array_equal(ising_sol, [1, 1, 1, 1, 1])
         oracle = self._brute_force()
         self.assertEqual(clique.satisfy_or_not(ising_sol, self.w, self.k), oracle)
+
+
+if __name__ == '__main__':
+    unittest.main()

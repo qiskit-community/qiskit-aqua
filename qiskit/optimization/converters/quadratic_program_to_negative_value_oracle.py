@@ -12,25 +12,34 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""OptimizationProblemToNegativeValueOracle module"""
+"""QuadraticProgramToNegativeValueOracle module"""
 
 import logging
 from typing import Tuple, Dict, Union
+
 import numpy as np
 
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
-from qiskit.aqua.components.oracles import CustomCircuitOracle
 from qiskit.aqua.components.initial_states import Custom
 from qiskit.aqua.components.iqfts import Standard as IQFT
-from qiskit.optimization.problems import OptimizationProblem
+from qiskit.aqua.components.oracles import CustomCircuitOracle
+from qiskit.optimization.problems import QuadraticProgram
+
+logger = logging.getLogger(__name__)
 
 
-class OptimizationProblemToNegativeValueOracle:
+class QuadraticProgramToNegativeValueOracle:
     """Converts an optimization problem (QUBO) to a negative value oracle.
 
     In addition, a state preparation operator is generated from the coefficients and constant of a
-    QUBO, which can be used to encode the function into a quantum state. In conjuction, this oracle
+    QUBO, which can be used to encode the function into a quantum state. In conjunction, this oracle
     and operator can be used to flag the negative values of a QUBO encoded in a quantum state.
+
+    The construction of the oracle is discussed in [1].
+
+    References:
+        [1]: Gilliam et al., Grover Adaptive Search for Constrained Polynomial Binary Optimization.
+            arxiv:1912.04088.
     """
 
     def __init__(self, num_output_qubits: int, measurement: bool = False) -> None:
@@ -42,11 +51,10 @@ class OptimizationProblemToNegativeValueOracle:
         self._num_key = 0
         self._num_value = num_output_qubits
         self._measurement = measurement
-        self._logger = logging.getLogger(__name__)
 
-    def encode(self, problem: OptimizationProblem) -> \
+    def encode(self, problem: QuadraticProgram) -> \
             Tuple[Custom, CustomCircuitOracle, Dict[Union[int, Tuple[int, int]], int]]:
-        """ A helper function that converts a QUBO into an oracle that recognizes negative numbers.
+        """A helper function that converts a QUBO into an oracle that recognizes negative numbers.
 
         Args:
             problem: The problem to be solved.
@@ -58,23 +66,22 @@ class OptimizationProblemToNegativeValueOracle:
         """
 
         # get linear part of objective
-        linear_dict = problem.objective.get_linear()
+        linear_dict = problem.objective.get_linear_dict()
         linear_coeff = np.zeros(problem.variables.get_num())
         for i, v in linear_dict.items():
             linear_coeff[i] = v
 
         # get quadratic part of objective
-        quadratic_dict = problem.objective.get_quadratic()
+        quadratic_dict = problem.objective.get_quadratic_dict()
         quadratic_coeff = {}
-        for i, j_value_dict in quadratic_dict.items():
-            for j, value in j_value_dict.items():
-                if i <= j:
-                    # divide by 2 since problem considers xQx/2.
-                    coeff = quadratic_coeff.get((i, j), 0)
-                    quadratic_coeff[(i, j)] = value / 2 + coeff
-                else:
-                    coeff = quadratic_coeff.get((j, i), 0)
-                    quadratic_coeff[(j, i)] = value / 2 + coeff
+        for (i, j), value in quadratic_dict.items():
+            if i <= j:
+                # divide by 2 since problem considers xQx/2.
+                coeff = quadratic_coeff.get((i, j), 0)
+                quadratic_coeff[(i, j)] = value / 2 + coeff
+            else:
+                coeff = quadratic_coeff.get((j, i), 0)
+                quadratic_coeff[(j, i)] = value / 2 + coeff
 
         constant = problem.objective.get_offset()
 
@@ -83,7 +90,7 @@ class OptimizationProblemToNegativeValueOracle:
 
         # Get the function dictionary.
         func = self._get_function(linear_coeff, quadratic_coeff, constant)
-        self._logger.info("Function: %s\n", func)
+        logger.info("Function: %s\n", func)
 
         # Define state preparation operator A from function.
         a_operator_circuit = self._build_operator(func)

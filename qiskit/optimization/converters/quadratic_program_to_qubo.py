@@ -17,20 +17,20 @@
 
 from typing import Optional
 
-from qiskit.optimization.problems import OptimizationProblem
+from qiskit.optimization.problems import QuadraticProgram
 from qiskit.optimization.results import OptimizationResult
 from qiskit.optimization.converters import (PenalizeLinearEqualityConstraints,
                                             IntegerToBinaryConverter)
 from qiskit.optimization.utils import QiskitOptimizationError
 
 
-class OptimizationProblemToQubo:
+class QuadraticProgramToQubo:
     """ Convert a given optimization problem to a new problem that is a QUBO.
 
         Examples:
-            >>> problem = OptimizationProblem()
+            >>> problem = QuadraticProgram()
             >>> # define a problem
-            >>> conv = OptimizationProblemToQubo()
+            >>> conv = QuadraticProgramToQubo()
             >>> problem2 = conv.encode(problem)
     """
 
@@ -44,15 +44,14 @@ class OptimizationProblemToQubo:
         self._penalize_lin_eq_constraints = PenalizeLinearEqualityConstraints()
         self._penalty = penalty
 
-    def encode(self, problem: OptimizationProblem) -> OptimizationProblem:
-        """ Convert a problem with inequality constraints into new one with only equality
-        constraints.
+    def encode(self, problem: QuadraticProgram) -> QuadraticProgram:
+        """ Convert a problem with linear equality constraints into new one with a QUBO form.
 
         Args:
-            problem: The problem to be solved, that may contain inequality constraints.
+            problem: The problem with linear equality constraints to be solved.
 
         Returns:
-            The converted problem, that contain only equality constraints.
+            The problem converted in QUBO format.
 
         Raises:
             QiskitOptimizationError: In case of an incompatible problem.
@@ -90,7 +89,7 @@ class OptimizationProblemToQubo:
         return self._int_to_bin.decode(result)
 
     @staticmethod
-    def is_compatible(problem: OptimizationProblem) -> Optional[str]:
+    def is_compatible(problem: QuadraticProgram) -> Optional[str]:
         """Checks whether a given problem can be cast to a Quadratic Unconstrained Binary
         Optimization (QUBO) problem, i.e., whether the problem contains only binary and integer
         variables as well as linear equality constraints, and otherwise, returns a message

@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,14 +12,11 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Optimization Exception """
 
-class QiskitOptimizationError(Exception):
-    """Class for errors returned by Qiskit Optimization libraries functions.
+from qiskit.aqua.aqua_error import AquaError
 
-    self.args[0] : A string describing the error.
-    """
 
-    def __str__(self):
-        # Note: this is actually ok. Exception does have subscriptable args.
-        # pylint: disable=unsubscriptable-object
-        return self.args[0]
+class QiskitOptimizationError(AquaError):
+    """Class for errors returned by Qiskit Optimization libraries functions."""
+    pass

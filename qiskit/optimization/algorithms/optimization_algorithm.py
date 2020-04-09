@@ -3,7 +3,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -13,35 +13,33 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""An abstract class for optimization algorithms in Qiskit Optimization.
-"""
+"""An abstract class for optimization algorithms in Qiskit Optimization."""
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
 from typing import Optional
 
-from qiskit.optimization.problems import OptimizationProblem
-from qiskit.optimization.results import OptimizationResult
+from ..problems.quadratic_program import QuadraticProgram
+from ..results.optimization_result import OptimizationResult
 
 
-class OptimizationAlgorithm:
-    """An abstract class for optimization algorithms in Qiskit Optimization.
-    """
+class OptimizationAlgorithm(ABC):
+    """An abstract class for optimization algorithms in Qiskit Optimization."""
 
     @abstractmethod
-    def is_compatible(self, problem: OptimizationProblem) -> Optional[str]:
+    def is_compatible(self, problem: QuadraticProgram) -> Optional[str]:
         """Checks whether a given problem can be solved with the optimizer implementing this method.
 
         Args:
-            problem: The optization problem to check compatibility.
+            problem: The optimization problem to check compatibility.
 
         Returns:
             Returns ``None`` if the problem is compatible and else a string with the error message.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
-    def solve(self, problem: OptimizationProblem) -> OptimizationResult:
+    def solve(self, problem: QuadraticProgram) -> OptimizationResult:
         """Tries to solves the given problem using the optimizer.
 
         Runs the optimizer to try to solve the optimization problem.
@@ -55,4 +53,4 @@ class OptimizationAlgorithm:
         Raises:
             QiskitOptimizationError: If the problem is incompatible with the optimizer.
         """
-        pass
+        raise NotImplementedError

@@ -15,11 +15,14 @@
 The Bernstein-Vazirani algorithm.
 """
 
+from typing import Optional, Union
 import logging
 import operator
 import numpy as np
 
 from qiskit import ClassicalRegister, QuantumCircuit
+from qiskit.providers import BaseBackend
+from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.components.oracles import Oracle
@@ -39,12 +42,15 @@ class BernsteinVazirani(QuantumAlgorithm):
     :math:`f(x)=s \cdot x (\bmod 2)`.
     """
 
-    def __init__(self, oracle: Oracle) -> None:
+    def __init__(self,
+                 oracle: Oracle,
+                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
         """
         Args:
             oracle: The oracle component
+            quantum_instance: Quantum Instance or Backend
         """
-        super().__init__()
+        super().__init__(quantum_instance)
 
         self._oracle = oracle
         self._circuit = None

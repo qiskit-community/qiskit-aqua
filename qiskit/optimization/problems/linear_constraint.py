@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,39 +12,40 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""Linear constraints interface"""
+
 import copy
 from collections.abc import Sequence
-
-from cplex import SparsePair
+from typing import Callable, Optional, List, Union
+import logging
 
 from qiskit.optimization.utils.base import BaseInterface
 from qiskit.optimization.utils.helpers import init_list_args, NameIndex
 from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
 
-# TODO: can we delete these?
-CPX_CON_LOWER_BOUND = 1
-CPX_CON_UPPER_BOUND = 2
-CPX_CON_LINEAR = 3
-CPX_CON_QUADRATIC = 4
-CPX_CON_SOS = 5
-CPX_CON_INDICATOR = 6
-CPX_CON_PWL = 7
-CPX_CON_ABS = 7
-CPX_CON_MINEXPR = 8
-CPX_CON_MAXEXPR = 9
-CPX_CON_LAST_CONTYPE = 10
+logger = logging.getLogger(__name__)
+
+_HAS_CPLEX = False
+try:
+    from cplex import SparsePair
+    _HAS_CPLEX = True
+except ImportError:
+    logger.info('CPLEX is not installed.')
 
 
 class LinearConstraintInterface(BaseInterface):
     """Methods for adding, modifying, and querying linear constraints."""
 
-    def __init__(self, varindex):
+    def __init__(self, varindex: Callable):
         """Creates a new LinearConstraintInterface.
 
         The linear constraints interface is exposed by the top-level
-        `OptimizationProblem` class as `OptimizationProblem.linear_constraints`.
+        `QuadraticProgram` class as `QuadraticProgram.linear_constraints`.
         This constructor is not meant to be used externally.
         """
+        if not _HAS_CPLEX:
+            raise NameError('CPLEX is not installed.')
+
         super(LinearConstraintInterface, self).__init__()
         self._rhs = []
         self._senses = []
@@ -54,21 +55,22 @@ class LinearConstraintInterface(BaseInterface):
         self._index = NameIndex()
         self._varindex = varindex
 
-    def get_num(self):
+    def get_num(self) -> int:
         """Returns the number of linear constraints.
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.linear_constraints.add(names = ["c1", "c2", "c3"])
         >>> op.linear_constraints.get_num()
         3
         """
         return len(self._names)
 
-    def add(self, lin_expr=None, senses="", rhs=None, range_values=None,
-            names=None):
+    def add(self, lin_expr: Optional[List['SparsePair']] = None, senses: str = "",
+            rhs: Optional[List[float]] = None, range_values: Optional[List[float]] = None,
+            names: Optional[List[str]] = None) -> range:
         """Adds linear constraints to the problem.
 
         linear_constraints.add accepts the keyword arguments lin_expr,
@@ -107,8 +109,8 @@ class LinearConstraintInterface(BaseInterface):
         Returns an iterator containing the indices of the added linear
         constraints.
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = ["x1", "x2", "x3"])
         >>> indices = op.linear_constraints.add(\
                 lin_expr = [SparsePair(ind = ["x1", "x3"], val = [1.0, -1.0]),\
@@ -122,45 +124,41 @@ class LinearConstraintInterface(BaseInterface):
         >>> op.linear_constraints.get_rhs()
         [0.0, 1.0, -1.0, 2.0]
         """
-
+        start = self.get_num()
         arg_list = init_list_args(lin_expr, senses, rhs, range_values, names)
         arg_lengths = [len(x) for x in arg_list]
         if len(arg_lengths) == 0:
-            return range(0)
+            return range(start, start)
         max_length = max(arg_lengths)
+        if max_length == 0:
+            return range(start, start)
         for arg_length in arg_lengths:
             if arg_length > 0 and arg_length != max_length:
                 raise QiskitOptimizationError("inconsistent arguments in linear_constraints.add().")
-        if max_length == 0:
-            return range(len(self._names), len(self._names))
-        assert max_length > 0
 
-        if not rhs:
-            rhs = [0.0] * max_length
+        rhs = rhs or [0.0] * max_length
         self._rhs.extend(rhs)
 
-        if not senses:
-            senses = "E" * max_length
+        senses = senses or 'E' * max_length
         self._senses.extend(senses)
 
-        if not range_values:
-            range_values = [0.0] * max_length
+        range_values = range_values or [0.0] * max_length
         self._range_values.extend(range_values)
 
-        if not names:
-            names = ["c" + str(cnt) for cnt in range(len(self._names),
-                                                     len(self._names) + max_length)]
+        names = names or [''] * max_length
+        for i, name in enumerate(names):
+            if name == '':
+                names[i] = 'c' + str(start + i + 1)
         self._names.extend(names)
         self._index.build(self._names)
 
-        if not lin_expr:
-            lin_expr = [SparsePair()] * max_length
-        for sp in lin_expr:
+        lin_expr = lin_expr or [SparsePair()] * max_length
+        for spair in lin_expr:
             lin_expr_dict = {}
-            if isinstance(sp, SparsePair):
-                zip_iter = zip(sp.ind, sp.val)
-            elif isinstance(sp, Sequence) and len(sp) == 2:
-                zip_iter = zip(sp[0], sp[1])
+            if isinstance(spair, SparsePair):
+                zip_iter = zip(spair.ind, spair.val)
+            elif isinstance(spair, Sequence) and len(spair) == 2:
+                zip_iter = zip(spair[0], spair[1])
             else:
                 raise QiskitOptimizationError('Invalid lin_expr: {}'.format(lin_expr))
             for i, val in zip_iter:
@@ -171,7 +169,7 @@ class LinearConstraintInterface(BaseInterface):
                 lin_expr_dict[i] = val
             self._lin_expr.append(lin_expr_dict)
 
-        return range(len(self._names) - max_length, len(self._names))
+        return range(start, start + max_length)
 
     def delete(self, *args):
         """Removes linear constraints from the problem.
@@ -199,13 +197,10 @@ class LinearConstraintInterface(BaseInterface):
           give the best performance when deleting batches of linear
           constraints.
 
-        See CPXdelrows in the Callable Library Reference Manual for
-        more detail.
-
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.linear_constraints.add(names=[str(i) for i in range(10)])
         >>> op.linear_constraints.get_num()
         10
@@ -260,8 +255,8 @@ class LinearConstraintInterface(BaseInterface):
           the corresponding values.  Equivalent to
           [linear_constraints.set_rhs(pair[0], pair[1]) for pair in seq_of_pairs].
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.linear_constraints.add(names = ["c0", "c1", "c2", "c3"])
         >>> op.linear_constraints.get_rhs()
         [0.0, 0.0, 0.0, 0.0]
@@ -295,8 +290,8 @@ class LinearConstraintInterface(BaseInterface):
           corresponding strings.  Equivalent to
           [linear_constraints.set_names(pair[0], pair[1]) for pair in seq_of_pairs].
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.linear_constraints.add(names = ["c0", "c1", "c2", "c3"])
         >>> op.linear_constraints.set_names("c1", "second")
         >>> op.linear_constraints.get_names(1)
@@ -332,8 +327,8 @@ class LinearConstraintInterface(BaseInterface):
         and 'R', indicating greater-than, less-than, equality, and
         ranged constraints, respectively.
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.linear_constraints.add(names = ["c0", "c1", "c2", "c3"])
         >>> op.linear_constraints.get_senses()
         ['E', 'E', 'E', 'E']
@@ -372,17 +367,19 @@ class LinearConstraintInterface(BaseInterface):
           to the corresponding vector.  Equivalent to
           [linear_constraints.set_linear_components(pair[0], pair[1]) for pair in seq_of_pairs].
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.linear_constraints.add(names = ["c0", "c1", "c2", "c3"])
         >>> indices = op.variables.add(names = ["x0", "x1"])
         >>> op.linear_constraints.set_linear_components("c0", [["x0"], [1.0]])
         >>> op.linear_constraints.get_rows("c0")
         SparsePair(ind = [0], val = [1.0])
-        >>> op.linear_constraints.set_linear_components([("c3", SparsePair(ind = ["x1"], val = [-1.0])),\
-                                                        (2, [[0, 1], [-2.0, 3.0]])])
+        >>> op.linear_constraints.set_linear_components([
+                                                ("c3", SparsePair(ind = ["x1"], val = [-1.0])),\
+                                                (2, [[0, 1], [-2.0, 3.0]])])
         >>> op.linear_constraints.get_rows()
-        [SparsePair(ind = [0], val = [1.0]), SparsePair(ind = [], val = []), SparsePair(ind = [0, 1], val = [-2.0, 3.0]), SparsePair(ind = [1], val = [-1.0])]
+        [SparsePair(ind = [0], val = [1.0]), SparsePair(ind = [], val = []),
+        SparsePair(ind = [0, 1], val = [-2.0, 3.0]), SparsePair(ind = [1], val = [-1.0])]
         """
 
         def _set(i, v):
@@ -423,7 +420,7 @@ class LinearConstraintInterface(BaseInterface):
         the previous range value was 0 (zero) and the constraint sense was not
         'R'. Similarly, changing the range coefficient from a nonzero value to
         0 (zero) will not change the constraint sense from 'R" to "E"; an
-        additional call of setsenses() is required to accomplish that.
+        additional call of set_senses() is required to accomplish that.
 
         There are two forms by which linear_constraints.set_range_values may be
         called.
@@ -440,8 +437,8 @@ class LinearConstraintInterface(BaseInterface):
           the corresponding values.  Equivalent to
           [linear_constraints.set_range_values(pair[0], pair[1]) for pair in seq_of_pairs].
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.linear_constraints.add(names = ["c0", "c1", "c2", "c3"])
         >>> op.linear_constraints.set_range_values("c1", 1.0)
         >>> op.linear_constraints.get_range_values()
@@ -453,7 +450,6 @@ class LinearConstraintInterface(BaseInterface):
 
         def _set(i, v):
             self._range_values[self._index.convert(i)] = v
-            # TODO: raise QiskitOptimizationError("Wrong range!")
 
         self._setter(_set, *args)
 
@@ -472,8 +468,8 @@ class LinearConstraintInterface(BaseInterface):
           coefficients must be a list of (row, col, val) triples as
           described above.
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.linear_constraints.add(names = ["c0", "c1", "c2", "c3"])
         >>> indices = op.variables.add(names = ["x0", "x1"])
         >>> op.linear_constraints.set_coefficients("c0", "x1", 1.0)
@@ -499,7 +495,7 @@ class LinearConstraintInterface(BaseInterface):
             else:
                 self._lin_expr[i][j] = v
 
-    def get_rhs(self, *args):
+    def get_rhs(self, *args) -> Union[float, List[float]]:
         """Returns the righthand side of constraints from the problem.
 
         Can be called by four forms.
@@ -519,8 +515,8 @@ class LinearConstraintInterface(BaseInterface):
           indices the members of s.  Equivalent to
           [linear_constraints.get_rhs(i) for i in s]
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.linear_constraints.add(rhs = [1.5 * i for i in range(10)],\
                                      names = [str(i) for i in range(10)])
         >>> op.linear_constraints.get_num()
@@ -541,7 +537,7 @@ class LinearConstraintInterface(BaseInterface):
         keys = self._index.convert(*args)
         return self._getter(_get, keys)
 
-    def get_senses(self, *args):
+    def get_senses(self, *args) -> Union[str, List[str]]:
         """Returns the senses of constraints from the problem.
 
         Can be called by four forms.
@@ -560,8 +556,8 @@ class LinearConstraintInterface(BaseInterface):
           the members of s.  Equivalent to
           [linear_constraints.get_senses(i) for i in s]
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.linear_constraints.add(
         ...     senses=["E", "G", "L", "R"],
         ...     names=[str(i) for i in range(4)])
@@ -585,7 +581,7 @@ class LinearConstraintInterface(BaseInterface):
         keys = self._index.convert(*args)
         return self._getter(_get, keys)
 
-    def get_range_values(self, *args):
+    def get_range_values(self, *args) -> Union[float, List[float]]:
         """Returns the range values of linear constraints from the problem.
 
         That is, this method returns the lefthand side (lhs) for each
@@ -616,8 +612,8 @@ class LinearConstraintInterface(BaseInterface):
           indices the members of s.  Equivalent to
           [linear_constraints.get_range_values(i) for i in s]
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.linear_constraints.add(\
                 range_values = [1.5 * i for i in range(10)],\
                 senses = ["R"] * 10,\
@@ -642,7 +638,7 @@ class LinearConstraintInterface(BaseInterface):
         keys = self._index.convert(*args)
         return self._getter(_get, keys)
 
-    def get_coefficients(self, *args):
+    def get_coefficients(self, *args) -> Union[float, List[float]]:
         """Returns coefficients by row, column coordinates.
 
         There are three forms by which
@@ -659,8 +655,8 @@ class LinearConstraintInterface(BaseInterface):
         linear_constraints.get_coefficients(sequence_of_pairs)
           returns a list of coefficients.
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = ["x0", "x1"])
         >>> indices = op.linear_constraints.add(\
                 names = ["c0", "c1"],\
@@ -691,7 +687,7 @@ class LinearConstraintInterface(BaseInterface):
             raise QiskitOptimizationError(
                 "Wrong number of arguments. Please use 2 or one list of pairs: {}".format(args))
 
-    def get_rows(self, *args):
+    def get_rows(self, *args) -> Union['SparsePair', List['SparsePair']]:
         """Returns a set of rows of the linear constraint matrix.
 
         Returns a list of SparsePair instances or a single SparsePair
@@ -712,8 +708,8 @@ class LinearConstraintInterface(BaseInterface):
           of s.  Equivalent to
           [linear_constraints.get_rows(i) for i in s]
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = ["x1", "x2", "x3"])
         >>> indices = op.linear_constraints.add(\
                 names = ["c0", "c1", "c2", "c3"],\
@@ -724,9 +720,15 @@ class LinearConstraintInterface(BaseInterface):
         >>> op.linear_constraints.get_rows(0)
         SparsePair(ind = [0, 2], val = [1.0, -1.0])
         >>> op.linear_constraints.get_rows(["c2", 0])
-        [SparsePair(ind = [0, 1, 2], val = [-1.0, -1.0, -1.0]), SparsePair(ind = [0, 2], val = [1.0, -1.0])]
+        [SparsePair(ind = [0, 1, 2], val = [-1.0, -1.0, -1.0]),
+          SparsePair(ind = [0, 2], val = [1.0, -1.0])]
         >>> op.linear_constraints.get_rows()
-        [SparsePair(ind = [0, 2], val = [1.0, -1.0]), SparsePair(ind = [0, 1], val = [1.0, 1.0]), SparsePair(ind = [0, 1, 2], val = [-1.0, -1.0, -1.0]), SparsePair(ind = [1, 2], val = [10.0, -2.0])]
+        [
+          SparsePair(ind = [0, 2], val = [1.0, -1.0]),
+          SparsePair(ind = [0, 1], val = [1.0, 1.0]),
+          SparsePair(ind = [0, 1, 2], val = [-1.0, -1.0, -1.0]),
+          SparsePair(ind = [1, 2], val = [10.0, -2.0])
+        ]
         """
 
         def _get(i):
@@ -737,30 +739,30 @@ class LinearConstraintInterface(BaseInterface):
         keys = self._index.convert(*args)
         return self._getter(_get, keys)
 
-    def get_num_nonzeros(self):
+    def get_num_nonzeros(self) -> int:
         """Returns the number of nonzeros in the linear constraint matrix.
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = ["x1", "x2", "x3"])
         >>> indices = op.linear_constraints.add(names = ["c0", "c1", "c2", "c3"],\
-                                     lin_expr = [SparsePair(ind = ["x1", "x3"], val = [1.0, -1.0]),\
-                                             SparsePair(ind = ["x1", "x2"], val = [1.0, 1.0]),\
-                                             SparsePair(ind = ["x1", "x2", "x3"], val = [-1.0] * 3),\
-                                             SparsePair(ind = ["x2", "x3"], val = [10.0, -2.0])])
+                                    lin_expr = [SparsePair(ind = ["x1", "x3"], val = [1.0, -1.0]),\
+                                            SparsePair(ind = ["x1", "x2"], val = [1.0, 1.0]),\
+                                            SparsePair(ind = ["x1", "x2", "x3"], val = [-1.0] * 3),\
+                                            SparsePair(ind = ["x2", "x3"], val = [10.0, -2.0])])
         >>> op.linear_constraints.get_num_nonzeros()
         9
         """
         nnz = 0
-        for c in self._lin_expr:
-            for e in c.values():
-                if e != 0.0:
+        for dic in self._lin_expr:
+            for val in dic.values():
+                if val != 0.0:
                     nnz += 1
         return nnz
 
-    def get_names(self, *args):
+    def get_names(self, *args) -> Union[str, List[str]]:
         """Returns the names of linear constraints from the problem.
 
         There are four forms by which linear_constraints.get_names may be called.
@@ -776,8 +778,8 @@ class LinearConstraintInterface(BaseInterface):
           the linear constraints with indices the members of s.
           Equivalent to [linear_constraints.get_names(i) for i in s]
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.linear_constraints.add(names = ["c" + str(i) for i in range(10)])
         >>> op.linear_constraints.get_num()
         10
@@ -798,4 +800,5 @@ class LinearConstraintInterface(BaseInterface):
         return self._getter(_get, keys)
 
     def get_histogram(self):
-        raise NotImplementedError("histrogram is not implemented")
+        """histogram is not supported"""
+        raise NotImplementedError("histogram is not supported")

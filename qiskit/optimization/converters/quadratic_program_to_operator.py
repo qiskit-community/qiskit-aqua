@@ -13,36 +13,41 @@
 # that they have been altered from the originals.
 
 
+"""The converter from an ```QuadraticProgram``` to ``Operator``."""
+
 from typing import Dict, Tuple
 
 import numpy as np
 from qiskit.quantum_info import Pauli
 
 from qiskit.aqua.operators import WeightedPauliOperator
-from qiskit.optimization import OptimizationProblem
-from qiskit.optimization.utils import QiskitOptimizationError
+
+from ..problems.quadratic_program import QuadraticProgram
+from ..utils.qiskit_optimization_error import QiskitOptimizationError
 
 
-class OptimizationProblemToOperator:
-    """ Convert an optimization problem into a qubit operator.
-    """
+class QuadraticProgramToOperator:
+    """Convert an optimization problem into a qubit operator."""
 
-    def __init__(self):
-        """ Constructor. Initialize the internal data structure. No args.
-        """
+    def __init__(self) -> None:
+        """Initialize the internal data structure."""
         self._src = None
         self._q_d: Dict[int, int] = {}
         # e.g., self._q_d = {0: 0}
 
-    def encode(self, op: OptimizationProblem) -> Tuple[WeightedPauliOperator, float]:
-        """ Convert a problem into a qubit operator
+    def encode(self, op: QuadraticProgram) -> Tuple[WeightedPauliOperator, float]:
+        """Convert a problem into a qubit operator
 
         Args:
-            op: The problem to be solved, that is an unconstrained problem with only binary variables.
+            op: The optimization problem to be converted. Must be an unconstrained problem with
+                binary variables only.
 
         Returns:
             The qubit operator of the problem and the shift value.
 
+        Raises:
+            QiskitOptimizationError: If a variable type is not binary.
+            QiskitOptimizationError: If constraints exist in the problem.
         """
 
         self._src = op
@@ -52,12 +57,10 @@ class OptimizationProblemToOperator:
             raise QiskitOptimizationError('The type of variable must be a binary variable.')
 
         # if constraints exist, raise an error
-        linear_names = self._src.linear_constraints.get_names()
-        if len(linear_names) > 0:
+        if self._src.linear_constraints.get_num() > 0 \
+                or self._src.quadratic_constraints.get_num() > 0:
             raise QiskitOptimizationError('An constraint exists. '
                                           'The method supports only model with no constraints.')
-
-        # TODO: check for quadratic constraints as well
 
         # assign variables of the model to qubits.
         _q_d = {}
@@ -81,7 +84,7 @@ class OptimizationProblemToOperator:
         shift += self._src.objective.get_offset() * sense
 
         # convert linear parts of the object function into Hamiltonian.
-        for i, coef in self._src.objective.get_linear().items():
+        for i, coef in self._src.objective.get_linear_dict().items():
             z_p = np.zeros(num_nodes, dtype=np.bool)
             qubit_index = _q_d[i]
             weight = coef * sense / 2
@@ -91,33 +94,32 @@ class OptimizationProblemToOperator:
             shift += weight
 
         # convert quadratic parts of the object function into Hamiltonian.
-        for i, vi in self._src.objective.get_quadratic().items():
-            for j, coef in vi.items():
-                if j < i:
-                    continue
-                qubit_index_1 = _q_d[i]
-                qubit_index_2 = _q_d[j]
-                if i == j:
-                    coef = coef / 2
-                weight = coef * sense / 4
+        for (i, j), coef in self._src.objective.get_quadratic_dict().items():
+            if j < i:
+                continue
+            qubit_index_1 = _q_d[i]
+            qubit_index_2 = _q_d[j]
+            if i == j:
+                coef = coef / 2
+            weight = coef * sense / 4
 
-                if qubit_index_1 == qubit_index_2:
-                    shift += weight
-                else:
-                    z_p = np.zeros(num_nodes, dtype=np.bool)
-                    z_p[qubit_index_1] = True
-                    z_p[qubit_index_2] = True
-                    pauli_list.append([weight, Pauli(z_p, zero)])
-
+            if qubit_index_1 == qubit_index_2:
+                shift += weight
+            else:
                 z_p = np.zeros(num_nodes, dtype=np.bool)
                 z_p[qubit_index_1] = True
-                pauli_list.append([-weight, Pauli(z_p, zero)])
-
-                z_p = np.zeros(num_nodes, dtype=np.bool)
                 z_p[qubit_index_2] = True
-                pauli_list.append([-weight, Pauli(z_p, zero)])
+                pauli_list.append([weight, Pauli(z_p, zero)])
 
-                shift += weight
+            z_p = np.zeros(num_nodes, dtype=np.bool)
+            z_p[qubit_index_1] = True
+            pauli_list.append([-weight, Pauli(z_p, zero)])
+
+            z_p = np.zeros(num_nodes, dtype=np.bool)
+            z_p[qubit_index_2] = True
+            pauli_list.append([-weight, Pauli(z_p, zero)])
+
+            shift += weight
 
         # Remove paulis whose coefficients are zeros.
         qubit_op = WeightedPauliOperator(paulis=pauli_list)

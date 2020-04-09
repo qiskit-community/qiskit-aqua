@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -13,9 +13,9 @@
 # that they have been altered from the originals.
 
 """
-========================================================
-Optimization stack for Aqua (:mod:`qiskit.optimization`)
-========================================================
+=================================================================
+Optimization stack for Aqua (:mod:`qiskit.optimization.problems`)
+=================================================================
 
 .. currentmodule:: qiskit.optimization.problems
 
@@ -23,21 +23,33 @@ Structures for defining an optimization problem and its solution
 ==========
 
 .. autosummary::
-   :toctree:
+   :toctree: ../stubs/
+   :nosignatures:
 
-   OptimizationProblem
-   VariablesInterface
-   ObjectiveInterface
    LinearConstraintInterface
+   ObjSense
+   ObjectiveInterface
+   QuadraticProgram
    QuadraticConstraintInterface
+   VariablesInterface
 
-N.B. Additional classes LinearConstraintInterface, QuadraticConstraintInterface, ObjectiveInterface, and VariablesInterface
-are not to be instantiated directly. Objects of those types are available within an instantiated OptimizationProblem.
+N.B. Additional classes LinearConstraintInterface, QuadraticConstraintInterface,
+ObjectiveInterface, and VariablesInterface
+are not to be instantiated directly. Objects of those types are available within
+an instantiated QuadraticProgram.
 
 """
 
-from qiskit.optimization.problems.optimization_problem import OptimizationProblem
-from qiskit.optimization.problems.linear_constraint import LinearConstraintInterface
-from qiskit.optimization.problems.objective import ObjSense, ObjectiveInterface
+from .linear_constraint import LinearConstraintInterface
+from .objective import ObjSense, ObjectiveInterface
+from .quadratic_program import QuadraticProgram
+from .quadratic_constraint import QuadraticConstraintInterface
+from .variables import VariablesInterface
 
-__all__ = ["OptimizationProblem", "LinearConstraintInterface", "ObjSense", "ObjectiveInterface"]
+__all__ = ['LinearConstraintInterface',
+           'ObjSense',
+           'ObjectiveInterface',
+           'QuadraticProgram',
+           'QuadraticConstraintInterface',
+           'VariablesInterface'
+           ]

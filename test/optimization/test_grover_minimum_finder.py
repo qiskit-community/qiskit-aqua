@@ -12,27 +12,20 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Test Grover Optimizer"""
+"""Test Grover Optimizer."""
 
+import unittest
 from test.optimization import QiskitOptimizationTestCase
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.optimization.algorithms import GroverOptimizer, MinimumEigenOptimizer
-from qiskit.optimization.problems import OptimizationProblem
+from qiskit.optimization.problems import QuadraticProgram
 
 
 class TestGroverOptimizer(QiskitOptimizationTestCase):
-    """GroverOptimizer Tests"""
+    """GroverOptimizer tests."""
 
     def validate_results(self, problem, results):
-        """Validate the results object returned by GroverMinimumFinder."""
-        # Get measured values.
-        grover_results = results.results['grover_results']
-        op_key = int(''.join(str(x) for x in results.x), 2)
-        op_value = int(results.fval)
-        func = grover_results.func_dict
-        print("Function", func)
-        print("Optimum Key:", op_key, "Optimum Value:", op_value, "\n")
-
+        """Validate the results object returned by GroverOptimizer."""
         # Get expected value.
         solver = MinimumEigenOptimizer(NumPyMinimumEigensolver())
         comp_result = solver.solve(problem)
@@ -42,12 +35,12 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
         self.assertTrue(comp_result.fval == results.fval)
 
     def test_qubo_gas_int_zero(self):
-        """ Test for when the answer is zero """
+        """Test for when the answer is zero."""
 
         # Input.
-        op = OptimizationProblem()
-        op.variables.add(names=["x0", "x1"], types='BB')
-        linear = [("x0", 0), ("x1", 0)]
+        op = QuadraticProgram()
+        op.variables.add(names=['x0', 'x1'], types='BB')
+        linear = [('x0', 0), ('x1', 0)]
         op.objective.set_linear(linear)
 
         # Will not find a negative, should return 0.
@@ -57,12 +50,12 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
         self.assertEqual(results.fval, 0.0)
 
     def test_qubo_gas_int_simple(self):
-        """ Test for simple case, with 2 linear coeffs and no quadratic coeffs or constants """
+        """Test for simple case, with 2 linear coeffs and no quadratic coeffs or constants."""
 
         # Input.
-        op = OptimizationProblem()
-        op.variables.add(names=["x0", "x1"], types='BB')
-        linear = [("x0", -1), ("x1", 2)]
+        op = QuadraticProgram()
+        op.variables.add(names=['x0', 'x1'], types='BB')
+        linear = [('x0', -1), ('x1', 2)]
         op.objective.set_linear(linear)
 
         # Get the optimum key and value.
@@ -72,13 +65,13 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
         self.validate_results(op, results)
 
     def test_qubo_gas_int_paper_example(self):
-        """ Test the example from https://arxiv.org/abs/1912.04088 """
+        """Test the example from https://arxiv.org/abs/1912.04088."""
 
         # Input.
-        op = OptimizationProblem()
-        op.variables.add(names=["x0", "x1", "x2"], types='BBB')
+        op = QuadraticProgram()
+        op.variables.add(names=['x0', 'x1', 'x2'], types='BBB')
 
-        linear = [("x0", -1), ("x1", 2), ("x2", -3)]
+        linear = [('x0', -1), ('x1', 2), ('x2', -3)]
         op.objective.set_linear(linear)
         op.objective.set_quadratic_coefficients('x0', 'x2', -2)
         op.objective.set_quadratic_coefficients('x1', 'x2', -1)
@@ -88,3 +81,7 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
         gmf = GroverOptimizer(6, num_iterations=n_iter)
         results = gmf.solve(op)
         self.validate_results(op, results)
+
+
+if __name__ == '__main__':
+    unittest.main()

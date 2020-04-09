@@ -3,7 +3,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -13,14 +13,12 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Auxilliary methods to translate eigenvectors into optimization results."""
+"""Auxiliary methods to translate eigenvectors into optimization results."""
 
-from qiskit.aqua.operators import MatrixOperator
 from typing import Union, List, Tuple
-from qiskit import QuantumCircuit, BasicAer, execute
-from qiskit.aqua import QuantumInstance
-from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator
 import numpy
+from qiskit import QuantumCircuit, BasicAer, execute
+from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator
 
 
 def eigenvector_to_solutions(eigenvector: Union[dict, numpy.ndarray],
@@ -43,6 +41,10 @@ def eigenvector_to_solutions(eigenvector: Union[dict, numpy.ndarray],
         For each computational basis state contained in the eigenvector, return the basis
         state as bitstring along with the operator evaluated at that bitstring and the
         probability of sampling this bitstring from the eigenvector.
+
+    Raises:
+        TypeError: Invalid Argument
+
     """
     solutions = []
     if isinstance(eigenvector, dict):

@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,7 +12,10 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""Variable interface"""
+
 import copy
+from typing import List, Optional, Union
 
 from qiskit.optimization import infinity
 from qiskit.optimization.utils.base import BaseInterface
@@ -26,7 +29,7 @@ CPX_SEMICONT = 'S'
 CPX_SEMIINT = 'N'
 
 
-class VarTypes(object):
+class VarTypes:
     """Constants defining variable types
 
     These constants are compatible with IBM ILOG CPLEX.
@@ -39,13 +42,19 @@ class VarTypes(object):
     semi_integer = CPX_SEMIINT
     semi_continuous = CPX_SEMICONT
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: str) -> str:
         """Converts a constant to a string.
+
+        Returns:
+            Variable type name.
+
+        Raises:
+            QiskitOptimizationError: if the argument is not a valid type.
 
         Example usage:
 
-        >>> from qiskit.optimization.problems import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization.problems import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> op.variables.type.binary
         'B'
         >>> op.variables.type['B']
@@ -61,6 +70,7 @@ class VarTypes(object):
             return 'semi_integer'
         if item == CPX_SEMICONT:
             return 'semi_continuous'
+        raise QiskitOptimizationError('Invalid variable type: {}'.format(item))
 
 
 class VariablesInterface(BaseInterface):
@@ -68,8 +78,8 @@ class VariablesInterface(BaseInterface):
 
     Example usage:
 
-    >>> from qiskit.optimization import OptimizationProblem
-    >>> op = OptimizationProblem()
+    >>> from qiskit.optimization import QuadraticProgram
+    >>> op = QuadraticProgram()
     >>> indices = op.variables.add(names = ["x0", "x1", "x2"])
     >>> # default values for lower_bounds are 0.0
     >>> op.variables.get_lower_bounds()
@@ -92,13 +102,12 @@ class VariablesInterface(BaseInterface):
     """
 
     type = VarTypes()
-    """See `VarTypes()` """
 
     def __init__(self):
         """Creates a new VariablesInterface.
 
-        The variables interface is exposed by the top-level `OptimizationProblem` class
-        as `OptimizationProblem.variables`.  This constructor is not meant to be used
+        The variables interface is exposed by the top-level `QuadraticProgram` class
+        as `QuadraticProgram.variables`.  This constructor is not meant to be used
         externally.
         """
         super(VariablesInterface, self).__init__()
@@ -110,13 +119,13 @@ class VariablesInterface(BaseInterface):
         # self._columns = []
         self._index = NameIndex()
 
-    def get_num(self):
+    def get_num(self) -> int:
         """Returns the number of variables in the problem.
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> t = op.variables.type
         >>> indices = op.variables.add(types = [t.continuous, t.binary, t.integer])
         >>> op.variables.get_num()
@@ -124,13 +133,13 @@ class VariablesInterface(BaseInterface):
         """
         return len(self._names)
 
-    def get_num_continuous(self):
+    def get_num_continuous(self) -> int:
         """Returns the number of continuous variables in the problem.
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> t = op.variables.type
         >>> indices = op.variables.add(types = [t.continuous, t.binary, t.integer])
         >>> op.variables.get_num_continuous()
@@ -138,13 +147,13 @@ class VariablesInterface(BaseInterface):
         """
         return self._types.count(VarTypes.continuous)
 
-    def get_num_integer(self):
+    def get_num_integer(self) -> int:
         """Returns the number of integer variables in the problem.
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> t = op.variables.type
         >>> indices = op.variables.add(types = [t.continuous, t.binary, t.integer])
         >>> op.variables.get_num_integer()
@@ -152,13 +161,13 @@ class VariablesInterface(BaseInterface):
         """
         return self._types.count(VarTypes.integer)
 
-    def get_num_binary(self):
+    def get_num_binary(self) -> int:
         """Returns the number of binary variables in the problem.
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> t = op.variables.type
         >>> indices = op.variables.add(types = [t.semi_continuous, t.binary, t.integer])
         >>> op.variables.get_num_binary()
@@ -166,13 +175,13 @@ class VariablesInterface(BaseInterface):
         """
         return self._types.count(VarTypes.binary)
 
-    def get_num_semicontinuous(self):
+    def get_num_semicontinuous(self) -> int:
         """Returns the number of semi-continuous variables in the problem.
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> t = op.variables.type
         >>> indices = op.variables.add(types = [t.semi_continuous, t.semi_integer, t.semi_integer])
         >>> op.variables.get_num_semicontinuous()
@@ -180,13 +189,13 @@ class VariablesInterface(BaseInterface):
         """
         return self._types.count(VarTypes.semi_continuous)
 
-    def get_num_semiinteger(self):
+    def get_num_semiinteger(self) -> int:
         """Returns the number of semi-integer variables in the problem.
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> t = op.variables.type
         >>> indices = op.variables.add(types = [t.semi_continuous, t.semi_integer, t.semi_integer])
         >>> op.variables.get_num_semiinteger()
@@ -194,11 +203,13 @@ class VariablesInterface(BaseInterface):
         """
         return self._types.count(VarTypes.semi_integer)
 
-    def add(self, obj=None, lb=None, ub=None, types="", names=None, columns=None):
+    # pylint: disable=invalid-name
+    def add(self, obj: None = None, lb: Optional[List[float]] = None,
+            ub: Optional[List[float]] = None, types: str = "", names: Optional[List[str]] = None,
+            columns: None = None) -> range:
         """Adds variables and related data to the problem.
 
         variables.add accepts the keyword arguments obj, lb, ub, types, names, and columns.
-
         If more than one argument is specified, all arguments must have the same length.
 
         Note
@@ -206,8 +217,6 @@ class VariablesInterface(BaseInterface):
             Use `objective` and `linear_constraint` instead.
 
         Args:
-            obj: a list of floats specifying the linear objective coefficients of the variables.
-
             lb: a list of floats specifying the lower bounds on the variables.
 
             ub: a list of floats specifying the upper bounds on the variables.
@@ -221,22 +230,21 @@ class VariablesInterface(BaseInterface):
 
             names: a list of strings.
 
-            columns: may be either a list of sparse vectors or a matrix in list-of-lists format.
+            obj: not supported by Qiskit Aqua. Use `objective` instead.
 
-                Note
-                  The entries of columns must not contain duplicate indices.
-                  If an entry of columns references a row more than once,
-                  either by index, name, or a combination of index and name,
-                  an exception will be raised.
+            columns: not supported by Qiskit Aqua. Use `linear_constraints` instead.
 
         Returns:
             an iterator containing the indices of the added variables.
 
+        Raises:
+            QiskitOptimizationError: if arguments are not valid.
+
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
+        >>> from qiskit.optimization import QuadraticProgram
         >>> from cplex import SparsePair, infinity
-        >>> op = OptimizationProblem()
+        >>> op = QuadraticProgram()
         >>> indices = op.linear_constraints.add(names = ["c0", "c1", "c2"])
         >>> indices = op.variables.add(obj = [1.0, 2.0, 3.0],\
                                       types = [op.variables.type.integer] * 3)
@@ -260,37 +268,36 @@ class VariablesInterface(BaseInterface):
             raise QiskitOptimizationError(
                 "Please use LinearConstraintInterface instead of columns.")
 
+        start = self.get_num()
         arg_list = init_list_args(lb, ub, types, names)
         arg_lengths = [len(x) for x in arg_list]
         if len(arg_lengths) == 0:
-            return range(0)
+            return range(start, start)
         max_length = max(arg_lengths)
+        if max_length == 0:
+            return range(start, start)
         for arg_length in arg_lengths:
             if arg_length > 0 and arg_length != max_length:
                 raise QiskitOptimizationError("inconsistent arguments")
 
-        if not lb:
-            lb = [0.0] * max_length
-        self._lb.extend(lb)
-
-        if not ub:
-            ub = [infinity] * max_length
-        self._ub.extend(ub)
-
-        if not types:
-            types = [VarTypes.continuous] * max_length
+        lb = lb or [0] * max_length
+        ub = ub or [infinity] * max_length
+        types = types or [VarTypes.continuous] * max_length
         for i, t in enumerate(types):
-            if t == VarTypes.binary:
-                self._ub[i] = 1.0
+            if t == VarTypes.binary and ub[i] == infinity:
+                ub[i] = 1
+        self._lb.extend(lb)
+        self._ub.extend(ub)
         self._types.extend(types)
 
-        if not names:
-            names = ["x" + str(cnt)
-                     for cnt in range(len(self._names), len(self._names) + max_length)]
+        names = names or [''] * max_length
+        for i, name in enumerate(names):
+            if name == '':
+                names[i] = 'x' + str(start + i + 1)
         self._names.extend(names)
         self._index.build(self._names)
 
-        return range(len(self._names) - max_length, len(self._names))
+        return range(start, start + max_length)
 
     def delete(self, *args):
         """Deletes variables from the problem.
@@ -316,13 +323,10 @@ class VariablesInterface(BaseInterface):
           variables.delete(range(begin, end + 1)). This will give the
           best performance when deleting batches of variables.
 
-        See CPXdelcols in the Callable Library Reference Manual for
-        more detail.
-
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names=[str(i) for i in range(10)])
         >>> op.variables.get_num()
         10
@@ -380,8 +384,8 @@ class VariablesInterface(BaseInterface):
           the corresponding values.  Equivalent to
           [variables.set_lower_bounds(pair[0], pair[1]) for pair in seq_of_pairs].
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = ["x0", "x1", "x2"])
         >>> op.variables.set_lower_bounds(0, 1.0)
         >>> op.variables.get_lower_bounds()
@@ -414,8 +418,8 @@ class VariablesInterface(BaseInterface):
           the corresponding values.  Equivalent to
           [variables.set_upper_bounds(pair[0], pair[1]) for pair in seq_of_pairs].
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = ["x0", "x1", "x2"])
         >>> op.variables.set_upper_bounds(0, 1.0)
         >>> op.variables.set_upper_bounds([("x1", 10.0), (2, 3.0)])
@@ -445,8 +449,8 @@ class VariablesInterface(BaseInterface):
           corresponding strings.  Equivalent to
           [variables.set_names(pair[0], pair[1]) for pair in seq_of_pairs].
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> t = op.variables.type
         >>> indices = op.variables.add(types = [t.continuous, t.binary, t.integer])
         >>> op.variables.set_names(0, "first")
@@ -482,8 +486,8 @@ class VariablesInterface(BaseInterface):
           If the types are set, the problem will be treated as a MIP,
           even if all variable types are continuous.
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = [str(i) for i in range(5)])
         >>> op.variables.set_types(0, op.variables.type.continuous)
         >>> op.variables.set_types([("1", op.variables.type.integer),\
@@ -504,7 +508,7 @@ class VariablesInterface(BaseInterface):
 
         self._setter(_set, *args)
 
-    def get_lower_bounds(self, *args):
+    def get_lower_bounds(self, *args) -> Union[float, List[float]]:
         """Returns the lower bounds on variables from the problem.
 
         There are four forms by which variables.get_lower_bounds may be called.
@@ -522,8 +526,8 @@ class VariablesInterface(BaseInterface):
           of s.  Equivalent to
           [variables.get_lower_bounds(i) for i in s]
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(lb = [1.5 * i for i in range(10)],\
                                       names = [str(i) for i in range(10)])
         >>> op.variables.get_num()
@@ -546,7 +550,7 @@ class VariablesInterface(BaseInterface):
         keys = self._index.convert(*args)
         return self._getter(_get, keys)
 
-    def get_upper_bounds(self, *args):
+    def get_upper_bounds(self, *args) -> Union[float, List[float]]:
         """Returns the upper bounds on variables from the problem.
 
         There are four forms by which variables.get_upper_bounds may be called.
@@ -570,8 +574,8 @@ class VariablesInterface(BaseInterface):
           begin and end, inclusive of end. Equivalent to
           variables.get_upper_bounds(range(begin, end + 1)).
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(ub = [(1.5 * i) + 1.0 for i in range(10)],\
                                       names = [str(i) for i in range(10)])
         >>> op.variables.get_num()
@@ -594,7 +598,7 @@ class VariablesInterface(BaseInterface):
         keys = self._index.convert(*args)
         return self._getter(_get, keys)
 
-    def get_names(self, *args):
+    def get_names(self, *args) -> Union[str, List[str]]:
         """Returns the names of variables from the problem.
 
         There are four forms by which variables.get_names may be called.
@@ -610,8 +614,8 @@ class VariablesInterface(BaseInterface):
           names of the variables with indices the members of s.
           Equivalent to [variables.get_names(i) for i in s]
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = ['x' + str(i) for i in range(10)])
         >>> op.variables.get_num()
         10
@@ -633,7 +637,7 @@ class VariablesInterface(BaseInterface):
         keys = self._index.convert(*args)
         return self._getter(_get, keys)
 
-    def get_types(self, *args):
+    def get_types(self, *args) -> Union[str, List[str]]:
         """Returns the types of variables from the problem.
 
         There are four forms by which variables.types may be called.
@@ -650,8 +654,8 @@ class VariablesInterface(BaseInterface):
           the types of the variables with indices the members of s.
           Equivalent to [variables.get_types(i) for i in s]
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> t = op.variables.type
         >>> indices = op.variables.add(names = [str(i) for i in range(5)],\
                                       types = [t.continuous, t.integer,\
@@ -677,7 +681,9 @@ class VariablesInterface(BaseInterface):
         return self._getter(_get, keys)
 
     def get_cols(self, *args):
+        """get_cols is not supported"""
         raise NotImplementedError("Please use LinearConstraintInterface instead.")
 
     def get_obj(self, *args):
+        """get_obj is not supported"""
         raise NotImplementedError("Please use ObjectiveInterface instead.")

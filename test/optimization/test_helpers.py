@@ -14,41 +14,57 @@
 
 """ Test helpers """
 
-from qiskit.optimization.utils.helpers import NameIndex, init_list_args
+import unittest
+from test.optimization.optimization_test_case import QiskitOptimizationTestCase
+
 from qiskit.optimization import QiskitOptimizationError
-from test.optimization.common import QiskitOptimizationTestCase
+from qiskit.optimization.utils.helpers import NameIndex, init_list_args
 
 
 class TestHelpers(QiskitOptimizationTestCase):
     """Test helpers."""
 
-    def setUp(self):
-        super().setUp()
-
     def test_init_list_args(self):
-        a = init_list_args(1, [2], None)
-        self.assertTupleEqual(a, (1, [2], []))
+        """ test init list args """
+        args = init_list_args(1, [2], None)
+        self.assertTupleEqual(args, (1, [2], []))
 
     def test_name_index1(self):
-        a = NameIndex()
-        self.assertEqual(a.convert('1'), 0)
-        self.assertListEqual(a.convert(['2', '3']), [1, 2])
-        self.assertEqual(a.convert('1'), 0)
-        self.assertListEqual(a.convert(), [0, 1, 2])
-        self.assertListEqual(a.convert('1', '3'), [0, 1, 2])
-        self.assertListEqual(a.convert('1', '2'), [0, 1])
+        """ test name index 1 """
+        nidx = NameIndex()
+        nidx.build(['1', '2', '3'])
+        self.assertEqual(nidx.convert('1'), 0)
+        self.assertListEqual(nidx.convert(['2', '3']), [1, 2])
+        self.assertEqual(nidx.convert('1'), 0)
+        self.assertListEqual(nidx.convert(), [0, 1, 2])
+        self.assertListEqual(nidx.convert('1', '3'), [0, 1, 2])
+        self.assertListEqual(nidx.convert('1', '2'), [0, 1])
 
     def test_name_index2(self):
-        a = NameIndex()
-        a.build(['1', '2', '3'])
-        self.assertEqual(a.convert('1'), 0)
-        self.assertListEqual(a.convert(), [0, 1, 2])
-        self.assertListEqual(a.convert('1', '3'), [0, 1, 2])
-        self.assertListEqual(a.convert('1', '2'), [0, 1])
+        """ test name index 2 """
+        nidx = NameIndex()
+        nidx.build(['1', '2', '3'])
+        self.assertEqual(nidx.convert('1'), 0)
+        self.assertListEqual(nidx.convert(), [0, 1, 2])
+        self.assertListEqual(nidx.convert('1', '3'), [0, 1, 2])
+        self.assertListEqual(nidx.convert('1', '2'), [0, 1])
 
     def test_name_index3(self):
-        a = NameIndex()
+        """ test name index 3 """
+        nidx = NameIndex()
         with self.assertRaises(QiskitOptimizationError):
-            a.convert({})
+            nidx.convert({})
         with self.assertRaises(QiskitOptimizationError):
-            a.convert(1, 2, 3)
+            nidx.convert(1, 2, 3)
+        nidx.build(['x', 'y', 'z'])
+        self.assertEqual(nidx.convert(1), 1)
+        with self.assertRaises(QiskitOptimizationError):
+            nidx.convert(4)
+        self.assertEqual(nidx.convert('z'), 2)
+        with self.assertRaises(QiskitOptimizationError):
+            nidx.convert('a')
+            nidx.convert(1, 2, 3)
+
+
+if __name__ == '__main__':
+    unittest.main()

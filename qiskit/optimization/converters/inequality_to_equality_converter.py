@@ -12,44 +12,52 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""The inequality to equality converter."""
 
 import copy
 import math
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Optional
+import logging
 
-import numpy as np
-from cplex import SparsePair
+from ..problems.quadratic_program import QuadraticProgram
+from ..results.optimization_result import OptimizationResult
+from ..utils.qiskit_optimization_error import QiskitOptimizationError
 
-from qiskit.optimization.problems import OptimizationProblem
-from qiskit.optimization.results import OptimizationResult
-from qiskit.optimization.utils import QiskitOptimizationError
-from qiskit.aqua import AquaError
+logger = logging.getLogger(__name__)
+
+_HAS_CPLEX = False
+try:
+    from cplex import SparsePair
+    _HAS_CPLEX = True
+except ImportError:
+    logger.info('CPLEX is not installed.')
 
 
 class InequalityToEqualityConverter:
-    """ Convert inequality constraints into equality constraints by introducing slack variables.
+    """Convert inequality constraints into equality constraints by introducing slack variables.
 
-        Examples:
-            >>> problem = OptimizationProblem()
-            >>> # define a problem
-            >>> conv = InequalityToEqualityConverter()
-            >>> problem2 = conv.encode(problem)
+    Examples:
+        >>> problem = QuadraticProgram()
+        >>> # define a problem
+        >>> conv = InequalityToEqualityConverter()
+        >>> problem2 = conv.encode(problem)
     """
 
     _delimiter = '@'  # users are supposed not to use this character in variable names
 
-    def __init__(self):
-        """ Constructor. It initializes the internal data structure. No args.
-        """
+    def __init__(self) -> None:
+        """Initialize the inequality to equality variable converter."""
+        if not _HAS_CPLEX:
+            raise NameError('CPLEX is not installed.')
+
         self._src = None
         self._dst = None
         self._conv: Dict[str, List[Tuple[str, int]]] = {}
         # e.g., self._conv = {'c1': [c1@slack_var]}
 
-    def encode(self, op: OptimizationProblem, name: str = None,
-               mode: str = 'auto') -> OptimizationProblem:
-        """ Convert a problem with inequality constraints into new one with only equality
-        constraints.
+    def encode(self, op: QuadraticProgram, name: Optional[str] = None,
+               mode: str = 'auto') -> QuadraticProgram:
+        """Convert a problem with inequality constraints into one with only equality constraints.
 
         Args:
             op: The problem to be solved, that may contain inequality constraints.
@@ -57,27 +65,34 @@ class InequalityToEqualityConverter:
             mode: To chose the type of slack variables. There are 3 options for mode.
                   - 'integer': All slack variables will be integer variables.
                   - 'continuous': All slack variables will be continuous variables
-                  - 'auto': Try to use integer variables but if it's not possible, use continuous variables
+                  - 'auto': Try to use integer variables but if it's not possible,
+                    use continuous variables
 
         Returns:
             The converted problem, that contain only equality constraints.
 
+        Raises:
+            QiskitOptimizationError: If a variable type is not supported.
+            QiskitOptimizationError: If an unsupported mode is selected.
+            QiskitOptimizationError: If an unsupported sense is specified.
         """
         self._src = copy.deepcopy(op)
-        self._dst = OptimizationProblem()
+        self._dst = QuadraticProgram()
 
         # declare variables
         names = self._src.variables.get_names()
         types = self._src.variables.get_types()
-        lb = self._src.variables.get_lower_bounds()
-        ub = self._src.variables.get_upper_bounds()
+        lower_bounds = self._src.variables.get_lower_bounds()
+        upper_bounds = self._src.variables.get_upper_bounds()
 
-        for i, name in enumerate(names):
+        for i, variable in enumerate(names):
             typ = types[i]
             if typ == 'B':
-                self._dst.variables.add(names=[name], types='B')
-            elif typ == 'C' or typ == 'I':
-                self._dst.variables.add(names=[name], types=typ, lb=[lb[i]], ub=[ub[i]])
+                self._dst.variables.add(names=[variable], types='B')
+            elif typ in ['C', 'I']:
+                self._dst.variables.add(names=[variable], types=typ,
+                                        lb=[lower_bounds[i]],
+                                        ub=[upper_bounds[i]])
             else:
                 raise QiskitOptimizationError('Variable type not supported: ' + typ)
 
@@ -94,13 +109,12 @@ class InequalityToEqualityConverter:
         self._dst.objective.set_offset(self._src.objective.get_offset())
 
         # set linear objective terms
-        for i, v in self._src.objective.get_linear().items():
+        for i, v in self._src.objective.get_linear_dict().items():
             self._dst.objective.set_linear(i, v)
 
         # set quadratic objective terms
-        for i, vi in self._src.objective.get_quadratic().items():
-            for j, v in vi.items():
-                self._dst.objective.set_quadratic_coefficients(i, j, v)
+        for (i, j), v in self._src.objective.get_quadratic_dict().items():
+            self._dst.objective.set_quadratic_coefficients(i, j, v)
 
         # set linear constraints
         names = self._src.linear_constraints.get_names()
@@ -108,55 +122,59 @@ class InequalityToEqualityConverter:
         senses = self._src.linear_constraints.get_senses()
         rhs = self._src.linear_constraints.get_rhs()
 
-        for i, name in enumerate(names):
+        for i, variable in enumerate(names):
             # Copy equality constraints into self._dst
             if senses[i] == 'E':
                 self._dst.linear_constraints.add(lin_expr=[rows[i]], senses=[senses[i]],
-                                                 rhs=[rhs[i]], names=[names[i]])
+                                                 rhs=[rhs[i]], names=[variable])
             # When the type of a constraint is L, make an equality constraint
             # with slack variables which represent [lb, ub] = [0, constant - the lower bound of lhs]
             elif senses[i] == 'L':
                 if mode == 'integer':
-                    self._add_int_slack_var_constraint(name=name, row=rows[i], rhs=rhs[i],
+                    self._add_int_slack_var_constraint(name=variable, row=rows[i], rhs=rhs[i],
                                                        sense=senses[i])
                 elif mode == 'continuous':
-                    self._add_continuous_slack_var_constraint(name=name, row=rows[i], rhs=rhs[i],
-                                                              sense=senses[i])
+                    self._add_continuous_slack_var_constraint(name=variable, row=rows[i],
+                                                              rhs=rhs[i], sense=senses[i])
                 elif mode == 'auto':
-                    self._add_auto_slack_var_constraint(name=name, row=rows[i], rhs=rhs[i],
+                    self._add_auto_slack_var_constraint(name=variable, row=rows[i], rhs=rhs[i],
                                                         sense=senses[i])
                 else:
-                    raise AquaError('Unsupported mode is selected' + mode)
+                    raise QiskitOptimizationError('Unsupported mode is selected' + mode)
 
             # When the type of a constraint is G, make an equality constraint
             # with slack variables which represent [lb, ub] = [0, the upper bound of lhs]
             elif senses[i] == 'G':
                 if mode == 'integer':
-                    self._add_int_slack_var_constraint(name=name, row=rows[i], rhs=rhs[i],
+                    self._add_int_slack_var_constraint(name=variable, row=rows[i], rhs=rhs[i],
                                                        sense=senses[i])
                 elif mode == 'continuous':
-                    self._add_continuous_slack_var_constraint(name=name, row=rows[i], rhs=rhs[i],
-                                                              sense=senses[i])
+                    self._add_continuous_slack_var_constraint(name=variable, row=rows[i],
+                                                              rhs=rhs[i], sense=senses[i])
                 elif mode == 'auto':
-                    self._add_auto_slack_var_constraint(name=name, row=rows[i], rhs=rhs[i],
+                    self._add_auto_slack_var_constraint(name=variable, row=rows[i], rhs=rhs[i],
                                                         sense=senses[i])
                 else:
-                    raise AquaError('Unsupported mode is selected' + mode)
+                    raise QiskitOptimizationError(
+                        'Unsupported mode is selected' + mode)
 
             else:
-                raise QiskitOptimizationError('The type of Sense in ' + name + 'is not supported')
+                raise QiskitOptimizationError('Type of sense in ' + variable + 'is not supported')
+
+        # TODO: add quadratic constraints
+        if self._src.quadratic_constraints.get_num() > 0:
+            raise QiskitOptimizationError('Quadratic constraints are not yet supported.')
 
         return self._dst
 
     def decode(self, result: OptimizationResult) -> OptimizationResult:
-        """ Convert a result of a converted problem into that of the original problem.
+        """Convert a result of a converted problem into that of the original problem.
 
         Args:
             result: The result of the converted problem.
 
         Returns:
             The result of the original problem.
-
         """
         new_result = OptimizationResult()
         # convert the optimization result into that of the original problem
@@ -186,7 +204,7 @@ class InequalityToEqualityConverter:
     def _add_int_slack_var_constraint(self, name, row, rhs, sense):
         # If a coefficient that is not integer exist, raise error
         if any(isinstance(coef, float) and not coef.is_integer() for coef in row.val):
-            raise AquaError('Can not use a slack variable for ' + name)
+            raise QiskitOptimizationError('Can not use a slack variable for ' + name)
 
         slack_name = name + self._delimiter + 'int_slack'
         lhs_lb, lhs_ub = self._calc_bounds(row)
@@ -200,12 +218,10 @@ class InequalityToEqualityConverter:
         # Add a new integer variable.
         if sense == 'L':
             sign = 1
-            self._dst.variables.add(names=[slack_name],
-                                    lb=[0], ub=[new_rhs - lhs_lb], types=['I'])
+            self._dst.variables.add(names=[slack_name], lb=[0], ub=[new_rhs - lhs_lb], types=['I'])
         elif sense == 'G':
             sign = -1
-            self._dst.variables.add(names=[slack_name],
-                                    lb=[0], ub=[lhs_ub - new_rhs], types=['I'])
+            self._dst.variables.add(names=[slack_name], lb=[0], ub=[lhs_ub - new_rhs], types=['I'])
         else:
             raise QiskitOptimizationError('The type of Sense in ' + name + 'is not supported')
 
@@ -227,15 +243,12 @@ class InequalityToEqualityConverter:
 
         if sense == 'L':
             sign = 1
-            self._dst.variables.add(names=[slack_name],
-                                    lb=[0], ub=[rhs - lhs_lb], types=['C'])
+            self._dst.variables.add(names=[slack_name], lb=[0], ub=[rhs - lhs_lb], types=['C'])
         elif sense == 'G':
             sign = -1
-            print(lhs_ub - rhs)
-            self._dst.variables.add(names=[slack_name],
-                                    lb=[0], ub=[lhs_ub - rhs], types=['C'])
+            self._dst.variables.add(names=[slack_name], lb=[0], ub=[lhs_ub - rhs], types=['C'])
         else:
-            raise QiskitOptimizationError('The type of Sense in ' + name + 'is not supported')
+            raise QiskitOptimizationError('Type of Sense in ' + name + 'is not supported')
 
         self._conv[name] = slack_name
 
@@ -252,24 +265,21 @@ class InequalityToEqualityConverter:
     def _add_auto_slack_var_constraint(self, name, row, rhs, sense):
         # If a coefficient that is not integer exist, use a continuous slack variable
         if any(isinstance(coef, float) and not coef.is_integer() for coef in row.val):
-            self._add_continuous_slack_var_constraint(name=name, row=row, rhs=rhs,
-                                                      sense=sense)
+            self._add_continuous_slack_var_constraint(name=name, row=row, rhs=rhs, sense=sense)
         # Else use an integer slack variable
         else:
-            self._add_int_slack_var_constraint(name=name, row=row, rhs=rhs,
-                                               sense=sense)
+            self._add_int_slack_var_constraint(name=name, row=row, rhs=rhs, sense=sense)
 
     def _calc_bounds(self, row):
-        lhs_lb = 0
-        lhs_ub = 0
+        lhs_lb, lhs_ub = 0, 0
         for ind, val in zip(row.ind, row.val):
             if self._dst.variables.get_types(ind) == 'B':
-                ub = 1
+                upper_bound = 1
             else:
-                ub = self._dst.variables.get_upper_bounds(ind)
-            lb = self._dst.variables.get_lower_bounds(ind)
+                upper_bound = self._dst.variables.get_upper_bounds(ind)
+            lower_bound = self._dst.variables.get_lower_bounds(ind)
 
-            lhs_lb += min(lb * val, ub * val)
-            lhs_ub += max(lb * val, ub * val)
+            lhs_lb += min(lower_bound * val, upper_bound * val)
+            lhs_ub += max(lower_bound * val, upper_bound * val)
 
         return lhs_lb, lhs_ub

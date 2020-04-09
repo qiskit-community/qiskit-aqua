@@ -13,11 +13,11 @@
 # that they have been altered from the originals.
 
 """
-========================================================
-Optimization stack for Aqua (:mod:`qiskit.optimization`)
-========================================================
+===================================================================
+Optimization stack for Aqua (:mod:`qiskit.optimization.algorithms`)
+===================================================================
 
-Algorithms for optimization problems.
+Algorithms for optimization algorithms.
 
 .. currentmodule:: qiskit.optimization.algorithms
 
@@ -27,7 +27,7 @@ Base class
 .. autosummary::
    :toctree: ../stubs/
    :nosignatures:
-   
+
    OptimizationAlgorithm
 
 Algorithms
@@ -36,23 +36,23 @@ Algorithms
 .. autosummary::
    :toctree: ../stubs/
    :nosignatures:
-   
+
    ADMMOptimizer
    CobylaOptimizer
    CplexOptimizer
-   GroverMinimumFinder
+   GroverOptimizer
    MinimumEigenOptimizer
    RecursiveMinimumEigenOptimizer
-   
+
 """
 
-from qiskit.optimization.algorithms.optimization_algorithm import OptimizationAlgorithm
-from qiskit.optimization.algorithms.cplex_optimizer import CplexOptimizer
-from qiskit.optimization.algorithms.cobyla_optimizer import CobylaOptimizer
-from qiskit.optimization.algorithms.minimum_eigen_optimizer import MinimumEigenOptimizer
-from qiskit.optimization.algorithms.recursive_minimum_eigen_optimizer import\
-    RecursiveMinimumEigenOptimizer
-from qiskit.optimization.algorithms.grover_optimizer import GroverOptimizer
+from .optimization_algorithm import OptimizationAlgorithm
+from .admm_optimizer import ADMMOptimizer
+from .cplex_optimizer import CplexOptimizer
+from .cobyla_optimizer import CobylaOptimizer
+from .minimum_eigen_optimizer import MinimumEigenOptimizer
+from .recursive_minimum_eigen_optimizer import RecursiveMinimumEigenOptimizer
+from .grover_optimizer import GroverOptimizer
 
-__all__ = ["OptimizationAlgorithm", "CplexOptimizer", "CobylaOptimizer", "MinimumEigenOptimizer",
-           "RecursiveMinimumEigenOptimizer", "GroverOptimizer"]
+__all__ = ["OptimizationAlgorithm", "ADMMOptimizer", "CplexOptimizer", "CobylaOptimizer",
+           "MinimumEigenOptimizer", "RecursiveMinimumEigenOptimizer", "GroverOptimizer"]

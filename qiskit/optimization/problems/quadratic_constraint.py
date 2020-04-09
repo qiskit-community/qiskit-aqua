@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,18 +12,27 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""Quadratic constraints interface"""
+
 import copy
 from collections.abc import Sequence
-from logging import getLogger
-from typing import List, Dict, Tuple, Callable
+import logging
+from typing import List, Dict, Callable, Union, Optional
 
-from cplex import SparsePair, SparseTriple
+from scipy.sparse import dok_matrix
 
 from qiskit.optimization.utils.base import BaseInterface
 from qiskit.optimization.utils.helpers import NameIndex
 from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
 
-logger = getLogger(__name__)
+logger = logging.getLogger(__name__)
+
+_HAS_CPLEX = False
+try:
+    from cplex import SparsePair, SparseTriple
+    _HAS_CPLEX = True
+except ImportError:
+    logger.info('CPLEX is not installed.')
 
 
 class QuadraticConstraintInterface(BaseInterface):
@@ -33,15 +42,18 @@ class QuadraticConstraintInterface(BaseInterface):
         """Creates a new QuadraticConstraintInterface.
 
         The quadratic constraints interface is exposed by the top-level
-        `OptimizationProblem` class as `OptimizationProblem.quadratic_constraints`.  This constructor
-        is not meant to be used externally.
+        `QuadraticProgram` class as `QuadraticProgram.quadratic_constraints`.
+        This constructor is not meant to be used externally.
         """
-        super(QuadraticConstraintInterface, self).__init__()
+        if not _HAS_CPLEX:
+            raise NameError('CPLEX is not installed.')
+
+        super().__init__()
         self._rhs = []
         self._senses = []
         self._names = []
         self._lin_expr: List[Dict[int, float]] = []
-        self._quad_expr: List[Dict[Tuple[int, int], float]] = []
+        self._quad_expr: List[dok_matrix] = []
         self._index = NameIndex()
         self._varindex = varindex
 
@@ -50,8 +62,8 @@ class QuadraticConstraintInterface(BaseInterface):
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = ['x','y'])
         >>> l = SparsePair(ind = ['x'], val = [1.0])
         >>> q = SparseTriple(ind1 = ['x'], ind2 = ['y'], val = [1.0])
@@ -63,13 +75,16 @@ class QuadraticConstraintInterface(BaseInterface):
         """
         return len(self._names)
 
-    def add(self, lin_expr=None, quad_expr=None, sense="L", rhs=0.0, name=""):
+    def add(self,
+            lin_expr: Optional['SparsePair'] = None,
+            quad_expr: Optional['SparseTriple'] = None,
+            sense: str = "L", rhs: float = 0.0, name: str = "") -> int:
         """Adds a quadratic constraint to the problem.
 
-        Takes up to five keyword arguments:
+        Takes up to following five keyword arguments.
 
         Args:
-            lin_expr : either a SparsePair or a list of two lists specifying
+            lin_expr: either a SparsePair or a list of two lists specifying
                 the linear component of the constraint.
 
                 Note
@@ -78,7 +93,7 @@ class QuadraticConstraintInterface(BaseInterface):
                     or a combination of index and name, an exception will be
                     raised.
 
-            quad_expr : either a SparseTriple or a list of three lists
+            quad_expr: either a SparseTriple or a list of three lists
                 specifying the quadratic component of the constraint.
 
                 Note
@@ -87,20 +102,20 @@ class QuadraticConstraintInterface(BaseInterface):
                     names, or a combination of indices and names, an exception
                     will be raised.
 
-            sense : either "L", "G", or "E"
+            sense: either "L", "G", or "E"
 
-            rhs : a float specifying the righthand side of the constraint.
+            rhs: a float specifying the righthand side of the constraint.
 
-            name : the name of the constraint.
+            name: the name of the constraint.
 
         Returns:
-             The index of the added quadratic constraint.
+            The index of the added quadratic constraint.
 
         Raises:
-            QiskitOptimizationError: if invalid argument is given.
+            QiskitOptimizationError: if arguments are not valid.
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = ['x','y'])
         >>> l = SparsePair(ind = ['x'], val = [1.0])
         >>> q = SparseTriple(ind1 = ['x'], ind2 = ['y'], val = [1.0])
@@ -115,10 +130,11 @@ class QuadraticConstraintInterface(BaseInterface):
 
         # check constraint name
         if name == '':
-            name = 'q{}'.format(len(self._names))
+            name = 'q{}'.format(1 + self.get_num())
         if name in self._index:
             raise QiskitOptimizationError('Duplicate quadratic constraint name: {}'.format(name))
         self._names.append(name)
+        self._index.build(self._names)
 
         # linear terms
         lin_expr_dict = {}
@@ -133,14 +149,14 @@ class QuadraticConstraintInterface(BaseInterface):
         else:
             raise QiskitOptimizationError('Invalid lin_expr: {}'.format(lin_expr))
         for i, val in zip(ind, val):
-            i2 = self._varindex(i)
-            if i2 in lin_expr_dict:
-                logger.warning('lin_expr contains duplicate index: {}'.format(i))
-            lin_expr_dict[i2] = val
+            i_2 = self._varindex(i)
+            if i_2 in lin_expr_dict:
+                raise QiskitOptimizationError('lin_expr contains duplicate index: {}'.format(i))
+            lin_expr_dict[i_2] = val
         self._lin_expr.append(lin_expr_dict)
 
         # quadratic terms
-        quad_expr_dict = {}
+        quad_matrix = dok_matrix((0, 0))
         if quad_expr is None:
             ind1, ind2, val = [], [], []
         elif isinstance(quad_expr, SparseTriple):
@@ -153,19 +169,23 @@ class QuadraticConstraintInterface(BaseInterface):
         else:
             raise QiskitOptimizationError('Invalid quad_expr: {}'.format(quad_expr))
         for i, j, val in zip(ind1, ind2, val):
-            i2 = self._varindex(i)
-            j2 = self._varindex(j)
-            if i2 < j2:
-                i2, j2 = j2, i2
-            if (i2, j2) in quad_expr_dict:
-                logger.warning('quad_expr contains duplicate index: {} {}'.format(i, j))
-            quad_expr_dict[i2, j2] = val
-        self._quad_expr.append(quad_expr_dict)
+            i_2 = self._varindex(i)
+            j_2 = self._varindex(j)
+            if i_2 < j_2:
+                # to reproduce CPLEX's behavior, swap i_2 and j_2 so that i_2 >= j_2
+                i_2, j_2 = j_2, i_2
+            if (i_2, j_2) in quad_matrix:
+                raise QiskitOptimizationError(
+                    'quad_expr contains duplicate index: {} {}'.format(i, j))
+            max_ij = max(i_2, j_2)
+            if max_ij >= quad_matrix.shape[0]:
+                quad_matrix.resize(max_ij + 1, max_ij + 1)
+            quad_matrix[i_2, j_2] = val
+        self._quad_expr.append(quad_matrix)
 
         if sense not in ['L', 'G', 'E']:
             raise QiskitOptimizationError('Invalid sense: {}'.format(sense))
-        else:
-            self._senses.append(sense)
+        self._senses.append(sense)
         self._rhs.append(rhs)
 
         return self._index.convert(name)
@@ -197,13 +217,10 @@ class QuadraticConstraintInterface(BaseInterface):
           give the best performance when deleting batches of quadratic
           constraints.
 
-        See CPXdelqconstrs in the Callable Library Reference Manual for
-        more detail.
-
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names=['x', 'y'])
         >>> l = SparsePair(ind=['x'], val=[1.0])
         >>> q = SparseTriple(ind1=['x'], ind2=['y'], val=[1.0])
@@ -247,7 +264,7 @@ class QuadraticConstraintInterface(BaseInterface):
             del self._quad_expr[i]
         self._index.build(self._names)
 
-    def get_rhs(self, *args):
+    def get_rhs(self, *args) -> Union[float, List[float]]:
         """Returns the righthand side of a set of quadratic constraints.
 
         Can be called by four forms.
@@ -274,8 +291,8 @@ class QuadraticConstraintInterface(BaseInterface):
           end. Equivalent to
           quadratic_constraints.get_rhs(range(begin, end + 1)).
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = [str(i) for i in range(10)])
         >>> [op.quadratic_constraints.add(rhs=1.5 * i, name=str(i))
         ...  for i in range(10)]
@@ -300,7 +317,7 @@ class QuadraticConstraintInterface(BaseInterface):
         keys = self._index.convert(*args)
         return self._getter(_get, keys)
 
-    def get_senses(self, *args):
+    def get_senses(self, *args) -> Union[str, List[str]]:
         """Returns the senses of a set of quadratic constraints.
 
         Can be called by four forms.
@@ -326,8 +343,8 @@ class QuadraticConstraintInterface(BaseInterface):
           end. Equivalent to
           quadratic_constraints.get_senses(range(begin, end + 1)).
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = ["x0"])
         >>> [op.quadratic_constraints.add(name=str(i), sense=j)
         ...  for i, j in enumerate("GGLL")]
@@ -352,7 +369,7 @@ class QuadraticConstraintInterface(BaseInterface):
         keys = self._index.convert(*args)
         return self._getter(_get, keys)
 
-    def get_linear_num_nonzeros(self, *args):
+    def get_linear_num_nonzeros(self, *args) -> Union[int, List[int]]:
         """Returns the number of nonzeros in the linear part of a set of quadratic constraints.
 
         Can be called by four forms.
@@ -379,8 +396,8 @@ class QuadraticConstraintInterface(BaseInterface):
           inclusive of end. Equivalent to
           quadratic_constraints.get_linear_num_nonzeros(range(begin, end + 1)).
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = [str(i) for i in range(11)], types = "B" * 11)
         >>> [op.quadratic_constraints.add(
         ...      name = str(i),
@@ -406,7 +423,7 @@ class QuadraticConstraintInterface(BaseInterface):
         keys = self._index.convert(*args)
         return self._getter(_nonzero, keys)
 
-    def get_linear_components(self, *args):
+    def get_linear_components(self, *args) -> Union['SparsePair', List['SparsePair']]:
         """Returns the linear part of a set of quadratic constraints.
 
         Returns a list of SparsePair instances or one SparsePair instance.
@@ -437,8 +454,8 @@ class QuadraticConstraintInterface(BaseInterface):
 
         Examples:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(
         ...     names=[str(i) for i in range(4)],
         ...     types="B" * 4
@@ -474,7 +491,7 @@ class QuadraticConstraintInterface(BaseInterface):
         keys = self._index.convert(*args)
         return self._getter(_linear_component, keys)
 
-    def get_quad_num_nonzeros(self, *args):
+    def get_quad_num_nonzeros(self, *args) -> Union[int, List[int]]:
         """Returns the number of nonzeros in the quadratic part of a set of quadratic constraints.
 
         Can be called by four forms.
@@ -501,8 +518,8 @@ class QuadraticConstraintInterface(BaseInterface):
           inclusive of end. Equivalent to
           quadratic_constraints.get_quad_num_nonzeros(range(begin, end + 1)).
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = [str(i) for i in range(11)])
         >>> [op.quadratic_constraints.add(
         ...      name = str(i),
@@ -522,13 +539,12 @@ class QuadraticConstraintInterface(BaseInterface):
         """
 
         def _nonzero(i) -> int:
-            tab = self._quad_expr[i]
-            return len([0 for v in tab.values() if v != 0.0])
+            return self._quad_expr[i].nnz
 
         keys = self._index.convert(*args)
         return self._getter(_nonzero, keys)
 
-    def get_quadratic_components(self, *args):
+    def get_quadratic_components(self, *args) -> Union['SparseTriple', List['SparseTriple']]:
         """Returns the quadratic part of a set of quadratic constraints.
 
         Can be called by four forms.
@@ -555,8 +571,8 @@ class QuadraticConstraintInterface(BaseInterface):
           inclusive of end. Equivalent to
           quadratic_constraints.get_quadratic_components(range(begin, end + 1)).
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(
         ...     names=[str(i) for i in range(4)]
         ... )
@@ -584,15 +600,21 @@ class QuadraticConstraintInterface(BaseInterface):
         SparseTriple(ind1 = [0, 1], ind2 = [0, 1], val = [1.0, 2.0])
         """
 
-        def _quadratic_component(i) -> SparseTriple:
-            tab = self._quad_expr[i]
-            ind1, ind2 = zip(*tab.keys())
-            return SparseTriple(ind1=list(ind1), ind2=list(ind2), val=list(tab.values()))
+        def _quadratic_component(k) -> SparseTriple:
+            ind1 = []
+            ind2 = []
+            val = []
+            mat = self._quad_expr[k]
+            for (i, j), v in mat.items():
+                ind1.append(i)
+                ind2.append(j)
+                val.append(v)
+            return SparseTriple(ind1=ind1, ind2=ind2, val=val)
 
         keys = self._index.convert(*args)
         return self._getter(_quadratic_component, keys)
 
-    def get_names(self, *args):
+    def get_names(self, *args) -> Union[str, List[str]]:
         """Returns the names of a set of quadratic constraints.
 
         Can be called by four forms.
@@ -617,8 +639,8 @@ class QuadraticConstraintInterface(BaseInterface):
           begin and end, inclusive of end. Equivalent to
           quadratic_constraints.get_names(range(begin, end + 1)).
 
-        >>> from qiskit.optimization.problems import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization.problems import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = [str(i) for i in range(11)])
         >>> [op.quadratic_constraints.add(
         ...      name = "q" + str(i),

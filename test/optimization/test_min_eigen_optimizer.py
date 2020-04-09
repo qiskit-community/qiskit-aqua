@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -14,7 +14,8 @@
 
 """ Test Min Eigen Optimizer """
 
-from test.optimization.common import QiskitOptimizationTestCase
+import unittest
+from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 from ddt import ddt, data
 
 from qiskit import BasicAer
@@ -24,7 +25,7 @@ from qiskit.aqua.algorithms import QAOA
 from qiskit.aqua.components.optimizers import COBYLA
 
 from qiskit.optimization.algorithms import MinimumEigenOptimizer, CplexOptimizer
-from qiskit.optimization.problems import OptimizationProblem
+from qiskit.optimization.problems import QuadraticProgram
 
 
 @ddt
@@ -53,28 +54,34 @@ class TestMinEigenOptimizer(QiskitOptimizationTestCase):
     )
     def test_min_eigen_optimizer(self, config):
         """ Min Eigen Optimizer Test """
+        try:
+            # unpack configuration
+            min_eigen_solver_name, backend, filename = config
 
-        # unpack configuration
-        min_eigen_solver_name, backend, filename = config
+            # get minimum eigen solver
+            min_eigen_solver = self.min_eigen_solvers[min_eigen_solver_name]
+            if backend:
+                min_eigen_solver.quantum_instance = BasicAer.get_backend(backend)
 
-        # get minimum eigen solver
-        min_eigen_solver = self.min_eigen_solvers[min_eigen_solver_name]
-        if backend:
-            min_eigen_solver.quantum_instance = BasicAer.get_backend(backend)
+            # construct minimum eigen optimizer
+            min_eigen_optimizer = MinimumEigenOptimizer(min_eigen_solver)
 
-        # construct minimum eigen optimizer
-        min_eigen_optimizer = MinimumEigenOptimizer(min_eigen_solver)
+            # load optimization problem
+            problem = QuadraticProgram()
+            problem.read(self.resource_path + filename)
 
-        # load optimization problem
-        problem = OptimizationProblem()
-        problem.read(self.resource_path + filename)
+            # solve problem with cplex
+            cplex = CplexOptimizer()
+            cplex_result = cplex.solve(problem)
 
-        # solve problem with cplex
-        cplex = CplexOptimizer()
-        cplex_result = cplex.solve(problem)
+            # solve problem
+            result = min_eigen_optimizer.solve(problem)
 
-        # solve problem
-        result = min_eigen_optimizer.solve(problem)
+            # analyze results
+            self.assertAlmostEqual(cplex_result.fval, result.fval)
+        except NameError as ex:
+            self.skipTest(str(ex))
 
-        # analyze results
-        self.assertAlmostEqual(cplex_result.fval, result.fval)
+
+if __name__ == '__main__':
+    unittest.main()

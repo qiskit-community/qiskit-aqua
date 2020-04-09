@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -11,6 +11,12 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
+""" Types of problems """
+
+from qiskit.optimization import QiskitOptimizationError
+
+# pylint: disable=invalid-name
 
 CPXPROB_LP = 0
 CPXPROB_MILP = 1
@@ -25,15 +31,16 @@ CPXPROB_MIQCP = 11
 CPXPROB_NODEQCP = 12
 
 
-class ProblemType(object):
+class ProblemType:
     """
-    Types of problems the OptimizationProblem class can encapsulate.
+    Types of problems the QuadraticProgram class can encapsulate.
     These types are compatible with those of IBM ILOG CPLEX.
     For explanations of the problem types, see those topics in the
     CPLEX User's Manual in the topic titled Continuous Optimization
     for LP, QP, and QCP or the topic titled Discrete Optimization
     for MILP, FIXEDMILP, NODELP, NODEQP, MIQCP, NODEQCP.
     """
+    # pylint: disable=invalid-name
     LP = CPXPROB_LP
     MILP = CPXPROB_MILP
     fixed_MILP = CPXPROB_FIXEDMILP
@@ -46,17 +53,25 @@ class ProblemType(object):
     MIQCP = CPXPROB_MIQCP
     node_QCP = CPXPROB_NODEQCP
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: int) -> str:
         """Converts a constant to a string.
+
+        Returns:
+            Problem type name.
+
+        Raises:
+            QiskitOptimizationError: if the argument is not valid.
 
         Example usage:
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> op.problem_type.LP
         0
         >>> op.problem_type[0]
         'LP'
         """
+        # pylint: disable=too-many-return-statements
         if item == CPXPROB_LP:
             return 'LP'
         if item == CPXPROB_MILP:
@@ -79,3 +94,4 @@ class ProblemType(object):
             return 'MIQCP'
         if item == CPXPROB_NODEQCP:
             return 'node_QCP'
+        raise QiskitOptimizationError('Invalid problem type: {}'.format(item))

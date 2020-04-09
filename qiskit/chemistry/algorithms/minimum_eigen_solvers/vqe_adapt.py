@@ -16,14 +16,15 @@
 An adaptive VQE implementation.
 """
 
-from typing import Optional, List
+from typing import Optional, List, Union
 import logging
 import warnings
 import re
 import numpy as np
 
+from qiskit.providers import BaseBackend
 from qiskit import ClassicalRegister
-from qiskit.aqua import AquaError
+from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.algorithms import VQAlgorithm, VQE, VQEResult
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.aqua.operators import TPBGroupedWeightedPauliOperator, WeightedPauliOperator
@@ -50,7 +51,8 @@ class VQEAdapt(VQAlgorithm):
                  excitation_pool: Optional[List[WeightedPauliOperator]] = None,
                  threshold: float = 1e-5,
                  delta: float = 1, max_evals_grouped: int = 1,
-                 aux_operators: Optional[List[BaseOperator]] = None) -> None:
+                 aux_operators: Optional[List[BaseOperator]] = None,
+                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
         """
         Args:
             operator: Qubit operator
@@ -62,8 +64,8 @@ class VQEAdapt(VQAlgorithm):
             delta: finite difference step size for gradient computation,
                     has a min. value of 1e-5.
             max_evals_grouped: max number of evaluations performed simultaneously
-            aux_operators: Auxiliary operators to be evaluated
-                                                at each eigenvalue
+            aux_operators: Auxiliary operators to be evaluated at each eigenvalue
+            quantum_instance: Quantum Instance or Backend
 
         Raises:
             ValueError: if var_form_base is not an instance of UCCSD.
@@ -73,7 +75,8 @@ class VQEAdapt(VQAlgorithm):
         validate_min('delta', delta, 1e-5)
         super().__init__(var_form=var_form_base,
                          optimizer=optimizer,
-                         initial_point=initial_point)
+                         initial_point=initial_point,
+                         quantum_instance=quantum_instance)
         self._use_simulator_snapshot_mode = None
         self._ret = None
         self._optimizer.set_max_evals_grouped(max_evals_grouped)

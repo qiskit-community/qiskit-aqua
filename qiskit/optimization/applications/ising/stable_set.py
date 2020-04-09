@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -21,7 +21,6 @@ graph is represented by an adjacency matrix.
 """
 
 import logging
-import warnings
 
 import numpy as np
 from qiskit.quantum_info import Pauli
@@ -96,45 +95,3 @@ def get_graph_solution(x):
         numpy.ndarray: graph solution as binary numpy array.
     """
     return 1 - x
-
-
-def random_graph(n, edge_prob=0.5, savefile=None, seed=None):
-    """ random graph """
-    # pylint: disable=import-outside-toplevel
-    from .common import random_graph as redirect_func
-    warnings.warn("random_graph function has been moved to "
-                  "qiskit.optimization.ising.common, "
-                  "the method here will be removed after Aqua 0.7+",
-                  DeprecationWarning)
-    return redirect_func(n=n, weight_range=2, edge_prob=edge_prob,
-                         negative_weight=False, savefile=savefile, seed=seed)
-
-
-def parse_gset_format(filename):
-    """ parse gset format """
-    # pylint: disable=import-outside-toplevel
-    from .common import parse_gset_format as redirect_func
-    warnings.warn("parse_gset_format function has been moved to "
-                  "qiskit.optimization.ising.common, "
-                  "the method here will be removed after Aqua 0.7+",
-                  DeprecationWarning)
-    return redirect_func(filename)
-
-
-def sample_most_likely(state_vector):
-    """ sample most likely """
-    # pylint: disable=import-outside-toplevel
-    from .common import sample_most_likely as redirect_func
-    warnings.warn("sample_most_likely function has been moved to "
-                  "qiskit.optimization.ising.common, "
-                  "the method here will be removed after Aqua 0.7+",
-                  DeprecationWarning)
-    return redirect_func(state_vector=state_vector)
-
-
-def get_stable_set_qubitops(w):
-    """ get stable set qubit ops """
-    warnings.warn("get_stable_set_qubitops function has been changed to get_operator"
-                  "the method here will be removed after Aqua 0.7+",
-                  DeprecationWarning)
-    return get_operator(w)
