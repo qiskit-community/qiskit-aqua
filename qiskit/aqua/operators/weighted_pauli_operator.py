@@ -624,7 +624,7 @@ class WeightedPauliOperator(BaseOperator):
 
         Raises:
             AquaError: if Operator is empty
-            AquaError: if quantum register is not provided explicitly and 
+            AquaError: if quantum register is not provided explicitly and
                        cannot find quantum register with `q` as the name
             AquaError: The provided qr is not in the wave_function
         """
