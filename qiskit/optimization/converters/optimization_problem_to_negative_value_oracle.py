@@ -34,6 +34,12 @@ class OptimizationProblemToNegativeValueOracle:
     In addition, a state preparation operator is generated from the coefficients and constant of a
     QUBO, which can be used to encode the function into a quantum state. In conjunction, this oracle
     and operator can be used to flag the negative values of a QUBO encoded in a quantum state.
+
+    The construction of the oracle is discussed in [1].
+
+    References:
+        [1]: Gilliam et al., Grover Adaptive Search for Constrained Polynomial Binary Optimization.
+            arxiv:1912.04088.
     """
 
     def __init__(self, num_output_qubits: int, measurement: bool = False) -> None:

@@ -109,7 +109,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         return OptimizationProblemToQubo.is_compatible(problem)
 
     def solve(self, problem: OptimizationProblem) -> OptimizationResult:
-        """Tries to solves the given problem using the recursive optimizer.
+        """Tries to solve the given problem using the recursive optimizer.
 
         Runs the optimizer to try to solve the optimization problem.
 
