@@ -44,7 +44,7 @@ class OptimizationAlgorithm(ABC):
         Returns:
             Returns True if the problem is compatible, False otherwise.
         """
-        return len(self.get_compatibility_msg(problem)) > 0
+        return len(self.get_compatibility_msg(problem)) == 0
 
     @abstractmethod
     def solve(self, problem: QuadraticProgram) -> OptimizationResult:

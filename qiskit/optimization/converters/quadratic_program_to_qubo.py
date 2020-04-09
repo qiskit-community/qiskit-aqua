@@ -56,8 +56,9 @@ class QuadraticProgramToQubo:
         """
 
         # analyze compatibility of problem
-        if not self.is_compatible(problem):
-            raise QiskitOptimizationError('Incompatible problem.')
+        msg = self.get_compatibility_msg(problem)
+        if len(msg) > 0:
+            raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
 
         # map integer variables to binary variables
         problem_ = self._int_to_bin.encode(problem)
@@ -134,4 +135,4 @@ class QuadraticProgramToQubo:
         Returns:
             Returns True if the problem is compatible, False otherwise.
         """
-        return len(self.get_compatibility_msg(problem)) > 0
+        return len(self.get_compatibility_msg(problem)) == 0
