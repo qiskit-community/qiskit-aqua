@@ -13,16 +13,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""A wrapper for minimum eigen solvers from Qiskit Aqua to be used within Qiskit Optimization.
-
-Examples:
-    >>> problem = OptimizationProblem()
-    >>> # specify problem here
-    >>> # specify minimum eigen solver to be used, e.g., QAOA
-    >>> qaoa = QAOA(...)
-    >>> optimizer = MinEigenOptimizer(qaoa)
-    >>> result = optimizer.solve(problem)
-"""
+"""A wrapper for minimum eigen solvers from Qiskit Aqua to be used within Qiskit Optimization."""
 
 from typing import Optional, Any
 import numpy as np
@@ -30,10 +21,10 @@ import numpy as np
 from qiskit.aqua.algorithms import MinimumEigensolver
 
 from .optimization_algorithm import OptimizationAlgorithm
-from ..problems.optimization_problem import OptimizationProblem
+from ..problems.quadratic_program import QuadraticProgram
 from ..utils.eigenvector_to_solutions import eigenvector_to_solutions
-from ..converters.optimization_problem_to_operator import OptimizationProblemToOperator
-from ..converters.optimization_problem_to_qubo import OptimizationProblemToQubo
+from ..converters.quadratic_program_to_operator import QuadraticProgramToOperator
+from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
 from ..results.optimization_result import OptimizationResult
 
 
@@ -86,6 +77,14 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
     corresponding eigenstate correspond to the optimal solution of the original optimization
     problem. The provided minimum eigen solver is then used to approximate the ground state of the
     Hamiltonian to find a good solution for the optimization problem.
+
+    Examples:
+        >>> problem = QuadraticProgram()
+        >>> # specify problem here
+        >>> # specify minimum eigen solver to be used, e.g., QAOA
+        >>> qaoa = QAOA(...)
+        >>> optimizer = MinEigenOptimizer(qaoa)
+        >>> result = optimizer.solve(problem)
     """
 
     def __init__(self, min_eigen_solver: MinimumEigensolver, penalty: Optional[float] = None
@@ -104,7 +103,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         self._min_eigen_solver = min_eigen_solver
         self._penalty = penalty
 
-    def is_compatible(self, problem: OptimizationProblem) -> Optional[str]:
+    def is_compatible(self, problem: QuadraticProgram) -> Optional[str]:
         """Checks whether a given problem can be solved with this optimizer.
 
         Checks whether the given problem is compatible, i.e., whether the problem can be converted
@@ -116,9 +115,9 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         Returns:
             Returns ``None`` if the problem is compatible and else a string with the error message.
         """
-        return OptimizationProblemToQubo.is_compatible(problem)
+        return QuadraticProgramToQubo.is_compatible(problem)
 
-    def solve(self, problem: OptimizationProblem) -> MinimumEigenOptimizerResult:
+    def solve(self, problem: QuadraticProgram) -> MinimumEigenOptimizerResult:
         """Tries to solves the given problem using the optimizer.
 
         Runs the optimizer to try to solve the optimization problem.
@@ -132,11 +131,11 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         """
 
         # convert problem to QUBO
-        qubo_converter = OptimizationProblemToQubo()
+        qubo_converter = QuadraticProgramToQubo()
         problem_ = qubo_converter.encode(problem)
 
         # construct operator and offset
-        operator_converter = OptimizationProblemToOperator()
+        operator_converter = QuadraticProgramToOperator()
         operator, offset = operator_converter.encode(problem_)
 
         # approximate ground state of operator using min eigen solver

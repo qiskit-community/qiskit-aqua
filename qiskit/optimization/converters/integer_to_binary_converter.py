@@ -15,35 +15,53 @@
 """The converter to convert an integer problem to a binary problem."""
 
 import copy
-from typing import List, Tuple, Dict, Optional
-
+from typing import Dict, List, Optional, Tuple
+import logging
 import numpy as np
-from cplex import SparsePair
 
-from ..problems.optimization_problem import OptimizationProblem
+from ..problems.quadratic_program import QuadraticProgram
 from ..results.optimization_result import OptimizationResult
+from ..utils.qiskit_optimization_error import QiskitOptimizationError
+
+logger = logging.getLogger(__name__)
+
+_HAS_CPLEX = False
+try:
+    from cplex import SparsePair
+    _HAS_CPLEX = True
+except ImportError:
+    logger.info('CPLEX is not installed.')
 
 
 class IntegerToBinaryConverter:
-    """Convert an `OptimizationProblem` into new one by encoding integer with binary variables.
+    """Convert an `QuadraticProgram` into new one by encoding integer with binary variables.
+
+    This bounded-coefficient encoding used in this converted is proposed in [1], Eq. (5).
 
     Examples:
-        >>> problem = OptimizationProblem()
+        >>> problem = QuadraticProgram()
         >>> problem.variables.add(names=['x'], types=['I'], lb=[0], ub=[10])
         >>> conv = IntegerToBinaryConverter()
         >>> problem2 = conv.encode(problem)
+
+    References:
+        [1]: Sahar Karimi, Pooya Ronagh (2017), Practical Integer-to-Binary Mapping for Quantum
+            Annealers. arxiv.org:1706.01945.
     """
 
     _delimiter = '@'  # users are supposed not to use this character in variable names
 
     def __init__(self) -> None:
         """Initializes the internal data structure."""
+        if not _HAS_CPLEX:
+            raise NameError('CPLEX is not installed.')
+
         self._src = None
         self._dst = None
         self._conv: Dict[str, List[Tuple[str, int]]] = {}
         # e.g., self._conv = {'x': [('x@1', 1), ('x@2', 2)]}
 
-    def encode(self, op: OptimizationProblem, name: Optional[str] = None) -> OptimizationProblem:
+    def encode(self, op: QuadraticProgram, name: Optional[str] = None) -> QuadraticProgram:
         """Convert an integer problem into a new problem with binary variables.
 
         Args:
@@ -56,7 +74,7 @@ class IntegerToBinaryConverter:
         """
 
         self._src = copy.deepcopy(op)
-        self._dst = OptimizationProblem()
+        self._dst = QuadraticProgram()
         if name:
             self._dst.set_problem_name(name)
         else:
@@ -69,31 +87,24 @@ class IntegerToBinaryConverter:
         upper_bounds = self._src.variables.get_upper_bounds()
         for i, variable in enumerate(names):
             typ = types[i]
-            if typ == 'I':
-                new_vars: List[Tuple[str, int]] = self._encode_var(name=variable,
-                                                                   lower_bound=lower_bounds[i],
-                                                                   upper_bound=upper_bounds[i])
+            if typ == "I":
+                new_vars: List[Tuple[str, int]] = self._encode_var(
+                    name=variable, lower_bound=lower_bounds[i], upper_bound=upper_bounds[i]
+                )
                 self._conv[variable] = new_vars
-                self._dst.variables.add(names=[new_name for new_name, _ in new_vars],
-                                        types='B' * len(new_vars))
+                self._dst.variables.add(
+                    names=[new_name for new_name, _ in new_vars], types="B" * len(new_vars)
+                )
             else:
-                self._dst.variables.add(names=[variable], types=typ,
-                                        lb=[lower_bounds[i]], ub=[upper_bounds[i]])
-
-        # replace integer variables with binary variables in the objective function
-        # self.objective.subs(self._conv)
-
-        # replace integer variables with binary variables in the constrains
-        # self.linear_constraints.subs(self._conv)
-        # self.quadratic_constraints.subs(self._conv)
-        # note: `subs` substitutes variables with sets of auxiliary variables
+                self._dst.variables.add(
+                    names=[variable], types=typ, lb=[lower_bounds[i]], ub=[upper_bounds[i]]
+                )
 
         self._substitute_int_var()
 
         return self._dst
 
     def _encode_var(self, name: str, lower_bound: int, upper_bound: int) -> List[Tuple[str, int]]:
-        # bounded-coefficient encoding proposed in arxiv:1706.01945 (Eq. (5))
         var_range = upper_bound - lower_bound
         power = int(np.log2(var_range))
         bounded_coef = var_range - (2 ** power - 1)
@@ -120,7 +131,7 @@ class IntegerToBinaryConverter:
         self._dst.objective.set_offset(self._src.objective.get_offset())
 
         # set linear terms of objective function
-        src_obj_linear = self._src.objective.get_linear()
+        src_obj_linear = self._src.objective.get_linear_dict()
 
         for src_var_index in src_obj_linear:
             coef = src_obj_linear[src_var_index]
@@ -134,32 +145,30 @@ class IntegerToBinaryConverter:
                 self._dst.objective.set_linear(var_name, coef)
 
         # set quadratic terms of objective function
-        src_obj_quad = self._src.objective.get_quadratic()
+        src_obj_quad = self._src.objective.get_quadratic_dict()
 
         num_var = self._dst.variables.get_num()
         new_quad = np.zeros((num_var, num_var))
 
-        for row in src_obj_quad:
-            for col in src_obj_quad[row]:
-                row_var_name = self._src.variables.get_names(row)
-                col_var_name = self._src.variables.get_names(col)
-                coef = src_obj_quad[row][col]
+        for (row, col), coef in src_obj_quad.items():
+            row_var_name = self._src.variables.get_names(row)
+            col_var_name = self._src.variables.get_names(col)
 
-                if row_var_name in self._conv:
-                    row_vars = self._conv[row_var_name]
-                else:
-                    row_vars = [(row_var_name, 1)]
+            if row_var_name in self._conv:
+                row_vars = self._conv[row_var_name]
+            else:
+                row_vars = [(row_var_name, 1)]
 
-                if col_var_name in self._conv:
-                    col_vars = self._conv[col_var_name]
-                else:
-                    col_vars = [(col_var_name, 1)]
+            if col_var_name in self._conv:
+                col_vars = self._conv[col_var_name]
+            else:
+                col_vars = [(col_var_name, 1)]
 
-                for new_row, row_coef in row_vars:
-                    for new_col, col_coef in col_vars:
-                        row_index = self._dst.variables.get_indices(new_row)
-                        col_index = self._dst.variables.get_indices(new_col)
-                        new_quad[row_index, col_index] = coef * row_coef * col_coef
+            for new_row, row_coef in row_vars:
+                for new_col, col_coef in col_vars:
+                    row_index = self._dst.variables.get_indices(new_row)
+                    col_index = self._dst.variables.get_indices(new_col)
+                    new_quad[row_index, col_index] = coef * row_coef * col_coef
 
         ind = list(range(num_var))
         lst = []
@@ -192,8 +201,13 @@ class IntegerToBinaryConverter:
 
             lin_expr.append(sparse_pair)
 
-        self._dst.linear_constraints.add(lin_expr, linear_sense, linear_rhs, linear_ranges,
-                                         linear_names)
+        self._dst.linear_constraints.add(
+            lin_expr, linear_sense, linear_rhs, linear_ranges, linear_names
+        )
+
+        # TODO: add quadratic constraints
+        if self._src.quadratic_constraints.get_num() > 0:
+            raise QiskitOptimizationError('Quadratic constraints are not yet supported.')
 
     def decode(self, result: OptimizationResult) -> OptimizationResult:
         """Convert the encoded problem (binary variables) back to the original (integer variables).
@@ -212,7 +226,7 @@ class IntegerToBinaryConverter:
 
     def _decode_var(self, names, vals) -> List[int]:
         # decode integer values
-        sol = {name: int(vals[i]) for i, name in enumerate(names)}
+        sol = {name: float(vals[i]) for i, name in enumerate(names)}
         new_vals = []
         for name in self._src.variables.get_names():
             if name in self._conv:

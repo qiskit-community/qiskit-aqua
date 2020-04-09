@@ -16,22 +16,37 @@
 
 import unittest
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
-from cplex import SparsePair
-from qiskit.optimization import OptimizationProblem
+import logging
+
+from qiskit.optimization import QuadraticProgram
+
+logger = logging.getLogger(__name__)
+
+_HAS_CPLEX = False
+try:
+    from cplex import SparsePair
+    _HAS_CPLEX = True
+except ImportError:
+    logger.info('CPLEX is not installed.')
 
 
 class TestLinearConstraints(QiskitOptimizationTestCase):
     """Test LinearConstraintInterface."""
 
+    def setUp(self) -> None:
+        super().setUp()
+        if not _HAS_CPLEX:
+            self.skipTest('CPLEX is not installed.')
+
     def test_get_num(self):
         """ test get num """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.linear_constraints.add(names=["c1", "c2", "c3"])
         self.assertEqual(op.linear_constraints.get_num(), 3)
 
     def test_add(self):
         """ test add """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=["x1", "x2", "x3"])
         op.linear_constraints.add(
             lin_expr=[SparsePair(ind=["x1", "x3"], val=[1.0, -1.0]),
@@ -46,7 +61,7 @@ class TestLinearConstraints(QiskitOptimizationTestCase):
 
     def test_delete(self):
         """ test delete """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.linear_constraints.add(names=[str(i) for i in range(10)])
         self.assertEqual(op.linear_constraints.get_num(), 10)
         op.linear_constraints.delete(8)
@@ -61,7 +76,7 @@ class TestLinearConstraints(QiskitOptimizationTestCase):
 
     def test_rhs(self):
         """ test rhs """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.linear_constraints.add(names=["c0", "c1", "c2", "c3"])
         self.assertListEqual(op.linear_constraints.get_rhs(), [0.0, 0.0, 0.0, 0.0])
         op.linear_constraints.set_rhs("c1", 1.0)
@@ -71,7 +86,7 @@ class TestLinearConstraints(QiskitOptimizationTestCase):
 
     def test_set_names(self):
         """ test set names """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.linear_constraints.add(names=["c0", "c1", "c2", "c3"])
         op.linear_constraints.set_names("c1", "second")
         self.assertEqual(op.linear_constraints.get_names(1), 'second')
@@ -80,7 +95,7 @@ class TestLinearConstraints(QiskitOptimizationTestCase):
 
     def test_set_senses(self):
         """ test set senses """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.linear_constraints.add(names=["c0", "c1", "c2", "c3"])
         self.assertListEqual(op.linear_constraints.get_senses(), ['E', 'E', 'E', 'E'])
         op.linear_constraints.set_senses("c1", "G")
@@ -90,7 +105,7 @@ class TestLinearConstraints(QiskitOptimizationTestCase):
 
     def test_set_linear_components(self):
         """ test set linear components """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.linear_constraints.add(names=["c0", "c1", "c2", "c3"])
         op.variables.add(names=["x0", "x1"])
         op.linear_constraints.set_linear_components("c0", [["x0"], [1.0]])
@@ -110,7 +125,7 @@ class TestLinearConstraints(QiskitOptimizationTestCase):
 
     def test_set_range_values(self):
         """ test set range values """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.linear_constraints.add(names=["c0", "c1", "c2", "c3"])
         op.linear_constraints.set_range_values("c1", 1.0)
         self.assertListEqual(op.linear_constraints.get_range_values(), [0.0, 1.0, 0.0, 0.0])
@@ -119,7 +134,7 @@ class TestLinearConstraints(QiskitOptimizationTestCase):
 
     def test_set_coeffients(self):
         """ test set coefficients """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.linear_constraints.add(names=["c0", "c1", "c2", "c3"])
         op.variables.add(names=["x0", "x1"])
         op.linear_constraints.set_coefficients("c0", "x1", 1.0)
@@ -134,7 +149,7 @@ class TestLinearConstraints(QiskitOptimizationTestCase):
 
     def test_get_rhs(self):
         """ test get rhs """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.linear_constraints.add(rhs=[1.5 * i for i in range(10)],
                                   names=[str(i) for i in range(10)])
         self.assertEqual(op.linear_constraints.get_num(), 10)
@@ -145,7 +160,7 @@ class TestLinearConstraints(QiskitOptimizationTestCase):
 
     def test_get_senses(self):
         """ test get senses """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.linear_constraints.add(
             senses=["E", "G", "L", "R"],
             names=[str(i) for i in range(4)])
@@ -157,7 +172,7 @@ class TestLinearConstraints(QiskitOptimizationTestCase):
 
     def test_get_range_values(self):
         """ test get range values """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.linear_constraints.add(
             range_values=[1.5 * i for i in range(10)],
             senses=["R"] * 10,
@@ -171,7 +186,7 @@ class TestLinearConstraints(QiskitOptimizationTestCase):
 
     def test_get_coefficients(self):
         """ test get coefficients """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=["x0", "x1"])
         op.linear_constraints.add(
             names=["c0", "c1"],
@@ -182,7 +197,7 @@ class TestLinearConstraints(QiskitOptimizationTestCase):
 
     def test_get_rows(self):
         """ test get rows """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=["x1", "x2", "x3"])
         op.linear_constraints.add(
             names=["c0", "c1", "c2", "c3"],
@@ -220,7 +235,7 @@ class TestLinearConstraints(QiskitOptimizationTestCase):
 
     def test_get_num_nonzeros(self):
         """ test get num non zeros """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=["x1", "x2", "x3"])
         op.linear_constraints.add(
             names=["c0", "c1", "c2", "c3"],
@@ -234,7 +249,7 @@ class TestLinearConstraints(QiskitOptimizationTestCase):
 
     def test_get_names(self):
         """ test get names """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.linear_constraints.add(names=["c" + str(i) for i in range(10)])
         self.assertEqual(op.linear_constraints.get_num(), 10)
         self.assertEqual(op.linear_constraints.get_names(8), 'c8')
@@ -244,9 +259,20 @@ class TestLinearConstraints(QiskitOptimizationTestCase):
 
     def test_get_histogram(self):
         """ test get histogram """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         with self.assertRaises(NotImplementedError):
             op.linear_constraints.get_histogram()
+
+    def test_empty_names(self):
+        """ test empty names """
+        op = QuadraticProgram()
+        r = op.linear_constraints.add(names=['', '', ''])
+        self.assertListEqual(op.linear_constraints.get_names(), ['c1', 'c2', 'c3'])
+        self.assertEqual(r, range(0, 3))
+        r = op.linear_constraints.add(names=['a', '', 'c'])
+        self.assertEqual(r, range(3, 6))
+        self.assertListEqual(op.linear_constraints.get_names(),
+                             ['c1', 'c2', 'c3', 'a', 'c5', 'c'])
 
 
 if __name__ == '__main__':

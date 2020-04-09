@@ -13,14 +13,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""The COBYLA optimizer wrapped to be used within Qiskit Optimization.
-
-    Examples:
-        >>> problem = OptimizationProblem()
-        >>> # specify problem here
-        >>> optimizer = CobylaOptimizer()
-        >>> result = optimizer.solve(problem)
-"""
+"""The COBYLA optimizer wrapped to be used within Qiskit Optimization."""
 
 from typing import Optional
 
@@ -29,7 +22,7 @@ from scipy.optimize import fmin_cobyla
 
 from qiskit.optimization.algorithms import OptimizationAlgorithm
 from qiskit.optimization.results import OptimizationResult
-from qiskit.optimization.problems import OptimizationProblem
+from qiskit.optimization.problems import QuadraticProgram
 from qiskit.optimization import QiskitOptimizationError
 from qiskit.optimization import infinity
 
@@ -41,6 +34,12 @@ class CobylaOptimizer(OptimizationAlgorithm):
     (https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.optimize.fmin_cobyla.html)
     to be used within Qiskit Optimization.
     The arguments for ``fmin_cobyla`` are passed via the constructor.
+
+    Examples:
+        >>> problem = QuadraticProgram()
+        >>> # specify problem here
+        >>> optimizer = CobylaOptimizer()
+        >>> result = optimizer.solve(problem)
     """
 
     def __init__(self, rhobeg: float = 1.0, rhoend: float = 1e-4, maxfun: int = 1000,
@@ -48,7 +47,7 @@ class CobylaOptimizer(OptimizationAlgorithm):
         """Initializes the CobylaOptimizer.
 
         This initializer takes the algorithmic parameters of COBYLA and stores them for later use
-        of ``fmin_cobyla`` when ``solve()`` is invoked.
+        of ``fmin_cobyla`` when :meth:`solve` is invoked.
         This optimizer can be applied to find a (local) optimum for problems consisting of only
         continuous variables.
 
@@ -68,7 +67,7 @@ class CobylaOptimizer(OptimizationAlgorithm):
         self._disp = disp
         self._catol = catol
 
-    def is_compatible(self, problem: OptimizationProblem) -> Optional[str]:
+    def is_compatible(self, problem: QuadraticProgram) -> Optional[str]:
         """Checks whether a given problem can be solved with this optimizer.
 
         Checks whether the given problem is compatible, i.e., whether the problem contains only
@@ -94,7 +93,7 @@ class CobylaOptimizer(OptimizationAlgorithm):
         else:
             return None
 
-    def solve(self, problem: OptimizationProblem) -> OptimizationResult:
+    def solve(self, problem: QuadraticProgram) -> OptimizationResult:
         """Tries to solves the given problem using the optimizer.
 
         Runs the optimizer to try to solve the optimization problem.
@@ -119,15 +118,14 @@ class CobylaOptimizer(OptimizationAlgorithm):
 
         # construct objective function from linear and quadratic part of objective
         offset = problem.objective.get_offset()
-        linear_dict = problem.objective.get_linear()
-        quadratic_dict = problem.objective.get_quadratic()
+        linear_dict = problem.objective.get_linear_dict()
+        quadratic_dict = problem.objective.get_quadratic_dict()
         linear = np.zeros(num_vars)
         quadratic = np.zeros((num_vars, num_vars))
         for i, v in linear_dict.items():
             linear[i] = v
-        for i, v_i in quadratic_dict.items():
-            for j, v in v_i.items():
-                quadratic[i, j] = v
+        for (i, j), v in quadratic_dict.items():
+            quadratic[i, j] = v
 
         def objective(x):
             value = problem.objective.get_sense() * (

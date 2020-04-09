@@ -16,16 +16,17 @@
 
 import unittest
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
-from ddt import ddt, data
+import numpy as np
+from ddt import ddt, data, unpack
 
 from qiskit import BasicAer
-from qiskit.aqua.algorithms import NumPyMinimumEigensolver
-from qiskit.aqua.algorithms import QAOA
+from qiskit.aqua import QuantumInstance, aqua_globals
+from qiskit.aqua.algorithms import NumPyMinimumEigensolver, QAOA
 from qiskit.aqua.components.optimizers import COBYLA
 
 from qiskit.optimization.algorithms import (MinimumEigenOptimizer, CplexOptimizer,
                                             RecursiveMinimumEigenOptimizer)
-from qiskit.optimization.problems import OptimizationProblem
+from qiskit.optimization.problems import QuadraticProgram
 
 
 @ddt
@@ -35,54 +36,65 @@ class TestRecursiveMinEigenOptimizer(QiskitOptimizationTestCase):
     def setUp(self):
         super().setUp()
 
+        # fix random seed for reproducible results
+        np.random.seed = 109
+        aqua_globals.random_seed = 89
+
         self.resource_path = './test/optimization/resources/'
+
+        # setup simulators
+        self.qinstances = {}
+        self.qinstances['qasm'] = QuantumInstance(
+            BasicAer.get_backend('qasm_simulator'),
+            shots=10000,
+            seed_simulator=51,
+            seed_transpiler=80
+        )
+        self.qinstances['statevector'] = QuantumInstance(
+            BasicAer.get_backend('statevector_simulator'),
+            seed_simulator=51,
+            seed_transpiler=80
+        )
 
         # setup minimum eigen solvers
         self.min_eigen_solvers = {}
-
-        # exact eigen solver
         self.min_eigen_solvers['exact'] = NumPyMinimumEigensolver()
-
-        # QAOA
-        optimizer = COBYLA()
-        self.min_eigen_solvers['qaoa'] = QAOA(optimizer=optimizer)
+        self.min_eigen_solvers['qaoa'] = QAOA(optimizer=COBYLA())
 
     @data(
         ('exact', None, 'op_ip1.lp'),
-        ('qaoa', 'statevector_simulator', 'op_ip1.lp'),
-        ('qaoa', 'qasm_simulator', 'op_ip1.lp')
+        ('qaoa', 'statevector', 'op_ip1.lp'),
+        ('qaoa', 'qasm', 'op_ip1.lp')
     )
-    def test_recursive_min_eigen_optimizer(self, config):
+    @unpack
+    def test_recursive_min_eigen_optimizer(self, solver, simulator, filename):
         """ Min Eigen Optimizer Test """
+        try:
+            # get minimum eigen solver
+            min_eigen_solver = self.min_eigen_solvers[solver]
+            if simulator:
+                min_eigen_solver.quantum_instance = self.qinstances[simulator]
 
-        # unpack configuration
-        min_eigen_solver_name, backend, filename = config
+            # construct minimum eigen optimizer
+            min_eigen_optimizer = MinimumEigenOptimizer(min_eigen_solver)
+            recursive_min_eigen_optimizer = RecursiveMinimumEigenOptimizer(min_eigen_optimizer,
+                                                                           min_num_vars=4)
 
-        # get minimum eigen solver
-        min_eigen_solver = self.min_eigen_solvers[min_eigen_solver_name]
-        if backend:
-            min_eigen_solver.quantum_instance = BasicAer.get_backend(backend)
-            if backend == 'qasm_simulator':
-                min_eigen_solver.quantum_instance.run_config.shots = 10000
+            # load optimization problem
+            problem = QuadraticProgram()
+            problem.read(self.resource_path + filename)
 
-        min_eigen_optimizer = MinimumEigenOptimizer(min_eigen_solver)
-        # construct minimum eigen optimizer
-        recursive_min_eigen_optimizer = RecursiveMinimumEigenOptimizer(min_eigen_optimizer,
-                                                                       min_num_vars=4)
+            # solve problem with cplex
+            cplex = CplexOptimizer()
+            cplex_result = cplex.solve(problem)
 
-        # load optimization problem
-        problem = OptimizationProblem()
-        problem.read(self.resource_path + filename)
+            # solve problem
+            result = recursive_min_eigen_optimizer.solve(problem)
 
-        # solve problem with cplex
-        cplex = CplexOptimizer()
-        cplex_result = cplex.solve(problem)
-
-        # solve problem
-        result = recursive_min_eigen_optimizer.solve(problem)
-
-        # analyze results
-        self.assertAlmostEqual(cplex_result.fval, result.fval)
+            # analyze results
+            self.assertAlmostEqual(cplex_result.fval, result.fval)
+        except NameError as ex:
+            self.skipTest(str(ex))
 
 
 if __name__ == '__main__':

@@ -20,9 +20,9 @@ import math
 import numpy as np
 from qiskit.aqua import QuantumInstance
 from qiskit.optimization.algorithms import OptimizationAlgorithm
-from qiskit.optimization.problems import OptimizationProblem
-from qiskit.optimization.converters import (OptimizationProblemToQubo,
-                                            OptimizationProblemToNegativeValueOracle)
+from qiskit.optimization.problems import QuadraticProgram
+from qiskit.optimization.converters import (QuadraticProgramToQubo,
+                                            QuadraticProgramToNegativeValueOracle)
 from qiskit.optimization.results import GroverOptimizationResults
 from qiskit.optimization.results import OptimizationResult
 from qiskit.optimization.util import get_qubo_solutions
@@ -53,7 +53,7 @@ class GroverOptimizer(OptimizationAlgorithm):
             quantum_instance = QuantumInstance(backend)
         self._quantum_instance = quantum_instance
 
-    def is_compatible(self, problem: OptimizationProblem) -> Optional[str]:
+    def is_compatible(self, problem: QuadraticProgram) -> Optional[str]:
         """Checks whether a given problem can be solved with this optimizer.
 
         Checks whether the given problem is compatible, i.e., whether the problem can be converted
@@ -65,9 +65,9 @@ class GroverOptimizer(OptimizationAlgorithm):
         Returns:
             Returns ``None`` if the problem is compatible and else a string with the error message.
         """
-        return OptimizationProblemToQubo.is_compatible(problem)
+        return QuadraticProgramToQubo.is_compatible(problem)
 
-    def solve(self, problem: OptimizationProblem) -> OptimizationResult:
+    def solve(self, problem: QuadraticProgram) -> OptimizationResult:
         """Tries to solves the given problem using the optimizer.
 
         Runs the optimizer to try to solve the optimization problem. If problem is not convex,
@@ -84,7 +84,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         """
 
         # convert problem to QUBO
-        qubo_converter = OptimizationProblemToQubo()
+        qubo_converter = QuadraticProgramToQubo()
         problem_ = qubo_converter.encode(problem)
 
         # Variables for tracking the optimum.
@@ -107,8 +107,8 @@ class GroverOptimizer(OptimizationAlgorithm):
         # Initialize oracle helper object.
         orig_constant = problem_.objective.get_offset()
         measurement = not self._quantum_instance.is_statevector
-        opt_prob_converter = OptimizationProblemToNegativeValueOracle(n_value,
-                                                                      measurement)
+        opt_prob_converter = QuadraticProgramToNegativeValueOracle(n_value,
+                                                                   measurement)
 
         loops_with_no_improvement = 0
         while not optimum_found:

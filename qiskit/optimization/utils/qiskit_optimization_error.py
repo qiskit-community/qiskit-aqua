@@ -14,14 +14,9 @@
 
 """ Optimization Exception """
 
+from qiskit.aqua.aqua_error import AquaError
 
-class QiskitOptimizationError(Exception):
-    """Class for errors returned by Qiskit Optimization libraries functions.
 
-    self.args[0] : A string describing the error.
-    """
-
-    def __str__(self):
-        # Note: this is actually ok. Exception does have subscriptable args.
-        # pylint: disable=unsubscriptable-object
-        return self.args[0]
+class QiskitOptimizationError(AquaError):
+    """Class for errors returned by Qiskit Optimization libraries functions."""
+    pass

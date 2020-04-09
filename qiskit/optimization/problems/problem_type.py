@@ -14,6 +14,8 @@
 
 """ Types of problems """
 
+from qiskit.optimization import QiskitOptimizationError
+
 # pylint: disable=invalid-name
 
 CPXPROB_LP = 0
@@ -31,13 +33,14 @@ CPXPROB_NODEQCP = 12
 
 class ProblemType:
     """
-    Types of problems the OptimizationProblem class can encapsulate.
+    Types of problems the QuadraticProgram class can encapsulate.
     These types are compatible with those of IBM ILOG CPLEX.
     For explanations of the problem types, see those topics in the
     CPLEX User's Manual in the topic titled Continuous Optimization
     for LP, QP, and QCP or the topic titled Discrete Optimization
     for MILP, FIXEDMILP, NODELP, NODEQP, MIQCP, NODEQCP.
     """
+    # pylint: disable=invalid-name
     LP = CPXPROB_LP
     MILP = CPXPROB_MILP
     fixed_MILP = CPXPROB_FIXEDMILP
@@ -50,12 +53,19 @@ class ProblemType:
     MIQCP = CPXPROB_MIQCP
     node_QCP = CPXPROB_NODEQCP
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: int) -> str:
         """Converts a constant to a string.
+
+        Returns:
+            Problem type name.
+
+        Raises:
+            QiskitOptimizationError: if the argument is not valid.
 
         Example usage:
 
-        >>> op = qiskit.optimization.OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> op.problem_type.LP
         0
         >>> op.problem_type[0]
@@ -84,4 +94,4 @@ class ProblemType:
             return 'MIQCP'
         if item == CPXPROB_NODEQCP:
             return 'node_QCP'
-        return None
+        raise QiskitOptimizationError('Invalid problem type: {}'.format(item))

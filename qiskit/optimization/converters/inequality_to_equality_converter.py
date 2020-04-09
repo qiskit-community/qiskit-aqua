@@ -17,19 +17,27 @@
 import copy
 import math
 from typing import List, Tuple, Dict, Optional
+import logging
 
-from cplex import SparsePair
-
-from ..problems.optimization_problem import OptimizationProblem
+from ..problems.quadratic_program import QuadraticProgram
 from ..results.optimization_result import OptimizationResult
 from ..utils.qiskit_optimization_error import QiskitOptimizationError
+
+logger = logging.getLogger(__name__)
+
+_HAS_CPLEX = False
+try:
+    from cplex import SparsePair
+    _HAS_CPLEX = True
+except ImportError:
+    logger.info('CPLEX is not installed.')
 
 
 class InequalityToEqualityConverter:
     """Convert inequality constraints into equality constraints by introducing slack variables.
 
     Examples:
-        >>> problem = OptimizationProblem()
+        >>> problem = QuadraticProgram()
         >>> # define a problem
         >>> conv = InequalityToEqualityConverter()
         >>> problem2 = conv.encode(problem)
@@ -38,15 +46,17 @@ class InequalityToEqualityConverter:
     _delimiter = '@'  # users are supposed not to use this character in variable names
 
     def __init__(self) -> None:
-        """Initialize the integral variables."""
+        """Initialize the inequality to equality variable converter."""
+        if not _HAS_CPLEX:
+            raise NameError('CPLEX is not installed.')
 
         self._src = None
         self._dst = None
         self._conv: Dict[str, List[Tuple[str, int]]] = {}
         # e.g., self._conv = {'c1': [c1@slack_var]}
 
-    def encode(self, op: OptimizationProblem, name: Optional[str] = None,
-               mode: str = 'auto') -> OptimizationProblem:
+    def encode(self, op: QuadraticProgram, name: Optional[str] = None,
+               mode: str = 'auto') -> QuadraticProgram:
         """Convert a problem with inequality constraints into one with only equality constraints.
 
         Args:
@@ -67,7 +77,7 @@ class InequalityToEqualityConverter:
             QiskitOptimizationError: If an unsupported sense is specified.
         """
         self._src = copy.deepcopy(op)
-        self._dst = OptimizationProblem()
+        self._dst = QuadraticProgram()
 
         # declare variables
         names = self._src.variables.get_names()
@@ -99,13 +109,12 @@ class InequalityToEqualityConverter:
         self._dst.objective.set_offset(self._src.objective.get_offset())
 
         # set linear objective terms
-        for i, v in self._src.objective.get_linear().items():
+        for i, v in self._src.objective.get_linear_dict().items():
             self._dst.objective.set_linear(i, v)
 
         # set quadratic objective terms
-        for i, v_i in self._src.objective.get_quadratic().items():
-            for j, v in v_i.items():
-                self._dst.objective.set_quadratic_coefficients(i, j, v)
+        for (i, j), v in self._src.objective.get_quadratic_dict().items():
+            self._dst.objective.set_quadratic_coefficients(i, j, v)
 
         # set linear constraints
         names = self._src.linear_constraints.get_names()
@@ -151,6 +160,10 @@ class InequalityToEqualityConverter:
 
             else:
                 raise QiskitOptimizationError('Type of sense in ' + variable + 'is not supported')
+
+        # TODO: add quadratic constraints
+        if self._src.quadratic_constraints.get_num() > 0:
+            raise QiskitOptimizationError('Quadratic constraints are not yet supported.')
 
         return self._dst
 

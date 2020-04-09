@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 
 # This code is part of Qiskit.
@@ -16,7 +15,7 @@
 """A recursive minimal eigen optimizer in Qiskit Optimization.
 
     Examples:
-        >>> problem = OptimizationProblem()
+        >>> problem = QuadraticProgram()
         >>> # specify problem here
         >>> # specify minimum eigen solver to be used, e.g., QAOA
         >>> qaoa = QAOA(...)
@@ -26,16 +25,27 @@
 
 from copy import deepcopy
 from typing import Optional
+import logging
 import numpy as np
 
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
+from qiskit.aqua.utils.validation import validate_min
 
 from .optimization_algorithm import OptimizationAlgorithm
 from .minimum_eigen_optimizer import MinimumEigenOptimizer
 from ..utils.qiskit_optimization_error import QiskitOptimizationError
-from ..problems.optimization_problem import OptimizationProblem
+from ..problems.quadratic_program import QuadraticProgram
 from ..results.optimization_result import OptimizationResult
-from ..converters.optimization_problem_to_qubo import OptimizationProblemToQubo
+from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
+
+logger = logging.getLogger(__name__)
+
+_HAS_CPLEX = False
+try:
+    from cplex import SparseTriple
+    _HAS_CPLEX = True
+except ImportError:
+    logger.info('CPLEX is not installed.')
 
 
 class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
@@ -65,15 +75,18 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
 
         Raises:
             QiskitOptimizationError: In case of invalid parameters (num_min_vars < 1).
+            NameError: CPLEX is not installed.
         """
 
         # TODO: should also allow function that maps problem to <ZZ>-correlators?
         # --> would support efficient classical implementation for QAOA with depth p=1
         # --> add results class for MinimumEigenSolver that contains enough info to do so.
+        if not _HAS_CPLEX:
+            raise NameError('CPLEX is not installed.')
+
+        validate_min('min_num_vars', min_num_vars, 1)
 
         self._min_eigen_optimizer = min_eigen_optimizer
-        if min_num_vars < 1:
-            raise QiskitOptimizationError('Minimal problem size needs to be >= 1!')
         self._min_num_vars = min_num_vars
         if min_num_vars_optimizer:
             self._min_num_vars_optimizer = min_num_vars_optimizer
@@ -81,7 +94,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
             self._min_num_vars_optimizer = MinimumEigenOptimizer(NumPyMinimumEigensolver())
         self._penalty = penalty
 
-    def is_compatible(self, problem: OptimizationProblem) -> Optional[str]:
+    def is_compatible(self, problem: QuadraticProgram) -> Optional[str]:
         """Checks whether a given problem can be solved with this optimizer.
 
         Checks whether the given problem is compatible, i.e., whether the problem can be converted
@@ -93,10 +106,10 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         Returns:
             Returns ``None`` if the problem is compatible and else a string with the error message.
         """
-        return OptimizationProblemToQubo.is_compatible(problem)
+        return QuadraticProgramToQubo.is_compatible(problem)
 
-    def solve(self, problem: OptimizationProblem) -> OptimizationResult:
-        """Tries to solves the given problem using the recursive optimizer.
+    def solve(self, problem: QuadraticProgram) -> OptimizationResult:
+        """Tries to solve the given problem using the recursive optimizer.
 
         Runs the optimizer to try to solve the optimization problem.
 
@@ -106,10 +119,12 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         Returns:
             The result of the optimizer applied to the problem.
 
+        Raises:
+            QiskitOptimizationError: Infeasible due to variable substitution
+
         """
-        from cplex import SparseTriple
         # convert problem to QUBO
-        qubo_converter = OptimizationProblemToQubo()
+        qubo_converter = QuadraticProgramToQubo()
         problem_ = qubo_converter.encode(problem)
         problem_ref = deepcopy(problem_)
 
@@ -128,7 +143,10 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
             x_j = problem_.variables.get_names(j)
             if correlations[i, j] > 0:
                 # set x_i = x_j
-                problem_ = problem_.substitute_variables(variables=SparseTriple([i], [j], [1]))
+                problem_, status = problem_.substitute_variables(
+                    variables=SparseTriple([i], [j], [1]))
+                if status == problem_.substitution_status.infeasible:
+                    raise QiskitOptimizationError('Infeasible due to variable substitution')
                 replacements[x_i] = (x_j, 1)
             else:
                 # set x_i = 1 - x_j, this is done in two steps:
@@ -149,8 +167,10 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
                         problem_.objective.set_linear(k, coeff)
 
                 # 2. replace x_i by -x_j
-                problem_ = problem_.substitute_variables(
+                problem_, status = problem_.substitute_variables(
                     variables=SparseTriple([i], [j], [-1]))
+                if status == problem_.substitution_status.infeasible:
+                    raise QiskitOptimizationError('Infeasible due to variable substitution')
                 replacements[x_i] = (x_j, -1)
 
         # solve remaining problem

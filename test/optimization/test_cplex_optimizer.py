@@ -18,7 +18,7 @@ import unittest
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 from ddt import ddt, data
 from qiskit.optimization.algorithms import CplexOptimizer
-from qiskit.optimization.problems import OptimizationProblem
+from qiskit.optimization.problems import QuadraticProgram
 
 
 @ddt
@@ -27,9 +27,11 @@ class TestCplexOptimizer(QiskitOptimizationTestCase):
 
     def setUp(self):
         super().setUp()
-
-        self.resource_path = './test/optimization/resources/'
-        self.cplex_optimizer = CplexOptimizer()
+        try:
+            self.resource_path = './test/optimization/resources/'
+            self.cplex_optimizer = CplexOptimizer()
+        except NameError as ex:
+            self.skipTest(str(ex))
 
     @data(
         ('op_ip1.lp', [0, 2], 6),
@@ -38,12 +40,11 @@ class TestCplexOptimizer(QiskitOptimizationTestCase):
     )
     def test_cplex_optimizer(self, config):
         """ Cplex Optimizer Test """
-
         # unpack configuration
         filename, x, fval = config
 
         # load optimization problem
-        problem = OptimizationProblem()
+        problem = QuadraticProgram()
         problem.read(self.resource_path + filename)
 
         # solve problem with cplex
