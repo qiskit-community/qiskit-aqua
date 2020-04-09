@@ -18,7 +18,7 @@ import time
 from typing import List, Optional, Any
 
 import numpy as np
-from cplex import SparsePair
+from cplex import SparsePair, SparseTriple
 from qiskit.optimization.algorithms.cplex_optimizer import CplexOptimizer
 from qiskit.optimization.algorithms.optimization_algorithm import OptimizationAlgorithm
 from qiskit.optimization.problems.optimization_problem import OptimizationProblem
@@ -705,7 +705,39 @@ class ADMMOptimizer(OptimizationAlgorithm):
                                        senses=["L"] * constraint_count,
                                        rhs=self._state.b3.tolist())
 
+        # add quadratic constraints for
+        # In the step 2, we basically need to copy all quadratic constraints of the original
+        # problem, and substitute binary variables with variables 0<=z<=1.
+        # The quadratic constraint can have any equality/inequality sign.
+        #
+        #  For example:
+        #  Original problem:
+        #  Quadratic_constraint: x**2 + u**2 <= 1
+        #  Vars: x binary, L <= u <= U
+        #
+        #  Step 2:
+        #  Quadratic_constraint: z**2 + u**2 <= 1
+        #  Vars: 0<=z<=1, L <= u <= U
+        for linear, quad, sense, rhs \
+                in zip(self._state.op.quadratic_constraints.get_linear_components(),
+                       self._state.quadratic_constraints.get_quadratic_components(),
+                       self._state.quadratic_constraints.get_senses(),
+                       self._state.quadratic_constraints.get_rhs()):
+            # types in the loop: SparsePair, SparseTriple, character, float
+            print(linear, quad, sense, rhs)
+            new_linear = SparsePair(ind=self._binary_indices_to_continuous(linear.ins),
+                                    val=linear.val)
+            new_quadratic = SparseTriple(ind1=self._binary_indices_to_continuous(quad.ind1),
+                                         ind2=self._binary_indices_to_continuous(quad.ind2),
+                                         val=quad.val)
+            op2.quadratic_constraints.add(lin_expr=new_linear, quad_expr=new_quadratic,
+                                          sense=sense, rhs=rhs)
+
         return op2
+
+    def _binary_indices_to_continuous(self, binary_indices: List[int]) -> List[int]:
+        # todo: implement
+        return binary_indices
 
     def _create_step3_problem(self) -> OptimizationProblem:
         """Creates a step 3 sub-problem.
