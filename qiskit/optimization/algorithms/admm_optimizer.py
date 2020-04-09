@@ -23,7 +23,6 @@ from qiskit.optimization.algorithms.optimization_algorithm import OptimizationAl
 from qiskit.optimization.problems.quadratic_program import QuadraticProgram
 from qiskit.optimization.problems.variables import CPX_BINARY, CPX_CONTINUOUS
 from qiskit.optimization.results.optimization_result import OptimizationResult
-from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
 
 UPDATE_RHO_BY_TEN_PERCENT = 0
 UPDATE_RHO_BY_RESIDUALS = 1
@@ -211,7 +210,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # the solve method.
         self._state: Optional[ADMMState] = None
 
-    def is_compatible(self, problem: QuadraticProgram) -> Optional[str]:
+    def get_incompatibility(self, problem: QuadraticProgram) -> Optional[str]:
         """Checks whether a given problem can be solved with the optimizer implementing this method.
 
         Args:
@@ -250,10 +249,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
             msg += 'Quadratic constraints are not supported. '
 
         # if an error occurred, return error message, otherwise, return None
-        if len(msg) > 0:
-            raise QiskitOptimizationError('The problem is not compatible with ADMM: %s' % msg)
-
-        return None
+        return msg
 
     def solve(self, problem: QuadraticProgram) -> ADMMOptimizerResult:
         """Tries to solves the given problem using ADMM algorithm.

@@ -83,6 +83,7 @@ class CplexOptimizer(OptimizationAlgorithm):
         """
         self._parameter_set = parameter_set
 
+    # pylint:disable=unused-argument
     def get_incompatibility(self, problem: QuadraticProgram) -> str:
         """Checks whether a given problem can be solved with this optimizer.
 
