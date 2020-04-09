@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Test OptimizationProblem """
+""" Test QuadraticProgram """
 
 import os.path
 import tempfile
@@ -20,8 +20,8 @@ import unittest
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 import logging
 
-from qiskit.optimization import OptimizationProblem, QiskitOptimizationError
-from qiskit.optimization.problems.optimization_problem import SubstitutionStatus
+from qiskit.optimization import QuadraticProgram, QiskitOptimizationError
+from qiskit.optimization.problems.quadratic_program import SubstitutionStatus
 
 logger = logging.getLogger(__name__)
 
@@ -33,8 +33,8 @@ except ImportError:
     logger.info('CPLEX is not installed.')
 
 
-class TestOptimizationProblem(QiskitOptimizationTestCase):
-    """Test OptimizationProblem without the members that have separate test classes
+class TestQuadraticProgram(QiskitOptimizationTestCase):
+    """Test QuadraticProgram without the members that have separate test classes
     (VariablesInterface, etc)."""
 
     def setUp(self):
@@ -46,7 +46,7 @@ class TestOptimizationProblem(QiskitOptimizationTestCase):
 
     def test_constructor1(self):
         """ test constructor """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         self.assertEqual(op.get_problem_name(), '')
         op.variables.add(names=['x1', 'x2', 'x3'])
         self.assertEqual(op.variables.get_num(), 3)
@@ -54,34 +54,34 @@ class TestOptimizationProblem(QiskitOptimizationTestCase):
     def test_constructor2(self):
         """ test constructor 2 """
         with self.assertRaises(QiskitOptimizationError):
-            _ = OptimizationProblem("unknown")
+            _ = QuadraticProgram("unknown")
         # If filename does not exist, an exception is raised.
 
     def test_constructor_context(self):
         """ test constructor context """
-        with OptimizationProblem() as op:
+        with QuadraticProgram() as op:
             op.variables.add(names=['x1', 'x2', 'x3'])
             self.assertEqual(op.variables.get_num(), 3)
 
     def test_end(self):
         """ test end """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         self.assertIsNone(op.end())
 
     def test_solve(self):
         """ test solve """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         self.assertIsNone(op.solve())
 
     def test_read1(self):
         """ test read 1"""
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.read(self.resource_file)
         self.assertEqual(op.variables.get_num(), 3)
 
     def test_write1(self):
         """ test write 1 """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=['x1', 'x2', 'x3'])
         file, filename = tempfile.mkstemp(suffix='.lp')
         os.close(file)
@@ -90,18 +90,18 @@ class TestOptimizationProblem(QiskitOptimizationTestCase):
 
     def test_write2(self):
         """ test write 2 """
-        op1 = OptimizationProblem()
+        op1 = QuadraticProgram()
         op1.variables.add(names=['x1', 'x2', 'x3'])
         file, filename = tempfile.mkstemp(suffix='.lp')
         os.close(file)
         op1.write(filename)
-        op2 = OptimizationProblem()
+        op2 = QuadraticProgram()
         op2.read(filename)
         self.assertEqual(op2.variables.get_num(), 3)
 
     def test_write3(self):
         """ test write 3 """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=['x1', 'x2', 'x3'])
 
         class NoOpStream:
@@ -129,28 +129,28 @@ class TestOptimizationProblem(QiskitOptimizationTestCase):
     def test_write4(self):
         """ test write 4 """
         # Writes a problem as a string in the given file format.
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.variables.add(names=['x1', 'x2', 'x3'])
         lp_str = op.write_as_string("lp")
         self.assertGreater(len(lp_str), 0)
 
     def test_problem_type1(self):
         """ test problem type 1 """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.read(self.resource_file)
         self.assertEqual(op.get_problem_type(), op.problem_type.QP)
         self.assertEqual(op.problem_type[op.get_problem_type()], 'QP')
 
     def test_problem_type2(self):
         """ test problem type 2"""
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.set_problem_type(op.problem_type.LP)
         self.assertEqual(op.get_problem_type(), op.problem_type.LP)
         self.assertEqual(op.problem_type[op.get_problem_type()], 'LP')
 
     def test_problem_type3(self):
         """ test problem type 3"""
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         self.assertEqual(op.get_problem_type(), op.problem_type.LP)
         op.variables.add(names=['x1', 'x2', 'x3'], types='B' * 3)
         op.objective.set_linear([('x1', 2.0), ('x3', 0.5)])
@@ -181,7 +181,7 @@ class TestOptimizationProblem(QiskitOptimizationTestCase):
 
     def test_problem_name(self):
         """ test problem name """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.set_problem_name("test")
         # test
         self.assertEqual(op.get_problem_name(), "test")
@@ -212,7 +212,7 @@ class TestOptimizationProblem(QiskitOptimizationTestCase):
             rhs=1.0
         )
         orig = op.write_as_string()
-        op2 = OptimizationProblem()
+        op2 = QuadraticProgram()
         op2.from_cplex(op)
         self.assertEqual(op2.write_as_string(), orig)
         op3 = op2.to_cplex()
@@ -220,7 +220,7 @@ class TestOptimizationProblem(QiskitOptimizationTestCase):
 
         op.set_problem_name('test')
         orig = op.write_as_string()
-        op2 = OptimizationProblem()
+        op2 = QuadraticProgram()
         op2.from_cplex(op)
         self.assertEqual(op2.write_as_string(), orig)
         op3 = op2.to_cplex()
@@ -228,7 +228,7 @@ class TestOptimizationProblem(QiskitOptimizationTestCase):
 
     def test_substitute_variables_bounds1(self):
         """ test substitute variables bounds 1 """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.set_problem_name('before')
         n = 5
         op.variables.add(names=['x' + str(i) for i in range(n)], types='I' * n,
@@ -246,7 +246,7 @@ class TestOptimizationProblem(QiskitOptimizationTestCase):
 
     def test_substitute_variables_bounds2(self):
         """ test substitute variables bounds 2 """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.set_problem_name('before')
         n = 5
         op.variables.add(names=['x' + str(i) for i in range(n)], types='I' * n,
@@ -264,7 +264,7 @@ class TestOptimizationProblem(QiskitOptimizationTestCase):
 
     def test_substitute_variables_obj(self):
         """ test substitute variables objective """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         op.set_problem_name('before')
         op.variables.add(names=['x1', 'x2', 'x3'], types='I' * 3, lb=[-2] * 3, ub=[4] * 3)
         op.objective.set_linear([('x1', 1.0), ('x2', 2.0)])
@@ -285,7 +285,7 @@ class TestOptimizationProblem(QiskitOptimizationTestCase):
 
     def test_substitute_variables_lin_cst1(self):
         """ test substitute variables linear constraints 1 """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         n = 5
         op.variables.add(names=['x' + str(i) for i in range(n)], types='I' * n,
                          lb=[-10] * n, ub=[14] * n)
@@ -326,7 +326,7 @@ class TestOptimizationProblem(QiskitOptimizationTestCase):
 
     def test_substitute_variables_lin_cst2(self):
         """ test substitute variables linear constraints 2 """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         n = 3
         op.variables.add(names=['x' + str(i) for i in range(n)], types='I' * n,
                          lb=[-2] * n, ub=[4] * n)
@@ -358,7 +358,7 @@ class TestOptimizationProblem(QiskitOptimizationTestCase):
 
     def test_substitute_variables_quad_cst1(self):
         """ test substitute variables quadratic constraints 1 """
-        op = OptimizationProblem()
+        op = QuadraticProgram()
         n = 3
         op.variables.add(names=['x' + str(i) for i in range(n)], types='I' * n,
                          lb=[-2] * n, ub=[4] * n)

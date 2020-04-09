@@ -19,7 +19,7 @@ from typing import Optional
 import copy
 from collections import defaultdict
 
-from ..problems.optimization_problem import OptimizationProblem
+from ..problems.quadratic_program import QuadraticProgram
 from ..utils.qiskit_optimization_error import QiskitOptimizationError
 
 
@@ -31,8 +31,8 @@ class PenalizeLinearEqualityConstraints:
         self._src = None
         self._dst = None
 
-    def encode(self, op: OptimizationProblem, penalty_factor: float = 1e5,
-               name: Optional[str] = None) -> OptimizationProblem:
+    def encode(self, op: QuadraticProgram, penalty_factor: float = 1e5,
+               name: Optional[str] = None) -> QuadraticProgram:
         """Convert a problem with equality constraints into an unconstrained problem.
 
         Args:
@@ -49,9 +49,9 @@ class PenalizeLinearEqualityConstraints:
 
         # TODO: test compatibility, how to react in case of incompatibility?
 
-        # create empty OptimizationProblem model
+        # create empty QuadraticProgram model
         self._src = copy.deepcopy(op)  # deep copy
-        self._dst = OptimizationProblem()
+        self._dst = QuadraticProgram()
 
         # set variables (obj is set via objective interface)
         var_names = self._src.variables.get_names()

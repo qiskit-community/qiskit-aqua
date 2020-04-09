@@ -29,12 +29,12 @@ Submodules
 
 from .infinity import infinity  # must be at the top of the file
 from .utils import QiskitOptimizationError
-from .problems import OptimizationProblem
+from .problems import QuadraticProgram
 from ._logging import (get_qiskit_optimization_logging,
                        set_qiskit_optimization_logging)
 from .util import get_qubo_solutions
 
-__all__ = ['OptimizationProblem',
+__all__ = ['QuadraticProgram',
            'QiskitOptimizationError',
            'get_qiskit_optimization_logging',
            'set_qiskit_optimization_logging',

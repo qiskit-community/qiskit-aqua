@@ -24,18 +24,18 @@ Structures for converting optimization problems
 
 """
 
-from .optimization_problem_to_negative_value_oracle import OptimizationProblemToNegativeValueOracle
+from .quadratic_program_to_negative_value_oracle import QuadraticProgramToNegativeValueOracle
 from .inequality_to_equality_converter import InequalityToEqualityConverter
 from .integer_to_binary_converter import IntegerToBinaryConverter
-from .optimization_problem_to_operator import OptimizationProblemToOperator
+from .quadratic_program_to_operator import QuadraticProgramToOperator
 from .penalize_linear_equality_constraints import PenalizeLinearEqualityConstraints
-from .optimization_problem_to_qubo import OptimizationProblemToQubo
+from .quadratic_program_to_qubo import QuadraticProgramToQubo
 
 __all__ = [
     "InequalityToEqualityConverter",
     "IntegerToBinaryConverter",
-    "OptimizationProblemToNegativeValueOracle",
-    "OptimizationProblemToOperator",
-    "OptimizationProblemToQubo",
+    "QuadraticProgramToNegativeValueOracle",
+    "QuadraticProgramToOperator",
+    "QuadraticProgramToQubo",
     "PenalizeLinearEqualityConstraints",
 ]

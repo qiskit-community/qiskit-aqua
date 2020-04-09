@@ -33,7 +33,7 @@ CPXPROB_NODEQCP = 12
 
 class ProblemType:
     """
-    Types of problems the OptimizationProblem class can encapsulate.
+    Types of problems the QuadraticProgram class can encapsulate.
     These types are compatible with those of IBM ILOG CPLEX.
     For explanations of the problem types, see those topics in the
     CPLEX User's Manual in the topic titled Continuous Optimization
@@ -64,8 +64,8 @@ class ProblemType:
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> op.problem_type.LP
         0
         >>> op.problem_type[0]
