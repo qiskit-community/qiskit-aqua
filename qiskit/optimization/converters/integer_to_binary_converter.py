@@ -28,9 +28,10 @@ logger = logging.getLogger(__name__)
 _HAS_CPLEX = False
 try:
     from cplex import SparsePair
+
     _HAS_CPLEX = True
 except ImportError:
-    logger.info('CPLEX is not installed.')
+    logger.info("CPLEX is not installed.")
 
 
 class IntegerToBinaryConverter:
@@ -43,12 +44,12 @@ class IntegerToBinaryConverter:
         >>> problem2 = conv.encode(problem)
     """
 
-    _delimiter = '@'  # users are supposed not to use this character in variable names
+    _delimiter = "@"  # users are supposed not to use this character in variable names
 
     def __init__(self) -> None:
         """Initializes the internal data structure."""
         if not _HAS_CPLEX:
-            raise NameError('CPLEX is not installed.')
+            raise NameError("CPLEX is not installed.")
 
         self._src = None
         self._dst = None
@@ -81,16 +82,18 @@ class IntegerToBinaryConverter:
         upper_bounds = self._src.variables.get_upper_bounds()
         for i, variable in enumerate(names):
             typ = types[i]
-            if typ == 'I':
-                new_vars: List[Tuple[str, int]] = self._encode_var(name=variable,
-                                                                   lower_bound=lower_bounds[i],
-                                                                   upper_bound=upper_bounds[i])
+            if typ == "I":
+                new_vars: List[Tuple[str, int]] = self._encode_var(
+                    name=variable, lower_bound=lower_bounds[i], upper_bound=upper_bounds[i]
+                )
                 self._conv[variable] = new_vars
-                self._dst.variables.add(names=[new_name for new_name, _ in new_vars],
-                                        types='B' * len(new_vars))
+                self._dst.variables.add(
+                    names=[new_name for new_name, _ in new_vars], types="B" * len(new_vars)
+                )
             else:
-                self._dst.variables.add(names=[variable], types=typ,
-                                        lb=[lower_bounds[i]], ub=[upper_bounds[i]])
+                self._dst.variables.add(
+                    names=[variable], types=typ, lb=[lower_bounds[i]], ub=[upper_bounds[i]]
+                )
 
         self._substitute_int_var()
 
@@ -194,12 +197,13 @@ class IntegerToBinaryConverter:
 
             lin_expr.append(sparse_pair)
 
-        self._dst.linear_constraints.add(lin_expr, linear_sense, linear_rhs, linear_ranges,
-                                         linear_names)
+        self._dst.linear_constraints.add(
+            lin_expr, linear_sense, linear_rhs, linear_ranges, linear_names
+        )
 
         # TODO: add quadratic constraints
         if self._src.quadratic_constraints.get_num() > 0:
-            raise QiskitOptimizationError('Quadratic constraints are not yet supported.')
+            raise QiskitOptimizationError("Quadratic constraints are not yet supported.")
 
     def decode(self, result: OptimizationResult) -> OptimizationResult:
         """Convert the encoded problem (binary variables) back to the original (integer variables).
@@ -218,7 +222,7 @@ class IntegerToBinaryConverter:
 
     def _decode_var(self, names, vals) -> List[int]:
         # decode integer values
-        sol = {name: int(vals[i]) for i, name in enumerate(names)}
+        sol = {name: float(vals[i]) for i, name in enumerate(names)}
         new_vals = []
         for name in self._src.variables.get_names():
             if name in self._conv:
