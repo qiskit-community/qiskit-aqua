@@ -124,7 +124,13 @@ jobs:
         - sudo apt-get -y install python3-enchant
         - sudo apt-get -y install hunspell-en-us
         - pip install pyenchant
-      script: make -k all_check SPHINXOPTS=-W
+      script:
+        - make spell
+        - make style
+        - make lint
+        - make copyright
+        - make html SPHINXOPTS=-W
+        - make doctest
     - name: "Test Aqua 1 Python 3.7"
       <<: *stage_test_aqua
       if: tag IS blank
