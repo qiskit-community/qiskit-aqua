@@ -16,7 +16,7 @@
 """The CPLEX optimizer wrapped to be used within Qiskit Optimization.
 
 Examples:
-    >>> problem = OptimizationProblem()
+    >>> problem = QuadraticProgram()
     >>> # specify problem here
     >>> optimizer = CplexOptimizer()
     >>> result = optimizer.solve(problem)
@@ -28,7 +28,7 @@ import logging
 from .optimization_algorithm import OptimizationAlgorithm
 from ..utils.qiskit_optimization_error import QiskitOptimizationError
 from ..results.optimization_result import OptimizationResult
-from ..problems.optimization_problem import OptimizationProblem
+from ..problems.quadratic_program import QuadraticProgram
 
 logger = logging.getLogger(__name__)
 
@@ -83,11 +83,11 @@ class CplexOptimizer(OptimizationAlgorithm):
         """
         self._parameter_set = parameter_set
 
-    def get_incompatibility(self, problem: OptimizationProblem) -> str:
+    def get_incompatibility(self, problem: QuadraticProgram) -> str:
         """Checks whether a given problem can be solved with this optimizer.
 
         Returns ``''`` since CPLEX accepts all problems that can be modeled using the
-        ``OptimizationProblem``. CPLEX may throw an exception in case the problem is determined
+        ``QuadraticProgram``. CPLEX may throw an exception in case the problem is determined
         to be non-convex. This case could be addressed by setting CPLEX parameters accordingly.
 
         Args:
@@ -98,7 +98,7 @@ class CplexOptimizer(OptimizationAlgorithm):
         """
         return ''
 
-    def solve(self, problem: OptimizationProblem) -> OptimizationResult:
+    def solve(self, problem: QuadraticProgram) -> OptimizationResult:
         """Tries to solves the given problem using the optimizer.
 
         Runs the optimizer to try to solve the optimization problem. If problem is not convex,

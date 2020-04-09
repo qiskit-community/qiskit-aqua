@@ -41,18 +41,18 @@ except ImportError:
     logger.info('CPLEX is not installed.')
 
 
-class OptimizationProblem:
+class QuadraticProgram:
     """A class encapsulating an optimization problem, modeled after Python CPLEX API.
 
-    An instance of the OptimizationProblem class provides methods for creating,
+    An instance of the QuadraticProgram class provides methods for creating,
     modifying, and querying an optimization problem, solving it, and
     querying aspects of the solution.
     """
 
     def __init__(self, file_name: Optional[str] = None):
-        """Constructor of the OptimizationProblem class.
+        """Constructor of the QuadraticProgram class.
 
-        The OptimizationProblem constructor accepts four types of argument lists.
+        The QuadraticProgram constructor accepts four types of argument lists.
 
         Args:
             file_name: read a model from a file.
@@ -63,19 +63,19 @@ class OptimizationProblem:
 
         Examples:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         op is a new problem with no data
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem("filename")
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram("filename")
         op is a new problem containing the data in filename.  If
         filename does not exist, an exception is raised.
 
-        The OptimizationProblem object is a context manager and can be used, like so:
+        The QuadraticProgram object is a context manager and can be used, like so:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> with OptimizationProblem() as op:
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> with QuadraticProgram() as op:
         >>>     # do stuff
         >>>     op.solve()
 
@@ -226,7 +226,7 @@ class OptimizationProblem:
         return op
 
     def end(self):
-        """Releases the OptimizationProblem object."""
+        """Releases the QuadraticProgram object."""
         self._name = ''
         self.variables = VariablesInterface()
         varindex = self.variables.get_indices
@@ -236,7 +236,7 @@ class OptimizationProblem:
         self.solution = SolutionInterface()
         self._problem_type = None
 
-    def __enter__(self) -> 'OptimizationProblem':
+    def __enter__(self) -> 'QuadraticProgram':
         """To implement a ContextManager, as in Cplex."""
         return self
 
@@ -251,8 +251,8 @@ class OptimizationProblem:
         The first argument is a string specifying the filename from
         which the problem will be read.
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> op.read("lpex.mps")
         """
         cplex = Cplex()
@@ -267,8 +267,8 @@ class OptimizationProblem:
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names=['x1', 'x2', 'x3'])
         >>> op.write("example.lp")
         """
@@ -279,7 +279,7 @@ class OptimizationProblem:
         """Writes a problem to a file-like object in the given file format.
 
         The filetype argument can be any of "sav" (a binary format), "lp"
-        (the default), "mps", "rew", "rlp", or "alp" (see `OptimizationProblem.write`
+        (the default), "mps", "rew", "rlp", or "alp" (see `QuadraticProgram.write`
         for an explanation of these).
 
         If comptype is "bz2" (for BZip2) or "gz" (for GNU Zip), a
@@ -290,8 +290,8 @@ class OptimizationProblem:
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names=['x1', 'x2', 'x3'])
         >>> class NoOpStream(object):
         ...     def __init__(self):
@@ -316,8 +316,8 @@ class OptimizationProblem:
     def write_as_string(self, filetype: str = 'LP', comptype: str = '') -> str:
         """Writes a problem as a string in the given file format.
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names=['x1', 'x2', 'x3'])
         >>> lp_str = op.write_as_string("lp")
         >>> len(lp_str) > 0
@@ -331,8 +331,8 @@ class OptimizationProblem:
 
         The return value is an attribute of self.problem_type.
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> op.read("lpex.mps")
         >>> op.get_problem_type()
         0
@@ -374,7 +374,7 @@ class OptimizationProblem:
         """Prints out a message to ask users to use `OptimizationAlgorithm`.
         Users need to apply one of `OptimiztionAlgorithm`s instead of this method.
         """
-        logger.warning('`OptimizationProblem.solve` is intentionally empty.'
+        logger.warning('`QuadraticProgram.solve` is intentionally empty.'
                        'You can solve it by applying `OptimizationAlgorithm.solve`.')
 
     def set_problem_name(self, name: str):
@@ -387,7 +387,7 @@ class OptimizationProblem:
 
     def substitute_variables(self, constants: Optional['SparsePair'] = None,
                              variables: Optional['SparseTriple'] = None) \
-            -> Tuple['OptimizationProblem', 'SubstitutionStatus']:
+            -> Tuple['QuadraticProgram', 'SubstitutionStatus']:
         """Substitutes variables with constants or other variables.
 
         Args:
@@ -412,9 +412,9 @@ class OptimizationProblem:
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
+        >>> from qiskit.optimization import QuadraticProgram
         >>> from cplex import SparsePair, SparseTriple
-        >>> op = OptimizationProblem()
+        >>> op = QuadraticProgram()
         >>> op.variables.add(names=['x', 'y'], types='I'*2, lb=[-1]*2, ub=[2]*2)
         >>> op.objective.set_sense(op.objective.sense.minimize)
         >>> op.objective.set_linear([('x', 1), ('y', 2)])
@@ -474,7 +474,7 @@ class OptimizationProblem:
 
 
 class SubstitutionStatus(Enum):
-    """Status of `OptimizationProblem.substitute_variables`"""
+    """Status of `QuadraticProgram.substitute_variables`"""
     success = 1
     infeasible = 2
 
@@ -486,14 +486,14 @@ class SubstituteVariables:
     CONST = -1
 
     def __init__(self):
-        self._src: OptimizationProblem = None
-        self._dst: OptimizationProblem = None
+        self._src: QuadraticProgram = None
+        self._dst: QuadraticProgram = None
         self._subs = {}
 
-    def substitute_variables(self, src: OptimizationProblem,
+    def substitute_variables(self, src: QuadraticProgram,
                              constants: Optional['SparsePair'] = None,
                              variables: Optional['SparseTriple'] = None) \
-            -> Tuple[OptimizationProblem, SubstitutionStatus]:
+            -> Tuple[QuadraticProgram, SubstitutionStatus]:
         """Substitutes variables with constants or other variables.
 
         Args:
@@ -519,7 +519,7 @@ class SubstituteVariables:
         """
 
         self._src = src
-        self._dst = OptimizationProblem()
+        self._dst = QuadraticProgram()
         self._dst.set_problem_name(src.get_problem_name())
         # do not set problem type, then it detects its type automatically
 

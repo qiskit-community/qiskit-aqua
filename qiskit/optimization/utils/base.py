@@ -53,8 +53,8 @@ class BaseInterface(ABC):
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names=["a", "b"])
         >>> op.variables.get_indices("a")
         0

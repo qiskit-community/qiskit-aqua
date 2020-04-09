@@ -22,7 +22,7 @@ from scipy.optimize import fmin_cobyla
 
 from qiskit.optimization.algorithms import OptimizationAlgorithm
 from qiskit.optimization.results import OptimizationResult
-from qiskit.optimization.problems import OptimizationProblem
+from qiskit.optimization.problems import QuadraticProgram
 from qiskit.optimization import QiskitOptimizationError
 from qiskit.optimization import infinity
 
@@ -36,7 +36,7 @@ class CobylaOptimizer(OptimizationAlgorithm):
     The arguments for ``fmin_cobyla`` are passed via the constructor.
 
     Examples:
-        >>> problem = OptimizationProblem()
+        >>> problem = QuadraticProgram()
         >>> # specify problem here
         >>> optimizer = CobylaOptimizer()
         >>> result = optimizer.solve(problem)
@@ -67,7 +67,7 @@ class CobylaOptimizer(OptimizationAlgorithm):
         self._disp = disp
         self._catol = catol
 
-    def get_incompatibility(self, problem: OptimizationProblem) -> str:
+    def get_incompatibility(self, problem: QuadraticProgram) -> str:
         """Checks whether a given problem can be solved with this optimizer.
 
         Checks whether the given problem is compatible, i.e., whether the problem contains only
@@ -85,7 +85,7 @@ class CobylaOptimizer(OptimizationAlgorithm):
 
         return ''
 
-    def solve(self, problem: OptimizationProblem) -> OptimizationResult:
+    def solve(self, problem: QuadraticProgram) -> OptimizationResult:
         """Tries to solves the given problem using the optimizer.
 
         Runs the optimizer to try to solve the optimization problem.

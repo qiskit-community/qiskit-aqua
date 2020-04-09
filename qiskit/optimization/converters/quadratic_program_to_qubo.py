@@ -12,31 +12,29 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""A converter from optimization problem to a QUBO (given as optimization problem).
-"""
+"""A converter from quadratic program to a QUBO."""
 
 from typing import Optional
 
-from qiskit.optimization.problems import OptimizationProblem
+from qiskit.optimization.problems import QuadraticProgram
 from qiskit.optimization.results import OptimizationResult
 from qiskit.optimization.converters import (PenalizeLinearEqualityConstraints,
                                             IntegerToBinaryConverter)
 from qiskit.optimization.utils import QiskitOptimizationError
 
 
-class OptimizationProblemToQubo:
-    """ Convert a given optimization problem to a new problem that is a QUBO.
+class QuadraticProgramToQubo:
+    """Convert a given optimization problem to a new problem that is a QUBO.
 
         Examples:
-            >>> problem = OptimizationProblem()
+            >>> problem = QuadraticProgram()
             >>> # define a problem
-            >>> conv = OptimizationProblemToQubo()
+            >>> conv = QuadraticProgramToQubo()
             >>> problem2 = conv.encode(problem)
     """
 
     def __init__(self, penalty: Optional[float] = 1e5) -> None:
-        """ Constructor. It initializes the internal data structure.
-
+        """
         Args:
             penalty: Penalty factor to scale equality constraints that are added to objective.
         """
@@ -44,8 +42,8 @@ class OptimizationProblemToQubo:
         self._penalize_lin_eq_constraints = PenalizeLinearEqualityConstraints()
         self._penalty = penalty
 
-    def encode(self, problem: OptimizationProblem) -> OptimizationProblem:
-        """ Convert a problem with linear equality constraints into new one with a QUBO form.
+    def encode(self, problem: QuadraticProgram) -> QuadraticProgram:
+        """Convert a problem with linear equality constraints into new one with a QUBO form.
 
         Args:
             problem: The problem with linear equality constraints to be solved.
@@ -55,7 +53,6 @@ class OptimizationProblemToQubo:
 
         Raises:
             QiskitOptimizationError: In case of an incompatible problem.
-
         """
 
         # analyze compatibility of problem
@@ -88,10 +85,10 @@ class OptimizationProblemToQubo:
         return self._int_to_bin.decode(result)
 
     @staticmethod
-    def get_incompatibility(problem: OptimizationProblem) -> bool:
+    def get_incompatibility(problem: QuadraticProgram) -> bool:
         """Checks whether a given problem can be cast to a QUBO.
 
-        An optimization problem can be converted to a QUBO (Quadratic Unconstrained Binary
+        A quadratic program can be converted to a QUBO (Quadratic Unconstrained Binary
         Optimization) problem, if the problem contains only binary and integer variables as well
         as linear equality constraints.
 
@@ -128,7 +125,7 @@ class OptimizationProblemToQubo:
         # if an error occurred, return error message, otherwise, return None
         return msg
 
-    def is_compatible(self, problem: OptimizationProblem) -> bool:
+    def is_compatible(self, problem: QuadraticProgram) -> bool:
         """Checks whether a given problem can be solved with the optimizer implementing this method.
 
         Args:

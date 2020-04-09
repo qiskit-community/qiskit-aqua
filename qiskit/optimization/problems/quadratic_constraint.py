@@ -42,7 +42,7 @@ class QuadraticConstraintInterface(BaseInterface):
         """Creates a new QuadraticConstraintInterface.
 
         The quadratic constraints interface is exposed by the top-level
-        `OptimizationProblem` class as `OptimizationProblem.quadratic_constraints`.
+        `QuadraticProgram` class as `QuadraticProgram.quadratic_constraints`.
         This constructor is not meant to be used externally.
         """
         if not _HAS_CPLEX:
@@ -62,8 +62,8 @@ class QuadraticConstraintInterface(BaseInterface):
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = ['x','y'])
         >>> l = SparsePair(ind = ['x'], val = [1.0])
         >>> q = SparseTriple(ind1 = ['x'], ind2 = ['y'], val = [1.0])
@@ -114,8 +114,8 @@ class QuadraticConstraintInterface(BaseInterface):
         Raises:
             QiskitOptimizationError: if arguments are not valid.
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = ['x','y'])
         >>> l = SparsePair(ind = ['x'], val = [1.0])
         >>> q = SparseTriple(ind1 = ['x'], ind2 = ['y'], val = [1.0])
@@ -219,8 +219,8 @@ class QuadraticConstraintInterface(BaseInterface):
 
         Example usage:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names=['x', 'y'])
         >>> l = SparsePair(ind=['x'], val=[1.0])
         >>> q = SparseTriple(ind1=['x'], ind2=['y'], val=[1.0])
@@ -291,8 +291,8 @@ class QuadraticConstraintInterface(BaseInterface):
           end. Equivalent to
           quadratic_constraints.get_rhs(range(begin, end + 1)).
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = [str(i) for i in range(10)])
         >>> [op.quadratic_constraints.add(rhs=1.5 * i, name=str(i))
         ...  for i in range(10)]
@@ -343,8 +343,8 @@ class QuadraticConstraintInterface(BaseInterface):
           end. Equivalent to
           quadratic_constraints.get_senses(range(begin, end + 1)).
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = ["x0"])
         >>> [op.quadratic_constraints.add(name=str(i), sense=j)
         ...  for i, j in enumerate("GGLL")]
@@ -396,8 +396,8 @@ class QuadraticConstraintInterface(BaseInterface):
           inclusive of end. Equivalent to
           quadratic_constraints.get_linear_num_nonzeros(range(begin, end + 1)).
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = [str(i) for i in range(11)], types = "B" * 11)
         >>> [op.quadratic_constraints.add(
         ...      name = str(i),
@@ -454,8 +454,8 @@ class QuadraticConstraintInterface(BaseInterface):
 
         Examples:
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(
         ...     names=[str(i) for i in range(4)],
         ...     types="B" * 4
@@ -518,8 +518,8 @@ class QuadraticConstraintInterface(BaseInterface):
           inclusive of end. Equivalent to
           quadratic_constraints.get_quad_num_nonzeros(range(begin, end + 1)).
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = [str(i) for i in range(11)])
         >>> [op.quadratic_constraints.add(
         ...      name = str(i),
@@ -571,8 +571,8 @@ class QuadraticConstraintInterface(BaseInterface):
           inclusive of end. Equivalent to
           quadratic_constraints.get_quadratic_components(range(begin, end + 1)).
 
-        >>> from qiskit.optimization import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(
         ...     names=[str(i) for i in range(4)]
         ... )
@@ -639,8 +639,8 @@ class QuadraticConstraintInterface(BaseInterface):
           begin and end, inclusive of end. Equivalent to
           quadratic_constraints.get_names(range(begin, end + 1)).
 
-        >>> from qiskit.optimization.problems import OptimizationProblem
-        >>> op = OptimizationProblem()
+        >>> from qiskit.optimization.problems import QuadraticProgram
+        >>> op = QuadraticProgram()
         >>> indices = op.variables.add(names = [str(i) for i in range(11)])
         >>> [op.quadratic_constraints.add(
         ...      name = "q" + str(i),
