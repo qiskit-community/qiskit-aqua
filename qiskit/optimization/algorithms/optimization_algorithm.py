@@ -17,8 +17,6 @@
 
 from abc import ABC, abstractmethod
 
-from typing import Optional
-
 from ..problems.quadratic_program import QuadraticProgram
 from ..results.optimization_result import OptimizationResult
 
@@ -27,16 +25,26 @@ class OptimizationAlgorithm(ABC):
     """An abstract class for optimization algorithms in Qiskit Optimization."""
 
     @abstractmethod
-    def is_compatible(self, problem: QuadraticProgram) -> Optional[str]:
+    def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
         """Checks whether a given problem can be solved with the optimizer implementing this method.
 
         Args:
             problem: The optimization problem to check compatibility.
 
         Returns:
-            Returns ``None`` if the problem is compatible and else a string with the error message.
+            Returns the incompatibility message. If the message is empty no issues were found.
         """
-        raise NotImplementedError
+
+    def is_compatible(self, problem: QuadraticProgram) -> bool:
+        """Checks whether a given problem can be solved with the optimizer implementing this method.
+
+        Args:
+            problem: The optimization problem to check compatibility.
+
+        Returns:
+            Returns True if the problem is compatible, False otherwise.
+        """
+        return len(self.get_compatibility_msg(problem)) == 0
 
     @abstractmethod
     def solve(self, problem: QuadraticProgram) -> OptimizationResult:

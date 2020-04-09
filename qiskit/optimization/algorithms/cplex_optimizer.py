@@ -83,10 +83,11 @@ class CplexOptimizer(OptimizationAlgorithm):
         """
         self._parameter_set = parameter_set
 
-    def is_compatible(self, problem: QuadraticProgram) -> Optional[str]:
+    # pylint:disable=unused-argument
+    def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
         """Checks whether a given problem can be solved with this optimizer.
 
-        Returns ``True`` since CPLEX accepts all problems that can be modeled using the
+        Returns ``''`` since CPLEX accepts all problems that can be modeled using the
         ``QuadraticProgram``. CPLEX may throw an exception in case the problem is determined
         to be non-convex. This case could be addressed by setting CPLEX parameters accordingly.
 
@@ -94,9 +95,9 @@ class CplexOptimizer(OptimizationAlgorithm):
             problem: The optimization problem to check compatibility.
 
         Returns:
-            Returns ``None`` if the problem is compatible and else a string with the error message.
+            An empty string.
         """
-        return None
+        return ''
 
     def solve(self, problem: QuadraticProgram) -> OptimizationResult:
         """Tries to solves the given problem using the optimizer.
