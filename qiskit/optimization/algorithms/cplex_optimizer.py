@@ -83,7 +83,7 @@ class CplexOptimizer(OptimizationAlgorithm):
         """
         self._parameter_set = parameter_set
 
-    def is_compatible(self, problem: OptimizationProblem) -> Optional[str]:
+    def is_compatible(self, problem: OptimizationProblem) -> bool:
         """Checks whether a given problem can be solved with this optimizer.
 
         Returns ``True`` since CPLEX accepts all problems that can be modeled using the
@@ -94,9 +94,9 @@ class CplexOptimizer(OptimizationAlgorithm):
             problem: The optimization problem to check compatibility.
 
         Returns:
-            Returns ``None`` if the problem is compatible and else a string with the error message.
+            True.
         """
-        return None
+        return True
 
     def solve(self, problem: OptimizationProblem) -> OptimizationResult:
         """Tries to solves the given problem using the optimizer.

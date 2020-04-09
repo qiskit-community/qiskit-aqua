@@ -23,6 +23,7 @@ from qiskit.optimization.algorithms.optimization_algorithm import OptimizationAl
 from qiskit.optimization.problems.optimization_problem import OptimizationProblem
 from qiskit.optimization.problems.variables import CPX_BINARY, CPX_CONTINUOUS
 from qiskit.optimization.results.optimization_result import OptimizationResult
+from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
 
 UPDATE_RHO_BY_TEN_PERCENT = 0
 UPDATE_RHO_BY_RESIDUALS = 1
@@ -210,21 +211,26 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # the solve method.
         self._state: Optional[ADMMState] = None
 
-    def is_compatible(self, problem: OptimizationProblem) -> Optional[str]:
+    def is_compatible(self, problem: OptimizationProblem) -> bool:
         """Checks whether a given problem can be solved with the optimizer implementing this method.
 
         Args:
             problem: The optimization problem to check compatibility.
 
         Returns:
-            Returns ``None`` if the problem is compatible and else a string with the error message.
+            Returns True if the problem is compatible, otherwise raises an error.
+
+        Raises:
+            QiskitOptimizationError: If the problem is not compatible with the ADMM optimizer.
         """
+
+        msg = ''
 
         # 1. only binary and continuous variables are supported
         for var_type in problem.variables.get_types():
             if var_type not in (CPX_BINARY, CPX_CONTINUOUS):
                 # variable is not binary and not continuous.
-                return "Only binary and continuous variables are supported"
+                msg += 'Only binary and continuous variables are supported. '
 
         binary_indices = self._get_variable_indices(problem, CPX_BINARY)
         continuous_indices = self._get_variable_indices(problem, CPX_CONTINUOUS)
@@ -235,15 +241,19 @@ class ADMMOptimizer(OptimizationAlgorithm):
                 coeff = problem.objective.get_quadratic_coefficients(binary_index, continuous_index)
                 if coeff != 0:
                     # binary and continuous vars are mixed.
-                    return "Binary and continuous variables are not separable in the objective"
+                    msg += 'Binary and continuous variables are not separable in the objective. '
 
         # 3. no quadratic constraints are supported.
         quad_constraints = problem.quadratic_constraints.get_num()
         if quad_constraints is not None and quad_constraints > 0:
             # quadratic constraints are not supported.
-            return "Quadratic constraints are not supported"
+            msg += 'Quadratic constraints are not supported. '
 
-        return None
+        # if an error occurred, return error message, otherwise, return None
+        if len(msg) > 0:
+            raise QiskitOptimizationError('The problem is not compatible with ADMM: %s' % msg)
+
+        return True
 
     def solve(self, problem: OptimizationProblem) -> ADMMOptimizerResult:
         """Tries to solves the given problem using ADMM algorithm.
@@ -619,7 +629,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
             2 * (
                 self._params.factor_c / 2 * np.dot(self._state.a0.transpose(), self._state.a0) +
                 self._state.rho / 2 * np.eye(binary_size)
-                )
+            )
         for i in range(binary_size):
             for j in range(i, binary_size):
                 op1.objective.set_quadratic_coefficients(i, j, quadratic_objective[i, j])

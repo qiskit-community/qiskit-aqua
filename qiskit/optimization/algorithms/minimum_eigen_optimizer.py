@@ -113,7 +113,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
             problem: The optimization problem to check compatibility.
 
         Returns:
-            Returns ``None`` if the problem is compatible and else a string with the error message.
+            True, if the problem is compatible and else raise an error.
         """
         return OptimizationProblemToQubo.is_compatible(problem)
 
@@ -127,10 +127,8 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
 
         Returns:
             The result of the optimizer applied to the problem.
-
         """
-
-        # convert problem to QUBO
+        # convert problem to QUBO, this implicitly checks if the problem is compatible
         qubo_converter = OptimizationProblemToQubo()
         problem_ = qubo_converter.encode(problem)
 

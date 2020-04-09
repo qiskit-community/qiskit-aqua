@@ -94,7 +94,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
             self._min_num_vars_optimizer = MinimumEigenOptimizer(NumPyMinimumEigensolver())
         self._penalty = penalty
 
-    def is_compatible(self, problem: OptimizationProblem) -> Optional[str]:
+    def is_compatible(self, problem: OptimizationProblem) -> bool:
         """Checks whether a given problem can be solved with this optimizer.
 
         Checks whether the given problem is compatible, i.e., whether the problem can be converted
@@ -104,7 +104,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
             problem: The optimization problem to check compatibility.
 
         Returns:
-            Returns ``None`` if the problem is compatible and else a string with the error message.
+            True, if the problem is compatible and else raise an error.
         """
         return OptimizationProblemToQubo.is_compatible(problem)
 
@@ -121,9 +121,8 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
 
         Raises:
             QiskitOptimizationError: Infeasible due to variable substitution
-
         """
-        # convert problem to QUBO
+        # convert problem to QUBO, this implicitly checks if the problem is compatible
         qubo_converter = OptimizationProblemToQubo()
         problem_ = qubo_converter.encode(problem)
         problem_ref = deepcopy(problem_)

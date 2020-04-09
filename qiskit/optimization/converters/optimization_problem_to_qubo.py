@@ -59,9 +59,8 @@ class OptimizationProblemToQubo:
         """
 
         # analyze compatibility of problem
-        msg = self.is_compatible(problem)
-        if msg is not None:
-            raise QiskitOptimizationError('Incompatible problem: %s' % msg)
+        if not self.is_compatible(problem):
+            raise QiskitOptimizationError('Incompatible problem.')
 
         # map integer variables to binary variables
         problem_ = self._int_to_bin.encode(problem)
@@ -89,18 +88,22 @@ class OptimizationProblemToQubo:
         return self._int_to_bin.decode(result)
 
     @staticmethod
-    def is_compatible(problem: OptimizationProblem) -> Optional[str]:
-        """Checks whether a given problem can be cast to a Quadratic Unconstrained Binary
-        Optimization (QUBO) problem, i.e., whether the problem contains only binary and integer
-        variables as well as linear equality constraints, and otherwise, returns a message
-        explaining the incompatibility.
+    def is_compatible(problem: OptimizationProblem) -> bool:
+        """Checks whether a given problem can be cast to a QUBO.
+
+        An optimization problem can be converted to a QUBO (Quadratic Unconstrained Binary
+        Optimization) problem, if the problem contains only binary and integer variables as well
+        as linear equality constraints.
 
         Args:
             problem: The optimization problem to check compatibility.
 
         Returns:
-            Returns ``None`` if the problem is compatible and else a string with the error message.
+            True, if the problem can be converted to a QUBO, otherwise a QiskitOptimizationError
+            is raised.
 
+        Raises:
+            QiskitOptimizationError: If the conversion to QUBO is not possible.
         """
 
         # initialize message
@@ -124,6 +127,6 @@ class OptimizationProblemToQubo:
 
         # if an error occurred, return error message, otherwise, return None
         if len(msg) > 0:
-            return msg.strip()
-        else:
-            return None
+            raise QiskitOptimizationError('Cannot convert the problem to QUBO: %s' % msg)
+
+        return True

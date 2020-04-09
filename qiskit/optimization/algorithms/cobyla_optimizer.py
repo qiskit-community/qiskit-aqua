@@ -67,7 +67,7 @@ class CobylaOptimizer(OptimizationAlgorithm):
         self._disp = disp
         self._catol = catol
 
-    def is_compatible(self, problem: OptimizationProblem) -> Optional[str]:
+    def is_compatible(self, problem: OptimizationProblem) -> bool:
         """Checks whether a given problem can be solved with this optimizer.
 
         Checks whether the given problem is compatible, i.e., whether the problem contains only
@@ -77,21 +77,16 @@ class CobylaOptimizer(OptimizationAlgorithm):
             problem: The optimization problem to check compatibility.
 
         Returns:
-            Returns ``None`` if the problem is compatible and else a string with the error message.
+            Returns True if the problem is compatible, otherwise raises an error.
+
+        Raises:
+            QiskitOptimizationError: If the problem contains non-continuous variables.
         """
-
-        # initialize message
-        msg = ''
-
         # check whether there are variables of type other than continuous
         if problem.variables.get_num() > problem.variables.get_num_continuous():
-            msg += 'This optimizer supports only continuous variables! '
+            raise QiskitOptimizationError('The COBYLA optimizer supports only continuous variables')
 
-        # if an error occurred, return error message, otherwise, return None
-        if len(msg) > 0:
-            return msg.strip()
-        else:
-            return None
+        return True
 
     def solve(self, problem: OptimizationProblem) -> OptimizationResult:
         """Tries to solves the given problem using the optimizer.
@@ -109,9 +104,8 @@ class CobylaOptimizer(OptimizationAlgorithm):
         """
 
         # check compatibility and raise exception if incompatible
-        msg = self.is_compatible(problem)
-        if msg:
-            raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
+        if not self.is_compatible(problem):
+            raise QiskitOptimizationError('Incompatible problem.')
 
         # get number of variables
         num_vars = problem.variables.get_num()
