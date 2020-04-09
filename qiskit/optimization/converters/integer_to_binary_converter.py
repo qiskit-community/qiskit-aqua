@@ -28,10 +28,9 @@ logger = logging.getLogger(__name__)
 _HAS_CPLEX = False
 try:
     from cplex import SparsePair
-
     _HAS_CPLEX = True
 except ImportError:
-    logger.info("CPLEX is not installed.")
+    logger.info('CPLEX is not installed.')
 
 
 class IntegerToBinaryConverter:
@@ -44,12 +43,12 @@ class IntegerToBinaryConverter:
         >>> problem2 = conv.encode(problem)
     """
 
-    _delimiter = "@"  # users are supposed not to use this character in variable names
+    _delimiter = '@'  # users are supposed not to use this character in variable names
 
     def __init__(self) -> None:
         """Initializes the internal data structure."""
         if not _HAS_CPLEX:
-            raise NameError("CPLEX is not installed.")
+            raise NameError('CPLEX is not installed.')
 
         self._src = None
         self._dst = None
@@ -203,7 +202,7 @@ class IntegerToBinaryConverter:
 
         # TODO: add quadratic constraints
         if self._src.quadratic_constraints.get_num() > 0:
-            raise QiskitOptimizationError("Quadratic constraints are not yet supported.")
+            raise QiskitOptimizationError('Quadratic constraints are not yet supported.')
 
     def decode(self, result: OptimizationResult) -> OptimizationResult:
         """Convert the encoded problem (binary variables) back to the original (integer variables).

@@ -38,7 +38,6 @@ logger = logging.getLogger(__name__)
 _HAS_CPLEX = False
 try:
     from cplex import SparsePair
-
     _HAS_CPLEX = True
 except ImportError:
     logger.info("CPLEX is not installed.")
@@ -66,7 +65,7 @@ class TestConverters(QiskitOptimizationTestCase):
     def setUp(self) -> None:
         super().setUp()
         if not _HAS_CPLEX:
-            self.skipTest("CPLEX is not installed.")
+            self.skipTest('CPLEX is not installed.')
 
     def test_empty_problem(self):
         """ Test empty problem """
@@ -86,62 +85,62 @@ class TestConverters(QiskitOptimizationTestCase):
         # Integer variable
         with self.assertRaises(QiskitOptimizationError):
             op = OptimizationProblem()
-            op.variables.add(names=["x"], types="I")
+            op.variables.add(names=['x'], types='I')
             conv = OptimizationProblemToOperator()
             _ = conv.encode(op)
         # Continuous variable
         with self.assertRaises(QiskitOptimizationError):
             op = OptimizationProblem()
-            op.variables.add(names=["x"], types="C")
+            op.variables.add(names=['x'], types='C')
             conv = OptimizationProblemToOperator()
             _ = conv.encode(op)
         # Semi-Continuous variable
         with self.assertRaises(QiskitOptimizationError):
             op = OptimizationProblem()
-            op.variables.add(names=["x"], types="S")
+            op.variables.add(names=['x'], types='S')
             conv = OptimizationProblemToOperator()
             _ = conv.encode(op)
         # Semi-Integer variable
         with self.assertRaises(QiskitOptimizationError):
             op = OptimizationProblem()
-            op.variables.add(names=["x"], types="N")
+            op.variables.add(names=['x'], types='N')
             conv = OptimizationProblemToOperator()
             _ = conv.encode(op)
         # validate the types of the variables for InequalityToEqualityConverter
         # Semi-Continuous variable
         with self.assertRaises(QiskitOptimizationError):
             op = OptimizationProblem()
-            op.variables.add(names=["x"], types="S")
+            op.variables.add(names=['x'], types='S')
             conv = InequalityToEqualityConverter()
             _ = conv.encode(op)
         # Semi-Integer variable
         with self.assertRaises(QiskitOptimizationError):
             op = OptimizationProblem()
-            op.variables.add(names=["x"], types="N")
+            op.variables.add(names=['x'], types='N')
             conv = InequalityToEqualityConverter()
             _ = conv.encode(op)
 
     def test_inequality_binary(self):
         """ Test InequalityToEqualityConverter with binary variables """
         op = OptimizationProblem()
-        op.variables.add(names=["x", "y", "z"], types="B" * 3)
+        op.variables.add(names=['x', 'y', 'z'], types='B' * 3)
         op.linear_constraints.add(
             lin_expr=[
-                SparsePair(ind=["x", "y"], val=[1, 1]),
-                SparsePair(ind=["y", "z"], val=[1, -1]),
-                SparsePair(ind=["z", "x"], val=[1, 2]),
+                SparsePair(ind=['x', 'y'], val=[1, 1]),
+                SparsePair(ind=['y', 'z'], val=[1, -1]),
+                SparsePair(ind=['z', 'x'], val=[1, 2]),
             ],
-            senses=["E", "L", "G"],
+            senses=['E', 'L', 'G'],
             rhs=[1, 2, 3],
-            names=["xy", "yz", "zx"],
+            names=['xy', 'yz', 'zx'],
         )
         conv = InequalityToEqualityConverter()
         op2 = conv.encode(op)
         self.assertEqual(op.get_problem_name(), op2.get_problem_name())
         self.assertEqual(op.get_problem_type(), op2.get_problem_type())
         cst = op2.linear_constraints
-        self.assertListEqual(cst.get_names(), ["xy", "yz", "zx"])
-        self.assertListEqual(cst.get_senses(), ["E", "E", "E"])
+        self.assertListEqual(cst.get_names(), ['xy', 'yz', 'zx'])
+        self.assertListEqual(cst.get_senses(), ['E', 'E', 'E'])
         self.assertListEqual(cst.get_rhs(), [1, 2, 3])
         var = op2.variables
         self.assertListEqual(var.get_lower_bounds(3, 4), [0, 0])
@@ -150,24 +149,24 @@ class TestConverters(QiskitOptimizationTestCase):
     def test_inequality_integer(self):
         """ Test InequalityToEqualityConverter with integer variables """
         op = OptimizationProblem()
-        op.variables.add(names=["x", "y", "z"], types="I" * 3, lb=[-3] * 3, ub=[3] * 3)
+        op.variables.add(names=['x', 'y', 'z'], types='I' * 3, lb=[-3] * 3, ub=[3] * 3)
         op.linear_constraints.add(
             lin_expr=[
-                SparsePair(ind=["x", "y"], val=[1, 1]),
-                SparsePair(ind=["y", "z"], val=[1, -1]),
-                SparsePair(ind=["z", "x"], val=[1, 2]),
+                SparsePair(ind=['x', 'y'], val=[1, 1]),
+                SparsePair(ind=['y', 'z'], val=[1, -1]),
+                SparsePair(ind=['z', 'x'], val=[1, 2]),
             ],
-            senses=["E", "L", "G"],
+            senses=['E', 'L', 'G'],
             rhs=[1, 2, 3],
-            names=["xy", "yz", "zx"],
+            names=['xy', 'yz', 'zx'],
         )
         conv = InequalityToEqualityConverter()
         op2 = conv.encode(op)
         self.assertEqual(op.get_problem_name(), op2.get_problem_name())
         self.assertEqual(op.get_problem_type(), op2.get_problem_type())
         cst = op2.linear_constraints
-        self.assertListEqual(cst.get_names(), ["xy", "yz", "zx"])
-        self.assertListEqual(cst.get_senses(), ["E", "E", "E"])
+        self.assertListEqual(cst.get_names(), ['xy', 'yz', 'zx'])
+        self.assertListEqual(cst.get_senses(), ['E', 'E', 'E'])
         self.assertListEqual(cst.get_rhs(), [1, 2, 3])
         var = op2.variables
         self.assertListEqual(var.get_lower_bounds(3, 4), [0, 0])
@@ -176,73 +175,73 @@ class TestConverters(QiskitOptimizationTestCase):
     def test_inequality_mode_integer(self):
         """ Test integer mode of InequalityToEqualityConverter() """
         op = OptimizationProblem()
-        op.variables.add(names=["x", "y", "z"], types="B" * 3)
+        op.variables.add(names=['x', 'y', 'z'], types='B' * 3)
         op.linear_constraints.add(
             lin_expr=[
-                SparsePair(ind=["x", "y"], val=[1, 1]),
-                SparsePair(ind=["y", "z"], val=[1, -1]),
-                SparsePair(ind=["z", "x"], val=[1, 2]),
+                SparsePair(ind=['x', 'y'], val=[1, 1]),
+                SparsePair(ind=['y', 'z'], val=[1, -1]),
+                SparsePair(ind=['z', 'x'], val=[1, 2]),
             ],
-            senses=["E", "L", "G"],
+            senses=['E', 'L', 'G'],
             rhs=[1, 2, 3],
-            names=["xy", "yz", "zx"],
+            names=['xy', 'yz', 'zx'],
         )
         conv = InequalityToEqualityConverter()
-        op2 = conv.encode(op, mode="integer")
+        op2 = conv.encode(op, mode='integer')
         var = op2.variables
-        self.assertListEqual(var.get_types(3, 4), ["I", "I"])
+        self.assertListEqual(var.get_types(3, 4), ['I', 'I'])
 
     def test_inequality_mode_continuous(self):
         """ Test continuous mode of InequalityToEqualityConverter() """
         op = OptimizationProblem()
-        op.variables.add(names=["x", "y", "z"], types="B" * 3)
+        op.variables.add(names=['x', 'y', 'z'], types='B' * 3)
         op.linear_constraints.add(
             lin_expr=[
-                SparsePair(ind=["x", "y"], val=[1, 1]),
-                SparsePair(ind=["y", "z"], val=[1, -1]),
-                SparsePair(ind=["z", "x"], val=[1, 2]),
+                SparsePair(ind=['x', 'y'], val=[1, 1]),
+                SparsePair(ind=['y', 'z'], val=[1, -1]),
+                SparsePair(ind=['z', 'x'], val=[1, 2]),
             ],
-            senses=["E", "L", "G"],
+            senses=['E', 'L', 'G'],
             rhs=[1, 2, 3],
-            names=["xy", "yz", "zx"],
+            names=['xy', 'yz', 'zx'],
         )
         conv = InequalityToEqualityConverter()
-        op2 = conv.encode(op, mode="continuous")
+        op2 = conv.encode(op, mode='continuous')
         var = op2.variables
-        self.assertListEqual(var.get_types(3, 4), ["C", "C"])
+        self.assertListEqual(var.get_types(3, 4), ['C', 'C'])
 
     def test_inequality_mode_auto(self):
         """ Test auto mode of InequalityToEqualityConverter() """
         op = OptimizationProblem()
-        op.variables.add(names=["x", "y", "z"], types="B" * 3)
+        op.variables.add(names=['x', 'y', 'z'], types='B' * 3)
         op.linear_constraints.add(
             lin_expr=[
-                SparsePair(ind=["x", "y"], val=[1, 1]),
-                SparsePair(ind=["y", "z"], val=[1, -1]),
-                SparsePair(ind=["z", "x"], val=[1.1, 2.2]),
+                SparsePair(ind=['x', 'y'], val=[1, 1]),
+                SparsePair(ind=['y', 'z'], val=[1, -1]),
+                SparsePair(ind=['z', 'x'], val=[1.1, 2.2]),
             ],
-            senses=["E", "L", "G"],
+            senses=['E', 'L', 'G'],
             rhs=[1, 2, 3.3],
-            names=["xy", "yz", "zx"],
+            names=['xy', 'yz', 'zx'],
         )
         conv = InequalityToEqualityConverter()
-        op2 = conv.encode(op, mode="auto")
+        op2 = conv.encode(op, mode='auto')
         var = op2.variables
-        self.assertListEqual(var.get_types(3, 4), ["I", "C"])
+        self.assertListEqual(var.get_types(3, 4), ['I', 'C'])
 
     def test_penalize_sense(self):
         """ Test PenalizeLinearEqualityConstraints with senses """
         op = OptimizationProblem()
-        op.variables.add(names=["x", "y", "z"], types="B" * 3)
+        op.variables.add(names=['x', 'y', 'z'], types='B' * 3)
         op.linear_constraints.add(
             lin_expr=[
-                SparsePair(ind=["x", "y"], val=[1, 1]),
-                SparsePair(ind=["y", "z"], val=[1, -1]),
-                SparsePair(ind=["z", "x"], val=[1, 2]),
+                SparsePair(ind=['x', 'y'], val=[1, 1]),
+                SparsePair(ind=['y', 'z'], val=[1, -1]),
+                SparsePair(ind=['z', 'x'], val=[1, 2]),
             ],
-            senses=["E", "L", "G"],
+            senses=['E', 'L', 'G'],
             rhs=[1, 2, 3],
-            names=["xy", "yz", "zx"],
+            names=['xy', 'yz', 'zx'],
         )
         self.assertEqual(op.linear_constraints.get_num(), 3)
         conv = PenalizeLinearEqualityConstraints()
@@ -252,15 +251,15 @@ class TestConverters(QiskitOptimizationTestCase):
     def test_penalize_binary(self):
         """ Test PenalizeLinearEqualityConstraints with binary variables """
         op = OptimizationProblem()
-        op.variables.add(names=["x", "y", "z"], types="B" * 3)
+        op.variables.add(names=['x', 'y', 'z'], types='B' * 3)
         op.linear_constraints.add(
             lin_expr=[
-                SparsePair(ind=["x", "y"], val=[1, 1]),
-                SparsePair(ind=["y", "z"], val=[1, -1]),
+                SparsePair(ind=['x', 'y'], val=[1, 1]),
+                SparsePair(ind=['y', 'z'], val=[1, -1]),
             ],
-            senses=["E", "E"],
+            senses=['E', 'E'],
             rhs=[1, 2],
-            names=["xy", "yz"],
+            names=['xy', 'yz'],
         )
         self.assertEqual(op.linear_constraints.get_num(), 2)
         conv = PenalizeLinearEqualityConstraints()
@@ -270,15 +269,15 @@ class TestConverters(QiskitOptimizationTestCase):
     def test_penalize_integer(self):
         """ Test PenalizeLinearEqualityConstraints with integer variables """
         op = OptimizationProblem()
-        op.variables.add(names=["x", "y", "z"], types="I" * 3, lb=[-3] * 3, ub=[3] * 3)
+        op.variables.add(names=['x', 'y', 'z'], types='I' * 3, lb=[-3] * 3, ub=[3] * 3)
         op.linear_constraints.add(
             lin_expr=[
-                SparsePair(ind=["x", "y"], val=[1, 1]),
-                SparsePair(ind=["y", "z"], val=[1, -1]),
+                SparsePair(ind=['x', 'y'], val=[1, 1]),
+                SparsePair(ind=['y', 'z'], val=[1, -1]),
             ],
-            senses=["E", "E"],
+            senses=['E', 'E'],
             rhs=[1, 2],
-            names=["xy", "yz"],
+            names=['xy', 'yz'],
         )
         self.assertEqual(op.linear_constraints.get_num(), 2)
         conv = PenalizeLinearEqualityConstraints()
@@ -288,41 +287,41 @@ class TestConverters(QiskitOptimizationTestCase):
     def test_integer_to_binary(self):
         """ Test integer to binary """
         op = OptimizationProblem()
-        op.variables.add(names=["x", "y", "z"], types="BIC", lb=[0, 0, 0], ub=[1, 6, 10])
-        op.objective.set_linear([("x", 1), ("y", 2), ("z", 1)])
+        op.variables.add(names=['x', 'y', 'z'], types='BIC', lb=[0, 0, 0], ub=[1, 6, 10])
+        op.objective.set_linear([('x', 1), ('y', 2), ('z', 1)])
         op.linear_constraints.add(
-            lin_expr=[SparsePair(ind=["x", "y", "z"], val=[1, 3, 1])],
-            senses=["L"],
+            lin_expr=[SparsePair(ind=['x', 'y', 'z'], val=[1, 3, 1])],
+            senses=['L'],
             rhs=[10],
-            names=["xyz"],
+            names=['xyz'],
         )
         self.assertEqual(op.variables.get_num(), 3)
         conv = IntegerToBinaryConverter()
         op2 = conv.encode(op)
         names = op2.variables.get_names()
-        self.assertIn("x", names)
-        self.assertIn("z", names)
+        self.assertIn('x', names)
+        self.assertIn('z', names)
         variables = op2.variables
-        self.assertEqual(variables.get_lower_bounds("x"), 0.0)
-        self.assertEqual(variables.get_lower_bounds("z"), 0.0)
-        self.assertEqual(variables.get_upper_bounds("x"), 1.0)
-        self.assertEqual(variables.get_upper_bounds("z"), 10.0)
+        self.assertEqual(variables.get_lower_bounds('x'), 0.0)
+        self.assertEqual(variables.get_lower_bounds('z'), 0.0)
+        self.assertEqual(variables.get_upper_bounds('x'), 1.0)
+        self.assertEqual(variables.get_upper_bounds('z'), 10.0)
         self.assertListEqual(
-            variables.get_types(["x", "y@0", "y@1", "y@2", "z"]), ["B", "B", "B", "B", "C"]
+            variables.get_types(['x', 'y@0', 'y@1', 'y@2', 'z']), ['B', 'B', 'B', 'B', 'C']
         )
-        self.assertListEqual(op2.objective.get_linear(["y@0", "y@1", "y@2"]), [2, 4, 6])
+        self.assertListEqual(op2.objective.get_linear(['y@0', 'y@1', 'y@2']), [2, 4, 6])
         self.assertListEqual(op2.linear_constraints.get_rows()[0].val, [1, 3, 6, 9, 1])
 
     def test_binary_to_integer(self):
         """ Test binary to integer """
         op = OptimizationProblem()
-        op.variables.add(names=["x", "y", "z"], types="BIB", lb=[0, 0, 0], ub=[1, 7, 1])
-        op.objective.set_linear([("x", 2), ("y", 1), ("z", 1)])
+        op.variables.add(names=['x', 'y', 'z'], types='BIB', lb=[0, 0, 0], ub=[1, 7, 1])
+        op.objective.set_linear([('x', 2), ('y', 1), ('z', 1)])
         op.linear_constraints.add(
-            lin_expr=[SparsePair(ind=["x", "y", "z"], val=[1, 1, 1])],
-            senses=["L"],
+            lin_expr=[SparsePair(ind=['x', 'y', 'z'], val=[1, 1, 1])],
+            senses=['L'],
             rhs=[7],
-            names=["xyz"],
+            names=['xyz'],
         )
         op.objective.set_sense(-1)
         conv = IntegerToBinaryConverter()
@@ -335,13 +334,13 @@ class TestConverters(QiskitOptimizationTestCase):
     def test_optimizationproblem_to_operator(self):
         """ Test optimization problem to operators"""
         op = OptimizationProblem()
-        op.variables.add(names=["a", "b", "c", "d"], types="B" * 4)
-        op.objective.set_linear([("a", 1), ("b", 1), ("c", 1), ("d", 1)])
+        op.variables.add(names=['a', 'b', 'c', 'd'], types='B' * 4)
+        op.objective.set_linear([('a', 1), ('b', 1), ('c', 1), ('d', 1)])
         op.linear_constraints.add(
-            lin_expr=[SparsePair(ind=["a", "b", "c", "d"], val=[1, 2, 3, 4])],
-            senses=["E"],
+            lin_expr=[SparsePair(ind=['a', 'b', 'c', 'd'], val=[1, 2, 3, 4])],
+            senses=['E'],
             rhs=[3],
-            names=["abcd"],
+            names=['abcd'],
         )
         op.objective.set_sense(-1)
         penalize = PenalizeLinearEqualityConstraints()
@@ -356,26 +355,27 @@ class TestConverters(QiskitOptimizationTestCase):
         # IntegerToBinaryConverter
         with self.assertRaises(QiskitOptimizationError):
             op = OptimizationProblem()
-            op.variables.add(names=["x", "y"])
-            l_expr = SparsePair(ind=["x"], val=[1.0])
-            q_expr = [["x"], ["y"], [1]]
+            op.variables.add(names=['x', 'y'])
+            l_expr = SparsePair(ind=['x'], val=[1.0])
+            q_expr = [['x'], ['y'], [1]]
             op.quadratic_constraints.add(name=str(1), lin_expr=l_expr, quad_expr=q_expr)
             conv = IntegerToBinaryConverter()
             _ = conv.encode(op)
         # InequalityToEqualityConverter
         with self.assertRaises(QiskitOptimizationError):
             op = OptimizationProblem()
-            op.variables.add(names=["x", "y"])
-            l_expr = SparsePair(ind=["x"], val=[1.0])
-            q_expr = [["x"], ["y"], [1]]
+            op.variables.add(names=['x', 'y'])
+            l_expr = SparsePair(ind=['x'], val=[1.0])
+            q_expr = [['x'], ['y'], [1]]
             op.quadratic_constraints.add(name=str(1), lin_expr=l_expr, quad_expr=q_expr)
             conv = InequalityToEqualityConverter()
             _ = conv.encode(op)
 
     def test_continuous_variable_decode(self):
-        mdl = Model("test_continuous_varable_decode")
-        c = mdl.continuous_var(lb=0, ub=10.9, name="c")
-        x = mdl.binary_var(name="x")
+        """ Test decode func of IntegerToBinaryConverter for continuous variables"""
+        mdl = Model('test_continuous_varable_decode')
+        c = mdl.continuous_var(lb=0, ub=10.9, name='c')
+        x = mdl.binary_var(name='x')
         mdl.maximize(c + x * x)
         op = OptimizationProblem()
         op.from_docplex(mdl)
@@ -394,5 +394,5 @@ class TestConverters(QiskitOptimizationTestCase):
         self.assertEqual(solution.x[0], 10.9)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()
