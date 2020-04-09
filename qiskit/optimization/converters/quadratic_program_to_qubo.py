@@ -12,8 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""A converter from optimization problem to a QUBO (given as optimization problem).
-"""
+"""A converter from quadratic program to a QUBO."""
 
 from typing import Optional
 
@@ -25,7 +24,7 @@ from qiskit.optimization.utils import QiskitOptimizationError
 
 
 class QuadraticProgramToQubo:
-    """ Convert a given optimization problem to a new problem that is a QUBO.
+    """Convert a given optimization problem to a new problem that is a QUBO.
 
         Examples:
             >>> problem = QuadraticProgram()
@@ -35,8 +34,7 @@ class QuadraticProgramToQubo:
     """
 
     def __init__(self, penalty: Optional[float] = 1e5) -> None:
-        """ Constructor. It initializes the internal data structure.
-
+        """
         Args:
             penalty: Penalty factor to scale equality constraints that are added to objective.
         """
@@ -45,7 +43,7 @@ class QuadraticProgramToQubo:
         self._penalty = penalty
 
     def encode(self, problem: QuadraticProgram) -> QuadraticProgram:
-        """ Convert a problem with linear equality constraints into new one with a QUBO form.
+        """Convert a problem with linear equality constraints into new one with a QUBO form.
 
         Args:
             problem: The problem with linear equality constraints to be solved.
@@ -55,13 +53,12 @@ class QuadraticProgramToQubo:
 
         Raises:
             QiskitOptimizationError: In case of an incompatible problem.
-
         """
 
         # analyze compatibility of problem
-        msg = self.is_compatible(problem)
-        if msg is not None:
-            raise QiskitOptimizationError('Incompatible problem: %s' % msg)
+        msg = self.get_compatibility_msg(problem)
+        if len(msg) > 0:
+            raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
 
         # map integer variables to binary variables
         problem_ = self._int_to_bin.encode(problem)
@@ -89,18 +86,22 @@ class QuadraticProgramToQubo:
         return self._int_to_bin.decode(result)
 
     @staticmethod
-    def is_compatible(problem: QuadraticProgram) -> Optional[str]:
-        """Checks whether a given problem can be cast to a Quadratic Unconstrained Binary
-        Optimization (QUBO) problem, i.e., whether the problem contains only binary and integer
-        variables as well as linear equality constraints, and otherwise, returns a message
-        explaining the incompatibility.
+    def get_compatibility_msg(problem: QuadraticProgram) -> bool:
+        """Checks whether a given problem can be cast to a QUBO.
+
+        A quadratic program can be converted to a QUBO (Quadratic Unconstrained Binary
+        Optimization) problem, if the problem contains only binary and integer variables as well
+        as linear equality constraints.
 
         Args:
             problem: The optimization problem to check compatibility.
 
         Returns:
-            Returns ``None`` if the problem is compatible and else a string with the error message.
+            True, if the problem can be converted to a QUBO, otherwise a QiskitOptimizationError
+            is raised.
 
+        Raises:
+            QiskitOptimizationError: If the conversion to QUBO is not possible.
         """
 
         # initialize message
@@ -123,7 +124,15 @@ class QuadraticProgramToQubo:
             msg += 'Quadratic constraints are not supported. '
 
         # if an error occurred, return error message, otherwise, return None
-        if len(msg) > 0:
-            return msg.strip()
-        else:
-            return None
+        return msg
+
+    def is_compatible(self, problem: QuadraticProgram) -> bool:
+        """Checks whether a given problem can be solved with the optimizer implementing this method.
+
+        Args:
+            problem: The optimization problem to check compatibility.
+
+        Returns:
+            Returns True if the problem is compatible, False otherwise.
+        """
+        return len(self.get_compatibility_msg(problem)) == 0

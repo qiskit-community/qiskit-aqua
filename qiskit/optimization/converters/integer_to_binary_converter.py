@@ -36,11 +36,17 @@ except ImportError:
 class IntegerToBinaryConverter:
     """Convert an `QuadraticProgram` into new one by encoding integer with binary variables.
 
+    This bounded-coefficient encoding used in this converted is proposed in [1], Eq. (5).
+
     Examples:
         >>> problem = QuadraticProgram()
         >>> problem.variables.add(names=['x'], types=['I'], lb=[0], ub=[10])
         >>> conv = IntegerToBinaryConverter()
         >>> problem2 = conv.encode(problem)
+
+    References:
+        [1]: Sahar Karimi, Pooya Ronagh (2017), Practical Integer-to-Binary Mapping for Quantum
+            Annealers. arxiv.org:1706.01945.
     """
 
     _delimiter = '@'  # users are supposed not to use this character in variable names
@@ -99,7 +105,6 @@ class IntegerToBinaryConverter:
         return self._dst
 
     def _encode_var(self, name: str, lower_bound: int, upper_bound: int) -> List[Tuple[str, int]]:
-        # bounded-coefficient encoding proposed in arxiv:1706.01945 (Eq. (5))
         var_range = upper_bound - lower_bound
         power = int(np.log2(var_range))
         bounded_coef = var_range - (2 ** power - 1)

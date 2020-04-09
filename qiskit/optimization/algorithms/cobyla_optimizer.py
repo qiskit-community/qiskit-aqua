@@ -67,7 +67,7 @@ class CobylaOptimizer(OptimizationAlgorithm):
         self._disp = disp
         self._catol = catol
 
-    def is_compatible(self, problem: QuadraticProgram) -> Optional[str]:
+    def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
         """Checks whether a given problem can be solved with this optimizer.
 
         Checks whether the given problem is compatible, i.e., whether the problem contains only
@@ -77,21 +77,13 @@ class CobylaOptimizer(OptimizationAlgorithm):
             problem: The optimization problem to check compatibility.
 
         Returns:
-            Returns ``None`` if the problem is compatible and else a string with the error message.
+            Returns a string describing the incompatibility.
         """
-
-        # initialize message
-        msg = ''
-
         # check whether there are variables of type other than continuous
         if problem.variables.get_num() > problem.variables.get_num_continuous():
-            msg += 'This optimizer supports only continuous variables! '
+            return 'The COBYLA optimizer supports only continuous variables'
 
-        # if an error occurred, return error message, otherwise, return None
-        if len(msg) > 0:
-            return msg.strip()
-        else:
-            return None
+        return ''
 
     def solve(self, problem: QuadraticProgram) -> OptimizationResult:
         """Tries to solves the given problem using the optimizer.
@@ -107,10 +99,9 @@ class CobylaOptimizer(OptimizationAlgorithm):
         Raises:
             QiskitOptimizationError: If the problem is incompatible with the optimizer.
         """
-
         # check compatibility and raise exception if incompatible
-        msg = self.is_compatible(problem)
-        if msg:
+        msg = self.get_compatibility_msg(problem)
+        if len(msg) > 0:
             raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
 
         # get number of variables

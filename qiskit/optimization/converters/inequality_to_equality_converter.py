@@ -46,7 +46,7 @@ class InequalityToEqualityConverter:
     _delimiter = '@'  # users are supposed not to use this character in variable names
 
     def __init__(self) -> None:
-        """Initialize the integral variables."""
+        """Initialize the inequality to equality variable converter."""
         if not _HAS_CPLEX:
             raise NameError('CPLEX is not installed.')
 
