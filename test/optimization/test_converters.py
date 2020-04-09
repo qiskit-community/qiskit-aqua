@@ -16,7 +16,7 @@
 
 import unittest
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
-from cplex import SparsePair
+import logging
 
 from qiskit.optimization import QuadraticProgram, QiskitOptimizationError
 from qiskit.optimization.results import OptimizationResult
@@ -24,6 +24,15 @@ from qiskit.optimization.converters import InequalityToEqualityConverter, \
     QuadraticProgramToOperator, IntegerToBinaryConverter, PenalizeLinearEqualityConstraints
 from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.quantum_info import Pauli
+
+logger = logging.getLogger(__name__)
+
+_HAS_CPLEX = False
+try:
+    from cplex import SparsePair
+    _HAS_CPLEX = True
+except ImportError:
+    logger.info('CPLEX is not installed.')
 
 QUBIT_OP_MAXIMIZE_SAMPLE = WeightedPauliOperator(
     paulis=[[(-199999.5+0j), Pauli(z=[True, False, False, False],
@@ -51,6 +60,11 @@ OFFSET_MAXIMIZE_SAMPLE = 1149998
 
 class TestConverters(QiskitOptimizationTestCase):
     """Test Converters"""
+
+    def setUp(self) -> None:
+        super().setUp()
+        if not _HAS_CPLEX:
+            self.skipTest('CPLEX is not installed.')
 
     def test_empty_problem(self):
         """ Test empty problem """

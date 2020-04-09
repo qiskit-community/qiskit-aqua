@@ -16,14 +16,27 @@
 
 import unittest
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
-
-from cplex import infinity
+import logging
 
 from qiskit.optimization import QuadraticProgram, QiskitOptimizationError
+
+logger = logging.getLogger(__name__)
+
+_HAS_CPLEX = False
+try:
+    from cplex import infinity
+    _HAS_CPLEX = True
+except ImportError:
+    logger.info('CPLEX is not installed.')
 
 
 class TestVariables(QiskitOptimizationTestCase):
     """Test VariablesInterface."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        if not _HAS_CPLEX:
+            self.skipTest('CPLEX is not installed.')
 
     def test_type(self):
         """ test type """

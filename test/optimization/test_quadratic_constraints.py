@@ -16,15 +16,28 @@
 
 import unittest
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
-
-from cplex import SparsePair, SparseTriple
+import logging
 
 from qiskit.optimization import QiskitOptimizationError
 from qiskit.optimization.problems import QuadraticProgram
 
+logger = logging.getLogger(__name__)
+
+_HAS_CPLEX = False
+try:
+    from cplex import SparsePair, SparseTriple
+    _HAS_CPLEX = True
+except ImportError:
+    logger.info('CPLEX is not installed.')
+
 
 class TestQuadraticConstraints(QiskitOptimizationTestCase):
     """Test QuadraticConstraintInterface."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        if not _HAS_CPLEX:
+            self.skipTest('CPLEX is not installed.')
 
     def test_initial1(self):
         """ test initial 1"""

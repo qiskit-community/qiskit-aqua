@@ -17,8 +17,9 @@
 import unittest
 import math
 from test.finance import QiskitFinanceTestCase
-
+import logging
 import numpy as np
+
 from qiskit.quantum_info import Pauli
 
 from qiskit.aqua import aqua_globals
@@ -27,6 +28,15 @@ from qiskit.finance.applications.ising.portfolio_diversification import \
     (get_portfoliodiversification_solution,
      get_operator,
      get_portfoliodiversification_value)
+
+logger = logging.getLogger(__name__)
+
+_HAS_CPLEX = False
+try:
+    import cplex
+    _HAS_CPLEX = True
+except ImportError:
+    logger.info('CPLEX is not installed.')
 
 
 class ClassicalOptimizer:
@@ -43,10 +53,6 @@ class ClassicalOptimizer:
 
     def cplex_solution(self):
         """ cplex solution """
-        try:
-            import cplex  # pylint: disable=import-outside-toplevel
-        except ImportError as ex:
-            print(str(ex))
 
         # refactoring
         rho = self.rho
@@ -226,13 +232,12 @@ class TestPortfolioDiversification(QiskitFinanceTestCase):
         # Something of an integration test
         # Solve the problem in a classical fashion via CPLEX and compare the solution
         # Note that CPLEX uses a completely different integer linear programming formulation.
+        if not _HAS_CPLEX:
+            self.skipTest('CPLEX is not installed.')
         x = None
-        try:
-            classical_optimizer = ClassicalOptimizer(self.instance, self.n, self.q)
-            x, classical_cost = classical_optimizer.cplex_solution()
-        except Exception:  # pylint: disable=broad-except
-            # This test should not focus on the availability of CPLEX, so we just eat the exception.
-            self.skipTest("CPLEX may be missing.")
+        classical_optimizer = ClassicalOptimizer(self.instance, self.n, self.q)
+        x, classical_cost = classical_optimizer.cplex_solution()
+
         # Solve the problem using the exact eigensolver
         result = NumPyMinimumEigensolver(self.qubit_op).run()
         quantum_solution = get_portfoliodiversification_solution(self.instance,

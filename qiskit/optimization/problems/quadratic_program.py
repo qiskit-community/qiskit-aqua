@@ -15,13 +15,10 @@
 """Mixed integer quadratically constrained quadratic program"""
 
 from enum import Enum
-from logging import getLogger
 from math import fsum
 from typing import Optional, Tuple
+import logging
 
-from cplex import Cplex, SparsePair
-from cplex import SparseTriple, infinity
-from cplex.exceptions import CplexSolverError
 from docplex.mp.model import Model as DocplexModel
 
 from qiskit.optimization.problems.linear_constraint import LinearConstraintInterface
@@ -32,7 +29,16 @@ from qiskit.optimization.problems.variables import VariablesInterface
 from qiskit.optimization.results.solution import SolutionInterface
 from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
 
-logger = getLogger(__name__)
+logger = logging.getLogger(__name__)
+
+_HAS_CPLEX = False
+try:
+    from cplex import Cplex, SparsePair
+    from cplex import SparseTriple, infinity
+    from cplex.exceptions import CplexSolverError
+    _HAS_CPLEX = True
+except ImportError:
+    logger.info('CPLEX is not installed.')
 
 
 class QuadraticProgram:
@@ -53,6 +59,7 @@ class QuadraticProgram:
 
         Raises:
             QiskitOptimizationError: if it cannot load a file.
+            NameError: CPLEX is not installed.
 
         Examples:
 
@@ -74,6 +81,8 @@ class QuadraticProgram:
 
         When the with block is finished, the end() method will be called automatically.
         """
+        if not _HAS_CPLEX:
+            raise NameError('CPLEX is not installed.')
 
         self._name = ''
 
@@ -100,7 +109,7 @@ class QuadraticProgram:
             except CplexSolverError:
                 raise QiskitOptimizationError('Could not load file: {}'.format(file_name))
 
-    def from_cplex(self, op: Cplex):
+    def from_cplex(self, op: 'Cplex'):
         """Loads an optimization problem from a Cplex object
 
         Args:
@@ -168,7 +177,7 @@ class QuadraticProgram:
         # Docplex does not copy the model name. We need to do it manually.
         self.set_problem_name(model.get_name())
 
-    def to_cplex(self) -> Cplex:
+    def to_cplex(self) -> 'Cplex':
         """Converts the optimization problem into a Cplex object.
 
         Returns: Cplex object
@@ -376,8 +385,8 @@ class QuadraticProgram:
         """Returns the problem name"""
         return self._name
 
-    def substitute_variables(self, constants: Optional[SparsePair] = None,
-                             variables: Optional[SparseTriple] = None) \
+    def substitute_variables(self, constants: Optional['SparsePair'] = None,
+                             variables: Optional['SparseTriple'] = None) \
             -> Tuple['QuadraticProgram', 'SubstitutionStatus']:
         """Substitutes variables with constants or other variables.
 
@@ -482,8 +491,8 @@ class SubstituteVariables:
         self._subs = {}
 
     def substitute_variables(self, src: QuadraticProgram,
-                             constants: Optional[SparsePair] = None,
-                             variables: Optional[SparseTriple] = None) \
+                             constants: Optional['SparsePair'] = None,
+                             variables: Optional['SparseTriple'] = None) \
             -> Tuple[QuadraticProgram, SubstitutionStatus]:
         """Substitutes variables with constants or other variables.
 

@@ -17,15 +17,21 @@
 import copy
 import numbers
 from collections.abc import Sequence
-from logging import getLogger
 from typing import Callable, List, Union, Dict, Tuple
+import logging
 
-from cplex import SparsePair
 from scipy.sparse import dok_matrix
 
 from qiskit.optimization.utils import BaseInterface, QiskitOptimizationError
 
-logger = getLogger(__name__)
+logger = logging.getLogger(__name__)
+
+_HAS_CPLEX = False
+try:
+    from cplex import SparsePair
+    _HAS_CPLEX = True
+except ImportError:
+    logger.info('CPLEX is not installed.')
 
 CPX_MAX = -1
 CPX_MIN = 1
@@ -73,6 +79,9 @@ class ObjectiveInterface(BaseInterface):
         `QuadraticProgram` class as `QuadraticProgram.objective`.
         This constructor is not meant to be used externally.
         """
+        if not _HAS_CPLEX:
+            raise NameError('CPLEX is not installed.')
+
         super(ObjectiveInterface, self).__init__()
         self._linear = {}
         self._quadratic = dok_matrix((0, 0))
@@ -121,7 +130,7 @@ class ObjectiveInterface(BaseInterface):
 
         self._setter(_set, *args)
 
-    def set_quadratic(self, coef: Union[List[float], List[SparsePair], List[Sequence]]):
+    def set_quadratic(self, coef: Union[List[float], List['SparsePair'], List[Sequence]]):
         """Sets the quadratic part of the objective function.
 
         Call this method with a list with length equal to the number
@@ -344,7 +353,7 @@ class ObjectiveInterface(BaseInterface):
         """
         return copy.deepcopy(self._linear)
 
-    def get_quadratic(self, *args) -> Union[SparsePair, List[SparsePair]]:
+    def get_quadratic(self, *args) -> Union['SparsePair', List['SparsePair']]:
         """Returns a set of columns of the quadratic component of the objective function.
 
         Returns a SparsePair instance or a list of SparsePair instances.

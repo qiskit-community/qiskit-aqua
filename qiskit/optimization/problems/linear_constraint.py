@@ -17,12 +17,20 @@
 import copy
 from collections.abc import Sequence
 from typing import Callable, Optional, List, Union
-
-from cplex import SparsePair
+import logging
 
 from qiskit.optimization.utils.base import BaseInterface
 from qiskit.optimization.utils.helpers import init_list_args, NameIndex
 from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
+
+logger = logging.getLogger(__name__)
+
+_HAS_CPLEX = False
+try:
+    from cplex import SparsePair
+    _HAS_CPLEX = True
+except ImportError:
+    logger.info('CPLEX is not installed.')
 
 
 class LinearConstraintInterface(BaseInterface):
@@ -35,6 +43,9 @@ class LinearConstraintInterface(BaseInterface):
         `QuadraticProgram` class as `QuadraticProgram.linear_constraints`.
         This constructor is not meant to be used externally.
         """
+        if not _HAS_CPLEX:
+            raise NameError('CPLEX is not installed.')
+
         super(LinearConstraintInterface, self).__init__()
         self._rhs = []
         self._senses = []
@@ -57,7 +68,7 @@ class LinearConstraintInterface(BaseInterface):
         """
         return len(self._names)
 
-    def add(self, lin_expr: Optional[List[SparsePair]] = None, senses: str = "",
+    def add(self, lin_expr: Optional[List['SparsePair']] = None, senses: str = "",
             rhs: Optional[List[float]] = None, range_values: Optional[List[float]] = None,
             names: Optional[List[str]] = None) -> range:
         """Adds linear constraints to the problem.
@@ -676,7 +687,7 @@ class LinearConstraintInterface(BaseInterface):
             raise QiskitOptimizationError(
                 "Wrong number of arguments. Please use 2 or one list of pairs: {}".format(args))
 
-    def get_rows(self, *args) -> Union[SparsePair, List[SparsePair]]:
+    def get_rows(self, *args) -> Union['SparsePair', List['SparsePair']]:
         """Returns a set of rows of the linear constraint matrix.
 
         Returns a list of SparsePair instances or a single SparsePair

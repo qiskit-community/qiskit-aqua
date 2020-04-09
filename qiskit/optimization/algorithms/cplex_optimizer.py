@@ -23,13 +23,21 @@ Examples:
 """
 
 from typing import Optional
-from cplex import ParameterSet
-from cplex.exceptions import CplexSolverError
+import logging
 
 from .optimization_algorithm import OptimizationAlgorithm
 from ..utils.qiskit_optimization_error import QiskitOptimizationError
 from ..results.optimization_result import OptimizationResult
 from ..problems.quadratic_program import QuadraticProgram
+
+logger = logging.getLogger(__name__)
+
+_HAS_CPLEX = False
+try:
+    from cplex.exceptions import CplexSolverError
+    _HAS_CPLEX = True
+except ImportError:
+    logger.info('CPLEX is not installed.')
 
 
 class CplexOptimizer(OptimizationAlgorithm):
@@ -41,7 +49,7 @@ class CplexOptimizer(OptimizationAlgorithm):
     TODO: The arguments for ``Cplex`` are passed via the constructor.
     """
 
-    def __init__(self, parameter_set: Optional[ParameterSet] = None) -> None:
+    def __init__(self, parameter_set: Optional['ParameterSet'] = None) -> None:
         """Initializes the CplexOptimizer.
 
         TODO: This initializer takes the algorithmic parameters of CPLEX and stores them for later
@@ -49,11 +57,17 @@ class CplexOptimizer(OptimizationAlgorithm):
 
         Args:
             parameter_set: The CPLEX parameter set
+
+        Raises:
+            NameError: CPLEX is not installed.
         """
+        if not _HAS_CPLEX:
+            raise NameError('CPLEX is not installed.')
+
         self._parameter_set = parameter_set
 
     @property
-    def parameter_set(self) -> Optional[ParameterSet]:
+    def parameter_set(self) -> Optional['ParameterSet']:
         """Returns the parameter set.
         Returns the algorithmic parameters for CPLEX.
         Returns:
@@ -62,7 +76,7 @@ class CplexOptimizer(OptimizationAlgorithm):
         return self._parameter_set
 
     @parameter_set.setter
-    def parameter_set(self, parameter_set: Optional[ParameterSet]):
+    def parameter_set(self, parameter_set: Optional['ParameterSet']):
         """Set the parameter set.
         Args:
             parameter_set: The new parameter set.

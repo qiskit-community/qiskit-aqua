@@ -16,11 +16,20 @@
 
 import unittest
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
-
+import logging
 from ddt import ddt, data
 
 from qiskit.optimization.algorithms import CobylaOptimizer
 from qiskit.optimization.problems import QuadraticProgram
+
+logger = logging.getLogger(__name__)
+
+_HAS_CPLEX = False
+try:
+    from cplex import SparsePair, SparseTriple
+    _HAS_CPLEX = True
+except ImportError:
+    logger.info('CPLEX is not installed.')
 
 
 @ddt
@@ -29,6 +38,8 @@ class TestCobylaOptimizer(QiskitOptimizationTestCase):
 
     def setUp(self):
         super().setUp()
+        if not _HAS_CPLEX:
+            self.skipTest('CPLEX is not installed.')
 
         self.resource_path = './test/optimization/resources/'
         self.cobyla_optimizer = CobylaOptimizer()
@@ -54,7 +65,6 @@ class TestCobylaOptimizer(QiskitOptimizationTestCase):
 
     def test_cobyla_optimizer_with_quadratic_constraint(self):
         """ Cobyla Optimizer Test """
-        from cplex import SparsePair, SparseTriple
         # load optimization problem
         problem = QuadraticProgram()
         problem.variables.add(lb=[0, 0], ub=[1, 1], types='CC')
