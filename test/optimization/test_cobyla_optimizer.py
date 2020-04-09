@@ -20,7 +20,7 @@ import logging
 from ddt import ddt, data
 
 from qiskit.optimization.algorithms import CobylaOptimizer
-from qiskit.optimization.problems import OptimizationProblem
+from qiskit.optimization.problems import QuadraticProgram
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +54,7 @@ class TestCobylaOptimizer(QiskitOptimizationTestCase):
         filename, fval = config
 
         # load optimization problem
-        problem = OptimizationProblem()
+        problem = QuadraticProgram()
         problem.read(self.resource_path + filename)
 
         # solve problem with cobyla
@@ -66,7 +66,7 @@ class TestCobylaOptimizer(QiskitOptimizationTestCase):
     def test_cobyla_optimizer_with_quadratic_constraint(self):
         """ Cobyla Optimizer Test """
         # load optimization problem
-        problem = OptimizationProblem()
+        problem = QuadraticProgram()
         problem.variables.add(lb=[0, 0], ub=[1, 1], types='CC')
         problem.objective.set_linear([(0, 1), (1, 1)])
 

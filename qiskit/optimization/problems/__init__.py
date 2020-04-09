@@ -29,27 +29,27 @@ Structures for defining an optimization problem and its solution
    LinearConstraintInterface
    ObjSense
    ObjectiveInterface
-   OptimizationProblem
+   QuadraticProgram
    QuadraticConstraintInterface
    VariablesInterface
 
 N.B. Additional classes LinearConstraintInterface, QuadraticConstraintInterface,
 ObjectiveInterface, and VariablesInterface
 are not to be instantiated directly. Objects of those types are available within
-an instantiated OptimizationProblem.
+an instantiated QuadraticProgram.
 
 """
 
 from .linear_constraint import LinearConstraintInterface
 from .objective import ObjSense, ObjectiveInterface
-from .optimization_problem import OptimizationProblem
+from .quadratic_program import QuadraticProgram
 from .quadratic_constraint import QuadraticConstraintInterface
 from .variables import VariablesInterface
 
 __all__ = ['LinearConstraintInterface',
            'ObjSense',
            'ObjectiveInterface',
-           'OptimizationProblem',
+           'QuadraticProgram',
            'QuadraticConstraintInterface',
            'VariablesInterface'
            ]
