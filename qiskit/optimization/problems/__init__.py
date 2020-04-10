@@ -32,6 +32,7 @@ Structures for defining an optimization problem and its solution
    QuadraticProgram
    QuadraticConstraintInterface
    VariablesInterface
+   NameIndex
 
 N.B. Additional classes LinearConstraintInterface, QuadraticConstraintInterface,
 ObjectiveInterface, and VariablesInterface
@@ -45,11 +46,13 @@ from .objective import ObjSense, ObjectiveInterface
 from .quadratic_program import QuadraticProgram
 from .quadratic_constraint import QuadraticConstraintInterface
 from .variables import VariablesInterface
+from .name_index import NameIndex
 
 __all__ = ['LinearConstraintInterface',
            'ObjSense',
            'ObjectiveInterface',
            'QuadraticProgram',
            'QuadraticConstraintInterface',
-           'VariablesInterface'
+           'VariablesInterface',
+           'NameIndex',
            ]

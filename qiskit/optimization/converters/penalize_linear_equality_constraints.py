@@ -20,7 +20,7 @@ import copy
 from collections import defaultdict
 
 from ..problems.quadratic_program import QuadraticProgram
-from ..utils.qiskit_optimization_error import QiskitOptimizationError
+from ..exceptions.qiskit_optimization_error import QiskitOptimizationError
 
 
 class PenalizeLinearEqualityConstraints:

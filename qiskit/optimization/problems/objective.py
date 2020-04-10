@@ -19,10 +19,10 @@ import numbers
 from collections.abc import Sequence
 from typing import Callable, List, Union, Dict, Tuple
 import logging
-
 from scipy.sparse import dok_matrix
 
-from qiskit.optimization.utils import BaseInterface, QiskitOptimizationError
+from qiskit.optimization.exceptions import QiskitOptimizationError
+from .base import BaseInterface
 
 logger = logging.getLogger(__name__)
 

@@ -24,7 +24,7 @@ from qiskit.aqua.utils.validation import validate_min
 
 from .optimization_algorithm import OptimizationAlgorithm
 from .minimum_eigen_optimizer import MinimumEigenOptimizer
-from ..utils.qiskit_optimization_error import QiskitOptimizationError
+from ..exceptions.qiskit_optimization_error import QiskitOptimizationError
 from ..problems.quadratic_program import QuadraticProgram
 from ..results.optimization_result import OptimizationResult
 from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo

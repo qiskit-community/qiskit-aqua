@@ -14,7 +14,7 @@
 
 """Solution status codes."""
 
-from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
+from qiskit.optimization.exceptions.qiskit_optimization_error import QiskitOptimizationError
 
 CPX_STAT_ABORT_DETTIME_LIM = 25
 CPX_STAT_ABORT_IT_LIM = 10

@@ -19,7 +19,7 @@ from typing import Optional
 import logging
 
 from .optimization_algorithm import OptimizationAlgorithm
-from ..utils.qiskit_optimization_error import QiskitOptimizationError
+from ..exceptions.qiskit_optimization_error import QiskitOptimizationError
 from ..results.optimization_result import OptimizationResult
 from ..problems.quadratic_program import QuadraticProgram
 

@@ -18,7 +18,7 @@ import unittest
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 
 from qiskit.optimization import QiskitOptimizationError
-from qiskit.optimization.utils.helpers import NameIndex, init_list_args
+from qiskit.optimization.problems.name_index import NameIndex, init_list_args
 
 
 class TestHelpers(QiskitOptimizationTestCase):

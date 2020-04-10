@@ -16,7 +16,7 @@
 
 from typing import Union, List, Sequence, Tuple
 
-from qiskit.optimization.utils import QiskitOptimizationError
+from qiskit.optimization.exceptions import QiskitOptimizationError
 
 
 class NameIndex:

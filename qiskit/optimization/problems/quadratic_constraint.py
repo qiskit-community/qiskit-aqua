@@ -21,9 +21,10 @@ from typing import List, Dict, Callable, Union, Optional
 
 from scipy.sparse import dok_matrix
 
-from qiskit.optimization.utils.base import BaseInterface
-from qiskit.optimization.utils.helpers import NameIndex
-from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
+from qiskit.optimization.problems.name_index import NameIndex
+from qiskit.optimization.exceptions import QiskitOptimizationError
+
+from .base import BaseInterface
 
 logger = logging.getLogger(__name__)
 

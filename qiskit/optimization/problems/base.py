@@ -17,8 +17,8 @@
 from abc import ABC
 from typing import Callable, Sequence, Union, Any, List, Generator
 
-from qiskit.optimization.utils.helpers import NameIndex
-from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
+from qiskit.optimization.exceptions import QiskitOptimizationError
+from .name_index import NameIndex
 
 
 class BaseInterface(ABC):

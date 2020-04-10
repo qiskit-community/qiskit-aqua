@@ -20,7 +20,7 @@ from qiskit.optimization.problems import QuadraticProgram
 from qiskit.optimization.results import OptimizationResult
 from qiskit.optimization.converters import (PenalizeLinearEqualityConstraints,
                                             IntegerToBinaryConverter)
-from qiskit.optimization.utils import QiskitOptimizationError
+from qiskit.optimization.exceptions import QiskitOptimizationError
 
 
 class QuadraticProgramToQubo:

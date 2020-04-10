@@ -21,7 +21,7 @@ import logging
 
 from ..problems.quadratic_program import QuadraticProgram
 from ..results.optimization_result import OptimizationResult
-from ..utils.qiskit_optimization_error import QiskitOptimizationError
+from ..exceptions.qiskit_optimization_error import QiskitOptimizationError
 
 logger = logging.getLogger(__name__)
 

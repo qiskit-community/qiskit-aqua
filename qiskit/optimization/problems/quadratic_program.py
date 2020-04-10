@@ -27,7 +27,7 @@ from qiskit.optimization.problems.problem_type import ProblemType
 from qiskit.optimization.problems.quadratic_constraint import QuadraticConstraintInterface
 from qiskit.optimization.problems.variables import VariablesInterface
 from qiskit.optimization.results.solution import SolutionInterface
-from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
+from qiskit.optimization.exceptions.qiskit_optimization_error import QiskitOptimizationError
 
 logger = logging.getLogger(__name__)
 

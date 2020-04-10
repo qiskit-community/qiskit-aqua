@@ -23,7 +23,7 @@ from qiskit.quantum_info import Pauli
 from qiskit.aqua.operators import WeightedPauliOperator
 
 from ..problems.quadratic_program import QuadraticProgram
-from ..utils.qiskit_optimization_error import QiskitOptimizationError
+from ..exceptions.qiskit_optimization_error import QiskitOptimizationError
 
 
 class QuadraticProgramToOperator:

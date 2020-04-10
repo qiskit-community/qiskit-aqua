@@ -19,9 +19,10 @@ from collections.abc import Sequence
 from typing import Callable, Optional, List, Union
 import logging
 
-from qiskit.optimization.utils.base import BaseInterface
-from qiskit.optimization.utils.helpers import init_list_args, NameIndex
-from qiskit.optimization.utils.qiskit_optimization_error import QiskitOptimizationError
+from qiskit.optimization.problems.name_index import init_list_args, NameIndex
+from qiskit.optimization.exceptions import QiskitOptimizationError
+
+from .base import BaseInterface
 
 logger = logging.getLogger(__name__)
 
