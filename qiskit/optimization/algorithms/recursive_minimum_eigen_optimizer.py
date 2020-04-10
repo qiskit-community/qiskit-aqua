@@ -22,11 +22,10 @@ import numpy as np
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.aqua.utils.validation import validate_min
 
-from .optimization_algorithm import OptimizationAlgorithm
+from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
 from .minimum_eigen_optimizer import MinimumEigenOptimizer
 from ..exceptions.qiskit_optimization_error import QiskitOptimizationError
 from ..problems.quadratic_program import QuadraticProgram
-from ..results.optimization_result import OptimizationResult
 from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
 
 logger = logging.getLogger(__name__)

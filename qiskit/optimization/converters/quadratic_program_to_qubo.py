@@ -17,7 +17,6 @@
 from typing import Optional
 
 from qiskit.optimization.problems import QuadraticProgram
-from qiskit.optimization.results import OptimizationResult
 from qiskit.optimization.converters import (PenalizeLinearEqualityConstraints,
                                             IntegerToBinaryConverter)
 from qiskit.optimization.exceptions import QiskitOptimizationError
@@ -74,7 +73,7 @@ class QuadraticProgramToQubo:
         # return QUBO
         return problem_
 
-    def decode(self, result: OptimizationResult) -> OptimizationResult:
+    def decode(self, result: 'OptimizationResult') -> 'OptimizationResult':
         """ Convert a result of a converted problem into that of the original problem.
 
             Args:

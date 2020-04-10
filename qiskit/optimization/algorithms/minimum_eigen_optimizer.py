@@ -22,11 +22,10 @@ from qiskit import QuantumCircuit, BasicAer, execute
 from qiskit.aqua.algorithms import MinimumEigensolver
 from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator
 
-from .optimization_algorithm import OptimizationAlgorithm
+from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
 from ..problems.quadratic_program import QuadraticProgram
 from ..converters.quadratic_program_to_operator import QuadraticProgramToOperator
 from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
-from ..results.optimization_result import OptimizationResult
 
 
 class MinimumEigenOptimizerResult(OptimizationResult):

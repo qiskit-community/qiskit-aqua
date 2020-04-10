@@ -26,8 +26,7 @@ from qiskit.optimization.problems.objective import ObjectiveInterface
 from qiskit.optimization.problems.problem_type import ProblemType
 from qiskit.optimization.problems.quadratic_constraint import QuadraticConstraintInterface
 from qiskit.optimization.problems.variables import VariablesInterface
-from qiskit.optimization.results.solution import SolutionInterface
-from qiskit.optimization.exceptions.qiskit_optimization_error import QiskitOptimizationError
+from qiskit.optimization.exceptions import QiskitOptimizationError
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +93,6 @@ class QuadraticProgram:
         self.linear_constraints = LinearConstraintInterface(varindex=varindex)
         self.quadratic_constraints = QuadraticConstraintInterface(varindex=varindex)
         self.objective = ObjectiveInterface(varindex=varindex)
-        self.solution = SolutionInterface()
         self.problem_type = ProblemType()
 
         # None means it will be detected automatically
@@ -233,7 +231,6 @@ class QuadraticProgram:
         self.linear_constraints = LinearConstraintInterface(varindex=varindex)
         self.quadratic_constraints = QuadraticConstraintInterface(varindex=varindex)
         self.objective = ObjectiveInterface(varindex=varindex)
-        self.solution = SolutionInterface()
         self._problem_type = None
 
     def __enter__(self) -> 'QuadraticProgram':

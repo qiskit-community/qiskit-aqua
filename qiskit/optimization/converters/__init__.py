@@ -24,11 +24,14 @@ Structures for converting optimization problems
 
 """
 
-from .quadratic_program_to_negative_value_oracle import QuadraticProgramToNegativeValueOracle
-from .inequality_to_equality_converter import InequalityToEqualityConverter
-from .integer_to_binary_converter import IntegerToBinaryConverter
-from .quadratic_program_to_operator import QuadraticProgramToOperator
+# no opt problem dependency
 from .penalize_linear_equality_constraints import PenalizeLinearEqualityConstraints
+from .quadratic_program_to_operator import QuadraticProgramToOperator
+from .quadratic_program_to_negative_value_oracle import QuadraticProgramToNegativeValueOracle
+
+# opt problem dependency
+from .integer_to_binary_converter import IntegerToBinaryConverter
+from .inequality_to_equality_converter import InequalityToEqualityConverter
 from .quadratic_program_to_qubo import QuadraticProgramToQubo
 
 __all__ = [
