@@ -68,6 +68,7 @@ extensions = [
     'jupyter_sphinx.execute',
     'sphinx_autodoc_typehints',
     'reno.sphinxext',
+    'sphinx.ext.doctest',
 ]
 html_static_path = ['_static']
 templates_path = ['_templates']
