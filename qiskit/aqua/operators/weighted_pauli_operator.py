@@ -115,7 +115,7 @@ class WeightedPauliOperator(BaseOperator):
             int: number of qubits
         """
         if not self.is_empty():
-            return self._paulis[0][1].numberofqubits
+            return self._paulis[0][1].num_qubits
         else:
             logger.warning("Operator is empty, Return 0.")
             return 0
@@ -365,9 +365,8 @@ class WeightedPauliOperator(BaseOperator):
                         break
             for idx in indices:
                 new_idx = old_to_new_indices[idx]
-                if new_idx is not None:
+                if new_idx is not None and new_idx not in new_indices:
                     new_indices.append(new_idx)
-            new_indices = list(set(new_indices))
             if new_indices and not found:
                 new_basis.append((basis, new_indices))
         op._basis = new_basis
@@ -625,8 +624,8 @@ class WeightedPauliOperator(BaseOperator):
 
         Raises:
             AquaError: if Operator is empty
-            AquaError: Can not find quantum register with `q` as the name and do not provide
-                       quantum register explicitly
+            AquaError: if quantum register is not provided explicitly and
+                       cannot find quantum register with `q` as the name
             AquaError: The provided qr is not in the wave_function
         """
         if self.is_empty():
@@ -637,8 +636,8 @@ class WeightedPauliOperator(BaseOperator):
         if qr is None:
             qr = find_regs_by_name(wave_function, 'q')
             if qr is None:
-                raise AquaError("Either providing the quantum register (qr) explicitly"
-                                "or used `q` as the name in the input circuit.")
+                raise AquaError("Either provide the quantum register (qr) explicitly or use"
+                                " `q` as the name of the quantum register in the input circuit.")
         else:
             if not wave_function.has_register(qr):
                 raise AquaError("The provided QuantumRegister (qr) is not in the circuit.")

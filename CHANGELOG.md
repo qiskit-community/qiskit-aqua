@@ -25,6 +25,7 @@ Added
 -   Algorithm interface and result classes (#849) 
 -   Chemistry FCIDump file driver (#859)
 -   Chemistry stack automatic Z2 symmetry reduction (#870)
+-   Ising Optimization: The 0-1 Knapsack problem (#878)
 
 Changed
 -------
@@ -47,6 +48,9 @@ Fixed
 
 -   Boolean logic circuit construction (#819)
 -   Measurement on actual devices for Amplitude Estimation algorithms (#841) (#842)
+-   Supported constant values on the left-hand side of constraints and variables on the right-hand
+    side of constraints for the DOcplex translator (#750)
+-   WeightedPauliOperator constructor simplification bug (#891)
 
 [0.6.5](https://github.com/Qiskit/qiskit-aqua/compare/0.6.4...0.6.5) - 2020-03-16
 =================================================================================
