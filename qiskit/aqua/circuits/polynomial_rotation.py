@@ -12,23 +12,20 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
-Polynomially controlled Pauli-rotations
-"""
+"""Polynomially controlled Pauli-rotations."""
 
 import warnings
 from itertools import product
 from sympy.ntheory.multinomial import multinomial_coefficients
 
-from qiskit.circuit.library.arithmetic import PolynomialPauliRotations as PR
+from qiskit.circuit.library import PolynomialPauliRotations
 from qiskit.aqua.utils import CircuitFactory
 
 # pylint: disable=invalid-name
 
 
 class PolynomialRotation(CircuitFactory):
-    r"""
-    Polynomial rotation.
+    r"""Polynomial rotation.
 
     | For a polynomial p(x), a basis state \|i> and a target qubit \|0> this operator acts as:
     |    \|i>\|0> --> \|i>( cos(p(i))\|0> + sin(p(i))\|1> )
@@ -54,10 +51,10 @@ class PolynomialRotation(CircuitFactory):
         Raises:
             ValueError: invalid input
         """
-        warnings.warn('The qiskit.aqua.circuits.LinearRotation object is deprecated and will be '
-                      'removed no earlier than 3 months after the 0.7 release of Qiskit Aqua. '
-                      'You should use qiskit.circuit.library.arithmetic.LinearRotation instead.',
-                      DeprecationWarning, stacklevel=2)
+        warnings.warn('The qiskit.aqua.circuits.PolynomialRotation object is deprecated and '
+                      'will be removed no earlier than 3 months after the 0.7.0 release of Qiskit '
+                      'Aqua. You should use qiskit.circuit.library.PolynomialPauliRotations '
+                      'instead.', DeprecationWarning, stacklevel=2)
 
         super().__init__(num_state_qubits + 1)
 
@@ -126,7 +123,8 @@ class PolynomialRotation(CircuitFactory):
 
     # pylint: disable=arguments-differ
     def build(self, qc, q, q_target, q_ancillas=None, reverse=0):
-        r"""
+        r"""Build the circuit.
+
         Args:
             qc (QuantumCircuit): quantum circuit
             q (list): list of qubits (has to be same length as self.num_state_qubits)
@@ -136,8 +134,12 @@ class PolynomialRotation(CircuitFactory):
             reverse (int): if 1, apply with reversed list of qubits
                            (i.e. q_n as q_0, q_n-1 as q_1, etc).
         """
-        instr = PR(self.num_state_qubits, self.px, self.basis, reverse).to_instruction()
-        qr = [qi for qi in q] + [q_target]  # pylint:disable=unnecessary-comprehension
+        instr = PolynomialPauliRotations(num_state_qubits=self.num_state_qubits,
+                                         coeffs=self.px,
+                                         basis=self.basis,
+                                         reverse=reverse).to_instruction()
+        # pylint:disable=unnecessary-comprehension
+        qr = [qi for qi in q] + [q_target]
         if q_ancillas:
             qr += [qi for qi in q_ancillas[:self.required_ancillas()]]
         qc.append(instr, qr)

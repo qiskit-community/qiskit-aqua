@@ -17,15 +17,15 @@
 import warnings
 import numpy as np
 
-from qiskit.circuit.library.arithmetic import PiecewiseLinearPauliRotations as PWLR
+from qiskit.circuit.library import PiecewiseLinearPauliRotations
 from qiskit.aqua.utils import CircuitFactory
 
 # pylint: disable=invalid-name
 
 
 class PiecewiseLinearRotation(CircuitFactory):
-    """
-    Piecewise-linearly-controlled rotation.
+    """Piecewise-linearly-controlled rotation.
+
     For a piecewise linear (not necessarily continuous) function f(x).
     The function f(x) is defined through breakpoints, slopes and offsets as follows.
     Suppose the breakpoints { x_0, ..., x_J } are a subset of [0,  2^n-1], where
@@ -61,10 +61,9 @@ class PiecewiseLinearRotation(CircuitFactory):
         """
 
         warnings.warn('The qiskit.aqua.circuits.PiecewiseLinearRotation object is deprecated and '
-                      'will be removed no earlier than 3 months after the 0.7 release of Qiskit '
-                      'Aqua. You should use '
-                      'qiskit.circuit.library.arithmetic.PiecewiseLinearRotation instead.',
-                      DeprecationWarning, stacklevel=2)
+                      'will be removed no earlier than 3 months after the 0.7.0 release of Qiskit '
+                      'Aqua. You should use qiskit.circuit.library.PiecewiseLinearPauliRotations '
+                      'instead.', DeprecationWarning, stacklevel=2)
 
         super().__init__(num_state_qubits + 1)
 
@@ -107,8 +106,8 @@ class PiecewiseLinearRotation(CircuitFactory):
             self.i_target = num_state_qubits
 
     def evaluate(self, x):
-        """
-        Classically evaluate the piecewise linear rotation
+        """Classically evaluate the piecewise linear rotation
+
         Args:
             x (float): value to be evaluated at
         Returns:
@@ -123,15 +122,22 @@ class PiecewiseLinearRotation(CircuitFactory):
         return y
 
     def required_ancillas(self):
-
+        """Return the number of required ancillas."""
         num_ancillas = self.num_state_qubits - 1 + len(self.breakpoints)
         if self.contains_zero_breakpoint:
             num_ancillas -= 1
         return num_ancillas
 
     def build(self, qc, q, q_ancillas=None, params=None):
-        instr = PWLR(self.num_state_qubits, self.breakpoints, self.slopes, self.offsets, self.basis)
+        """Build the circuit."""
+        pwlr = PiecewiseLinearPauliRotations(num_state_qubits=self.num_state_qubits,
+                                             breakpoints=self.breakpoints,
+                                             slopes=self.slopes,
+                                             offsets=self.offsets,
+                                             basis=self.basis).to_instruction()
+
         qr = [q[i] for i in self.i_state] + [q[self.i_target]]
         if q_ancillas:
-            qr += [qi for qi in q_ancillas]  # pylint:disable=unnecessary-comprehension
-        qc.append(instr, qr)
+            # pylint:disable=unnecessary-comprehension
+            qr += [qi for qi in q_ancillas[:self.required_ancillas()]]
+        qc.append(pwlr, qr)

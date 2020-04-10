@@ -16,13 +16,13 @@
 
 import warnings
 
-from qiskit.circuit.library.arithmetic import LinearPauliRotations as LR
+from qiskit.circuit.library.arithmetic import LinearPauliRotations
 from qiskit.aqua.utils import CircuitFactory
 
 
 class LinearRotation(CircuitFactory):
-    r"""
-    Linearly-controlled X, Y or Z rotation.
+    r"""Linearly-controlled X, Y or Z rotation.
+
     For a register of state qubits \|x> and a target qubit \|0> this operator acts as:
 
         \|x>\|0> --> \|x>( cos(slope * x + offset)\|0> + sin(slope * x + offset)\|1> )
@@ -44,17 +44,17 @@ class LinearRotation(CircuitFactory):
             ValueError: invalid input
         """
         warnings.warn('The qiskit.aqua.circuits.LinearRotation object is deprecated and will be '
-                      'removed no earlier than 3 months after the 0.7 release of Qiskit Aqua. '
+                      'removed no earlier than 3 months after the 0.7.0 release of Qiskit Aqua. '
                       'You should use qiskit.circuit.library.arithmetic.LinearRotation instead.',
                       DeprecationWarning, stacklevel=2)
 
         super().__init__(num_state_qubits + 1)
 
         # store the circuit
-        self._linear_rotation_circuit = LR(num_state_qubits=num_state_qubits,
-                                           slope=slope,
-                                           offset=offset,
-                                           basis=basis)
+        self._linear_rotation_circuit = LinearPauliRotations(num_state_qubits=num_state_qubits,
+                                                             slope=slope,
+                                                             offset=offset,
+                                                             basis=basis)
 
         # store parameters
         self.num_control_qubits = num_state_qubits
@@ -80,6 +80,4 @@ class LinearRotation(CircuitFactory):
     def build(self, qc, q, q_ancillas=None, params=None):
         instr = self._linear_rotation_circuit.to_instruction()
         qr = [q[i] for i in self.i_state] + [q[self.i_target]]
-        if q_ancillas:
-            qr += [qi for qi in q_ancillas]  # pylint:disable=unnecessary-comprehension
         qc.append(instr, qr)

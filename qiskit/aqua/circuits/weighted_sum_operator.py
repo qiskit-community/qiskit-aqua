@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,15 +12,13 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
-Adds q^T * w to separate register for non-negative integer weights w
-"""
+"""Adds q^T * w to separate register for non-negative integer weights w."""
 
 import logging
 
 import numpy as np
 
-from qiskit.circuit.library.arithmetic import WeightedAdder as WSO
+from qiskit.circuit.library.arithmetic import WeightedAdder
 from qiskit.aqua import AquaError
 from qiskit.aqua.utils.circuit_factory import CircuitFactory
 
@@ -28,15 +26,10 @@ logger = logging.getLogger(__name__)
 
 
 class WeightedSumOperator(CircuitFactory):
-    """
-    Adds q^T * w to separate register for non-negative integer weights w
-    """
+    """Adds q^T * w to separate register for non-negative integer weights w."""
 
     def __init__(self, num_state_qubits, weights, i_state=None, i_sum=None):
-        """
-        Constructor.
-
-        Computes the weighted sum controlled by state qubits
+        """Computes the weighted sum controlled by state qubits
 
         Args:
             num_state_qubits (int): number of state qubits
@@ -117,7 +110,8 @@ class WeightedSumOperator(CircuitFactory):
         return self.required_ancillas()
 
     def build(self, qc, q, q_ancillas=None, params=None):
-        instr = WSO(self.num_state_qubits, self.weights).to_instruction()
+        instr = WeightedAdder(num_state_qubits=self.num_state_qubits,
+                              weights=self.weights).to_instruction()
         qr = [q[i] for i in self.i_state + self.i_sum]
         if q_ancillas:
             qr += q_ancillas[:self.required_ancillas()]  # pylint:disable=unnecessary-comprehension
