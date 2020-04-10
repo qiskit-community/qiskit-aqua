@@ -122,27 +122,29 @@ class RY(TwoLocalAnsatz):
             entanglement_gate: Deprecated, use `entanglement_gates` instead.
 
         Examples:
+            >>> from qiskit import QuantumCircuit
+            >>> from qiskit.aqua.components.ansatzes import RY
             >>> ry = RY(3)  # create the variational form on 3 qubits
             >>> print(ry)  # show the circuit
             TODO: circuit diagram
 
-            >>> ry = RY(3, entanglement='linear', reps=2, insert_barriers=True)
+            >>> ry = RY(3, entanglement='linear', insert_barriers=True)
             >>> qc = QuantumCircuit(3)  # create a circuit and append the RY variational form
             >>> qc += ry.to_circuit()
             >>> qc.draw()
             TODO: circuit diagram
 
-            >>> ry = RY(2, entanglement_gate='crx', 'sca', reps=2, insert_barriers=True)
+            >>> ry = RY(2, entanglement_gates=['crx'], entanglement='sca', insert_barriers=True)
             >>> print(ry)
             TODO: circuit diagram
 
             >>> entangler_map = [[0, 1], [1, 2], [2, 0]]  # circular entanglement for 3 qubits
-            >>> ry = RY(3, 'cx', entangler_map, reps=2)
+            >>> ry = RY(3, 'cx', entangler_map)
             >>> print(ry)
             TODO: circuit diagram
 
-            >>> ry_linear = RY(2, entanglement='linear', reps=1)
-            >>> ry_full = RY(2, entanglement='full', reps=1)
+            >>> ry_linear = RY(2, entanglement='linear')
+            >>> ry_full = RY(2, entanglement='full')
             >>> my_ry = ry_linear + ry_full
             >>> print(my_ry)
         """

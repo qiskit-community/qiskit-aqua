@@ -114,23 +114,26 @@ class SwapRZ(TwoLocalAnsatz):
                 entangler maps.
 
         Examples:
+            >>> from qiskit import QuantumCircuit
+            >>> from qiskit.aqua.components.ansatzes import SwapRZ
             >>> swaprz = SwapRZ(3)  # create the variational form on 3 qubits
             >>> print(swaprz)  # show the circuit
             TODO: circuit diagram
 
-            >>> swaprz = SwapRZ(4, entanglement='full', reps=1)
+            >>> swaprz = SwapRZ(4, entanglement='full')
             >>> qc = QuantumCircuit(3)  # create a circuit and append the RY variational form
             >>> qc += swaprz.to_circuit()
             >>> qc.draw()
             TODO: circuit diagram
 
             >>> entangler_map = [[0, 1], [1, 2], [2, 0]]  # circular entanglement for 3 qubits
-            >>> ry = SwapRZ(3, entangler_map, reps=2)
+            >>> ry = SwapRZ(3, entangler_map)
             >>> print(swaprz)
             TODO: circuit diagram
 
-            >>> swaprz = SwapRZ(2, entanglement='linear', reps=1)
-            >>> ry = RY(2, entanglement='full', reps=1)
+            >>> from qiskit.aqua.components.ansatzes import RY
+            >>> swaprz = SwapRZ(2, entanglement='linear')
+            >>> ry = RY(2, entanglement='full')
             >>> my_varform = swaprz + ry
             >>> print(my_varform)
         """

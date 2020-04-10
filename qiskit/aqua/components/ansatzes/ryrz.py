@@ -89,27 +89,31 @@ class RYRZ(TwoLocalAnsatz):
                 entangler maps.
 
         Examples:
+            >>> from qiskit import QuantumCircuit
+            >>> from qiskit.aqua.components.ansatzes import RYRZ
             >>> ryrz = RYRZ(3)  # create the variational form on 3 qubits
             >>> print(ryrz)  # show the circuit
             TODO: circuit diagram
 
-            >>> ryrz = RYRZ(4, entanglement='full', reps=1)
+            >>> ryrz = RYRZ(4, entanglement='full')
             >>> qc = QuantumCircuit(3)  # create a circuit and append the RY variational form
             >>> qc += ryrz.to_circuit()
             >>> qc.draw()
             TODO: circuit diagram
 
-            >>> ryrz_crx = RYRZ(2, entanglement_gate='crx', 'sca', reps=1, insert_barriers=True)
+            >>> ryrz_crx = RYRZ(2, entanglement_gates=['crx'],
+            >>>                 entanglement='sca', insert_barriers=True)
             >>> print(ryrz_crx)
             TODO: circuit diagram
 
             >>> entangler_map = [[0, 1], [1, 2], [2, 0]]  # circular entanglement for 3 qubits
-            >>> ry = RYRZ(3, 'cx', entangler_map, reps=2)
+            >>> ry = RYRZ(3, 'cx', entangler_map)
             >>> print(ryrz)
             TODO: circuit diagram
 
-            >>> ryrz = RYRZ(2, entanglement='linear', reps=1)
-            >>> ry = RY(2, entanglement='full', reps=1)
+            >>> from qiskit.aqua.components.ansatzes import RY
+            >>> ryrz = RYRZ(2, entanglement='linear')
+            >>> ry = RY(2, entanglement='full')
             >>> my_varform = ryrz + ry
             >>> print(my_varform)
         """

@@ -92,7 +92,9 @@ class TwoLocalAnsatz(Ansatz):
                 no barriers are inserted. Defaults to False.
 
         Examples:
-            >>> ansatz = TwoLocalAnsatz(3, 'ry', 'cx', 'linear', reps=2, insert_barriers=True)
+            >>> from qiskit import QuantumCircuit
+            >>> from qiskit.aqua.components.ansatzes import TwoLocalAnsatz
+            >>> ansatz = TwoLocalAnsatz(3, 'ry', 'cx', 'linear', insert_barriers=True)
             >>> qc = QuantumCircuit(3)  # create a circuit and append the Ansatz
             >>> qc += ansatz.to_circuit()
             >>> qc.decompose().draw()  # decompose the layers into standard gates
@@ -104,7 +106,7 @@ class TwoLocalAnsatz(Ansatz):
             q_2: |0>┤ Ry(θ2) ├─░──────┤ X ├─░─┤ Ry(θ5) ├─░──────┤ X ├─░─┤ Ry(θ8) ├
                     └────────┘ ░      └───┘ ░ └────────┘ ░      └───┘ ░ └────────┘
 
-            >>> ansatz = TwoLocalAnsatz(3, ['ry', 'rz'], 'cz', 'full', reps=1, insert_barriers=True)
+            >>> ansatz = TwoLocalAnsatz(3, ['ry', 'rz'], 'cz', 'full', insert_barriers=True)
             >>> print(ansatz)  # quick way of plotting the Ansatz
                     ┌────────┐┌────────┐ ░           ░  ┌────────┐ ┌────────┐
             q_0: |0>┤ Ry(θ0) ├┤ Rz(θ1) ├─░──■──■─────░──┤ Ry(θ6) ├─┤ Rz(θ7) ├
@@ -115,7 +117,7 @@ class TwoLocalAnsatz(Ansatz):
                     └────────┘└────────┘ ░           ░ └─────────┘└─────────┘
 
             >>> entangler_map = [[0, 1], [1, 2], [2, 0]]  # circular entanglement for 3 qubits
-            >>> ansatz = TwoLocalAnsatz(3, 'x', 'crx', entangler_map, reps=1)
+            >>> ansatz = TwoLocalAnsatz(3, 'x', 'crx', entangler_map)
             >>> print(ansatz)  # note: no barriers inserted this time!
                     ┌───┐                         ┌────────┐┌───┐
             q_0: |0>┤ X ├────■────────────────────┤ Rx(θ2) ├┤ X ├
@@ -126,7 +128,7 @@ class TwoLocalAnsatz(Ansatz):
                     └───┘          └────────┘               └───┘
 
             >>> entangler_map = [[0, 3], [0, 2]]  # entangle the first and last two-way
-            >>> ansatz = TwoLocalAnsatz(4, [], 'cry', entangler_map, reps=1)
+            >>> ansatz = TwoLocalAnsatz(4, [], 'cry', entangler_map)
             >>> circuit = ansatz.to_circuit() + ansatz.to_circuit()  # add two Ansatzes
             >>> circuit.decompose().draw()  # note, that the parameters are the same!
             q_0: |0>────■─────────■─────────■─────────■─────
@@ -400,7 +402,8 @@ class TwoLocalAnsatz(Ansatz):
         repeated. Additionally, a rotation layer is appended at the end (which can be
         turned off using the attribute `skip_final_rotation_layer`).
 
-        Example:
+        Example
+            >>> from qiskit.aqua.components.ansatzes import TwoLocalAnsatz
             >>> ansatz = TwoLocalAnsatz(2, 2, 'ry', 'cx')  # the second argument, depth, is 2
             >>> ansatz
                     ┌────────┐     ┌────────┐     ┌────────┐
