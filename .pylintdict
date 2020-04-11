@@ -306,6 +306,7 @@ lor
 lr
 lst
 majorana
+mapsto
 mathbb
 mathsf
 matmul
@@ -471,6 +472,7 @@ qubits
 quine
 qutip
 randgiven
+rangle
 rbf
 rcccx
 rccx
