@@ -14,6 +14,7 @@
 
 """ Minimum Eigen Solvers Package """
 
+from .phase_estimation_circuit import PhaseEstimationCircuit
 from .vqe import VQE, VQEResult
 from .qaoa import QAOA
 from .iqpe import IQPE, IQPEMinimumEigensolver, IQPEResult
@@ -36,5 +37,6 @@ __all__ = [
     'CPLEX_Ising',
     'NumPyMinimumEigensolver',
     'MinimumEigensolver',
-    'MinimumEigensolverResult'
+    'MinimumEigensolverResult',
+    'PhaseEstimationCircuit',
 ]

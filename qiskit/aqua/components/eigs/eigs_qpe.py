@@ -12,24 +12,23 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Quantum Phase Estimation for getting the eigenvalues of a matrix. """
+"""Quantum Phase Estimation for getting the eigenvalues of a matrix."""
 
 from typing import Optional, List
 import numpy as np
 from qiskit import QuantumRegister
 
-from qiskit.aqua.circuits import PhaseEstimationCircuit
 from qiskit.aqua.operators import op_converter, BaseOperator
 from qiskit.aqua.components.iqfts import IQFT
 from qiskit.aqua.utils.validation import validate_min, validate_in_set
+from qiskit.aqua.algorithms import PhaseEstimationCircuit
 from .eigs import Eigenvalues
 
 # pylint: disable=invalid-name
 
 
 class EigsQPE(Eigenvalues):
-    """
-    Eigenvalues using Quantum Phase Estimation
+    """Eigenvalues using Quantum Phase Estimation.
 
     Specifically, this class is based on PhaseEstimationCircuit with no measurements and
     has additional handling of negative eigenvalues, e.g. for :class:`~qiskit.aqua.algorithms.HHL`.

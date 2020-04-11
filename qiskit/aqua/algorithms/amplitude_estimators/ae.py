@@ -29,6 +29,7 @@ from qiskit.aqua.components.iqfts import IQFT, Standard
 from qiskit.aqua.utils.validation import validate_min
 from .ae_algorithm import AmplitudeEstimationAlgorithm
 from .ae_utils import pdf_a, derivative_log_pdf_a, bisect_max
+from ..minimum_eigen_solvers.phase_estimation_circuit import PhaseEstimationCircuit
 
 logger = logging.getLogger(__name__)
 

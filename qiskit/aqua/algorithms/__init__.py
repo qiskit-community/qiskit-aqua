@@ -97,6 +97,7 @@ and its Python API to be installed. See the following for more information:
 
 """
 
+from .minimum_eigen_solvers.phase_estimation_circuit import PhaseEstimationCircuit
 from .algorithm_result import AlgorithmResult
 from .quantum_algorithm import QuantumAlgorithm
 from .classical_algorithm import ClassicalAlgorithm
@@ -146,6 +147,7 @@ __all__ = [
     'IQPEMinimumEigensolver',
     'IQPEResult',
     'QPE',
+    'PhaseEstimationCircuit',
     'QPEMinimumEigensolver',
     'QPEResult',
     'AmplitudeEstimation',
