@@ -22,7 +22,7 @@ Added
 -----
 
 -   NFT optimizer, part of a project of Qiskit Camp Asia 2019 (#729)
--   Algorithm interface and result classes (#849) 
+-   Algorithm interface and result classes (#849)
 -   Chemistry FCIDump file driver (#859)
 -   Chemistry stack automatic Z2 symmetry reduction (#870)
 -   Ising Optimization: The 0-1 Knapsack problem (#878)
@@ -43,6 +43,7 @@ Removed
 -   Declarative api (#758) (#759) (#760) (#762) (#763)
 -   Moved to Terra: multi-controlled Toffoli, U1 and Pauli rotation gates (including tests) (#833)
 -   Add Grover Optimization to the Optimization Stack (#847)
+-   Moved to the circuit library in Terra: arithmetic circuits in qiskit/aqua/circuits (#895)
 
 Fixed
 -----

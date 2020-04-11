@@ -22,8 +22,8 @@ from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.components.uncertainty_models import (LogNormalDistribution,
                                                        MultivariateNormalDistribution)
-from qiskit.finance.components.uncertainty_problems import \
-    (EuropeanCallDelta, FixedIncomeExpectedValue)
+from qiskit.finance.components.uncertainty_problems import (EuropeanCallDelta,
+                                                            FixedIncomeExpectedValue)
 from qiskit.aqua.components.uncertainty_problems import \
     UnivariatePiecewiseLinearObjective as PwlObjective
 from qiskit.aqua.components.uncertainty_problems import UnivariateProblem
