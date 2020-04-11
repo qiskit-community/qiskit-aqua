@@ -24,12 +24,10 @@ from qiskit import QuantumCircuit
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.utils import CircuitFactory
-from qiskit.aqua.circuits import PhaseEstimationCircuit
 from qiskit.aqua.components.iqfts import IQFT, Standard
 from qiskit.aqua.utils.validation import validate_min
 from .ae_algorithm import AmplitudeEstimationAlgorithm
 from .ae_utils import pdf_a, derivative_log_pdf_a, bisect_max
-from ..minimum_eigen_solvers.phase_estimation_circuit import PhaseEstimationCircuit
 
 logger = logging.getLogger(__name__)
 
@@ -107,6 +105,9 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         Returns:
             The QuantumCircuit object for the constructed circuit.
         """
+        # to avoid circular imports since the phase-estimation-circuit is currently also
+        # still in qiskit.aqua.circuits
+        from ..minimum_eigen_solvers import PhaseEstimationCircuit
         pec = PhaseEstimationCircuit(
             iqft=self._iqft, num_ancillae=self._m,
             state_in_circuit_factory=self.a_factory,
