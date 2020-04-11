@@ -14,6 +14,12 @@
 
 """Quantum Phase Estimation Circuit."""
 
+import warnings
 from qiskit.aqua.algorithms import PhaseEstimationCircuit
+
+warnings.warn('The qiskit.aqua.circuits.phase_estimation_circuit module is deprecated as of 0.7.0 '
+              'and will be removed no earlier than 3 months after the release. '
+              'The PhaseEstimationCircuit was moved to qiskit.aqua.algorithms.',
+              DeprecationWarning, stacklevel=2)
 
 __all__ = ['PhaseEstimationCircuit']
