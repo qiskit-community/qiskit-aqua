@@ -19,9 +19,6 @@ import numpy as np
 
 from qiskit.circuit.library import IntegerComparator
 from qiskit.aqua.utils.circuit_factory import CircuitFactory
-from qiskit.aqua.circuits.gates import logical_or  # pylint: disable=unused-import
-
-# pylint: disable=invalid-name
 
 
 class FixedValueComparator(CircuitFactory):
@@ -89,8 +86,7 @@ class FixedValueComparator(CircuitFactory):
         return self.num_state_qubits - 1
 
     def _get_twos_complement(self):
-        """
-        Returns the 2's complement of value as array
+        """Returns the 2's complement of value as array
 
         Returns:
              list: two's complement

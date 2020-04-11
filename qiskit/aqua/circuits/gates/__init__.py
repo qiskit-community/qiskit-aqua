@@ -30,8 +30,6 @@ Gates
    :nosignatures:
 
     mcmt
-    logical_and
-    logical_or
 
 """
 
