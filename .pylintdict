@@ -281,6 +281,7 @@ lor
 lr
 lst
 majorana
+mapsto
 mathbb
 mathsf
 matrixoperator
@@ -437,6 +438,7 @@ qubits
 quine
 qutip
 randgiven
+rangle
 rbf
 rcccx
 rccx
