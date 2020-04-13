@@ -35,9 +35,9 @@ endif
 # You can set this variable from the command line.
 SPHINXOPTS    =
 
-.PHONY: lint style test test_ci spell copyright html coverage coverage_erase
+.PHONY: lint style test test_ci spell copyright html doctest coverage coverage_erase
 
-all_check: spell style lint copyright html
+all_check: spell style lint copyright html doctest
 
 lint:
 	pylint -rn --ignore=gauopen qiskit/aqua qiskit/chemistry qiskit/finance qiskit/ml qiskit/optimization test tools
@@ -60,6 +60,9 @@ copyright:
 
 html:
 	make -C docs html SPHINXOPTS=$(SPHINXOPTS)
+
+doctest:
+	make -C docs doctest SPHINXOPTS=$(SPHINXOPTS)
 	
 coverage:
 	coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* -m unittest discover -s test -q

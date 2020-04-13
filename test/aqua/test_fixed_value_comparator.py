@@ -15,11 +15,16 @@
 """ Test Fixed Value Comparator """
 
 import unittest
+import warnings
 from test.aqua import QiskitAquaTestCase
 from ddt import ddt, idata, unpack
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit, BasicAer, execute
 from qiskit.aqua.circuits import FixedValueComparator as Comparator
+
+
+# ignore deprecation warnings from the change of the circuit factory to circuit library
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
 @ddt
