@@ -16,7 +16,15 @@
 Circuits (:mod:`qiskit.aqua.circuits`)
 ======================================
 Collection of circuits and gates that may be used to build quantum algorithms
-and components...
+and components.
+
+Note:
+    As of Aqua 0.7.0 Gates that were formerly here such as `mct` etc., that were initially built
+    out to facilitate the development of Aqua algorithms, have been moved into Terra.
+
+    Likewise there are Circuits here, that are now deprecated, which have been moved and have
+    updated versions in Terra `qiskit.circuit.library` which should be used for any future work.
+    The circuit documentation here indicates the corresponding replacement circuit in the library.
 
 .. currentmodule:: qiskit.aqua.circuits
 

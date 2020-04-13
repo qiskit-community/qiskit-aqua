@@ -24,7 +24,10 @@ from qiskit.aqua.utils import CircuitFactory
 
 
 class PiecewiseLinearRotation(CircuitFactory):
-    """Piecewise-linearly-controlled rotation.
+    """*DEPRECATED.* Piecewise-linearly-controlled rotation.
+
+    .. deprecated:: 0.7.0
+       Use Terra's qiskit.circuit.library.PiecewiseLinearPauliRotations instead.
 
     For a piecewise linear (not necessarily continuous) function f(x).
     The function f(x) is defined through breakpoints, slopes and offsets as follows.
@@ -42,10 +45,6 @@ class PiecewiseLinearRotation(CircuitFactory):
     def __init__(self, breakpoints, slopes, offsets, num_state_qubits,
                  basis='Y', i_state=None, i_target=None):
         """
-        Constructor.
-
-        Construct piecewise-linearly-controlled Y-rotation.
-
         Args:
             breakpoints (Union(list, numpy.ndarray)): breakpoints to define
                                                         piecewise-linear function

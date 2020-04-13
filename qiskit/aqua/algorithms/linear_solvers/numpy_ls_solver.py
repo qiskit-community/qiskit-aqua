@@ -11,7 +11,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""The Numpy LinearSystem algorithm."""
+"""The Numpy LinearSystem algorithm (classical)."""
 
 from typing import List, Union
 import logging
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 class NumPyLSsolver(ClassicalAlgorithm):
     r"""
-    The Numpy LinearSystem algorithm.
+    The Numpy LinearSystem algorithm (classical).
 
     This linear system solver computes the eigenvalues of a complex-valued square
     matrix :math:`A` of dimension :math:`n \times n` and the solution to the systems of linear
