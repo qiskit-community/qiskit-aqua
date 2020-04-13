@@ -11,7 +11,11 @@
 # that they have been altered from the originals.
 
 notifications:
-  email: false
+  email:
+    recipients:
+      - manoel@us.ibm.com
+    on_success: never
+    on_failure: always
 
 cache:
   pip: true
