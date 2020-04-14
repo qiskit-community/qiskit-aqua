@@ -96,16 +96,10 @@ class ListOp(OperatorBase):
         # TODO maybe do some check here that they're the same?
         return self.oplist[0].num_qubits
 
-    # TODO change to *other to efficiently handle lists?
     def add(self, other: OperatorBase) -> OperatorBase:
         """ Addition. Overloaded by + in OperatorBase. SummedOp overrides with its own add(). """
         if self == other:
             return self.mul(2.0)
-
-        # TODO do this lazily for some primitives (Pauli, Instruction),
-        # and eager for others (Matrix)?
-        # if eager and isinstance(other, PrimitiveOp):
-        #     return self.__class__([op.add(other) for op in self.oplist], coeff=self.coeff)
 
         # Avoid circular dependency
         # pylint: disable=cyclic-import,import-outside-toplevel

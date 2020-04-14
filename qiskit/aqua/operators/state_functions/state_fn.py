@@ -246,16 +246,6 @@ class StateFn(OperatorBase):
         """ Compose with Self Multiple Times, undefined for StateFns. """
         raise ValueError('Composition power over Statefunctions or Measurements is not defined.')
 
-    # def to_density_matrix(self, massive=False):
-    #     """ Return numpy matrix of density operator, warn if more than 16
-    #     qubits to force the user to set
-    #     massive=True if they want such a large matrix. Generally big methods
-    #     like this should require the use of a
-    #     converter, but in this case a convenience method for quick hacking
-    #     and access to classical tools is
-    #     appropriate. """
-    #     raise NotImplementedError
-
     def __str__(self) -> str:
         """Overload str() """
         prim_str = str(self.primitive)

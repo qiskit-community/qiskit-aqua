@@ -85,5 +85,4 @@ class MatrixExpectation(ExpectationBase):
                                    state: OperatorBase = None,
                                    params: dict = None) -> Union[float]:
         """ compute standard deviation """
-        # TODO is this right? This is what we already do today, but I'm not sure if it's correct.
         return 0.0
