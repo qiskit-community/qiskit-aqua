@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 class TestLinearConstraint(QiskitOptimizationTestCase):
-    """Test LinearConstraintInterface."""
+    """Test LinearConstraint."""
 
     def test_init(self):
         """ test init. """

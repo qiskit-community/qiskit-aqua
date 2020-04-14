@@ -19,7 +19,6 @@ from numpy import ndarray
 from scipy.sparse import spmatrix
 
 from qiskit.optimization.problems import Constraint, ConstraintSense, LinearExpression
-from qiskit.optimization import QiskitOptimizationError
 
 
 class LinearConstraint(Constraint):
@@ -27,9 +26,8 @@ class LinearConstraint(Constraint):
 
     def __init__(self,
                  quadratic_program: "QuadraticProgram", name: str,
-                 linear: Union[
-                     LinearExpression, ndarray, spmatrix, List[float], Dict[Union[str, int], float]
-                 ],
+                 linear: Union[ndarray, spmatrix, List[float], Dict[Union[str, int], float]
+                               ],
                  sense: ConstraintSense,
                  rhs: float
                  ) -> None:
@@ -41,18 +39,9 @@ class LinearConstraint(Constraint):
             linear: The coefficients specifying the linear constraint.
             sense: The sense of the constraint.
             rhs: The right-hand-side of the constraint.
-
-        Raises:
-            QiskitOptimizationError: if the given linear expression has a different parent
-            QuadraticProgram than the constraint.
         """
         super().__init__(quadratic_program, name, sense, rhs)
-        if isinstance(linear, LinearExpression):
-            if linear._quadratic_program != quadratic_program:
-                raise QiskitOptimizationError("Incompatible parent quadratic program!")
-            self._linear = linear
-        else:
-            self._linear = LinearExpression(quadratic_program, linear)
+        self._linear = LinearExpression(quadratic_program, linear)
 
     @property
     def linear(self) -> LinearExpression:
@@ -65,25 +54,16 @@ class LinearConstraint(Constraint):
 
     @linear.setter
     def linear(self, linear:
-               Union[LinearExpression, ndarray, spmatrix, List[float], Dict[Union[str, int], float]]
+               Union[ndarray, spmatrix, List[float], Dict[Union[str, int], float]]
                ) -> None:
         """Sets the linear expression corresponding to the left-hand-side of the constraint.
         The coefficients can either be given by an array, a (sparse) 1d matrix, a lsit or a
         dictionary.
 
         Args:
-            linear: The linear expression or coefficients of the left-hand-side.
-
-        Raises:
-            QiskitOptimizationError: if the given linear expression has a different parent
-            QuadraticProgram than the constraint.
+            linear: The linear coefficients of the left-hand-side.
         """
-        if isinstance(linear, LinearExpression):
-            if linear._quadratic_program != self.quadratic_program:
-                raise QiskitOptimizationError("Incompatible parent quadratic program!")
-            self._linear = linear
-        else:
-            self._linear = LinearExpression(self.quadratic_program, linear)
+        self._linear = LinearExpression(self.quadratic_program, linear)
 
     def evaluate(self, x: Union[ndarray, List, Dict[Union[int, str], float]]) -> float:
         """Evaluate the left-hand-side of the constraint.

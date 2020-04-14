@@ -136,12 +136,12 @@ class QuadraticExpression(HasQuadraticProgram):
         """
         # cast input to dok_matrix if it is a dictionary
         if isinstance(x, dict):
-            x_ = np.zeros(self.quadratic_program.get_num_vars())
+            x_aux = np.zeros(self.quadratic_program.get_num_vars())
             for i, v in x.items():
                 if isinstance(i, str):
                     i = self.quadratic_program.variables_index[i]
-                x_[i] = v
-            x = x_
+                x_aux[i] = v
+            x = x_aux
         if isinstance(x, List):
             x = np.array(x)
 
