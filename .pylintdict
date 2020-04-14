@@ -148,6 +148,7 @@ ecc
 ee
 eigen
 eigensolver
+eigensolvers
 eigenstate
 eigrange
 eigs
@@ -251,6 +252,7 @@ inline
 innerproduct
 inreg
 instantiations
+integercomparator
 intelvem
 interatomic
 ints
@@ -297,6 +299,7 @@ lhs
 lih
 lijh
 lin
+linearpaulirotations
 lmin
 lnot
 loglikelihood
@@ -417,9 +420,11 @@ penality
 performant
 ph
 piecewise
+piecewiselinearpaulirotations
 plesset
 pmatrix
 polynomially
+polynomialpaulirotations
 postoracle
 powell
 pre

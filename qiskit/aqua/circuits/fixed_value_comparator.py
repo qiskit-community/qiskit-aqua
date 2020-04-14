@@ -25,7 +25,10 @@ from qiskit.aqua.circuits.gates import logical_or  # pylint: disable=unused-impo
 
 
 class FixedValueComparator(CircuitFactory):
-    r"""Fixed Value Comparator.
+    r"""*DEPRECATED.* Fixed Value Comparator
+
+    .. deprecated:: 0.7.0
+       Use Terra's qiskit.circuit.library.IntegerComparator instead.
 
     Operator compares basis states \|i>_n against a classically
     given fixed value L and flips a target qubit if i >= L (or < depending on parameters):

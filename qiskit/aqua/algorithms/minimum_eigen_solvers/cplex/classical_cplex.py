@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 class ClassicalCPLEX(ClassicalAlgorithm):
     """
-    The Classical CPLEX algorithm.
+    The Classical CPLEX algorithm (classical).
 
     This algorithm uses the `IBM ILOG CPLEX Optimization Studio` along with its separately
     installed `Python API` to solve optimization problems modeled as an Ising Hamiltonian.
