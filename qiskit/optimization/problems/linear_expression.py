@@ -67,7 +67,7 @@ class LinearExpression(HasQuadraticProgram):
             coeffs = dok_matrix((1, self.quadratic_program.get_num_vars()))
             for index, value in coefficients.items():
                 if isinstance(index, str):
-                    index = self.quadratic_program.var_index[index]
+                    index = self.quadratic_program.variables_index[index]
                 coeffs[0, index] = value
             coefficients = coeffs
         else:
