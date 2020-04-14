@@ -34,10 +34,7 @@ Gates
 """
 
 from .multi_control_multi_target_gate import mcmt
-from .boolean_logical_gates import logical_and, logical_or
 
 __all__ = [
     'mcmt',
-    'logical_and',
-    'logical_or',
 ]
