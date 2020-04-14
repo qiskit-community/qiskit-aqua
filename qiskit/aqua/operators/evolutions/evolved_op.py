@@ -120,7 +120,7 @@ class EvolvedOp(PrimitiveOp):
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
         """ returns matrix """
-        prim_mat = 1.j * self.primitive.to_matrix()
+        prim_mat = -1.j * self.primitive.to_matrix()
         # pylint: disable=no-member
         return scipy.linalg.expm(prim_mat) * self.coeff
 
@@ -128,9 +128,9 @@ class EvolvedOp(PrimitiveOp):
         """Overload str() """
         prim_str = str(self.primitive)
         if self.coeff == 1.0:
-            return 'e^(i*{})'.format(prim_str)
+            return 'e^(-i*{})'.format(prim_str)
         else:
-            return "{} * e^(i*{})".format(self.coeff, prim_str)
+            return "{} * e^(-i*{})".format(self.coeff, prim_str)
 
     def __repr__(self) -> str:
         """Overload str() """

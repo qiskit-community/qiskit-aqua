@@ -283,7 +283,7 @@ class ListOp(OperatorBase):
             return self.combo_fn(evals)
 
     def exp_i(self) -> OperatorBase:
-        """ Raise Operator to power e ^ (i * op)"""
+        """ Raise Operator to power e ^ (-i * op)"""
         # pylint: disable=import-outside-toplevel
         from qiskit.aqua.operators import EvolvedOp
         return EvolvedOp(self)

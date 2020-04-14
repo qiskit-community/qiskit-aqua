@@ -155,9 +155,6 @@ class MatrixOp(PrimitiveOp):
 
         return self.primitive.data * self.coeff
 
-    def to_matrix_op(self, massive: bool = False) -> OperatorBase:
-        return self
-
     def __str__(self) -> str:
         """Overload str() """
         prim_str = str(self.primitive)
@@ -206,6 +203,11 @@ class MatrixOp(PrimitiveOp):
 
         return new_front
 
-    def to_simulation_instruction(self) -> OperatorBase:
+    # Op Conversions
+
+    def to_matrix_op(self, massive: bool = False) -> OperatorBase:
+        return self
+
+    def to_circuit_op(self) -> OperatorBase:
         """ returns an CircuitOp holding a UnitaryGate instruction constructed from this matrix """
         return PrimitiveOp(self.primitive.to_instruction(), coeff=self.coeff)
