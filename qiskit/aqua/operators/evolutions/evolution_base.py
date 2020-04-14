@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Expectation Algorithm Base """
+""" Evolution Algorithm Base """
 
 import logging
 
@@ -30,37 +30,6 @@ class EvolutionBase(ConverterBase):
     exponentiation of its contained operator.
 
     """
-
-    @staticmethod
-    # pylint: disable=inconsistent-return-statements
-    def factory(operator: OperatorBase = None) -> ConverterBase:
-        """
-        Args:
-        Returns:
-            EvolutionBase: derived class
-        Raises:
-            ValueError: evolutions of Mixed Operators not yet supported.
-        """
-        # pylint: disable=cyclic-import,import-outside-toplevel
-        # TODO remove state from factory and inits?
-        primitives = operator.get_primitives()
-        if 'Pauli' in primitives:
-            # TODO figure out what to do based on qubits and hamming weight.
-            from .pauli_trotter_evolution import PauliTrotterEvolution
-            return PauliTrotterEvolution()
-
-        # TODO
-        elif 'Matrix' in primitives:
-            from .matrix_evolution import MatrixEvolution
-            return MatrixEvolution()
-
-        # TODO
-        # elif primitives == {'QuantumCircuit'}:
-        #     from .density_matrix_evolution import DensityMatrixEvolution
-        #     return DensityMatrixEvolution()
-
-        else:
-            raise ValueError('Evolutions of Mixed Operators not yet supported.')
 
     def convert(self, operator: OperatorBase) -> OperatorBase:
         raise NotImplementedError

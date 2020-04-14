@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Test PauliExpectation """
+""" Test Evolution """
 
 import unittest
 from test.aqua import QiskitAquaTestCase
@@ -21,7 +21,7 @@ import numpy as np
 
 from qiskit.circuit import ParameterVector
 
-from qiskit.aqua.operators import (X, Y, Z, I, CX, H, ListOp, CircuitOp, Zero, EvolutionBase,
+from qiskit.aqua.operators import (X, Y, Z, I, CX, H, ListOp, CircuitOp, Zero, EvolutionFactory,
                                    EvolvedOp, PauliTrotterEvolution, QDrift)
 
 
@@ -37,7 +37,7 @@ class TestEvolution(QiskitAquaTestCase):
              (0.18093119978423156 * X ^ X) + \
              (-0.39793742484318045 * Z ^ I) + \
              (-0.01128010425623538 * Z ^ Z)
-        evolution = EvolutionBase.factory(operator=op)
+        evolution = EvolutionFactory.build(operator=op)
         # wf = (Pl^Pl) + (Ze^Ze)
         wf = ((np.pi / 2) * op).exp_i() @ CX @ (H ^ I) @ Zero
         mean = evolution.convert(wf)

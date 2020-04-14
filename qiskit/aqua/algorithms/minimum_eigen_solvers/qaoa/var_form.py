@@ -18,7 +18,7 @@ from typing import Optional
 
 import numpy as np
 
-from qiskit.aqua.operators import OperatorBase, X, I, H, Zero, CircuitStateFn, EvolutionBase
+from qiskit.aqua.operators import OperatorBase, X, I, H, Zero, CircuitStateFn, EvolutionFactory
 from qiskit.aqua.components.variational_forms import VariationalForm
 from qiskit.aqua.components.initial_states import InitialState
 
@@ -94,7 +94,7 @@ class QAOAVarForm(VariationalForm):
             circuit = (self._cost_operator * parameters[idx]).exp_i().compose(circuit)
             circuit = (self._mixer_operator * parameters[idx + self._p]).exp_i().compose(circuit)
 
-        evolution = EvolutionBase.factory(self._cost_operator)
+        evolution = EvolutionFactory.build(self._cost_operator)
         circuit = evolution.convert(circuit)
         return circuit.to_circuit()
 
