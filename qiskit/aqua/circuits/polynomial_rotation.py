@@ -25,7 +25,10 @@ from qiskit.aqua.utils import CircuitFactory
 
 
 class PolynomialRotation(CircuitFactory):
-    r"""Polynomial rotation.
+    r"""*DEPRECATED.* Polynomial rotation.
+
+    .. deprecated:: 0.7.0
+       Use Terra's qiskit.circuit.library.PolynomialPauliRotations instead.
 
     | For a polynomial p(x), a basis state \|i> and a target qubit \|0> this operator acts as:
     |    \|i>\|0> --> \|i>( cos(p(i))\|0> + sin(p(i))\|1> )
