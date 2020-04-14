@@ -82,9 +82,6 @@ class VQAlgorithm(QuantumAlgorithm):
     def var_form(self, var_form: Union[QuantumCircuit, VariationalForm]):
         """ Sets variational form """
         if isinstance(var_form, QuantumCircuit):
-            # patch num_parameters onto circuit
-            var_form.num_parameters = len(var_form.parameters)
-
             # store the parameters
             self._var_form_params = list(var_form.parameters)
             self._var_form = var_form
