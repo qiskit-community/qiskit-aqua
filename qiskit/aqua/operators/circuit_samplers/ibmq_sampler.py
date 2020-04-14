@@ -92,10 +92,7 @@ class IBMQSampler(CircuitSamplerBase):
         Returns:
             Dict: dictionary of sampled state functions
         """
-        if all([isinstance(circ, CircuitStateFn) for circ in circuit_sfns]):
-            circuits = [op_c.to_circuit(meas=True) for op_c in circuit_sfns]
-        else:
-            circuits = circuit_sfns
+        circuits = [op_c.to_circuit(meas=True) for op_c in circuit_sfns]
 
         results = self._qi.execute(circuits)
         sampled_statefn_dicts = {}

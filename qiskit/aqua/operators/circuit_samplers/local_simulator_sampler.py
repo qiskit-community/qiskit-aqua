@@ -170,13 +170,10 @@ class LocalSimulatorSampler(CircuitSamplerBase):
             Dict: dictionary of sampled state functions
         """
         if circuit_sfns or not self._transpiled_circ_cache:
-            if all([isinstance(circ, CircuitStateFn) for circ in circuit_sfns]):
-                if self._statevector:
-                    circuits = [op_c.to_circuit(meas=False) for op_c in circuit_sfns]
-                else:
-                    circuits = [op_c.to_circuit(meas=True) for op_c in circuit_sfns]
+            if self._statevector:
+                circuits = [op_c.to_circuit(meas=False) for op_c in circuit_sfns]
             else:
-                circuits = circuit_sfns
+                circuits = [op_c.to_circuit(meas=True) for op_c in circuit_sfns]
             self._transpiled_circ_cache = self._qi.transpile(circuits)
         else:
             circuit_sfns = list(self._circuit_ops_cache.values())
