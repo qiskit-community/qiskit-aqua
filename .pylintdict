@@ -473,6 +473,7 @@ quantized
 quantumcircuit
 quantumregister
 qubit
+qubitization
 qubits
 quine
 qutip
