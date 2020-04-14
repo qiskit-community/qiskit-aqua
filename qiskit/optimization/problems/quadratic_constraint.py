@@ -23,7 +23,7 @@ from qiskit.optimization.problems import (Constraint, ConstraintSense, LinearExp
 
 
 class QuadraticConstraint(Constraint):
-    """ Representation of a linear constraint."""
+    """ Representation of a quadratic constraint."""
 
     def __init__(self,
                  quadratic_program: "QuadraticProgram", name: str,

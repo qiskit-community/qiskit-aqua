@@ -23,6 +23,7 @@ from qiskit.optimization.problems.variable import Variable, VarType
 from qiskit.optimization.problems.constraint import ConstraintSense
 from qiskit.optimization.problems.linear_constraint import LinearConstraint
 from qiskit.optimization.problems.quadratic_constraint import QuadraticConstraint
+from qiskit.optimization.problems.quadratic_objective import QuadraticObjective, ObjSense
 
 
 class QuadraticProgram:
@@ -46,6 +47,25 @@ class QuadraticProgram:
 
         self._quadratic_constraints: List[QuadraticConstraint] = []
         self._quadratic_constraints_index: Dict[str, int] = {}
+
+        self._objective = QuadraticObjective(self)
+
+    def clear(self) -> None:
+        """Clears the quadratic program, i.e., deletes all variables, constraints, the
+        objective function as well as the name.
+        """
+        self._name = ''
+
+        self._variables: List[Variable] = []
+        self._variables_index: Dict[str, int] = {}
+
+        self._linear_constraints: List[LinearConstraint] = []
+        self._linear_constraints_index: Dict[str, int] = {}
+
+        self._quadratic_constraints: List[QuadraticConstraint] = []
+        self._quadratic_constraints_index: Dict[str, int] = {}
+
+        self._objective = QuadraticObjective(self)
 
     @property
     def name(self) -> str:
@@ -527,3 +547,48 @@ class QuadraticProgram:
             The number of quadratic constraints.
         """
         return len(self.quadratic_constraints)
+
+    @property
+    def objective(self) -> QuadraticObjective:
+        """Returns the quadratic objective.
+
+        Returns:
+            The quadratic objective.
+        """
+        return self._objective
+
+    def minimize(self,
+                 constant: float = 0.0,
+                 linear: Union[ndarray, spmatrix, List[float], Dict[Union[str, int], float]] = None,
+                 quadratic: Union[ndarray, spmatrix, List[List[float]],
+                                  Dict[Tuple[Union[int, str], Union[int, str]], float]] = None
+                 ) -> QuadraticObjective:
+        """Sets a quadrartic objective to be minimized.
+
+        Args:
+            constant: the constant offset of the objective.
+            linear: the coefficients of the linear part of the objective.
+            quadratic: the coefficients of the quadratic part of the objective.
+
+        Returns:
+            The created quadratic objective.
+        """
+        self._objective = QuadraticObjective(self, constant, linear, quadratic, ObjSense.minimize)
+
+    def maximize(self,
+                 constant: float = 0.0,
+                 linear: Union[ndarray, spmatrix, List[float], Dict[Union[str, int], float]] = None,
+                 quadratic: Union[ndarray, spmatrix, List[List[float]],
+                                  Dict[Tuple[Union[int, str], Union[int, str]], float]] = None
+                 ) -> QuadraticObjective:
+        """Sets a quadrartic objective to be maximized.
+
+        Args:
+            constant: the constant offset of the objective.
+            linear: the coefficients of the linear part of the objective.
+            quadratic: the coefficients of the quadratic part of the objective.
+
+        Returns:
+            The created quadratic objective.
+        """
+        self._objective = QuadraticObjective(self, constant, linear, quadratic, ObjSense.maximize)
