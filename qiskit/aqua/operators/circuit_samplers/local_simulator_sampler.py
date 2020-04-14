@@ -26,12 +26,12 @@ from ..operator_globals import Zero
 from ..combo_operators import ListOp
 from ..state_functions import StateFn, CircuitStateFn
 from ..converters import DictToCircuitSum
-from .circuit_sampler import CircuitSampler
+from .circuit_sampler_base import CircuitSamplerBase
 
 logger = logging.getLogger(__name__)
 
 
-class LocalSimulatorSampler(CircuitSampler):
+class LocalSimulatorSampler(CircuitSamplerBase):
     """ A sampler for local Quantum simulator backends
     """
     # TODO replace OpMatrices with Terra unitary gates to make them runnable.

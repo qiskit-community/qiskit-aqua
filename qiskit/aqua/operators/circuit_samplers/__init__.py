@@ -18,10 +18,12 @@ of the StateFn.
 
 """
 
-from .circuit_sampler import CircuitSampler
+from .circuit_sampler_base import CircuitSamplerBase
+from .circuit_sampler_factory import CircuitSamplerFactory
 from .local_simulator_sampler import LocalSimulatorSampler
 from .ibmq_sampler import IBMQSampler
 
-__all__ = ['CircuitSampler',
+__all__ = ['CircuitSamplerBase',
+           'CircuitSamplerFactory',
            'LocalSimulatorSampler',
            'IBMQSampler']

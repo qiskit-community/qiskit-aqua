@@ -21,7 +21,7 @@ import numpy as np
 
 from qiskit.providers import BaseBackend
 from ..operator_base import OperatorBase
-from ..circuit_samplers import CircuitSampler
+from ..circuit_samplers import CircuitSamplerFactory
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ class ExpectationBase(ABC):
     @backend.setter
     def backend(self, backend: BaseBackend) -> None:
         if backend is not None:
-            self._circuit_sampler = CircuitSampler.factory(backend=backend)
+            self._circuit_sampler = CircuitSamplerFactory.build(backend=backend)
 
     @property
     @abstractmethod

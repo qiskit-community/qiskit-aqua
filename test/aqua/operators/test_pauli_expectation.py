@@ -23,7 +23,7 @@ import numpy as np
 from qiskit.aqua.operators import (X, Y, Z, I, CX, H, S,
                                    ListOp, Zero, One, Plus, Minus,
                                    PauliExpectation, AbelianGrouper,
-                                   CircuitSampler)
+                                   CircuitSamplerFactory)
 
 from qiskit import BasicAer, IBMQ
 
@@ -163,7 +163,7 @@ class TestPauliExpectation(QiskitAquaTestCase):
         expect_op = PauliExpectation(operator=two_qubit_H2,
                                      backend=backend,
                                      group_paulis=False).expectation_op(wf)
-        sampler = CircuitSampler.factory(backend)
+        sampler = CircuitSamplerFactory.build(backend)
         sampler._extract_circuitstatefns(expect_op)
         num_circuits_ungrouped = len(sampler._circuit_ops_cache)
         self.assertEqual(num_circuits_ungrouped, 5)
@@ -171,7 +171,7 @@ class TestPauliExpectation(QiskitAquaTestCase):
         expect_op_grouped = PauliExpectation(operator=two_qubit_H2,
                                              backend=backend,
                                              group_paulis=True).expectation_op(wf)
-        sampler = CircuitSampler.factory(backend)
+        sampler = CircuitSamplerFactory.build(backend)
         sampler._extract_circuitstatefns(expect_op_grouped)
         num_circuits_grouped = len(sampler._circuit_ops_cache)
         self.assertEqual(num_circuits_grouped, 2)

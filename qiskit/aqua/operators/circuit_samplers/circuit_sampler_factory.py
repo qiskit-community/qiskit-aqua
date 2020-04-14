@@ -12,11 +12,10 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Circuit Sampler Base """
+""" Circuit Sampler Factory """
 
-from typing import List, Dict, Optional
+from typing import Union
 import logging
-from abc import abstractmethod
 
 from qiskit.providers import BaseBackend
 
@@ -25,47 +24,29 @@ from qiskit.aqua.utils.backend_utils import (is_ibmq_provider,
                                              is_local_backend,
                                              is_statevector_backend,
                                              is_aer_qasm)
-from ..operator_base import OperatorBase
-from ..converters import ConverterBase
+from .circuit_sampler_base import CircuitSamplerBase
+from .local_simulator_sampler import LocalSimulatorSampler
+from .ibmq_sampler import IBMQSampler
 
 logger = logging.getLogger(__name__)
 
 
-class CircuitSampler(ConverterBase):
-    """ A base for Circuit Samplers. A circuit sampler is a converter for replacing
-    CircuitStateFns with DictSateFns representing samples of the StateFn.
-
+class CircuitSamplerFactory():
+    """ A factory for convenient construction of Circuit Samplers.
     """
 
     @staticmethod
     # pylint: disable=inconsistent-return-statements
-    def factory(backend: BaseBackend = None) -> ConverterBase:
-        """ A factory method to produce the correct type of CircuitSampler
+    def build(backend: Union[BaseBackend, QuantumInstance]) -> CircuitSamplerBase:
+        """ A factory method to produce the correct type of CircuitSamplerBase
         subclass based on the primitive passed in."""
 
         backend_to_check = backend.backend if isinstance(backend, QuantumInstance) else backend
         # pylint: disable=cyclic-import,import-outside-toplevel
         if is_local_backend(backend_to_check):
-            from . import LocalSimulatorSampler
             return LocalSimulatorSampler(backend=backend,
                                          statevector=is_statevector_backend(backend_to_check),
                                          snapshot=is_aer_qasm(backend_to_check))
 
         if is_ibmq_provider(backend_to_check):
-            from . import IBMQSampler
             return IBMQSampler(backend=backend)
-
-    # pylint: disable=arguments-differ
-    @abstractmethod
-    def convert(self,
-                operator: OperatorBase,
-                params: dict = None) -> OperatorBase:
-        """ Accept the Operator and return the converted Operator """
-        raise NotImplementedError
-
-    @abstractmethod
-    def sample_circuits(self,
-                        op_circuits: Optional[List] = None,
-                        param_bindings: Optional[List] = None) -> Dict:
-        """ Accept a list of op_circuits and return a list of count dictionaries for each."""
-        raise NotImplementedError

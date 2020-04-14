@@ -23,12 +23,12 @@ from ..operator_base import OperatorBase
 from ..combo_operators import ListOp
 from ..state_functions import StateFn, CircuitStateFn
 from ..converters import DictToCircuitSum
-from .circuit_sampler import CircuitSampler
+from .circuit_sampler_base import CircuitSamplerBase
 
 logger = logging.getLogger(__name__)
 
 
-class IBMQSampler(CircuitSampler):
+class IBMQSampler(CircuitSamplerBase):
     """ A sampler for remote IBMQ backends.
 
     TODO - make work.
