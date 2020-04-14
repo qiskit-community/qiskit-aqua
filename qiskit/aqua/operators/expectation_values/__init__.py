@@ -20,11 +20,13 @@ the value of some observable over a state function.
 """
 
 from .expectation_base import ExpectationBase
+from .expectation_factory import ExpectationFactory
 from .pauli_expectation import PauliExpectation
 from .aer_pauli_expectation import AerPauliExpectation
 from .matrix_expectation import MatrixExpectation
 
 __all__ = ['ExpectationBase',
+           'ExpectationFactory',
            'PauliExpectation',
            'AerPauliExpectation',
            'MatrixExpectation']

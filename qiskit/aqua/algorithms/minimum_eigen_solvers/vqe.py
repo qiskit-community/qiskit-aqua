@@ -30,8 +30,8 @@ from qiskit.circuit import ParameterVector
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.algorithms import QuantumAlgorithm
-from qiskit.aqua.operators import (OperatorBase, ExpectationBase, CircuitStateFn,
-                                   LegacyBaseOperator, ListOp, I)
+from qiskit.aqua.operators import (OperatorBase, ExpectationBase, ExpectationFactory,
+                                   CircuitStateFn, LegacyBaseOperator, ListOp, I)
 from qiskit.aqua.components.optimizers import Optimizer, SLSQP
 from qiskit.aqua.components.variational_forms import VariationalForm, RY
 from qiskit.aqua.utils.validation import validate_min
@@ -175,8 +175,8 @@ class VQE(VQAlgorithm, MinimumEigensolver):
 
     def _try_set_expectation_value_from_factory(self):
         if self.operator and self.quantum_instance:
-            self.expectation_value = ExpectationBase.factory(operator=self.operator,
-                                                             backend=self.quantum_instance)
+            self.expectation_value = ExpectationFactory.build(operator=self.operator,
+                                                              backend=self.quantum_instance)
 
     @QuantumAlgorithm.quantum_instance.setter
     def quantum_instance(self, quantum_instance: Union[QuantumInstance, BaseBackend]) -> None:

@@ -69,8 +69,8 @@ from .state_functions import (StateFn, DictStateFn, VectorStateFn,
 from .combo_operators import ListOp, SummedOp, ComposedOp, TensoredOp
 from .converters import (ConverterBase, PauliBasisChange, PauliToInstruction,
                          DictToCircuitSum, AbelianGrouper)
-from .expectation_values import (ExpectationBase, PauliExpectation, MatrixExpectation,
-                                 AerPauliExpectation)
+from .expectation_values import (ExpectationBase, ExpectationFactory, PauliExpectation,
+                                 MatrixExpectation, AerPauliExpectation)
 from .circuit_samplers import CircuitSampler, LocalSimulatorSampler, IBMQSampler
 from .evolutions import (EvolutionBase, EvolvedOp, PauliTrotterEvolution, TrotterizationBase,
                          Trotter, Suzuki, QDrift)
