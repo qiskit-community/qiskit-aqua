@@ -41,9 +41,11 @@ Removed
 -------
 
 -   Declarative api (#758) (#759) (#760) (#762) (#763)
--   Moved to Terra: multi-controlled Toffoli, U1 and Pauli rotation gates (including tests) (#833)
 -   Add Grover Optimization to the Optimization Stack (#847)
--   Moved to the circuit library in Terra: arithmetic circuits in qiskit/aqua/circuits (#895)
+-   Moved to Terra:
+    -   multi-controlled Toffoli, U1 and Pauli rotation gates (including tests) (#833)
+    -   arithmetic circuits in qiskit/aqua/circuits (#895)
+    -   boolean logic gates (#896)
 
 Fixed
 -----
