@@ -15,7 +15,7 @@
 """ An Object to represent State Functions constructed from Operators """
 
 
-from typing import Union, Optional, Callable
+from typing import Union, Optional, Callable, Set
 import numpy as np
 
 from qiskit.quantum_info import Statevector
@@ -113,7 +113,7 @@ class StateFn(OperatorBase):
         """ return if is measurement """
         return self._is_measurement
 
-    def get_primitives(self) -> set:
+    def primitive_strings(self) -> Set[str]:
         """ Return a set of strings describing the primitives contained in the Operator """
         raise NotImplementedError
 

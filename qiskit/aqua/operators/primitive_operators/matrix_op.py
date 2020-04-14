@@ -14,7 +14,7 @@
 
 """ Wrapping Pauli Primitive """
 
-from typing import Union, Optional
+from typing import Union, Optional, Set
 import logging
 import numpy as np
 from scipy.sparse import spmatrix
@@ -66,7 +66,7 @@ class MatrixOp(PrimitiveOp):
 
         super().__init__(primitive, coeff=coeff)
 
-    def get_primitives(self) -> set:
+    def primitive_strings(self) -> Set[str]:
         """ Return a set of strings describing the primitives contained in the Operator """
         return {'Matrix'}
 

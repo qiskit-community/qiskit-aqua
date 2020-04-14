@@ -14,7 +14,7 @@
 
 """ An Object to represent State Functions constructed from Operators """
 
-from typing import Union
+from typing import Union, Set
 import numpy as np
 
 from qiskit import QuantumCircuit, BasicAer, execute
@@ -108,7 +108,7 @@ class CircuitStateFn(StateFn):
             raise ValueError('Qiskit circuit Initializer cannot handle non-positive statevectors.')
         return CircuitStateFn(Initialize(normalized_sv), coeff=normalization_coeff)
 
-    def get_primitives(self) -> set:
+    def primitive_strings(self) -> Set[str]:
         """ Return a set of strings describing the primitives contained in the Operator """
         return {'QuantumCircuit'}
 

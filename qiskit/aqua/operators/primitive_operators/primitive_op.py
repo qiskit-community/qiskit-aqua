@@ -14,7 +14,7 @@
 
 """ Wrapping Operator Primitives """
 
-from typing import Optional, Union
+from typing import Optional, Union, Set
 import logging
 import numpy as np
 from scipy.sparse import spmatrix
@@ -96,7 +96,7 @@ class PrimitiveOp(OperatorBase):
     def num_qubits(self) -> int:
         raise NotImplementedError
 
-    def get_primitives(self) -> set:
+    def primitive_strings(self) -> Set[str]:
         raise NotImplementedError
 
     def add(self, other: OperatorBase) -> OperatorBase:

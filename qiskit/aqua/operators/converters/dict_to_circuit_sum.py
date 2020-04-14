@@ -42,7 +42,7 @@ class DictToCircuitSum(ConverterBase):
             return CircuitStateFn.from_dict(operator.primitive)
         if isinstance(operator, VectorStateFn) and self._convert_vectors:
             return CircuitStateFn.from_vector(operator.to_matrix(massive=True))
-        elif isinstance(operator, ListOp) and 'Dict' in operator.get_primitives():
+        elif isinstance(operator, ListOp) and 'Dict' in operator.primitive_strings():
             return operator.traverse(self.convert)
         else:
             return operator

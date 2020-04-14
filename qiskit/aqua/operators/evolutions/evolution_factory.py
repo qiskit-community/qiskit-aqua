@@ -40,7 +40,7 @@ class EvolutionFactory():
             ValueError: evolutions of Mixed Operators not yet supported.
         """
         # pylint: disable=cyclic-import,import-outside-toplevel
-        primitives = operator.get_primitives()
+        primitives = operator.primitive_strings()
         if 'Pauli' in primitives:
             # TODO figure out what to do based on qubits and hamming weight.
             return PauliTrotterEvolution()

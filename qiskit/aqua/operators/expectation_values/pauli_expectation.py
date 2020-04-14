@@ -122,7 +122,7 @@ class PauliExpectation(ExpectationBase):
         if not self._reduced_meas_op:
             self._reduced_meas_op = self.expectation_op(state=state)
 
-        if 'QuantumCircuit' in self._reduced_meas_op.get_primitives():
+        if 'QuantumCircuit' in self._reduced_meas_op.primitive_strings():
             # TODO check if params have been sufficiently provided.
             if self._circuit_sampler:
                 self._sampled_meas_op = self._circuit_sampler.convert(self._reduced_meas_op,

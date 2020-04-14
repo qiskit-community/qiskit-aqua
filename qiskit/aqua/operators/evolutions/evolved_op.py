@@ -14,7 +14,7 @@
 
 """ Wrapping Operator Evolutions """
 
-from typing import Optional, Union
+from typing import Optional, Union, Set
 import logging
 import numpy as np
 import scipy
@@ -49,8 +49,8 @@ class EvolvedOp(PrimitiveOp):
         """
         super().__init__(primitive, coeff=coeff)
 
-    def get_primitives(self) -> set:
-        return self.primitive.get_primitives()
+    def primitive_strings(self) -> Set[str]:
+        return self.primitive.primitive_strings()
 
     @property
     def num_qubits(self) -> int:

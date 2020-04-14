@@ -14,7 +14,7 @@
 
 """ Wrapping Pauli Primitives """
 
-from typing import Union, Optional
+from typing import Union, Optional, Set
 import logging
 import numpy as np
 from scipy.sparse import spmatrix
@@ -56,7 +56,7 @@ class PauliOp(PrimitiveOp):
                 'PauliOp can only be instantiated with Paulis, not {}'.format(type(primitive)))
         super().__init__(primitive, coeff=coeff)
 
-    def get_primitives(self) -> set:
+    def primitive_strings(self) -> Set[str]:
         """ Return a set of strings describing the primitives contained in the Operator """
         return {'Pauli'}
 
@@ -186,20 +186,8 @@ class PauliOp(PrimitiveOp):
 
         return self.primitive.to_matrix() * self.coeff
 
-    def to_spmatrix(self, massive=False) -> spmatrix:
-        """ Return scipy sparse matrix of operator, warn if more than
-        16 qubits to force the user to set massive=True if
-        they want such a large matrix. Generally big methods like
-        this should require the use of a converter,
-        but in this case a convenience method for quick hacking
-        and access to classical tools is appropriate. """
-
-        if self.num_qubits > 16 and not massive:
-            raise ValueError(
-                'to_spmatrix will return an exponentially large matrix, '
-                'in this case {0}x{0} elements.'
-                ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
-
+    def to_spmatrix(self) -> spmatrix:
+        """ Return scipy sparse matrix of operator. """
         return self.primitive.to_spmatrix() * self.coeff
 
     def __str__(self) -> str:
@@ -274,7 +262,7 @@ class PauliOp(PrimitiveOp):
         # if only one qubit is significant, we can perform the evolution
         corrected_x = self.primitive.x[::-1]
         corrected_z = self.primitive.z[::-1]
-        # pylint: disable=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel,no-member
         sig_qubits = np.logical_or(corrected_x, corrected_z)
         if np.sum(sig_qubits) == 0:
             # e^I is just a global phase, but we can keep track of it! Should we?

@@ -19,12 +19,13 @@ import logging
 from functools import partial
 
 from qiskit.providers import BaseBackend
+from qiskit.circuit import ParameterExpression
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.utils.backend_utils import is_aer_provider, is_statevector_backend, is_aer_qasm
 from ..operator_base import OperatorBase
 from ..operator_globals import Zero
 from ..combo_operators import ListOp
-from ..state_functions import StateFn, CircuitStateFn
+from ..state_functions import StateFn, CircuitStateFn, DictStateFn
 from ..converters import DictToCircuitSum
 from .circuit_sampler_base import CircuitSamplerBase
 
@@ -129,7 +130,7 @@ class LocalSimulatorSampler(CircuitSamplerBase):
 
         # Don't pass circuits if we have in the cache the sampling function knows to use the cache.
         circs = list(self._circuit_ops_cache.values()) if not self._transpiled_circ_cache else None
-        sampled_statefn_dicts = self.sample_circuits(op_circuits=circs,
+        sampled_statefn_dicts = self.sample_circuits(circuit_sfns=circs,
                                                      param_bindings=param_bindings)
 
         def replace_circuits_with_dicts(operator, param_index=0):
@@ -158,26 +159,27 @@ class LocalSimulatorSampler(CircuitSamplerBase):
             return operator
 
     def sample_circuits(self,
-                        op_circuits: Optional[List] = None,
-                        param_bindings: Optional[List] = None) -> Dict:
+                        circuit_sfns: Optional[List[CircuitStateFn]] = None,
+                        param_bindings: Optional[List[Dict[
+                            ParameterExpression, List[float]]]] = None) -> Dict[int, DictStateFn]:
         """
         Args:
-            op_circuits: The list of circuits or CircuitStateFns to sample
+            circuit_sfns: The list of circuits or CircuitStateFns to sample
             param_bindings: bindings
         Returns:
             Dict: dictionary of sampled state functions
         """
-        if op_circuits or not self._transpiled_circ_cache:
-            if all([isinstance(circ, CircuitStateFn) for circ in op_circuits]):
+        if circuit_sfns or not self._transpiled_circ_cache:
+            if all([isinstance(circ, CircuitStateFn) for circ in circuit_sfns]):
                 if self._statevector:
-                    circuits = [op_c.to_circuit(meas=False) for op_c in op_circuits]
+                    circuits = [op_c.to_circuit(meas=False) for op_c in circuit_sfns]
                 else:
-                    circuits = [op_c.to_circuit(meas=True) for op_c in op_circuits]
+                    circuits = [op_c.to_circuit(meas=True) for op_c in circuit_sfns]
             else:
-                circuits = op_circuits
+                circuits = circuit_sfns
             self._transpiled_circ_cache = self._qi.transpile(circuits)
         else:
-            op_circuits = list(self._circuit_ops_cache.values())
+            circuit_sfns = list(self._circuit_ops_cache.values())
 
         if param_bindings is not None:
             if self._param_qobj:
@@ -196,7 +198,7 @@ class LocalSimulatorSampler(CircuitSamplerBase):
         # self._qi._run_config.parameterizations = None
 
         sampled_statefn_dicts = {}
-        for i, op_c in enumerate(op_circuits):
+        for i, op_c in enumerate(circuit_sfns):
             # Taking square root because we're replacing a statevector
             # representation of probabilities.
             reps = len(param_bindings) if param_bindings is not None else 1
@@ -213,7 +215,7 @@ class LocalSimulatorSampler(CircuitSamplerBase):
                         # which must be converted to a complex value.
                         avg = avg[0] + 1j * avg[1]
                     # Will be replaced with just avg when eval is called later
-                    num_qubits = op_circuits[0].num_qubits
+                    num_qubits = circuit_sfns[0].num_qubits
                     result_sfn = (Zero ^ num_qubits).adjoint() * avg
                 else:
                     result_sfn = StateFn({b: (v * op_c.coeff / self._qi._run_config.shots) ** .5

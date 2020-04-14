@@ -18,7 +18,10 @@ from typing import List, Dict, Optional
 import logging
 from abc import abstractmethod
 
+from qiskit.circuit import ParameterExpression
+
 from ..operator_base import OperatorBase
+from ..state_functions import CircuitStateFn, DictStateFn
 from ..converters import ConverterBase
 
 logger = logging.getLogger(__name__)
@@ -40,7 +43,8 @@ class CircuitSamplerBase(ConverterBase):
 
     @abstractmethod
     def sample_circuits(self,
-                        op_circuits: Optional[List] = None,
-                        param_bindings: Optional[List] = None) -> Dict:
+                        circuit_sfns: Optional[List[CircuitStateFn]] = None,
+                        param_bindings: Optional[List[Dict[
+                            ParameterExpression, List[float]]]] = None) -> Dict[int, DictStateFn]:
         """ Accept a list of op_circuits and return a list of count dictionaries for each."""
         raise NotImplementedError

@@ -18,10 +18,11 @@ from typing import Dict, List, Optional
 import logging
 
 from qiskit.providers import BaseBackend
+from qiskit.circuit import ParameterExpression
 from qiskit.aqua import QuantumInstance
 from ..operator_base import OperatorBase
 from ..combo_operators import ListOp
-from ..state_functions import StateFn, CircuitStateFn
+from ..state_functions import StateFn, CircuitStateFn, DictStateFn
 from ..converters import DictToCircuitSum
 from .circuit_sampler_base import CircuitSamplerBase
 
@@ -81,23 +82,24 @@ class IBMQSampler(CircuitSamplerBase):
         return replace_circuits_with_dicts(reduced_op)
 
     def sample_circuits(self,
-                        op_circuits: Optional[List] = None,
-                        param_bindings: Optional[List] = None) -> Dict:
+                        circuit_sfns: Optional[List[CircuitStateFn]] = None,
+                        param_bindings: Optional[List[Dict[
+                            ParameterExpression, List[float]]]] = None) -> Dict[int, DictStateFn]:
         """
         Args:
-            op_circuits: The list of circuits or CircuitStateFns to sample
+            circuit_sfns: The list of circuits or CircuitStateFns to sample
             param_bindings: a list of parameter dictionaries to bind to each circuit.
         Returns:
             Dict: dictionary of sampled state functions
         """
-        if all([isinstance(circ, CircuitStateFn) for circ in op_circuits]):
-            circuits = [op_c.to_circuit(meas=True) for op_c in op_circuits]
+        if all([isinstance(circ, CircuitStateFn) for circ in circuit_sfns]):
+            circuits = [op_c.to_circuit(meas=True) for op_c in circuit_sfns]
         else:
-            circuits = op_circuits
+            circuits = circuit_sfns
 
         results = self._qi.execute(circuits)
         sampled_statefn_dicts = {}
-        for (op_c, circuit) in zip(op_circuits, circuits):
+        for (op_c, circuit) in zip(circuit_sfns, circuits):
             # Taking square root because we're replacing a
             # statevector representation of probabilities.
             sqrt_counts = {b: (v * op_c.coeff / self._qi._run_config.shots) ** .5

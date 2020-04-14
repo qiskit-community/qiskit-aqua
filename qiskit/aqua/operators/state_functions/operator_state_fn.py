@@ -14,7 +14,7 @@
 
 """ An Object to represent State Functions constructed from Operators """
 
-from typing import Union
+from typing import Union, Set
 import numpy as np
 
 from qiskit.circuit import ParameterExpression
@@ -61,9 +61,9 @@ class OperatorStateFn(StateFn):
 
         super().__init__(primitive, coeff=coeff, is_measurement=is_measurement)
 
-    def get_primitives(self) -> set:
+    def primitive_strings(self) -> Set[str]:
         """ Return a set of strings describing the primitives contained in the Operator """
-        return self.primitive.get_primitives()
+        return self.primitive.primitive_strings()
 
     @property
     def num_qubits(self) -> int:

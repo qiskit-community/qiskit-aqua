@@ -110,7 +110,7 @@ class AerPauliExpectation(ExpectationBase):
         if state and not state == self.state:
             self.state = state
 
-        if 'QuantumCircuit' in self.state.get_primitives():
+        if 'QuantumCircuit' in self.state.primitive_strings():
             if not self._snapshot_op:
                 snapshot_meas = self.expectation_op()
                 self._snapshot_op = snapshot_meas.compose(self.state).reduce()

@@ -14,7 +14,7 @@
 
 """ Eager Operator Vec Container """
 
-from typing import List, Union, Optional, Callable, Iterator
+from typing import List, Union, Optional, Callable, Iterator, Set
 from functools import reduce
 import numpy as np
 from scipy.sparse import spmatrix
@@ -84,9 +84,9 @@ class ListOp(OperatorBase):
         """ returns coeff """
         return self._coeff
 
-    def get_primitives(self) -> set:
+    def primitive_strings(self) -> Set[str]:
         """ Return a set of strings describing the primitives contained in the Operator """
-        return reduce(set.union, [op.get_primitives() for op in self.oplist])
+        return reduce(set.union, [op.primitive_strings() for op in self.oplist])
 
     @property
     def num_qubits(self) -> int:

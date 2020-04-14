@@ -14,7 +14,7 @@
 
 """ Wrapping Pauli Primitives """
 
-from typing import Union, Optional
+from typing import Union, Optional, Set
 import logging
 import numpy as np
 
@@ -57,7 +57,7 @@ class CircuitOp(PrimitiveOp):
 
         super().__init__(primitive, coeff=coeff)
 
-    def get_primitives(self) -> set:
+    def primitive_strings(self) -> Set[str]:
         """ Return a set of strings describing the primitives contained in the Operator """
         return {'QuantumCircuit'}
 
@@ -181,8 +181,10 @@ class CircuitOp(PrimitiveOp):
                 ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
 
         qc = QuantumCircuit(self.primitive.num_qubits)
-        # NOTE: not reversing qubits!!
-        # qc.append(self.primitive, qargs=range(self.primitive.num_qubits)[::-1])
+        # NOTE: not reversing qubits!! We generally reverse endianness when converting between
+        # circuit or Pauli representation and matrix representation, but we don't need to here
+        # because the Unitary simulator already presents the endianness of the circuit unitary in
+        # forward endianness.
         qc.append(self.primitive, qargs=range(self.primitive.num_qubits))
         unitary_backend = BasicAer.get_backend('unitary_simulator')
         unitary = execute(qc, unitary_backend, optimization_level=0).result().get_unitary()

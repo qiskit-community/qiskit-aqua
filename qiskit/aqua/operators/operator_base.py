@@ -14,6 +14,7 @@
 
 """ Base Operator """
 
+from typing import Set
 from abc import ABC, abstractmethod
 import numpy as np
 
@@ -48,7 +49,7 @@ class OperatorBase(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_primitives(self) -> set:
+    def primitive_strings(self) -> Set[str]:
         """ Return a set of strings describing the primitives contained in the Operator """
         raise NotImplementedError
 

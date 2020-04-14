@@ -46,7 +46,7 @@ class PauliToInstruction(ConverterBase):
             coeff = operator.coeff
         # TODO allow parameterized ListOp to be returned to save circuit copying.
         elif isinstance(operator, ListOp) and self._traverse and \
-                'Pauli' in operator.get_primitives():
+                'Pauli' in operator.primitive_strings():
             return operator.traverse(self.convert)
         else:
             raise TypeError('PauliToInstruction can only accept OperatorBase objects or '

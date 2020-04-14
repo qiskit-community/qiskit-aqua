@@ -112,7 +112,7 @@ class TestVQE(QiskitAquaTestCase):
                                            seed_simulator=self.seed,
                                            seed_transpiler=self.seed)
         result = algo.run(quantum_instance)
-        self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=1)
+        self.assertAlmostEqual(result.eigenvalue.real, -1.86823, places=2)
 
     def test_vqe_statevector_snapshot_mode(self):
         """ VQE Aer statevector_simulator snapshot mode test """

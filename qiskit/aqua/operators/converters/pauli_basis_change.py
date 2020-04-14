@@ -100,7 +100,7 @@ class PauliBasisChange(ConverterBase):
         if isinstance(operator, (Pauli, PrimitiveOp)):
             cob_instr_op, dest_pauli_op = self.get_cob_circuit(operator)
             return self._replacement_fn(cob_instr_op, dest_pauli_op)
-        if isinstance(operator, StateFn) and 'Pauli' in operator.get_primitives():
+        if isinstance(operator, StateFn) and 'Pauli' in operator.primitive_strings():
             # If the StateFn/Meas only contains a Pauli, use it directly.
             if isinstance(operator.primitive, PrimitiveOp):
                 cob_instr_op, dest_pauli_op = self.get_cob_circuit(operator.primitive)
@@ -123,7 +123,7 @@ class PauliBasisChange(ConverterBase):
 
         # TODO allow parameterized ListOp to be returned to save circuit copying.
         elif isinstance(operator, ListOp) and self._traverse and \
-                'Pauli' in operator.get_primitives():
+                'Pauli' in operator.primitive_strings():
             # If ListOp is abelian we can find a single post-rotation circuit
             # for the whole set. For now,
             # assume operator can only be abelian if all elements are

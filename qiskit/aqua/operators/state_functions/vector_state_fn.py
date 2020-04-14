@@ -14,7 +14,7 @@
 
 """ An Object to represent State Functions constructed from Operators """
 
-from typing import Union
+from typing import Union, Set
 import numpy as np
 
 from qiskit.quantum_info import Statevector
@@ -68,7 +68,7 @@ class VectorStateFn(StateFn):
 
         super().__init__(primitive, coeff=coeff, is_measurement=is_measurement)
 
-    def get_primitives(self) -> set:
+    def primitive_strings(self) -> Set[str]:
         """ Return a set of strings describing the primitives contained in the Operator """
         return {'Vector'}
 
