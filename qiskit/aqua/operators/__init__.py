@@ -73,7 +73,7 @@ from .expectation_values import (ExpectationBase, ExpectationFactory, PauliExpec
                                  MatrixExpectation, AerPauliExpectation)
 from .circuit_samplers import CircuitSampler, LocalSimulatorSampler, IBMQSampler
 from .evolutions import (EvolutionBase, EvolvedOp, PauliTrotterEvolution, TrotterizationBase,
-                         Trotter, Suzuki, QDrift)
+                         TrotterizationFactory, Trotter, Suzuki, QDrift)
 
 # Convenience immutable instances
 from .operator_globals import X, Y, Z, I, CX, S, H, T, Swap, Zero, One, Plus, Minus

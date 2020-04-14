@@ -12,10 +12,10 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Expectation Algorithm Base """
+""" Trotterization Algorithm Base """
 
 import logging
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 
 from ...operator_base import OperatorBase
 
@@ -24,29 +24,10 @@ from ...operator_base import OperatorBase
 logger = logging.getLogger(__name__)
 
 
-class TrotterizationBase():
-    """ A base for Trotterization methods to allow for user-specified trotterization. """
-
-    @staticmethod
-    # pylint: disable=inconsistent-return-statements
-    def factory(mode: str,
-                reps: int = 1):
-        """ Factory """
-        if mode not in ['trotter', 'suzuki', 'qdrift']:
-            raise ValueError('Trotter mode {} not supported'.format(mode))
-
-        # pylint: disable=cyclic-import,import-outside-toplevel
-        if mode == 'trotter':
-            from .trotter import Trotter
-            return Trotter(reps=reps)
-
-        if mode == 'suzuki':
-            from .suzuki import Suzuki
-            return Suzuki(reps=reps)
-
-        if mode == 'qdrift':
-            from .qdrift import QDrift
-            return QDrift(reps=reps)
+class TrotterizationBase(ABC):
+    """ A base for Trotterization methods, algorithms for approximating exponentiations of
+    operator sums by compositions of exponentiations.
+    """
 
     def __init__(self, reps: int = 1) -> None:
         self._reps = reps

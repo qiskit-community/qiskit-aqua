@@ -18,11 +18,13 @@ Trotterization methods - Algorithms for approximating Exponentials of Operator S
 """
 
 from .trotterization_base import TrotterizationBase
+from .trotterization_factory import TrotterizationFactory
 from .trotter import Trotter
 from .suzuki import Suzuki
 from .qdrift import QDrift
 
 __all__ = ['TrotterizationBase',
+           'TrotterizationFactory',
            'Trotter',
            'Suzuki',
            'QDrift']

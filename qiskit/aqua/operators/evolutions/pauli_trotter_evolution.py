@@ -27,7 +27,7 @@ from ..combo_operators import ListOp, SummedOp
 from ..primitive_operators import PauliOp
 from ..converters import PauliBasisChange, AbelianGrouper
 from .evolved_op import EvolvedOp
-from .trotterizations import TrotterizationBase
+from .trotterizations import TrotterizationBase, TrotterizationFactory
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +49,7 @@ class PauliTrotterEvolution(EvolutionBase):
         if isinstance(trotter_mode, TrotterizationBase):
             self._trotter = trotter_mode
         else:
-            self._trotter = TrotterizationBase.factory(mode=trotter_mode, reps=reps)
+            self._trotter = TrotterizationFactory.build(mode=trotter_mode, reps=reps)
 
         self._grouper = AbelianGrouper() if group_paulis else None
 

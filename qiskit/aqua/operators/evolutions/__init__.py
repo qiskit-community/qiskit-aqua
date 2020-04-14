@@ -21,7 +21,7 @@ from .evolution_base import EvolutionBase
 from .evolved_op import EvolvedOp
 from .pauli_trotter_evolution import PauliTrotterEvolution
 from .matrix_evolution import MatrixEvolution
-from .trotterizations import TrotterizationBase, Trotter, Suzuki, QDrift
+from .trotterizations import TrotterizationBase, TrotterizationFactory, Trotter, Suzuki, QDrift
 
 # TODO matrix evolution
 # TODO quantum signal processing
@@ -33,6 +33,7 @@ __all__ = ['EvolutionBase',
            'PauliTrotterEvolution',
            'MatrixEvolution',
            'TrotterizationBase',
+           'TrotterizationFactory',
            'Trotter',
            'Suzuki',
            'QDrift']

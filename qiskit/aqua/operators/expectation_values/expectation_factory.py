@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Expectation Algorithm Base """
+""" Expectation Algorithm Factory """
 
 from typing import Union, Optional
 import logging
