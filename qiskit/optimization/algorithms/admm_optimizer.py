@@ -171,6 +171,7 @@ class ADMMOptimizerResult(OptimizationResult):
 
 
 class ADMMOptimizer(OptimizationAlgorithm):
+    
     """An implementation of the ADMM-based heuristic introduced here:
     Gambella, C., & Simonetto, A. (2020).
      Multi-block ADMM Heuristics for Mixed-Binary Optimization on Classical and Quantum Computers.
