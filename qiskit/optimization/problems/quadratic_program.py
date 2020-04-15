@@ -680,7 +680,7 @@ class QuadraticProgram:
         """
         return self.to_docplex().export_as_lp_string()
 
-    def load_from_file(self, filename: str) -> None:
+    def read_from_lp_file(self, filename: str) -> None:
         """Loads the quadratic program from a LP file.
 
         Args:
@@ -690,7 +690,7 @@ class QuadraticProgram:
         model = model_reader.read(filename)
         self.from_docplex(model)
 
-    def write_to_file(self, filename: str) -> None:
+    def write_to_lp_file(self, filename: str) -> None:
         """Writes the quadratic program to an LP file.
 
         Args:
