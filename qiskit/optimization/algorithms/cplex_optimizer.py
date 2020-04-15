@@ -18,9 +18,8 @@
 from typing import Optional
 import logging
 
-from .optimization_algorithm import OptimizationAlgorithm
-from ..utils.qiskit_optimization_error import QiskitOptimizationError
-from ..results.optimization_result import OptimizationResult
+from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
+from ..exceptions import QiskitOptimizationError
 from ..problems.quadratic_program import QuadraticProgram
 
 logger = logging.getLogger(__name__)

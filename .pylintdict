@@ -280,6 +280,7 @@ jt
 jth
 jw
 kaicher
+Karimi
 ket
 killoran
 kingma
@@ -310,6 +311,7 @@ lpex
 lr
 lst
 majorana
+mapsto
 mathbb
 mathsf
 matrixoperator
@@ -424,6 +426,7 @@ piecewise
 plesset
 pmatrix
 polynomially
+Pooya
 postoracle
 powell
 pre
@@ -479,6 +482,7 @@ qubo
 quine
 qutip
 randgiven
+rangle
 rbf
 rcccx
 rccx
@@ -502,6 +506,7 @@ rightarrow
 righthand
 rlp
 rohf
+Ronagh
 rosen
 rsgtu
 rtype
@@ -509,6 +514,7 @@ runarsson
 RunConfig
 ry
 rz
+Sahar
 sanjiv
 sashank
 satyen
@@ -537,7 +543,6 @@ simonetto
 sj
 sklearn
 slsqp
-SolutionInterface
 solutionstatus
 spsa
 sqrt

@@ -19,10 +19,10 @@ from typing import List, Optional, Any
 import numpy as np
 
 from qiskit.optimization.algorithms.cplex_optimizer import CplexOptimizer
-from qiskit.optimization.algorithms.optimization_algorithm import OptimizationAlgorithm
+from qiskit.optimization.algorithms.optimization_algorithm import (OptimizationAlgorithm,
+                                                                   OptimizationResult)
 from qiskit.optimization.problems.quadratic_program import QuadraticProgram
 from qiskit.optimization.problems.variables import CPX_BINARY, CPX_CONTINUOUS
-from qiskit.optimization.results.optimization_result import OptimizationResult
 
 UPDATE_RHO_BY_TEN_PERCENT = 0
 UPDATE_RHO_BY_RESIDUALS = 1

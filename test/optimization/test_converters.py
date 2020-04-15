@@ -22,7 +22,7 @@ from docplex.mp.model import Model
 from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.optimization import QuadraticProgram, QiskitOptimizationError
-from qiskit.optimization.results import OptimizationResult
+from qiskit.optimization.algorithms import OptimizationResult
 from qiskit.optimization.converters import (
     InequalityToEqualityConverter,
     QuadraticProgramToOperator,

@@ -20,8 +20,7 @@ from typing import Optional
 import numpy as np
 from scipy.optimize import fmin_cobyla
 
-from qiskit.optimization.algorithms import OptimizationAlgorithm
-from qiskit.optimization.results import OptimizationResult
+from qiskit.optimization.algorithms import OptimizationAlgorithm, OptimizationResult
 from qiskit.optimization.problems import QuadraticProgram
 from qiskit.optimization import QiskitOptimizationError
 from qiskit.optimization import infinity

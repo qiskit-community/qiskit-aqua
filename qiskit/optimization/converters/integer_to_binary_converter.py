@@ -20,8 +20,7 @@ import logging
 import numpy as np
 
 from ..problems.quadratic_program import QuadraticProgram
-from ..results.optimization_result import OptimizationResult
-from ..utils.qiskit_optimization_error import QiskitOptimizationError
+from ..exceptions import QiskitOptimizationError
 
 logger = logging.getLogger(__name__)
 
@@ -209,7 +208,7 @@ class IntegerToBinaryConverter:
         if self._src.quadratic_constraints.get_num() > 0:
             raise QiskitOptimizationError('Quadratic constraints are not yet supported.')
 
-    def decode(self, result: OptimizationResult) -> OptimizationResult:
+    def decode(self, result: 'OptimizationResult') -> 'OptimizationResult':
         """Convert the encoded problem (binary variables) back to the original (integer variables).
 
         Args:

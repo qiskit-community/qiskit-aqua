@@ -26,30 +26,43 @@ Structures for defining an optimization problem and its solution
    :toctree: ../stubs/
    :nosignatures:
 
-   LinearConstraintInterface
+   Constraint
+   ConstraintSense
+   LinearExpression
+   LinearConstraint
+   QuadraticExpression
+   QuadraticConstraint
+   QuadraticObjective
    ObjSense
-   ObjectiveInterface
    QuadraticProgram
-   QuadraticConstraintInterface
-   VariablesInterface
+   Variable
+   VarType
 
-N.B. Additional classes LinearConstraintInterface, QuadraticConstraintInterface,
-ObjectiveInterface, and VariablesInterface
+N.B. Additional classes Constraint, LinearConstraint, QuadraticConstraint,
+QuadraticObjective, and Variable
 are not to be instantiated directly. Objects of those types are available within
 an instantiated QuadraticProgram.
 
 """
 
-from .linear_constraint import LinearConstraintInterface
-from .objective import ObjSense, ObjectiveInterface
+from .constraint import Constraint
+from .constraint import ConstraintSense
+from .linear_expression import LinearExpression
+from .linear_constraint import LinearConstraint
+from .quadratic_expression import QuadraticExpression
+from .quadratic_constraint import QuadraticConstraint
+from .quadratic_objective import QuadraticObjective, ObjSense
 from .quadratic_program import QuadraticProgram
-from .quadratic_constraint import QuadraticConstraintInterface
-from .variables import VariablesInterface
+from .variable import Variable, VarType
 
-__all__ = ['LinearConstraintInterface',
+__all__ = ['Constraint',
+           'ConstraintSense',
+           'LinearExpression',
+           'LinearConstraint',
+           'QuadraticExpression',
+           'QuadraticConstraint',
+           'QuadraticObjective',
            'ObjSense',
-           'ObjectiveInterface',
            'QuadraticProgram',
-           'QuadraticConstraintInterface',
-           'VariablesInterface'
+           'Variable'
            ]

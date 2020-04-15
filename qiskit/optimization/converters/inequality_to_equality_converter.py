@@ -20,8 +20,7 @@ from typing import List, Tuple, Dict, Optional
 import logging
 
 from ..problems.quadratic_program import QuadraticProgram
-from ..results.optimization_result import OptimizationResult
-from ..utils.qiskit_optimization_error import QiskitOptimizationError
+from ..exceptions import QiskitOptimizationError
 
 logger = logging.getLogger(__name__)
 
@@ -167,7 +166,7 @@ class InequalityToEqualityConverter:
 
         return self._dst
 
-    def decode(self, result: OptimizationResult) -> OptimizationResult:
+    def decode(self, result: 'OptimizationResult') -> 'OptimizationResult':
         """Convert a result of a converted problem into that of the original problem.
 
         Args:
@@ -176,6 +175,7 @@ class InequalityToEqualityConverter:
         Returns:
             The result of the original problem.
         """
+        from ..algorithms.optimization_algorithm import OptimizationResult
         new_result = OptimizationResult()
         # convert the optimization result into that of the original problem
         names = self._dst.variables.get_names()

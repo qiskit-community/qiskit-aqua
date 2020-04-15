@@ -12,16 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""A recursive minimal eigen optimizer in Qiskit Optimization.
-
-    Examples:
-        >>> problem = QuadraticProgram()
-        >>> # specify problem here
-        >>> # specify minimum eigen solver to be used, e.g., QAOA
-        >>> qaoa = QAOA(...)
-        >>> optimizer = RecursiveMinEigenOptimizer(qaoa)
-        >>> result = optimizer.solve(problem)
-"""
+"""A recursive minimal eigen optimizer in Qiskit Optimization."""
 
 from copy import deepcopy
 from typing import Optional
@@ -31,11 +22,10 @@ import numpy as np
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.aqua.utils.validation import validate_min
 
-from .optimization_algorithm import OptimizationAlgorithm
+from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
 from .minimum_eigen_optimizer import MinimumEigenOptimizer
-from ..utils.qiskit_optimization_error import QiskitOptimizationError
+from ..exceptions.qiskit_optimization_error import QiskitOptimizationError
 from ..problems.quadratic_program import QuadraticProgram
-from ..results.optimization_result import OptimizationResult
 from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
 
 logger = logging.getLogger(__name__)
@@ -49,8 +39,23 @@ except ImportError:
 
 
 class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
-    """ A meta-algorithm that applies the recursive optimization scheme introduce in
-    [http://arxiv.org/abs/1910.08980] on top of ``MinimumEigenOptimizer``.
+    """A meta-algorithm that applies a recursive optimization.
+
+    The recursive minimum eigen optimizer applies a recursive optimization on top of
+    :class:`~qiskit.optimization.algorithms.MinimumEigenOptimizer`.
+    The algorithm is introduced in [1].
+
+    Examples:
+        >>> problem = QuadraticProgram()
+        >>> # specify problem here
+        >>> # specify minimum eigen solver to be used, e.g., QAOA
+        >>> qaoa = QAOA(...)
+        >>> optimizer = RecursiveMinEigenOptimizer(qaoa)
+        >>> result = optimizer.solve(problem)
+
+    References:
+        [1]: Bravyi et al. (2019), Obstacles to State Preparation and Variational Optimization
+            from Symmetry Protection. http://arxiv.org/abs/1910.08980.
     """
 
     def __init__(self, min_eigen_optimizer: MinimumEigenOptimizer, min_num_vars: int = 1,

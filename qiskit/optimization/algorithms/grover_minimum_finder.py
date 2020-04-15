@@ -15,17 +15,15 @@
 """GroverMinimumFinder module"""
 
 import logging
-from typing import Optional, Dict, Union
+from typing import Optional, Dict, Union, Tuple
 import random
 import math
 import numpy as np
 from qiskit.aqua import QuantumInstance
-from qiskit.optimization.algorithms import OptimizationAlgorithm
+from qiskit.optimization.algorithms import OptimizationAlgorithm, OptimizationResult
 from qiskit.optimization.problems import QuadraticProgram
 from qiskit.optimization.converters import (QuadraticProgramToQubo,
                                             QuadraticProgramToNegativeValueOracle)
-from qiskit.optimization.results import GroverOptimizationResults
-from qiskit.optimization.results import OptimizationResult
 from qiskit.optimization.util import get_qubo_solutions
 from qiskit.aqua.algorithms.amplitude_amplifiers.grover import Grover
 from qiskit import Aer, QuantumCircuit
@@ -271,3 +269,72 @@ class GroverMinimumFinder(OptimizationAlgorithm):
             int_v = int(v, 2)
 
         return int_v
+
+
+class GroverOptimizationResults:
+    """A results object for Grover Optimization methods."""
+
+    def __init__(self, operation_counts: Dict[int, Dict[str, int]], rotations: int,
+                 n_input_qubits: int, n_output_qubits: int,
+                 func_dict: Dict[Union[int, Tuple[int, int]], int]) -> None:
+        """
+        Args:
+            operation_counts: The counts of each operation performed per iteration.
+            rotations: The total number of Grover rotations performed.
+            n_input_qubits: The number of qubits used to represent the input.
+            n_output_qubits: The number of qubits used to represent the output.
+            func_dict: A dictionary representation of the function, where the keys correspond
+                to a variable, and the values are the corresponding coefficients.
+        """
+        self._operation_counts = operation_counts
+        self._rotations = rotations
+        self._n_input_qubits = n_input_qubits
+        self._n_output_qubits = n_output_qubits
+        self._func_dict = func_dict
+
+    @property
+    def operation_counts(self) -> Dict[int, Dict[str, int]]:
+        """Get the operation counts.
+
+        Returns:
+            The counts of each operation performed per iteration.
+        """
+        return self._operation_counts
+
+    @property
+    def rotation_count(self) -> int:
+        """Getter of rotation_count
+
+        Returns:
+            The total number of Grover rotations.
+        """
+        return self._rotations
+
+    @property
+    def n_input_qubits(self) -> int:
+        """Getter of n_input_qubits
+
+        Returns:
+            The number of qubits used to represent the input.
+        """
+        return self._n_input_qubits
+
+    @property
+    def n_output_qubits(self) -> int:
+        """Getter of n_output_qubits
+
+        Returns:
+            The number of qubits used to represent the output.
+        """
+        return self._n_output_qubits
+
+    @property
+    def func_dict(self) -> Dict[Union[int, Tuple[int, int]], int]:
+        """Getter of func_dict
+
+        Returns:
+            A dictionary of coefficients describing a function, where the keys are the subscripts
+            of the variables (e.g. x1), and the values are the corresponding coefficients. If there
+            is a constant term, it is referenced by key -1.
+        """
+        return self._func_dict
