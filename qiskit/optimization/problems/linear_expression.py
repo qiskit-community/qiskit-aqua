@@ -43,6 +43,19 @@ class LinearExpression(HasQuadraticProgram):
         super().__init__(quadratic_program)
         self.coefficients = coefficients
 
+    def __getitem__(self, i: Union[int, str]) -> float:
+        """Returns the i-th coefficient where i can be a variable name or index.
+
+        Args:
+            i: the index or name of the variable corresponding to the coefficient.
+
+        Returns:
+            The coefficient corresponding to the addressed variable.
+        """
+        if isinstance(i, str):
+            i = self.quadratic_program.variables_index[i]
+        return self.coefficients[0, i]
+
     def _coeffs_to_dok_matrix(self,
                               coefficients: Union[ndarray, spmatrix,
                                                   List, Dict[Union[int, str], float]]

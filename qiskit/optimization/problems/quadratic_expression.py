@@ -44,6 +44,22 @@ class QuadraticExpression(HasQuadraticProgram):
         super().__init__(quadratic_program)
         self.coefficients = coefficients
 
+    def __getitem__(self, key: Tuple[Union[int, str], Union[int, str]]) -> float:
+        """Returns the coefficient where i, j can be a variable names or indices.
+
+        Args:
+            key: the tuple of indices or names of the variables corresponding to the coefficient.
+
+        Returns:
+            The coefficient corresponding to the addressed variables.
+        """
+        i, j = key
+        if isinstance(i, str):
+            i = self.quadratic_program.variables_index[i]
+        if isinstance(j, str):
+            j = self.quadratic_program.variables_index[j]
+        return self.coefficients[i, j]
+
     def _coeffs_to_dok_matrix(self,
                               coefficients: Union[ndarray, spmatrix, List[List[float]],
                                                   Dict[
