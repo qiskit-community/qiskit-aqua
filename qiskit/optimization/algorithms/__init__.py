@@ -57,4 +57,4 @@ from .grover_optimizer import GroverOptimizer, GroverOptimizationResults
 
 __all__ = ["ADMMOptimizer", "OptimizationAlgorithm", "OptimizationResult", "CplexOptimizer",
            "CobylaOptimizer", "MinimumEigenOptimizer", "RecursiveMinimumEigenOptimizer",
-           "GroverMinimumFinder", "GroverOptimizationResults"]
+           "GroverOptimizationResults"]

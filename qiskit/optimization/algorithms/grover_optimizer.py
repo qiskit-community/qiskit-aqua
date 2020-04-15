@@ -233,7 +233,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         opt_x = [1 if s == '1' else 0 for s in ('{0:%sb}' % n_key).format(optimum_key)]
 
         # Build the results object.
-        rotation = 0  # TODO: should either be retreived from grover or removed from results.
+        rotation = 0  # TODO: should either be retrieved from grover or removed from results.
         grover_results = GroverOptimizationResults(operation_count, rotation, n_key, n_value,
                                                    func_dict)
         result = OptimizationResult(x=opt_x, fval=solutions[optimum_key],
