@@ -21,7 +21,7 @@ import numpy as np
 from qiskit.optimization.algorithms.cplex_optimizer import CplexOptimizer
 from qiskit.optimization.algorithms.optimization_algorithm import (OptimizationAlgorithm,
                                                                    OptimizationResult)
-from qiskit.optimization.problems import VarType
+from qiskit.optimization.problems import VarType, ConstraintSense
 from qiskit.optimization.problems.quadratic_program import QuadraticProgram
 from qiskit.optimization.problems.variables import CPX_BINARY, CPX_CONTINUOUS
 
@@ -474,7 +474,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         vector.append(self._state.op.linear_constraints[constraint_index].rhs)
 
         # flip the sign if constraint is G, we want L constraints.
-        if self._state.op.linear_constraints[constraint_index].sense == "G":
+        if self._state.op.linear_constraints[constraint_index].sense == ConstraintSense.geq:
             # invert the sign to make constraint "L".
             matrix[-1] = [-1 * el for el in matrix[-1]]
             vector[-1] = -1 * vector[-1]
@@ -511,21 +511,23 @@ class ADMMOptimizer(OptimizationAlgorithm):
         matrix = []
         vector = []
 
-        senses = self._state.op.linear_constraints.get_senses()
         index_set = set(self._state.binary_indices)
-        for constraint_index, sense in enumerate(senses):
+        for constraint_index, constraint in enumerate(self._state.op.linear_constraints):
             # we check only equality constraints here.
-            if sense != "E":
+            if constraint.sense != ConstraintSense.eq:
                 continue
-            row = self._state.op.linear_constraints.get_rows(constraint_index)
-            if set(row.ind).issubset(index_set):
-                self._assign_row_values(matrix, vector,
-                                        constraint_index, self._state.binary_indices)
-            else:
-                raise ValueError(
-                    "Linear constraint with the 'E' sense must contain only binary variables, "
-                    "row indices: {}, binary variable indices: {}".format(
-                        row, self._state.binary_indices))
+            # row = self._state.op.linear_constraints.get_rows(constraint_index)
+            row = self._state.op.linear_constraints[constraint_index].linear.coefficients_as_array().take(self._state.binary_indices)
+            self._assign_row_values(matrix, vector,
+                                    constraint_index, self._state.binary_indices)
+            # if set(row.ind).issubset(index_set):
+            #     self._assign_row_values(matrix, vector,
+            #                             constraint_index, self._state.binary_indices)
+            # else:
+            #     raise ValueError(
+            #         "Linear constraint with the 'E' sense must contain only binary variables, "
+            #         "row indices: {}, binary variable indices: {}".format(
+            #             row, self._state.binary_indices))
 
         return self._create_ndarrays(matrix, vector, len(self._state.binary_indices))
 
