@@ -15,10 +15,12 @@
 """Linear Constraint."""
 
 from typing import Union, List, Dict
+
 from numpy import ndarray
 from scipy.sparse import spmatrix
 
-from qiskit.optimization.problems import Constraint, ConstraintSense, LinearExpression
+from qiskit.optimization.problems.constraint import Constraint, ConstraintSense
+from qiskit.optimization.problems.linear_expression import LinearExpression
 
 
 class LinearConstraint(Constraint):
@@ -26,8 +28,7 @@ class LinearConstraint(Constraint):
 
     def __init__(self,
                  quadratic_program: "QuadraticProgram", name: str,
-                 linear: Union[ndarray, spmatrix, List[float], Dict[Union[str, int], float]
-                               ],
+                 linear: Union[ndarray, spmatrix, List[float], Dict[Union[str, int], float]],
                  sense: ConstraintSense,
                  rhs: float
                  ) -> None:
@@ -53,9 +54,8 @@ class LinearConstraint(Constraint):
         return self._linear
 
     @linear.setter
-    def linear(self, linear:
-               Union[ndarray, spmatrix, List[float], Dict[Union[str, int], float]]
-               ) -> None:
+    def linear(self, linear: Union[ndarray, spmatrix, List[float], Dict[Union[str, int], float]]) \
+            -> None:
         """Sets the linear expression corresponding to the left-hand-side of the constraint.
         The coefficients can either be given by an array, a (sparse) 1d matrix, a lsit or a
         dictionary.

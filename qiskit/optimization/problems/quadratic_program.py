@@ -422,9 +422,9 @@ class QuadraticProgram:
                     "Quadratic constraint name already exists: {}".format(name))
         else:
             k = self.get_num_quadratic_constraints()
-            while 'q{}'.format(k) in self.quadratic_constraints_index:
+            while 'c{}'.format(k) in self.quadratic_constraints_index:
                 k += 1
-            name = 'q{}'.format(k)
+            name = 'c{}'.format(k)
         self.quadratic_constraints_index[name] = len(self.quadratic_constraints)
         if linear_coefficients is None:
             linear_coefficients = {}

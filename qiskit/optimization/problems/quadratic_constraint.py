@@ -15,11 +15,13 @@
 """Quadratic Constraint."""
 
 from typing import Union, List, Dict, Tuple
+
 from numpy import ndarray
 from scipy.sparse import spmatrix
 
-from qiskit.optimization.problems import (Constraint, ConstraintSense, LinearExpression,
-                                          QuadraticExpression)
+from qiskit.optimization.problems.constraint import Constraint, ConstraintSense
+from qiskit.optimization.problems.linear_expression import LinearExpression
+from qiskit.optimization.problems.quadratic_expression import QuadraticExpression
 
 
 class QuadraticConstraint(Constraint):
@@ -57,9 +59,8 @@ class QuadraticConstraint(Constraint):
         return self._linear
 
     @linear.setter
-    def linear(self, linear:
-               Union[LinearExpression, ndarray, spmatrix, List[float], Dict[Union[str, int], float]]
-               ) -> None:
+    def linear(self, linear: Union[LinearExpression, ndarray, spmatrix, List[float],
+                                   Dict[Union[str, int], float]]) -> None:
         """Sets the linear expression corresponding to the left-hand-side of the constraint.
         The coefficients can either be given by an array, a (sparse) 1d matrix, a list or a
         dictionary.
@@ -67,6 +68,7 @@ class QuadraticConstraint(Constraint):
         Args:
             linear: The linear coefficients of the left-hand-side.
         """
+
         self._linear = LinearExpression(self.quadratic_program, linear)
 
     @property
@@ -79,10 +81,9 @@ class QuadraticConstraint(Constraint):
         return self._quadratic
 
     @quadratic.setter
-    def quadratic(self, quadratic:
-                  Union[ndarray, spmatrix, List[List[float]],
-                        Dict[Tuple[Union[int, str], Union[int, str]], float]]
-                  ) -> None:
+    def quadratic(self, quadratic: Union[ndarray, spmatrix, List[List[float]],
+                                         Dict[Tuple[Union[int, str], Union[int, str]], float]]) \
+            -> None:
         """Sets the quadratic expression corresponding to the left-hand-side of the constraint.
         The coefficients can either be given by an array, a (sparse) matrix, a list or a
         dictionary.
