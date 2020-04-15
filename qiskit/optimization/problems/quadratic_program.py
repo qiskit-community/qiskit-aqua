@@ -606,9 +606,9 @@ class QuadraticProgram:
 
         # add objective
         objective = self.objective.constant
-        for i, v in self.objective.linear.coefficients_as_dict().items():
+        for i, v in self.objective.linear.to_dict().items():
             objective += v * var[i]
-        for (i, j), v in self.objective.quadratic.coefficients_as_dict().items():
+        for (i, j), v in self.objective.quadratic.to_dict().items():
             objective += v * var[i] * var[j]
         if self.objective.sense == ObjSense.MINIMIZE:
             mdl.minimize(objective)
@@ -620,7 +620,7 @@ class QuadraticProgram:
             name = constraint.name
             rhs = constraint.rhs
             linear_expr = 0
-            for j, v in constraint.linear.coefficients_as_dict().items():
+            for j, v in constraint.linear.to_dict().items():
                 linear_expr += v * var[j]
             sense = constraint.sense
             if sense == ConstraintSense.EQ:
@@ -638,9 +638,9 @@ class QuadraticProgram:
             name = constraint.name
             rhs = constraint.rhs
             quadratic_expr = 0
-            for j, v in constraint.linear.coefficients_as_dict().items():
+            for j, v in constraint.linear.to_dict().items():
                 quadratic_expr += v * var[j]
-            for (j, k), v in constraint.quadratic.coefficients_as_dict().items():
+            for (j, k), v in constraint.quadratic.to_dict().items():
                 quadratic_expr += v * var[j] * var[k]
             sense = constraint.sense
             if sense == ConstraintSense.EQ:
