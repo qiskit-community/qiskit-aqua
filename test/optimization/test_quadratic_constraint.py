@@ -59,7 +59,7 @@ class TestQuadraticConstraint(QiskitOptimizationTestCase):
         with self.assertRaises(QiskitOptimizationError):
             quadratic_program.quadratic_constraint(name='q0', sense='==')
 
-        quadratic_program.quadratic_constraint('q1', linear_coeffs, quadratic_coeffs, '==', 1.0)
+        quadratic_program.quadratic_constraint(linear_coeffs, quadratic_coeffs, '==', 1.0, 'q1')
         self.assertEqual(quadratic_program.get_num_quadratic_constraints(), 2)
         self.assertEqual(quadratic_program.quadratic_constraints[1].name, 'q1')
         self.assertTrue((
@@ -99,7 +99,7 @@ class TestQuadraticConstraint(QiskitOptimizationTestCase):
         with self.assertRaises(QiskitOptimizationError):
             quadratic_program.quadratic_constraint(name='q2', sense='>=')
 
-        quadratic_program.quadratic_constraint('q3', linear_coeffs, quadratic_coeffs, '>=', 1.0)
+        quadratic_program.quadratic_constraint(linear_coeffs, quadratic_coeffs, '>=', 1.0, 'q3')
         self.assertEqual(quadratic_program.get_num_quadratic_constraints(), 4)
         self.assertEqual(quadratic_program.quadratic_constraints[3].name, 'q3')
         self.assertTrue((
@@ -137,7 +137,7 @@ class TestQuadraticConstraint(QiskitOptimizationTestCase):
         with self.assertRaises(QiskitOptimizationError):
             quadratic_program.quadratic_constraint(name='q4', sense='<=')
 
-        quadratic_program.quadratic_constraint('q5', linear_coeffs, quadratic_coeffs, '<=', 1.0)
+        quadratic_program.quadratic_constraint(linear_coeffs, quadratic_coeffs, '<=', 1.0, 'q5')
         self.assertEqual(quadratic_program.get_num_quadratic_constraints(), 6)
         self.assertEqual(quadratic_program.quadratic_constraints[5].name, 'q5')
         self.assertTrue((
