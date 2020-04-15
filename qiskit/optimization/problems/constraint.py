@@ -31,7 +31,7 @@ class ConstraintSense(Enum):
     eq = 2  # pylint: disable=locally-disabled, invalid-name
 
     @staticmethod
-    def convert(sense: Union[str, ConstraintSense]) -> ConstraintSense:
+    def convert(sense: Union[str, "ConstraintSense"]) -> "ConstraintSense":
         """Convert a string into a corresponding sense of constraints
 
         Args:
