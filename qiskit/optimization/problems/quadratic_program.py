@@ -15,17 +15,18 @@
 """Quadratic Program."""
 
 from typing import List, Union, Dict, Optional, Tuple
+
+from docplex.mp.linear import Var
+from docplex.mp.model import Model
 from numpy import ndarray
 from scipy.sparse import spmatrix
-from docplex.mp.model import Model
-from docplex.mp.linear import Var
 
 from qiskit.optimization import infinity, QiskitOptimizationError
-from qiskit.optimization.problems.variable import Variable, VarType
 from qiskit.optimization.problems.constraint import ConstraintSense
 from qiskit.optimization.problems.linear_constraint import LinearConstraint
 from qiskit.optimization.problems.quadratic_constraint import QuadraticConstraint
 from qiskit.optimization.problems.quadratic_objective import QuadraticObjective, ObjSense
+from qiskit.optimization.problems.variable import Variable, VarType
 
 
 class QuadraticProgram:
@@ -105,8 +106,9 @@ class QuadraticProgram:
         """
         return self._variables_index
 
-    def _add_variables(self, name: Optional[str] = None, lowerbound: float = 0,
-                       upperbound: float = infinity, vartype: VarType = VarType.continuous) -> None:
+    def _add_variable(self, name: Optional[str] = None, lowerbound: float = 0,
+                      upperbound: float = infinity,
+                      vartype: VarType = VarType.continuous) -> Variable:
         """Checks whether a variable name is already taken and adds the variable to list and index
         if not.
 
@@ -151,7 +153,7 @@ class QuadraticProgram:
         Raises:
             QiskitOptimizationError: if the variable name is already occupied.
         """
-        return self._add_variables(name, lowerbound, upperbound, VarType.continuous)
+        return self._add_variable(name, lowerbound, upperbound, VarType.continuous)
 
     def binary_var(self, name: Optional[str] = None) -> Variable:
         """Adds a binary variable to the quadratic program.
@@ -165,7 +167,7 @@ class QuadraticProgram:
         Raises:
             QiskitOptimizationError: if the variable name is already occupied.
         """
-        return self._add_variables(name, 0, 1, VarType.binary)
+        return self._add_variable(name, 0, 1, VarType.binary)
 
     def integer_var(self, name: Optional[str] = None, lowerbound: float = 0,
                     upperbound: float = infinity) -> Variable:
@@ -182,7 +184,7 @@ class QuadraticProgram:
         Raises:
             QiskitOptimizationError: if the variable name is already occupied.
         """
-        return self._add_variables(name, lowerbound, upperbound, VarType.integer)
+        return self._add_variable(name, lowerbound, upperbound, VarType.integer)
 
     def get_variable(self, i: Union[int, str]) -> Variable:
         """Returns a variable for a given name or index.
@@ -208,7 +210,7 @@ class QuadraticProgram:
             The total number of variables.
         """
         if vartype:
-            return sum([variable.vartype == vartype for variable in self.variables])
+            return sum(variable.vartype == vartype for variable in self.variables)
         else:
             return len(self.variables)
 
@@ -260,7 +262,7 @@ class QuadraticProgram:
                                                    Dict[Union[int, str], float]] = None,
                                sense: ConstraintSense = ConstraintSense.leq,
                                rhs: float = 0.0
-                               ) -> None:
+                               ) -> LinearConstraint:
         """Checks whether a constraint name is already taken and adds the constraint to list and
         index if not.
 
@@ -291,6 +293,40 @@ class QuadraticProgram:
         constraint = LinearConstraint(self, name, coefficients, sense, rhs)
         self.linear_constraints.append(constraint)
         return constraint
+
+    def linear_constraint(self, name: Optional[str] = None,
+                          coefficients: Union[ndarray, spmatrix, List[float],
+                                              Dict[Union[int, str], float]] = None,
+                          sense: str = '==',
+                          rhs: float = 0.0) -> LinearConstraint:
+        """Adds a linear equality constraint to the quadratic program of the form:
+            linear_coeffs * x sense rhs.
+
+        Args:
+            name: The name of the constraint.
+            coefficients: The linear coefficients of the left-hand-side of the constraint.
+            sense: The sense of the constraint,
+              - '==' and 'E' denote 'equal to'
+              - '>=' and 'G' denote 'greater-than-or-equal-to'
+              - '<=' and 'L' denote 'less-than-or-equal-to'
+            rhs: The right hand side of the constraint.
+
+        Returns:
+            The added constraint.
+
+        Raises:
+            QiskitOptimizationError: if the constraint name already exists or the sense is not
+                valid.
+        """
+        if sense not in ['E', 'L', 'G', '==', '<=', '>=']:
+            raise QiskitOptimizationError('Invalid sense: {}'.format(sense))
+        if sense in ['E', '==']:
+            csense = ConstraintSense.eq
+        elif sense in ['L', '<=']:
+            csense = ConstraintSense.leq
+        else:
+            csense = ConstraintSense.geq
+        return self._add_linear_constraint(name, coefficients, csense, rhs)
 
     def linear_eq_constraint(self, name: Optional[str] = None,
                              coefficients: Union[ndarray, spmatrix, List[float],
@@ -406,7 +442,7 @@ class QuadraticProgram:
                                                                     float]] = None,
                                   sense: ConstraintSense = ConstraintSense.leq,
                                   rhs: float = 0.0
-                                  ) -> None:
+                                  ) -> QuadraticConstraint:
         """Checks whether a constraint name is already taken and adds the constraint to list and
         index if not.
 
@@ -564,7 +600,7 @@ class QuadraticProgram:
                  linear: Union[ndarray, spmatrix, List[float], Dict[Union[str, int], float]] = None,
                  quadratic: Union[ndarray, spmatrix, List[List[float]],
                                   Dict[Tuple[Union[int, str], Union[int, str]], float]] = None
-                 ) -> QuadraticObjective:
+                 ) -> None:
         """Sets a quadrartic objective to be minimized.
 
         Args:
@@ -582,7 +618,7 @@ class QuadraticProgram:
                  linear: Union[ndarray, spmatrix, List[float], Dict[Union[str, int], float]] = None,
                  quadratic: Union[ndarray, spmatrix, List[List[float]],
                                   Dict[Tuple[Union[int, str], Union[int, str]], float]] = None
-                 ) -> QuadraticObjective:
+                 ) -> None:
         """Sets a quadrartic objective to be maximized.
 
         Args:
@@ -811,3 +847,11 @@ class QuadraticProgram:
             out: The output stream to print to.
         """
         self.to_docplex().prettyprint(out)
+
+    def print_as_lp_string(self) -> str:
+        """Prints the quadratic program as a string of LP format.
+
+        Returns:
+            A string representing the quadratic program.
+        """
+        return self.to_docplex().export_as_lp_string()
