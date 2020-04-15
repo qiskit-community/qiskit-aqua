@@ -15,7 +15,6 @@
 """Quadratic Program."""
 
 from typing import List, Union, Dict, Optional, Tuple
-from os.path import splitext
 
 from docplex.mp.linear import Var
 from docplex.mp.model import Model
