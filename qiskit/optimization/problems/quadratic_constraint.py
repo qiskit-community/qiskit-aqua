@@ -59,7 +59,7 @@ class QuadraticConstraint(Constraint):
         return self._linear
 
     @linear.setter
-    def linear(self, linear: Union[LinearExpression, ndarray, spmatrix, List[float],
+    def linear(self, linear: Union[ndarray, spmatrix, List[float],
                                    Dict[Union[str, int], float]]) -> None:
         """Sets the linear expression corresponding to the left-hand-side of the constraint.
         The coefficients can either be given by an array, a (sparse) 1d matrix, a list or a
