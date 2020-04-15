@@ -17,6 +17,7 @@
 from abc import abstractmethod
 from enum import Enum
 from typing import Union, List, Dict
+
 from numpy import ndarray
 
 from qiskit.optimization.problems.has_quadratic_program import HasQuadraticProgram
@@ -55,19 +56,6 @@ class Constraint(HasQuadraticProgram):
             The name of the constraint.
         """
         return self._name
-
-    @name.setter
-    def name(self, name: str) -> None:
-        """Sets the name of the constraint and updates the name index in the corresponding QP.
-
-        Args:
-            name: The name of the constraint.
-
-        Raises:
-            QiskitOptimizationError: if the name is already existing.
-        """
-        # TODO: update QP and raise exception if name already exists
-        self._name = name
 
     @property
     def sense(self) -> ConstraintSense:
