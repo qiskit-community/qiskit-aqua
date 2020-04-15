@@ -52,7 +52,7 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         self.assertEqual(x_0.name, 'x0')
         self.assertEqual(x_0.lowerbound, 0)
         self.assertEqual(x_0.upperbound, infinity)
-        self.assertEqual(x_0.vartype, VarType.continuous)
+        self.assertEqual(x_0.vartype, VarType.CONTINUOUS)
 
         self.assertEqual(quadratic_program.get_num_vars(), 1)
         self.assertEqual(quadratic_program.get_num_continuous_vars(), 1)
@@ -63,7 +63,7 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         self.assertEqual(x_1.name, 'x1')
         self.assertEqual(x_1.lowerbound, 5)
         self.assertEqual(x_1.upperbound, 10)
-        self.assertEqual(x_1.vartype, VarType.continuous)
+        self.assertEqual(x_1.vartype, VarType.CONTINUOUS)
 
         self.assertEqual(quadratic_program.get_num_vars(), 2)
         self.assertEqual(quadratic_program.get_num_continuous_vars(), 2)
@@ -74,7 +74,7 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         self.assertEqual(x_2.name, 'x2')
         self.assertEqual(x_2.lowerbound, 0)
         self.assertEqual(x_2.upperbound, 1)
-        self.assertEqual(x_2.vartype, VarType.binary)
+        self.assertEqual(x_2.vartype, VarType.BINARY)
 
         self.assertEqual(quadratic_program.get_num_vars(), 3)
         self.assertEqual(quadratic_program.get_num_continuous_vars(), 2)
@@ -85,7 +85,7 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         self.assertEqual(x_3.name, 'x3')
         self.assertEqual(x_3.lowerbound, 0)
         self.assertEqual(x_3.upperbound, 1)
-        self.assertEqual(x_3.vartype, VarType.binary)
+        self.assertEqual(x_3.vartype, VarType.BINARY)
 
         self.assertEqual(quadratic_program.get_num_vars(), 4)
         self.assertEqual(quadratic_program.get_num_continuous_vars(), 2)
@@ -96,7 +96,7 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         self.assertEqual(x_4.name, 'x4')
         self.assertEqual(x_4.lowerbound, 0)
         self.assertEqual(x_4.upperbound, infinity)
-        self.assertEqual(x_4.vartype, VarType.integer)
+        self.assertEqual(x_4.vartype, VarType.INTEGER)
 
         self.assertEqual(quadratic_program.get_num_vars(), 5)
         self.assertEqual(quadratic_program.get_num_continuous_vars(), 2)
@@ -107,7 +107,7 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         self.assertEqual(x_5.name, 'x5')
         self.assertEqual(x_5.lowerbound, 5)
         self.assertEqual(x_5.upperbound, 10)
-        self.assertEqual(x_5.vartype, VarType.integer)
+        self.assertEqual(x_5.vartype, VarType.INTEGER)
 
         self.assertEqual(quadratic_program.get_num_vars(), 6)
         self.assertEqual(quadratic_program.get_num_continuous_vars(), 2)
@@ -129,6 +129,18 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
             z = quadratic_program.get_variable(x.name)
             self.assertEqual(x, y)
             self.assertEqual(x, z)
+
+    def test_linear_constraints_handling(self):
+        # TODO
+        pass
+
+    def test_quadratic_constraints_handling(self):
+        # TODO
+        pass
+
+    def test_objective_handling(self):
+        # TODO
+        pass
 
 
 if __name__ == '__main__':

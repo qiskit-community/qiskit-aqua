@@ -55,6 +55,18 @@ class TestLinearExpression(QiskitOptimizationTestCase):
             self.assertDictEqual(linear.coefficients_as_dict(use_index=False),
                                  coefficients_dict_str)
 
+    def test_get_item(self):
+        """ test get_item. """
+
+        quadratic_program = QuadraticProgram()
+        for _ in range(5):
+            quadratic_program.continuous_var()
+
+        coefficients = [i for i in range(5)]
+        linear = LinearExpression(quadratic_program, coefficients)
+        for i, v in enumerate(coefficients):
+            self.assertEqual(linear[i], v)
+
     def test_setters(self):
         """ test setters. """
 

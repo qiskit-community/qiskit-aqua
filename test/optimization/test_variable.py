@@ -34,14 +34,14 @@ class TestVariable(QiskitOptimizationTestCase):
         name = 'variable'
         lowerbound = 0
         upperbound = 10
-        vartype = VarType.integer
+        vartype = VarType.INTEGER
 
         variable = Variable(quadratic_program, name, lowerbound, upperbound, vartype)
 
         self.assertEqual(variable.name, name)
         self.assertEqual(variable.lowerbound, lowerbound)
         self.assertEqual(variable.upperbound, upperbound)
-        self.assertEqual(variable.vartype, VarType.integer)
+        self.assertEqual(variable.vartype, VarType.INTEGER)
 
     def test_init_default(self):
         """ test init with default values."""
@@ -54,7 +54,7 @@ class TestVariable(QiskitOptimizationTestCase):
         self.assertEqual(variable.name, name)
         self.assertEqual(variable.lowerbound, 0)
         self.assertEqual(variable.upperbound, infinity)
-        self.assertEqual(variable.vartype, VarType.continuous)
+        self.assertEqual(variable.vartype, VarType.CONTINUOUS)
 
 
 if __name__ == '__main__':
