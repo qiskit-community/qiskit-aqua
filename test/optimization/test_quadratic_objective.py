@@ -40,7 +40,7 @@ class TestQuadraticObjective(QiskitOptimizationTestCase):
             len(quadratic_program.objective.linear.coefficients_as_dict()), 0)
         self.assertEqual(
             len(quadratic_program.objective.quadratic.coefficients_as_dict()), 0)
-        self.assertEqual(quadratic_program.objective.sense, ObjSense.minimize)
+        self.assertEqual(quadratic_program.objective.sense, ObjSense.MINIMIZE)
 
         constant = 1.0
         linear_coeffs = np.array([i for i in range(5)])
@@ -54,7 +54,7 @@ class TestQuadraticObjective(QiskitOptimizationTestCase):
         self.assertTrue(
             (quadratic_program.objective.quadratic.coefficients_as_array() == quadratic_coeffs)
             .all())
-        self.assertEqual(quadratic_program.objective.sense, ObjSense.minimize)
+        self.assertEqual(quadratic_program.objective.sense, ObjSense.MINIMIZE)
 
         quadratic_program.maximize(constant, linear_coeffs, quadratic_coeffs)
 
@@ -64,7 +64,7 @@ class TestQuadraticObjective(QiskitOptimizationTestCase):
         self.assertTrue(
             (quadratic_program.objective.quadratic.coefficients_as_array() == quadratic_coeffs)
             .all())
-        self.assertEqual(quadratic_program.objective.sense, ObjSense.maximize)
+        self.assertEqual(quadratic_program.objective.sense, ObjSense.MAXIMIZE)
 
         self.assertEqual(quadratic_program.objective.evaluate(linear_coeffs), 931.0)
 
@@ -90,13 +90,13 @@ class TestQuadraticObjective(QiskitOptimizationTestCase):
             (quadratic_program.objective.quadratic.coefficients_as_array() == quadratic_coeffs)
             .all())
 
-        self.assertEqual(quadratic_program.objective.sense, ObjSense.minimize)
+        self.assertEqual(quadratic_program.objective.sense, ObjSense.MINIMIZE)
 
-        quadratic_program.objective.sense = ObjSense.maximize
-        self.assertEqual(quadratic_program.objective.sense, ObjSense.maximize)
+        quadratic_program.objective.sense = ObjSense.MAXIMIZE
+        self.assertEqual(quadratic_program.objective.sense, ObjSense.MAXIMIZE)
 
-        quadratic_program.objective.sense = ObjSense.minimize
-        self.assertEqual(quadratic_program.objective.sense, ObjSense.minimize)
+        quadratic_program.objective.sense = ObjSense.MINIMIZE
+        self.assertEqual(quadratic_program.objective.sense, ObjSense.MINIMIZE)
 
 
 if __name__ == '__main__':

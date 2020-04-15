@@ -66,8 +66,8 @@ class TestQuadraticExpression(QiskitOptimizationTestCase):
 
         coefficients = [[i*j for i in range(5)] for j in range(5)]
         quadratic = QuadraticExpression(quadratic_program, coefficients)
-        for i, jv in enumerate(coefficients):
-            for j, v in enumerate(jv):
+        for i, j_v in enumerate(coefficients):
+            for j, v in enumerate(j_v):
                 self.assertEqual(quadratic[i, j], v)
 
     def test_setters(self):

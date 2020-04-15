@@ -27,8 +27,8 @@ from qiskit.optimization.problems.quadratic_expression import QuadraticExpressio
 
 class ObjSense(Enum):
     """Objective Sense Type."""
-    minimize = 1
-    maximize = -1
+    MINIMIZE = 1
+    MAXIMIZE = -1
 
 
 class QuadraticObjective(HasQuadraticProgram):
@@ -41,7 +41,7 @@ class QuadraticObjective(HasQuadraticProgram):
                  linear: Union[ndarray, spmatrix, List[float], Dict[Union[str, int], float]] = None,
                  quadratic: Union[ndarray, spmatrix, List[List[float]],
                                   Dict[Tuple[Union[int, str], Union[int, str]], float]] = None,
-                 sense: ObjSense = ObjSense.minimize
+                 sense: ObjSense = ObjSense.MINIMIZE
                  ) -> None:
         """Constructs a quadratic objective function.
 
