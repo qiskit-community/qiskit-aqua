@@ -12,90 +12,75 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Test Grover Minimum Finder."""
+"""Test Grover Optimizer."""
 
 import unittest
 from test.optimization import QiskitOptimizationTestCase
-import numpy as np
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
-from qiskit.optimization.algorithms import GroverMinimumFinder, MinimumEigenOptimizer
+from qiskit.optimization.algorithms import GroverOptimizer, MinimumEigenOptimizer
 from qiskit.optimization.problems import QuadraticProgram
 
 
-class TestGroverMinimumFinder(QiskitOptimizationTestCase):
-    """GroverMinimumFinder tests."""
+class TestGroverOptimizer(QiskitOptimizationTestCase):
+    """GroverOptimizer tests."""
 
-    def validate_results(self, problem, results, max_iterations):
-        """Validate the results object returned by GroverMinimumFinder."""
-        # Get measured values.
-        grover_results = results.results['grover_results']
-
-        iterations = len(grover_results.operation_counts)
-        rot = grover_results.rotation_count
-
+    def validate_results(self, problem, results):
+        """Validate the results object returned by GroverOptimizer."""
         # Get expected value.
         solver = MinimumEigenOptimizer(NumPyMinimumEigensolver())
         comp_result = solver.solve(problem)
-        max_rotations = int(np.ceil(100*np.pi/4))
 
         # Validate results.
-        max_hit = max_rotations <= rot or max_iterations <= iterations
-        self.assertTrue(comp_result.x == results.x or max_hit)
-        self.assertTrue(comp_result.fval == results.fval or max_hit)
+        self.assertTrue(comp_result.x == results.x)
+        self.assertTrue(comp_result.fval == results.fval)
 
     def test_qubo_gas_int_zero(self):
         """Test for when the answer is zero."""
-        try:
-            # Input.
-            op = QuadraticProgram()
-            op.variables.add(names=['x0', 'x1'], types='BB')
-            linear = [('x0', 0), ('x1', 0)]
-            op.objective.set_linear(linear)
 
-            # Will not find a negative, should return 0.
-            gmf = GroverMinimumFinder(num_iterations=1)
-            results = gmf.solve(op)
-            self.assertEqual(results.x, [0, 0])
-            self.assertEqual(results.fval, 0.0)
-        except NameError as ex:
-            self.skipTest(str(ex))
+        # Input.
+        op = QuadraticProgram()
+        op.variables.add(names=['x0', 'x1'], types='BB')
+        linear = [('x0', 0), ('x1', 0)]
+        op.objective.set_linear(linear)
+
+        # Will not find a negative, should return 0.
+        gmf = GroverOptimizer(1, num_iterations=1)
+        results = gmf.solve(op)
+        self.assertEqual(results.x, [0, 0])
+        self.assertEqual(results.fval, 0.0)
 
     def test_qubo_gas_int_simple(self):
         """Test for simple case, with 2 linear coeffs and no quadratic coeffs or constants."""
-        try:
-            # Input.
-            op = QuadraticProgram()
-            op.variables.add(names=['x0', 'x1'], types='BB')
-            linear = [('x0', -1), ('x1', 2)]
-            op.objective.set_linear(linear)
 
-            # Get the optimum key and value.
-            n_iter = 8
-            gmf = GroverMinimumFinder(num_iterations=n_iter)
-            results = gmf.solve(op)
-            self.validate_results(op, results, n_iter)
-        except NameError as ex:
-            self.skipTest(str(ex))
+        # Input.
+        op = QuadraticProgram()
+        op.variables.add(names=['x0', 'x1'], types='BB')
+        linear = [('x0', -1), ('x1', 2)]
+        op.objective.set_linear(linear)
+
+        # Get the optimum key and value.
+        n_iter = 8
+        gmf = GroverOptimizer(4, num_iterations=n_iter)
+        results = gmf.solve(op)
+        self.validate_results(op, results)
 
     def test_qubo_gas_int_paper_example(self):
         """Test the example from https://arxiv.org/abs/1912.04088."""
-        try:
-            # Input.
-            op = QuadraticProgram()
-            op.variables.add(names=['x0', 'x1', 'x2'], types='BBB')
 
-            linear = [('x0', -1), ('x1', 2), ('x2', -3)]
-            op.objective.set_linear(linear)
-            op.objective.set_quadratic_coefficients('x0', 'x2', -2)
-            op.objective.set_quadratic_coefficients('x1', 'x2', -1)
+        # Input.
+        op = QuadraticProgram()
+        op.variables.add(names=['x0', 'x1', 'x2'], types='BBB')
 
-            # Get the optimum key and value.
-            n_iter = 10
-            gmf = GroverMinimumFinder(num_iterations=n_iter)
-            results = gmf.solve(op)
-            self.validate_results(op, results, 10)
-        except NameError as ex:
-            self.skipTest(str(ex))
+        linear = [('x0', -1), ('x1', 2), ('x2', -3)]
+        op.objective.set_linear(linear)
+        op.objective.set_quadratic_coefficients('x0', 'x2', -2)
+        op.objective.set_quadratic_coefficients('x1', 'x2', -1)
+
+        # Get the optimum key and value.
+        n_iter = 10
+        gmf = GroverOptimizer(6, num_iterations=n_iter)
+        results = gmf.solve(op)
+        self.validate_results(op, results)
 
 
 if __name__ == '__main__':

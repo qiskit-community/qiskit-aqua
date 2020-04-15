@@ -129,14 +129,12 @@ class QuadraticProgramToNegativeValueOracle:
         return func
 
     def _evaluate_classically(self, measurement):
-        # TODO: Typing for this method? Still not sure what it's used for. Required by Grover.
         """ evaluate classical """
-        assignment = [(var + 1) * (int(tf) * 2 - 1) for tf, var in zip(measurement[::-1],
+        value = measurement[self._num_key:self._num_key + self._num_value]
+        assignment = [(var + 1) * (int(tf) * 2 - 1) for tf, var in zip(measurement,
                                                                        range(len(measurement)))]
-        assignment_dict = dict()
-        for v in assignment:
-            assignment_dict[v] = bool(v < 0)
-        return assignment_dict, assignment
+        evaluation = value[0] == '1'
+        return evaluation, assignment
 
     def _build_operator(self, func_dict: Dict[Union[int, Tuple[int, int]], int]) -> QuantumCircuit:
         """Creates a circuit for the state preparation operator.

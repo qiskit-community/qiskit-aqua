@@ -40,7 +40,7 @@ Algorithms
    ADMMOptimizer
    CobylaOptimizer
    CplexOptimizer
-   GroverMinimumFinder
+   GroverOptimizer
    MinimumEigenOptimizer
    RecursiveMinimumEigenOptimizer
 
@@ -53,7 +53,7 @@ from .cplex_optimizer import CplexOptimizer
 from .cobyla_optimizer import CobylaOptimizer
 from .minimum_eigen_optimizer import MinimumEigenOptimizer
 from .recursive_minimum_eigen_optimizer import RecursiveMinimumEigenOptimizer
-from .grover_minimum_finder import GroverMinimumFinder, GroverOptimizationResults
+from .grover_optimizer import GroverOptimizer, GroverOptimizationResults
 
 __all__ = ["ADMMOptimizer", "OptimizationAlgorithm", "OptimizationResult", "CplexOptimizer",
            "CobylaOptimizer", "MinimumEigenOptimizer", "RecursiveMinimumEigenOptimizer",
