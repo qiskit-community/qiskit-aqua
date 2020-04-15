@@ -14,8 +14,8 @@
 
 """Linear expression interface."""
 
-
 from typing import List, Union, Dict
+
 from numpy import ndarray
 from scipy.sparse import spmatrix, dok_matrix
 
@@ -46,7 +46,7 @@ class LinearExpression(HasQuadraticProgram):
     def _coeffs_to_dok_matrix(self,
                               coefficients: Union[ndarray, spmatrix,
                                                   List, Dict[Union[int, str], float]]
-                              ) -> None:
+                              ) -> dok_matrix:
         """Maps given 1d-coefficients to a dok_matrix.
 
         Args:
@@ -58,7 +58,7 @@ class LinearExpression(HasQuadraticProgram):
         Raises:
             QiskitOptimizationError: if coefficients are given in unsupported format.
         """
-        if isinstance(coefficients, list) or\
+        if isinstance(coefficients, list) or \
                 isinstance(coefficients, ndarray) and len(coefficients.shape) == 1:
             coefficients = dok_matrix([coefficients])
         elif isinstance(coefficients, spmatrix):
@@ -116,8 +116,8 @@ class LinearExpression(HasQuadraticProgram):
         if use_index:
             return {k: v for (_, k), v in self._coefficients.items()}
         else:
-            return {self.quadratic_program.variables[k].name: v for (_, k), v in
-                    self._coefficients.items()}
+            return {self.quadratic_program.variables[k].name: v
+                    for (_, k), v in self._coefficients.items()}
 
     def evaluate(self, x: Union[ndarray, List, Dict[Union[int, str], float]]) -> float:
         """Evaluate the linear expression for given variables.

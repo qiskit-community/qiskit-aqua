@@ -16,11 +16,13 @@
 
 from enum import Enum
 from typing import Union, List, Dict, Tuple
+
 from numpy import ndarray
 from scipy.sparse import spmatrix
 
 from qiskit.optimization.problems.has_quadratic_program import HasQuadraticProgram
-from qiskit.optimization.problems import LinearExpression, QuadraticExpression
+from qiskit.optimization.problems.linear_constraint import LinearExpression
+from qiskit.optimization.problems.quadratic_expression import QuadraticExpression
 
 
 class ObjSense(Enum):
