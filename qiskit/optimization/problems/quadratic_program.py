@@ -127,7 +127,7 @@ class QuadraticProgram:
         """
         if name:
             if name in self._variables_index:
-                raise QiskitOptimizationError("Variable name already exists!")
+                raise QiskitOptimizationError("Variable name already exists: {}".format(name))
         else:
             k = self.get_num_vars()
             while 'x{}'.format(k) in self._variables_index:
@@ -281,7 +281,8 @@ class QuadraticProgram:
         """
         if name:
             if name in self.linear_constraints_index:
-                raise QiskitOptimizationError("Variable name already exists!")
+                raise QiskitOptimizationError(
+                    "Linear constraint's name already exists: {}".format(name))
         else:
             k = self.get_num_linear_constraints()
             while 'c{}'.format(k) in self.linear_constraints_index:
@@ -294,10 +295,35 @@ class QuadraticProgram:
         self.linear_constraints.append(constraint)
         return constraint
 
+    @staticmethod
+    def _convert_sense(sense: Union[str, ConstraintSense]) -> ConstraintSense:
+        """Convert a string into a corresponding sense of constraints
+
+        Args:
+            sense: A string or sense of constraints
+
+        Returns:
+            The sense of constraints
+
+        Raises:
+            QiskitOptimizationError: if the input string is invalid.
+        """
+        if isinstance(sense, ConstraintSense):
+            return sense
+        sense = sense.upper()
+        if sense not in ['E', 'L', 'G', 'EQ', 'LE', 'GE', '=', '==', '<=', '>=']:
+            raise QiskitOptimizationError('Invalid sense: {}'.format(sense))
+        if sense in ['E', 'EQ', '=', '==']:
+            return ConstraintSense.eq
+        elif sense in ['L', 'LE', '<=']:
+            return ConstraintSense.leq
+        else:
+            return ConstraintSense.geq
+
     def linear_constraint(self, name: Optional[str] = None,
                           coefficients: Union[ndarray, spmatrix, List[float],
                                               Dict[Union[int, str], float]] = None,
-                          sense: str = '==',
+                          sense: Union[str, ConstraintSense] = '==',
                           rhs: float = 0.0) -> LinearConstraint:
         """Adds a linear equality constraint to the quadratic program of the form:
             linear_coeffs * x sense rhs.
@@ -306,9 +332,9 @@ class QuadraticProgram:
             name: The name of the constraint.
             coefficients: The linear coefficients of the left-hand-side of the constraint.
             sense: The sense of the constraint,
-              - '==' and 'E' denote 'equal to'
-              - '>=' and 'G' denote 'greater-than-or-equal-to'
-              - '<=' and 'L' denote 'less-than-or-equal-to'
+              - '==', '=', 'E', and 'EQ' denote 'equal to'.
+              - '>=', 'G', and 'GE' denote 'greater-than-or-equal-to'.
+              - '<=', 'L', and 'LE' denote 'less-than-or-equal-to'.
             rhs: The right hand side of the constraint.
 
         Returns:
@@ -318,77 +344,7 @@ class QuadraticProgram:
             QiskitOptimizationError: if the constraint name already exists or the sense is not
                 valid.
         """
-        if sense not in ['E', 'L', 'G', '==', '<=', '>=']:
-            raise QiskitOptimizationError('Invalid sense: {}'.format(sense))
-        if sense in ['E', '==']:
-            csense = ConstraintSense.eq
-        elif sense in ['L', '<=']:
-            csense = ConstraintSense.leq
-        else:
-            csense = ConstraintSense.geq
-        return self._add_linear_constraint(name, coefficients, csense, rhs)
-
-    def linear_eq_constraint(self, name: Optional[str] = None,
-                             coefficients: Union[ndarray, spmatrix, List[float],
-                                                 Dict[Union[int, str], float]] = None,
-                             rhs: float = 0.0) -> LinearConstraint:
-        """Adds a linear equality constraint to the quadratic program of the form:
-            linear_coeffs * x == rhs.
-
-        Args:
-            name: The name of the constraint.
-            coefficients: The linear coefficients of the left-hand-side of the constraint.
-            rhs: The right hand side of the constraint.
-
-        Returns:
-            The added constraint.
-
-        Raises:
-            QiskitOptimizationError: if the constraint name already exists.
-        """
-        return self._add_linear_constraint(name, coefficients, ConstraintSense.eq, rhs)
-
-    def linear_geq_constraint(self, name: Optional[str] = None,
-                              coefficients: Union[ndarray, spmatrix, List[float],
-                                                  Dict[Union[int, str], float]] = None,
-                              rhs: float = 0.0) -> LinearConstraint:
-        """Adds a linear "greater-than-or-equal-to" (geq) constraint to the quadratic program
-        of the form:
-            linear_coeffs * x >= rhs.
-
-        Args:
-            name: The name of the constraint.
-            coefficients: The linear coefficients of the left-hand-side of the constraint.
-            rhs: The right hand side of the constraint.
-
-        Returns:
-            The added constraint.
-
-        Raises:
-            QiskitOptimizationError: if the constraint name already exists.
-        """
-        return self._add_linear_constraint(name, coefficients, ConstraintSense.geq, rhs)
-
-    def linear_leq_constraint(self, name: Optional[str] = None,
-                              coefficients: Union[ndarray, spmatrix, List[float],
-                                                  Dict[Union[int, str], float]] = None,
-                              rhs: float = 0.0) -> LinearConstraint:
-        """Adds a linear "less-than-or-equal-to" (leq) constraint to the quadratic program
-        of the form:
-            linear_coeffs * x <= rhs.
-
-        Args:
-            name: The name of the constraint.
-            coefficients: The linear coefficients of the left-hand-side of the constraint.
-            rhs: The right hand side of the constraint.
-
-        Returns:
-            The added constraint.
-
-        Raises:
-            QiskitOptimizationError: if the constraint name already exists.
-        """
-        return self._add_linear_constraint(name, coefficients, ConstraintSense.leq, rhs)
+        return self._add_linear_constraint(name, coefficients, self._convert_sense(sense), rhs)
 
     def get_linear_constraint(self, i: Union[int, str]) -> LinearConstraint:
         """Returns a linear constraint for a given name or index.
@@ -462,12 +418,13 @@ class QuadraticProgram:
         """
         if name:
             if name in self.quadratic_constraints_index:
-                raise QiskitOptimizationError("Variable name already exists!")
+                raise QiskitOptimizationError(
+                    "Quadratic constraint name already exists: {}".format(name))
         else:
             k = self.get_num_quadratic_constraints()
-            while 'c{}'.format(k) in self.quadratic_constraints_index:
+            while 'q{}'.format(k) in self.quadratic_constraints_index:
                 k += 1
-            name = 'c{}'.format(k)
+            name = 'q{}'.format(k)
         self.quadratic_constraints_index[name] = len(self.quadratic_constraints)
         if linear_coefficients is None:
             linear_coefficients = {}
@@ -478,16 +435,17 @@ class QuadraticProgram:
         self.quadratic_constraints.append(constraint)
         return constraint
 
-    def quadratic_eq_constraint(self, name: Optional[str] = None,
-                                linear_coefficients: Union[ndarray, spmatrix, List[float],
-                                                           Dict[Union[int, str], float]] = None,
-                                quadratic_coefficients: Union[ndarray, spmatrix,
-                                                              List[List[float]],
-                                                              Dict[
-                                                                  Tuple[Union[int, str],
-                                                                        Union[int, str]],
-                                                                  float]] = None,
-                                rhs: float = 0.0) -> QuadraticConstraint:
+    def quadratic_constraint(self, name: Optional[str] = None,
+                             linear_coefficients: Union[ndarray, spmatrix, List[float],
+                                                        Dict[Union[int, str], float]] = None,
+                             quadratic_coefficients: Union[ndarray, spmatrix,
+                                                           List[List[float]],
+                                                           Dict[
+                                                               Tuple[Union[int, str],
+                                                                     Union[int, str]],
+                                                               float]] = None,
+                             sense: Union[str, ConstraintSense] = '==',
+                             rhs: float = 0.0) -> QuadraticConstraint:
         """Adds a quadratic equality constraint to the quadratic program of the form:
             x * Q * x == rhs.
 
@@ -495,6 +453,10 @@ class QuadraticProgram:
             name: The name of the constraint.
             linear_coefficients: The linear coefficients of the constraint.
             quadratic_coefficients: The quadratic coefficients of the constraint.
+            sense: The sense of the constraint,
+              - '==', '=', 'E', and 'EQ' denote 'equal to'.
+              - '>=', 'G', and 'GE' denote 'greater-than-or-equal-to'.
+              - '<=', 'L', and 'LE' denote 'less-than-or-equal-to'.
             rhs: The right hand side of the constraint.
 
         Returns:
@@ -504,65 +466,7 @@ class QuadraticProgram:
             QiskitOptimizationError: if the constraint name already exists.
         """
         return self._add_quadratic_constraint(name, linear_coefficients, quadratic_coefficients,
-                                              ConstraintSense.eq, rhs)
-
-    def quadratic_geq_constraint(self, name: Optional[str] = None,
-                                 linear_coefficients: Union[ndarray, spmatrix, List[float],
-                                                            Dict[Union[int, str], float]] = None,
-                                 quadratic_coefficients: Union[ndarray, spmatrix,
-                                                               List[List[float]],
-                                                               Dict[
-                                                                   Tuple[Union[int, str],
-                                                                         Union[int, str]],
-                                                                   float]] = None,
-                                 rhs: float = 0.0) -> QuadraticConstraint:
-        """Adds a quadratic "greater-than-or-equal-to" (geq) constraint to the quadratic program
-        of the form:
-            x * Q * x >= rhs.
-
-        Args:
-            name: The name of the constraint.
-            linear_coefficients: The linear coefficients of the constraint.
-            quadratic_coefficients: The quadratic coefficients of the constraint.
-            rhs: The right hand side of the constraint.
-
-        Returns:
-            The added constraint.
-
-        Raises:
-            QiskitOptimizationError: if the constraint name already exists.
-        """
-        return self._add_quadratic_constraint(name, linear_coefficients, quadratic_coefficients,
-                                              ConstraintSense.geq, rhs)
-
-    def quadratic_leq_constraint(self, name: Optional[str] = None,
-                                 linear_coefficients: Union[ndarray, spmatrix, List[float],
-                                                            Dict[Union[int, str], float]] = None,
-                                 quadratic_coefficients: Union[ndarray, spmatrix,
-                                                               List[List[float]],
-                                                               Dict[
-                                                                   Tuple[Union[int, str],
-                                                                         Union[int, str]],
-                                                                   float]] = None,
-                                 rhs: float = 0.0) -> QuadraticConstraint:
-        """Adds a quadratic "less-than-or-equal-to" (leq) constraint to the quadratic program
-        of the form:
-            x * Q * x <= rhs.
-
-        Args:
-            name: The name of the constraint.
-            linear_coefficients: The linear coefficients of the constraint.
-            quadratic_coefficients: The quadratic coefficients of the constraint.
-            rhs: The right hand side of the constraint.
-
-        Returns:
-            The added constraint.
-
-        Raises:
-            QiskitOptimizationError: if the constraint name already exists.
-        """
-        return self._add_quadratic_constraint(name, linear_coefficients, quadratic_coefficients,
-                                              ConstraintSense.leq, rhs)
+                                              self._convert_sense(sense), rhs)
 
     def get_quadratic_constraint(self, i: Union[int, str]) -> QuadraticConstraint:
         """Returns a quadratic constraint for a given name or index.
@@ -601,7 +505,7 @@ class QuadraticProgram:
                  quadratic: Union[ndarray, spmatrix, List[List[float]],
                                   Dict[Tuple[Union[int, str], Union[int, str]], float]] = None
                  ) -> None:
-        """Sets a quadrartic objective to be minimized.
+        """Sets a quadratic objective to be minimized.
 
         Args:
             constant: the constant offset of the objective.
@@ -619,7 +523,7 @@ class QuadraticProgram:
                  quadratic: Union[ndarray, spmatrix, List[List[float]],
                                   Dict[Tuple[Union[int, str], Union[int, str]], float]] = None
                  ) -> None:
-        """Sets a quadrartic objective to be maximized.
+        """Sets a quadratic objective to be maximized.
 
         Args:
             constant: the constant offset of the objective.
@@ -676,7 +580,7 @@ class QuadraticProgram:
             i = quad_triplet[0].name
             j = quad_triplet[1].name
             v = quad_triplet[2]
-            quadratic[(i, j)] = v
+            quadratic[i, j] = v
 
         # set objective
         if minimize:
@@ -701,11 +605,11 @@ class QuadraticProgram:
                 lhs[x[0].name] = x[1]
 
             if sense == sense.EQ:
-                self.linear_eq_constraint(name, lhs, rhs)
+                self.linear_constraint(name, lhs, '==', rhs)
             elif sense == sense.GE:
-                self.linear_geq_constraint(name, lhs, rhs)
+                self.linear_constraint(name, lhs, '>=', rhs)
             elif sense == sense.LE:
-                self.linear_leq_constraint(name, lhs, rhs)
+                self.linear_constraint(name, lhs, '<=', rhs)
             else:
                 raise QiskitOptimizationError("Unsupported constraint sense!")
 
@@ -729,7 +633,7 @@ class QuadraticProgram:
                     i = quad_triplet[0].name
                     j = quad_triplet[1].name
                     v = quad_triplet[2]
-                    quadratic[(i, j)] = v
+                    quadratic[i, j] = v
             else:
                 for x in left_expr.iter_variables():
                     linear[x.name] = left_expr.get_coef(x)
@@ -741,17 +645,17 @@ class QuadraticProgram:
                     i = quad_triplet[0].name
                     j = quad_triplet[1].name
                     v = quad_triplet[2]
-                    quadratic[(i, j)] = quadratic.get((i, j), 0.0) - v
+                    quadratic[i, j] = quadratic.get((i, j), 0.0) - v
             else:
                 for x in right_expr.iter_variables():
                     linear[x.name] = linear.get(x.name, 0.0) - right_expr.get_coef(x)
 
             if sense == sense.EQ:
-                self.quadratic_eq_constraint(name, linear, quadratic, rhs)
+                self.quadratic_constraint(name, linear, quadratic, '==', rhs)
             elif sense == sense.GE:
-                self.quadratic_geq_constraint(name, linear, quadratic, rhs)
+                self.quadratic_constraint(name, linear, quadratic, '>=', rhs)
             elif sense == sense.LE:
-                self.quadratic_leq_constraint(name, linear, quadratic, rhs)
+                self.quadratic_constraint(name, linear, quadratic, '<=', rhs)
             else:
                 raise QiskitOptimizationError("Unsupported constraint sense!")
 
@@ -840,11 +744,12 @@ class QuadraticProgram:
         """
         return self.to_docplex().pprint_as_string()
 
-    def prettyprint(self, out=None) -> None:
+    def prettyprint(self, out: Optional[str] = None) -> None:
         """Pretty prints the quadratic program to a given output stream (None = default).
 
         Args:
-            out: The output stream to print to.
+            out: The output stream or file name to print to.
+              if you specify a file name, the output file name is has '.mod' as suffix.
         """
         self.to_docplex().prettyprint(out)
 

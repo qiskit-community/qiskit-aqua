@@ -14,8 +14,8 @@
 
 """Quadratic expression interface."""
 
-
 from typing import List, Union, Dict, Tuple
+
 import numpy as np
 from numpy import ndarray
 from scipy.sparse import spmatrix, dok_matrix
@@ -48,7 +48,7 @@ class QuadraticExpression(HasQuadraticProgram):
                               coefficients: Union[ndarray, spmatrix, List[List[float]],
                                                   Dict[
                                                       Tuple[Union[int, str], Union[int, str]],
-                                                      float]]) -> None:
+                                                      float]]) -> dok_matrix:
         """Maps given coefficients to a dok_matrix.
 
         Args:
@@ -60,9 +60,7 @@ class QuadraticExpression(HasQuadraticProgram):
         Raises:
             QiskitOptimizationError: if coefficients are given in unsupported format.
         """
-        if isinstance(coefficients, list)\
-            or isinstance(coefficients, ndarray)\
-                or isinstance(coefficients, spmatrix):
+        if isinstance(coefficients, (list, ndarray, spmatrix)):
             coefficients = dok_matrix(coefficients)
         elif isinstance(coefficients, dict):
             n = self.quadratic_program.get_num_vars()
