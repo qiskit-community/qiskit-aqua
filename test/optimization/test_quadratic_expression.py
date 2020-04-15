@@ -57,6 +57,19 @@ class TestQuadraticExpression(QiskitOptimizationTestCase):
             self.assertDictEqual(quadratic.coefficients_as_dict(use_index=False),
                                  coefficients_dict_str)
 
+    def test_get_item(self):
+        """ test get_item. """
+
+        quadratic_program = QuadraticProgram()
+        for _ in range(5):
+            quadratic_program.continuous_var()
+
+        coefficients = [[i*j for i in range(5)] for j in range(5)]
+        quadratic = QuadraticExpression(quadratic_program, coefficients)
+        for i, j_v in enumerate(coefficients):
+            for j, v in enumerate(j_v):
+                self.assertEqual(quadratic[i, j], v)
+
     def test_setters(self):
         """ test setters. """
 

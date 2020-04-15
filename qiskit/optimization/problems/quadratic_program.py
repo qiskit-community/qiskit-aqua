@@ -108,7 +108,7 @@ class QuadraticProgram:
 
     def _add_variable(self, name: Optional[str] = None, lowerbound: float = 0,
                       upperbound: float = infinity,
-                      vartype: VarType = VarType.continuous) -> Variable:
+                      vartype: VarType = VarType.CONTINUOUS) -> Variable:
         """Checks whether a variable name is already taken and adds the variable to list and index
         if not.
 
@@ -153,7 +153,7 @@ class QuadraticProgram:
         Raises:
             QiskitOptimizationError: if the variable name is already occupied.
         """
-        return self._add_variable(name, lowerbound, upperbound, VarType.continuous)
+        return self._add_variable(name, lowerbound, upperbound, VarType.CONTINUOUS)
 
     def binary_var(self, name: Optional[str] = None) -> Variable:
         """Adds a binary variable to the quadratic program.
@@ -167,7 +167,7 @@ class QuadraticProgram:
         Raises:
             QiskitOptimizationError: if the variable name is already occupied.
         """
-        return self._add_variable(name, 0, 1, VarType.binary)
+        return self._add_variable(name, 0, 1, VarType.BINARY)
 
     def integer_var(self, name: Optional[str] = None, lowerbound: float = 0,
                     upperbound: float = infinity) -> Variable:
@@ -184,7 +184,7 @@ class QuadraticProgram:
         Raises:
             QiskitOptimizationError: if the variable name is already occupied.
         """
-        return self._add_variable(name, lowerbound, upperbound, VarType.integer)
+        return self._add_variable(name, lowerbound, upperbound, VarType.INTEGER)
 
     def get_variable(self, i: Union[int, str]) -> Variable:
         """Returns a variable for a given name or index.
@@ -220,7 +220,7 @@ class QuadraticProgram:
         Returns:
             The total number of continuous variables.
         """
-        return self.get_num_vars(VarType.continuous)
+        return self.get_num_vars(VarType.CONTINUOUS)
 
     def get_num_binary_vars(self) -> int:
         """Returns the total number of binary variables.
@@ -228,7 +228,7 @@ class QuadraticProgram:
         Returns:
             The total number of binary variables.
         """
-        return self.get_num_vars(VarType.binary)
+        return self.get_num_vars(VarType.BINARY)
 
     def get_num_integer_vars(self) -> int:
         """Returns the total number of integer variables.
@@ -236,7 +236,7 @@ class QuadraticProgram:
         Returns:
             The total number of integer variables.
         """
-        return self.get_num_vars(VarType.integer)
+        return self.get_num_vars(VarType.INTEGER)
 
     @property
     def linear_constraints(self) -> List[LinearConstraint]:
@@ -432,7 +432,7 @@ class QuadraticProgram:
         Returns:
             The created quadratic objective.
         """
-        self._objective = QuadraticObjective(self, constant, linear, quadratic, ObjSense.minimize)
+        self._objective = QuadraticObjective(self, constant, linear, quadratic, ObjSense.MINIMIZE)
 
     def maximize(self,
                  constant: float = 0.0,
@@ -450,7 +450,7 @@ class QuadraticProgram:
         Returns:
             The created quadratic objective.
         """
-        self._objective = QuadraticObjective(self, constant, linear, quadratic, ObjSense.maximize)
+        self._objective = QuadraticObjective(self, constant, linear, quadratic, ObjSense.MAXIMIZE)
 
     def from_docplex(self, model: Model) -> None:
         """Loads this quadratic program from a docplex model
@@ -592,11 +592,11 @@ class QuadraticProgram:
         # add variables
         var = {}
         for i, x in enumerate(self.variables):
-            if x.vartype == VarType.continuous:
+            if x.vartype == VarType.CONTINUOUS:
                 var[i] = mdl.continuous_var(lb=x.lowerbound, ub=x.upperbound, name=x.name)
-            elif x.vartype == VarType.binary:
+            elif x.vartype == VarType.BINARY:
                 var[i] = mdl.binary_var(name=x.name)
-            elif x.vartype == VarType.integer:
+            elif x.vartype == VarType.INTEGER:
                 var[i] = mdl.integer_var(lb=x.lowerbound, ub=x.upperbound, name=x.name)
             else:
                 # should never happen
@@ -608,7 +608,7 @@ class QuadraticProgram:
             objective += v * var[i]
         for (i, j), v in self.objective.quadratic.coefficients_as_dict().items():
             objective += v * var[i] * var[j]
-        if self.objective.sense == ObjSense.minimize:
+        if self.objective.sense == ObjSense.MINIMIZE:
             mdl.minimize(objective)
         else:
             mdl.maximize(objective)
@@ -621,11 +621,11 @@ class QuadraticProgram:
             for j, v in constraint.linear.coefficients_as_dict().items():
                 linear_expr += v * var[j]
             sense = constraint.sense
-            if sense == ConstraintSense.eq:
+            if sense == ConstraintSense.EQ:
                 mdl.add_constraint(linear_expr == rhs, ctname=name)
-            elif sense == ConstraintSense.geq:
+            elif sense == ConstraintSense.GE:
                 mdl.add_constraint(linear_expr >= rhs, ctname=name)
-            elif sense == ConstraintSense.leq:
+            elif sense == ConstraintSense.LE:
                 mdl.add_constraint(linear_expr <= rhs, ctname=name)
             else:
                 # should never happen
@@ -641,11 +641,11 @@ class QuadraticProgram:
             for (j, k), v in constraint.quadratic.coefficients_as_dict().items():
                 quadratic_expr += v * var[j] * var[k]
             sense = constraint.sense
-            if sense == ConstraintSense.eq:
+            if sense == ConstraintSense.EQ:
                 mdl.add_constraint(quadratic_expr == rhs, ctname=name)
-            elif sense == ConstraintSense.geq:
+            elif sense == ConstraintSense.GE:
                 mdl.add_constraint(quadratic_expr >= rhs, ctname=name)
-            elif sense == ConstraintSense.leq:
+            elif sense == ConstraintSense.LE:
                 mdl.add_constraint(quadratic_expr <= rhs, ctname=name)
             else:
                 # should never happen

@@ -26,9 +26,9 @@ from qiskit.optimization import QiskitOptimizationError
 
 class ConstraintSense(Enum):
     """Constants Sense Type."""
-    leq = 0
-    geq = 1
-    eq = 2  # pylint: disable=locally-disabled, invalid-name
+    LE = 0
+    GE = 1
+    EQ = 2  # pylint: disable=locally-disabled, invalid-name
 
     @staticmethod
     def convert(sense: Union[str, "ConstraintSense"]) -> "ConstraintSense":
@@ -49,11 +49,11 @@ class ConstraintSense(Enum):
         if sense not in ['E', 'L', 'G', 'EQ', 'LE', 'GE', '=', '==', '<=', '<', '>=', '>']:
             raise QiskitOptimizationError('Invalid sense: {}'.format(sense))
         if sense in ['E', 'EQ', '=', '==']:
-            return ConstraintSense.eq
+            return ConstraintSense.EQ
         elif sense in ['L', 'LE', '<=', '<']:
-            return ConstraintSense.leq
+            return ConstraintSense.LE
         else:
-            return ConstraintSense.geq
+            return ConstraintSense.GE
 
 
 class Constraint(HasQuadraticProgram):

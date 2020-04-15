@@ -23,16 +23,16 @@ from qiskit.optimization.problems.has_quadratic_program import HasQuadraticProgr
 
 class VarType(Enum):
     """Constants defining variable type."""
-    continuous = 0
-    binary = 1
-    integer = 2
+    CONTINUOUS = 0
+    BINARY = 1
+    INTEGER = 2
 
 
 class Variable(HasQuadraticProgram):
     """Representation of a variable."""
 
     def __init__(self, quadratic_program: 'QuadraticProgram', name: str, lowerbound: float = 0,
-                 upperbound: float = infinity, vartype: VarType = VarType.continuous) -> None:
+                 upperbound: float = infinity, vartype: VarType = VarType.CONTINUOUS) -> None:
         """Creates a new Variable.
 
         The variables is exposed by the top-level `QuadraticProgram` class
