@@ -51,10 +51,10 @@ class TestQuadraticExpression(QiskitOptimizationTestCase):
 
             quadratic = QuadraticExpression(quadratic_program, coeffs)
             self.assertEqual((quadratic.coefficients != coefficients_dok).nnz, 0)
-            self.assertTrue((quadratic.coefficients_as_array() == coefficients_list).all())
-            self.assertDictEqual(quadratic.coefficients_as_dict(
+            self.assertTrue((quadratic.to_array() == coefficients_list).all())
+            self.assertDictEqual(quadratic.to_dict(
                 use_index=True), coefficients_dict_int)
-            self.assertDictEqual(quadratic.coefficients_as_dict(use_index=False),
+            self.assertDictEqual(quadratic.to_dict(use_index=False),
                                  coefficients_dict_str)
 
     def test_get_item(self):
@@ -96,10 +96,10 @@ class TestQuadraticExpression(QiskitOptimizationTestCase):
 
             quadratic.coefficients = coeffs
             self.assertEqual((quadratic.coefficients != coefficients_dok).nnz, 0)
-            self.assertTrue((quadratic.coefficients_as_array() == coefficients_list).all())
-            self.assertDictEqual(quadratic.coefficients_as_dict(
+            self.assertTrue((quadratic.to_array() == coefficients_list).all())
+            self.assertDictEqual(quadratic.to_dict(
                 use_index=True), coefficients_dict_int)
-            self.assertDictEqual(quadratic.coefficients_as_dict(use_index=False),
+            self.assertDictEqual(quadratic.to_dict(use_index=False),
                                  coefficients_dict_str)
 
     def test_evaluate(self):

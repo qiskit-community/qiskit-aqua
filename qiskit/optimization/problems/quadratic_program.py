@@ -257,16 +257,16 @@ class QuadraticProgram:
         return self._linear_constraints_index
 
     def linear_constraint(self, name: Optional[str] = None,
-                          coefficients: Union[ndarray, spmatrix, List[float],
+                          linear: Union[ndarray, spmatrix, List[float],
                                               Dict[Union[int, str], float]] = None,
                           sense: Union[str, ConstraintSense] = '<=',
                           rhs: float = 0.0) -> LinearConstraint:
         """Adds a linear equality constraint to the quadratic program of the form:
-            linear_coeffs * x sense rhs.
+            linear * x sense rhs.
 
         Args:
             name: The name of the constraint.
-            coefficients: The linear coefficients of the left-hand-side of the constraint.
+            linear: The linear coefficients of the left-hand-side of the constraint.
             sense: The sense of the constraint,
               - '==', '=', 'E', and 'EQ' denote 'equal to'.
               - '>=', '>', 'G', and 'GE' denote 'greater-than-or-equal-to'.
@@ -290,9 +290,9 @@ class QuadraticProgram:
                 k += 1
             name = 'c{}'.format(k)
         self.linear_constraints_index[name] = len(self.linear_constraints)
-        if coefficients is None:
-            coefficients = {}
-        constraint = LinearConstraint(self, name, coefficients, ConstraintSense.convert(sense), rhs)
+        if linear is None:
+            linear = {}
+        constraint = LinearConstraint(self, name, linear, ConstraintSense.convert(sense), rhs)
         self.linear_constraints.append(constraint)
         return constraint
 
@@ -337,9 +337,9 @@ class QuadraticProgram:
         return self._quadratic_constraints_index
 
     def quadratic_constraint(self, name: Optional[str] = None,
-                             linear_coefficients: Union[ndarray, spmatrix, List[float],
+                             linear: Union[ndarray, spmatrix, List[float],
                                                         Dict[Union[int, str], float]] = None,
-                             quadratic_coefficients: Union[ndarray, spmatrix,
+                             quadratic: Union[ndarray, spmatrix,
                                                            List[List[float]],
                                                            Dict[
                                                                Tuple[Union[int, str],
@@ -352,8 +352,8 @@ class QuadraticProgram:
 
         Args:
             name: The name of the constraint.
-            linear_coefficients: The linear coefficients of the constraint.
-            quadratic_coefficients: The quadratic coefficients of the constraint.
+            linear: The linear coefficients of the constraint.
+            quadratic: The quadratic coefficients of the constraint.
             sense: The sense of the constraint,
               - '==', '=', 'E', and 'EQ' denote 'equal to'.
               - '>=', '>', 'G', and 'GE' denote 'greater-than-or-equal-to'.
@@ -376,11 +376,11 @@ class QuadraticProgram:
                 k += 1
             name = 'q{}'.format(k)
         self.quadratic_constraints_index[name] = len(self.quadratic_constraints)
-        if linear_coefficients is None:
-            linear_coefficients = {}
-        if quadratic_coefficients is None:
-            quadratic_coefficients = {}
-        constraint = QuadraticConstraint(self, name, linear_coefficients, quadratic_coefficients,
+        if linear is None:
+            linear = {}
+        if quadratic is None:
+            quadratic = {}
+        constraint = QuadraticConstraint(self, name, linear, quadratic,
                                          ConstraintSense.convert(sense), rhs)
         self.quadratic_constraints.append(constraint)
         return constraint
