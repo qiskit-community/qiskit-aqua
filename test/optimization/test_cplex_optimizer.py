@@ -45,14 +45,15 @@ class TestCplexOptimizer(QiskitOptimizationTestCase):
 
         # load optimization problem
         problem = QuadraticProgram()
-        problem.read(self.resource_path + filename)
+        problem.read_from_lp_file(self.resource_path + filename)
 
         # solve problem with cplex
         result = self.cplex_optimizer.solve(problem)
 
         # analyze results
         self.assertAlmostEqual(result.fval, fval)
-        self.assertAlmostEqual(result.x, x)
+        for i in range(problem.get_num_vars()):
+            self.assertAlmostEqual(result.x[i], x[i])
 
 
 if __name__ == '__main__':

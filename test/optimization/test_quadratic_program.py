@@ -142,6 +142,14 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         # TODO
         pass
 
+    def test_read_problem(self):
+        # TODO
+        pass
+
+    def test_write_problem(self):
+        # TODO
+        pass
+
 
 if __name__ == '__main__':
     unittest.main()

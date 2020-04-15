@@ -113,7 +113,7 @@ class QuadraticExpression(HasQuadraticProgram):
         """
         self._coefficients = self._coeffs_to_dok_matrix(coefficients)
 
-    def coefficients_as_array(self) -> ndarray:
+    def to_array(self) -> ndarray:
         """Returns the coefficients of the quadratic expression as array.
 
         Returns:
@@ -121,7 +121,7 @@ class QuadraticExpression(HasQuadraticProgram):
         """
         return self._coefficients.toarray()
 
-    def coefficients_as_dict(self, use_index: bool = True
+    def to_dict(self, use_index: bool = True
                              ) -> Dict[Union[Tuple[int, int], Tuple[str, str]], float]:
         """Returns the coefficients of the quadratic expression as dictionary, either using tuples
         of variable names or indices as keys.

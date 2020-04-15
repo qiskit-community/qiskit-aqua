@@ -37,9 +37,9 @@ class TestQuadraticObjective(QiskitOptimizationTestCase):
 
         self.assertEqual(quadratic_program.objective.constant, 0.0)
         self.assertEqual(
-            len(quadratic_program.objective.linear.coefficients_as_dict()), 0)
+            len(quadratic_program.objective.linear.to_dict()), 0)
         self.assertEqual(
-            len(quadratic_program.objective.quadratic.coefficients_as_dict()), 0)
+            len(quadratic_program.objective.quadratic.to_dict()), 0)
         self.assertEqual(quadratic_program.objective.sense, ObjSense.MINIMIZE)
 
         constant = 1.0
@@ -50,9 +50,9 @@ class TestQuadraticObjective(QiskitOptimizationTestCase):
 
         self.assertEqual(quadratic_program.objective.constant, constant)
         self.assertTrue(
-            (quadratic_program.objective.linear.coefficients_as_array() == linear_coeffs).all())
+            (quadratic_program.objective.linear.to_array() == linear_coeffs).all())
         self.assertTrue(
-            (quadratic_program.objective.quadratic.coefficients_as_array() == quadratic_coeffs)
+            (quadratic_program.objective.quadratic.to_array() == quadratic_coeffs)
             .all())
         self.assertEqual(quadratic_program.objective.sense, ObjSense.MINIMIZE)
 
@@ -60,9 +60,9 @@ class TestQuadraticObjective(QiskitOptimizationTestCase):
 
         self.assertEqual(quadratic_program.objective.constant, constant)
         self.assertTrue(
-            (quadratic_program.objective.linear.coefficients_as_array() == linear_coeffs).all())
+            (quadratic_program.objective.linear.to_array() == linear_coeffs).all())
         self.assertTrue(
-            (quadratic_program.objective.quadratic.coefficients_as_array() == quadratic_coeffs)
+            (quadratic_program.objective.quadratic.to_array() == quadratic_coeffs)
             .all())
         self.assertEqual(quadratic_program.objective.sense, ObjSense.MAXIMIZE)
 
@@ -85,9 +85,9 @@ class TestQuadraticObjective(QiskitOptimizationTestCase):
 
         self.assertEqual(quadratic_program.objective.constant, constant)
         self.assertTrue(
-            (quadratic_program.objective.linear.coefficients_as_array() == linear_coeffs).all())
+            (quadratic_program.objective.linear.to_array() == linear_coeffs).all())
         self.assertTrue(
-            (quadratic_program.objective.quadratic.coefficients_as_array() == quadratic_coeffs)
+            (quadratic_program.objective.quadratic.to_array() == quadratic_coeffs)
             .all())
 
         self.assertEqual(quadratic_program.objective.sense, ObjSense.MINIMIZE)

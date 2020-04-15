@@ -18,6 +18,7 @@ from typing import List, Union, Dict, Optional, Tuple
 
 from docplex.mp.linear import Var
 from docplex.mp.model import Model
+from docplex.mp.model_reader import ModelReader
 from numpy import ndarray
 from scipy.sparse import spmatrix
 
@@ -257,16 +258,16 @@ class QuadraticProgram:
         return self._linear_constraints_index
 
     def linear_constraint(self, name: Optional[str] = None,
-                          coefficients: Union[ndarray, spmatrix, List[float],
-                                              Dict[Union[int, str], float]] = None,
+                          linear: Union[ndarray, spmatrix, List[float],
+                                        Dict[Union[int, str], float]] = None,
                           sense: Union[str, ConstraintSense] = '<=',
                           rhs: float = 0.0) -> LinearConstraint:
         """Adds a linear equality constraint to the quadratic program of the form:
-            linear_coeffs * x sense rhs.
+            linear * x sense rhs.
 
         Args:
             name: The name of the constraint.
-            coefficients: The linear coefficients of the left-hand-side of the constraint.
+            linear: The linear coefficients of the left-hand-side of the constraint.
             sense: The sense of the constraint,
               - '==', '=', 'E', and 'EQ' denote 'equal to'.
               - '>=', '>', 'G', and 'GE' denote 'greater-than-or-equal-to'.
@@ -290,9 +291,9 @@ class QuadraticProgram:
                 k += 1
             name = 'c{}'.format(k)
         self.linear_constraints_index[name] = len(self.linear_constraints)
-        if coefficients is None:
-            coefficients = {}
-        constraint = LinearConstraint(self, name, coefficients, ConstraintSense.convert(sense), rhs)
+        if linear is None:
+            linear = {}
+        constraint = LinearConstraint(self, name, linear, ConstraintSense.convert(sense), rhs)
         self.linear_constraints.append(constraint)
         return constraint
 
@@ -337,14 +338,14 @@ class QuadraticProgram:
         return self._quadratic_constraints_index
 
     def quadratic_constraint(self, name: Optional[str] = None,
-                             linear_coefficients: Union[ndarray, spmatrix, List[float],
-                                                        Dict[Union[int, str], float]] = None,
-                             quadratic_coefficients: Union[ndarray, spmatrix,
-                                                           List[List[float]],
-                                                           Dict[
-                                                               Tuple[Union[int, str],
-                                                                     Union[int, str]],
-                                                               float]] = None,
+                             linear: Union[ndarray, spmatrix, List[float],
+                                           Dict[Union[int, str], float]] = None,
+                             quadratic: Union[ndarray, spmatrix,
+                                              List[List[float]],
+                                              Dict[
+                                                  Tuple[Union[int, str],
+                                                        Union[int, str]],
+                                                  float]] = None,
                              sense: Union[str, ConstraintSense] = '<=',
                              rhs: float = 0.0) -> QuadraticConstraint:
         """Adds a quadratic equality constraint to the quadratic program of the form:
@@ -352,8 +353,8 @@ class QuadraticProgram:
 
         Args:
             name: The name of the constraint.
-            linear_coefficients: The linear coefficients of the constraint.
-            quadratic_coefficients: The quadratic coefficients of the constraint.
+            linear: The linear coefficients of the constraint.
+            quadratic: The quadratic coefficients of the constraint.
             sense: The sense of the constraint,
               - '==', '=', 'E', and 'EQ' denote 'equal to'.
               - '>=', '>', 'G', and 'GE' denote 'greater-than-or-equal-to'.
@@ -376,11 +377,11 @@ class QuadraticProgram:
                 k += 1
             name = 'q{}'.format(k)
         self.quadratic_constraints_index[name] = len(self.quadratic_constraints)
-        if linear_coefficients is None:
-            linear_coefficients = {}
-        if quadratic_coefficients is None:
-            quadratic_coefficients = {}
-        constraint = QuadraticConstraint(self, name, linear_coefficients, quadratic_coefficients,
+        if linear is None:
+            linear = {}
+        if quadratic is None:
+            quadratic = {}
+        constraint = QuadraticConstraint(self, name, linear, quadratic,
                                          ConstraintSense.convert(sense), rhs)
         self.quadratic_constraints.append(constraint)
         return constraint
@@ -604,9 +605,9 @@ class QuadraticProgram:
 
         # add objective
         objective = self.objective.constant
-        for i, v in self.objective.linear.coefficients_as_dict().items():
+        for i, v in self.objective.linear.to_dict().items():
             objective += v * var[i]
-        for (i, j), v in self.objective.quadratic.coefficients_as_dict().items():
+        for (i, j), v in self.objective.quadratic.to_dict().items():
             objective += v * var[i] * var[j]
         if self.objective.sense == ObjSense.MINIMIZE:
             mdl.minimize(objective)
@@ -618,7 +619,7 @@ class QuadraticProgram:
             name = constraint.name
             rhs = constraint.rhs
             linear_expr = 0
-            for j, v in constraint.linear.coefficients_as_dict().items():
+            for j, v in constraint.linear.to_dict().items():
                 linear_expr += v * var[j]
             sense = constraint.sense
             if sense == ConstraintSense.EQ:
@@ -636,9 +637,9 @@ class QuadraticProgram:
             name = constraint.name
             rhs = constraint.rhs
             quadratic_expr = 0
-            for j, v in constraint.linear.coefficients_as_dict().items():
+            for j, v in constraint.linear.to_dict().items():
                 quadratic_expr += v * var[j]
-            for (j, k), v in constraint.quadratic.coefficients_as_dict().items():
+            for (j, k), v in constraint.quadratic.to_dict().items():
                 quadratic_expr += v * var[j] * var[k]
             sense = constraint.sense
             if sense == ConstraintSense.EQ:
@@ -677,3 +678,21 @@ class QuadraticProgram:
             A string representing the quadratic program.
         """
         return self.to_docplex().export_as_lp_string()
+
+    def read_from_lp_file(self, filename: str) -> None:
+        """Loads the quadratic program from a LP file.
+
+        Args:
+            filename: The filename of the file to be loaded.
+        """
+        model_reader = ModelReader()
+        model = model_reader.read(filename)
+        self.from_docplex(model)
+
+    def write_to_lp_file(self, filename: str) -> None:
+        """Writes the quadratic program to an LP file.
+
+        Args:
+            filename: The filename of the file the model is written to.
+        """
+        self.to_docplex().export_as_lp(filename)

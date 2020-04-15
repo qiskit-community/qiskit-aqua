@@ -17,9 +17,10 @@
 import logging
 import unittest
 
+from test.optimization.optimization_test_case import QiskitOptimizationTestCase
+
 from qiskit.optimization import infinity
 from qiskit.optimization.problems import QuadraticProgram, Variable, VarType
-from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 
 logger = logging.getLogger(__name__)
 
