@@ -15,9 +15,11 @@
 """Quadratic Program."""
 
 from typing import List, Union, Dict, Optional, Tuple
+from os.path import splitext
 
 from docplex.mp.linear import Var
 from docplex.mp.model import Model
+from docplex.mp.model_reader import ModelReader
 from numpy import ndarray
 from scipy.sparse import spmatrix
 
@@ -258,7 +260,7 @@ class QuadraticProgram:
 
     def linear_constraint(self, name: Optional[str] = None,
                           linear: Union[ndarray, spmatrix, List[float],
-                                              Dict[Union[int, str], float]] = None,
+                                        Dict[Union[int, str], float]] = None,
                           sense: Union[str, ConstraintSense] = '<=',
                           rhs: float = 0.0) -> LinearConstraint:
         """Adds a linear equality constraint to the quadratic program of the form:
@@ -338,13 +340,13 @@ class QuadraticProgram:
 
     def quadratic_constraint(self, name: Optional[str] = None,
                              linear: Union[ndarray, spmatrix, List[float],
-                                                        Dict[Union[int, str], float]] = None,
+                                           Dict[Union[int, str], float]] = None,
                              quadratic: Union[ndarray, spmatrix,
-                                                           List[List[float]],
-                                                           Dict[
-                                                               Tuple[Union[int, str],
-                                                                     Union[int, str]],
-                                                               float]] = None,
+                                              List[List[float]],
+                                              Dict[
+                                                  Tuple[Union[int, str],
+                                                        Union[int, str]],
+                                                  float]] = None,
                              sense: Union[str, ConstraintSense] = '<=',
                              rhs: float = 0.0) -> QuadraticConstraint:
         """Adds a quadratic equality constraint to the quadratic program of the form:
@@ -677,3 +679,21 @@ class QuadraticProgram:
             A string representing the quadratic program.
         """
         return self.to_docplex().export_as_lp_string()
+
+    def load_from_file(self, filename: str) -> None:
+        """Loads the quadratic program from a LP file.
+
+        Args:
+            filename: The filename of the file to be loaded.
+        """
+        model_reader = ModelReader()
+        model = model_reader.read(filename)
+        self.from_docplex(model)
+
+    def write_to_file(self, filename: str) -> None:
+        """Writes the quadratic program to an LP file.
+
+        Args:
+            filename: The filename of the file the model is written to.
+        """
+        self.to_docplex().export_as_lp(filename)
