@@ -17,9 +17,11 @@
 from abc import abstractmethod
 from enum import Enum
 from typing import Union, List, Dict
+
 from numpy import ndarray
 
 from qiskit.optimization.problems.has_quadratic_program import HasQuadraticProgram
+from qiskit.optimization import QiskitOptimizationError
 
 
 class ConstraintSense(Enum):
@@ -27,6 +29,31 @@ class ConstraintSense(Enum):
     leq = 0
     geq = 1
     eq = 2  # pylint: disable=locally-disabled, invalid-name
+
+    @staticmethod
+    def convert(sense: Union[str, "ConstraintSense"]) -> "ConstraintSense":
+        """Convert a string into a corresponding sense of constraints
+
+        Args:
+            sense: A string or sense of constraints
+
+        Returns:
+            The sense of constraints
+
+        Raises:
+            QiskitOptimizationError: if the input string is invalid.
+        """
+        if isinstance(sense, ConstraintSense):
+            return sense
+        sense = sense.upper()
+        if sense not in ['E', 'L', 'G', 'EQ', 'LE', 'GE', '=', '==', '<=', '<', '>=', '>']:
+            raise QiskitOptimizationError('Invalid sense: {}'.format(sense))
+        if sense in ['E', 'EQ', '=', '==']:
+            return ConstraintSense.eq
+        elif sense in ['L', 'LE', '<=', '<']:
+            return ConstraintSense.leq
+        else:
+            return ConstraintSense.geq
 
 
 class Constraint(HasQuadraticProgram):
@@ -55,19 +82,6 @@ class Constraint(HasQuadraticProgram):
             The name of the constraint.
         """
         return self._name
-
-    @name.setter
-    def name(self, name: str) -> None:
-        """Sets the name of the constraint and updates the name index in the corresponding QP.
-
-        Args:
-            name: The name of the constraint.
-
-        Raises:
-            QiskitOptimizationError: if the name is already existing.
-        """
-        # TODO: update QP and raise exception if name already exists
-        self._name = name
 
     @property
     def sense(self) -> ConstraintSense:

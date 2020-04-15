@@ -14,13 +14,12 @@
 
 """ Test LinearConstraint """
 
-import unittest
-from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 import logging
 import numpy as np
 
 from qiskit.optimization import QuadraticProgram, QiskitOptimizationError
 from qiskit.optimization.problems import ConstraintSense
+from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +38,7 @@ class TestLinearConstraint(QiskitOptimizationTestCase):
         coefficients = np.array([i for i in range(5)])
 
         # equality constraints
-        quadratic_program.linear_eq_constraint()
+        quadratic_program.linear_constraint(sense='==')
         self.assertEqual(quadratic_program.get_num_linear_constraints(), 1)
         self.assertEqual(quadratic_program.linear_constraints[0].name, 'c0')
         self.assertEqual(len(quadratic_program.linear_constraints[0].linear.coefficients_as_dict()),
@@ -52,9 +51,9 @@ class TestLinearConstraint(QiskitOptimizationTestCase):
                          quadratic_program.get_linear_constraint(0))
 
         with self.assertRaises(QiskitOptimizationError):
-            quadratic_program.linear_eq_constraint(name='c0')
+            quadratic_program.linear_constraint(name='c0')
 
-        quadratic_program.linear_eq_constraint('c1', coefficients, 1.0)
+        quadratic_program.linear_constraint('c1', coefficients, '==', 1.0)
         self.assertEqual(quadratic_program.get_num_linear_constraints(), 2)
         self.assertEqual(quadratic_program.linear_constraints[1].name, 'c1')
         self.assertTrue((
@@ -69,7 +68,7 @@ class TestLinearConstraint(QiskitOptimizationTestCase):
                          quadratic_program.get_linear_constraint(1))
 
         # geq constraints
-        quadratic_program.linear_geq_constraint()
+        quadratic_program.linear_constraint(sense='>=')
         self.assertEqual(quadratic_program.get_num_linear_constraints(), 3)
         self.assertEqual(quadratic_program.linear_constraints[2].name, 'c2')
         self.assertEqual(len(quadratic_program.linear_constraints[2].linear.coefficients_as_dict()),
@@ -82,9 +81,9 @@ class TestLinearConstraint(QiskitOptimizationTestCase):
                          quadratic_program.get_linear_constraint(2))
 
         with self.assertRaises(QiskitOptimizationError):
-            quadratic_program.linear_geq_constraint(name='c2')
+            quadratic_program.linear_constraint(name='c2', sense='>=')
 
-        quadratic_program.linear_geq_constraint('c3', coefficients, 1.0)
+        quadratic_program.linear_constraint('c3', coefficients, '>=', 1.0)
         self.assertEqual(quadratic_program.get_num_linear_constraints(), 4)
         self.assertEqual(quadratic_program.linear_constraints[3].name, 'c3')
         self.assertTrue((
@@ -99,7 +98,7 @@ class TestLinearConstraint(QiskitOptimizationTestCase):
                          quadratic_program.get_linear_constraint(3))
 
         # leq constraints
-        quadratic_program.linear_leq_constraint()
+        quadratic_program.linear_constraint(sense='<=')
         self.assertEqual(quadratic_program.get_num_linear_constraints(), 5)
         self.assertEqual(quadratic_program.linear_constraints[4].name, 'c4')
         self.assertEqual(len(quadratic_program.linear_constraints[4].linear.coefficients_as_dict()),
@@ -112,9 +111,9 @@ class TestLinearConstraint(QiskitOptimizationTestCase):
                          quadratic_program.get_linear_constraint(4))
 
         with self.assertRaises(QiskitOptimizationError):
-            quadratic_program.linear_leq_constraint(name='c4')
+            quadratic_program.linear_constraint(name='c4', sense='<=')
 
-        quadratic_program.linear_leq_constraint('c5', coefficients, 1.0)
+        quadratic_program.linear_constraint('c5', coefficients, '<=', 1.0)
         self.assertEqual(quadratic_program.get_num_linear_constraints(), 6)
         self.assertEqual(quadratic_program.linear_constraints[5].name, 'c5')
         self.assertTrue((

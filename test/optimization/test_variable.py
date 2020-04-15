@@ -14,12 +14,12 @@
 
 """Test Variable."""
 
-import unittest
-from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 import logging
+import unittest
 
+from qiskit.optimization import infinity
 from qiskit.optimization.problems import QuadraticProgram, Variable, VarType
-from qiskit.optimization import infinity, QiskitOptimizationError
+from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 
 logger = logging.getLogger(__name__)
 
@@ -54,40 +54,6 @@ class TestVariable(QiskitOptimizationTestCase):
         self.assertEqual(variable.name, name)
         self.assertEqual(variable.lowerbound, 0)
         self.assertEqual(variable.upperbound, infinity)
-        self.assertEqual(variable.vartype, VarType.continuous)
-
-    def test_setters(self):
-        """ test setters. """
-
-        quadratic_program = QuadraticProgram()
-        name = 'variable'
-        lowerbound = 0
-        upperbound = 10
-        vartype = VarType.continuous
-
-        variable = Variable(quadratic_program, name, lowerbound, upperbound, vartype)
-
-        variable.name = 'test'
-        self.assertEqual(variable.name, 'test')
-
-        self.assertEqual(variable.lowerbound, lowerbound)
-        variable.lowerbound = 1
-        self.assertEqual(variable.lowerbound, 1)
-        with self.assertRaises(QiskitOptimizationError):
-            variable.lowerbound = 20
-
-        self.assertEqual(variable.upperbound, upperbound)
-        variable.upperbound = 5
-        self.assertEqual(variable.upperbound, 5)
-        with self.assertRaises(QiskitOptimizationError):
-            variable.upperbound = 0
-
-        self.assertEqual(variable.vartype, vartype)
-        variable.vartype = VarType.integer
-        self.assertEqual(variable.vartype, VarType.integer)
-        variable.vartype = VarType.binary
-        self.assertEqual(variable.vartype, VarType.binary)
-        variable.vartype = VarType.continuous
         self.assertEqual(variable.vartype, VarType.continuous)
 
 
