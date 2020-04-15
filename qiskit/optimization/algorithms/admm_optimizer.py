@@ -23,7 +23,6 @@ from qiskit.optimization.algorithms.optimization_algorithm import (OptimizationA
                                                                    OptimizationResult)
 from qiskit.optimization.problems import VarType, ConstraintSense
 from qiskit.optimization.problems.quadratic_program import QuadraticProgram
-from qiskit.optimization.problems.variables import CPX_BINARY, CPX_CONTINUOUS
 
 UPDATE_RHO_BY_TEN_PERCENT = 0
 UPDATE_RHO_BY_RESIDUALS = 1
@@ -113,7 +112,7 @@ class ADMMState:
         # Indices of the variables
         self.binary_indices = binary_indices
         self.continuous_indices = continuous_indices
-        self.sense = op.objective.get_sense()
+        self.sense = op.objective.sense
 
         # define heavily used matrix, they are used at each iteration, so let's cache them,
         # they are np.ndarrays
@@ -266,8 +265,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
             QiskitOptimizationError: If the problem is incompatible with the optimizer.
         """
         # parse problem and convert to an ADMM specific representation.
-        binary_indices = self._get_variable_indices(problem, VarType.binary)
-        continuous_indices = self._get_variable_indices(problem, VarType.continuous)
+        binary_indices = self._get_variable_indices(problem, VarType.BINARY)
+        continuous_indices = self._get_variable_indices(problem, VarType.CONTINUOUS)
 
         # create our computation state.
         self._state = ADMMState(problem, binary_indices,
@@ -422,8 +421,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         for i, var_index_i in enumerate(variable_indices):
             for j, var_index_j in enumerate(variable_indices):
                 # coefficients_as_array
-                q[i, j] = self._state.op.objective.quadratic.coefficients_as_array()[
-                    var_index_i, var_index_j]
+                q[i, j] = self._state.op.objective.quadratic[var_index_i, var_index_j]
 
         # flip the sign, according to the optimization sense, e.g. sense == 1 if minimize,
         # sense == -1 if maximize.
@@ -462,19 +460,19 @@ class ADMMOptimizer(OptimizationAlgorithm):
         """
         # assign matrix row.
         row = []
+        # todo: replace with .take()
         for var_index in variable_indices:
             # row.append(self._state.op
             #            .linear_constraints.get_coefficients(constraint_index, var_index))
             row.append(
-                self._state.op.linear_constraints[constraint_index].linear.coefficients_as_array()[
-                    var_index])
+                self._state.op.linear_constraints[constraint_index].linear[var_index])
         matrix.append(row)
 
         # assign vector row.
         vector.append(self._state.op.linear_constraints[constraint_index].rhs)
 
         # flip the sign if constraint is G, we want L constraints.
-        if self._state.op.linear_constraints[constraint_index].sense == ConstraintSense.geq:
+        if self._state.op.linear_constraints[constraint_index].sense == ConstraintSense.GE:
             # invert the sign to make constraint "L".
             matrix[-1] = [-1 * el for el in matrix[-1]]
             vector[-1] = -1 * vector[-1]
@@ -514,8 +512,9 @@ class ADMMOptimizer(OptimizationAlgorithm):
         index_set = set(self._state.binary_indices)
         for constraint_index, constraint in enumerate(self._state.op.linear_constraints):
             # we check only equality constraints here.
-            if constraint.sense != ConstraintSense.eq:
+            if constraint.sense != ConstraintSense.EQ:
                 continue
+            # todo: implement verification condition
             # row = self._state.op.linear_constraints.get_rows(constraint_index)
             row = self._state.op.linear_constraints[constraint_index].linear.coefficients_as_array().take(self._state.binary_indices)
             self._assign_row_values(matrix, vector,
@@ -544,14 +543,16 @@ class ADMMOptimizer(OptimizationAlgorithm):
         """
         matrix = []
         vector = []
-        senses = self._state.op.linear_constraints.get_senses()
 
         index_set = set(variable_indices)
-        for constraint_index, sense in enumerate(senses):
-            if sense in ("E", "R"):
+        for constraint_index, constraint in enumerate(self._state.op.linear_constraints):
+            # todo: missing "R"
+            if constraint.sense in [ConstraintSense.EQ]:
                 # TODO: Ranged constraints should be supported
                 continue
             # sense either G or L.
+            var_indices = set()
+            index_set.intersection(self._state.op.linear_constraints[constraint_index].linear.to_dict().keys())
             row = self._state.op.linear_constraints.get_rows(constraint_index)
             if set(row.ind).issubset(index_set):
                 self._assign_row_values(matrix, vector, constraint_index, variable_indices)
