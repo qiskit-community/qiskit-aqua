@@ -21,6 +21,7 @@ import numpy as np
 from qiskit.optimization.algorithms.cplex_optimizer import CplexOptimizer
 from qiskit.optimization.algorithms.optimization_algorithm import (OptimizationAlgorithm,
                                                                    OptimizationResult)
+from qiskit.optimization.problems import VarType
 from qiskit.optimization.problems.quadratic_program import QuadraticProgram
 from qiskit.optimization.problems.variables import CPX_BINARY, CPX_CONTINUOUS
 
@@ -227,13 +228,13 @@ class ADMMOptimizer(OptimizationAlgorithm):
         msg = ''
 
         # 1. only binary and continuous variables are supported
-        for var_type in problem.variables.get_types():
-            if var_type not in (CPX_BINARY, CPX_CONTINUOUS):
+        for variable in problem.variables:
+            if variable.vartype not in (VarType.binary, VarType.continuous):
                 # variable is not binary and not continuous.
                 msg += 'Only binary and continuous variables are supported. '
 
-        binary_indices = self._get_variable_indices(problem, CPX_BINARY)
-        continuous_indices = self._get_variable_indices(problem, CPX_CONTINUOUS)
+        binary_indices = self._get_variable_indices(problem, VarType.binary)
+        continuous_indices = self._get_variable_indices(problem, VarType.continuous)
 
         # 2. binary and continuous variables are separable in objective
         for binary_index in binary_indices:
@@ -244,7 +245,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
                     msg += 'Binary and continuous variables are not separable in the objective. '
 
         # 3. no quadratic constraints are supported.
-        quad_constraints = problem.quadratic_constraints.get_num()
+        quad_constraints = len(problem.quadratic_constraints)
         if quad_constraints is not None and quad_constraints > 0:
             # quadratic constraints are not supported.
             msg += 'Quadratic constraints are not supported. '
@@ -265,8 +266,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
             QiskitOptimizationError: If the problem is incompatible with the optimizer.
         """
         # parse problem and convert to an ADMM specific representation.
-        binary_indices = self._get_variable_indices(problem, CPX_BINARY)
-        continuous_indices = self._get_variable_indices(problem, CPX_CONTINUOUS)
+        binary_indices = self._get_variable_indices(problem, VarType.binary)
+        continuous_indices = self._get_variable_indices(problem, VarType.continuous)
 
         # create our computation state.
         self._state = ADMMState(problem, binary_indices,
@@ -344,7 +345,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         return result
 
     @staticmethod
-    def _get_variable_indices(op: QuadraticProgram, var_type: str) -> List[int]:
+    def _get_variable_indices(op: QuadraticProgram, var_type: VarType) -> List[int]:
         """Returns a list of indices of the variables of the specified type.
 
         Args:
@@ -355,8 +356,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
             List of indices.
         """
         indices = []
-        for i, variable_type in enumerate(op.variables.get_types()):
-            if variable_type == var_type:
+        for i, variable in enumerate(op.variables):
+            if variable.vartype == var_type:
                 indices.append(i)
 
         return indices
@@ -420,9 +421,9 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # in fact we use re-indexed variables
         for i, var_index_i in enumerate(variable_indices):
             for j, var_index_j in enumerate(variable_indices):
-                q[i, j] = self._state.op.objective.get_quadratic_coefficients(
-                    var_index_i,
-                    var_index_j)
+                # coefficients_as_array
+                q[i, j] = self._state.op.objective.quadratic.coefficients_as_array()[
+                    var_index_i, var_index_j]
 
         # flip the sign, according to the optimization sense, e.g. sense == 1 if minimize,
         # sense == -1 if maximize.
@@ -438,7 +439,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
         Returns:
             A numpy array of the shape(len(variable_indices)).
         """
-        c = np.array(self._state.op.objective.get_linear(variable_indices))
+        # c = np.array(self._state.op.objective.get_linear(variable_indices))
+        c = self._state.op.objective.linear.coefficients_as_array().take(variable_indices)
         # flip the sign, according to the optimization sense, e.g. sense == 1 if minimize,
         # sense == -1 if maximize.
         c *= self._state.sense
@@ -461,15 +463,18 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # assign matrix row.
         row = []
         for var_index in variable_indices:
-            row.append(self._state.op
-                       .linear_constraints.get_coefficients(constraint_index, var_index))
+            # row.append(self._state.op
+            #            .linear_constraints.get_coefficients(constraint_index, var_index))
+            row.append(
+                self._state.op.linear_constraints[constraint_index].linear.coefficients_as_array()[
+                    var_index])
         matrix.append(row)
 
         # assign vector row.
-        vector.append(self._state.op.linear_constraints.get_rhs(constraint_index))
+        vector.append(self._state.op.linear_constraints[constraint_index].rhs)
 
         # flip the sign if constraint is G, we want L constraints.
-        if self._state.op.linear_constraints.get_senses(constraint_index) == "G":
+        if self._state.op.linear_constraints[constraint_index].sense == "G":
             # invert the sign to make constraint "L".
             matrix[-1] = [-1 * el for el in matrix[-1]]
             vector[-1] = -1 * vector[-1]
