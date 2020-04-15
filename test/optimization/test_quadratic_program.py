@@ -130,6 +130,18 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
             self.assertEqual(x, y)
             self.assertEqual(x, z)
 
+    def test_linear_constraints_handling(self):
+        # TODO
+        pass
+
+    def test_quadratic_constraints_handling(self):
+        # TODO
+        pass
+
+    def test_objective_handling(self):
+        # TODO
+        pass
+
 
 if __name__ == '__main__':
     unittest.main()
