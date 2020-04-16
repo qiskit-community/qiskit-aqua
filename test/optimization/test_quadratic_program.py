@@ -173,7 +173,6 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
                      quadratic={('x', 'y'): -1, ('z', 'z'): 2})
         q_p.linear_constraint({'x': 2, 'z': -1}, '==', 1)
         q_p.quadratic_constraint({'x': 2, 'z': -1}, {('y', 'z'): 3}, '<=', -1)
-        print(q_p.print_as_lp_string())
 
         q_p2, status = q_p.substitute_variables(constants={'x': -1})
         self.assertEqual(status.name, 'infeasible')
@@ -181,57 +180,56 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         self.assertEqual(status.name, 'infeasible')
 
         q_p2, status = q_p.substitute_variables(constants={'x': 0})
-        self.assertDictEqual(q_p2.objective.linear.to_dict(use_index=False), {'y': 2})
-        self.assertDictEqual(q_p2.objective.quadratic.to_dict(use_index=False), {('z', 'z'): 2})
+        self.assertDictEqual(q_p2.objective.linear.to_dict(use_name=True), {'y': 2})
+        self.assertDictEqual(q_p2.objective.quadratic.to_dict(use_name=True), {('z', 'z'): 2})
         self.assertEqual(q_p2.objective.constant, 1)
         self.assertEqual(len(q_p2.linear_constraints), 1)
         self.assertEqual(len(q_p2.quadratic_constraints), 1)
 
         cst = q_p2.linear_constraints[0]
-        self.assertDictEqual(cst.linear.to_dict(use_index=False), {'z': -1})
+        self.assertDictEqual(cst.linear.to_dict(use_name=True), {'z': -1})
         self.assertEqual(cst.sense.name, 'EQ')
         self.assertEqual(cst.rhs, 1)
 
         cst = q_p2.quadratic_constraints[0]
-        self.assertDictEqual(cst.linear.to_dict(use_index=False), {'z': -1})
-        self.assertDictEqual(cst.quadratic.to_dict(use_index=False), {('y', 'z'): 3})
+        self.assertDictEqual(cst.linear.to_dict(use_name=True), {'z': -1})
+        self.assertDictEqual(cst.quadratic.to_dict(use_name=True), {('y', 'z'): 3})
         self.assertEqual(cst.sense.name, 'LE')
         self.assertEqual(cst.rhs, -1)
 
         q_p2, status = q_p.substitute_variables(constants={'z': -1})
-        self.assertDictEqual(q_p2.objective.linear.to_dict(use_index=False), {'x': 1, 'y': 2})
-        self.assertDictEqual(q_p2.objective.quadratic.to_dict(use_index=False), {('x', 'y'): -1})
+        self.assertDictEqual(q_p2.objective.linear.to_dict(use_name=True), {'x': 1, 'y': 2})
+        self.assertDictEqual(q_p2.objective.quadratic.to_dict(use_name=True), {('x', 'y'): -1})
         self.assertEqual(q_p2.objective.constant, 3)
         self.assertEqual(len(q_p2.linear_constraints), 2)
         self.assertEqual(len(q_p2.quadratic_constraints), 0)
 
         cst = q_p2.linear_constraints[0]
-        self.assertDictEqual(cst.linear.to_dict(use_index=False), {'x': 2})
+        self.assertDictEqual(cst.linear.to_dict(use_name=True), {'x': 2})
         self.assertEqual(cst.sense.name, 'EQ')
         self.assertEqual(cst.rhs, 0)
 
         cst = q_p2.linear_constraints[1]
-        self.assertDictEqual(cst.linear.to_dict(use_index=False), {'x': 2, 'y': -3})
+        self.assertDictEqual(cst.linear.to_dict(use_name=True), {'x': 2, 'y': -3})
         self.assertEqual(cst.sense.name, 'LE')
         self.assertEqual(cst.rhs, -2)
 
         q_p2, status = q_p.substitute_variables(variables={'y': ('x', -0.5)})
-        print(q_p2.print_as_lp_string())
-        self.assertDictEqual(q_p2.objective.linear.to_dict(use_index=False), {})
-        self.assertDictEqual(q_p2.objective.quadratic.to_dict(use_index=False),
+        self.assertDictEqual(q_p2.objective.linear.to_dict(use_name=True), {})
+        self.assertDictEqual(q_p2.objective.quadratic.to_dict(use_name=True),
                              {('x', 'x'): 0.5, ('z', 'z'): 2})
         self.assertEqual(q_p2.objective.constant, 1)
         self.assertEqual(len(q_p2.linear_constraints), 1)
         self.assertEqual(len(q_p2.quadratic_constraints), 1)
 
         cst = q_p2.linear_constraints[0]
-        self.assertDictEqual(cst.linear.to_dict(use_index=False), {'x': 2, 'z': -1})
+        self.assertDictEqual(cst.linear.to_dict(use_name=True), {'x': 2, 'z': -1})
         self.assertEqual(cst.sense.name, 'EQ')
         self.assertEqual(cst.rhs, 1)
 
         cst = q_p2.quadratic_constraints[0]
-        self.assertDictEqual(cst.linear.to_dict(use_index=False), {'x': 2, 'z': -1})
-        self.assertDictEqual(cst.quadratic.to_dict(use_index=False), {('x', 'z'): -1.5})
+        self.assertDictEqual(cst.linear.to_dict(use_name=True), {'x': 2, 'z': -1})
+        self.assertDictEqual(cst.quadratic.to_dict(use_name=True), {('x', 'z'): -1.5})
         self.assertEqual(cst.sense.name, 'LE')
         self.assertEqual(cst.rhs, -1)
 

@@ -43,7 +43,7 @@ class TestQuadraticObjective(QiskitOptimizationTestCase):
         self.assertEqual(quadratic_program.objective.sense, ObjSense.MINIMIZE)
 
         constant = 1.0
-        linear_coeffs = np.array([i for i in range(5)])
+        linear_coeffs = np.array(range(5))
         quadratic_coeffs = np.array([[i*j for i in range(5)] for j in range(5)])
 
         quadratic_program.minimize(constant, linear_coeffs, quadratic_coeffs)
@@ -76,7 +76,7 @@ class TestQuadraticObjective(QiskitOptimizationTestCase):
             quadratic_program.continuous_var()
 
         constant = 1.0
-        linear_coeffs = np.array([i for i in range(5)])
+        linear_coeffs = np.array(range(5))
         quadratic_coeffs = np.array([[i*j for i in range(5)] for j in range(5)])
 
         quadratic_program.objective.constant = constant

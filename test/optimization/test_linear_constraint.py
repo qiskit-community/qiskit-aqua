@@ -14,6 +14,7 @@
 
 """ Test LinearConstraint """
 
+import unittest
 import logging
 import numpy as np
 
@@ -35,14 +36,13 @@ class TestLinearConstraint(QiskitOptimizationTestCase):
             quadratic_program.continuous_var()
         self.assertEqual(quadratic_program.get_num_linear_constraints(), 0)
 
-        coefficients = np.array([i for i in range(5)])
+        coefficients = np.array(range(5))
 
         # equality constraints
         quadratic_program.linear_constraint(sense='==')
         self.assertEqual(quadratic_program.get_num_linear_constraints(), 1)
         self.assertEqual(quadratic_program.linear_constraints[0].name, 'c0')
-        self.assertEqual(len(quadratic_program.linear_constraints[0].linear.to_dict()),
-                         0)
+        self.assertEqual(len(quadratic_program.linear_constraints[0].linear.to_dict()), 0)
         self.assertEqual(quadratic_program.linear_constraints[0].sense, ConstraintSense.EQ)
         self.assertEqual(quadratic_program.linear_constraints[0].rhs, 0.0)
         self.assertEqual(quadratic_program.linear_constraints[0],

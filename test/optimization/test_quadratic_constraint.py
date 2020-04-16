@@ -36,7 +36,7 @@ class TestQuadraticConstraint(QiskitOptimizationTestCase):
             quadratic_program.continuous_var()
         self.assertEqual(quadratic_program.get_num_quadratic_constraints(), 0)
 
-        linear_coeffs = np.array([i for i in range(5)])
+        linear_coeffs = np.array(range(5))
         quadratic_coeffs = np.array([[i*j for i in range(5)] for j in range(5)])
 
         # equality constraints

@@ -910,7 +910,7 @@ class SubstituteVariables:
             -> Tuple[List[float], LinearExpression]:
         const = []
         lin_dict = defaultdict(float)
-        for i, w_i in lin_expr.to_dict(use_index=False).items():
+        for i, w_i in lin_expr.to_dict(use_name=True).items():
             repl_i = self._subs[i] if i in self._subs else (i, 1)
             prod = w_i * repl_i[1]
             if repl_i[0] == self.CONST:
@@ -927,7 +927,7 @@ class SubstituteVariables:
         const = []
         lin_dict = defaultdict(float)
         quad_dict = defaultdict(float)
-        for (i, j), w_ij in quad_expr.to_dict(use_index=False).items():
+        for (i, j), w_ij in quad_expr.to_dict(use_name=True).items():
             repl_i = self._subs[i] if i in self._subs else (i, 1)
             repl_j = self._subs[j] if j in self._subs else (j, 1)
             idx = tuple(x for x, _ in [repl_i, repl_j] if x != self.CONST)
