@@ -675,8 +675,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         continuous_index = 0
         for variable in self._state.op.variables:
             if variable.vartype == VarType.CONTINUOUS:
-                op2.continuous_var("u0_" + str(continuous_index + 1),
-                                   lowerbound=variable.lowerbound, upperbound=variable.upperbound)
+                op2.continuous_var(name="u0_" + str(continuous_index + 1), lowerbound=variable.lowerbound, upperbound=variable.upperbound)
                 continuous_index += 1
 
         # add z variables.
@@ -685,7 +684,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         #                   lb=[0.] * binary_size,
         #                   ub=[1.] * binary_size)
         for i in range(binary_size):
-            op2.binary_var("z0_" + str(i + 1))
+            op2.binary_var(name="z0_" + str(i + 1))
 
         q_z = 2 * (self._state.rho / 2 * np.eye(binary_size))
         op2.objective.quadratic = block_diag(self._state.q1, q_z)
