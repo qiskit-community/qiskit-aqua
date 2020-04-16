@@ -39,11 +39,11 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
             mdl.maximize(c + x * x)
             op = QuadraticProgram()
             op.from_docplex(mdl)
-            self.assertIsNotNone(op)
 
             admm_params = ADMMParameters()
 
-            qubo_optimizer = MinimumEigenOptimizer(NumPyMinimumEigensolver())
+            # qubo_optimizer = MinimumEigenOptimizer(NumPyMinimumEigensolver())
+            qubo_optimizer = CplexOptimizer()
             continuous_optimizer = CplexOptimizer()
 
             solver = ADMMOptimizer(qubo_optimizer=qubo_optimizer,

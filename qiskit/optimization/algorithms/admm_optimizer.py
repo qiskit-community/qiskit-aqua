@@ -17,6 +17,7 @@ import logging
 import time
 from typing import List, Optional, Any
 import numpy as np
+from scipy.linalg import block_diag
 
 from qiskit.optimization.algorithms.cplex_optimizer import CplexOptimizer
 from qiskit.optimization.algorithms.optimization_algorithm import (OptimizationAlgorithm,
@@ -112,7 +113,7 @@ class ADMMState:
         # Indices of the variables
         self.binary_indices = binary_indices
         self.continuous_indices = continuous_indices
-        self.sense = op.objective.sense
+        self.sense = op.objective.sense.value
 
         # define heavily used matrix, they are used at each iteration, so let's cache them,
         # they are np.ndarrays
@@ -438,7 +439,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
             A numpy array of the shape(len(variable_indices)).
         """
         # c = np.array(self._state.op.objective.get_linear(variable_indices))
-        c = self._state.op.objective.linear.coefficients_as_array().take(variable_indices)
+        c = self._state.op.objective.linear.to_array().take(variable_indices)
         # flip the sign, according to the optimization sense, e.g. sense == 1 if minimize,
         # sense == -1 if maximize.
         c *= self._state.sense
@@ -514,9 +515,9 @@ class ADMMOptimizer(OptimizationAlgorithm):
             # we check only equality constraints here.
             if constraint.sense != ConstraintSense.EQ:
                 continue
-            # todo: implement verification condition
+            # todo: add condition that only binary variables are in the constraint
             # row = self._state.op.linear_constraints.get_rows(constraint_index)
-            row = self._state.op.linear_constraints[constraint_index].linear.coefficients_as_array().take(self._state.binary_indices)
+            row = self._state.op.linear_constraints[constraint_index].linear.to_array().take(self._state.binary_indices)
             self._assign_row_values(matrix, vector,
                                     constraint_index, self._state.binary_indices)
             # if set(row.ind).issubset(index_set):
@@ -550,11 +551,9 @@ class ADMMOptimizer(OptimizationAlgorithm):
             if constraint.sense in [ConstraintSense.EQ]:
                 # TODO: Ranged constraints should be supported
                 continue
-            # sense either G or L.
-            var_indices = set()
-            index_set.intersection(self._state.op.linear_constraints[constraint_index].linear.to_dict().keys())
-            row = self._state.op.linear_constraints.get_rows(constraint_index)
-            if set(row.ind).issubset(index_set):
+            constraint_indices = set(self._state.op.linear_constraints[constraint_index].linear.to_dict().keys())
+            # row = self._state.op.linear_constraints.get_rows(constraint_index)
+            if constraint_indices.issubset(index_set):
                 self._assign_row_values(matrix, vector, constraint_index, variable_indices)
 
         return matrix, vector
@@ -588,22 +587,24 @@ class ADMMOptimizer(OptimizationAlgorithm):
         """
         matrix = []
         vector = []
-        senses = self._state.op.linear_constraints.get_senses()
 
         binary_index_set = set(self._state.binary_indices)
         continuous_index_set = set(self._state.continuous_indices)
         all_variables = self._state.binary_indices + self._state.continuous_indices
-        for constraint_index, sense in enumerate(senses):
-            if sense in ("E", "R"):
+        for constraint_index, constraint in enumerate(self._state.op.linear_constraints):
+            # todo: "R" constraints
+            if constraint.sense in [ConstraintSense.EQ]:
                 # TODO: Ranged constraints should be supported as well
                 continue
             # sense either G or L.
-            row = self._state.op.linear_constraints.get_rows(constraint_index)
-            row_indices = set(row.ind)
+            # row = self._state.op.linear_constraints.get_rows(constraint_index)
+            constraint_indices = set(
+                self._state.op.linear_constraints[constraint_index].linear.to_dict().keys())
+            # row_indices = set(row.ind)
             # we must have a least one binary and one continuous variable,
             # otherwise it is another type of constraints.
-            if len(row_indices & binary_index_set) != 0 and len(
-                    row_indices & continuous_index_set) != 0:
+            if len(constraint_indices & binary_index_set) != 0 and len(
+                    constraint_indices & continuous_index_set) != 0:
                 self._assign_row_values(matrix, vector, constraint_index, all_variables)
 
         matrix, b_2 = self._create_ndarrays(matrix, vector, len(all_variables))
@@ -622,22 +623,26 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         binary_size = len(self._state.binary_indices)
         # create the same binary variables.
-        op1.variables.add(names=["x0_" + str(i + 1) for i in range(binary_size)],
-                          types=["I"] * binary_size,
-                          lb=[0.] * binary_size,
-                          ub=[1.] * binary_size)
+        for i in range(binary_size):
+            op1.binary_var(name="x0_" + str(i + 1))
+        # op1.variables.add(names=["x0_" + str(i + 1) for i in range(binary_size)],
+        #                   types=["I"] * binary_size,
+        #                   lb=[0.] * binary_size,
+        #                   ub=[1.] * binary_size)
 
         # prepare and set quadratic objective.
         # NOTE: The multiplication by 2 is needed for the solvers to parse
         # the quadratic coefficients.
+        # todo: do we need multiplication by two?
         quadratic_objective = self._state.q0 +\
             2 * (
                 self._params.factor_c / 2 * np.dot(self._state.a0.transpose(), self._state.a0) +
                 self._state.rho / 2 * np.eye(binary_size)
             )
-        for i in range(binary_size):
-            for j in range(i, binary_size):
-                op1.objective.set_quadratic_coefficients(i, j, quadratic_objective[i, j])
+        # for i in range(binary_size):
+        #     for j in range(i, binary_size):
+        #         op1.objective.set_quadratic_coefficients(i, j, quadratic_objective[i, j])
+        op1.objective.quadratic = quadratic_objective
 
         # prepare and set linear objective.
         linear_objective = self._state.c0 - \
@@ -645,8 +650,10 @@ class ADMMOptimizer(OptimizationAlgorithm):
             self._state.rho * (- self._state.y - self._state.z) + \
             self._state.lambda_mult
 
-        for i in range(binary_size):
-            op1.objective.set_linear(i, linear_objective[i])
+        # for i in range(binary_size):
+        #     op1.objective.set_linear(i, linear_objective[i])
+
+        op1.objective.linear = linear_objective
         return op1
 
     def _create_step2_problem(self) -> QuadraticProgram:
@@ -659,45 +666,57 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         continuous_size = len(self._state.continuous_indices)
         binary_size = len(self._state.binary_indices)
-        lower_bounds = self._state.op.variables.get_lower_bounds(self._state.continuous_indices)
-        upper_bounds = self._state.op.variables.get_upper_bounds(self._state.continuous_indices)
-        if continuous_size:
-            # add u variables.
-            op2.variables.add(names=["u0_" + str(i + 1) for i in range(continuous_size)],
-                              types=["C"] * continuous_size, lb=lower_bounds, ub=upper_bounds)
+        # lower_bounds = self._state.op.variables.get_lower_bounds(self._state.continuous_indices)
+        # upper_bounds = self._state.op.variables.get_upper_bounds(self._state.continuous_indices)
+        # if continuous_size:
+        #     # add u variables.
+        #     op2.variables.add(names=["u0_" + str(i + 1) for i in range(continuous_size)],
+        #                       types=["C"] * continuous_size, lb=lower_bounds, ub=upper_bounds)
+        continuous_index = 0
+        for variable in self._state.op.variables:
+            if variable.vartype == VarType.CONTINUOUS:
+                op2.continuous_var("u0_" + str(continuous_index + 1),
+                                   lowerbound=variable.lowerbound, upperbound=variable.upperbound)
+                continuous_index += 1
 
         # add z variables.
-        op2.variables.add(names=["z0_" + str(i + 1) for i in range(binary_size)],
-                          types=["C"] * binary_size,
-                          lb=[0.] * binary_size,
-                          ub=[1.] * binary_size)
+        # op2.variables.add(names=["z0_" + str(i + 1) for i in range(binary_size)],
+        #                   types=["C"] * binary_size,
+        #                   lb=[0.] * binary_size,
+        #                   ub=[1.] * binary_size)
+        for i in range(binary_size):
+            op2.binary_var("z0_" + str(i + 1))
 
+        q_z = 2 * (self._state.rho / 2 * np.eye(binary_size))
+        op2.objective.quadratic = block_diag(self._state.q1, q_z)
         # set quadratic objective coefficients for u variables.
-        if continuous_size:
-            q_u = self._state.q1
-            for i in range(continuous_size):
-                for j in range(i, continuous_size):
-                    op2.objective.set_quadratic_coefficients(i, j, q_u[i, j])
+        # if continuous_size:
+        #     q_u = self._state.q1
+        #     for i in range(continuous_size):
+        #         for j in range(i, continuous_size):
+        #             op2.objective.set_quadratic_coefficients(i, j, q_u[i, j])
 
         # set quadratic objective coefficients for z variables.
         # NOTE: The multiplication by 2 is needed for the solvers to parse
         # the quadratic coefficients.
-        q_z = 2 * (self._state.rho / 2 * np.eye(binary_size))
-        for i in range(binary_size):
-            for j in range(i, binary_size):
-                op2.objective.set_quadratic_coefficients(i + continuous_size, j + continuous_size,
-                                                         q_z[i, j])
+        # q_z = 2 * (self._state.rho / 2 * np.eye(binary_size))
+        # for i in range(binary_size):
+        #     for j in range(i, binary_size):
+        #         op2.objective.set_quadratic_coefficients(i + continuous_size, j + continuous_size,
+        #                                                  q_z[i, j])
 
+        linear_z = -1 * self._state.lambda_mult - self._state.rho * (self._state.x0 - self._state.y)
+        op2.objective.linear = np.concatenate((self._state.c1, linear_z))
         # set linear objective for u variables.
-        if continuous_size:
-            linear_u = self._state.c1
-            for i in range(continuous_size):
-                op2.objective.set_linear(i, linear_u[i])
+        # if continuous_size:
+        #     linear_u = self._state.c1
+        #     for i in range(continuous_size):
+        #         op2.objective.set_linear(i, linear_u[i])
 
         # set linear objective for z variables.
-        linear_z = -1 * self._state.lambda_mult - self._state.rho * (self._state.x0 - self._state.y)
-        for i in range(binary_size):
-            op2.objective.set_linear(i + continuous_size, linear_z[i])
+        # linear_z = -1 * self._state.lambda_mult - self._state.rho * (self._state.x0 - self._state.y)
+        # for i in range(binary_size):
+        #     op2.objective.set_linear(i + continuous_size, linear_z[i])
 
         # constraints for z.
         # A1 z <= b1.
@@ -706,32 +725,50 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # when saving a model via cplex method.
         # rhs="something from numpy" is ok.
         # so, we convert every single value to python float
-        lin_expr = [SparsePair(ind=list(range(continuous_size, continuous_size + binary_size)),
-                               val=self._state.a1[i, :].tolist()) for i in
-                    range(constraint_count)]
-        op2.linear_constraints.add(lin_expr=lin_expr, senses=["L"] * constraint_count,
-                                   rhs=list(self._state.b1))
+        # lin_expr = [SparsePair(ind=list(range(continuous_size, continuous_size + binary_size)),
+        #                        val=self._state.a1[i, :].tolist()) for i in
+        #             range(constraint_count)]
+        # op2.linear_constraints.add(lin_expr=lin_expr, senses=["L"] * constraint_count,
+        #                            rhs=list(self._state.b1))
 
+        for i in range(constraint_count):
+            linear = np.concatenate((np.zeros(continuous_size), self._state.a1[i, :]))
+            op2.linear_constraint(linear=linear, sense=ConstraintSense.LE, rhs=self._state.b1[i])
+
+        # if continuous_size:
+        #     # A2 z + A3 u <= b2
+        #     constraint_count = self._state.a2.shape[0]
+        #     lin_expr = [SparsePair(ind=list(range(continuous_size + binary_size)),
+        #                            val=self._state.a3[i, :].tolist() +
+        #                            self._state.a2[i, :].tolist())
+        #                 for i in range(constraint_count)]
+        #     op2.linear_constraints.add(lin_expr=lin_expr,
+        #                                senses=["L"] * constraint_count,
+        #                                rhs=self._state.b2.tolist())
         if continuous_size:
             # A2 z + A3 u <= b2
             constraint_count = self._state.a2.shape[0]
-            lin_expr = [SparsePair(ind=list(range(continuous_size + binary_size)),
-                                   val=self._state.a3[i, :].tolist() +
-                                   self._state.a2[i, :].tolist())
-                        for i in range(constraint_count)]
-            op2.linear_constraints.add(lin_expr=lin_expr,
-                                       senses=["L"] * constraint_count,
-                                       rhs=self._state.b2.tolist())
+            for i in range(constraint_count):
+                linear = np.concatenate((self._state.a3[i, :], self._state.a2[i, :]))
+                op2.linear_constraint(linear=linear, sense=ConstraintSense.LE, rhs=self._state.b2[i])
+
+        # if continuous_size:
+        #     # A4 u <= b3
+        #     constraint_count = self._state.a4.shape[0]
+        #     lin_expr = [SparsePair(ind=list(range(continuous_size)),
+        #                            val=self._state.a4[i, :].tolist()) for i in
+        #                 range(constraint_count)]
+        #     op2.linear_constraints.add(lin_expr=lin_expr,
+        #                                senses=["L"] * constraint_count,
+        #                                rhs=self._state.b3.tolist())
 
         if continuous_size:
             # A4 u <= b3
             constraint_count = self._state.a4.shape[0]
-            lin_expr = [SparsePair(ind=list(range(continuous_size)),
-                                   val=self._state.a4[i, :].tolist()) for i in
-                        range(constraint_count)]
-            op2.linear_constraints.add(lin_expr=lin_expr,
-                                       senses=["L"] * constraint_count,
-                                       rhs=self._state.b3.tolist())
+            for i in range(constraint_count):
+                linear = np.concatenate((self._state.a4[i, :], np.zeros(binary_size)))
+                op2.linear_constraint(linear=linear, sense=ConstraintSense.LE, rhs=self._state.b3[i])
+
 
         # add quadratic constraints for
         # In the step 2, we basically need to copy all quadratic constraints of the original
@@ -776,22 +813,25 @@ class ADMMOptimizer(OptimizationAlgorithm):
         op3 = QuadraticProgram()
         # add y variables.
         binary_size = len(self._state.binary_indices)
-        op3.variables.add(names=["y_" + str(i + 1) for i in range(binary_size)],
-                          types=["C"] * binary_size, lb=[-np.inf] * binary_size,
-                          ub=[np.inf] * binary_size)
+        # op3.variables.add(names=["y_" + str(i + 1) for i in range(binary_size)],
+        #                   types=["C"] * binary_size, lb=[-np.inf] * binary_size,
+        #                   ub=[np.inf] * binary_size)
+        for i in range(binary_size):
+            op3.continuous_var("y_" + str(i + 1), lowerbound=-np.inf, upperbound=np.inf)
 
         # set quadratic objective.
         # NOTE: The multiplication by 2 is needed for the solvers to parse the quadratic coeff-s.
         q_y = 2 * (self._params.beta / 2 * np.eye(binary_size) +
                    self._state.rho / 2 * np.eye(binary_size))
-        for i in range(binary_size):
-            for j in range(i, binary_size):
-                op3.objective.set_quadratic_coefficients(i, j, q_y[i, j])
+        # for i in range(binary_size):
+        #     for j in range(i, binary_size):
+        #         op3.objective.set_quadratic_coefficients(i, j, q_y[i, j])
+        op3.objective.quadratic = q_y
 
-        linear_y = - self._state.lambda_mult - self._state.rho * (
-            self._state.x0 - self._state.z)
-        for i in range(binary_size):
-            op3.objective.set_linear(i, linear_y[i])
+        linear_y = - self._state.lambda_mult - self._state.rho * (self._state.x0 - self._state.z)
+        # for i in range(binary_size):
+        #     op3.objective.set_linear(i, linear_y[i])
+        op3.objective.linear = linear_y
 
         return op3
 
@@ -930,7 +970,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         obj_val = quadratic_form(self._state.q0, self._state.x0, self._state.c0)
         obj_val += quadratic_form(self._state.q1, self._state.u, self._state.c1)
 
-        obj_val += self._state.op.objective.get_offset()
+        obj_val += self._state.op.objective.constant
 
         return obj_val
 
