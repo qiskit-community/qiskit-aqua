@@ -17,9 +17,11 @@
 from typing import Optional
 
 import copy
-from collections import defaultdict
 
 from ..problems.quadratic_program import QuadraticProgram
+from ..problems.variable import VarType
+from ..problems.quadratic_objective import ObjSense
+from ..problems.constraint import ConstraintSense
 from ..exceptions.qiskit_optimization_error import QiskitOptimizationError
 
 
@@ -47,88 +49,66 @@ class PenalizeLinearEqualityConstraints:
             QiskitOptimizationError: If an inequality constraint exists.
         """
 
-        # TODO: test compatibility, how to react in case of incompatibility?
-
         # create empty QuadraticProgram model
         self._src = copy.deepcopy(op)  # deep copy
         self._dst = QuadraticProgram()
 
-        # set variables (obj is set via objective interface)
-        var_names = self._src.variables.get_names()
-        var_lbs = self._src.variables.get_lower_bounds()
-        var_ubs = self._src.variables.get_upper_bounds()
-        var_types = self._src.variables.get_types()
-        if var_names:
-            self._dst.variables.add(lb=var_lbs, ub=var_ubs, types=var_types, names=var_names)
+        # set variables
+        for x in self._src.variables:
+            if x.vartype == VarType.CONTINUOUS:
+                self._dst.continuous_var(x.lowerbound, x.upperbound, x.name)
+            elif x.vartype == VarType.BINARY:
+                self._dst.binary_var(x.name)
+            elif x.vartype == VarType.INTEGER:
+                self._dst.integer_var(x.lowerbound, x.upperbound, x.name)
+            else:
+                raise QiskitOptimizationError('Unsupported vartype: {}'.format(x.vartype))
 
-        # set objective name
+        # set problem name
         if name is None:
-            self._dst.set_problem_name(self._src.get_problem_name())
+            self._dst.name = self._src.name
         else:
-            self._dst.set_problem_name(name)
+            self._dst.name = name
 
-        # set objective sense
-        self._dst.objective.set_sense(self._src.objective.get_sense())
-        penalty_factor = self._src.objective.get_sense() * penalty_factor
-
-        # store original objective offset
-        offset = self._src.objective.get_offset()
-
-        # store original linear objective terms
-        linear_terms = defaultdict(float)
-        for i, v in self._src.objective.get_linear_dict().items():
-            linear_terms[i] = v
-
-        # store original quadratic objective terms
-        quadratic_terms = defaultdict(float)
-        quadratic_terms.update(self._src.objective.get_quadratic_dict().items())
-
-        # get linear constraints' data
-        linear_rows = self._src.linear_constraints.get_rows()
-        linear_sense = self._src.linear_constraints.get_senses()
-        linear_rhs = self._src.linear_constraints.get_rhs()
-        linear_names = self._src.linear_constraints.get_names()
-
-        # if inequality constraints exist, raise an error
-        if not all(ls == 'E' for ls in linear_sense):
-            raise QiskitOptimizationError('An inequality constraint exists. '
-                                          'The method supports only equality constraints.')
+        # get original objective terms
+        offset = self._src.objective.constant
+        linear = self._src.objective.linear.to_dict()
+        quadratic = self._src.objective.quadratic.to_dict()
 
         # convert linear constraints into penalty terms
-        num_constraints = len(linear_names)
-        for i in range(num_constraints):
-            constant = linear_rhs[i]
-            row = linear_rows[i]
+        for constraint in self._src.linear_constraints:
+
+            if constraint.sense != ConstraintSense.EQ:
+                raise QiskitOptimizationError('An inequality constraint exists. '
+                                              'The method supports only equality constraints.')
+
+            constant = constraint.rhs
+            row = constraint.linear.to_dict()
 
             # constant parts of penalty*(Constant-func)**2: penalty*(Constant**2)
             offset += penalty_factor * constant ** 2
 
             # linear parts of penalty*(Constant-func)**2: penalty*(-2*Constant*func)
-            for var_ind, coef in zip(row.ind, row.val):
-                # if var_ind already exists in the linear terms dic, add a penalty term
+            for j, coef in row.items():
+                # if j already exists in the linear terms dic, add a penalty term
                 # into existing value else create new key and value in the linear_term dict
-                linear_terms[var_ind] += penalty_factor * -2 * coef * constant
+                linear[j] = linear.get(j, 0.0) + penalty_factor * -2 * coef * constant
 
             # quadratic parts of penalty*(Constant-func)**2: penalty*(func**2)
-            for var_ind_1, coef_1 in zip(row.ind, row.val):
-                for var_ind_2, coef_2 in zip(row.ind, row.val):
-                    # if var_ind_1 and var_ind_2 already exist in the quadratic terms dic,
+            for j, coef_1 in zip(row.ind, row.val):
+                for k, coef_2 in zip(row.ind, row.val):
+                    # if j and k already exist in the quadratic terms dict,
                     # add a penalty term into existing value
                     # else create new key and value in the quadratic term dict
 
                     # according to implementation of quadratic terms in OptimizationModel,
                     # multiply by 2
-                    quadratic_terms[var_ind_1, var_ind_2] += penalty_factor * coef_1 * coef_2 * 2
+                    quadratic[(j, k)] = quadratic.get((j, k), 0.0) \
+                        + penalty_factor * coef_1 * coef_2 * 2
 
-        # set objective offset
-        self._dst.objective.set_offset(offset)
-
-        # set linear objective terms
-        for i, v in linear_terms.items():
-            self._dst.objective.set_linear(i, v)
-
-        # set quadratic objective terms
-        for (i, j), v in quadratic_terms.items():
-            self._dst.objective.set_quadratic_coefficients(i, j, v)
+        if self._src.objective.sense == ObjSense.MINIMIZE:
+            self._dst.minimize(offset, linear, quadratic)
+        else:
+            self._dst.maximize(offset, linear, quadratic)
 
         return self._dst

@@ -115,7 +115,8 @@ class QuadraticProgram:
         """
         return self._variables_index
 
-    def _add_variable(self, lowerbound: Union[float, int] = 0,
+    def _add_variable(self,
+                      lowerbound: Union[float, int] = 0,
                       upperbound: Union[float, int] = infinity,
                       vartype: VarType = VarType.CONTINUOUS,
                       name: Optional[str] = None) -> Variable:
@@ -640,6 +641,8 @@ class QuadraticProgram:
         for i, constraint in enumerate(self.linear_constraints):
             name = constraint.name
             rhs = constraint.rhs
+            if rhs == 0 and constraint.linear.coefficients.nnz == 0:
+                continue
             linear_expr = 0
             for j, v in constraint.linear.to_dict().items():
                 linear_expr += v * var[j]
