@@ -107,8 +107,8 @@ class QuadraticProgram:
         """
         return self._variables_index
 
-    def _add_variable(self, name: Optional[str] = None, lowerbound: float = 0,
-                      upperbound: float = infinity,
+    def _add_variable(self, name: Optional[str] = None, lowerbound: Union[float, int] = 0,
+                      upperbound: Union[float, int] = infinity,
                       vartype: VarType = VarType.CONTINUOUS) -> Variable:
         """Checks whether a variable name is already taken and adds the variable to list and index
         if not.
@@ -139,8 +139,8 @@ class QuadraticProgram:
         self.variables.append(variable)
         return variable
 
-    def continuous_var(self, name: Optional[str] = None, lowerbound: float = 0,
-                       upperbound: float = infinity) -> Variable:
+    def continuous_var(self, name: Optional[str] = None, lowerbound: Union[float, int] = 0,
+                       upperbound: Union[float, int] = infinity) -> Variable:
         """Adds a continuous variable to the quadratic program.
 
         Args:
@@ -170,8 +170,8 @@ class QuadraticProgram:
         """
         return self._add_variable(name, 0, 1, VarType.BINARY)
 
-    def integer_var(self, name: Optional[str] = None, lowerbound: float = 0,
-                    upperbound: float = infinity) -> Variable:
+    def integer_var(self, name: Optional[str] = None, lowerbound: Union[float, int] = 0,
+                    upperbound: Union[float, int] = infinity) -> Variable:
         """Adds an integer variable to the quadratic program.
 
         Args:
