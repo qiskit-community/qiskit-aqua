@@ -15,8 +15,17 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 > -   **Fixed**: for any bug fixes.
 > -   **Security**: in case of vulnerabilities.
 
-[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.5...HEAD)
+[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.6...HEAD)
 ========================================================================
+
+[0.6.6](https://github.com/Qiskit/qiskit-aqua/compare/0.6.5...0.6.6) - 2020-04-16
+=================================================================================
+
+Removed
+-------
+
+-  Remove backend and PassManager on compiler transpile calls (#882)
+-  Remove transpile calls and use unroller (#883)
 
 [0.6.5](https://github.com/Qiskit/qiskit-aqua/compare/0.6.4...0.6.5) - 2020-03-16
 =================================================================================
