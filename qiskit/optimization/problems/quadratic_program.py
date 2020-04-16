@@ -918,7 +918,7 @@ class SubstituteVariables:
         subs = self._subs
         const = []
         lin_dict = defaultdict(float)
-        for i, w_i in lin_expr.coefficients_as_dict(use_index=False).items():
+        for i, w_i in lin_expr.to_dict(use_index=False).items():
             repl_i = subs[i] if i in subs else (i, 1)
             prod = w_i * repl_i[1]
             if repl_i[0] == self.CONST:
@@ -936,7 +936,7 @@ class SubstituteVariables:
         const = []
         lin_dict = defaultdict(float)
         quad_dict = defaultdict(float)
-        for (i, j), w_ij in quad_expr.coefficients_as_dict(use_index=False).items():
+        for (i, j), w_ij in quad_expr.to_dict(use_index=False).items():
             repl_i = subs[i] if i in subs else (i, 1)
             repl_j = subs[j] if j in subs else (j, 1)
             idx = tuple(x for x, _ in [repl_i, repl_j] if x != self.CONST)
@@ -974,9 +974,9 @@ class SubstituteVariables:
 
         for lin_cst in src.linear_constraints:
             constant, linear = self._linear_expression(lin_cst.linear)
-            rhs = lin_cst.rhs - fsum(constant)
+            rhs = -fsum([-lin_cst.rhs] + constant)
             if linear.coefficients.nnz > 0:
-                dst.linear_constraint(name=lin_cst.name, coefficients=linear.coefficients,
+                dst.linear_constraint(name=lin_cst.name, linear=linear.coefficients,
                                       sense=lin_cst.sense, rhs=rhs)
             else:
                 if not self._feasible(lin_cst.sense, rhs):
@@ -992,19 +992,19 @@ class SubstituteVariables:
         for quad_cst in src.quadratic_constraints:
             const1, lin1 = self._linear_expression(quad_cst.linear)
             const2, lin2, quadratic = self._quadratic_expression(quad_cst.quadratic)
-            rhs = quad_cst.rhs - fsum(const1 + const2)
+            rhs = -fsum([-quad_cst.rhs] + const1 + const2)
             linear = lin1.coefficients + lin2.coefficients
 
             if quadratic.coefficients.nnz > 0:
-                dst.quadratic_constraint(name=quad_cst.name, linear_coefficients=linear,
-                                         quadratic_coefficients=quadratic.coefficients,
+                dst.quadratic_constraint(name=quad_cst.name, linear=linear,
+                                         quadratic=quadratic.coefficients,
                                          sense=quad_cst.sense, rhs=rhs)
             elif linear.nnz > 0:
                 name = quad_cst.name
                 lin_names = set(lin.name for lin in dst.linear_constraints)
                 while name in lin_names:
                     name = '_' + name
-                dst.linear_constraint(name=name, coefficients=linear, sense=quad_cst.sense, rhs=rhs)
+                dst.linear_constraint(name=name, linear=linear, sense=quad_cst.sense, rhs=rhs)
             else:
                 if not self._feasible(quad_cst.sense, rhs):
                     logger.warning('constraint %s is infeasible due to substitution', quad_cst.name)
