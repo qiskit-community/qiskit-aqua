@@ -36,7 +36,7 @@ class TestQuadraticConstraint(QiskitOptimizationTestCase):
             quadratic_program.continuous_var()
         self.assertEqual(quadratic_program.get_num_quadratic_constraints(), 0)
 
-        linear_coeffs = np.array([i for i in range(5)])
+        linear_coeffs = np.array(range(5))
         quadratic_coeffs = np.array([[i*j for i in range(5)] for j in range(5)])
 
         # equality constraints
@@ -59,7 +59,7 @@ class TestQuadraticConstraint(QiskitOptimizationTestCase):
         with self.assertRaises(QiskitOptimizationError):
             quadratic_program.quadratic_constraint(name='q0', sense='==')
 
-        quadratic_program.quadratic_constraint('q1', linear_coeffs, quadratic_coeffs, '==', 1.0)
+        quadratic_program.quadratic_constraint(linear_coeffs, quadratic_coeffs, '==', 1.0, 'q1')
         self.assertEqual(quadratic_program.get_num_quadratic_constraints(), 2)
         self.assertEqual(quadratic_program.quadratic_constraints[1].name, 'q1')
         self.assertTrue((
@@ -99,7 +99,7 @@ class TestQuadraticConstraint(QiskitOptimizationTestCase):
         with self.assertRaises(QiskitOptimizationError):
             quadratic_program.quadratic_constraint(name='q2', sense='>=')
 
-        quadratic_program.quadratic_constraint('q3', linear_coeffs, quadratic_coeffs, '>=', 1.0)
+        quadratic_program.quadratic_constraint(linear_coeffs, quadratic_coeffs, '>=', 1.0, 'q3')
         self.assertEqual(quadratic_program.get_num_quadratic_constraints(), 4)
         self.assertEqual(quadratic_program.quadratic_constraints[3].name, 'q3')
         self.assertTrue((
@@ -137,7 +137,7 @@ class TestQuadraticConstraint(QiskitOptimizationTestCase):
         with self.assertRaises(QiskitOptimizationError):
             quadratic_program.quadratic_constraint(name='q4', sense='<=')
 
-        quadratic_program.quadratic_constraint('q5', linear_coeffs, quadratic_coeffs, '<=', 1.0)
+        quadratic_program.quadratic_constraint(linear_coeffs, quadratic_coeffs, '<=', 1.0, 'q5')
         self.assertEqual(quadratic_program.get_num_quadratic_constraints(), 6)
         self.assertEqual(quadratic_program.quadratic_constraints[5].name, 'q5')
         self.assertTrue((

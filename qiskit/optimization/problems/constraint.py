@@ -26,9 +26,11 @@ from qiskit.optimization import QiskitOptimizationError
 
 class ConstraintSense(Enum):
     """Constants Sense Type."""
+
+    # pylint: disable=invalid-name
     LE = 0
     GE = 1
-    EQ = 2  # pylint: disable=locally-disabled, invalid-name
+    EQ = 2
 
     @staticmethod
     def convert(sense: Union[str, "ConstraintSense"]) -> "ConstraintSense":

@@ -121,23 +121,23 @@ class QuadraticExpression(HasQuadraticProgram):
         """
         return self._coefficients.toarray()
 
-    def to_dict(self, use_index: bool = True
-                             ) -> Dict[Union[Tuple[int, int], Tuple[str, str]], float]:
+    def to_dict(self, use_name: bool = False
+                ) -> Dict[Union[Tuple[int, int], Tuple[str, str]], float]:
         """Returns the coefficients of the quadratic expression as dictionary, either using tuples
         of variable names or indices as keys.
 
         Args:
-            use_index: Determines whether to use index or names to refer to variables.
+            use_name: Determines whether to use index or names to refer to variables.
 
         Returns:
             An dictionary with the coefficients corresponding to the quadratic expression.
         """
-        if use_index:
-            return {(i, j): v for (i, j), v in self._coefficients.items()}
-        else:
+        if use_name:
             return {(self.quadratic_program.variables[i].name,
                      self.quadratic_program.variables[j].name): v
                     for (i, j), v in self._coefficients.items()}
+        else:
+            return {(i, j): v for (i, j), v in self._coefficients.items()}
 
     def evaluate(self, x: Union[ndarray, List, Dict[Union[int, str], float]]) -> float:
         """Evaluate the quadratic expression for given variables: x * Q * x.

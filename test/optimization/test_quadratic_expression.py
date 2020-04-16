@@ -14,14 +14,15 @@
 
 """ Test QuadraticExpression """
 
-import unittest
-from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 import logging
+import unittest
+
 import numpy as np
 from scipy.sparse import dok_matrix
 
 from qiskit.optimization import QuadraticProgram
 from qiskit.optimization.problems import QuadraticExpression
+from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +37,7 @@ class TestQuadraticExpression(QiskitOptimizationTestCase):
         for _ in range(5):
             quadratic_program.continuous_var()
 
-        coefficients_list = [[i*j for i in range(5)] for j in range(5)]
+        coefficients_list = [[i * j for i in range(5)] for j in range(5)]
         coefficients_array = np.array(coefficients_list)
         coefficients_dok = dok_matrix(coefficients_list)
         coefficients_dict_int = {(i, j): v for (i, j), v in coefficients_dok.items()}
@@ -48,14 +49,11 @@ class TestQuadraticExpression(QiskitOptimizationTestCase):
                        coefficients_dok,
                        coefficients_dict_int,
                        coefficients_dict_str]:
-
             quadratic = QuadraticExpression(quadratic_program, coeffs)
             self.assertEqual((quadratic.coefficients != coefficients_dok).nnz, 0)
             self.assertTrue((quadratic.to_array() == coefficients_list).all())
-            self.assertDictEqual(quadratic.to_dict(
-                use_index=True), coefficients_dict_int)
-            self.assertDictEqual(quadratic.to_dict(use_index=False),
-                                 coefficients_dict_str)
+            self.assertDictEqual(quadratic.to_dict(use_name=False), coefficients_dict_int)
+            self.assertDictEqual(quadratic.to_dict(use_name=True), coefficients_dict_str)
 
     def test_get_item(self):
         """ test get_item. """
@@ -64,7 +62,7 @@ class TestQuadraticExpression(QiskitOptimizationTestCase):
         for _ in range(5):
             quadratic_program.continuous_var()
 
-        coefficients = [[i*j for i in range(5)] for j in range(5)]
+        coefficients = [[i * j for i in range(5)] for j in range(5)]
         quadratic = QuadraticExpression(quadratic_program, coefficients)
         for i, j_v in enumerate(coefficients):
             for j, v in enumerate(j_v):
@@ -81,7 +79,7 @@ class TestQuadraticExpression(QiskitOptimizationTestCase):
         zeros = np.zeros((n, n))
         quadratic = QuadraticExpression(quadratic_program, zeros)
 
-        coefficients_list = [[i*j for i in range(5)] for j in range(5)]
+        coefficients_list = [[i * j for i in range(5)] for j in range(5)]
         coefficients_array = np.array(coefficients_list)
         coefficients_dok = dok_matrix(coefficients_list)
         coefficients_dict_int = {(i, j): v for (i, j), v in coefficients_dok.items()}
@@ -93,14 +91,11 @@ class TestQuadraticExpression(QiskitOptimizationTestCase):
                        coefficients_dok,
                        coefficients_dict_int,
                        coefficients_dict_str]:
-
             quadratic.coefficients = coeffs
             self.assertEqual((quadratic.coefficients != coefficients_dok).nnz, 0)
             self.assertTrue((quadratic.to_array() == coefficients_list).all())
-            self.assertDictEqual(quadratic.to_dict(
-                use_index=True), coefficients_dict_int)
-            self.assertDictEqual(quadratic.to_dict(use_index=False),
-                                 coefficients_dict_str)
+            self.assertDictEqual(quadratic.to_dict(use_name=False), coefficients_dict_int)
+            self.assertDictEqual(quadratic.to_dict(use_name=True), coefficients_dict_str)
 
     def test_evaluate(self):
         """ test evaluate. """
@@ -108,10 +103,10 @@ class TestQuadraticExpression(QiskitOptimizationTestCase):
         quadratic_program = QuadraticProgram()
         x = [quadratic_program.continuous_var() for _ in range(5)]
 
-        coefficients_list = [[i*j for i in range(5)] for j in range(5)]
+        coefficients_list = [[i * j for i in range(5)] for j in range(5)]
         quadratic = QuadraticExpression(quadratic_program, coefficients_list)
 
-        values_list = [i for i in range(len(x))]
+        values_list = list(range(len(x)))
         values_array = np.array(values_list)
         values_dict_int = {i: i for i in range(len(x))}
         values_dict_str = {'x{}'.format(i): i for i in range(len(x))}

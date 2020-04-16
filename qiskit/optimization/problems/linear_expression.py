@@ -116,21 +116,21 @@ class LinearExpression(HasQuadraticProgram):
         """
         return self._coefficients.toarray()[0]
 
-    def to_dict(self, use_index: bool = True) -> Dict[Union[int, str], float]:
+    def to_dict(self, use_name: bool = False) -> Dict[Union[int, str], float]:
         """Returns the coefficients of the linear expression as dictionary, either using variable
         names or indices as keys.
 
         Args:
-            use_index: Determines whether to use index or names to refer to variables.
+            use_name: Determines whether to use index or names to refer to variables.
 
         Returns:
             An dictionary with the coefficients corresponding to the linear expression.
         """
-        if use_index:
-            return {k: v for (_, k), v in self._coefficients.items()}
-        else:
+        if use_name:
             return {self.quadratic_program.variables[k].name: v
                     for (_, k), v in self._coefficients.items()}
+        else:
+            return {k: v for (_, k), v in self._coefficients.items()}
 
     def evaluate(self, x: Union[ndarray, List, Dict[Union[int, str], float]]) -> float:
         """Evaluate the linear expression for given variables.
