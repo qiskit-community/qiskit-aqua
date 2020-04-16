@@ -287,6 +287,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
                 and (elapsed_time < self._params.max_time):
             if binary_indices:
                 op1 = self._create_step1_problem()
+                print("OP1: ", op1.print_as_lp_string())
                 self._state.x0 = self._update_x0(op1)
             # else, no binary variables exist,
             # and no update to be done in this case.
@@ -816,7 +817,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         #                   types=["C"] * binary_size, lb=[-np.inf] * binary_size,
         #                   ub=[np.inf] * binary_size)
         for i in range(binary_size):
-            op3.continuous_var("y_" + str(i + 1), lowerbound=-np.inf, upperbound=np.inf)
+            op3.continuous_var(name="y_" + str(i + 1), lowerbound=-np.inf, upperbound=np.inf)
 
         # set quadratic objective.
         # NOTE: The multiplication by 2 is needed for the solvers to parse the quadratic coeff-s.
