@@ -169,10 +169,10 @@ class IntegerToBinary:
 
         # set objective
         linear, linear_constant = self._encode_linear_coefficients_dict(
-            self._src.objective.linear.to_dict(use_index=False))
+            self._src.objective.linear.to_dict(use_name=True))
         quadratic, quadratic_linear, quadratic_constant = \
             self._encode_quadratic_coefficients_dict(
-                self._src.objective.quadratic.to_dict(use_index=False))
+                self._src.objective.quadratic.to_dict(use_name=True))
 
         constant = self._src.objective.constant + linear_constant + quadratic_constant
         for i, v in quadratic_linear.items():
@@ -190,8 +190,8 @@ class IntegerToBinary:
         # set linear constraints
         for constraint in self._src.linear_constraints:
             linear, constant = self._encode_linear_coefficients_dict(constraint.linear.to_dict())
-            self._dst.linear_constraint(constraint.name, linear, constraint.sense,
-                                        constraint.rhs - constant)
+            self._dst.linear_constraint(linear, constraint.sense,
+                                        constraint.rhs - constant, constraint.name)
 
         # set quadratic constraints
         for constraint in self._src.quadratic_constraints:
@@ -204,8 +204,8 @@ class IntegerToBinary:
             for i, v in quadratic_linear.items():
                 linear[i] = linear.get(i, 0) + v
 
-            self._dst.quadratic_constraint(constraint.name, linear, quadratic, constraint.sense,
-                                           constraint.rhs - constant)
+            self._dst.quadratic_constraint(linear, quadratic, constraint.sense,
+                                           constraint.rhs - constant, constraint.name)
 
     def decode(self, result: 'OptimizationResult') -> 'OptimizationResult':
         """Convert the encoded problem (binary variables) back to the original (integer variables).

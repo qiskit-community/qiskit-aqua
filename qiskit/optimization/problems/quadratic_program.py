@@ -115,17 +115,18 @@ class QuadraticProgram:
         """
         return self._variables_index
 
-    def _add_variable(self, name: Optional[str] = None, lowerbound: Union[float, int] = 0,
+    def _add_variable(self, lowerbound: Union[float, int] = 0,
                       upperbound: Union[float, int] = infinity,
-                      vartype: VarType = VarType.CONTINUOUS) -> Variable:
+                      vartype: VarType = VarType.CONTINUOUS,
+                      name: Optional[str] = None) -> Variable:
         """Checks whether a variable name is already taken and adds the variable to list and index
         if not.
 
         Args:
-            name: The name of the variable.
             lowerbound: The lowerbound of the variable.
             upperbound: The upperbound of the variable.
             vartype: The type of the variable.
+            name: The name of the variable.
 
         Returns:
             The added variable.
@@ -147,14 +148,15 @@ class QuadraticProgram:
         self.variables.append(variable)
         return variable
 
-    def continuous_var(self, name: Optional[str] = None, lowerbound: Union[float, int] = 0,
-                       upperbound: Union[float, int] = infinity) -> Variable:
+    def continuous_var(self, lowerbound: Union[float, int] = 0,
+                       upperbound: Union[float, int] = infinity,
+                       name: Optional[str] = None) -> Variable:
         """Adds a continuous variable to the quadratic program.
 
         Args:
-            name: The name of the variable.
             lowerbound: The lowerbound of the variable.
             upperbound: The upperbound of the variable.
+            name: The name of the variable.
 
         Returns:
             The added variable.
@@ -162,7 +164,7 @@ class QuadraticProgram:
         Raises:
             QiskitOptimizationError: if the variable name is already occupied.
         """
-        return self._add_variable(name, lowerbound, upperbound, VarType.CONTINUOUS)
+        return self._add_variable(lowerbound, upperbound, VarType.CONTINUOUS, name)
 
     def binary_var(self, name: Optional[str] = None) -> Variable:
         """Adds a binary variable to the quadratic program.
@@ -176,16 +178,17 @@ class QuadraticProgram:
         Raises:
             QiskitOptimizationError: if the variable name is already occupied.
         """
-        return self._add_variable(name, 0, 1, VarType.BINARY)
+        return self._add_variable(0, 1, VarType.BINARY, name)
 
-    def integer_var(self, name: Optional[str] = None, lowerbound: Union[float, int] = 0,
-                    upperbound: Union[float, int] = infinity) -> Variable:
+    def integer_var(self, lowerbound: Union[float, int] = 0,
+                    upperbound: Union[float, int] = infinity,
+                    name: Optional[str] = None) -> Variable:
         """Adds an integer variable to the quadratic program.
 
         Args:
-            name: The name of the variable.
             lowerbound: The lowerbound of the variable.
             upperbound: The upperbound of the variable.
+            name: The name of the variable.
 
         Returns:
             The added variable.
@@ -193,7 +196,7 @@ class QuadraticProgram:
         Raises:
             QiskitOptimizationError: if the variable name is already occupied.
         """
-        return self._add_variable(name, lowerbound, upperbound, VarType.INTEGER)
+        return self._add_variable(lowerbound, upperbound, VarType.INTEGER, name)
 
     def get_variable(self, i: Union[int, str]) -> Variable:
         """Returns a variable for a given name or index.
@@ -274,13 +277,13 @@ class QuadraticProgram:
             linear * x sense rhs.
 
         Args:
-            name: The name of the constraint.
             linear: The linear coefficients of the left-hand-side of the constraint.
             sense: The sense of the constraint,
               - '==', '=', 'E', and 'EQ' denote 'equal to'.
               - '>=', '>', 'G', and 'GE' denote 'greater-than-or-equal-to'.
               - '<=', '<', 'L', and 'LE' denote 'less-than-or-equal-to'.
             rhs: The right hand side of the constraint.
+            name: The name of the constraint.
 
         Returns:
             The added constraint.
@@ -360,7 +363,6 @@ class QuadraticProgram:
             x * Q * x <= rhs.
 
         Args:
-            name: The name of the constraint.
             linear: The linear coefficients of the constraint.
             quadratic: The quadratic coefficients of the constraint.
             sense: The sense of the constraint,
@@ -368,6 +370,7 @@ class QuadraticProgram:
               - '>=', '>', 'G', and 'GE' denote 'greater-than-or-equal-to'.
               - '<=', '<', 'L', and 'LE' denote 'less-than-or-equal-to'.
             rhs: The right hand side of the constraint.
+            name: The name of the constraint.
 
         Returns:
             The added constraint.
@@ -482,13 +485,13 @@ class QuadraticProgram:
         var_names = {}
         for x in model.iter_variables():
             if x.get_vartype().one_letter_symbol() == 'C':
-                x_new = self.continuous_var(x.name, x.lb, x.ub)
+                x_new = self.continuous_var(x.lb, x.ub, x.name)
                 var_names[x] = x_new.name
             elif x.get_vartype().one_letter_symbol() == 'B':
                 x_new = self.binary_var(x.name)
                 var_names[x] = x_new.name
             elif x.get_vartype().one_letter_symbol() == 'I':
-                x_new = self.integer_var(x.name, x.lb, x.ub)
+                x_new = self.integer_var(x.lb, x.ub, x.name)
                 var_names[x] = x_new.name
             else:
                 raise QiskitOptimizationError("Unsupported variable type!")
@@ -873,7 +876,7 @@ class SubstituteVariables:
             lowerbound = var.lowerbound
             upperbound = var.upperbound
             if name not in self._subs:
-                self._dst._add_variable(name, lowerbound, upperbound, vartype)
+                self._dst._add_variable(lowerbound, upperbound, vartype, name)
 
         for i, (j, v) in self._subs.items():
             lb_i = self._src.get_variable(i).lowerbound

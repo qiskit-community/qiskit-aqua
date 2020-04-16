@@ -152,9 +152,9 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
 
     def test_docplex(self):
         q_p = QuadraticProgram('test')
-        q_p.binary_var('x')
-        q_p.integer_var('y', lowerbound=-2, upperbound=4)
-        q_p.continuous_var('z', lowerbound=-1.5, upperbound=3.2)
+        q_p.binary_var(name='x')
+        q_p.integer_var(name='y', lowerbound=-2, upperbound=4)
+        q_p.continuous_var(name='z', lowerbound=-1.5, upperbound=3.2)
         q_p.minimize(constant=1, linear={'x': 1, 'y': 2},
                      quadratic={('x', 'y'): -1, ('z', 'z'): 2})
         q_p.linear_constraint({'x': 2, 'z': -1}, '==', 1)
@@ -166,9 +166,9 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
 
     def test_substitute_variables(self):
         q_p = QuadraticProgram('test')
-        q_p.binary_var('x')
-        q_p.integer_var('y', lowerbound=-2, upperbound=4)
-        q_p.continuous_var('z', lowerbound=-1.5, upperbound=3.2)
+        q_p.binary_var(name='x')
+        q_p.integer_var(name='y', lowerbound=-2, upperbound=4)
+        q_p.continuous_var(name='z', lowerbound=-1.5, upperbound=3.2)
         q_p.minimize(constant=1, linear={'x': 1, 'y': 2},
                      quadratic={('x', 'y'): -1, ('z', 'z'): 2})
         q_p.linear_constraint({'x': 2, 'z': -1}, '==', 1)
