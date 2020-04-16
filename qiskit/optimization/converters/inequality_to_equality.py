@@ -32,13 +32,13 @@ except ImportError:
     logger.info('CPLEX is not installed.')
 
 
-class InequalityToEqualityConverter:
+class InequalityToEquality:
     """Convert inequality constraints into equality constraints by introducing slack variables.
 
     Examples:
         >>> problem = QuadraticProgram()
         >>> # define a problem
-        >>> conv = InequalityToEqualityConverter()
+        >>> conv = InequalityToEquality()
         >>> problem2 = conv.encode(problem)
     """
 
