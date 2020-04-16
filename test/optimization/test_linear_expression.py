@@ -50,9 +50,9 @@ class TestLinearExpression(QiskitOptimizationTestCase):
 
             linear = LinearExpression(quadratic_program, coeffs)
             self.assertEqual((linear.coefficients != coefficients_dok).nnz, 0)
-            self.assertTrue((linear.coefficients_as_array() == coefficients_list).all())
-            self.assertDictEqual(linear.coefficients_as_dict(use_index=True), coefficients_dict_int)
-            self.assertDictEqual(linear.coefficients_as_dict(use_index=False),
+            self.assertTrue((linear.to_array() == coefficients_list).all())
+            self.assertDictEqual(linear.to_dict(use_index=True), coefficients_dict_int)
+            self.assertDictEqual(linear.to_dict(use_index=False),
                                  coefficients_dict_str)
 
     def test_get_item(self):
@@ -91,9 +91,9 @@ class TestLinearExpression(QiskitOptimizationTestCase):
 
             linear.coefficients = coeffs
             self.assertEqual((linear.coefficients != coefficients_dok).nnz, 0)
-            self.assertTrue((linear.coefficients_as_array() == coefficients_list).all())
-            self.assertDictEqual(linear.coefficients_as_dict(use_index=True), coefficients_dict_int)
-            self.assertDictEqual(linear.coefficients_as_dict(use_index=False),
+            self.assertTrue((linear.to_array() == coefficients_list).all())
+            self.assertDictEqual(linear.to_dict(use_index=True), coefficients_dict_int)
+            self.assertDictEqual(linear.to_dict(use_index=False),
                                  coefficients_dict_str)
 
     def test_evaluate(self):

@@ -44,9 +44,9 @@ class TestQuadraticConstraint(QiskitOptimizationTestCase):
         self.assertEqual(quadratic_program.get_num_quadratic_constraints(), 1)
         self.assertEqual(quadratic_program.quadratic_constraints[0].name, 'q0')
         self.assertEqual(
-            len(quadratic_program.quadratic_constraints[0].linear.coefficients_as_dict()), 0)
+            len(quadratic_program.quadratic_constraints[0].linear.to_dict()), 0)
         self.assertEqual(
-            len(quadratic_program.quadratic_constraints[0].quadratic.coefficients_as_dict()), 0)
+            len(quadratic_program.quadratic_constraints[0].quadratic.to_dict()), 0)
         self.assertEqual(quadratic_program.quadratic_constraints[0].sense, ConstraintSense.EQ)
         self.assertEqual(quadratic_program.quadratic_constraints[0].rhs, 0.0)
         self.assertEqual(quadratic_program.quadratic_constraints[0],
@@ -63,11 +63,11 @@ class TestQuadraticConstraint(QiskitOptimizationTestCase):
         self.assertEqual(quadratic_program.get_num_quadratic_constraints(), 2)
         self.assertEqual(quadratic_program.quadratic_constraints[1].name, 'q1')
         self.assertTrue((
-            quadratic_program.quadratic_constraints[1].linear.coefficients_as_array(
+            quadratic_program.quadratic_constraints[1].linear.to_array(
             ) == linear_coeffs
         ).all())
         self.assertTrue((
-            quadratic_program.quadratic_constraints[1].quadratic.coefficients_as_array(
+            quadratic_program.quadratic_constraints[1].quadratic.to_array(
             ) == quadratic_coeffs
         ).all())
         self.assertEqual(quadratic_program.quadratic_constraints[1].sense, ConstraintSense.EQ)
@@ -84,9 +84,9 @@ class TestQuadraticConstraint(QiskitOptimizationTestCase):
         self.assertEqual(quadratic_program.get_num_quadratic_constraints(), 3)
         self.assertEqual(quadratic_program.quadratic_constraints[2].name, 'q2')
         self.assertEqual(
-            len(quadratic_program.quadratic_constraints[2].linear.coefficients_as_dict()), 0)
+            len(quadratic_program.quadratic_constraints[2].linear.to_dict()), 0)
         self.assertEqual(
-            len(quadratic_program.quadratic_constraints[2].quadratic.coefficients_as_dict()), 0)
+            len(quadratic_program.quadratic_constraints[2].quadratic.to_dict()), 0)
         self.assertEqual(quadratic_program.quadratic_constraints[2].sense, ConstraintSense.GE)
         self.assertEqual(quadratic_program.quadratic_constraints[2].rhs, 0.0)
         self.assertEqual(quadratic_program.quadratic_constraints[2],
@@ -103,11 +103,11 @@ class TestQuadraticConstraint(QiskitOptimizationTestCase):
         self.assertEqual(quadratic_program.get_num_quadratic_constraints(), 4)
         self.assertEqual(quadratic_program.quadratic_constraints[3].name, 'q3')
         self.assertTrue((
-            quadratic_program.quadratic_constraints[3].linear.coefficients_as_array(
+            quadratic_program.quadratic_constraints[3].linear.to_array(
             ) == linear_coeffs
         ).all())
         self.assertTrue((
-            quadratic_program.quadratic_constraints[3].quadratic.coefficients_as_array(
+            quadratic_program.quadratic_constraints[3].quadratic.to_array(
             ) == quadratic_coeffs
         ).all())
         self.assertEqual(quadratic_program.quadratic_constraints[3].sense, ConstraintSense.GE)
@@ -124,7 +124,7 @@ class TestQuadraticConstraint(QiskitOptimizationTestCase):
         self.assertEqual(quadratic_program.get_num_quadratic_constraints(), 5)
         self.assertEqual(quadratic_program.quadratic_constraints[4].name, 'q4')
         self.assertEqual(
-            len(quadratic_program.quadratic_constraints[4].linear.coefficients_as_dict()), 0)
+            len(quadratic_program.quadratic_constraints[4].linear.to_dict()), 0)
         self.assertEqual(quadratic_program.quadratic_constraints[4].sense, ConstraintSense.LE)
         self.assertEqual(quadratic_program.quadratic_constraints[4].rhs, 0.0)
         self.assertEqual(quadratic_program.quadratic_constraints[4],
@@ -141,11 +141,11 @@ class TestQuadraticConstraint(QiskitOptimizationTestCase):
         self.assertEqual(quadratic_program.get_num_quadratic_constraints(), 6)
         self.assertEqual(quadratic_program.quadratic_constraints[5].name, 'q5')
         self.assertTrue((
-            quadratic_program.quadratic_constraints[5].linear.coefficients_as_array(
+            quadratic_program.quadratic_constraints[5].linear.to_array(
             ) == linear_coeffs
         ).all())
         self.assertTrue((
-            quadratic_program.quadratic_constraints[5].quadratic.coefficients_as_array(
+            quadratic_program.quadratic_constraints[5].quadratic.to_array(
             ) == quadratic_coeffs
         ).all())
         self.assertEqual(quadratic_program.quadratic_constraints[5].sense, ConstraintSense.LE)

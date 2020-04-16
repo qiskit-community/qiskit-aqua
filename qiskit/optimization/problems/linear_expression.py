@@ -108,7 +108,7 @@ class LinearExpression(HasQuadraticProgram):
         """
         self._coefficients = self._coeffs_to_dok_matrix(coefficients)
 
-    def coefficients_as_array(self) -> ndarray:
+    def to_array(self) -> ndarray:
         """Returns the coefficients of the linear expression as array.
 
         Returns:
@@ -116,7 +116,7 @@ class LinearExpression(HasQuadraticProgram):
         """
         return self._coefficients.toarray()[0]
 
-    def coefficients_as_dict(self, use_index: bool = True) -> Dict[Union[int, str], float]:
+    def to_dict(self, use_index: bool = True) -> Dict[Union[int, str], float]:
         """Returns the coefficients of the linear expression as dictionary, either using variable
         names or indices as keys.
 

@@ -21,9 +21,8 @@ import numpy as np
 from scipy.optimize import fmin_cobyla
 
 from qiskit.optimization.algorithms import OptimizationAlgorithm, OptimizationResult
-from qiskit.optimization.problems import QuadraticProgram
-from qiskit.optimization import QiskitOptimizationError
-from qiskit.optimization import infinity
+from qiskit.optimization.problems import QuadraticProgram, ConstraintSense
+from qiskit.optimization import QiskitOptimizationError, infinity
 
 
 class CobylaOptimizer(OptimizationAlgorithm):
@@ -79,7 +78,7 @@ class CobylaOptimizer(OptimizationAlgorithm):
             Returns a string describing the incompatibility.
         """
         # check whether there are variables of type other than continuous
-        if problem.variables.get_num() > problem.variables.get_num_continuous():
+        if len(problem.variables) > problem.get_num_continuous_vars():
             return 'The COBYLA optimizer supports only continuous variables'
 
         return ''
@@ -103,100 +102,46 @@ class CobylaOptimizer(OptimizationAlgorithm):
         if len(msg) > 0:
             raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
 
-        # get number of variables
-        num_vars = problem.variables.get_num()
-
-        # construct objective function from linear and quadratic part of objective
-        offset = problem.objective.get_offset()
-        linear_dict = problem.objective.get_linear_dict()
-        quadratic_dict = problem.objective.get_quadratic_dict()
-        linear = np.zeros(num_vars)
-        quadratic = np.zeros((num_vars, num_vars))
-        for i, v in linear_dict.items():
-            linear[i] = v
-        for (i, j), v in quadratic_dict.items():
-            quadratic[i, j] = v
-
+        # construct quadratic objective function
         def objective(x):
-            value = problem.objective.get_sense() * (
-                np.dot(linear, x) + np.dot(x, np.dot(quadratic, x)) / 2 + offset
-            )
-            return value
+            return problem.objective.sense.value * problem.objective.evaluate(x)
 
-        # initialize constraints
+        # initialize constraints list
         constraints = []
 
-        # add variable lower and upper bounds
-        lbs = problem.variables.get_lower_bounds()
-        ubs = problem.variables.get_upper_bounds()
-        # pylint: disable=invalid-sequence-index
-        for i in range(num_vars):
-            if lbs[i] > -infinity:
-                constraints += [lambda x, lbs=lbs, i=i: x - lbs[i]]
-            if ubs[i] < infinity:
-                constraints += [lambda x, lbs=lbs, i=i: ubs[i] - x]
+        # add lower/upper bound constraints
+        for variable in problem.variables:
+            lowerbound = variable.lowerbound
+            upperbound = variable.upperbound
+            if lowerbound > -infinity:
+                constraints += [lambda x, lb=lowerbound: x - lb]
+            if upperbound < infinity:
+                constraints += [lambda x, ub=upperbound: ub - x]
 
-        # add linear constraints
-        for i in range(problem.linear_constraints.get_num()):
-            rhs = problem.linear_constraints.get_rhs(i)
-            sense = problem.linear_constraints.get_senses(i)
-            row = problem.linear_constraints.get_rows(i)
-            row_array = np.zeros(num_vars)
-            for j, v in zip(row.ind, row.val):
-                row_array[j] = v
+        # add linear and quadratic constraints
+        for constraint in problem.linear_constraints + problem.quadratic_constraints:
+            rhs = constraint.rhs
+            sense = constraint.sense
 
-            if sense == 'E':
+            if sense == ConstraintSense.EQ:
                 constraints += [
-                    lambda x, rhs=rhs, row_array=row_array: rhs - np.dot(x, row_array),
-                    lambda x, rhs=rhs, row_array=row_array: np.dot(x, row_array) - rhs
+                    lambda x, rhs=rhs, c=constraint: rhs - c.evaluate(x),
+                    lambda x, rhs=rhs, c=constraint: c.evaluate(x) - rhs
                 ]
-            elif sense == 'L':
-                constraints += [lambda x, rhs=rhs, row_array=row_array: rhs - np.dot(x, row_array)]
-            elif sense == 'G':
-                constraints += [lambda x, rhs=rhs, row_array=row_array: np.dot(x, row_array) - rhs]
+            elif sense == ConstraintSense.LE:
+                constraints += [lambda x, rhs=rhs, c=constraint: rhs - c.evaluate(x)]
+            elif sense == ConstraintSense.GE:
+                constraints += [lambda x, rhs=rhs, c=constraint: c.evaluate(x) - rhs]
             else:
-                # TODO: add range constraints
-                raise QiskitOptimizationError('Unsupported constraint type!')
-
-        # add quadratic constraints
-        for i in range(problem.quadratic_constraints.get_num()):
-            rhs = problem.quadratic_constraints.get_rhs(i)
-            sense = problem.quadratic_constraints.get_senses(i)
-
-            linear_comp = problem.quadratic_constraints.get_linear_components(i)
-            quadratic_comp = problem.quadratic_constraints.get_quadratic_components(i)
-
-            linear_array = np.zeros(num_vars)
-            for j, v in zip(linear_comp.ind, linear_comp.val):
-                linear_array[j] = v
-
-            quadratic_array = np.zeros((num_vars, num_vars))
-            for j, k, v in zip(quadratic_comp.ind1, quadratic_comp.ind2, quadratic_comp.val):
-                quadratic_array[j, k] = v
-
-            def lhs(x, linear_array=linear_array, quadratic_array=quadratic_array):
-                return np.dot(x, linear_array) + np.dot(np.dot(x, quadratic_array), x)
-
-            if sense == 'E':
-                constraints += [
-                    lambda x: rhs - lhs(x),
-                    lambda x: lhs(x) - rhs
-                ]
-            elif sense == 'L':
-                constraints += [lambda x: rhs - lhs(x)]
-            elif sense == 'G':
-                constraints += [lambda x: lhs(x) - rhs]
-            else:
-                # TODO: add range constraints
                 raise QiskitOptimizationError('Unsupported constraint type!')
 
         # TODO: derive x_0 from lower/upper bounds
-        x_0 = np.zeros(problem.variables.get_num())
+        x_0 = np.zeros(len(problem.variables))
 
         # run optimization
         x = fmin_cobyla(objective, x_0, constraints, rhobeg=self._rhobeg, rhoend=self._rhoend,
                         maxfun=self._maxfun, disp=self._disp, catol=self._catol)
-        fval = problem.objective.get_sense() * objective(x)
+        fval = problem.objective.sense.value * objective(x)
 
         # return results
         return OptimizationResult(x, fval, x)
