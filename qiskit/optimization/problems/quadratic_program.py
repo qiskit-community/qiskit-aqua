@@ -17,6 +17,7 @@
 from typing import List, Union, Dict, Optional, Tuple
 
 from docplex.mp.linear import Var
+from docplex.mp.quad import QuadExpr
 from docplex.mp.model import Model
 from docplex.mp.model_reader import ModelReader
 from numpy import ndarray
@@ -470,35 +471,45 @@ class QuadraticProgram:
         self.name = model.name
 
         # get variables
+        # keep track of names separately, since docplex allows to have None names.
+        var_names = {}
         for x in model.iter_variables():
             if x.get_vartype().one_letter_symbol() == 'C':
-                self.continuous_var(x.name, x.lb, x.ub)
+                x_new = self.continuous_var(x.name, x.lb, x.ub)
+                var_names[x] = x_new.name
             elif x.get_vartype().one_letter_symbol() == 'B':
-                self.binary_var(x.name)
+                x_new = self.binary_var(x.name)
+                var_names[x] = x_new.name
             elif x.get_vartype().one_letter_symbol() == 'I':
-                self.integer_var(x.name, x.lb, x.ub)
+                x_new = self.integer_var(x.name, x.lb, x.ub)
+                var_names[x] = x_new.name
             else:
                 raise QiskitOptimizationError("Unsupported variable type!")
 
         # objective sense
         minimize = model.objective_sense.is_minimize()
 
+        # make sure objective expression is linear or quadratic and not a variable
+        if isinstance(model.objective_expr, Var):
+            model.objective_expr = model.objective_expr + 0
+
         # get objective offset
         constant = model.objective_expr.constant
 
         # get linear part of objective
-        linear_part = model.objective_expr.get_linear_part()
         linear = {}
+        linear_part = model.objective_expr.get_linear_part()
         for x in linear_part.iter_variables():
-            linear[x.name] = linear_part.get_coef(x)
+            linear[var_names[x]] = linear_part.get_coef(x)
 
         # get quadratic part of objective
         quadratic = {}
-        for quad_triplet in model.objective_expr.generate_quad_triplets():
-            i = quad_triplet[0].name
-            j = quad_triplet[1].name
-            v = quad_triplet[2]
-            quadratic[i, j] = v
+        if isinstance(model.objective_expr, QuadExpr):
+            for quad_triplet in model.objective_expr.generate_quad_triplets():
+                i = var_names[quad_triplet[0]]
+                j = var_names[quad_triplet[1]]
+                v = quad_triplet[2]
+                quadratic[i, j] = v
 
         # set objective
         if minimize:
@@ -546,27 +557,28 @@ class QuadraticProgram:
 
             if left_expr.is_quad_expr():
                 for x in left_expr.linear_part.iter_variables():
-                    linear[x.name] = left_expr.linear_part.get_coef(x)
+                    linear[var_names[x]] = left_expr.linear_part.get_coef(x)
                 for quad_triplet in left_expr.iter_quad_triplets():
-                    i = quad_triplet[0].name
-                    j = quad_triplet[1].name
+                    i = var_names[quad_triplet[0]]
+                    j = var_names[quad_triplet[1]]
                     v = quad_triplet[2]
                     quadratic[i, j] = v
             else:
                 for x in left_expr.iter_variables():
-                    linear[x.name] = left_expr.get_coef(x)
+                    linear[var_names[x]] = left_expr.get_coef(x)
 
             if right_expr.is_quad_expr():
                 for x in right_expr.linear_part.iter_variables():
-                    linear[x.name] = linear.get(x.name, 0.0) - right_expr.linear_part.get_coef(x)
+                    linear[var_names[x]] = linear.get(var_names[x], 0.0) - \
+                        right_expr.linear_part.get_coef(x)
                 for quad_triplet in right_expr.iter_quad_triplets():
-                    i = quad_triplet[0].name
-                    j = quad_triplet[1].name
+                    i = var_names[quad_triplet[0]]
+                    j = var_names[quad_triplet[1]]
                     v = quad_triplet[2]
                     quadratic[i, j] = quadratic.get((i, j), 0.0) - v
             else:
                 for x in right_expr.iter_variables():
-                    linear[x.name] = linear.get(x.name, 0.0) - right_expr.get_coef(x)
+                    linear[var_names[x]] = linear.get(var_names[x], 0.0) - right_expr.get_coef(x)
 
             if sense == sense.EQ:
                 self.quadratic_constraint(name, linear, quadratic, '==', rhs)

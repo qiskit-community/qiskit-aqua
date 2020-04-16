@@ -18,7 +18,7 @@ from typing import Optional
 
 from qiskit.optimization.problems import QuadraticProgram
 from qiskit.optimization.converters import (PenalizeLinearEqualityConstraints,
-                                            IntegerToBinaryConverter)
+                                            IntegerToBinary)
 from qiskit.optimization.exceptions import QiskitOptimizationError
 
 
@@ -37,7 +37,7 @@ class QuadraticProgramToQubo:
         Args:
             penalty: Penalty factor to scale equality constraints that are added to objective.
         """
-        self._int_to_bin = IntegerToBinaryConverter()
+        self._int_to_bin = IntegerToBinary()
         self._penalize_lin_eq_constraints = PenalizeLinearEqualityConstraints()
         self._penalty = penalty
 
