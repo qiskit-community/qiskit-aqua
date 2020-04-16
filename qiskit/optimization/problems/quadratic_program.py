@@ -777,7 +777,6 @@ class SubstituteVariables:
                 - Same variable is substituted multiple times.
                 - Coefficient of variable substitution is zero.
         """
-
         self._src = src
         self._dst = QuadraticProgram(src.name)
         self._subs_dict(constants, variables)
@@ -821,14 +820,12 @@ class SubstituteVariables:
         return key, val
 
     def _subs_dict(self, constants, variables):
-        src = self._src
-
         # guarantee that there is no overlap between variables to be replaced and combine input
         subs: Dict[str, Tuple[str, float]] = {}
         if constants is not None:
             for i, v in constants.items():
                 # substitute i <- v
-                i_2 = src.get_variable(i).name
+                i_2 = self._src.get_variable(i).name
                 if i_2 in subs:
                     raise QiskitOptimizationError(
                         'Cannot substitute the same variable twice: {} <- {}'.format(i, v))
@@ -840,8 +837,8 @@ class SubstituteVariables:
                     raise QiskitOptimizationError(
                         'coefficient must be non-zero: {} {} {}'.format(i, j, v))
                 # substitute i <- j * v
-                i_2 = src.get_variable(i).name
-                j_2 = src.get_variable(j).name
+                i_2 = self._src.get_variable(i).name
+                j_2 = self._src.get_variable(j).name
                 if i_2 == j_2:
                     raise QiskitOptimizationError(
                         'Cannot substitute the same variable: {} <- {} {}'.format(i, j, v))
@@ -857,22 +854,18 @@ class SubstituteVariables:
         self._subs = subs
 
     def _variables(self) -> SubstitutionStatus:
-        src = self._src
-        dst = self._dst
-        subs = self._subs
-
         # copy variables that are not replaced
-        for var in src.variables:
+        for var in self._src.variables:
             name = var.name
             vartype = var.vartype
             lowerbound = var.lowerbound
             upperbound = var.upperbound
-            if name not in subs:
-                dst._add_variable(name, lowerbound, upperbound, vartype)
+            if name not in self._subs:
+                self._dst._add_variable(name, lowerbound, upperbound, vartype)
 
-        for i, (j, v) in subs.items():
-            lb_i = src.get_variable(i).lowerbound
-            ub_i = src.get_variable(i).upperbound
+        for i, (j, v) in self._subs.items():
+            lb_i = self._src.get_variable(i).lowerbound
+            ub_i = self._src.get_variable(i).upperbound
             if j == self.CONST:
                 if not lb_i <= v <= ub_i:
                     logger.warning(
@@ -894,7 +887,7 @@ class SubstituteVariables:
                     new_ub_i = ub_i / v
                 else:
                     new_ub_i = ub_i if v > 0 else -ub_i
-                var_j = dst.get_variable(j)
+                var_j = self._dst.get_variable(j)
                 lb_j = var_j.lowerbound
                 ub_j = var_j.upperbound
                 if v > 0:
@@ -904,7 +897,7 @@ class SubstituteVariables:
                     var_j.lowerbound = max(lb_j, new_ub_i)
                     var_j.upperbound = min(ub_j, new_lb_i)
 
-        for var in dst.variables:
+        for var in self._dst.variables:
             if var.lowerbound > var.upperbound:
                 logger.warning(
                     'Infeasible lower and upper bound: %s %f %f', var, var.lowerbound,
@@ -915,11 +908,10 @@ class SubstituteVariables:
 
     def _linear_expression(self, lin_expr: LinearExpression) \
             -> Tuple[List[float], LinearExpression]:
-        subs = self._subs
         const = []
         lin_dict = defaultdict(float)
         for i, w_i in lin_expr.to_dict(use_index=False).items():
-            repl_i = subs[i] if i in subs else (i, 1)
+            repl_i = self._subs[i] if i in self._subs else (i, 1)
             prod = w_i * repl_i[1]
             if repl_i[0] == self.CONST:
                 const.append(prod)
@@ -932,13 +924,12 @@ class SubstituteVariables:
 
     def _quadratic_expression(self, quad_expr: QuadraticExpression) \
             -> Tuple[List[float], Optional[LinearExpression], Optional[QuadraticExpression]]:
-        subs = self._subs
         const = []
         lin_dict = defaultdict(float)
         quad_dict = defaultdict(float)
         for (i, j), w_ij in quad_expr.to_dict(use_index=False).items():
-            repl_i = subs[i] if i in subs else (i, 1)
-            repl_j = subs[j] if j in subs else (j, 1)
+            repl_i = self._subs[i] if i in self._subs else (i, 1)
+            repl_j = self._subs[j] if j in self._subs else (j, 1)
             idx = tuple(x for x, _ in [repl_i, repl_j] if x != self.CONST)
             prod = w_ij * repl_i[1] * repl_j[1]
             if len(idx) == 2:
@@ -954,30 +945,25 @@ class SubstituteVariables:
         return const, new_lin, new_quad
 
     def _objective(self) -> SubstitutionStatus:
-        src = self._src
-        dst = self._dst
+        obj = self._src.objective
+        const1, lin1 = self._linear_expression(obj.linear)
+        const2, lin2, quadratic = self._quadratic_expression(obj.quadratic)
 
-        const1, lin1 = self._linear_expression(src.objective.linear)
-        const2, lin2, quadratic = self._quadratic_expression(src.objective.quadratic)
-
-        constant = fsum([src.objective.constant] + const1 + const2)
+        constant = fsum([obj.constant] + const1 + const2)
         linear = lin1.coefficients + lin2.coefficients
-        if src.objective.sense == src.objective.sense.MINIMIZE:
-            dst.minimize(constant=constant, linear=linear, quadratic=quadratic.coefficients)
+        if obj.sense == obj.sense.MINIMIZE:
+            self._dst.minimize(constant=constant, linear=linear, quadratic=quadratic.coefficients)
         else:
-            dst.maximize(constant=constant, linear=linear, quadratic=quadratic.coefficients)
+            self._dst.maximize(constant=constant, linear=linear, quadratic=quadratic.coefficients)
         return SubstitutionStatus.success
 
     def _linear_constraints(self) -> SubstitutionStatus:
-        src = self._src
-        dst = self._dst
-
-        for lin_cst in src.linear_constraints:
+        for lin_cst in self._src.linear_constraints:
             constant, linear = self._linear_expression(lin_cst.linear)
             rhs = -fsum([-lin_cst.rhs] + constant)
             if linear.coefficients.nnz > 0:
-                dst.linear_constraint(name=lin_cst.name, linear=linear.coefficients,
-                                      sense=lin_cst.sense, rhs=rhs)
+                self._dst.linear_constraint(name=lin_cst.name, linear=linear.coefficients,
+                                            sense=lin_cst.sense, rhs=rhs)
             else:
                 if not self._feasible(lin_cst.sense, rhs):
                     logger.warning('constraint %s is infeasible due to substitution', lin_cst.name)
@@ -986,25 +972,22 @@ class SubstituteVariables:
         return SubstitutionStatus.success
 
     def _quadratic_constraints(self) -> SubstitutionStatus:
-        src = self._src
-        dst = self._dst
-
-        for quad_cst in src.quadratic_constraints:
+        for quad_cst in self._src.quadratic_constraints:
             const1, lin1 = self._linear_expression(quad_cst.linear)
             const2, lin2, quadratic = self._quadratic_expression(quad_cst.quadratic)
             rhs = -fsum([-quad_cst.rhs] + const1 + const2)
             linear = lin1.coefficients + lin2.coefficients
 
             if quadratic.coefficients.nnz > 0:
-                dst.quadratic_constraint(name=quad_cst.name, linear=linear,
-                                         quadratic=quadratic.coefficients,
-                                         sense=quad_cst.sense, rhs=rhs)
+                self._dst.quadratic_constraint(name=quad_cst.name, linear=linear,
+                                               quadratic=quadratic.coefficients,
+                                               sense=quad_cst.sense, rhs=rhs)
             elif linear.nnz > 0:
                 name = quad_cst.name
-                lin_names = set(lin.name for lin in dst.linear_constraints)
+                lin_names = set(lin.name for lin in self._dst.linear_constraints)
                 while name in lin_names:
                     name = '_' + name
-                dst.linear_constraint(name=name, linear=linear, sense=quad_cst.sense, rhs=rhs)
+                self._dst.linear_constraint(name=name, linear=linear, sense=quad_cst.sense, rhs=rhs)
             else:
                 if not self._feasible(quad_cst.sense, rhs):
                     logger.warning('constraint %s is infeasible due to substitution', quad_cst.name)
