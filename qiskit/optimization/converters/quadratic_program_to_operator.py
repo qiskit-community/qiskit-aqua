@@ -15,7 +15,7 @@
 
 """The converter from an ```QuadraticProgram``` to ``Operator``."""
 
-from typing import Dict, Tuple
+from typing import Tuple
 
 import numpy as np
 from qiskit.quantum_info import Pauli
@@ -32,8 +32,6 @@ class QuadraticProgramToOperator:
     def __init__(self) -> None:
         """Initialize the internal data structure."""
         self._src = None
-        self._q_d: Dict[int, int] = {}
-        # e.g., self._q_d = {0: 0}
 
     def encode(self, op: QuadraticProgram) -> Tuple[WeightedPauliOperator, float]:
         """Convert a problem into a qubit operator
@@ -52,71 +50,65 @@ class QuadraticProgramToOperator:
 
         self._src = op
         # if op has variables that are not binary, raise an error
-        var_list = self._src.variables.get_types()
-        if not all(var == 'B' for var in var_list):
+        if self._src.get_num_vars() > self._src.get_num_binary_vars():
             raise QiskitOptimizationError('The type of variable must be a binary variable.')
 
         # if constraints exist, raise an error
-        if self._src.linear_constraints.get_num() > 0 \
-                or self._src.quadratic_constraints.get_num() > 0:
+        if self._src.linear_constraints \
+                or self._src.quadratic_constraints:
             raise QiskitOptimizationError('An constraint exists. '
                                           'The method supports only model with no constraints.')
 
-        # assign variables of the model to qubits.
-        _q_d = {}
-        qubit_index = 0
-        for name in self._src.variables.get_names():
-            var_index = self._src.variables.get_indices(name)
-            _q_d[var_index] = qubit_index
-            qubit_index += 1
-
         # initialize Hamiltonian.
-        num_nodes = len(_q_d)
+        num_nodes = self._src.get_num_vars()
         pauli_list = []
         shift = 0
         zero = np.zeros(num_nodes, dtype=np.bool)
 
         # set a sign corresponding to a maximized or minimized problem.
         # sign == 1 is for minimized problem. sign == -1 is for maximized problem.
-        sense = self._src.objective.get_sense()
+        sense = self._src.objective.sense.value
 
         # convert a constant part of the object function into Hamiltonian.
-        shift += self._src.objective.get_offset() * sense
+        shift += self._src.objective.constant * sense
 
         # convert linear parts of the object function into Hamiltonian.
-        for i, coef in self._src.objective.get_linear_dict().items():
+        for i, coef in self._src.objective.linear.to_dict().items():
             z_p = np.zeros(num_nodes, dtype=np.bool)
-            qubit_index = _q_d[i]
             weight = coef * sense / 2
-            z_p[qubit_index] = True
+            z_p[i] = True
 
             pauli_list.append([-weight, Pauli(z_p, zero)])
             shift += weight
 
         # convert quadratic parts of the object function into Hamiltonian.
-        for (i, j), coef in self._src.objective.get_quadratic_dict().items():
+        # first merge coefficients (i, j) and (j, i)
+        coeffs = {}
+        for (i, j), coeff in self._src.objective.quadratic.to_dict().items():
             if j < i:
-                continue
-            qubit_index_1 = _q_d[i]
-            qubit_index_2 = _q_d[j]
-            if i == j:
-                coef = coef / 2
-            weight = coef * sense / 4
+                coeffs[(j, i)] = coeffs.get((j, i), 0.0) + coeff
+            else:
+                coeffs[(i, j)] = coeffs.get((i, j), 0.0) + coeff
 
-            if qubit_index_1 == qubit_index_2:
+        # create Pauli terms
+        for (i, j), coeff in coeffs.items():
+
+            weight = coeff * sense / 4
+
+            if i == j:
                 shift += weight
             else:
                 z_p = np.zeros(num_nodes, dtype=np.bool)
-                z_p[qubit_index_1] = True
-                z_p[qubit_index_2] = True
+                z_p[i] = True
+                z_p[j] = True
                 pauli_list.append([weight, Pauli(z_p, zero)])
 
             z_p = np.zeros(num_nodes, dtype=np.bool)
-            z_p[qubit_index_1] = True
+            z_p[i] = True
             pauli_list.append([-weight, Pauli(z_p, zero)])
 
             z_p = np.zeros(num_nodes, dtype=np.bool)
-            z_p[qubit_index_2] = True
+            z_p[j] = True
             pauli_list.append([-weight, Pauli(z_p, zero)])
 
             shift += weight

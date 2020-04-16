@@ -15,7 +15,7 @@
 """Variable interface"""
 
 from enum import Enum
-from typing import Tuple
+from typing import Tuple, Union
 
 from qiskit.optimization import infinity, QiskitOptimizationError
 from qiskit.optimization.problems.has_quadratic_program import HasQuadraticProgram
@@ -31,8 +31,10 @@ class VarType(Enum):
 class Variable(HasQuadraticProgram):
     """Representation of a variable."""
 
-    def __init__(self, quadratic_program: 'QuadraticProgram', name: str, lowerbound: float = 0,
-                 upperbound: float = infinity, vartype: VarType = VarType.CONTINUOUS) -> None:
+    def __init__(self, quadratic_program: 'QuadraticProgram', name: str,
+                 lowerbound: Union[float, int] = 0,
+                 upperbound: Union[float, int] = infinity,
+                 vartype: VarType = VarType.CONTINUOUS) -> None:
         """Creates a new Variable.
 
         The variables is exposed by the top-level `QuadraticProgram` class
@@ -68,7 +70,7 @@ class Variable(HasQuadraticProgram):
         return self._name
 
     @property
-    def lowerbound(self) -> float:
+    def lowerbound(self) -> Union[float, int]:
         """Returns the lowerbound of the variable.
 
         Returns:
@@ -77,7 +79,7 @@ class Variable(HasQuadraticProgram):
         return self._lowerbound
 
     @lowerbound.setter
-    def lowerbound(self, lowerbound: float) -> None:
+    def lowerbound(self, lowerbound: Union[float, int]) -> None:
         """Sets the lowerbound of the variable.
 
         Args:
@@ -91,7 +93,7 @@ class Variable(HasQuadraticProgram):
         self._lowerbound = lowerbound
 
     @property
-    def upperbound(self) -> float:
+    def upperbound(self) -> Union[float, int]:
         """Returns the upperbound of the variable.
 
         Returns:
@@ -100,7 +102,7 @@ class Variable(HasQuadraticProgram):
         return self._upperbound
 
     @upperbound.setter
-    def upperbound(self, upperbound: float) -> None:
+    def upperbound(self, upperbound: Union[float, int]) -> None:
         """Sets the upperbound of the variable.
 
         Args:
@@ -132,11 +134,11 @@ class Variable(HasQuadraticProgram):
         """
         self._vartype = vartype
 
-    def as_tuple(self) -> Tuple[str, float, float, VarType]:
+    def as_tuple(self) -> Tuple[str, Union[float, int], Union[float, int], VarType]:
         """ Returns a tuple corresponding to this variable.
 
         Returns:
             A tuple corresponding to this variable consisting of name, lowerbound, upperbound and
             variable type.
         """
-        return (self.name, self.lowerbound, self.upperbound, self.vartype)
+        return self.name, self.lowerbound, self.upperbound, self.vartype
