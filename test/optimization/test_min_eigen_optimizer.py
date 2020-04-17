@@ -49,8 +49,8 @@ class TestMinEigenOptimizer(QiskitOptimizationTestCase):
 
     @data(
         ('exact', None, 'op_ip1.lp'),
-        # ('qaoa', 'statevector_simulator', 'op_ip1.lp'),
-        # ('qaoa', 'qasm_simulator', 'op_ip1.lp')
+        ('qaoa', 'statevector_simulator', 'op_ip1.lp'),
+        ('qaoa', 'qasm_simulator', 'op_ip1.lp')
     )
     def test_min_eigen_optimizer(self, config):
         """ Min Eigen Optimizer Test """

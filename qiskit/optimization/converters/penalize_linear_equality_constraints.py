@@ -102,9 +102,9 @@ class PenalizeLinearEqualityConstraints:
                     # else create new key and value in the quadratic term dict
 
                     # according to implementation of quadratic terms in OptimizationModel,
-                    # multiply by 2
+                    # don't need to multiply by 2, since loops run over (x, y) and (y, x).
                     quadratic[(j, k)] = quadratic.get((j, k), 0.0) \
-                        + penalty_factor * coef_1 * coef_2 * 2
+                        + penalty_factor * coef_1 * coef_2
 
         if self._src.objective.sense == ObjSense.MINIMIZE:
             self._dst.minimize(offset, linear, quadratic)

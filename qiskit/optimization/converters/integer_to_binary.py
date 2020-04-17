@@ -24,7 +24,7 @@ from ..algorithms.optimization_algorithm import OptimizationResult
 from ..exceptions import QiskitOptimizationError
 from ..problems.quadratic_objective import ObjSense
 from ..problems.quadratic_program import QuadraticProgram
-from ..problems.variable import VarType
+from ..problems.variable import Variable, VarType
 
 logger = logging.getLogger(__name__)
 
@@ -52,8 +52,8 @@ class IntegerToBinary:
 
         self._src = None
         self._dst = None
-        self._conv: Dict[str, List[Tuple[str, int]]] = {}
-        # e.g., self._conv = {'x': [('x@1', 1), ('x@2', 2)]}
+        self._conv: Dict[Variable, List[Tuple[str, int]]] = {}
+        # e.g., self._conv = {x: [('x@1', 1), ('x@2', 2)]}
 
     def encode(self, op: QuadraticProgram, name: Optional[str] = None) -> QuadraticProgram:
         """Convert an integer problem into a new problem with binary variables.
@@ -81,7 +81,7 @@ class IntegerToBinary:
         for x in self._src.variables:
             if x.vartype == VarType.INTEGER:
                 new_vars = self._encode_var(x.name, x.lowerbound, x.upperbound)
-                self._conv[x.name] = new_vars
+                self._conv[x] = new_vars
                 for (var_name, _) in new_vars:
                     self._dst.binary_var(var_name)
             else:
@@ -110,8 +110,8 @@ class IntegerToBinary:
         linear = {}
         for name, v in coefficients.items():
             x = self._src.get_variable(name)
-            if x.name in self._conv:
-                for y, coeff in self._conv[x.name]:
+            if x in self._conv:
+                for y, coeff in self._conv[x]:
                     linear[y] = v * coeff
                 constant += v * x.lowerbound
             else:
@@ -128,17 +128,17 @@ class IntegerToBinary:
             x = self._src.get_variable(name_i)
             y = self._src.get_variable(name_j)
 
-            if x.name in self._conv and y.name not in self._conv:
-                for z_x, coeff_x in self._conv[x.name]:
+            if x in self._conv and y not in self._conv:
+                for z_x, coeff_x in self._conv[x]:
                     quadratic[z_x, y.name] = v * coeff_x
                 linear[y.name] = linear.get(y.name, 0.0) + v * x.lowerbound
 
-            elif x.name not in self._conv and y.name in self._conv:
+            elif x not in self._conv and y in self._conv:
                 for z_y, coeff_y in self._conv[y]:
                     quadratic[x.name, z_y] = v * coeff_y
                 linear[x.name] = linear.get(x.name, 0.0) + v * y.lowerbound
 
-            elif x.name in self._conv and y.name in self._conv:
+            elif x in self._conv and y in self._conv:
                 for z_x, coeff_x in self._conv[x]:
                     for z_y, coeff_y in self._conv[y]:
                         quadratic[z_x, z_y] = v * coeff_x * coeff_y
