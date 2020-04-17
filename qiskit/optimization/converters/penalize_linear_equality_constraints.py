@@ -95,8 +95,8 @@ class PenalizeLinearEqualityConstraints:
                 linear[j] = linear.get(j, 0.0) + penalty_factor * -2 * coef * constant
 
             # quadratic parts of penalty*(Constant-func)**2: penalty*(func**2)
-            for j, coef_1 in zip(row.ind, row.val):
-                for k, coef_2 in zip(row.ind, row.val):
+            for j, coef_1 in row.items():
+                for k, coef_2 in row.items():
                     # if j and k already exist in the quadratic terms dict,
                     # add a penalty term into existing value
                     # else create new key and value in the quadratic term dict

@@ -115,7 +115,7 @@ class QuadraticProgramToQubo:
         if not all([constraint.sense == ConstraintSense.EQ
                     for constraint in problem.linear_constraints]):
             msg += 'Only linear equality constraints are supported.'
-        if problem.quadratic_constraints.get_num() > 0:
+        if len(problem.quadratic_constraints) > 0:
             msg += 'Quadratic constraints are not supported. '
 
         # if an error occurred, return error message, otherwise, return None
