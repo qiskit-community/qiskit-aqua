@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 class QEomEE(NumPyMinimumEigensolver):
-    """ QEomEE algorithm """
+    """ QEomEE algorithm (classical) """
 
     def __init__(self, operator: BaseOperator, num_orbitals: int,
                  num_particles: Union[List[int], int],
