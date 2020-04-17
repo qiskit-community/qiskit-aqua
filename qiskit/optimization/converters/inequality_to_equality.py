@@ -11,7 +11,6 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-
 """The inequality to equality converter."""
 
 import copy
@@ -26,14 +25,6 @@ from ..problems.variable import VarType
 from ..exceptions import QiskitOptimizationError
 
 logger = logging.getLogger(__name__)
-
-_HAS_CPLEX = False
-try:
-    from cplex import SparsePair
-
-    _HAS_CPLEX = True
-except ImportError:
-    logger.info('CPLEX is not installed.')
 
 
 class InequalityToEquality:
@@ -50,8 +41,6 @@ class InequalityToEquality:
 
     def __init__(self) -> None:
         """Initialize the inequality to equality variable converter."""
-        if not _HAS_CPLEX:
-            raise NameError('CPLEX is not installed.')
 
         self._src = None
         self._dst = None
@@ -59,7 +48,7 @@ class InequalityToEquality:
         # e.g., self._conv = {'c1': [c1@slack_var]}
 
     def encode(
-        self, op: QuadraticProgram, name: Optional[str] = None, mode: str = 'auto'
+            self, op: QuadraticProgram, name: Optional[str] = None, mode: str = 'auto'
     ) -> QuadraticProgram:
         """Convert a problem with inequality constraints into one with only equality constraints.
 
@@ -93,11 +82,11 @@ class InequalityToEquality:
                 self._dst.binary_var(name=x.name)
             elif x.vartype == VarType.INTEGER:
                 self._dst.integer_var(
-                    name=x.name, lower_bound=x.lower_bound, upperbound=x.upper_bound
+                    name=x.name, lowerbound=x.lowerbound, upperbound=x.upperbound
                 )
             elif x.vartype == VarType.CONTINUOUS:
                 self._dst.continuous_var(
-                    name=x.name, lower_bound=x.lower_bound, upperbound=x.upper_bound
+                    name=x.name, lowerbound=x.lowerbound, upperbound=x.upperbound
                 )
             else:
                 raise QiskitOptimizationError("Unsupported variable type {}".format(x.vartype))
@@ -191,7 +180,7 @@ class InequalityToEquality:
 
     def _add_integer_slack_var_linear_constraint(self, linear, sense, rhs, name):
         # If a coefficient that is not integer exist, raise error
-        if any(isinstance(coef, float) and not coef.is_integer() for coef in inear.values()):
+        if any(isinstance(coef, float) and not coef.is_integer() for coef in linear.values()):
             raise QiskitOptimizationError('Can not use a slack variable for ' + name)
 
         # If rhs is float number, round up/down to the nearest integer.
@@ -230,12 +219,12 @@ class InequalityToEquality:
         if sense == ConstraintSense.LE:
             sign = 1
             self._dst.continuous_var(
-                name=[slack_name], lowerbound=[0], upperbound=[new_rhs - lhs_lb]
+                name=[slack_name], lowerbound=[0], upperbound=[rhs - lhs_lb]
             )
         elif sense == ConstraintSense.GE:
             sign = -1
             self._dst.continuous_var(
-                name=[slack_name], lowerbound=[0], upperbound=[lhs_ub - new_rhs]
+                name=[slack_name], lowerbound=[0], upperbound=[lhs_ub - rhs]
             )
         else:
             raise QiskitOptimizationError('The type of Sense in {} is not supported'.format(name))
@@ -256,7 +245,7 @@ class InequalityToEquality:
     def _add_integer_slack_var_quadratic_constraint(self, linear, quadratic, sense, rhs, name):
         # If a coefficient that is not integer exist, raise an error
         if any(
-            isinstance(coef, float) and not coef.is_integer() for coef in quadratic.values()
+                isinstance(coef, float) and not coef.is_integer() for coef in quadratic.values()
         ) or any(isinstance(coef, float) and not coef.is_integer() for coef in linear.values()):
             raise QiskitOptimizationError('Can not use a slack variable for ' + name)
 
@@ -290,7 +279,7 @@ class InequalityToEquality:
     def _add_continuous_slack_var_quadratic_constraint(self, linear, quadratic, sense, rhs, name):
         # If a coefficient that is not integer exist, raise error
         if any(
-            isinstance(coef, float) and not coef.is_integer() for coef in quadratic.values()
+                isinstance(coef, float) and not coef.is_integer() for coef in quadratic.values()
         ) or any(isinstance(coef, float) and not coef.is_integer() for coef in linear.values()):
             raise QiskitOptimizationError('Can not use a slack variable for ' + name)
 
@@ -302,13 +291,13 @@ class InequalityToEquality:
 
         if sense == ConstraintSense.LE:
             sign = 1
-            self._dst.continous_var(
-                name=[slack_name], lowerbound=[0], upperbound=[new_rhs - lhs_lb]
+            self._dst.continuous_var(
+                name=[slack_name], lowerbound=[0], upperbound=[rhs - lhs_lb]
             )
         elif sense == ConstraintSense.GE:
             sign = -1
             self._dst.continuous_var(
-                name=[slack_name], lowerbound=[0], upperbound=[lhs_ub - new_rhs]
+                name=[slack_name], lowerbound=[0], upperbound=[lhs_ub - rhs]
             )
         else:
             raise QiskitOptimizationError('The type of Sense in {} is not supported'.format(name))
@@ -321,9 +310,9 @@ class InequalityToEquality:
     def _add_auto_slack_var_quadratic_constraint(self, linear, quadratic, sense, rhs, name):
         # If a coefficient that is not integer exist, use a continuous slack variable
         if any(
-            isinstance(coef, float) and not coef.is_integer() for coef in quadratic.values()
+                isinstance(coef, float) and not coef.is_integer() for coef in quadratic.values()
         ) or any(isinstance(coef, float) and not coef.is_integer() for coef in linear.values()):
-            self._add_continuos_slack_var_quadratic_constraint(linear, quadratic, sense, rhs, name)
+            self._add_continuous_slack_var_quadratic_constraint(linear, quadratic, sense, rhs, name)
         # Else use an integer slack variable
         else:
             self._add_integer_slack_var_quadratic_constraint(linear, quadratic, sense, rhs, name)
@@ -339,14 +328,14 @@ class InequalityToEquality:
     def _calc_quadratic_bounds(self, linear, quadratic):
         lhs_lb, lhs_ub = 0, 0
         # Calcurate the lowerbound and the upperbound of the linear part
-        linear_lb, linear_ub = self._cal_quadratic_bounds(linear)
+        linear_lb, linear_ub = self._calc_linear_bounds(linear)
         lhs_lb += linear_lb
         lhs_ub += linear_ub
 
         # Calcurate the lowerbound and the upperbound of the quadratic part
         for (name_i, name_j), v in quadratic.items():
-            x = self.src.get_variable(name_i)
-            y = self.src.get_variable(name_j)
+            x = self._src.get_variable(name_i)
+            y = self._src.get_variable(name_j)
 
             lhs_lb += min(
                 x.lowerbound * y.lowerbound * v,
@@ -375,7 +364,7 @@ class InequalityToEquality:
 
         new_result = OptimizationResult()
         # convert the optimization result into that of the original problem
-        names = self._dst.variables.get_names()
+        names = self._dst.variables()
         vals = result.x
         new_vals = self._decode_var(names, vals)
         new_result.x = new_vals
