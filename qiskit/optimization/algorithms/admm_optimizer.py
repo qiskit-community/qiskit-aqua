@@ -634,12 +634,10 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # prepare and set quadratic objective.
         # NOTE: The multiplication by 2 is needed for the solvers to parse
         # the quadratic coefficients.
-        # todo: do we need multiplication by two?
+        # todo: do we need multiplication by two? For anything other than self._state.q0
         quadratic_objective = self._state.q0 +\
-            2 * (
-                self._params.factor_c / 2 * np.dot(self._state.a0.transpose(), self._state.a0) +
+                self._params.factor_c / 2 * np.dot(self._state.a0.transpose(), self._state.a0) +\
                 self._state.rho / 2 * np.eye(binary_size)
-            )
         # for i in range(binary_size):
         #     for j in range(i, binary_size):
         #         op1.objective.set_quadratic_coefficients(i, j, quadratic_objective[i, j])
@@ -676,7 +674,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
         continuous_index = 0
         for variable in self._state.op.variables:
             if variable.vartype == VarType.CONTINUOUS:
-                op2.continuous_var(name="u0_" + str(continuous_index + 1), lowerbound=variable.lowerbound, upperbound=variable.upperbound)
+                op2.continuous_var(name="u0_" + str(continuous_index + 1),
+                                   lowerbound=variable.lowerbound, upperbound=variable.upperbound)
                 continuous_index += 1
 
         # add z variables.
@@ -687,7 +686,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
         for i in range(binary_size):
             op2.binary_var(name="z0_" + str(i + 1))
 
-        q_z = 2 * (self._state.rho / 2 * np.eye(binary_size))
+        # todo: do we need the 2*
+        q_z = self._state.rho / 2 * np.eye(binary_size)
         op2.objective.quadratic = block_diag(self._state.q1, q_z)
         # set quadratic objective coefficients for u variables.
         # if continuous_size:
@@ -820,9 +820,9 @@ class ADMMOptimizer(OptimizationAlgorithm):
             op3.continuous_var(name="y_" + str(i + 1), lowerbound=-np.inf, upperbound=np.inf)
 
         # set quadratic objective.
-        # NOTE: The multiplication by 2 is needed for the solvers to parse the quadratic coeff-s.
-        q_y = 2 * (self._params.beta / 2 * np.eye(binary_size) +
-                   self._state.rho / 2 * np.eye(binary_size))
+        # todo: do we need 2*?
+        q_y = self._params.beta / 2 * np.eye(binary_size) + \
+                   self._state.rho / 2 * np.eye(binary_size)
         # for i in range(binary_size):
         #     for j in range(i, binary_size):
         #         op3.objective.set_quadratic_coefficients(i, j, q_y[i, j])
