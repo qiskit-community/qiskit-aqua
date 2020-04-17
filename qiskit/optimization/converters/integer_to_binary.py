@@ -15,14 +15,16 @@
 """The converter to map integer variables in a quadratic program to binary variables."""
 
 import copy
-from typing import Dict, List, Optional, Tuple
 import logging
+from typing import Dict, List, Optional, Tuple
+
 import numpy as np
 
-from ..problems.quadratic_program import QuadraticProgram
-from ..problems.quadratic_objective import ObjSense
-from ..problems.variable import VarType
+from ..algorithms.optimization_algorithm import OptimizationResult
 from ..exceptions import QiskitOptimizationError
+from ..problems.quadratic_objective import ObjSense
+from ..problems.quadratic_program import QuadraticProgram
+from ..problems.variable import VarType
 
 logger = logging.getLogger(__name__)
 
@@ -78,18 +80,15 @@ class IntegerToBinary:
         # declare variables
         for x in self._src.variables:
             if x.vartype == VarType.INTEGER:
-                new_vars: List[Tuple[str, int]] = self._encode_var(
-                    name=x.name, lowerbound=x.lowerbound, upperbound=x.upperbound
-                )
-                self._conv[x] = new_vars
+                new_vars = self._encode_var(x.name, x.lowerbound, x.upperbound)
+                self._conv[x.name] = new_vars
                 for (var_name, _) in new_vars:
-                    self._dst.binary_var(name=var_name)
+                    self._dst.binary_var(var_name)
             else:
                 if x.vartype == VarType.CONTINUOUS:
-                    self._dst.continuous_var(name=x.name, lowerbound=x.lowerbound,
-                                             upperbound=x.upperbound)
+                    self._dst.continuous_var(x.lowerbound, x.upperbound, x.name)
                 elif x.vartype == VarType.BINARY:
-                    self._dst.binary_var(name=x.name)
+                    self._dst.binary_var(x.name)
                 else:
                     raise QiskitOptimizationError("Unsupported variable type {}".format(x.vartype))
 
@@ -102,25 +101,17 @@ class IntegerToBinary:
         power = int(np.log2(var_range))
         bounded_coef = var_range - (2 ** power - 1)
 
-        lst = []
-        for i in range(power):
-            coef = 2 ** i
-            new_name = name + self._delimiter + str(i)
-            lst.append((new_name, coef))
+        coeffs = [2 ** i for i in range(power)] + [bounded_coef]
+        return [(name + self._delimiter + str(i), coef) for i, coef in enumerate(coeffs)]
 
-        new_name = name + self._delimiter + str(power)
-        lst.append((new_name, bounded_coef))
-
-        return lst
-
-    def _encode_linear_coefficients_dict(self, coefficients: Dict[str, float]) -> Dict[str, float]:
-
+    def _encode_linear_coefficients_dict(self, coefficients: Dict[str, float]) \
+            -> Tuple[Dict[str, float], float]:
         constant = 0
         linear = {}
         for name, v in coefficients.items():
             x = self._src.get_variable(name)
-            if x in self._conv:
-                for y, coeff in self._conv[x]:
+            if x.name in self._conv:
+                for y, coeff in self._conv[x.name]:
                     linear[y] = v * coeff
                 constant += v * x.lowerbound
             else:
@@ -129,8 +120,7 @@ class IntegerToBinary:
         return linear, constant
 
     def _encode_quadratic_coefficients_dict(self, coefficients: Dict[Tuple[str, str], float]) \
-            -> Dict[Tuple[str, str], float]:
-
+            -> Tuple[Dict[Tuple[str, str], float], Dict[str, float], float]:
         constant = 0
         linear = {}
         quadratic = {}
@@ -138,20 +128,20 @@ class IntegerToBinary:
             x = self._src.get_variable(name_i)
             y = self._src.get_variable(name_j)
 
-            if x in self._conv and y not in self._conv:
-                for z_x, coeff_x in self._conv[x]:
-                    quadratic[(z_x, y.name)] = v * coeff_x
+            if x.name in self._conv and y.name not in self._conv:
+                for z_x, coeff_x in self._conv[x.name]:
+                    quadratic[z_x, y.name] = v * coeff_x
                 linear[y.name] = linear.get(y.name, 0.0) + v * x.lowerbound
 
-            elif x not in self._conv and y in self._conv:
+            elif x.name not in self._conv and y.name in self._conv:
                 for z_y, coeff_y in self._conv[y]:
-                    quadratic[(x.name, z_y)] = v * coeff_y
+                    quadratic[x.name, z_y] = v * coeff_y
                 linear[x.name] = linear.get(x.name, 0.0) + v * y.lowerbound
 
-            elif x in self._conv and y in self._conv:
+            elif x.name in self._conv and y.name in self._conv:
                 for z_x, coeff_x in self._conv[x]:
                     for z_y, coeff_y in self._conv[y]:
-                        quadratic[(z_x, z_y)] = v * coeff_x * coeff_y
+                        quadratic[z_x, z_y] = v * coeff_x * coeff_y
 
                 for z_x, coeff_x in self._conv[x]:
                     linear[z_x] = linear.get(z_x, 0.0) + v * y.lowerbound
@@ -161,7 +151,7 @@ class IntegerToBinary:
                 constant += v * x.lowerbound * y.lowerbound
 
             else:
-                quadratic[(x.name, y.name)] = v
+                quadratic[x.name, y.name] = v
 
         return quadratic, linear, constant
 
@@ -179,13 +169,9 @@ class IntegerToBinary:
             linear[i] = linear.get(i, 0) + v
 
         if self._src.objective.sense == ObjSense.MINIMIZE:
-            self._dst.minimize(constant,
-                               linear,
-                               quadratic)
+            self._dst.minimize(constant, linear, quadratic)
         else:
-            self._dst.maximize(constant,
-                               linear,
-                               quadratic)
+            self._dst.maximize(constant, linear, quadratic)
 
         # set linear constraints
         for constraint in self._src.linear_constraints:
@@ -207,7 +193,7 @@ class IntegerToBinary:
             self._dst.quadratic_constraint(linear, quadratic, constraint.sense,
                                            constraint.rhs - constant, constraint.name)
 
-    def decode(self, result: 'OptimizationResult') -> 'OptimizationResult':
+    def decode(self, result: OptimizationResult) -> OptimizationResult:
         """Convert the encoded problem (binary variables) back to the original (integer variables).
 
         Args:
