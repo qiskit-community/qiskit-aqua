@@ -146,7 +146,7 @@ def _safe_submit_qobj(qobj, backend, backend_options, noise_config, skip_qobj_va
             logger.warning("FAILURE: Can not get job id, Resubmit the qobj to get job id. "
                            "Terra job error: %s ", ex)
             if is_ibmq_provider(backend) and 'Error code: 3458' in str(ex):
-                # TODO Use IBMQBackendJobLimitError when new ibmq-provider is released.
+                # TODO Use IBMQBackendJobLimitError when new IBM Q provider is released.
                 oldest_running = backend.jobs(limit=1, descending=False,
                                               status=['QUEUED', 'VALIDATING', 'RUNNING'])
                 if oldest_running:
