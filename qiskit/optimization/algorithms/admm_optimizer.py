@@ -287,7 +287,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
                 and (elapsed_time < self._params.max_time):
             if binary_indices:
                 op1 = self._create_step1_problem()
-                print("OP1: ", op1.print_as_lp_string())
+
                 self._state.x0 = self._update_x0(op1)
             # else, no binary variables exist,
             # and no update to be done in this case.
