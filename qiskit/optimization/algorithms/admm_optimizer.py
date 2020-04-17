@@ -297,6 +297,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
             op2 = self._create_step2_problem()
             self._state.u, self._state.z = self._update_x1(op2)
             # debug
+            print("OP2: ", op2.print_as_lp_string())
             self._log.debug("u=%s", self._state.u)
             self._log.debug("z=%s", self._state.z)
 
@@ -305,6 +306,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
                     op3 = self._create_step3_problem()
                     self._state.y = self._update_y(op3)
                 # debug
+                print("OP3: ", op3.print_as_lp_string())
                 self._log.debug("y=%s", self._state.y)
 
             self._state.lambda_mult = self._update_lambda_mult()
@@ -684,7 +686,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         #                   lb=[0.] * binary_size,
         #                   ub=[1.] * binary_size)
         for i in range(binary_size):
-            op2.binary_var(name="z0_" + str(i + 1))
+            op2.continuous_var(name="z0_" + str(i + 1), lowerbound=0, upperbound=1.)
 
         # todo: do we need the 2*
         q_z = self._state.rho / 2 * np.eye(binary_size)
