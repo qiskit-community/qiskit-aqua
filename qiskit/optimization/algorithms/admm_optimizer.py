@@ -963,7 +963,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         """
 
         def quadratic_form(matrix, x, c):
-            return np.dot(x.T, np.dot(matrix / 2, x)) + np.dot(c.T, x)
+            return np.dot(x.T, np.dot(matrix, x)) + np.dot(c.T, x)
 
         obj_val = quadratic_form(self._state.q0, self._state.x0, self._state.c0)
         obj_val += quadratic_form(self._state.q1, self._state.u, self._state.c1)
