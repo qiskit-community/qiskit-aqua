@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -18,6 +18,8 @@ This module implements the abstract base class for driver modules.
 
 from abc import ABC, abstractmethod
 from enum import Enum
+
+from qiskit.chemistry import QMolecule
 
 
 class UnitsType(Enum):
@@ -35,8 +37,7 @@ class HFMethodType(Enum):
 
 class BaseDriver(ABC):
     """
-    Base class for Drivers.
-
+    Base class for Qiskit Chemistry Drivers.
     """
 
     @abstractmethod
@@ -44,6 +45,11 @@ class BaseDriver(ABC):
         pass
 
     @abstractmethod
-    def run(self):
-        """ runs driver """
+    def run(self) -> QMolecule:
+        """
+        Runs driver to produce a QMolecule output.
+
+        Returns:
+            A QMolecule containing the molecular data.
+        """
         pass

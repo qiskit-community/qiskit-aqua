@@ -28,7 +28,19 @@ logger = logging.getLogger(__name__)
 
 
 class QMolecule:
-    """Molecule data class with driver information."""
+    """
+    Molecule data class containing driver result.
+
+    When one of the chemistry :mod:`~qiskit.chemistry.drivers` is run and instance
+    of this class is returned. This contains various properties that are made available in
+    a consistent manner across the various drivers.
+
+    Note that values here, for the same input molecule to each driver, may be vary across
+    the drivers underlying code implementation. Also some drivers may not provide certain fields
+    such as dipole integrals in the case of :class:`~qiskit.chemistry.drivers.PyQuanteDriver`.
+
+    This class provides methods to save it and load it again from an HDF5 file
+    """
 
     QMOLECULE_VERSION = 2
 
@@ -102,16 +114,16 @@ class QMolecule:
 
     @property
     def one_body_integrals(self):
-        """ returns one body integrals """
+        """ Returns one body electron integrals. """
         return QMolecule.onee_to_spin(self.mo_onee_ints, self.mo_onee_ints_b)
 
     @property
     def two_body_integrals(self):
-        """ returns two body integrals """
+        """ Returns two body electron integrals. """
         return QMolecule.twoe_to_spin(self.mo_eri_ints, self.mo_eri_ints_bb, self.mo_eri_ints_ba)
 
     def has_dipole_integrals(self):
-        """ check if has dipole integrals """
+        """ Check if dipole integrals are present. """
         return self.x_dip_mo_ints is not None and \
             self.y_dip_mo_ints is not None and \
             self.z_dip_mo_ints is not None
