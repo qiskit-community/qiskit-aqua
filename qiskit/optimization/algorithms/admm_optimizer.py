@@ -297,7 +297,6 @@ class ADMMOptimizer(OptimizationAlgorithm):
             op2 = self._create_step2_problem()
             self._state.u, self._state.z = self._update_x1(op2)
             # debug
-            print("OP2: ", op2.print_as_lp_string())
             self._log.debug("u=%s", self._state.u)
             self._log.debug("z=%s", self._state.z)
 
