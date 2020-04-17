@@ -114,6 +114,15 @@ class TestQuadraticExpression(QiskitOptimizationTestCase):
         for values in [values_list, values_array, values_dict_int, values_dict_str]:
             self.assertEqual(quadratic.evaluate(values), 900)
 
+    def test_symmetric_set(self):
+        """ test symmetric set """
+        q_p = QuadraticProgram()
+        q_p.binary_var('x')
+        q_p.binary_var('y')
+        q_p.binary_var('z')
+        quad = QuadraticExpression(q_p, {('x', 'y'): -1, ('y', 'x'): 2, ('z', 'x'): 3})
+        self.assertDictEqual(quad.to_dict(use_name=True), {('x', 'y'): 1, ('x', 'z'): 3})
+
 
 if __name__ == '__main__':
     unittest.main()
