@@ -681,10 +681,6 @@ class ADMMOptimizer(OptimizationAlgorithm):
                 continuous_index += 1
 
         # add z variables.
-        # op2.variables.add(names=["z0_" + str(i + 1) for i in range(binary_size)],
-        #                   types=["C"] * binary_size,
-        #                   lb=[0.] * binary_size,
-        #                   ub=[1.] * binary_size)
         for i in range(binary_size):
             op2.continuous_var(name="z0_" + str(i + 1), lowerbound=0, upperbound=1.)
 
