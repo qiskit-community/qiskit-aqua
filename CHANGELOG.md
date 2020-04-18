@@ -22,7 +22,7 @@ Added
 -----
 
 -   NFT optimizer, part of a project of Qiskit Camp Asia 2019 (#729)
--   Algorithm interface and result classes (#849) 
+-   Algorithm interface and result classes (#849)
 -   Chemistry FCIDump file driver (#859)
 -   Chemistry stack automatic Z2 symmetry reduction (#870)
 -   Ising Optimization: The 0-1 Knapsack problem (#878)
@@ -41,13 +41,19 @@ Removed
 -------
 
 -   Declarative api (#758) (#759) (#760) (#762) (#763)
--   Moved to Terra: multi-controlled Toffoli, U1 and Pauli rotation gates (including tests) (#833)
+-   Moved to Terra:
+    -   multi-controlled Toffoli, U1 and Pauli rotation gates (including tests) (#833)
+    -   arithmetic circuits in qiskit/aqua/circuits (#895)
+    -   boolean logic gates (#896)
 
 Fixed
 -----
 
 -   Boolean logic circuit construction (#819)
 -   Measurement on actual devices for Amplitude Estimation algorithms (#841) (#842)
+-   Supported constant values on the left-hand side of constraints and variables on the right-hand
+    side of constraints for the DOcplex translator (#750)
+-   WeightedPauliOperator constructor simplification bug (#891)
 
 [0.6.5](https://github.com/Qiskit/qiskit-aqua/compare/0.6.4...0.6.5) - 2020-03-16
 =================================================================================

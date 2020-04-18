@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Quantum SVM algorithm."""
+"""The Quantum SVM algorithm."""
 
 from typing import Dict, Optional, Union
 import logging
