@@ -11,8 +11,8 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""
-The Variational Quantum Algorithm Base Class.
+
+"""The Variational Quantum Algorithm Base Class.
 
 This class can be used an interface for working with Variation Quantum Algorithms, such as VQE,
 QAOA, or QSVM, and also provides helper utilities for implementing new variational algorithms.
@@ -42,9 +42,7 @@ logger = logging.getLogger(__name__)
 
 
 class VQAlgorithm(QuantumAlgorithm):
-    """
-    The Variational Quantum Algorithm Base Class.
-    """
+    """The Variational Quantum Algorithm Base Class."""
 
     def __init__(self,
                  var_form: Union[QuantumCircuit, VariationalForm],
@@ -61,6 +59,7 @@ class VQAlgorithm(QuantumAlgorithm):
             initial_point: An optional initial point (i.e. initial parameter values)
                 for the optimizer.
             quantum_instance: Quantum Instance or Backend
+
         Raises:
              ValueError: for invalid input
         """
@@ -123,8 +122,7 @@ class VQAlgorithm(QuantumAlgorithm):
                      cost_fn: Optional[Callable] = None,
                      optimizer: Optional[Optimizer] = None,
                      gradient_fn: Optional[Callable] = None) -> 'VQResult':
-        """
-        Optimize to find the minimum cost value.
+        """Optimize to find the minimum cost value.
 
         Args:
             initial_point: If not `None` will be used instead of any initial point supplied via
@@ -156,10 +154,7 @@ class VQAlgorithm(QuantumAlgorithm):
         if optimizer is None:
             raise ValueError('Optimizer neither supplied to constructor nor find minimum.')
 
-        if isinstance(var_form, QuantumCircuit):
-            nparms = len(var_form.parameters)
-        else:
-            nparms = var_form.num_parameters
+        nparms = var_form.num_parameters
 
         if hasattr(var_form, 'parameter_bounds'):
             bounds = var_form.parameter_bounds
