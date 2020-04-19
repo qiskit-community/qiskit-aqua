@@ -46,7 +46,6 @@ class OperatorStateFn(StateFn):
     as there is no requirement of normalization.
     """
 
-    # TODO maybe break up into different classes for different fn definition primitives
     # TODO allow normalization somehow?
     def __init__(self,
                  primitive: Union[OperatorBase] = None,

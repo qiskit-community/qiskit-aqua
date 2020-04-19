@@ -51,7 +51,6 @@ class DictStateFn(StateFn):
     no requirement of normalization.
     """
 
-    # TODO maybe break up into different classes for different fn definition primitives
     # TODO allow normalization somehow?
     def __init__(self,
                  primitive: Union[str, dict, Result] = None,

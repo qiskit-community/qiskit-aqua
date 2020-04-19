@@ -23,8 +23,8 @@ logger = logging.getLogger(__name__)
 
 
 class MatrixEvolution(EvolutionBase):
-    """ TODO - blocked on whether we can make the UnitaryGate hold the matrix and a
-    ParameterExpression for the evolution time.
+    """ Constructs a circuit with Unitary or HamiltonianGates to represent the exponentiation of
+    the operator.
 
     """
 

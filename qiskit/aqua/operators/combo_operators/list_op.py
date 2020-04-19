@@ -319,7 +319,8 @@ class ListOp(OperatorBase):
 
     def to_matrix_op(self, massive: bool = False) -> OperatorBase:
         """ Return a MatrixOp for this operator. """
-        return self.__class__([op.to_matrix_op(massive=massive) for op in self.oplist]).reduce()
+        return self.__class__([op.to_matrix_op(massive=massive) for op in self.oplist],
+                              coeff=self.coeff).reduce()
 
     # Array operations:
 

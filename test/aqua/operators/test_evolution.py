@@ -18,8 +18,9 @@ import unittest
 from test.aqua import QiskitAquaTestCase
 
 import numpy as np
+import scipy.linalg
 
-from qiskit.circuit import ParameterVector
+from qiskit.circuit import ParameterVector, Parameter
 
 from qiskit.aqua.operators import (X, Y, Z, I, CX, H, ListOp, CircuitOp, Zero, EvolutionFactory,
                                    EvolvedOp, PauliTrotterEvolution, QDrift)
@@ -142,6 +143,41 @@ class TestEvolution(QiskitAquaTestCase):
                     self.assertEqual(op.primitive.coeff, last_coeff)
                 else:
                     last_coeff = op.primitive.coeff
+
+    def test_matrix_op_evolution(self):
+        """ MatrixOp evolution test """
+        #pylint: disable=no-member
+        op = (-1.052373245772859 * I ^ I) + \
+             (0.39793742484318045 * I ^ Z) + \
+             (0.18093119978423156 * X ^ X) + \
+             (-0.39793742484318045 * Z ^ I) + \
+             (-0.01128010425623538 * Z ^ Z) * np.pi/2
+        exp_mat = op.to_matrix_op().exp_i().to_matrix()
+        ref_mat = scipy.linalg.expm(-1j * op.to_matrix())
+        np.testing.assert_array_almost_equal(ref_mat, exp_mat)
+
+    def test_matrix_op_parameterized_evolution(self):
+        """ parameterized MatrixOp evolution test """
+        # pylint: disable=no-member
+        theta = Parameter('θ')
+        op = (-1.052373245772859 * I ^ I) + \
+             (0.39793742484318045 * I ^ Z) + \
+             (0.18093119978423156 * X ^ X) + \
+             (-0.39793742484318045 * Z ^ I) + \
+             (-0.01128010425623538 * Z ^ Z)
+        op = op * theta
+        print(op.to_matrix_op().exp_i())
+        wf = (op.to_matrix_op().exp_i()) @ CX @ (H ^ I) @ Zero
+        print(wf)
+        self.assertIn(theta, wf.to_circuit().parameters)
+
+        op = op.bind_parameters({theta: 1})
+        exp_mat = op.to_matrix_op().exp_i().to_matrix()
+        ref_mat = scipy.linalg.expm(-1j * op.to_matrix())
+        np.testing.assert_array_almost_equal(ref_mat, exp_mat)
+
+        wf = wf.bind_parameters({theta: 3})
+        self.assertNotIn(theta, wf.to_circuit().parameters)
 
 
 if __name__ == '__main__':

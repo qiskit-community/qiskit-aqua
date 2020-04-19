@@ -273,8 +273,10 @@ class PauliOp(PrimitiveOp):
             # Y rotation
             if corrected_x[sig_qubit_index] and corrected_z[sig_qubit_index]:
                 rot_op = PrimitiveOp(RYGate(self.coeff))
+            # Z rotation
             elif corrected_z[sig_qubit_index]:
                 rot_op = PrimitiveOp(RZGate(self.coeff))
+            # X rotation
             elif corrected_x[sig_qubit_index]:
                 rot_op = PrimitiveOp(RXGate(self.coeff))
 

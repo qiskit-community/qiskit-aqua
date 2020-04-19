@@ -29,7 +29,8 @@ from qiskit.aqua.components.initial_states import InitialState
 class QAOAVarForm(VariationalForm):
     """Global X phases and parameterized problem hamiltonian."""
 
-    def __init__(self, cost_operator: OperatorBase,
+    def __init__(self,
+                 cost_operator: OperatorBase,
                  p: int,
                  initial_state: Optional[InitialState] = None,
                  mixer_operator: Optional[OperatorBase] = None):
