@@ -20,7 +20,7 @@ import numpy as np
 from scipy.sparse import spmatrix
 
 from qiskit.quantum_info import Operator as MatrixOperator
-from qiskit.circuit import ParameterExpression
+from qiskit.circuit import ParameterExpression, Instruction
 from qiskit.extensions.hamiltonian_gate import HamiltonianGate
 
 from ..operator_base import OperatorBase
@@ -131,8 +131,6 @@ class MatrixOp(PrimitiveOp):
         -[Y]-[X]-
         Because Terra prints circuits with the initial state at the left side of the circuit.
         """
-        # TODO accept primitives directly in addition to PrimitiveOp?
-
         other = self._check_zero_for_composition_and_expand(other)
 
         if isinstance(other, MatrixOp):
@@ -214,6 +212,5 @@ class MatrixOp(PrimitiveOp):
     def to_matrix_op(self, massive: bool = False) -> OperatorBase:
         return self
 
-    def to_circuit_op(self) -> OperatorBase:
-        """ returns an CircuitOp holding a UnitaryGate instruction constructed from this matrix """
+    def to_instruction(self) -> Instruction:
         return PrimitiveOp(self.primitive.to_instruction(), coeff=self.coeff)

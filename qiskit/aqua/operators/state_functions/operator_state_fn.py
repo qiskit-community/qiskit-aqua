@@ -106,8 +106,6 @@ class OperatorStateFn(StateFn):
         |+⟩--
         Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
         """
-        # TODO accept primitives directly in addition to PrimitiveOp?
-
         if isinstance(other, OperatorStateFn):
             return StateFn(self.primitive.tensor(other.primitive),
                            coeff=self.coeff * other.coeff,

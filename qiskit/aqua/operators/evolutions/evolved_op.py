@@ -19,10 +19,10 @@ import logging
 import numpy as np
 import scipy
 
-from qiskit.circuit import ParameterExpression
+from qiskit.circuit import ParameterExpression, Instruction
 
 from ..operator_base import OperatorBase
-from ..primitive_operators import PrimitiveOp, MatrixOp
+from ..primitive_operators import PrimitiveOp
 from ..combo_operators import SummedOp, ComposedOp, TensoredOp
 
 logger = logging.getLogger(__name__)
@@ -109,20 +109,12 @@ class EvolvedOp(PrimitiveOp):
         Because Terra prints circuits with the initial state at the
         left side of the circuit.
         """
-        # TODO accept primitives directly in addition to PrimitiveOp?
-
         other = self._check_zero_for_composition_and_expand(other)
 
         if isinstance(other, ComposedOp):
             return ComposedOp([self] + other.oplist)
 
         return ComposedOp([self, other])
-
-    def to_matrix(self, massive: bool = False) -> np.ndarray:
-        """ returns matrix """
-        prim_mat = -1.j * self.primitive.to_matrix()
-        # pylint: disable=no-member
-        return scipy.linalg.expm(prim_mat) * self.coeff
 
     def __str__(self) -> str:
         """Overload str() """
@@ -169,6 +161,13 @@ class EvolvedOp(PrimitiveOp):
         """
         return self.to_matrix_op().eval(front=front)
 
-    def to_matrix_op(self, massive: bool = False) -> OperatorBase:
-        """ Return a MatrixOp for this operator. """
-        return MatrixOp(self.to_matrix(massive=massive))
+    def to_matrix(self, massive: bool = False) -> np.ndarray:
+        """ returns matrix """
+        prim_mat = -1.j * self.primitive.to_matrix()
+        # pylint: disable=no-member
+        return scipy.linalg.expm(prim_mat) * self.coeff
+
+    # pylint: disable=arguments-differ
+    def to_instruction(self, massive: bool = False) -> Instruction:
+        """ Return an Instruction for this operator. """
+        return self.primitive.to_matrix_op(massive=massive).exp_i()

@@ -138,8 +138,6 @@ class DictStateFn(StateFn):
         |+⟩--
         Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
         """
-        # TODO accept primitives directly in addition to PrimitiveOp?
-
         # Both dicts
         if isinstance(other, DictStateFn):
             new_dict = {k1 + k2: v1 * v2 for ((k1, v1,), (k2, v2)) in

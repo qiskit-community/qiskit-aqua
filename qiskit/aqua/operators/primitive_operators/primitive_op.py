@@ -198,16 +198,35 @@ class PrimitiveOp(OperatorBase):
                 param_value = float(self.coeff.bind({coeff_param: value}))
         return self.__class__(self.primitive, coeff=param_value)
 
-    def to_matrix(self, massive: bool = False) -> np.ndarray:
-        """ Return matrix representing PrimitiveOp evaluated on each pair of basis states."""
-        raise NotImplementedError
-
     # Nothing to collapse here.
     def reduce(self) -> OperatorBase:
         return self
 
+    def to_matrix(self, massive: bool = False) -> np.ndarray:
+        """ Return matrix representing PrimitiveOp evaluated on each pair of basis states."""
+        raise NotImplementedError
+
     def to_matrix_op(self, massive: bool = False) -> OperatorBase:
         """ Return a MatrixOp for this operator. """
         # pylint: disable=import-outside-toplevel
+        prim_mat = self.__class__(self.primitive).to_matrix(massive=massive)
         from .matrix_op import MatrixOp
-        return MatrixOp(self.to_matrix(massive=massive))
+        return MatrixOp(prim_mat, coeff=self.coeff)
+
+    def to_instruction(self) -> Instruction:
+        """ Returns an Instruction representing PrimitiveOp evaluated on each pair of basis
+        states."""
+        raise NotImplementedError
+
+    def to_circuit(self) -> QuantumCircuit:
+        """ returns a QuantumCircuit holding a UnitaryGate instruction constructed from this
+        matrix """
+        qc = QuantumCircuit(self.num_qubits)
+        qc.append(self.to_instruction(), qargs=range(self.primitive.num_qubits))
+        return qc.decompose()
+
+    def to_circuit_op(self) -> OperatorBase:
+        """ Return a CircuitOp for this operator. """
+        # pylint: disable=import-outside-toplevel
+        from .circuit_op import CircuitOp
+        return CircuitOp(self.to_circuit())

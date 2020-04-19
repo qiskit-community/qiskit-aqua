@@ -273,7 +273,7 @@ class PauliBasisChange(ConverterBase):
         # if not len(sig_in_origin_only_indices) % 2 == len(sig_in_dest_only_indices) % 2:
         #     cnots.x(dest_anchor_bit)
 
-        return PrimitiveOp(cnots.to_instruction())
+        return PrimitiveOp(cnots)
 
     # TODO change to only accept PrimitiveOp Pauli.
     def get_cob_circuit(self, origin: Union[Pauli, PauliOp]) -> (PrimitiveOp, PauliOp):

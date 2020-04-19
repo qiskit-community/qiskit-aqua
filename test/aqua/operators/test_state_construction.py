@@ -18,7 +18,7 @@ import unittest
 from test.aqua import QiskitAquaTestCase
 import numpy as np
 
-from qiskit import QuantumCircuit, BasicAer, execute, ClassicalRegister
+from qiskit import QuantumCircuit, BasicAer, execute
 from qiskit.quantum_info import Statevector
 
 from qiskit.aqua.operators import (StateFn, Zero, One, Plus, Minus, PrimitiveOp,
@@ -70,11 +70,10 @@ class TestStateConstruction(QiskitAquaTestCase):
         qc.h(0)
         sv_res = execute(qc, BasicAer.get_backend('statevector_simulator')).result()
         sv_vector = sv_res.get_statevector()
-        qc_op = PrimitiveOp(qc)
+        qc_op = PrimitiveOp(qc) @ Zero
 
-        qc.add_register(ClassicalRegister(3))
-        qc.measure(range(3), range(3))
-        qasm_res = execute(qc, BasicAer.get_backend('qasm_simulator')).result()
+        qasm_res = execute(qc_op.to_circuit(meas=True),
+                           BasicAer.get_backend('qasm_simulator')).result()
 
         np.testing.assert_array_almost_equal(StateFn(sv_res).to_matrix(),
                                              [.5 ** .5, .5 ** .5, 0, 0, 0, 0, 0, 0])
@@ -86,7 +85,7 @@ class TestStateConstruction(QiskitAquaTestCase):
 
         np.testing.assert_array_almost_equal(((I ^ I ^ H) @ Zero).to_matrix(),
                                              [.5 ** .5, .5 ** .5, 0, 0, 0, 0, 0, 0])
-        np.testing.assert_array_almost_equal((qc_op @ Zero).to_matrix(),
+        np.testing.assert_array_almost_equal(qc_op.to_matrix(),
                                              [.5 ** .5, .5 ** .5, 0, 0, 0, 0, 0, 0])
 
     def test_state_meas_composition(self):

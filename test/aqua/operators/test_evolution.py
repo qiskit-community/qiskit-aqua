@@ -146,7 +146,7 @@ class TestEvolution(QiskitAquaTestCase):
 
     def test_matrix_op_evolution(self):
         """ MatrixOp evolution test """
-        #pylint: disable=no-member
+        # pylint: disable=no-member
         op = (-1.052373245772859 * I ^ I) + \
              (0.39793742484318045 * I ^ Z) + \
              (0.18093119978423156 * X ^ X) + \
@@ -166,9 +166,7 @@ class TestEvolution(QiskitAquaTestCase):
              (-0.39793742484318045 * Z ^ I) + \
              (-0.01128010425623538 * Z ^ Z)
         op = op * theta
-        print(op.to_matrix_op().exp_i())
         wf = (op.to_matrix_op().exp_i()) @ CX @ (H ^ I) @ Zero
-        print(wf)
         self.assertIn(theta, wf.to_circuit().parameters)
 
         op = op.bind_parameters({theta: 1})

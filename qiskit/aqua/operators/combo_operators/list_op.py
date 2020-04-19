@@ -322,6 +322,11 @@ class ListOp(OperatorBase):
         return self.__class__([op.to_matrix_op(massive=massive) for op in self.oplist],
                               coeff=self.coeff).reduce()
 
+    def to_circuit_op(self, massive: bool = False) -> OperatorBase:
+        """ Return a CircuitOp for this operator. """
+        return self.__class__([op.to_circuit_op(massive=massive) for op in self.oplist],
+                              coeff=self.coeff).reduce()
+
     # Array operations:
 
     def __getitem__(self, offset: int) -> OperatorBase:

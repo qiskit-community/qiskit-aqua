@@ -62,4 +62,4 @@ class PauliToInstruction(ConverterBase):
             gate = _pauli_to_gate_mapping[p]
             if not (self._delete_identities and p == 'I'):
                 qc.append(gate, qargs=[q])
-        return qc.to_instruction()
+        return qc

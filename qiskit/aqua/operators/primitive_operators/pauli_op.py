@@ -20,15 +20,16 @@ import numpy as np
 from scipy.sparse import spmatrix
 
 from qiskit import QuantumCircuit
-from qiskit.circuit import ParameterExpression
+from qiskit.circuit import ParameterExpression, Instruction
 from qiskit.quantum_info import Pauli
-from qiskit.extensions.standard import RZGate, RYGate, RXGate
+from qiskit.extensions.standard import RZGate, RYGate, RXGate, XGate, YGate, ZGate, IGate
 
 from ..operator_base import OperatorBase
 from . import PrimitiveOp
 from ..combo_operators import SummedOp, ComposedOp, TensoredOp
 
 logger = logging.getLogger(__name__)
+PAULI_GATE_MAPPING = {'X': XGate(), 'Y': YGate(), 'Z': ZGate(), 'I': IGate()}
 
 
 class PauliOp(PrimitiveOp):
@@ -101,8 +102,6 @@ class PauliOp(PrimitiveOp):
         -[X]-
         Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
         """
-        # TODO accept primitives directly in addition to PrimitiveOp?
-
         # Both Paulis
         if isinstance(other, PauliOp):
             # TODO change Pauli tensor product in Terra to have optional in place
@@ -110,19 +109,10 @@ class PauliOp(PrimitiveOp):
             # NOTE!!! REVERSING QISKIT ENDIANNESS HERE
             return PauliOp(op_copy.kron(self.primitive), coeff=self.coeff * other.coeff)
 
-        # Both Instructions/Circuits
         # pylint: disable=cyclic-import,import-outside-toplevel
         from . import CircuitOp
         if isinstance(other, CircuitOp):
-            from qiskit.aqua.operators.converters import PauliToInstruction
-            converted_primitive = PauliToInstruction().convert_pauli(self.primitive)
-            new_qc = QuantumCircuit(self.num_qubits + other.num_qubits)
-            # NOTE!!! REVERSING QISKIT ENDIANNESS HERE
-            new_qc.append(other.primitive, new_qc.qubits[0:other.num_qubits])
-            new_qc.append(converted_primitive, new_qc.qubits[other.num_qubits:])
-            # TODO Fix because converting to dag just to append is nuts
-            # TODO Figure out what to do with cbits?
-            return CircuitOp(new_qc.decompose().to_instruction(), coeff=self.coeff * other.coeff)
+            return self.to_circuit_op().tensor(other)
 
         return TensoredOp([self, other])
 
@@ -136,8 +126,6 @@ class PauliOp(PrimitiveOp):
         -[Y]-[X]-
         Because Terra prints circuits with the initial state at the left side of the circuit.
         """
-        # TODO accept primitives directly in addition to PrimitiveOp?
-
         other = self._check_zero_for_composition_and_expand(other)
 
         # If self is identity, just return other.
@@ -150,23 +138,10 @@ class PauliOp(PrimitiveOp):
             return PrimitiveOp(product, coeff=self.coeff * other.coeff * phase)
 
         # pylint: disable=cyclic-import,import-outside-toplevel
-        from . import CircuitOp
-        from .. import CircuitStateFn
+        from .circuit_op import CircuitOp
+        from ..state_functions import CircuitStateFn
         if isinstance(other, (CircuitOp, CircuitStateFn)):
-            from qiskit.aqua.operators.converters import PauliToInstruction
-            converted_primitive = PauliToInstruction().convert_pauli(self.primitive)
-            new_qc = QuantumCircuit(self.num_qubits)
-            new_qc.append(other.primitive, qargs=range(self.num_qubits))
-            new_qc.append(converted_primitive, qargs=range(self.num_qubits))
-            # TODO Fix because converting to dag just to append is nuts
-            # TODO Figure out what to do with cbits?
-            if isinstance(other, CircuitStateFn):
-                return CircuitStateFn(new_qc.decompose().to_instruction(),
-                                      is_measurement=other.is_measurement,
-                                      coeff=self.coeff * other.coeff)
-            else:
-                return CircuitOp(new_qc.decompose().to_instruction(),
-                                 coeff=self.coeff * other.coeff)
+            return self.to_circuit_op().compose(other)
 
         return ComposedOp([self, other])
 
@@ -301,3 +276,23 @@ class PauliOp(PrimitiveOp):
         self_bits = self.primitive.z.astype(int) + 2 * self.primitive.x.astype(int)
         other_bits = other_op.primitive.z.astype(int) + 2 * other_op.primitive.x.astype(int)
         return all((self_bits * other_bits) * (self_bits - other_bits) == 0)
+
+    def to_circuit(self) -> QuantumCircuit:
+        """ returns a circuit constructed from this Pauli """
+        # If Pauli equals identity, don't skip the IGates
+        is_identity = sum(self.primitive.x + self.primitive.z) == 0
+
+        # Note: Reversing endianness!!
+        qc = QuantumCircuit(len(self.primitive))
+        for q, pauli_str in enumerate(reversed(self.primitive.to_label())):
+            gate = PAULI_GATE_MAPPING[pauli_str]
+            if not pauli_str == 'I' or is_identity:
+                qc.append(gate, qargs=[q])
+        return qc
+
+    def to_instruction(self) -> Instruction:
+        # TODO just do this because performance of adding and deleting IGates doesn't matter?
+        # Reduce to remove extra IGates.
+        # return PrimitiveOp(self.primitive.to_instruction(), coeff=self.coeff).reduce()
+
+        return self.to_circuit().to_instruction()

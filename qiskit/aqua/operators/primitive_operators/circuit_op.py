@@ -48,12 +48,14 @@ class CircuitOp(PrimitiveOp):
         Raises:
             TypeError: invalid parameters.
         """
-        if isinstance(primitive, QuantumCircuit):
-            primitive = primitive.to_instruction()
+        if isinstance(primitive, Instruction):
+            qc = QuantumCircuit(primitive.num_qubits)
+            qc.append(primitive, qargs=range(primitive.num_qubits))
+            primitive = qc
 
-        if not isinstance(primitive, Instruction):
+        if not isinstance(primitive, QuantumCircuit):
             raise TypeError('CircuitOp can only be instantiated with '
-                            'Instruction, not {}'.format(type(primitive)))
+                            'QuantumCircuit, not {}'.format(type(primitive)))
 
         super().__init__(primitive, coeff=coeff)
 
@@ -105,22 +107,22 @@ class CircuitOp(PrimitiveOp):
         -[X]-
         Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
         """
-        # TODO accept primitives directly in addition to PrimitiveOp?
         # pylint: disable=cyclic-import,import-outside-toplevel
-        from . import PauliOp
-        if isinstance(other, PauliOp):
-            from qiskit.aqua.operators.converters import PauliToInstruction
-            other = CircuitOp(PauliToInstruction().convert_pauli(other.primitive),
-                              coeff=other.coeff)
+        from .pauli_op import PauliOp
+        from .matrix_op import MatrixOp
+        if isinstance(other, (PauliOp, CircuitOp, MatrixOp)):
+            other = other.to_circuit_op()
 
         if isinstance(other, CircuitOp):
             new_qc = QuantumCircuit(self.num_qubits + other.num_qubits)
             # NOTE!!! REVERSING QISKIT ENDIANNESS HERE
-            new_qc.append(other.primitive, new_qc.qubits[0:other.primitive.num_qubits])
-            new_qc.append(self.primitive, new_qc.qubits[other.primitive.num_qubits:])
-            # TODO Fix because converting to dag just to append is nuts
+            new_qc.append(other.to_instruction(),
+                          qargs=new_qc.qubits[0:other.primitive.num_qubits])
+            new_qc.append(self.to_instruction(),
+                          qargs=new_qc.qubits[other.primitive.num_qubits:])
+            new_qc = new_qc.decompose()
             # TODO Figure out what to do with cbits?
-            return CircuitOp(new_qc.decompose().to_instruction(), coeff=self.coeff * other.coeff)
+            return CircuitOp(new_qc, coeff=self.coeff * other.coeff)
 
         return TensoredOp([self, other])
 
@@ -134,34 +136,32 @@ class CircuitOp(PrimitiveOp):
         -[Y]-[X]-
         Because Terra prints circuits with the initial state at the left side of the circuit.
         """
-        # TODO accept primitives directly in addition to PrimitiveOp?
-
         other = self._check_zero_for_composition_and_expand(other)
         # pylint: disable=cyclic-import,import-outside-toplevel
         from ..operator_globals import Zero
         from ..state_functions import CircuitStateFn
+        from .pauli_op import PauliOp
+        from .matrix_op import MatrixOp
+
         if other == Zero ^ self.num_qubits:
             return CircuitStateFn(self.primitive, coeff=self.coeff)
 
-        from . import PauliOp
-        if isinstance(other, PauliOp):
-            from qiskit.aqua.operators.converters import PauliToInstruction
-            other = CircuitOp(PauliToInstruction().convert_pauli(other.primitive),
-                              coeff=other.coeff)
+        if isinstance(other, (PauliOp, CircuitOp, MatrixOp)):
+            other = other.to_circuit_op()
 
         if isinstance(other, (CircuitOp, CircuitStateFn)):
             new_qc = QuantumCircuit(self.num_qubits)
-            new_qc.append(other.primitive, qargs=range(self.num_qubits))
-            new_qc.append(self.primitive, qargs=range(self.num_qubits))
+            new_qc.append(other.to_instruction(), qargs=range(self.num_qubits))
+            new_qc.append(self.to_instruction(), qargs=range(self.num_qubits))
             # TODO Fix because converting to dag just to append is nuts
             # TODO Figure out what to do with cbits?
             new_qc = new_qc.decompose()
             if isinstance(other, CircuitStateFn):
-                return CircuitStateFn(new_qc.to_instruction(),
+                return CircuitStateFn(new_qc,
                                       is_measurement=other.is_measurement,
                                       coeff=self.coeff * other.coeff)
             else:
-                return CircuitOp(new_qc.to_instruction(), coeff=self.coeff * other.coeff)
+                return CircuitOp(new_qc, coeff=self.coeff * other.coeff)
 
         return ComposedOp([self, other])
 
@@ -180,14 +180,14 @@ class CircuitOp(PrimitiveOp):
                 ' in this case {0}x{0} elements.'
                 ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
 
-        qc = QuantumCircuit(self.primitive.num_qubits)
         # NOTE: not reversing qubits!! We generally reverse endianness when converting between
         # circuit or Pauli representation and matrix representation, but we don't need to here
         # because the Unitary simulator already presents the endianness of the circuit unitary in
         # forward endianness.
-        qc.append(self.primitive, qargs=range(self.primitive.num_qubits))
         unitary_backend = BasicAer.get_backend('unitary_simulator')
-        unitary = execute(qc, unitary_backend, optimization_level=0).result().get_unitary()
+        unitary = execute(self.to_circuit(),
+                          unitary_backend,
+                          optimization_level=0).result().get_unitary()
         return unitary * self.coeff
 
     def __str__(self) -> str:
@@ -202,7 +202,7 @@ class CircuitOp(PrimitiveOp):
     def bind_parameters(self, param_dict: dict) -> OperatorBase:
         param_value = self.coeff
         qc = self.primitive
-        if isinstance(self.coeff, ParameterExpression) or self.primitive.params:
+        if isinstance(self.coeff, ParameterExpression) or self.primitive.parameters:
             unrolled_dict = self._unroll_param_dict(param_dict)
             if isinstance(unrolled_dict, list):
                 # pylint: disable=import-outside-toplevel
@@ -211,8 +211,8 @@ class CircuitOp(PrimitiveOp):
             if self.coeff in unrolled_dict:
                 # TODO what do we do about complex?
                 param_value = float(self.coeff.bind(unrolled_dict[self.coeff]))
-            if all(param in unrolled_dict for param in self.primitive.params):
-                qc = self.to_circuit().decompose().bind_parameters(param_dict)
+            if all(param in unrolled_dict for param in self.primitive.parameters):
+                qc = self.to_circuit().bind_parameters(param_dict)
         return self.__class__(qc, coeff=param_value)
 
     def eval(self,
@@ -234,28 +234,33 @@ class CircuitOp(PrimitiveOp):
         from ..state_functions import CircuitStateFn
         from ..combo_operators import ListOp
         from .pauli_op import PauliOp
+        from .matrix_op import MatrixOp
 
         if isinstance(front, ListOp) and front.distributive:
             return front.combo_fn([self.eval(front.coeff * front_elem)
                                    for front_elem in front.oplist])
 
         # Composable with circuit
-        if isinstance(front, (PauliOp, CircuitStateFn, CircuitOp)):
+        if isinstance(front, (PauliOp, CircuitOp, MatrixOp, CircuitStateFn)):
             return self.compose(front)
 
         return self.to_matrix_op().eval(front=front)
 
     def to_circuit(self) -> QuantumCircuit:
         """ Convert CircuitOp to circuit """
-        qc = QuantumCircuit(self.num_qubits)
-        qc.append(self.primitive, qargs=range(self.primitive.num_qubits))
-        return qc
+        return self.primitive
+
+    def to_circuit_op(self) -> OperatorBase:
+        return self
+
+    def to_instruction(self) -> Instruction:
+        return self.primitive.to_instruction()
 
     # Warning - modifying immutable object!!
     def reduce(self) -> OperatorBase:
-        if self.primitive._definition is not None:
-            for i, inst_context in enumerate(self.primitive._definition):
+        if self.primitive.data is not None:
+            for i, inst_context in enumerate(self.primitive.data):
                 [gate, _, _] = inst_context
                 if isinstance(gate, IGate):
-                    del self.primitive._definition[i]
+                    del self.primitive.data[i]
         return self

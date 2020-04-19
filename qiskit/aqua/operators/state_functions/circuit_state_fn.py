@@ -65,12 +65,14 @@ class CircuitStateFn(StateFn):
             Raises:
                 TypeError: invalid parameters.
         """
-        if isinstance(primitive, QuantumCircuit):
-            primitive = primitive.to_instruction()
+        if isinstance(primitive, Instruction):
+            qc = QuantumCircuit(primitive.num_qubits)
+            qc.append(primitive, qargs=range(primitive.num_qubits))
+            primitive = qc
 
-        if not isinstance(primitive, Instruction):
+        if not isinstance(primitive, QuantumCircuit):
             raise TypeError('CircuitStateFn can only be instantiated '
-                            'with Instruction, not {}'.format(type(primitive)))
+                            'with QuantumCircuit, not {}'.format(type(primitive)))
 
         super().__init__(primitive, coeff=coeff, is_measurement=is_measurement)
 
@@ -146,13 +148,13 @@ class CircuitStateFn(StateFn):
         new_self, other = self._check_zero_for_composition_and_expand(other)
 
         # pylint: disable=cyclic-import,import-outside-toplevel
-        from qiskit.aqua.operators import CircuitOp, PauliOp
+        from qiskit.aqua.operators import CircuitOp, PauliOp, MatrixOp
 
-        if isinstance(other, (CircuitOp, PauliOp)):
+        if isinstance(other, (PauliOp, CircuitOp, MatrixOp)):
             op_circuit_self = CircuitOp(self.primitive)
 
             # Avoid reimplementing compose logic
-            composed_op_circs = op_circuit_self.compose(other)
+            composed_op_circs = op_circuit_self.compose(other.to_circuit_op())
 
             # Returning CircuitStateFn
             return CircuitStateFn(composed_op_circs.primitive,
@@ -177,17 +179,12 @@ class CircuitStateFn(StateFn):
         |+⟩--
         Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
         """
-        # TODO accept primitives directly in addition to PrimitiveOp?
-
-        if isinstance(other, CircuitStateFn):
-            new_qc = QuantumCircuit(self.num_qubits + other.num_qubits)
-            # NOTE!!! REVERSING QISKIT ENDIANNESS HERE
-            new_qc.append(other.primitive, new_qc.qubits[0:other.primitive.num_qubits])
-            new_qc.append(self.primitive, new_qc.qubits[other.primitive.num_qubits:])
-            # TODO Fix because converting to dag just to append is nuts
-            # TODO Figure out what to do with cbits?
-            return CircuitStateFn(new_qc.decompose().to_instruction(),
-                                  coeff=self.coeff * other.coeff)
+        if isinstance(other, CircuitStateFn) and other.is_measurement == self.is_measurement:
+            # Avoid reimplementing tensor, just use CircuitOp's
+            from .. import Zero, CircuitOp
+            c_op_self = CircuitOp(self.primitive, self.coeff)
+            c_op_other = CircuitOp(other.primitive, other.coeff)
+            return c_op_self.tensor(c_op_other).compose(Zero)
         # pylint: disable=cyclic-import,import-outside-toplevel
         from qiskit.aqua.operators import TensoredOp
         return TensoredOp([self, other])
@@ -210,7 +207,7 @@ class CircuitStateFn(StateFn):
 
         # TODO handle list case
         # Rely on VectorStateFn's logic here.
-        return StateFn(self.primitive.to_matrix() * self.coeff).to_density_matrix()
+        return StateFn(self.to_matrix() * self.coeff).to_density_matrix()
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
         """
@@ -247,7 +244,8 @@ class CircuitStateFn(StateFn):
             return np.conj(self.adjoint().to_matrix())
         qc = self.to_circuit(meas=False)
         statevector_backend = BasicAer.get_backend('statevector_simulator')
-        statevector = execute(qc, statevector_backend,
+        statevector = execute(qc,
+                              statevector_backend,
                               optimization_level=0).result().get_statevector()
         return statevector * self.coeff
 
@@ -267,7 +265,7 @@ class CircuitStateFn(StateFn):
     def bind_parameters(self, param_dict: dict) -> OperatorBase:
         param_value = self.coeff
         qc = self.primitive
-        if isinstance(self.coeff, ParameterExpression) or self.primitive.params:
+        if isinstance(self.coeff, ParameterExpression) or self.primitive.parameters:
             unrolled_dict = self._unroll_param_dict(param_dict)
             if isinstance(unrolled_dict, list):
                 # pylint: disable=import-outside-toplevel
@@ -276,8 +274,8 @@ class CircuitStateFn(StateFn):
             if self.coeff in unrolled_dict:
                 # TODO what do we do about complex?
                 param_value = float(self.coeff.bind(unrolled_dict[self.coeff]))
-            if all(param in unrolled_dict for param in self.primitive.params):
-                qc = self.to_circuit().decompose().bind_parameters(param_dict)
+            if all(param in unrolled_dict for param in self.primitive.parameters):
+                qc = self.to_circuit().bind_parameters(param_dict)
         return self.__class__(qc, coeff=param_value)
 
     def eval(self,
@@ -290,14 +288,14 @@ class CircuitStateFn(StateFn):
 
         # pylint: disable=import-outside-toplevel
         from ..combo_operators import ListOp
-        from ..primitive_operators import PauliOp, CircuitOp
+        from ..primitive_operators import PauliOp, MatrixOp, CircuitOp
 
         if isinstance(front, ListOp) and front.distributive:
             return front.combo_fn([self.eval(front.coeff * front_elem)
                                    for front_elem in front.oplist])
 
         # Composable with circuit
-        if isinstance(front, (PauliOp, CircuitStateFn, CircuitOp)):
+        if isinstance(front, (PauliOp, CircuitOp, MatrixOp, CircuitStateFn)):
             new_front = self.compose(front)
             return new_front
 
@@ -307,13 +305,15 @@ class CircuitStateFn(StateFn):
         """ to circuit """
         if meas:
             qc = QuantumCircuit(self.num_qubits, self.num_qubits)
-            qc.append(self.primitive, qargs=range(self.primitive.num_qubits))
+            qc.append(self.to_instruction(), qargs=range(self.primitive.num_qubits))
             qc.measure(qubit=range(self.num_qubits), cbit=range(self.num_qubits))
+            return qc.decompose()
         else:
-            qc = QuantumCircuit(self.num_qubits)
-            qc.append(self.primitive, qargs=range(self.primitive.num_qubits))
-        # Need to decompose to unwrap instruction. TODO this is annoying, fix it
-        return qc.decompose()
+            return self.primitive
+
+    def to_instruction(self):
+        """ Return Instruction corresponding to primitive. """
+        return self.primitive.to_instruction()
 
     # TODO specify backend?
     def sample(self,
@@ -339,9 +339,9 @@ class CircuitStateFn(StateFn):
 
     # Warning - modifying immutable object!!
     def reduce(self) -> OperatorBase:
-        if self.primitive._definition is not None:
-            for i, inst_context in enumerate(self.primitive._definition):
+        if self.primitive.data is not None:
+            for i, inst_context in enumerate(self.primitive.data):
                 [gate, _, _] = inst_context
                 if isinstance(gate, IGate):
-                    del self.primitive._definition[i]
+                    del self.primitive.data[i]
         return self
