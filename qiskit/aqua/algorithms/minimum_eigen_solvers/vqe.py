@@ -448,7 +448,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         self._ret['eval_count'] = self._eval_count
 
         self._ret['energy'] = self.get_optimal_cost()
-        self._ret['eigvals'] = np.asarray([self.get_optimal_cost()])
+        self._ret['eigvals'] = np.asarray([self._ret['energy']])
         self._ret['eigvecs'] = np.asarray([self.get_optimal_vector()])
         self._eval_aux_ops()
 
