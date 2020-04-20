@@ -305,7 +305,6 @@ class ADMMOptimizer(OptimizationAlgorithm):
                     op3 = self._create_step3_problem()
                     self._state.y = self._update_y(op3)
                 # debug
-                print("OP3: ", op3.print_as_lp_string())
                 self._log.debug("y=%s", self._state.y)
 
             self._state.lambda_mult = self._update_lambda_mult()
