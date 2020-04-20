@@ -121,13 +121,15 @@ class QSVM(QuantumAlgorithm):
         self.feature_map = feature_map
         self.num_qubits = self.feature_map.num_qubits
 
-        if isinstance(feature_map, FeatureMap):
-            self.feature_map_params_x = ParameterVector('x', feature_map.feature_dimension)
-            self.feature_map_params_y = ParameterVector('y', feature_map.feature_dimension)
-        else:  # QuantumCircuit
+        if isinstance(feature_map, QuantumCircuit):
             # patch the feature dimension attribute to the circuit
             self.feature_map.feature_dimension = len(feature_map.parameters)
-            self.feature_map_params_x = list(feature_map.parameters)
+            if not hasattr(feature_map, 'ordered_parameters'):
+                self.feature_map.ordered_parameters = list(feature_map.parameters)
+            self.feature_map_params_x = ParameterVector('x', self.feature_map.feature_dimension)
+            self.feature_map_params_y = ParameterVector('y', self.feature_map.feature_dimension)
+        else:
+            self.feature_map_params_x = ParameterVector('x', feature_map.feature_dimension)
             self.feature_map_params_y = ParameterVector('y', feature_map.feature_dimension)
 
         if multiclass_extension is None:
@@ -140,8 +142,7 @@ class QSVM(QuantumAlgorithm):
 
     @staticmethod
     def _construct_circuit(x, feature_map, measurement, is_statevector_sim=False):
-        """
-        If `is_statevector_sim` is True, we only build the circuits for Psi(x1)|0> rather than
+        """If `is_statevector_sim` is True, we only build the circuits for Psi(x1)|0> rather than
         Psi(x2)^dagger Psi(x1)|0>.
         """
         x1, x2 = x
@@ -156,11 +157,17 @@ class QSVM(QuantumAlgorithm):
         if isinstance(feature_map, FeatureMap):
             qc += feature_map.construct_circuit(x1, q)
         else:
-            param_dict = dict(zip(self.feature_map_params_x, params))
-            qc += _assign_params(feature_map)
+            psi_x1 = _assign_parameters(feature_map, x1)
+            qc.append(psi_x1.to_instruction(), qc.qubits)
 
         if not is_statevector_sim:
-            qc += feature_map.construct_circuit(x2, q).inverse()
+            # write input state from sample distribution
+            if isinstance(feature_map, FeatureMap):
+                qc += feature_map.construct_circuit(x2, q).inverse()
+            else:
+                psi_x2_dag = _assign_parameters(feature_map, x2)
+                qc.append(psi_x2_dag.to_instruction().inverse(), qc.qubits)
+
             if measurement:
                 qc.barrier(q)
                 qc.measure(q, c)
@@ -220,7 +227,10 @@ class QSVM(QuantumAlgorithm):
             numpy.ndarray: 2-D matrix, N1xN2
         """
 
-        use_parameterized_circuits = feature_map.support_parameterized_circuit
+        if isinstance(feature_map, QuantumCircuit):
+            use_parameterized_circuits = True
+        else:
+            use_parameterized_circuits = feature_map.support_parameterized_circuit
 
         if x2_vec is None:
             is_symmetric = True
@@ -503,9 +513,8 @@ class QSVM(QuantumAlgorithm):
             self.datapoints = datapoints
 
 
-def _assign_parameters(circuit, param_dict):
-    if all(isinstance(param, Parameter) for param in param_dict.keys()):
-        circuit._substitute_parameters(param_dict)
-    else:
-        circuit = circuit.bind_parameters(param_dict)
-    return circuit
+def _assign_parameters(circuit, params):
+    if not hasattr(circuit, 'ordered_parameters'):
+        raise AttributeError('Circuit needs the attribute `ordered_parameters`.')
+    param_dict = dict(zip(circuit.ordered_parameters, params))
+    return circuit.assign_parameters(param_dict)
