@@ -18,7 +18,7 @@ from typing import List, Union, Dict, Tuple
 
 import numpy as np
 from numpy import ndarray
-from scipy.sparse import spmatrix, dok_matrix
+from scipy.sparse import spmatrix, dok_matrix, tril, triu
 
 from qiskit.optimization import QiskitOptimizationError
 from qiskit.optimization.problems.has_quadratic_program import HasQuadraticProgram
@@ -34,7 +34,8 @@ class QuadraticExpression(HasQuadraticProgram):
 
         The quadratic expression can be defined via an array, a list, a sparse matrix, or a
         dictionary that uses variable names or indices as keys and stores the values internally as a
-        dok_matrix.
+        dok_matrix. We stores values in a compressed way, i.e., values at symmetric positions are
+        summed up in the upper triangle. For example, {(0, 1): 1, (1, 0): 2} -> {(0, 1): 3}.
 
         Args:
             quadratic_program: The parent QuadraticProgram.
@@ -48,7 +49,7 @@ class QuadraticExpression(HasQuadraticProgram):
         """Returns the coefficient where i, j can be a variable names or indices.
 
         Args:
-            key: the tuple of indices or names of the variables corresponding to the coefficient.
+            key: The tuple of indices or names of the variables corresponding to the coefficient.
 
         Returns:
             The coefficient corresponding to the addressed variables.
@@ -58,21 +59,26 @@ class QuadraticExpression(HasQuadraticProgram):
             i = self.quadratic_program.variables_index[i]
         if isinstance(j, str):
             j = self.quadratic_program.variables_index[j]
-        return self.coefficients[i, j]
+        return self.coefficients[min(i, j), max(i, j)]
 
     def __setitem__(self, key: Tuple[Union[int, str], Union[int, str]], value: float) -> None:
+        """Sets the coefficient where i, j can be a variable names or indices.
+
+        Args:
+            key: The tuple of indices or names of the variables corresponding to the coefficient.
+            value: The coefficient corresponding to the addressed variables.
+        """
         i, j = key
         if isinstance(i, str):
             i = self.quadratic_program.variables_index[i]
         if isinstance(j, str):
             j = self.quadratic_program.variables_index[j]
-        self.coefficients[i, j] = value
+        self.coefficients[min(i, j), max(i, j)] = value
 
     def _coeffs_to_dok_matrix(self,
                               coefficients: Union[ndarray, spmatrix, List[List[float]],
-                                                  Dict[
-                                                      Tuple[Union[int, str], Union[int, str]],
-                                                      float]]) -> dok_matrix:
+                                                  Dict[Tuple[Union[int, str], Union[int, str]],
+                                                       float]]) -> dok_matrix:
         """Maps given coefficients to a dok_matrix.
 
         Args:
@@ -97,8 +103,21 @@ class QuadraticExpression(HasQuadraticProgram):
                 coeffs[i, j] = value
             coefficients = coeffs
         else:
-            raise QiskitOptimizationError("Unsupported format for coefficients.")
-        return coefficients
+            raise QiskitOptimizationError(
+                "Unsupported format for coefficients: {}".format(coefficients))
+        return self._triangle_matrix(coefficients)
+
+    @staticmethod
+    def _triangle_matrix(mat: dok_matrix) -> dok_matrix:
+        lower = tril(mat, -1, format='dok')
+        # `todok` is necessary because subtraction results in other format
+        return (mat + lower.transpose() - lower).todok()
+
+    @staticmethod
+    def _symmetric_matrix(mat: dok_matrix) -> dok_matrix:
+        upper = triu(mat, 1, format='dok') / 2
+        # `todok` is necessary because subtraction results in other format
+        return (mat + upper.transpose() - upper).todok()
 
     @property
     def coefficients(self) -> dok_matrix:
@@ -121,31 +140,37 @@ class QuadraticExpression(HasQuadraticProgram):
         """
         self._coefficients = self._coeffs_to_dok_matrix(coefficients)
 
-    def to_array(self) -> ndarray:
+    def to_array(self, symmetric: bool = False) -> ndarray:
         """Returns the coefficients of the quadratic expression as array.
+
+        Args:
+            symmetric: Determines whether the output is in a symmetric form or not.
 
         Returns:
             An array with the coefficients corresponding to the quadratic expression.
         """
-        return self._coefficients.toarray()
+        coeffs = self._symmetric_matrix(self._coefficients) if symmetric else self._coefficients
+        return coeffs.toarray()
 
-    def to_dict(self, use_name: bool = False
-                ) -> Dict[Union[Tuple[int, int], Tuple[str, str]], float]:
+    def to_dict(self, symmetric: bool = False, use_name: bool = False) \
+            -> Dict[Union[Tuple[int, int], Tuple[str, str]], float]:
         """Returns the coefficients of the quadratic expression as dictionary, either using tuples
         of variable names or indices as keys.
 
         Args:
+            symmetric: Determines whether the output is in a symmetric form or not.
             use_name: Determines whether to use index or names to refer to variables.
 
         Returns:
             An dictionary with the coefficients corresponding to the quadratic expression.
         """
+        coeffs = self._symmetric_matrix(self._coefficients) if symmetric else self._coefficients
         if use_name:
             return {(self.quadratic_program.variables[i].name,
                      self.quadratic_program.variables[j].name): v
-                    for (i, j), v in self._coefficients.items()}
+                    for (i, j), v in coeffs.items()}
         else:
-            return {(i, j): v for (i, j), v in self._coefficients.items()}
+            return dict(coeffs.items())
 
     def evaluate(self, x: Union[ndarray, List, Dict[Union[int, str], float]]) -> float:
         """Evaluate the quadratic expression for given variables: x * Q * x.

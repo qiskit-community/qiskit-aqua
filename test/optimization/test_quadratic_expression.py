@@ -37,7 +37,10 @@ class TestQuadraticExpression(QiskitOptimizationTestCase):
         for _ in range(5):
             quadratic_program.continuous_var()
 
-        coefficients_list = [[i * j for i in range(5)] for j in range(5)]
+        coefficients_list = [[0 for _ in range(5)] for _ in range(5)]
+        for i, v in enumerate(coefficients_list):
+            for j, _ in enumerate(v):
+                coefficients_list[min(i, j)][max(i, j)] += i * j
         coefficients_array = np.array(coefficients_list)
         coefficients_dok = dok_matrix(coefficients_list)
         coefficients_dict_int = {(i, j): v for (i, j), v in coefficients_dok.items()}
@@ -62,11 +65,17 @@ class TestQuadraticExpression(QiskitOptimizationTestCase):
         for _ in range(5):
             quadratic_program.continuous_var()
 
-        coefficients = [[i * j for i in range(5)] for j in range(5)]
+        coefficients = [[0 for _ in range(5)] for _ in range(5)]
+        for i, v in enumerate(coefficients):
+            for j, _ in enumerate(v):
+                coefficients[min(i, j)][max(i, j)] += i * j
         quadratic = QuadraticExpression(quadratic_program, coefficients)
         for i, j_v in enumerate(coefficients):
-            for j, v in enumerate(j_v):
-                self.assertEqual(quadratic[i, j], v)
+            for j, _ in enumerate(j_v):
+                if i == j:
+                    self.assertEqual(quadratic[i, j], coefficients[i][j])
+                else:
+                    self.assertEqual(quadratic[i, j], coefficients[i][j] + coefficients[j][i])
 
     def test_setters(self):
         """ test setters. """
@@ -79,7 +88,10 @@ class TestQuadraticExpression(QiskitOptimizationTestCase):
         zeros = np.zeros((n, n))
         quadratic = QuadraticExpression(quadratic_program, zeros)
 
-        coefficients_list = [[i * j for i in range(5)] for j in range(5)]
+        coefficients_list = [[0 for _ in range(5)] for _ in range(5)]
+        for i, v in enumerate(coefficients_list):
+            for j, _ in enumerate(v):
+                coefficients_list[min(i, j)][max(i, j)] += i * j
         coefficients_array = np.array(coefficients_list)
         coefficients_dok = dok_matrix(coefficients_list)
         coefficients_dict_int = {(i, j): v for (i, j), v in coefficients_dok.items()}
@@ -103,7 +115,10 @@ class TestQuadraticExpression(QiskitOptimizationTestCase):
         quadratic_program = QuadraticProgram()
         x = [quadratic_program.continuous_var() for _ in range(5)]
 
-        coefficients_list = [[i * j for i in range(5)] for j in range(5)]
+        coefficients_list = [[0 for _ in range(5)] for _ in range(5)]
+        for i, v in enumerate(coefficients_list):
+            for j, _ in enumerate(v):
+                coefficients_list[min(i, j)][max(i, j)] += i * j
         quadratic = QuadraticExpression(quadratic_program, coefficients_list)
 
         values_list = list(range(len(x)))
@@ -122,6 +137,8 @@ class TestQuadraticExpression(QiskitOptimizationTestCase):
         q_p.binary_var('z')
         quad = QuadraticExpression(q_p, {('x', 'y'): -1, ('y', 'x'): 2, ('z', 'x'): 3})
         self.assertDictEqual(quad.to_dict(use_name=True), {('x', 'y'): 1, ('x', 'z'): 3})
+        self.assertDictEqual(quad.to_dict(symmetric=True, use_name=True),
+                             {('x', 'y'): 0.5, ('y', 'x'): 0.5, ('x', 'z'): 1.5, ('z', 'x'): 1.5})
 
 
 if __name__ == '__main__':
