@@ -24,6 +24,10 @@ from .state_functions import StateFn
 
 # pylint: disable=invalid-name
 
+# Digits of precision when returning values from eval functions. Without rounding, 1e-17 or 1e-32
+# values often show up in place of 0, etc.
+EVAL_SIG_DIGITS = 14
+
 # Immutable convenience objects
 
 
@@ -37,7 +41,6 @@ def make_immutable(obj):
     obj.__setattr__ = None
     return obj
 
-EVAL_SIG_DIGITS = 14
 
 # 1-Qubit Paulis
 X = make_immutable(PrimitiveOp(Pauli.from_label('X')))
