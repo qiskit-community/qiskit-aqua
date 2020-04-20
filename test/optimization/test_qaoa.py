@@ -58,11 +58,13 @@ S2 = {'1011', '0100'}
 class TestQAOA(QiskitOptimizationTestCase):
     """Test QAOA with MaxCut."""
     @idata([
-        [W1, P1, M1, S1],
-        [W2, P2, M2, S2],
+        [W1, P1, M1, S1, False],
+        [W2, P2, M2, S2, False],
+        [W1, P1, M1, S1, True],
+        [W2, P2, M2, S2, True],
     ])
     @unpack
-    def test_qaoa(self, w, prob, m, solutions):
+    def test_qaoa(self, w, prob, m, solutions, convert_to_matrix_op):
         """ QAOA test """
         seed = 0
         aqua_globals.random_seed = seed
@@ -72,6 +74,8 @@ class TestQAOA(QiskitOptimizationTestCase):
         optimizer = COBYLA()
         qubit_op, offset = max_cut.get_operator(w)
         qubit_op = qubit_op.to_opflow()
+        if convert_to_matrix_op:
+            qubit_op = qubit_op.to_matrix_op()
 
         qaoa = QAOA(qubit_op, optimizer, prob, mixer=m)
         quantum_instance = QuantumInstance(backend, seed_simulator=seed, seed_transpiler=seed)

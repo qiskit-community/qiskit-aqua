@@ -173,8 +173,8 @@ class PrimitiveOp(OperatorBase):
         raise NotImplementedError
 
     def __repr__(self) -> str:
-        """Overload str() """
-        return "PrimitiveOp({}, coeff={})".format(repr(self.primitive), self.coeff)
+        """Overload repr() """
+        return "{}({}, coeff={})".format(type(self).__name__, repr(self.primitive), self.coeff)
 
     def eval(self,
              front: Union[str, dict, np.ndarray,

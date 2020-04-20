@@ -82,7 +82,7 @@ class PauliTrotterEvolution(EvolutionBase):
             # Covers ListOp, ComposedOp, TensoredOp
             elif isinstance(operator.primitive, ListOp):
                 converted_ops = [self._recursive_convert(op) for op in operator.primitive.oplist]
-                return operator.__class__(converted_ops, coeff=operator.coeff)
+                return operator.primitive.__class__(converted_ops, coeff=operator.coeff)
         elif isinstance(operator, ListOp):
             return operator.traverse(self.convert).reduce()
         else:

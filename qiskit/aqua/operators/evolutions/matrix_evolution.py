@@ -18,6 +18,9 @@ import logging
 
 from ..operator_base import OperatorBase
 from .evolution_base import EvolutionBase
+from .evolved_op import EvolvedOp
+from ..primitive_operators import PauliOp, MatrixOp
+from ..combo_operators import ListOp
 
 logger = logging.getLogger(__name__)
 
@@ -28,12 +31,13 @@ class MatrixEvolution(EvolutionBase):
 
     """
 
-    def __init__(self):
-        """
-        Args:
-
-        """
-        pass
-
     def convert(self, operator: OperatorBase) -> OperatorBase:
-        pass
+        if isinstance(operator, EvolvedOp):
+            if isinstance(operator.primitive, ListOp):
+                return operator.primitive.to_matrix_op().exp_i() * operator.coeff
+            elif isinstance(operator.primitive, (MatrixOp, PauliOp)):
+                return operator.primitive.exp_i()
+        elif isinstance(operator, ListOp):
+            return operator.traverse(self.convert).reduce()
+
+        return operator

@@ -100,9 +100,10 @@ class WeightedPauliOperator(LegacyBaseOperator):
 
         pauli_ops = []
         for [w, p] in self.paulis:
-            # TODO figure out complex parameters!!
             pauli = Pauli.from_label(str(p)[::-1]) if reverse_endianness else p
-            pauli_ops += [PrimitiveOp(pauli, coeff=np.real(w))]
+            # Adding the imaginary is necessary to handle the imaginary coefficients in UCCSD.
+            # TODO fix those or add support for them in Terra.
+            pauli_ops += [PrimitiveOp(pauli, coeff=np.real(w) + np.imag(w))]
         return sum(pauli_ops)
 
     @property

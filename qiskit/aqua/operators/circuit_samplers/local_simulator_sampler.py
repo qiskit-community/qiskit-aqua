@@ -20,6 +20,7 @@ from functools import partial
 
 from qiskit.providers import BaseBackend
 from qiskit.circuit import ParameterExpression
+from qiskit import QiskitError
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.utils.backend_utils import is_aer_provider, is_statevector_backend, is_aer_qasm
 from ..operator_base import OperatorBase
@@ -70,6 +71,7 @@ class LocalSimulatorSampler(CircuitSamplerBase):
         self._circuit_ops_cache = {}
         self._transpiled_circ_cache = None
         self._statevector = statevector
+        self._transpile_before_bind = True
         if self._statevector and not is_statevector_backend(self.quantum_instance.backend):
             raise ValueError('Statevector mode for circuit sampling requires statevector '
                              'backend, not {}.'.format(backend))
@@ -174,7 +176,13 @@ class LocalSimulatorSampler(CircuitSamplerBase):
                 circuits = [op_c.to_circuit(meas=False) for op_c in circuit_sfns]
             else:
                 circuits = [op_c.to_circuit(meas=True) for op_c in circuit_sfns]
-            self._transpiled_circ_cache = self._qi.transpile(circuits)
+
+            try:
+                self._transpiled_circ_cache = self._qi.transpile(circuits)
+            except QiskitError:
+                # TODO does this fail too silently?
+                self._transpile_before_bind = False
+                self._transpiled_circ_cache = circuits
         else:
             circuit_sfns = list(self._circuit_ops_cache.values())
 
@@ -189,7 +197,7 @@ class LocalSimulatorSampler(CircuitSamplerBase):
         else:
             ready_circs = self._transpiled_circ_cache
 
-        results = self._qi.execute(ready_circs, had_transpiled=True)
+        results = self._qi.execute(ready_circs, had_transpiled=self._transpile_before_bind)
 
         # Wipe parameterizations, if any
         # self._qi._run_config.parameterizations = None
