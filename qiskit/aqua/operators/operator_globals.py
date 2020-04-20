@@ -37,7 +37,7 @@ def make_immutable(obj):
     obj.__setattr__ = None
     return obj
 
-EVAL_SIG_DIGITS = 8
+EVAL_SIG_DIGITS = 14
 
 # 1-Qubit Paulis
 X = make_immutable(PrimitiveOp(Pauli.from_label('X')))
