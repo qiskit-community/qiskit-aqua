@@ -51,8 +51,6 @@ class QAOAVarForm(VariationalForm):
             TypeError: invalid input
         """
         super().__init__()
-        # TODO MatrixToPauli converter
-        # cost_operator = op_converter.to_weighted_pauli_operator(cost_operator)
         self._cost_operator = cost_operator
         self._num_qubits = cost_operator.num_qubits
         self._p = p

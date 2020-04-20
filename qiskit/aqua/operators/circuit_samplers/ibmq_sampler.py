@@ -32,8 +32,6 @@ logger = logging.getLogger(__name__)
 class IBMQSampler(CircuitSamplerBase):
     """ A sampler for remote IBMQ backends.
 
-    TODO - make work.
-
     """
 
     def __init__(self,

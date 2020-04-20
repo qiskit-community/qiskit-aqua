@@ -23,7 +23,7 @@ from qiskit import QuantumCircuit
 from qiskit.quantum_info.operators import Operator, Pauli
 from qiskit.extensions.standard import CZGate
 
-from qiskit.aqua.operators import X, Y, Z, I, CX, T, H, PrimitiveOp, SummedOp
+from qiskit.aqua.operators import X, Y, Z, I, CX, T, H, PrimitiveOp, SummedOp, PauliOp
 
 
 # pylint: disable=invalid-name
@@ -192,6 +192,17 @@ class TestOpConstruction(QiskitAquaTestCase):
         gnarly_op = 3 * (H ^ I ^ Y).compose(X ^ X ^ Z).tensor(T ^ Z) + \
             PrimitiveOp(Operator.from_label('+r0IX').data)
         self.assertEqual(gnarly_op.primitive_strings(), {'QuantumCircuit', 'Matrix'})
+
+    def test_to_pauli_op(self):
+        """ Test to_pauli_op method """
+        gnarly_op = 3 * (H ^ I ^ Y).compose(X ^ X ^ Z).tensor(T ^ Z) + \
+                    PrimitiveOp(Operator.from_label('+r0IX').data)
+        mat_op = gnarly_op.to_matrix_op()
+        pauli_op = gnarly_op.to_pauli_op()
+        self.assertIsInstance(pauli_op, SummedOp)
+        for p in pauli_op:
+            self.assertIsInstance(p, PauliOp)
+        np.testing.assert_array_almost_equal(mat_op.to_matrix(), pauli_op.to_matrix())
 
 
 if __name__ == '__main__':

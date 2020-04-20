@@ -41,7 +41,6 @@ class OperatorBase(ABC):
         """ sets name """
         self._name = new_value
 
-    # TODO replace with proper alphabets later?
     @property
     @abstractmethod
     def num_qubits(self) -> int:

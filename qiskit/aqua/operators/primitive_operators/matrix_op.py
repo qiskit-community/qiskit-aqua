@@ -54,7 +54,6 @@ class MatrixOp(PrimitiveOp):
         if isinstance(primitive, spmatrix):
             primitive = primitive.toarray()
 
-        # TODO if Terra's Operator starts to support sparse, we can pass it in here.
         if isinstance(primitive, (list, np.ndarray)):
             primitive = MatrixOperator(primitive)
 
@@ -72,12 +71,10 @@ class MatrixOp(PrimitiveOp):
         """ Return a set of strings describing the primitives contained in the Operator """
         return {'Matrix'}
 
-    # TODO replace with proper alphabets later?
     @property
     def num_qubits(self) -> int:
         return len(self.primitive.input_dims())
 
-    # TODO change to *other to efficiently handle lists?
     def add(self, other: OperatorBase) -> OperatorBase:
         """ Addition. Overloaded by + in OperatorBase. """
         if not self.num_qubits == other.num_qubits:
@@ -105,7 +102,6 @@ class MatrixOp(PrimitiveOp):
         return self.primitive == other.primitive
         # Will return NotImplementedError if not supported
 
-    # TODO change to *other to handle lists? How aggressively to handle pairwise business?
     def tensor(self, other: OperatorBase) -> OperatorBase:
         """ Tensor product
         Note: You must be conscious of Qiskit's big-endian bit
@@ -121,7 +117,6 @@ class MatrixOp(PrimitiveOp):
 
         return TensoredOp([self, other])
 
-    # TODO change to *other to efficiently handle lists?
     def compose(self, other: OperatorBase) -> OperatorBase:
         """ Operator Composition (Linear algebra-style, right-to-left)
 

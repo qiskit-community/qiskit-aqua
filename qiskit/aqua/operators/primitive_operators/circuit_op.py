@@ -63,12 +63,10 @@ class CircuitOp(PrimitiveOp):
         """ Return a set of strings describing the primitives contained in the Operator """
         return {'QuantumCircuit'}
 
-    # TODO replace with proper alphabets later?
     @property
     def num_qubits(self) -> int:
         return self.primitive.num_qubits
 
-    # TODO change to *other to efficiently handle lists?
     def add(self, other: OperatorBase) -> OperatorBase:
         """ Addition. Overloaded by + in OperatorBase. """
         if not self.num_qubits == other.num_qubits:
@@ -96,7 +94,6 @@ class CircuitOp(PrimitiveOp):
         return self.primitive == other.primitive
         # Will return NotImplementedError if not supported
 
-    # TODO change to *other to handle lists? How aggressively to handle pairwise business?
     def tensor(self, other: OperatorBase) -> OperatorBase:
         """ Tensor product
         Note: You must be conscious of Qiskit's big-endian bit printing
@@ -126,7 +123,6 @@ class CircuitOp(PrimitiveOp):
 
         return TensoredOp([self, other])
 
-    # TODO change to *other to efficiently handle lists?
     def compose(self, other: OperatorBase) -> OperatorBase:
         """ Operator Composition (Linear algebra-style, right-to-left)
 
@@ -174,7 +170,6 @@ class CircuitOp(PrimitiveOp):
         access to classical tools is appropriate. """
 
         if self.num_qubits > 16 and not massive:
-            # TODO figure out sparse matrices?
             raise ValueError(
                 'to_matrix will return an exponentially large matrix,'
                 ' in this case {0}x{0} elements.'

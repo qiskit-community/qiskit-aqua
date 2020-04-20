@@ -51,7 +51,6 @@ class SummedOp(ListOp):
         while ComposedOp and TensoredOp do not behave this way."""
         return True
 
-    # TODO change to *other to efficiently handle lists?
     def add(self, other: OperatorBase) -> OperatorBase:
         """ Addition. Overloaded by + in OperatorBase. """
         if self == other:
@@ -72,7 +71,6 @@ class SummedOp(ListOp):
     #     """ Evaluate Equality. Overloaded by == in OperatorBase. """
     #     if not isinstance(other, SummedOp) or not len(self.oplist) == len(other.oplist):
     #         return False
-    #     # TODO test this a lot
     #     # Should be sorting invariant, if not done stupidly
     #     return set(self.oplist) == set(other.oplist)
 

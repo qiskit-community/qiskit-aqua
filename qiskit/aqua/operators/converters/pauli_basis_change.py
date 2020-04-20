@@ -204,7 +204,6 @@ class PauliBasisChange(ConverterBase):
 
         return PauliOp(pauli_1, coeff=pauli_op1.coeff), PauliOp(pauli_2, coeff=pauli_op2.coeff)
 
-    # TODO
     def construct_cnot_chain(self,
                              diag_pauli_op1: PauliOp,
                              diag_pauli_op2: PauliOp) -> PrimitiveOp:
@@ -218,7 +217,6 @@ class PauliBasisChange(ConverterBase):
             else diag_pauli_op2
         origin_sig_bits = np.logical_or(pauli_1.z, pauli_1.x)
         destination_sig_bits = np.logical_or(pauli_2.z, pauli_2.x)
-        # TODO maybe just raise error if not equal
         num_qubits = max(len(pauli_1.z), len(pauli_2.z))
 
         sig_equal_sig_bits = np.logical_and(origin_sig_bits, destination_sig_bits)
@@ -255,11 +253,6 @@ class PauliBasisChange(ConverterBase):
         if not origin_anchor_bit == dest_anchor_bit:
             cnots.swap(origin_anchor_bit, dest_anchor_bit)
 
-        # TODO seems like we don't need this
-        # Step 5)
-        # if not len(sig_in_origin_only_indices) % 2 == len(sig_in_dest_only_indices) % 2:
-        #     cnots.x(dest_anchor_bit)
-
         # Need to do this or a Terra bug sometimes flips cnots. No time to investigate.
         cnots.i(0)
 
@@ -268,14 +261,9 @@ class PauliBasisChange(ConverterBase):
             if not i == dest_anchor_bit:
                 cnots.cx(i, dest_anchor_bit)
 
-        # TODO seems like we don't need this
-        # Step 7)
-        # if not len(sig_in_origin_only_indices) % 2 == len(sig_in_dest_only_indices) % 2:
-        #     cnots.x(dest_anchor_bit)
-
         return PrimitiveOp(cnots)
 
-    # TODO change to only accept PrimitiveOp Pauli.
+    # TODO update steps to remove 5) and 7).
     def get_cob_circuit(self, origin: Union[Pauli, PauliOp]) -> (PrimitiveOp, PauliOp):
         """ The goal of this module is to construct a circuit which maps the +1 and -1 eigenvectors
         of the origin pauli to the +1 and -1 eigenvectors of the destination pauli. It does so by

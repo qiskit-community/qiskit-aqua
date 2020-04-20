@@ -124,13 +124,11 @@ class OperatorStateFn(StateFn):
         appropriate. """
 
         if self.num_qubits > 16 and not massive:
-            # TODO figure out sparse matrices?
             raise ValueError(
                 'to_matrix will return an exponentially large matrix,'
                 ' in this case {0}x{0} elements.'
                 ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
 
-        # TODO handle list case
         return self.primitive.to_matrix() * self.coeff
 
     def to_matrix_op(self, massive: bool = False) -> OperatorBase:

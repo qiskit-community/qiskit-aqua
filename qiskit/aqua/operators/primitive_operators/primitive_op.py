@@ -21,7 +21,7 @@ from scipy.sparse import spmatrix
 
 from qiskit import QuantumCircuit
 from qiskit.circuit import Instruction, ParameterExpression
-from qiskit.quantum_info import Pauli
+from qiskit.quantum_info import Pauli, SparsePauliOp
 from qiskit.quantum_info import Operator as MatrixOperator
 
 from ..operator_base import OperatorBase
@@ -115,7 +115,6 @@ class PrimitiveOp(OperatorBase):
         Doesn't multiply MatrixOperator until to_matrix()
         is called to keep things lazy and avoid big copies.
          """
-        # TODO figure out if this is a bad idea.
         if not isinstance(scalar, (int, float, complex, ParameterExpression)):
             raise ValueError('Operators can only be scalar multiplied by float or complex, not '
                              '{} of type {}.'.format(scalar, type(scalar)))
@@ -230,3 +229,11 @@ class PrimitiveOp(OperatorBase):
         # pylint: disable=import-outside-toplevel
         from .circuit_op import CircuitOp
         return CircuitOp(self.to_circuit())
+
+    # TODO change the PauliOp to depend on SparsePauliOp as its primitive
+    def to_pauli_op(self, massive: bool = False) -> OperatorBase:
+        """ Return Sum of Paulis representing the Operator"""
+        mat_op = self.to_matrix_op(massive=massive)
+        sparse_pauli = SparsePauliOp.from_operator(mat_op.primitive)
+        return sum([PrimitiveOp(Pauli.from_label(label), coeff)
+                    for (label, coeff) in sparse_pauli.to_list()]) * self.coeff

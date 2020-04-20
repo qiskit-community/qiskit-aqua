@@ -199,13 +199,11 @@ class CircuitStateFn(StateFn):
         appropriate. """
 
         if self.num_qubits > 16 and not massive:
-            # TODO figure out sparse matrices?
             raise ValueError(
                 'to_matrix will return an exponentially large matrix,'
                 ' in this case {0}x{0} elements.'
                 ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
 
-        # TODO handle list case
         # Rely on VectorStateFn's logic here.
         return StateFn(self.to_matrix() * self.coeff).to_density_matrix()
 
@@ -234,7 +232,6 @@ class CircuitStateFn(StateFn):
         """
 
         if self.num_qubits > 16 and not massive:
-            # TODO figure out sparse matrices?
             raise ValueError(
                 'to_vector will return an exponentially large vector, in this case {0} elements.'
                 ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
@@ -323,7 +320,6 @@ class CircuitStateFn(StateFn):
         """ Sample the state function as a normalized probability distribution. Returns dict of
         bitstrings in order of probability, with values being probability. """
         if self.num_qubits > 16 and not massive:
-            # TODO figure out sparse matrices?
             raise ValueError(
                 'to_vector will return an exponentially large vector, in this case {0} elements.'
                 ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))

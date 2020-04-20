@@ -30,7 +30,7 @@ from .state_functions import StateFn
 def make_immutable(obj):
     """ Delete the __setattr__ property to make the object mostly immutable. """
 
-    # TODO figure out how to get correct error message at some point
+    # TODO figure out how to get correct error message
     # def throw_immutability_exception(self, *args):
     #     raise AquaError('Operator convenience globals are immutable.')
 

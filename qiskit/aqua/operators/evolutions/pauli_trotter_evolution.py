@@ -90,7 +90,7 @@ class PauliTrotterEvolution(EvolutionBase):
 
     def evolution_for_pauli(self, pauli_op: PauliOp):
         """ evolution for pauli """
-        # TODO Evolve for group of commuting paulis, TODO pauli grouper
+        # TODO Evolve for group of commuting paulis
 
         def replacement_fn(cob_instr_op, dest_pauli_op):
             z_evolution = dest_pauli_op.exp_i()

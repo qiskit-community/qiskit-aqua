@@ -70,7 +70,7 @@ class TensoredOp(ListOp):
 
         # pylint: disable=cyclic-import,import-outside-toplevel
         from ..primitive_operators import PrimitiveOp
-        # TODO replace with to_op_matrix
+        # TODO replace with to_matrix_op
         tensored_mat_op = PrimitiveOp(self.combo_fn([op.to_matrix() for op in self.oplist]),
                                       coeff=self.coeff)
         return tensored_mat_op.eval(front=front)

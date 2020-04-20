@@ -61,12 +61,10 @@ class PauliOp(PrimitiveOp):
         """ Return a set of strings describing the primitives contained in the Operator """
         return {'Pauli'}
 
-    # TODO replace with proper alphabets later?
     @property
     def num_qubits(self) -> int:
         return len(self.primitive)
 
-    # TODO change to *other to efficiently handle lists?
     def add(self, other: OperatorBase) -> OperatorBase:
         """ Addition. Overloaded by + in OperatorBase. """
         if not self.num_qubits == other.num_qubits:
@@ -90,7 +88,6 @@ class PauliOp(PrimitiveOp):
 
         return self.primitive == other.primitive
 
-    # TODO change to *other to handle lists? How aggressively to handle pairwise business?
     def tensor(self, other: OperatorBase) -> OperatorBase:
         """ Tensor product
         Note: You must be conscious of Qiskit's big-endian bit
@@ -116,7 +113,6 @@ class PauliOp(PrimitiveOp):
 
         return TensoredOp([self, other])
 
-    # TODO change to *other to efficiently handle lists?
     def compose(self, other: OperatorBase) -> OperatorBase:
         """ Operator Composition (Linear algebra-style, right-to-left)
 

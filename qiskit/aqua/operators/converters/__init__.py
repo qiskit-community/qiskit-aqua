@@ -22,8 +22,6 @@ from .pauli_basis_change import PauliBasisChange
 from .dict_to_circuit_sum import DictToCircuitSum
 from .abelian_grouper import AbelianGrouper
 
-# TODO MatrixToPauliSum
-
 __all__ = ['ConverterBase',
            'PauliBasisChange',
            'DictToCircuitSum',
