@@ -308,6 +308,10 @@ class CircuitStateFn(StateFn):
         else:
             return self.primitive
 
+    def to_circuit_op(self) -> OperatorBase:
+        """ Return StateFnCircuit corresponding to this StateFn."""
+        return self
+
     def to_instruction(self):
         """ Return Instruction corresponding to primitive. """
         return self.primitive.to_instruction()

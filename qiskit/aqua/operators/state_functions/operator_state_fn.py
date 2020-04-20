@@ -183,6 +183,11 @@ class OperatorStateFn(StateFn):
 
         return diag_over_tree(mat)
 
+    def to_circuit_op(self) -> OperatorBase:
+        """ Return StateFnCircuit corresponding to this StateFn. Ignore for now because this is
+        undefined. TODO maybe diagonalize here."""
+        return self
+
     def __str__(self) -> str:
         """Overload str() """
         prim_str = str(self.primitive)

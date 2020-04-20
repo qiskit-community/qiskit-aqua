@@ -27,7 +27,6 @@ from ..operator_base import OperatorBase
 from ..operator_globals import Zero
 from ..combo_operators import ListOp
 from ..state_functions import StateFn, CircuitStateFn, DictStateFn
-from ..converters import DictToCircuitSum
 from .circuit_sampler_base import CircuitSamplerBase
 
 logger = logging.getLogger(__name__)
@@ -113,7 +112,7 @@ class LocalSimulatorSampler(CircuitSamplerBase):
             self._transpiled_circ_cache = None
 
         if not self._reduced_op_cache:
-            operator_dicts_replaced = DictToCircuitSum().convert(operator)
+            operator_dicts_replaced = operator.to_circuit_op()
             self._reduced_op_cache = operator_dicts_replaced.reduce()
 
         if not self._circuit_ops_cache:

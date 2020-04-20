@@ -319,9 +319,9 @@ class ListOp(OperatorBase):
         return self.__class__([op.to_matrix_op(massive=massive) for op in self.oplist],
                               coeff=self.coeff).reduce()
 
-    def to_circuit_op(self, massive: bool = False) -> OperatorBase:
+    def to_circuit_op(self) -> OperatorBase:
         """ Return a CircuitOp for this operator. """
-        return self.__class__([op.to_circuit_op(massive=massive) for op in self.oplist],
+        return self.__class__([op.to_circuit_op() for op in self.oplist],
                               coeff=self.coeff).reduce()
 
     def to_pauli_op(self, massive: bool = False) -> OperatorBase:

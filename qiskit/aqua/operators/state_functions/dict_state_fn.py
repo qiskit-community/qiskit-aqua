@@ -226,6 +226,12 @@ class DictStateFn(StateFn):
                                   shape=(1, 2**self.num_qubits))
         return spvec if not self.is_measurement else spvec.transpose()
 
+    def to_circuit_op(self) -> OperatorBase:
+        """ Return StateFnCircuit corresponding to this StateFn."""
+        from .circuit_state_fn import CircuitStateFn
+        csfn = CircuitStateFn.from_dict(self.primitive) * self.coeff
+        return csfn.adjoint() if self.is_measurement else csfn
+
     def __str__(self) -> str:
         """Overload str() """
         prim_str = str(self.primitive)
