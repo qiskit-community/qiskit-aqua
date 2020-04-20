@@ -22,7 +22,7 @@ import numpy as np
 
 from sklearn.utils import shuffle
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
-from qiskit.circuit import ParameterVector, Parameter, ParameterExpression
+from qiskit.circuit import ParameterVector, ParameterExpression
 
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance, AquaError
@@ -152,21 +152,15 @@ class VQC(VQAlgorithm):
         qc = QuantumCircuit(qr, cr)
 
         if isinstance(self.feature_map, QuantumCircuit):
-            if all(isinstance(param, Parameter) for param in x):
-                circuit = self.feature_map.copy()
-            else:
-                value_dict = dict(zip(self._feature_map_params, x))
-                circuit = self.feature_map.bind_parameters(value_dict)
+            param_dict = dict(zip(self._feature_map_params, x))
+            circuit = self._feature_map.assign_parameters(param_dict, inplace=False)
             qc.append(circuit.to_instruction(), qr)
         else:
             qc += self._feature_map.construct_circuit(x, qr)
 
         if isinstance(self.var_form, QuantumCircuit):
-            if all(isinstance(param, Parameter) for param in theta):
-                circuit = self.var_form.copy()
-            else:
-                value_dict = dict(zip(self._var_form_params, theta))
-                circuit = self.feature_map.bind_parameters(value_dict)
+            param_dict = dict(zip(self._var_form_params, theta))
+            circuit = self._var_form.assign_parameters(param_dict, inplace=False)
             qc.append(circuit.to_instruction(), qr)
         else:
             qc += self._var_form.construct_circuit(theta, qr)
@@ -211,7 +205,7 @@ class VQC(VQAlgorithm):
                 if self._parameterized_circuits is not None:
                     curr_params = dict(zip(self._feature_map_params, datum))
                     curr_params.update(dict(zip(self._var_form_params, thet)))
-                    circuit = self._parameterized_circuits.bind_parameters(curr_params)
+                    circuit = self._parameterized_circuits.assign_parameters(curr_params)
                 else:
                     circuit = self.construct_circuit(
                         datum, thet, measurement=not self._quantum_instance.is_statevector)
@@ -478,6 +472,9 @@ class VQC(VQAlgorithm):
         if 'opt_params' not in self._ret:
             raise AquaError("Cannot find optimal circuit before running "
                             "the algorithm to find optimal params.")
+        if isinstance(self._var_form, QuantumCircuit):
+            param_dict = dict(zip(self._var_form_params, self._ret['opt_params']))
+            return self._var_form.assign_parameters(param_dict)
         return self._var_form.construct_circuit(self._ret['opt_params'])
 
     def get_optimal_vector(self):
