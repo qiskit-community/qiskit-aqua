@@ -89,6 +89,7 @@ autosummary_generate_overwrite = False
 
 autodoc_default_options = {
     'inherited-members': None,
+    'show-inheritance': None,
 }
 
 
