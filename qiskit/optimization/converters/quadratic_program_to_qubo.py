@@ -33,7 +33,7 @@ class QuadraticProgramToQubo:
             >>> problem2 = conv.encode(problem)
     """
 
-    def __init__(self, penalty: Optional[float] = 1e5) -> None:
+    def __init__(self, penalty: Optional[float] = None) -> None:
         """
         Args:
             penalty: Penalty factor to scale equality constraints that are added to objective.
@@ -115,7 +115,7 @@ class QuadraticProgramToQubo:
         if not all([constraint.sense == ConstraintSense.EQ
                     for constraint in problem.linear_constraints]):
             msg += 'Only linear equality constraints are supported.'
-        if problem.quadratic_constraints.get_num() > 0:
+        if len(problem.quadratic_constraints) > 0:
             msg += 'Quadratic constraints are not supported. '
 
         # if an error occurred, return error message, otherwise, return None

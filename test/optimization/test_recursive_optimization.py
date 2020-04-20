@@ -37,8 +37,8 @@ class TestRecursiveMinEigenOptimizer(QiskitOptimizationTestCase):
         super().setUp()
 
         # fix random seed for reproducible results
-        np.random.seed = 109
-        aqua_globals.random_seed = 89
+        np.random.seed = 1
+        aqua_globals.random_seed = 2
 
         self.resource_path = './test/optimization/resources/'
 
@@ -82,7 +82,7 @@ class TestRecursiveMinEigenOptimizer(QiskitOptimizationTestCase):
 
             # load optimization problem
             problem = QuadraticProgram()
-            problem.read(self.resource_path + filename)
+            problem.read_from_lp_file(self.resource_path + filename)
 
             # solve problem with cplex
             cplex = CplexOptimizer()

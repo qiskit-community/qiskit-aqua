@@ -60,10 +60,19 @@ class QuadraticExpression(HasQuadraticProgram):
             j = self.quadratic_program.variables_index[j]
         return self.coefficients[i, j]
 
-    def _coeffs_to_dok_matrix(
-            self, coefficients: Union[ndarray, spmatrix, List[List[float]],
-                                      Dict[Tuple[Union[int, str], Union[int, str]], float]]) \
-            -> dok_matrix:
+    def __setitem__(self, key: Tuple[Union[int, str], Union[int, str]], value: float) -> None:
+        i, j = key
+        if isinstance(i, str):
+            i = self.quadratic_program.variables_index[i]
+        if isinstance(j, str):
+            j = self.quadratic_program.variables_index[j]
+        self.coefficients[i, j] = value
+
+    def _coeffs_to_dok_matrix(self,
+                              coefficients: Union[ndarray, spmatrix, List[List[float]],
+                                                  Dict[
+                                                      Tuple[Union[int, str], Union[int, str]],
+                                                      float]]) -> dok_matrix:
         """Maps given coefficients to a dok_matrix.
 
         Args:
@@ -85,9 +94,7 @@ class QuadraticExpression(HasQuadraticProgram):
                     i = self.quadratic_program.variables_index[i]
                 if isinstance(j, str):
                     j = self.quadratic_program.variables_index[j]
-                if i > j:
-                    i, j = j, i
-                coeffs[i, j] += value
+                coeffs[i, j] = value
             coefficients = coeffs
         else:
             raise QiskitOptimizationError("Unsupported format for coefficients.")
