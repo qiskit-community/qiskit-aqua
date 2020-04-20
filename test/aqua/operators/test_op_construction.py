@@ -23,7 +23,7 @@ from qiskit import QuantumCircuit
 from qiskit.quantum_info.operators import Operator, Pauli
 from qiskit.extensions.standard import CZGate
 
-from qiskit.aqua.operators import X, Y, Z, I, CX, T, H, PrimitiveOp, SummedOp, PauliOp
+from qiskit.aqua.operators import X, Y, Z, I, CX, T, H, PrimitiveOp, SummedOp, PauliOp, Minus
 
 
 # pylint: disable=invalid-name
@@ -47,6 +47,10 @@ class TestOpConstruction(QiskitAquaTestCase):
         self.assertEqual(Y.primitive, Pauli(label='Y'))
         self.assertEqual(Z.primitive, Pauli(label='Z'))
         self.assertEqual(I.primitive, Pauli(label='I'))
+
+    def test_composed_eval(self):
+        """ Test eval of ComposedOp """
+        self.assertAlmostEqual(Minus.eval('1'), -.5**.5)
 
     def test_evals(self):
         """ evals test """

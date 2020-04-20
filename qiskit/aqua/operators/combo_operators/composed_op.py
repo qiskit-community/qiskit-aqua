@@ -20,6 +20,7 @@ import numpy as np
 
 from ..operator_base import OperatorBase
 from .list_op import ListOp
+from ..state_functions import StateFn
 
 
 # pylint: disable=invalid-name
@@ -107,7 +108,10 @@ class ComposedOp(ListOp):
         eval_list = self.oplist
         # Only one op needs to be multiplied, so just multiply the first.
         eval_list[0] = eval_list[0] * self.coeff
-        eval_list = eval_list + [front] if front else eval_list
+        if front and isinstance(front, OperatorBase):
+            eval_list = eval_list + [front]
+        elif front:
+            eval_list = [StateFn(front, is_measurement=True)] + eval_list
 
         return reduce(tree_recursive_eval, reversed(eval_list))
 

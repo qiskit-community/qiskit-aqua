@@ -260,9 +260,6 @@ class ListOp(OperatorBase):
         ListOp's eval recursively evaluates each Operator in self.oplist's eval,
         and returns a value based on the
         recombination function.
-
-
-        # TODO this doesn't work for compositions and tensors! Needs to be to_matrix.
         """
         # The below code only works for distributive ListOps, e.g. ListOp and SummedOp
         if not self.distributive:
