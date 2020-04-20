@@ -16,9 +16,9 @@
 import logging
 import time
 from typing import List, Optional, Any
+
 import numpy as np
 from scipy.linalg import block_diag
-
 from qiskit.optimization.algorithms.cplex_optimizer import CplexOptimizer
 from qiskit.optimization.algorithms.optimization_algorithm import (OptimizationAlgorithm,
                                                                    OptimizationResult)
@@ -29,13 +29,6 @@ UPDATE_RHO_BY_TEN_PERCENT = 0
 UPDATE_RHO_BY_RESIDUALS = 1
 
 logger = logging.getLogger(__name__)
-
-_HAS_CPLEX = False
-try:
-    from cplex import SparsePair, SparseTriple
-    _HAS_CPLEX = True
-except ImportError:
-    logger.info('CPLEX is not installed.')
 
 
 class ADMMParameters:
@@ -172,7 +165,7 @@ class ADMMOptimizerResult(OptimizationResult):
 
 
 class ADMMOptimizer(OptimizationAlgorithm):
-    
+
     """An implementation of the ADMM-based heuristic introduced here:
     Gambella, C., & Simonetto, A. (2020).
      Multi-block ADMM Heuristics for Mixed-Binary Optimization on Classical and Quantum Computers.
@@ -194,9 +187,6 @@ class ADMMOptimizer(OptimizationAlgorithm):
         Raises:
             NameError: CPLEX is not installed.
         """
-        if not _HAS_CPLEX:
-            raise NameError('CPLEX is not installed.')
-
         super().__init__()
         self._log = logging.getLogger(__name__)
 
@@ -233,14 +223,13 @@ class ADMMOptimizer(OptimizationAlgorithm):
                 # variable is not binary and not continuous.
                 msg += 'Only binary and continuous variables are supported. '
 
-        binary_indices = self._get_variable_indices(problem, VarType.binary)
-        continuous_indices = self._get_variable_indices(problem, VarType.continuous)
+        binary_indices = self._get_variable_indices(problem, VarType.BINARY)
+        continuous_indices = self._get_variable_indices(problem, VarType.CONTINUOUS)
 
         # 2. binary and continuous variables are separable in objective
         for binary_index in binary_indices:
             for continuous_index in continuous_indices:
-                # todo: implement
-                coeff = problem.objective.get_quadratic_coefficients(binary_index, continuous_index)
+                coeff = problem.objective.quadratic[binary_index, continuous_index]
                 if coeff != 0:
                     # binary and continuous vars are mixed.
                     msg += 'Binary and continuous variables are not separable in the objective. '
@@ -513,19 +502,18 @@ class ADMMOptimizer(OptimizationAlgorithm):
             # we check only equality constraints here.
             if constraint.sense != ConstraintSense.EQ:
                 continue
-            # todo: add condition that only binary variables are in the constraint
-            # row = self._state.op.linear_constraints.get_rows(constraint_index)
-            row = self._state.op.linear_constraints[constraint_index].linear.to_array().take(self._state.binary_indices)
-            self._assign_row_values(matrix, vector,
-                                    constraint_index, self._state.binary_indices)
-            # if set(row.ind).issubset(index_set):
-            #     self._assign_row_values(matrix, vector,
-            #                             constraint_index, self._state.binary_indices)
-            # else:
-            #     raise ValueError(
-            #         "Linear constraint with the 'E' sense must contain only binary variables, "
-            #         "row indices: {}, binary variable indices: {}".format(
-            #             row, self._state.binary_indices))
+
+            constraint_indices = set(
+                self._state.op.linear_constraints[constraint_index].linear.to_dict().keys())
+            # verify that there are only binary variables in the constraint
+            if constraint_indices.issubset(index_set):
+                self._assign_row_values(matrix, vector,
+                                        constraint_index, self._state.binary_indices)
+            else:
+                raise ValueError(
+                    "Linear constraint with the 'E' sense must contain only binary variables, "
+                    "constraint indices: {}, binary variable indices: {}".format(
+                        constraint_indices, self._state.binary_indices))
 
         return self._create_ndarrays(matrix, vector, len(self._state.binary_indices))
 
@@ -673,13 +661,17 @@ class ADMMOptimizer(OptimizationAlgorithm):
             constraint_count = self._state.a2.shape[0]
             for i in range(constraint_count):
                 linear = np.concatenate((self._state.a3[i, :], self._state.a2[i, :]))
-                op2.linear_constraint(linear=linear, sense=ConstraintSense.LE, rhs=self._state.b2[i])
+                op2.linear_constraint(linear=linear,
+                                      sense=ConstraintSense.LE,
+                                      rhs=self._state.b2[i])
 
             # A4 u <= b3
             constraint_count = self._state.a4.shape[0]
             for i in range(constraint_count):
                 linear = np.concatenate((self._state.a4[i, :], np.zeros(binary_size)))
-                op2.linear_constraint(linear=linear, sense=ConstraintSense.LE, rhs=self._state.b3[i])
+                op2.linear_constraint(linear=linear,
+                                      sense=ConstraintSense.LE,
+                                      rhs=self._state.b3[i])
 
         # add quadratic constraints for
         # In the step 2, we basically need to copy all quadratic constraints of the original
