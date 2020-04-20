@@ -287,7 +287,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
                 and (elapsed_time < self._params.max_time):
             if binary_indices:
                 op1 = self._create_step1_problem()
-                print("OP1: ", op1.print_as_lp_string())
+
                 self._state.x0 = self._update_x0(op1)
             # else, no binary variables exist,
             # and no update to be done in this case.
@@ -679,12 +679,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
                 continuous_index += 1
 
         # add z variables.
-        # op2.variables.add(names=["z0_" + str(i + 1) for i in range(binary_size)],
-        #                   types=["C"] * binary_size,
-        #                   lb=[0.] * binary_size,
-        #                   ub=[1.] * binary_size)
         for i in range(binary_size):
-            op2.binary_var(name="z0_" + str(i + 1))
+            op2.continuous_var(name="z0_" + str(i + 1), lowerbound=0, upperbound=1.)
 
         # todo: do we need the 2*
         q_z = self._state.rho / 2 * np.eye(binary_size)
@@ -965,7 +961,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         """
 
         def quadratic_form(matrix, x, c):
-            return np.dot(x.T, np.dot(matrix / 2, x)) + np.dot(c.T, x)
+            return np.dot(x.T, np.dot(matrix, x)) + np.dot(c.T, x)
 
         obj_val = quadratic_form(self._state.q0, self._state.x0, self._state.c0)
         obj_val += quadratic_form(self._state.q1, self._state.u, self._state.c1)
