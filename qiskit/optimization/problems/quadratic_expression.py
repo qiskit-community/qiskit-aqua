@@ -60,6 +60,14 @@ class QuadraticExpression(HasQuadraticProgram):
             j = self.quadratic_program.variables_index[j]
         return self.coefficients[i, j]
 
+    def __setitem__(self, key: Tuple[Union[int, str], Union[int, str]], value: float) -> None:
+        i, j = key
+        if isinstance(i, str):
+            i = self.quadratic_program.variables_index[i]
+        if isinstance(j, str):
+            j = self.quadratic_program.variables_index[j]
+        self.coefficients[i, j] = value
+
     def _coeffs_to_dok_matrix(self,
                               coefficients: Union[ndarray, spmatrix, List[List[float]],
                                                   Dict[

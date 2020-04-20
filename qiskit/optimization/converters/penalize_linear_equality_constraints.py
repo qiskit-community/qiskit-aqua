@@ -95,16 +95,16 @@ class PenalizeLinearEqualityConstraints:
                 linear[j] = linear.get(j, 0.0) + penalty_factor * -2 * coef * constant
 
             # quadratic parts of penalty*(Constant-func)**2: penalty*(func**2)
-            for j, coef_1 in zip(row.ind, row.val):
-                for k, coef_2 in zip(row.ind, row.val):
+            for j, coef_1 in row.items():
+                for k, coef_2 in row.items():
                     # if j and k already exist in the quadratic terms dict,
                     # add a penalty term into existing value
                     # else create new key and value in the quadratic term dict
 
                     # according to implementation of quadratic terms in OptimizationModel,
-                    # multiply by 2
+                    # don't need to multiply by 2, since loops run over (x, y) and (y, x).
                     quadratic[(j, k)] = quadratic.get((j, k), 0.0) \
-                        + penalty_factor * coef_1 * coef_2 * 2
+                        + penalty_factor * coef_1 * coef_2
 
         if self._src.objective.sense == ObjSense.MINIMIZE:
             self._dst.minimize(offset, linear, quadratic)

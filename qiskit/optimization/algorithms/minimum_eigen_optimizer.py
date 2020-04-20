@@ -141,9 +141,9 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
 
         # analyze results
         samples = eigenvector_to_solutions(eigen_results.eigenstate, operator)
-        samples = [(res[0], problem_.objective.get_sense() * (res[1] + offset), res[2])
+        samples = [(res[0], problem_.objective.sense.value * (res[1] + offset), res[2])
                    for res in samples]
-        samples.sort(key=lambda x: problem_.objective.get_sense() * x[1])
+        samples.sort(key=lambda x: problem_.objective.sense.value * x[1])
 
         # translate result back to integers
         opt_res = MinimumEigenOptimizerResult(samples[0][0], samples[0][1], samples, qubo_converter)

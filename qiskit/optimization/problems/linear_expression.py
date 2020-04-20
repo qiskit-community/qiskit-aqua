@@ -56,6 +56,11 @@ class LinearExpression(HasQuadraticProgram):
             i = self.quadratic_program.variables_index[i]
         return self.coefficients[0, i]
 
+    def __setitem__(self, i: Union[int, str], value: float) -> None:
+        if isinstance(i, str):
+            i = self.quadratic_program.variables_index[i]
+        self._coefficients[0, i] = value
+
     def _coeffs_to_dok_matrix(self,
                               coefficients: Union[ndarray, spmatrix,
                                                   List, Dict[Union[int, str], float]]
