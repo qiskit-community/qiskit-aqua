@@ -117,13 +117,13 @@ class HartreeFock(InitialState):
             start_idx = beta.shape[0] - self._num_orbitals
             beta = beta[start_idx:, start_idx:]
             new_bitstr = beta.dot(bitstr.astype(int)) % 2
-            bitstr = new_bitstr.astype(np.int).astype(np.bool)
+            bitstr = new_bitstr.astype(np.bool)
 
         if self._qubit_tapering:
             sq_list = (len(bitstr) - 1) - np.asarray(self._sq_list)
             bitstr = np.delete(bitstr, sq_list)
 
-        self._bitstr = bitstr.astype(np.int).astype(np.bool)
+        self._bitstr = bitstr.astype(np.bool)
 
     def construct_circuit(self, mode='circuit', register=None):
         """
