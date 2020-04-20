@@ -77,7 +77,7 @@ from .evolutions import (EvolutionBase, EvolutionFactory, EvolvedOp, PauliTrotte
                          TrotterizationBase, TrotterizationFactory, Trotter, Suzuki, QDrift)
 
 # Convenience immutable instances
-from .operator_globals import X, Y, Z, I, CX, S, H, T, Swap, Zero, One, Plus, Minus
+from .operator_globals import EVAL_SIG_DIGITS, X, Y, Z, I, CX, S, H, T, Swap, Zero, One, Plus, Minus
 
 __all__ = [
     # Common

@@ -197,14 +197,17 @@ class VectorStateFn(StateFn):
             front = StateFn(front)
 
         # pylint: disable=cyclic-import,import-outside-toplevel
+        from ..operator_globals import EVAL_SIG_DIGITS
         from . import DictStateFn, OperatorStateFn
         if isinstance(front, DictStateFn):
-            return sum([v * self.primitive.data[int(b, 2)] * front.coeff
-                        for (b, v) in front.primitive.items()]) * self.coeff
+            return round(sum([v * self.primitive.data[int(b, 2)] * front.coeff
+                              for (b, v) in front.primitive.items()]) * self.coeff,
+                         ndigits=EVAL_SIG_DIGITS)
 
         if isinstance(front, VectorStateFn):
             # Need to extract the element or np.array([1]) is returned.
-            return np.dot(self.to_matrix(), front.to_matrix())[0]
+            return round(np.dot(self.to_matrix(), front.to_matrix())[0],
+                         ndigits=EVAL_SIG_DIGITS)
 
         if isinstance(front, OperatorStateFn):
             return front.adjoint().eval(self.primitive) * self.coeff

@@ -256,23 +256,27 @@ class DictStateFn(StateFn):
         if not isinstance(front, OperatorBase):
             front = StateFn(front)
 
+        # pylint: disable=cyclic-import,import-outside-toplevel
+        from ..operator_globals import EVAL_SIG_DIGITS
+
         # If the primitive is a lookup of bitstrings,
         # we define all missing strings to have a function value of
         # zero.
         if isinstance(front, DictStateFn):
-            return sum([v * front.primitive.get(b, 0) for (b, v) in
-                        self.primitive.items()]) * self.coeff * front.coeff
+            return round(sum([v * front.primitive.get(b, 0) for (b, v) in
+                              self.primitive.items()]) * self.coeff * front.coeff,
+                         ndigits=EVAL_SIG_DIGITS)
 
         # All remaining possibilities only apply when self.is_measurement is True
 
-        # pylint: disable=cyclic-import,import-outside-toplevel
         from . import VectorStateFn
         if isinstance(front, VectorStateFn):
             # TODO does it need to be this way for measurement?
             # return sum([v * front.primitive.data[int(b, 2)] *
             # np.conj(front.primitive.data[int(b, 2)])
-            return sum([v * front.primitive.data[int(b, 2)]
-                        for (b, v) in self.primitive.items()]) * self.coeff
+            return round(sum([v * front.primitive.data[int(b, 2)]
+                              for (b, v) in self.primitive.items()]) * self.coeff,
+                         ndigits=EVAL_SIG_DIGITS)
 
         from . import OperatorStateFn
         if isinstance(front, OperatorStateFn):
