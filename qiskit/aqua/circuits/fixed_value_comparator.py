@@ -19,13 +19,13 @@ import numpy as np
 
 from qiskit.circuit.library import IntegerComparator
 from qiskit.aqua.utils.circuit_factory import CircuitFactory
-from qiskit.aqua.circuits.gates import logical_or  # pylint: disable=unused-import
-
-# pylint: disable=invalid-name
 
 
 class FixedValueComparator(CircuitFactory):
-    r"""Fixed Value Comparator.
+    r"""*DEPRECATED.* Fixed Value Comparator
+
+    .. deprecated:: 0.7.0
+       Use Terra's qiskit.circuit.library.IntegerComparator instead.
 
     Operator compares basis states \|i>_n against a classically
     given fixed value L and flips a target qubit if i >= L (or < depending on parameters):
@@ -89,8 +89,7 @@ class FixedValueComparator(CircuitFactory):
         return self.num_state_qubits - 1
 
     def _get_twos_complement(self):
-        """
-        Returns the 2's complement of value as array
+        """Returns the 2's complement of value as array
 
         Returns:
              list: two's complement

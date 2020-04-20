@@ -21,7 +21,10 @@ from qiskit.aqua.utils import CircuitFactory
 
 
 class LinearRotation(CircuitFactory):
-    r"""Linearly-controlled X, Y or Z rotation.
+    r"""*DEPRECATED.* Linearly-controlled X, Y or Z rotation.
+
+    .. deprecated:: 0.7.0
+       Use Terra's qiskit.circuit.library.LinearPauliRotations instead.
 
     For a register of state qubits \|x> and a target qubit \|0> this operator acts as:
 
@@ -45,7 +48,7 @@ class LinearRotation(CircuitFactory):
         """
         warnings.warn('The qiskit.aqua.circuits.LinearRotation object is deprecated and will be '
                       'removed no earlier than 3 months after the 0.7.0 release of Qiskit Aqua. '
-                      'You should use qiskit.circuit.library.arithmetic.LinearRotation instead.',
+                      'You should use qiskit.circuit.library.LinearPauliRotations instead.',
                       DeprecationWarning, stacklevel=2)
 
         super().__init__(num_state_qubits + 1)

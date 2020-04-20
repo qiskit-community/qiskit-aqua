@@ -148,6 +148,7 @@ ecc
 ee
 eigen
 eigensolver
+eigensolvers
 eigenstate
 eigrange
 eigs
@@ -236,6 +237,7 @@ ifortvars
 ign
 ignis
 ij
+ijkl
 ijkm
 ikmj
 imag
@@ -251,6 +253,7 @@ inline
 innerproduct
 inreg
 instantiations
+integercomparator
 intelvem
 interatomic
 ints
@@ -275,6 +278,7 @@ jt
 jth
 jw
 kaicher
+kanav
 Kandala
 ket
 killoran
@@ -297,6 +301,8 @@ lhs
 lih
 lijh
 lin
+linearpaulirotations
+ljik
 lmin
 lnot
 loglikelihood
@@ -407,6 +413,7 @@ outpath
 overfit
 params
 parentname
+pascual
 pauli
 pauli's
 paulis
@@ -417,9 +424,11 @@ penality
 performant
 ph
 piecewise
+piecewiselinearpaulirotations
 plesset
 pmatrix
 polynomially
+polynomialpaulirotations
 postoracle
 powell
 pre
@@ -468,6 +477,7 @@ quantized
 quantumcircuit
 quantumregister
 qubit
+qubitization
 qubits
 quine
 qutip
@@ -516,6 +526,7 @@ sdg
 sdk
 seealso
 seeley
+sergey
 setia
 sgn
 shanno
@@ -545,6 +556,7 @@ subspaces
 succ
 sudo
 superclass
+superfast
 suzuki
 svm
 sx
@@ -634,6 +646,7 @@ xuxv
 xyz
 yao
 yc
+yu
 yy
 zi
 zmatrix
