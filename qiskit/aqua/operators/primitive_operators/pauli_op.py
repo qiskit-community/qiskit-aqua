@@ -212,7 +212,7 @@ class PauliOp(PrimitiveOp):
             corrected_z_bits = self.primitive.z[::-1]
 
             for bstr, v in front.primitive.items():
-                bitstr = np.asarray(list(bstr)).astype(np.bool)
+                bitstr = np.asarray(list(bstr)).astype(np.int).astype(np.bool)
                 new_b_str = np.logical_xor(bitstr, corrected_x_bits)
                 new_str = ''.join(map(str, 1 * new_b_str))
                 z_factor = np.product(1 - 2 * np.logical_and(bitstr, corrected_z_bits))
