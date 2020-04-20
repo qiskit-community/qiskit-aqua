@@ -23,7 +23,9 @@ from qiskit.extensions.standard import IGate
 from qiskit.circuit import Instruction, ParameterExpression
 
 from ..operator_base import OperatorBase
-from ..combo_operators import SummedOp, ComposedOp, TensoredOp
+from ..combo_operators.summed_op import SummedOp
+from ..combo_operators.composed_op import ComposedOp
+from ..combo_operators.tensored_op import TensoredOp
 from .primitive_op import PrimitiveOp
 
 logger = logging.getLogger(__name__)

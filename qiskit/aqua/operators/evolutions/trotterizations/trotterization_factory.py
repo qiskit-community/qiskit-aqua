@@ -35,7 +35,7 @@ class TrotterizationFactory():
         if mode not in ['trotter', 'suzuki', 'qdrift']:
             raise ValueError('Trotter mode {} not supported'.format(mode))
 
-        # pylint: disable=cyclic-import,import-outside-toplevel
+        # pylint: disable=cyclic-import
         if mode == 'trotter':
             return Trotter(reps=reps)
 

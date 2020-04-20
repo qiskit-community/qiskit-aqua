@@ -25,8 +25,10 @@ from qiskit.quantum_info import Pauli
 from qiskit.extensions.standard import RZGate, RYGate, RXGate, XGate, YGate, ZGate, IGate
 
 from ..operator_base import OperatorBase
-from . import PrimitiveOp
-from ..combo_operators import SummedOp, ComposedOp, TensoredOp
+from .primitive_op import PrimitiveOp
+from ..combo_operators.summed_op import SummedOp
+from ..combo_operators.composed_op import ComposedOp
+from ..combo_operators.tensored_op import TensoredOp
 
 logger = logging.getLogger(__name__)
 PAULI_GATE_MAPPING = {'X': XGate(), 'Y': YGate(), 'Z': ZGate(), 'I': IGate()}
@@ -107,7 +109,7 @@ class PauliOp(PrimitiveOp):
             return PauliOp(op_copy.kron(self.primitive), coeff=self.coeff * other.coeff)
 
         # pylint: disable=cyclic-import,import-outside-toplevel
-        from . import CircuitOp
+        from .circuit_op import CircuitOp
         if isinstance(other, CircuitOp):
             return self.to_circuit_op().tensor(other)
 
@@ -135,7 +137,7 @@ class PauliOp(PrimitiveOp):
 
         # pylint: disable=cyclic-import,import-outside-toplevel
         from .circuit_op import CircuitOp
-        from ..state_functions import CircuitStateFn
+        from ..state_functions.circuit_state_fn import CircuitStateFn
         if isinstance(other, (CircuitOp, CircuitStateFn)):
             return self.to_circuit_op().compose(other)
 
@@ -188,8 +190,11 @@ class PauliOp(PrimitiveOp):
             return self.to_matrix_op()
 
         # pylint: disable=import-outside-toplevel
-        from .. import StateFn, DictStateFn, CircuitStateFn, ListOp
-        from . import CircuitOp
+        from ..state_functions.state_fn import StateFn
+        from ..state_functions.dict_state_fn import DictStateFn
+        from ..state_functions.circuit_state_fn import CircuitStateFn
+        from ..combo_operators.list_op import ListOp
+        from .circuit_op import CircuitOp
 
         new_front = None
 
@@ -251,13 +256,13 @@ class PauliOp(PrimitiveOp):
             elif corrected_x[sig_qubit_index]:
                 rot_op = PrimitiveOp(RXGate(self.coeff))
 
-            from .. import I
+            from ..operator_globals import I
             left_pad = I.tensorpower(sig_qubit_index)
             right_pad = I.tensorpower(self.num_qubits - sig_qubit_index - 1)
             # Need to use overloaded operators here in case left_pad == I^0
             return left_pad ^ rot_op ^ right_pad
         else:
-            from qiskit.aqua.operators import EvolvedOp
+            from ..evolutions.evolved_op import EvolvedOp
             return EvolvedOp(self)
 
     def __hash__(self) -> int:

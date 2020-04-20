@@ -21,7 +21,8 @@ from qiskit.circuit import ParameterExpression
 
 from ..operator_base import OperatorBase
 from .state_fn import StateFn
-from ..combo_operators import ListOp, SummedOp
+from ..combo_operators.list_op import ListOp
+from ..combo_operators.summed_op import SummedOp
 
 
 # pylint: disable=invalid-name

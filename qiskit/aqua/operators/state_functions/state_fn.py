@@ -65,19 +65,19 @@ class StateFn(OperatorBase):
 
         # pylint: disable=cyclic-import,import-outside-toplevel
         if isinstance(primitive, (str, dict, Result)):
-            from . import DictStateFn
+            from .dict_state_fn import DictStateFn
             return DictStateFn.__new__(DictStateFn)
 
         if isinstance(primitive, (list, np.ndarray, Statevector)):
-            from . import VectorStateFn
+            from .vector_state_fn import VectorStateFn
             return VectorStateFn.__new__(VectorStateFn)
 
         if isinstance(primitive, (QuantumCircuit, Instruction)):
-            from . import CircuitStateFn
+            from .circuit_state_fn import CircuitStateFn
             return CircuitStateFn.__new__(CircuitStateFn)
 
         if isinstance(primitive, OperatorBase):
-            from . import OperatorStateFn
+            from .operator_state_fn import OperatorStateFn
             return OperatorStateFn.__new__(OperatorStateFn)
 
     # TODO allow normalization somehow?
@@ -300,7 +300,7 @@ class StateFn(OperatorBase):
 
     def to_matrix_op(self, massive: bool = False) -> OperatorBase:
         """ Return a VectorStateFn for this StateFn. """
-        # pylint: disable=import-outside-toplevel
+        # pylint: disable=cyclic-import,import-outside-toplevel
         from .vector_state_fn import VectorStateFn
         return VectorStateFn(self.to_matrix(massive=massive), is_measurement=self.is_measurement)
 

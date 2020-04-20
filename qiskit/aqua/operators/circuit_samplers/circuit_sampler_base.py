@@ -21,8 +21,9 @@ from abc import abstractmethod
 from qiskit.circuit import ParameterExpression
 
 from ..operator_base import OperatorBase
-from ..state_functions import CircuitStateFn, DictStateFn
-from ..converters import ConverterBase
+from ..state_functions.circuit_state_fn import CircuitStateFn
+from ..state_functions.dict_state_fn import DictStateFn
+from ..converters.converter_base import ConverterBase
 
 logger = logging.getLogger(__name__)
 

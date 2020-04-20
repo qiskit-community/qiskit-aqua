@@ -21,8 +21,10 @@ from qiskit.providers import BaseBackend
 from qiskit.circuit import ParameterExpression
 from qiskit.aqua import QuantumInstance
 from ..operator_base import OperatorBase
-from ..combo_operators import ListOp
-from ..state_functions import StateFn, CircuitStateFn, DictStateFn
+from ..combo_operators.list_op import ListOp
+from ..state_functions.state_fn import StateFn
+from ..state_functions.circuit_state_fn import CircuitStateFn
+from ..state_functions.dict_state_fn import DictStateFn
 from .circuit_sampler_base import CircuitSamplerBase
 
 logger = logging.getLogger(__name__)

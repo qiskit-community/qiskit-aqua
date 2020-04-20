@@ -195,6 +195,7 @@ ftol
 fujii
 fullname
 func
+functools
 gambetta
 gauopen
 gaussian
@@ -234,8 +235,10 @@ idx
 iexp
 ifdef
 ifortvars
+IGates
 ign
 ignis
+iH
 ij
 ijkl
 ijkm
@@ -316,6 +319,7 @@ mapsto
 mathbb
 mathsf
 matmul
+matmulmean
 matrixoperator
 maxcut
 maxdepth
@@ -494,6 +498,7 @@ reimplement
 renormalize
 renyi
 reparameterizing
+repr
 reqd
 rescaling
 retval
