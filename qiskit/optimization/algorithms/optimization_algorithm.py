@@ -127,7 +127,7 @@ class OptimizationResult:
         return self._results
 
     @property
-    def status(self) -> OptimizationResult.Status:
+    def status(self) -> Status:
         """Return the termination status of the algorithm.
 
         Returns:
