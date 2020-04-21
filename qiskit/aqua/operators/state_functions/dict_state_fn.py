@@ -237,10 +237,10 @@ class DictStateFn(StateFn):
         prim_str = str(self.primitive)
         if self.coeff == 1.0:
             return "{}({})".format('DictStateFn' if not self.is_measurement
-                                   else 'MeasurementDict', prim_str)
+                                   else 'DictMeasurement', prim_str)
         else:
             return "{}({}) * {}".format('DictStateFn' if not self.is_measurement
-                                        else 'MeasurementDict',
+                                        else 'DictMeasurement',
                                         prim_str,
                                         self.coeff)
 

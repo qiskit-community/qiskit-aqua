@@ -21,11 +21,13 @@ import itertools
 import numpy as np
 
 from qiskit.aqua.operators import (X, Y, Z, I, CX, H, S,
-                                   ListOp, Zero, One, Plus, Minus,
-                                   AerPauliExpectation)
+                                   ListOp, Zero, One, Plus, Minus, StateFn,
+                                   AerPauliExpectation, LocalSimulatorSampler)
 
 from qiskit import Aer
 
+
+# pylint: disable=invalid-name
 
 class TestAerPauliExpectation(QiskitAquaTestCase):
     """Pauli Change of Basis Expectation tests."""
@@ -36,9 +38,15 @@ class TestAerPauliExpectation(QiskitAquaTestCase):
         backend = Aer.get_backend('qasm_simulator')
         expect = AerPauliExpectation(operator=op, backend=backend)
         # wf_op = (Pl^Pl) + (Ze^Ze)
-        wf_op = CX @ (H ^ I) @ Zero
-        mean = expect.compute_expectation(wf_op)
+        wf = CX @ (H ^ I) @ Zero
+        mean = expect.compute_expectation(wf)
         self.assertAlmostEqual(mean, 0, delta=.1)
+
+        # Test via convert instead of compute_expectation
+        converted_meas = expect.convert(~StateFn(op) @ wf)
+        converted_meas = LocalSimulatorSampler(backend=backend,
+                                               snapshot=True).convert(converted_meas)
+        self.assertAlmostEqual(converted_meas.eval(), 0, delta=.1)
 
     def test_pauli_expect_single(self):
         """ Test AerPauli expectation over all single qubit paulis and eigenstates. """
@@ -53,6 +61,12 @@ class TestAerPauliExpectation(QiskitAquaTestCase):
             matmulmean = state.adjoint().to_matrix() @ pauli.to_matrix() @ state.to_matrix()
             # print('{}, {}'.format(pauli.primitive, np.round(matmulmean, decimals=3)))
             np.testing.assert_array_almost_equal(mean, matmulmean, decimal=1)
+
+            # Test via convert instead of compute_expectation
+            converted_meas = expect.convert(~StateFn(pauli) @ state)
+            converted_meas = LocalSimulatorSampler(backend=backend,
+                                                   snapshot=True).convert(converted_meas)
+            self.assertAlmostEqual(converted_meas.eval(), matmulmean, delta=.1)
 
     def test_pauli_expect_op_vector(self):
         """ Test for expectation over ListOp of observables. """
@@ -102,6 +116,12 @@ class TestAerPauliExpectation(QiskitAquaTestCase):
         means = expect.compute_expectation(states_op)
         np.testing.assert_array_almost_equal(means, [0, 0, 1, -1], decimal=1)
 
+        # Test via convert instead of compute_expectation
+        converted_meas = expect.convert(~StateFn(paulis_op) @ states_op)
+        converted_meas = LocalSimulatorSampler(backend=backend,
+                                               snapshot=True).convert(converted_meas)
+        np.testing.assert_array_almost_equal(converted_meas.eval(), [0, 0, 1, -1], decimal=1)
+
     def test_pauli_expect_op_vector_state_vector(self):
         """ Test over ListOp of Observables and ListOp of states."""
         backend = Aer.get_backend('qasm_simulator')
@@ -117,6 +137,12 @@ class TestAerPauliExpectation(QiskitAquaTestCase):
                   [-1, 1, 0, -0],
                   [+1, 1, 1, 1]]
         np.testing.assert_array_almost_equal(means, valids, decimal=1)
+
+        # Test via convert instead of compute_expectation
+        converted_meas = expect.convert(~StateFn(paulis_op) @ states_op)
+        converted_meas = LocalSimulatorSampler(backend=backend,
+                                               snapshot=True).convert(converted_meas)
+        np.testing.assert_array_almost_equal(converted_meas.eval(), valids, decimal=1)
 
     def test_parameterized_qobj(self):
         """ Test direct-to-aer parameter passing in Qobj header. """

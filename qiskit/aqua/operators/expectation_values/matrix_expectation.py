@@ -22,7 +22,8 @@ from qiskit.providers import BaseBackend
 
 from ..operator_base import OperatorBase
 from .expectation_base import ExpectationBase
-from ..state_functions import StateFn
+from ..combo_operators import ListOp
+from ..state_functions import StateFn, OperatorStateFn
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +64,17 @@ class MatrixExpectation(ExpectationBase):
     @state.setter
     def state(self, state: OperatorBase) -> None:
         self._state = state
+
+    # TODO refactor to just rely on this
+    def convert(self, operator: OperatorBase) -> OperatorBase:
+        """ Accept an Operator and return a new Operator with the Pauli measurements replaced by
+        Matrix based measurements. """
+        if isinstance(operator, OperatorStateFn) and operator.is_measurement:
+            return operator.to_matrix_op()
+        elif isinstance(operator, ListOp):
+            return operator.traverse(self.convert)
+        else:
+            return operator
 
     def compute_expectation(self,
                             state: OperatorBase = None,

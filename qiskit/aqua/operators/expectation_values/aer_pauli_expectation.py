@@ -24,7 +24,7 @@ from ..operator_base import OperatorBase
 from .expectation_base import ExpectationBase
 from ..combo_operators import ListOp, SummedOp
 from ..primitive_operators import PauliOp
-from ..state_functions import StateFn, CircuitStateFn
+from ..state_functions import StateFn, CircuitStateFn, OperatorStateFn
 
 logger = logging.getLogger(__name__)
 
@@ -79,28 +79,38 @@ class AerPauliExpectation(ExpectationBase):
     def quantum_instance(self, quantum_instance: QuantumInstance) -> None:
         self._circuit_sampler.quantum_instance = quantum_instance
 
+    # TODO refactor to just rely on this
+    def convert(self, operator: OperatorBase) -> OperatorBase:
+        """ Accept an Operator and return a new Operator with the Pauli measurements replaced by
+        AerSnapshot-based expectation circuits. """
+        if isinstance(operator, OperatorStateFn) and operator.is_measurement:
+            return self._replace_pauli_sums(operator.primitive) * operator.coeff
+        elif isinstance(operator, ListOp):
+            return operator.traverse(self.convert)
+        else:
+            return operator
+
+    # pylint: disable=inconsistent-return-statements,import-outside-toplevel
+    @classmethod
+    def _replace_pauli_sums(cls, operator):
+        from qiskit.providers.aer.extensions import SnapshotExpectationValue
+        if isinstance(operator, SummedOp):
+            paulis = [[meas.coeff, meas.primitive] for meas in operator.oplist]
+            snapshot_instruction = SnapshotExpectationValue('expval', paulis, variance=True)
+            snapshot_op = CircuitStateFn(snapshot_instruction, is_measurement=True)
+            return snapshot_op
+        if isinstance(operator, PauliOp):
+            paulis = [[operator.coeff, operator.primitive]]
+            snapshot_instruction = SnapshotExpectationValue('expval', paulis, variance=True)
+            snapshot_op = CircuitStateFn(snapshot_instruction, is_measurement=True)
+            return snapshot_op
+        if isinstance(operator, ListOp):
+            return operator.traverse(cls._replace_pauli_sums)
+
     def expectation_op(self) -> OperatorBase:
         """ expectation op """
-        # pylint: disable=import-outside-toplevel
-        from qiskit.providers.aer.extensions import SnapshotExpectationValue
 
-        # Construct snapshot op
-        # pylint: disable=inconsistent-return-statements
-        def replace_pauli_sums(operator):
-            if isinstance(operator, SummedOp):
-                paulis = [[meas.coeff, meas.primitive] for meas in operator.oplist]
-                snapshot_instruction = SnapshotExpectationValue('expval', paulis, variance=True)
-                snapshot_op = CircuitStateFn(snapshot_instruction, is_measurement=True)
-                return snapshot_op
-            if isinstance(operator, PauliOp):
-                paulis = [[operator.coeff, operator.primitive]]
-                snapshot_instruction = SnapshotExpectationValue('expval', paulis, variance=True)
-                snapshot_op = CircuitStateFn(snapshot_instruction, is_measurement=True)
-                return snapshot_op
-            if isinstance(operator, ListOp):
-                return operator.traverse(replace_pauli_sums)
-
-        snapshot_meas = replace_pauli_sums(self._operator)
+        snapshot_meas = self._replace_pauli_sums(self._operator)
         return snapshot_meas
 
     def compute_expectation(self,

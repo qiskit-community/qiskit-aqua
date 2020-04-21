@@ -192,11 +192,11 @@ class OperatorStateFn(StateFn):
         """Overload str() """
         prim_str = str(self.primitive)
         if self.coeff == 1.0:
-            return "{}({})".format('StateFunction' if not self.is_measurement
-                                   else 'Measurement', prim_str)
+            return "{}({})".format('OperatorStateFn' if not self.is_measurement
+                                   else 'OperatorMeasurement', prim_str)
         else:
             return "{}({}) * {}".format(
-                'StateFunction' if not self.is_measurement else 'Measurement',
+                'OperatorStateFn' if not self.is_measurement else 'OperatorMeasurement',
                 prim_str,
                 self.coeff)
 

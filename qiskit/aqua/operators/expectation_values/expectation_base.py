@@ -16,17 +16,18 @@
 
 import logging
 from typing import Union
-from abc import abstractmethod, ABC
+from abc import abstractmethod
 import numpy as np
 
 from qiskit.providers import BaseBackend
 from ..operator_base import OperatorBase
+from ..converters import ConverterBase
 from ..circuit_samplers import CircuitSamplerFactory
 
 logger = logging.getLogger(__name__)
 
 
-class ExpectationBase(ABC):
+class ExpectationBase(ConverterBase):
     """ A base for Expectation Value algorithms. An expectation value algorithm
     takes an operator Observable,
     a backend, and a state distribution function, and computes the expected value
@@ -49,6 +50,13 @@ class ExpectationBase(ABC):
     def backend(self, backend: BaseBackend) -> None:
         if backend is not None:
             self._circuit_sampler = CircuitSamplerFactory.build(backend=backend)
+
+    # TODO change VQE to rely on this instead of compute_expectation
+    @abstractmethod
+    def convert(self, operator: OperatorBase) -> OperatorBase:
+        """ Accept an Operator and return a new Operator with the measurements replaced by
+        alternate methods to compute the expectation value. """
+        raise NotImplementedError
 
     @property
     @abstractmethod

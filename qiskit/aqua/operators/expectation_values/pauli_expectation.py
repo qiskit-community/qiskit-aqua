@@ -22,10 +22,10 @@ import numpy as np
 from qiskit.providers import BaseBackend
 
 from qiskit.aqua import QuantumInstance
-from ..operator_base import OperatorBase
 from .expectation_base import ExpectationBase
+from ..operator_base import OperatorBase
 from ..combo_operators import ListOp, ComposedOp
-from ..state_functions import StateFn
+from ..state_functions import StateFn, OperatorStateFn
 from ..converters import PauliBasisChange, AbelianGrouper
 
 logger = logging.getLogger(__name__)
@@ -90,6 +90,23 @@ class PauliExpectation(ExpectationBase):
     @quantum_instance.setter
     def quantum_instance(self, quantum_instance: QuantumInstance) -> None:
         self._circuit_sampler.quantum_instance = quantum_instance
+
+    # TODO refactor to just rely on this
+    def convert(self, operator: OperatorBase) -> OperatorBase:
+        """ Accept an Operator and return a new Operator with the Pauli measurements replaced by
+        Pauli post-rotation based measurements and averaging. """
+        if isinstance(operator, OperatorStateFn) and operator.is_measurement:
+            if self._grouper and isinstance(operator.primitive, ListOp):
+                grouped = self._grouper.convert(operator.primitive)
+                operator = StateFn(grouped, is_measurement=True, coeff=operator.coeff)
+            # Convert the measurement into a classical
+            # basis (PauliBasisChange chooses this basis by default).
+            cob = PauliBasisChange(replacement_fn=PauliBasisChange.measurement_replacement_fn)
+            return cob.convert(operator).reduce()
+        elif isinstance(operator, ListOp):
+            return operator.traverse(self.convert).reduce()
+        else:
+            return operator
 
     def expectation_op(self, state: OperatorBase = None) -> OperatorBase:
         """ expectation op """

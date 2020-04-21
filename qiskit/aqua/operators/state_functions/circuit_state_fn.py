@@ -251,11 +251,11 @@ class CircuitStateFn(StateFn):
         qc = self.reduce().to_circuit()
         prim_str = str(qc.draw(output='text'))
         if self.coeff == 1.0:
-            return "{}(\n{}\n)".format('StateFunction' if not self.is_measurement
-                                       else 'Measurement', prim_str)
+            return "{}(\n{}\n)".format('CircuitStateFn' if not self.is_measurement
+                                       else 'CircuitMeasurement', prim_str)
         else:
-            return "{}(\n{}\n) * {}".format('StateFunction' if not self.is_measurement
-                                            else 'Measurement',
+            return "{}(\n{}\n) * {}".format('CircuitStateFn' if not self.is_measurement
+                                            else 'CircuitMeasurement',
                                             prim_str,
                                             self.coeff)
 
@@ -294,7 +294,7 @@ class CircuitStateFn(StateFn):
         # Composable with circuit
         if isinstance(front, (PauliOp, CircuitOp, MatrixOp, CircuitStateFn)):
             new_front = self.compose(front)
-            return new_front
+            return new_front.eval()
 
         return self.to_matrix_op().eval(front)
 
