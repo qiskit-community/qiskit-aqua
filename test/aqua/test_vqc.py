@@ -391,7 +391,6 @@ class TestVQC(QiskitAquaTestCase):
 
         # convert to circuit if circuits should be used
         if use_circuits:
-            # no sorting of the parameters necessary since the test set is sufficiently large
             x = ParameterVector('x', feature_map.feature_dimension)
             feature_map = feature_map.construct_circuit(x)
             theta = ParameterVector('theta', var_form.num_parameters)
@@ -402,6 +401,12 @@ class TestVQC(QiskitAquaTestCase):
                   var_form,
                   training_input,
                   test_input)
+
+        # sort parameters for reproducibility
+        if use_circuits:
+            vqc._feature_map_params = list(x)
+            vqc._var_form_params = list(theta)
+
         result = vqc.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),
                                          shots=1024,
                                          seed_simulator=aqua_globals.random_seed,
