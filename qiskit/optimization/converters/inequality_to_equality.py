@@ -261,7 +261,7 @@ class InequalityToEquality:
         # Add a new equality constraint.
         new_linear = copy.deepcopy(linear)
         new_linear[slack_name] = sign
-        self._dst.quadratic_constraints(new_linear, quadratic, "==", new_rhs, name)
+        self._dst.quadratic_constraint(new_linear, quadratic, "==", new_rhs, name)
 
     def _add_continuous_slack_var_quadratic_constraint(self, linear, quadratic, sense, rhs, name):
         # If a coefficient that is not integer exist, raise error
@@ -288,7 +288,7 @@ class InequalityToEquality:
         # Add a new equality constraint.
         new_linear = copy.deepcopy(linear)
         new_linear[slack_name] = sign
-        self._dst.quadratic_constraints(new_linear, quadratic, "==", rhs, name)
+        self._dst.quadratic_constraint(new_linear, quadratic, "==", rhs, name)
 
     def _add_auto_slack_var_quadratic_constraint(self, linear, quadratic, sense, rhs, name):
         # If a coefficient that is not integer exist, use a continuous slack variable
