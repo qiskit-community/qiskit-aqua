@@ -872,19 +872,18 @@ class ADMMOptimizer(OptimizationAlgorithm):
         return np.asarray(self._continuous_optimizer.solve(op3).x)
 
     def _get_best_merit_solution(self) -> (List[np.ndarray], float):
-        """The ADMM solution is that for which the merit value is the best (least for min problems,
-        greatest for max problems)
-            * sol: Iterate with the best merit value
+        """The ADMM solution is that for which the merit value is the min
+            * sol: Iterate with the min merit value
             * sol_val: Value of sol, according to the original objective
 
         Returns:
             A tuple of (sol, sol_val), where
-                * sol: Solution with the best merit value
+                * sol: Solution with the min merit value
                 * sol_val: Value of the objective function
         """
 
         it_best_merits = self._state.merits.index(
-            self._state.sense * min(list(map(lambda x: self._state.sense * x, self._state.merits))))
+             min(self._state.merits))
         x_0 = self._state.x0_saved[it_best_merits]
         u_s = self._state.u_saved[it_best_merits]
         sol = [x_0, u_s]
