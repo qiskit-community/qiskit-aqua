@@ -205,7 +205,8 @@ class VectorStateFn(StateFn):
         # pylint: disable=cyclic-import,import-outside-toplevel
         from ..operator_globals import EVAL_SIG_DIGITS
         from .dict_state_fn import DictStateFn
-        from .operator_state_fn import OperatorStateFn, CircuitStateFn
+        from .operator_state_fn import OperatorStateFn
+        from .circuit_state_fn import CircuitStateFn
         if isinstance(front, DictStateFn):
             return round(sum([v * self.primitive.data[int(b, 2)] * front.coeff
                               for (b, v) in front.primitive.items()]) * self.coeff,
