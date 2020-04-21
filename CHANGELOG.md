@@ -36,6 +36,8 @@ Changed
 -   Classical algorithms renamed, former names deprecated (#851)
 -   Chemistry process algorithm result returns result object, lines, dict return deprecated (#861)
 -   Measurement error mitigation supports different output orders on same qubits (#865)
+-   If ibmq-provider is used and job limit is reached, `run_circuit` now waits for a previous job
+    to finish before submitting the next one.
 
 Removed
 -------
