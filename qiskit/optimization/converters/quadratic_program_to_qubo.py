@@ -18,7 +18,7 @@ from typing import Optional
 
 from qiskit.optimization.problems import QuadraticProgram
 from qiskit.optimization.problems.constraint import ConstraintSense
-from qiskit.optimization.converters import (PenalizeLinearEqualityConstraints,
+from qiskit.optimization.converters import (LinearEqualityToPenalty,
                                             IntegerToBinary)
 from qiskit.optimization.exceptions import QiskitOptimizationError
 
@@ -39,7 +39,7 @@ class QuadraticProgramToQubo:
             penalty: Penalty factor to scale equality constraints that are added to objective.
         """
         self._int_to_bin = IntegerToBinary()
-        self._penalize_lin_eq_constraints = PenalizeLinearEqualityConstraints()
+        self._penalize_lin_eq_constraints = LinearEqualityToPenalty()
         self._penalty = penalty
 
     def encode(self, problem: QuadraticProgram) -> QuadraticProgram:

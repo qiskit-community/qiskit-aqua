@@ -27,7 +27,7 @@ from qiskit.optimization.converters import (
     InequalityToEqualityConverter,
     QuadraticProgramToOperator,
     IntegerToBinaryConverter,
-    PenalizeLinearEqualityConstraints,
+    LinearEqualityToPenalty,
 )
 from qiskit.optimization.algorithms import MinimumEigenOptimizer, CplexOptimizer, ADMMOptimizer
 from qiskit.optimization.algorithms.admm_optimizer import ADMMParameters
@@ -74,7 +74,7 @@ class TestConverters(QiskitOptimizationTestCase):
         op = conv.encode(op)
         conv = IntegerToBinaryConverter()
         op = conv.encode(op)
-        conv = PenalizeLinearEqualityConstraints()
+        conv = LinearEqualityToPenalty()
         op = conv.encode(op)
         conv = QuadraticProgramToOperator()
         _, shift = conv.encode(op)
@@ -244,7 +244,7 @@ class TestConverters(QiskitOptimizationTestCase):
             names=['xy', 'yz', 'zx'],
         )
         self.assertEqual(op.linear_constraints.get_num(), 3)
-        conv = PenalizeLinearEqualityConstraints()
+        conv = LinearEqualityToPenalty()
         with self.assertRaises(QiskitOptimizationError):
             conv.encode(op)
 
@@ -262,7 +262,7 @@ class TestConverters(QiskitOptimizationTestCase):
             names=['xy', 'yz'],
         )
         self.assertEqual(op.linear_constraints.get_num(), 2)
-        conv = PenalizeLinearEqualityConstraints()
+        conv = LinearEqualityToPenalty()
         op2 = conv.encode(op)
         self.assertEqual(op2.linear_constraints.get_num(), 0)
 
@@ -280,7 +280,7 @@ class TestConverters(QiskitOptimizationTestCase):
             names=['xy', 'yz'],
         )
         self.assertEqual(op.linear_constraints.get_num(), 2)
-        conv = PenalizeLinearEqualityConstraints()
+        conv = LinearEqualityToPenalty()
         op2 = conv.encode(op)
         self.assertEqual(op2.linear_constraints.get_num(), 0)
 
@@ -343,7 +343,7 @@ class TestConverters(QiskitOptimizationTestCase):
             names=['abcd'],
         )
         op.objective.set_sense(-1)
-        penalize = PenalizeLinearEqualityConstraints()
+        penalize = LinearEqualityToPenalty()
         op2ope = QuadraticProgramToOperator()
         op2 = penalize.encode(op)
         qubitop, offset = op2ope.encode(op2)

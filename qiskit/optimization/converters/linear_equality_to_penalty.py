@@ -25,7 +25,7 @@ from ..problems.constraint import ConstraintSense
 from ..exceptions.qiskit_optimization_error import QiskitOptimizationError
 
 
-class PenalizeLinearEqualityConstraints:
+class LinearEqualityToPenalty:
     """Convert a problem with only equality constraints to unconstrained with penalty terms."""
 
     def __init__(self):
