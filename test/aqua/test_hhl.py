@@ -18,9 +18,11 @@ import unittest
 from test.aqua import QiskitAquaTestCase
 
 import numpy as np
-from ddt import ddt, idata, unpack
+from ddt import ddt, idata, data, unpack
 from qiskit import BasicAer
 from qiskit.quantum_info import state_fidelity
+
+from qiskit.circuit.library import QFT
 
 from qiskit.aqua import aqua_globals, QuantumInstance
 from qiskit.aqua.algorithms import HHL, NumPyLSsolver
@@ -43,15 +45,23 @@ class TestHHL(QiskitAquaTestCase):
         aqua_globals.random_seed = self.random_seed
 
     @staticmethod
-    def _create_eigs(matrix, num_ancillae, negative_evals):
+    def _create_eigs(matrix, num_ancillae, negative_evals, use_circuit_library=True):
         # Adding an additional flag qubit for negative eigenvalues
         ne_qfts = [None, None]
         if negative_evals:
             num_ancillae += 1
-            ne_qfts = [StandardQFTS(num_ancillae - 1), StandardIQFTS(num_ancillae - 1)]
+            if use_circuit_library:
+                ne_qfts = [QFT(num_ancillae - 1), QFT(num_ancillae - 1).inverse()]
+            else:
+                ne_qfts = [StandardQFTS(num_ancillae - 1), StandardIQFTS(num_ancillae - 1)]
+
+        if use_circuit_library:
+            iqft = QFT(num_ancillae).inverse()
+        else:
+            iqft = StandardIQFTS(num_ancillae)
 
         return EigsQPE(MatrixOperator(matrix=matrix),
-                       StandardIQFTS(num_ancillae),
+                       iqft,
                        num_time_slices=1,
                        num_ancillae=num_ancillae,
                        expansion_mode='suzuki',
@@ -60,9 +70,10 @@ class TestHHL(QiskitAquaTestCase):
                        negative_evals=negative_evals,
                        ne_qfts=ne_qfts)
 
-    @idata([[[0, 1]], [[1, 0]], [[1, 0.1]], [[1, 1]], [[1, 10]]])
+    @data([[0, 1], False], [[1, 0], False], [[1, 0.1], False], [[1, 1], False], [[1, 10], False],
+          [[0, 1], True], [[1, 0], True], [[1, 0.1], True], [[1, 1], True], [[1, 10], True])
     @unpack
-    def test_hhl_diagonal(self, vector):
+    def test_hhl_diagonal(self, vector, use_circuit_library):
         """ hhl diagonal test """
         self.log.debug('Testing HHL simple test in mode Lookup with statevector simulator')
 
@@ -78,7 +89,7 @@ class TestHHL(QiskitAquaTestCase):
         matrix, vector, truncate_powerdim, truncate_hermitian = HHL.matrix_resize(matrix, vector)
 
         # Initialize eigenvalue finding module
-        eigs = TestHHL._create_eigs(matrix, 3, False)
+        eigs = TestHHL._create_eigs(matrix, 3, False, use_circuit_library)
         num_q, num_a = eigs.get_register_sizes()
 
         # Initialize initial state module
@@ -105,9 +116,10 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('fidelity HHL to algebraic: %s', fidelity)
         self.log.debug('probability of result:     %s', hhl_result["probability_result"])
 
-    @idata([[[-1, 0]], [[0, -1]], [[-1, -1]]])
+    @data([[-1, 0], False], [[0, -1], False], [[-1, -1], False],
+          [[-1, 0], True], [[0, -1], True], [[-1, -1], True])
     @unpack
-    def test_hhl_diagonal_negative(self, vector):
+    def test_hhl_diagonal_negative(self, vector, use_circuit_library):
         """ hhl diagonal negative test """
         self.log.debug('Testing HHL simple test in mode Lookup with statevector simulator')
 
@@ -123,7 +135,7 @@ class TestHHL(QiskitAquaTestCase):
         matrix, vector, truncate_powerdim, truncate_hermitian = HHL.matrix_resize(matrix, vector)
 
         # Initialize eigenvalue finding module
-        eigs = TestHHL._create_eigs(matrix, 4, True)
+        eigs = TestHHL._create_eigs(matrix, 4, True, use_circuit_library)
         num_q, num_a = eigs.get_register_sizes()
 
         # Initialize initial state module

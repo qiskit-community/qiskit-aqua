@@ -144,11 +144,21 @@ class EigsQPE(Eigenvalues):
         return self._circuit
 
     def _handle_negative_evals(self, qc, q):
+        def apply_ne_qft(ne_qft, inverse=False):  # TODO remove inverse once bug with IQFT fixed
+            if isinstance(ne_qft, QuantumCircuit):
+                if hasattr(ne_qft, 'do_swaps'):
+                    ne_qft.do_swaps = False
+                    if inverse:
+                        ne_qft = ne_qft.inverse()
+                qc.append(ne_qft.to_instruction(), qs)
+            else:
+                ne_qft.construct_circuit(mode='circuit', qubits=qs, circuit=qc, do_swaps=False)
+
         sgn = q[0]
         qs = [q[i] for i in range(1, len(q))]
         for qi in qs:
             qc.cx(sgn, qi)
-        self._ne_qfts[0].construct_circuit(mode='circuit', qubits=qs, circuit=qc, do_swaps=False)
+        apply_ne_qft(self._ne_qfts[0])
         for i, qi in enumerate(reversed(qs)):
             qc.cu1(2*np.pi/2**(i+1), sgn, qi)
-        self._ne_qfts[1].construct_circuit(mode='circuit', qubits=qs, circuit=qc, do_swaps=False)
+        apply_ne_qft(self._ne_qfts[1], inverse=True)

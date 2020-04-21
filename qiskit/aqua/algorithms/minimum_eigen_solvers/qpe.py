@@ -59,7 +59,7 @@ class QPEMinimumEigensolver(QuantumAlgorithm, MinimumEigensolver):
     def __init__(self,
                  operator: Optional[BaseOperator] = None,
                  state_in: Optional[InitialState] = None,
-                 iqft: Optional[QuantumCircuit, IQFT] = None,
+                 iqft: Optional[Union[QuantumCircuit, IQFT]] = None,
                  num_time_slices: int = 1,
                  num_ancillae: int = 1,
                  expansion_mode: str = 'trotter',
