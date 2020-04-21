@@ -781,12 +781,12 @@ class ADMMOptimizer(OptimizationAlgorithm):
                 * sol_val: Value of the objective function
         """
 
-        it_best_merits = self._state.merits.index(
+        it_min_merits = self._state.merits.index(
              min(self._state.merits))
-        x_0 = self._state.x0_saved[it_best_merits]
-        u_s = self._state.u_saved[it_best_merits]
+        x_0 = self._state.x0_saved[it_min_merits]
+        u_s = self._state.u_saved[it_min_merits]
         sol = [x_0, u_s]
-        sol_val = self._state.cost_iterates[it_best_merits]
+        sol_val = self._state.cost_iterates[it_min_merits]
         return sol, sol_val
 
     def _update_lambda_mult(self) -> np.ndarray:
