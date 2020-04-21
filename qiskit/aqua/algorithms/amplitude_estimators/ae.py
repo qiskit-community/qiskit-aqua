@@ -15,6 +15,7 @@
 """The Quantum Phase Estimation-based Amplitude Estimation algorithm."""
 
 from typing import Optional, Union, List, Tuple
+import warnings
 import logging
 from collections import OrderedDict
 import numpy as np
