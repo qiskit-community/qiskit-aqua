@@ -68,7 +68,7 @@ class TestMinEigenOptimizer(QiskitOptimizationTestCase):
 
             # load optimization problem
             problem = QuadraticProgram()
-            problem.read(self.resource_path + filename)
+            problem.read_from_lp_file(self.resource_path + filename)
 
             # solve problem with cplex
             cplex = CplexOptimizer()

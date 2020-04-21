@@ -661,6 +661,10 @@ class QuadraticProgram:
         for i, constraint in enumerate(self.quadratic_constraints):
             name = constraint.name
             rhs = constraint.rhs
+            if rhs == 0 \
+                and constraint.linear.coefficients.nnz == 0 \
+                    and constraint.quadratic.coefficients.nnz == 0:
+                continue
             quadratic_expr = 0
             for j, v in constraint.linear.to_dict().items():
                 quadratic_expr += v * var[j]

@@ -17,6 +17,7 @@
 from typing import Optional
 
 from qiskit.optimization.problems import QuadraticProgram
+from qiskit.optimization.problems.constraint import ConstraintSense
 from qiskit.optimization.converters import (PenalizeLinearEqualityConstraints,
                                             IntegerToBinary)
 from qiskit.optimization.exceptions import QiskitOptimizationError
@@ -32,7 +33,7 @@ class QuadraticProgramToQubo:
             >>> problem2 = conv.encode(problem)
     """
 
-    def __init__(self, penalty: Optional[float] = 1e5) -> None:
+    def __init__(self, penalty: Optional[float] = None) -> None:
         """
         Args:
             penalty: Penalty factor to scale equality constraints that are added to objective.
@@ -107,19 +108,14 @@ class QuadraticProgramToQubo:
         msg = ''
 
         # check whether there are incompatible variable types
-        if problem.variables.get_num_continuous() > 0:
+        if problem.get_num_continuous_vars() > 0:
             msg += 'Continuous variables are not supported! '
-        if problem.variables.get_num_semicontinuous() > 0:
-            # TODO: to be removed once semi-continuous to binary + continuous is introduced
-            msg += 'Semi-continuous variables are not supported! '
-        if problem.variables.get_num_semiinteger() > 0:
-            # TODO: to be removed once semi-integer to binary mapping is introduced
-            msg += 'Semi-integer variables are not supported! '
 
         # check whether there are incompatible constraint types
-        if not all([sense == 'E' for sense in problem.linear_constraints.get_senses()]):
+        if not all([constraint.sense == ConstraintSense.EQ
+                    for constraint in problem.linear_constraints]):
             msg += 'Only linear equality constraints are supported.'
-        if problem.quadratic_constraints.get_num() > 0:
+        if len(problem.quadratic_constraints) > 0:
             msg += 'Quadratic constraints are not supported. '
 
         # if an error occurred, return error message, otherwise, return None

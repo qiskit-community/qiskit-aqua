@@ -17,6 +17,7 @@
 
 from typing import Any, Optional
 from abc import ABC, abstractmethod
+from enum import Enum
 
 from ..problems.quadratic_program import QuadraticProgram
 
@@ -75,14 +76,23 @@ class OptimizationResult:
         fval: The function value corresponding to the optimal value.
         results: The original results object returned from the optimization algorithm. This can
             contain more information than only the optimal value and function value.
+        status: The termination status of the algorithm.
     """
 
+    class Status(Enum):
+        """Feasible values for the termination status of an optimization algorithm.
+        """
+        SUCCESS = 0
+        FAILURE = 1
+        INFEASIBLE = 2
+
     def __init__(self, x: Optional[Any] = None, fval: Optional[Any] = None,
-                 results: Optional[Any] = None) -> None:
+                 results: Optional[Any] = None, status: Status = Status.SUCCESS) -> None:
         """Initialize the optimization result."""
         self._val = x
         self._fval = fval
         self._results = results
+        self._status = status
 
     def __repr__(self):
         return '([%s] / %s)' % (','.join([str(x_) for x_ in self.x]), self.fval)
@@ -116,6 +126,15 @@ class OptimizationResult:
         """
         return self._results
 
+    @property
+    def status(self) -> Status:
+        """Return the termination status of the algorithm.
+
+        Returns:
+            The termination status of the algorithm.
+        """
+        return self._status
+
     @x.setter
     def x(self, x: Any) -> None:
         """Set a new optimal value.
@@ -142,3 +161,12 @@ class OptimizationResult:
             results: The new additional results of the optimization.
         """
         self._results = results
+
+    @status.setter
+    def status(self, status: Status) -> None:
+        """Set a new termination status.
+
+        Args:
+            status: The new termination status.
+        """
+        self._status = status
