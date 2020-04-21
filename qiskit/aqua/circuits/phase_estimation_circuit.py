@@ -23,7 +23,6 @@ from qiskit.aqua import AquaError
 from qiskit.aqua.operators import (WeightedPauliOperator,   # pylint: disable=unused-import
                                    suzuki_expansion_slice_pauli_list,
                                    evolution_instruction)
-from qiskit.aqua.components.iqfts import IQFT
 
 
 class PhaseEstimationCircuit:
@@ -80,7 +79,8 @@ class PhaseEstimationCircuit:
         self._state_in = state_in
         self._state_in_circuit_factory = state_in_circuit_factory
 
-        if isinstance(iqft, IQFT):
+        # cannot check for IQFT type due to circular import
+        if not isinstance(iqft, QuantumCircuit):
             warnings.warn('The qiskit.aqua.components.iqfts.IQFT module is deprecated as of 0.7.0 '
                           'and will be removed no earlier than 3 months after the release. '
                           'You should pass a QuantumCircuit instead, see '
