@@ -15,7 +15,7 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 > -   **Fixed**: for any bug fixes.
 > -   **Security**: in case of vulnerabilities.
 
-[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.5...HEAD)
+[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.6...HEAD)
 ========================================================================
 
 Added
@@ -36,6 +36,8 @@ Changed
 -   Classical algorithms renamed, former names deprecated (#851)
 -   Chemistry process algorithm result returns result object, lines, dict return deprecated (#861)
 -   Measurement error mitigation supports different output orders on same qubits (#865)
+-   If ibmq-provider is used and job limit is reached, `run_circuit` now waits for a previous job
+    to finish before submitting the next one. (#906)
 
 Removed
 -------
@@ -54,6 +56,15 @@ Fixed
 -   Supported constant values on the left-hand side of constraints and variables on the right-hand
     side of constraints for the DOcplex translator (#750)
 -   WeightedPauliOperator constructor simplification bug (#891)
+
+[0.6.6](https://github.com/Qiskit/qiskit-aqua/compare/0.6.5...0.6.6) - 2020-04-16
+=================================================================================
+
+Removed
+-------
+
+-  Remove backend and PassManager on compiler transpile calls (#882)
+-  Remove transpile calls and use unroller (#883)
 
 [0.6.5](https://github.com/Qiskit/qiskit-aqua/compare/0.6.4...0.6.5) - 2020-03-16
 =================================================================================
