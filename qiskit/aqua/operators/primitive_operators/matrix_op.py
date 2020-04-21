@@ -21,8 +21,10 @@ from scipy.sparse import spmatrix
 
 from qiskit.quantum_info import Operator as MatrixOperator
 from qiskit.circuit import ParameterExpression, Instruction
+from qiskit.extensions.hamiltonian_gate import HamiltonianGate
 
 from ..operator_base import OperatorBase
+from ..primitive_operators.circuit_op import CircuitOp
 from ..combo_operators.summed_op import SummedOp
 from ..combo_operators.composed_op import ComposedOp
 from ..combo_operators.tensored_op import TensoredOp
@@ -200,11 +202,7 @@ class MatrixOp(PrimitiveOp):
 
     def exp_i(self):
         """Return a CircuitOp corresponding to e^-iH for this operator H"""
-        # TODO: fix HamiltonianGate
-        # pylint: disable=import-outside-toplevel
-        # from qiskit.extensions.hamiltonian_gate import HamiltonianGate
-        # return CircuitOp(HamiltonianGate(self.primitive, time=self.coeff))
-        raise NotImplementedError()
+        return CircuitOp(HamiltonianGate(self.primitive, time=self.coeff))
 
     # Op Conversions
 
