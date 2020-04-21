@@ -28,6 +28,7 @@ Structures for converting optimization problems
 from .linear_equality_to_penalty import LinearEqualityToPenalty
 from .quadratic_program_to_operator import QuadraticProgramToOperator
 from .quadratic_program_to_negative_value_oracle import QuadraticProgramToNegativeValueOracle
+from .operator_to_quadratic_program import OperatorToQuadraticProgram
 
 # opt problem dependency
 from .integer_to_binary import IntegerToBinary
@@ -41,4 +42,5 @@ __all__ = [
     "QuadraticProgramToOperator",
     "QuadraticProgramToQubo",
     "LinearEqualityToPenalty",
+    "OperatorToQuadraticProgram"
 ]
