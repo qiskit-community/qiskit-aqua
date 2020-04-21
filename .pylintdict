@@ -136,6 +136,7 @@ ecc
 ee
 eigen
 eigensolver
+eigensolvers
 eigenstate
 eigrange
 eigs
@@ -216,6 +217,7 @@ ifortvars
 ign
 ignis
 ij
+ijkl
 ijkm
 ikmj
 imag
@@ -230,6 +232,7 @@ inline
 innerproduct
 inreg
 instantiations
+integercomparator
 intelvem
 interatomic
 ints
@@ -253,6 +256,7 @@ jt
 jth
 jw
 kaicher
+kanav
 ket
 killoran
 kingma
@@ -270,6 +274,8 @@ lhs
 lih
 lijh
 lin
+linearpaulirotations
+ljik
 lmin
 lnot
 loglikelihood
@@ -279,6 +285,7 @@ lor
 lr
 lst
 majorana
+mapsto
 mathbb
 mathsf
 matrixoperator
@@ -373,6 +380,7 @@ outpath
 overfit
 params
 parentname
+pascual
 pauli
 pauli's
 paulis
@@ -382,9 +390,11 @@ pdf
 penality
 ph
 piecewise
+piecewiselinearpaulirotations
 plesset
 pmatrix
 polynomially
+polynomialpaulirotations
 postoracle
 powell
 pre
@@ -434,6 +444,7 @@ qubits
 quine
 qutip
 randgiven
+rangle
 rbf
 rcccx
 rccx
@@ -474,6 +485,7 @@ sdg
 sdk
 seealso
 seeley
+sergey
 setia
 sgn
 shanno
@@ -500,6 +512,7 @@ subspaces
 succ
 sudo
 superclass
+superfast
 suzuki
 svm
 sx
@@ -583,6 +596,7 @@ xuxv
 xyz
 yao
 yc
+yu
 yy
 zi
 zmatrix

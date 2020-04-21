@@ -23,16 +23,17 @@ logger = logging.getLogger(__name__)
 
 
 class HDF5Driver(BaseDriver):
-    """Python implementation of a hdf5 driver."""
+    """
+    Qiskit chemistry driver reading an HDF5 file.
 
-    KEY_HDF5_INPUT = 'hdf5_input'
+    The HDF5 file is as saved from a :class:`~qiskit.chemistry.QMolecule` instance.
+    """
 
     def __init__(self,
                  hdf5_input: str = 'molecule.hdf5') -> None:
         """
-        Initializer
         Args:
-            hdf5_input: path to hdf5 file
+            hdf5_input: Path to HDF5 file
         """
         super().__init__()
         self._hdf5_input = hdf5_input
@@ -40,15 +41,15 @@ class HDF5Driver(BaseDriver):
 
     @property
     def work_path(self):
-        """ returns work path """
+        """ Returns work path. """
         return self._work_path
 
     @work_path.setter
     def work_path(self, new_work_path):
-        """ sets work path """
+        """ Sets work path. """
         self._work_path = new_work_path
 
-    def run(self):
+    def run(self) -> QMolecule:
         hdf5_file = self._hdf5_input
         if self.work_path is not None and not os.path.isabs(hdf5_file):
             hdf5_file = os.path.abspath(os.path.join(self.work_path, hdf5_file))

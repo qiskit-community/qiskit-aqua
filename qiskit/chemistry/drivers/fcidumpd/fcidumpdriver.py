@@ -22,7 +22,8 @@ from .parser import parse
 
 
 class FCIDumpDriver(BaseDriver):
-    """Python implementation of an FCIDump driver.
+    """
+    Qiskit chemistry driver reading an FCIDump file.
 
     The FCIDump format is partially defined in Knowles1989.
 

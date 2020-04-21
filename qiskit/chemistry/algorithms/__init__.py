@@ -15,30 +15,37 @@
 """
 Chemistry specific Aqua algorithms (:mod:`qiskit.chemistry.algorithms`)
 =======================================================================
-These are chemistry specific Aqua algorithms where they inherit from
-:class:`QuantumAlgorithm`. As they rely on chemistry specific knowledge
-and/or functions they live here rather than in Aqua.
+These are chemistry specific algorithms for Aqua. As they rely on chemistry
+specific knowledge and/or function they are here in chemistry rather than in Aqua.
 
 .. currentmodule:: qiskit.chemistry.algorithms
 
-Chemistry Quantum Algorithms
-============================
+Chemistry Algorithms
+====================
+These are algorithms configured and/or functioning using chemistry specific knowledge. See also
+the Aqua :mod:`~qiskit.aqua.algorithms` for other algorithms in these categories which may also
+be used for chemistry problems such as :class:`~qiskit.aqua.algorithms.VQE`.
+
+Eigensolvers
+++++++++++++
+Algorithms that can find the eigenvalues of an operator, i.e. excited states for chemistry.
 
 .. autosummary::
    :toctree: ../stubs/
    :nosignatures:
 
    QEomVQE
-   VQEAdapt
+   QEomEE
 
-Chemistry Classical Algorithms
-==============================
+Minimum Eigensolvers
+++++++++++++++++++++
+Algorithms that can find the minimum eigenvalue of an operator, i.e. ground state for chemistry.
 
 .. autosummary::
    :toctree: ../stubs/
    :nosignatures:
 
-   QEomEE
+   VQEAdapt
 
 """
 

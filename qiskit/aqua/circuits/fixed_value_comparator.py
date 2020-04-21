@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -14,17 +14,18 @@
 
 """Fixed Value Comparator."""
 
+import warnings
 import numpy as np
 
+from qiskit.circuit.library import IntegerComparator
 from qiskit.aqua.utils.circuit_factory import CircuitFactory
-from qiskit.aqua.circuits.gates import logical_or  # pylint: disable=unused-import
-
-# pylint: disable=invalid-name
 
 
 class FixedValueComparator(CircuitFactory):
-    r"""
-    Fixed Value Comparator.
+    r"""*DEPRECATED.* Fixed Value Comparator
+
+    .. deprecated:: 0.7.0
+       Use Terra's qiskit.circuit.library.IntegerComparator instead.
 
     Operator compares basis states \|i>_n against a classically
     given fixed value L and flips a target qubit if i >= L (or < depending on parameters):
@@ -39,7 +40,6 @@ class FixedValueComparator(CircuitFactory):
 
     def __init__(self, num_state_qubits, value, geq=True, i_state=None, i_target=None):
         """
-
         Args:
             num_state_qubits (int): number of state qubits, the target qubit comes on top of this
             value (int): fixed value to compare with
@@ -50,17 +50,21 @@ class FixedValueComparator(CircuitFactory):
             i_target (Optional(int)): index of target qubit in given list
                 of qubits / register, if None, i_target = num_state_qubits is used
         """
-        super().__init__(num_state_qubits + 1)
-        self._num_state_qubits = num_state_qubits
-        self._value = value
-        self._geq = geq
+        warnings.warn('The qiskit.aqua.circuits.FixedValueComparator object is deprecated and will '
+                      'be removed no earlier than 3 months after the 0.7.0 release of Qiskit Aqua. '
+                      'You should use qiskit.circuit.library.IntegerComparator instead.',
+                      DeprecationWarning, stacklevel=2)
 
-        # get indices
+        super().__init__(num_state_qubits + 1)
+        self._comparator_circuit = IntegerComparator(value=value,
+                                                     num_state_qubits=num_state_qubits,
+                                                     geq=geq)
+
         self.i_state = None
         if i_state is not None:
             self.i_state = i_state
         else:
-            self.i_state = list(range(num_state_qubits))
+            self.i_state = range(num_state_qubits)
 
         self.i_target = None
         if i_target is not None:
@@ -71,22 +75,21 @@ class FixedValueComparator(CircuitFactory):
     @property
     def num_state_qubits(self):
         """ returns num state qubits """
-        return self._num_state_qubits
+        return self._comparator_circuit._num_state_qubits
 
     @property
     def value(self):
         """ returns value """
-        return self._value
+        return self._comparator_circuit._value
 
     def required_ancillas(self):
-        return self._num_state_qubits - 1
+        return self.num_state_qubits - 1
 
     def required_ancillas_controlled(self):
-        return self._num_state_qubits - 1
+        return self.num_state_qubits - 1
 
     def _get_twos_complement(self):
-        """
-        Returns the 2's complement of value as array
+        """Returns the 2's complement of value as array
 
         Returns:
              list: two's complement
@@ -99,62 +102,9 @@ class FixedValueComparator(CircuitFactory):
         return twos_complement
 
     def build(self, qc, q, q_ancillas=None, params=None):
-
-        # get parameters
-        i_state = self.i_state
-        i_target = self.i_target
-
-        # get qubits
-        q_result = q[i_target]
-        q_state = [q[i] for i in i_state]
-
-        if self.value <= 0:  # condition always satisfied for non-positive values
-            if self._geq:  # otherwise the condition is never satisfied
-                qc.x(q_result)
-        # condition never satisfied for values larger than or equal to 2^n
-        elif self.value < pow(2, self.num_state_qubits):
-
-            if self.num_state_qubits > 1:
-
-                tc = self._get_twos_complement()
-                for i in range(self.num_state_qubits):
-                    if i == 0:
-                        if tc[i] == 1:
-                            qc.cx(q_state[i], q_ancillas[i])
-                    elif i < self.num_state_qubits-1:
-                        if tc[i] == 1:
-                            qc.OR([q_state[i], q_ancillas[i-1]], q_ancillas[i], None)
-                        else:
-                            qc.ccx(q_state[i], q_ancillas[i-1], q_ancillas[i])
-                    else:
-                        if tc[i] == 1:
-                            qc.OR([q_state[i], q_ancillas[i-1]], q_result, None)
-                        else:
-                            qc.ccx(q_state[i], q_ancillas[i-1], q_result)
-
-                # flip result bit if geq flag is false
-                if not self._geq:
-                    qc.x(q_result)
-
-                # uncompute ancillas state
-                for i in reversed(range(self.num_state_qubits-1)):
-                    if i == 0:
-                        if tc[i] == 1:
-                            qc.cx(q_state[i], q_ancillas[i])
-                    else:
-                        if tc[i] == 1:
-                            qc.OR([q_state[i], q_ancillas[i - 1]], q_ancillas[i], None)
-                        else:
-                            qc.ccx(q_state[i], q_ancillas[i - 1], q_ancillas[i])
-            else:
-
-                # num_state_qubits == 1 and value == 1:
-                qc.cx(q_state[0], q_result)
-
-                # flip result bit if geq flag is false
-                if not self._geq:
-                    qc.x(q_result)
-
-        else:
-            if not self._geq:  # otherwise the condition is never satisfied
-                qc.x(q_result)
+        instr = self._comparator_circuit.to_instruction()
+        qr = [q[i] for i in self.i_state] + [q[self.i_target]]
+        if q_ancillas:
+            # pylint:disable=unnecessary-comprehension
+            qr += [qi for qi in q_ancillas[:self.required_ancillas()]]
+        qc.append(instr, qr)

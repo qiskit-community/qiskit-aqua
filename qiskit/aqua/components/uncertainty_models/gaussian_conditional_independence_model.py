@@ -21,7 +21,8 @@ Dependency between individual risk variables and latent variable is approximated
 from typing import Optional, List, Union
 import numpy as np
 from scipy.stats.distributions import norm
-from qiskit.aqua.circuits.linear_rotation import LinearRotation
+
+from qiskit.circuit.library import LinearPauliRotations
 from .multivariate_distribution import MultivariateDistribution
 from .normal_distribution import NormalDistribution
 
@@ -29,8 +30,7 @@ from .normal_distribution import NormalDistribution
 
 
 class GaussianConditionalIndependenceModel(MultivariateDistribution):
-    """
-    The Gaussian Conditional Independence Model for Credit Risk.
+    """The Gaussian Conditional Independence Model for Credit Risk.
 
     Reference: https://arxiv.org/abs/1412.1183
 
@@ -64,12 +64,12 @@ class GaussianConditionalIndependenceModel(MultivariateDistribution):
         if i_normal is not None:
             self.i_normal = i_normal
         else:
-            self.i_normal = range(n_normal)
+            self.i_normal = list(range(n_normal))
 
         if i_ps is not None:
             self.i_ps = i_ps
         else:
-            self.i_ps = range(n_normal, n_normal + self.K)
+            self.i_ps = list(range(n_normal, n_normal + self.K))
 
         # get normal (inverse) CDF and pdf
         def F(x):
@@ -111,12 +111,8 @@ class GaussianConditionalIndependenceModel(MultivariateDistribution):
             self._offsets[k] = offset
             self._slopes[k] = slope
 
-            lry = LinearRotation(slope, offset, n_normal,
-                                 i_state=self.i_normal, i_target=self.i_ps[k])
-            self._rotations += [lry]
-
     def build(self, qc, q, q_ancillas=None, params=None):
-
         self._normal.build(qc, q, q_ancillas)
-        for lry in self._rotations:
-            lry.build(qc, q, q_ancillas)
+        for k in range(self.K):
+            lry = LinearPauliRotations(self.n_normal, self._slopes[k], self._offsets[k])
+            qc.append(lry.to_instruction(), self.i_normal + [self.i_ps[k]])
