@@ -42,7 +42,6 @@ class CircuitSamplerFactory():
         subclass based on the primitive passed in."""
 
         backend_to_check = backend.backend if isinstance(backend, QuantumInstance) else backend
-        # pylint: disable=cyclic-import,import-outside-toplevel
         if is_local_backend(backend_to_check):
             return LocalSimulatorSampler(backend=backend,
                                          statevector=is_statevector_backend(backend_to_check),

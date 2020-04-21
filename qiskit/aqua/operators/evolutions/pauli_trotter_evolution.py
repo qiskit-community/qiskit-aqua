@@ -23,11 +23,15 @@ import numpy as np
 from ..operator_base import OperatorBase
 from ..operator_globals import Z, I
 from .evolution_base import EvolutionBase
-from ..combo_operators import ListOp, SummedOp
-from ..primitive_operators import PauliOp
-from ..converters import PauliBasisChange, AbelianGrouper
+from ..combo_operators.list_op import ListOp
+from ..combo_operators.summed_op import SummedOp
+from ..primitive_operators.pauli_op import PauliOp
+from ..converters.pauli_basis_change import PauliBasisChange
+from ..converters.abelian_grouper import AbelianGrouper
 from .evolved_op import EvolvedOp
-from .trotterizations import TrotterizationBase, TrotterizationFactory
+from .trotterizations.trotterization_base import TrotterizationBase
+from .trotterizations.trotterization_factory import TrotterizationFactory
+
 
 logger = logging.getLogger(__name__)
 

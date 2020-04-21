@@ -21,8 +21,8 @@ from qiskit.quantum_info import Statevector
 from qiskit.circuit import ParameterExpression
 
 from ..operator_base import OperatorBase
-from . import StateFn
-from ..combo_operators import ListOp
+from .state_fn import StateFn
+from ..combo_operators.list_op import ListOp
 
 
 class VectorStateFn(StateFn):
@@ -204,7 +204,8 @@ class VectorStateFn(StateFn):
 
         # pylint: disable=cyclic-import,import-outside-toplevel
         from ..operator_globals import EVAL_SIG_DIGITS
-        from . import DictStateFn, OperatorStateFn, CircuitStateFn
+        from .dict_state_fn import DictStateFn
+        from .operator_state_fn import OperatorStateFn, CircuitStateFn
         if isinstance(front, DictStateFn):
             return round(sum([v * self.primitive.data[int(b, 2)] * front.coeff
                               for (b, v) in front.primitive.items()]) * self.coeff,

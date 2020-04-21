@@ -22,7 +22,7 @@ import numpy as np
 from qiskit.providers import BaseBackend
 from ..operator_base import OperatorBase
 from ..converters import ConverterBase
-from ..circuit_samplers import CircuitSamplerFactory
+from ..circuit_samplers.circuit_sampler_factory import CircuitSamplerFactory
 
 logger = logging.getLogger(__name__)
 

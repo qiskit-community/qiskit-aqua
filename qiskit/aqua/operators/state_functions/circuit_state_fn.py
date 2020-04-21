@@ -22,7 +22,7 @@ from qiskit.circuit import Instruction, ParameterExpression
 from qiskit.extensions import Initialize, IGate
 
 from ..operator_base import OperatorBase
-from ..combo_operators import SummedOp
+from ..combo_operators.summed_op import SummedOp
 from .state_fn import StateFn
 
 
@@ -148,7 +148,9 @@ class CircuitStateFn(StateFn):
         new_self, other = self._check_zero_for_composition_and_expand(other)
 
         # pylint: disable=cyclic-import,import-outside-toplevel
-        from qiskit.aqua.operators import CircuitOp, PauliOp, MatrixOp
+        from ..primitive_operators.circuit_op import CircuitOp
+        from ..primitive_operators.pauli_op import PauliOp
+        from ..primitive_operators.matrix_op import MatrixOp
 
         if isinstance(other, (PauliOp, CircuitOp, MatrixOp)):
             op_circuit_self = CircuitOp(self.primitive)
@@ -179,14 +181,16 @@ class CircuitStateFn(StateFn):
         |+⟩--
         Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
         """
+        # pylint: disable=import-outside-toplevel
         if isinstance(other, CircuitStateFn) and other.is_measurement == self.is_measurement:
             # Avoid reimplementing tensor, just use CircuitOp's
-            from .. import Zero, CircuitOp
+            from ..primitive_operators.circuit_op import CircuitOp
+            from ..operator_globals import Zero
             c_op_self = CircuitOp(self.primitive, self.coeff)
             c_op_other = CircuitOp(other.primitive, other.coeff)
             return c_op_self.tensor(c_op_other).compose(Zero)
-        # pylint: disable=cyclic-import,import-outside-toplevel
-        from qiskit.aqua.operators import TensoredOp
+        # pylint: disable=cyclic-import
+        from ..combo_operators.tensored_op import TensoredOp
         return TensoredOp([self, other])
 
     def to_density_matrix(self, massive: bool = False) -> np.ndarray:
@@ -284,8 +288,10 @@ class CircuitStateFn(StateFn):
                 'sf.adjoint() first to convert to measurement.')
 
         # pylint: disable=import-outside-toplevel
-        from ..combo_operators import ListOp
-        from ..primitive_operators import PauliOp, MatrixOp, CircuitOp
+        from ..combo_operators.list_op import ListOp
+        from ..primitive_operators.pauli_op import PauliOp
+        from ..primitive_operators.matrix_op import MatrixOp
+        from ..primitive_operators.circuit_op import CircuitOp
 
         if isinstance(front, ListOp) and front.distributive:
             return front.combo_fn([self.eval(front.coeff * front_elem)

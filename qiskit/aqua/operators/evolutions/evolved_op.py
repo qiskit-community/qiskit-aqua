@@ -22,8 +22,10 @@ import scipy
 from qiskit.circuit import ParameterExpression, Instruction
 
 from ..operator_base import OperatorBase
-from ..primitive_operators import PrimitiveOp
-from ..combo_operators import SummedOp, ComposedOp, TensoredOp
+from ..primitive_operators.primitive_op import PrimitiveOp
+from ..combo_operators.summed_op import SummedOp
+from ..combo_operators.composed_op import ComposedOp
+from ..combo_operators.tensored_op import TensoredOp
 
 logger = logging.getLogger(__name__)
 

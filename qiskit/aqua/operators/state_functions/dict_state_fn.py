@@ -23,8 +23,8 @@ from qiskit.result import Result
 from qiskit.circuit import ParameterExpression
 
 from ..operator_base import OperatorBase
-from . import StateFn
-from ..combo_operators import ListOp
+from .state_fn import StateFn
+from ..combo_operators.list_op import ListOp
 
 
 class DictStateFn(StateFn):
@@ -275,7 +275,7 @@ class DictStateFn(StateFn):
 
         # All remaining possibilities only apply when self.is_measurement is True
 
-        from . import VectorStateFn
+        from .vector_state_fn import VectorStateFn
         if isinstance(front, VectorStateFn):
             # TODO does it need to be this way for measurement?
             # return sum([v * front.primitive.data[int(b, 2)] *
@@ -284,7 +284,7 @@ class DictStateFn(StateFn):
                               for (b, v) in self.primitive.items()]) * self.coeff,
                          ndigits=EVAL_SIG_DIGITS)
 
-        from . import OperatorStateFn
+        from .operator_state_fn import OperatorStateFn
         if isinstance(front, OperatorStateFn):
             return front.adjoint().eval(self.adjoint())
 

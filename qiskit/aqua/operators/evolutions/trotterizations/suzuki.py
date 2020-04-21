@@ -21,7 +21,8 @@ from typing import List, Union
 from qiskit.quantum_info import Pauli
 
 from .trotterization_base import TrotterizationBase
-from ...combo_operators import ComposedOp, SummedOp
+from ...combo_operators.composed_op import ComposedOp
+from ...combo_operators.summed_op import SummedOp
 
 
 class Suzuki(TrotterizationBase):

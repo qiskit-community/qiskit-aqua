@@ -17,8 +17,10 @@
 import logging
 
 from ..operator_base import OperatorBase
-from ..state_functions import DictStateFn, VectorStateFn, CircuitStateFn
-from ..combo_operators import ListOp
+from ..state_functions.dict_state_fn import DictStateFn
+from ..state_functions.vector_state_fn import VectorStateFn
+from ..state_functions.circuit_state_fn import CircuitStateFn
+from ..combo_operators.list_op import ListOp
 from .converter_base import ConverterBase
 
 logger = logging.getLogger(__name__)

@@ -17,7 +17,7 @@
 import logging
 
 from ..operator_base import OperatorBase
-from ..converters import ConverterBase
+from ..converters.converter_base import ConverterBase
 
 logger = logging.getLogger(__name__)
 

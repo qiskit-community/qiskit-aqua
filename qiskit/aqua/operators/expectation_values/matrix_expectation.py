@@ -23,7 +23,7 @@ from qiskit.providers import BaseBackend
 from ..operator_base import OperatorBase
 from .expectation_base import ExpectationBase
 from ..combo_operators import ListOp
-from ..state_functions import StateFn, OperatorStateFn
+from ..state_functions.state_fn import StateFn, OperatorStateFn
 
 logger = logging.getLogger(__name__)
 

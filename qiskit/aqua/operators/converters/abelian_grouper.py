@@ -19,9 +19,10 @@ import itertools
 import networkx as nx
 
 from ..operator_base import OperatorBase
-from ..combo_operators import ListOp, SummedOp
-from ..state_functions import OperatorStateFn
-from ..primitive_operators import PauliOp
+from ..combo_operators.list_op import ListOp
+from ..combo_operators.summed_op import SummedOp
+from ..state_functions.operator_state_fn import OperatorStateFn
+from ..primitive_operators.pauli_op import PauliOp
 from .converter_base import ConverterBase
 
 logger = logging.getLogger(__name__)
@@ -34,7 +35,7 @@ class AbelianGrouper(ConverterBase):
 
     def convert(self, operator: OperatorBase) -> OperatorBase:
         # pylint: disable=cyclic-import,import-outside-toplevel
-        from .. import EvolvedOp
+        from ..evolutions.evolved_op import EvolvedOp
 
         if isinstance(operator, ListOp):
             if isinstance(operator, SummedOp) and all([isinstance(op, PauliOp)
