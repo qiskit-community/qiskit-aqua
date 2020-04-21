@@ -14,16 +14,13 @@
 
 """ Test QuadraticObjective """
 
-import logging
 import unittest
 
+from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 import numpy as np
 
 from qiskit.optimization import QuadraticProgram
 from qiskit.optimization.problems.quadratic_objective import ObjSense
-from test.optimization.optimization_test_case import QiskitOptimizationTestCase
-
-logger = logging.getLogger(__name__)
 
 
 class TestQuadraticObjective(QiskitOptimizationTestCase):

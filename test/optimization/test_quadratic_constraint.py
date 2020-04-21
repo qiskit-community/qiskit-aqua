@@ -14,16 +14,13 @@
 
 """ Test QuadraticConstraint """
 
-import logging
 import unittest
 
+from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 import numpy as np
 
 from qiskit.optimization import QuadraticProgram, QiskitOptimizationError
 from qiskit.optimization.problems import ConstraintSense
-from test.optimization.optimization_test_case import QiskitOptimizationTestCase
-
-logger = logging.getLogger(__name__)
 
 
 class TestQuadraticConstraint(QiskitOptimizationTestCase):
