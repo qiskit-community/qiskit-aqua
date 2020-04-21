@@ -53,22 +53,7 @@ class GroverOptimizer(OptimizationAlgorithm):
             quantum_instance = QuantumInstance(backend)
         self._quantum_instance = quantum_instance
 
-    # pylint:disable=unused-argument
     def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
-        """Checks whether a given problem can be solved with this optimizer.
-
-        Returns ``''`` since GroverOptimizer accepts all problems that can be modeled using the
-        ``QuadraticProgram``.
-
-        Args:
-            problem: The optimization problem to check compatibility.
-
-        Returns:
-            An empty string.
-        """
-        return ''
-
-    def is_compatible(self, problem: QuadraticProgram) -> Optional[str]:
         """Checks whether a given problem can be solved with this optimizer.
 
         Checks whether the given problem is compatible, i.e., whether the problem can be converted
@@ -78,9 +63,9 @@ class GroverOptimizer(OptimizationAlgorithm):
             problem: The optimization problem to check compatibility.
 
         Returns:
-            Returns ``None`` if the problem is compatible and else a string with the error message.
+            A message describing the incompatibility.
         """
-        return QuadraticProgramToQubo.is_compatible(problem)
+        return QuadraticProgramToQubo.get_compatibility_msg(problem)
 
     def solve(self, problem: QuadraticProgram) -> OptimizationResult:
         """Tries to solves the given problem using the optimizer.
@@ -107,7 +92,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         optimum_key = math.inf
         optimum_value = math.inf
         threshold = 0
-        n_key = problem_.variables.get_num()
+        n_key = len(problem_.variables)
         n_value = self._num_value_qubits
 
         # Variables for tracking the solutions encountered.
@@ -124,7 +109,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         max_rotations = int(np.ceil(100*np.pi/4))
 
         # Initialize oracle helper object.
-        orig_constant = problem_.objective.get_offset()
+        orig_constant = problem_.objective.constant
         measurement = not self._quantum_instance.is_statevector
         opt_prob_converter = QuadraticProgramToNegativeValueOracle(n_value,
                                                                    measurement)
@@ -134,7 +119,7 @@ class GroverOptimizer(OptimizationAlgorithm):
             improvement_found = False
 
             # Get oracle O and the state preparation operator A for the current threshold.
-            problem_.objective.set_offset(orig_constant - threshold)
+            problem_.objective.constant = orig_constant - threshold
             a_operator, oracle, func_dict = opt_prob_converter.encode(problem_)
 
             # Iterate until we measure a negative.
