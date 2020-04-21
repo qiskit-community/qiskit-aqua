@@ -260,8 +260,9 @@ class StateFn(OperatorBase):
 
     def __repr__(self) -> str:
         """Overload str() """
-        return "StateFn({}, coeff={}, is_measurement={})".format(repr(self.primitive),
-                                                                 self.coeff, self.is_measurement)
+        return "{}({}, coeff={}, is_measurement={})".format(self.__class__.__name__,
+                                                            repr(self.primitive),
+                                                            self.coeff, self.is_measurement)
 
     def eval(self,
              front: Union[str, dict, np.ndarray,

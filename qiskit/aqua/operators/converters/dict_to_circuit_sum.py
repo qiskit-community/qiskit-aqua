@@ -25,8 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 class DictToCircuitSum(ConverterBase):
-    """ Very naively convert DictStateFns to sums of CircuitStateFns which each
-    prepare the bit strings in the keys of the dict."""
+    """ Convert DictStateFns or VectorStateFns to equivalent CircuitStateFns or sums thereof."""
 
     def __init__(self,
                  traverse: bool = True,
