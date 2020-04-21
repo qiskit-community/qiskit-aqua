@@ -20,7 +20,7 @@ from enum import Enum
 import logging
 from qiskit.aqua.utils.validation import validate_min
 from qiskit.chemistry.drivers import BaseDriver, UnitsType, HFMethodType
-from qiskit.chemistry import QiskitChemistryError
+from qiskit.chemistry import QiskitChemistryError, QMolecule
 from qiskit.chemistry.drivers.pyquanted.integrals import compute_integrals
 
 logger = logging.getLogger(__name__)
@@ -34,7 +34,11 @@ class BasisType(Enum):
 
 
 class PyQuanteDriver(BaseDriver):
-    """Python implementation of a PyQuante driver."""
+    """
+    Qiskit chemistry driver using the PyQuante2 library.
+
+    See https://github.com/rpmuller/pyquante2
+    """
 
     def __init__(self,
                  atoms: Union[str, List[str]] = 'H 0.0 0.0 0.0; H 0.0 0.0 0.735',
@@ -46,8 +50,6 @@ class PyQuanteDriver(BaseDriver):
                  tol: float = 1e-8,
                  maxiters: int = 100) -> None:
         """
-        Initializer
-
         Args:
             atoms: atoms list or string separated by semicolons or line breaks
             units: angstrom or bohr
@@ -98,7 +100,7 @@ class PyQuanteDriver(BaseDriver):
 
         raise QiskitChemistryError(err_msg)
 
-    def run(self):
+    def run(self) -> QMolecule:
         q_mol = compute_integrals(atoms=self._atoms,
                                   units=self._units,
                                   charge=self._charge,
