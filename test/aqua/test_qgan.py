@@ -11,13 +11,15 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-# =============================================================================
 
 """ Test QGAN """
 
-import unittest
 from test.aqua import QiskitAquaTestCase
+
+import unittest
+from ddt import ddt, data
 from qiskit import QuantumCircuit, QuantumRegister
+from qiskit.circuit import ParameterVector
 from qiskit.aqua.components.uncertainty_models import (UniformDistribution,
                                                        UnivariateVariationalDistribution)
 from qiskit.aqua.components.variational_forms import RY
@@ -28,8 +30,10 @@ from qiskit.aqua.components.neural_networks import NumPyDiscriminator, PyTorchDi
 from qiskit import BasicAer
 
 
+@ddt
 class TestQGAN(QiskitAquaTestCase):
     """ Test QGAN """
+
     def setUp(self):
         super().setUp()
         self.seed = 7
@@ -86,14 +90,24 @@ class TestQGAN(QiskitAquaTestCase):
         # Set generator's initial parameters
         init_params = aqua_globals.random.rand(var_form._num_parameters) * 2 * 1e-2
         # Set generator circuit
-        g_circuit = UnivariateVariationalDistribution(sum(num_qubits), var_form, init_params,
-                                                      low=self._bounds[0],
-                                                      high=self._bounds[1])
-        # Set quantum generator
-        self.qgan.set_generator(generator_circuit=g_circuit)
+        self.g_var_form = UnivariateVariationalDistribution(sum(num_qubits), var_form, init_params,
+                                                            low=self._bounds[0],
+                                                            high=self._bounds[1])
 
-    def test_sample_generation(self):
+        theta = ParameterVector('θ', var_form.num_parameters)
+        var_form = var_form.construct_circuit(theta)
+        self.g_circuit = UnivariateVariationalDistribution(sum(num_qubits), var_form, init_params,
+                                                           low=self._bounds[0],
+                                                           high=self._bounds[1])
+
+    @data(False, True)
+    def test_sample_generation(self, use_circuits):
         """ sample generation test """
+        if use_circuits:
+            self.qgan.set_generator(generator_circuit=self.g_circuit)
+        else:
+            self.qgan.set_generator(generator_circuit=self.g_var_form)
+
         _, weights_statevector = \
             self.qgan._generator.get_output(self.qi_statevector, shots=100)
         samples_qasm, weights_qasm = self.qgan._generator.get_output(self.qi_qasm, shots=100)
@@ -101,8 +115,14 @@ class TestQGAN(QiskitAquaTestCase):
         for i, weight_q in enumerate(weights_qasm):
             self.assertAlmostEqual(weight_q, weights_statevector[i], delta=0.1)
 
-    def test_qgan_training(self):
+    @data(False, True)
+    def test_qgan_training(self, use_circuits):
         """ qgan training test """
+        if use_circuits:
+            self.qgan.set_generator(generator_circuit=self.g_circuit)
+        else:
+            self.qgan.set_generator(generator_circuit=self.g_var_form)
+
         trained_statevector = self.qgan.run(self.qi_statevector)
         trained_qasm = self.qgan.run(self.qi_qasm)
         self.assertAlmostEqual(trained_qasm['rel_entr'], trained_statevector['rel_entr'], delta=0.1)
