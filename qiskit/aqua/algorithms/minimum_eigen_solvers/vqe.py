@@ -487,7 +487,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         # binding parameters here since the circuits had been transpiled
         if self._parameterized_circuits is not None:
             for idx, parameter in enumerate(parameter_sets):
-                curr_param = {self._var_form_params: parameter}
+                curr_param = dict(zip(self._var_form_params, parameter))
                 for qc in self._parameterized_circuits:
                     tmp = qc.bind_parameters(curr_param)
                     tmp.name = str(idx) + tmp.name

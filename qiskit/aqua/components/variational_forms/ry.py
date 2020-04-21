@@ -14,17 +14,17 @@
 
 """Layers of Y rotations followed by entangling gates."""
 
+
 from typing import Optional, List
 import numpy as np
-from qiskit import QuantumRegister, QuantumCircuit
+from qiskit.circuit.library import RY as RYCircuit
 from qiskit.aqua.utils.validation import validate_min, validate_in_set
 from qiskit.aqua.components.initial_states import InitialState
 from .variational_form import VariationalForm
 
 
 class RY(VariationalForm):
-    r"""
-    The RY Variational Form.
+    r"""The RY Variational Form.
 
     The RY trial wave function is layers of :math:`y` rotations with entanglements.
     When none of qubits are unentangled to other qubits the number of parameters
@@ -95,7 +95,22 @@ class RY(VariationalForm):
         validate_min('depth', depth, 1)
         validate_in_set('entanglement', entanglement, {'full', 'linear', 'sca'})
         validate_in_set('entanglement_gate', entanglement_gate, {'cz', 'cx', 'crx'})
-        super().__init__()
+
+        # entangler map overrides entanglement
+        if entangler_map:
+            entanglement = entangler_map
+
+        ry_circuit = RYCircuit(num_qubits,
+                               reps=depth,
+                               entanglement=entanglement,
+                               entanglement_blocks=entanglement_gate,
+                               skip_unentangled_qubits=skip_unentangled_qubits,
+                               skip_final_rotation_layer=skip_final_ry,
+                               insert_barriers=True,
+                               initial_state=initial_state)
+
+        super().__init__(blueprint_circuit=ry_circuit)
+
         self._num_qubits = num_qubits
         self._depth = depth
         self._entanglement = entanglement
@@ -116,79 +131,6 @@ class RY(VariationalForm):
         self._skip_final_ry = skip_final_ry
 
         # for the first layer
-        self._num_parameters = len(self._entangled_qubits) if self._skip_unentangled_qubits \
-            else self._num_qubits
-
-        # for repeated block (minus one ry layer if we skip the last)
-        self._num_parameters += len(self._entangled_qubits) * (depth - 1) if skip_final_ry \
-            else len(self._entangled_qubits) * depth
-
-        # CRx gates have an additional parameter per entanglement
-        if entanglement_gate == 'crx':
-            self._num_parameters += len(self._entangler_map) * depth
-
+        self._num_parameters = ry_circuit.num_parameters
         self._bounds = [(-np.pi, np.pi)] * self._num_parameters
         self._support_parameterized_circuit = True
-
-    def construct_circuit(self, parameters, q=None):
-        """
-        Construct the variational form, given its parameters.
-
-        Args:
-            parameters (Union(numpy.ndarray, list[Parameter], ParameterVector)): circuit parameters.
-            q (QuantumRegister): Quantum Register for the circuit.
-
-        Returns:
-            QuantumCircuit: a quantum circuit with given `parameters`
-
-        Raises:
-            ValueError: the number of parameters is incorrect.
-        """
-        if len(parameters) != self._num_parameters:
-            raise ValueError('The number of parameters has to be {}'.format(self._num_parameters))
-
-        if q is None:
-            q = QuantumRegister(self._num_qubits, name='q')
-        if self._initial_state is not None:
-            circuit = self._initial_state.construct_circuit('circuit', q)
-        else:
-            circuit = QuantumCircuit(q)
-
-        param_idx = 0
-        for qubit in range(self._num_qubits):
-            if not self._skip_unentangled_qubits or qubit in self._entangled_qubits:
-                circuit.u3(parameters[param_idx], 0.0, 0.0, q[qubit])  # ry
-                param_idx += 1
-
-        for block in range(self._depth):
-            circuit.barrier(q)
-            if self._entanglement == 'sca':
-                self._entangler_map = VariationalForm.get_entangler_map(
-                    self._entanglement,
-                    self._num_qubits,
-                    offset=block)
-
-            for src, targ in self._entangler_map:
-                if self._entanglement_gate == 'cz':
-                    circuit.u2(0.0, np.pi, q[targ])  # h
-                    circuit.cx(q[src], q[targ])
-                    circuit.u2(0.0, np.pi, q[targ])  # h
-
-                elif self._entanglement_gate == 'crx':
-                    circuit.cu3(parameters[param_idx], -np.pi / 2, np.pi / 2,
-                                q[src], q[targ])  # crx
-                    param_idx += 1
-
-                else:
-                    circuit.cx(q[src], q[targ])
-
-            # Skip the final RY layer if it is specified and we reached the
-            # last block
-            if not self._skip_final_ry or block != self._depth - 1:
-                circuit.barrier(q)
-                for qubit in self._entangled_qubits:
-                    circuit.u3(parameters[param_idx], 0.0, 0.0, q[qubit])  # ry
-                    param_idx += 1
-        circuit.barrier(q)
-
-        return circuit
