@@ -14,6 +14,7 @@
 
 """Quantum Phase Estimation for getting the eigenvalues of a matrix."""
 
+import warnings
 from typing import Optional, List, Union
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
@@ -68,14 +69,30 @@ class EigsQPE(Eigenvalues):
         validate_in_set('expansion_mode', expansion_mode, {'trotter', 'suzuki'})
         validate_min('expansion_order', expansion_order, 1)
         self._operator = op_converter.to_weighted_pauli_operator(operator)
+
+        if isinstance(iqft, IQFT):
+            warnings.warn('The qiskit.aqua.components.iqfts.IQFT module is deprecated as of 0.7.0 '
+                          'and will be removed no earlier than 3 months after the release. '
+                          'You should pass a QuantumCircuit instead, see '
+                          'qiskit.circuit.library.QFT and the .inverse() method.',
+                          DeprecationWarning, stacklevel=2)
         self._iqft = iqft
+
         self._num_ancillae = num_ancillae
         self._num_time_slices = num_time_slices
         self._expansion_mode = expansion_mode
         self._expansion_order = expansion_order
         self._evo_time = evo_time
         self._negative_evals = negative_evals
+
+        if ne_qfts and any(isinstance(ne_qft, IQFT) for ne_qft in ne_qfts):
+            warnings.warn('The qiskit.aqua.components.iqfts.IQFT module is deprecated as of 0.7.0 '
+                          'and will be removed no earlier than 3 months after the release. '
+                          'You should pass a QuantumCircuit instead, see '
+                          'qiskit.circuit.library.QFT and the .inverse() method.',
+                          DeprecationWarning, stacklevel=2)
         self._ne_qfts = ne_qfts
+
         self._circuit = None
         self._output_register = None
         self._input_register = None

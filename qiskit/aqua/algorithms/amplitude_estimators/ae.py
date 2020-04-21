@@ -77,6 +77,12 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         self._m = num_eval_qubits
         self._M = 2 ** num_eval_qubits
 
+        if isinstance(iqft, IQFT):
+            warnings.warn('The qiskit.aqua.components.iqfts.IQFT module is deprecated as of 0.7.0 '
+                          'and will be removed no earlier than 3 months after the release. '
+                          'You should pass a QuantumCircuit instead, see '
+                          'qiskit.circuit.library.QFT and the .inverse() method.',
+                          DeprecationWarning, stacklevel=2)
         self._iqft = iqft or QFT(self._m).inverse()
         self._circuit = None
         self._ret = {}

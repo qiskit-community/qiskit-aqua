@@ -16,9 +16,11 @@
 
 import unittest
 from test.aqua import QiskitAquaTestCase
+from itertools import product
 import numpy as np
 from ddt import ddt, idata, data, unpack
 from qiskit import QuantumRegister, QuantumCircuit, BasicAer, execute
+from qiskit.circuit.library import QFT
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.components.iqfts import Standard
 from qiskit.aqua.components.uncertainty_models import GaussianConditionalIndependenceModel as GCI
@@ -185,11 +187,12 @@ class TestBernoulli(QiskitAquaTestCase):
             self.assertAlmostEqual(value, result[key], places=3,
                                    msg="estimate `{}` failed".format(key))
 
-    @idata([
-        [True], [False]
-    ])
+    @idata(list(product(
+        [True, False],
+        [True, False]
+    )))
     @unpack
-    def test_qae_circuit(self, efficient_circuit):
+    def test_qae_circuit(self, efficient_circuit, use_circuit_library):
         """Test circuits resulting from canonical amplitude estimation.
 
         Build the circuit manually and from the algorithm and compare the resulting unitaries.
@@ -224,8 +227,13 @@ class TestBernoulli(QiskitAquaTestCase):
                         q_factory.build_controlled(circuit, q_objective, q_ancilla[power])
 
             # fourier transform
-            iqft = Standard(m)
-            circuit = iqft.construct_circuit(qubits=q_ancilla, circuit=circuit, do_swaps=False)
+            if use_circuit_library:
+                iqft = QFT(m, do_swaps=False).inverse()
+                circuit.append(iqft.to_instruction(), q_ancilla)
+            else:
+                iqft = Standard(m)
+                iqft.construct_circuit(qubits=q_ancilla, circuit=circuit, do_swaps=False)
+
             expected_unitary = self._unitary.execute(circuit).get_unitary()
 
             actual_circuit = qae.construct_circuit(measurement=False)

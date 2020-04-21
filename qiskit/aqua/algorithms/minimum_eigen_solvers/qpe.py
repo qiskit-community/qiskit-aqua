@@ -89,7 +89,15 @@ class QPEMinimumEigensolver(QuantumAlgorithm, MinimumEigensolver):
         validate_min('expansion_order', expansion_order, 1)
         super().__init__(quantum_instance)
         self._state_in = state_in
+
+        if isinstance(iqft, IQFT):
+            warnings.warn('The qiskit.aqua.components.iqfts.IQFT module is deprecated as of 0.7.0 '
+                          'and will be removed no earlier than 3 months after the release. '
+                          'You should pass a QuantumCircuit instead, see '
+                          'qiskit.circuit.library.QFT and the .inverse() method.',
+                          DeprecationWarning, stacklevel=2)
         self._iqft = iqft
+
         self._num_time_slices = num_time_slices
         self._num_ancillae = num_ancillae
         self._expansion_mode = expansion_mode

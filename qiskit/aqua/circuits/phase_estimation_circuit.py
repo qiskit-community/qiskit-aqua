@@ -14,6 +14,7 @@
 
 """Quantum Phase Estimation Circuit."""
 
+import warnings
 import numpy as np
 
 from qiskit import QuantumRegister, QuantumCircuit, ClassicalRegister
@@ -22,6 +23,7 @@ from qiskit.aqua import AquaError
 from qiskit.aqua.operators import (WeightedPauliOperator,   # pylint: disable=unused-import
                                    suzuki_expansion_slice_pauli_list,
                                    evolution_instruction)
+from qiskit.aqua.components.iqfts import IQFT
 
 
 class PhaseEstimationCircuit:
@@ -43,8 +45,6 @@ class PhaseEstimationCircuit:
             pauli_list=None
     ):
         """
-        Constructor.
-
         Args:
             operator (WeightedPauliOperator): the hamiltonian Operator object
             state_in (InitialState): the InitialState component
@@ -63,6 +63,7 @@ class PhaseEstimationCircuit:
             shallow_circuit_concat (bool): indicate whether to use shallow (cheap) mode
             for circuit concatenation
             pauli_list (list[Pauli]): the flat list of paulis for the operator
+
         Raises:
             AquaError: Missing input
         """
@@ -78,7 +79,15 @@ class PhaseEstimationCircuit:
         self._unitary_circuit_factory = unitary_circuit_factory
         self._state_in = state_in
         self._state_in_circuit_factory = state_in_circuit_factory
+
+        if isinstance(iqft, IQFT):
+            warnings.warn('The qiskit.aqua.components.iqfts.IQFT module is deprecated as of 0.7.0 '
+                          'and will be removed no earlier than 3 months after the release. '
+                          'You should pass a QuantumCircuit instead, see '
+                          'qiskit.circuit.library.QFT and the .inverse() method.',
+                          DeprecationWarning, stacklevel=2)
         self._iqft = iqft
+
         self._num_time_slices = num_time_slices
         self._num_ancillae = num_ancillae
         self._expansion_mode = expansion_mode
@@ -98,8 +107,7 @@ class PhaseEstimationCircuit:
             auxiliary_register=None,
             measurement=False,
     ):
-        """
-        Construct the Phase Estimation circuit
+        """Construct the Phase Estimation circuit
 
         Args:
             state_register (QuantumRegister): the optional register to use for the quantum state
@@ -111,6 +119,7 @@ class PhaseEstimationCircuit:
 
         Returns:
             QuantumCircuit: the QuantumCircuit object for the constructed circuit
+
         Raises:
             RuntimeError: Multiple identity pauli terms are present
             ValueError: invalid mode
