@@ -18,8 +18,8 @@ from typing import Optional
 
 from qiskit.optimization.problems import QuadraticProgram
 from qiskit.optimization.problems.constraint import ConstraintSense
-from qiskit.optimization.converters import (LinearEqualityToPenalty,
-                                            IntegerToBinary)
+from qiskit.optimization.converters.linear_equality_to_penalty import LinearEqualityToPenalty
+from qiskit.optimization.converters.integer_to_binary import IntegerToBinary
 from qiskit.optimization.exceptions import QiskitOptimizationError
 
 

@@ -74,6 +74,7 @@ class LinearEqualityToPenalty:
         offset = self._src.objective.constant
         linear = self._src.objective.linear.to_dict()
         quadratic = self._src.objective.quadratic.to_dict()
+        sense = self._src.objective.sense.value
 
         # convert linear constraints into penalty terms
         for constraint in self._src.linear_constraints:
@@ -86,13 +87,13 @@ class LinearEqualityToPenalty:
             row = constraint.linear.to_dict()
 
             # constant parts of penalty*(Constant-func)**2: penalty*(Constant**2)
-            offset += penalty_factor * constant ** 2
+            offset += sense * penalty_factor * constant**2
 
             # linear parts of penalty*(Constant-func)**2: penalty*(-2*Constant*func)
             for j, coef in row.items():
                 # if j already exists in the linear terms dic, add a penalty term
                 # into existing value else create new key and value in the linear_term dict
-                linear[j] = linear.get(j, 0.0) + penalty_factor * -2 * coef * constant
+                linear[j] = linear.get(j, 0.0) + sense * penalty_factor * -2 * coef * constant
 
             # quadratic parts of penalty*(Constant-func)**2: penalty*(func**2)
             for j, coef_1 in row.items():
@@ -104,7 +105,7 @@ class LinearEqualityToPenalty:
                     # according to implementation of quadratic terms in OptimizationModel,
                     # don't need to multiply by 2, since loops run over (x, y) and (y, x).
                     quadratic[(j, k)] = quadratic.get((j, k), 0.0) \
-                        + penalty_factor * coef_1 * coef_2
+                        + sense * penalty_factor * coef_1 * coef_2
 
         if self._src.objective.sense == ObjSense.MINIMIZE:
             self._dst.minimize(offset, linear, quadratic)
