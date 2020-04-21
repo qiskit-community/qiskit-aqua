@@ -12,27 +12,23 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
-The Univariate Variational Distribution.
-"""
+"""The Univariate Variational Distribution."""
 
 from typing import Union, List
 import numpy as np
 
-from qiskit import ClassicalRegister
+from qiskit import ClassicalRegister, QuantumCircuit
 from qiskit.aqua.components.variational_forms import VariationalForm
 from qiskit.aqua.utils.validation import validate_min
 from .univariate_distribution import UnivariateDistribution
 
 
 class UnivariateVariationalDistribution(UnivariateDistribution):
-    """
-    The Univariate Variational Distribution.
-    """
+    """The Univariate Variational Distribution."""
 
     def __init__(self,
                  num_qubits: int,
-                 var_form: VariationalForm,
+                 var_form: Union[QuantumCircuit, VariationalForm],
                  params: Union[List[float], np.ndarray],
                  low: float = 0,
                  high: float = 1) -> None:
@@ -47,6 +43,11 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
         validate_min('num_qubits', num_qubits, 1)
         self._num_qubits = num_qubits
         self._var_form = var_form
+
+        # fix the order of the parameters in the circuit
+        if isinstance(self._var_form, QuantumCircuit):
+            self._var_form_params = list(self._var_form.parameters)
+
         self.params = params
         if isinstance(num_qubits, int):
             probabilities = np.zeros(2 ** num_qubits)
@@ -57,16 +58,25 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
         super().__init__(num_qubits, probabilities, low, high)
 
     def build(self, qc, q, q_ancillas=None, params=None):
-        circuit_var_form = self._var_form.construct_circuit(self.params)
+        if isinstance(self._var_form, QuantumCircuit):
+            param_dict = dict(zip(self._var_form_params, self.params))
+            circuit_var_form = self._var_form.assign_parameters(param_dict)
+        else:
+            circuit_var_form = self._var_form.construct_circuit(self.params)
+
         qc.append(circuit_var_form.to_instruction(), q)
 
     def set_probabilities(self, quantum_instance):
-        """
-        Set Probabilities
+        """Set Probabilities
+
         Args:
             quantum_instance (QuantumInstance): Quantum instance
         """
-        qc_ = self._var_form.construct_circuit(self.params)
+        if isinstance(self._var_form, QuantumCircuit):
+            param_dict = dict(zip(self._var_form_params, self.params))
+            qc_ = self._var_form.assign_parameters(param_dict)
+        else:
+            qc_ = self._var_form.construct_circuit(self.params)
 
         # q_ = QuantumRegister(self._num_qubits)
         # qc_ = QuantumCircuit(q_)
