@@ -14,14 +14,11 @@
 
 """ Test QuadraticProgram """
 
-import logging
 import unittest
+from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 
 from qiskit.optimization import QuadraticProgram, QiskitOptimizationError, infinity
 from qiskit.optimization.problems import VarType
-from test.optimization.optimization_test_case import QiskitOptimizationTestCase
-
-logger = logging.getLogger(__name__)
 
 
 class TestQuadraticProgram(QiskitOptimizationTestCase):
@@ -131,26 +128,32 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
             self.assertEqual(x, z)
 
     def test_linear_constraints_handling(self):
+        """test linear constraints handling"""
         # TODO
         pass
 
     def test_quadratic_constraints_handling(self):
+        """test quadratic constraints handling"""
         # TODO
         pass
 
     def test_objective_handling(self):
+        """test objective handling"""
         # TODO
         pass
 
     def test_read_problem(self):
+        """test read problem"""
         # TODO
         pass
 
     def test_write_problem(self):
+        """test write problem"""
         # TODO
         pass
 
     def test_docplex(self):
+        """test from_docplex and to_docplex"""
         q_p = QuadraticProgram('test')
         q_p.binary_var(name='x')
         q_p.integer_var(name='y', lowerbound=-2, upperbound=4)
@@ -165,6 +168,7 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         self.assertEqual(q_p.print_as_lp_string(), q_p2.print_as_lp_string())
 
     def test_substitute_variables(self):
+        """test substitute variables"""
         q_p = QuadraticProgram('test')
         q_p.binary_var(name='x')
         q_p.integer_var(name='y', lowerbound=-2, upperbound=4)

@@ -47,10 +47,10 @@ an instantiated QuadraticProgram.
 
 from .constraint import Constraint
 from .constraint import ConstraintSense
-from .linear_expression import LinearExpression
 from .linear_constraint import LinearConstraint
-from .quadratic_expression import QuadraticExpression
+from .linear_expression import LinearExpression
 from .quadratic_constraint import QuadraticConstraint
+from .quadratic_expression import QuadraticExpression
 from .quadratic_objective import QuadraticObjective, ObjSense
 from .quadratic_program import QuadraticProgram
 from .variable import Variable, VarType
@@ -64,5 +64,6 @@ __all__ = ['Constraint',
            'QuadraticObjective',
            'ObjSense',
            'QuadraticProgram',
-           'Variable'
+           'Variable',
+           'VarType'
            ]
