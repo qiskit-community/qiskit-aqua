@@ -14,6 +14,7 @@
 
 """The Univariate Variational Distribution."""
 
+import warnings
 from typing import Union, List
 import numpy as np
 
@@ -47,6 +48,13 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
         # fix the order of the parameters in the circuit
         if isinstance(self._var_form, QuantumCircuit):
             self._var_form_params = list(self._var_form.parameters)
+        else:
+            warnings.warn('The VariationalForm type is deprecated as argument of the '
+                          'UnivariateVariationalDistribution as of 0.7.0 and will be removed no '
+                          'earlier than 3 months after the release. You should pass an object '
+                          'of type QuantumCircuit instead (see qiskit.circuit.library for a '
+                          'collection of suitable objects).',
+                          DeprecationWarning, stacklevel=2)
 
         self.params = params
         if isinstance(num_qubits, int):
