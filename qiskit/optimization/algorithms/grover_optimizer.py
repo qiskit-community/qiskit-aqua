@@ -12,18 +12,19 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""GroverMinimumFinder module"""
+"""GroverOptimizer module"""
 
 import logging
 from typing import Optional, Dict, Union, Tuple
-import random
 import math
+import random
 import numpy as np
 from qiskit.aqua import QuantumInstance
-from qiskit.optimization.algorithms import OptimizationAlgorithm, OptimizationResult
+from qiskit.optimization.algorithms import OptimizationAlgorithm
 from qiskit.optimization.problems import QuadraticProgram
 from qiskit.optimization.converters import (QuadraticProgramToQubo,
                                             QuadraticProgramToNegativeValueOracle)
+from qiskit.optimization.algorithms.optimization_algorithm import OptimizationResult
 from qiskit.optimization.util import get_qubo_solutions
 from qiskit.aqua.algorithms.amplitude_amplifiers.grover import Grover
 from qiskit import Aer, QuantumCircuit
@@ -33,24 +34,41 @@ from qiskit.providers import BaseBackend
 logger = logging.getLogger(__name__)
 
 
-class GroverMinimumFinder(OptimizationAlgorithm):
+class GroverOptimizer(OptimizationAlgorithm):
     """Uses Grover Adaptive Search (GAS) to find the minimum of a QUBO function."""
 
-    def __init__(self, num_iterations: int = 3,
+    def __init__(self, num_value_qubits: int, num_iterations: int = 3,
                  quantum_instance: Optional[Union[BaseBackend, QuantumInstance]] = None) -> None:
         """
         Args:
+            num_value_qubits: The number of value qubits.
             num_iterations: The number of iterations the algorithm will search with
                 no improvement.
             quantum_instance: Instance of selected backend, defaults to Aer's statevector simulator.
         """
+        self._num_value_qubits = num_value_qubits
         self._n_iterations = num_iterations
         if quantum_instance is None or isinstance(quantum_instance, BaseBackend):
             backend = quantum_instance or Aer.get_backend('statevector_simulator')
             quantum_instance = QuantumInstance(backend)
         self._quantum_instance = quantum_instance
 
+    # pylint:disable=unused-argument
     def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
+        """Checks whether a given problem can be solved with this optimizer.
+
+        Returns ``''`` since GroverOptimizer accepts all problems that can be modeled using the
+        ``QuadraticProgram``.
+
+        Args:
+            problem: The optimization problem to check compatibility.
+
+        Returns:
+            An empty string.
+        """
+        return ''
+
+    def is_compatible(self, problem: QuadraticProgram) -> Optional[str]:
         """Checks whether a given problem can be solved with this optimizer.
 
         Checks whether the given problem is compatible, i.e., whether the problem can be converted
@@ -60,9 +78,9 @@ class GroverMinimumFinder(OptimizationAlgorithm):
             problem: The optimization problem to check compatibility.
 
         Returns:
-            A message describing the incompatibility.
+            Returns ``None`` if the problem is compatible and else a string with the error message.
         """
-        return QuadraticProgramToQubo.get_compatibility_msg(problem)
+        return QuadraticProgramToQubo.is_compatible(problem)
 
     def solve(self, problem: QuadraticProgram) -> OptimizationResult:
         """Tries to solves the given problem using the optimizer.
@@ -80,12 +98,9 @@ class GroverMinimumFinder(OptimizationAlgorithm):
             QiskitOptimizationError: If the problem is incompatible with the optimizer.
         """
 
-        # convert problem to QUBO, this implicitly checks if the problem is compatible
+        # convert problem to QUBO
         qubo_converter = QuadraticProgramToQubo()
         problem_ = qubo_converter.encode(problem)
-
-        # TODO: How to get from Optimization Problem?
-        num_output_qubits = 6
 
         # Variables for tracking the optimum.
         optimum_found = False
@@ -93,7 +108,7 @@ class GroverMinimumFinder(OptimizationAlgorithm):
         optimum_value = math.inf
         threshold = 0
         n_key = problem_.variables.get_num()
-        n_value = num_output_qubits
+        n_value = self._num_value_qubits
 
         # Variables for tracking the solutions encountered.
         num_solutions = 2**n_key
@@ -132,11 +147,10 @@ class GroverMinimumFinder(OptimizationAlgorithm):
 
                 # Apply Grover's Algorithm to find values below the threshold.
                 if rotation_count > 0:
+                    # TODO: Utilize Grover's incremental feature - requires changes to Grover.
                     grover = Grover(oracle, init_state=a_operator, num_iterations=rotation_count)
                     circuit = grover.construct_circuit(
-                        measurement=self._quantum_instance.is_statevector
-                    )
-
+                        measurement=self._quantum_instance.is_statevector)
                 else:
                     circuit = a_operator._circuit
 
@@ -144,12 +158,8 @@ class GroverMinimumFinder(OptimizationAlgorithm):
                 outcome = self._measure(circuit, n_key, n_value)
                 k = int(outcome[0:n_key], 2)
                 v = outcome[n_key:n_key + n_value]
-
-                # Convert the binary string to integer.
                 int_v = self._bin_to_int(v, n_value) + threshold
                 v = self._twos_complement(int_v, n_value)
-
-                logger.info('Iterations: %s', rotation_count)
                 logger.info('Outcome: %s', outcome)
                 logger.info('Value: %s = %s', v, int_v)
 
@@ -163,24 +173,19 @@ class GroverMinimumFinder(OptimizationAlgorithm):
                         improvement_found = True
                         threshold = optimum_value
                 else:
-                    # No better number after the max number of iterations, so we assume the optimal.
-                    if loops_with_no_improvement >= self._n_iterations:
-                        improvement_found = True
-                        optimum_found = True
-
                     # Using Durr and Hoyer method, increase m.
-                    # TODO: Give option for a rotation schedule, or for different lambda's.
                     m = int(np.ceil(min(m * 8/7, 2**(n_key / 2))))
                     logger.info('No Improvement. M: %s', m)
 
-                # Check if we've already seen this value.
-                if k not in keys_measured:
-                    keys_measured.append(k)
+                    # Check if we've already seen this value.
+                    if k not in keys_measured:
+                        keys_measured.append(k)
 
-                # Stop if we've seen all the keys or hit the rotation max.
-                if len(keys_measured) == num_solutions or rotations >= max_rotations:
-                    improvement_found = True
-                    optimum_found = True
+                    # Assume the optimal if any of the stop parameters are true.
+                    if loops_with_no_improvement >= self._n_iterations or \
+                            len(keys_measured) == num_solutions or rotations >= max_rotations:
+                        improvement_found = True
+                        optimum_found = True
 
                 # Track the operation count.
                 operations = circuit.count_ops()
@@ -198,8 +203,7 @@ class GroverMinimumFinder(OptimizationAlgorithm):
         opt_x = [1 if s == '1' else 0 for s in ('{0:%sb}' % n_key).format(optimum_key)]
 
         # Build the results object.
-        grover_results = GroverOptimizationResults(operation_count, rotations, n_key, n_value,
-                                                   func_dict)
+        grover_results = GroverOptimizationResults(operation_count, n_key, n_value, func_dict)
         result = OptimizationResult(x=opt_x, fval=solutions[optimum_key],
                                     results={"grover_results": grover_results,
                                              "qubo_converter": qubo_converter})
@@ -274,20 +278,18 @@ class GroverMinimumFinder(OptimizationAlgorithm):
 class GroverOptimizationResults:
     """A results object for Grover Optimization methods."""
 
-    def __init__(self, operation_counts: Dict[int, Dict[str, int]], rotations: int,
+    def __init__(self, operation_counts: Dict[int, Dict[str, int]],
                  n_input_qubits: int, n_output_qubits: int,
                  func_dict: Dict[Union[int, Tuple[int, int]], int]) -> None:
         """
         Args:
             operation_counts: The counts of each operation performed per iteration.
-            rotations: The total number of Grover rotations performed.
             n_input_qubits: The number of qubits used to represent the input.
             n_output_qubits: The number of qubits used to represent the output.
             func_dict: A dictionary representation of the function, where the keys correspond
                 to a variable, and the values are the corresponding coefficients.
         """
         self._operation_counts = operation_counts
-        self._rotations = rotations
         self._n_input_qubits = n_input_qubits
         self._n_output_qubits = n_output_qubits
         self._func_dict = func_dict
@@ -300,15 +302,6 @@ class GroverOptimizationResults:
             The counts of each operation performed per iteration.
         """
         return self._operation_counts
-
-    @property
-    def rotation_count(self) -> int:
-        """Getter of rotation_count
-
-        Returns:
-            The total number of Grover rotations.
-        """
-        return self._rotations
 
     @property
     def n_input_qubits(self) -> int:
@@ -338,3 +331,4 @@ class GroverOptimizationResults:
             is a constant term, it is referenced by key -1.
         """
         return self._func_dict
+
