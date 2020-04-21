@@ -14,9 +14,9 @@
 
 """Quantum Phase Estimation for getting the eigenvalues of a matrix."""
 
-from typing import Optional, List
+from typing import Optional, List, Union
 import numpy as np
-from qiskit import QuantumRegister
+from qiskit import QuantumRegister, QuantumCircuit
 
 from qiskit.aqua.circuits import PhaseEstimationCircuit
 from qiskit.aqua.operators import op_converter, BaseOperator

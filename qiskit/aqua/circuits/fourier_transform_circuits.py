@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -11,9 +11,8 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""
-Quantum Fourier Transform Circuit.
-"""
+
+"""DEPRECATED. Quantum Fourier Transform Circuit."""
 
 import warnings
 
@@ -22,9 +21,8 @@ from qiskit.aqua import AquaError
 
 
 class FourierTransformCircuits:
-    """
-    Quantum Fourier Transform Circuit.
-    """
+    """DEPRECATED. Quantum Fourier Transform Circuit."""
+
     @staticmethod
     def construct_circuit(
             circuit=None,
@@ -33,8 +31,7 @@ class FourierTransformCircuits:
             approximation_degree=0,
             do_swaps=True
     ):
-        """
-        Construct the circuit representing the desired state vector.
+        """Construct the circuit representing the desired state vector.
 
         Args:
             circuit (QuantumCircuit): The optional circuit to extend from.
