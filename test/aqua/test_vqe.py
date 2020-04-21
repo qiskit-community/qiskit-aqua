@@ -32,6 +32,7 @@ from qiskit.aqua.algorithms import VQE
 @ddt
 class TestVQE(QiskitAquaTestCase):
     """ Test VQE """
+
     def setUp(self):
         super().setUp()
         self.seed = 50
@@ -48,21 +49,15 @@ class TestVQE(QiskitAquaTestCase):
 
     def test_vqe(self):
         """ VQE test """
-        result = VQE(self.qubit_op,
-                     RYRZ(self.qubit_op.num_qubits),
-                     L_BFGS_B()).run(
-                         QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+        vqe = VQE(self.qubit_op, RYRZ(self.qubit_op.num_qubits), L_BFGS_B())
+
+        result = vqe.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),
                                          basis_gates=['u1', 'u2', 'u3', 'cx', 'id'],
                                          coupling_map=[[0, 1]],
                                          seed_simulator=aqua_globals.random_seed,
                                          seed_transpiler=aqua_globals.random_seed))
         self.assertAlmostEqual(result.eigenvalue.real, -1.85727503)
         np.testing.assert_array_almost_equal(result.eigenvalue.real, -1.85727503, 5)
-        ref_opt_params = [-0.58294401, -1.86141794, -1.97209632, -0.54796022,
-                          -0.46945572, 2.60114794, -1.15637845, 1.40498879,
-                          1.14479635, -0.48416694, -0.66608349, -1.1367579,
-                          -2.67097002, 3.10214631, 3.10000313, 0.37235089]
-        np.testing.assert_array_almost_equal(result.optimal_point, ref_opt_params, 5)
         self.assertIsNotNone(result.cost_function_evals)
         self.assertIsNotNone(result.optimizer_time)
 
@@ -104,7 +99,7 @@ class TestVQE(QiskitAquaTestCase):
         """ VQE QASM test """
         backend = BasicAer.get_backend('qasm_simulator')
         num_qubits = self.qubit_op.num_qubits
-        var_form = RY(num_qubits, 3)
+        var_form = RY(num_qubits, depth=3)
         optimizer = SPSA(max_trials=300, last_avg=5)
         algo = VQE(self.qubit_op, var_form, optimizer, max_evals_grouped=1)
         quantum_instance = QuantumInstance(backend, shots=10000,
@@ -124,7 +119,7 @@ class TestVQE(QiskitAquaTestCase):
         backend = Aer.get_backend('statevector_simulator')
         num_qubits = self.qubit_op.num_qubits
         init_state = Zero(num_qubits)
-        var_form = RY(num_qubits, 3, initial_state=init_state)
+        var_form = RY(num_qubits, depth=3, initial_state=init_state)
         optimizer = L_BFGS_B()
         algo = VQE(self.qubit_op, var_form, optimizer, max_evals_grouped=1)
         quantum_instance = QuantumInstance(backend,
@@ -144,7 +139,7 @@ class TestVQE(QiskitAquaTestCase):
         backend = Aer.get_backend('qasm_simulator')
         num_qubits = self.qubit_op.num_qubits
         init_state = Zero(num_qubits)
-        var_form = RY(num_qubits, 3, initial_state=init_state)
+        var_form = RY(num_qubits, depth=3, initial_state=init_state)
         optimizer = L_BFGS_B()
         algo = VQE(self.qubit_op, var_form, optimizer, max_evals_grouped=1)
         quantum_instance = QuantumInstance(backend, shots=1,
@@ -168,7 +163,7 @@ class TestVQE(QiskitAquaTestCase):
         backend = BasicAer.get_backend('qasm_simulator')
         num_qubits = self.qubit_op.num_qubits
         init_state = Zero(num_qubits)
-        var_form = RY(num_qubits, 1, initial_state=init_state)
+        var_form = RY(num_qubits, depth=1, initial_state=init_state)
         optimizer = COBYLA(maxiter=3)
         algo = VQE(self.qubit_op, var_form, optimizer,
                    callback=store_intermediate_result, auto_conversion=False)
@@ -214,7 +209,7 @@ class TestVQE(QiskitAquaTestCase):
             _ = vqe.run()
 
         num_qubits = self.qubit_op.num_qubits
-        var_form = RY(num_qubits, 3)
+        var_form = RY(num_qubits, depth=3)
         vqe.var_form = var_form
         with self.assertRaises(AquaError):
             _ = vqe.run()
@@ -238,7 +233,7 @@ class TestVQE(QiskitAquaTestCase):
 
     def test_vqe_mes(self):
         """ Test vqe minimum eigen solver interface """
-        vqe = VQE(var_form=RY(self.qubit_op.num_qubits, 3), optimizer=COBYLA())
+        vqe = VQE(var_form=RY(self.qubit_op.num_qubits, depth=3), optimizer=COBYLA())
         vqe.set_backend(BasicAer.get_backend('statevector_simulator'))
         result = vqe.compute_minimum_eigenvalue(self.qubit_op)
         self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=5)
