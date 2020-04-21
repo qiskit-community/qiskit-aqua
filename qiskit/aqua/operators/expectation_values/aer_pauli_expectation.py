@@ -26,7 +26,8 @@ from ..combo_operators.list_op import ListOp
 from ..combo_operators.summed_op import SummedOp
 from ..primitive_operators.pauli_op import PauliOp
 from ..state_functions.state_fn import StateFn
-from ..state_functions.circuit_state_fn import CircuitStateFn, OperatorStateFn
+from ..state_functions.circuit_state_fn import CircuitStateFn
+from ..state_functions.operator_state_fn import OperatorStateFn
 
 logger = logging.getLogger(__name__)
 

@@ -26,7 +26,8 @@ from .expectation_base import ExpectationBase
 from ..operator_base import OperatorBase
 from ..combo_operators.list_op import ListOp
 from ..combo_operators.composed_op import ComposedOp
-from ..state_functions.state_fn import StateFn, OperatorStateFn
+from ..state_functions.state_fn import StateFn
+from ..state_functions.operator_state_fn import OperatorStateFn
 from ..converters.pauli_basis_change import PauliBasisChange
 from ..converters.abelian_grouper import AbelianGrouper
 

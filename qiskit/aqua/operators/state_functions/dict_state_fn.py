@@ -284,6 +284,11 @@ class DictStateFn(StateFn):
                               for (b, v) in self.primitive.items()]) * self.coeff,
                          ndigits=EVAL_SIG_DIGITS)
 
+        from .circuit_state_fn import CircuitStateFn
+        if isinstance(front, CircuitStateFn):
+            # Don't reimplement logic from CircuitStateFn
+            return np.conj(front.adjoint().eval(self.adjoint().primitive)) * self.coeff
+
         from .operator_state_fn import OperatorStateFn
         if isinstance(front, OperatorStateFn):
             return front.adjoint().eval(self.adjoint())
