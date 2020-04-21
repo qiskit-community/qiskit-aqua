@@ -11,9 +11,8 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""
-The Quantum Phase Estimation Algorithm.
-"""
+
+"""The Quantum Phase Estimation Algorithm."""
 
 import logging
 from typing import Optional, List, Dict, Union
@@ -60,7 +59,7 @@ class QPEMinimumEigensolver(QuantumAlgorithm, MinimumEigensolver):
     def __init__(self,
                  operator: Optional[BaseOperator] = None,
                  state_in: Optional[InitialState] = None,
-                 iqft: Optional[IQFT] = None,
+                 iqft: Optional[QuantumCircuit, IQFT] = None,
                  num_time_slices: int = 1,
                  num_ancillae: int = 1,
                  expansion_mode: str = 'trotter',

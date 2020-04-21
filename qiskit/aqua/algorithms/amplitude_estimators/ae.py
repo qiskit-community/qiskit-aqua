@@ -11,6 +11,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
 """The Quantum Phase Estimation-based Amplitude Estimation algorithm."""
 
 from typing import Optional, Union, List, Tuple
@@ -21,11 +22,12 @@ from scipy.stats import chi2, norm
 from scipy.optimize import bisect
 
 from qiskit import QuantumCircuit
+from qiskit.circuit.library import QFT
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.utils import CircuitFactory
 from qiskit.aqua.circuits import PhaseEstimationCircuit
-from qiskit.aqua.components.iqfts import IQFT, Standard
+from qiskit.aqua.components.iqfts import IQFT
 from qiskit.aqua.utils.validation import validate_min
 from .ae_algorithm import AmplitudeEstimationAlgorithm
 from .ae_utils import pdf_a, derivative_log_pdf_a, bisect_max
@@ -54,7 +56,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
                  a_factory: Optional[CircuitFactory] = None,
                  q_factory: Optional[CircuitFactory] = None,
                  i_objective: Optional[int] = None,
-                 iqft: Optional[IQFT] = None,
+                 iqft: Optional[QuantumCircuit, IQFT] = None,
                  quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
         r"""
         Args:
@@ -75,10 +77,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         self._m = num_eval_qubits
         self._M = 2 ** num_eval_qubits
 
-        if iqft is None:
-            iqft = Standard(self._m)
-
-        self._iqft = iqft
+        self._iqft = iqft or QFT(self._m).inverse()
         self._circuit = None
         self._ret = {}
 

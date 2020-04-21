@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Quantum Phase Estimation for getting the eigenvalues of a matrix. """
+"""Quantum Phase Estimation for getting the eigenvalues of a matrix."""
 
 from typing import Optional, List
 import numpy as np
@@ -28,8 +28,7 @@ from .eigs import Eigenvalues
 
 
 class EigsQPE(Eigenvalues):
-    """
-    Eigenvalues using Quantum Phase Estimation
+    """Eigenvalues using Quantum Phase Estimation.
 
     Specifically, this class is based on PhaseEstimationCircuit with no measurements and
     has additional handling of negative eigenvalues, e.g. for :class:`~qiskit.aqua.algorithms.HHL`.
@@ -39,7 +38,7 @@ class EigsQPE(Eigenvalues):
 
     def __init__(self,
                  operator: BaseOperator,
-                 iqft: IQFT,
+                 iqft: Union[QuantumCircuit, IQFT],
                  num_time_slices: int = 1,
                  num_ancillae: int = 1,
                  expansion_mode: str = 'trotter',

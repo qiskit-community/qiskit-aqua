@@ -11,9 +11,8 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""
-Quantum Phase Estimation Circuit.
-"""
+
+"""Quantum Phase Estimation Circuit."""
 
 import numpy as np
 
@@ -26,9 +25,7 @@ from qiskit.aqua.operators import (WeightedPauliOperator,   # pylint: disable=un
 
 
 class PhaseEstimationCircuit:
-    """
-    Quantum Phase Estimation Circuit.
-    """
+    """Quantum Phase Estimation Circuit."""
 
     def __init__(
             self,
@@ -52,7 +49,8 @@ class PhaseEstimationCircuit:
             operator (WeightedPauliOperator): the hamiltonian Operator object
             state_in (InitialState): the InitialState component
             representing the initial quantum state
-            iqft (IQFT): the Inverse Quantum Fourier Transform component
+            iqft (Union[QuantumCircuit, IQFT]): the Inverse Quantum Fourier Transform as circuit or
+                Aqua component
             num_time_slices (int): the number of time slices
             num_ancillae (int): the number of ancillary qubits to use for the measurement
             expansion_mode (str): the expansion mode (trotter|suzuki)
@@ -209,7 +207,10 @@ class PhaseEstimationCircuit:
                     self._unitary_circuit_factory.build_controlled_power(qc, q, a[i], 2 ** i, aux)
 
             # inverse qft on ancillae
-            self._iqft.construct_circuit(mode='circuit', qubits=a, circuit=qc, do_swaps=False)
+            if isinstance(self._iqft, QuantumCircuit):
+                qc.append(self._iqft.to_instruction(), a)
+            else:
+                self._iqft.construct_circuit(mode='circuit', qubits=a, circuit=qc, do_swaps=False)
 
             if measurement:
                 c_ancilla = ClassicalRegister(self._num_ancillae, name='ca')
