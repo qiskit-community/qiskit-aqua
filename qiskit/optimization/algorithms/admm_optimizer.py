@@ -149,6 +149,10 @@ class ADMMState:
         self.y_saved = []
         self.rho = rho_initial
 
+        # new features
+        self.equality_constraints = []
+        self.inequality_constraints = []
+
 
 class ADMMOptimizerResult(OptimizationResult):
     """ ADMMOptimizer Result."""
@@ -324,8 +328,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
             iteration += 1
             elapsed_time = time.time() - start_time
 
-        solution, objective_value = self._get_best_merit_solution()
-        solution = self._revert_solution_indexes(solution)
+        binary_vars, continuous_vars, objective_value = self._get_best_merit_solution()
+        solution = self._revert_solution_indexes(binary_vars, continuous_vars)
 
         # third parameter is our internal state of computations.
         result = ADMMOptimizerResult(solution, objective_value, self._state)
@@ -352,24 +356,28 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         return indices
 
-    def _revert_solution_indexes(self, internal_solution: List[np.ndarray]) \
+    def _get_solution(self) -> np.ndarray:
+        return self._revert_solution_indexes(self._state.x0, self._state.u)
+
+    def _revert_solution_indexes(self, binary_vars: np.ndarray, continuous_vars: np.ndarray) \
             -> np.ndarray:
         """Constructs a solution array where variables are stored in the correct order.
 
         Args:
-            internal_solution: a list with two lists: solutions for binary variables and
-                for continuous variables.
+            binary_vars: solution for binary variables
+            continuous_vars: solution for continuous variables
 
         Returns:
             A solution array.
         """
-        binary_solutions, continuous_solutions = internal_solution
         solution = np.zeros(len(self._state.binary_indices) + len(self._state.continuous_indices))
         # restore solution at the original index location
-        for i, binary_index in enumerate(self._state.binary_indices):
-            solution[binary_index] = binary_solutions[i]
-        for i, continuous_index in enumerate(self._state.continuous_indices):
-            solution[continuous_index] = continuous_solutions[i]
+        solution.put(self._state.binary_indices, binary_vars)
+        solution.put(self._state.continuous_indices, continuous_vars)
+        # for i, binary_index in enumerate(self._state.binary_indices):
+        #     solution[binary_index] = binary_vars[i]
+        # for i, continuous_index in enumerate(self._state.continuous_indices):
+        #     solution[continuous_index] = continuous_vars[i]
         return solution
 
     def _convert_problem_representation(self) -> None:
@@ -394,6 +402,14 @@ class ADMMOptimizer(OptimizationAlgorithm):
         self._state.a1, self._state.b1 = self._get_a1_b1()
         self._state.a2, self._state.a3, self._state.b2 = self._get_a2_a3_b2()
         self._state.a4, self._state.b3 = self._get_a4_b3()
+
+        # separate constraints
+        for constraint in self._state.op.linear_constraints:
+            if constraint.sense == ConstraintSense.EQ:
+                # todo: verify that this constraint contains only binary variables
+                self._state.equality_constraints.append(constraint)
+            elif constraint.sense in (ConstraintSense.LE, ConstraintSense.GE):
+                self._state.inequality_constraints.append(constraint)
 
     def _get_q(self, variable_indices: List[int]) -> np.ndarray:
         """Constructs a quadratic matrix for the variables with the specified indices
@@ -783,11 +799,10 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         it_min_merits = self._state.merits.index(
              min(self._state.merits))
-        x_0 = self._state.x0_saved[it_min_merits]
-        u_s = self._state.u_saved[it_min_merits]
-        sol = [x_0, u_s]
+        binary_vars = self._state.x0_saved[it_min_merits]
+        continuous_vars = self._state.u_saved[it_min_merits]
         sol_val = self._state.cost_iterates[it_min_merits]
-        return sol, sol_val
+        return binary_vars, continuous_vars, sol_val
 
     def _update_lambda_mult(self) -> np.ndarray:
         """
@@ -827,17 +842,19 @@ class ADMMOptimizer(OptimizationAlgorithm):
         Returns:
             Violation of the constraints as a float value
         """
+        solution = self._get_solution()
+        # equality constraints
+        cr0 = 0
+        for constraint in self._state.equality_constraints:
+            cr0 += np.abs(constraint.evaluate(solution) - constraint.rhs)
 
-        cr0 = sum(np.abs(np.dot(self._state.a0, self._state.x0) - self._state.b0))
+        # inequality constraints
+        cr12 = 0
+        for constraint in self._state.inequality_constraints:
+            sense = -1 if constraint.sense == ConstraintSense.GE else 1
+            cr12 += max(sense * (constraint.evaluate(solution) - constraint.rhs), 0)
 
-        eq1 = np.dot(self._state.a1, self._state.x0) - self._state.b1
-        cr1 = sum(max(val, 0) for val in eq1)
-
-        eq2 = np.dot(self._state.a2, self._state.x0) + np.dot(self._state.a3,
-                                                              self._state.u) - self._state.b2
-        cr2 = sum(max(val, 0) for val in eq2)
-
-        return cr0 + cr1 + cr2
+        return cr0 + cr12
 
     def _get_merit(self, cost_iterate: float, constraint_residual: float) -> float:
         """Compute merit value associated with the current iterate
@@ -857,16 +874,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         Returns:
             Value of the objective function as a float
         """
-
-        def quadratic_form(matrix, x, c):
-            return np.dot(x.T, np.dot(matrix, x)) + np.dot(c.T, x)
-
-        obj_val = quadratic_form(self._state.q0, self._state.x0, self._state.c0)
-        obj_val += quadratic_form(self._state.q1, self._state.u, self._state.c1)
-
-        obj_val += self._state.op.objective.constant
-
-        return obj_val
+        return self._state.op.objective.evaluate(self._get_solution()) * self._state.sense
 
     def _get_solution_residuals(self, iteration: int) -> (float, float):
         """Compute primal and dual residual.
