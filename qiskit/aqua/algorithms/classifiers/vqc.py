@@ -82,6 +82,17 @@ class VQC(VQAlgorithm):
         Raises:
             AquaError: Missing feature map or missing training dataset.
         """
+        # VariationalForm is not deprecated on level of the VQAlgorithm yet as UCCSD still
+        # derives from there, therefore we're adding a warning here
+        if isinstance(var_form, VariationalForm):
+            warnings.warn('The qiskit.aqua.components.variational_form.VariationalForm object as '
+                          'input for the VQC is deprecated as of 0.7.0 and will be removed no '
+                          'earlier than 3 months after the release. You should pass a '
+                          'QuantumCircuit object instead. '
+                          'See also qiskit.circuit.library.n_local for a collection of '
+                          'suitable circuits.',
+                          DeprecationWarning, stacklevel=2)
+
         super().__init__(
             var_form=var_form,
             optimizer=optimizer,
@@ -500,12 +511,12 @@ class VQC(VQAlgorithm):
         return self._ret['min_vector']
 
     @property
-    def feature_map(self):
+    def feature_map(self) -> Optional[Union[FeatureMap, QuantumCircuit]]:
         """Return the feature map."""
         return self._feature_map
 
     @feature_map.setter
-    def feature_map(self, feature_map):
+    def feature_map(self, feature_map: Union[FeatureMap, QuantumCircuit]):
         """Set the feature map.
 
         Also sets the number of qubits, the internally stored feature map parameters and,
@@ -520,13 +531,16 @@ class VQC(VQAlgorithm):
             self._feature_map_params = list(feature_map.parameters)
             self._feature_map = feature_map
         elif isinstance(feature_map, FeatureMap):
+            warnings.warn('The qiskit.aqua.components.feature_maps.FeatureMap object is deprecated '
+                          'as of 0.7.0 and will be removed no earlier than 3 months after the '
+                          'release. You should pass a QuantumCircuit object instead. '
+                          'See also qiskit.circuit.library.data_preparation for a collection of '
+                          'suitable circuits.',
+                          DeprecationWarning, stacklevel=2)
+
             self._num_qubits = feature_map.num_qubits
             self._feature_map_params = ParameterVector('x', length=feature_map.feature_dimension)
             self._feature_map = feature_map
-        elif feature_map is None:
-            self._num_qubits = 0
-            self._feature_map_params = None
-            self._feature_map = None
         else:
             raise ValueError('Unsupported type {} of feature_map.'.format(type(feature_map)))
 
@@ -540,12 +554,6 @@ class VQC(VQAlgorithm):
         if 'opt_params' not in self._ret:
             raise AquaError("Cannot find optimal params before running the algorithm.")
         return self._ret['opt_params']
-
-    @property
-    def optimal_params_dict(self):
-        """Return the optimal parameters in a dictionary."""
-        optimal_values = self.optimal_params
-        return dict(zip(self._var_form_params, optimal_values))
 
     @property
     def ret(self):
