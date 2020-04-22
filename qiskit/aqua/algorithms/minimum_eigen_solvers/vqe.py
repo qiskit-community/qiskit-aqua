@@ -142,6 +142,12 @@ class VQE(VQAlgorithm, MinimumEigensolver):
 
         self._max_evals_grouped = max_evals_grouped
 
+        super().__init__(var_form=var_form,
+                         optimizer=optimizer,
+                         cost_fn=self._energy_evaluation,
+                         initial_point=initial_point,
+                         quantum_instance=quantum_instance)
+
         self._in_operator = None
         self._operator = None
         self._in_aux_operators = None
@@ -153,12 +159,6 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         self._ret = None
         self._eval_time = None
         self._eval_count = 0
-
-        super().__init__(var_form=var_form,
-                         optimizer=optimizer,
-                         cost_fn=self._energy_evaluation,
-                         initial_point=initial_point,
-                         quantum_instance=quantum_instance)
 
         logger.info(self.print_settings())
         self._parameterized_circuits = None
@@ -192,15 +192,6 @@ class VQE(VQAlgorithm, MinimumEigensolver):
     def aux_operators(self, aux_operators: List[BaseOperator]) -> None:
         """ Set aux operators """
         self._in_aux_operators = aux_operators
-
-    @VQAlgorithm.var_form.setter
-    def var_form(self, var_form: Union[QuantumCircuit, VariationalForm]):
-        """ Sets variational form """
-        VQAlgorithm.var_form.fset(self, var_form)
-
-        if self.initial_point is None and hasattr(var_form, 'preferred_init_points'):
-            self.initial_point = var_form.preferred_init_points
-        self._check_operator_varform()
 
     def _check_operator_varform(self):
         """Check that the number of qubits of operator and variational form match."""
@@ -315,6 +306,9 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         """
         if self.operator is None:
             raise AquaError("The operator was never provided.")
+
+        # ensure operator and varform are compatible
+        self._check_operator_varform()
 
         if isinstance(self.var_form, QuantumCircuit):
             param_dict = dict(zip(self._var_form_params, parameter))
