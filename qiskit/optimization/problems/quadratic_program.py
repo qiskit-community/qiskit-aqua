@@ -734,7 +734,7 @@ class QuadraticProgram:
             # Because docplex model reader uses the base name as model name,
             # we parse the model name in the LP file manually.
             # https://ibmdecisionoptimization.github.io/docplex-doc/mp/docplex.mp.model_reader.html
-            prefix = '\\Problem name: '
+            prefix = '\\Problem name:'
             model_name = ''
             with open(filename) as file:
                 for line in file:
