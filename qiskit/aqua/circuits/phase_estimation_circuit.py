@@ -11,10 +11,10 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""
-Quantum Phase Estimation Circuit.
-"""
 
+"""Quantum Phase Estimation Circuit."""
+
+import warnings
 import numpy as np
 
 from qiskit import QuantumRegister, QuantumCircuit, ClassicalRegister
@@ -26,9 +26,7 @@ from qiskit.aqua.operators import (WeightedPauliOperator,   # pylint: disable=un
 
 
 class PhaseEstimationCircuit:
-    """
-    Quantum Phase Estimation Circuit.
-    """
+    """Quantum Phase Estimation Circuit."""
 
     def __init__(
             self,
@@ -46,13 +44,12 @@ class PhaseEstimationCircuit:
             pauli_list=None
     ):
         """
-        Constructor.
-
         Args:
             operator (WeightedPauliOperator): the hamiltonian Operator object
             state_in (InitialState): the InitialState component
             representing the initial quantum state
-            iqft (IQFT): the Inverse Quantum Fourier Transform component
+            iqft (Union[QuantumCircuit, IQFT]): the Inverse Quantum Fourier Transform as circuit or
+                Aqua component
             num_time_slices (int): the number of time slices
             num_ancillae (int): the number of ancillary qubits to use for the measurement
             expansion_mode (str): the expansion mode (trotter|suzuki)
@@ -65,6 +62,7 @@ class PhaseEstimationCircuit:
             shallow_circuit_concat (bool): indicate whether to use shallow (cheap) mode
             for circuit concatenation
             pauli_list (list[Pauli]): the flat list of paulis for the operator
+
         Raises:
             AquaError: Missing input
         """
@@ -80,7 +78,16 @@ class PhaseEstimationCircuit:
         self._unitary_circuit_factory = unitary_circuit_factory
         self._state_in = state_in
         self._state_in_circuit_factory = state_in_circuit_factory
+
+        # cannot check for IQFT type due to circular import
+        if not isinstance(iqft, QuantumCircuit):
+            warnings.warn('The qiskit.aqua.components.iqfts.IQFT module is deprecated as of 0.7.0 '
+                          'and will be removed no earlier than 3 months after the release. '
+                          'You should pass a QuantumCircuit instead, see '
+                          'qiskit.circuit.library.QFT and the .inverse() method.',
+                          DeprecationWarning, stacklevel=2)
         self._iqft = iqft
+
         self._num_time_slices = num_time_slices
         self._num_ancillae = num_ancillae
         self._expansion_mode = expansion_mode
@@ -100,8 +107,7 @@ class PhaseEstimationCircuit:
             auxiliary_register=None,
             measurement=False,
     ):
-        """
-        Construct the Phase Estimation circuit
+        """Construct the Phase Estimation circuit
 
         Args:
             state_register (QuantumRegister): the optional register to use for the quantum state
@@ -113,6 +119,7 @@ class PhaseEstimationCircuit:
 
         Returns:
             QuantumCircuit: the QuantumCircuit object for the constructed circuit
+
         Raises:
             RuntimeError: Multiple identity pauli terms are present
             ValueError: invalid mode
@@ -209,7 +216,20 @@ class PhaseEstimationCircuit:
                     self._unitary_circuit_factory.build_controlled_power(qc, q, a[i], 2 ** i, aux)
 
             # inverse qft on ancillae
-            self._iqft.construct_circuit(mode='circuit', qubits=a, circuit=qc, do_swaps=False)
+            if isinstance(self._iqft, QuantumCircuit):
+                # check if QFT has the right size
+                if self._iqft.num_qubits != len(a):
+                    try:  # try resizing
+                        self._iqft.num_qubits = len(a)
+                    except AttributeError:
+                        raise ValueError('The IQFT cannot be resized and does not have the '
+                                         'required size of {}'.format(len(a)))
+
+                if hasattr(self._iqft, 'do_swaps'):
+                    self._iqft.do_swaps = False
+                qc.append(self._iqft.to_instruction(), a)
+            else:
+                self._iqft.construct_circuit(mode='circuit', qubits=a, circuit=qc, do_swaps=False)
 
             if measurement:
                 c_ancilla = ClassicalRegister(self._num_ancillae, name='ca')
