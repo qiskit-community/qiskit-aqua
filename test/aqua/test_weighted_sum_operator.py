@@ -26,13 +26,19 @@ import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit, BasicAer, execute
 from qiskit.aqua.circuits import WeightedSumOperator
 
-# ignore deprecation warnings from the change of the circuit factory to circuit library
-warnings.filterwarnings("ignore", category=DeprecationWarning)
-
 
 @ddt
 class TestWeightedSumOperator(QiskitAquaTestCase):
     """ weighted sum operator test """
+
+    def setUp(self):
+        super().setUp()
+        # ignore deprecation warnings from the change of the circuit factory to circuit library
+        warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+    def tearDown(self):
+        super().tearDown()
+        warnings.filterwarnings(action="always", category=DeprecationWarning)
 
     @idata([
         # n, weights, x, sum
