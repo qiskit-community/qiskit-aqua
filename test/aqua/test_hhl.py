@@ -44,8 +44,6 @@ class TestHHL(QiskitAquaTestCase):
         super(TestHHL, self).setUp()
         self.random_seed = 0
         aqua_globals.random_seed = self.random_seed
-        # ignore deprecation warnings from QFTs
-        warnings.filterwarnings(action="ignore", category=DeprecationWarning)
 
     def tearDown(self):
         super().tearDown()
@@ -83,6 +81,9 @@ class TestHHL(QiskitAquaTestCase):
     def test_hhl_diagonal(self, vector, use_circuit_library):
         """ hhl diagonal test """
         self.log.debug('Testing HHL simple test in mode Lookup with statevector simulator')
+        if not use_circuit_library:
+            # ignore deprecation warnings from QFTs
+            warnings.filterwarnings(action="ignore", category=DeprecationWarning)
 
         matrix = [[1, 0], [0, 1]]
 
@@ -122,6 +123,9 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('algebraic solution vector: %s', ref_solution)
         self.log.debug('fidelity HHL to algebraic: %s', fidelity)
         self.log.debug('probability of result:     %s', hhl_result["probability_result"])
+
+        if not use_circuit_library:
+            warnings.filterwarnings(action="always", category=DeprecationWarning)
 
     @data([[-1, 0], False], [[0, -1], False], [[-1, -1], False],
           [[-1, 0], True], [[0, -1], True], [[-1, -1], True])

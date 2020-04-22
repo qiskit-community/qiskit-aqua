@@ -137,13 +137,6 @@ class TestBernoulli(QiskitAquaTestCase):
 
         self._qasm = qasm
 
-        # ignore deprecation warnings from QFTs
-        warnings.filterwarnings(action="ignore", category=DeprecationWarning)
-
-    def tearDown(self):
-        super().tearDown()
-        warnings.filterwarnings(action="always", category=DeprecationWarning)
-
     @idata([
         [0.2, AmplitudeEstimation(2), {'estimation': 0.5, 'mle': 0.2}],
         [0.4, AmplitudeEstimation(4), {'estimation': 0.30866, 'mle': 0.4}],
@@ -205,6 +198,10 @@ class TestBernoulli(QiskitAquaTestCase):
 
         Build the circuit manually and from the algorithm and compare the resulting unitaries.
         """
+        if not use_circuit_library:
+            # ignore deprecation warnings from QFTs
+            warnings.filterwarnings(action="ignore", category=DeprecationWarning)
+
         prob = 0.5
 
         for m in range(2, 7):
@@ -249,6 +246,9 @@ class TestBernoulli(QiskitAquaTestCase):
 
             diff = np.sum(np.abs(actual_unitary - expected_unitary))
             self.assertAlmostEqual(diff, 0)
+
+        if not use_circuit_library:
+            warnings.filterwarnings(action="always", category=DeprecationWarning)
 
     @idata([
         [True], [False]

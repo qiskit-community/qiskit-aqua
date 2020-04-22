@@ -36,15 +36,6 @@ from qiskit.chemistry.components.initial_states import HartreeFock
 class TestEnd2EndWithQPE(QiskitChemistryTestCase):
     """QPE tests."""
 
-    def setUp(self):
-        super().setUp()
-        # ignore deprecation warnings from QFTs
-        warnings.filterwarnings(action="ignore", category=DeprecationWarning)
-
-    def tearDown(self):
-        super().tearDown()
-        warnings.filterwarnings(action="always", category=DeprecationWarning)
-
     @idata(list(product(
         [0.5, 0.735, 1],
         [False, True]
@@ -62,6 +53,10 @@ class TestEnd2EndWithQPE(QiskitChemistryTestCase):
                                  basis='sto3g')
         except QiskitChemistryError:
             self.skipTest('PYSCF driver does not appear to be installed')
+
+        if not use_circuit_library:
+            # ignore deprecation warnings from QFTs
+            warnings.filterwarnings(action="ignore", category=DeprecationWarning)
 
         molecule = driver.run()
         qubit_mapping = 'parity'
@@ -111,6 +106,9 @@ class TestEnd2EndWithQPE(QiskitChemistryTestCase):
                            max_num_digits=n_ancillae + 3, fractional_part_only=True))
 
         np.testing.assert_approx_equal(result.eigenvalue.real, reference_energy, significant=2)
+
+        if not use_circuit_library:
+            warnings.filterwarnings(action="always", category=DeprecationWarning)
 
 
 if __name__ == '__main__':

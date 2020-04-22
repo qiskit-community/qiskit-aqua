@@ -60,15 +60,6 @@ QUBIT_OP_ZZ = WeightedPauliOperator.from_dict(PAULI_DICT_ZZ)
 class TestQPE(QiskitAquaTestCase):
     """QPE tests."""
 
-    def setUp(self):
-        super().setUp()
-        # ignore deprecation warnings from QFTs
-        warnings.filterwarnings(action="ignore", category=DeprecationWarning)
-
-    def tearDown(self):
-        super().tearDown()
-        warnings.filterwarnings(action="always", category=DeprecationWarning)
-
     @idata([
         [QUBIT_OP_SIMPLE, 'qasm_simulator', 1, 5, False],
         [QUBIT_OP_SIMPLE, 'qasm_simulator', 1, 5, True],
@@ -94,6 +85,8 @@ class TestQPE(QiskitAquaTestCase):
         if use_circuit_library:
             iqft = QFT(n_ancillae).inverse()
         else:
+            # ignore deprecation warnings from QFTs
+            warnings.filterwarnings(action="ignore", category=DeprecationWarning)
             iqft = Standard(n_ancillae)
 
         qpe = QPEMinimumEigensolver(qubit_op, state_in, iqft, num_time_slices, n_ancillae,
@@ -123,6 +116,9 @@ class TestQPE(QiskitAquaTestCase):
 
         np.testing.assert_approx_equal(result.eigenvalue.real, ref_eigenval.real, significant=2)
         self.assertEqual(tmp_qubit_op, qubit_op, "Operator is modified after QPE.")
+
+        if not use_circuit_library:
+            warnings.filterwarnings(action="always", category=DeprecationWarning)
 
 
 if __name__ == '__main__':
