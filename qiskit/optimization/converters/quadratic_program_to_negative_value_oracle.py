@@ -162,10 +162,10 @@ class QuadraticProgramToNegativeValueOracle:
         for i in range(self._num_value):
             for k, v in func_dict.items():
                 if isinstance(k, tuple):
-                    a = [key_val[int(k[0])], key_val[int(k[1])]]
-                    b = key_val[self._num_key + i]
+                    a_v = [key_val[int(k[0])], key_val[int(k[1])]]
+                    b_v = key_val[self._num_key + i]
                     circuit.mcu1(1 / 2 ** self._num_value * 2 * np.pi * 2 ** i * v,
-                                 a, b)
+                                 a_v, b_v)
 
         # Add IQFT.
         iqft = IQFT(self._num_value)

@@ -16,10 +16,10 @@
 
 import unittest
 from test.optimization import QiskitOptimizationTestCase
+from docplex.mp.model import Model
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.optimization.algorithms import GroverOptimizer, MinimumEigenOptimizer
 from qiskit.optimization.problems import QuadraticProgram
-from docplex.mp.model import Model
 
 
 class TestGroverOptimizer(QiskitOptimizationTestCase):
@@ -40,9 +40,9 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
 
         # Input.
         model = Model()
-        x0 = model.binary_var(name='x0')
-        x1 = model.binary_var(name='x1')
-        model.minimize(0*x0+0*x1)
+        x_0 = model.binary_var(name='x0')
+        x_1 = model.binary_var(name='x1')
+        model.minimize(0*x_0+0*x_1)
         op = QuadraticProgram()
         op.from_docplex(model)
 
@@ -57,9 +57,9 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
 
         # Input.
         model = Model()
-        x0 = model.binary_var(name='x0')
-        x1 = model.binary_var(name='x1')
-        model.minimize(-x0+2*x1)
+        x_0 = model.binary_var(name='x0')
+        x_1 = model.binary_var(name='x1')
+        model.minimize(-x_0+2*x_1)
         op = QuadraticProgram()
         op.from_docplex(model)
 
@@ -74,10 +74,10 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
 
         # Input.
         model = Model()
-        x0 = model.binary_var(name='x0')
-        x1 = model.binary_var(name='x1')
-        x2 = model.binary_var(name='x2')
-        model.minimize(-x0+2*x1-3*x2-2*x0*x2-1*x1*x2)
+        x_0 = model.binary_var(name='x0')
+        x_1 = model.binary_var(name='x1')
+        x_2 = model.binary_var(name='x2')
+        model.minimize(-x_0+2*x_1-3*x_2-2*x_0*x_2-1*x_1*x_2)
         op = QuadraticProgram()
         op.from_docplex(model)
 

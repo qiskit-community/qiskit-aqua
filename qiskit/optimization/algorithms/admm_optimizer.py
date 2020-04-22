@@ -704,7 +704,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         return op2
 
     def _binary_indices_to_continuous(self, binary_indices: List[int]) -> List[int]:
-        # todo: implement
+        # TODO: implement
         return binary_indices
 
     def _create_step3_problem(self) -> QuadraticProgram:
