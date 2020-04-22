@@ -19,6 +19,7 @@ from test.optimization import QiskitOptimizationTestCase
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.optimization.algorithms import GroverOptimizer, MinimumEigenOptimizer
 from qiskit.optimization.problems import QuadraticProgram
+from docplex.mp.model import Model
 
 
 class TestGroverOptimizer(QiskitOptimizationTestCase):
@@ -36,57 +37,55 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
 
     def test_qubo_gas_int_zero(self):
         """Test for when the answer is zero."""
-        try:
-            # Input.
-            op = QuadraticProgram()
-            op.variables.add(names=['x0', 'x1'], types='BB')
-            linear = [('x0', 0), ('x1', 0)]
-            op.objective.set_linear(linear)
 
-            # Will not find a negative, should return 0.
-            gmf = GroverOptimizer(1, num_iterations=1)
-            results = gmf.solve(op)
-            self.assertEqual(results.x, [0, 0])
-            self.assertEqual(results.fval, 0.0)
-        except NameError as ex:
-            self.skipTest(str(ex))
+        # Input.
+        model = Model()
+        x0 = model.binary_var(name='x0')
+        x1 = model.binary_var(name='x1')
+        model.minimize(0*x0+0*x1)
+        op = QuadraticProgram()
+        op.from_docplex(model)
+
+        # Will not find a negative, should return 0.
+        gmf = GroverOptimizer(1, num_iterations=1)
+        results = gmf.solve(op)
+        self.assertEqual(results.x, [0, 0])
+        self.assertEqual(results.fval, 0.0)
 
     def test_qubo_gas_int_simple(self):
         """Test for simple case, with 2 linear coeffs and no quadratic coeffs or constants."""
-        try:
-            # Input.
-            op = QuadraticProgram()
-            op.variables.add(names=['x0', 'x1'], types='BB')
-            linear = [('x0', -1), ('x1', 2)]
-            op.objective.set_linear(linear)
 
-            # Get the optimum key and value.
-            n_iter = 8
-            gmf = GroverOptimizer(4, num_iterations=n_iter)
-            results = gmf.solve(op)
-            self.validate_results(op, results)
-        except NameError as ex:
-            self.skipTest(str(ex))
+        # Input.
+        model = Model()
+        x0 = model.binary_var(name='x0')
+        x1 = model.binary_var(name='x1')
+        model.minimize(-x0+2*x1)
+        op = QuadraticProgram()
+        op.from_docplex(model)
+
+        # Get the optimum key and value.
+        n_iter = 8
+        gmf = GroverOptimizer(4, num_iterations=n_iter)
+        results = gmf.solve(op)
+        self.validate_results(op, results)
 
     def test_qubo_gas_int_paper_example(self):
         """Test the example from https://arxiv.org/abs/1912.04088."""
-        try:
-            # Input.
-            op = QuadraticProgram()
-            op.variables.add(names=['x0', 'x1', 'x2'], types='BBB')
 
-            linear = [('x0', -1), ('x1', 2), ('x2', -3)]
-            op.objective.set_linear(linear)
-            op.objective.set_quadratic_coefficients('x0', 'x2', -2)
-            op.objective.set_quadratic_coefficients('x1', 'x2', -1)
+        # Input.
+        model = Model()
+        x0 = model.binary_var(name='x0')
+        x1 = model.binary_var(name='x1')
+        x2 = model.binary_var(name='x2')
+        model.minimize(-x0+2*x1-3*x2-2*x0*x2-1*x1*x2)
+        op = QuadraticProgram()
+        op.from_docplex(model)
 
-            # Get the optimum key and value.
-            n_iter = 10
-            gmf = GroverOptimizer(6, num_iterations=n_iter)
-            results = gmf.solve(op)
-            self.validate_results(op, results)
-        except NameError as ex:
-            self.skipTest(str(ex))
+        # Get the optimum key and value.
+        n_iter = 10
+        gmf = GroverOptimizer(6, num_iterations=n_iter)
+        results = gmf.solve(op)
+        self.validate_results(op, results)
 
 
 if __name__ == '__main__':

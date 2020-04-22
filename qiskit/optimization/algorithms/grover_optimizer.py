@@ -17,12 +17,14 @@
 import logging
 from typing import Optional, Dict, Union, Tuple
 import math
+import random
 import numpy as np
 from qiskit.aqua import QuantumInstance
-from qiskit.optimization.algorithms import OptimizationAlgorithm, OptimizationResult
+from qiskit.optimization.algorithms import OptimizationAlgorithm
 from qiskit.optimization.problems import QuadraticProgram
 from qiskit.optimization.converters import (QuadraticProgramToQubo,
                                             QuadraticProgramToNegativeValueOracle)
+from qiskit.optimization.algorithms.optimization_algorithm import OptimizationResult
 from qiskit.optimization.util import get_qubo_solutions
 from qiskit.aqua.algorithms.amplitude_amplifiers.grover import Grover
 from qiskit import Aer, QuantumCircuit
@@ -30,75 +32,6 @@ from qiskit.providers import BaseBackend
 
 
 logger = logging.getLogger(__name__)
-
-
-class GroverOptimizationResults:
-    """A results object for Grover Optimization methods."""
-
-    def __init__(self, operation_counts: Dict[int, Dict[str, int]], rotations: int,
-                 n_input_qubits: int, n_output_qubits: int,
-                 func_dict: Dict[Union[int, Tuple[int, int]], int]) -> None:
-        """
-        Args:
-            operation_counts: The counts of each operation performed per iteration.
-            rotations: The total number of Grover rotations performed.
-            n_input_qubits: The number of qubits used to represent the input.
-            n_output_qubits: The number of qubits used to represent the output.
-            func_dict: A dictionary representation of the function, where the keys correspond
-                to a variable, and the values are the corresponding coefficients.
-        """
-        self._operation_counts = operation_counts
-        self._rotations = rotations
-        self._n_input_qubits = n_input_qubits
-        self._n_output_qubits = n_output_qubits
-        self._func_dict = func_dict
-
-    @property
-    def operation_counts(self) -> Dict[int, Dict[str, int]]:
-        """Get the operation counts.
-
-        Returns:
-            The counts of each operation performed per iteration.
-        """
-        return self._operation_counts
-
-    @property
-    def rotation_count(self) -> int:
-        """Getter of rotation_count
-
-        Returns:
-            The total number of Grover rotations.
-        """
-        return self._rotations
-
-    @property
-    def n_input_qubits(self) -> int:
-        """Getter of n_input_qubits
-
-        Returns:
-            The number of qubits used to represent the input.
-        """
-        return self._n_input_qubits
-
-    @property
-    def n_output_qubits(self) -> int:
-        """Getter of n_output_qubits
-
-        Returns:
-            The number of qubits used to represent the output.
-        """
-        return self._n_output_qubits
-
-    @property
-    def func_dict(self) -> Dict[Union[int, Tuple[int, int]], int]:
-        """Getter of func_dict
-
-        Returns:
-            A dictionary of coefficients describing a function, where the keys are the subscripts
-            of the variables (e.g. x1), and the values are the corresponding coefficients. If there
-            is a constant term, it is referenced by key -1.
-        """
-        return self._func_dict
 
 
 class GroverOptimizer(OptimizationAlgorithm):
@@ -150,7 +83,7 @@ class GroverOptimizer(OptimizationAlgorithm):
             QiskitOptimizationError: If the problem is incompatible with the optimizer.
         """
 
-        # convert problem to QUBO, this implicitly checks if the problem is compatible
+        # convert problem to QUBO
         qubo_converter = QuadraticProgramToQubo()
         problem_ = qubo_converter.encode(problem)
 
@@ -159,7 +92,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         optimum_key = math.inf
         optimum_value = math.inf
         threshold = 0
-        n_key = problem_.variables.get_num()
+        n_key = len(problem_.variables)
         n_value = self._num_value_qubits
 
         # Variables for tracking the solutions encountered.
@@ -172,7 +105,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         iteration = 0
 
         # Initialize oracle helper object.
-        orig_constant = problem_.objective.get_offset()
+        orig_constant = problem_.objective.constant
         measurement = not self._quantum_instance.is_statevector
         opt_prob_converter = QuadraticProgramToNegativeValueOracle(n_value,
                                                                    measurement)
@@ -180,34 +113,59 @@ class GroverOptimizer(OptimizationAlgorithm):
         loops_with_no_improvement = 0
         while not optimum_found:
             # Get oracle O and the state preparation operator A for the current threshold.
-            problem_.objective.set_offset(orig_constant - threshold)
+            problem_.objective.constant = orig_constant - threshold
             a_operator, oracle, func_dict = opt_prob_converter.encode(problem_)
 
-            # Apply Grover's Algorithm to find values below the threshold.
-            grover = Grover(oracle, init_state=a_operator, incremental=True)
-            circuit = grover.construct_circuit(measurement=self._quantum_instance.is_statevector)
+            # Iterate until we measure a negative.
+            loops_with_no_improvement = 0
+            improvement_found = False
+            while not improvement_found:
+                # Determine the number of rotations.
+                loops_with_no_improvement += 1
+                rotation_count = int(np.ceil(random.uniform(0, m-1)))
+                rotations += rotation_count
 
-            # Get the next outcome.
-            outcome = self._measure(circuit, n_key, n_value)
-            k = int(outcome[0:n_key], 2)
-            v = outcome[n_key:n_key + n_value]
-            int_v = self._bin_to_int(v, n_value) + threshold
-            v = self._twos_complement(int_v, n_value)
-            logger.info('Outcome: %s', outcome)
-            logger.info('Value: %s = %s', v, int_v)
+                # Apply Grover's Algorithm to find values below the threshold.
+                if rotation_count > 0:
+                    # TODO: Utilize Grover's incremental feature - requires changes to Grover.
+                    grover = Grover(oracle, init_state=a_operator, num_iterations=rotation_count)
+                    circuit = grover.construct_circuit(
+                        measurement=self._quantum_instance.is_statevector)
+                else:
+                    circuit = a_operator._circuit
 
-            # If the value is an improvement, we update the iteration parameters (e.g. oracle).
-            if int_v < optimum_value:
-                optimum_key = k
-                optimum_value = int_v
-                logger.info('Current Optimum Key: %s', optimum_key)
-                logger.info('Current Optimum Value: %s', optimum_value)
-                if v.startswith('1'):
-                    threshold = optimum_value
-            else:
-                # No better number after the max number of iterations, so we assume the optimal.
-                if loops_with_no_improvement >= self._n_iterations:
-                    optimum_found = True
+                # Get the next outcome.
+                outcome = self._measure(circuit, n_key, n_value)
+                k = int(outcome[0:n_key], 2)
+                v = outcome[n_key:n_key + n_value]
+                int_v = self._bin_to_int(v, n_value) + threshold
+                v = self._twos_complement(int_v, n_value)
+                logger.info('Outcome: %s', outcome)
+                logger.info('Value: %s = %s', v, int_v)
+
+                # If the value is an improvement, we update the iteration parameters (e.g. oracle).
+                if int_v < optimum_value:
+                    optimum_key = k
+                    optimum_value = int_v
+                    logger.info('Current Optimum Key: %s', optimum_key)
+                    logger.info('Current Optimum Value: %s', optimum_value)
+                    if v.startswith('1'):
+                        improvement_found = True
+                        threshold = optimum_value
+                else:
+                    # Using Durr and Hoyer method, increase m.
+                    m = int(np.ceil(min(m * 8/7, 2**(n_key / 2))))
+                    logger.info('No Improvement. M: %s', m)
+
+                    # Check if we've already seen this value.
+                    if k not in keys_measured:
+                        keys_measured.append(k)
+
+                    # Assume the optimal if any of the stop parameters are true.
+                    if loops_with_no_improvement >= self._n_iterations or \
+                            len(keys_measured) == num_solutions or rotations >= max_rotations:
+                        improvement_found = True
+                        optimum_found = True
 
             # Check if we've already seen this value.
             if k not in keys_measured:
@@ -233,9 +191,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         opt_x = [1 if s == '1' else 0 for s in ('{0:%sb}' % n_key).format(optimum_key)]
 
         # Build the results object.
-        rotation = 0  # TODO: should either be retrieved from grover or removed from results.
-        grover_results = GroverOptimizationResults(operation_count, rotation, n_key, n_value,
-                                                   func_dict)
+        grover_results = GroverOptimizationResults(operation_count, n_key, n_value, func_dict)
         result = OptimizationResult(x=opt_x, fval=solutions[optimum_key],
                                     results={"grover_results": grover_results,
                                              "qubo_converter": qubo_converter})
@@ -305,3 +261,61 @@ class GroverOptimizer(OptimizationAlgorithm):
             int_v = int(v, 2)
 
         return int_v
+
+
+class GroverOptimizationResults:
+    """A results object for Grover Optimization methods."""
+
+    def __init__(self, operation_counts: Dict[int, Dict[str, int]],
+                 n_input_qubits: int, n_output_qubits: int,
+                 func_dict: Dict[Union[int, Tuple[int, int]], int]) -> None:
+        """
+        Args:
+            operation_counts: The counts of each operation performed per iteration.
+            n_input_qubits: The number of qubits used to represent the input.
+            n_output_qubits: The number of qubits used to represent the output.
+            func_dict: A dictionary representation of the function, where the keys correspond
+                to a variable, and the values are the corresponding coefficients.
+        """
+        self._operation_counts = operation_counts
+        self._n_input_qubits = n_input_qubits
+        self._n_output_qubits = n_output_qubits
+        self._func_dict = func_dict
+
+    @property
+    def operation_counts(self) -> Dict[int, Dict[str, int]]:
+        """Get the operation counts.
+
+        Returns:
+            The counts of each operation performed per iteration.
+        """
+        return self._operation_counts
+
+    @property
+    def n_input_qubits(self) -> int:
+        """Getter of n_input_qubits
+
+        Returns:
+            The number of qubits used to represent the input.
+        """
+        return self._n_input_qubits
+
+    @property
+    def n_output_qubits(self) -> int:
+        """Getter of n_output_qubits
+
+        Returns:
+            The number of qubits used to represent the output.
+        """
+        return self._n_output_qubits
+
+    @property
+    def func_dict(self) -> Dict[Union[int, Tuple[int, int]], int]:
+        """Getter of func_dict
+
+        Returns:
+            A dictionary of coefficients describing a function, where the keys are the subscripts
+            of the variables (e.g. x1), and the values are the corresponding coefficients. If there
+            is a constant term, it is referenced by key -1.
+        """
+        return self._func_dict
