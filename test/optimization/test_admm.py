@@ -13,11 +13,12 @@
 # that they have been altered from the originals.
 
 """Tests of the ADMM algorithm."""
+from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from test.optimization import QiskitOptimizationTestCase
 
 import numpy as np
 from docplex.mp.model import Model
-from qiskit.optimization.algorithms import CplexOptimizer
+from qiskit.optimization.algorithms import CplexOptimizer, MinimumEigenOptimizer
 from qiskit.optimization.algorithms.admm_optimizer import ADMMOptimizer, ADMMParameters, \
     ADMMOptimizerResult, ADMMState
 from qiskit.optimization.problems import QuadraticProgram
@@ -38,8 +39,8 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
 
             admm_params = ADMMParameters()
 
-            # qubo_optimizer = MinimumEigenOptimizer(NumPyMinimumEigensolver())
-            qubo_optimizer = CplexOptimizer()
+            qubo_optimizer = MinimumEigenOptimizer(NumPyMinimumEigensolver())
+            # qubo_optimizer = CplexOptimizer()
             continuous_optimizer = CplexOptimizer()
 
             solver = ADMMOptimizer(qubo_optimizer=qubo_optimizer,

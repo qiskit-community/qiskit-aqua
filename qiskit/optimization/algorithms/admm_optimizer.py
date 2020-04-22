@@ -310,7 +310,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
             self._log.debug("cost_iterate=%s, cr=%s, merit=%s",
                             cost_iterate, constraint_residual, merit)
 
-            # costs and merits are saved with their original sign.
+            # costs are saved with their original sign.
             self._state.cost_iterates.append(self._state.sense * cost_iterate)
             self._state.residuals.append(residual)
             self._state.dual_residuals.append(dual_residual)
@@ -356,7 +356,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         return indices
 
-    def _get_solution(self) -> np.ndarray:
+    def _get_current_solution(self) -> np.ndarray:
         return self._revert_solution_indexes(self._state.x0, self._state.u)
 
     def _revert_solution_indexes(self, binary_vars: np.ndarray, continuous_vars: np.ndarray) \
@@ -786,19 +786,19 @@ class ADMMOptimizer(OptimizationAlgorithm):
         """
         return np.asarray(self._continuous_optimizer.solve(op3).x)
 
-    def _get_best_merit_solution(self) -> (List[np.ndarray], float):
+    def _get_best_merit_solution(self) -> (np.ndarray, np.ndarray, float):
         """The ADMM solution is that for which the merit value is the min
             * sol: Iterate with the min merit value
             * sol_val: Value of sol, according to the original objective
 
         Returns:
-            A tuple of (sol, sol_val), where
-                * sol: Solution with the min merit value
+            A tuple of (binary_vars, continuous_vars, sol_val), where
+                * binary_vars: binary variable values with the min merit value
+                * continuous_vars: continuous varible values with the min merit value
                 * sol_val: Value of the objective function
         """
 
-        it_min_merits = self._state.merits.index(
-             min(self._state.merits))
+        it_min_merits = self._state.merits.index(min(self._state.merits))
         binary_vars = self._state.x0_saved[it_min_merits]
         continuous_vars = self._state.u_saved[it_min_merits]
         sol_val = self._state.cost_iterates[it_min_merits]
@@ -842,7 +842,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         Returns:
             Violation of the constraints as a float value
         """
-        solution = self._get_solution()
+        solution = self._get_current_solution()
         # equality constraints
         cr0 = 0
         for constraint in self._state.equality_constraints:
@@ -874,7 +874,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         Returns:
             Value of the objective function as a float
         """
-        return self._state.op.objective.evaluate(self._get_solution()) * self._state.sense
+        return self._state.op.objective.evaluate(self._get_current_solution()) * self._state.sense
 
     def _get_solution_residuals(self, iteration: int) -> (float, float):
         """Compute primal and dual residual.
