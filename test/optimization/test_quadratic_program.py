@@ -347,7 +347,7 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
             q_p.read_from_lp_file('')
         with self.assertRaises(FileNotFoundError):
             q_p.read_from_lp_file('no_file.txt')
-        q_p.read_from_lp_file('test/optimization/resources/sample.lp')
+        q_p.read_from_lp_file('test/optimization/resources/test_quadratic_program.lp')
         self.assertEqual(q_p.name, 'my problem')
         self.assertEqual(q_p.get_num_vars(), 3)
         self.assertEqual(q_p.get_num_binary_vars(), 1)
@@ -427,13 +427,15 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         q_p.quadratic_constraint({'x': 1, 'y': 1}, {('x', 'x'): 1, ('y', 'z'): -1, ('z', 'z'): 2},
                                  '>=', 1, 'quad_geq')
         q_p.write_to_lp_file('output.lp')
-        with open('output.lp') as file1, open('test/optimization/resources/sample.lp') as file2:
+        with open('output.lp') as file1, open(
+                'test/optimization/resources/test_quadratic_program.lp') as file2:
             lines1 = file1.readlines()
             lines2 = file2.readlines()
             self.assertListEqual(lines1, lines2)
 
         q_p.write_to_lp_file('.')
-        with open('my_problem.lp') as file1, open('test/optimization/resources/sample.lp') as file2:
+        with open('my_problem.lp') as file1, open(
+                'test/optimization/resources/test_quadratic_program.lp') as file2:
             lines1 = file1.readlines()
             lines2 = file2.readlines()
             self.assertListEqual(lines1, lines2)
