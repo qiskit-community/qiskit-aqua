@@ -16,6 +16,7 @@
 
 from test.aqua import QiskitAquaTestCase
 
+import warnings
 import unittest
 from ddt import ddt, data
 from qiskit import QuantumCircuit, QuantumRegister
@@ -36,6 +37,11 @@ class TestQGAN(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
+
+        # ignore deprecation warnings from the deprecation of VariationalForm as input for
+        # the univariate variational distribution
+        warnings.filterwarnings("ignore", category=DeprecationWarning)
+
         self.seed = 7
         aqua_globals.random_seed = self.seed
         # Number training data samples
@@ -99,6 +105,10 @@ class TestQGAN(QiskitAquaTestCase):
         self.g_circuit = UnivariateVariationalDistribution(sum(num_qubits), var_form, init_params,
                                                            low=self._bounds[0],
                                                            high=self._bounds[1])
+
+    def tearDown(self):
+        super().tearDown()
+        warnings.filterwarnings(action="always", category=DeprecationWarning)
 
     @data(False, True)
     def test_sample_generation(self, use_circuits):

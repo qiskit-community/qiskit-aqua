@@ -15,6 +15,7 @@
 """ Test European Call Expected Value uncertainty problem """
 
 from test.finance import QiskitFinanceTestCase
+import warnings
 from ddt import ddt, data
 
 import numpy as np
@@ -36,8 +37,15 @@ class TestEuropeanCallExpectedValue(QiskitFinanceTestCase):
 
     def setUp(self):
         super().setUp()
+        # ignore deprecation warnings from the deprecation of VariationalForm as input for
+        # the univariate variational distribution
+        warnings.filterwarnings("ignore", category=DeprecationWarning)
         self.seed = 457
         aqua_globals.random_seed = self.seed
+
+    def tearDown(self):
+        super().tearDown()
+        warnings.filterwarnings(action="always", category=DeprecationWarning)
 
     @data(False, True)
     def test_ecev(self, use_circuits):
