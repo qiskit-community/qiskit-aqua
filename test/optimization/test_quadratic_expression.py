@@ -14,17 +14,14 @@
 
 """ Test QuadraticExpression """
 
-import logging
 import unittest
 
+from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 import numpy as np
 from scipy.sparse import dok_matrix
 
 from qiskit.optimization import QuadraticProgram
 from qiskit.optimization.problems import QuadraticExpression
-from test.optimization.optimization_test_case import QiskitOptimizationTestCase
-
-logger = logging.getLogger(__name__)
 
 
 class TestQuadraticExpression(QiskitOptimizationTestCase):

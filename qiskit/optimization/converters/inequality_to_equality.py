@@ -91,15 +91,10 @@ class InequalityToEquality:
             else:
                 raise QiskitOptimizationError("Unsupported variable type {}".format(x.vartype))
 
-        # Copy the object function
-        linear, linear_constant = self._src.objective.linear.to_dict(use_name=True)
-        quadratic, quadratic_linear, quadratic_constant = self._src.objective.quadratic.to_dict(
-            use_name=True
-        )
-        constant = self._src.objective.constant + linear_constant + quadratic_constant
-        for i, v in quadratic_linear.items():
-            linear[i] = linear.get(i, 0) + v
-
+        # Copy the objective function
+        constant = self._src.objective.constant
+        linear = self._src.objective.linear.to_dict(use_name=True)
+        quadratic = self._src.objective.quadratic.to_dict(use_name=True)
         if self._src.objective.sense == ObjSense.MINIMIZE:
             self._dst.minimize(constant, linear, quadratic)
         else:
@@ -107,23 +102,23 @@ class InequalityToEquality:
 
         # For linear constraints
         for constraint in self._src.linear_constraints:
-            linear, constant = constraint.linear.to_dict()
+            linear = constraint.linear.to_dict(use_name=True)
             if constraint.sense == ConstraintSense.EQ:
                 self._dst.linear_constraint(
-                    linear, constraint.sense, constraint.rhs - constant, constraint.name
+                    linear, constraint.sense, constraint.rhs, constraint.name
                 )
             elif constraint.sense == ConstraintSense.LE or constraint.sense == ConstraintSense.GE:
                 if mode == 'integer':
                     self._add_integer_slack_var_linear_constraint(
-                        linear, constraint.sense, constraint.rhs - constant, constraint.name
+                        linear, constraint.sense, constraint.rhs, constraint.name
                     )
                 elif mode == 'continuous':
                     self._add_continuous_slack_var_linear_constraint(
-                        linear, constraint.sense, constraint.rhs - constant, constraint.name
+                        linear, constraint.sense, constraint.rhs, constraint.name
                     )
                 elif mode == 'auto':
                     self._add_auto_slack_var_linear_constraint(
-                        linear, constraint.sense, constraint.rhs - constant, constraint.name
+                        linear, constraint.sense, constraint.rhs, constraint.name
                     )
                 else:
                     raise QiskitOptimizationError('Unsupported mode is selected: {}'.format(mode))
@@ -134,15 +129,11 @@ class InequalityToEquality:
 
         # For quadratic constraints
         for constraint in self._src.quadratic_constraints:
-            linear, constant = constraint.linear.to_dict()
-            quadratic, quadratic_linear, quadratic_constant = constraint.quadratic.to_dict()
-            constant = linear_constant + quadratic_constant
-            for i, v in quadratic_linear.items():
-                linear[i] = linear.get(i, 0) + v
-
+            linear = constraint.linear.to_dict(use_name=True)
+            quadratic = constraint.quadratic.to_dict(use_name=True)
             if constraint.sense == ConstraintSense.EQ:
                 self._dst.quadratic_constraint(
-                    linear, quadratic, constraint.sense, constraint.rhs - constant, constraint.name
+                    linear, quadratic, constraint.sense, constraint.rhs, constraint.name
                 )
             elif constraint.sense == ConstraintSense.LE or constraint.sense == ConstraintSense.GE:
                 if mode == 'integer':
@@ -150,7 +141,7 @@ class InequalityToEquality:
                         linear,
                         quadratic,
                         constraint.sense,
-                        constraint.rhs - constant,
+                        constraint.rhs,
                         constraint.name,
                     )
                 elif mode == 'continuous':
@@ -158,7 +149,7 @@ class InequalityToEquality:
                         linear,
                         quadratic,
                         constraint.sense,
-                        constraint.rhs - constant,
+                        constraint.rhs,
                         constraint.name,
                     )
                 elif mode == 'auto':
@@ -166,7 +157,7 @@ class InequalityToEquality:
                         linear,
                         quadratic,
                         constraint.sense,
-                        constraint.rhs - constant,
+                        constraint.rhs,
                         constraint.name,
                     )
                 else:
@@ -198,17 +189,17 @@ class InequalityToEquality:
 
         if sense == ConstraintSense.LE:
             sign = 1
-            self._dst.integer_var(name=[slack_name], lowerbound=[0], upperbound=[new_rhs - lhs_lb])
+            self._dst.integer_var(name=slack_name, lowerbound=0, upperbound=new_rhs - lhs_lb)
         elif sense == ConstraintSense.GE:
             sign = -1
-            self._dst.integer_var(name=[slack_name], lowerbound=[0], upperbound=[lhs_ub - new_rhs])
+            self._dst.integer_var(name=slack_name, lowerbound=0, upperbound=lhs_ub - new_rhs)
         else:
             raise QiskitOptimizationError('The type of Sense in {} is not supported'.format(name))
 
         # Add a new equality constraint.
-        new_constraint = copy.deepcopy(linear)
-        new_constraint[slack_name] = sign
-        self._dst.linear_constraints(linear, sense, rhs, name)
+        new_linear = copy.deepcopy(linear)
+        new_linear[slack_name] = sign
+        self._dst.linear_constraint(new_linear, "==", new_rhs, name)
 
     def _add_continuous_slack_var_linear_constraint(self, linear, sense, rhs, name):
         slack_name = name + self._delimiter + 'continuous_slack'
@@ -218,21 +209,17 @@ class InequalityToEquality:
 
         if sense == ConstraintSense.LE:
             sign = 1
-            self._dst.continuous_var(
-                name=[slack_name], lowerbound=[0], upperbound=[rhs - lhs_lb]
-            )
+            self._dst.continuous_var(name=slack_name, lowerbound=0, upperbound=rhs - lhs_lb)
         elif sense == ConstraintSense.GE:
             sign = -1
-            self._dst.continuous_var(
-                name=[slack_name], lowerbound=[0], upperbound=[lhs_ub - rhs]
-            )
+            self._dst.continuous_var(name=slack_name, lowerbound=0, upperbound=lhs_ub - rhs)
         else:
             raise QiskitOptimizationError('The type of Sense in {} is not supported'.format(name))
 
         # Add a new equality constraint.
-        new_constraint = copy.deepcopy(linear)
-        new_constraint[slack_name] = sign
-        self._dst.linear_constraints(linear, sense, rhs, name)
+        new_linear = copy.deepcopy(linear)
+        new_linear[slack_name] = sign
+        self._dst.linear_constraint(new_linear, "==", rhs, name)
 
     def _add_auto_slack_var_linear_constraint(self, linear, sense, rhs, name):
         # If a coefficient that is not integer exist, use a continuous slack variable
@@ -264,17 +251,17 @@ class InequalityToEquality:
 
         if sense == ConstraintSense.LE:
             sign = 1
-            self._dst.integer_var(name=[slack_name], lowerbound=[0], upperbound=[new_rhs - lhs_lb])
+            self._dst.integer_var(name=slack_name, lowerbound=0, upperbound=new_rhs - lhs_lb)
         elif sense == ConstraintSense.GE:
             sign = -1
-            self._dst.integer_var(name=[slack_name], lowerbound=[0], upperbound=[lhs_ub - new_rhs])
+            self._dst.integer_var(name=slack_name, lowerbound=0, upperbound=lhs_ub - new_rhs)
         else:
             raise QiskitOptimizationError('The type of Sense in {} is not supported'.format(name))
 
         # Add a new equality constraint.
         new_linear = copy.deepcopy(linear)
         new_linear[slack_name] = sign
-        self._dst.quadratic_constraints(new_linear, quadratic, sense, rhs, name)
+        self._dst.quadratic_constraint(new_linear, quadratic, "==", new_rhs, name)
 
     def _add_continuous_slack_var_quadratic_constraint(self, linear, quadratic, sense, rhs, name):
         # If a coefficient that is not integer exist, raise error
@@ -291,21 +278,17 @@ class InequalityToEquality:
 
         if sense == ConstraintSense.LE:
             sign = 1
-            self._dst.continuous_var(
-                name=[slack_name], lowerbound=[0], upperbound=[rhs - lhs_lb]
-            )
+            self._dst.continuous_var(name=slack_name, lowerbound=0, upperbound=rhs - lhs_lb)
         elif sense == ConstraintSense.GE:
             sign = -1
-            self._dst.continuous_var(
-                name=[slack_name], lowerbound=[0], upperbound=[lhs_ub - rhs]
-            )
+            self._dst.continuous_var(name=slack_name, lowerbound=0, upperbound=lhs_ub - rhs)
         else:
             raise QiskitOptimizationError('The type of Sense in {} is not supported'.format(name))
 
         # Add a new equality constraint.
         new_linear = copy.deepcopy(linear)
         new_linear[slack_name] = sign
-        self._dst.quadratic_constraints(new_linear, quadratic, sense, rhs, name)
+        self._dst.quadratic_constraint(new_linear, quadratic, "==", rhs, name)
 
     def _add_auto_slack_var_quadratic_constraint(self, linear, quadratic, sense, rhs, name):
         # If a coefficient that is not integer exist, use a continuous slack variable
@@ -320,7 +303,7 @@ class InequalityToEquality:
     def _calc_linear_bounds(self, linear):
         lhs_lb, lhs_ub = 0, 0
         for var_name, v in linear.items():
-            x = self._src.get_variables(var_name)
+            x = self._src.get_variable(var_name)
             lhs_lb += min(x.lowerbound * v, x.upperbound * v)
             lhs_ub += max(x.lowerbound * v, x.upperbound * v)
         return lhs_lb, lhs_ub
@@ -364,25 +347,20 @@ class InequalityToEquality:
 
         new_result = OptimizationResult()
         # convert the optimization result into that of the original problem
-        names = self._dst.variables()
+        names = [x.name for x in self._dst.variables]
         vals = result.x
         new_vals = self._decode_var(names, vals)
         new_result.x = new_vals
         new_result.fval = result.fval
+        new_result.status = result.status
+        new_result.results = result.results
         return new_result
 
     def _decode_var(self, names, vals) -> List[int]:
         # decode slack variables
         sol = {name: vals[i] for i, name in enumerate(names)}
+
         new_vals = []
-        slack_var_names = []
-
-        for lst in self._conv.values():
-            slack_var_names.extend(lst)
-
-        for name in sol:
-            if name in slack_var_names:
-                pass
-            else:
-                new_vals.append(sol[name])
+        for x in self._src.variables:
+            new_vals.append(sol[x.name])
         return new_vals

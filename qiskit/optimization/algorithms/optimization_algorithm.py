@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 
 # This code is part of Qiskit.
@@ -15,9 +14,9 @@
 
 """An abstract class for optimization algorithms in Qiskit Optimization."""
 
-from typing import Any, Optional
 from abc import ABC, abstractmethod
 from enum import Enum
+from typing import Any, Optional
 
 from ..problems.quadratic_program import QuadraticProgram
 
