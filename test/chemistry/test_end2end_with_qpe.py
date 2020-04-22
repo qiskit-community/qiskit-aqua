@@ -14,11 +14,14 @@
 
 """ Test End to End with QPE """
 
+import warnings
 import unittest
 from test.chemistry import QiskitChemistryTestCase
+from itertools import product
 import numpy as np
 from ddt import ddt, idata, unpack
 import qiskit
+from qiskit.circuit.library import QFT
 from qiskit.aqua.utils import decimal_to_binary
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import QPEMinimumEigensolver, NumPyMinimumEigensolver
@@ -33,13 +36,16 @@ from qiskit.chemistry.components.initial_states import HartreeFock
 class TestEnd2EndWithQPE(QiskitChemistryTestCase):
     """QPE tests."""
 
-    @idata([
-        [0.5],
-        [0.735],
-        [1],
-    ])
+    def tearDown(self):
+        super().tearDown()
+        warnings.filterwarnings(action="always", category=DeprecationWarning)
+
+    @idata(list(product(
+        [0.5, 0.735, 1],
+        [False, True]
+    )))
     @unpack
-    def test_qpe(self, distance):
+    def test_qpe(self, distance, use_circuit_library):
         """ qpe test """
         self.log.debug('Testing End-to-End with QPE on '
                        'H2 with inter-atomic distance %s.', distance)
@@ -51,6 +57,10 @@ class TestEnd2EndWithQPE(QiskitChemistryTestCase):
                                  basis='sto3g')
         except QiskitChemistryError:
             self.skipTest('PYSCF driver does not appear to be installed')
+
+        if not use_circuit_library:
+            # ignore deprecation warnings from QFTs
+            warnings.filterwarnings(action="ignore", category=DeprecationWarning)
 
         molecule = driver.run()
         qubit_mapping = 'parity'
@@ -73,7 +83,10 @@ class TestEnd2EndWithQPE(QiskitChemistryTestCase):
 
         state_in = HartreeFock(qubit_op.num_qubits, num_orbitals,
                                num_particles, qubit_mapping, two_qubit_reduction)
-        iqft = Standard(n_ancillae)
+        if use_circuit_library:
+            iqft = QFT(n_ancillae).inverse()
+        else:
+            iqft = Standard(n_ancillae)
 
         qpe = QPEMinimumEigensolver(qubit_op, state_in, iqft, num_time_slices, n_ancillae,
                                     expansion_mode='suzuki',
@@ -97,6 +110,9 @@ class TestEnd2EndWithQPE(QiskitChemistryTestCase):
                            max_num_digits=n_ancillae + 3, fractional_part_only=True))
 
         np.testing.assert_approx_equal(result.eigenvalue.real, reference_energy, significant=2)
+
+        if not use_circuit_library:
+            warnings.filterwarnings(action="always", category=DeprecationWarning)
 
 
 if __name__ == '__main__':
