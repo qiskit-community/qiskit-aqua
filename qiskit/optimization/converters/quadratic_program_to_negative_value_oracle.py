@@ -66,24 +66,15 @@ class QuadraticProgramToNegativeValueOracle:
         """
 
         # get linear part of objective
-        linear_dict = problem.objective.get_linear_dict()
-        linear_coeff = np.zeros(problem.variables.get_num())
+        linear_dict = problem.objective.linear.to_dict()
+        linear_coeff = np.zeros(len(problem.variables))
         for i, v in linear_dict.items():
             linear_coeff[i] = v
 
         # get quadratic part of objective
-        quadratic_dict = problem.objective.get_quadratic_dict()
-        quadratic_coeff = {}
-        for (i, j), value in quadratic_dict.items():
-            if i <= j:
-                # divide by 2 since problem considers xQx/2.
-                coeff = quadratic_coeff.get((i, j), 0)
-                quadratic_coeff[(i, j)] = value / 2 + coeff
-            else:
-                coeff = quadratic_coeff.get((j, i), 0)
-                quadratic_coeff[(j, i)] = value / 2 + coeff
+        quadratic_coeff = problem.objective.quadratic.to_dict()
 
-        constant = problem.objective.get_offset()
+        constant = int(problem.objective.constant)
 
         # Get circuit requirements from input.
         self._num_key = len(linear_coeff)
@@ -129,14 +120,12 @@ class QuadraticProgramToNegativeValueOracle:
         return func
 
     def _evaluate_classically(self, measurement):
-        # TODO: Typing for this method? Still not sure what it's used for. Required by Grover.
         """ evaluate classical """
-        assignment = [(var + 1) * (int(tf) * 2 - 1) for tf, var in zip(measurement[::-1],
+        value = measurement[self._num_key:self._num_key + self._num_value]
+        assignment = [(var + 1) * (int(tf) * 2 - 1) for tf, var in zip(measurement,
                                                                        range(len(measurement)))]
-        assignment_dict = dict()
-        for v in assignment:
-            assignment_dict[v] = bool(v < 0)
-        return assignment_dict, assignment
+        evaluation = value[0] == '1'
+        return evaluation, assignment
 
     def _build_operator(self, func_dict: Dict[Union[int, Tuple[int, int]], int]) -> QuantumCircuit:
         """Creates a circuit for the state preparation operator.
@@ -173,8 +162,10 @@ class QuadraticProgramToNegativeValueOracle:
         for i in range(self._num_value):
             for k, v in func_dict.items():
                 if isinstance(k, tuple):
+                    a = [key_val[int(k[0])], key_val[int(k[1])]]
+                    b = key_val[self._num_key + i]
                     circuit.mcu1(1 / 2 ** self._num_value * 2 * np.pi * 2 ** i * v,
-                                 [key_val[k[0]], key_val[k[1]]], key_val[self._num_key + i])
+                                 a, b)
 
         # Add IQFT.
         iqft = IQFT(self._num_value)
