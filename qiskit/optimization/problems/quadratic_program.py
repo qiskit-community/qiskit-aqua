@@ -20,9 +20,9 @@ from math import fsum
 from typing import List, Union, Dict, Optional, Tuple
 
 from docplex.mp.linear import Var
-from docplex.mp.quad import QuadExpr
 from docplex.mp.model import Model
 from docplex.mp.model_reader import ModelReader
+from docplex.mp.quad import QuadExpr
 from numpy import ndarray
 from scipy.sparse import spmatrix
 
@@ -317,6 +317,10 @@ class QuadraticProgram:
 
         Returns:
             The corresponding constraint.
+
+        Raises:
+            IndexError: if the index is out of the list size
+            KeyError: if the name does not exist
         """
         if isinstance(i, int):
             return self.linear_constraints[i]
@@ -406,6 +410,10 @@ class QuadraticProgram:
 
         Returns:
             The corresponding constraint.
+
+        Raises:
+            IndexError: if the index is out of the list size
+            KeyError: if the name does not exist
         """
         if isinstance(i, int):
             return self.quadratic_constraints[i]
@@ -466,7 +474,11 @@ class QuadraticProgram:
         self._objective = QuadraticObjective(self, constant, linear, quadratic, ObjSense.MAXIMIZE)
 
     def from_docplex(self, model: Model) -> None:
-        """Loads this quadratic program from a docplex model
+        """Loads this quadratic program from a docplex model.
+        Note that this supports only basic functions of docplex as follows:
+          - quadratic objective function
+          - linear / quadratic constraints
+          - binary / integer / continuous variables
 
         Args:
             model: The docplex model to be loaded.
@@ -551,7 +563,7 @@ class QuadraticProgram:
             elif sense == sense.LE:
                 self.linear_constraint(lhs, '<=', rhs, name)
             else:
-                raise QiskitOptimizationError("Unsupported constraint sense!")
+                raise QiskitOptimizationError("Unsupported constraint sense: {}".format(sense))
 
         # get quadratic constraints
         for i in range(model.number_of_quadratic_constraints):
@@ -581,7 +593,7 @@ class QuadraticProgram:
             if right_expr.is_quad_expr():
                 for x in right_expr.linear_part.iter_variables():
                     linear[var_names[x]] = linear.get(var_names[x], 0.0) - \
-                        right_expr.linear_part.get_coef(x)
+                                           right_expr.linear_part.get_coef(x)
                 for quad_triplet in right_expr.iter_quad_triplets():
                     i = var_names[quad_triplet[0]]
                     j = var_names[quad_triplet[1]]
@@ -598,7 +610,7 @@ class QuadraticProgram:
             elif sense == sense.LE:
                 self.quadratic_constraint(linear, quadratic, '<=', rhs, name)
             else:
-                raise QiskitOptimizationError("Unsupported constraint sense!")
+                raise QiskitOptimizationError("Unsupported constraint sense: {}".format(sense))
 
     def to_docplex(self) -> Model:
         """Returns a docplex model corresponding to this quadratic program.
@@ -624,7 +636,7 @@ class QuadraticProgram:
                 var[i] = mdl.integer_var(lb=x.lowerbound, ub=x.upperbound, name=x.name)
             else:
                 # should never happen
-                raise QiskitOptimizationError('Unknown variable type: %s!' % x.vartype)
+                raise QiskitOptimizationError('Unsupported variable type: {}'.format(x.vartype))
 
         # add objective
         objective = self.objective.constant
@@ -655,14 +667,14 @@ class QuadraticProgram:
                 mdl.add_constraint(linear_expr <= rhs, ctname=name)
             else:
                 # should never happen
-                raise QiskitOptimizationError('Unknown sense: %s!' % sense)
+                raise QiskitOptimizationError("Unsupported constraint sense: {}".format(sense))
 
         # add quadratic constraints
         for i, constraint in enumerate(self.quadratic_constraints):
             name = constraint.name
             rhs = constraint.rhs
             if rhs == 0 \
-                and constraint.linear.coefficients.nnz == 0 \
+                    and constraint.linear.coefficients.nnz == 0 \
                     and constraint.quadratic.coefficients.nnz == 0:
                 continue
             quadratic_expr = 0
@@ -679,7 +691,7 @@ class QuadraticProgram:
                 mdl.add_constraint(quadratic_expr <= rhs, ctname=name)
             else:
                 # should never happen
-                raise QiskitOptimizationError('Unknown sense: %s!' % sense)
+                raise QiskitOptimizationError("Unsupported constraint sense: {}".format(sense))
 
         return mdl
 
@@ -713,9 +725,27 @@ class QuadraticProgram:
 
         Args:
             filename: The filename of the file to be loaded.
+
+        Raises:
+            FileNotFoundError: if the file does not exist.
         """
+
+        def _parse_problem_name(filename: str) -> str:
+            # Because docplex model reader uses the base name as model name,
+            # we parse the model name in the LP file manually.
+            # https://ibmdecisionoptimization.github.io/docplex-doc/mp/docplex.mp.model_reader.html
+            prefix = '\\Problem name: '
+            model_name = ''
+            with open(filename) as file:
+                for line in file:
+                    if line.startswith(prefix):
+                        model_name = line[len(prefix):].strip()
+                    if not line.startswith('\\'):
+                        break
+            return model_name
+
         model_reader = ModelReader()
-        model = model_reader.read(filename)
+        model = model_reader.read(pathname=filename, model_name=_parse_problem_name(filename))
         self.from_docplex(model)
 
     def write_to_lp_file(self, filename: str) -> None:
@@ -723,6 +753,12 @@ class QuadraticProgram:
 
         Args:
             filename: The filename of the file the model is written to.
+              If filename is a directory, file name 'my_problem.lp' is appended.
+              If filename does not end with '.lp', suffix '.lp' is appended.
+
+        Raises:
+            OSError: If this cannot open a file.
+            DOcplexException: If filename is an empty string
         """
         self.to_docplex().export_as_lp(filename)
 
@@ -756,8 +792,8 @@ class QuadraticProgram:
 
 class SubstitutionStatus(Enum):
     """Status of `QuadraticProgram.substitute_variables`"""
-    success = 1
-    infeasible = 2
+    SUCCESS = 1
+    INFEASIBLE = 2
 
 
 class SubstituteVariables:
@@ -808,10 +844,10 @@ class SubstituteVariables:
             self._linear_constraints(),
             self._quadratic_constraints(),
         ]
-        if any(r == SubstitutionStatus.infeasible for r in results):
-            ret = SubstitutionStatus.infeasible
+        if any(r == SubstitutionStatus.INFEASIBLE for r in results):
+            ret = SubstitutionStatus.INFEASIBLE
         else:
-            ret = SubstitutionStatus.success
+            ret = SubstitutionStatus.SUCCESS
         return self._dst, ret
 
     @staticmethod
@@ -892,7 +928,7 @@ class SubstituteVariables:
                 if not lb_i <= v <= ub_i:
                     logger.warning(
                         'Infeasible substitution for variable: %s', i)
-                    return SubstitutionStatus.infeasible
+                    return SubstitutionStatus.INFEASIBLE
             else:
                 # substitute i <- j * v
                 # lb_i <= i <= ub_i  -->  lb_i / v <= j <= ub_i / v if v > 0
@@ -924,9 +960,9 @@ class SubstituteVariables:
                 logger.warning(
                     'Infeasible lower and upper bound: %s %f %f', var, var.lowerbound,
                     var.upperbound)
-                return SubstitutionStatus.infeasible
+                return SubstitutionStatus.INFEASIBLE
 
-        return SubstitutionStatus.success
+        return SubstitutionStatus.SUCCESS
 
     def _linear_expression(self, lin_expr: LinearExpression) \
             -> Tuple[List[float], LinearExpression]:
@@ -977,7 +1013,7 @@ class SubstituteVariables:
             self._dst.minimize(constant=constant, linear=linear, quadratic=quadratic.coefficients)
         else:
             self._dst.maximize(constant=constant, linear=linear, quadratic=quadratic.coefficients)
-        return SubstitutionStatus.success
+        return SubstitutionStatus.SUCCESS
 
     def _linear_constraints(self) -> SubstitutionStatus:
         for lin_cst in self._src.linear_constraints:
@@ -989,9 +1025,9 @@ class SubstituteVariables:
             else:
                 if not self._feasible(lin_cst.sense, rhs):
                     logger.warning('constraint %s is infeasible due to substitution', lin_cst.name)
-                    return SubstitutionStatus.infeasible
+                    return SubstitutionStatus.INFEASIBLE
 
-        return SubstitutionStatus.success
+        return SubstitutionStatus.SUCCESS
 
     def _quadratic_constraints(self) -> SubstitutionStatus:
         for quad_cst in self._src.quadratic_constraints:
@@ -1013,6 +1049,6 @@ class SubstituteVariables:
             else:
                 if not self._feasible(quad_cst.sense, rhs):
                     logger.warning('constraint %s is infeasible due to substitution', quad_cst.name)
-                    return SubstitutionStatus.infeasible
+                    return SubstitutionStatus.INFEASIBLE
 
-        return SubstitutionStatus.success
+        return SubstitutionStatus.SUCCESS
