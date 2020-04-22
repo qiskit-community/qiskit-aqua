@@ -157,13 +157,16 @@ class PrimitiveOp(OperatorBase):
 
     def compose(self, other: OperatorBase) -> OperatorBase:
         r"""
-        Return Operator Composition between self and other (linear algebra-style:
+        Return Operator Composition between self and other (linear algebra-style):
+
         A@B(x) = A(B( x))), overloaded by ``@``.
 
         Note: You must be conscious of Quantum Circuit vs. Linear Algebra ordering conventions.
         Meaning, X.compose(Y) produces an X∘Y on qubit 0, but would produce a QuantumCircuit
         which looks like
+
             -[Y]-[X]-
+
         because Terra prints circuits with the initial state at the left side of the circuit.
         """
         raise NotImplementedError
