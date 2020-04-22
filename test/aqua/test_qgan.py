@@ -38,10 +38,6 @@ class TestQGAN(QiskitAquaTestCase):
     def setUp(self):
         super().setUp()
 
-        # ignore deprecation warnings from the deprecation of VariationalForm as input for
-        # the univariate variational distribution
-        warnings.filterwarnings("ignore", category=DeprecationWarning)
-
         self.seed = 7
         aqua_globals.random_seed = self.seed
         # Number training data samples
@@ -116,6 +112,9 @@ class TestQGAN(QiskitAquaTestCase):
         if use_circuits:
             self.qgan.set_generator(generator_circuit=self.g_circuit)
         else:
+            # ignore deprecation warnings from the deprecation of VariationalForm as input for
+            # the univariate variational distribution
+            warnings.filterwarnings("ignore", category=DeprecationWarning)
             self.qgan.set_generator(generator_circuit=self.g_var_form)
 
         _, weights_statevector = \
@@ -125,17 +124,26 @@ class TestQGAN(QiskitAquaTestCase):
         for i, weight_q in enumerate(weights_qasm):
             self.assertAlmostEqual(weight_q, weights_statevector[i], delta=0.1)
 
+        if not use_circuits:
+            warnings.filterwarnings(action="always", category=DeprecationWarning)
+
     @data(False, True)
     def test_qgan_training(self, use_circuits):
         """ qgan training test """
         if use_circuits:
             self.qgan.set_generator(generator_circuit=self.g_circuit)
         else:
+            # ignore deprecation warnings from the deprecation of VariationalForm as input for
+            # the univariate variational distribution
+            warnings.filterwarnings("ignore", category=DeprecationWarning)
             self.qgan.set_generator(generator_circuit=self.g_var_form)
 
         trained_statevector = self.qgan.run(self.qi_statevector)
         trained_qasm = self.qgan.run(self.qi_qasm)
         self.assertAlmostEqual(trained_qasm['rel_entr'], trained_statevector['rel_entr'], delta=0.1)
+
+        if not use_circuits:
+            warnings.filterwarnings(action="always", category=DeprecationWarning)
 
     def test_qgan_training_run_algo_torch(self):
         """ qgan training run algo torch test """
