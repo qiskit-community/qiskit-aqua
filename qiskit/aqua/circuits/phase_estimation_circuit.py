@@ -219,8 +219,6 @@ class PhaseEstimationCircuit:
             if isinstance(self._iqft, QuantumCircuit):
                 if hasattr(self._iqft, 'do_swaps'):
                     self._iqft.do_swaps = False
-                    # TODO make the IQFT not revert to QFT is do_swaps is called
-                    self._iqft = self._iqft.inverse()
                 qc.append(self._iqft.to_instruction(), a)
             else:
                 self._iqft.construct_circuit(mode='circuit', qubits=a, circuit=qc, do_swaps=False)
