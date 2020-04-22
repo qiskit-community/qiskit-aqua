@@ -292,7 +292,8 @@ class VQC(VQAlgorithm):
             quantum_instance (QuantumInstance): quantum backend with all setting
             minibatch_size (int): the size of each minibatched accuracy evaluation
         """
-        self._quantum_instance = quantum_instance or self._quantum_instance
+        self._quantum_instance = \
+            self._quantum_instance if quantum_instance is None else quantum_instance
         minibatch_size = minibatch_size if minibatch_size > 0 else self._minibatch_size
         self._batches, self._label_batches = self.batch_data(data, labels, minibatch_size)
         self._batch_index = 0
