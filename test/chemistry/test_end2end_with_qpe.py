@@ -14,6 +14,7 @@
 
 """ Test End to End with QPE """
 
+import warnings
 import unittest
 from test.chemistry import QiskitChemistryTestCase
 from itertools import product
@@ -34,6 +35,15 @@ from qiskit.chemistry.components.initial_states import HartreeFock
 @ddt
 class TestEnd2EndWithQPE(QiskitChemistryTestCase):
     """QPE tests."""
+
+    def setUp(self):
+        super().setUp()
+        # ignore deprecation warnings from QFTs
+        warnings.filterwarnings(action="ignore", category=DeprecationWarning)
+
+    def tearDown(self):
+        super().tearDown()
+        warnings.filterwarnings(action="always", category=DeprecationWarning)
 
     @idata(list(product(
         [0.5, 0.735, 1],

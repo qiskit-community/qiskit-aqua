@@ -14,6 +14,7 @@
 
 """ Test HHL """
 
+import warnings
 import unittest
 from test.aqua import QiskitAquaTestCase
 
@@ -43,6 +44,12 @@ class TestHHL(QiskitAquaTestCase):
         super(TestHHL, self).setUp()
         self.random_seed = 0
         aqua_globals.random_seed = self.random_seed
+        # ignore deprecation warnings from QFTs
+        warnings.filterwarnings(action="ignore", category=DeprecationWarning)
+
+    def tearDown(self):
+        super().tearDown()
+        warnings.filterwarnings(action="always", category=DeprecationWarning)
 
     @staticmethod
     def _create_eigs(matrix, num_ancillae, negative_evals, use_circuit_library=True):

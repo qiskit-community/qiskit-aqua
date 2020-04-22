@@ -14,6 +14,7 @@
 
 """Test the quantum amplitude estimation algorithm."""
 
+import warnings
 import unittest
 from test.aqua import QiskitAquaTestCase
 from itertools import product
@@ -135,6 +136,13 @@ class TestBernoulli(QiskitAquaTestCase):
                                    seed_simulator=2, seed_transpiler=2)
 
         self._qasm = qasm
+
+        # ignore deprecation warnings from QFTs
+        warnings.filterwarnings(action="ignore", category=DeprecationWarning)
+
+    def tearDown(self):
+        super().tearDown()
+        warnings.filterwarnings(action="always", category=DeprecationWarning)
 
     @idata([
         [0.2, AmplitudeEstimation(2), {'estimation': 0.5, 'mle': 0.2}],

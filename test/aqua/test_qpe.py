@@ -14,6 +14,7 @@
 
 """ Test QPE """
 
+import warnings
 import unittest
 from test.aqua import QiskitAquaTestCase
 import numpy as np
@@ -58,6 +59,15 @@ QUBIT_OP_ZZ = WeightedPauliOperator.from_dict(PAULI_DICT_ZZ)
 @ddt
 class TestQPE(QiskitAquaTestCase):
     """QPE tests."""
+
+    def setUp(self):
+        super().setUp()
+        # ignore deprecation warnings from QFTs
+        warnings.filterwarnings(action="ignore", category=DeprecationWarning)
+
+    def tearDown(self):
+        super().tearDown()
+        warnings.filterwarnings(action="always", category=DeprecationWarning)
 
     @idata([
         [QUBIT_OP_SIMPLE, 'qasm_simulator', 1, 5, False],
