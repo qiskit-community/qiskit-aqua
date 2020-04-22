@@ -53,7 +53,7 @@ class MultivariateVariationalDistribution(MultivariateDistribution):
             self._var_form_params = list(self._var_form.parameters)
         else:
             warnings.warn('The VariationalForm type is deprecated as argument of the '
-                          'UnivariateVariationalDistribution as of 0.7.0 and will be removed no '
+                          'MultivariateVariationalDistribution as of 0.7.0 and will be removed no '
                           'earlier than 3 months after the release. You should pass an object '
                           'of type QuantumCircuit instead (see qiskit.circuit.library for a '
                           'collection of suitable objects).',
