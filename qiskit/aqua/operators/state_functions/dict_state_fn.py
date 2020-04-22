@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" An Object to represent State Functions constructed from Operators """
+""" DictStateFn Class """
 
 from typing import Union, Set
 import itertools
@@ -92,7 +92,6 @@ class DictStateFn(StateFn):
         super().__init__(primitive, coeff=coeff, is_measurement=is_measurement)
 
     def primitive_strings(self) -> Set[str]:
-        """ Return a set of strings describing the primitives contained in the Operator """
         return {'Dict'}
 
     @property
@@ -100,7 +99,6 @@ class DictStateFn(StateFn):
         return len(list(self.primitive.keys())[0])
 
     def add(self, other: OperatorBase) -> OperatorBase:
-        """ Addition. Overloaded by + in OperatorBase. """
         if not self.num_qubits == other.num_qubits:
             raise ValueError(
                 'Sum over statefns with different numbers of qubits, {} and {}, is not well '
@@ -129,15 +127,6 @@ class DictStateFn(StateFn):
                            is_measurement=(not self.is_measurement))
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
-        """ Tensor product
-        Note: You must be conscious of Qiskit's big-endian bit printing convention.
-        Meaning, Plus.tensor(Zero)
-        produces a |+⟩ on qubit 0 and a |0⟩ on qubit 1, or |+⟩⨂|0⟩,
-        but would produce a QuantumCircuit like
-        |0⟩--
-        |+⟩--
-        Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
-        """
         # Both dicts
         if isinstance(other, DictStateFn):
             new_dict = {k1 + k2: v1 * v2 for ((k1, v1,), (k2, v2)) in
@@ -233,7 +222,6 @@ class DictStateFn(StateFn):
         return csfn.adjoint() if self.is_measurement else csfn
 
     def __str__(self) -> str:
-        """Overload str() """
         prim_str = str(self.primitive)
         if self.coeff == 1.0:
             return "{}({})".format('DictStateFn' if not self.is_measurement

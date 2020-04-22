@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Wrapping Pauli Primitive """
+""" MatrixOp Class """
 
 from typing import Union, Optional, Set
 import logging
@@ -70,7 +70,6 @@ class MatrixOp(PrimitiveOp):
         super().__init__(primitive, coeff=coeff)
 
     def primitive_strings(self) -> Set[str]:
-        """ Return a set of strings describing the primitives contained in the Operator """
         return {'Matrix'}
 
     @property
@@ -78,7 +77,6 @@ class MatrixOp(PrimitiveOp):
         return len(self.primitive.input_dims())
 
     def add(self, other: OperatorBase) -> OperatorBase:
-        """ Addition. Overloaded by + in OperatorBase. """
         if not self.num_qubits == other.num_qubits:
             raise ValueError(
                 'Sum over operators with different numbers of qubits, {} and {}, is not well '
@@ -91,11 +89,9 @@ class MatrixOp(PrimitiveOp):
         return SummedOp([self, other])
 
     def adjoint(self) -> OperatorBase:
-        """ Return operator adjoint (conjugate transpose). Overloaded by ~ in OperatorBase. """
         return MatrixOp(self.primitive.conjugate().transpose(), coeff=np.conj(self.coeff))
 
     def equals(self, other: OperatorBase) -> bool:
-        """ Evaluate Equality. Overloaded by == in OperatorBase. """
         if not isinstance(other, PrimitiveOp) \
                 or not isinstance(self.primitive, type(other.primitive)) \
                 or not self.coeff == other.coeff:
@@ -105,15 +101,6 @@ class MatrixOp(PrimitiveOp):
         # Will return NotImplementedError if not supported
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
-        """ Tensor product
-        Note: You must be conscious of Qiskit's big-endian bit
-        printing convention. Meaning, X.tensor(Y)
-        produces an X on qubit 0 and an Y on qubit 1, or X⨂Y,
-        but would produce a QuantumCircuit which looks like
-        -[Y]-
-        -[X]-
-        Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
-        """
         if isinstance(other.primitive, MatrixOperator):
             return MatrixOp(self.primitive.tensor(other.primitive), coeff=self.coeff * other.coeff)
 
@@ -153,7 +140,6 @@ class MatrixOp(PrimitiveOp):
         return self.primitive.data * self.coeff
 
     def __str__(self) -> str:
-        """Overload str() """
         prim_str = str(self.primitive)
         if self.coeff == 1.0:
             return prim_str

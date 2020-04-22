@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Wrapping Pauli Primitives """
+""" CircuitOp Class """
 
 from typing import Union, Optional, Set
 import logging
@@ -62,7 +62,6 @@ class CircuitOp(PrimitiveOp):
         super().__init__(primitive, coeff=coeff)
 
     def primitive_strings(self) -> Set[str]:
-        """ Return a set of strings describing the primitives contained in the Operator """
         return {'QuantumCircuit'}
 
     @property
@@ -70,7 +69,6 @@ class CircuitOp(PrimitiveOp):
         return self.primitive.num_qubits
 
     def add(self, other: OperatorBase) -> OperatorBase:
-        """ Addition. Overloaded by + in OperatorBase. """
         if not self.num_qubits == other.num_qubits:
             raise ValueError(
                 'Sum over operators with different numbers of qubits, {} and {}, is not well '
@@ -83,11 +81,9 @@ class CircuitOp(PrimitiveOp):
         return SummedOp([self, other])
 
     def adjoint(self) -> OperatorBase:
-        """ Return operator adjoint (conjugate transpose). Overloaded by ~ in OperatorBase. """
         return CircuitOp(self.primitive.inverse(), coeff=np.conj(self.coeff))
 
     def equals(self, other: OperatorBase) -> bool:
-        """ Evaluate Equality. Overloaded by == in OperatorBase. """
         if not isinstance(other, PrimitiveOp) \
                 or not isinstance(self.primitive, type(other.primitive)) \
                 or not self.coeff == other.coeff:
@@ -97,7 +93,7 @@ class CircuitOp(PrimitiveOp):
         # Will return NotImplementedError if not supported
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
-        """ Tensor product
+        """ Return tensor product between self and other, overloaded by ``^``.
         Note: You must be conscious of Qiskit's big-endian bit printing
         convention. Meaning, X.tensor(Y)
         produces an X on qubit 0 and an Y on qubit 1, or X⨂Y, but would produce a
@@ -126,13 +122,15 @@ class CircuitOp(PrimitiveOp):
         return TensoredOp([self, other])
 
     def compose(self, other: OperatorBase) -> OperatorBase:
-        """ Operator Composition (Linear algebra-style, right-to-left)
+        r"""
+        Return Operator Composition between self and other (linear algebra-style:
+        A@B(x) = A(B( x))), overloaded by ``@``.
 
-        Note: You must be conscious of Quantum Circuit vs. Linear Algebra ordering
-        conventions. Meaning, X.compose(Y)
-        produces an X∘Y on qubit 0, but would produce a QuantumCircuit which looks like
-        -[Y]-[X]-
-        Because Terra prints circuits with the initial state at the left side of the circuit.
+        Note: You must be conscious of Quantum Circuit vs. Linear Algebra ordering conventions.
+        Meaning, X.compose(Y) produces an X∘Y on qubit 0, but would produce a QuantumCircuit
+        which looks like
+            -[Y]-[X]-
+        because Terra prints circuits with the initial state at the left side of the circuit.
         """
         other = self._check_zero_for_composition_and_expand(other)
         # pylint: disable=cyclic-import,import-outside-toplevel
@@ -188,7 +186,6 @@ class CircuitOp(PrimitiveOp):
         return unitary * self.coeff
 
     def __str__(self) -> str:
-        """Overload str() """
         qc = self.reduce().to_circuit()
         prim_str = str(qc.draw(output='text'))
         if self.coeff == 1.0:

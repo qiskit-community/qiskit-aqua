@@ -59,7 +59,6 @@ class EvolvedOp(PrimitiveOp):
         return self.primitive.num_qubits
 
     def add(self, other: OperatorBase) -> OperatorBase:
-        """ Addition. Overloaded by + in OperatorBase. """
         if not self.num_qubits == other.num_qubits:
             raise ValueError(
                 'Sum over operators with different numbers of qubits, {} and {}, is not well '
@@ -74,27 +73,15 @@ class EvolvedOp(PrimitiveOp):
         return SummedOp([self, other])
 
     def adjoint(self) -> OperatorBase:
-        """ Return operator adjoint (conjugate transpose). Overloaded by ~ in OperatorBase. """
         return EvolvedOp(self.primitive.adjoint() * -1, coeff=np.conj(self.coeff))
 
     def equals(self, other: OperatorBase) -> bool:
-        """ Evaluate Equality. Overloaded by == in OperatorBase. """
         if not isinstance(other, EvolvedOp) or not self.coeff == other.coeff:
             return False
 
         return self.primitive == other.primitive
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
-        """ Tensor product
-        Note: You must be conscious of Qiskit's big-endian bit printing
-        convention. Meaning, X.tensor(Y)
-        produces an X on qubit 0 and an Y on qubit 1, or X⨂Y, but would produce
-        a QuantumCircuit which looks
-        like
-        -[Y]-
-        -[X]-
-        Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
-        """
         if isinstance(other, TensoredOp):
             return TensoredOp([self] + other.oplist)
 
@@ -119,7 +106,6 @@ class EvolvedOp(PrimitiveOp):
         return ComposedOp([self, other])
 
     def __str__(self) -> str:
-        """Overload str() """
         prim_str = str(self.primitive)
         if self.coeff == 1.0:
             return 'e^(-i*{})'.format(prim_str)

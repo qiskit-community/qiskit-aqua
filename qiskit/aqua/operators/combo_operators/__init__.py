@@ -13,7 +13,7 @@
 # that they have been altered from the originals.
 
 """
-Operator Combos
+Combo Operators
 """
 
 from .list_op import ListOp

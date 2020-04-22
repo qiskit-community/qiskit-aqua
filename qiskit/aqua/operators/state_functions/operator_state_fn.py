@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" An Object to represent State Functions constructed from Operators """
+""" OperatorStateFn Class """
 
 from typing import Union, Set
 import numpy as np
@@ -62,7 +62,6 @@ class OperatorStateFn(StateFn):
         super().__init__(primitive, coeff=coeff, is_measurement=is_measurement)
 
     def primitive_strings(self) -> Set[str]:
-        """ Return a set of strings describing the primitives contained in the Operator """
         return self.primitive.primitive_strings()
 
     @property
@@ -70,7 +69,6 @@ class OperatorStateFn(StateFn):
         return self.primitive.num_qubits
 
     def add(self, other: OperatorBase) -> OperatorBase:
-        """ Addition. Overloaded by + in OperatorBase. """
         if not self.num_qubits == other.num_qubits:
             raise ValueError(
                 'Sum over statefns with different numbers of qubits, {} and {}, is not well '
@@ -98,15 +96,6 @@ class OperatorStateFn(StateFn):
                                is_measurement=(not self.is_measurement))
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
-        """ Tensor product
-        Note: You must be conscious of Qiskit's big-endian bit printing convention.
-        Meaning, Plus.tensor(Zero)
-        produces a |+⟩ on qubit 0 and a |0⟩ on qubit 1, or |+⟩⨂|0⟩, but would produce
-        a QuantumCircuit like
-        |0⟩--
-        |+⟩--
-        Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
-        """
         if isinstance(other, OperatorStateFn):
             return StateFn(self.primitive.tensor(other.primitive),
                            coeff=self.coeff * other.coeff,
@@ -161,7 +150,6 @@ class OperatorStateFn(StateFn):
         """
 
         if self.num_qubits > 16 and not massive:
-            # TODO figure out sparse matrices?
             raise ValueError(
                 'to_vector will return an exponentially large vector, in this case {0} elements.'
                 ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
@@ -169,7 +157,7 @@ class OperatorStateFn(StateFn):
         # Operator - return diagonal (real values, not complex),
         # not rank 1 decomposition (statevector)!
         mat = self.primitive.to_matrix()
-        # TODO change to sum of eigenvectors?
+        # TODO change to weighted sum of eigenvectors' StateFns?
 
         # ListOp primitives can return lists of matrices (or trees for nested ListOps),
         # so we need to recurse over the
@@ -218,7 +206,7 @@ class OperatorStateFn(StateFn):
                 front) for op in self.primitive.oplist]
             return self.primitive.combo_fn(evals)
 
-        # Need an ListOp-specific carve-out here to make sure measurement over an ListOp doesn't
+        # Need an ListOp-specific carve-out here to make sure measurement over a ListOp doesn't
         # produce two-dimensional ListOp from composing from both sides of primitive.
         # Can't use isinstance because this would include subclasses.
         # pylint: disable=unidiomatic-typecheck

@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Eager Tensored Operator Container """
+""" TensoredOp Class """
 
 from typing import List, Union
 from functools import reduce, partial
@@ -43,15 +43,9 @@ class TensoredOp(ListOp):
     # TODO: Keep this property for evals or just enact distribution at composition time?
     @property
     def distributive(self) -> bool:
-        """ Indicates whether the ListOp or subclass is distributive under
-        composition. ListOp and SummedOp are,
-        meaning that opv @ op = opv[0] @ op + opv[1] @ op +...
-        (plus for SummedOp, vec for ListOp, etc.),
-        while ComposedOp and TensoredOp do not behave this way."""
         return False
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
-        """ Tensor Product """
         if isinstance(other, TensoredOp):
             return TensoredOp(self.oplist + other.oplist, coeff=self.coeff * other.coeff)
         return TensoredOp(self.oplist + [other], coeff=self.coeff)

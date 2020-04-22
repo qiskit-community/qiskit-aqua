@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Wrapping Pauli Primitives """
+""" PauliOp Class """
 
 from typing import Union, Optional, Set
 import logging
@@ -60,7 +60,6 @@ class PauliOp(PrimitiveOp):
         super().__init__(primitive, coeff=coeff)
 
     def primitive_strings(self) -> Set[str]:
-        """ Return a set of strings describing the primitives contained in the Operator """
         return {'Pauli'}
 
     @property
@@ -68,7 +67,6 @@ class PauliOp(PrimitiveOp):
         return len(self.primitive)
 
     def add(self, other: OperatorBase) -> OperatorBase:
-        """ Addition. Overloaded by + in OperatorBase. """
         if not self.num_qubits == other.num_qubits:
             raise ValueError(
                 'Sum over operators with different numbers of qubits, {} and {}, is not well '
@@ -80,27 +78,15 @@ class PauliOp(PrimitiveOp):
         return SummedOp([self, other])
 
     def adjoint(self) -> OperatorBase:
-        """ Return operator adjoint (conjugate transpose). Overloaded by ~ in OperatorBase. """
         return PauliOp(self.primitive, coeff=np.conj(self.coeff))
 
     def equals(self, other: OperatorBase) -> bool:
-        """ Evaluate Equality. Overloaded by == in OperatorBase. """
         if not isinstance(other, PauliOp) or not self.coeff == other.coeff:
             return False
 
         return self.primitive == other.primitive
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
-        """ Tensor product
-        Note: You must be conscious of Qiskit's big-endian bit
-        printing convention. Meaning, X.tensor(Y)
-        produces an X on qubit 0 and an Y on qubit 1, or X⨂Y,
-        but would produce a
-        QuantumCircuit which looks like
-        -[Y]-
-        -[X]-
-        Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
-        """
         # Both Paulis
         if isinstance(other, PauliOp):
             # TODO change Pauli tensor product in Terra to have optional in place
@@ -116,13 +102,15 @@ class PauliOp(PrimitiveOp):
         return TensoredOp([self, other])
 
     def compose(self, other: OperatorBase) -> OperatorBase:
-        """ Operator Composition (Linear algebra-style, right-to-left)
+        r"""
+        Return Operator Composition between self and other (linear algebra-style:
+        A@B(x) = A(B( x))), overloaded by ``@``.
 
-        Note: You must be conscious of Quantum Circuit vs. Linear Algebra ordering
-        conventions. Meaning, X.compose(Y)
-        produces an X∘Y on qubit 0, but would produce a QuantumCircuit which looks like
-        -[Y]-[X]-
-        Because Terra prints circuits with the initial state at the left side of the circuit.
+        Note: You must be conscious of Quantum Circuit vs. Linear Algebra ordering conventions.
+        Meaning, X.compose(Y) produces an X∘Y on qubit 0, but would produce a QuantumCircuit
+        which looks like
+            -[Y]-[X]-
+        because Terra prints circuits with the initial state at the left side of the circuit.
         """
         other = self._check_zero_for_composition_and_expand(other)
 
@@ -164,7 +152,6 @@ class PauliOp(PrimitiveOp):
         return self.primitive.to_spmatrix() * self.coeff
 
     def __str__(self) -> str:
-        """Overload str() """
         prim_str = str(self.primitive)
         if self.coeff == 1.0:
             return prim_str
@@ -189,7 +176,7 @@ class PauliOp(PrimitiveOp):
         if front is None:
             return self.to_matrix_op()
 
-        # pylint: disable=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel,cyclic-import
         from ..state_functions.state_fn import StateFn
         from ..state_functions.dict_state_fn import DictStateFn
         from ..state_functions.circuit_state_fn import CircuitStateFn

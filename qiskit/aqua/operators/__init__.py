@@ -26,10 +26,8 @@ Operators
    :toctree: ../stubs/
    :nosignatures:
 
-   LegacyBaseOperator
-   WeightedPauliOperator
-   TPBGroupedWeightedPauliOperator
-   MatrixOperator
+   OperatorBase
+   PrimitiveOp
 
 Operator support
 ================

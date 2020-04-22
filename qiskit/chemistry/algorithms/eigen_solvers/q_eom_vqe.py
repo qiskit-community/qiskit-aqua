@@ -39,7 +39,6 @@ class QEomVQE(VQE):
                  initial_point: Optional[np.ndarray] = None,
                  max_evals_grouped: int = 1,
                  callback: Optional[Callable[[int, np.ndarray, float, float], None]] = None,
-                 auto_conversion: bool = True,
                  qubit_mapping: str = 'parity',
                  two_qubit_reduction: bool = True,
                  is_eom_matrix_symmetric: bool = True,
@@ -67,13 +66,6 @@ class QEomVQE(VQE):
                                  Internally, four arguments are provided as follows
                                  the index of evaluation, parameters of variational form,
                                  evaluated mean, evaluated standard deviation.
-            auto_conversion: an automatic conversion for operator and aux_operators into
-                                    the type which is most suitable for the backend.
-
-                                    - non-aer statevector_simulator: MatrixOperator
-                                    - aer statevector_simulator: WeightedPauliOperator
-                                    - qasm simulator or real backend:
-                                        TPBGroupedWeightedPauliOperator
             qubit_mapping: qubit mapping type
             two_qubit_reduction: two qubit reduction is applied or not
             is_eom_matrix_symmetric: is EoM matrix symmetric

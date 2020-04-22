@@ -12,8 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" An Object to represent State Functions constructed from Operators """
-
+""" StateFn Class """
 
 from typing import Union, Optional, Callable, Set
 import numpy as np
@@ -114,7 +113,6 @@ class StateFn(OperatorBase):
         return self._is_measurement
 
     def primitive_strings(self) -> Set[str]:
-        """ Return a set of strings describing the primitives contained in the Operator """
         raise NotImplementedError
 
     @property
@@ -122,18 +120,12 @@ class StateFn(OperatorBase):
         raise NotImplementedError
 
     def add(self, other: OperatorBase) -> OperatorBase:
-        """ Addition. Overloaded by + in OperatorBase. """
         raise NotImplementedError
-
-    def neg(self) -> OperatorBase:
-        """ Negate. Overloaded by - in OperatorBase. """
-        return self.mul(-1.0)
 
     def adjoint(self) -> OperatorBase:
         raise NotImplementedError
 
     def equals(self, other: OperatorBase) -> bool:
-        """ Evaluate Equality. Overloaded by == in OperatorBase. """
         if not isinstance(other, type(self)) or not self.coeff == other.coeff:
             return False
 
@@ -157,7 +149,7 @@ class StateFn(OperatorBase):
                               is_measurement=self.is_measurement)
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
-        """ Tensor product
+        """ Return tensor product between self and other, overloaded by ``^``.
         Note: You must be conscious of Qiskit's big-endian bit printing
         convention. Meaning, Plus.tensor(Zero)
         produces a |+⟩ on qubit 0 and a |0⟩ on qubit 1, or |+⟩⨂|0⟩, but
@@ -219,11 +211,8 @@ class StateFn(OperatorBase):
         raise NotImplementedError
 
     def compose(self, other: OperatorBase) -> OperatorBase:
-        """ Composition (Linear algebra-style, right-to-left) is not well
-
-        defined for States in the binary function
-        model. However, it is well defined for measurements.
-        """
+        """ Composition (Linear algebra-style: A@B(x) = A(B(x))) is not well defined for states
+        in the binary function model, but is well defined for measurements. """
         # TODO maybe allow outers later to produce density operators or projectors, but not yet.
         if not self.is_measurement:
             raise ValueError(
@@ -242,7 +231,7 @@ class StateFn(OperatorBase):
         from qiskit.aqua.operators import ComposedOp
         return ComposedOp([new_self, other])
 
-    def power(self, other: int) -> OperatorBase:
+    def power(self, exponent: int) -> OperatorBase:
         """ Compose with Self Multiple Times, undefined for StateFns. """
         raise ValueError('Composition power over Statefunctions or Measurements is not defined.')
 
@@ -300,10 +289,12 @@ class StateFn(OperatorBase):
                        coeff=coeff or self.coeff, is_measurement=self.is_measurement)
 
     def to_matrix_op(self, massive: bool = False) -> OperatorBase:
-        """ Return a VectorStateFn for this StateFn. """
+        """ Return a ``VectorStateFn`` for this ``StateFn``. """
         # pylint: disable=cyclic-import,import-outside-toplevel
         from .vector_state_fn import VectorStateFn
         return VectorStateFn(self.to_matrix(massive=massive), is_measurement=self.is_measurement)
+
+    # TODO to_dict_op
 
     def sample(self,
                shots: int = 1024,

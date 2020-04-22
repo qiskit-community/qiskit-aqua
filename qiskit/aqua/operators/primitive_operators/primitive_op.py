@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Wrapping Operator Primitives """
+""" PrimitiveOp Class """
 
 from typing import Optional, Union, Set
 import logging
@@ -30,11 +30,18 @@ logger = logging.getLogger(__name__)
 
 
 class PrimitiveOp(OperatorBase):
-    """ Class for Wrapping Operator Primitives
+    """
+    A class for representing basic Operators, backed by Operator primitives from
+    Terra. This class (and inheritors) primarily serves to allow the underlying
+    primitives to "flow" - i.e. interoperability and adherence to the Operator formalism
+    - while the core computational logic mostly remains in the underlying primitives.
+    For example, we would not produce an interface in Terra in which
+    ``QuantumCircuit1 + QuantumCircuit2`` equaled the Operator sum of the circuit
+    unitaries, rather than simply appending the circuits. However, within the Operator
+    flow summing the unitaries is the expected behavior.
 
-    Note that all mathematical methods are not in-place,
-    meaning that they return a new object, but the underlying
-    primitives are not copied.
+    Note that all mathematical methods are not in-place, meaning that they return a
+    new object, but the underlying primitives are not copied.
 
     """
 
@@ -47,7 +54,16 @@ class PrimitiveOp(OperatorBase):
                                       ParameterExpression]] = 1.0) -> OperatorBase:
         """ A factory method to produce the correct type of PrimitiveOp subclass
         based on the primitive passed in. Primitive and coeff arguments are passed into
-        subclass's init() as-is automatically by new()."""
+        subclass's init() as-is automatically by new().
+
+        Args:
+            primitive (Instruction, QuantumCircuit, list, np.ndarray, spmatrix,
+                MatrixOperator, Pauli): The operator primitive being wrapped.
+            coeff (int, float, complex, ParameterExpression): A coefficient multiplying
+                the primitive.
+        Returns:
+            The appropriate PrimitiveOp subclass for ``primitive``.
+        """
         if cls.__name__ != PrimitiveOp.__name__:
             return super().__new__(cls)
 
@@ -71,26 +87,27 @@ class PrimitiveOp(OperatorBase):
         """
             Args:
                 primitive (Instruction, QuantumCircuit, list, np.ndarray, spmatrix,
-                 MatrixOperator, Pauli): The operator primitive being wrapped.
+                    MatrixOperator, Pauli): The operator primitive being wrapped.
                 coeff (int, float, complex, ParameterExpression): A coefficient multiplying
-                 the primitive.
+                    the primitive.
         """
         self._primitive = primitive
         self._coeff = coeff
 
     @property
     def primitive(self):
-        """ returns primitive in inherited class """
+        """ The primitive defining the underlying function of the Operator. """
         return self._primitive
 
     @property
     def coeff(self) -> Union[int, float, complex, ParameterExpression]:
-        """ returns coeff """
-        return self._coeff
+        """
+        The scalar coefficient multiplying the Operator.
 
-    def neg(self) -> OperatorBase:
-        """ Negate. Overloaded by - in OperatorBase. """
-        return self.mul(-1.0)
+        Returns:
+              The coefficient.
+        """
+        return self._coeff
 
     @property
     def num_qubits(self) -> int:
@@ -103,18 +120,12 @@ class PrimitiveOp(OperatorBase):
         raise NotImplementedError
 
     def adjoint(self) -> OperatorBase:
-        """ Return operator adjoint (conjugate transpose). Overloaded by ~ in OperatorBase. """
         raise NotImplementedError
 
     def equals(self, other: OperatorBase) -> bool:
         raise NotImplementedError
 
     def mul(self, scalar: Union[int, float, complex, ParameterExpression]) -> OperatorBase:
-        """ Scalar multiply. Overloaded by * in OperatorBase.
-
-        Doesn't multiply MatrixOperator until to_matrix()
-        is called to keep things lazy and avoid big copies.
-         """
         if not isinstance(scalar, (int, float, complex, ParameterExpression)):
             raise ValueError('Operators can only be scalar multiplied by float or complex, not '
                              '{} of type {}.'.format(scalar, type(scalar)))
@@ -122,10 +133,18 @@ class PrimitiveOp(OperatorBase):
         return self.__class__(self.primitive, coeff=self.coeff * scalar)
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
+        """ Return tensor product between self and other, overloaded by ``^``.
+        Note: You must be conscious of Qiskit's big-endian bit printing convention.
+        Meaning, X.tensor(Y) produces an X on qubit 0 and an Y on qubit 1, or X⨂Y,
+        but would produce a QuantumCircuit which looks like
+        -[Y]-
+        -[X]-
+        Because Terra prints circuits and results with qubit 0 at the end of the string
+        or circuit.
+        """
         raise NotImplementedError
 
     def tensorpower(self, other: int) -> Union[OperatorBase, int]:
-        """ Tensor product with Self Multiple Times """
         # Hack to make Z^(I^0) work as intended.
         if other == 0:
             return 1
@@ -137,6 +156,16 @@ class PrimitiveOp(OperatorBase):
         return temp
 
     def compose(self, other: OperatorBase) -> OperatorBase:
+        r"""
+        Return Operator Composition between self and other (linear algebra-style:
+        A@B(x) = A(B( x))), overloaded by ``@``.
+
+        Note: You must be conscious of Quantum Circuit vs. Linear Algebra ordering conventions.
+        Meaning, X.compose(Y) produces an X∘Y on qubit 0, but would produce a QuantumCircuit
+        which looks like
+            -[Y]-[X]-
+        because Terra prints circuits with the initial state at the left side of the circuit.
+        """
         raise NotImplementedError
 
     def _check_zero_for_composition_and_expand(self, other: OperatorBase) -> OperatorBase:
@@ -152,37 +181,33 @@ class PrimitiveOp(OperatorBase):
                     'respectively.'.format(self.num_qubits, other.num_qubits))
         return other
 
-    def power(self, other: int) -> OperatorBase:
-        """ Compose with Self Multiple Times """
-        if not isinstance(other, int) or other <= 0:
+    def power(self, exponent: int) -> OperatorBase:
+        if not isinstance(exponent, int) or exponent <= 0:
             raise TypeError('power can only take positive int arguments')
         temp = PrimitiveOp(self.primitive, coeff=self.coeff)
-        for _ in range(other - 1):
+        for _ in range(exponent - 1):
             temp = temp.compose(self)
         return temp
 
     def exp_i(self) -> OperatorBase:
-        """ Raise Operator to power e ^ (-i * op)"""
+        """ Return Operator exponentiation, equaling e^(-i * op)"""
         # pylint: disable=cyclic-import,import-outside-toplevel
         from qiskit.aqua.operators import EvolvedOp
         return EvolvedOp(self)
 
     def __str__(self) -> str:
-        """Overload str() """
         raise NotImplementedError
 
     def __repr__(self) -> str:
-        """Overload repr() """
         return "{}({}, coeff={})".format(type(self).__name__, repr(self.primitive), self.coeff)
 
     def eval(self,
              front: Union[str, dict, np.ndarray,
                           OperatorBase] = None) -> Union[OperatorBase, float, complex]:
-        """ Evaluate the Operator function given one or both states. """
         raise NotImplementedError
 
     def bind_parameters(self, param_dict: dict) -> OperatorBase:
-        """ bind parameters """
+        """ Bind parameter values to ``ParameterExpressions`` in ``coeff`` or ``primitive``. """
         param_value = self.coeff
         if isinstance(self.coeff, ParameterExpression):
             unrolled_dict = self._unroll_param_dict(param_dict)
@@ -202,37 +227,34 @@ class PrimitiveOp(OperatorBase):
         return self
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
-        """ Return matrix representing PrimitiveOp evaluated on each pair of basis states."""
         raise NotImplementedError
 
     def to_matrix_op(self, massive: bool = False) -> OperatorBase:
-        """ Return a MatrixOp for this operator. """
+        """ Returns a ``MatrixOp`` equivalent to this Operator. """
         # pylint: disable=import-outside-toplevel
         prim_mat = self.__class__(self.primitive).to_matrix(massive=massive)
         from .matrix_op import MatrixOp
         return MatrixOp(prim_mat, coeff=self.coeff)
 
     def to_instruction(self) -> Instruction:
-        """ Returns an Instruction representing PrimitiveOp evaluated on each pair of basis
-        states."""
+        """ Returns an ``Instruction`` equivalent to this Operator. """
         raise NotImplementedError
 
     def to_circuit(self) -> QuantumCircuit:
-        """ returns a QuantumCircuit holding a UnitaryGate instruction constructed from this
-        matrix """
+        """ Returns a ``QuantumCircuit`` equivalent to this Operator. """
         qc = QuantumCircuit(self.num_qubits)
         qc.append(self.to_instruction(), qargs=range(self.primitive.num_qubits))
         return qc.decompose()
 
     def to_circuit_op(self) -> OperatorBase:
-        """ Return a CircuitOp for this operator. """
+        """ Returns a ``CircuitOp`` equivalent to this Operator. """
         # pylint: disable=import-outside-toplevel
         from .circuit_op import CircuitOp
         return CircuitOp(self.to_circuit())
 
     # TODO change the PauliOp to depend on SparsePauliOp as its primitive
     def to_pauli_op(self, massive: bool = False) -> OperatorBase:
-        """ Return Sum of Paulis representing the Operator"""
+        """ Returns a sum of ``PauliOp`` s equivalent to this Operator. """
         mat_op = self.to_matrix_op(massive=massive)
         sparse_pauli = SparsePauliOp.from_operator(mat_op.primitive)
         return sum([PrimitiveOp(Pauli.from_label(label), coeff)

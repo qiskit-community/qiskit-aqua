@@ -12,7 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" An Object to represent State Functions constructed from Operators """
+""" CircuitStateFn Class """
+
 
 from typing import Union, Set
 import numpy as np
@@ -110,7 +111,6 @@ class CircuitStateFn(StateFn):
         return CircuitStateFn(Initialize(normalized_sv), coeff=normalization_coeff)
 
     def primitive_strings(self) -> Set[str]:
-        """ Return a set of strings describing the primitives contained in the Operator """
         return {'QuantumCircuit'}
 
     @property
@@ -118,7 +118,6 @@ class CircuitStateFn(StateFn):
         return self.primitive.num_qubits
 
     def add(self, other: OperatorBase) -> OperatorBase:
-        """ Addition. Overloaded by + in OperatorBase. """
         if not self.num_qubits == other.num_qubits:
             raise ValueError('Sum over operators with different numbers of qubits, '
                              '{} and {}, is not well '
@@ -136,11 +135,8 @@ class CircuitStateFn(StateFn):
                               is_measurement=(not self.is_measurement))
 
     def compose(self, other: OperatorBase) -> OperatorBase:
-        """ Composition (Linear algebra-style, right-to-left) is not well defined
-        for States in the binary function
-        model. However, it is well defined for measurements.
-        """
-        # TODO maybe allow outers later to produce density operators or projectors, but not yet.
+        """ Composition (Linear algebra-style: A@B(x) = A(B(x))) is not well defined for states
+        in the binary function model, but is well defined for measurements. """
         if not self.is_measurement:
             raise ValueError(
                 'Composition with a Statefunctions in the first operand is not defined.')
@@ -172,7 +168,7 @@ class CircuitStateFn(StateFn):
         return ComposedOp([new_self, other])
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
-        """ Tensor product
+        """ Return tensor product between self and other, overloaded by ``^``.
         Note: You must be conscious of Qiskit's big-endian bit printing convention.
         Meaning, Plus.tensor(Zero)
         produces a |+⟩ on qubit 0 and a |0⟩ on qubit 1, or |+⟩⨂|0⟩, but would produce
@@ -251,7 +247,6 @@ class CircuitStateFn(StateFn):
         return statevector * self.coeff
 
     def __str__(self) -> str:
-        """Overload str() """
         qc = self.reduce().to_circuit()
         prim_str = str(qc.draw(output='text'))
         if self.coeff == 1.0:
@@ -305,7 +300,7 @@ class CircuitStateFn(StateFn):
         return self.to_matrix_op().eval(front)
 
     def to_circuit(self, meas: bool = False) -> QuantumCircuit:
-        """ to circuit """
+        """ Return QuantumCircuit representing StateFn """
         if meas:
             qc = QuantumCircuit(self.num_qubits, self.num_qubits)
             qc.append(self.to_instruction(), qargs=range(self.primitive.num_qubits))
@@ -343,7 +338,7 @@ class CircuitStateFn(StateFn):
             scaled_dict = {bstr: (prob / shots) for (bstr, prob) in counts.items()}
         return dict(sorted(scaled_dict.items(), key=lambda x: x[1], reverse=True))
 
-    # Warning - modifying immutable object!!
+    # Warning - modifying primitive!!
     def reduce(self) -> OperatorBase:
         if self.primitive.data is not None:
             for i, inst_context in enumerate(self.primitive.data):

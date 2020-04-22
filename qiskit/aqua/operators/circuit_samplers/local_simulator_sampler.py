@@ -212,6 +212,9 @@ class LocalSimulatorSampler(CircuitSamplerBase):
                 if self._statevector:
                     result_sfn = StateFn(op_c.coeff * results.get_statevector(circ_index))
                 elif self._snapshot:
+                    # TODO change logic so only "snapshot_measurement" CircuitStateFns trigger
+                    #  this. Also, allow setting on CircuitSamplers whether to attach Results to
+                    #  DictStateFns or not.
                     snapshot_data = results.data(circ_index)['snapshots']
                     avg = snapshot_data['expectation_value']['expval'][0]['value']
                     if isinstance(avg, (list, tuple)):

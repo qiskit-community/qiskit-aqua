@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Eager Operator Composition Container """
+""" ComposedOp Class """
 
 from typing import List, Union
 from functools import reduce, partial
