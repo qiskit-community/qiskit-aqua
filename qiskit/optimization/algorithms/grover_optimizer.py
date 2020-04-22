@@ -104,21 +104,26 @@ class GroverOptimizer(OptimizationAlgorithm):
         operation_count = {}
         iteration = 0
 
+        # Variables for stopping if we've hit the rotation max.
+        rotations = 0
+        max_rotations = int(np.ceil(100*np.pi/4))
+
         # Initialize oracle helper object.
         orig_constant = problem_.objective.constant
         measurement = not self._quantum_instance.is_statevector
         opt_prob_converter = QuadraticProgramToNegativeValueOracle(n_value,
                                                                    measurement)
 
-        loops_with_no_improvement = 0
         while not optimum_found:
+            m = 1
+            improvement_found = False
+
             # Get oracle O and the state preparation operator A for the current threshold.
             problem_.objective.constant = orig_constant - threshold
             a_operator, oracle, func_dict = opt_prob_converter.encode(problem_)
 
             # Iterate until we measure a negative.
             loops_with_no_improvement = 0
-            improvement_found = False
             while not improvement_found:
                 # Determine the number of rotations.
                 loops_with_no_improvement += 1
@@ -167,19 +172,11 @@ class GroverOptimizer(OptimizationAlgorithm):
                         improvement_found = True
                         optimum_found = True
 
-            # Check if we've already seen this value.
-            if k not in keys_measured:
-                keys_measured.append(k)
-
-            # Stop if we've seen all the keys.
-            if len(keys_measured) == num_solutions:
-                optimum_found = True
-
-            # Track the operation count.
-            operations = circuit.count_ops()
-            operation_count[iteration] = operations
-            iteration += 1
-            logger.info('Operation Count: %s\n', operations)
+                # Track the operation count.
+                operations = circuit.count_ops()
+                operation_count[iteration] = operations
+                iteration += 1
+                logger.info('Operation Count: %s\n', operations)
 
         # Get original key and value pairs.
         func_dict[-1] = orig_constant
