@@ -217,6 +217,14 @@ class PhaseEstimationCircuit:
 
             # inverse qft on ancillae
             if isinstance(self._iqft, QuantumCircuit):
+                # check if QFT has the right size
+                if self._iqft.num_qubits != len(a):
+                    try:  # try resizing
+                        self._iqft.num_qubits = len(a)
+                    except AttributeError:
+                        raise ValueError('The IQFT cannot be resized and does not have the '
+                                         'required size of {}'.format(len(a)))
+
                 if hasattr(self._iqft, 'do_swaps'):
                     self._iqft.do_swaps = False
                 qc.append(self._iqft.to_instruction(), a)
