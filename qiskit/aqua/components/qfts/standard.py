@@ -21,8 +21,7 @@ from .approximate import Approximate
 
 
 class Standard(Approximate):
-    """
-    The Standard QFT.
+    """The Standard QFT.
 
     This is a standard Quantum Fourier Transform
     """
