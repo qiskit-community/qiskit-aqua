@@ -135,7 +135,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
                 # set x_i = x_j
                 problem_.substitute_variables()
                 problem_, status = problem_.substitute_variables(variables={i: (j, 1)})
-                if status == SubstitutionStatus.infeasible:
+                if status == SubstitutionStatus.INFEASIBLE:
                     raise QiskitOptimizationError('Infeasible due to variable substitution')
                 replacements[x_i] = (x_j, 1)
             else:
@@ -158,7 +158,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
 
                 # 2. replace x_i by -x_j
                 problem_, status = problem_.substitute_variables(variables={i: (j, -1)})
-                if status == SubstitutionStatus.infeasible:
+                if status == SubstitutionStatus.INFEASIBLE:
                     raise QiskitOptimizationError('Infeasible due to variable substitution')
                 replacements[x_i] = (x_j, -1)
 
