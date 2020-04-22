@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Infinity constant from CPLEX optimization."""
+"""Infinity constant."""
 
-CPX_INFBOUND = 1.0E+20
-infinity = CPX_INFBOUND  # pylint: disable=invalid-name
+
+infinity = 1.0E+20  # pylint: disable=invalid-name
