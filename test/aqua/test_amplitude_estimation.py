@@ -137,6 +137,10 @@ class TestBernoulli(QiskitAquaTestCase):
 
         self._qasm = qasm
 
+    def tearDown(self):
+        super().tearDown()
+        warnings.filterwarnings(action="always", category=DeprecationWarning)
+
     @idata([
         [0.2, AmplitudeEstimation(2), {'estimation': 0.5, 'mle': 0.2}],
         [0.4, AmplitudeEstimation(4), {'estimation': 0.30866, 'mle': 0.4}],

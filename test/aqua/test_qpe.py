@@ -60,6 +60,10 @@ QUBIT_OP_ZZ = WeightedPauliOperator.from_dict(PAULI_DICT_ZZ)
 class TestQPE(QiskitAquaTestCase):
     """QPE tests."""
 
+    def tearDown(self):
+        super().tearDown()
+        warnings.filterwarnings(action="always", category=DeprecationWarning)
+
     @idata([
         [QUBIT_OP_SIMPLE, 'qasm_simulator', 1, 5, False],
         [QUBIT_OP_SIMPLE, 'qasm_simulator', 1, 5, True],

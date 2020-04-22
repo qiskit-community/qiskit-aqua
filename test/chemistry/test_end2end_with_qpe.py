@@ -36,6 +36,10 @@ from qiskit.chemistry.components.initial_states import HartreeFock
 class TestEnd2EndWithQPE(QiskitChemistryTestCase):
     """QPE tests."""
 
+    def tearDown(self):
+        super().tearDown()
+        warnings.filterwarnings(action="always", category=DeprecationWarning)
+
     @idata(list(product(
         [0.5, 0.735, 1],
         [False, True]
