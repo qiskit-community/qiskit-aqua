@@ -77,7 +77,6 @@ class OperatorToQuadraticProgram:
                 # 4 * weight of the pauli
                 coef = weight * 4
                 quadratic[(i, j)] = coef
-#                self._qp.objective.set_quadratic_coefficients(i, j, coef)
                 # Sub the weight of the quadratic pauli term from the QUBO matrix
                 self._qubo_matrix[i, j] -= weight
                 # Sub the weight of the linear pauli term from the QUBO matrix
@@ -95,13 +94,11 @@ class OperatorToQuadraticProgram:
             # 2 * weight of the pauli
             coef = weight * 2
             linear[i] = -coef
-#           self._qp.objective.set_linear(i, -coef)
             # Sub the weight of the linear pauli term from the QUBO matrix
             self._qubo_matrix[i, i] -= weight
             offset += weight
 
         self._qp.minimize(offset, linear, quadratic)
-
         offset -= offset
 
         return self._qp
