@@ -154,10 +154,18 @@ class StateFn(OperatorBase):
         convention. Meaning, Plus.tensor(Zero)
         produces a |+⟩ on qubit 0 and a |0⟩ on qubit 1, or |+⟩⨂|0⟩, but
         would produce a QuantumCircuit like
-        |0⟩--
-        |+⟩--
+
+            |0⟩--
+            |+⟩--
+
         Because Terra prints circuits and results with qubit 0
         at the end of the string or circuit.
+
+        Args:
+            other: The ``OperatorBase`` to tensor product with self.
+
+        Returns:
+            An ``OperatorBase`` equivalent to the tensor product of self and other.
         """
         raise NotImplementedError
 
@@ -192,14 +200,14 @@ class StateFn(OperatorBase):
         return new_self, other
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
-        """ Return numpy vector representing StateFn evaluated on each basis state. Warn if more
-        than 16 qubits to force having to set massive=True if such a large vector is desired.
+        """ Return NumPy vector representing StateFn evaluated on each basis state. Warn if more
+        than 16 qubits to force having to set ``massive=True`` if such a large vector is desired.
         Must be overridden by child classes.
 
-        NOTE: THIS DOES NOT RETURN A DENSITY MATRIX, IT RETURNS A CLASSICAL MATRIX CONTAINING
-        THE QUANTUM OR CLASSICAL VECTOR REPRESENTING THE EVALUATION OF THE STATE FUNCTION ON
-        EACH BINARY BASIS STATE. DO NOT ASSUME THIS IS IS A NORMALIZED QUANTUM OR CLASSICAL
-        PROBABILITY VECTOR. If we allowed this to return a density matrix, then we would need
+        NOTE: This does not return a density matrix, it returns a classical matrix containing
+        the quantum or classical vector representing the evaluation of the state function on
+        each binary basis state. Do not assume this is is a normalized quantum or classical
+        probability vector. If we allowed this to return a density matrix, then we would need
         to change the definition of composition to be ~Op @ StateFn @ Op for those cases,
         whereas by this methodology we can ensure that composition always means Op @ StateFn.
         """
@@ -207,7 +215,7 @@ class StateFn(OperatorBase):
 
     def to_density_matrix(self, massive: bool = False) -> np.ndarray:
         """ Return matrix representing product of StateFn evaluated on pairs of basis states.
-        Must be overridden by child classes."""
+        Overridden by child classes."""
         raise NotImplementedError
 
     def compose(self, other: OperatorBase) -> OperatorBase:
@@ -282,8 +290,8 @@ class StateFn(OperatorBase):
     # Recurse into StateFn's operator with a converter if primitive is an operator.
     def traverse(self,
                  convert_fn: Callable,
-                 coeff: Optional[Union[int, float, complex,
-                                       ParameterExpression]] = None) -> OperatorBase:
+                 coeff: Optional[Union[int, float, complex, ParameterExpression]] = None
+                 ) -> OperatorBase:
         """ Apply the convert_fn to each node in the oplist. """
         return StateFn(convert_fn(self.primitive),
                        coeff=coeff or self.coeff, is_measurement=self.is_measurement)

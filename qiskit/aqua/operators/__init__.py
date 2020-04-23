@@ -28,6 +28,7 @@ Operators
 
    OperatorBase
    PrimitiveOp
+   PauliOp
 
 Operator support
 ================

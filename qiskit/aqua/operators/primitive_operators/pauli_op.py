@@ -35,11 +35,7 @@ PAULI_GATE_MAPPING = {'X': XGate(), 'Y': YGate(), 'Z': ZGate(), 'I': IGate()}
 
 
 class PauliOp(PrimitiveOp):
-    """ Class for Wrapping Pauli Primitives
-
-    Note that all mathematical methods are not in-place,
-    meaning that they return a new object, but the underlying
-    primitives are not copied.
+    """ Class for Operators backed by Terra's ``Pauli`` module.
 
     """
 
@@ -48,7 +44,7 @@ class PauliOp(PrimitiveOp):
                  coeff: Optional[Union[int, float, complex, ParameterExpression]] = 1.0) -> None:
         """
             Args:
-                primitive: The operator primitive being wrapped.
+                primitive: The Pauli which defines the behavior of the underlying function.
                 coeff: A coefficient multiplying the primitive.
 
             Raises:
@@ -102,16 +98,6 @@ class PauliOp(PrimitiveOp):
         return TensoredOp([self, other])
 
     def compose(self, other: OperatorBase) -> OperatorBase:
-        r"""
-        Return Operator Composition between self and other (linear algebra-style:
-        A@B(x) = A(B( x))), overloaded by ``@``.
-
-        Note: You must be conscious of Quantum Circuit vs. Linear Algebra ordering conventions.
-        Meaning, X.compose(Y) produces an X∘Y on qubit 0, but would produce a QuantumCircuit
-        which looks like
-            -[Y]-[X]-
-        because Terra prints circuits with the initial state at the left side of the circuit.
-        """
         other = self._check_zero_for_composition_and_expand(other)
 
         # If self is identity, just return other.
@@ -132,13 +118,6 @@ class PauliOp(PrimitiveOp):
         return ComposedOp([self, other])
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
-        """ Return numpy matrix of operator, warn if more than
-        16 qubits to force the user to set massive=True if
-        they want such a large matrix. Generally big methods like
-        this should require the use of a converter,
-        but in this case a convenience method for quick hacking
-        and access to classical tools is appropriate. """
-
         if self.num_qubits > 16 and not massive:
             raise ValueError(
                 'to_matrix will return an exponentially large matrix, '
@@ -148,7 +127,14 @@ class PauliOp(PrimitiveOp):
         return self.primitive.to_matrix() * self.coeff
 
     def to_spmatrix(self) -> spmatrix:
-        """ Return scipy sparse matrix of operator. """
+        """ Returns SciPy sparse matrix representation of the Operator.
+
+        Returns:
+            CSR sparse matrix representation of the Operator.
+
+        Raises:
+            ValueError: invalid parameters.
+        """
         return self.primitive.to_spmatrix() * self.coeff
 
     def __str__(self) -> str:
@@ -161,18 +147,6 @@ class PauliOp(PrimitiveOp):
     def eval(self,
              front: Union[str, dict, np.ndarray,
                           OperatorBase] = None) -> Union[OperatorBase, float, complex]:
-        """ A square binary Operator can be defined as a function over
-        two binary strings of equal length. This
-        method returns the value of that function for a given pair of
-        binary strings. For more information,
-        see the eval method in operator_base.py.
-
-        Notice that Pauli evals will always return 0 for Paulis with X or Y terms
-        if val1 == val2. This is why we must
-        convert to a {Z,I}^n Pauli basis to take "averaging"
-        style expectations (e.g. PauliExpectation).
-        """
-
         if front is None:
             return self.to_matrix_op()
 
@@ -222,6 +196,7 @@ class PauliOp(PrimitiveOp):
         return new_front
 
     def exp_i(self) -> OperatorBase:
+        """ Return a ``CircuitOp`` equivalent to e^-iH for this operator H. """
         # if only one qubit is significant, we can perform the evolution
         corrected_x = self.primitive.x[::-1]
         corrected_z = self.primitive.z[::-1]
@@ -256,8 +231,16 @@ class PauliOp(PrimitiveOp):
         # Need this to be able to easily construct AbelianGraphs
         return id(self)
 
-    def commutes(self, other_op) -> bool:
-        """ commutes """
+    def commutes(self, other_op: OperatorBase) -> bool:
+        """ Returns whether self commutes with other_op.
+
+        Args:
+            other_op: An ``OperatorBase`` with which to evaluate whether self commutes.
+
+        Returns:
+            A bool equaling whether self commutes with other_op
+
+        """
         if not isinstance(other_op, PauliOp):
             return False
         # Don't use compose because parameters will break this
@@ -266,7 +249,6 @@ class PauliOp(PrimitiveOp):
         return all((self_bits * other_bits) * (self_bits - other_bits) == 0)
 
     def to_circuit(self) -> QuantumCircuit:
-        """ returns a circuit constructed from this Pauli """
         # If Pauli equals identity, don't skip the IGates
         is_identity = sum(self.primitive.x + self.primitive.z) == 0
 

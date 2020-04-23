@@ -34,10 +34,7 @@ logger = logging.getLogger(__name__)
 
 
 class MatrixOp(PrimitiveOp):
-    """ Class for Wrapping Matrix Primitives
-
-    Note that all mathematical methods are not in-place, meaning that
-    they return a new object, but the underlying primitives are not copied.
+    """ Class for Operators represented by matrices, backed by Terra's ``Operator`` module.
 
     """
 
@@ -45,10 +42,11 @@ class MatrixOp(PrimitiveOp):
                  coeff: Optional[Union[int, float, complex, ParameterExpression]] = 1.0) -> None:
         """
         Args:
-            primitive ([[complex]], np.ndarray, MatrixOperator, spmatrix): The operator
-            primitive being wrapped.
+            primitive ([[complex]], np.ndarray, MatrixOperator, spmatrix): The matrix-like object
+                which defines the behavior of the underlying function.
             coeff (int, float, complex, ParameterExpression): A coefficient multiplying the
-            primitive
+                primitive
+
         Raises:
             TypeError: invalid parameters.
             ValueError: invalid parameters.
@@ -107,14 +105,6 @@ class MatrixOp(PrimitiveOp):
         return TensoredOp([self, other])
 
     def compose(self, other: OperatorBase) -> OperatorBase:
-        """ Operator Composition (Linear algebra-style, right-to-left)
-
-        Note: You must be conscious of Quantum Circuit vs. Linear Algebra ordering
-        conventions. Meaning, X.compose(Y)
-        produces an X∘Y on qubit 0, but would produce a QuantumCircuit which looks like
-        -[Y]-[X]-
-        Because Terra prints circuits with the initial state at the left side of the circuit.
-        """
         other = self._check_zero_for_composition_and_expand(other)
 
         if isinstance(other, MatrixOp):
@@ -124,13 +114,6 @@ class MatrixOp(PrimitiveOp):
         return ComposedOp([self, other])
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
-        """ Return numpy matrix of operator, warn if more than 16 qubits to force
-        the user to set massive=True if
-        they want such a large matrix. Generally big methods like this should require
-        the use of a converter,
-        but in this case a convenience method for quick hacking and access to classical
-        tools is appropriate. """
-
         if self.num_qubits > 16 and not massive:
             raise ValueError(
                 'to_matrix will return an exponentially large matrix, '
@@ -149,18 +132,7 @@ class MatrixOp(PrimitiveOp):
     def eval(self,
              front: Union[str, dict, np.ndarray,
                           OperatorBase] = None) -> Union[OperatorBase, float, complex]:
-        """ A square binary Operator can be defined as a function over two binary
-        strings of equal length. This
-        method returns the value of that function for a given pair of binary strings.
-        For more information,
-        see the eval method in operator_base.py.
-
-        Notice that Pauli evals will always return 0 for Paulis with X or Y terms
-        if val1 == val2. This is why we must
-        convert to a {Z,I}^n Pauli basis to take "averaging"
-        style expectations (e.g. PauliExpectation).
-        """
-        # For other ops eval we return self.to_matrix_op() here, but that's unnecessary here.
+        # For other ops' eval we return self.to_matrix_op() here, but that's unnecessary here.
         if front is None:
             return self
 
@@ -186,8 +158,8 @@ class MatrixOp(PrimitiveOp):
 
         return new_front
 
-    def exp_i(self):
-        """Return a CircuitOp corresponding to e^-iH for this operator H"""
+    def exp_i(self) -> OperatorBase:
+        """Return a ``CircuitOp`` equivalent to e^-iH for this operator H"""
         return CircuitOp(HamiltonianGate(self.primitive, time=self.coeff))
 
     # Op Conversions

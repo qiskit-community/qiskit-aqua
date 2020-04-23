@@ -28,7 +28,7 @@ class OperatorBase(ABC):
     """ A base class for all Operators: PrimitiveOps, StateFns, ListOps, etc. Operators are
     defined as functions which take one complex binary function to another. These complex binary
     functions are represented by StateFns, which are themselves a special class of Operators
-    taking only the Zero StateFn to the complex binary function they represent.
+    taking only the ``Zero`` StateFn to the complex binary function they represent.
 
     Operators can be used to construct complicated functions and computation, and serve as the
     building blocks for algorithms in Aqua.
@@ -351,8 +351,10 @@ class OperatorBase(ABC):
         Note: You must be conscious of Qiskit's big-endian bit printing convention.
         Meaning, X.tensor(Y) produces an X on qubit 0 and an Y on qubit 1, or X⨂Y,
         but would produce a QuantumCircuit which looks like
-        -[Y]-
-        -[X]-
+
+            -[Y]-
+            -[X]-
+
         Because Terra prints circuits and results with qubit 0 at the end of the string
         or circuit.
 
@@ -457,7 +459,9 @@ class OperatorBase(ABC):
         Note: You must be conscious of Quantum Circuit vs. Linear Algebra ordering
         conventions. Meaning, X.compose(Y)
         produces an X∘Y on qubit 0, but would produce a QuantumCircuit which looks like
-        -[Y]-[X]-
+
+            -[Y]-[X]-
+
         Because Terra prints circuits with the initial state at the left side of the circuit.
 
         Args:

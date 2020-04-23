@@ -95,8 +95,13 @@ class PrimitiveOp(OperatorBase):
         self._coeff = coeff
 
     @property
-    def primitive(self):
-        """ The primitive defining the underlying function of the Operator. """
+    def primitive(self) -> Union[Instruction, QuantumCircuit, list,
+                                 np.ndarray, spmatrix, MatrixOperator, Pauli]:
+        """ The primitive defining the underlying function of the Operator.
+
+        Returns:
+             The primitive object.
+        """
         return self._primitive
 
     @property
@@ -133,15 +138,6 @@ class PrimitiveOp(OperatorBase):
         return self.__class__(self.primitive, coeff=self.coeff * scalar)
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
-        """ Return tensor product between self and other, overloaded by ``^``.
-        Note: You must be conscious of Qiskit's big-endian bit printing convention.
-        Meaning, X.tensor(Y) produces an X on qubit 0 and an Y on qubit 1, or X⨂Y,
-        but would produce a QuantumCircuit which looks like
-        -[Y]-
-        -[X]-
-        Because Terra prints circuits and results with qubit 0 at the end of the string
-        or circuit.
-        """
         raise NotImplementedError
 
     def tensorpower(self, other: int) -> Union[OperatorBase, int]:
@@ -156,16 +152,6 @@ class PrimitiveOp(OperatorBase):
         return temp
 
     def compose(self, other: OperatorBase) -> OperatorBase:
-        r"""
-        Return Operator Composition between self and other (linear algebra-style:
-        A@B(x) = A(B( x))), overloaded by ``@``.
-
-        Note: You must be conscious of Quantum Circuit vs. Linear Algebra ordering conventions.
-        Meaning, X.compose(Y) produces an X∘Y on qubit 0, but would produce a QuantumCircuit
-        which looks like
-            -[Y]-[X]-
-        because Terra prints circuits with the initial state at the left side of the circuit.
-        """
         raise NotImplementedError
 
     def _check_zero_for_composition_and_expand(self, other: OperatorBase) -> OperatorBase:
@@ -207,7 +193,6 @@ class PrimitiveOp(OperatorBase):
         raise NotImplementedError
 
     def bind_parameters(self, param_dict: dict) -> OperatorBase:
-        """ Bind parameter values to ``ParameterExpressions`` in ``coeff`` or ``primitive``. """
         param_value = self.coeff
         if isinstance(self.coeff, ParameterExpression):
             unrolled_dict = self._unroll_param_dict(param_dict)

@@ -158,28 +158,6 @@ class DictStateFn(StateFn):
         return self.to_matrix() * np.eye(states) * self.coeff
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
-        """
-        NOTE: THIS DOES NOT RETURN A DENSITY MATRIX, IT RETURNS A CLASSICAL MATRIX CONTAINING
-        THE QUANTUM OR CLASSICAL
-        VECTOR REPRESENTING THE EVALUATION OF THE STATE FUNCTION ON EACH BINARY BASIS STATE.
-        DO NOT ASSUME THIS IS
-        IS A NORMALIZED QUANTUM OR CLASSICAL PROBABILITY VECTOR. If we allowed this to return
-        a density matrix,
-        then we would need to change the definition of composition to
-        be ~Op @ StateFn @ Op for those cases,
-        whereas by this methodology we can ensure that composition always means Op @ StateFn.
-
-        Return numpy vector of state vector, warn if more than 16 qubits to force the user to set
-        massive=True if they want such a large vector. Generally big methods like this
-        should require the use of a
-        converter, but in this case a convenience method for quick hacking and access
-        to classical tools is appropriate.
-        Returns:
-            np.ndarray: vector of state vector
-        Raises:
-            ValueError: invalid parameters.
-        """
-
         if self.num_qubits > 16 and not massive:
             # TODO figure out sparse matrices?
             raise ValueError(
@@ -203,8 +181,10 @@ class DictStateFn(StateFn):
     def to_spmatrix(self) -> sparse.spmatrix:
         """
         Same as to_matrix, but returns csr sparse matrix.
+
         Returns:
-            sparse.csr_matrix: vector of state vector
+            CSR sparse matrix representation of the State function.
+
         Raises:
             ValueError: invalid parameters.
         """

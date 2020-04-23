@@ -135,8 +135,6 @@ class CircuitStateFn(StateFn):
                               is_measurement=(not self.is_measurement))
 
     def compose(self, other: OperatorBase) -> OperatorBase:
-        """ Composition (Linear algebra-style: A@B(x) = A(B(x))) is not well defined for states
-        in the binary function model, but is well defined for measurements. """
         if not self.is_measurement:
             raise ValueError(
                 'Composition with a Statefunctions in the first operand is not defined.')
@@ -173,9 +171,17 @@ class CircuitStateFn(StateFn):
         Meaning, Plus.tensor(Zero)
         produces a |+⟩ on qubit 0 and a |0⟩ on qubit 1, or |+⟩⨂|0⟩, but would produce
         a QuantumCircuit like
-        |0⟩--
-        |+⟩--
+
+            |0⟩--
+            |+⟩--
+
         Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
+
+        Args:
+            other: The ``OperatorBase`` to tensor product with self.
+
+        Returns:
+            An ``OperatorBase`` equivalent to the tensor product of self and other.
         """
         # pylint: disable=import-outside-toplevel
         if isinstance(other, CircuitStateFn) and other.is_measurement == self.is_measurement:
@@ -208,29 +214,6 @@ class CircuitStateFn(StateFn):
         return StateFn(self.to_matrix() * self.coeff).to_density_matrix()
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
-        """
-        NOTE: THIS DOES NOT RETURN A DENSITY MATRIX, IT RETURNS A CLASSICAL MATRIX CONTAINING
-         THE QUANTUM OR CLASSICAL
-        VECTOR REPRESENTING THE EVALUATION OF THE STATE FUNCTION ON EACH BINARY BASIS STATE.
-        DO NOT ASSUME THIS IS
-        IS A NORMALIZED QUANTUM OR CLASSICAL PROBABILITY VECTOR. If we allowed this to
-        return a density matrix,
-        then we would need to change the definition of composition to be ~Op @ StateFn @
-        Op for those cases,
-        whereas by this methodology we can ensure that composition always means Op @ StateFn.
-
-        Return numpy vector of state vector, warn if more than 16 qubits to force the user to set
-        massive=True if they want such a large vector. Generally big methods like this
-        should require the use of a
-        converter, but in this case a convenience method for quick hacking and access
-        to classical tools is
-        appropriate.
-        Returns:
-            np.ndarray: vector of state vector
-        Raises:
-            ValueError: invalid parameters.
-        """
-
         if self.num_qubits > 16 and not massive:
             raise ValueError(
                 'to_vector will return an exponentially large vector, in this case {0} elements.'

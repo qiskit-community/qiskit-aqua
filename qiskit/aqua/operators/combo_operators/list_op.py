@@ -14,7 +14,7 @@
 
 """ ListOp Operator Class """
 
-from typing import List, Union, Optional, Callable, Iterator, Set
+from typing import List, Union, Optional, Callable, Iterator, Set, Dict
 from functools import reduce
 import numpy as np
 from scipy.sparse import spmatrix
@@ -26,10 +26,11 @@ from ..operator_base import OperatorBase
 
 class ListOp(OperatorBase):
     """ A class for storing and manipulating lists of operators.
-    Vec here refers to the fact that this class serves
+    List here refers to the fact that this class serves
     as a base class for other Operator combinations which store
     a list of operators, such as SummedOp or TensoredOp,
-    but also refers to the "vec" mathematical operation.
+    but also refers to the fact that this Operator's eval will
+    return lists of values, rather than only single complex values.
     """
 
     def __init__(self,
@@ -39,15 +40,14 @@ class ListOp(OperatorBase):
                  abelian: bool = False) -> None:
         """
         Args:
-            oplist: The operators being summed.
-            combo_fn (callable): The recombination function to reduce classical operators
-            when available (e.g. sum)
+            oplist: The list of ``OperatorBases`` defining this Operator's underlying function.
+            combo_fn (callable): The recombination function to combine classical results of the
+                ``oplist`` Operators' eval functions (e.g. sum).
             coeff: A coefficient multiplying the operator
-            abelian: indicates if abelian
+            abelian: Indicates whether the Operators in ``oplist`` are know to mutually commute.
 
-            Note that the default "recombination function" lambda above is the identity -
-            it takes a list of operators,
-            and is supposed to return a list of operators.
+            Note that the default "recombination function" lambda above is essentially the
+            identity - it accepts the list of values, and returns them in a list.
         """
         self._oplist = oplist
         self._combo_fn = combo_fn
@@ -56,34 +56,53 @@ class ListOp(OperatorBase):
 
     @property
     def oplist(self) -> List[OperatorBase]:
-        """ Returns the list of ``OperatorBase`` defining the underlying function of this
-        Operator.  """
+        """ The list of ``OperatorBases`` defining the underlying function of this
+        Operator.
+
+        Returns:
+            The Operators defining the ListOp
+        """
         return self._oplist
 
     @property
     def combo_fn(self) -> Callable:
         """ The function defining how to combine ``oplist`` (or Numbers, or NumPy arrays) to
         produce the Operator's underlying function. For example, SummedOp's combination function
-        is to add all of the Operators in ``oplist``. """
+        is to add all of the Operators in ``oplist``.
+
+        Returns:
+            The combination function.
+        """
         return self._combo_fn
 
     @property
     def abelian(self) -> bool:
-        """ Whether the Operators in ``OpList`` are known to commute with one another. """
+        """ Whether the Operators in ``oplist`` are known to commute with one another.
+
+        Returns:
+            A bool indicating whether the ``oplist`` is Abelian.
+        """
         return self._abelian
 
-    # TODO: Keep this property for evals or just enact distribution at composition time?
     @property
     def distributive(self) -> bool:
         """ Indicates whether the ListOp or subclass is distributive under composition.
         ListOp and SummedOp are, meaning that (opv @ op) = (opv[0] @ op + opv[1] @ op)
         (using plus for SummedOp, list for ListOp, etc.), while ComposedOp and TensoredOp
-        do not behave this way."""
+        do not behave this way.
+
+        Returns:
+            A bool indicating whether the ListOp is distributive under composition.
+        """
         return True
 
     @property
     def coeff(self) -> Union[int, float, complex, ParameterExpression]:
-        """ The scalar coefficient multiplying the Operator. """
+        """ The scalar coefficient multiplying the Operator.
+
+        Returns:
+            The coefficient.
+        """
         return self._coeff
 
     def primitive_strings(self) -> Set[str]:
@@ -91,9 +110,6 @@ class ListOp(OperatorBase):
 
     @property
     def num_qubits(self) -> int:
-        """ The number of qubits over which the Operator is defined. For now, follow the
-        convention that when one composes to a ListOp, they are composing to each separate
-        system. """
         return self.oplist[0].num_qubits
 
     def add(self, other: OperatorBase) -> OperatorBase:
@@ -134,27 +150,12 @@ class ListOp(OperatorBase):
         return self.__class__(self.oplist, coeff=self.coeff * scalar)
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
-        """ Return tensor product between self and other, overloaded by ``^``.
-        Note: You must be conscious of Qiskit's big-endian bit printing convention.
-        Meaning, X.tensor(Y) produces an X on qubit 0 and an Y on qubit 1, or X⨂Y, but would
-        produce a QuantumCircuit which looks like
-        -[Y]-
-        -[X]-
-        Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
-        """
-        # TODO do this lazily for some primitives (Matrix), and eager
-        #  for others (Pauli, Instruction)?
-        # NOTE: Doesn't work for ComposedOp!
-        # if eager and isinstance(other, PrimitiveOp):
-        #     return self.__class__([op.tensor(other) for op in self.oplist], coeff=self.coeff)
-
         # Avoid circular dependency
         # pylint: disable=cyclic-import,import-outside-toplevel
         from .tensored_op import TensoredOp
         return TensoredOp([self, other])
 
     def tensorpower(self, other: int) -> Union[OperatorBase, int]:
-        """ Tensor product with Self Multiple Times """
         # Hack to make op1^(op2^0) work as intended.
         if other == 0:
             return 1
@@ -166,18 +167,7 @@ class ListOp(OperatorBase):
         from .tensored_op import TensoredOp
         return TensoredOp([self] * other)
 
-    # TODO change to *other to efficiently handle lists?
     def compose(self, other: OperatorBase) -> OperatorBase:
-        r"""
-        Return Operator Composition between self and other (linear algebra-style:
-        A@B(x) = A(B( x))), overloaded by ``@``.
-
-        Note: You must be conscious of Quantum Circuit vs. Linear Algebra ordering conventions.
-        Meaning, X.compose(Y) produces an X∘Y on qubit 0, but would produce a QuantumCircuit
-        which looks like
-            -[Y]-[X]-
-        because Terra prints circuits with the initial state at the left side of the circuit.
-        """
         # Avoid circular dependency
         # pylint: disable=cyclic-import,import-outside-toplevel
         from .composed_op import ComposedOp
@@ -207,8 +197,15 @@ class ListOp(OperatorBase):
         else:
             return self.combo_fn([op.to_matrix() for op in self.oplist]) * self.coeff
 
-    def to_spmatrix(self) -> spmatrix:
-        """ Returns SciPy sparse matrix representation of the Operator. """
+    def to_spmatrix(self) -> Union[spmatrix, List[spmatrix]]:
+        """ Returns SciPy sparse matrix representation of the Operator.
+
+        Returns:
+            CSR sparse matrix representation of the Operator, or List thereof.
+
+        Raises:
+            ValueError: invalid parameters.
+        """
 
         # Combination function must be able to handle classical values
         if self.distributive:
@@ -217,18 +214,41 @@ class ListOp(OperatorBase):
             return self.combo_fn([op.to_spmatrix() for op in self.oplist]) * self.coeff
 
     def eval(self,
-             front: Union[str, dict, np.ndarray,
-                          OperatorBase] = None) -> Union[OperatorBase, float, complex]:
+             front: Optional[Union[str, Dict[str, complex], 'OperatorBase']] = None
+             ) -> Union['OperatorBase', float, complex, list]:
         """
         Evaluate the Operator's underlying function, either on a binary string or another Operator.
-        See the eval method in operator_base.py.
+        A square binary Operator can be defined as a function taking a binary function to another
+        binary function. This method returns the value of that function for a given StateFn or
+        binary string. For example, ``op.eval('0110').eval('1110')`` can be seen as querying the
+        Operator's matrix representation by row 6 and column 14, and will return the complex
+        value at those "indices." Similarly for a StateFn, ``op.eval('1011')`` will return the
+        complex value at row 11 of the vector representation of the StateFn, as all StateFns are
+        defined to be evaluated from Zero implicitly (i.e. it is as if ``.eval('0000')`` is already
+        called implicitly to always "indexing" from column 0).
 
         ListOp's eval recursively evaluates each Operator in ``oplist``,
         and combines the results using the recombination function ``combo_fn``.
+
+        Args:
+            front: The bitstring, dict of bitstrings (with values being coefficients), or
+                StateFn to evaluated by the Operator's underlying function.
+
+        Returns:
+            The output of the ``oplist`` Operators' evaluation function, combined with the
+            ``combo_fn``. If either self or front contain proper ``ListOps`` (not ListOp
+            subclasses), the result is an n-dimensional list of complex or StateFn results,
+            resulting from the recursive evaluation by each OperatorBase in the ListOps.
+
+        Raises:
+            NotImplementedError: Raised if called for a subclass which is not distributive.
+            TypeError: Operators with mixed hierarchies, such as a ListOp containing both
+                PrimitiveOps and ListOps, are not supported.
+
         """
         # The below code only works for distributive ListOps, e.g. ListOp and SummedOp
         if not self.distributive:
-            return NotImplementedError
+            raise NotImplementedError
 
         evals = [(self.coeff * op).eval(front) for op in self.oplist]
         if all([isinstance(op, OperatorBase) for op in evals]):
@@ -239,7 +259,7 @@ class ListOp(OperatorBase):
             return self.combo_fn(evals)
 
     def exp_i(self) -> OperatorBase:
-        """ Raise Operator to power e ^ (-i * op)"""
+        """ Return an ``OperatorBase`` equivalent to an exponentiation of self * -i, e^(-i*op)."""
         # pylint: disable=import-outside-toplevel
         from qiskit.aqua.operators import EvolvedOp
         return EvolvedOp(self)
@@ -260,7 +280,6 @@ class ListOp(OperatorBase):
                                                      self.abelian)
 
     def bind_parameters(self, param_dict: dict) -> OperatorBase:
-        """ Bind parameter values to ``ParameterExpressions`` in ``coeff`` or ``primitive``. """
         param_value = self.coeff
         if isinstance(self.coeff, ParameterExpression):
             unrolled_dict = self._unroll_param_dict(param_dict)
@@ -301,10 +320,28 @@ class ListOp(OperatorBase):
     # Array operations:
 
     def __getitem__(self, offset: int) -> OperatorBase:
+        """ Allows array-indexing style access to the Operators in ``oplist``.
+
+        Args:
+            offset: The index of ``oplist`` desired.
+
+        Returns:
+            The ``OperatorBase`` at index ``offset`` of ``oplist``.
+        """
         return self.oplist[offset]
 
     def __iter__(self) -> Iterator:
+        """ Returns an iterator over the operators in ``oplist``.
+
+        Returns:
+            An iterator over the operators in ``oplist``
+        """
         return iter(self.oplist)
 
     def __len__(self) -> int:
+        """ Length of ``oplist``.
+
+        Returns:
+            An int equal to the length of ``oplist``.
+        """
         return len(self.oplist)

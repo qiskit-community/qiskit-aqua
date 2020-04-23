@@ -94,7 +94,9 @@ class EvolvedOp(PrimitiveOp):
         ordering conventions. Meaning,
         X.compose(Y)
         produces an X∘Y on qubit 0, but would produce a QuantumCircuit which looks like
-        -[Y]-[X]-
+
+            -[Y]-[X]-
+
         Because Terra prints circuits with the initial state at the
         left side of the circuit.
         """

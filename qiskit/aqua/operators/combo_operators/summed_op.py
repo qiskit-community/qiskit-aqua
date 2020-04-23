@@ -23,16 +23,20 @@ from .list_op import ListOp
 
 
 class SummedOp(ListOp):
-    """ Eager Operator Sum Container """
+    """ A class for lazily representing sums of Operators. Often Operators cannot be
+    efficiently added to one another, but may be manipulated further so that they can be
+    later. This class holds logic to indicate that the Operators in ``oplist`` are meant to
+    be added together, and therefore if they reach a point in which they can be, such as after
+    evaluation or conversion to matrices, they can be reduced by addition. """
     def __init__(self,
                  oplist: List[OperatorBase],
                  coeff: Union[int, float, complex] = 1.0,
                  abelian: bool = False) -> None:
         """
         Args:
-            oplist: The operators being summed.
+            oplist: The Operators being summed.
             coeff: A coefficient multiplying the operator
-            abelian: indicates if abelian
+            abelian: Indicates whether the Operators in ``oplist`` are know to mutually commute.
         """
         super().__init__(oplist, combo_fn=partial(reduce, lambda x, y: x + y),
                          coeff=coeff, abelian=abelian)
@@ -41,7 +45,6 @@ class SummedOp(ListOp):
     def num_qubits(self) -> int:
         return self.oplist[0].num_qubits
 
-    # TODO: Keep this property for evals or just enact distribution at composition time?
     @property
     def distributive(self) -> bool:
         return True

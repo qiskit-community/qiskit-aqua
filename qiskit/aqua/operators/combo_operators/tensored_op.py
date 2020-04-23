@@ -23,16 +23,20 @@ from .list_op import ListOp
 
 
 class TensoredOp(ListOp):
-    """ Eager Tensored Operator Container """
+    """  A class for lazily representing tensor products of Operators. Often Operators cannot be
+    efficiently tensored to one another, but may be manipulated further so that they can be
+    later. This class holds logic to indicate that the Operators in ``oplist`` are meant to
+    be tensored together, and therefore if they reach a point in which they can be, such as after
+    conversion to QuantumCircuits, they can be reduced by tensor product. """
     def __init__(self,
                  oplist: List[OperatorBase],
                  coeff: Union[int, float, complex] = 1.0,
                  abelian: bool = False) -> None:
         """
         Args:
-            oplist: The operators being summed.
+            oplist: The Operators being tensored.
             coeff: A coefficient multiplying the operator
-            abelian: indicates if abelian
+            abelian: Indicates whether the Operators in ``oplist`` are know to mutually commute.
         """
         super().__init__(oplist, combo_fn=partial(reduce, np.kron), coeff=coeff, abelian=abelian)
 
@@ -40,7 +44,6 @@ class TensoredOp(ListOp):
     def num_qubits(self) -> int:
         return sum([op.num_qubits for op in self.oplist])
 
-    # TODO: Keep this property for evals or just enact distribution at composition time?
     @property
     def distributive(self) -> bool:
         return False
@@ -51,17 +54,10 @@ class TensoredOp(ListOp):
         return TensoredOp(self.oplist + [other], coeff=self.coeff)
 
     # TODO eval should partial trace the input into smaller StateFns each of size
-    #  op.num_qubits for each op in oplist. Right now just works through matmul like ComposedOp.
+    #  op.num_qubits for each op in oplist. Right now just works through matmul.
     def eval(self,
              front: Union[str, dict, np.ndarray,
                           OperatorBase] = None) -> Union[OperatorBase, float, complex]:
-        """ A square binary Operator can be defined as a function over two binary strings of
-        equal length. This
-        method returns the value of that function for a given pair of binary strings.
-        For more information,
-        see the eval method in operator_base.py.
-        """
-
         # pylint: disable=cyclic-import,import-outside-toplevel
         from ..primitive_operators import PrimitiveOp
         # TODO replace with to_matrix_op

@@ -32,10 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 class CircuitOp(PrimitiveOp):
-    """ Class for Wrapping Circuit Primitives
-
-    Note that all mathematical methods are not in-place, meaning that they return a
-    new object, but the underlying primitives are not copied.
+    """ Class for Operators backed by Terra's ``QuantumCircuit`` module.
 
     """
 
@@ -45,8 +42,10 @@ class CircuitOp(PrimitiveOp):
                                        ParameterExpression]] = 1.0) -> None:
         """
         Args:
-            primitive (Instruction, QuantumCircuit): The operator primitive being wrapped.
+            primitive (Instruction, QuantumCircuit): The QuantumCircuit which defines the
+            behavior of the underlying function.
             coeff (int, float, complex): A coefficient multiplying the primitive
+
         Raises:
             TypeError: invalid parameters.
         """
@@ -93,15 +92,6 @@ class CircuitOp(PrimitiveOp):
         # Will return NotImplementedError if not supported
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
-        """ Return tensor product between self and other, overloaded by ``^``.
-        Note: You must be conscious of Qiskit's big-endian bit printing
-        convention. Meaning, X.tensor(Y)
-        produces an X on qubit 0 and an Y on qubit 1, or X⨂Y, but would produce a
-        QuantumCircuit which looks like
-        -[Y]-
-        -[X]-
-        Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
-        """
         # pylint: disable=cyclic-import,import-outside-toplevel
         from .pauli_op import PauliOp
         from .matrix_op import MatrixOp
@@ -122,16 +112,6 @@ class CircuitOp(PrimitiveOp):
         return TensoredOp([self, other])
 
     def compose(self, other: OperatorBase) -> OperatorBase:
-        r"""
-        Return Operator Composition between self and other (linear algebra-style:
-        A@B(x) = A(B( x))), overloaded by ``@``.
-
-        Note: You must be conscious of Quantum Circuit vs. Linear Algebra ordering conventions.
-        Meaning, X.compose(Y) produces an X∘Y on qubit 0, but would produce a QuantumCircuit
-        which looks like
-            -[Y]-[X]-
-        because Terra prints circuits with the initial state at the left side of the circuit.
-        """
         other = self._check_zero_for_composition_and_expand(other)
         # pylint: disable=cyclic-import,import-outside-toplevel
         from ..operator_globals import Zero
@@ -162,13 +142,6 @@ class CircuitOp(PrimitiveOp):
         return ComposedOp([self, other])
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
-        """ Return numpy matrix of operator, warn if more than 16 qubits
-        to force the user to set massive=True if
-        they want such a large matrix. Generally big methods like this
-        should require the use of a converter,
-        but in this case a convenience method for quick hacking and
-        access to classical tools is appropriate. """
-
         if self.num_qubits > 16 and not massive:
             raise ValueError(
                 'to_matrix will return an exponentially large matrix,'
@@ -212,18 +185,6 @@ class CircuitOp(PrimitiveOp):
     def eval(self,
              front: Union[str, dict, np.ndarray,
                           OperatorBase] = None) -> Union[OperatorBase, float, complex]:
-        """ A square binary Operator can be defined as a function over two binary
-        strings of equal length. This
-        method returns the value of that function for a given pair of binary strings.
-        For more information,
-        see the eval method in operator_base.py.
-
-        Notice that Pauli evals will always return 0 for Paulis with X or Y terms if val1 == val2.
-        This is why we must
-        convert to a {Z,I}^n Pauli basis to take "averaging" style expectations
-        (e.g. PauliExpectation).
-        """
-
         # pylint: disable=import-outside-toplevel
         from ..state_functions import CircuitStateFn
         from ..combo_operators import ListOp

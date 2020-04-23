@@ -26,7 +26,11 @@ from ..state_functions.state_fn import StateFn
 # pylint: disable=invalid-name
 
 class ComposedOp(ListOp):
-    """ Eager Operator Composition Container """
+    """ A class for lazily representing compositions of Operators. Often Operators cannot be
+    efficiently composed with one another, but may be manipulated further so that they can be
+    composed later. This class holds logic to indicate that the Operators in ``oplist`` are meant to
+    be composed, and therefore if they reach a point in which they can be, such as after
+    conversion to QuantumCircuits or matrices, they can be reduced by composition. """
 
     def __init__(self,
                  oplist: List[OperatorBase],
@@ -34,9 +38,9 @@ class ComposedOp(ListOp):
                  abelian: bool = False) -> None:
         """
         Args:
-            oplist: The operators being summed.
+            oplist: The Operators being composed.
             coeff: A coefficient multiplying the operator
-            abelian: indicates if abelian
+            abelian: Indicates whether the Operators in ``oplist`` are know to mutually commute.
         """
         super().__init__(oplist, combo_fn=partial(reduce, np.dot), coeff=coeff, abelian=abelian)
 
@@ -44,14 +48,8 @@ class ComposedOp(ListOp):
     def num_qubits(self) -> int:
         return self.oplist[0].num_qubits
 
-    # TODO: Keep this property for evals or just enact distribution at composition time?
     @property
     def distributive(self) -> bool:
-        """ Indicates whether the ListOp or subclass is distributive under composition.
-        ListOp and SummedOp are,
-        meaning that opv @ op = opv[0] @ op + opv[1] @ op +...
-        (plus for SummedOp, vec for ListOp, etc.),
-        while ComposedOp and TensoredOp do not behave this way."""
         return False
 
     # TODO: need to Tensor all others with identity so dims are right? Maybe just delete this.
@@ -68,7 +66,6 @@ class ComposedOp(ListOp):
         return ComposedOp([op.adjoint() for op in reversed(self.oplist)], coeff=self.coeff)
 
     def compose(self, other: OperatorBase) -> OperatorBase:
-        """ Operator Composition (Circuit-style, left to right) """
         # Try composing with last element in list
         if isinstance(other, ComposedOp):
             return ComposedOp(self.oplist + other.oplist, coeff=self.coeff * other.coeff)
@@ -90,16 +87,7 @@ class ComposedOp(ListOp):
     def eval(self,
              front: Union[str, dict, np.ndarray,
                           OperatorBase] = None) -> Union[OperatorBase, float, complex]:
-        """ A square binary Operator can be defined as a function over two
-        binary strings of equal length. This
-        method returns the value of that function for a given pair
-        of binary strings. For more information,
-        see the eval method in operator_base.py.
-        """
-
         def tree_recursive_eval(r, l):
-            # if isinstance(l, list):
-            #     return [tree_recursive_eval(l_op, r) for l_op in l]
             if isinstance(r, list):
                 return [tree_recursive_eval(r_op, l) for r_op in r]
             else:
@@ -117,7 +105,11 @@ class ComposedOp(ListOp):
 
     # Try collapsing list or trees of compositions into a single <Measurement | Op | State>.
     def non_distributive_reduce(self) -> OperatorBase:
-        """ non distributive reduce """
+        """ Reduce without attempting to expand all distributive compositions.
+
+        Returns:
+            The reduced Operator.
+        """
         reduced_ops = [op.reduce() for op in self.oplist]
         reduced_ops = reduce(lambda x, y: x.compose(y), reduced_ops) * self.coeff
         if isinstance(reduced_ops, ComposedOp) and len(reduced_ops.oplist) > 1:
