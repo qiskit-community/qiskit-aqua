@@ -13,7 +13,24 @@
 # that they have been altered from the originals.
 
 """
-Operator Primitives
+Primitive Operators (:mod:`qiskit.aqua.operators.primitive_operators`)
+======================================================================
+Primitive operators...
+
+.. currentmodule:: qiskit.aqua.operators.primitive_operators
+
+Primitive Operators
+===================
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   CircuitOp
+   MatrixOp
+   PauliOp
+   PrimitiveOp
+
 """
 
 from .primitive_op import PrimitiveOp

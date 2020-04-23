@@ -13,7 +13,31 @@
 # that they have been altered from the originals.
 
 """
+Converters (:mod:`qiskit.aqua.operators.converters`)
+====================================================
+Converters...
+
+.. currentmodule:: qiskit.aqua.operators.converters
+
+Converter Base Class
+====================
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   ConverterBase
+
 Converters
+==========
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   AbelianGrouper
+   DictToCircuitSum
+   PauliBasisChange
 
 """
 

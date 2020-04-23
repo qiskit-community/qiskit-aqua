@@ -13,8 +13,34 @@
 # that they have been altered from the originals.
 
 """
-Circuit Samplers - Converters for replacing CircuitStateFns with DictSateFns representing samples
-of the StateFn.
+Circuit Samplers (:mod:`qiskit.aqua.operators.circuit_samplers`)
+================================================================
+Converters for replacing
+:class:`~qiskit.aqua.operators.state_functions.CircuitStateFn` objects with
+:class:`~qiskit.aqua.operators.state_functions.DictStateFn` objects representing samples
+of the :class:`~qiskit.aqua.operators.state_functions.StateFn`.
+
+.. currentmodule:: qiskit.aqua.operators.circuit_samplers
+
+Circuit Sampler Base Class
+==========================
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   CircuitSamplerBase
+
+Circuit Samplers
+================
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   CircuitSamplerFactory
+   LocalSimulatorSampler
+   IBMQSampler
 
 """
 

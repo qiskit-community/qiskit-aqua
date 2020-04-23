@@ -13,7 +13,24 @@
 # that they have been altered from the originals.
 
 """
+Combo Operators (:mod:`qiskit.aqua.operators.combo_operators`)
+==============================================================
+Combo operators...
+
+.. currentmodule:: qiskit.aqua.operators.combo_operators
+
 Combo Operators
+===============
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   ComposedOp
+   ListOp
+   SummedOp
+   TensoredOp
+
 """
 
 from .list_op import ListOp

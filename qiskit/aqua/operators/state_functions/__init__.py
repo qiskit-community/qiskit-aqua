@@ -13,7 +13,25 @@
 # that they have been altered from the originals.
 
 """
+State Functions (:mod:`qiskit.aqua.operators.state_functions`)
+==============================================================
+State Functions...
+
+.. currentmodule:: qiskit.aqua.operators.state_functions
+
 State Functions
+===============
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   CircuitStateFn
+   DictStateFn
+   OperatorStateFn
+   StateFn
+   VectorStateFn
+
 """
 
 from .state_fn import StateFn

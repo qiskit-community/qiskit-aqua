@@ -13,8 +13,46 @@
 # that they have been altered from the originals.
 
 """
-Operator Evolution algorithms - Algorithms for producing or approximating
-the exponential of an operator.
+Operator Evolutions (:mod:`qiskit.aqua.operators.evolutions`)
+=============================================================
+Algorithms for producing or approximating the exponential of an operator.
+
+.. currentmodule:: qiskit.aqua.operators.evolutions
+
+Evolution Base Class
+====================
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   EvolutionBase
+
+Evolutions
+==========
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   EvolutionFactory
+   EvolvedOp
+   MatrixEvolution
+   PauliTrotterEvolution
+
+Trotterizations
+===============
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   TrotterizationBase
+   TrotterizationFactory
+   Trotter
+   Suzuki
+   QDrift
+
 """
 
 from .evolution_base import EvolutionBase
