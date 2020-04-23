@@ -18,7 +18,6 @@ import warnings
 from typing import Optional, List
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
-from qiskit.circuit.library import SwapRZ
 from qiskit.aqua.utils.validation import validate_min, validate_in_set
 from qiskit.aqua.components.initial_states import InitialState
 from .variational_form import VariationalForm
