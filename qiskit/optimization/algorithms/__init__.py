@@ -46,13 +46,15 @@ Algorithms
 
 """
 
-from .admm_optimizer import ADMMOptimizer
+from .optimization_algorithm import OptimizationResult
 from .optimization_algorithm import OptimizationAlgorithm
+from .admm_optimizer import ADMMOptimizer
 from .cplex_optimizer import CplexOptimizer
 from .cobyla_optimizer import CobylaOptimizer
 from .minimum_eigen_optimizer import MinimumEigenOptimizer
 from .recursive_minimum_eigen_optimizer import RecursiveMinimumEigenOptimizer
-from .grover_minimum_finder import GroverMinimumFinder
+from .grover_optimizer import GroverOptimizer, GroverOptimizationResults
 
-__all__ = ["ADMMOptimizer", "OptimizationAlgorithm", "CplexOptimizer", "CobylaOptimizer",
-           "MinimumEigenOptimizer", "RecursiveMinimumEigenOptimizer", "GroverMinimumFinder"]
+__all__ = ["ADMMOptimizer", "OptimizationAlgorithm", "OptimizationResult", "CplexOptimizer",
+           "CobylaOptimizer", "MinimumEigenOptimizer", "RecursiveMinimumEigenOptimizer",
+           "GroverOptimizer", "GroverOptimizationResults"]

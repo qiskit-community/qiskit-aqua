@@ -17,10 +17,10 @@
 from typing import Optional
 
 from qiskit.optimization.problems import QuadraticProgram
-from qiskit.optimization.results import OptimizationResult
-from qiskit.optimization.converters import (PenalizeLinearEqualityConstraints,
-                                            IntegerToBinaryConverter)
-from qiskit.optimization.utils import QiskitOptimizationError
+from qiskit.optimization.problems.constraint import ConstraintSense
+from qiskit.optimization.converters.linear_equality_to_penalty import LinearEqualityToPenalty
+from qiskit.optimization.converters.integer_to_binary import IntegerToBinary
+from qiskit.optimization.exceptions import QiskitOptimizationError
 
 
 class QuadraticProgramToQubo:
@@ -33,13 +33,13 @@ class QuadraticProgramToQubo:
             >>> problem2 = conv.encode(problem)
     """
 
-    def __init__(self, penalty: Optional[float] = 1e5) -> None:
+    def __init__(self, penalty: Optional[float] = None) -> None:
         """
         Args:
             penalty: Penalty factor to scale equality constraints that are added to objective.
         """
-        self._int_to_bin = IntegerToBinaryConverter()
-        self._penalize_lin_eq_constraints = PenalizeLinearEqualityConstraints()
+        self._int_to_bin = IntegerToBinary()
+        self._penalize_lin_eq_constraints = LinearEqualityToPenalty()
         self._penalty = penalty
 
     def encode(self, problem: QuadraticProgram) -> QuadraticProgram:
@@ -74,7 +74,7 @@ class QuadraticProgramToQubo:
         # return QUBO
         return problem_
 
-    def decode(self, result: OptimizationResult) -> OptimizationResult:
+    def decode(self, result: 'OptimizationResult') -> 'OptimizationResult':
         """ Convert a result of a converted problem into that of the original problem.
 
             Args:
@@ -108,19 +108,14 @@ class QuadraticProgramToQubo:
         msg = ''
 
         # check whether there are incompatible variable types
-        if problem.variables.get_num_continuous() > 0:
+        if problem.get_num_continuous_vars() > 0:
             msg += 'Continuous variables are not supported! '
-        if problem.variables.get_num_semicontinuous() > 0:
-            # TODO: to be removed once semi-continuous to binary + continuous is introduced
-            msg += 'Semi-continuous variables are not supported! '
-        if problem.variables.get_num_semiinteger() > 0:
-            # TODO: to be removed once semi-integer to binary mapping is introduced
-            msg += 'Semi-integer variables are not supported! '
 
         # check whether there are incompatible constraint types
-        if not all([sense == 'E' for sense in problem.linear_constraints.get_senses()]):
+        if not all([constraint.sense == ConstraintSense.EQ
+                    for constraint in problem.linear_constraints]):
             msg += 'Only linear equality constraints are supported.'
-        if problem.quadratic_constraints.get_num() > 0:
+        if len(problem.quadratic_constraints) > 0:
             msg += 'Quadratic constraints are not supported. '
 
         # if an error occurred, return error message, otherwise, return None

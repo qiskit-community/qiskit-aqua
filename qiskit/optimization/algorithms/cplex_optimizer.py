@@ -18,9 +18,8 @@
 from typing import Optional
 import logging
 
-from .optimization_algorithm import OptimizationAlgorithm
-from ..utils.qiskit_optimization_error import QiskitOptimizationError
-from ..results.optimization_result import OptimizationResult
+from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
+from ..exceptions import QiskitOptimizationError
 from ..problems.quadratic_program import QuadraticProgram
 
 logger = logging.getLogger(__name__)
@@ -110,7 +109,7 @@ class CplexOptimizer(OptimizationAlgorithm):
         """
 
         # convert to CPLEX problem
-        cplex = problem.to_cplex()
+        cplex = problem.to_docplex().get_cplex()
 
         # set display setting
         if not self.disp:
@@ -118,8 +117,6 @@ class CplexOptimizer(OptimizationAlgorithm):
             cplex.set_error_stream(None)
             cplex.set_warning_stream(None)
             cplex.set_results_stream(None)
-
-        # TODO: need to find a good way to set the parameters
 
         # solve problem
         try:

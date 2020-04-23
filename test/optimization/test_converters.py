@@ -22,12 +22,13 @@ from docplex.mp.model import Model
 from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.optimization import QuadraticProgram, QiskitOptimizationError
-from qiskit.optimization.results import OptimizationResult
+from qiskit.optimization.problems import ConstraintSense, VarType
+from qiskit.optimization.algorithms import OptimizationResult
 from qiskit.optimization.converters import (
-    InequalityToEqualityConverter,
+    InequalityToEquality,
     QuadraticProgramToOperator,
-    IntegerToBinaryConverter,
-    PenalizeLinearEqualityConstraints,
+    IntegerToBinary,
+    LinearEqualityToPenalty,
 )
 from qiskit.optimization.algorithms import MinimumEigenOptimizer, CplexOptimizer, ADMMOptimizer
 from qiskit.optimization.algorithms.admm_optimizer import ADMMParameters
@@ -35,12 +36,6 @@ from qiskit.quantum_info import Pauli
 
 logger = logging.getLogger(__name__)
 
-_HAS_CPLEX = False
-try:
-    from cplex import SparsePair
-    _HAS_CPLEX = True
-except ImportError:
-    logger.info("CPLEX is not installed.")
 
 QUBIT_OP_MAXIMIZE_SAMPLE = WeightedPauliOperator(
     paulis=[
@@ -50,8 +45,8 @@ QUBIT_OP_MAXIMIZE_SAMPLE = WeightedPauliOperator(
         [(-799999.5 + 0j), Pauli(z=[False, False, False, True], x=[False, False, False, False])],
         [(100000 + 0j), Pauli(z=[True, True, False, False], x=[False, False, False, False])],
         [(150000 + 0j), Pauli(z=[True, False, True, False], x=[False, False, False, False])],
-        [(200000 + 0j), Pauli(z=[True, False, False, True], x=[False, False, False, False])],
         [(300000 + 0j), Pauli(z=[False, True, True, False], x=[False, False, False, False])],
+        [(200000 + 0j), Pauli(z=[True, False, False, True], x=[False, False, False, False])],
         [(400000 + 0j), Pauli(z=[False, True, False, True], x=[False, False, False, False])],
         [(600000 + 0j), Pauli(z=[False, False, True, True], x=[False, False, False, False])],
     ]
@@ -62,19 +57,14 @@ OFFSET_MAXIMIZE_SAMPLE = 1149998
 class TestConverters(QiskitOptimizationTestCase):
     """Test Converters"""
 
-    def setUp(self) -> None:
-        super().setUp()
-        if not _HAS_CPLEX:
-            self.skipTest('CPLEX is not installed.')
-
     def test_empty_problem(self):
         """ Test empty problem """
         op = QuadraticProgram()
-        conv = InequalityToEqualityConverter()
+        conv = InequalityToEquality()
         op = conv.encode(op)
-        conv = IntegerToBinaryConverter()
+        conv = IntegerToBinary()
         op = conv.encode(op)
-        conv = PenalizeLinearEqualityConstraints()
+        conv = LinearEqualityToPenalty()
         op = conv.encode(op)
         conv = QuadraticProgramToOperator()
         _, shift = conv.encode(op)
@@ -85,291 +75,362 @@ class TestConverters(QiskitOptimizationTestCase):
         # Integer variable
         with self.assertRaises(QiskitOptimizationError):
             op = QuadraticProgram()
-            op.variables.add(names=['x'], types='I')
+            op.integer_var(0, 10, "int_var")
             conv = QuadraticProgramToOperator()
             _ = conv.encode(op)
         # Continuous variable
         with self.assertRaises(QiskitOptimizationError):
             op = QuadraticProgram()
-            op.variables.add(names=['x'], types='C')
+            op.continuous_var(0, 10, "continuous_var")
             conv = QuadraticProgramToOperator()
-            _ = conv.encode(op)
-        # Semi-Continuous variable
-        with self.assertRaises(QiskitOptimizationError):
-            op = QuadraticProgram()
-            op.variables.add(names=['x'], types='S')
-            conv = QuadraticProgramToOperator()
-            _ = conv.encode(op)
-        # Semi-Integer variable
-        with self.assertRaises(QiskitOptimizationError):
-            op = QuadraticProgram()
-            op.variables.add(names=['x'], types='N')
-            conv = QuadraticProgramToOperator()
-            _ = conv.encode(op)
-        # validate the types of the variables for InequalityToEqualityConverter
-        # Semi-Continuous variable
-        with self.assertRaises(QiskitOptimizationError):
-            op = QuadraticProgram()
-            op.variables.add(names=['x'], types='S')
-            conv = InequalityToEqualityConverter()
-            _ = conv.encode(op)
-        # Semi-Integer variable
-        with self.assertRaises(QiskitOptimizationError):
-            op = QuadraticProgram()
-            op.variables.add(names=['x'], types='N')
-            conv = InequalityToEqualityConverter()
             _ = conv.encode(op)
 
     def test_inequality_binary(self):
         """ Test InequalityToEqualityConverter with binary variables """
         op = QuadraticProgram()
-        op.variables.add(names=['x', 'y', 'z'], types='B' * 3)
-        op.linear_constraints.add(
-            lin_expr=[
-                SparsePair(ind=['x', 'y'], val=[1, 1]),
-                SparsePair(ind=['y', 'z'], val=[1, -1]),
-                SparsePair(ind=['z', 'x'], val=[1, 2]),
-            ],
-            senses=['E', 'L', 'G'],
-            rhs=[1, 2, 3],
-            names=['xy', 'yz', 'zx'],
-        )
-        conv = InequalityToEqualityConverter()
+        for i in range(3):
+            op.binary_var(name='x{}'.format(i))
+        # Linear constraints
+        linear_constraint = {}
+        linear_constraint['x0'] = 1
+        linear_constraint['x1'] = 1
+        op.linear_constraint(linear_constraint, ConstraintSense.EQ, 1, 'x0x1')
+        linear_constraint = {}
+        linear_constraint['x1'] = 1
+        linear_constraint['x2'] = -1
+        op.linear_constraint(linear_constraint, ConstraintSense.LE, 2, 'x1x2')
+        linear_constraint = {}
+        linear_constraint['x0'] = 1
+        linear_constraint['x2'] = 3
+        op.linear_constraint(linear_constraint, ConstraintSense.GE, 2, 'x0x2')
+        # Quadratic constraints
+        quadratic = {}
+        quadratic[('x0', 'x1')] = 1
+        quadratic[('x1', 'x2')] = 2
+        op.quadratic_constraint({}, quadratic, ConstraintSense.LE, 3, 'x0x1_x1x2LE')
+        quadratic = {}
+        quadratic[('x0', 'x1')] = 3
+        quadratic[('x1', 'x2')] = 4
+        op.quadratic_constraint({}, quadratic, ConstraintSense.GE, 3, 'x0x1_x1x2GE')
+        # Convert inequality constraints into equality constraints
+        conv = InequalityToEquality()
         op2 = conv.encode(op)
-        self.assertEqual(op.get_problem_name(), op2.get_problem_name())
-        self.assertEqual(op.get_problem_type(), op2.get_problem_type())
-        cst = op2.linear_constraints
-        self.assertListEqual(cst.get_names(), ['xy', 'yz', 'zx'])
-        self.assertListEqual(cst.get_senses(), ['E', 'E', 'E'])
-        self.assertListEqual(cst.get_rhs(), [1, 2, 3])
-        var = op2.variables
-        self.assertListEqual(var.get_lower_bounds(3, 4), [0, 0])
-        self.assertListEqual(var.get_upper_bounds(3, 4), [3, 0])
+        # Check names and objective senses
+        self.assertEqual(op.name, op2.name)
+        self.assertEqual(op.objective.sense, op2.objective.sense)
+        # For linear constraints
+        lst = [
+            op2.linear_constraints[0].linear.to_dict()[0],
+            op2.linear_constraints[0].linear.to_dict()[1],
+        ]
+        self.assertListEqual(lst, [1, 1])
+        self.assertEqual(op2.linear_constraints[0].sense, ConstraintSense.EQ)
+        lst = [
+            op2.linear_constraints[1].linear.to_dict()[1],
+            op2.linear_constraints[1].linear.to_dict()[2],
+            op2.linear_constraints[1].linear.to_dict()[3],
+        ]
+        self.assertListEqual(lst, [1, -1, 1])
+        lst = [op2.variables[3].lowerbound, op2.variables[3].upperbound]
+        self.assertListEqual(lst, [0, 3])
+        self.assertEqual(op2.linear_constraints[1].sense, ConstraintSense.EQ)
+        lst = [
+            op2.linear_constraints[2].linear.to_dict()[0],
+            op2.linear_constraints[2].linear.to_dict()[2],
+            op2.linear_constraints[2].linear.to_dict()[4],
+        ]
+        self.assertListEqual(lst, [1, 3, -1])
+        lst = [op2.variables[4].lowerbound, op2.variables[4].upperbound]
+        self.assertListEqual(lst, [0, 2])
+        self.assertEqual(op2.linear_constraints[2].sense, ConstraintSense.EQ)
+        # For quadratic constraints
+        lst = [
+            op2.quadratic_constraints[0].quadratic.to_dict()[(0, 1)],
+            op2.quadratic_constraints[0].quadratic.to_dict()[(1, 2)],
+            op2.quadratic_constraints[0].linear.to_dict()[5],
+        ]
+        self.assertListEqual(lst, [1, 2, 1])
+        lst = [op2.variables[5].lowerbound, op2.variables[5].upperbound]
+        self.assertListEqual(lst, [0, 3])
+        lst = [
+            op2.quadratic_constraints[1].quadratic.to_dict()[(0, 1)],
+            op2.quadratic_constraints[1].quadratic.to_dict()[(1, 2)],
+            op2.quadratic_constraints[1].linear.to_dict()[6],
+        ]
+        self.assertListEqual(lst, [3, 4, -1])
+        lst = [op2.variables[6].lowerbound, op2.variables[6].upperbound]
+        self.assertListEqual(lst, [0, 4])
 
     def test_inequality_integer(self):
         """ Test InequalityToEqualityConverter with integer variables """
         op = QuadraticProgram()
-        op.variables.add(names=['x', 'y', 'z'], types='I' * 3, lb=[-3] * 3, ub=[3] * 3)
-        op.linear_constraints.add(
-            lin_expr=[
-                SparsePair(ind=['x', 'y'], val=[1, 1]),
-                SparsePair(ind=['y', 'z'], val=[1, -1]),
-                SparsePair(ind=['z', 'x'], val=[1, 2]),
-            ],
-            senses=['E', 'L', 'G'],
-            rhs=[1, 2, 3],
-            names=['xy', 'yz', 'zx'],
-        )
-        conv = InequalityToEqualityConverter()
+        for i in range(3):
+            op.integer_var(name='x{}'.format(i), lowerbound=-3, upperbound=3)
+        # Linear constraints
+        linear_constraint = {}
+        linear_constraint['x0'] = 1
+        linear_constraint['x1'] = 1
+        op.linear_constraint(linear_constraint, ConstraintSense.EQ, 1, 'x0x1')
+        linear_constraint = {}
+        linear_constraint['x1'] = 1
+        linear_constraint['x2'] = -1
+        op.linear_constraint(linear_constraint, ConstraintSense.LE, 2, 'x1x2')
+        linear_constraint = {}
+        linear_constraint['x0'] = 1
+        linear_constraint['x2'] = 3
+        op.linear_constraint(linear_constraint, ConstraintSense.GE, 2, 'x0x2')
+        # Quadratic constraints
+        quadratic = {}
+        quadratic[('x0', 'x1')] = 1
+        quadratic[('x1', 'x2')] = 2
+        op.quadratic_constraint({}, quadratic, ConstraintSense.LE, 3, 'x0x1_x1x2LE')
+        quadratic = {}
+        quadratic[('x0', 'x1')] = 3
+        quadratic[('x1', 'x2')] = 4
+        op.quadratic_constraint({}, quadratic, ConstraintSense.GE, 3, 'x0x1_x1x2GE')
+        conv = InequalityToEquality()
         op2 = conv.encode(op)
-        self.assertEqual(op.get_problem_name(), op2.get_problem_name())
-        self.assertEqual(op.get_problem_type(), op2.get_problem_type())
-        cst = op2.linear_constraints
-        self.assertListEqual(cst.get_names(), ['xy', 'yz', 'zx'])
-        self.assertListEqual(cst.get_senses(), ['E', 'E', 'E'])
-        self.assertListEqual(cst.get_rhs(), [1, 2, 3])
-        var = op2.variables
-        self.assertListEqual(var.get_lower_bounds(3, 4), [0, 0])
-        self.assertListEqual(var.get_upper_bounds(3, 4), [8, 6])
+        # For linear constraints
+        lst = [
+            op2.linear_constraints[0].linear.to_dict()[0],
+            op2.linear_constraints[0].linear.to_dict()[1],
+        ]
+        self.assertListEqual(lst, [1, 1])
+        self.assertEqual(op2.linear_constraints[0].sense, ConstraintSense.EQ)
+        lst = [
+            op2.linear_constraints[1].linear.to_dict()[1],
+            op2.linear_constraints[1].linear.to_dict()[2],
+            op2.linear_constraints[1].linear.to_dict()[3],
+        ]
+        self.assertListEqual(lst, [1, -1, 1])
+        lst = [op2.variables[3].lowerbound, op2.variables[3].upperbound]
+        self.assertListEqual(lst, [0, 8])
+        self.assertEqual(op2.linear_constraints[1].sense, ConstraintSense.EQ)
+        lst = [
+            op2.linear_constraints[2].linear.to_dict()[0],
+            op2.linear_constraints[2].linear.to_dict()[2],
+            op2.linear_constraints[2].linear.to_dict()[4],
+        ]
+        self.assertListEqual(lst, [1, 3, -1])
+        lst = [op2.variables[4].lowerbound, op2.variables[4].upperbound]
+        self.assertListEqual(lst, [0, 10])
+        self.assertEqual(op2.linear_constraints[2].sense, ConstraintSense.EQ)
+        # For quadratic constraints
+        lst = [
+            op2.quadratic_constraints[0].quadratic.to_dict()[(0, 1)],
+            op2.quadratic_constraints[0].quadratic.to_dict()[(1, 2)],
+            op2.quadratic_constraints[0].linear.to_dict()[5],
+        ]
+        self.assertListEqual(lst, [1, 2, 1])
+        lst = [op2.variables[5].lowerbound, op2.variables[5].upperbound]
+        self.assertListEqual(lst, [0, 30])
+        lst = [
+            op2.quadratic_constraints[1].quadratic.to_dict()[(0, 1)],
+            op2.quadratic_constraints[1].quadratic.to_dict()[(1, 2)],
+            op2.quadratic_constraints[1].linear.to_dict()[6],
+        ]
+        self.assertListEqual(lst, [3, 4, -1])
+        lst = [op2.variables[6].lowerbound, op2.variables[6].upperbound]
+        self.assertListEqual(lst, [0, 60])
 
     def test_inequality_mode_integer(self):
         """ Test integer mode of InequalityToEqualityConverter() """
         op = QuadraticProgram()
-        op.variables.add(names=['x', 'y', 'z'], types='B' * 3)
-        op.linear_constraints.add(
-            lin_expr=[
-                SparsePair(ind=['x', 'y'], val=[1, 1]),
-                SparsePair(ind=['y', 'z'], val=[1, -1]),
-                SparsePair(ind=['z', 'x'], val=[1, 2]),
-            ],
-            senses=['E', 'L', 'G'],
-            rhs=[1, 2, 3],
-            names=['xy', 'yz', 'zx'],
-        )
-        conv = InequalityToEqualityConverter()
+        for i in range(3):
+            op.binary_var(name='x{}'.format(i))
+        # Linear constraints
+        linear_constraint = {}
+        linear_constraint['x0'] = 1
+        linear_constraint['x1'] = 1
+        op.linear_constraint(linear_constraint, ConstraintSense.EQ, 1, 'x0x1')
+        linear_constraint = {}
+        linear_constraint['x1'] = 1
+        linear_constraint['x2'] = -1
+        op.linear_constraint(linear_constraint, ConstraintSense.LE, 2, 'x1x2')
+        linear_constraint = {}
+        linear_constraint['x0'] = 1
+        linear_constraint['x2'] = 3
+        op.linear_constraint(linear_constraint, ConstraintSense.GE, 2, 'x0x2')
+        conv = InequalityToEquality()
         op2 = conv.encode(op, mode='integer')
-        var = op2.variables
-        self.assertListEqual(var.get_types(3, 4), ['I', 'I'])
+        lst = [op2.variables[3].vartype, op2.variables[4].vartype]
+        self.assertListEqual(lst, [VarType.INTEGER, VarType.INTEGER])
 
     def test_inequality_mode_continuous(self):
         """ Test continuous mode of InequalityToEqualityConverter() """
         op = QuadraticProgram()
-        op.variables.add(names=['x', 'y', 'z'], types='B' * 3)
-        op.linear_constraints.add(
-            lin_expr=[
-                SparsePair(ind=['x', 'y'], val=[1, 1]),
-                SparsePair(ind=['y', 'z'], val=[1, -1]),
-                SparsePair(ind=['z', 'x'], val=[1, 2]),
-            ],
-            senses=['E', 'L', 'G'],
-            rhs=[1, 2, 3],
-            names=['xy', 'yz', 'zx'],
-        )
-        conv = InequalityToEqualityConverter()
+        for i in range(3):
+            op.binary_var(name='x{}'.format(i))
+        # Linear constraints
+        linear_constraint = {}
+        linear_constraint['x0'] = 1
+        linear_constraint['x1'] = 1
+        op.linear_constraint(linear_constraint, ConstraintSense.EQ, 1, 'x0x1')
+        linear_constraint = {}
+        linear_constraint['x1'] = 1
+        linear_constraint['x2'] = -1
+        op.linear_constraint(linear_constraint, ConstraintSense.LE, 2, 'x1x2')
+        linear_constraint = {}
+        linear_constraint['x0'] = 1
+        linear_constraint['x2'] = 3
+        op.linear_constraint(linear_constraint, ConstraintSense.GE, 2, 'x0x2')
+        conv = InequalityToEquality()
         op2 = conv.encode(op, mode='continuous')
-        var = op2.variables
-        self.assertListEqual(var.get_types(3, 4), ['C', 'C'])
+        lst = [op2.variables[3].vartype, op2.variables[4].vartype]
+        self.assertListEqual(lst, [VarType.CONTINUOUS, VarType.CONTINUOUS])
 
     def test_inequality_mode_auto(self):
         """ Test auto mode of InequalityToEqualityConverter() """
         op = QuadraticProgram()
-        op.variables.add(names=['x', 'y', 'z'], types='B' * 3)
-        op.linear_constraints.add(
-            lin_expr=[
-                SparsePair(ind=['x', 'y'], val=[1, 1]),
-                SparsePair(ind=['y', 'z'], val=[1, -1]),
-                SparsePair(ind=['z', 'x'], val=[1.1, 2.2]),
-            ],
-            senses=['E', 'L', 'G'],
-            rhs=[1, 2, 3.3],
-            names=['xy', 'yz', 'zx'],
-        )
-        conv = InequalityToEqualityConverter()
+        for i in range(3):
+            op.binary_var(name='x{}'.format(i))
+        # Linear constraints
+        linear_constraint = {}
+        linear_constraint['x0'] = 1
+        linear_constraint['x1'] = 1
+        op.linear_constraint(linear_constraint, ConstraintSense.EQ, 1, 'x0x1')
+        linear_constraint = {}
+        linear_constraint['x1'] = 1
+        linear_constraint['x2'] = -1
+        op.linear_constraint(linear_constraint, ConstraintSense.LE, 2, 'x1x2')
+        linear_constraint = {}
+        linear_constraint['x0'] = 1.1
+        linear_constraint['x2'] = 2.2
+        op.linear_constraint(linear_constraint, ConstraintSense.GE, 3.3, 'x0x2')
+        conv = InequalityToEquality()
         op2 = conv.encode(op, mode='auto')
-        var = op2.variables
-        self.assertListEqual(var.get_types(3, 4), ['I', 'C'])
+        lst = [op2.variables[3].vartype, op2.variables[4].vartype]
+        self.assertListEqual(lst, [VarType.INTEGER, VarType.CONTINUOUS])
 
     def test_penalize_sense(self):
         """ Test PenalizeLinearEqualityConstraints with senses """
         op = QuadraticProgram()
-        op.variables.add(names=['x', 'y', 'z'], types='B' * 3)
-        op.linear_constraints.add(
-            lin_expr=[
-                SparsePair(ind=['x', 'y'], val=[1, 1]),
-                SparsePair(ind=['y', 'z'], val=[1, -1]),
-                SparsePair(ind=['z', 'x'], val=[1, 2]),
-            ],
-            senses=['E', 'L', 'G'],
-            rhs=[1, 2, 3],
-            names=['xy', 'yz', 'zx'],
-        )
-        self.assertEqual(op.linear_constraints.get_num(), 3)
-        conv = PenalizeLinearEqualityConstraints()
+        for i in range(3):
+            op.binary_var(name='x{}'.format(i))
+        # Linear constraints
+        linear_constraint = {}
+        linear_constraint['x0'] = 1
+        linear_constraint['x1'] = 1
+        op.linear_constraint(linear_constraint, ConstraintSense.EQ, 1, 'x0x1')
+        linear_constraint = {}
+        linear_constraint['x1'] = 1
+        linear_constraint['x2'] = -1
+        op.linear_constraint(linear_constraint, ConstraintSense.LE, 2, 'x1x2')
+        linear_constraint = {}
+        linear_constraint['x0'] = 1
+        linear_constraint['x2'] = 3
+        op.linear_constraint(linear_constraint, ConstraintSense.GE, 2, 'x0x2')
+        self.assertEqual(len(op.linear_constraints), 3)
+        conv = LinearEqualityToPenalty()
         with self.assertRaises(QiskitOptimizationError):
             conv.encode(op)
 
     def test_penalize_binary(self):
         """ Test PenalizeLinearEqualityConstraints with binary variables """
         op = QuadraticProgram()
-        op.variables.add(names=['x', 'y', 'z'], types='B' * 3)
-        op.linear_constraints.add(
-            lin_expr=[
-                SparsePair(ind=['x', 'y'], val=[1, 1]),
-                SparsePair(ind=['y', 'z'], val=[1, -1]),
-            ],
-            senses=['E', 'E'],
-            rhs=[1, 2],
-            names=['xy', 'yz'],
-        )
-        self.assertEqual(op.linear_constraints.get_num(), 2)
-        conv = PenalizeLinearEqualityConstraints()
+        for i in range(3):
+            op.binary_var(name='x{}'.format(i))
+        # Linear constraints
+        linear_constraint = {}
+        linear_constraint['x0'] = 1
+        linear_constraint['x1'] = 1
+        op.linear_constraint(linear_constraint, ConstraintSense.EQ, 1, 'x0x1')
+        linear_constraint = {}
+        linear_constraint['x1'] = 1
+        linear_constraint['x2'] = -1
+        op.linear_constraint(linear_constraint, ConstraintSense.EQ, 2, 'x1x2')
+        linear_constraint = {}
+        linear_constraint['x0'] = 1
+        linear_constraint['x2'] = 3
+        op.linear_constraint(linear_constraint, ConstraintSense.EQ, 2, 'x0x2')
+        self.assertEqual(len(op.linear_constraints), 3)
+        conv = LinearEqualityToPenalty()
         op2 = conv.encode(op)
-        self.assertEqual(op2.linear_constraints.get_num(), 0)
+        self.assertEqual(len(op2.linear_constraints), 0)
 
     def test_penalize_integer(self):
         """ Test PenalizeLinearEqualityConstraints with integer variables """
         op = QuadraticProgram()
-        op.variables.add(names=['x', 'y', 'z'], types='I' * 3, lb=[-3] * 3, ub=[3] * 3)
-        op.linear_constraints.add(
-            lin_expr=[
-                SparsePair(ind=['x', 'y'], val=[1, 1]),
-                SparsePair(ind=['y', 'z'], val=[1, -1]),
-            ],
-            senses=['E', 'E'],
-            rhs=[1, 2],
-            names=['xy', 'yz'],
-        )
-        self.assertEqual(op.linear_constraints.get_num(), 2)
-        conv = PenalizeLinearEqualityConstraints()
+        for i in range(3):
+            op.integer_var(name='x{}'.format(i), lowerbound=-3, upperbound=3)
+        # Linear constraints
+        linear_constraint = {}
+        linear_constraint['x0'] = 1
+        linear_constraint['x1'] = 1
+        op.linear_constraint(linear_constraint, ConstraintSense.EQ, 1, 'x0x1')
+        linear_constraint = {}
+        linear_constraint['x1'] = 1
+        linear_constraint['x2'] = -1
+        op.linear_constraint(linear_constraint, ConstraintSense.EQ, 2, 'x1x2')
+        linear_constraint = {}
+        linear_constraint['x0'] = 1
+        linear_constraint['x2'] = 3
+        op.linear_constraint(linear_constraint, ConstraintSense.EQ, 2, 'x0x2')
+        self.assertEqual(len(op.linear_constraints), 3)
+        conv = LinearEqualityToPenalty()
         op2 = conv.encode(op)
-        self.assertEqual(op2.linear_constraints.get_num(), 0)
+        self.assertEqual(len(op2.linear_constraints), 0)
 
     def test_integer_to_binary(self):
         """ Test integer to binary """
         op = QuadraticProgram()
-        op.variables.add(names=['x', 'y', 'z'], types='BIC', lb=[0, 0, 0], ub=[1, 6, 10])
-        op.objective.set_linear([('x', 1), ('y', 2), ('z', 1)])
-        op.linear_constraints.add(
-            lin_expr=[SparsePair(ind=['x', 'y', 'z'], val=[1, 3, 1])],
-            senses=['L'],
-            rhs=[10],
-            names=['xyz'],
-        )
-        self.assertEqual(op.variables.get_num(), 3)
-        conv = IntegerToBinaryConverter()
+        for i in range(0, 2):
+            op.binary_var(name='x{}'.format(i))
+        op.integer_var(name='x2', lowerbound=0, upperbound=5)
+        linear = {}
+        for i, x in enumerate(op.variables):
+            linear[x.name] = i + 1
+        op.maximize(0, linear, {})
+        conv = IntegerToBinary()
         op2 = conv.encode(op)
-        names = op2.variables.get_names()
-        self.assertIn('x', names)
-        self.assertIn('z', names)
-        variables = op2.variables
-        self.assertEqual(variables.get_lower_bounds('x'), 0.0)
-        self.assertEqual(variables.get_lower_bounds('z'), 0.0)
-        self.assertEqual(variables.get_upper_bounds('x'), 1.0)
-        self.assertEqual(variables.get_upper_bounds('z'), 10.0)
-        self.assertListEqual(
-            variables.get_types(['x', 'y@0', 'y@1', 'y@2', 'z']), ['B', 'B', 'B', 'B', 'C']
-        )
-        self.assertListEqual(op2.objective.get_linear(['y@0', 'y@1', 'y@2']), [2, 4, 6])
-        self.assertListEqual(op2.linear_constraints.get_rows()[0].val, [1, 3, 6, 9, 1])
+        for x in op2.variables:
+            self.assertEqual(x.vartype, VarType.BINARY)
+        dct = op2.objective.linear.to_dict()
+        self.assertEqual(dct[2], 3)
+        self.assertEqual(dct[3], 6)
+        self.assertEqual(dct[4], 6)
 
     def test_binary_to_integer(self):
         """ Test binary to integer """
         op = QuadraticProgram()
-        op.variables.add(names=['x', 'y', 'z'], types='BIB', lb=[0, 0, 0], ub=[1, 7, 1])
-        op.objective.set_linear([('x', 2), ('y', 1), ('z', 1)])
-        op.linear_constraints.add(
-            lin_expr=[SparsePair(ind=['x', 'y', 'z'], val=[1, 1, 1])],
-            senses=['L'],
-            rhs=[7],
-            names=['xyz'],
-        )
-        op.objective.set_sense(-1)
-        conv = IntegerToBinaryConverter()
+        for i in range(0, 2):
+            op.binary_var(name='x{}'.format(i))
+        op.integer_var(name='x2', lowerbound=0, upperbound=5)
+        linear = {}
+        linear['x0'] = 1
+        linear['x1'] = 2
+        linear['x2'] = 1
+        op.maximize(0, linear, {})
+        linear = {}
+        for x in op.variables:
+            linear[x.name] = 1
+        op.linear_constraint(linear, ConstraintSense.EQ, 6, 'x0x1x2')
+        conv = IntegerToBinary()
         _ = conv.encode(op)
-        result = OptimizationResult(x=[1, 0.0, 1, 1, 0], fval=8)
+        result = OptimizationResult(x=[0, 1, 1, 1, 1], fval=17)
         new_result = conv.decode(result)
-        self.assertListEqual(new_result.x, [1, 6, 0])
-        self.assertEqual(new_result.fval, 8)
+        self.assertListEqual(new_result.x, [0, 1, 5])
+        self.assertEqual(new_result.fval, 17)
 
     def test_optimizationproblem_to_operator(self):
         """ Test optimization problem to operators"""
         op = QuadraticProgram()
-        op.variables.add(names=['a', 'b', 'c', 'd'], types='B' * 4)
-        op.objective.set_linear([('a', 1), ('b', 1), ('c', 1), ('d', 1)])
-        op.linear_constraints.add(
-            lin_expr=[SparsePair(ind=['a', 'b', 'c', 'd'], val=[1, 2, 3, 4])],
-            senses=['E'],
-            rhs=[3],
-            names=['abcd'],
-        )
-        op.objective.set_sense(-1)
-        penalize = PenalizeLinearEqualityConstraints()
+        for i in range(4):
+            op.binary_var(name='x{}'.format(i))
+        linear = {}
+        for x in op.variables:
+            linear[x.name] = 1
+        op.maximize(0, linear, {})
+        linear = {}
+        for i, x in enumerate(op.variables):
+            linear[x.name] = i + 1
+        op.linear_constraint(linear, ConstraintSense.EQ, 3, 'sum1')
+        penalize = LinearEqualityToPenalty()
         op2ope = QuadraticProgramToOperator()
         op2 = penalize.encode(op)
         qubitop, offset = op2ope.encode(op2)
         self.assertListEqual(qubitop.paulis, QUBIT_OP_MAXIMIZE_SAMPLE.paulis)
         self.assertEqual(offset, OFFSET_MAXIMIZE_SAMPLE)
-
-    def test_quadratic_constraints(self):
-        """ Test quadratic constraints"""
-        # IntegerToBinaryConverter
-        with self.assertRaises(QiskitOptimizationError):
-            op = QuadraticProgram()
-            op.variables.add(names=['x', 'y'])
-            l_expr = SparsePair(ind=['x'], val=[1.0])
-            q_expr = [['x'], ['y'], [1]]
-            op.quadratic_constraints.add(name=str(1), lin_expr=l_expr, quad_expr=q_expr)
-            conv = IntegerToBinaryConverter()
-            _ = conv.encode(op)
-        # InequalityToEqualityConverter
-        with self.assertRaises(QiskitOptimizationError):
-            op = QuadraticProgram()
-            op.variables.add(names=['x', 'y'])
-            l_expr = SparsePair(ind=['x'], val=[1.0])
-            q_expr = [['x'], ['y'], [1]]
-            op.quadratic_constraints.add(name=str(1), lin_expr=l_expr, quad_expr=q_expr)
-            conv = InequalityToEqualityConverter()
-            _ = conv.encode(op)
 
     def test_continuous_variable_decode(self):
         """ Test decode func of IntegerToBinaryConverter for continuous variables"""
@@ -379,7 +440,7 @@ class TestConverters(QiskitOptimizationTestCase):
         mdl.maximize(c + x * x)
         op = QuadraticProgram()
         op.from_docplex(mdl)
-        converter = IntegerToBinaryConverter()
+        converter = IntegerToBinary()
         op = converter.encode(op)
         admm_params = ADMMParameters()
         qubo_optimizer = MinimumEigenOptimizer(NumPyMinimumEigensolver())
