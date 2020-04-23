@@ -26,7 +26,7 @@ long_description = """<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Aqua
  Qiskit Finance, Qiskit Machine Learning and Qiskit Optimization to experiment with real-world applications to quantum computing."""
 
 requirements = [
-    "qiskit-terra>=0.13.0",
+    "qiskit-terra>=0.14.0",
     "qiskit-ignis>=0.2.0",
     "scipy>=1.0",
     "sympy>=1.3",
