@@ -200,6 +200,8 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                 # try to set the number of qubits on the variational form, if possible
                 try:
                     self.var_form.num_qubits = self.operator.num_qubits
+                    # pylint: disable=attribute-defined-outside-init
+                    self._var_form_params = list(self.var_form.parameters)
                 except AttributeError:
                     raise AquaError("The number of qubits of the variational form does not match "
                                     "the operator, and the variational form does not allow setting "
@@ -316,7 +318,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         else:
             wave_function = self.var_form.construct_circuit(parameter)
 
-        circuits = self._operator.construct_evaluation_circuit(
+        circuits = self.operator.construct_evaluation_circuit(
             wave_function, statevector_mode,
             use_simulator_snapshot_mode=use_simulator_snapshot_mode,
             circuit_name_prefix=circuit_name_prefix)
@@ -392,6 +394,8 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         """
         if self.operator is None:
             raise AquaError("The operator was never provided.")
+
+        self._check_operator_varform()
 
         self._operator = self.operator
         self._aux_operators = self.aux_operators
@@ -470,8 +474,14 @@ class VQE(VQAlgorithm, MinimumEigensolver):
 
         Returns:
             Energy of the hamiltonian of each parameter.
+
+
+        Raises:
+            RuntimeError: If the variational form has no parameters.
         """
         num_parameters = self.var_form.num_parameters
+        if num_parameters == 0:
+            raise RuntimeError('No parameters in the variational form is not supported.')
 
         num_parameter_sets = len(parameters) // num_parameters
         parameter_sets = np.split(parameters, num_parameter_sets)
@@ -511,7 +521,6 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                     circuit_name_prefix=str(idx))
                 circuits.append(circuit)
             to_be_simulated_circuits = functools.reduce(lambda x, y: x + y, circuits)
-
         start_time = time()
         result = self._quantum_instance.execute(to_be_simulated_circuits,
                                                 self._parameterized_circuits is not None)

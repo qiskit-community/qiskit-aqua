@@ -31,7 +31,7 @@ import numpy as np
 
 from qiskit.circuit import QuantumCircuit, ParameterVector
 from qiskit.providers import BaseBackend
-from qiskit.aqua import QuantumInstance, AquaError
+from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import AlgorithmResult, QuantumAlgorithm
 from qiskit.aqua.components.optimizers import Optimizer
 from qiskit.aqua.components.variational_forms import VariationalForm
@@ -91,9 +91,6 @@ class VQAlgorithm(QuantumAlgorithm):
             self._var_form = var_form
         else:
             raise ValueError('Unsupported type {} of var_form'.format(type(var_form)))
-
-        if var_form is not None and len(self._var_form_params) == 0:
-            raise AquaError('Passing a variational form with no parameters is not supported.')
 
     @property
     def optimizer(self) -> Optional[Optimizer]:

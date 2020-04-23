@@ -20,12 +20,12 @@ import numpy as np
 from ddt import ddt, unpack, data
 from qiskit import BasicAer, QuantumCircuit
 from qiskit.circuit import ParameterVector
+from qiskit.circuit.library import RY, RYRZ
 
 from qiskit.aqua import QuantumInstance, aqua_globals, AquaError
 from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator
-from qiskit.aqua.components.variational_forms import RY, RYRZ, VariationalForm
+from qiskit.aqua.components.variational_forms import RY as VarRY, RYRZ as VarRYRZ
 from qiskit.aqua.components.optimizers import L_BFGS_B, COBYLA, SPSA, SLSQP
-from qiskit.aqua.components.initial_states import Zero
 from qiskit.aqua.algorithms import VQE
 
 
@@ -47,13 +47,17 @@ class TestVQE(QiskitAquaTestCase):
         }
         self.qubit_op = WeightedPauliOperator.from_dict(pauli_dict)
 
-    @data(VariationalForm, QuantumCircuit)
+    @data('varform', 'circuit', 'library')
     def test_vqe(self, var_form_type):
         """ VQE test """
-        var_form = RYRZ(self.qubit_op.num_qubits)
-        if var_form_type is QuantumCircuit:
+        if var_form_type == 'varform':
+            var_form = VarRYRZ(self.qubit_op.num_qubits)
+        elif var_form_type == 'circuit':
+            var_form = VarRYRZ(self.qubit_op.num_qubits)
             params = ParameterVector('θ', var_form.num_parameters)
             var_form = var_form.construct_circuit(params)
+        else:
+            var_form = RYRZ()
 
         vqe = VQE(self.qubit_op, var_form, L_BFGS_B())
         result = vqe.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),
@@ -75,8 +79,9 @@ class TestVQE(QiskitAquaTestCase):
             circuit.cx(i, (i + 1) % circuit.num_qubits)
             circuit.rx(0.2, i)
 
-        with self.assertRaises(AquaError):
-            _ = VQE(self.qubit_op, circuit)
+        vqe = VQE(self.qubit_op, circuit)
+        with self.assertRaises(RuntimeError):
+            vqe.run(BasicAer.get_backend('statevector_simulator'))
 
     @data(
         (SLSQP, 5, 4),
@@ -88,7 +93,7 @@ class TestVQE(QiskitAquaTestCase):
     def test_vqe_optimizers(self, optimizer_cls, places, max_evals_grouped):
         """ VQE Optimizers test """
         result = VQE(self.qubit_op,
-                     RYRZ(self.qubit_op.num_qubits),
+                     RYRZ(),
                      optimizer_cls(),
                      max_evals_grouped=max_evals_grouped).run(
                          QuantumInstance(BasicAer.get_backend('statevector_simulator'), shots=1,
@@ -98,18 +103,24 @@ class TestVQE(QiskitAquaTestCase):
         self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=places)
 
     @data(
-        (RY, 5, VariationalForm),
-        (RYRZ, 5, VariationalForm),
-        (RY, 5, QuantumCircuit),
-        (RYRZ, 5, QuantumCircuit),
+        (VarRY, 5, 'varform'),
+        (VarRYRZ, 5, 'varform'),
+        (VarRY, 5, 'circuit'),
+        (VarRYRZ, 5, 'circuit'),
+        (RY, 5, 'library'),
+        (RYRZ, 5, 'library'),
     )
     @unpack
     def test_vqe_var_forms(self, var_form_cls, places, var_form_type):
         """ VQE Var Forms test """
-        var_form = var_form_cls(self.qubit_op.num_qubits)
-        if var_form_type is QuantumCircuit:
+        if var_form_type == 'varform':
+            var_form = var_form_cls(self.qubit_op.num_qubits)
+        elif var_form_type == 'circuit':
+            var_form = var_form_cls(self.qubit_op.num_qubits)
             params = ParameterVector('θ', var_form.num_parameters)
             var_form = var_form.construct_circuit(params)
+        else:
+            var_form = RY()
 
         vqe = VQE(self.qubit_op, var_form, L_BFGS_B())
         result = vqe.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'), shots=1,
@@ -117,15 +128,19 @@ class TestVQE(QiskitAquaTestCase):
                                          seed_transpiler=aqua_globals.random_seed))
         self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=places)
 
-    @data(VariationalForm, QuantumCircuit)
+    @data('varform', 'circuit', 'library')
     def test_vqe_qasm(self, var_form_type):
         """ VQE QASM test """
         backend = BasicAer.get_backend('qasm_simulator')
         num_qubits = self.qubit_op.num_qubits
-        var_form = RY(num_qubits, depth=3)
-        if var_form_type is QuantumCircuit:
+        if var_form_type == 'varform':
+            var_form = VarRY(num_qubits, depth=3)
+        elif var_form_type == 'circuit':
+            var_form = VarRY(num_qubits, depth=3)
             params = ParameterVector('θ', var_form.num_parameters)
             var_form = var_form.construct_circuit(params)
+        else:
+            var_form = RY()
 
         optimizer = SPSA(max_trials=300, last_avg=5)
         algo = VQE(self.qubit_op, var_form, optimizer, max_evals_grouped=1)
@@ -135,7 +150,7 @@ class TestVQE(QiskitAquaTestCase):
         result = algo.run(quantum_instance)
         self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=2)
 
-    @data(VariationalForm, QuantumCircuit)
+    @data('varform', 'circuit', 'library')
     def test_vqe_statevector_snapshot_mode(self, var_form_type):
         """ VQE Aer statevector_simulator snapshot mode test """
         try:
@@ -146,11 +161,15 @@ class TestVQE(QiskitAquaTestCase):
             return
         backend = Aer.get_backend('statevector_simulator')
         num_qubits = self.qubit_op.num_qubits
-        init_state = Zero(num_qubits)
-        var_form = RY(num_qubits, depth=3, initial_state=init_state)
-        if var_form_type is QuantumCircuit:
+
+        if var_form_type == 'varform':
+            var_form = VarRY(num_qubits, depth=3)
+        elif var_form_type == 'circuit':
+            var_form = VarRY(num_qubits, depth=3)
             params = ParameterVector('θ', var_form.num_parameters)
             var_form = var_form.construct_circuit(params)
+        else:
+            var_form = RY()
 
         optimizer = L_BFGS_B()
         algo = VQE(self.qubit_op, var_form, optimizer, max_evals_grouped=1)
@@ -160,7 +179,7 @@ class TestVQE(QiskitAquaTestCase):
         result = algo.run(quantum_instance)
         self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=6)
 
-    @data(VariationalForm, QuantumCircuit)
+    @data('varform', 'circuit', 'library')
     def test_vqe_qasm_snapshot_mode(self, var_form_type):
         """ VQE Aer qasm_simulator snapshot mode test """
         try:
@@ -171,11 +190,15 @@ class TestVQE(QiskitAquaTestCase):
             return
         backend = Aer.get_backend('qasm_simulator')
         num_qubits = self.qubit_op.num_qubits
-        init_state = Zero(num_qubits)
-        var_form = RY(num_qubits, depth=3, initial_state=init_state)
-        if var_form_type is QuantumCircuit:
+
+        if var_form_type == 'varform':
+            var_form = VarRY(num_qubits, depth=3)
+        elif var_form_type == 'circuit':
+            var_form = VarRY(num_qubits, depth=3)
             params = ParameterVector('θ', var_form.num_parameters)
             var_form = var_form.construct_circuit(params)
+        else:
+            var_form = RY()
 
         optimizer = L_BFGS_B()
         algo = VQE(self.qubit_op, var_form, optimizer, max_evals_grouped=1)
@@ -185,7 +208,7 @@ class TestVQE(QiskitAquaTestCase):
         result = algo.run(quantum_instance)
         self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=6)
 
-    @data(VariationalForm, QuantumCircuit)
+    @data('varform', 'circuit', 'library')
     def test_vqe_callback(self, var_form_type):
         """ VQE Callback test """
         history = {'eval_count': [], 'parameters': [], 'mean': [], 'std': []}
@@ -198,11 +221,16 @@ class TestVQE(QiskitAquaTestCase):
 
         backend = BasicAer.get_backend('qasm_simulator')
         num_qubits = self.qubit_op.num_qubits
-        init_state = Zero(num_qubits)
-        var_form = RY(num_qubits, depth=1, initial_state=init_state)
-        if var_form_type is QuantumCircuit:
+
+        if var_form_type == 'varform':
+            var_form = VarRY(num_qubits, depth=3)
+        elif var_form_type == 'circuit':
+            var_form = VarRY(num_qubits, depth=3)
             params = ParameterVector('θ', var_form.num_parameters)
             var_form = var_form.construct_circuit(params)
+        else:
+            var_form = RY()
+
         optimizer = COBYLA(maxiter=3)
         algo = VQE(self.qubit_op, var_form, optimizer,
                    callback=store_intermediate_result, auto_conversion=False)
@@ -225,8 +253,7 @@ class TestVQE(QiskitAquaTestCase):
         with self.assertRaises(AquaError):
             _ = vqe.run()
 
-        num_qubits = self.qubit_op.num_qubits
-        var_form = RY(num_qubits, depth=3)
+        var_form = RY()
         vqe.var_form = var_form
         with self.assertRaises(AquaError):
             _ = vqe.run()
@@ -250,7 +277,7 @@ class TestVQE(QiskitAquaTestCase):
 
     def test_vqe_mes(self):
         """ Test vqe minimum eigen solver interface """
-        vqe = VQE(var_form=RY(self.qubit_op.num_qubits, depth=3), optimizer=COBYLA())
+        vqe = VQE(var_form=RY(), optimizer=COBYLA())
         vqe.set_backend(BasicAer.get_backend('statevector_simulator'))
         result = vqe.compute_minimum_eigenvalue(self.qubit_op)
         self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=5)
