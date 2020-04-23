@@ -26,6 +26,7 @@ Added
 -   Chemistry FCIDump file driver (#859)
 -   Chemistry stack automatic Z2 symmetry reduction (#870)
 -   Ising Optimization: The 0-1 Knapsack problem (#878)
+-   VQE, VQC and QSVM accept `QuantumCircuit`s as variational forms/feature maps (#905)
 
 Changed
 -------
@@ -38,6 +39,7 @@ Changed
 -   Measurement error mitigation supports different output orders on same qubits (#865)
 -   If ibmq-provider is used and job limit is reached, `run_circuit` now waits for a previous job
     to finish before submitting the next one. (#906)
+-   Deprecate using `FeatureMap` and `VariationalForm` in VQC and QSVM (#905)
 
 Removed
 -------

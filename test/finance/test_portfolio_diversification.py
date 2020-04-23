@@ -17,6 +17,7 @@
 import unittest
 import math
 from test.finance import QiskitFinanceTestCase
+import warnings
 import logging
 import numpy as np
 
@@ -140,6 +141,11 @@ class TestPortfolioDiversification(QiskitFinanceTestCase):
         self.instance[1, 0] = 0.8
         # self.instance = -1 * self.instance
         self.qubit_op = get_operator(self.instance, self.n, self.q)
+        warnings.filterwarnings(action="ignore", message="unclosed", category=ResourceWarning)
+
+    def tearDown(self):
+        super().tearDown()
+        warnings.filterwarnings(action="always", message="unclosed", category=ResourceWarning)
 
     def test_simple1(self):
         """ simple1 test """

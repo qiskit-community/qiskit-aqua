@@ -70,17 +70,20 @@ class TestEnd2End(QiskitChemistryTestCase):
 
     def test_deprecated_algo_result(self):
         """ Test processing a deprecated dictionary result from algorithm """
-        warnings.filterwarnings("ignore", category=DeprecationWarning)
-        ryrz = RYRZ(self.qubit_op.num_qubits, depth=3, entanglement='full')
-        vqe = VQE(self.qubit_op, ryrz, COBYLA(), aux_operators=self.aux_ops)
-        quantum_instance = QuantumInstance(qiskit.BasicAer.get_backend('statevector_simulator'))
-        result = vqe.run(quantum_instance)
-        keys = {'energy', 'energies', 'eigvals', 'eigvecs', 'aux_ops'}
-        dict_res = {key: result[key] for key in keys}
-        lines, result = self.core.process_algorithm_result(dict_res)
-        self.assertAlmostEqual(result['energy'], -1.137306, places=4)
-        self.assertEqual(len(lines), 19)
-        self.assertEqual(lines[8], '  Measured:: Num particles: 2.000, S: 0.000, M: 0.00000')
+        try:
+            warnings.filterwarnings("ignore", category=DeprecationWarning)
+            ryrz = RYRZ(self.qubit_op.num_qubits, depth=3, entanglement='full')
+            vqe = VQE(self.qubit_op, ryrz, COBYLA(), aux_operators=self.aux_ops)
+            quantum_instance = QuantumInstance(qiskit.BasicAer.get_backend('statevector_simulator'))
+            result = vqe.run(quantum_instance)
+            keys = {'energy', 'energies', 'eigvals', 'eigvecs', 'aux_ops'}
+            dict_res = {key: result[key] for key in keys}
+            lines, result = self.core.process_algorithm_result(dict_res)
+            self.assertAlmostEqual(result['energy'], -1.137306, places=4)
+            self.assertEqual(len(lines), 19)
+            self.assertEqual(lines[8], '  Measured:: Num particles: 2.000, S: 0.000, M: 0.00000')
+        finally:
+            warnings.filterwarnings("always", category=DeprecationWarning)
 
 
 if __name__ == '__main__':
