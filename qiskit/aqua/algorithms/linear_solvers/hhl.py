@@ -11,9 +11,8 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""
-The HHL algorithm.
-"""
+
+"""The HHL algorithm."""
 
 from typing import Optional, Union
 import logging
@@ -37,9 +36,7 @@ logger = logging.getLogger(__name__)
 
 
 class HHL(QuantumAlgorithm):
-
-    r"""
-    The HHL algorithm.
+    r"""The HHL algorithm.
 
     The HHL algorithm (after the author's surnames Harrow-Hassidim-Lloyd) is a quantum algorithm
     to solve systems of linear equations :math:`A\overrightarrow{x}=\overrightarrow{b}`.

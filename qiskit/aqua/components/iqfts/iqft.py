@@ -11,10 +11,12 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""
-This module contains the definition of a base class for inverse quantum fourier transforms.
+
+"""DEPRECATED. This module contains the definition of a base class for inverse quantum fourier
+transforms.
 """
 
+import warnings
 from abc import ABC, abstractmethod
 
 from qiskit import QuantumRegister, QuantumCircuit  # pylint: disable=unused-import
@@ -23,21 +25,13 @@ from qiskit.aqua import AquaError
 
 
 class IQFT(ABC):
+    """DEPRECATED. Base class for IQFT."""
 
-    """Base class for Inverse QFT.
-
-        This method should initialize the module and
-        use an exception if a component of the module is not
-        available.
-
-        Args:
-            args (list): args
-            kwargs (list): kwargs
-    """
-
-    @abstractmethod
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__()
+    def __init__(self):
+        warnings.warn('The class qiskit.aqua.components.iqfts.IQFT is deprecated and will be '
+                      'removed no earlier than 3 months after the release 0.7.0. You should use the'
+                      ' qiskit.circuit.library.QFT class instead and its .inverse().',
+                      DeprecationWarning, stacklevel=2)
 
     @abstractmethod
     def _build_matrix(self):

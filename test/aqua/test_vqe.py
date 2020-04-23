@@ -15,15 +15,15 @@
 """ Test VQE """
 
 import unittest
-import os
 from test.aqua import QiskitAquaTestCase
 import numpy as np
-from ddt import ddt, idata, unpack
-from qiskit import BasicAer
+from ddt import ddt, unpack, data
+from qiskit import BasicAer, QuantumCircuit
+from qiskit.circuit import ParameterVector
 
 from qiskit.aqua import QuantumInstance, aqua_globals, AquaError
 from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator
-from qiskit.aqua.components.variational_forms import RY, RYRZ
+from qiskit.aqua.components.variational_forms import RY, RYRZ, VariationalForm
 from qiskit.aqua.components.optimizers import L_BFGS_B, COBYLA, SPSA, SLSQP
 from qiskit.aqua.components.initial_states import Zero
 from qiskit.aqua.algorithms import VQE
@@ -47,10 +47,15 @@ class TestVQE(QiskitAquaTestCase):
         }
         self.qubit_op = WeightedPauliOperator.from_dict(pauli_dict)
 
-    def test_vqe(self):
+    @data(VariationalForm, QuantumCircuit)
+    def test_vqe(self, var_form_type):
         """ VQE test """
-        vqe = VQE(self.qubit_op, RYRZ(self.qubit_op.num_qubits), L_BFGS_B())
+        var_form = RYRZ(self.qubit_op.num_qubits)
+        if var_form_type is QuantumCircuit:
+            params = ParameterVector('θ', var_form.num_parameters)
+            var_form = var_form.construct_circuit(params)
 
+        vqe = VQE(self.qubit_op, var_form, L_BFGS_B())
         result = vqe.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),
                                          basis_gates=['u1', 'u2', 'u3', 'cx', 'id'],
                                          coupling_map=[[0, 1]],
@@ -58,15 +63,27 @@ class TestVQE(QiskitAquaTestCase):
                                          seed_transpiler=aqua_globals.random_seed))
         self.assertAlmostEqual(result.eigenvalue.real, -1.85727503)
         np.testing.assert_array_almost_equal(result.eigenvalue.real, -1.85727503, 5)
+        self.assertEqual(len(result.optimal_point), 16)
         self.assertIsNotNone(result.cost_function_evals)
         self.assertIsNotNone(result.optimizer_time)
 
-    @idata([
-        [SLSQP, 5, 4],
-        [SLSQP, 5, 1],
-        [SPSA, 3, 2],  # max_evals_grouped=n is considered as max_evals_grouped=2 if n>2
-        [SPSA, 3, 1]
-    ])
+    def test_vqe_no_varform_params(self):
+        """Test specifying a variational form with no parameters raises an error."""
+        circuit = QuantumCircuit(self.qubit_op.num_qubits)
+        for i in range(circuit.num_qubits):
+            circuit.h(i)
+            circuit.cx(i, (i + 1) % circuit.num_qubits)
+            circuit.rx(0.2, i)
+
+        with self.assertRaises(AquaError):
+            _ = VQE(self.qubit_op, circuit)
+
+    @data(
+        (SLSQP, 5, 4),
+        (SLSQP, 5, 1),
+        (SPSA, 3, 2),  # max_evals_grouped=n is considered as max_evals_grouped=2 if n>2
+        (SPSA, 3, 1)
+    )
     @unpack
     def test_vqe_optimizers(self, optimizer_cls, places, max_evals_grouped):
         """ VQE Optimizers test """
@@ -80,26 +97,36 @@ class TestVQE(QiskitAquaTestCase):
 
         self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=places)
 
-    @idata([
-        [RY, 5],
-        [RYRZ, 5]
-    ])
+    @data(
+        (RY, 5, VariationalForm),
+        (RYRZ, 5, VariationalForm),
+        (RY, 5, QuantumCircuit),
+        (RYRZ, 5, QuantumCircuit),
+    )
     @unpack
-    def test_vqe_var_forms(self, var_form_cls, places):
+    def test_vqe_var_forms(self, var_form_cls, places, var_form_type):
         """ VQE Var Forms test """
-        result = VQE(self.qubit_op,
-                     var_form_cls(self.qubit_op.num_qubits),
-                     L_BFGS_B()).run(
-                         QuantumInstance(BasicAer.get_backend('statevector_simulator'), shots=1,
+        var_form = var_form_cls(self.qubit_op.num_qubits)
+        if var_form_type is QuantumCircuit:
+            params = ParameterVector('θ', var_form.num_parameters)
+            var_form = var_form.construct_circuit(params)
+
+        vqe = VQE(self.qubit_op, var_form, L_BFGS_B())
+        result = vqe.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'), shots=1,
                                          seed_simulator=aqua_globals.random_seed,
                                          seed_transpiler=aqua_globals.random_seed))
         self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=places)
 
-    def test_vqe_qasm(self):
+    @data(VariationalForm, QuantumCircuit)
+    def test_vqe_qasm(self, var_form_type):
         """ VQE QASM test """
         backend = BasicAer.get_backend('qasm_simulator')
         num_qubits = self.qubit_op.num_qubits
         var_form = RY(num_qubits, depth=3)
+        if var_form_type is QuantumCircuit:
+            params = ParameterVector('θ', var_form.num_parameters)
+            var_form = var_form.construct_circuit(params)
+
         optimizer = SPSA(max_trials=300, last_avg=5)
         algo = VQE(self.qubit_op, var_form, optimizer, max_evals_grouped=1)
         quantum_instance = QuantumInstance(backend, shots=10000,
@@ -108,7 +135,8 @@ class TestVQE(QiskitAquaTestCase):
         result = algo.run(quantum_instance)
         self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=2)
 
-    def test_vqe_statevector_snapshot_mode(self):
+    @data(VariationalForm, QuantumCircuit)
+    def test_vqe_statevector_snapshot_mode(self, var_form_type):
         """ VQE Aer statevector_simulator snapshot mode test """
         try:
             # pylint: disable=import-outside-toplevel
@@ -120,6 +148,10 @@ class TestVQE(QiskitAquaTestCase):
         num_qubits = self.qubit_op.num_qubits
         init_state = Zero(num_qubits)
         var_form = RY(num_qubits, depth=3, initial_state=init_state)
+        if var_form_type is QuantumCircuit:
+            params = ParameterVector('θ', var_form.num_parameters)
+            var_form = var_form.construct_circuit(params)
+
         optimizer = L_BFGS_B()
         algo = VQE(self.qubit_op, var_form, optimizer, max_evals_grouped=1)
         quantum_instance = QuantumInstance(backend,
@@ -128,7 +160,8 @@ class TestVQE(QiskitAquaTestCase):
         result = algo.run(quantum_instance)
         self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=6)
 
-    def test_vqe_qasm_snapshot_mode(self):
+    @data(VariationalForm, QuantumCircuit)
+    def test_vqe_qasm_snapshot_mode(self, var_form_type):
         """ VQE Aer qasm_simulator snapshot mode test """
         try:
             # pylint: disable=import-outside-toplevel
@@ -140,6 +173,10 @@ class TestVQE(QiskitAquaTestCase):
         num_qubits = self.qubit_op.num_qubits
         init_state = Zero(num_qubits)
         var_form = RY(num_qubits, depth=3, initial_state=init_state)
+        if var_form_type is QuantumCircuit:
+            params = ParameterVector('θ', var_form.num_parameters)
+            var_form = var_form.construct_circuit(params)
+
         optimizer = L_BFGS_B()
         algo = VQE(self.qubit_op, var_form, optimizer, max_evals_grouped=1)
         quantum_instance = QuantumInstance(backend, shots=1,
@@ -148,22 +185,24 @@ class TestVQE(QiskitAquaTestCase):
         result = algo.run(quantum_instance)
         self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=6)
 
-    def test_vqe_callback(self):
+    @data(VariationalForm, QuantumCircuit)
+    def test_vqe_callback(self, var_form_type):
         """ VQE Callback test """
-        tmp_filename = 'vqe_callback_test.csv'
-        is_file_exist = os.path.exists(self.get_resource_path(tmp_filename))
-        if is_file_exist:
-            os.remove(self.get_resource_path(tmp_filename))
+        history = {'eval_count': [], 'parameters': [], 'mean': [], 'std': []}
 
         def store_intermediate_result(eval_count, parameters, mean, std):
-            with open(self.get_resource_path(tmp_filename), 'a') as file:
-                content = "{},{},{:.5f},{:.5f}".format(eval_count, parameters, mean, std)
-                print(content, file=file, flush=True)
+            history['eval_count'].append(eval_count)
+            history['parameters'].append(parameters)
+            history['mean'].append(mean)
+            history['std'].append(std)
 
         backend = BasicAer.get_backend('qasm_simulator')
         num_qubits = self.qubit_op.num_qubits
         init_state = Zero(num_qubits)
         var_form = RY(num_qubits, depth=1, initial_state=init_state)
+        if var_form_type is QuantumCircuit:
+            params = ParameterVector('θ', var_form.num_parameters)
+            var_form = var_form.construct_circuit(params)
         optimizer = COBYLA(maxiter=3)
         algo = VQE(self.qubit_op, var_form, optimizer,
                    callback=store_intermediate_result, auto_conversion=False)
@@ -174,33 +213,11 @@ class TestVQE(QiskitAquaTestCase):
                                            seed_simulator=50)
         algo.run(quantum_instance)
 
-        is_file_exist = os.path.exists(self.get_resource_path(tmp_filename))
-        self.assertTrue(is_file_exist, "Does not store content successfully.")
-
-        # check the content
-        ref_content = [['1',
-                        '[-0.03391886 -1.70850424 -1.53640265 -0.65137839]',
-                        '-0.61121', '0.01572'],
-                       ['2',
-                        '[ 0.96608114 -1.70850424 -1.53640265 -0.65137839]',
-                        '-0.79235', '0.01722'],
-                       ['3',
-                        '[ 0.96608114 -0.70850424 -1.53640265 -0.65137839]',
-                        '-0.82829', '0.01529']
-                       ]
-        try:
-            with open(self.get_resource_path(tmp_filename)) as file:
-                idx = 0
-                for record in file.readlines():
-                    eval_count, parameters, mean, std = record.split(",")
-                    self.assertEqual(eval_count.strip(), ref_content[idx][0])
-                    self.assertEqual(parameters, ref_content[idx][1])
-                    self.assertEqual(mean.strip(), ref_content[idx][2])
-                    self.assertEqual(std.strip(), ref_content[idx][3])
-                    idx += 1
-        finally:
-            if is_file_exist:
-                os.remove(self.get_resource_path(tmp_filename))
+        self.assertTrue(all(isinstance(count, int) for count in history['eval_count']))
+        self.assertTrue(all(isinstance(mean, float) for mean in history['mean']))
+        self.assertTrue(all(isinstance(std, float) for std in history['std']))
+        for params in history['parameters']:
+            self.assertTrue(all(isinstance(param, float) for param in params))
 
     def test_vqe_reuse(self):
         """ Test vqe reuse """
