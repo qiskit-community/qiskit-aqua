@@ -32,12 +32,10 @@ from .exceptions import QiskitOptimizationError
 from .problems import QuadraticProgram
 from ._logging import (get_qiskit_optimization_logging,
                        set_qiskit_optimization_logging)
-from .util import get_qubo_solutions
 
 __all__ = ['QuadraticProgram',
            'QiskitOptimizationError',
            'get_qiskit_optimization_logging',
            'set_qiskit_optimization_logging',
-           'infinity',
-           'get_qubo_solutions'
+           'infinity'
            ]
