@@ -145,7 +145,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
 
                 # 1a. get additional offset
                 constant = problem_.objective.constant
-                constant += problem_.objective.quadratic[i, i] / 2
+                constant += problem_.objective.quadratic[i, i]
                 constant += problem_.objective.linear[i]
                 problem_.objective.constant = constant
 
