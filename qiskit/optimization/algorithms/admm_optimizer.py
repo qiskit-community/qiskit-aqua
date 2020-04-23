@@ -13,6 +13,7 @@
 # that they have been altered from the originals.
 
 """An implementation of the ADMM algorithm."""
+import copy
 import logging
 import time
 from typing import List, Optional, Any
@@ -150,7 +151,7 @@ class ADMMState:
         self.rho = rho_initial
 
         # new features
-        self.equality_constraints = []
+        self.binary_equality_constraints = []
         self.inequality_constraints = []
 
 
@@ -407,7 +408,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         for constraint in self._state.op.linear_constraints:
             if constraint.sense == ConstraintSense.EQ:
                 # todo: verify that this constraint contains only binary variables
-                self._state.equality_constraints.append(constraint)
+                self._state.binary_equality_constraints.append(constraint)
             elif constraint.sense in (ConstraintSense.LE, ConstraintSense.GE):
                 self._state.inequality_constraints.append(constraint)
 
@@ -639,89 +640,115 @@ class ADMMOptimizer(OptimizationAlgorithm):
         op1.objective.linear = linear_objective
         return op1
 
+    # def _create_step2_problem(self) -> QuadraticProgram:
+    #     """Creates a step 2 sub-problem.
+    #
+    #     Returns:
+    #         A newly created optimization problem.
+    #     """
+    #     op2 = QuadraticProgram()
+    #
+    #     continuous_size = len(self._state.continuous_indices)
+    #     binary_size = len(self._state.binary_indices)
+    #     continuous_index = 0
+    #     for variable in self._state.op.variables:
+    #         if variable.vartype == VarType.CONTINUOUS:
+    #             op2.continuous_var(name="u0_" + str(continuous_index + 1),
+    #                                lowerbound=variable.lowerbound, upperbound=variable.upperbound)
+    #             continuous_index += 1
+    #
+    #     for i in range(binary_size):
+    #         op2.continuous_var(name="z0_" + str(i + 1), lowerbound=0, upperbound=1.)
+    #
+    #     q_z = self._state.rho / 2 * np.eye(binary_size)
+    #     op2.objective.quadratic = block_diag(self._state.q1, q_z)
+    #
+    #     linear_z = -1 * self._state.lambda_mult - self._state.rho * (self._state.x0 - self._state.y)
+    #     op2.objective.linear = np.concatenate((self._state.c1, linear_z))
+    #
+    #     # constraints for z.
+    #     # A1 z <= b1.
+    #     constraint_count = self._state.a1.shape[0]
+    #     for i in range(constraint_count):
+    #         linear = np.concatenate((np.zeros(continuous_size), self._state.a1[i, :]))
+    #         op2.linear_constraint(linear=linear, sense=ConstraintSense.LE, rhs=self._state.b1[i])
+    #
+    #     if continuous_size:
+    #         # A2 z + A3 u <= b2
+    #         constraint_count = self._state.a2.shape[0]
+    #         for i in range(constraint_count):
+    #             linear = np.concatenate((self._state.a3[i, :], self._state.a2[i, :]))
+    #             op2.linear_constraint(linear=linear,
+    #                                   sense=ConstraintSense.LE,
+    #                                   rhs=self._state.b2[i])
+    #
+    #         # A4 u <= b3
+    #         constraint_count = self._state.a4.shape[0]
+    #         for i in range(constraint_count):
+    #             linear = np.concatenate((self._state.a4[i, :], np.zeros(binary_size)))
+    #             op2.linear_constraint(linear=linear,
+    #                                   sense=ConstraintSense.LE,
+    #                                   rhs=self._state.b3[i])
+    #
+    #     # add quadratic constraints for
+    #     # In the step 2, we basically need to copy all quadratic constraints of the original
+    #     # problem, and substitute binary variables with variables 0<=z<=1.
+    #     # The quadratic constraint can have any equality/inequality sign.
+    #     #
+    #     #  For example:
+    #     #  Original problem:
+    #     #  Quadratic_constraint: x**2 + u**2 <= 1
+    #     #  Vars: x binary, L <= u <= U
+    #     #
+    #     #  Step 2:
+    #     #  Quadratic_constraint: z**2 + u**2 <= 1
+    #     #  Vars: 0<=z<=1, L <= u <= U
+    #     # for linear, quad, sense, rhs \
+    #     #         in zip(self._state.op.quadratic_constraints.get_linear_components(),
+    #     #                self._state.op.quadratic_constraints.get_quadratic_components(),
+    #     #                self._state.op.quadratic_constraints.get_senses(),
+    #     #                self._state.op.quadratic_constraints.get_rhs()):
+    #     #     # types in the loop: SparsePair, SparseTriple, character, float
+    #     #     print(linear, quad, sense, rhs)
+    #     #     new_linear = SparsePair(ind=self._binary_indices_to_continuous(linear.ins),
+    #     #                             val=linear.val)
+    #     #     new_quadratic = SparseTriple(ind1=self._binary_indices_to_continuous(quad.ind1),
+    #     #                                  ind2=self._binary_indices_to_continuous(quad.ind2),
+    #     #                                  val=quad.val)
+    #     #     op2.quadratic_constraints.add(lin_expr=new_linear, quad_expr=new_quadratic,
+    #     #                                   sense=sense, rhs=rhs)
+    #
+    #     return op2
+
+    # def _binary_indices_to_continuous(self, binary_indices: List[int]) -> List[int]:
+    #     # todo: implement
+    #     return binary_indices
+
     def _create_step2_problem(self) -> QuadraticProgram:
         """Creates a step 2 sub-problem.
 
         Returns:
             A newly created optimization problem.
         """
-        op2 = QuadraticProgram()
+        op2 = copy.deepcopy(self._state.op)
+        # replace binary variables with the continuous ones that look like binary
+        # x0(bin) -> z(cts)
+        # u (cts) are still there unchanged
+        for i, var_index in enumerate(self._state.binary_indices):
+            variable = op2.variables[var_index]
+            variable.vartype = VarType.CONTINUOUS
+            variable.upperbound = 1.
+            variable.lowerbound = 0.
+            # replacing Q0 objective and take of min/max sense, initially we consider minimization
+            op2.objective.quadratic[var_index, var_index] = self._state.sense * self._state.rho / 2
+            # replacing linear objective
+            op2.objective.linear[var_index] = self._state.sense * (-1 * self._state.lambda_mult[i] - self._state.rho * (self._state.x0[i] - self._state.y[i]))
 
-        continuous_size = len(self._state.continuous_indices)
-        binary_size = len(self._state.binary_indices)
-        continuous_index = 0
-        for variable in self._state.op.variables:
-            if variable.vartype == VarType.CONTINUOUS:
-                op2.continuous_var(name="u0_" + str(continuous_index + 1),
-                                   lowerbound=variable.lowerbound, upperbound=variable.upperbound)
-                continuous_index += 1
-
-        for i in range(binary_size):
-            op2.continuous_var(name="z0_" + str(i + 1), lowerbound=0, upperbound=1.)
-
-        q_z = self._state.rho / 2 * np.eye(binary_size)
-        op2.objective.quadratic = block_diag(self._state.q1, q_z)
-
-        linear_z = -1 * self._state.lambda_mult - self._state.rho * (self._state.x0 - self._state.y)
-        op2.objective.linear = np.concatenate((self._state.c1, linear_z))
-
-        # constraints for z.
-        # A1 z <= b1.
-        constraint_count = self._state.a1.shape[0]
-        for i in range(constraint_count):
-            linear = np.concatenate((np.zeros(continuous_size), self._state.a1[i, :]))
-            op2.linear_constraint(linear=linear, sense=ConstraintSense.LE, rhs=self._state.b1[i])
-
-        if continuous_size:
-            # A2 z + A3 u <= b2
-            constraint_count = self._state.a2.shape[0]
-            for i in range(constraint_count):
-                linear = np.concatenate((self._state.a3[i, :], self._state.a2[i, :]))
-                op2.linear_constraint(linear=linear,
-                                      sense=ConstraintSense.LE,
-                                      rhs=self._state.b2[i])
-
-            # A4 u <= b3
-            constraint_count = self._state.a4.shape[0]
-            for i in range(constraint_count):
-                linear = np.concatenate((self._state.a4[i, :], np.zeros(binary_size)))
-                op2.linear_constraint(linear=linear,
-                                      sense=ConstraintSense.LE,
-                                      rhs=self._state.b3[i])
-
-        # add quadratic constraints for
-        # In the step 2, we basically need to copy all quadratic constraints of the original
-        # problem, and substitute binary variables with variables 0<=z<=1.
-        # The quadratic constraint can have any equality/inequality sign.
-        #
-        #  For example:
-        #  Original problem:
-        #  Quadratic_constraint: x**2 + u**2 <= 1
-        #  Vars: x binary, L <= u <= U
-        #
-        #  Step 2:
-        #  Quadratic_constraint: z**2 + u**2 <= 1
-        #  Vars: 0<=z<=1, L <= u <= U
-        # for linear, quad, sense, rhs \
-        #         in zip(self._state.op.quadratic_constraints.get_linear_components(),
-        #                self._state.op.quadratic_constraints.get_quadratic_components(),
-        #                self._state.op.quadratic_constraints.get_senses(),
-        #                self._state.op.quadratic_constraints.get_rhs()):
-        #     # types in the loop: SparsePair, SparseTriple, character, float
-        #     print(linear, quad, sense, rhs)
-        #     new_linear = SparsePair(ind=self._binary_indices_to_continuous(linear.ins),
-        #                             val=linear.val)
-        #     new_quadratic = SparseTriple(ind1=self._binary_indices_to_continuous(quad.ind1),
-        #                                  ind2=self._binary_indices_to_continuous(quad.ind2),
-        #                                  val=quad.val)
-        #     op2.quadratic_constraints.add(lin_expr=new_linear, quad_expr=new_quadratic,
-        #                                   sense=sense, rhs=rhs)
+        # remove A0 x0 = b0 constraints
+        for constraint in self._state.binary_equality_constraints:
+            op2.remove_linear_constraint(constraint.name)
 
         return op2
-
-    def _binary_indices_to_continuous(self, binary_indices: List[int]) -> List[int]:
-        # todo: implement
-        return binary_indices
 
     def _create_step3_problem(self) -> QuadraticProgram:
         """Creates a step 3 sub-problem.
@@ -757,6 +784,23 @@ class ADMMOptimizer(OptimizationAlgorithm):
         """
         return np.asarray(self._qubo_optimizer.solve(op1).x)
 
+    # def _update_x1(self, op2: QuadraticProgram) -> (np.ndarray, np.ndarray):
+    #     """Solves the Step2 QuadraticProgram via the continuous optimizer.
+    #
+    #     Args:
+    #         op2: the Step2 QuadraticProgram
+    #
+    #     Returns:
+    #         A solution of the Step2, as a pair of numpy arrays.
+    #         First array contains the values of decision variables u, and
+    #         second array contains the values of decision variables z.
+    #
+    #     """
+    #     vars_op2 = self._continuous_optimizer.solve(op2).x
+    #     vars_u = np.asarray(vars_op2[:len(self._state.continuous_indices)])
+    #     vars_z = np.asarray(vars_op2[len(self._state.continuous_indices):])
+    #     return vars_u, vars_z
+
     def _update_x1(self, op2: QuadraticProgram) -> (np.ndarray, np.ndarray):
         """Solves the Step2 QuadraticProgram via the continuous optimizer.
 
@@ -769,9 +813,11 @@ class ADMMOptimizer(OptimizationAlgorithm):
             second array contains the values of decision variables z.
 
         """
-        vars_op2 = self._continuous_optimizer.solve(op2).x
-        vars_u = np.asarray(vars_op2[:len(self._state.continuous_indices)])
-        vars_z = np.asarray(vars_op2[len(self._state.continuous_indices):])
+        vars_op2 = np.asarray(self._continuous_optimizer.solve(op2).x)
+        # vars_u = np.asarray(vars_op2[:len(self._state.continuous_indices)])
+        # vars_z = np.asarray(vars_op2[len(self._state.continuous_indices):])
+        vars_u = vars_op2.take(self._state.continuous_indices)
+        vars_z = vars_op2.take(self._state.binary_indices)
         return vars_u, vars_z
 
     def _update_y(self, op3: QuadraticProgram) -> np.ndarray:
@@ -845,7 +891,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         solution = self._get_current_solution()
         # equality constraints
         cr0 = 0
-        for constraint in self._state.equality_constraints:
+        for constraint in self._state.binary_equality_constraints:
             cr0 += np.abs(constraint.evaluate(solution) - constraint.rhs)
 
         # inequality constraints
