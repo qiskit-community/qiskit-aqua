@@ -72,7 +72,9 @@ class VQAlgorithm(QuantumAlgorithm):
         self._optimizer = optimizer
         self._cost_fn = cost_fn
         self._initial_point = initial_point
-        self.var_form = var_form
+        self._var_form = var_form
+        if var_form is not None:
+            self.var_form = var_form
 
         self._parameterized_circuits = None
 
@@ -92,7 +94,9 @@ class VQAlgorithm(QuantumAlgorithm):
             self._var_form_params = ParameterVector('θ', length=var_form.num_parameters)
             self._var_form = var_form
         else:
-            raise ValueError('Unsupported type {} of var_form'.format(type(var_form)))
+            raise ValueError(
+                "Unsupported type '{}' of var_form".format(
+                    type(var_form) if var_form else var_form))
 
         if var_form is not None and len(self._var_form_params) == 0:
             raise AquaError('Passing a variational form with no parameters is not supported.')

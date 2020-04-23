@@ -25,7 +25,7 @@ from time import time
 
 import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit
-from qiskit.circuit import Parameter, ParameterVector
+from qiskit.circuit import Parameter
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.operators import (TPBGroupedWeightedPauliOperator, WeightedPauliOperator,
@@ -193,16 +193,6 @@ class VQE(VQAlgorithm, MinimumEigensolver):
     def aux_operators(self, aux_operators: List[BaseOperator]) -> None:
         """ Set aux operators """
         self._in_aux_operators = aux_operators
-
-    @VQAlgorithm.var_form.setter
-    def var_form(self, var_form: VariationalForm):
-        """ Sets variational form """
-        VQAlgorithm.var_form.fset(self, var_form)
-        if var_form:
-            self._var_form_params = ParameterVector('θ', var_form.num_parameters)
-            if self.initial_point is None:
-                self.initial_point = var_form.preferred_init_points
-            self._check_operator_varform()
 
     def _check_operator_varform(self):
         """Check that the number of qubits of operator and variational form match."""
