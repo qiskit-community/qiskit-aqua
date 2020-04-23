@@ -57,7 +57,7 @@ class LinearConstraint(Constraint):
     def linear(self, linear: Union[ndarray, spmatrix, List[float], Dict[Union[str, int], float]]) \
             -> None:
         """Sets the linear expression corresponding to the left-hand-side of the constraint.
-        The coefficients can either be given by an array, a (sparse) 1d matrix, a lsit or a
+        The coefficients can either be given by an array, a (sparse) 1d matrix, a list or a
         dictionary.
 
         Args:
