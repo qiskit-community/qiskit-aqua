@@ -28,7 +28,8 @@ from .state_fn import StateFn
 
 
 class CircuitStateFn(StateFn):
-    """ A class for representing state functions and measurements.
+    """
+    A class for representing state functions and measurements.
 
     State functions are defined to be complex functions over a single binary string
     (as compared to an operator,
@@ -43,12 +44,12 @@ class CircuitStateFn(StateFn):
     probabilistic or quantum system represented by a StateFn. This leads to the
     equivalent definition, which is that
     a measurement m is a function over binary strings producing StateFns, such that
-     the probability of measuring
+    the probability of measuring
     a given binary string b from a system with StateFn f is equal to the inner
     product between f and m(b).
 
-    NOTE: State functions here are not restricted to wave functions, as there
-    is no requirement of normalization.
+    NOTE: State functions here are not restricted to wave functions,
+          as there is no requirement of normalization.
     """
 
     # TODO allow normalization somehow?
@@ -57,14 +58,12 @@ class CircuitStateFn(StateFn):
                  coeff: Union[int, float, complex, ParameterExpression] = 1.0,
                  is_measurement: bool = False) -> None:
         """
-            Args:
-                primitive: The operator primitive being wrapped.
-                coeff: A coefficient by which to multiply
-                 the state function.
-                is_measurement: Whether the StateFn is a measurement operator.
-
-            Raises:
-                TypeError: invalid parameters.
+        Args:
+            primitive: The operator primitive being wrapped.
+            coeff: A coefficient by which to multiply the state function.
+            is_measurement: Whether the StateFn is a measurement operator.
+        Raises:
+            TypeError: invalid parameters.
         """
         if isinstance(primitive, Instruction):
             qc = QuantumCircuit(primitive.num_qubits)
@@ -166,20 +165,21 @@ class CircuitStateFn(StateFn):
         return ComposedOp([new_self, other])
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
-        """ Return tensor product between self and other, overloaded by ``^``.
+        r"""
+        Return tensor product between self and other, overloaded by ``^``.
+
         Note: You must be conscious of Qiskit's big-endian bit printing convention.
         Meaning, Plus.tensor(Zero)
-        produces a |+⟩ on qubit 0 and a |0⟩ on qubit 1, or |+⟩⨂|0⟩, but would produce
-        a QuantumCircuit like
+        produces a \|+⟩ on qubit 0 and a \|0⟩ on qubit 1, or \|+⟩⨂\|0⟩, but would produce
+        a QuantumCircuit like:
 
-            |0⟩--
-            |+⟩--
+            \|0⟩--
+            \|+⟩--
 
         Because Terra prints circuits and results with qubit 0 at the end of the string or circuit.
 
         Args:
             other: The ``OperatorBase`` to tensor product with self.
-
         Returns:
             An ``OperatorBase`` equivalent to the tensor product of self and other.
         """
@@ -196,13 +196,15 @@ class CircuitStateFn(StateFn):
         return TensoredOp([self, other])
 
     def to_density_matrix(self, massive: bool = False) -> np.ndarray:
-        """ Return numpy matrix of density operator, warn if more than 16 qubits to
+        """
+        Return numpy matrix of density operator, warn if more than 16 qubits to
         force the user to set
         massive=True if they want such a large matrix. Generally big methods like this
         should require the use of a
         converter, but in this case a convenience method for quick hacking and access
         to classical tools is
-        appropriate. """
+        appropriate.
+        """
 
         if self.num_qubits > 16 and not massive:
             raise ValueError(
@@ -305,8 +307,10 @@ class CircuitStateFn(StateFn):
                shots: int = 1024,
                massive: bool = False,
                reverse_endianness: bool = False) -> dict:
-        """ Sample the state function as a normalized probability distribution. Returns dict of
-        bitstrings in order of probability, with values being probability. """
+        """
+        Sample the state function as a normalized probability distribution. Returns dict of
+        bitstrings in order of probability, with values being probability.
+        """
         if self.num_qubits > 16 and not massive:
             raise ValueError(
                 'to_vector will return an exponentially large vector, in this case {0} elements.'

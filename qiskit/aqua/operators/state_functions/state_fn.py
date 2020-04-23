@@ -149,14 +149,15 @@ class StateFn(OperatorBase):
                               is_measurement=self.is_measurement)
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
-        """ Return tensor product between self and other, overloaded by ``^``.
+        r"""
+        Return tensor product between self and other, overloaded by ``^``.
         Note: You must be conscious of Qiskit's big-endian bit printing
         convention. Meaning, Plus.tensor(Zero)
-        produces a |+⟩ on qubit 0 and a |0⟩ on qubit 1, or |+⟩⨂|0⟩, but
+        produces a \|+⟩ on qubit 0 and a \|0⟩ on qubit 1, or \|+⟩⨂\|0⟩, but
         would produce a QuantumCircuit like
 
-            |0⟩--
-            |+⟩--
+            \|0⟩--
+            \|+⟩--
 
         Because Terra prints circuits and results with qubit 0
         at the end of the string or circuit.

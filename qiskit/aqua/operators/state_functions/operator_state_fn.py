@@ -96,6 +96,7 @@ class OperatorStateFn(StateFn):
                                is_measurement=(not self.is_measurement))
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
+        """ tensor """
         if isinstance(other, OperatorStateFn):
             return StateFn(self.primitive.tensor(other.primitive),
                            coeff=self.coeff * other.coeff,
