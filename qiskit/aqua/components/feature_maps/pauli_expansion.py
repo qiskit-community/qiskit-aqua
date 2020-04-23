@@ -36,8 +36,7 @@ logger = logging.getLogger(__name__)
 
 
 class PauliExpansion(FeatureMap):
-    r"""
-    The Pauli Expansion feature map.
+    r"""The Pauli Expansion feature map.
 
     Refer to https://arxiv.org/abs/1804.11326 for details.
 
@@ -134,8 +133,7 @@ class PauliExpansion(FeatureMap):
         return x[where_non_i]
 
     def construct_circuit(self, x, qr=None, inverse=False):
-        """
-        Construct the second order expansion based on given data.
+        """Construct the second order expansion based on given data.
 
         Args:
             x (Union(numpy.ndarray, list[Parameter], ParameterVector)): 1-D to-be-transformed data.

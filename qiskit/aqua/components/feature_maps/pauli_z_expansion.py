@@ -15,6 +15,7 @@
 The Pauli Z Expansion feature map.
 """
 
+import warnings
 from typing import Optional, Callable, List
 import numpy as np
 from qiskit.aqua.utils.validation import validate_min, validate_in_set
@@ -56,6 +57,12 @@ class PauliZExpansion(PauliExpansion):
             data_map_func: A mapping function for data x which can be supplied to override the
                 default mapping from :meth:`self_product`.
         """
+        # extra warning since this class will be removed entirely
+        warnings.warn('The PauliZExpansion class is deprecated as of 0.7.0 and will be removed '
+                      'no sooner than 3 months after the release. You should use the '
+                      'PauliExpansion class directly instead.',
+                      DeprecationWarning, stacklevel=2)
+
         validate_min('depth', depth, 1)
         validate_in_set('entanglement', entanglement, {'full', 'linear'})
         validate_min('z_order', z_order, 1)

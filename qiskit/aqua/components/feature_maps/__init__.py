@@ -72,6 +72,7 @@ Feature Map Utility
 
 """
 
+import warnings
 from .feature_map import FeatureMap
 from .data_mapping import self_product
 from .pauli_expansion import PauliExpansion
@@ -79,6 +80,11 @@ from .pauli_z_expansion import PauliZExpansion
 from .first_order_expansion import FirstOrderExpansion
 from .second_order_expansion import SecondOrderExpansion
 from .raw_feature_vector import RawFeatureVector
+
+warnings.warn('The qiskit.aqua.components.feature_maps module is deprecated as of 0.7.0 and will '
+              'be removed no sooner than 3 months after the release. You should use the data '
+              'encoding circuits in qiskit.circuit.library.data_encoding instead.',
+              DeprecationWarning, stacklevel=2)
 
 __all__ = ['FeatureMap',
            'self_product',
