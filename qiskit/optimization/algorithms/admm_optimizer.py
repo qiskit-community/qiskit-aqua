@@ -479,11 +479,11 @@ class ADMMOptimizer(OptimizationAlgorithm):
         vector.append(self._state.op.linear_constraints[constraint_index].rhs)
 
         # flip the sign if constraint is G, we want L constraints.
-        if self._state.op.linear_constraints[constraint_index].sense == ConstraintSense.GE:
-            # invert the sign to make constraint "L".
-            # we invert only last row/last element
-            matrix[-1] = [-1 * el for el in matrix[-1]]
-            vector[-1] = -1 * vector[-1]
+        # if self._state.op.linear_constraints[constraint_index].sense == ConstraintSense.GE:
+        #     # invert the sign to make constraint "L".
+        #     # we invert only last row/last element
+        #     matrix[-1] = [-1 * el for el in matrix[-1]]
+        #     vector[-1] = -1 * vector[-1]
 
     def _assign_row_values_2(self, matrix: List[List[float]], vector: List[float],
                            constraint: LinearConstraint, variable_indices: List[int]):
@@ -576,31 +576,31 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         return self._create_ndarrays(matrix, vector, len(self._state.binary_indices))
 
-    def _get_inequality_matrix_and_vector(self, variable_indices: List[int]) \
-            -> (List[List[float]], List[float]):
-        """Constructs a matrix and a vector from the constraints in a form of Ax <= b, where
-        x is a vector of variables specified by the indices.
-
-        Args:
-            variable_indices: variable indices to look for.
-
-        Returns:
-            A list based representation of the matrix and the vector.
-        """
-        matrix = []
-        vector = []
-
-        index_set = set(variable_indices)
-        for constraint_index, constraint in enumerate(self._state.op.linear_constraints):
-            if constraint.sense in [ConstraintSense.EQ]:
-                # TODO: Ranged constraints should be supported
-                continue
-            constraint_indices = set(
-                self._state.op.linear_constraints[constraint_index].linear.to_dict().keys())
-            if constraint_indices.issubset(index_set):
-                self._assign_row_values(matrix, vector, constraint_index, variable_indices)
-
-        return matrix, vector
+    # def _get_inequality_matrix_and_vector(self, variable_indices: List[int]) \
+    #         -> (List[List[float]], List[float]):
+    #     """Constructs a matrix and a vector from the constraints in a form of Ax <= b, where
+    #     x is a vector of variables specified by the indices.
+    #
+    #     Args:
+    #         variable_indices: variable indices to look for.
+    #
+    #     Returns:
+    #         A list based representation of the matrix and the vector.
+    #     """
+    #     matrix = []
+    #     vector = []
+    #
+    #     index_set = set(variable_indices)
+    #     for constraint_index, constraint in enumerate(self._state.op.linear_constraints):
+    #         if constraint.sense in [ConstraintSense.EQ]:
+    #             # TODO: Ranged constraints should be supported
+    #             continue
+    #         constraint_indices = set(
+    #             self._state.op.linear_constraints[constraint_index].linear.to_dict().keys())
+    #         if constraint_indices.issubset(index_set):
+    #             self._assign_row_values(matrix, vector, constraint_index, variable_indices)
+    #
+    #     return matrix, vector
 
     # def _get_a1_b1(self) -> (np.ndarray, np.ndarray):
     #     """Constructs a matrix and a vector from the constraints in a form of Ax <= b, where
