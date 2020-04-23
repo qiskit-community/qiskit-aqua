@@ -231,7 +231,7 @@ class TPBGroupedWeightedPauliOperator(WeightedPauliOperator):
         """
         # perform add or sub in paulis and then re-group it again
         ret_op = super()._add_or_sub(other, operation, copy)
-        ret_op = self.grouping_func(ret_op, **self._kwargs)
+        ret_op = self._grouping_func(ret_op, **self._kwargs)
         return ret_op
 
     def multiply(self, other):
@@ -247,5 +247,5 @@ class TPBGroupedWeightedPauliOperator(WeightedPauliOperator):
             TPBGroupedWeightedPauliOperator: the multiplied operator
         """
         ret_op = super().multiply(other)
-        ret_op = self.grouping_func(ret_op, **self._kwargs)
+        ret_op = self._grouping_func(ret_op, **self._kwargs)
         return ret_op
