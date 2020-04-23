@@ -23,7 +23,7 @@ from scipy.linalg import block_diag
 from qiskit.optimization.algorithms.cplex_optimizer import CplexOptimizer
 from qiskit.optimization.algorithms.optimization_algorithm import (OptimizationAlgorithm,
                                                                    OptimizationResult)
-from qiskit.optimization.problems import VarType, ConstraintSense
+from qiskit.optimization.problems import VarType, ConstraintSense, LinearConstraint
 from qiskit.optimization.problems.quadratic_program import QuadraticProgram
 
 UPDATE_RHO_BY_TEN_PERCENT = 0
@@ -393,6 +393,17 @@ class ADMMOptimizer(OptimizationAlgorithm):
             a4 u <= b3
 
         """
+        binary_var_indices = set(self._state.binary_indices)
+        # separate constraints
+        for constraint in self._state.op.linear_constraints:
+            if constraint.sense == ConstraintSense.EQ:
+                constraint_var_indices = set(constraint.linear.to_dict().keys())
+                # verify that there are only binary variables in the constraint
+                if constraint_var_indices.issubset(binary_var_indices):
+                    self._state.binary_equality_constraints.append(constraint)
+            elif constraint.sense in (ConstraintSense.LE, ConstraintSense.GE):
+                self._state.inequality_constraints.append(constraint)
+
         # objective
         self._state.q0 = self._get_q(self._state.binary_indices)
         self._state.c0 = self._get_c(self._state.binary_indices)
@@ -400,17 +411,9 @@ class ADMMOptimizer(OptimizationAlgorithm):
         self._state.c1 = self._get_c(self._state.continuous_indices)
         # constraints
         self._state.a0, self._state.b0 = self._get_a0_b0()
-        self._state.a1, self._state.b1 = self._get_a1_b1()
-        self._state.a2, self._state.a3, self._state.b2 = self._get_a2_a3_b2()
-        self._state.a4, self._state.b3 = self._get_a4_b3()
-
-        # separate constraints
-        for constraint in self._state.op.linear_constraints:
-            if constraint.sense == ConstraintSense.EQ:
-                # todo: verify that this constraint contains only binary variables
-                self._state.binary_equality_constraints.append(constraint)
-            elif constraint.sense in (ConstraintSense.LE, ConstraintSense.GE):
-                self._state.inequality_constraints.append(constraint)
+        # self._state.a1, self._state.b1 = self._get_a1_b1()
+        # self._state.a2, self._state.a3, self._state.b2 = self._get_a2_a3_b2()
+        # self._state.a4, self._state.b3 = self._get_a4_b3()
 
     def _get_q(self, variable_indices: List[int]) -> np.ndarray:
         """Constructs a quadratic matrix for the variables with the specified indices
@@ -482,6 +485,29 @@ class ADMMOptimizer(OptimizationAlgorithm):
             matrix[-1] = [-1 * el for el in matrix[-1]]
             vector[-1] = -1 * vector[-1]
 
+    def _assign_row_values_2(self, matrix: List[List[float]], vector: List[float],
+                           constraint: LinearConstraint, variable_indices: List[int]):
+        """Appends a row to the specified matrix and vector based on the constraint specified by
+        the index using specified variables.
+
+        Args:
+            matrix: a matrix to extend.
+            vector: a vector to expand.
+            constraint_index: constraint index to look for.
+            variable_indices: variables to look for.
+
+        Returns:
+            None
+        """
+        # assign matrix row, actually pick coefficients at the positions specified in
+        # the variable_indices list
+        row = constraint.linear.to_array().take(variable_indices).tolist()
+
+        matrix.append(row)
+
+        # assign vector row.
+        vector.append(constraint.rhs)
+
     @staticmethod
     def _create_ndarrays(matrix: List[List[float]], vector: List[float], size: int) \
             -> (np.ndarray, np.ndarray):
@@ -514,23 +540,39 @@ class ADMMOptimizer(OptimizationAlgorithm):
         matrix = []
         vector = []
 
-        index_set = set(self._state.binary_indices)
-        for constraint_index, constraint in enumerate(self._state.op.linear_constraints):
-            # we check only equality constraints here.
-            if constraint.sense != ConstraintSense.EQ:
-                continue
+        binary_var_indices = set(self._state.binary_indices)
+        # separate constraints
+        # for constraint in self._state.op.linear_constraints:
+        #     if constraint.sense == ConstraintSense.EQ:
+        #         constraint_var_indices = set(constraint.linear.to_dict().keys())
+        #         # verify that there are only binary variables in the constraint
+        #         if constraint_var_indices.issubset(binary_var_indices):
+        #             self._state.binary_equality_constraints.append(constraint)
+        #     elif constraint.sense in (ConstraintSense.LE, ConstraintSense.GE):
+        #         self._state.inequality_constraints.append(constraint)
 
-            constraint_indices = set(
-                self._state.op.linear_constraints[constraint_index].linear.to_dict().keys())
-            # verify that there are only binary variables in the constraint
-            if constraint_indices.issubset(index_set):
-                self._assign_row_values(matrix, vector,
-                                        constraint_index, self._state.binary_indices)
-            else:
-                raise ValueError(
-                    "Linear constraint with the 'E' sense must contain only binary variables, "
-                    "constraint indices: {}, binary variable indices: {}".format(
-                        constraint_indices, self._state.binary_indices))
+        # index_set = set(self._state.binary_indices)
+        # for constraint_index, constraint in enumerate(self._state.op.linear_constraints):
+        #     # we check only equality constraints here.
+        #     if constraint.sense != ConstraintSense.EQ:
+        #         continue
+        #
+        #     constraint_indices = set(
+        #         self._state.op.linear_constraints[constraint_index].linear.to_dict().keys())
+        #     # verify that there are only binary variables in the constraint
+        #     if constraint_indices.issubset(index_set):
+        #         print("Constraint name: {}".format(constraint.name))
+        #         self._assign_row_values(matrix, vector,
+        #                                 constraint_index, self._state.binary_indices)
+        #     else:
+        #         raise ValueError(
+        #             "Linear constraint with the 'E' sense must contain only binary variables, "
+        #             "constraint indices: {}, binary variable indices: {}".format(
+        #                 constraint_indices, self._state.binary_indices))
+
+        for constraint in self._state.binary_equality_constraints:
+            print("Constraint name: {}".format(constraint.name))
+            self._assign_row_values_2(matrix, vector, constraint, self._state.binary_indices)
 
         return self._create_ndarrays(matrix, vector, len(self._state.binary_indices))
 
@@ -560,57 +602,57 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         return matrix, vector
 
-    def _get_a1_b1(self) -> (np.ndarray, np.ndarray):
-        """Constructs a matrix and a vector from the constraints in a form of Ax <= b, where
-        x is a vector of binary variables.
-
-        Returns:
-            A numpy based representation of the matrix and the vector.
-        """
-        matrix, vector = self._get_inequality_matrix_and_vector(self._state.binary_indices)
-        return self._create_ndarrays(matrix, vector, len(self._state.binary_indices))
-
-    def _get_a4_b3(self) -> (np.ndarray, np.ndarray):
-        """Constructs a matrix and a vector from the constraints in a form of Au <= b, where
-        u is a vector of continuous variables.
-
-        Returns:
-            A numpy based representation of the matrix and the vector.
-        """
-        matrix, vector = self._get_inequality_matrix_and_vector(self._state.continuous_indices)
-        return self._create_ndarrays(matrix, vector, len(self._state.continuous_indices))
-
-    def _get_a2_a3_b2(self) -> (np.ndarray, np.ndarray, np.ndarray):
-        """Constructs matrices and a vector from the constraints in a form of A_2x + A_3u <= b,
-        where x is a vector of binary variables and u is a vector of continuous variables.
-
-        Returns:
-            A numpy representation of two matrices and one vector.
-        """
-        matrix = []
-        vector = []
-
-        binary_index_set = set(self._state.binary_indices)
-        continuous_index_set = set(self._state.continuous_indices)
-        all_variables = self._state.binary_indices + self._state.continuous_indices
-        for constraint_index, constraint in enumerate(self._state.op.linear_constraints):
-            if constraint.sense in [ConstraintSense.EQ]:
-                # TODO: Ranged constraints should be supported as well
-                continue
-            # sense either G or L.
-            constraint_indices = set(
-                self._state.op.linear_constraints[constraint_index].linear.to_dict().keys())
-            # we must have a least one binary and one continuous variable,
-            # otherwise it is another type of constraints.
-            if len(constraint_indices & binary_index_set) != 0 and len(
-                    constraint_indices & continuous_index_set) != 0:
-                self._assign_row_values(matrix, vector, constraint_index, all_variables)
-
-        matrix, b_2 = self._create_ndarrays(matrix, vector, len(all_variables))
-        # a2
-        a_2 = matrix[:, 0:len(self._state.binary_indices)]
-        a_3 = matrix[:, len(self._state.binary_indices):]
-        return a_2, a_3, b_2
+    # def _get_a1_b1(self) -> (np.ndarray, np.ndarray):
+    #     """Constructs a matrix and a vector from the constraints in a form of Ax <= b, where
+    #     x is a vector of binary variables.
+    #
+    #     Returns:
+    #         A numpy based representation of the matrix and the vector.
+    #     """
+    #     matrix, vector = self._get_inequality_matrix_and_vector(self._state.binary_indices)
+    #     return self._create_ndarrays(matrix, vector, len(self._state.binary_indices))
+    #
+    # def _get_a4_b3(self) -> (np.ndarray, np.ndarray):
+    #     """Constructs a matrix and a vector from the constraints in a form of Au <= b, where
+    #     u is a vector of continuous variables.
+    #
+    #     Returns:
+    #         A numpy based representation of the matrix and the vector.
+    #     """
+    #     matrix, vector = self._get_inequality_matrix_and_vector(self._state.continuous_indices)
+    #     return self._create_ndarrays(matrix, vector, len(self._state.continuous_indices))
+    #
+    # def _get_a2_a3_b2(self) -> (np.ndarray, np.ndarray, np.ndarray):
+    #     """Constructs matrices and a vector from the constraints in a form of A_2x + A_3u <= b,
+    #     where x is a vector of binary variables and u is a vector of continuous variables.
+    #
+    #     Returns:
+    #         A numpy representation of two matrices and one vector.
+    #     """
+    #     matrix = []
+    #     vector = []
+    #
+    #     binary_index_set = set(self._state.binary_indices)
+    #     continuous_index_set = set(self._state.continuous_indices)
+    #     all_variables = self._state.binary_indices + self._state.continuous_indices
+    #     for constraint_index, constraint in enumerate(self._state.op.linear_constraints):
+    #         if constraint.sense in [ConstraintSense.EQ]:
+    #             # TODO: Ranged constraints should be supported as well
+    #             continue
+    #         # sense either G or L.
+    #         constraint_indices = set(
+    #             self._state.op.linear_constraints[constraint_index].linear.to_dict().keys())
+    #         # we must have a least one binary and one continuous variable,
+    #         # otherwise it is another type of constraints.
+    #         if len(constraint_indices & binary_index_set) != 0 and len(
+    #                 constraint_indices & continuous_index_set) != 0:
+    #             self._assign_row_values(matrix, vector, constraint_index, all_variables)
+    #
+    #     matrix, b_2 = self._create_ndarrays(matrix, vector, len(all_variables))
+    #     # a2
+    #     a_2 = matrix[:, 0:len(self._state.binary_indices)]
+    #     a_3 = matrix[:, len(self._state.binary_indices):]
+    #     return a_2, a_3, b_2
 
     def _create_step1_problem(self) -> QuadraticProgram:
         """Creates a step 1 sub-problem.
