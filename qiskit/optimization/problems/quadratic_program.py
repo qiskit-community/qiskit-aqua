@@ -223,9 +223,9 @@ class QuadraticProgram:
             The total number of variables.
         """
         if vartype:
-            return sum(variable.vartype == vartype for variable in self.variables)
+            return sum(variable.vartype == vartype for variable in self._variables)
         else:
-            return len(self.variables)
+            return len(self._variables)
 
     def get_num_continuous_vars(self) -> int:
         """Returns the total number of continuous variables.
@@ -323,9 +323,9 @@ class QuadraticProgram:
             KeyError: if the name does not exist
         """
         if isinstance(i, int):
-            return self.linear_constraints[i]
+            return self._linear_constraints[i]
         else:
-            return self.linear_constraints[self._linear_constraints_index[i]]
+            return self._linear_constraints[self._linear_constraints_index[i]]
 
     def get_num_linear_constraints(self) -> int:
         """Returns the number of linear constraints.
@@ -333,7 +333,7 @@ class QuadraticProgram:
         Returns:
             The number of linear constraints.
         """
-        return len(self.linear_constraints)
+        return len(self._linear_constraints)
 
     @property
     def quadratic_constraints(self) -> List[QuadraticConstraint]:
@@ -416,9 +416,9 @@ class QuadraticProgram:
             KeyError: if the name does not exist
         """
         if isinstance(i, int):
-            return self.quadratic_constraints[i]
+            return self._quadratic_constraints[i]
         else:
-            return self.quadratic_constraints[self._quadratic_constraints_index[i]]
+            return self._quadratic_constraints[self._quadratic_constraints_index[i]]
 
     def get_num_quadratic_constraints(self) -> int:
         """Returns the number of quadratic constraints.
@@ -426,7 +426,39 @@ class QuadraticProgram:
         Returns:
             The number of quadratic constraints.
         """
-        return len(self.quadratic_constraints)
+        return len(self._quadratic_constraints)
+
+    def remove_linear_constraint(self, i: Union[str, int]) -> None:
+        """Remove a linear constraint
+
+        Args:
+            i: an index or a name of a linear constraint
+
+        Raises:
+            KeyError: if name does not exist
+            IndexError: if index is out of range
+        """
+        if isinstance(i, str):
+            i = self._linear_constraints_index[i]
+        del self._linear_constraints[i]
+        self._linear_constraints_index = {cst.name: j for j, cst in
+                                          enumerate(self._linear_constraints)}
+
+    def remove_quadratic_constraint(self, i: Union[str, int]) -> None:
+        """Remove a quadratic constraint
+
+        Args:
+            i: an index or a name of a quadratic constraint
+
+        Raises:
+            KeyError: if name does not exist
+            IndexError: if index is out of range
+        """
+        if isinstance(i, str):
+            i = self._quadratic_constraints_index[i]
+        del self._quadratic_constraints[i]
+        self._quadratic_constraints_index = {cst.name: j for j, cst in
+                                             enumerate(self._quadratic_constraints)}
 
     @property
     def objective(self) -> QuadraticObjective:

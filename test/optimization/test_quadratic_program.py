@@ -169,6 +169,7 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         self.assertEqual(q_p.get_num_linear_constraints(), 3)
         lin = q_p.linear_constraints
         self.assertEqual(len(lin), 3)
+
         self.assertDictEqual(lin[0].linear.to_dict(), {0: 1})
         self.assertDictEqual(lin[0].linear.to_dict(use_name=True), {'x': 1})
         self.assertListEqual(lin[0].linear.to_array().tolist(), [1, 0, 0])
@@ -206,6 +207,23 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
             q_p.get_linear_constraint(4)
         with self.assertRaises(KeyError):
             q_p.get_linear_constraint('c3')
+
+        q_p.remove_linear_constraint('c1')
+        lin = q_p.linear_constraints
+        self.assertEqual(len(lin), 2)
+        self.assertDictEqual(lin[1].linear.to_dict(), {2: 1})
+        self.assertDictEqual(lin[1].linear.to_dict(use_name=True), {'z': 1})
+        self.assertListEqual(lin[1].linear.to_array().tolist(), [0, 0, 1])
+        self.assertEqual(lin[1].sense, ConstraintSense.GE)
+        self.assertEqual(lin[1].rhs, 1)
+        self.assertEqual(lin[1].name, 'c2')
+        self.assertEqual(q_p.get_linear_constraint(1).name, 'c2')
+        self.assertEqual(q_p.get_linear_constraint('c2').name, 'c2')
+
+        with self.assertRaises(KeyError):
+            q_p.remove_linear_constraint('c1')
+        with self.assertRaises(IndexError):
+            q_p.remove_linear_constraint(9)
 
         q_p.linear_constraint(sense='E')
         self.assertEqual(q_p.linear_constraints[-1].sense, ConstraintSense.EQ)
@@ -308,6 +326,33 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
             q_p.get_quadratic_constraint(4)
         with self.assertRaises(KeyError):
             q_p.get_quadratic_constraint('q3')
+
+        q_p.remove_quadratic_constraint('q1')
+        quad = q_p.quadratic_constraints
+        self.assertEqual(len(quad), 2)
+        self.assertDictEqual(quad[1].linear.to_dict(), {2: 1})
+        self.assertDictEqual(quad[1].linear.to_dict(use_name=True), {'z': 1})
+        self.assertListEqual(quad[1].linear.to_array().tolist(), [0, 0, 1])
+        self.assertDictEqual(quad[1].quadratic.to_dict(), {(0, 2): 1})
+        self.assertDictEqual(quad[1].quadratic.to_dict(symmetric=True),
+                             {(0, 2): 0.5, (2, 0): 0.5})
+        self.assertDictEqual(quad[1].quadratic.to_dict(use_name=True), {('x', 'z'): 1})
+        self.assertDictEqual(quad[1].quadratic.to_dict(use_name=True, symmetric=True),
+                             {('x', 'z'): 0.5, ('z', 'x'): 0.5})
+        self.assertListEqual(quad[1].quadratic.to_array().tolist(),
+                             [[0, 0, 1], [0, 0, 0], [0, 0, 0]])
+        self.assertListEqual(quad[1].quadratic.to_array(symmetric=True).tolist(),
+                             [[0, 0, 0.5], [0, 0, 0], [0.5, 0, 0]])
+        self.assertEqual(quad[1].sense, ConstraintSense.GE)
+        self.assertEqual(quad[1].rhs, 1)
+        self.assertEqual(quad[1].name, 'q2')
+        self.assertEqual(q_p.get_quadratic_constraint(1).name, 'q2')
+        self.assertEqual(q_p.get_quadratic_constraint('q2').name, 'q2')
+
+        with self.assertRaises(KeyError):
+            q_p.remove_quadratic_constraint('q1')
+        with self.assertRaises(IndexError):
+            q_p.remove_quadratic_constraint(9)
 
     def test_objective_handling(self):
         """test objective handling"""

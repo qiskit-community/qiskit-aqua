@@ -311,6 +311,7 @@ loglikelihood
 logn
 lognormal
 lor
+lowerbound
 lp
 lpex
 lr
@@ -597,6 +598,7 @@ timestamp
 tnc
 toctree
 Todo
+todok
 toffoli
 tol
 tomo
@@ -629,6 +631,7 @@ unroller
 unsetting
 unshifting
 untapered
+upperbound
 username
 usr
 utils
@@ -636,6 +639,7 @@ validator
 vals
 VariablesInterface
 variational
+vartype
 vazirani
 vdag
 vertices
@@ -657,6 +661,7 @@ xc
 xixj
 xopt
 xor
+Xs
 xtol
 xuxv
 xyz
