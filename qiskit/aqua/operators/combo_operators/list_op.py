@@ -26,7 +26,7 @@ from ..operator_base import OperatorBase
 
 class ListOp(OperatorBase):
     """ A class for storing and manipulating lists of operators.
-    List here refers to the fact that this class serves
+    "List" here refers to the fact that this class serves
     as a base class for other Operator combinations which store
     a list of operators, such as SummedOp or TensoredOp,
     but also refers to the fact that this Operator's eval will
