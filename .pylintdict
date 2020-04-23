@@ -1,4 +1,3 @@
-
 abstractmethod
 adag
 adam
@@ -152,6 +151,7 @@ Eckstein
 ee
 eigen
 eigensolver
+eigensolvers
 eigenstate
 eigrange
 eigs
@@ -241,6 +241,7 @@ ifortvars
 ign
 ignis
 ij
+ijkl
 ijkm
 ikmj
 imag
@@ -256,6 +257,7 @@ inline
 innerproduct
 inreg
 instantiations
+integercomparator
 intelvem
 interatomic
 ints
@@ -280,6 +282,7 @@ jt
 jth
 jw
 kaicher
+kanav
 Karimi
 ket
 killoran
@@ -300,12 +303,15 @@ lih
 lijh
 lin
 LinearConstraintInterface
+linearpaulirotations
+ljik
 lmin
 lnot
 loglikelihood
 logn
 lognormal
 lor
+lowerbound
 lp
 lpex
 lr
@@ -413,6 +419,7 @@ overfit
 params
 parentname
 Parikh
+pascual
 pauli
 pauli's
 paulis
@@ -423,10 +430,12 @@ Peleato
 penality
 ph
 piecewise
+piecewiselinearpaulirotations
 plesset
 pmatrix
 polynomially
 Pooya
+polynomialpaulirotations
 postoracle
 powell
 pre
@@ -531,6 +540,7 @@ sdg
 sdk
 seealso
 seeley
+sergey
 setfunc
 setia
 setsenses
@@ -563,6 +573,7 @@ subspaces
 succ
 sudo
 superclass
+superfast
 suzuki
 svm
 sx
@@ -587,6 +598,7 @@ timestamp
 tnc
 toctree
 Todo
+todok
 toffoli
 tol
 tomo
@@ -619,13 +631,16 @@ unroller
 unsetting
 unshifting
 untapered
+upperbound
 username
 usr
 utils
 validator
 vals
+varform
 VariablesInterface
 variational
+vartype
 vazirani
 vdag
 vertices
@@ -647,11 +662,13 @@ xc
 xixj
 xopt
 xor
+Xs
 xtol
 xuxv
 xyz
 yao
 yc
+yu
 yy
 zi
 Zj

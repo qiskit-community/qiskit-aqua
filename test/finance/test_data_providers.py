@@ -38,7 +38,7 @@ class TestDataProviders(QiskitFinanceTestCase):
 
     def tearDown(self):
         super().tearDown()
-        warnings.filterwarnings(action="ignore", message="unclosed", category=ResourceWarning)
+        warnings.filterwarnings(action="always", message="unclosed", category=ResourceWarning)
 
     def test_wrong_use(self):
         """ wrong use test """

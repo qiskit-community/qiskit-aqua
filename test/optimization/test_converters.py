@@ -434,25 +434,28 @@ class TestConverters(QiskitOptimizationTestCase):
 
     def test_continuous_variable_decode(self):
         """ Test decode func of IntegerToBinaryConverter for continuous variables"""
-        mdl = Model('test_continuous_varable_decode')
-        c = mdl.continuous_var(lb=0, ub=10.9, name='c')
-        x = mdl.binary_var(name='x')
-        mdl.maximize(c + x * x)
-        op = QuadraticProgram()
-        op.from_docplex(mdl)
-        converter = IntegerToBinary()
-        op = converter.encode(op)
-        admm_params = ADMMParameters()
-        qubo_optimizer = MinimumEigenOptimizer(NumPyMinimumEigensolver())
-        continuous_optimizer = CplexOptimizer()
-        solver = ADMMOptimizer(
-            qubo_optimizer=qubo_optimizer,
-            continuous_optimizer=continuous_optimizer,
-            params=admm_params,
-        )
-        solution = solver.solve(op)
-        solution = converter.decode(solution)
-        self.assertEqual(solution.x[0], 10.9)
+        try:
+            mdl = Model('test_continuous_varable_decode')
+            c = mdl.continuous_var(lb=0, ub=10.9, name='c')
+            x = mdl.binary_var(name='x')
+            mdl.maximize(c + x * x)
+            op = QuadraticProgram()
+            op.from_docplex(mdl)
+            converter = IntegerToBinary()
+            op = converter.encode(op)
+            admm_params = ADMMParameters()
+            qubo_optimizer = MinimumEigenOptimizer(NumPyMinimumEigensolver())
+            continuous_optimizer = CplexOptimizer()
+            solver = ADMMOptimizer(
+                qubo_optimizer=qubo_optimizer,
+                continuous_optimizer=continuous_optimizer,
+                params=admm_params,
+            )
+            solution = solver.solve(op)
+            solution = converter.decode(solution)
+            self.assertEqual(solution.x[0], 10.9)
+        except NameError as ex:
+            self.skipTest(str(ex))
 
 
 if __name__ == '__main__':

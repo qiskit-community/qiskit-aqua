@@ -86,22 +86,17 @@ class QuadraticProgramToQubo:
         return self._int_to_bin.decode(result)
 
     @staticmethod
-    def get_compatibility_msg(problem: QuadraticProgram) -> bool:
-        """Checks whether a given problem can be cast to a QUBO.
+    def get_compatibility_msg(problem: QuadraticProgram) -> str:
+        """Checks whether a given problem can be solved with this optimizer.
 
-        A quadratic program can be converted to a QUBO (Quadratic Unconstrained Binary
-        Optimization) problem, if the problem contains only binary and integer variables as well
-        as linear equality constraints.
+        Checks whether the given problem is compatible, i.e., whether the problem can be converted
+        to a QUBO, and otherwise, returns a message explaining the incompatibility.
 
         Args:
             problem: The optimization problem to check compatibility.
 
         Returns:
-            True, if the problem can be converted to a QUBO, otherwise a QiskitOptimizationError
-            is raised.
-
-        Raises:
-            QiskitOptimizationError: If the conversion to QUBO is not possible.
+            A message describing the incompatibility.
         """
 
         # initialize message

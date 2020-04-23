@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -11,28 +11,17 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""
-Quantum Fourier Transform Circuit.
-"""
 
-import numpy as np
+"""DEPRECATED. Quantum Fourier Transform Circuit."""
 
-from qiskit.circuit import QuantumRegister, QuantumCircuit, Qubit  # pylint: disable=unused-import
+import warnings
 
+from qiskit.circuit.library import QFT
 from qiskit.aqua import AquaError
 
 
 class FourierTransformCircuits:
-    """
-    Quantum Fourier Transform Circuit.
-    """
-    @staticmethod
-    def _do_swaps(circuit, qubits):
-        num_qubits = len(qubits)
-        for i in range(num_qubits // 2):
-            circuit.cx(qubits[i], qubits[num_qubits - i - 1])
-            circuit.cx(qubits[num_qubits - i - 1], qubits[i])
-            circuit.cx(qubits[i], qubits[num_qubits - i - 1])
+    """DEPRECATED. Quantum Fourier Transform Circuit."""
 
     @staticmethod
     def construct_circuit(
@@ -42,8 +31,7 @@ class FourierTransformCircuits:
             approximation_degree=0,
             do_swaps=True
     ):
-        """
-        Construct the circuit representing the desired state vector.
+        """Construct the circuit representing the desired state vector.
 
         Args:
             circuit (QuantumCircuit): The optional circuit to extend from.
@@ -60,6 +48,10 @@ class FourierTransformCircuits:
         Raises:
             AquaError: invalid input
         """
+        warnings.warn('The class FourierTransformCircuits is deprecated and will be removed '
+                      'no earlier than 3 months after the release 0.7.0. You should use the '
+                      'qiskit.circuit.library.QFT class instead.',
+                      DeprecationWarning, stacklevel=2)
 
         if circuit is None:
             raise AquaError('Missing input QuantumCircuit.')
@@ -67,43 +59,10 @@ class FourierTransformCircuits:
         if qubits is None:
             raise AquaError('Missing input qubits.')
 
-        if isinstance(qubits, QuantumRegister):
-            if not circuit.has_register(qubits):
-                circuit.add_register(qubits)
-        elif isinstance(qubits, list):
-            for qubit in qubits:
-                if isinstance(qubit, Qubit):
-                    if not circuit.has_register(qubit.register):
-                        circuit.add_register(qubit.register)
-                else:
-                    raise AquaError('A QuantumRegister or a list of qubits '
-                                    'is expected for the input qubits.')
-        else:
-            raise AquaError('A QuantumRegister or a list of qubits '
-                            'is expected for the input qubits.')
+        qft = QFT(len(qubits), approximation_degree=approximation_degree, do_swaps=do_swaps)
+        if inverse:
+            qft = qft.inverse()
 
-        if do_swaps and not inverse:
-            FourierTransformCircuits._do_swaps(circuit, qubits)
-
-        qubit_range = reversed(range(len(qubits))) if inverse else range(len(qubits))
-        for j in qubit_range:
-            neighbor_range = range(np.max([0, j - len(qubits) + approximation_degree + 1]), j)
-            if inverse:
-                neighbor_range = reversed(neighbor_range)
-                circuit.u2(0, np.pi, qubits[j])
-            for k in neighbor_range:
-                lam = 1.0 * np.pi / float(2 ** (j - k))
-                if inverse:
-                    lam *= -1
-                circuit.u1(lam / 2, qubits[j])
-                circuit.cx(qubits[j], qubits[k])
-                circuit.u1(-lam / 2, qubits[k])
-                circuit.cx(qubits[j], qubits[k])
-                circuit.u1(lam / 2, qubits[k])
-            if not inverse:
-                circuit.u2(0, np.pi, qubits[j])
-
-        if do_swaps and inverse:
-            FourierTransformCircuits._do_swaps(circuit, qubits)
+        circuit.append(qft.to_instruction(), qubits)
 
         return circuit

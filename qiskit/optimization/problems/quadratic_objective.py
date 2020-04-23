@@ -50,7 +50,7 @@ class QuadraticObjective(HasQuadraticProgram):
             constant: The constant offset of the objective.
             linear: The coefficients of the linear part of the objective.
             quadratic: The coefficients of the quadratic part of the objective.
-            sense: The optimizaiton sense of the objective.
+            sense: The optimization sense of the objective.
         """
         super().__init__(quadratic_program)
         self._constant = constant

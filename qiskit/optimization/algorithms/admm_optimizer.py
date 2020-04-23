@@ -527,8 +527,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         # prepare and set quadratic objective.
         quadratic_objective = self._state.q0 +\
-                self._params.factor_c / 2 * np.dot(self._state.a0.transpose(), self._state.a0) +\
-                self._state.rho / 2 * np.eye(binary_size)
+            self._params.factor_c / 2 * np.dot(self._state.a0.transpose(), self._state.a0) +\
+            self._state.rho / 2 * np.eye(binary_size)
         op1.objective.quadratic = quadratic_objective
 
         # prepare and set linear objective.
@@ -580,7 +580,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         # set quadratic objective y
         quadratic_y = self._params.beta / 2 * np.eye(binary_size) + \
-                      self._state.rho / 2 * np.eye(binary_size)
+            self._state.rho / 2 * np.eye(binary_size)
         op3.objective.quadratic = quadratic_y
 
         # set linear objective for y

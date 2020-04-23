@@ -16,14 +16,23 @@
 
 import unittest
 from test.optimization import QiskitOptimizationTestCase
+import random
+import numpy
+from docplex.mp.model import Model
+from qiskit.aqua import aqua_globals
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.optimization.algorithms import GroverOptimizer, MinimumEigenOptimizer
 from qiskit.optimization.problems import QuadraticProgram
-from docplex.mp.model import Model
 
 
 class TestGroverOptimizer(QiskitOptimizationTestCase):
     """GroverOptimizer tests."""
+
+    def setUp(self):
+        super().setUp()
+        random.seed = 2
+        numpy.random.seed = 42
+        aqua_globals.seed = 42
 
     def validate_results(self, problem, results):
         """Validate the results object returned by GroverOptimizer."""
@@ -40,9 +49,9 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
 
         # Input.
         model = Model()
-        x0 = model.binary_var(name='x0')
-        x1 = model.binary_var(name='x1')
-        model.minimize(0*x0+0*x1)
+        x_0 = model.binary_var(name='x0')
+        x_1 = model.binary_var(name='x1')
+        model.minimize(0*x_0+0*x_1)
         op = QuadraticProgram()
         op.from_docplex(model)
 
@@ -57,9 +66,9 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
 
         # Input.
         model = Model()
-        x0 = model.binary_var(name='x0')
-        x1 = model.binary_var(name='x1')
-        model.minimize(-x0+2*x1)
+        x_0 = model.binary_var(name='x0')
+        x_1 = model.binary_var(name='x1')
+        model.minimize(-x_0+2*x_1)
         op = QuadraticProgram()
         op.from_docplex(model)
 
@@ -74,10 +83,10 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
 
         # Input.
         model = Model()
-        x0 = model.binary_var(name='x0')
-        x1 = model.binary_var(name='x1')
-        x2 = model.binary_var(name='x2')
-        model.minimize(-x0+2*x1-3*x2-2*x0*x2-1*x1*x2)
+        x_0 = model.binary_var(name='x0')
+        x_1 = model.binary_var(name='x1')
+        x_2 = model.binary_var(name='x2')
+        model.minimize(-x_0+2*x_1-3*x_2-2*x_0*x_2-1*x_1*x_2)
         op = QuadraticProgram()
         op.from_docplex(model)
 

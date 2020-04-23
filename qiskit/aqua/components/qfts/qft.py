@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -11,10 +11,11 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""
-This module contains the definition of a base class for quantum fourier transforms.
+
+"""DEPRECATED. This module contains the definition of a base class for quantum fourier transforms.
 """
 
+import warnings
 from abc import ABC, abstractmethod
 
 from qiskit import QuantumRegister, QuantumCircuit  # pylint: disable=unused-import
@@ -23,21 +24,13 @@ from qiskit.aqua import AquaError
 
 
 class QFT(ABC):
+    """DEPRECATED. Base class for QFT."""
 
-    """Base class for QFT.
-
-        This method should initialize the module and
-        use an exception if a component of the module is not
-        available.
-
-        Args:
-            args (list): args
-            kwargs (dict): kwargs
-    """
-
-    @abstractmethod
-    def __init__(self, *args, **kwargs):
-        super().__init__()
+    def __init__(self):
+        warnings.warn('The class qiskit.aqua.components.qfts.QFT is deprecated and will be removed '
+                      'no earlier than 3 months after the release 0.7.0. You should use the '
+                      'qiskit.circuit.library.QFT class instead.',
+                      DeprecationWarning, stacklevel=2)
 
     @abstractmethod
     def _build_matrix(self):

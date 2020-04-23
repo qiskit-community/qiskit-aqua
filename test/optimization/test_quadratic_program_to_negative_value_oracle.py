@@ -17,8 +17,8 @@
 import unittest
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
+from qiskit.optimization.algorithms import GroverOptimizer
 from qiskit.optimization.converters import QuadraticProgramToNegativeValueOracle
-from qiskit.optimization.util import get_qubo_solutions
 from qiskit import QuantumCircuit, Aer, execute
 from qiskit.optimization.problems import QuadraticProgram
 
@@ -39,7 +39,7 @@ class TestQuadraticProgramToNegativeValueOracle(QiskitOptimizationTestCase):
 
     def _validate_operator(self, func_dict, n_key, n_value, operator):
         # Get expected results.
-        solutions = get_qubo_solutions(func_dict, n_key, print_solutions=False)
+        solutions = GroverOptimizer._get_qubo_solutions(func_dict, n_key, print_solutions=False)
 
         # Run the state preparation operator A and observe results.
         circuit = operator._circuit

@@ -40,7 +40,7 @@ Algorithms
    ADMMOptimizer
    CobylaOptimizer
    CplexOptimizer
-   GroverMinimumFinder
+   GroverOptimizer
    MinimumEigenOptimizer
    RecursiveMinimumEigenOptimizer
 

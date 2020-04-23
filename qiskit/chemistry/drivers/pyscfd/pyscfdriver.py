@@ -20,7 +20,7 @@ from enum import Enum
 import logging
 from qiskit.aqua.utils.validation import validate_min
 from qiskit.chemistry.drivers import BaseDriver, UnitsType, HFMethodType
-from qiskit.chemistry import QiskitChemistryError
+from qiskit.chemistry import QiskitChemistryError, QMolecule
 from qiskit.chemistry.drivers.pyscfd.integrals import compute_integrals
 
 logger = logging.getLogger(__name__)
@@ -35,7 +35,11 @@ class InitialGuess(Enum):
 
 
 class PySCFDriver(BaseDriver):
-    """Python implementation of a PySCF driver."""
+    """
+    Qiskit chemistry driver using the PySCF library.
+
+    See https://sunqm.github.io/pyscf/
+    """
 
     def __init__(self,
                  atom: Union[str, List[str]] = 'H 0.0 0.0 0.0; H 0.0 0.0 0.735',
@@ -49,8 +53,6 @@ class PySCFDriver(BaseDriver):
                  init_guess: InitialGuess = InitialGuess.MINAO,
                  max_memory: Optional[int] = None) -> None:
         """
-        Initializer
-
         Args:
             atom: atom list or string separated by semicolons or line breaks
             unit: angstrom or bohr
@@ -105,7 +107,7 @@ class PySCFDriver(BaseDriver):
 
         raise QiskitChemistryError(err_msg)
 
-    def run(self):
+    def run(self) -> QMolecule:
         q_mol = compute_integrals(atom=self._atom,
                                   unit=self._unit,
                                   charge=self._charge,

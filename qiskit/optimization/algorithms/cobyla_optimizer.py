@@ -118,6 +118,7 @@ class CobylaOptimizer(OptimizationAlgorithm):
             if upperbound < infinity:
                 constraints += [lambda x, ub=upperbound: ub - x]
 
+        # pylint: disable=no-member
         # add linear and quadratic constraints
         for constraint in problem.linear_constraints + problem.quadratic_constraints:
             rhs = constraint.rhs

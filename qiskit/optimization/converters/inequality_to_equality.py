@@ -310,12 +310,12 @@ class InequalityToEquality:
 
     def _calc_quadratic_bounds(self, linear, quadratic):
         lhs_lb, lhs_ub = 0, 0
-        # Calcurate the lowerbound and the upperbound of the linear part
+        # Calculate the lowerbound and the upperbound of the linear part
         linear_lb, linear_ub = self._calc_linear_bounds(linear)
         lhs_lb += linear_lb
         lhs_ub += linear_ub
 
-        # Calcurate the lowerbound and the upperbound of the quadratic part
+        # Calculate the lowerbound and the upperbound of the quadratic part
         for (name_i, name_j), v in quadratic.items():
             x = self._src.get_variable(name_i)
             y = self._src.get_variable(name_j)
