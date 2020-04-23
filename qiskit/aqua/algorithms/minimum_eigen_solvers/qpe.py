@@ -11,9 +11,8 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""
-The Quantum Phase Estimation Algorithm.
-"""
+
+"""The Quantum Phase Estimation Algorithm."""
 
 import logging
 from typing import Optional, List, Dict, Union
@@ -61,7 +60,7 @@ class QPEMinimumEigensolver(QuantumAlgorithm, MinimumEigensolver):
     def __init__(self,
                  operator: Optional[LegacyBaseOperator] = None,
                  state_in: Optional[InitialState] = None,
-                 iqft: Optional[IQFT] = None,
+                 iqft: Optional[Union[QuantumCircuit, IQFT]] = None,
                  num_time_slices: int = 1,
                  num_ancillae: int = 1,
                  expansion_mode: str = 'trotter',
@@ -91,7 +90,15 @@ class QPEMinimumEigensolver(QuantumAlgorithm, MinimumEigensolver):
         validate_min('expansion_order', expansion_order, 1)
         super().__init__(quantum_instance)
         self._state_in = state_in
+
+        if isinstance(iqft, IQFT):
+            warnings.warn('The qiskit.aqua.components.iqfts.IQFT module is deprecated as of 0.7.0 '
+                          'and will be removed no earlier than 3 months after the release. '
+                          'You should pass a QuantumCircuit instead, see '
+                          'qiskit.circuit.library.QFT and the .inverse() method.',
+                          DeprecationWarning, stacklevel=2)
         self._iqft = iqft
+
         self._num_time_slices = num_time_slices
         self._num_ancillae = num_ancillae
         self._expansion_mode = expansion_mode

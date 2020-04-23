@@ -23,13 +23,19 @@ from qiskit import QuantumRegister, QuantumCircuit, BasicAer, execute
 from qiskit.aqua.circuits import FixedValueComparator as Comparator
 
 
-# ignore deprecation warnings from the change of the circuit factory to circuit library
-warnings.filterwarnings("ignore", category=DeprecationWarning)
-
-
 @ddt
 class TestFixedValueComparator(QiskitAquaTestCase):
     """ Text Fixed Value Comparator """
+
+    def setUp(self):
+        super().setUp()
+        # ignore deprecation warnings from the change of the circuit factory to circuit library
+        warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+    def tearDown(self):
+        super().tearDown()
+        warnings.filterwarnings(action="always", category=DeprecationWarning)
+
     @idata([
         # n, value, geq
         [1, 0, True],

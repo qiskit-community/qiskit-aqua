@@ -14,11 +14,14 @@
 
 """Test the quantum amplitude estimation algorithm."""
 
+import warnings
 import unittest
 from test.aqua import QiskitAquaTestCase
+from itertools import product
 import numpy as np
 from ddt import ddt, idata, data, unpack
 from qiskit import QuantumRegister, QuantumCircuit, BasicAer, execute
+from qiskit.circuit.library import QFT
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.components.iqfts import Standard
 from qiskit.aqua.components.uncertainty_models import GaussianConditionalIndependenceModel as GCI
@@ -134,6 +137,10 @@ class TestBernoulli(QiskitAquaTestCase):
 
         self._qasm = qasm
 
+    def tearDown(self):
+        super().tearDown()
+        warnings.filterwarnings(action="always", category=DeprecationWarning)
+
     @idata([
         [0.2, AmplitudeEstimation(2), {'estimation': 0.5, 'mle': 0.2}],
         [0.4, AmplitudeEstimation(4), {'estimation': 0.30866, 'mle': 0.4}],
@@ -185,15 +192,20 @@ class TestBernoulli(QiskitAquaTestCase):
             self.assertAlmostEqual(value, result[key], places=3,
                                    msg="estimate `{}` failed".format(key))
 
-    @idata([
-        [True], [False]
-    ])
+    @idata(list(product(
+        [True, False],
+        [True, False]
+    )))
     @unpack
-    def test_qae_circuit(self, efficient_circuit):
+    def test_qae_circuit(self, efficient_circuit, use_circuit_library):
         """Test circuits resulting from canonical amplitude estimation.
 
         Build the circuit manually and from the algorithm and compare the resulting unitaries.
         """
+        if not use_circuit_library:
+            # ignore deprecation warnings from QFTs
+            warnings.filterwarnings(action="ignore", category=DeprecationWarning)
+
         prob = 0.5
 
         for m in range(2, 7):
@@ -224,8 +236,13 @@ class TestBernoulli(QiskitAquaTestCase):
                         q_factory.build_controlled(circuit, q_objective, q_ancilla[power])
 
             # fourier transform
-            iqft = Standard(m)
-            circuit = iqft.construct_circuit(qubits=q_ancilla, circuit=circuit, do_swaps=False)
+            if use_circuit_library:
+                iqft = QFT(m, do_swaps=False).inverse()
+                circuit.append(iqft.to_instruction(), q_ancilla)
+            else:
+                iqft = Standard(m)
+                iqft.construct_circuit(qubits=q_ancilla, circuit=circuit, do_swaps=False)
+
             expected_unitary = self._unitary.execute(circuit).get_unitary()
 
             actual_circuit = qae.construct_circuit(measurement=False)
@@ -233,6 +250,9 @@ class TestBernoulli(QiskitAquaTestCase):
 
             diff = np.sum(np.abs(actual_unitary - expected_unitary))
             self.assertAlmostEqual(diff, 0)
+
+        if not use_circuit_library:
+            warnings.filterwarnings(action="always", category=DeprecationWarning)
 
     @idata([
         [True], [False]

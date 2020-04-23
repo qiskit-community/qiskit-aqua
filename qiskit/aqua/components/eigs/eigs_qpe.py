@@ -12,11 +12,12 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Quantum Phase Estimation for getting the eigenvalues of a matrix. """
+"""Quantum Phase Estimation for getting the eigenvalues of a matrix."""
 
-from typing import Optional, List
+import warnings
+from typing import Optional, List, Union
 import numpy as np
-from qiskit import QuantumRegister
+from qiskit import QuantumRegister, QuantumCircuit
 
 from qiskit.aqua.circuits import PhaseEstimationCircuit
 from qiskit.aqua.operators import LegacyBaseOperator
@@ -29,8 +30,7 @@ from .eigs import Eigenvalues
 
 
 class EigsQPE(Eigenvalues):
-    """
-    Eigenvalues using Quantum Phase Estimation
+    """Eigenvalues using Quantum Phase Estimation.
 
     Specifically, this class is based on PhaseEstimationCircuit with no measurements and
     has additional handling of negative eigenvalues, e.g. for :class:`~qiskit.aqua.algorithms.HHL`.
@@ -40,7 +40,7 @@ class EigsQPE(Eigenvalues):
 
     def __init__(self,
                  operator: LegacyBaseOperator,
-                 iqft: IQFT,
+                 iqft: Union[QuantumCircuit, IQFT],
                  num_time_slices: int = 1,
                  num_ancillae: int = 1,
                  expansion_mode: str = 'trotter',
@@ -70,14 +70,30 @@ class EigsQPE(Eigenvalues):
         validate_in_set('expansion_mode', expansion_mode, {'trotter', 'suzuki'})
         validate_min('expansion_order', expansion_order, 1)
         self._operator = op_converter.to_weighted_pauli_operator(operator)
+
+        if isinstance(iqft, IQFT):
+            warnings.warn('The qiskit.aqua.components.iqfts.IQFT module is deprecated as of 0.7.0 '
+                          'and will be removed no earlier than 3 months after the release. '
+                          'You should pass a QuantumCircuit instead, see '
+                          'qiskit.circuit.library.QFT and the .inverse() method.',
+                          DeprecationWarning, stacklevel=2)
         self._iqft = iqft
+
         self._num_ancillae = num_ancillae
         self._num_time_slices = num_time_slices
         self._expansion_mode = expansion_mode
         self._expansion_order = expansion_order
         self._evo_time = evo_time
         self._negative_evals = negative_evals
+
+        if ne_qfts and any(isinstance(ne_qft, IQFT) for ne_qft in ne_qfts):
+            warnings.warn('The qiskit.aqua.components.iqfts.IQFT module is deprecated as of 0.7.0 '
+                          'and will be removed no earlier than 3 months after the release. '
+                          'You should pass a QuantumCircuit instead, see '
+                          'qiskit.circuit.library.QFT and the .inverse() method.',
+                          DeprecationWarning, stacklevel=2)
         self._ne_qfts = ne_qfts
+
         self._circuit = None
         self._output_register = None
         self._input_register = None
@@ -148,9 +164,26 @@ class EigsQPE(Eigenvalues):
     def _handle_negative_evals(self, qc, q):
         sgn = q[0]
         qs = [q[i] for i in range(1, len(q))]
+
+        def apply_ne_qft(ne_qft):
+            if isinstance(ne_qft, QuantumCircuit):
+                # check if QFT has the right size
+                if ne_qft.num_qubits != len(qs):
+                    try:  # try resizing
+                        ne_qft.num_qubits = len(qs)
+                    except AttributeError:
+                        raise ValueError('The IQFT cannot be resized and does not have the '
+                                         'required size of {}'.format(len(qs)))
+
+                if hasattr(ne_qft, 'do_swaps'):
+                    ne_qft.do_swaps = False
+                qc.append(ne_qft.to_instruction(), qs)
+            else:
+                ne_qft.construct_circuit(mode='circuit', qubits=qs, circuit=qc, do_swaps=False)
+
         for qi in qs:
             qc.cx(sgn, qi)
-        self._ne_qfts[0].construct_circuit(mode='circuit', qubits=qs, circuit=qc, do_swaps=False)
+        apply_ne_qft(self._ne_qfts[0])
         for i, qi in enumerate(reversed(qs)):
             qc.cu1(2 * np.pi / 2 ** (i + 1), sgn, qi)
-        self._ne_qfts[1].construct_circuit(mode='circuit', qubits=qs, circuit=qc, do_swaps=False)
+        apply_ne_qft(self._ne_qfts[1])

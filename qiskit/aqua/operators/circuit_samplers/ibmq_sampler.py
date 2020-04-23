@@ -51,6 +51,7 @@ class IBMQSampler(CircuitSamplerBase):
     def convert(self,
                 operator: OperatorBase,
                 params: dict = None):
+        # TODO params is not used
         """ Accept the Operator and return the converted Operator """
 
         operator_dicts_replaced = operator.to_circuit_op()
