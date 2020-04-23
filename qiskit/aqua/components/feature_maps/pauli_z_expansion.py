@@ -11,9 +11,8 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""
-The Pauli Z Expansion feature map.
-"""
+
+"""The Pauli Z Expansion feature map."""
 
 import warnings
 from typing import Optional, Callable, List
@@ -24,8 +23,7 @@ from .data_mapping import self_product
 
 
 class PauliZExpansion(PauliExpansion):
-    """
-    The Pauli Z Expansion feature map.
+    """The Pauli Z Expansion feature map.
 
     This is a sub-class of the general :class:`PauliExpansion` but where the pauli string is fixed
     to only contain Z and where *paulis* is now created for the superclass as per the given

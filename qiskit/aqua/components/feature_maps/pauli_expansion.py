@@ -12,10 +12,9 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
-The Pauli Expansion feature map.
-"""
+"""The Pauli Expansion feature map."""
 
+import warnings
 from typing import Optional, Callable, List
 import itertools
 import logging
@@ -82,6 +81,12 @@ class PauliExpansion(FeatureMap):
             data_map_func: A mapping function for data x which can be supplied to override the
                 default mapping from :meth:`self_product`.
         """
+        warnings.warn('The qiskit.aqua.components.feature_maps.PauliExpansion object is '
+                      'deprecated as of 0.7.0 and will be removed no sooner than 3 months after '
+                      'the release. You should use the qiskit.circuit.library.PauliExpansion '
+                      'object instead.',
+                      DeprecationWarning, stacklevel=2)
+
         paulis = paulis if paulis is not None else ['Z', 'ZZ']
         validate_min('depth', depth, 1)
         validate_in_set('entanglement', entanglement, {'full', 'linear'})
