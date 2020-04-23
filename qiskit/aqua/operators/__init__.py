@@ -15,46 +15,54 @@
 """
 Operators (:mod:`qiskit.aqua.operators`)
 ========================================
-Operators
+Operators...
 
 .. currentmodule:: qiskit.aqua.operators
 
-Operators
-=========
+Operator Base Class
+===================
 
 .. autosummary::
    :toctree: ../stubs/
    :nosignatures:
 
    OperatorBase
-   PrimitiveOp
 
-Operator support
+Operator Globals
 ================
+Module :mod:`.operator_globals` provides a convenience set of immutable operators.
+
+One qubit Pauli operators:
+   :attr:`X`, :attr:`Y`, :attr:`Z`, :attr:`I`
+
+Clifford+T, and some other common non-parameterized gates:
+   :attr:`CX`, :attr:`S`, :attr:`H`, :attr:`T`, :attr:`Swap`
+
+One qubit Pauli operators:
+   :attr:`Zero`, :attr:`One`, :attr:`Plus`, :attr:`Minus`
+
+Submodules
+==========
 
 .. autosummary::
-   :toctree: ../stubs/
-   :nosignatures:
+   :toctree:
 
-    evolution_instruction
-    suzuki_expansion_slice_pauli_list
-    pauli_measurement
-    measure_pauli_z
-    covariance
-    row_echelon_F2
-    kernel_F2
-    commutator
-    check_commutativity
-    PauliGraph
-    Z2Symmetries
+   circuit_samplers
+   combo_operators
+   converters
+   evolutions
+   expectation_values
+   legacy
+   primitive_operators
+   state_functions
 
 """
 
-from .legacy.common import (evolution_instruction,
-                            suzuki_expansion_slice_pauli_list,
-                            pauli_measurement,
-                            measure_pauli_z, covariance, row_echelon_F2,
-                            kernel_F2, commutator, check_commutativity)
+from .legacy import (evolution_instruction,
+                     suzuki_expansion_slice_pauli_list,
+                     pauli_measurement,
+                     measure_pauli_z, covariance, row_echelon_F2,
+                     kernel_F2, commutator, check_commutativity)
 from .legacy import (LegacyBaseOperator, WeightedPauliOperator, Z2Symmetries,
                      TPBGroupedWeightedPauliOperator, MatrixOperator,
                      PauliGraph, op_converter)
