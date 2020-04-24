@@ -19,9 +19,6 @@ import logging
 from typing import Union
 import numpy as np
 
-from qiskit.providers import BaseBackend
-
-from qiskit.aqua import QuantumInstance
 from .expectation_base import ExpectationBase
 from ..operator_base import OperatorBase
 from ..list_ops.list_op import ListOp
@@ -43,58 +40,13 @@ class PauliExpectation(ExpectationBase):
 
     """
 
-    def __init__(self,
-                 operator: OperatorBase = None,
-                 state: OperatorBase = None,
-                 backend: BaseBackend = None,
-                 group_paulis: bool = True) -> None:
+    def __init__(self, group_paulis: bool = True) -> None:
         """
         Args:
 
         """
-        super().__init__()
-        self._operator = operator
-        self._state = state
-        self.backend = backend
         self._grouper = AbelianGrouper() if group_paulis else None
-        self._converted_operator = None
-        self._reduced_meas_op = None
-        self._sampled_meas_op = None
 
-    # TODO setters which wipe state
-
-    @property
-    def operator(self) -> OperatorBase:
-        return self._operator
-
-    @operator.setter
-    def operator(self, operator: OperatorBase) -> None:
-        self._operator = operator
-        self._converted_operator = None
-        self._reduced_meas_op = None
-        self._sampled_meas_op = None
-
-    @property
-    def state(self) -> OperatorBase:
-        """ returns state """
-        return self._state
-
-    @state.setter
-    def state(self, state: OperatorBase) -> None:
-        self._state = state
-        self._reduced_meas_op = None
-        self._sampled_meas_op = None
-
-    @property
-    def quantum_instance(self) -> QuantumInstance:
-        """ returns quantum instance """
-        return self._circuit_sampler.quantum_instance
-
-    @quantum_instance.setter
-    def quantum_instance(self, quantum_instance: QuantumInstance) -> None:
-        self._circuit_sampler.quantum_instance = quantum_instance
-
-    # TODO refactor to just rely on this
     def convert(self, operator: OperatorBase) -> OperatorBase:
         """ Accept an Operator and return a new Operator with the Pauli measurements replaced by
         Pauli post-rotation based measurements and averaging. """
@@ -111,65 +63,9 @@ class PauliExpectation(ExpectationBase):
         else:
             return operator
 
-    def expectation_op(self, state: OperatorBase = None) -> OperatorBase:
-        """ expectation op """
-        state = state or self._state
-
-        if not self._converted_operator:
-            # Construct measurement from operator
-            if self._grouper and isinstance(self._operator, ListOp):
-                grouped = self._grouper.convert(self.operator)
-                meas = StateFn(grouped, is_measurement=True)
-            else:
-                meas = StateFn(self._operator, is_measurement=True)
-            # Convert the measurement into a classical
-            # basis (PauliBasisChange chooses this basis by default).
-            cob = PauliBasisChange(replacement_fn=PauliBasisChange.measurement_replacement_fn)
-            self._converted_operator = cob.convert(meas)
-            # TODO self._converted_operator =
-            #  PauliExpectation.group_equal_measurements(self._converted_operator)
-
-        expec_op = self._converted_operator.compose(state)
-        return expec_op.reduce()
-
-    def compute_expectation(self,
-                            state: OperatorBase = None,
-                            params: dict = None) -> Union[list, float, complex, np.ndarray]:
-        # Wipes caches in setter
-        if state and not state == self.state:
-            self.state = state
-
-        if not self._reduced_meas_op:
-            self._reduced_meas_op = self.expectation_op(state=state)
-
-        if 'QuantumCircuit' in self._reduced_meas_op.primitive_strings():
-            # TODO check if params have been sufficiently provided.
-            if self._circuit_sampler:
-                self._sampled_meas_op = self._circuit_sampler.convert(self._reduced_meas_op,
-                                                                      params=params)
-                return self._sampled_meas_op.eval()
-            else:
-                raise ValueError(
-                    'Unable to compute expectation of functions containing '
-                    'circuits without a backend set. Set a backend for the Expectation '
-                    'algorithm to compute the expectation, or convert Instructions to '
-                    'other types which do not require a backend.')
-        else:
-            return self._reduced_meas_op.eval()
-
     # pylint: disable=inconsistent-return-statements
-    def compute_standard_deviation(self,
-                                   state: OperatorBase = None,
-                                   params: dict = None) -> Union[list, float, complex, np.ndarray]:
-        """ compute standard deviation
-
-        TODO Break out into two things - Standard deviation of distribution over observable (mostly
-        unchanged with increasing shots), and error of ExpectationValue estimator (decreases with
-        increasing shots)
-        """
-        state = state or self.state
-        if self._sampled_meas_op is None:
-            self.compute_expectation(state=state, params=params)
+    def compute_variance(self, exp_op: OperatorBase) -> Union[list, float, np.ndarray]:
+        """ compute variance """
 
         def sum_variance(operator):
             if isinstance(operator, ComposedOp):
@@ -178,8 +74,8 @@ class PauliExpectation(ExpectationBase):
                 average = measurement.eval(sfdict)
                 variance = sum([(v * (measurement.eval(b) - average))**2
                                 for (b, v) in sfdict.primitive.items()])
-                return (operator.coeff * variance)**.5
+                return operator.coeff * variance
             elif isinstance(operator, ListOp):
                 return operator._combo_fn([sum_variance(op) for op in operator.oplist])
 
-        return sum_variance(self._sampled_meas_op)
+        return sum_variance(exp_op)

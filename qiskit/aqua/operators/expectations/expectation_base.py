@@ -19,10 +19,8 @@ from typing import Union
 from abc import abstractmethod
 import numpy as np
 
-from qiskit.providers import BaseBackend
 from ..operator_base import OperatorBase
 from ..converters import ConverterBase
-from ..converters import CircuitSampler
 
 logger = logging.getLogger(__name__)
 
@@ -34,46 +32,15 @@ class ExpectationBase(ConverterBase):
     of that observable over the
     distribution.
 
-    # TODO make into QuantumAlgorithm to make backend business consistent?
-
     """
 
-    def __init__(self) -> None:
-        self._circuit_sampler = None
-
-    @property
-    def backend(self) -> BaseBackend:
-        """ returns backend """
-        return self._circuit_sampler.backend
-
-    @backend.setter
-    def backend(self, backend: BaseBackend) -> None:
-        if backend is not None:
-            self._circuit_sampler = CircuitSampler(backend=backend)
-
-    # TODO change VQE to rely on this instead of compute_expectation
     @abstractmethod
     def convert(self, operator: OperatorBase) -> OperatorBase:
         """ Accept an Operator and return a new Operator with the measurements replaced by
         alternate methods to compute the expectation value. """
         raise NotImplementedError
 
-    @property
     @abstractmethod
-    def operator(self) -> OperatorBase:
-        """ returns operator """
-        raise NotImplementedError
-
-    @abstractmethod
-    def compute_expectation(self,
-                            state: OperatorBase = None,
-                            params: dict = None) -> Union[list, float, complex, np.ndarray]:
-        """ compute expectation """
-        raise NotImplementedError
-
-    @abstractmethod
-    def compute_standard_deviation(self,
-                                   state: OperatorBase = None,
-                                   params: dict = None) -> Union[list, float, complex, np.ndarray]:
+    def compute_variance(self, exp_op: OperatorBase) -> Union[list, float, complex, np.ndarray]:
         """ compute variance """
         raise NotImplementedError

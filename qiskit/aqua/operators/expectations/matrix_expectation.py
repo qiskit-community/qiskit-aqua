@@ -16,14 +16,10 @@
 
 import logging
 from typing import Union
-import numpy as np
-
-from qiskit.providers import BaseBackend
 
 from ..operator_base import OperatorBase
 from .expectation_base import ExpectationBase
-from ..list_ops import ListOp
-from ..state_fns.state_fn import StateFn
+from ..list_ops import ListOp, ComposedOp
 from ..state_fns.operator_state_fn import OperatorStateFn
 
 logger = logging.getLogger(__name__)
@@ -34,39 +30,6 @@ logger = logging.getLogger(__name__)
 class MatrixExpectation(ExpectationBase):
     """ Expectation Algorithm using Statevector simulation and matrix multiplication. """
 
-    def __init__(self,
-                 operator: OperatorBase = None,
-                 state: OperatorBase = None,
-                 backend: BaseBackend = None) -> None:
-        """
-        Args:
-
-        """
-        super().__init__()
-        self._operator = operator
-        self._state = state
-        self.backend = backend
-        self._matrix_op = None
-
-    @property
-    def operator(self) -> OperatorBase:
-        return self._operator
-
-    @operator.setter
-    def operator(self, operator: OperatorBase) -> None:
-        self._operator = operator
-        self._matrix_op = None
-
-    @property
-    def state(self) -> OperatorBase:
-        """ returns state """
-        return self._state
-
-    @state.setter
-    def state(self, state: OperatorBase) -> None:
-        self._state = state
-
-    # TODO refactor to just rely on this
     def convert(self, operator: OperatorBase) -> OperatorBase:
         """ Accept an Operator and return a new Operator with the Pauli measurements replaced by
         Matrix based measurements. """
@@ -77,25 +40,16 @@ class MatrixExpectation(ExpectationBase):
         else:
             return operator
 
-    def compute_expectation(self,
-                            state: OperatorBase = None,
-                            params: dict = None) -> Union[list, float, complex, np.ndarray]:
-        # Making the matrix into a measurement allows us to handle ListOp states, dicts, etc.
-        if not self._matrix_op:
-            self._matrix_op = StateFn(self._operator, is_measurement=True).to_matrix_op()
+    def compute_variance(self, exp_op: OperatorBase) -> Union[list, float]:
+        """ compute variance """
 
-        if state is None:
-            state = self.state
+        # Need to do this to mimic Op structure
+        def sum_variance(operator):
+            if isinstance(operator, ComposedOp):
+                return 0.0
+            elif isinstance(operator, ListOp):
+                return operator._combo_fn([sum_variance(op) for op in operator.oplist])
+            else:
+                return 0.0
 
-        # If user passed in a backend, try evaluating the state on the backend.
-        if self._circuit_sampler:
-            state_op_mat = self._circuit_sampler.convert(state, params=params)
-            return self._matrix_op.eval(state_op_mat)
-        else:
-            return self._matrix_op.eval(state)
-
-    def compute_standard_deviation(self,
-                                   state: OperatorBase = None,
-                                   params: dict = None) -> Union[float]:
-        """ compute standard deviation """
-        return 0.0
+        return sum_variance(exp_op)

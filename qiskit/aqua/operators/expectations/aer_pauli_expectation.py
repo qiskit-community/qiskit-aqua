@@ -17,15 +17,12 @@
 import logging
 from typing import Union
 
-from qiskit.providers import BaseBackend
-
-from qiskit.aqua import QuantumInstance
 from ..operator_base import OperatorBase
 from .expectation_base import ExpectationBase
 from ..list_ops.list_op import ListOp
+from ..list_ops.composed_op import ComposedOp
 from ..list_ops.summed_op import SummedOp
 from ..primitive_ops.pauli_op import PauliOp
-from ..state_fns.state_fn import StateFn
 from ..state_fns.circuit_state_fn import CircuitStateFn
 from ..state_fns.operator_state_fn import OperatorStateFn
 
@@ -38,51 +35,6 @@ class AerPauliExpectation(ExpectationBase):
 
     """
 
-    def __init__(self,
-                 operator: OperatorBase = None,
-                 state: OperatorBase = None,
-                 backend: BaseBackend = None):
-        """
-        Args:
-
-        """
-        super().__init__()
-        self._operator = operator
-        self._state = state
-        self.backend = backend
-        self._snapshot_op = None
-
-    # TODO setters which wipe state
-
-    @property
-    def operator(self) -> OperatorBase:
-        return self._operator
-
-    @operator.setter
-    def operator(self, operator: OperatorBase) -> None:
-        self._operator = operator
-        self._snapshot_op = None
-
-    @property
-    def state(self) -> OperatorBase:
-        """ returns state """
-        return self._state
-
-    @state.setter
-    def state(self, state: OperatorBase) -> None:
-        self._state = state
-        self._snapshot_op = None
-
-    @property
-    def quantum_instance(self) -> QuantumInstance:
-        """ returns quantum instance """
-        return self._circuit_sampler.quantum_instance
-
-    @quantum_instance.setter
-    def quantum_instance(self, quantum_instance: QuantumInstance) -> None:
-        self._circuit_sampler.quantum_instance = quantum_instance
-
-    # TODO refactor to just rely on this
     def convert(self, operator: OperatorBase) -> OperatorBase:
         """ Accept an Operator and return a new Operator with the Pauli measurements replaced by
         AerSnapshot-based expectation circuits. """
@@ -118,35 +70,14 @@ class AerPauliExpectation(ExpectationBase):
         if isinstance(operator, ListOp):
             return operator.traverse(cls._replace_pauli_sums)
 
-    def expectation_op(self) -> OperatorBase:
-        """ expectation op """
+    def compute_variance(self, exp_op: OperatorBase) -> Union[list, float]:
+        """ compute variance """
 
-        snapshot_meas = self._replace_pauli_sums(self._operator)
-        return snapshot_meas
+        # Need to do this to mimic Op structure
+        def sum_variance(operator):
+            if isinstance(operator, ComposedOp):
+                return 0.0
+            elif isinstance(operator, ListOp):
+                return operator._combo_fn([sum_variance(op) for op in operator.oplist])
 
-    def compute_expectation(self,
-                            state: OperatorBase = None,
-                            params: dict = None) -> Union[float, complex, OperatorBase]:
-        # Wipes caches in setter
-        if state and not state == self.state:
-            self.state = state
-
-        if 'QuantumCircuit' in self.state.primitive_strings():
-            if not self._snapshot_op:
-                snapshot_meas = self.expectation_op()
-                self._snapshot_op = snapshot_meas.compose(self.state).reduce()
-
-            measured_op = self._circuit_sampler.convert(self._snapshot_op, params=params)
-            # TODO once https://github.com/Qiskit/qiskit-aer/pull/485 goes through
-            # self._quantum_instance._run_config.parameterizations = ...
-            # result = self.quantum_instance.execute(list(self._snapshot_circuit.values()))
-            return measured_op.eval()
-        else:
-            # If no circuits to run (i.e. state is a Dict, eval directly)
-            return StateFn(self._operator, is_measurement=True).eval(self.state)
-
-    def compute_standard_deviation(self,
-                                   state: OperatorBase = None,
-                                   params: dict = None) -> float:
-        """ compute standard deviation """
-        return 0.0
+        return sum_variance(exp_op)

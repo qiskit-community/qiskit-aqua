@@ -22,7 +22,8 @@ import numpy as np
 
 from qiskit.aqua.operators import (X, Y, Z, I, CX, H, S,
                                    ListOp, Zero, One, Plus, Minus, StateFn,
-                                   MatrixExpectation)
+                                   MatrixExpectation, CircuitSampler)
+from qiskit import BasicAer
 
 
 # pylint: disable=invalid-name
@@ -30,98 +31,106 @@ from qiskit.aqua.operators import (X, Y, Z, I, CX, H, S,
 class TestMatrixExpectation(QiskitAquaTestCase):
     """Pauli Change of Basis Expectation tests."""
 
-    def test_matrix_expect_pair(self):
-        """ matrix expect pair test """
+    def setUp(self) -> None:
+        super().setUp()
+        backend = BasicAer.get_backend('statevector_simulator')
+        self.sampler = CircuitSampler(backend, attach_results=True)
+        self.expect = MatrixExpectation()
+
+    def test_pauli_expect_pair(self):
+        """ pauli expect pair test """
         op = (Z ^ Z)
-        expect = MatrixExpectation(operator=op)
         # wf = (Pl^Pl) + (Ze^Ze)
         wf = CX @ (H ^ I) @ Zero
-        mean = expect.compute_expectation(wf)
-        self.assertAlmostEqual(mean, 0)
 
-        # Test via convert instead of compute_expectation
-        converted_meas = expect.convert(~StateFn(op) @ wf)
+        converted_meas = self.expect.convert(~StateFn(op) @ wf)
         self.assertAlmostEqual(converted_meas.eval(), 0, delta=.1)
+        sampled = self.sampler.convert(converted_meas)
+        self.assertAlmostEqual(sampled.eval(), 0, delta=.1)
 
-    def test_matrix_expect_single(self):
-        """ matrix expect single test """
+    def test_pauli_expect_single(self):
+        """ pauli expect single test """
         paulis = [Z, X, Y, I]
         states = [Zero, One, Plus, Minus, S @ Plus, S @ Minus]
         for pauli, state in itertools.product(paulis, states):
-            expect = MatrixExpectation(operator=pauli)
-            mean = expect.compute_expectation(state)
+            converted_meas = self.expect.convert(~StateFn(pauli) @ state)
             matmulmean = state.adjoint().to_matrix() @ pauli.to_matrix() @ state.to_matrix()
-            # print('{}, {}'.format(pauli.primitive, np.round(float(matmulmean[0]), decimals=3)))
-            np.testing.assert_array_almost_equal(mean, matmulmean)
-
-            # Test via convert instead of compute_expectation
-            converted_meas = expect.convert(~StateFn(pauli) @ state)
             self.assertAlmostEqual(converted_meas.eval(), matmulmean, delta=.1)
 
-    def test_matrix_expect_op_vector(self):
-        """ matrix expect op vector test """
+            sampled = self.sampler.convert(converted_meas)
+            self.assertAlmostEqual(sampled.eval(), matmulmean, delta=.1)
+
+    def test_pauli_expect_op_vector(self):
+        """ pauli expect op vector test """
         paulis_op = ListOp([X, Y, Z, I])
+        converted_meas = self.expect.convert(~StateFn(paulis_op))
 
-        expect = MatrixExpectation(operator=paulis_op)
-        plus_mean = expect.compute_expectation(Plus)
-        np.testing.assert_array_almost_equal(plus_mean, [1, 0, 0, 1])
+        plus_mean = (converted_meas @ Plus)
+        np.testing.assert_array_almost_equal(plus_mean.eval(), [1, 0, 0, 1], decimal=1)
+        sampled_plus = self.sampler.convert(plus_mean)
+        np.testing.assert_array_almost_equal(sampled_plus.eval(), [1, 0, 0, 1], decimal=1)
 
-        minus_mean = expect.compute_expectation(Minus)
-        np.testing.assert_array_almost_equal(minus_mean, [-1, 0, 0, 1])
+        minus_mean = (converted_meas @ Minus)
+        np.testing.assert_array_almost_equal(minus_mean.eval(), [-1, 0, 0, 1], decimal=1)
+        sampled_minus = self.sampler.convert(minus_mean)
+        np.testing.assert_array_almost_equal(sampled_minus.eval(), [-1, 0, 0, 1], decimal=1)
 
-        zero_mean = expect.compute_expectation(Zero)
-        np.testing.assert_array_almost_equal(zero_mean, [0, 0, 1, 1])
-
-        sum_plus = (Zero + One) * (.5 ** .5)
-        sum_plus_mean = expect.compute_expectation(sum_plus)
-        np.testing.assert_array_almost_equal(sum_plus_mean, [1, 0, 0, 1])
+        zero_mean = (converted_meas @ Zero)
+        np.testing.assert_array_almost_equal(zero_mean.eval(), [0, 0, 1, 1], decimal=1)
+        sampled_zero = self.sampler.convert(zero_mean)
+        np.testing.assert_array_almost_equal(sampled_zero.eval(), [0, 0, 1, 1], decimal=1)
 
         sum_zero = (Plus + Minus) * (.5 ** .5)
-        sum_zero_mean = expect.compute_expectation(sum_zero)
-        np.testing.assert_array_almost_equal(sum_zero_mean, [0, 0, 1, 1])
+        sum_zero_mean = (converted_meas @ sum_zero)
+        np.testing.assert_array_almost_equal(sum_zero_mean.eval(), [0, 0, 1, 1], decimal=1)
+        sampled_zero = self.sampler.convert(sum_zero)
+        np.testing.assert_array_almost_equal((converted_meas @ sampled_zero).eval(), [0, 0, 1, 1],
+                                             decimal=1)
 
         for i, op in enumerate(paulis_op.oplist):
-            # print(op)
             mat_op = op.to_matrix()
-            np.testing.assert_array_almost_equal(plus_mean[i],
+            np.testing.assert_array_almost_equal(zero_mean.eval()[i],
+                                                 Zero.adjoint().to_matrix() @
+                                                 mat_op @ Zero.to_matrix(),
+                                                 decimal=1)
+            np.testing.assert_array_almost_equal(plus_mean.eval()[i],
                                                  Plus.adjoint().to_matrix() @
-                                                 mat_op @ Plus.to_matrix())
-            np.testing.assert_array_almost_equal(minus_mean[i],
+                                                 mat_op @ Plus.to_matrix(),
+                                                 decimal=1)
+            np.testing.assert_array_almost_equal(minus_mean.eval()[i],
                                                  Minus.adjoint().to_matrix() @
-                                                 mat_op @ Minus.to_matrix())
-            np.testing.assert_array_almost_equal(sum_zero_mean[i],
-                                                 sum_zero.adjoint().to_matrix() @
-                                                 mat_op @ sum_zero.to_matrix())
+                                                 mat_op @ Minus.to_matrix(),
+                                                 decimal=1)
 
-    def test_matrix_expect_state_vector(self):
-        """ matrix expect state vector test """
+    def test_pauli_expect_state_vector(self):
+        """ pauli expect state vector test """
         states_op = ListOp([One, Zero, Plus, Minus])
 
         paulis_op = X
-        expect = MatrixExpectation(operator=paulis_op)
-        means = expect.compute_expectation(states_op)
-        np.testing.assert_array_almost_equal(means, [0, 0, 1, -1])
-
-        # Test via convert instead of compute_expectation
-        converted_meas = expect.convert(~StateFn(paulis_op) @ states_op)
+        converted_meas = self.expect.convert(~StateFn(paulis_op) @ states_op)
         np.testing.assert_array_almost_equal(converted_meas.eval(), [0, 0, 1, -1], decimal=1)
 
-    def test_matrix_expect_op_vector_state_vector(self):
-        """ matrix expect op vector state vector test """
+        sampled = self.sampler.convert(converted_meas)
+        np.testing.assert_array_almost_equal(sampled.eval(), [0, 0, 1, -1], decimal=1)
+
+        # Small test to see if execution results are accessible
+        for composed_op in sampled:
+            self.assertIn('statevector', composed_op[1].execution_results)
+
+    def test_pauli_expect_op_vector_state_vector(self):
+        """ pauli expect op vector state vector test """
         paulis_op = ListOp([X, Y, Z, I])
         states_op = ListOp([One, Zero, Plus, Minus])
 
-        expect = MatrixExpectation(operator=paulis_op)
-        means = expect.compute_expectation(states_op)
         valids = [[+0, 0, 1, -1],
                   [+0, 0, 0, 0],
                   [-1, 1, 0, -0],
                   [+1, 1, 1, 1]]
-        np.testing.assert_array_almost_equal(means, valids)
+        converted_meas = self.expect.convert(~StateFn(paulis_op))
+        np.testing.assert_array_almost_equal((converted_meas @ states_op).eval(), valids, decimal=1)
 
-        # Test via convert instead of compute_expectation
-        converted_meas = expect.convert(~StateFn(paulis_op) @ states_op)
-        np.testing.assert_array_almost_equal(converted_meas.eval(), valids, decimal=1)
+        sampled = self.sampler.convert(states_op)
+        np.testing.assert_array_almost_equal((converted_meas @ sampled).eval(), valids, decimal=1)
 
 
 if __name__ == '__main__':

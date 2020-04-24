@@ -32,113 +32,88 @@ from qiskit import Aer
 class TestAerPauliExpectation(QiskitAquaTestCase):
     """Pauli Change of Basis Expectation tests."""
 
-    def test_pauli_expect_pair(self):
-        """ Test AerPauli expectation for simple 2-qubit case."""
-        op = (Z ^ Z)
+    def setUp(self) -> None:
+        super().setUp()
         backend = Aer.get_backend('qasm_simulator')
-        expect = AerPauliExpectation(operator=op, backend=backend)
-        # wf_op = (Pl^Pl) + (Ze^Ze)
-        wf = CX @ (H ^ I) @ Zero
-        mean = expect.compute_expectation(wf)
-        self.assertAlmostEqual(mean, 0, delta=.1)
+        self.sampler = CircuitSampler(backend, attach_results=True)
+        self.expect = AerPauliExpectation()
 
-        # Test via convert instead of compute_expectation
-        converted_meas = expect.convert(~StateFn(op) @ wf)
-        converted_meas = CircuitSampler(backend=backend).convert(converted_meas)
-        self.assertAlmostEqual(converted_meas.eval(), 0, delta=.1)
+    def test_pauli_expect_pair(self):
+        """ pauli expect pair test """
+        op = (Z ^ Z)
+        # wf = (Pl^Pl) + (Ze^Ze)
+        wf = CX @ (H ^ I) @ Zero
+
+        converted_meas = self.expect.convert(~StateFn(op) @ wf)
+        sampled = self.sampler.convert(converted_meas)
+        self.assertAlmostEqual(sampled.eval(), 0, delta=.1)
 
     def test_pauli_expect_single(self):
-        """ Test AerPauli expectation over all single qubit paulis and eigenstates. """
-        backend = Aer.get_backend('qasm_simulator')
-        paulis = [Z, X, I]
+        """ pauli expect single test """
         # TODO bug in Aer with Y measurements
         # paulis = [Z, X, Y, I]
+        paulis = [Z, X, I]
         states = [Zero, One, Plus, Minus, S @ Plus, S @ Minus]
         for pauli, state in itertools.product(paulis, states):
-            expect = AerPauliExpectation(operator=pauli, backend=backend)
-            mean = expect.compute_expectation(state)
+            converted_meas = self.expect.convert(~StateFn(pauli) @ state)
             matmulmean = state.adjoint().to_matrix() @ pauli.to_matrix() @ state.to_matrix()
-            # print('{}, {}'.format(pauli.primitive, np.round(matmulmean, decimals=3)))
-            np.testing.assert_array_almost_equal(mean, matmulmean, decimal=1)
-
-            # Test via convert instead of compute_expectation
-            converted_meas = expect.convert(~StateFn(pauli) @ state)
-            converted_meas = CircuitSampler(backend=backend).convert(converted_meas)
-            self.assertAlmostEqual(converted_meas.eval(), matmulmean, delta=.1)
+            sampled = self.sampler.convert(converted_meas)
+            self.assertAlmostEqual(sampled.eval(), matmulmean, delta=.1)
 
     def test_pauli_expect_op_vector(self):
-        """ Test for expectation over ListOp of observables. """
-        backend = Aer.get_backend('qasm_simulator')
+        """ pauli expect op vector test """
         paulis_op = ListOp([X, Y, Z, I])
-        expect = AerPauliExpectation(operator=paulis_op, backend=backend)
+        converted_meas = self.expect.convert(~StateFn(paulis_op))
 
-        plus_mean = expect.compute_expectation(Plus)
-        np.testing.assert_array_almost_equal(plus_mean, [1, 0, 0, 1], decimal=1)
+        plus_mean = (converted_meas @ Plus)
+        sampled_plus = self.sampler.convert(plus_mean)
+        np.testing.assert_array_almost_equal(sampled_plus.eval(), [1, 0, 0, 1], decimal=1)
 
-        # Note! Also tests reuse of expectation.
-        minus_mean = expect.compute_expectation(Minus)
-        np.testing.assert_array_almost_equal(minus_mean, [-1, 0, 0, 1], decimal=1)
+        minus_mean = (converted_meas @ Minus)
+        sampled_minus = self.sampler.convert(minus_mean)
+        np.testing.assert_array_almost_equal(sampled_minus.eval(), [-1, 0, 0, 1], decimal=1)
 
-        zero_mean = expect.compute_expectation(Zero)
-        np.testing.assert_array_almost_equal(zero_mean, [0, 0, 1, 1], decimal=1)
+        zero_mean = (converted_meas @ Zero)
+        sampled_zero = self.sampler.convert(zero_mean)
+        # TODO bug with Aer's Y
+        np.testing.assert_array_almost_equal(sampled_zero.eval(), [0, 1, 1, 1], decimal=1)
 
+        sum_zero = (Plus + Minus) * (.5 ** .5)
+        sum_zero_mean = (converted_meas @ sum_zero)
+        sampled_zero_mean = self.sampler.convert(sum_zero_mean)
         # !!NOTE!!: Depolarizing channel (Sampling) means interference
         # does not happen between circuits in sum, so expectation does
         # not equal expectation for Zero!!
-        sum_zero = (Plus + Minus) * (.5 ** .5)
-        sum_zero_mean = expect.compute_expectation(sum_zero)
-        np.testing.assert_array_almost_equal(sum_zero_mean, [0, 0, 0, 2], decimal=1)
-
-        for i, op in enumerate(paulis_op.oplist):
-            mat_op = op.to_matrix()
-            np.testing.assert_array_almost_equal(zero_mean[i],
-                                                 Zero.adjoint().to_matrix() @
-                                                 mat_op @ Zero.to_matrix(),
-                                                 decimal=1)
-            np.testing.assert_array_almost_equal(plus_mean[i],
-                                                 Plus.adjoint().to_matrix() @
-                                                 mat_op @ Plus.to_matrix(),
-                                                 decimal=1)
-            np.testing.assert_array_almost_equal(minus_mean[i],
-                                                 Minus.adjoint().to_matrix() @
-                                                 mat_op @ Minus.to_matrix(),
-                                                 decimal=1)
+        np.testing.assert_array_almost_equal(sampled_zero_mean.eval(), [0, 0, 0, 2], decimal=1)
 
     def test_pauli_expect_state_vector(self):
-        """ Test over ListOp of states """
-        backend = Aer.get_backend('qasm_simulator')
+        """ pauli expect state vector test """
         states_op = ListOp([One, Zero, Plus, Minus])
 
         paulis_op = X
-        expect = AerPauliExpectation(operator=paulis_op, backend=backend)
-        means = expect.compute_expectation(states_op)
-        np.testing.assert_array_almost_equal(means, [0, 0, 1, -1], decimal=1)
+        converted_meas = self.expect.convert(~StateFn(paulis_op) @ states_op)
+        sampled = self.sampler.convert(converted_meas)
 
-        # Test via convert instead of compute_expectation
-        converted_meas = expect.convert(~StateFn(paulis_op) @ states_op)
-        converted_meas = CircuitSampler(backend=backend).convert(converted_meas)
-        np.testing.assert_array_almost_equal(converted_meas.eval(), [0, 0, 1, -1], decimal=1)
+        # Small test to see if execution results are accessible
+        for composed_op in sampled:
+            self.assertIn('counts', composed_op[0].execution_results)
+
+        np.testing.assert_array_almost_equal(sampled.eval(), [0, 0, 1, -1], decimal=1)
 
     def test_pauli_expect_op_vector_state_vector(self):
-        """ Test over ListOp of Observables and ListOp of states."""
-        backend = Aer.get_backend('qasm_simulator')
+        """ pauli expect op vector state vector test """
         # TODO Bug in Aer with Y Measurements!!
         # paulis_op = ListOp([X, Y, Z, I])
         paulis_op = ListOp([X, Z, I])
         states_op = ListOp([One, Zero, Plus, Minus])
 
-        expect = AerPauliExpectation(operator=paulis_op, backend=backend)
-        means = expect.compute_expectation(states_op)
         valids = [[+0, 0, 1, -1],
                   # [+0, 0, 0, 0],
                   [-1, 1, 0, -0],
                   [+1, 1, 1, 1]]
-        np.testing.assert_array_almost_equal(means, valids, decimal=1)
-
-        # Test via convert instead of compute_expectation
-        converted_meas = expect.convert(~StateFn(paulis_op) @ states_op)
-        converted_meas = CircuitSampler(backend=backend).convert(converted_meas)
-        np.testing.assert_array_almost_equal(converted_meas.eval(), valids, decimal=1)
+        converted_meas = self.expect.convert(~StateFn(paulis_op) @ states_op)
+        sampled = self.sampler.convert(converted_meas)
+        np.testing.assert_array_almost_equal(sampled.eval(), valids, decimal=1)
 
     def test_parameterized_qobj(self):
         """ Test direct-to-aer parameter passing in Qobj header. """

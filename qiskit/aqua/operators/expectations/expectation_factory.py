@@ -40,8 +40,7 @@ class ExpectationFactory:
 
     @staticmethod
     def build(operator: OperatorBase,
-              backend: Optional[Union[BaseBackend, QuantumInstance]] = None,
-              state: Optional[OperatorBase] = None) -> ExpectationBase:
+              backend: Optional[Union[BaseBackend, QuantumInstance]] = None) -> ExpectationBase:
         """
         Args:
         Returns:
@@ -80,7 +79,7 @@ class ExpectationFactory:
             # If the user specified Aer qasm backend and is using a
             # Pauli operator, use the Aer fast expectation
             if is_aer_qasm(backend_to_check):
-                return AerPauliExpectation(operator=operator, backend=backend, state=state)
+                return AerPauliExpectation()
 
             # If the user specified a statevector backend (either Aer or BasicAer),
             # use a converter to produce a
@@ -91,15 +90,14 @@ class ExpectationFactory:
                         'Note: Using a statevector_simulator with %d qubits can be very expensive. '
                         'Consider using the Aer qasm_simulator instead to take advantage of Aer\'s '
                         'built-in fast Pauli Expectation', operator.num_qubits)
-                # TODO do this properly with converters
-                return MatrixExpectation(operator=operator, backend=backend, state=state)
+                return MatrixExpectation()
 
             # All other backends, including IBMQ, BasicAer QASM, go here.
             else:
-                return PauliExpectation(operator=operator, backend=backend, state=state)
+                return PauliExpectation()
 
         elif primitives == {'Matrix'}:
-            return MatrixExpectation(operator=operator, backend=backend, state=state)
+            return MatrixExpectation()
 
         else:
             raise ValueError('Expectations of Mixed Operators not yet supported.')

@@ -87,5 +87,5 @@ class QuantumAlgorithm(ABC):
 
     def set_backend(self, backend: BaseBackend, **kwargs) -> None:
         """Set backend with configuration."""
-        self._quantum_instance = QuantumInstance(backend)
-        self._quantum_instance.set_config(**kwargs)
+        self.quantum_instance = QuantumInstance(backend)
+        self.quantum_instance.set_config(**kwargs)

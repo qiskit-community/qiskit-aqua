@@ -33,101 +33,88 @@ from qiskit import BasicAer, IBMQ
 class TestPauliExpectation(QiskitAquaTestCase):
     """Pauli Change of Basis Expectation tests."""
 
+    def setUp(self) -> None:
+        super().setUp()
+        backend = BasicAer.get_backend('qasm_simulator')
+        self.sampler = CircuitSampler(backend, attach_results=True)
+        self.expect = PauliExpectation()
+
     def test_pauli_expect_pair(self):
         """ pauli expect pair test """
         op = (Z ^ Z)
-        backend = BasicAer.get_backend('qasm_simulator')
-        expect = PauliExpectation(operator=op, backend=backend)
         # wf = (Pl^Pl) + (Ze^Ze)
         wf = CX @ (H ^ I) @ Zero
-        mean = expect.compute_expectation(wf)
-        self.assertAlmostEqual(mean, 0, delta=.1)
 
-        # Test via convert instead of compute_expectation
-        converted_meas = expect.convert(~StateFn(op) @ wf)
+        converted_meas = self.expect.convert(~StateFn(op) @ wf)
         self.assertAlmostEqual(converted_meas.eval(), 0, delta=.1)
+        sampled = self.sampler.convert(converted_meas)
+        self.assertAlmostEqual(sampled.eval(), 0, delta=.1)
 
     def test_pauli_expect_single(self):
         """ pauli expect single test """
-        backend = BasicAer.get_backend('qasm_simulator')
         paulis = [Z, X, Y, I]
         states = [Zero, One, Plus, Minus, S @ Plus, S @ Minus]
         for pauli, state in itertools.product(paulis, states):
-            expect = PauliExpectation(operator=pauli, backend=backend)
-            mean = expect.compute_expectation(state)
+            converted_meas = self.expect.convert(~StateFn(pauli) @ state)
             matmulmean = state.adjoint().to_matrix() @ pauli.to_matrix() @ state.to_matrix()
-            # print('{}, {}'.format(pauli.primitive, np.round(float(matmulmean[0]), decimals=3)))
-            np.testing.assert_array_almost_equal(mean, matmulmean, decimal=1)
-
-            # Test via convert instead of compute_expectation
-            converted_meas = expect.convert(~StateFn(pauli) @ state)
             self.assertAlmostEqual(converted_meas.eval(), matmulmean, delta=.1)
+
+            sampled = self.sampler.convert(converted_meas)
+            self.assertAlmostEqual(sampled.eval(), matmulmean, delta=.1)
 
     def test_pauli_expect_op_vector(self):
         """ pauli expect op vector test """
-        backend = BasicAer.get_backend('qasm_simulator')
         paulis_op = ListOp([X, Y, Z, I])
-        expect = PauliExpectation(operator=paulis_op, backend=backend)
+        converted_meas = self.expect.convert(~StateFn(paulis_op))
 
-        # Test via convert instead of compute_expectation
-        converted_meas = expect.convert(~StateFn(paulis_op))
+        plus_mean = (converted_meas @ Plus)
+        np.testing.assert_array_almost_equal(plus_mean.eval(), [1, 0, 0, 1], decimal=1)
+        sampled_plus = self.sampler.convert(plus_mean)
+        np.testing.assert_array_almost_equal(sampled_plus.eval(), [1, 0, 0, 1], decimal=1)
 
-        plus_mean = expect.compute_expectation(Plus)
-        np.testing.assert_array_almost_equal(plus_mean, [1, 0, 0, 1], decimal=1)
-        np.testing.assert_array_almost_equal((converted_meas @ Plus).eval(),
-                                             [1, 0, 0, 1], decimal=1)
+        minus_mean = (converted_meas @ Minus)
+        np.testing.assert_array_almost_equal(minus_mean.eval(), [-1, 0, 0, 1], decimal=1)
+        sampled_minus = self.sampler.convert(minus_mean)
+        np.testing.assert_array_almost_equal(sampled_minus.eval(), [-1, 0, 0, 1], decimal=1)
 
-        # Note! Also tests reuse of expectation.
-        minus_mean = expect.compute_expectation(Minus)
-        np.testing.assert_array_almost_equal(minus_mean, [-1, 0, 0, 1], decimal=1)
-        np.testing.assert_array_almost_equal((converted_meas @ Minus).eval(),
-                                             [-1, 0, 0, 1], decimal=1)
+        zero_mean = (converted_meas @ Zero)
+        np.testing.assert_array_almost_equal(zero_mean.eval(), [0, 0, 1, 1], decimal=1)
+        sampled_zero = self.sampler.convert(zero_mean)
+        np.testing.assert_array_almost_equal(sampled_zero.eval(), [0, 0, 1, 1], decimal=1)
 
-        zero_mean = expect.compute_expectation(Zero)
-        np.testing.assert_array_almost_equal(zero_mean, [0, 0, 1, 1], decimal=1)
-        np.testing.assert_array_almost_equal((converted_meas @ Zero).eval(),
-                                             [0, 0, 1, 1], decimal=1)
-
+        sum_zero = (Plus + Minus) * (.5 ** .5)
+        sum_zero_mean = (converted_meas @ sum_zero)
+        np.testing.assert_array_almost_equal(sum_zero_mean.eval(), [0, 0, 1, 1], decimal=1)
+        sampled_zero_mean = self.sampler.convert(sum_zero_mean)
         # !!NOTE!!: Depolarizing channel (Sampling) means interference
         # does not happen between circuits in sum, so expectation does
         # not equal expectation for Zero!!
-        sum_zero = (Plus + Minus) * (.5 ** .5)
-        sum_zero_mean = expect.compute_expectation(sum_zero)
-        np.testing.assert_array_almost_equal(sum_zero_mean, [0, 0, 0, 2], decimal=1)
-        # Eval is converting circuits to statevectors here, so interference works
-        np.testing.assert_array_almost_equal((converted_meas @ sum_zero).eval(),
-                                             [0, 0, 1, 1], decimal=1)
+        np.testing.assert_array_almost_equal(sampled_zero_mean.eval(), [0, 0, 0, 2], decimal=1)
 
         for i, op in enumerate(paulis_op.oplist):
             mat_op = op.to_matrix()
-            np.testing.assert_array_almost_equal(zero_mean[i],
+            np.testing.assert_array_almost_equal(zero_mean.eval()[i],
                                                  Zero.adjoint().to_matrix() @
                                                  mat_op @ Zero.to_matrix(),
                                                  decimal=1)
-            np.testing.assert_array_almost_equal(plus_mean[i],
+            np.testing.assert_array_almost_equal(plus_mean.eval()[i],
                                                  Plus.adjoint().to_matrix() @
                                                  mat_op @ Plus.to_matrix(),
                                                  decimal=1)
-            np.testing.assert_array_almost_equal(minus_mean[i],
+            np.testing.assert_array_almost_equal(minus_mean.eval()[i],
                                                  Minus.adjoint().to_matrix() @
                                                  mat_op @ Minus.to_matrix(),
                                                  decimal=1)
 
     def test_pauli_expect_state_vector(self):
         """ pauli expect state vector test """
-        backend = BasicAer.get_backend('qasm_simulator')
         states_op = ListOp([One, Zero, Plus, Minus])
 
         paulis_op = X
-        expect = PauliExpectation(operator=paulis_op, backend=backend)
-        means = expect.compute_expectation(states_op)
-        np.testing.assert_array_almost_equal(means, [0, 0, 1, -1], decimal=1)
-
-        # Test via convert instead of compute_expectation
-        converted_meas = expect.convert(~StateFn(paulis_op) @ states_op)
+        converted_meas = self.expect.convert(~StateFn(paulis_op) @ states_op)
         np.testing.assert_array_almost_equal(converted_meas.eval(), [0, 0, 1, -1], decimal=1)
 
-        sampled = CircuitSampler(backend, attach_results=True).convert(converted_meas)
+        sampled = self.sampler.convert(converted_meas)
         np.testing.assert_array_almost_equal(sampled.eval(), [0, 0, 1, -1], decimal=1)
 
         # Small test to see if execution results are accessible
@@ -136,37 +123,32 @@ class TestPauliExpectation(QiskitAquaTestCase):
 
     def test_pauli_expect_op_vector_state_vector(self):
         """ pauli expect op vector state vector test """
-        backend = BasicAer.get_backend('qasm_simulator')
         paulis_op = ListOp([X, Y, Z, I])
         states_op = ListOp([One, Zero, Plus, Minus])
 
-        expect = PauliExpectation(operator=paulis_op, backend=backend)
-        means = expect.compute_expectation(states_op)
         valids = [[+0, 0, 1, -1],
                   [+0, 0, 0, 0],
                   [-1, 1, 0, -0],
                   [+1, 1, 1, 1]]
-        np.testing.assert_array_almost_equal(means, valids, decimal=1)
-
-        # Test via convert instead of compute_expectation
-        converted_meas = expect.convert(~StateFn(paulis_op) @ states_op)
+        converted_meas = self.expect.convert(~StateFn(paulis_op) @ states_op)
         np.testing.assert_array_almost_equal(converted_meas.eval(), valids, decimal=1)
+
+        sampled = self.sampler.convert(converted_meas)
+        np.testing.assert_array_almost_equal(sampled.eval(), valids, decimal=1)
 
     def test_not_to_matrix_called(self):
         """ 45 qubit calculation - literally will not work if to_matrix is
             somehow called (in addition to massive=False throwing an error)"""
 
-        backend = BasicAer.get_backend('qasm_simulator')
         qs = 45
         states_op = ListOp([Zero ^ qs,
                             One ^ qs,
                             (Zero ^ qs) + (One ^ qs)])
         paulis_op = ListOp([Z ^ qs,
                             (I ^ Z ^ I) ^ int(qs / 3)])
-        expect = PauliExpectation(operator=paulis_op, backend=backend)
-        means = expect.compute_expectation(states_op)
-        np.testing.assert_array_almost_equal(means, [[1, -1, 0],
-                                                     [1, -1, 0]])
+
+        converted_meas = self.expect.convert(~StateFn(paulis_op) @ states_op)
+        np.testing.assert_array_almost_equal(converted_meas.eval(), [[1, -1, 0], [1, -1, 0]])
 
     def test_abelian_grouper(self):
         """ abelian grouper test """
@@ -194,24 +176,18 @@ class TestPauliExpectation(QiskitAquaTestCase):
                        (-0.01128010425623538 * Z ^ Z) + \
                        (0.18093119978423156 * X ^ X)
         wf = CX @ (H ^ I) @ Zero
-        backend = BasicAer.get_backend('qasm_simulator')
-        expect_op = PauliExpectation(operator=two_qubit_H2,
-                                     backend=backend,
-                                     group_paulis=False).expectation_op(wf)
-        sampler = CircuitSampler(backend)
-        sampler._extract_circuitstatefns(expect_op)
-        num_circuits_ungrouped = len(sampler._circuit_ops_cache)
+        expect_op = PauliExpectation(group_paulis=False).convert(~StateFn(two_qubit_H2) @ wf)
+        self.sampler._extract_circuitstatefns(expect_op)
+        num_circuits_ungrouped = len(self.sampler._circuit_ops_cache)
         self.assertEqual(num_circuits_ungrouped, 5)
 
-        expect_op_grouped = PauliExpectation(operator=two_qubit_H2,
-                                             backend=backend,
-                                             group_paulis=True).expectation_op(wf)
-        sampler = CircuitSampler(backend)
+        expect_op_grouped = PauliExpectation(group_paulis=True).convert(~StateFn(two_qubit_H2) @ wf)
+        sampler = CircuitSampler(BasicAer.get_backend('statevector_simulator'))
         sampler._extract_circuitstatefns(expect_op_grouped)
         num_circuits_grouped = len(sampler._circuit_ops_cache)
         self.assertEqual(num_circuits_grouped, 2)
 
-    @unittest.skip(reason="IBMQ testing not available in general.")
+    # @unittest.skip(reason="IBMQ testing not available in general.")
     def test_ibmq_grouped_pauli_expectation(self):
         """ pauli expect op vector state vector test """
         p = IBMQ.load_account()
@@ -219,13 +195,13 @@ class TestPauliExpectation(QiskitAquaTestCase):
         paulis_op = ListOp([X, Y, Z, I])
         states_op = ListOp([One, Zero, Plus, Minus])
 
-        expect = PauliExpectation(operator=paulis_op, backend=backend)
-        means = expect.compute_expectation(states_op)
         valids = [[+0, 0, 1, -1],
                   [+0, 0, 0, 0],
                   [-1, 1, 0, -0],
                   [+1, 1, 1, 1]]
-        np.testing.assert_array_almost_equal(means, valids, decimal=1)
+        converted_meas = self.expect.convert(~StateFn(paulis_op) @ states_op)
+        sampled = CircuitSampler(backend).convert(converted_meas)
+        np.testing.assert_array_almost_equal(sampled.eval(), valids, decimal=1)
 
 
 if __name__ == '__main__':

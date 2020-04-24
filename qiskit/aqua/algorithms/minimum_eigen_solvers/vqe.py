@@ -28,8 +28,8 @@ from qiskit.circuit import Parameter
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.algorithms import QuantumAlgorithm
-from qiskit.aqua.operators import (OperatorBase, ExpectationBase, ExpectationFactory,
-                                   CircuitStateFn, LegacyBaseOperator, ListOp, I)
+from qiskit.aqua.operators import (OperatorBase, ExpectationBase, ExpectationFactory, StateFn,
+                                   CircuitStateFn, LegacyBaseOperator, ListOp, I, CircuitSampler)
 from qiskit.aqua.components.optimizers import Optimizer, SLSQP
 from qiskit.aqua.components.variational_forms import VariationalForm, RY
 from qiskit.aqua.utils.validation import validate_min
@@ -130,6 +130,8 @@ class VQE(VQAlgorithm, MinimumEigensolver):
             initial_point = var_form.preferred_init_points
 
         self._max_evals_grouped = max_evals_grouped
+        self._circuit_sampler = None
+        self._expect_op = None
 
         super().__init__(var_form=var_form,
                          optimizer=optimizer,
@@ -141,7 +143,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         self._optimizer.set_max_evals_grouped(max_evals_grouped)
         self._callback = callback
 
-        self._expectation_value = expectation_value
+        self._expectation = expectation_value
         self.operator = operator
         self.aux_operators = aux_operators
 
@@ -159,16 +161,15 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         if isinstance(operator, LegacyBaseOperator):
             operator = operator.to_opflow()
         self._operator = operator
+        self._expect_op = None
         self._check_operator_varform()
-        if self._expectation_value is not None:
-            self.expectation_value.operator = self._operator
-        else:
+        if self._expectation is None:
             self._try_set_expectation_value_from_factory()
 
     def _try_set_expectation_value_from_factory(self):
         if self.operator and self.quantum_instance:
-            self.expectation_value = ExpectationFactory.build(operator=self.operator,
-                                                              backend=self.quantum_instance)
+            self.expectation = ExpectationFactory.build(operator=self.operator,
+                                                        backend=self.quantum_instance)
 
     @QuantumAlgorithm.quantum_instance.setter
     def quantum_instance(self, quantum_instance: Union[QuantumInstance, BaseBackend]) -> None:
@@ -176,22 +177,25 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         if isinstance(quantum_instance, BaseBackend):
             quantum_instance = QuantumInstance(quantum_instance)
         self._quantum_instance = quantum_instance
-        if self._expectation_value is not None:
-            self.expectation_value.backend = self.quantum_instance
+
+        if self._circuit_sampler is None:
+            self._circuit_sampler = CircuitSampler(self._quantum_instance)
         else:
+            self._circuit_sampler.quantum_instance = self._quantum_instance
+
+        if self._expectation is None:
             self._try_set_expectation_value_from_factory()
 
     @property
-    def expectation_value(self) -> ExpectationBase:
-        """ The Expectation Value algorithm used to compute the value of the observable at each
-        update step. """
-        return self._expectation_value
+    def expectation(self) -> ExpectationBase:
+        """ The expectation value algorithm used to construct the expectation measurement from
+        the observable. """
+        return self._expectation
 
-    @expectation_value.setter
-    def expectation_value(self, exp: ExpectationBase) -> None:
-        self._expectation_value = exp
-        if self.operator:
-            self._expectation_value.operator = self.operator
+    @expectation.setter
+    def expectation(self, exp: ExpectationBase) -> None:
+        self._expectation = exp
+        self._expect_op = None
 
     @property
     def aux_operators(self) -> Optional[List[Optional[OperatorBase]]]:
@@ -358,13 +362,14 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         return result
 
     def _eval_aux_ops(self, threshold=1e-12):
-        # Create a new ExpectationBase object to evaluate the auxops.
-        expect = self.expectation_value.__class__(operator=self.aux_operators,
-                                                  backend=self._quantum_instance,
-                                                  state=CircuitStateFn(self.get_optimal_circuit()))
-        values = np.real(expect.compute_expectation())
+        # Create new CircuitSampler to avoid breaking existing one's caches.
+        sampler = CircuitSampler(self.quantum_instance)
+
+        aux_op_meas = self.expectation.convert(StateFn(self.aux_operators, is_measurement=True))
+        aux_op_expect = aux_op_meas.compose(CircuitStateFn(self.get_optimal_circuit()))
+        values = np.real(sampler.convert(aux_op_expect).eval())
+
         # Discard values below threshold
-        # TODO remove reshape when ._ret is deprecated
         aux_op_results = (values * (np.abs(values) > threshold))
         # Deal with the aux_op behavior where there can be Nones or Zero qubit Paulis in the list
         self._ret['aux_ops'] = [None if is_none else [result]
@@ -391,12 +396,14 @@ class VQE(VQAlgorithm, MinimumEigensolver):
             Energy of the hamiltonian of each parameter.
         """
         # If ExpectationValue was never created, create one now.
-        if not self.expectation_value:
+        if not self.expectation:
             self._try_set_expectation_value_from_factory()
 
-        if not self._expectation_value.state:
+        if not self._expect_op:
+            observable_meas = self.expectation.convert(StateFn(self.operator,
+                                                               is_measurement=True))
             ansatz_circuit_op = CircuitStateFn(self.construct_circuit(self._var_form_params))
-            self._expectation_value.state = ansatz_circuit_op
+            self._expect_op = observable_meas.compose(ansatz_circuit_op).reduce()
 
         num_parameters = self.var_form.num_parameters
         parameter_sets = np.reshape(parameters, (-1, num_parameters))
@@ -404,14 +411,15 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         param_bindings = dict(zip(self._var_form_params, parameter_sets.transpose().tolist()))
 
         start_time = time()
-        means = np.real(self._expectation_value.compute_expectation(params=param_bindings))
+        sampled_expect_op = self._circuit_sampler.convert(self._expect_op, params=param_bindings)
+        means = np.real(sampled_expect_op.eval())
 
         if self._callback is not None:
-            stds = np.real(
-                self._expectation_value.compute_standard_deviation(params=param_bindings))
+            variance = np.real(self._expectation.compute_variance(sampled_expect_op))
+            estimator_error = np.sqrt(variance / self.quantum_instance.run_config.shots)
             for i, param_set in enumerate(parameter_sets):
                 self._eval_count += 1
-                self._callback(self._eval_count, param_set, means[i], stds[i])
+                self._callback(self._eval_count, param_set, means[i], estimator_error[i])
         else:
             self._eval_count += len(means)
 
