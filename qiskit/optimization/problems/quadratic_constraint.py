@@ -19,7 +19,7 @@ from typing import Union, List, Dict, Tuple
 from numpy import ndarray
 from scipy.sparse import spmatrix
 
-from qiskit.optimization.problems.constraint import Constraint, ConstraintSense
+from qiskit.optimization.problems.constraint import Constraint
 from qiskit.optimization.problems.linear_expression import LinearExpression
 from qiskit.optimization.problems.quadratic_expression import QuadraticExpression
 
@@ -32,7 +32,7 @@ class QuadraticConstraint(Constraint):
                  linear: Union[ndarray, spmatrix, List[float], Dict[Union[str, int], float]],
                  quadratic: Union[ndarray, spmatrix, List[List[float]],
                                   Dict[Tuple[Union[int, str], Union[int, str]], float]],
-                 sense: ConstraintSense,
+                 sense: Constraint.Sense,
                  rhs: float
                  ) -> None:
         """Constructs a quadratic constraint, consisting of a linear and a quadratic term.

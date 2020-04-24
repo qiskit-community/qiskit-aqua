@@ -19,9 +19,9 @@ from typing import List, Tuple, Dict, Optional
 import logging
 
 from ..problems.quadratic_program import QuadraticProgram
-from ..problems.quadratic_objective import ObjSense
-from ..problems.constraint import ConstraintSense
-from ..problems.variable import VarType
+from ..problems.quadratic_objective import QuadraticObjective
+from ..problems.constraint import Constraint
+from ..problems.variable import Variable
 from ..exceptions import QiskitOptimizationError
 
 logger = logging.getLogger(__name__)
@@ -78,13 +78,13 @@ class InequalityToEquality:
 
         # Copy variables
         for x in self._src.variables:
-            if x.vartype == VarType.BINARY:
+            if x.vartype == Variable.Type.BINARY:
                 self._dst.binary_var(name=x.name)
-            elif x.vartype == VarType.INTEGER:
+            elif x.vartype == Variable.Type.INTEGER:
                 self._dst.integer_var(
                     name=x.name, lowerbound=x.lowerbound, upperbound=x.upperbound
                 )
-            elif x.vartype == VarType.CONTINUOUS:
+            elif x.vartype == Variable.Type.CONTINUOUS:
                 self._dst.continuous_var(
                     name=x.name, lowerbound=x.lowerbound, upperbound=x.upperbound
                 )
@@ -95,7 +95,7 @@ class InequalityToEquality:
         constant = self._src.objective.constant
         linear = self._src.objective.linear.to_dict(use_name=True)
         quadratic = self._src.objective.quadratic.to_dict(use_name=True)
-        if self._src.objective.sense == ObjSense.MINIMIZE:
+        if self._src.objective.sense == QuadraticObjective.Sense.MINIMIZE:
             self._dst.minimize(constant, linear, quadratic)
         else:
             self._dst.maximize(constant, linear, quadratic)
@@ -103,11 +103,11 @@ class InequalityToEquality:
         # For linear constraints
         for constraint in self._src.linear_constraints:
             linear = constraint.linear.to_dict(use_name=True)
-            if constraint.sense == ConstraintSense.EQ:
+            if constraint.sense == Constraint.Sense.EQ:
                 self._dst.linear_constraint(
                     linear, constraint.sense, constraint.rhs, constraint.name
                 )
-            elif constraint.sense == ConstraintSense.LE or constraint.sense == ConstraintSense.GE:
+            elif constraint.sense == Constraint.Sense.LE or constraint.sense == Constraint.Sense.GE:
                 if mode == 'integer':
                     self._add_integer_slack_var_linear_constraint(
                         linear, constraint.sense, constraint.rhs, constraint.name
@@ -131,11 +131,11 @@ class InequalityToEquality:
         for constraint in self._src.quadratic_constraints:
             linear = constraint.linear.to_dict(use_name=True)
             quadratic = constraint.quadratic.to_dict(use_name=True)
-            if constraint.sense == ConstraintSense.EQ:
+            if constraint.sense == Constraint.Sense.EQ:
                 self._dst.quadratic_constraint(
                     linear, quadratic, constraint.sense, constraint.rhs, constraint.name
                 )
-            elif constraint.sense == ConstraintSense.LE or constraint.sense == ConstraintSense.GE:
+            elif constraint.sense == Constraint.Sense.LE or constraint.sense == Constraint.Sense.GE:
                 if mode == 'integer':
                     self._add_integer_slack_var_quadratic_constraint(
                         linear,
@@ -176,9 +176,9 @@ class InequalityToEquality:
 
         # If rhs is float number, round up/down to the nearest integer.
         new_rhs = rhs
-        if sense == ConstraintSense.LE:
+        if sense == Constraint.Sense.LE:
             new_rhs = math.floor(rhs)
-        if sense == ConstraintSense.GE:
+        if sense == Constraint.Sense.GE:
             new_rhs = math.ceil(rhs)
 
         # Add a new integer variable.
@@ -187,10 +187,10 @@ class InequalityToEquality:
 
         lhs_lb, lhs_ub = self._calc_linear_bounds(linear)
 
-        if sense == ConstraintSense.LE:
+        if sense == Constraint.Sense.LE:
             sign = 1
             self._dst.integer_var(name=slack_name, lowerbound=0, upperbound=new_rhs - lhs_lb)
-        elif sense == ConstraintSense.GE:
+        elif sense == Constraint.Sense.GE:
             sign = -1
             self._dst.integer_var(name=slack_name, lowerbound=0, upperbound=lhs_ub - new_rhs)
         else:
@@ -207,10 +207,10 @@ class InequalityToEquality:
 
         lhs_lb, lhs_ub = self._calc_linear_bounds(linear)
 
-        if sense == ConstraintSense.LE:
+        if sense == Constraint.Sense.LE:
             sign = 1
             self._dst.continuous_var(name=slack_name, lowerbound=0, upperbound=rhs - lhs_lb)
-        elif sense == ConstraintSense.GE:
+        elif sense == Constraint.Sense.GE:
             sign = -1
             self._dst.continuous_var(name=slack_name, lowerbound=0, upperbound=lhs_ub - rhs)
         else:
@@ -238,9 +238,9 @@ class InequalityToEquality:
 
         # If rhs is float number, round up/down to the nearest integer.
         new_rhs = rhs
-        if sense == ConstraintSense.LE:
+        if sense == Constraint.Sense.LE:
             new_rhs = math.floor(rhs)
-        if sense == ConstraintSense.GE:
+        if sense == Constraint.Sense.GE:
             new_rhs = math.ceil(rhs)
 
         # Add a new integer variable.
@@ -249,10 +249,10 @@ class InequalityToEquality:
 
         lhs_lb, lhs_ub = self._calc_quadratic_bounds(linear, quadratic)
 
-        if sense == ConstraintSense.LE:
+        if sense == Constraint.Sense.LE:
             sign = 1
             self._dst.integer_var(name=slack_name, lowerbound=0, upperbound=new_rhs - lhs_lb)
-        elif sense == ConstraintSense.GE:
+        elif sense == Constraint.Sense.GE:
             sign = -1
             self._dst.integer_var(name=slack_name, lowerbound=0, upperbound=lhs_ub - new_rhs)
         else:
@@ -276,10 +276,10 @@ class InequalityToEquality:
 
         lhs_lb, lhs_ub = self._calc_quadratic_bounds(linear, quadratic)
 
-        if sense == ConstraintSense.LE:
+        if sense == Constraint.Sense.LE:
             sign = 1
             self._dst.continuous_var(name=slack_name, lowerbound=0, upperbound=rhs - lhs_lb)
-        elif sense == ConstraintSense.GE:
+        elif sense == Constraint.Sense.GE:
             sign = -1
             self._dst.continuous_var(name=slack_name, lowerbound=0, upperbound=lhs_ub - rhs)
         else:

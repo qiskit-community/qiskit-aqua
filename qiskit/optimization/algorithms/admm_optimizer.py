@@ -25,8 +25,7 @@ from qiskit.optimization.algorithms.cplex_optimizer import CplexOptimizer
 from qiskit.optimization.algorithms.optimization_algorithm import (OptimizationAlgorithm,
                                                                    OptimizationResult)
 from qiskit.optimization.converters import IntegerToBinary
-from qiskit.optimization.problems import VarType, ConstraintSense
-from qiskit.optimization.problems.quadratic_program import QuadraticProgram
+from qiskit.optimization.problems import QuadraticProgram, Variable, Constraint
 
 UPDATE_RHO_BY_TEN_PERCENT = 0
 UPDATE_RHO_BY_RESIDUALS = 1
@@ -221,8 +220,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
         msg = ''
 
         # 1. get bin/int and continuous variable indices
-        bin_int_indices = self._get_variable_indices(problem, VarType.BINARY)
-        continuous_indices = self._get_variable_indices(problem, VarType.CONTINUOUS)
+        bin_int_indices = self._get_variable_indices(problem, Variable.Type.BINARY)
+        continuous_indices = self._get_variable_indices(problem, Variable.Type.CONTINUOUS)
 
         # 2. binary and continuous variables are separable in objective
         for bin_int_index in bin_int_indices:
@@ -263,8 +262,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
         problem_ = int2bin.encode(problem)
 
         # parse problem and convert to an ADMM specific representation.
-        binary_indices = self._get_variable_indices(problem_, VarType.BINARY)
-        continuous_indices = self._get_variable_indices(problem_, VarType.CONTINUOUS)
+        binary_indices = self._get_variable_indices(problem_, Variable.Type.BINARY)
+        continuous_indices = self._get_variable_indices(problem_, Variable.Type.CONTINUOUS)
 
         # create our computation state.
         self._state = ADMMState(problem_, binary_indices,
@@ -344,7 +343,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         return result
 
     @staticmethod
-    def _get_variable_indices(op: QuadraticProgram, var_type: VarType) -> List[int]:
+    def _get_variable_indices(op: QuadraticProgram, var_type: Variable.Type) -> List[int]:
         """Returns a list of indices of the variables of the specified type.
 
         Args:
@@ -468,7 +467,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         vector.append(self._state.op.linear_constraints[constraint_index].rhs)
 
         # flip the sign if constraint is G, we want L constraints.
-        if self._state.op.linear_constraints[constraint_index].sense == ConstraintSense.GE:
+        if self._state.op.linear_constraints[constraint_index].sense == Constraint.Sense.GE:
             # invert the sign to make constraint "L".
             # we invert only last row/last element
             matrix[-1] = [-1 * el for el in matrix[-1]]
@@ -509,7 +508,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         index_set = set(self._state.binary_indices)
         for constraint_index, constraint in enumerate(self._state.op.linear_constraints):
             # we check only equality constraints here.
-            if constraint.sense != ConstraintSense.EQ:
+            if constraint.sense != Constraint.Sense.EQ:
                 continue
 
             constraint_indices = set(
@@ -542,7 +541,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         index_set = set(variable_indices)
         for constraint_index, constraint in enumerate(self._state.op.linear_constraints):
-            if constraint.sense in [ConstraintSense.EQ]:
+            if constraint.sense in [Constraint.Sense.EQ]:
                 # TODO: Ranged constraints should be supported
                 continue
             constraint_indices = set(
@@ -586,7 +585,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         continuous_index_set = set(self._state.continuous_indices)
         all_variables = self._state.binary_indices + self._state.continuous_indices
         for constraint_index, constraint in enumerate(self._state.op.linear_constraints):
-            if constraint.sense in [ConstraintSense.EQ]:
+            if constraint.sense in [Constraint.Sense.EQ]:
                 # TODO: Ranged constraints should be supported as well
                 continue
             # sense either G or L.
@@ -644,7 +643,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         binary_size = len(self._state.binary_indices)
         continuous_index = 0
         for variable in self._state.op.variables:
-            if variable.vartype == VarType.CONTINUOUS:
+            if variable.vartype == Variable.Type.CONTINUOUS:
                 op2.continuous_var(name="u0_" + str(continuous_index + 1),
                                    lowerbound=variable.lowerbound, upperbound=variable.upperbound)
                 continuous_index += 1
@@ -663,7 +662,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         constraint_count = self._state.a1.shape[0]
         for i in range(constraint_count):
             linear = np.concatenate((np.zeros(continuous_size), self._state.a1[i, :]))
-            op2.linear_constraint(linear=linear, sense=ConstraintSense.LE, rhs=self._state.b1[i])
+            op2.linear_constraint(linear=linear, sense=Constraint.Sense.LE, rhs=self._state.b1[i])
 
         if continuous_size:
             # A2 z + A3 u <= b2
@@ -671,7 +670,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
             for i in range(constraint_count):
                 linear = np.concatenate((self._state.a3[i, :], self._state.a2[i, :]))
                 op2.linear_constraint(linear=linear,
-                                      sense=ConstraintSense.LE,
+                                      sense=Constraint.Sense.LE,
                                       rhs=self._state.b2[i])
 
             # A4 u <= b3
@@ -679,7 +678,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
             for i in range(constraint_count):
                 linear = np.concatenate((self._state.a4[i, :], np.zeros(binary_size)))
                 op2.linear_constraint(linear=linear,
-                                      sense=ConstraintSense.LE,
+                                      sense=Constraint.Sense.LE,
                                       rhs=self._state.b3[i])
 
         # add quadratic constraints for

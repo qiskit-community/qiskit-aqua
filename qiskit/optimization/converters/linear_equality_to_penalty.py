@@ -14,14 +14,10 @@
 
 """Converter to convert a problem with equality constraints to unconstrained with penalty terms."""
 
+import copy
 from typing import Optional
 
-import copy
-
-from ..problems.quadratic_program import QuadraticProgram
-from ..problems.variable import VarType
-from ..problems.quadratic_objective import ObjSense
-from ..problems.constraint import ConstraintSense
+from ..problems import QuadraticProgram, Variable, Constraint, QuadraticObjective
 from ..exceptions.qiskit_optimization_error import QiskitOptimizationError
 
 
@@ -55,11 +51,11 @@ class LinearEqualityToPenalty:
 
         # set variables
         for x in self._src.variables:
-            if x.vartype == VarType.CONTINUOUS:
+            if x.vartype == Variable.Type.CONTINUOUS:
                 self._dst.continuous_var(x.lowerbound, x.upperbound, x.name)
-            elif x.vartype == VarType.BINARY:
+            elif x.vartype == Variable.Type.BINARY:
                 self._dst.binary_var(x.name)
-            elif x.vartype == VarType.INTEGER:
+            elif x.vartype == Variable.Type.INTEGER:
                 self._dst.integer_var(x.lowerbound, x.upperbound, x.name)
             else:
                 raise QiskitOptimizationError('Unsupported vartype: {}'.format(x.vartype))
@@ -79,7 +75,7 @@ class LinearEqualityToPenalty:
         # convert linear constraints into penalty terms
         for constraint in self._src.linear_constraints:
 
-            if constraint.sense != ConstraintSense.EQ:
+            if constraint.sense != Constraint.Sense.EQ:
                 raise QiskitOptimizationError('An inequality constraint exists. '
                                               'The method supports only equality constraints.')
 
@@ -107,7 +103,7 @@ class LinearEqualityToPenalty:
                     quadratic[(j, k)] = quadratic.get((j, k), 0.0) \
                         + sense * penalty_factor * coef_1 * coef_2
 
-        if self._src.objective.sense == ObjSense.MINIMIZE:
+        if self._src.objective.sense == QuadraticObjective.Sense.MINIMIZE:
             self._dst.minimize(offset, linear, quadratic)
         else:
             self._dst.maximize(offset, linear, quadratic)

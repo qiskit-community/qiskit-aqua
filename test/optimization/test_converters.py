@@ -22,7 +22,7 @@ from docplex.mp.model import Model
 from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.optimization import QuadraticProgram, QiskitOptimizationError
-from qiskit.optimization.problems import ConstraintSense, VarType
+from qiskit.optimization.problems import Constraint, Variable
 from qiskit.optimization.algorithms import OptimizationResult
 from qiskit.optimization.converters import (
     InequalityToEquality,
@@ -94,24 +94,24 @@ class TestConverters(QiskitOptimizationTestCase):
         linear_constraint = {}
         linear_constraint['x0'] = 1
         linear_constraint['x1'] = 1
-        op.linear_constraint(linear_constraint, ConstraintSense.EQ, 1, 'x0x1')
+        op.linear_constraint(linear_constraint, Constraint.Sense.EQ, 1, 'x0x1')
         linear_constraint = {}
         linear_constraint['x1'] = 1
         linear_constraint['x2'] = -1
-        op.linear_constraint(linear_constraint, ConstraintSense.LE, 2, 'x1x2')
+        op.linear_constraint(linear_constraint, Constraint.Sense.LE, 2, 'x1x2')
         linear_constraint = {}
         linear_constraint['x0'] = 1
         linear_constraint['x2'] = 3
-        op.linear_constraint(linear_constraint, ConstraintSense.GE, 2, 'x0x2')
+        op.linear_constraint(linear_constraint, Constraint.Sense.GE, 2, 'x0x2')
         # Quadratic constraints
         quadratic = {}
         quadratic[('x0', 'x1')] = 1
         quadratic[('x1', 'x2')] = 2
-        op.quadratic_constraint({}, quadratic, ConstraintSense.LE, 3, 'x0x1_x1x2LE')
+        op.quadratic_constraint({}, quadratic, Constraint.Sense.LE, 3, 'x0x1_x1x2LE')
         quadratic = {}
         quadratic[('x0', 'x1')] = 3
         quadratic[('x1', 'x2')] = 4
-        op.quadratic_constraint({}, quadratic, ConstraintSense.GE, 3, 'x0x1_x1x2GE')
+        op.quadratic_constraint({}, quadratic, Constraint.Sense.GE, 3, 'x0x1_x1x2GE')
         # Convert inequality constraints into equality constraints
         conv = InequalityToEquality()
         op2 = conv.encode(op)
@@ -124,7 +124,7 @@ class TestConverters(QiskitOptimizationTestCase):
             op2.linear_constraints[0].linear.to_dict()[1],
         ]
         self.assertListEqual(lst, [1, 1])
-        self.assertEqual(op2.linear_constraints[0].sense, ConstraintSense.EQ)
+        self.assertEqual(op2.linear_constraints[0].sense, Constraint.Sense.EQ)
         lst = [
             op2.linear_constraints[1].linear.to_dict()[1],
             op2.linear_constraints[1].linear.to_dict()[2],
@@ -133,7 +133,7 @@ class TestConverters(QiskitOptimizationTestCase):
         self.assertListEqual(lst, [1, -1, 1])
         lst = [op2.variables[3].lowerbound, op2.variables[3].upperbound]
         self.assertListEqual(lst, [0, 3])
-        self.assertEqual(op2.linear_constraints[1].sense, ConstraintSense.EQ)
+        self.assertEqual(op2.linear_constraints[1].sense, Constraint.Sense.EQ)
         lst = [
             op2.linear_constraints[2].linear.to_dict()[0],
             op2.linear_constraints[2].linear.to_dict()[2],
@@ -142,7 +142,7 @@ class TestConverters(QiskitOptimizationTestCase):
         self.assertListEqual(lst, [1, 3, -1])
         lst = [op2.variables[4].lowerbound, op2.variables[4].upperbound]
         self.assertListEqual(lst, [0, 2])
-        self.assertEqual(op2.linear_constraints[2].sense, ConstraintSense.EQ)
+        self.assertEqual(op2.linear_constraints[2].sense, Constraint.Sense.EQ)
         # For quadratic constraints
         lst = [
             op2.quadratic_constraints[0].quadratic.to_dict()[(0, 1)],
@@ -170,24 +170,24 @@ class TestConverters(QiskitOptimizationTestCase):
         linear_constraint = {}
         linear_constraint['x0'] = 1
         linear_constraint['x1'] = 1
-        op.linear_constraint(linear_constraint, ConstraintSense.EQ, 1, 'x0x1')
+        op.linear_constraint(linear_constraint, Constraint.Sense.EQ, 1, 'x0x1')
         linear_constraint = {}
         linear_constraint['x1'] = 1
         linear_constraint['x2'] = -1
-        op.linear_constraint(linear_constraint, ConstraintSense.LE, 2, 'x1x2')
+        op.linear_constraint(linear_constraint, Constraint.Sense.LE, 2, 'x1x2')
         linear_constraint = {}
         linear_constraint['x0'] = 1
         linear_constraint['x2'] = 3
-        op.linear_constraint(linear_constraint, ConstraintSense.GE, 2, 'x0x2')
+        op.linear_constraint(linear_constraint, Constraint.Sense.GE, 2, 'x0x2')
         # Quadratic constraints
         quadratic = {}
         quadratic[('x0', 'x1')] = 1
         quadratic[('x1', 'x2')] = 2
-        op.quadratic_constraint({}, quadratic, ConstraintSense.LE, 3, 'x0x1_x1x2LE')
+        op.quadratic_constraint({}, quadratic, Constraint.Sense.LE, 3, 'x0x1_x1x2LE')
         quadratic = {}
         quadratic[('x0', 'x1')] = 3
         quadratic[('x1', 'x2')] = 4
-        op.quadratic_constraint({}, quadratic, ConstraintSense.GE, 3, 'x0x1_x1x2GE')
+        op.quadratic_constraint({}, quadratic, Constraint.Sense.GE, 3, 'x0x1_x1x2GE')
         conv = InequalityToEquality()
         op2 = conv.encode(op)
         # For linear constraints
@@ -196,7 +196,7 @@ class TestConverters(QiskitOptimizationTestCase):
             op2.linear_constraints[0].linear.to_dict()[1],
         ]
         self.assertListEqual(lst, [1, 1])
-        self.assertEqual(op2.linear_constraints[0].sense, ConstraintSense.EQ)
+        self.assertEqual(op2.linear_constraints[0].sense, Constraint.Sense.EQ)
         lst = [
             op2.linear_constraints[1].linear.to_dict()[1],
             op2.linear_constraints[1].linear.to_dict()[2],
@@ -205,7 +205,7 @@ class TestConverters(QiskitOptimizationTestCase):
         self.assertListEqual(lst, [1, -1, 1])
         lst = [op2.variables[3].lowerbound, op2.variables[3].upperbound]
         self.assertListEqual(lst, [0, 8])
-        self.assertEqual(op2.linear_constraints[1].sense, ConstraintSense.EQ)
+        self.assertEqual(op2.linear_constraints[1].sense, Constraint.Sense.EQ)
         lst = [
             op2.linear_constraints[2].linear.to_dict()[0],
             op2.linear_constraints[2].linear.to_dict()[2],
@@ -214,7 +214,7 @@ class TestConverters(QiskitOptimizationTestCase):
         self.assertListEqual(lst, [1, 3, -1])
         lst = [op2.variables[4].lowerbound, op2.variables[4].upperbound]
         self.assertListEqual(lst, [0, 10])
-        self.assertEqual(op2.linear_constraints[2].sense, ConstraintSense.EQ)
+        self.assertEqual(op2.linear_constraints[2].sense, Constraint.Sense.EQ)
         # For quadratic constraints
         lst = [
             op2.quadratic_constraints[0].quadratic.to_dict()[(0, 1)],
@@ -242,19 +242,19 @@ class TestConverters(QiskitOptimizationTestCase):
         linear_constraint = {}
         linear_constraint['x0'] = 1
         linear_constraint['x1'] = 1
-        op.linear_constraint(linear_constraint, ConstraintSense.EQ, 1, 'x0x1')
+        op.linear_constraint(linear_constraint, Constraint.Sense.EQ, 1, 'x0x1')
         linear_constraint = {}
         linear_constraint['x1'] = 1
         linear_constraint['x2'] = -1
-        op.linear_constraint(linear_constraint, ConstraintSense.LE, 2, 'x1x2')
+        op.linear_constraint(linear_constraint, Constraint.Sense.LE, 2, 'x1x2')
         linear_constraint = {}
         linear_constraint['x0'] = 1
         linear_constraint['x2'] = 3
-        op.linear_constraint(linear_constraint, ConstraintSense.GE, 2, 'x0x2')
+        op.linear_constraint(linear_constraint, Constraint.Sense.GE, 2, 'x0x2')
         conv = InequalityToEquality()
         op2 = conv.encode(op, mode='integer')
         lst = [op2.variables[3].vartype, op2.variables[4].vartype]
-        self.assertListEqual(lst, [VarType.INTEGER, VarType.INTEGER])
+        self.assertListEqual(lst, [Variable.Type.INTEGER, Variable.Type.INTEGER])
 
     def test_inequality_mode_continuous(self):
         """ Test continuous mode of InequalityToEqualityConverter() """
@@ -265,19 +265,19 @@ class TestConverters(QiskitOptimizationTestCase):
         linear_constraint = {}
         linear_constraint['x0'] = 1
         linear_constraint['x1'] = 1
-        op.linear_constraint(linear_constraint, ConstraintSense.EQ, 1, 'x0x1')
+        op.linear_constraint(linear_constraint, Constraint.Sense.EQ, 1, 'x0x1')
         linear_constraint = {}
         linear_constraint['x1'] = 1
         linear_constraint['x2'] = -1
-        op.linear_constraint(linear_constraint, ConstraintSense.LE, 2, 'x1x2')
+        op.linear_constraint(linear_constraint, Constraint.Sense.LE, 2, 'x1x2')
         linear_constraint = {}
         linear_constraint['x0'] = 1
         linear_constraint['x2'] = 3
-        op.linear_constraint(linear_constraint, ConstraintSense.GE, 2, 'x0x2')
+        op.linear_constraint(linear_constraint, Constraint.Sense.GE, 2, 'x0x2')
         conv = InequalityToEquality()
         op2 = conv.encode(op, mode='continuous')
         lst = [op2.variables[3].vartype, op2.variables[4].vartype]
-        self.assertListEqual(lst, [VarType.CONTINUOUS, VarType.CONTINUOUS])
+        self.assertListEqual(lst, [Variable.Type.CONTINUOUS, Variable.Type.CONTINUOUS])
 
     def test_inequality_mode_auto(self):
         """ Test auto mode of InequalityToEqualityConverter() """
@@ -288,19 +288,19 @@ class TestConverters(QiskitOptimizationTestCase):
         linear_constraint = {}
         linear_constraint['x0'] = 1
         linear_constraint['x1'] = 1
-        op.linear_constraint(linear_constraint, ConstraintSense.EQ, 1, 'x0x1')
+        op.linear_constraint(linear_constraint, Constraint.Sense.EQ, 1, 'x0x1')
         linear_constraint = {}
         linear_constraint['x1'] = 1
         linear_constraint['x2'] = -1
-        op.linear_constraint(linear_constraint, ConstraintSense.LE, 2, 'x1x2')
+        op.linear_constraint(linear_constraint, Constraint.Sense.LE, 2, 'x1x2')
         linear_constraint = {}
         linear_constraint['x0'] = 1.1
         linear_constraint['x2'] = 2.2
-        op.linear_constraint(linear_constraint, ConstraintSense.GE, 3.3, 'x0x2')
+        op.linear_constraint(linear_constraint, Constraint.Sense.GE, 3.3, 'x0x2')
         conv = InequalityToEquality()
         op2 = conv.encode(op, mode='auto')
         lst = [op2.variables[3].vartype, op2.variables[4].vartype]
-        self.assertListEqual(lst, [VarType.INTEGER, VarType.CONTINUOUS])
+        self.assertListEqual(lst, [Variable.Type.INTEGER, Variable.Type.CONTINUOUS])
 
     def test_penalize_sense(self):
         """ Test PenalizeLinearEqualityConstraints with senses """
@@ -311,15 +311,15 @@ class TestConverters(QiskitOptimizationTestCase):
         linear_constraint = {}
         linear_constraint['x0'] = 1
         linear_constraint['x1'] = 1
-        op.linear_constraint(linear_constraint, ConstraintSense.EQ, 1, 'x0x1')
+        op.linear_constraint(linear_constraint, Constraint.Sense.EQ, 1, 'x0x1')
         linear_constraint = {}
         linear_constraint['x1'] = 1
         linear_constraint['x2'] = -1
-        op.linear_constraint(linear_constraint, ConstraintSense.LE, 2, 'x1x2')
+        op.linear_constraint(linear_constraint, Constraint.Sense.LE, 2, 'x1x2')
         linear_constraint = {}
         linear_constraint['x0'] = 1
         linear_constraint['x2'] = 3
-        op.linear_constraint(linear_constraint, ConstraintSense.GE, 2, 'x0x2')
+        op.linear_constraint(linear_constraint, Constraint.Sense.GE, 2, 'x0x2')
         self.assertEqual(len(op.linear_constraints), 3)
         conv = LinearEqualityToPenalty()
         with self.assertRaises(QiskitOptimizationError):
@@ -334,15 +334,15 @@ class TestConverters(QiskitOptimizationTestCase):
         linear_constraint = {}
         linear_constraint['x0'] = 1
         linear_constraint['x1'] = 1
-        op.linear_constraint(linear_constraint, ConstraintSense.EQ, 1, 'x0x1')
+        op.linear_constraint(linear_constraint, Constraint.Sense.EQ, 1, 'x0x1')
         linear_constraint = {}
         linear_constraint['x1'] = 1
         linear_constraint['x2'] = -1
-        op.linear_constraint(linear_constraint, ConstraintSense.EQ, 2, 'x1x2')
+        op.linear_constraint(linear_constraint, Constraint.Sense.EQ, 2, 'x1x2')
         linear_constraint = {}
         linear_constraint['x0'] = 1
         linear_constraint['x2'] = 3
-        op.linear_constraint(linear_constraint, ConstraintSense.EQ, 2, 'x0x2')
+        op.linear_constraint(linear_constraint, Constraint.Sense.EQ, 2, 'x0x2')
         self.assertEqual(len(op.linear_constraints), 3)
         conv = LinearEqualityToPenalty()
         op2 = conv.encode(op)
@@ -357,15 +357,15 @@ class TestConverters(QiskitOptimizationTestCase):
         linear_constraint = {}
         linear_constraint['x0'] = 1
         linear_constraint['x1'] = 1
-        op.linear_constraint(linear_constraint, ConstraintSense.EQ, 1, 'x0x1')
+        op.linear_constraint(linear_constraint, Constraint.Sense.EQ, 1, 'x0x1')
         linear_constraint = {}
         linear_constraint['x1'] = 1
         linear_constraint['x2'] = -1
-        op.linear_constraint(linear_constraint, ConstraintSense.EQ, 2, 'x1x2')
+        op.linear_constraint(linear_constraint, Constraint.Sense.EQ, 2, 'x1x2')
         linear_constraint = {}
         linear_constraint['x0'] = 1
         linear_constraint['x2'] = 3
-        op.linear_constraint(linear_constraint, ConstraintSense.EQ, 2, 'x0x2')
+        op.linear_constraint(linear_constraint, Constraint.Sense.EQ, 2, 'x0x2')
         self.assertEqual(len(op.linear_constraints), 3)
         conv = LinearEqualityToPenalty()
         op2 = conv.encode(op)
@@ -384,7 +384,7 @@ class TestConverters(QiskitOptimizationTestCase):
         conv = IntegerToBinary()
         op2 = conv.encode(op)
         for x in op2.variables:
-            self.assertEqual(x.vartype, VarType.BINARY)
+            self.assertEqual(x.vartype, Variable.Type.BINARY)
         dct = op2.objective.linear.to_dict()
         self.assertEqual(dct[2], 3)
         self.assertEqual(dct[3], 6)
@@ -404,7 +404,7 @@ class TestConverters(QiskitOptimizationTestCase):
         linear = {}
         for x in op.variables:
             linear[x.name] = 1
-        op.linear_constraint(linear, ConstraintSense.EQ, 6, 'x0x1x2')
+        op.linear_constraint(linear, Constraint.Sense.EQ, 6, 'x0x1x2')
         conv = IntegerToBinary()
         _ = conv.encode(op)
         result = OptimizationResult(x=[0, 1, 1, 1, 1], fval=17)
@@ -424,7 +424,7 @@ class TestConverters(QiskitOptimizationTestCase):
         linear = {}
         for i, x in enumerate(op.variables):
             linear[x.name] = i + 1
-        op.linear_constraint(linear, ConstraintSense.EQ, 3, 'sum1')
+        op.linear_constraint(linear, Constraint.Sense.EQ, 3, 'sum1')
         penalize = LinearEqualityToPenalty()
         op2ope = QuadraticProgramToOperator()
         op2 = penalize.encode(op)
