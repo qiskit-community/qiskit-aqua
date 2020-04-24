@@ -46,7 +46,7 @@ class PauliBasisChange(ConverterBase):
     hardware.
 
     The replacement function determines how the ``PauliOps`` should be replaced by their computed
-    change-of-basis ``CircuitOps`` and destinatin ``PauliOps``. Several convenient out-of-the-box
+    change-of-basis ``CircuitOps`` and destination ``PauliOps``. Several convenient out-of-the-box
     replacement functions have been added as static methods, such as ``measurement_replacement_fn``.
 
     This class uses the typical basis change method found in most Quantum Computing textbooks
