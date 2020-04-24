@@ -27,21 +27,29 @@ from numpy import ndarray
 from scipy.sparse import spmatrix
 
 from qiskit.optimization import infinity, QiskitOptimizationError
-from qiskit.optimization.problems.constraint import ConstraintSense
+from qiskit.optimization.problems.constraint import Constraint
 from qiskit.optimization.problems.linear_constraint import LinearConstraint
 from qiskit.optimization.problems.linear_expression import LinearExpression
 from qiskit.optimization.problems.quadratic_constraint import QuadraticConstraint
 from qiskit.optimization.problems.quadratic_expression import QuadraticExpression
-from qiskit.optimization.problems.quadratic_objective import QuadraticObjective, ObjSense
-from qiskit.optimization.problems.variable import Variable, VarType
+from qiskit.optimization.problems.quadratic_objective import QuadraticObjective
+from qiskit.optimization.problems.variable import Variable
 
 logger = logging.getLogger(__name__)
+
+
+class QuadraticProgramStatus(Enum):
+    """Status of QuadraticProgram"""
+    VALID = 0
+    INFEASIBLE = 1
 
 
 class QuadraticProgram:
     """Representation of a Quadratically Constrained Quadratic Program supporting inequality and
     equality constraints as well as continuous, binary, and integer variables.
     """
+
+    Status = QuadraticProgramStatus
 
     def __init__(self, name: str = '') -> None:
         """Constructs a quadratic program.
@@ -50,6 +58,7 @@ class QuadraticProgram:
             name: The name of the quadratic program.
         """
         self._name = name
+        self._status = QuadraticProgram.Status.VALID
 
         self._variables: List[Variable] = []
         self._variables_index: Dict[str, int] = {}
@@ -67,15 +76,16 @@ class QuadraticProgram:
         objective function as well as the name.
         """
         self._name = ''
+        self._status = QuadraticProgram.Status.VALID
 
-        self._variables: List[Variable] = []
-        self._variables_index: Dict[str, int] = {}
+        self._variables.clear()
+        self._variables_index.clear()
 
-        self._linear_constraints: List[LinearConstraint] = []
-        self._linear_constraints_index: Dict[str, int] = {}
+        self._linear_constraints.clear()
+        self._linear_constraints_index.clear()
 
-        self._quadratic_constraints: List[QuadraticConstraint] = []
-        self._quadratic_constraints_index: Dict[str, int] = {}
+        self._quadratic_constraints.clear()
+        self._quadratic_constraints_index.clear()
 
         self._objective = QuadraticObjective(self)
 
@@ -98,6 +108,16 @@ class QuadraticProgram:
         self._name = name
 
     @property
+    def status(self) -> QuadraticProgramStatus:
+        """Status of the quadratic program.
+        It can be infeasible due to variable substitution.
+
+        Returns:
+            The status of the quadratic program
+        """
+        return self._status
+
+    @property
     def variables(self) -> List[Variable]:
         """Returns the list of variables of the quadratic program.
 
@@ -118,7 +138,7 @@ class QuadraticProgram:
     def _add_variable(self,
                       lowerbound: Union[float, int] = 0,
                       upperbound: Union[float, int] = infinity,
-                      vartype: VarType = VarType.CONTINUOUS,
+                      vartype: Variable.Type = Variable.Type.CONTINUOUS,
                       name: Optional[str] = None) -> Variable:
         """Checks whether a variable name is already taken and adds the variable to list and index
         if not.
@@ -165,7 +185,7 @@ class QuadraticProgram:
         Raises:
             QiskitOptimizationError: if the variable name is already occupied.
         """
-        return self._add_variable(lowerbound, upperbound, VarType.CONTINUOUS, name)
+        return self._add_variable(lowerbound, upperbound, Variable.Type.CONTINUOUS, name)
 
     def binary_var(self, name: Optional[str] = None) -> Variable:
         """Adds a binary variable to the quadratic program.
@@ -179,7 +199,7 @@ class QuadraticProgram:
         Raises:
             QiskitOptimizationError: if the variable name is already occupied.
         """
-        return self._add_variable(0, 1, VarType.BINARY, name)
+        return self._add_variable(0, 1, Variable.Type.BINARY, name)
 
     def integer_var(self, lowerbound: Union[float, int] = 0,
                     upperbound: Union[float, int] = infinity,
@@ -197,7 +217,7 @@ class QuadraticProgram:
         Raises:
             QiskitOptimizationError: if the variable name is already occupied.
         """
-        return self._add_variable(lowerbound, upperbound, VarType.INTEGER, name)
+        return self._add_variable(lowerbound, upperbound, Variable.Type.INTEGER, name)
 
     def get_variable(self, i: Union[int, str]) -> Variable:
         """Returns a variable for a given name or index.
@@ -213,7 +233,7 @@ class QuadraticProgram:
         else:
             return self.variables[self._variables_index[i]]
 
-    def get_num_vars(self, vartype: Optional[VarType] = None) -> int:
+    def get_num_vars(self, vartype: Optional[Variable.Type] = None) -> int:
         """Returns the total number of variables or the number of variables of the specified type.
 
         Args:
@@ -233,7 +253,7 @@ class QuadraticProgram:
         Returns:
             The total number of continuous variables.
         """
-        return self.get_num_vars(VarType.CONTINUOUS)
+        return self.get_num_vars(Variable.Type.CONTINUOUS)
 
     def get_num_binary_vars(self) -> int:
         """Returns the total number of binary variables.
@@ -241,7 +261,7 @@ class QuadraticProgram:
         Returns:
             The total number of binary variables.
         """
-        return self.get_num_vars(VarType.BINARY)
+        return self.get_num_vars(Variable.Type.BINARY)
 
     def get_num_integer_vars(self) -> int:
         """Returns the total number of integer variables.
@@ -249,7 +269,7 @@ class QuadraticProgram:
         Returns:
             The total number of integer variables.
         """
-        return self.get_num_vars(VarType.INTEGER)
+        return self.get_num_vars(Variable.Type.INTEGER)
 
     @property
     def linear_constraints(self) -> List[LinearConstraint]:
@@ -272,7 +292,7 @@ class QuadraticProgram:
     def linear_constraint(self,
                           linear: Union[ndarray, spmatrix, List[float],
                                         Dict[Union[int, str], float]] = None,
-                          sense: Union[str, ConstraintSense] = '<=',
+                          sense: Union[str, Constraint.Sense] = '<=',
                           rhs: float = 0.0, name: Optional[str] = None) -> LinearConstraint:
         """Adds a linear equality constraint to the quadratic program of the form:
             linear * x sense rhs.
@@ -305,7 +325,7 @@ class QuadraticProgram:
         self.linear_constraints_index[name] = len(self.linear_constraints)
         if linear is None:
             linear = {}
-        constraint = LinearConstraint(self, name, linear, ConstraintSense.convert(sense), rhs)
+        constraint = LinearConstraint(self, name, linear, Constraint.Sense.convert(sense), rhs)
         self.linear_constraints.append(constraint)
         return constraint
 
@@ -356,13 +376,10 @@ class QuadraticProgram:
     def quadratic_constraint(self,
                              linear: Union[ndarray, spmatrix, List[float],
                                            Dict[Union[int, str], float]] = None,
-                             quadratic: Union[ndarray, spmatrix,
-                                              List[List[float]],
-                                              Dict[
-                                                  Tuple[Union[int, str],
-                                                        Union[int, str]],
-                                                  float]] = None,
-                             sense: Union[str, ConstraintSense] = '<=',
+                             quadratic: Union[ndarray, spmatrix, List[List[float]],
+                                              Dict[Tuple[Union[int, str],
+                                                         Union[int, str]], float]] = None,
+                             sense: Union[str, Constraint.Sense] = '<=',
                              rhs: float = 0.0, name: Optional[str] = None) -> QuadraticConstraint:
         """Adds a quadratic equality constraint to the quadratic program of the form:
             x * Q * x <= rhs.
@@ -398,7 +415,7 @@ class QuadraticProgram:
         if quadratic is None:
             quadratic = {}
         constraint = QuadraticConstraint(self, name, linear, quadratic,
-                                         ConstraintSense.convert(sense), rhs)
+                                         Constraint.Sense.convert(sense), rhs)
         self.quadratic_constraints.append(constraint)
         return constraint
 
@@ -485,7 +502,8 @@ class QuadraticProgram:
         Returns:
             The created quadratic objective.
         """
-        self._objective = QuadraticObjective(self, constant, linear, quadratic, ObjSense.MINIMIZE)
+        self._objective = QuadraticObjective(self, constant, linear, quadratic,
+                                             QuadraticObjective.Sense.MINIMIZE)
 
     def maximize(self,
                  constant: float = 0.0,
@@ -503,7 +521,8 @@ class QuadraticProgram:
         Returns:
             The created quadratic objective.
         """
-        self._objective = QuadraticObjective(self, constant, linear, quadratic, ObjSense.MAXIMIZE)
+        self._objective = QuadraticObjective(self, constant, linear, quadratic,
+                                             QuadraticObjective.Sense.MAXIMIZE)
 
     def from_docplex(self, model: Model) -> None:
         """Loads this quadratic program from a docplex model.
@@ -660,11 +679,11 @@ class QuadraticProgram:
         # add variables
         var = {}
         for i, x in enumerate(self.variables):
-            if x.vartype == VarType.CONTINUOUS:
+            if x.vartype == Variable.Type.CONTINUOUS:
                 var[i] = mdl.continuous_var(lb=x.lowerbound, ub=x.upperbound, name=x.name)
-            elif x.vartype == VarType.BINARY:
+            elif x.vartype == Variable.Type.BINARY:
                 var[i] = mdl.binary_var(name=x.name)
-            elif x.vartype == VarType.INTEGER:
+            elif x.vartype == Variable.Type.INTEGER:
                 var[i] = mdl.integer_var(lb=x.lowerbound, ub=x.upperbound, name=x.name)
             else:
                 # should never happen
@@ -676,7 +695,7 @@ class QuadraticProgram:
             objective += v * var[i]
         for (i, j), v in self.objective.quadratic.to_dict().items():
             objective += v * var[i] * var[j]
-        if self.objective.sense == ObjSense.MINIMIZE:
+        if self.objective.sense == QuadraticObjective.Sense.MINIMIZE:
             mdl.minimize(objective)
         else:
             mdl.maximize(objective)
@@ -691,11 +710,11 @@ class QuadraticProgram:
             for j, v in constraint.linear.to_dict().items():
                 linear_expr += v * var[j]
             sense = constraint.sense
-            if sense == ConstraintSense.EQ:
+            if sense == Constraint.Sense.EQ:
                 mdl.add_constraint(linear_expr == rhs, ctname=name)
-            elif sense == ConstraintSense.GE:
+            elif sense == Constraint.Sense.GE:
                 mdl.add_constraint(linear_expr >= rhs, ctname=name)
-            elif sense == ConstraintSense.LE:
+            elif sense == Constraint.Sense.LE:
                 mdl.add_constraint(linear_expr <= rhs, ctname=name)
             else:
                 # should never happen
@@ -715,11 +734,11 @@ class QuadraticProgram:
             for (j, k), v in constraint.quadratic.to_dict().items():
                 quadratic_expr += v * var[j] * var[k]
             sense = constraint.sense
-            if sense == ConstraintSense.EQ:
+            if sense == Constraint.Sense.EQ:
                 mdl.add_constraint(quadratic_expr == rhs, ctname=name)
-            elif sense == ConstraintSense.GE:
+            elif sense == Constraint.Sense.GE:
                 mdl.add_constraint(quadratic_expr >= rhs, ctname=name)
-            elif sense == ConstraintSense.LE:
+            elif sense == Constraint.Sense.LE:
                 mdl.add_constraint(quadratic_expr <= rhs, ctname=name)
             else:
                 # should never happen
@@ -797,7 +816,7 @@ class QuadraticProgram:
     def substitute_variables(
             self, constants: Optional[Dict[Union[str, int], float]] = None,
             variables: Optional[Dict[Union[str, int], Tuple[Union[str, int], float]]] = None) \
-            -> Tuple['QuadraticProgram', 'SubstitutionStatus']:
+            -> 'QuadraticProgram':
         """Substitutes variables with constants or other variables.
 
         Args:
@@ -810,9 +829,10 @@ class QuadraticProgram:
                 e.g., {'x': ('y', 2)} means 'x' is substituted with 'y' * 2
 
         Returns:
-            An optimization problem by substituting variables and the status.
-            If the resulting problem has no issue, the status is `success`.
-            Otherwise, an empty problem and status `infeasible` are returned.
+            An optimization problem by substituting variables with constants or other variables.
+            If the substitution is valid, `QuadraticProgram.status` is still
+            `QuadraticProgram.Status.VALIAD`.
+            Otherwise, it gets `QuadraticProgram.Status.INFEASIBLE`.
 
         Raises:
             QiskitOptimizationError: if the substitution is invalid as follows.
@@ -820,12 +840,6 @@ class QuadraticProgram:
                 - Coefficient of variable substitution is zero.
         """
         return SubstituteVariables().substitute_variables(self, constants, variables)
-
-
-class SubstitutionStatus(Enum):
-    """Status of `QuadraticProgram.substitute_variables`"""
-    SUCCESS = 1
-    INFEASIBLE = 2
 
 
 class SubstituteVariables:
@@ -843,7 +857,7 @@ class SubstituteVariables:
             self, src: QuadraticProgram,
             constants: Optional[Dict[Union[str, int], float]] = None,
             variables: Optional[Dict[Union[str, int], Tuple[Union[str, int], float]]] = None) \
-            -> Tuple[QuadraticProgram, SubstitutionStatus]:
+            -> QuadraticProgram:
         """Substitutes variables with constants or other variables.
 
         Args:
@@ -858,9 +872,10 @@ class SubstituteVariables:
                 e.g., {'x': ('y', 2)} means 'x' is substituted with 'y' * 2
 
         Returns:
-            An optimization problem by substituting variables and the status.
-            If the resulting problem has no issue, the status is `success`.
-            Otherwise, an empty problem and status `infeasible` are returned.
+            An optimization problem by substituting variables with constants or other variables.
+            If the substitution is valid, `QuadraticProgram.status` is still
+            `QuadraticProgram.Status.VALIAD`.
+            Otherwise, it gets `QuadraticProgram.Status.INFEASIBLE`.
 
         Raises:
             QiskitOptimizationError: if the substitution is invalid as follows.
@@ -876,26 +891,24 @@ class SubstituteVariables:
             self._linear_constraints(),
             self._quadratic_constraints(),
         ]
-        if any(r == SubstitutionStatus.INFEASIBLE for r in results):
-            ret = SubstitutionStatus.INFEASIBLE
-        else:
-            ret = SubstitutionStatus.SUCCESS
-        return self._dst, ret
+        if any(not r for r in results):
+            self._dst._status = QuadraticProgram.Status.INFEASIBLE
+        return self._dst
 
     @staticmethod
-    def _feasible(sense: ConstraintSense, rhs: float) -> bool:
+    def _feasible(sense: Constraint.Sense, rhs: float) -> bool:
         """Checks feasibility of the following condition
             0 `sense` rhs
         """
         # I use the following pylint option because `rhs` should come to right
         # pylint: disable=misplaced-comparison-constant
-        if sense == ConstraintSense.EQ:
+        if sense == Constraint.Sense.EQ:
             if 0 == rhs:
                 return True
-        elif sense == ConstraintSense.LE:
+        elif sense == Constraint.Sense.LE:
             if 0 <= rhs:
                 return True
-        elif sense == ConstraintSense.GE:
+        elif sense == Constraint.Sense.GE:
             if 0 >= rhs:
                 return True
         return False
@@ -943,8 +956,9 @@ class SubstituteVariables:
 
         self._subs = subs
 
-    def _variables(self) -> SubstitutionStatus:
+    def _variables(self) -> bool:
         # copy variables that are not replaced
+        feasible = True
         for var in self._src.variables:
             name = var.name
             vartype = var.vartype
@@ -960,7 +974,7 @@ class SubstituteVariables:
                 if not lb_i <= v <= ub_i:
                     logger.warning(
                         'Infeasible substitution for variable: %s', i)
-                    return SubstitutionStatus.INFEASIBLE
+                    feasible = False
             else:
                 # substitute i <- j * v
                 # lb_i <= i <= ub_i  -->  lb_i / v <= j <= ub_i / v if v > 0
@@ -992,9 +1006,9 @@ class SubstituteVariables:
                 logger.warning(
                     'Infeasible lower and upper bound: %s %f %f', var, var.lowerbound,
                     var.upperbound)
-                return SubstitutionStatus.INFEASIBLE
+                feasible = False
 
-        return SubstitutionStatus.SUCCESS
+        return feasible
 
     def _linear_expression(self, lin_expr: LinearExpression) \
             -> Tuple[List[float], LinearExpression]:
@@ -1034,7 +1048,7 @@ class SubstituteVariables:
                                        coefficients=quad_dict if quad_dict else {})
         return const, new_lin, new_quad
 
-    def _objective(self) -> SubstitutionStatus:
+    def _objective(self) -> bool:
         obj = self._src.objective
         const1, lin1 = self._linear_expression(obj.linear)
         const2, lin2, quadratic = self._quadratic_expression(obj.quadratic)
@@ -1045,9 +1059,10 @@ class SubstituteVariables:
             self._dst.minimize(constant=constant, linear=linear, quadratic=quadratic.coefficients)
         else:
             self._dst.maximize(constant=constant, linear=linear, quadratic=quadratic.coefficients)
-        return SubstitutionStatus.SUCCESS
+        return True
 
-    def _linear_constraints(self) -> SubstitutionStatus:
+    def _linear_constraints(self) -> bool:
+        feasible = True
         for lin_cst in self._src.linear_constraints:
             constant, linear = self._linear_expression(lin_cst.linear)
             rhs = -fsum([-lin_cst.rhs] + constant)
@@ -1057,11 +1072,11 @@ class SubstituteVariables:
             else:
                 if not self._feasible(lin_cst.sense, rhs):
                     logger.warning('constraint %s is infeasible due to substitution', lin_cst.name)
-                    return SubstitutionStatus.INFEASIBLE
+                    feasible = False
+        return feasible
 
-        return SubstitutionStatus.SUCCESS
-
-    def _quadratic_constraints(self) -> SubstitutionStatus:
+    def _quadratic_constraints(self) -> bool:
+        feasible = True
         for quad_cst in self._src.quadratic_constraints:
             const1, lin1 = self._linear_expression(quad_cst.linear)
             const2, lin2, quadratic = self._quadratic_expression(quad_cst.quadratic)
@@ -1081,6 +1096,6 @@ class SubstituteVariables:
             else:
                 if not self._feasible(quad_cst.sense, rhs):
                     logger.warning('constraint %s is infeasible due to substitution', quad_cst.name)
-                    return SubstitutionStatus.INFEASIBLE
+                    feasible = False
 
-        return SubstitutionStatus.SUCCESS
+        return feasible

@@ -20,6 +20,7 @@ import math
 import random
 import numpy as np
 from qiskit.aqua import QuantumInstance
+from qiskit.optimization import QiskitOptimizationError
 from qiskit.optimization.algorithms import OptimizationAlgorithm
 from qiskit.optimization.problems import QuadraticProgram
 from qiskit.optimization.converters import (QuadraticProgramToQubo,
@@ -67,10 +68,10 @@ class GroverOptimizer(OptimizationAlgorithm):
         return QuadraticProgramToQubo.get_compatibility_msg(problem)
 
     def solve(self, problem: QuadraticProgram) -> OptimizationResult:
-        """Tries to solves the given problem using the optimizer.
+        """Tries to solves the given problem using the grover optimizer.
 
-        Runs the optimizer to try to solve the optimization problem. If problem is not convex,
-        this optimizer may raise an exception due to incompatibility, depending on the settings.
+        Runs the optimizer to try to solve the optimization problem. If the problem cannot be,
+        converted to a QUBO, this optimizer raises an exception due to incompatibility.
 
         Args:
             problem: The problem to be solved.
@@ -81,6 +82,10 @@ class GroverOptimizer(OptimizationAlgorithm):
         Raises:
             QiskitOptimizationError: If the problem is incompatible with the optimizer.
         """
+        # check compatibility and raise exception if incompatible
+        msg = self.get_compatibility_msg(problem)
+        if len(msg) > 0:
+            raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
 
         # convert problem to QUBO
         qubo_converter = QuadraticProgramToQubo()

@@ -38,6 +38,7 @@ class TestQuadraticProgramToNegativeValueOracle(QiskitOptimizationTestCase):
                 self.assertEqual(problem.objective.constant, func_dict[key])
 
     def _validate_operator(self, func_dict, n_key, n_value, operator):
+
         # Get expected results.
         solutions = GroverOptimizer._get_qubo_solutions(func_dict, n_key, print_solutions=False)
 

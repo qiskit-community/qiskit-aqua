@@ -21,9 +21,9 @@ from typing import Dict, List, Optional, Tuple
 import numpy as np
 
 from ..exceptions import QiskitOptimizationError
-from ..problems.quadratic_objective import ObjSense
+from ..problems.quadratic_objective import QuadraticObjective
 from ..problems.quadratic_program import QuadraticProgram
-from ..problems.variable import Variable, VarType
+from ..problems.variable import Variable
 
 logger = logging.getLogger(__name__)
 
@@ -78,15 +78,15 @@ class IntegerToBinary:
 
         # declare variables
         for x in self._src.variables:
-            if x.vartype == VarType.INTEGER:
+            if x.vartype == Variable.Type.INTEGER:
                 new_vars = self._encode_var(x.name, x.lowerbound, x.upperbound)
                 self._conv[x] = new_vars
                 for (var_name, _) in new_vars:
                     self._dst.binary_var(var_name)
             else:
-                if x.vartype == VarType.CONTINUOUS:
+                if x.vartype == Variable.Type.CONTINUOUS:
                     self._dst.continuous_var(x.lowerbound, x.upperbound, x.name)
-                elif x.vartype == VarType.BINARY:
+                elif x.vartype == Variable.Type.BINARY:
                     self._dst.binary_var(x.name)
                 else:
                     raise QiskitOptimizationError("Unsupported variable type {}".format(x.vartype))
@@ -167,7 +167,7 @@ class IntegerToBinary:
         for i, v in quadratic_linear.items():
             linear[i] = linear.get(i, 0) + v
 
-        if self._src.objective.sense == ObjSense.MINIMIZE:
+        if self._src.objective.sense == QuadraticObjective.Sense.MINIMIZE:
             self._dst.minimize(constant, linear, quadratic)
         else:
             self._dst.maximize(constant, linear, quadratic)

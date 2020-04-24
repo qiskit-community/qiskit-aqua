@@ -25,7 +25,7 @@ from qiskit.aqua.utils.validation import validate_min
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
 from .minimum_eigen_optimizer import MinimumEigenOptimizer
 from ..exceptions.qiskit_optimization_error import QiskitOptimizationError
-from ..problems.quadratic_program import QuadraticProgram, SubstitutionStatus
+from ..problems.quadratic_program import QuadraticProgram
 from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
 
 logger = logging.getLogger(__name__)
@@ -111,8 +111,14 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
             The result of the optimizer applied to the problem.
 
         Raises:
+            QiskitOptimizationError: Incompatible problem.
             QiskitOptimizationError: Infeasible due to variable substitution
         """
+        # check compatibility and raise exception if incompatible
+        msg = self.get_compatibility_msg(problem)
+        if len(msg) > 0:
+            raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
+
         # convert problem to QUBO, this implicitly checks if the problem is compatible
         qubo_converter = QuadraticProgramToQubo()
         problem_ = qubo_converter.encode(problem)
@@ -134,8 +140,8 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
             if correlations[i, j] > 0:
                 # set x_i = x_j
                 problem_.substitute_variables()
-                problem_, status = problem_.substitute_variables(variables={i: (j, 1)})
-                if status == SubstitutionStatus.INFEASIBLE:
+                problem_ = problem_.substitute_variables(variables={i: (j, 1)})
+                if problem_.status == QuadraticProgram.Status.INFEASIBLE:
                     raise QiskitOptimizationError('Infeasible due to variable substitution')
                 replacements[x_i] = (x_j, 1)
             else:
@@ -145,7 +151,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
 
                 # 1a. get additional offset
                 constant = problem_.objective.constant
-                constant += problem_.objective.quadratic[i, i] / 2
+                constant += problem_.objective.quadratic[i, i]
                 constant += problem_.objective.linear[i]
                 problem_.objective.constant = constant
 
@@ -157,8 +163,8 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
                         problem_.objective.linear[k] = coeff
 
                 # 2. replace x_i by -x_j
-                problem_, status = problem_.substitute_variables(variables={i: (j, -1)})
-                if status == SubstitutionStatus.INFEASIBLE:
+                problem_ = problem_.substitute_variables(variables={i: (j, -1)})
+                if problem_.status == QuadraticProgram.Status.INFEASIBLE:
                     raise QiskitOptimizationError('Infeasible due to variable substitution')
                 replacements[x_i] = (x_j, -1)
 

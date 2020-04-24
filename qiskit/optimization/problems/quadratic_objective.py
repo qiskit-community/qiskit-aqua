@@ -36,6 +36,8 @@ class QuadraticObjective(HasQuadraticProgram):
     constant + linear * x + x * quadratic * x.
     """
 
+    Sense = ObjSense
+
     def __init__(self, quadratic_program: "QuadraticProgram",
                  constant: float = 0.0,
                  linear: Union[ndarray, spmatrix, List[float], Dict[Union[str, int], float]] = None,

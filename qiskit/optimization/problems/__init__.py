@@ -27,16 +27,13 @@ Structures for defining an optimization problem and its solution
    :nosignatures:
 
    Constraint
-   ConstraintSense
    LinearExpression
    LinearConstraint
    QuadraticExpression
    QuadraticConstraint
    QuadraticObjective
-   ObjSense
    QuadraticProgram
    Variable
-   VarType
 
 N.B. Additional classes Constraint, LinearConstraint, QuadraticConstraint,
 QuadraticObjective, and Variable
@@ -46,24 +43,20 @@ an instantiated QuadraticProgram.
 """
 
 from .constraint import Constraint
-from .constraint import ConstraintSense
 from .linear_constraint import LinearConstraint
 from .linear_expression import LinearExpression
 from .quadratic_constraint import QuadraticConstraint
 from .quadratic_expression import QuadraticExpression
-from .quadratic_objective import QuadraticObjective, ObjSense
+from .quadratic_objective import QuadraticObjective
 from .quadratic_program import QuadraticProgram
-from .variable import Variable, VarType
+from .variable import Variable
 
 __all__ = ['Constraint',
-           'ConstraintSense',
            'LinearExpression',
            'LinearConstraint',
            'QuadraticExpression',
            'QuadraticConstraint',
            'QuadraticObjective',
-           'ObjSense',
            'QuadraticProgram',
            'Variable',
-           'VarType'
            ]

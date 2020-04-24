@@ -21,7 +21,7 @@ import numpy as np
 from scipy.optimize import fmin_cobyla
 
 from qiskit.optimization.algorithms import OptimizationAlgorithm, OptimizationResult
-from qiskit.optimization.problems import QuadraticProgram, ConstraintSense
+from qiskit.optimization.problems import QuadraticProgram, Constraint
 from qiskit.optimization import QiskitOptimizationError, infinity
 
 
@@ -124,14 +124,14 @@ class CobylaOptimizer(OptimizationAlgorithm):
             rhs = constraint.rhs
             sense = constraint.sense
 
-            if sense == ConstraintSense.EQ:
+            if sense == Constraint.Sense.EQ:
                 constraints += [
                     lambda x, rhs=rhs, c=constraint: rhs - c.evaluate(x),
                     lambda x, rhs=rhs, c=constraint: c.evaluate(x) - rhs
                 ]
-            elif sense == ConstraintSense.LE:
+            elif sense == Constraint.Sense.LE:
                 constraints += [lambda x, rhs=rhs, c=constraint: rhs - c.evaluate(x)]
-            elif sense == ConstraintSense.GE:
+            elif sense == Constraint.Sense.GE:
                 constraints += [lambda x, rhs=rhs, c=constraint: c.evaluate(x) - rhs]
             else:
                 raise QiskitOptimizationError('Unsupported constraint type!')

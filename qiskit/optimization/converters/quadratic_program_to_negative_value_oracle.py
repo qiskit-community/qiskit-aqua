@@ -20,8 +20,8 @@ from typing import Tuple, Dict, Union
 import numpy as np
 
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
+from qiskit.circuit.library import QFT
 from qiskit.aqua.components.initial_states import Custom
-from qiskit.aqua.components.iqfts import Standard as IQFT
 from qiskit.aqua.components.oracles import CustomCircuitOracle
 from qiskit.optimization.problems import QuadraticProgram
 
@@ -167,9 +167,12 @@ class QuadraticProgramToNegativeValueOracle:
                     circuit.mcu1(1 / 2 ** self._num_value * 2 * np.pi * 2 ** i * v,
                                  a_v, b_v)
 
-        # Add IQFT.
-        iqft = IQFT(self._num_value)
+        # Add IQFT. Adding swaps at the end of the IQFT, not the beginning.
+        iqft = QFT(self._num_value, do_swaps=False).inverse()
         value = [key_val[v] for v in range(self._num_key, self._num_key + self._num_value)]
-        iqft.construct_circuit(qubits=value, circuit=circuit)
+        circuit.compose(iqft, qubits=value, inplace=True)
+
+        for i in range(len(value) // 2):
+            circuit.swap(value[i], value[-(i + 1)])
 
         return circuit

@@ -59,6 +59,7 @@ Fixed
 -   Supported constant values on the left-hand side of constraints and variables on the right-hand
     side of constraints for the DOcplex translator (#750)
 -   WeightedPauliOperator constructor simplification bug (#891)
+-   TPBGroupedWeightedPauliOperator multiplication (#915)
 
 [0.6.6](https://github.com/Qiskit/qiskit-aqua/compare/0.6.5...0.6.6) - 2020-04-16
 =================================================================================

@@ -19,7 +19,8 @@ from test.optimization import QiskitOptimizationTestCase
 import random
 import numpy
 from docplex.mp.model import Model
-from qiskit.aqua import aqua_globals
+from qiskit import Aer
+from qiskit.aqua import aqua_globals, QuantumInstance
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.optimization.algorithms import GroverOptimizer, MinimumEigenOptimizer
 from qiskit.optimization.problems import QuadraticProgram
@@ -72,9 +73,13 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
         op = QuadraticProgram()
         op.from_docplex(model)
 
+        # Quantum Instance.
+        q_instance = QuantumInstance(Aer.get_backend('statevector_simulator'),
+                                     seed_simulator=921, seed_transpiler=200)
+
         # Get the optimum key and value.
         n_iter = 8
-        gmf = GroverOptimizer(4, num_iterations=n_iter)
+        gmf = GroverOptimizer(4, num_iterations=n_iter, quantum_instance=q_instance)
         results = gmf.solve(op)
         self.validate_results(op, results)
 
@@ -90,9 +95,13 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
         op = QuadraticProgram()
         op.from_docplex(model)
 
+        # Quantum Instance.
+        q_instance = QuantumInstance(Aer.get_backend('statevector_simulator'),
+                                     seed_simulator=921, seed_transpiler=200)
+
         # Get the optimum key and value.
         n_iter = 10
-        gmf = GroverOptimizer(6, num_iterations=n_iter)
+        gmf = GroverOptimizer(6, num_iterations=n_iter, quantum_instance=q_instance)
         results = gmf.solve(op)
         self.validate_results(op, results)
 

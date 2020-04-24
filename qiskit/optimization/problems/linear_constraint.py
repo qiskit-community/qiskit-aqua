@@ -19,7 +19,7 @@ from typing import Union, List, Dict
 from numpy import ndarray
 from scipy.sparse import spmatrix
 
-from qiskit.optimization.problems.constraint import Constraint, ConstraintSense
+from qiskit.optimization.problems.constraint import Constraint
 from qiskit.optimization.problems.linear_expression import LinearExpression
 
 
@@ -29,7 +29,7 @@ class LinearConstraint(Constraint):
     def __init__(self,
                  quadratic_program: "QuadraticProgram", name: str,
                  linear: Union[ndarray, spmatrix, List[float], Dict[Union[str, int], float]],
-                 sense: ConstraintSense,
+                 sense: Constraint.Sense,
                  rhs: float
                  ) -> None:
         """Constructs a linear constraint.
