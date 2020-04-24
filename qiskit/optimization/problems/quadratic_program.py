@@ -55,7 +55,7 @@ class QuadraticProgram:
             name: The name of the quadratic program.
         """
         self._name = name
-        self._status = self.Status.VALID
+        self._status = QuadraticProgram.Status.VALID
 
         self._variables: List[Variable] = []
         self._variables_index: Dict[str, int] = {}
@@ -73,7 +73,7 @@ class QuadraticProgram:
         objective function as well as the name.
         """
         self._name = ''
-        self._status = self.Status.VALID
+        self._status = QuadraticProgram.Status.VALID
 
         self._variables.clear()
         self._variables_index.clear()
