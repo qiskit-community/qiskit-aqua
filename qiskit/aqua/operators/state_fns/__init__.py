@@ -43,11 +43,11 @@ State Functions
    :toctree: ../stubs/
    :nosignatures:
 
+   StateFn
    CircuitStateFn
    DictStateFn
-   OperatorStateFn
-   StateFn
    VectorStateFn
+   OperatorStateFn
 
 """
 

@@ -38,10 +38,10 @@ Primitive Operators
    :toctree: ../stubs/
    :nosignatures:
 
+   PrimitiveOp
    CircuitOp
    MatrixOp
    PauliOp
-   PrimitiveOp
 
 """
 

@@ -27,15 +27,15 @@ State Functions, and Measurements in Aqua.
 
 .. currentmodule:: qiskit.aqua.operators.list_ops
 
-Combo Operators
+List Operators
 ===============
 
 .. autosummary::
    :toctree: ../stubs/
    :nosignatures:
 
-   ComposedOp
    ListOp
+   ComposedOp
    SummedOp
    TensoredOp
 
