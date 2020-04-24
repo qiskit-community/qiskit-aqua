@@ -18,8 +18,7 @@ import os
 from test.aqua import QiskitAquaTestCase
 import numpy as np
 from ddt import ddt, data
-from qiskit import BasicAer
-from qiskit.circuit import ParameterVector
+from qiskit import BasicAer, QuantumCircuit
 from qiskit.circuit.library import SecondOrderExpansion
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.components.feature_maps import SecondOrderExpansion as FeatSecondOrderExpansion
@@ -52,13 +51,12 @@ class TestQSVM(QiskitAquaTestCase):
                                                depth=2,
                                                entangler_map=[[0, 1]])
 
-        # data encoding using a plain QuantumCircuit
-        x = ParameterVector('x', num_qubits)
-        circuit = feature_map.construct_circuit(x)
-        circuit.ordered_parameters = list(x)
-
         # data encoding using a circuit library object
         library_circuit = SecondOrderExpansion(feature_dimension=num_qubits, reps=2)
+
+        # data encoding using a plain QuantumCircuit
+        circuit = QuantumCircuit(num_qubits).compose(library_circuit)
+        circuit.ordered_parameters = library_circuit.ordered_parameters
 
         self.data_encoding = {'feature_map': feature_map,
                               'circuit': circuit,
