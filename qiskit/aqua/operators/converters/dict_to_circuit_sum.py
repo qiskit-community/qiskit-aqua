@@ -27,10 +27,12 @@ logger = logging.getLogger(__name__)
 
 
 class DictToCircuitSum(ConverterBase):
-    """ Converts DictStateFns or VectorStateFns to equivalent CircuitStateFns or sums thereof.
-    The behavior of this class can be mostly replicated by calling ``to_circuit_op`` on a an
-    Operator, but with the added control of choosing whether to convert only ``DictStateFns``
-    or ``VectorStateFns``, rather than both. """
+    r"""
+    Converts ``DictStateFns`` or ``VectorStateFns`` to equivalent ``CircuitStateFns`` or sums
+    thereof. The behavior of this class can be mostly replicated by calling ``to_circuit_op`` on
+    an Operator, but with the added control of choosing whether to convert only ``DictStateFns``
+    or ``VectorStateFns``, rather than both.
+    """
 
     def __init__(self,
                  traverse: bool = True,
