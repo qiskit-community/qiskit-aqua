@@ -31,7 +31,7 @@ a CircuitSampler. All in all, this would be:
 Expectation Base Class
 ======================
 The ExpectationBase class gives an interface for algorithms to ask for Expectations as
-execution settings. For example, if an algorithm contains an ExpectationValue step within it,
+execution settings. For example, if an algorithm contains an expectation value step within it,
 such as VQE, the algorithm can give the opportunity for the user to pass an ExpectationBase of
 their choice to be used in that expectation value step.
 
