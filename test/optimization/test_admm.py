@@ -30,7 +30,7 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
     def test_admm_maximization(self):
         """Tests a simple maximization problem using ADMM optimizer"""
         try:
-            mdl = Model('test')
+            mdl = Model('simple-max')
             c = mdl.continuous_var(lb=0, ub=10, name='c')
             x = mdl.binary_var(name='x')
             mdl.maximize(c + x * x)
@@ -199,13 +199,53 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
         except NameError as ex:
             self.skipTest(str(ex))
 
-
-    def test_eq_ctn_constr(self):
-        """
-        Simple example to test equality constraints with continuous variables.
-        """
+    def test_admm_ex6_max(self):
+        """Example 6 as maximization"""
         try:
-            mdl = Model()
+            mdl = Model('ex6-max')
+
+            # pylint:disable=invalid-name
+            v = mdl.binary_var(name='v')
+            w = mdl.binary_var(name='w')
+            t = mdl.binary_var(name='t')
+            u = mdl.continuous_var(name='u')
+
+            # mdl.minimize(v + w + t + 5 * (u - 2) ** 2)
+            mdl.maximize(- v - w - t - 5 * (u - 2) ** 2)
+            mdl.add_constraint(v + 2 * w + t + u <= 3, "cons1")
+            mdl.add_constraint(v + w + t >= 1, "cons2")
+            mdl.add_constraint(v + w == 1, "cons3")
+
+            op = QuadraticProgram()
+            op.from_docplex(mdl)
+
+            qubo_optimizer = CplexOptimizer()
+            continuous_optimizer = CplexOptimizer()
+
+            admm_params = ADMMParameters(
+                rho_initial=1001, beta=1000, factor_c=900,
+                max_iter=100, three_block=True, tol=1.e-6
+            )
+
+            solver = ADMMOptimizer(params=admm_params, qubo_optimizer=qubo_optimizer,
+                                   continuous_optimizer=continuous_optimizer)
+            solution = solver.solve(op)
+
+            self.assertIsNotNone(solution)
+            self.assertIsInstance(solution, ADMMOptimizationResult)
+            self.assertIsNotNone(solution.x)
+            np.testing.assert_almost_equal([1., 0., 0., 2.], solution.x, 3)
+            self.assertIsNotNone(solution.fval)
+            np.testing.assert_almost_equal(-1., solution.fval, 3)
+            self.assertIsNotNone(solution.state)
+            self.assertIsInstance(solution.state, ADMMState)
+        except NameError as ex:
+            self.skipTest(str(ex))
+
+    def test_equality_constraints_with_continuous_variables(self):
+        """Simple example to test equality constraints with continuous variables."""
+        try:
+            mdl = Model("eq-constraints-cts-vars")
 
             # pylint:disable=invalid-name
             v = mdl.binary_var(name='v')
@@ -245,12 +285,10 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
             self.skipTest(str(ex))
 
     def test_quad_constraints(self):
-        """
-        Simple example to test quadratic constraints.
-        """
+        """Simple example to test quadratic constraints."""
 
         try:
-            mdl = Model('')
+            mdl = Model('quad-constraints')
 
             v = mdl.binary_var(name='v')
             w = mdl.continuous_var(name='w', lb=0.)
@@ -279,9 +317,9 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
             self.assertIsNotNone(solution)
             self.assertIsInstance(solution, ADMMOptimizationResult)
             self.assertIsNotNone(solution.x)
-            np.testing.assert_almost_equal([0., 0.999], solution.x, 3)
+            np.testing.assert_almost_equal([0., 1.], solution.x, 3)
             self.assertIsNotNone(solution.fval)
-            np.testing.assert_almost_equal(0.999, solution.fval, 3)
+            np.testing.assert_almost_equal(1., solution.fval, 3)
             self.assertIsNotNone(solution.state)
             self.assertIsInstance(solution.state, ADMMState)
 

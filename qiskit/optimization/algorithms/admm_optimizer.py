@@ -250,7 +250,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
             QiskitOptimizationError: If the problem is incompatible with the optimizer.
         """
         # debug
-        self._log.debug("Initial problem: ", problem.print_as_lp_string())
+        self._log.debug("Initial problem: %s", problem.print_as_lp_string())
 
         # we deal with minimization in the optimizer, so turn the problem to minimization
         problem, sense = self._turn_to_minimization(problem)
@@ -279,7 +279,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
                 op1 = self._create_step1_problem()
                 self._state.x0 = self._update_x0(op1)
                 # debug
-                self._log.debug("Step 1 sub-problem: ", op1.print_as_lp_string())
+                self._log.debug("Step 1 sub-problem: %s", op1.print_as_lp_string())
             # else, no binary variables exist, and no update to be done in this case.
             # debug
             self._log.debug("x0=%s", self._state.x0)
@@ -287,7 +287,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
             op2 = self._create_step2_problem()
             self._state.u, self._state.z = self._update_x1(op2)
             # debug
-            self._log.debug("Step 2 sub-problem:", op2.print_as_lp_string())
+            self._log.debug("Step 2 sub-problem: %s", op2.print_as_lp_string())
             self._log.debug("u=%s", self._state.u)
             self._log.debug("z=%s", self._state.z)
 
@@ -296,13 +296,13 @@ class ADMMOptimizer(OptimizationAlgorithm):
                     op3 = self._create_step3_problem()
                     self._state.y = self._update_y(op3)
                     # debug
-                    self._log.debug("Step 3 sub-problem: ", op3.print_as_lp_string())
+                    self._log.debug("Step 3 sub-problem: %s", op3.print_as_lp_string())
                 # debug
                 self._log.debug("y=%s", self._state.y)
 
             self._state.lambda_mult = self._update_lambda_mult()
             # debug
-            self._log.debug("lambda: ", self._state.lambda_mult)
+            self._log.debug("lambda: %s", self._state.lambda_mult)
 
             cost_iterate = self._get_objective_value()
             constraint_residual = self._get_constraint_residual()
@@ -360,6 +360,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         if qp.objective.sense == ObjSense.MAXIMIZE:
             qp = copy.deepcopy(qp)
             qp.objective.sense = ObjSense.MINIMIZE
+            qp.objective.constant = (-1) * qp.objective.constant
             qp.objective.linear = (-1) * qp.objective.linear.coefficients
             qp.objective.quadratic = (-1) * qp.objective.quadratic.coefficients
         return qp, sense
