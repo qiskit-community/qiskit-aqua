@@ -12,10 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
-Simple Trotter expansion.
-
-"""
+""" Suzuki Class """
 
 from typing import List, Union
 from qiskit.quantum_info import Pauli
@@ -26,10 +23,22 @@ from ...list_ops.summed_op import SummedOp
 
 
 class Suzuki(TrotterizationBase):
-    """ Simple Trotter expansion """
+    r"""
+    Suzuki Trotter expansion, composing the evolution circuits of each Operator in the sum
+    together by a recursive "bookends" strategy, repeating the whole composed circuit
+    ``reps`` times.
+
+    Detailed in https://arxiv.org/pdf/quant-ph/0508139.pdf.
+    """
     def __init__(self,
                  reps: int = 1,
                  order: int = 2) -> None:
+        """
+        Args:
+            reps: The number of times to repeat the expansion circuit.
+            order: The order of the expansion to perform.
+
+        """
         super().__init__(reps=reps)
         self._order = order
 
@@ -43,7 +52,8 @@ class Suzuki(TrotterizationBase):
         """ sets order """
         self._order = order
 
-    def trotterize(self, op_sum: SummedOp) -> ComposedOp:
+    # pylint: disable=arguments-differ
+    def convert(self, op_sum: SummedOp) -> ComposedOp:
         composition_list = Suzuki._suzuki_recursive_expansion(
             op_sum.oplist, op_sum.coeff, self.order, self.reps)
 
@@ -63,9 +73,9 @@ class Suzuki(TrotterizationBase):
         Args:
             op_list: The slice's weighted Pauli list for the suzuki expansion
             evo_time: The parameter lambda as defined in said paper,
-                              adjusted for the evolution time and the number of time slices
-            expansion_order: The order for suzuki expansion
-            reps: reps
+                adjusted for the evolution time and the number of time slices
+            expansion_order: The order for the Suzuki expansion.
+            reps: The number of times to repeat the expansion circuit.
         Returns:
             list: slice pauli list
         """

@@ -15,12 +15,28 @@
 """
 Operator Evolutions (:mod:`qiskit.aqua.operators.evolutions`)
 =============================================================
-Algorithms for producing or approximating the exponential of an operator.
+Evolutions are converters which traverse an Operator tree, replacing any ``EvolvedOp`` `e` with a
+Schrodinger equation-style evolution ``CircuitOp`` equalling or approximating the matrix
+exponential of -i * the Operator contained inside (`e.primitive`). The Evolutions are essentially
+implementations of Hamiltonian Simulation algorithms, including various methods for Trotterization.
+
+The ``EvolvedOp`` is simply a placeholder signifying that the Operator inside it should be
+converted to its exponential by the Evolution converter. All Operators (not ``StateFns``) have
+``.exp_i()`` methods which either return the exponential of the Operator directly,
+or an ``EvolvedOp`` containing the Operator.
+
+Note that Evolutions work with parameterized Operator coefficients, so
+``my_expectation.convert((t * H).exp_i())``, where t is a scalar or Terra Parameter and H is an
+Operator, will produce a ``CircuitOp`` equivalent to e^iHt.
 
 .. currentmodule:: qiskit.aqua.operators.evolutions
 
 Evolution Base Class
 ====================
+The EvolutionBase class gives an interface for algorithms to ask for Evolutions as
+execution settings. For example, if an algorithm contains an Operator evolution step within it,
+such as QAOA, the algorithm can give the opportunity for the user to pass an EvolutionBase of
+their choice to be used in that evolution step.
 
 .. autosummary::
    :toctree: ../stubs/
@@ -62,7 +78,7 @@ from .pauli_trotter_evolution import PauliTrotterEvolution
 from .matrix_evolution import MatrixEvolution
 from .trotterizations import TrotterizationBase, TrotterizationFactory, Trotter, Suzuki, QDrift
 
-# TODO matrix evolution
+# TODO co-diagonalization of Abelian groups in PauliTrotterEvolution
 # TODO quantum signal processing/qubitization
 # TODO evolve by density matrix (need to add iexp to operator_state_fn)
 # TODO linear combination evolution

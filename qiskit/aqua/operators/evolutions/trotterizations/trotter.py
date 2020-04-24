@@ -12,16 +12,20 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
-Simple Trotter expansion.
-
-"""
+""" Trotter Class """
 
 from .suzuki import Suzuki
 
 
 class Trotter(Suzuki):
-    """ Simple Trotter expansion """
+    r"""
+    Simple Trotter expansion, composing the evolution circuits of each Operator in the sum
+    together ``reps`` times and dividing the evolution time of each by ``reps``.
+    """
     def __init__(self,
                  reps: int = 1) -> None:
+        r"""
+        Args:
+            reps: The number of times to repeat the Trotterization circuit.
+        """
         super().__init__(order=1, reps=1)

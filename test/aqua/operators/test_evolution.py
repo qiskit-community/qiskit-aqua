@@ -132,7 +132,7 @@ class TestEvolution(QiskitAquaTestCase):
     def test_qdrift(self):
         """ QDrift test """
         op = (2 * Z ^ Z) + (3 * X ^ X) - (4 * Y ^ Y) + (.5 * Z ^ I)
-        trotterization = QDrift().trotterize(op)
+        trotterization = QDrift().convert(op)
         self.assertGreater(len(trotterization.oplist), 150)
         last_coeff = None
         # Check that all types are correct and all coefficients are equals

@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Factory for evolution algorithms """
+""" EvolutionFactory Class """
 
 import logging
 
@@ -25,29 +25,36 @@ logger = logging.getLogger(__name__)
 
 
 class EvolutionFactory():
-    """ A factory for convenient construction of Evolution algorithms.
+    """ A factory class for convenient automatic selection of an Evolution algorithm based on the
+    Operator to be converted.
     """
 
     @staticmethod
     # pylint: disable=inconsistent-return-statements
     def build(operator: OperatorBase = None) -> EvolutionBase:
-        """
+        r"""
+        A factory method for convenient automatic selection of an Evolution algorithm based on the
+        Operator to be converted.
+
         Args:
-            operator: the operator being evolved
+            operator: the Operator being evolved
+
         Returns:
-            EvolutionBase: derived class
+            EvolutionBase: the ``EvolutionBase`` best suited to evolve operator.
+
         Raises:
-            ValueError: evolutions of Mixed Operators not yet supported.
+            ValueError: if operator is not of a composition for which we know the best Evolution
+                method.
+
         """
         # pylint: disable=cyclic-import,import-outside-toplevel
         primitives = operator.primitive_strings()
-        if 'Pauli' in primitives:
+        if 'Matrix' in primitives:
+            return MatrixEvolution()
+
+        elif 'Pauli' in primitives:
             # TODO figure out what to do based on qubits and hamming weight.
             return PauliTrotterEvolution()
-
-        # TODO
-        elif 'Matrix' in primitives:
-            return MatrixEvolution()
 
         else:
             raise ValueError('Evolutions of Mixed Operators not yet supported.')

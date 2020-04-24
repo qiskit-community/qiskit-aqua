@@ -13,7 +13,7 @@
 # that they have been altered from the originals.
 
 """
-Simple Trotter expansion.
+QDrift Class
 
 """
 
@@ -27,16 +27,20 @@ from ...list_ops.composed_op import ComposedOp
 # pylint: disable=invalid-name
 
 class QDrift(TrotterizationBase):
-    """ The QDrift trotterization method, which selects each each term in the
-    trotterization randomly,
-    with a probability proportional to its weight. Based on the work of Earl Campbell in
-    https://arxiv.org/abs/1811.08017.
+    """ The QDrift Trotterization method, which selects each each term in the
+    Trotterization randomly, with a probability proportional to its weight. Based on the work
+    of Earl Campbell in https://arxiv.org/abs/1811.08017.
     """
 
     def __init__(self, reps: int = 1) -> None:
+        r"""
+        Args:
+            reps: The number of times to repeat the Trotterization circuit.
+        """
         super().__init__(reps=reps)
 
-    def trotterize(self, op_sum: SummedOp) -> ComposedOp:
+    # pylint: disable=arguments-differ
+    def convert(self, op_sum: SummedOp) -> ComposedOp:
         # We artificially make the weights positive, TODO check if this works
         weights = np.abs([op.coeff for op in op_sum.oplist])
         lambd = sum(weights)

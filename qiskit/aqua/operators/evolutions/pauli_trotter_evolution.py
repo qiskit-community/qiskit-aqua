@@ -12,12 +12,10 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Expectation Algorithm Base """
+""" PauliTrotterEvolution Class """
 
 from typing import Optional, Union
 import logging
-import itertools
-import networkx as nx
 import numpy as np
 
 from ..operator_base import OperatorBase
@@ -26,6 +24,7 @@ from .evolution_base import EvolutionBase
 from ..list_ops.list_op import ListOp
 from ..list_ops.summed_op import SummedOp
 from ..primitive_ops.pauli_op import PauliOp
+from ..primitive_ops.primitive_op import PrimitiveOp
 from ..converters.pauli_basis_change import PauliBasisChange
 from ..converters.abelian_grouper import AbelianGrouper
 from .evolved_op import EvolvedOp
@@ -37,8 +36,14 @@ logger = logging.getLogger(__name__)
 
 
 class PauliTrotterEvolution(EvolutionBase):
-    """ TODO
+    r"""
+    An Evolution algorithm replacing exponentiated sums of Paulis by changing them each to the
+    Z basis, rotating with an rZ, changing back, and trotterizing.
 
+    More specifically, we compute basis change circuits for each Pauli into a single-qubit Z,
+    evolve the Z by the desired evolution time with an rZ gate, and change the basis back using
+    the adjoint of the original basis change circuit. For sums of Paulis, the individual Pauli
+    evolution circuits are composed together by Trotterization scheme.
     """
 
     def __init__(self,
@@ -46,8 +51,15 @@ class PauliTrotterEvolution(EvolutionBase):
                  reps: Optional[int] = 1,
                  group_paulis: Optional[bool] = False) -> None:
         """
-            An evolution algorithm, replacing exponentiated sums of Paulis by changing them each
-            to the Z basis, rotating with an rZ, changing back, and trotterizing.
+        Args:
+            trotter_mode: A string ('trotter', 'suzuki', or 'qdrift') to pass to the
+                TrotterizationFactory, or a TrotterizationBase, indicating how to combine
+                individual Pauli evolution circuits to equal the exponentiation of the Pauli sum.
+            reps: How many Trotterization repetitions to make, to improve the approximation
+                accuracy.
+            group_paulis: TODO, not yet supported. Whether to group Pauli sums into Abelian
+                sub-groups, so a single diagonalization circuit can be used for each group
+                rather than each Pauli.
         """
 
         if isinstance(trotter_mode, TrotterizationBase):
@@ -59,27 +71,38 @@ class PauliTrotterEvolution(EvolutionBase):
 
     @property
     def trotter(self) -> TrotterizationBase:
-        """ returns trotter """
+        """ TrotterizationBase used to evolve SummedOps. """
         return self._trotter
 
     @trotter.setter
     def trotter(self, trotter: TrotterizationBase):
+        """ Set TrotterizationBase used to evolve SummedOps. """
         self._trotter = trotter
 
     def convert(self, operator: OperatorBase) -> OperatorBase:
+        r"""
+        Traverse the operator, replacing ``EvolvedOps`` with ``CircuitOps`` containing
+        trotterized evolutions equalling the exponentiation of -i * operator.
+
+        Args:
+            operator: The Operator to convert.
+
+        Returns:
+            The converted operator.
+        """
         if self._grouper:
             # Sort into commuting groups
             operator = self._grouper.convert(operator).reduce()
         return self._recursive_convert(operator)
 
     # pylint: disable=inconsistent-return-statements
-    def _recursive_convert(self, operator: OperatorBase):
+    def _recursive_convert(self, operator: OperatorBase) -> OperatorBase:
         if isinstance(operator, EvolvedOp):
             if isinstance(operator.primitive, SummedOp):
                 # if operator.primitive.abelian:
                 #     return self.evolution_for_abelian_paulisum(operator.primitive)
                 # else:
-                trotterized = self.trotter.trotterize(operator.primitive)
+                trotterized = self.trotter.convert(operator.primitive)
                 return self._recursive_convert(trotterized)
             elif isinstance(operator.primitive, PauliOp):
                 return self.evolution_for_pauli(operator.primitive)
@@ -92,8 +115,17 @@ class PauliTrotterEvolution(EvolutionBase):
         else:
             return operator
 
-    def evolution_for_pauli(self, pauli_op: PauliOp):
-        """ evolution for pauli """
+    def evolution_for_pauli(self, pauli_op: PauliOp) -> PrimitiveOp:
+        r"""
+        Compute evolution Operator for a single Pauli using a ``PauliBasisChange``.
+
+        Args:
+            pauli_op: The ``PauliOp`` to evolve.
+
+        Returns:
+            A ``PrimitiveOp``, either the evolution ``CircuitOp`` or a ``PauliOp`` equal to the
+            identity if pauli_op is the identity.
+        """
         # TODO Evolve for group of commuting paulis
 
         def replacement_fn(cob_instr_op, dest_pauli_op):
@@ -109,37 +141,6 @@ class PauliTrotterEvolution(EvolutionBase):
         cob = PauliBasisChange(destination_basis=destination, replacement_fn=replacement_fn)
         return cob.convert(pauli_op)
 
-    # TODO
-    @staticmethod
-    def compute_cnot_distance(pauli_op1: PauliOp, pauli_op2: PauliOp):
-        """ compute cnot distance """
-        sig_pauli1_bits = np.logical_and(pauli_op1.primitive.z, pauli_op1.primitive.x)
-        sig_pauli2_bits = np.logical_and(pauli_op2.primitive.z, pauli_op2.primitive.x)
-
-        # Has anchor case
-        if any(np.logical_and(sig_pauli1_bits, sig_pauli2_bits)):
-            # All the equal bits cost no cnots
-            non_equal_sig_bits = np.logical_xor(sig_pauli1_bits, sig_pauli2_bits)
-            # Times two because we need cnots to anchor and back
-            return 2 * np.sum(non_equal_sig_bits)
-        # No anchor case
-        else:
-            # Basically just taking each to and from the identity
-            cnot_cost_p1 = np.abs(np.sum(sig_pauli1_bits) - 1)
-            cnot_cost_p2 = np.abs(np.sum(sig_pauli2_bits) - 1)
-            return 2 * (cnot_cost_p1 + cnot_cost_p2)
-
-    # TODO
-    def evolution_for_abelian_paulisum(self, op_sum: SummedOp):
-        """ evolution for abelian pauli sum """
-        if not all([isinstance(op, PauliOp) for op in op_sum.oplist]):
-            raise TypeError('Evolving abelian sum requires Pauli elements.')
-
-        pauli_graph = nx.Graph()
-        pauli_graph.add_nodes_from(op_sum.oplist)
-        pauli_graph.add_weighted_edges_from([(ops[0], ops[1],
-                                              self.compute_cnot_distance(ops[0], ops[1]))
-                                             for ops in itertools.combinations(op_sum.oplist, 2)])
-        tree = nx.minimum_spanning_tree(pauli_graph)
-        tree_edges = nx.dfs_edges(tree)
-        assert tree_edges
+    # TODO implement grouped evolution.
+    def evolution_for_abelian_paulisum(self, op_sum: SummedOp) -> PrimitiveOp:
+        """ Evolution for abelian pauli sum """

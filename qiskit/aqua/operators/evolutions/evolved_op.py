@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Wrapping Operator Evolutions """
+""" EvolutionOp Class """
 
 from typing import Optional, Union, Set
 import logging
@@ -31,14 +31,12 @@ logger = logging.getLogger(__name__)
 
 
 class EvolvedOp(PrimitiveOp):
-    """ Class for wrapping Operator Evolutions for compilation by an Evolution
-    method later, essentially acting as a
-    placeholder. Note that EvolvedOp is a weird case of PrimitiveOp.
-    It happens to be that it fits into the
-    PrimitiveOp interface nearly perfectly, and it essentially
-    represents a placeholder for an PrimitiveOp later,
-    even though it doesn't actually hold a primitive object. We could
-    have chosen for it to be an OperatorBase,
+    r"""
+    Class for wrapping Operator Evolutions for compilation (``convert``) by an EvolutionBase
+    method later, essentially acting as a placeholder. Note that EvolvedOp is a weird case of
+    PrimitiveOp. It happens to be that it fits into the PrimitiveOp interface nearly perfectly,
+    and it essentially represents a placeholder for a PrimitiveOp later, even though it doesn't
+    actually hold a primitive object. We could have chosen for it to be an OperatorBase,
     but would have ended up copying and pasting a lot of code from PrimitiveOp."""
 
     def __init__(self,
@@ -46,7 +44,7 @@ class EvolvedOp(PrimitiveOp):
                  coeff: Optional[Union[int, float, complex, ParameterExpression]] = 1.0) -> None:
         """
         Args:
-            primitive: The operator being wrapped.
+            primitive: The operator being wrapped to signify evolution later.
             coeff: A coefficient multiplying the operator
         """
         super().__init__(primitive, coeff=coeff)
@@ -88,18 +86,6 @@ class EvolvedOp(PrimitiveOp):
         return TensoredOp([self, other])
 
     def compose(self, other: OperatorBase) -> OperatorBase:
-        """ Operator Composition (Linear algebra-style, right-to-left)
-
-        Note: You must be conscious of Quantum Circuit vs. Linear Algebra
-        ordering conventions. Meaning,
-        X.compose(Y)
-        produces an X∘Y on qubit 0, but would produce a QuantumCircuit which looks like
-
-            -[Y]-[X]-
-
-        Because Terra prints circuits with the initial state at the
-        left side of the circuit.
-        """
         other = self._check_zero_for_composition_and_expand(other)
 
         if isinstance(other, ComposedOp):
@@ -115,7 +101,6 @@ class EvolvedOp(PrimitiveOp):
             return "{} * e^(-i*{})".format(self.coeff, prim_str)
 
     def __repr__(self) -> str:
-        """Overload str() """
         return "EvolvedOp({}, coeff={})".format(repr(self.primitive), self.coeff)
 
     def reduce(self) -> OperatorBase:
@@ -139,25 +124,13 @@ class EvolvedOp(PrimitiveOp):
     def eval(self,
              front: Union[str, dict, np.ndarray,
                           OperatorBase] = None) -> Union[OperatorBase, float, complex]:
-        """ A square binary Operator can be defined as a function over
-        two binary strings of equal length. This
-        method returns the value of that function for a given pair
-        of binary strings. For more information,
-        see the eval method in operator_base.py.
-
-        For EvolvedOps which haven't been converted by an Evolution
-        method yet, our only option is to convert to an
-        MatrixOp and eval with that.
-        """
         return self.to_matrix_op().eval(front=front)
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
-        """ returns matrix """
         prim_mat = -1.j * self.primitive.to_matrix()
         # pylint: disable=no-member
         return scipy.linalg.expm(prim_mat) * self.coeff
 
     # pylint: disable=arguments-differ
     def to_instruction(self, massive: bool = False) -> Instruction:
-        """ Return an Instruction for this operator. """
         return self.primitive.to_matrix_op(massive=massive).exp_i()

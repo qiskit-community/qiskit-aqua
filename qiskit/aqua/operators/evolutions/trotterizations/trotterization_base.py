@@ -15,21 +15,23 @@
 """ Trotterization Algorithm Base """
 
 import logging
-from abc import abstractmethod, ABC
+from abc import abstractmethod
 
 from ...operator_base import OperatorBase
+from ..evolution_base import EvolutionBase
 
 # TODO centralize handling of commuting groups
 
 logger = logging.getLogger(__name__)
 
 
-class TrotterizationBase(ABC):
+class TrotterizationBase(EvolutionBase):
     """ A base for Trotterization methods, algorithms for approximating exponentiations of
     operator sums by compositions of exponentiations.
     """
 
     def __init__(self, reps: int = 1) -> None:
+
         self._reps = reps
 
     @property
@@ -41,8 +43,9 @@ class TrotterizationBase(ABC):
     def reps(self, reps: int) -> None:
         self._reps = reps
 
+    # pylint: disable=arguments-differ
     @abstractmethod
-    def trotterize(self, op_sum: OperatorBase) -> OperatorBase:
+    def convert(self, op_sum: OperatorBase) -> OperatorBase:
         """ trotterize """
         raise NotImplementedError
 

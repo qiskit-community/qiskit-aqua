@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Trotterization Algorithm Factory """
+""" TrotterizationFactory Class """
 
 import logging
 
@@ -25,22 +25,32 @@ logger = logging.getLogger(__name__)
 
 
 class TrotterizationFactory():
-    """ A factory for creating Trotterization algorithms. """
+    """ A factory for conveniently creating TrotterizationBase instances. """
 
     @staticmethod
     # pylint: disable=inconsistent-return-statements
     def build(mode: str,
               reps: int = 1) -> TrotterizationBase:
-        """ Factory method for constructing Trotterization algorithms. """
-        if mode not in ['trotter', 'suzuki', 'qdrift']:
-            raise ValueError('Trotter mode {} not supported'.format(mode))
+        """ A factory for conveniently creating TrotterizationBase instances.
 
+        Args:
+            mode: One of 'trotter', 'suzuki', 'qdrift'
+            reps: The number of times to repeat the Trotterization circuit.
+
+        Returns:
+            The desired TrotterizationBase instance.
+
+        Raises:
+            ValueError: A string not in ['trotter', 'suzuki', 'qdrift'] is given for mode.
+        """
         # pylint: disable=cyclic-import
         if mode == 'trotter':
             return Trotter(reps=reps)
 
-        if mode == 'suzuki':
+        elif mode == 'suzuki':
             return Suzuki(reps=reps)
 
-        if mode == 'qdrift':
+        elif mode == 'qdrift':
             return QDrift(reps=reps)
+
+        raise ValueError('Trotter mode {} not supported'.format(mode))

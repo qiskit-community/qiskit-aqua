@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Evolution Algorithm Base """
+""" EvolutionBase Class """
 
 import logging
 
@@ -23,15 +23,27 @@ logger = logging.getLogger(__name__)
 
 
 class EvolutionBase(ConverterBase):
-    """ A base for Evolution algorithms. An evolution algorithm is a converter which recurses
-    through an operator tree,
-    replacing the EvolvedOps with a backend-runnable Hamiltonian simulation equaling
-    or approximating the
-    exponentiation of its contained operator.
+    r"""
+    A base for Evolution converters.
+    Evolutions are converters which traverse an Operator tree, replacing any ``EvolvedOp`` `e`
+    with a Schrodinger equation-style evolution ``CircuitOp`` equalling or approximating the
+    matrix exponential of -i * the Operator contained inside (`e.primitive`). The Evolutions are
+    essentially implementations of Hamiltonian Simulation algorithms, including various methods
+    for Trotterization.
 
     """
 
     def convert(self, operator: OperatorBase) -> OperatorBase:
+        """ Traverse the operator, replacing any ``EvolutionOps`` with their equivalent evolution
+        ``CircuitOps``.
+
+         Args:
+             operator: The Operator to convert.
+
+        Returns:
+            The converted Operator, with ``EvolutionOps`` replaced by ``CircuitOps``.
+
+        """
         raise NotImplementedError
 
     # TODO @abstractmethod
