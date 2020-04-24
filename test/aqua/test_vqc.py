@@ -34,18 +34,6 @@ from qiskit.aqua.components.optimizers import L_BFGS_B
 from qiskit.ml.datasets import wine, ad_hoc_data
 
 
-class _ParamSortedCircuit(QuantumCircuit):
-    @property
-    def parameters(self):
-        if self._parameters is None:
-            return super().parameters
-        return self._parameters
-
-    @parameters.setter
-    def parameters(self, parameters):
-        self._parameters = parameters
-
-
 @ddt
 class TestVQC(QiskitAquaTestCase):
     """ Test VQC """
@@ -297,8 +285,6 @@ class TestVQC(QiskitAquaTestCase):
         if mode in ['circuit', 'library']:
             vqc._feature_map_params = self._sorted_data_params
             vqc._var_form_params = self._sorted_wavefunction_params
-        else:
-            warnings.filterwarnings('always', category=DeprecationWarning)
 
         quantum_instance = QuantumInstance(backend,
                                            shots=1024,
@@ -368,6 +354,9 @@ class TestVQC(QiskitAquaTestCase):
         data_encoding = self.data_encoding[mode]
         wavefunction = self.ryrz_wavefunction[mode]
 
+        if mode == 'wrapped':
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+
         # set up algorithm
         vqc = VQC(optimizer, data_encoding, wavefunction, self.training_data, self.testing_data,
                   callback=store_intermediate_result)
@@ -424,18 +413,28 @@ class TestVQC(QiskitAquaTestCase):
                                                 n=feature_dim,
                                                 plot_data=False)
         aqua_globals.random_seed = self.seed
-        data_encoding = self.data_encoding[mode]
-        wavefunction = self.ryrz_wavefunction[mode]
-
         if mode == 'wrapped':
             warnings.filterwarnings('ignore', category=DeprecationWarning)
+            wavefunction = VarRYRZ(2, depth=1)
+        else:
+            wavefunction = RYRZ(2, reps=1, insert_barriers=True)
+            theta = ParameterVector('theta', wavefunction.num_parameters)
+            resorted = []
+            for i in range(4):
+                layer = wavefunction.ordered_parameters[4*i:4*(i+1)]
+                resorted += layer[::2]
+                resorted += layer[1::2]
+            wavefunction.assign_parameters(dict(zip(resorted, theta)), inplace=True)
+
+        if mode == 'circuit':
+            wavefunction = QuantumCircuit(2).compose(wavefunction)
 
         vqc = VQC(COBYLA(maxiter=100), data_encoding, wavefunction, training_input, test_input)
 
         # sort parameters for reproducibility
         if mode in ['circuit', 'library']:
             vqc._feature_map_params = self._sorted_data_params
-            vqc._var_form_params = self._sorted_wavefunction_params
+            vqc._var_form_params = list(theta)
         else:
             warnings.filterwarnings('always', category=DeprecationWarning)
 
