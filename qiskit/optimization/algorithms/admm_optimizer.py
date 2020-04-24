@@ -154,8 +154,9 @@ class ADMMState:
         self.rho = rho_initial
 
         # new features
-        self.binary_equality_constraints = []
-        self.inequality_constraints = []
+        self.binary_equality_constraints = []  # lin. eq. constraints with bin. vars. only
+        self.equality_constraints = []  # all equality constraints
+        self.inequality_constraints = []  # all inequality constraints
 
 
 class ADMMOptimizerResult(OptimizationResult):
@@ -408,19 +409,29 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # separate constraints
         for constraint in self._state.op.linear_constraints:
             if constraint.sense == ConstraintSense.EQ:
-                constraint_var_indices = set(constraint.linear.to_dict().keys())
+                self._state.equality_constraints.append(constraint)
+
                 # verify that there are only binary variables in the constraint
+                # this is to build A0, b0 in step 1
+                constraint_var_indices = set(constraint.linear.to_dict().keys())
                 if constraint_var_indices.issubset(binary_var_indices):
                     self._state.binary_equality_constraints.append(constraint)
+                    
             elif constraint.sense in (ConstraintSense.LE, ConstraintSense.GE):
                 self._state.inequality_constraints.append(constraint)
-
+                
+        for constraint in self._state.op.quadratic_constraints:
+            if constraint.sense == ConstraintSense.EQ:
+                self._state.equality_constraints.append(constraint)
+            elif constraint.sense in (ConstraintSense.LE, ConstraintSense.GE):
+                self._state.inequality_constraints.append(constraint)
+                
         # objective
         self._state.q0 = self._get_q(self._state.binary_indices)
         self._state.c0 = self._get_c(self._state.binary_indices)
         self._state.q1 = self._get_q(self._state.continuous_indices)
         self._state.c1 = self._get_c(self._state.continuous_indices)
-        # constraints
+        # equality constraints with binary vars only
         self._state.a0, self._state.b0 = self._get_a0_b0()
 
     def _get_q(self, variable_indices: List[int]) -> np.ndarray:
@@ -689,7 +700,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
     def _get_constraint_residual(self) -> float:
         """Compute violation of the constraints of the original problem, as:
-            * norm 1 of the body-rhs of the constraints A0 x0 - b0
+            * norm 1 of the body-rhs of eq. constraints
             * -1 * min(body - rhs, 0) for geq constraints
             * max(body - rhs, 0) for leq constraints
 
@@ -698,17 +709,17 @@ class ADMMOptimizer(OptimizationAlgorithm):
         """
         solution = self._get_current_solution()
         # equality constraints
-        cr0 = 0
-        for constraint in self._state.binary_equality_constraints:
-            cr0 += np.abs(constraint.evaluate(solution) - constraint.rhs)
+        cr_eq = 0
+        for constraint in self._state.equality_constraints:
+            cr_eq += np.abs(constraint.evaluate(solution) - constraint.rhs)
 
         # inequality constraints
-        cr12 = 0
+        cr_ineq = 0
         for constraint in self._state.inequality_constraints:
             sense = -1 if constraint.sense == ConstraintSense.GE else 1
-            cr12 += max(sense * (constraint.evaluate(solution) - constraint.rhs), 0)
+            cr_ineq += max(sense * (constraint.evaluate(solution) - constraint.rhs), 0)
 
-        return cr0 + cr12
+        return cr_eq + cr_ineq
 
     def _get_merit(self, cost_iterate: float, constraint_residual: float) -> float:
         """Compute merit value associated with the current iterate
