@@ -38,15 +38,18 @@ from qiskit.optimization.problems.variable import Variable
 logger = logging.getLogger(__name__)
 
 
+class QuadraticProgramStatus(Enum):
+    """Status of QuadraticProgram"""
+    VALID = 0
+    INFEASIBLE = 1
+
+
 class QuadraticProgram:
     """Representation of a Quadratically Constrained Quadratic Program supporting inequality and
     equality constraints as well as continuous, binary, and integer variables.
     """
 
-    class Status(Enum):
-        """Status of QuadraticProgram"""
-        VALID = 0
-        INFEASIBLE = 1
+    Status = QuadraticProgramStatus
 
     def __init__(self, name: str = '') -> None:
         """Constructs a quadratic program.
@@ -105,7 +108,7 @@ class QuadraticProgram:
         self._name = name
 
     @property
-    def status(self) -> 'Status':
+    def status(self) -> QuadraticProgramStatus:
         """Status of the quadratic program.
         It can be infeasible due to variable substitution.
 

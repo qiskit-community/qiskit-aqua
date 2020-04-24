@@ -64,6 +64,14 @@ class OptimizationAlgorithm(ABC):
         raise NotImplementedError
 
 
+class OptimizationResultStatus(Enum):
+    """Feasible values for the termination status of an optimization algorithm.
+    """
+    SUCCESS = 0
+    FAILURE = 1
+    INFEASIBLE = 2
+
+
 class OptimizationResult:
     """The optimization result class.
 
@@ -78,15 +86,11 @@ class OptimizationResult:
         status: The termination status of the algorithm.
     """
 
-    class Status(Enum):
-        """Feasible values for the termination status of an optimization algorithm.
-        """
-        SUCCESS = 0
-        FAILURE = 1
-        INFEASIBLE = 2
+    Status = OptimizationResultStatus
 
     def __init__(self, x: Optional[Any] = None, fval: Optional[Any] = None,
-                 results: Optional[Any] = None, status: Status = Status.SUCCESS) -> None:
+                 results: Optional[Any] = None,
+                 status: OptimizationResultStatus = OptimizationResultStatus.SUCCESS) -> None:
         """Initialize the optimization result."""
         self._val = x
         self._fval = fval
@@ -126,7 +130,7 @@ class OptimizationResult:
         return self._results
 
     @property
-    def status(self) -> 'Status':
+    def status(self) -> OptimizationResultStatus:
         """Return the termination status of the algorithm.
 
         Returns:
@@ -162,7 +166,7 @@ class OptimizationResult:
         self._results = results
 
     @status.setter
-    def status(self, status: Status) -> None:
+    def status(self, status: OptimizationResultStatus) -> None:
         """Set a new termination status.
 
         Args:

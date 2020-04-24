@@ -24,43 +24,46 @@ from qiskit.optimization import QiskitOptimizationError
 from qiskit.optimization.problems.has_quadratic_program import HasQuadraticProgram
 
 
+class ConstraintSense(Enum):
+    """Constants Sense Type."""
+
+    # pylint: disable=invalid-name
+    LE = 0
+    GE = 1
+    EQ = 2
+
+    @staticmethod
+    def convert(sense: Union[str, 'ConstraintSense']) -> 'ConstraintSense':
+        """Convert a string into a corresponding sense of constraints
+
+        Args:
+            sense: A string or sense of constraints
+
+        Returns:
+            The sense of constraints
+
+        Raises:
+            QiskitOptimizationError: if the input string is invalid.
+        """
+        if isinstance(sense, ConstraintSense):
+            return sense
+        sense = sense.upper()
+        if sense not in ['E', 'L', 'G', 'EQ', 'LE', 'GE', '=', '==', '<=', '<', '>=', '>']:
+            raise QiskitOptimizationError('Invalid sense: {}'.format(sense))
+        if sense in ['E', 'EQ', '=', '==']:
+            return ConstraintSense.EQ
+        elif sense in ['L', 'LE', '<=', '<']:
+            return ConstraintSense.LE
+        else:
+            return ConstraintSense.GE
+
+
 class Constraint(HasQuadraticProgram):
     """Abstract Constraint Class."""
 
-    class Sense(Enum):
-        """Constants Sense Type."""
+    Sense = ConstraintSense
 
-        # pylint: disable=invalid-name
-        LE = 0
-        GE = 1
-        EQ = 2
-
-        @staticmethod
-        def convert(sense: Union[str, 'Sense']) -> 'Sense':
-            """Convert a string into a corresponding sense of constraints
-
-            Args:
-                sense: A string or sense of constraints
-
-            Returns:
-                The sense of constraints
-
-            Raises:
-                QiskitOptimizationError: if the input string is invalid.
-            """
-            if isinstance(sense, Constraint.Sense):
-                return sense
-            sense = sense.upper()
-            if sense not in ['E', 'L', 'G', 'EQ', 'LE', 'GE', '=', '==', '<=', '<', '>=', '>']:
-                raise QiskitOptimizationError('Invalid sense: {}'.format(sense))
-            if sense in ['E', 'EQ', '=', '==']:
-                return Constraint.Sense.EQ
-            elif sense in ['L', 'LE', '<=', '<']:
-                return Constraint.Sense.LE
-            else:
-                return Constraint.Sense.GE
-
-    def __init__(self, quadratic_program: 'QuadraticProgram', name: str, sense: 'Sense',
+    def __init__(self, quadratic_program: 'QuadraticProgram', name: str, sense: ConstraintSense,
                  rhs: float) -> None:
         """ Initializes the constraint.
 
@@ -85,7 +88,7 @@ class Constraint(HasQuadraticProgram):
         return self._name
 
     @property
-    def sense(self) -> 'Sense':
+    def sense(self) -> ConstraintSense:
         """Returns the sense of the constraint.
 
         Returns:
@@ -94,7 +97,7 @@ class Constraint(HasQuadraticProgram):
         return self._sense
 
     @sense.setter
-    def sense(self, sense: 'Sense') -> None:
+    def sense(self, sense: ConstraintSense) -> None:
         """Sets the sense of the constraint.
 
         Args:

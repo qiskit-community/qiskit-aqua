@@ -21,19 +21,22 @@ from qiskit.optimization import infinity, QiskitOptimizationError
 from qiskit.optimization.problems.has_quadratic_program import HasQuadraticProgram
 
 
+class VarType(Enum):
+    """Constants defining variable type."""
+    CONTINUOUS = 0
+    BINARY = 1
+    INTEGER = 2
+
+
 class Variable(HasQuadraticProgram):
     """Representation of a variable."""
 
-    class Type(Enum):
-        """Constants defining variable type."""
-        CONTINUOUS = 0
-        BINARY = 1
-        INTEGER = 2
+    Type = VarType
 
     def __init__(self, quadratic_program: 'QuadraticProgram', name: str,
                  lowerbound: Union[float, int] = 0,
                  upperbound: Union[float, int] = infinity,
-                 vartype: 'Type' = Type.CONTINUOUS) -> None:
+                 vartype: VarType = VarType.CONTINUOUS) -> None:
         """Creates a new Variable.
 
         The variables is exposed by the top-level `QuadraticProgram` class
@@ -115,7 +118,7 @@ class Variable(HasQuadraticProgram):
         self._upperbound = upperbound
 
     @property
-    def vartype(self) -> 'Type':
+    def vartype(self) -> VarType:
         """Returns the type of the variable.
 
         Returns:
@@ -125,7 +128,7 @@ class Variable(HasQuadraticProgram):
         return self._vartype
 
     @vartype.setter
-    def vartype(self, vartype: 'Type') -> None:
+    def vartype(self, vartype: VarType) -> None:
         """Sets the type of the variable.
 
         Args:
@@ -133,7 +136,7 @@ class Variable(HasQuadraticProgram):
         """
         self._vartype = vartype
 
-    def as_tuple(self) -> Tuple[str, Union[float, int], Union[float, int], 'Type']:
+    def as_tuple(self) -> Tuple[str, Union[float, int], Union[float, int], VarType]:
         """ Returns a tuple corresponding to this variable.
 
         Returns:

@@ -25,22 +25,25 @@ from qiskit.optimization.problems.linear_constraint import LinearExpression
 from qiskit.optimization.problems.quadratic_expression import QuadraticExpression
 
 
+class ObjSense(Enum):
+    """Objective Sense Type."""
+    MINIMIZE = 1
+    MAXIMIZE = -1
+
+
 class QuadraticObjective(HasQuadraticProgram):
     """Representation of quadratic objective function of the form:
     constant + linear * x + x * quadratic * x.
     """
 
-    class Sense(Enum):
-        """Objective Sense Type."""
-        MINIMIZE = 1
-        MAXIMIZE = -1
+    Sense = ObjSense
 
     def __init__(self, quadratic_program: "QuadraticProgram",
                  constant: float = 0.0,
                  linear: Union[ndarray, spmatrix, List[float], Dict[Union[str, int], float]] = None,
                  quadratic: Union[ndarray, spmatrix, List[List[float]],
                                   Dict[Tuple[Union[int, str], Union[int, str]], float]] = None,
-                 sense: 'Sense' = Sense.MINIMIZE
+                 sense: ObjSense = ObjSense.MINIMIZE
                  ) -> None:
         """Constructs a quadratic objective function.
 
@@ -121,7 +124,7 @@ class QuadraticObjective(HasQuadraticProgram):
         self._quadratic = QuadraticExpression(self.quadratic_program, quadratic)
 
     @property
-    def sense(self) -> 'Sense':
+    def sense(self) -> ObjSense:
         """Returns the sense of the objective function.
 
         Returns:
@@ -130,7 +133,7 @@ class QuadraticObjective(HasQuadraticProgram):
         return self._sense
 
     @sense.setter
-    def sense(self, sense: 'Sense') -> None:
+    def sense(self, sense: ObjSense) -> None:
         """Sets the sense of the objective function.
 
         Args:
