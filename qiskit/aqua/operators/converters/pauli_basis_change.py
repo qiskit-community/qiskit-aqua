@@ -23,12 +23,12 @@ from qiskit.quantum_info import Pauli
 from qiskit import QuantumCircuit
 
 from ..operator_base import OperatorBase
-from ..primitive_operators.primitive_op import PrimitiveOp
-from ..primitive_operators.pauli_op import PauliOp
-from ..primitive_operators.circuit_op import CircuitOp
-from ..combo_operators.list_op import ListOp
-from ..combo_operators.composed_op import ComposedOp
-from ..state_functions.state_fn import StateFn
+from ..primitive_ops.primitive_op import PrimitiveOp
+from ..primitive_ops.pauli_op import PauliOp
+from ..primitive_ops.circuit_op import CircuitOp
+from ..list_ops.list_op import ListOp
+from ..list_ops.composed_op import ComposedOp
+from ..state_fns.state_fn import StateFn
 from ..operator_globals import H, S, I
 from .converter_base import ConverterBase
 

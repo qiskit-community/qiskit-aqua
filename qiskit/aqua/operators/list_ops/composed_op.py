@@ -20,7 +20,7 @@ import numpy as np
 
 from ..operator_base import OperatorBase
 from .list_op import ListOp
-from ..state_functions.state_fn import StateFn
+from ..state_fns.state_fn import StateFn
 
 
 # pylint: disable=invalid-name

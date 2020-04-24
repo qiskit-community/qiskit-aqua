@@ -19,8 +19,8 @@ Operator Globals
 from qiskit.quantum_info import Pauli
 from qiskit.extensions.standard import CXGate, SGate, TGate, HGate, SwapGate, CZGate
 
-from .primitive_operators.primitive_op import PrimitiveOp
-from .state_functions.state_fn import StateFn
+from .primitive_ops.primitive_op import PrimitiveOp
+from .state_fns.state_fn import StateFn
 
 # pylint: disable=invalid-name
 

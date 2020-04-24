@@ -13,32 +13,32 @@
 # that they have been altered from the originals.
 
 """
-Primitive Operators (:mod:`qiskit.aqua.operators.primitive_operators`)
-======================================================================
-Primitive operators...
+Combo Operators (:mod:`qiskit.aqua.operators.list_ops`)
+==============================================================
+Combo operators...
 
-.. currentmodule:: qiskit.aqua.operators.primitive_operators
+.. currentmodule:: qiskit.aqua.operators.list_ops
 
-Primitive Operators
-===================
+Combo Operators
+===============
 
 .. autosummary::
    :toctree: ../stubs/
    :nosignatures:
 
-   CircuitOp
-   MatrixOp
-   PauliOp
-   PrimitiveOp
+   ComposedOp
+   ListOp
+   SummedOp
+   TensoredOp
 
 """
 
-from .primitive_op import PrimitiveOp
-from .pauli_op import PauliOp
-from .matrix_op import MatrixOp
-from .circuit_op import CircuitOp
+from .list_op import ListOp
+from .summed_op import SummedOp
+from .composed_op import ComposedOp
+from .tensored_op import TensoredOp
 
-__all__ = ['PrimitiveOp',
-           'PauliOp',
-           'MatrixOp',
-           'CircuitOp']
+__all__ = ['ListOp',
+           'SummedOp',
+           'TensoredOp',
+           'ComposedOp']

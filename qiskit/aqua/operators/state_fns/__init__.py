@@ -13,32 +13,35 @@
 # that they have been altered from the originals.
 
 """
-Combo Operators (:mod:`qiskit.aqua.operators.combo_operators`)
+State Functions (:mod:`qiskit.aqua.operators.state_fns`)
 ==============================================================
-Combo operators...
+State Functions...
 
-.. currentmodule:: qiskit.aqua.operators.combo_operators
+.. currentmodule:: qiskit.aqua.operators.state_fns
 
-Combo Operators
+State Functions
 ===============
 
 .. autosummary::
    :toctree: ../stubs/
    :nosignatures:
 
-   ComposedOp
-   ListOp
-   SummedOp
-   TensoredOp
+   CircuitStateFn
+   DictStateFn
+   OperatorStateFn
+   StateFn
+   VectorStateFn
 
 """
 
-from .list_op import ListOp
-from .summed_op import SummedOp
-from .composed_op import ComposedOp
-from .tensored_op import TensoredOp
+from .state_fn import StateFn
+from .dict_state_fn import DictStateFn
+from .operator_state_fn import OperatorStateFn
+from .vector_state_fn import VectorStateFn
+from .circuit_state_fn import CircuitStateFn
 
-__all__ = ['ListOp',
-           'SummedOp',
-           'TensoredOp',
-           'ComposedOp']
+__all__ = ['StateFn',
+           'DictStateFn',
+           'VectorStateFn',
+           'CircuitStateFn',
+           'OperatorStateFn']

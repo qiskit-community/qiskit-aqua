@@ -13,13 +13,13 @@
 # that they have been altered from the originals.
 
 """
-Expectation Values (:mod:`qiskit.aqua.operators.expectation_values`)
+Expectation Values (:mod:`qiskit.aqua.operators.expectations`)
 ====================================================================
 Algorithms for approximating the value of some function over a probability distribution,
 or in the quantum case, algorithms for approximating the value of some observable over
 a state function.
 
-.. currentmodule:: qiskit.aqua.operators.expectation_values
+.. currentmodule:: qiskit.aqua.operators.expectations
 
 Expectation Base Class
 ======================

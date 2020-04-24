@@ -104,9 +104,9 @@ some places.
 .. autosummary::
    :toctree:
 
-   primitive_operators
-   combo_operators
-   state_functions
+   primitive_ops
+   list_ops
+   state_fns
    legacy
 
 Converters
@@ -123,7 +123,7 @@ following by ``OperatorStateFn`` measurement containing only diagonal Paulis.
 
    converters
    evolutions
-   expectation_values
+   expectations
 
 """
 
@@ -138,14 +138,14 @@ from .legacy import (LegacyBaseOperator, WeightedPauliOperator, Z2Symmetries,
 
 # New Operators
 from .operator_base import OperatorBase
-from .primitive_operators import PrimitiveOp, PauliOp, MatrixOp, CircuitOp
-from .state_functions import (StateFn, DictStateFn, VectorStateFn,
-                              CircuitStateFn, OperatorStateFn)
-from .combo_operators import ListOp, SummedOp, ComposedOp, TensoredOp
+from .primitive_ops import PrimitiveOp, PauliOp, MatrixOp, CircuitOp
+from .state_fns import (StateFn, DictStateFn, VectorStateFn,
+                        CircuitStateFn, OperatorStateFn)
+from .list_ops import ListOp, SummedOp, ComposedOp, TensoredOp
 from .converters import (ConverterBase, CircuitSampler, PauliBasisChange,
                          DictToCircuitSum, AbelianGrouper)
-from .expectation_values import (ExpectationBase, ExpectationFactory, PauliExpectation,
-                                 MatrixExpectation, AerPauliExpectation)
+from .expectations import (ExpectationBase, ExpectationFactory, PauliExpectation,
+                           MatrixExpectation, AerPauliExpectation)
 from .evolutions import (EvolutionBase, EvolutionFactory, EvolvedOp, PauliTrotterEvolution,
                          MatrixEvolution, TrotterizationBase, TrotterizationFactory, Trotter,
                          Suzuki, QDrift)

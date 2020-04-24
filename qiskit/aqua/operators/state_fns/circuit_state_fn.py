@@ -23,7 +23,7 @@ from qiskit.circuit import Instruction, ParameterExpression
 from qiskit.extensions import Initialize, IGate
 
 from ..operator_base import OperatorBase
-from ..combo_operators.summed_op import SummedOp
+from ..list_ops.summed_op import SummedOp
 from .state_fn import StateFn
 
 
@@ -141,9 +141,9 @@ class CircuitStateFn(StateFn):
         new_self, other = self._check_zero_for_composition_and_expand(other)
 
         # pylint: disable=cyclic-import,import-outside-toplevel
-        from ..primitive_operators.circuit_op import CircuitOp
-        from ..primitive_operators.pauli_op import PauliOp
-        from ..primitive_operators.matrix_op import MatrixOp
+        from ..primitive_ops.circuit_op import CircuitOp
+        from ..primitive_ops.pauli_op import PauliOp
+        from ..primitive_ops.matrix_op import MatrixOp
 
         if isinstance(other, (PauliOp, CircuitOp, MatrixOp)):
             op_circuit_self = CircuitOp(self.primitive)
@@ -185,13 +185,13 @@ class CircuitStateFn(StateFn):
         # pylint: disable=import-outside-toplevel
         if isinstance(other, CircuitStateFn) and other.is_measurement == self.is_measurement:
             # Avoid reimplementing tensor, just use CircuitOp's
-            from ..primitive_operators.circuit_op import CircuitOp
+            from ..primitive_ops.circuit_op import CircuitOp
             from ..operator_globals import Zero
             c_op_self = CircuitOp(self.primitive, self.coeff)
             c_op_other = CircuitOp(other.primitive, other.coeff)
             return c_op_self.tensor(c_op_other).compose(Zero)
         # pylint: disable=cyclic-import
-        from ..combo_operators.tensored_op import TensoredOp
+        from ..list_ops.tensored_op import TensoredOp
         return TensoredOp([self, other])
 
     def to_density_matrix(self, massive: bool = False) -> np.ndarray:
@@ -249,7 +249,7 @@ class CircuitStateFn(StateFn):
             unrolled_dict = self._unroll_param_dict(param_dict)
             if isinstance(unrolled_dict, list):
                 # pylint: disable=import-outside-toplevel
-                from ..combo_operators.list_op import ListOp
+                from ..list_ops.list_op import ListOp
                 return ListOp([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
             if self.coeff in unrolled_dict:
                 # TODO what do we do about complex?
@@ -267,10 +267,10 @@ class CircuitStateFn(StateFn):
                 'sf.adjoint() first to convert to measurement.')
 
         # pylint: disable=import-outside-toplevel
-        from ..combo_operators.list_op import ListOp
-        from ..primitive_operators.pauli_op import PauliOp
-        from ..primitive_operators.matrix_op import MatrixOp
-        from ..primitive_operators.circuit_op import CircuitOp
+        from ..list_ops.list_op import ListOp
+        from ..primitive_ops.pauli_op import PauliOp
+        from ..primitive_ops.matrix_op import MatrixOp
+        from ..primitive_ops.circuit_op import CircuitOp
 
         if isinstance(front, ListOp) and front.distributive:
             return front.combo_fn([self.eval(front.coeff * front_elem)

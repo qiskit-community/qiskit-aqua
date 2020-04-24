@@ -26,9 +26,9 @@ from qiskit.extensions.standard import RZGate, RYGate, RXGate, XGate, YGate, ZGa
 
 from ..operator_base import OperatorBase
 from .primitive_op import PrimitiveOp
-from ..combo_operators.summed_op import SummedOp
-from ..combo_operators.composed_op import ComposedOp
-from ..combo_operators.tensored_op import TensoredOp
+from ..list_ops.summed_op import SummedOp
+from ..list_ops.composed_op import ComposedOp
+from ..list_ops.tensored_op import TensoredOp
 
 logger = logging.getLogger(__name__)
 PAULI_GATE_MAPPING = {'X': XGate(), 'Y': YGate(), 'Z': ZGate(), 'I': IGate()}
@@ -111,7 +111,7 @@ class PauliOp(PrimitiveOp):
 
         # pylint: disable=cyclic-import,import-outside-toplevel
         from .circuit_op import CircuitOp
-        from ..state_functions.circuit_state_fn import CircuitStateFn
+        from ..state_fns.circuit_state_fn import CircuitStateFn
         if isinstance(other, (CircuitOp, CircuitStateFn)):
             return self.to_circuit_op().compose(other)
 
@@ -151,10 +151,10 @@ class PauliOp(PrimitiveOp):
             return self.to_matrix_op()
 
         # pylint: disable=import-outside-toplevel,cyclic-import
-        from ..state_functions.state_fn import StateFn
-        from ..state_functions.dict_state_fn import DictStateFn
-        from ..state_functions.circuit_state_fn import CircuitStateFn
-        from ..combo_operators.list_op import ListOp
+        from ..state_fns.state_fn import StateFn
+        from ..state_fns.dict_state_fn import DictStateFn
+        from ..state_fns.circuit_state_fn import CircuitStateFn
+        from ..list_ops.list_op import ListOp
         from .circuit_op import CircuitOp
 
         new_front = None

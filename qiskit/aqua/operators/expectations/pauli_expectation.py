@@ -24,10 +24,10 @@ from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance
 from .expectation_base import ExpectationBase
 from ..operator_base import OperatorBase
-from ..combo_operators.list_op import ListOp
-from ..combo_operators.composed_op import ComposedOp
-from ..state_functions.state_fn import StateFn
-from ..state_functions.operator_state_fn import OperatorStateFn
+from ..list_ops.list_op import ListOp
+from ..list_ops.composed_op import ComposedOp
+from ..state_fns.state_fn import StateFn
+from ..state_fns.operator_state_fn import OperatorStateFn
 from ..converters.pauli_basis_change import PauliBasisChange
 from ..converters.abelian_grouper import AbelianGrouper
 

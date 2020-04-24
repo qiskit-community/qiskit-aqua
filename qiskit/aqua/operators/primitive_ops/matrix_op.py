@@ -24,10 +24,10 @@ from qiskit.circuit import ParameterExpression, Instruction
 from qiskit.extensions.hamiltonian_gate import HamiltonianGate
 
 from ..operator_base import OperatorBase
-from ..primitive_operators.circuit_op import CircuitOp
-from ..combo_operators.summed_op import SummedOp
-from ..combo_operators.composed_op import ComposedOp
-from ..combo_operators.tensored_op import TensoredOp
+from ..primitive_ops.circuit_op import CircuitOp
+from ..list_ops.summed_op import SummedOp
+from ..list_ops.composed_op import ComposedOp
+from ..list_ops.tensored_op import TensoredOp
 from .primitive_op import PrimitiveOp
 
 logger = logging.getLogger(__name__)
@@ -137,8 +137,8 @@ class MatrixOp(PrimitiveOp):
             return self
 
         # pylint: disable=cyclic-import,import-outside-toplevel
-        from ..combo_operators import ListOp
-        from ..state_functions import StateFn, OperatorStateFn
+        from ..list_ops import ListOp
+        from ..state_fns import StateFn, OperatorStateFn
 
         new_front = None
 

@@ -23,9 +23,9 @@ from qiskit.extensions.standard import IGate
 from qiskit.circuit import Instruction, ParameterExpression
 
 from ..operator_base import OperatorBase
-from ..combo_operators.summed_op import SummedOp
-from ..combo_operators.composed_op import ComposedOp
-from ..combo_operators.tensored_op import TensoredOp
+from ..list_ops.summed_op import SummedOp
+from ..list_ops.composed_op import ComposedOp
+from ..list_ops.tensored_op import TensoredOp
 from .primitive_op import PrimitiveOp
 
 logger = logging.getLogger(__name__)
@@ -115,7 +115,7 @@ class CircuitOp(PrimitiveOp):
         other = self._check_zero_for_composition_and_expand(other)
         # pylint: disable=cyclic-import,import-outside-toplevel
         from ..operator_globals import Zero
-        from ..state_functions import CircuitStateFn
+        from ..state_fns import CircuitStateFn
         from .pauli_op import PauliOp
         from .matrix_op import MatrixOp
 
@@ -173,7 +173,7 @@ class CircuitOp(PrimitiveOp):
             unrolled_dict = self._unroll_param_dict(param_dict)
             if isinstance(unrolled_dict, list):
                 # pylint: disable=import-outside-toplevel
-                from ..combo_operators.list_op import ListOp
+                from ..list_ops.list_op import ListOp
                 return ListOp([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
             if self.coeff in unrolled_dict:
                 # TODO what do we do about complex?
@@ -186,8 +186,8 @@ class CircuitOp(PrimitiveOp):
              front: Union[str, dict, np.ndarray,
                           OperatorBase] = None) -> Union[OperatorBase, float, complex]:
         # pylint: disable=import-outside-toplevel
-        from ..state_functions import CircuitStateFn
-        from ..combo_operators import ListOp
+        from ..state_fns import CircuitStateFn
+        from ..list_ops import ListOp
         from .pauli_op import PauliOp
         from .matrix_op import MatrixOp
 

@@ -23,7 +23,7 @@ from qiskit.circuit import ParameterExpression
 
 from ..operator_base import OperatorBase
 from .state_fn import StateFn
-from ..combo_operators.list_op import ListOp
+from ..list_ops.list_op import ListOp
 
 
 class VectorStateFn(StateFn):

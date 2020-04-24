@@ -25,10 +25,10 @@ from qiskit.aqua import QuantumInstance
 from qiskit.aqua.utils.backend_utils import is_aer_provider, is_statevector_backend
 from qiskit.aqua.operators.operator_base import OperatorBase
 from qiskit.aqua.operators.operator_globals import Zero
-from qiskit.aqua.operators.combo_operators.list_op import ListOp
-from qiskit.aqua.operators.state_functions.state_fn import StateFn
-from qiskit.aqua.operators.state_functions.circuit_state_fn import CircuitStateFn
-from qiskit.aqua.operators.state_functions.dict_state_fn import DictStateFn
+from qiskit.aqua.operators.list_ops.list_op import ListOp
+from qiskit.aqua.operators.state_fns.state_fn import StateFn
+from qiskit.aqua.operators.state_fns.circuit_state_fn import CircuitStateFn
+from qiskit.aqua.operators.state_fns.dict_state_fn import DictStateFn
 from qiskit.aqua.operators.converters.converter_base import ConverterBase
 
 logger = logging.getLogger(__name__)

@@ -198,7 +198,7 @@ class PrimitiveOp(OperatorBase):
             unrolled_dict = self._unroll_param_dict(param_dict)
             if isinstance(unrolled_dict, list):
                 # pylint: disable=import-outside-toplevel
-                from ..combo_operators.list_op import ListOp
+                from ..list_ops.list_op import ListOp
                 return ListOp([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
             coeff_param = list(self.coeff.parameters)[0]
             if coeff_param in unrolled_dict:

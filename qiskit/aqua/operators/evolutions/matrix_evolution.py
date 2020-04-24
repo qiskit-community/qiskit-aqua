@@ -19,9 +19,9 @@ import logging
 from ..operator_base import OperatorBase
 from .evolution_base import EvolutionBase
 from .evolved_op import EvolvedOp
-from ..primitive_operators.pauli_op import PauliOp
-from ..primitive_operators.matrix_op import MatrixOp
-from ..combo_operators.list_op import ListOp
+from ..primitive_ops.pauli_op import PauliOp
+from ..primitive_ops.matrix_op import MatrixOp
+from ..list_ops.list_op import ListOp
 
 logger = logging.getLogger(__name__)
 

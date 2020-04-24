@@ -59,7 +59,7 @@ class TensoredOp(ListOp):
              front: Union[str, dict, np.ndarray,
                           OperatorBase] = None) -> Union[OperatorBase, float, complex]:
         # pylint: disable=cyclic-import,import-outside-toplevel
-        from ..primitive_operators import PrimitiveOp
+        from ..primitive_ops import PrimitiveOp
         # TODO replace with to_matrix_op
         tensored_mat_op = PrimitiveOp(self.combo_fn([op.to_matrix() for op in self.oplist]),
                                       coeff=self.coeff)

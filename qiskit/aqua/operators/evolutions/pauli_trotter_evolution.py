@@ -23,9 +23,9 @@ import numpy as np
 from ..operator_base import OperatorBase
 from ..operator_globals import Z, I
 from .evolution_base import EvolutionBase
-from ..combo_operators.list_op import ListOp
-from ..combo_operators.summed_op import SummedOp
-from ..primitive_operators.pauli_op import PauliOp
+from ..list_ops.list_op import ListOp
+from ..list_ops.summed_op import SummedOp
+from ..primitive_ops.pauli_op import PauliOp
 from ..converters.pauli_basis_change import PauliBasisChange
 from ..converters.abelian_grouper import AbelianGrouper
 from .evolved_op import EvolvedOp

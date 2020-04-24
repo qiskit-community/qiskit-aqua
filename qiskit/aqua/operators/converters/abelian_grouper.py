@@ -19,10 +19,10 @@ import itertools
 import networkx as nx
 
 from ..operator_base import OperatorBase
-from ..combo_operators.list_op import ListOp
-from ..combo_operators.summed_op import SummedOp
-from ..state_functions.operator_state_fn import OperatorStateFn
-from ..primitive_operators.pauli_op import PauliOp
+from ..list_ops.list_op import ListOp
+from ..list_ops.summed_op import SummedOp
+from ..state_fns.operator_state_fn import OperatorStateFn
+from ..primitive_ops.pauli_op import PauliOp
 from .converter_base import ConverterBase
 
 logger = logging.getLogger(__name__)

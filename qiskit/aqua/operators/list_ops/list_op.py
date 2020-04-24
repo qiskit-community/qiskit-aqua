@@ -312,7 +312,7 @@ class ListOp(OperatorBase):
         """ Returns an equivalent Operator composed of only Pauli-based primitives,
         such as ``PauliOp``. """
         # pylint: disable=cyclic-import
-        from ..state_functions.state_fn import StateFn
+        from ..state_fns.state_fn import StateFn
         return self.__class__([op.to_pauli_op(massive=massive)
                                if not isinstance(op, StateFn) else op
                                for op in self.oplist], coeff=self.coeff).reduce()

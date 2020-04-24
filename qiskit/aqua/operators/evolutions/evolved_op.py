@@ -22,10 +22,10 @@ import scipy
 from qiskit.circuit import ParameterExpression, Instruction
 
 from ..operator_base import OperatorBase
-from ..primitive_operators.primitive_op import PrimitiveOp
-from ..combo_operators.summed_op import SummedOp
-from ..combo_operators.composed_op import ComposedOp
-from ..combo_operators.tensored_op import TensoredOp
+from ..primitive_ops.primitive_op import PrimitiveOp
+from ..list_ops.summed_op import SummedOp
+from ..list_ops.composed_op import ComposedOp
+from ..list_ops.tensored_op import TensoredOp
 
 logger = logging.getLogger(__name__)
 
@@ -127,7 +127,7 @@ class EvolvedOp(PrimitiveOp):
             unrolled_dict = self._unroll_param_dict(param_dict)
             if isinstance(unrolled_dict, list):
                 # pylint: disable=import-outside-toplevel
-                from ..combo_operators.list_op import ListOp
+                from ..list_ops.list_op import ListOp
                 return ListOp([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
             coeff_param = list(self.coeff.parameters)[0]
             if coeff_param in unrolled_dict:

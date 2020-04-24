@@ -22,12 +22,12 @@ from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance
 from ..operator_base import OperatorBase
 from .expectation_base import ExpectationBase
-from ..combo_operators.list_op import ListOp
-from ..combo_operators.summed_op import SummedOp
-from ..primitive_operators.pauli_op import PauliOp
-from ..state_functions.state_fn import StateFn
-from ..state_functions.circuit_state_fn import CircuitStateFn
-from ..state_functions.operator_state_fn import OperatorStateFn
+from ..list_ops.list_op import ListOp
+from ..list_ops.summed_op import SummedOp
+from ..primitive_ops.pauli_op import PauliOp
+from ..state_fns.state_fn import StateFn
+from ..state_fns.circuit_state_fn import CircuitStateFn
+from ..state_fns.operator_state_fn import OperatorStateFn
 
 logger = logging.getLogger(__name__)
 

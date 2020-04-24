@@ -20,8 +20,8 @@ Simple Trotter expansion.
 import numpy as np
 
 from .trotterization_base import TrotterizationBase
-from ...combo_operators.summed_op import SummedOp
-from ...combo_operators.composed_op import ComposedOp
+from ...list_ops.summed_op import SummedOp
+from ...list_ops.composed_op import ComposedOp
 
 
 # pylint: disable=invalid-name
