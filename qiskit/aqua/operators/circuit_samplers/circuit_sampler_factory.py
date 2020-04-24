@@ -20,13 +20,9 @@ import logging
 from qiskit.providers import BaseBackend
 
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.utils.backend_utils import (is_ibmq_provider,
-                                             is_local_backend,
-                                             is_statevector_backend,
-                                             is_aer_qasm)
+from qiskit.aqua.utils.backend_utils import (is_statevector_backend)
+from qiskit.aqua.operators.converters.circuit_sampler import CircuitSampler
 from .circuit_sampler_base import CircuitSamplerBase
-from .local_simulator_sampler import LocalSimulatorSampler
-from .ibmq_sampler import IBMQSampler
 
 logger = logging.getLogger(__name__)
 
@@ -42,10 +38,9 @@ class CircuitSamplerFactory():
         subclass based on the primitive passed in."""
 
         backend_to_check = backend.backend if isinstance(backend, QuantumInstance) else backend
-        if is_local_backend(backend_to_check):
-            return LocalSimulatorSampler(backend=backend,
-                                         statevector=is_statevector_backend(backend_to_check),
-                                         snapshot=is_aer_qasm(backend_to_check))
+        # if is_local_backend(backend_to_check):
+        return CircuitSampler(backend=backend,
+                              statevector=is_statevector_backend(backend_to_check))
 
-        if is_ibmq_provider(backend_to_check):
-            return IBMQSampler(backend=backend)
+        # if is_ibmq_provider(backend_to_check):
+        #     return IBMQSampler(backend=backend)

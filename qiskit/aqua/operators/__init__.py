@@ -143,11 +143,11 @@ from .primitive_operators import PrimitiveOp, PauliOp, MatrixOp, CircuitOp
 from .state_functions import (StateFn, DictStateFn, VectorStateFn,
                               CircuitStateFn, OperatorStateFn)
 from .combo_operators import ListOp, SummedOp, ComposedOp, TensoredOp
-from .converters import (ConverterBase, PauliBasisChange,
+from .converters import (ConverterBase, CircuitSampler, PauliBasisChange,
                          DictToCircuitSum, AbelianGrouper)
 from .expectation_values import (ExpectationBase, ExpectationFactory, PauliExpectation,
                                  MatrixExpectation, AerPauliExpectation)
-from .circuit_samplers import (CircuitSamplerBase, CircuitSamplerFactory, LocalSimulatorSampler,
+from .circuit_samplers import (CircuitSamplerBase, CircuitSamplerFactory,
                                IBMQSampler)
 from .evolutions import (EvolutionBase, EvolutionFactory, EvolvedOp, PauliTrotterEvolution,
                          TrotterizationBase, TrotterizationFactory, Trotter, Suzuki, QDrift)

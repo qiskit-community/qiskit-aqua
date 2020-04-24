@@ -35,6 +35,7 @@ Converters
    :toctree: ../stubs/
    :nosignatures:
 
+   CircuitSampler
    AbelianGrouper
    DictToCircuitSum
    PauliBasisChange
@@ -42,11 +43,13 @@ Converters
 """
 
 from .converter_base import ConverterBase
+from .circuit_sampler import CircuitSampler
 from .pauli_basis_change import PauliBasisChange
 from .dict_to_circuit_sum import DictToCircuitSum
 from .abelian_grouper import AbelianGrouper
 
 __all__ = ['ConverterBase',
+           'CircuitSampler',
            'PauliBasisChange',
            'DictToCircuitSum',
            'AbelianGrouper']

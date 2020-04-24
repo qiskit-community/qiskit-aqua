@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Expectation Algorithm Base """
+""" CircuitSampler Class """
 
 from typing import Optional, Dict, List
 import logging
@@ -22,62 +22,48 @@ from qiskit.providers import BaseBackend
 from qiskit.circuit import ParameterExpression
 from qiskit import QiskitError
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.utils.backend_utils import is_aer_provider, is_statevector_backend, is_aer_qasm
-from ..operator_base import OperatorBase
-from ..operator_globals import Zero
-from ..combo_operators.list_op import ListOp
-from ..state_functions.state_fn import StateFn
-from ..state_functions.circuit_state_fn import CircuitStateFn
-from ..state_functions.dict_state_fn import DictStateFn
-from .circuit_sampler_base import CircuitSamplerBase
+from qiskit.aqua.utils.backend_utils import is_aer_provider, is_statevector_backend
+from qiskit.aqua.operators.operator_base import OperatorBase
+from qiskit.aqua.operators.operator_globals import Zero
+from qiskit.aqua.operators.combo_operators.list_op import ListOp
+from qiskit.aqua.operators.state_functions.state_fn import StateFn
+from qiskit.aqua.operators.state_functions.circuit_state_fn import CircuitStateFn
+from qiskit.aqua.operators.state_functions.dict_state_fn import DictStateFn
+from qiskit.aqua.operators.converters.converter_base import ConverterBase
 
 logger = logging.getLogger(__name__)
 
 
-class LocalSimulatorSampler(CircuitSamplerBase):
+class CircuitSampler(ConverterBase):
     """ A sampler for local Quantum simulator backends
     """
 
     def __init__(self,
                  backend: Optional[BaseBackend] = None,
-                 hw_backend_to_emulate: Optional[BaseBackend] = None,
-                 kwargs: Optional[Dict] = None,
-                 statevector: bool = False,
-                 snapshot: bool = False,
+                 statevector: Optional[bool] = None,
                  param_qobj: bool = False) -> None:
         """
         Args:
             backend:
-            hw_backend_to_emulate:
-            kwargs:
             statevector:
-            snapshot:
             param_qobj:
         Raises:
-            ValueError: invalid parameters.
+            ValueError: Set statevector or param_qobj True when not supported by backend.
         """
-        kwargs = {} if kwargs is None else kwargs
-        if hw_backend_to_emulate and is_aer_provider(backend) and 'noise_model' not in kwargs:
-            # pylint: disable=import-outside-toplevel
-            from qiskit.providers.aer.noise import NoiseModel
-            # TODO figure out Aer versioning
-            kwargs['noise_model'] = NoiseModel.from_backend(hw_backend_to_emulate)
+        self._qi = backend if isinstance(backend, QuantumInstance) else\
+            QuantumInstance(backend=backend)
+        self._statevector = statevector if statevector is not None else self._qi.is_statevector
+        if self._statevector and not is_statevector_backend(self.quantum_instance.backend):
+            raise ValueError('Statevector mode for circuit sampling requires statevector '
+                             'backend, not {}.'.format(backend))
 
-        self._qi = backend if isinstance(backend, QuantumInstance) else \
-            QuantumInstance(backend=backend, **kwargs)
+        # Object state variables
         self._last_op = None
         self._reduced_op_cache = None
         self._circuit_ops_cache = {}
         self._transpiled_circ_cache = None
-        self._statevector = statevector
         self._transpile_before_bind = True
-        if self._statevector and not is_statevector_backend(self.quantum_instance.backend):
-            raise ValueError('Statevector mode for circuit sampling requires statevector '
-                             'backend, not {}.'.format(backend))
-        self._snapshot = snapshot
-        if self._snapshot and not is_aer_qasm(self.quantum_instance.backend):
-            raise ValueError('Snapshot mode for expectation values requires Aer qasm '
-                             'backend, not {}.'.format(backend))
+
         self._param_qobj = param_qobj
         if self._param_qobj and not is_aer_provider(self.quantum_instance.backend):
             raise ValueError('Parameterized Qobj mode requires Aer '
@@ -129,7 +115,7 @@ class LocalSimulatorSampler(CircuitSamplerBase):
             param_bindings = None
             num_parameterizations = 1
 
-        # Don't pass circuits if we have in the cache the sampling function knows to use the cache.
+        # Don't pass circuits if we have in the cache, the sampling function knows to use the cache
         circs = list(self._circuit_ops_cache.values()) if not self._transpiled_circ_cache else None
         sampled_statefn_dicts = self.sample_circuits(circuit_sfns=circs,
                                                      param_bindings=param_bindings)
@@ -209,14 +195,14 @@ class LocalSimulatorSampler(CircuitSamplerBase):
             c_statefns = []
             for j in range(reps):
                 circ_index = (i * reps) + j
-                if self._statevector:
-                    result_sfn = StateFn(op_c.coeff * results.get_statevector(circ_index))
-                elif self._snapshot:
-                    # TODO change logic so only "snapshot_measurement" CircuitStateFns trigger
-                    #  this. Also, allow setting on CircuitSamplers whether to attach Results to
+                circ_results = results.data(circ_index)
+
+                if 'expval_measurement' in circ_results.get('snapshots', {}).get(
+                        'expectation_value', {}):
+                    # TODO Also, allow setting on CircuitSamplers whether to attach Results to
                     #  DictStateFns or not.
                     snapshot_data = results.data(circ_index)['snapshots']
-                    avg = snapshot_data['expectation_value']['expval'][0]['value']
+                    avg = snapshot_data['expectation_value']['expval_measurement'][0]['value']
                     if isinstance(avg, (list, tuple)):
                         # Aer versions before 0.4 use a list snapshot format
                         # which must be converted to a complex value.
@@ -224,6 +210,8 @@ class LocalSimulatorSampler(CircuitSamplerBase):
                     # Will be replaced with just avg when eval is called later
                     num_qubits = circuit_sfns[0].num_qubits
                     result_sfn = (Zero ^ num_qubits).adjoint() * avg
+                elif self._statevector:
+                    result_sfn = StateFn(op_c.coeff * results.get_statevector(circ_index))
                 else:
                     result_sfn = StateFn({b: (v * op_c.coeff / self._qi._run_config.shots) ** .5
                                           for (b, v) in results.get_counts(circ_index).items()})

@@ -18,7 +18,7 @@ import unittest
 from test.aqua import QiskitAquaTestCase
 import numpy as np
 from ddt import ddt, unpack, data
-from qiskit import BasicAer, QuantumCircuit
+from qiskit import BasicAer, QuantumCircuit, IBMQ
 from qiskit.circuit import ParameterVector
 
 from qiskit.aqua import QuantumInstance, aqua_globals, AquaError
@@ -255,6 +255,25 @@ class TestVQE(QiskitAquaTestCase):
         vqe.set_backend(BasicAer.get_backend('statevector_simulator'))
         result = vqe.compute_minimum_eigenvalue(self.qubit_op)
         self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=5)
+
+    @unittest.skip(reason="IBMQ testing not available in general.")
+    def test_ibmq_vqe(self):
+        """ IBMQ VQE Test """
+        provider = IBMQ.load_account()
+        backend = provider.get_backend('ibmq_qasm_simulator')
+        var_form = RYRZ(self.qubit_op.num_qubits)
+
+        opt = SLSQP(maxiter=1)
+        opt.set_max_evals_grouped(100)
+        vqe = VQE(self.qubit_op, var_form, SLSQP(maxiter=2))
+
+        result = vqe.run(backend)
+        print(result)
+        self.assertAlmostEqual(result.eigenvalue.real, -1.85727503)
+        np.testing.assert_array_almost_equal(result.eigenvalue.real, -1.85727503, 5)
+        self.assertEqual(len(result.optimal_point), 16)
+        self.assertIsNotNone(result.cost_function_evals)
+        self.assertIsNotNone(result.optimizer_time)
 
 
 if __name__ == '__main__':

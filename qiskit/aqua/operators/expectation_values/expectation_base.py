@@ -22,7 +22,7 @@ import numpy as np
 from qiskit.providers import BaseBackend
 from ..operator_base import OperatorBase
 from ..converters import ConverterBase
-from ..circuit_samplers.circuit_sampler_factory import CircuitSamplerFactory
+from ..converters import CircuitSampler
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +49,7 @@ class ExpectationBase(ConverterBase):
     @backend.setter
     def backend(self, backend: BaseBackend) -> None:
         if backend is not None:
-            self._circuit_sampler = CircuitSamplerFactory.build(backend=backend)
+            self._circuit_sampler = CircuitSampler(backend=backend)
 
     # TODO change VQE to rely on this instead of compute_expectation
     @abstractmethod

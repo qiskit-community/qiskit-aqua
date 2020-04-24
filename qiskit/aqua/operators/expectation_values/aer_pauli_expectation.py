@@ -97,14 +97,22 @@ class AerPauliExpectation(ExpectationBase):
     @classmethod
     def _replace_pauli_sums(cls, operator):
         from qiskit.providers.aer.extensions import SnapshotExpectationValue
+        # The 'expval_measurement' label on the snapshot instruction is special - the
+        # CircuitSampler will look for it to know that the circuit is a Expectation
+        # measurement, and not simply a
+        # circuit to replace with a DictStateFn
         if isinstance(operator, SummedOp):
             paulis = [[meas.coeff, meas.primitive] for meas in operator.oplist]
-            snapshot_instruction = SnapshotExpectationValue('expval', paulis, variance=True)
+            snapshot_instruction = SnapshotExpectationValue('expval_measurement',
+                                                            paulis,
+                                                            variance=True)
             snapshot_op = CircuitStateFn(snapshot_instruction, is_measurement=True)
             return snapshot_op
         if isinstance(operator, PauliOp):
             paulis = [[operator.coeff, operator.primitive]]
-            snapshot_instruction = SnapshotExpectationValue('expval', paulis, variance=True)
+            snapshot_instruction = SnapshotExpectationValue('expval_measurement',
+                                                            paulis,
+                                                            variance=True)
             snapshot_op = CircuitStateFn(snapshot_instruction, is_measurement=True)
             return snapshot_op
         if isinstance(operator, ListOp):

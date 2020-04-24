@@ -22,7 +22,7 @@ import numpy as np
 
 from qiskit.aqua.operators import (X, Y, Z, I, CX, H, S,
                                    ListOp, Zero, One, Plus, Minus, StateFn,
-                                   AerPauliExpectation, LocalSimulatorSampler)
+                                   AerPauliExpectation, CircuitSampler)
 
 from qiskit import Aer
 
@@ -44,8 +44,7 @@ class TestAerPauliExpectation(QiskitAquaTestCase):
 
         # Test via convert instead of compute_expectation
         converted_meas = expect.convert(~StateFn(op) @ wf)
-        converted_meas = LocalSimulatorSampler(backend=backend,
-                                               snapshot=True).convert(converted_meas)
+        converted_meas = CircuitSampler(backend=backend).convert(converted_meas)
         self.assertAlmostEqual(converted_meas.eval(), 0, delta=.1)
 
     def test_pauli_expect_single(self):
@@ -64,8 +63,7 @@ class TestAerPauliExpectation(QiskitAquaTestCase):
 
             # Test via convert instead of compute_expectation
             converted_meas = expect.convert(~StateFn(pauli) @ state)
-            converted_meas = LocalSimulatorSampler(backend=backend,
-                                                   snapshot=True).convert(converted_meas)
+            converted_meas = CircuitSampler(backend=backend).convert(converted_meas)
             self.assertAlmostEqual(converted_meas.eval(), matmulmean, delta=.1)
 
     def test_pauli_expect_op_vector(self):
@@ -118,8 +116,7 @@ class TestAerPauliExpectation(QiskitAquaTestCase):
 
         # Test via convert instead of compute_expectation
         converted_meas = expect.convert(~StateFn(paulis_op) @ states_op)
-        converted_meas = LocalSimulatorSampler(backend=backend,
-                                               snapshot=True).convert(converted_meas)
+        converted_meas = CircuitSampler(backend=backend).convert(converted_meas)
         np.testing.assert_array_almost_equal(converted_meas.eval(), [0, 0, 1, -1], decimal=1)
 
     def test_pauli_expect_op_vector_state_vector(self):
@@ -140,8 +137,7 @@ class TestAerPauliExpectation(QiskitAquaTestCase):
 
         # Test via convert instead of compute_expectation
         converted_meas = expect.convert(~StateFn(paulis_op) @ states_op)
-        converted_meas = LocalSimulatorSampler(backend=backend,
-                                               snapshot=True).convert(converted_meas)
+        converted_meas = CircuitSampler(backend=backend).convert(converted_meas)
         np.testing.assert_array_almost_equal(converted_meas.eval(), valids, decimal=1)
 
     def test_parameterized_qobj(self):
