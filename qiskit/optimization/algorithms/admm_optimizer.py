@@ -31,6 +31,9 @@ UPDATE_RHO_BY_RESIDUALS = 1
 
 logger = logging.getLogger(__name__)
 
+# import sys
+# logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+
 
 class ADMMParameters:
     """Defines a set of parameters for ADMM optimizer."""
@@ -278,6 +281,9 @@ class ADMMOptimizer(OptimizationAlgorithm):
         iteration = 0
         residual = 1.e+2
 
+        # debug
+        self._log.debug(problem.print_as_lp_string())
+
         while (iteration < self._params.max_iter and residual > self._params.tol) \
                 and (elapsed_time < self._params.max_time):
             if binary_indices:
@@ -286,11 +292,13 @@ class ADMMOptimizer(OptimizationAlgorithm):
             # else, no binary variables exist,
             # and no update to be done in this case.
             # debug
+                self._log.debug(op1.print_as_lp_string())
             self._log.debug("x0=%s", self._state.x0)
 
             op2 = self._create_step2_problem()
             self._state.u, self._state.z = self._update_x1(op2)
             # debug
+            self._log.debug(op2.print_as_lp_string())
             self._log.debug("u=%s", self._state.u)
             self._log.debug("z=%s", self._state.z)
 
@@ -299,9 +307,12 @@ class ADMMOptimizer(OptimizationAlgorithm):
                     op3 = self._create_step3_problem()
                     self._state.y = self._update_y(op3)
                 # debug
+                    self._log.debug(op3.print_as_lp_string())
                 self._log.debug("y=%s", self._state.y)
 
             self._state.lambda_mult = self._update_lambda_mult()
+            # debug
+            self._log.debug("lambda={}".format(self._state.lambda_mult))
 
             cost_iterate = self._get_objective_value()
             constraint_residual = self._get_constraint_residual()
@@ -309,7 +320,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
             merit = self._get_merit(cost_iterate, constraint_residual)
             # debug
             self._log.debug("cost_iterate=%s, cr=%s, merit=%s",
-                            cost_iterate, constraint_residual, merit)
+                            self._state.sense * cost_iterate, constraint_residual, merit)
 
             # costs are saved with their original sign.
             self._state.cost_iterates.append(self._state.sense * cost_iterate)
@@ -547,7 +558,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
             A newly created optimization problem.
         """
         op2 = copy.deepcopy(self._state.op)
-        # replace binary variables with the continuous ones that look like binary
+        # replace binary variables with the continuous ones bound in [0,1]
         # x0(bin) -> z(cts)
         # u (cts) are still there unchanged
         for i, var_index in enumerate(self._state.binary_indices):
