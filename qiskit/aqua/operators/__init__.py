@@ -113,16 +113,15 @@ Converters
 ++++++++++++++++++++
 
 The Converter submodules include objects which manipulate Operators, usually recursing over an
-Operator structure and change certain Operators' representation. For example, the
+Operator structure and changing certain Operators' representation. For example, the
 ``PauliTrotterExpectation`` traverses an Operator structure, and replaces all of the
 ``OperatorStateFn`` measurements containing non-diagonal Pauli terms into diagonalizing circuits
-following by ``OperatorStateFns`` containing only diagonal Paulis.
+following by ``OperatorStateFn`` measurement containing only diagonal Paulis.
 
 .. autosummary::
    :toctree:
 
    converters
-   circuit_samplers
    evolutions
    expectation_values
 
@@ -148,7 +147,8 @@ from .converters import (ConverterBase, CircuitSampler, PauliBasisChange,
 from .expectation_values import (ExpectationBase, ExpectationFactory, PauliExpectation,
                                  MatrixExpectation, AerPauliExpectation)
 from .evolutions import (EvolutionBase, EvolutionFactory, EvolvedOp, PauliTrotterEvolution,
-                         TrotterizationBase, TrotterizationFactory, Trotter, Suzuki, QDrift)
+                         MatrixEvolution, TrotterizationBase, TrotterizationFactory, Trotter,
+                         Suzuki, QDrift)
 
 # Convenience immutable instances
 from .operator_globals import EVAL_SIG_DIGITS, X, Y, Z, I, CX, S, H, T, Swap, Zero, One, Plus, Minus
@@ -162,11 +162,17 @@ __all__ = [
     'PauliGraph', 'LegacyBaseOperator', 'WeightedPauliOperator',
     'Z2Symmetries', 'TPBGroupedWeightedPauliOperator',
     'MatrixOperator',
-    # New
+    # Operators
     'OperatorBase',
     'PrimitiveOp', 'PauliOp', 'MatrixOp', 'CircuitOp',
     'StateFn', 'DictStateFn', 'VectorStateFn', 'CircuitStateFn', 'OperatorStateFn',
     'ListOp', 'SummedOp', 'ComposedOp', 'TensoredOp',
+    # Converters
+    'ConverterBase', 'CircuitSampler', 'AbelianGrouper', 'DictToCircuitSum', 'PauliBasisChange',
+    'ExpectationBase', 'ExpectationFactory', 'PauliExpectation', 'MatrixExpectation',
+    'AerPauliExpectation',
+    'EvolutionBase', 'EvolvedOp', 'EvolutionFactory', 'PauliTrotterEvolution', 'MatrixEvolution',
+    'TrotterizationBase', 'TrotterizationFactory', 'Trotter', 'Suzuki', 'QDrift',
     # Convenience immutable instances
     'X', 'Y', 'Z', 'I', 'CX', 'S', 'H', 'T', 'Swap', 'Zero', 'One', 'Plus', 'Minus'
 ]
