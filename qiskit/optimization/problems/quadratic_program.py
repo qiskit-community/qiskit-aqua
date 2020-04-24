@@ -19,6 +19,9 @@ from enum import Enum
 from math import fsum
 from typing import List, Union, Dict, Optional, Tuple
 
+from docplex.mp.constr import (LinearConstraint as DocplexLinearConstraint,
+                               QuadraticConstraint as DocplexQuadraticConstraint,
+                               NotEqualConstraint)
 from docplex.mp.linear import Var
 from docplex.mp.model import Model
 from docplex.mp.model_reader import ModelReader
@@ -558,7 +561,8 @@ class QuadraticProgram:
                 x_new = self.integer_var(x.lb, x.ub, x.name)
                 var_names[x] = x_new.name
             else:
-                raise QiskitOptimizationError("Unsupported variable type!")
+                raise QiskitOptimizationError(
+                    "Unsupported variable type: {} {}".format(x.name, x.vartype))
 
         # objective sense
         minimize = model.objective_sense.is_minimize()
@@ -592,8 +596,14 @@ class QuadraticProgram:
             self.maximize(constant, linear, quadratic)
 
         # get linear constraints
-        for i in range(model.number_of_linear_constraints):
-            constraint = model.get_constraint_by_index(i)
+        for constraint in model.iter_constraints():
+            if isinstance(constraint, DocplexQuadraticConstraint):
+                # ignore quadratic constraints
+                continue
+            if not isinstance(constraint, DocplexLinearConstraint) or \
+                    isinstance(constraint, NotEqualConstraint):
+                raise QiskitOptimizationError(
+                    'Unsupported constraint: {}'.format(constraint))
             name = constraint.name
             sense = constraint.sense
 
@@ -614,11 +624,11 @@ class QuadraticProgram:
             elif sense == sense.LE:
                 self.linear_constraint(lhs, '<=', rhs, name)
             else:
-                raise QiskitOptimizationError("Unsupported constraint sense: {}".format(sense))
+                raise QiskitOptimizationError(
+                    "Unsupported constraint sense: {}".format(constraint))
 
         # get quadratic constraints
-        for i in range(model.number_of_quadratic_constraints):
-            constraint = model.get_quadratic_by_index(i)
+        for constraint in model.iter_quadratic_constraints():
             name = constraint.name
             sense = constraint.sense
 
@@ -661,7 +671,8 @@ class QuadraticProgram:
             elif sense == sense.LE:
                 self.quadratic_constraint(linear, quadratic, '<=', rhs, name)
             else:
-                raise QiskitOptimizationError("Unsupported constraint sense: {}".format(sense))
+                raise QiskitOptimizationError(
+                    "Unsupported constraint sense: {}".format(constraint))
 
     def to_docplex(self) -> Model:
         """Returns a docplex model corresponding to this quadratic program.
