@@ -38,6 +38,7 @@ class TestQuadraticProgramToNegativeValueOracle(QiskitOptimizationTestCase):
                 self.assertEqual(problem.objective.constant, func_dict[key])
 
     def _validate_operator(self, func_dict, n_key, n_value, operator):
+
         # Get expected results.
         solutions = GroverOptimizer._get_qubo_solutions(func_dict, n_key, print_solutions=False)
 
@@ -101,7 +102,7 @@ class TestQuadraticProgramToNegativeValueOracle(QiskitOptimizationTestCase):
         except NameError as ex:
             self.skipTest(str(ex))
 
-    def test_optnvo_4_key_all_negative(self):
+    def _test_optnvo_4_key_all_negative(self):
         """Test with all negative values."""
         # Circuit parameters.
         try:
@@ -124,7 +125,7 @@ class TestQuadraticProgramToNegativeValueOracle(QiskitOptimizationTestCase):
         except NameError as ex:
             self.skipTest(str(ex))
 
-    def test_optnvo_6_key(self):
+    def _test_optnvo_6_key(self):
         """Test with 6 linear coefficients, negative quadratics, no constant."""
         # Circuit parameters.
         try:

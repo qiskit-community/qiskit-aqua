@@ -19,9 +19,12 @@ from typing import List, Optional, Any
 
 import numpy as np
 from scipy.linalg import block_diag
+
+from qiskit.optimization import QiskitOptimizationError
 from qiskit.optimization.algorithms.cplex_optimizer import CplexOptimizer
 from qiskit.optimization.algorithms.optimization_algorithm import (OptimizationAlgorithm,
                                                                    OptimizationResult)
+from qiskit.optimization.converters import IntegerToBinary
 from qiskit.optimization.problems import VarType, ConstraintSense
 from qiskit.optimization.problems.quadratic_program import QuadraticProgram
 
@@ -217,19 +220,14 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         msg = ''
 
-        # 1. only binary and continuous variables are supported
-        for variable in problem.variables:
-            if variable.vartype not in (VarType.BINARY, VarType.CONTINUOUS):
-                # variable is not binary and not continuous.
-                msg += 'Only binary and continuous variables are supported. '
-
-        binary_indices = self._get_variable_indices(problem, VarType.BINARY)
+        # 1. get bin/int and continuous variable indices
+        bin_int_indices = self._get_variable_indices(problem, VarType.BINARY)
         continuous_indices = self._get_variable_indices(problem, VarType.CONTINUOUS)
 
         # 2. binary and continuous variables are separable in objective
-        for binary_index in binary_indices:
+        for bin_int_index in bin_int_indices:
             for continuous_index in continuous_indices:
-                coeff = problem.objective.quadratic[binary_index, continuous_index]
+                coeff = problem.objective.quadratic[bin_int_index, continuous_index]
                 if coeff != 0:
                     # binary and continuous vars are mixed.
                     msg += 'Binary and continuous variables are not separable in the objective. '
@@ -255,12 +253,21 @@ class ADMMOptimizer(OptimizationAlgorithm):
         Raises:
             QiskitOptimizationError: If the problem is incompatible with the optimizer.
         """
+        # check compatibility and raise exception if incompatible
+        msg = self.get_compatibility_msg(problem)
+        if len(msg) > 0:
+            raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
+
+        # map integer variables to binary variables
+        int2bin = IntegerToBinary()
+        problem_ = int2bin.encode(problem)
+
         # parse problem and convert to an ADMM specific representation.
-        binary_indices = self._get_variable_indices(problem, VarType.BINARY)
-        continuous_indices = self._get_variable_indices(problem, VarType.CONTINUOUS)
+        binary_indices = self._get_variable_indices(problem_, VarType.BINARY)
+        continuous_indices = self._get_variable_indices(problem_, VarType.CONTINUOUS)
 
         # create our computation state.
-        self._state = ADMMState(problem, binary_indices,
+        self._state = ADMMState(problem_, binary_indices,
                                 continuous_indices, self._params.rho_initial)
 
         # convert optimization problem to a set of matrices and vector that are used
@@ -329,6 +336,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         # third parameter is our internal state of computations.
         result = ADMMOptimizerResult(solution, objective_value, self._state)
+        result = int2bin.decode(result)
+
         # debug
         self._log.debug("solution=%s, objective=%s at iteration=%s",
                         solution, objective_value, iteration)
