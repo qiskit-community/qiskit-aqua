@@ -126,6 +126,7 @@ dest
 deutsch
 devs
 devsglobals
+diagonalization
 diagonalize
 diagonalizing
 dict
@@ -171,6 +172,7 @@ eps
 erdos
 eri
 et
+equalling
 ev
 eval
 evals
@@ -244,6 +246,7 @@ IGates
 ign
 ignis
 iH
+iHt
 ij
 ijkl
 ijkm
@@ -467,6 +470,7 @@ qbits
 qc
 qcmatrixio
 QDrift
+qdrift
 qeom
 QFactory
 qft
@@ -531,6 +535,7 @@ scalably
 scf
 scikit
 schemas
+Schrodinger
 schuld
 scipy
 sd
@@ -611,6 +616,7 @@ travers
 trotterization
 Trotterizations
 trotterize
+trotterized
 trotterizing
 trunc
 ub
