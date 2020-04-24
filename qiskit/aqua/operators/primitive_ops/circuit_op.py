@@ -42,9 +42,9 @@ class CircuitOp(PrimitiveOp):
                                        ParameterExpression]] = 1.0) -> None:
         """
         Args:
-            primitive (Instruction, QuantumCircuit): The QuantumCircuit which defines the
+            primitive: The QuantumCircuit which defines the
             behavior of the underlying function.
-            coeff (int, float, complex): A coefficient multiplying the primitive
+            coeff: A coefficient multiplying the primitive
 
         Raises:
             TypeError: invalid parameters.
@@ -202,7 +202,6 @@ class CircuitOp(PrimitiveOp):
         return self.to_matrix_op().eval(front=front)
 
     def to_circuit(self) -> QuantumCircuit:
-        """ Convert CircuitOp to circuit """
         return self.primitive
 
     def to_circuit_op(self) -> OperatorBase:

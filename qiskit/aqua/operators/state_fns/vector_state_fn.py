@@ -27,27 +27,8 @@ from ..list_ops.list_op import ListOp
 
 
 class VectorStateFn(StateFn):
-    """ A class for representing state functions and measurements.
-
-    State functions are defined to be complex functions over a single binary string
-    (as compared to an operator,
-    which is defined as a function over two binary strings, or a function taking a
-    binary function to another
-    binary function). This function may be called by the eval() method.
-
-    Measurements are defined to be functionals over StateFns, taking them to real values.
-    Generally, this real value
-    is interpreted to represent the probability of some classical state (binary string)
-    being observed from a
-    probabilistic or quantum system represented by a StateFn. This leads to the equivalent
-    definition, which is that
-    a measurement m is a function over binary strings producing StateFns, such that the
-    probability of measuring
-    a given binary string b from a system with StateFn f is equal to the inner product
-    between f and m(b).
-
-    NOTE: State functions here are not restricted to wave functions,
-    as there is no requirement of normalization.
+    """ A class for state functions and measurements which are defined in vector
+    representation, and stored using Terra's ``Statevector`` class.
     """
 
     # TODO allow normalization somehow?
@@ -57,8 +38,9 @@ class VectorStateFn(StateFn):
                  is_measurement: bool = False) -> None:
         """
         Args:
-            primitive: The operator primitive being wrapped.
-            coeff: A coefficient by which to multiply the state function
+            primitive: The ``Statevector``, NumPy array, or list, which defines the behavior of
+                the underlying function.
+            coeff: A coefficient multiplying the state function.
             is_measurement: Whether the StateFn is a measurement operator
         """
         # Lists and Numpy arrays representing statevectors are stored
@@ -96,7 +78,6 @@ class VectorStateFn(StateFn):
                              is_measurement=(not self.is_measurement))
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
-        """ tensor """
         if isinstance(other, VectorStateFn):
             return StateFn(self.primitive.tensor(other.primitive),
                            coeff=self.coeff * other.coeff,
@@ -106,16 +87,7 @@ class VectorStateFn(StateFn):
         return TensoredOp([self, other])
 
     def to_density_matrix(self, massive: bool = False) -> np.ndarray:
-        """ Return numpy matrix of density operator, warn if more than 16 qubits
-        to force the user to set
-        massive=True if they want such a large matrix. Generally big methods
-        like this should require the use of a
-        converter, but in this case a convenience method for quick hacking and
-        access to classical tools is
-        appropriate. """
-
         if self.num_qubits > 16 and not massive:
-            # TODO figure out sparse matrices?
             raise ValueError(
                 'to_matrix will return an exponentially large matrix,'
                 ' in this case {0}x{0} elements.'
@@ -124,29 +96,6 @@ class VectorStateFn(StateFn):
         return self.primitive.to_operator().data * self.coeff
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
-        """
-        NOTE: THIS DOES NOT RETURN A DENSITY MATRIX, IT RETURNS A CLASSICAL
-        MATRIX CONTAINING THE QUANTUM OR CLASSICAL
-        VECTOR REPRESENTING THE EVALUATION OF THE STATE FUNCTION ON EACH BINARY BASIS STATE.
-        DO NOT ASSUME THIS IS
-        IS A NORMALIZED QUANTUM OR CLASSICAL PROBABILITY VECTOR.
-        If we allowed this to return a density matrix,
-        then we would need to change the definition of composition to
-        be ~Op @ StateFn @ Op for those cases,
-        whereas by this methodology we can ensure that composition always means Op @ StateFn.
-
-        Return numpy vector of state vector, warn if more than 16 qubits to force the user to set
-        massive=True if they want such a large vector. Generally big methods
-        like this should require the use of a
-        converter, but in this case a convenience method for
-        quick hacking and access to classical tools is
-        appropriate.
-        Returns:
-            np.ndarray: vector of state vector
-        Raises:
-            ValueError: invalid parameters.
-        """
-
         if self.num_qubits > 16 and not massive:
             raise ValueError(
                 'to_vector will return an exponentially large vector, in this case {0} elements.'
@@ -160,13 +109,12 @@ class VectorStateFn(StateFn):
         return self
 
     def to_circuit_op(self) -> OperatorBase:
-        """ Return StateFnCircuit corresponding to this StateFn."""
+        """ Return ``StateFnCircuit`` corresponding to this StateFn."""
         from .circuit_state_fn import CircuitStateFn
         csfn = CircuitStateFn.from_vector(self.to_matrix(massive=True)) * self.coeff
         return csfn.adjoint() if self.is_measurement else csfn
 
     def __str__(self) -> str:
-        """Overload str() """
         prim_str = str(self.primitive)
         if self.coeff == 1.0:
             return "{}({})".format('VectorStateFn' if not self.is_measurement
@@ -221,8 +169,6 @@ class VectorStateFn(StateFn):
                shots: int = 1024,
                massive: bool = False,
                reverse_endianness: bool = False) -> dict:
-        """ Sample the state function as a normalized probability distribution. Returns dict of
-        bitstrings in order of probability, with values being probability. """
         deterministic_counts = self.primitive.to_counts()
         # Don't need to square because to_counts already does.
         probs = np.array(list(deterministic_counts.values()))

@@ -28,23 +28,9 @@ from ..list_ops.summed_op import SummedOp
 # pylint: disable=invalid-name
 
 class OperatorStateFn(StateFn):
-    """ A class for representing state functions and measurements.
-
-    State functions are defined to be complex functions over a single binary string (as
-    compared to an operator, which is defined as a function over two binary strings, or
-    a function taking a binary function to another binary function). This function may be
-    called by the eval() method.
-
-    Measurements are defined to be functionals over StateFns, taking them to real values.
-    Generally, this real value is interpreted to represent the probability of some classical
-    state (binary string) being observed from a probabilistic or quantum system represented
-    by a StateFn. This leads to the equivalent definition, which is that a measurement m is a
-    function over binary strings producing StateFns, such that the probability of measuring
-    a given binary string b from a system with StateFn f is equal to the inner product between
-    f and m(b).
-
-    NOTE: State functions here are not restricted to wave functions,
-    as there is no requirement of normalization.
+    r"""
+    A class for state functions and measurements which are defined by a density Operator,
+    stored using an ``OperatorBase``.
     """
 
     # TODO allow normalization somehow?
@@ -54,7 +40,8 @@ class OperatorStateFn(StateFn):
                  is_measurement: bool = False) -> None:
         """
         Args:
-            primitive: The operator primitive being wrapped.
+            primitive: The ``OperatorBase`` which defines the behavior of the underlying State
+                function.
             coeff: A coefficient by which to multiply the state function
             is_measurement: Whether the StateFn is a measurement operator
         """
@@ -96,7 +83,6 @@ class OperatorStateFn(StateFn):
                                is_measurement=(not self.is_measurement))
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
-        """ tensor """
         if isinstance(other, OperatorStateFn):
             return StateFn(self.primitive.tensor(other.primitive),
                            coeff=self.coeff * other.coeff,
@@ -128,26 +114,27 @@ class OperatorStateFn(StateFn):
                                is_measurement=self.is_measurement)
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
-        """
-        NOTE: THIS DOES NOT RETURN A DENSITY MATRIX, IT RETURNS A CLASSICAL MATRIX
-        CONTAINING THE QUANTUM OR CLASSICAL
-        VECTOR REPRESENTING THE EVALUATION OF THE STATE FUNCTION ON EACH BINARY
-        BASIS STATE. DO NOT ASSUME THIS IS
-        IS A NORMALIZED QUANTUM OR CLASSICAL PROBABILITY VECTOR. If we allowed
-        this to return a density matrix,
-        then we would need to change the definition of composition to be ~Op @
-        StateFn @ Op for those cases,
-        whereas by this methodology we can ensure that composition always means Op @ StateFn.
+        r"""
+        Note: this does not return a density matrix, it returns a classical matrix
+        containing the quantum or classical vector representing the evaluation of the state
+        function on each binary basis state. Do not assume this is is a normalized quantum or
+        classical probability vector. If we allowed this to return a density matrix,
+        then we would need to change the definition of composition to be ~Op @ StateFn @ Op for
+        those cases, whereas by this methodology we can ensure that composition always means Op
+        @ StateFn.
 
         Return numpy vector of state vector, warn if more than 16 qubits to force the user to set
-        massive=True if they want such a large vector. Generally big methods like
-        this should require the use of a
-        converter, but in this case a convenience method for quick hacking and
-        access to classical tools is appropriate.
+        massive=True if they want such a large vector.
+
+        Args:
+            massive: Whether to allow large conversions, e.g. creating a matrix representing
+                over 16 qubits.
+
         Returns:
-            np.ndarray: vector of state vector
+            np.ndarray: Vector of state vector
+
         Raises:
-            ValueError: invalid parameters.
+            ValueError: Invalid parameters.
         """
 
         if self.num_qubits > 16 and not massive:
@@ -174,12 +161,11 @@ class OperatorStateFn(StateFn):
         return diag_over_tree(mat)
 
     def to_circuit_op(self) -> OperatorBase:
-        """ Return StateFnCircuit corresponding to this StateFn. Ignore for now because this is
+        r""" Return ``StateFnCircuit`` corresponding to this StateFn. Ignore for now because this is
         undefined. TODO maybe diagonalize here."""
         return self
 
     def __str__(self) -> str:
-        """Overload str() """
         prim_str = str(self.primitive)
         if self.coeff == 1.0:
             return "{}({})".format('OperatorStateFn' if not self.is_measurement
@@ -221,6 +207,4 @@ class OperatorStateFn(StateFn):
                shots: int = 1024,
                massive: bool = False,
                reverse_endianness: bool = False) -> dict:
-        """ Sample the state function as a normalized probability distribution. Returns dict of
-        bitstrings in order of probability, with values being probability. """
         raise NotImplementedError

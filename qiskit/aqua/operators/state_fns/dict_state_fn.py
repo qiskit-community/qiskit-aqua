@@ -28,27 +28,8 @@ from ..list_ops.list_op import ListOp
 
 
 class DictStateFn(StateFn):
-    """ A class for representing state functions and measurements.
-
-    State functions are defined to be complex functions over a single binary string
-    (as compared to an operator,
-    which is defined as a function over two binary strings, or a function taking a binary
-    function to another
-    binary function). This function may be called by the eval() method.
-
-    Measurements are defined to be functionals over StateFns, taking them to real values.
-    Generally, this real value
-    is interpreted to represent the probability of some classical state (binary string)
-    being observed from a
-    probabilistic or quantum system represented by a StateFn. This leads to the
-    equivalent definition, which is that
-    a measurement m is a function over binary strings producing StateFns, such that
-    the probability of measuring
-    a given binary string b from a system with StateFn f is equal to the inner product
-    between f and m(b).
-
-    NOTE: State functions here are not restricted to wave functions, as there is
-    no requirement of normalization.
+    """ A class for state functions and measurements which are defined by a lookup table,
+    stored in a dict.
     """
 
     # TODO allow normalization somehow?
@@ -58,12 +39,13 @@ class DictStateFn(StateFn):
                  is_measurement: bool = False) -> None:
         """
             Args:
-                primitive: The operator primitive being wrapped.
+                primitive: The dict, single bitstring (if defining a basis sate), or Qiskit
+                    Result, which defines the behavior of the underlying function.
                 coeff: A coefficient by which to multiply the state function.
                 is_measurement: Whether the StateFn is a measurement operator.
 
             Raises:
-                    TypeError: invalid parameters.
+                TypeError: invalid parameters.
         """
         # If the initial density is a string, treat this as a density dict
         # with only a single basis state.
@@ -127,7 +109,6 @@ class DictStateFn(StateFn):
                            is_measurement=(not self.is_measurement))
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
-        """ tensor """
         # Both dicts
         if isinstance(other, DictStateFn):
             new_dict = {k1 + k2: v1 * v2 for ((k1, v1,), (k2, v2)) in
@@ -140,14 +121,6 @@ class DictStateFn(StateFn):
         return TensoredOp([self, other])
 
     def to_density_matrix(self, massive: bool = False) -> np.ndarray:
-        """ Return numpy matrix of density operator, warn if more than 16 qubits to
-        force the user to set
-        massive=True if they want such a large matrix. Generally big methods
-        like this should require the use of a
-        converter, but in this case a convenience method for quick
-        hacking and access to classical tools is
-        appropriate. """
-
         if self.num_qubits > 16 and not massive:
             # TODO figure out sparse matrices?
             raise ValueError(
@@ -197,7 +170,7 @@ class DictStateFn(StateFn):
         return spvec if not self.is_measurement else spvec.transpose()
 
     def to_circuit_op(self) -> OperatorBase:
-        """ Return StateFnCircuit corresponding to this StateFn."""
+        """ Return ``StateFnCircuit`` corresponding to this StateFn."""
         from .circuit_state_fn import CircuitStateFn
         csfn = CircuitStateFn.from_dict(self.primitive) * self.coeff
         return csfn.adjoint() if self.is_measurement else csfn
@@ -269,8 +242,6 @@ class DictStateFn(StateFn):
                shots: int = 1024,
                massive: bool = False,
                reverse_endianness: bool = False) -> dict:
-        """ Sample the state function as a normalized probability distribution. Returns dict of
-        bitstrings in order of probability, with values being probability. """
         probs = np.array(list(self.primitive.values()))**2
         unique, counts = np.unique(np.random.choice(list(self.primitive.keys()),
                                                     size=shots,

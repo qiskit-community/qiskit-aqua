@@ -38,14 +38,13 @@ class MatrixOp(PrimitiveOp):
 
     """
 
-    def __init__(self, primitive: Union[list, np.ndarray, spmatrix, MatrixOperator] = None,
+    def __init__(self,
+                 primitive: Union[list, np.ndarray, spmatrix, MatrixOperator] = None,
                  coeff: Optional[Union[int, float, complex, ParameterExpression]] = 1.0) -> None:
         """
         Args:
-            primitive ([[complex]], np.ndarray, MatrixOperator, spmatrix): The matrix-like object
-                which defines the behavior of the underlying function.
-            coeff (int, float, complex, ParameterExpression): A coefficient multiplying the
-                primitive
+            primitive: The matrix-like object which defines the behavior of the underlying function.
+            coeff: A coefficient multiplying the primitive
 
         Raises:
             TypeError: invalid parameters.

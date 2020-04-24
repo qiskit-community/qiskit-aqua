@@ -28,28 +28,9 @@ from .state_fn import StateFn
 
 
 class CircuitStateFn(StateFn):
-    """
-    A class for representing state functions and measurements.
-
-    State functions are defined to be complex functions over a single binary string
-    (as compared to an operator,
-    which is defined as a function over two binary strings, or a function taking
-    a binary function to another
-    binary function). This function may be called by the eval() method.
-
-    Measurements are defined to be functionals over StateFns, taking them to real values.
-    Generally, this real value
-    is interpreted to represent the probability of some classical state (binary string)
-    being observed from a
-    probabilistic or quantum system represented by a StateFn. This leads to the
-    equivalent definition, which is that
-    a measurement m is a function over binary strings producing StateFns, such that
-    the probability of measuring
-    a given binary string b from a system with StateFn f is equal to the inner
-    product between f and m(b).
-
-    NOTE: State functions here are not restricted to wave functions,
-          as there is no requirement of normalization.
+    r"""
+    A class for state functions and measurements which are defined by the action of a
+    QuantumCircuit starting from \|0⟩, and stored using Terra's ``QuantumCircuit`` class.
     """
 
     # TODO allow normalization somehow?
@@ -59,9 +40,11 @@ class CircuitStateFn(StateFn):
                  is_measurement: bool = False) -> None:
         """
         Args:
-            primitive: The operator primitive being wrapped.
-            coeff: A coefficient by which to multiply the state function.
+            primitive: The ``QuantumCircuit`` (or ``Instruction``, which will be converted) which
+                defines the behavior of the underlying function.
+            coeff: A coefficient multiplying the state function.
             is_measurement: Whether the StateFn is a measurement operator.
+
         Raises:
             TypeError: invalid parameters.
         """
@@ -77,8 +60,15 @@ class CircuitStateFn(StateFn):
         super().__init__(primitive, coeff=coeff, is_measurement=is_measurement)
 
     @staticmethod
-    def from_dict(density_dict: dict) -> OperatorBase:
-        """ from dictionary """
+    def from_dict(density_dict: dict) -> 'CircuitStateFn':
+        """ Construct the CircuitStateFn from a dict mapping strings to probability densities.
+
+        Args:
+            density_dict: The dict respresenting the desired state.
+
+        Returns:
+            The CircuitStateFn created from the dict.
+        """
         # If the dict is sparse (elements <= qubits), don't go
         # building a statevector to pass to Qiskit's
         # initializer, just create a sum.
@@ -101,11 +91,23 @@ class CircuitStateFn(StateFn):
             return CircuitStateFn.from_vector(sf_dict.to_matrix())
 
     @staticmethod
-    def from_vector(statevector: np.ndarray) -> OperatorBase:
-        """ from vector """
+    def from_vector(statevector: np.ndarray) -> 'CircuitStateFn':
+        """ Construct the CircuitStateFn from a vector representing the statevector.
+
+        Args:
+            statevector: The statevector respresenting the desired state.
+
+        Returns:
+            The CircuitStateFn created from the vector.
+
+        Raises:
+            ValueError: If a vector with complex values is passed, which the Initializer cannot
+            handle.
+        """
         normalization_coeff = np.linalg.norm(statevector)
         normalized_sv = statevector / normalization_coeff
         if not np.all(np.abs(statevector) == statevector):
+            # TODO maybe switch to Isometry?
             raise ValueError('Qiskit circuit Initializer cannot handle non-positive statevectors.')
         return CircuitStateFn(Initialize(normalized_sv), coeff=normalization_coeff)
 
@@ -179,6 +181,7 @@ class CircuitStateFn(StateFn):
 
         Args:
             other: The ``OperatorBase`` to tensor product with self.
+
         Returns:
             An ``OperatorBase`` equivalent to the tensor product of self and other.
         """
@@ -294,7 +297,7 @@ class CircuitStateFn(StateFn):
             return self.primitive
 
     def to_circuit_op(self) -> OperatorBase:
-        """ Return StateFnCircuit corresponding to this StateFn."""
+        """ Return ``StateFnCircuit`` corresponding to this StateFn."""
         return self
 
     def to_instruction(self):

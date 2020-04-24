@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 class PrimitiveOp(OperatorBase):
-    """
+    r"""
     A class for representing basic Operators, backed by Operator primitives from
     Terra. This class (and inheritors) primarily serves to allow the underlying
     primitives to "flow" - i.e. interoperability and adherence to the Operator formalism

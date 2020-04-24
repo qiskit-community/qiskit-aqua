@@ -15,7 +15,24 @@
 """
 State Functions (:mod:`qiskit.aqua.operators.state_fns`)
 ==============================================================
-State Functions...
+State functions are defined to be complex functions over a single binary string (as
+compared to an operator, which is defined as a function over two binary strings, or a
+function taking a binary function to another binary function). This function may be
+called by the eval() method.
+
+Measurements are defined to be functionals over StateFns, taking them to real values.
+Generally, this real value is interpreted to represent the probability of some classical
+state (binary string) being observed from a probabilistic or quantum system represented
+by a StateFn. This leads to the equivalent definition, which is that a measurement m is
+a function over binary strings producing StateFns, such that the probability of measuring
+a given binary string b from a system with StateFn f is equal to the inner
+product between f and m(b).
+
+Note that all mathematical methods between StateFns are not in-place, meaning that they return a
+new object, but the underlying primitives are not copied.
+
+NOTE: State functions here are not restricted to wave functions, as there is
+no requirement of normalization.
 
 .. currentmodule:: qiskit.aqua.operators.state_fns
 

@@ -261,8 +261,9 @@ class PauliOp(PrimitiveOp):
         return qc
 
     def to_instruction(self) -> Instruction:
-        # TODO just do this because performance of adding and deleting IGates doesn't matter?
-        # Reduce to remove extra IGates.
+        # TODO should we just do the following because performance of adding and deleting IGates
+        #  doesn't matter?
+        # (Reduce removes extra IGates).
         # return PrimitiveOp(self.primitive.to_instruction(), coeff=self.coeff).reduce()
 
         return self.to_circuit().to_instruction()
