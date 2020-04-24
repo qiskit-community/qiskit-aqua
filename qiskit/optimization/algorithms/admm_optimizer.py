@@ -22,7 +22,7 @@ import numpy as np
 from qiskit.optimization.algorithms.cplex_optimizer import CplexOptimizer
 from qiskit.optimization.algorithms.optimization_algorithm import (OptimizationAlgorithm,
                                                                    OptimizationResult)
-from qiskit.optimization.problems import VarType, ConstraintSense, LinearConstraint, ObjSense
+from qiskit.optimization.problems import VarType, ConstraintSense, ObjSense
 from qiskit.optimization.problems.quadratic_program import QuadraticProgram
 
 UPDATE_RHO_BY_TEN_PERCENT = 0

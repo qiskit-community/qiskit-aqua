@@ -13,6 +13,8 @@
 # that they have been altered from the originals.
 
 """Tests of the ADMM algorithm."""
+from test.optimization import QiskitOptimizationTestCase
+
 import numpy as np
 from docplex.mp.model import Model
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
@@ -20,8 +22,6 @@ from qiskit.optimization.algorithms import CplexOptimizer, MinimumEigenOptimizer
 from qiskit.optimization.algorithms.admm_optimizer import ADMMOptimizer, ADMMParameters, \
     ADMMOptimizationResult, ADMMState
 from qiskit.optimization.problems import QuadraticProgram
-
-from test.optimization import QiskitOptimizationTestCase
 
 
 class TestADMMOptimizer(QiskitOptimizationTestCase):
