@@ -191,6 +191,7 @@ formatter
 formulae
 fortran
 fourier
+franca
 ftol
 fujii
 fullname
@@ -296,6 +297,7 @@ kth
 kumar
 kwargs
 labelled
+learnable
 ldots
 LegacyBaseOperator
 len
@@ -318,6 +320,7 @@ majorana
 mapsto
 mathbb
 mathsf
+Matlab
 matmul
 matmulmean
 matrixoperator
@@ -668,6 +671,7 @@ UCCS
 vec
 versioning
 vir
+Watrous's
 wf
 Ze
 vir

@@ -122,7 +122,6 @@ following by ``OperatorStateFns`` containing only diagonal Paulis.
    :toctree:
 
    converters
-   circuit_samplers
    evolutions
    expectation_values
 
