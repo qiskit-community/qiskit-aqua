@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Expectation Algorithm using Statevector simulation and matrix multiplication. """
+""" MatrixExpectation Class """
 
 import logging
 from typing import Union
@@ -28,11 +28,19 @@ logger = logging.getLogger(__name__)
 # pylint: disable=invalid-name
 
 class MatrixExpectation(ExpectationBase):
-    """ Expectation Algorithm using Statevector simulation and matrix multiplication. """
+    """ An Expectation converter which converts Operator measurements to be matrix-based so they
+    can be evaluated by matrix multiplication. """
 
     def convert(self, operator: OperatorBase) -> OperatorBase:
         """ Accept an Operator and return a new Operator with the Pauli measurements replaced by
-        Matrix based measurements. """
+        Matrix based measurements.
+
+        Args:
+            operator: The operator to convert.
+
+        Returns:
+            The converted operator.
+        """
         if isinstance(operator, OperatorStateFn) and operator.is_measurement:
             return operator.to_matrix_op()
         elif isinstance(operator, ListOp):
@@ -41,7 +49,19 @@ class MatrixExpectation(ExpectationBase):
             return operator
 
     def compute_variance(self, exp_op: OperatorBase) -> Union[list, float]:
-        """ compute variance """
+        r"""
+        Compute the variance of the expectation estimator. Because this expectation
+        works by matrix multiplication, the estimation is exact and the variance is
+        always 0, but we need to return those values in a way which matches the Operator's
+        structure.
+
+        Args:
+            exp_op: The full expectation value Operator.
+
+        Returns:
+             The variances or lists thereof (if exp_op contains ListOps) of the expectation value
+             estimation, equal to 0.
+        """
 
         # Need to do this to mimic Op structure
         def sum_variance(operator):

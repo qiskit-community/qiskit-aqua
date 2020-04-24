@@ -12,8 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Expectation Algorithm for Pauli-basis observables by changing to diagonal basis and
-estimating average by sampling. """
+""" PauliExpectation Class """
 
 import logging
 from typing import Union
@@ -32,11 +31,12 @@ logger = logging.getLogger(__name__)
 
 
 class PauliExpectation(ExpectationBase):
-    """ An Expectation Value algorithm for taking expectations of quantum states
-    specified by circuits over observables specified by Pauli Operators.
-
-    Observables are changed to diagonal basis by clifford circuits and average is estimated by
-    sampling measurements in the Z-basis.
+    r"""
+    An Expectation converter for Pauli-basis observables by changing Pauli measurements to a
+    diagonal ({Z, I}^n) basis and appending circuit post-rotations to the measured state function.
+    Optionally groups the Paulis with the same post-rotations (those that commute with one
+    another, or form Abelian groups) into single measurements to reduce circuit execution
+    overhead.
 
     """
 
@@ -50,8 +50,17 @@ class PauliExpectation(ExpectationBase):
         self._grouper = AbelianGrouper() if group_paulis else None
 
     def convert(self, operator: OperatorBase) -> OperatorBase:
-        """ Accept an Operator and return a new Operator with the Pauli measurements replaced by
-        Pauli post-rotation based measurements and averaging. """
+        """ Accepts an Operator and returns a new Operator with the Pauli measurements replaced by
+        diagonal Pauli post-rotation based measurements so they can be evaluated by sampling and
+        averaging.
+
+        Args:
+            operator: The operator to convert.
+
+        Returns:
+            The converted operator.
+        """
+
         if isinstance(operator, OperatorStateFn) and operator.is_measurement:
             if self._grouper and isinstance(operator.primitive, ListOp):
                 grouped = self._grouper.convert(operator.primitive)
@@ -67,7 +76,6 @@ class PauliExpectation(ExpectationBase):
 
     # pylint: disable=inconsistent-return-statements
     def compute_variance(self, exp_op: OperatorBase) -> Union[list, float, np.ndarray]:
-        """ compute variance """
 
         def sum_variance(operator):
             if isinstance(operator, ComposedOp):

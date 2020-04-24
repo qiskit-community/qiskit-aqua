@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Expectation Algorithm Base """
+""" AerPauliExpectation Class """
 
 import logging
 from typing import Union
@@ -30,14 +30,21 @@ logger = logging.getLogger(__name__)
 
 
 class AerPauliExpectation(ExpectationBase):
-    """ An Expectation Value algorithm for using Aer's operator snapshot to
+    r""" An Expectation converter for using Aer's operator snapshot to
     take expectations of quantum state circuits over Pauli observables.
 
     """
 
     def convert(self, operator: OperatorBase) -> OperatorBase:
         """ Accept an Operator and return a new Operator with the Pauli measurements replaced by
-        AerSnapshot-based expectation circuits. """
+        AerSnapshot-based expectation circuits.
+
+        Args:
+            operator: The operator to convert.
+
+        Returns:
+            The converted operator.
+        """
         if isinstance(operator, OperatorStateFn) and operator.is_measurement:
             return self._replace_pauli_sums(operator.primitive) * operator.coeff
         elif isinstance(operator, ListOp):
@@ -71,7 +78,18 @@ class AerPauliExpectation(ExpectationBase):
             return operator.traverse(cls._replace_pauli_sums)
 
     def compute_variance(self, exp_op: OperatorBase) -> Union[list, float]:
-        """ compute variance """
+        r"""
+        Compute the variance of the expectation estimator. Because Aer takes this expectation
+        with matrix multiplication, the estimation is exact and the variance is always 0,
+        but we need to return those values in a way which matches the Operator's structure.
+
+        Args:
+            exp_op: The full expectation value Operator after sampling.
+
+        Returns:
+             The variances or lists thereof (if exp_op contains ListOps) of the expectation value
+             estimation, equal to 0.
+        """
 
         # Need to do this to mimic Op structure
         def sum_variance(operator):

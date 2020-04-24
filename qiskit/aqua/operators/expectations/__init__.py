@@ -13,16 +13,27 @@
 # that they have been altered from the originals.
 
 """
-Expectation Values (:mod:`qiskit.aqua.operators.expectations`)
+Expectations (:mod:`qiskit.aqua.operators.expectations`)
 ====================================================================
-Algorithms for approximating the value of some function over a probability distribution,
-or in the quantum case, algorithms for approximating the value of some observable over
-a state function.
+Expectations are converters which enable the computation of the expectation value of an
+Observable with respect to some state function. They traverse an Operator tree, replacing
+OperatorStateFn measurements with equivalent measurements which are more amenable to
+computation on quantum or classical hardware. For example, if one would like to measure the
+expectation value of an Operator ``o`` expressed as a sum of Paulis with respect to some state
+function, but only has access to diagonal measurements on Quantum hardware, we can create a
+measurement ~StateFn(o), use a ``PauliExpectation`` to convert it to a diagonal measurement and
+circuit pre-rotations to a append to the state, and sample this circuit on Quantum hardware with
+a CircuitSampler. All in all, this would be:
+``my_sampler.convert(my_expect.convert(~StateFn(o)) @ my_state).eval()``.
 
 .. currentmodule:: qiskit.aqua.operators.expectations
 
 Expectation Base Class
 ======================
+The ExpectationBase class gives an interface for algorithms to ask for Expectations as
+execution settings. For example, if an algorithm contains an ExpectationValue step within it,
+such as VQE, the algorithm can give the opportunity for the user to pass an ExpectationBase of
+their choice to be used in that expectation value step.
 
 .. autosummary::
    :toctree: ../stubs/

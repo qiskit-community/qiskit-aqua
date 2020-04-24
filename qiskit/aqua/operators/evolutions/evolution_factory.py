@@ -43,7 +43,7 @@ class EvolutionFactory():
             EvolutionBase: the ``EvolutionBase`` best suited to evolve operator.
 
         Raises:
-            ValueError: if operator is not of a composition for which we know the best Evolution
+            ValueError: If operator is not of a composition for which we know the best Evolution
                 method.
 
         """

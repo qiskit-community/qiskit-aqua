@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Expectation Algorithm Factory """
+""" ExpectationFactory Class """
 
 from typing import Union, Optional
 import logging
@@ -34,19 +34,27 @@ logger = logging.getLogger(__name__)
 
 
 class ExpectationFactory:
-    """ A factory for creating ExpectationBase algorithms given an operator, backend, and state.
-
+    """ A factory class for convenient automatic selection of an Expectation based on the
+    Operator to be converted and backend used to sample the expectation value.
     """
 
     @staticmethod
     def build(operator: OperatorBase,
               backend: Optional[Union[BaseBackend, QuantumInstance]] = None) -> ExpectationBase:
         """
+        A factory method for convenient automatic selection of an Expectation based on the
+        Operator to be converted and backend used to sample the expectation value.
+
         Args:
+            operator: The Operator whose expectation value will be taken.
+            backend: The backend which will be used to sample the expectation value.
+
         Returns:
-            ExpectationBase: derived class
+            The expectation algorithm which best fits the Operator and backend.
+
         Raises:
-            ValueError: Expectations of Mixed Operators not yet supported.
+            ValueError: If operator is not of a composition for which we know the best Expectation
+                method.
         """
         backend_to_check = backend.backend if isinstance(backend, QuantumInstance) else backend
 
