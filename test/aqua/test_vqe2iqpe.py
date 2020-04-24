@@ -18,18 +18,21 @@ import unittest
 from test.aqua import QiskitAquaTestCase
 
 import numpy as np
-from qiskit import BasicAer
+from ddt import ddt, data
+from qiskit import BasicAer, QuantumCircuit
+from qiskit.circuit.library import RYRZ
 
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.utils import decimal_to_binary
 from qiskit.aqua.operators import WeightedPauliOperator
-from qiskit.aqua.components.initial_states import VarFormBased
-from qiskit.aqua.components.variational_forms import RYRZ
+from qiskit.aqua.components.initial_states import VarFormBased, Custom
+from qiskit.aqua.components.variational_forms import RYRZ as VarRYRZ
 from qiskit.aqua.components.optimizers import SPSA
 from qiskit.aqua.algorithms import VQE
 from qiskit.aqua.algorithms import IQPEMinimumEigensolver
 
 
+@ddt
 class TestVQE2IQPE(QiskitAquaTestCase):
     """ Test VQE to IQPE """
 
@@ -47,14 +50,20 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         }
         self.qubit_op = WeightedPauliOperator.from_dict(pauli_dict)
 
-    def test_vqe_2_iqpe(self):
+    @data('varform', 'circuit', 'library')
+    def test_vqe_2_iqpe(self, wavefunction_type):
         """ vqe to iqpe test """
         backend = BasicAer.get_backend('qasm_simulator')
         num_qbits = self.qubit_op.num_qubits
-        var_form = RYRZ(num_qbits, 3)
+        if wavefunction_type == 'varform':
+            wavefunction = VarRYRZ(num_qbits, 3)
+        elif wavefunction_type == 'circuit':
+            wavefunction = QuantumCircuit(num_qbits).compose(RYRZ(num_qbits, reps=3))
+        else:
+            wavefunction = RYRZ(num_qbits, reps=3)
         optimizer = SPSA(max_trials=10)
         # optimizer.set_options(**{'max_trials': 500})
-        algo = VQE(self.qubit_op, var_form, optimizer)
+        algo = VQE(self.qubit_op, wavefunction, optimizer)
         quantum_instance = QuantumInstance(backend, seed_simulator=self.seed,
                                            seed_transpiler=self.seed)
         result = algo.run(quantum_instance)
@@ -66,7 +75,12 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         num_time_slices = 1
         num_iterations = 6
 
-        state_in = VarFormBased(var_form, result.optimal_point)
+        if wavefunction_type == 'varform':
+            state_in = VarFormBased(wavefunction, result.optimal_point)
+        else:
+            param_dict = dict(zip(algo._var_form_params, result.optimal_point))
+            state_in = Custom(num_qbits, circuit=wavefunction.assign_parameters(param_dict))
+
         iqpe = IQPEMinimumEigensolver(self.qubit_op, state_in, num_time_slices, num_iterations,
                                       expansion_mode='suzuki', expansion_order=2,
                                       shallow_circuit_concat=True)
