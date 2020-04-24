@@ -39,7 +39,7 @@ class CircuitSampler(ConverterBase):
     approximations of the state function by a DictStateFn or VectorStateFn using a quantum
     backend. Note that in order to approximate the value of the CircuitStateFn, it must 1) send
     state function through a depolarizing channel, which will destroy all phase information and
-    2) replace the sampled frequencies with **squareroots** of the frequency, rather than the raw
+    2) replace the sampled frequencies with **square roots** of the frequency, rather than the raw
     probability of sampling (which would be the equivalent of sampling the **square** of the
     state function, per the Born rule.
 

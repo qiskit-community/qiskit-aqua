@@ -67,8 +67,10 @@ cdf
 cdot
 ceil
 chernoff
+Chuang's
 circ
 CircuitCache
+CircuitOp
 clas
 clbits
 clifford
@@ -113,6 +115,7 @@ datapoints
 dataset
 datetime
 dcs
+de
 debye
 deconvoluted
 deepcopy
@@ -564,6 +567,7 @@ subpattern
 subspaces
 succ
 sudo
+SummedOps
 superclass
 superfast
 suzuki
@@ -576,6 +580,7 @@ sympy
 sys
 sysctl
 tbd
+TBP
 tdg
 temme
 tensored
