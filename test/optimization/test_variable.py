@@ -18,7 +18,7 @@ import unittest
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 
 from qiskit.optimization import infinity
-from qiskit.optimization.problems import QuadraticProgram, Variable, VarType
+from qiskit.optimization.problems import QuadraticProgram, Variable
 
 
 class TestVariable(QiskitOptimizationTestCase):
@@ -31,14 +31,14 @@ class TestVariable(QiskitOptimizationTestCase):
         name = 'variable'
         lowerbound = 0
         upperbound = 10
-        vartype = VarType.INTEGER
+        vartype = Variable.Type.INTEGER
 
         variable = Variable(quadratic_program, name, lowerbound, upperbound, vartype)
 
         self.assertEqual(variable.name, name)
         self.assertEqual(variable.lowerbound, lowerbound)
         self.assertEqual(variable.upperbound, upperbound)
-        self.assertEqual(variable.vartype, VarType.INTEGER)
+        self.assertEqual(variable.vartype, Variable.Type.INTEGER)
 
     def test_init_default(self):
         """ test init with default values."""
@@ -51,7 +51,7 @@ class TestVariable(QiskitOptimizationTestCase):
         self.assertEqual(variable.name, name)
         self.assertEqual(variable.lowerbound, 0)
         self.assertEqual(variable.upperbound, infinity)
-        self.assertEqual(variable.vartype, VarType.CONTINUOUS)
+        self.assertEqual(variable.vartype, Variable.Type.CONTINUOUS)
 
 
 if __name__ == '__main__':

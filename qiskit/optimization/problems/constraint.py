@@ -20,8 +20,8 @@ from typing import Union, List, Dict
 
 from numpy import ndarray
 
-from qiskit.optimization.problems.has_quadratic_program import HasQuadraticProgram
 from qiskit.optimization import QiskitOptimizationError
+from qiskit.optimization.problems.has_quadratic_program import HasQuadraticProgram
 
 
 class ConstraintSense(Enum):
@@ -33,7 +33,7 @@ class ConstraintSense(Enum):
     EQ = 2
 
     @staticmethod
-    def convert(sense: Union[str, "ConstraintSense"]) -> "ConstraintSense":
+    def convert(sense: Union[str, 'ConstraintSense']) -> 'ConstraintSense':
         """Convert a string into a corresponding sense of constraints
 
         Args:
@@ -61,7 +61,9 @@ class ConstraintSense(Enum):
 class Constraint(HasQuadraticProgram):
     """Abstract Constraint Class."""
 
-    def __init__(self, quadratic_program: "QuadraticProgram", name: str, sense: ConstraintSense,
+    Sense = ConstraintSense
+
+    def __init__(self, quadratic_program: 'QuadraticProgram', name: str, sense: ConstraintSense,
                  rhs: float) -> None:
         """ Initializes the constraint.
 
@@ -113,7 +115,7 @@ class Constraint(HasQuadraticProgram):
         return self._rhs
 
     @rhs.setter
-    def rhs(self, rhs: ConstraintSense) -> None:
+    def rhs(self, rhs: float) -> None:
         """Sets the right-hand-side of the constraint.
 
         Args:

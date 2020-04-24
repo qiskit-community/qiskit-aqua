@@ -31,6 +31,8 @@ class VarType(Enum):
 class Variable(HasQuadraticProgram):
     """Representation of a variable."""
 
+    Type = VarType
+
     def __init__(self, quadratic_program: 'QuadraticProgram', name: str,
                  lowerbound: Union[float, int] = 0,
                  upperbound: Union[float, int] = infinity,
