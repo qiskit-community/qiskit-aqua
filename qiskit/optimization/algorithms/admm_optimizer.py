@@ -24,7 +24,7 @@ from qiskit.optimization.algorithms.cplex_optimizer import CplexOptimizer
 from qiskit.optimization.algorithms.optimization_algorithm import (OptimizationAlgorithm,
                                                                    OptimizationResult)
 from qiskit.optimization.converters import IntegerToBinary
-from qiskit.optimization.problems import QuadraticProgram, Variable, Constraint
+from qiskit.optimization.problems import QuadraticProgram, Variable, Constraint, QuadraticObjective
 
 UPDATE_RHO_BY_TEN_PERCENT = 0
 UPDATE_RHO_BY_RESIDUALS = 1
@@ -250,8 +250,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
         self._log.debug("Initial problem: %s", problem.print_as_lp_string())
 
         # map integer variables to binary variables
-        int2bin = IntegerToBinary()
-        problem = int2bin.encode(problem)
+        # int2bin = IntegerToBinary()
+        # problem = int2bin.encode(problem)
 
         # we deal with minimization in the optimizer, so turn the problem to minimization
         problem, sense = self._turn_to_minimization(problem)
@@ -341,7 +341,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         result = ADMMOptimizationResult(solution, objective_value, self._state)
 
         # convert back integer to binary
-        result = int2bin.decode(result)
+        # result = int2bin.decode(result)
         # debug
         self._log.debug("solution=%s, objective=%s at iteration=%s",
                         solution, objective_value, iteration)
@@ -361,9 +361,9 @@ class ADMMOptimizer(OptimizationAlgorithm):
             the original sense of the problem in the numerical representation.
         """
         sense = problem.objective.sense.value
-        if problem.objective.sense == ObjSense.MAXIMIZE:
+        if problem.objective.sense == QuadraticObjective.Sense.MAXIMIZE:
             problem = copy.deepcopy(problem)
-            problem.objective.sense = ObjSense.MINIMIZE
+            problem.objective.sense = QuadraticObjective.Sense.MINIMIZE
             problem.objective.constant = (-1) * problem.objective.constant
             problem.objective.linear = (-1) * problem.objective.linear.coefficients
             problem.objective.quadratic = (-1) * problem.objective.quadratic.coefficients
@@ -418,7 +418,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         binary_var_indices = set(self._state.binary_indices)
         # separate constraints
         for constraint in self._state.op.linear_constraints:
-            if constraint.sense == ConstraintSense.EQ:
+            if constraint.sense == Constraint.Sense.EQ:
                 self._state.equality_constraints.append(constraint)
 
                 # verify that there are only binary variables in the constraint
@@ -427,14 +427,14 @@ class ADMMOptimizer(OptimizationAlgorithm):
                 if constraint_var_indices.issubset(binary_var_indices):
                     self._state.binary_equality_constraints.append(constraint)
 
-            elif constraint.sense in (ConstraintSense.LE, ConstraintSense.GE):
+            elif constraint.sense in (Constraint.Sense.LE, Constraint.Sense.GE):
                 self._state.inequality_constraints.append(constraint)
 
         # separate quadratic constraints into eq and non-eq
         for constraint in self._state.op.quadratic_constraints:
-            if constraint.sense == ConstraintSense.EQ:
+            if constraint.sense == Constraint.Sense.EQ:
                 self._state.equality_constraints.append(constraint)
-            elif constraint.sense in (ConstraintSense.LE, ConstraintSense.GE):
+            elif constraint.sense in (Constraint.Sense.LE, Constraint.Sense.GE):
                 self._state.inequality_constraints.append(constraint)
 
         # objective
@@ -534,7 +534,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # u (cts) are still there unchanged
         for i, var_index in enumerate(self._state.binary_indices):
             variable = op2.variables[var_index]
-            variable.vartype = Variable.VarType.CONTINUOUS
+            variable.vartype = Variable.Type.CONTINUOUS
             variable.upperbound = 1.
             variable.lowerbound = 0.
             # replacing Q0 objective and take of min/max sense, initially we consider minimization
@@ -677,7 +677,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # inequality constraints
         cr_ineq = 0
         for constraint in self._state.inequality_constraints:
-            sense = -1 if constraint.sense == ConstraintSense.GE else 1
+            sense = -1 if constraint.sense == Constraint.Sense.GE else 1
             cr_ineq += max(sense * (constraint.evaluate(solution) - constraint.rhs), 0)
 
         return cr_eq + cr_ineq
