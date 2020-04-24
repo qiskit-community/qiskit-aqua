@@ -41,7 +41,8 @@ class CircuitSampler(ConverterBase):
     def __init__(self,
                  backend: Optional[BaseBackend] = None,
                  statevector: Optional[bool] = None,
-                 param_qobj: bool = False) -> None:
+                 param_qobj: bool = False,
+                 attach_results: bool = False) -> None:
         """
         Args:
             backend:
@@ -56,6 +57,7 @@ class CircuitSampler(ConverterBase):
         if self._statevector and not is_statevector_backend(self.quantum_instance.backend):
             raise ValueError('Statevector mode for circuit sampling requires statevector '
                              'backend, not {}.'.format(backend))
+        self._attach_results = attach_results
 
         # Object state variables
         self._last_op = None
@@ -215,6 +217,8 @@ class CircuitSampler(ConverterBase):
                 else:
                     result_sfn = StateFn({b: (v * op_c.coeff / self._qi._run_config.shots) ** .5
                                           for (b, v) in results.get_counts(circ_index).items()})
+                if self._attach_results:
+                    result_sfn.execution_results = circ_results
                 c_statefns.append(result_sfn)
             sampled_statefn_dicts[id(op_c)] = c_statefns
         return sampled_statefn_dicts

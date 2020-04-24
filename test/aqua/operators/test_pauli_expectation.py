@@ -127,6 +127,13 @@ class TestPauliExpectation(QiskitAquaTestCase):
         converted_meas = expect.convert(~StateFn(paulis_op) @ states_op)
         np.testing.assert_array_almost_equal(converted_meas.eval(), [0, 0, 1, -1], decimal=1)
 
+        sampled = CircuitSampler(backend, attach_results=True).convert(converted_meas)
+        np.testing.assert_array_almost_equal(sampled.eval(), [0, 0, 1, -1], decimal=1)
+
+        # Small test to see if execution results are accessible
+        for composed_op in sampled:
+            self.assertIn('counts', composed_op[1].execution_results)
+
     def test_pauli_expect_op_vector_state_vector(self):
         """ pauli expect op vector state vector test """
         backend = BasicAer.get_backend('qasm_simulator')

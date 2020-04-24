@@ -147,8 +147,6 @@ from .converters import (ConverterBase, CircuitSampler, PauliBasisChange,
                          DictToCircuitSum, AbelianGrouper)
 from .expectation_values import (ExpectationBase, ExpectationFactory, PauliExpectation,
                                  MatrixExpectation, AerPauliExpectation)
-from .circuit_samplers import (CircuitSamplerBase, CircuitSamplerFactory,
-                               IBMQSampler)
 from .evolutions import (EvolutionBase, EvolutionFactory, EvolvedOp, PauliTrotterEvolution,
                          TrotterizationBase, TrotterizationFactory, Trotter, Suzuki, QDrift)
 
