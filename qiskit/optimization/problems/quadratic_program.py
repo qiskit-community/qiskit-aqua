@@ -73,15 +73,16 @@ class QuadraticProgram:
         objective function as well as the name.
         """
         self._name = ''
+        self._status = self.Status.VALID
 
-        self._variables: List[Variable] = []
-        self._variables_index: Dict[str, int] = {}
+        self._variables.clear()
+        self._variables_index.clear()
 
-        self._linear_constraints: List[LinearConstraint] = []
-        self._linear_constraints_index: Dict[str, int] = {}
+        self._linear_constraints.clear()
+        self._linear_constraints_index.clear()
 
-        self._quadratic_constraints: List[QuadraticConstraint] = []
-        self._quadratic_constraints_index: Dict[str, int] = {}
+        self._quadratic_constraints.clear()
+        self._quadratic_constraints_index.clear()
 
         self._objective = QuadraticObjective(self)
 

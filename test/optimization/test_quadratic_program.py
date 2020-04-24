@@ -31,6 +31,7 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         """ test constructor """
         quadratic_program = QuadraticProgram()
         self.assertEqual(quadratic_program.name, '')
+        self.assertEqual(quadratic_program.status, QuadraticProgram.Status.VALID)
         self.assertEqual(quadratic_program.get_num_vars(), 0)
         self.assertEqual(quadratic_program.get_num_linear_constraints(), 0)
         self.assertEqual(quadratic_program.get_num_quadratic_constraints(), 0)
@@ -48,6 +49,7 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         q_p.quadratic_constraint({'x': 1}, {('y', 'y'): 2}, '<=', 1)
         q_p.clear()
         self.assertEqual(q_p.name, '')
+        self.assertEqual(q_p.status, QuadraticProgram.Status.VALID)
         self.assertEqual(q_p.get_num_vars(), 0)
         self.assertEqual(q_p.get_num_linear_constraints(), 0)
         self.assertEqual(q_p.get_num_quadratic_constraints(), 0)
@@ -539,6 +541,8 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         self.assertEqual(q_p2.status, QuadraticProgram.Status.INFEASIBLE)
         q_p2 = q_p.substitute_variables(constants={'x': 1, 'z': 2})
         self.assertEqual(q_p2.status, QuadraticProgram.Status.INFEASIBLE)
+        q_p2.clear()
+        self.assertEqual(q_p2.status, QuadraticProgram.Status.VALID)
 
         q_p2 = q_p.substitute_variables(constants={'x': 0})
         self.assertEqual(q_p2.status, QuadraticProgram.Status.VALID)
