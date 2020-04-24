@@ -64,7 +64,7 @@ class CircuitStateFn(StateFn):
         """ Construct the CircuitStateFn from a dict mapping strings to probability densities.
 
         Args:
-            density_dict: The dict respresenting the desired state.
+            density_dict: The dict representing the desired state.
 
         Returns:
             The CircuitStateFn created from the dict.
@@ -95,7 +95,7 @@ class CircuitStateFn(StateFn):
         """ Construct the CircuitStateFn from a vector representing the statevector.
 
         Args:
-            statevector: The statevector respresenting the desired state.
+            statevector: The statevector representing the desired state.
 
         Returns:
             The CircuitStateFn created from the vector.
