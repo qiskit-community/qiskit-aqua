@@ -22,7 +22,7 @@ computation on quantum or classical hardware. For example, if one would like to 
 expectation value of an Operator ``o`` expressed as a sum of Paulis with respect to some state
 function, but only has access to diagonal measurements on Quantum hardware, we can create a
 measurement ~StateFn(o), use a ``PauliExpectation`` to convert it to a diagonal measurement and
-circuit pre-rotations to a append to the state, and sample this circuit on Quantum hardware with
+circuit pre-rotations to append to the state, and sample this circuit on Quantum hardware with
 a CircuitSampler. All in all, this would be:
 ``my_sampler.convert(my_expect.convert(~StateFn(o)) @ my_state).eval()``.
 
