@@ -41,21 +41,16 @@ class TestQuadraticProgramToNegativeValueOracle(QiskitOptimizationTestCase):
 
         # Get expected results.
         solutions = GroverOptimizer._get_qubo_solutions(func_dict, n_key, print_solutions=False)
-        print(solutions)
 
         # Run the state preparation operator A and observe results.
         circuit = operator._circuit
         qc = QuantumCircuit() + circuit
         hist = self._measure(qc, n_key, n_value)
-        print(hist)
 
         # Validate operator A.
         for label in hist:
             key = int(label[:n_key], 2)
-            print(key, label[:n_key])
             value = self._bin_to_int(label[n_key:n_key + n_value], n_value)
-            print(key, label[:n_key], self._bin_to_int(label[n_key:n_key + n_value], n_value), value)
-            print()
             self.assertEqual(int(solutions[key]), value)
 
     @staticmethod
