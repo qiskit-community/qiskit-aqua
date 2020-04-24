@@ -35,7 +35,7 @@ class OperatorToQuadraticProgram:
         self._qubo_matrix = None
         self._qp = None
 
-    def encode(self, qubit_op: WeightedPauliOperator, offset: float) -> QuadraticProgram:
+    def encode(self, qubit_op: WeightedPauliOperator, offset: float = 0.0) -> QuadraticProgram:
         """Convert a qubit operator and a shift value into a quadratic program
 
         Args:
