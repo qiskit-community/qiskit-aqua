@@ -127,6 +127,7 @@ class DictStateFn(StateFn):
                            is_measurement=(not self.is_measurement))
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
+        """ tensor """
         # Both dicts
         if isinstance(other, DictStateFn):
             new_dict = {k1 + k2: v1 * v2 for ((k1, v1,), (k2, v2)) in

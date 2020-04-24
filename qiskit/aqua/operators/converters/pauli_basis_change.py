@@ -48,7 +48,8 @@ class PauliBasisChange(ConverterBase):
                  destination_basis: Optional[Union[Pauli, PauliOp]] = None,
                  traverse: bool = True,
                  replacement_fn: Optional[Callable] = None) -> None:
-        """ Args:
+        """
+        Args:
             destination_basis: The Pauli into the basis of which the operators
             will be converted. If None is
             specified, the destination basis will be the {I,Z}^n basis requiring only
@@ -60,16 +61,14 @@ class PauliBasisChange(ConverterBase):
             instruction and destination
             Pauli when converting an Operator and replacing converted values.
             By default, this will be
-
-            1) For StateFns (or Measurements): replacing the StateFn with
-            ComposedOp(StateFn(d), c) where c
-            is the conversion circuit and d is the destination Pauli,
-            so the overall beginning and ending operators are equivalent.
-            2) For non-StateFn Operators: replacing the origin p with c·d·c†,
-            where c is the conversion circuit
-            and d is the destination, so the overall beginning and ending
-            operators are equivalent.
-
+                1) For StateFns (or Measurements): replacing the StateFn with
+                ComposedOp(StateFn(d), c) where c
+                is the conversion circuit and d is the destination Pauli,
+                so the overall beginning and ending operators are equivalent.
+                2) For non-StateFn Operators: replacing the origin p with c·d·c†,
+                where c is the conversion circuit
+                and d is the destination, so the overall beginning and ending
+                operators are equivalent.
         """
         if destination_basis is not None:
             self.destination = destination_basis
@@ -268,32 +267,42 @@ class PauliBasisChange(ConverterBase):
 
         return PrimitiveOp(cnots)
 
+    # TODO update steps to remove 5) and 7).
     def get_cob_circuit(self, origin: Union[Pauli, PauliOp]) -> (PrimitiveOp, PauliOp):
         r"""
         The goal of this module is to construct a circuit which maps the +1 and -1 eigenvectors
         of the origin pauli to the +1 and -1 eigenvectors of the destination pauli. It does so by
 
         1) converting any \|i+⟩ or \|i+⟩ eigenvector bits in the origin to
-        \|+⟩ and \|-⟩ with S†s, then
+           \|+⟩ and \|-⟩ with S†s, then
+
         2) converting any \|+⟩ or \|+⟩ eigenvector bits in the converted origin to
-        \|0⟩ and \|1⟩ with Hs, then
-        3) writing the parity of the significant (Z-measured, rather than I) bits in the
-        origin to a single
-        "origin anchor bit," using cnots, which will hold the parity of these bits,
+           \|0⟩ and \|1⟩ with Hs, then
+
+        3) writing the parity of the significant (Z-measured, rather than I)
+           bits in the origin to a single
+           "origin anchor bit," using cnots, which will hold the parity of these bits,
+
         4) swapping the parity of the pauli anchor bit into a destination anchor bit using
-        a swap gate (only if they are different, if there are any bits which are significant
-        in both origin and dest, we set both anchors to one of these bits to avoid a swap).
-        bits is different from the parity of the number of destination significant bits
-        (to be flipped back in step 7)
-        5) writing the parity of the destination anchor bit into the other significant bits
-        of the destination,
-        6) converting the \|0⟩ and \|1⟩ significant eigenvector bits to \|+⟩ and \|-⟩
-        eigenvector bits in the destination where the destination demands it
-        (e.g. pauli.x == true for a bit), using Hs
-        7) converting the \|+⟩ and \|-⟩ significant eigenvector bits to
-        \|i+⟩ and \|i-⟩ eigenvector bits in the
-        destination where the destination demands it
-        (e.g. pauli.x == true and pauli.z == true for a bit), using Ss
+           a swap gate (only if they are different, if there are any bits which are significant
+           in both origin and dest, we set both anchors to one of these bits to avoid a swap).
+
+        5) flipping the state (parity) of the destination anchor if the parity of the number
+           of pauli significant
+           bits is different from the parity of the number of destination significant bits
+           (to be flipped back in step 7)
+
+        6) writing the parity of the destination anchor bit into the other significant bits
+           of the destination,
+
+        7) flipping back the parity of the destination anchor if we flipped it in step 5)
+
+        8) converting the \|0⟩ and \|1⟩ significant eigenvector bits to \|+⟩ and \|-⟩ eigenvector
+           bits in the destination where the destination demands it
+           (e.g. pauli.x == true for a bit), using Hs 8) converting the \|+⟩ and \|-⟩
+           significant eigenvector bits to \|i+⟩ and \|i-⟩ eigenvector bits in the
+           destination where the destination demands it
+           (e.g. pauli.x == true and pauli.z == true for a bit), using Ss
 
         """
 
@@ -326,10 +335,10 @@ class PauliBasisChange(ConverterBase):
         # Steps 1 and 2
         cob_instruction = self.get_diagonalizing_clifford(origin)
 
-        # Construct CNOT chain, assuming full connectivity... - Steps 3)-5)
+        # Construct CNOT chain, assuming full connectivity... - Steps 3)-7)
         cob_instruction = self.construct_cnot_chain(origin, destination).compose(cob_instruction)
 
-        # Step 6 and 7
+        # Step 8 and 9
         dest_diagonlizing_clifford = self.get_diagonalizing_clifford(destination).adjoint()
         cob_instruction = dest_diagonlizing_clifford.compose(cob_instruction)
 
