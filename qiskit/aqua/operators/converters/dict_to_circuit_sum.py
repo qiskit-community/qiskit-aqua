@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Expectation Algorithm Base """
+""" DictToCircuitSum Class """
 
 import logging
 
@@ -27,17 +27,35 @@ logger = logging.getLogger(__name__)
 
 
 class DictToCircuitSum(ConverterBase):
-    """ Convert DictStateFns or VectorStateFns to equivalent CircuitStateFns or sums thereof."""
+    """ Converts DictStateFns or VectorStateFns to equivalent CircuitStateFns or sums thereof.
+    The behavior of this class can be mostly replicated by calling ``to_circuit_op`` on a an
+    Operator, but with the added control of choosing whether to convert only ``DictStateFns``
+    or ``VectorStateFns``, rather than both. """
 
     def __init__(self,
                  traverse: bool = True,
                  convert_dicts: bool = True,
-                 convert_vectors: bool = True):
+                 convert_vectors: bool = True) -> None:
+        """
+        Args:
+            traverse: Whether to recurse down into Operators with internal sub-operators for
+                conversion.
+            convert_dicts: Whether to convert VectorStateFn.
+            convert_vectors: Whether to convert DictStateFns.
+        """
         self._traverse = traverse
         self._convert_dicts = convert_dicts
         self._convert_vectors = convert_vectors
 
     def convert(self, operator: OperatorBase) -> OperatorBase:
+        """ Convert the Operator to ``CircuitStateFns``, recursively if ``traverse`` is True.
+
+        Args:
+            operator: The Operator to convert
+
+        Returns:
+            The converted Operator.
+        """
 
         if isinstance(operator, DictStateFn) and self._convert_dicts:
             return CircuitStateFn.from_dict(operator.primitive)

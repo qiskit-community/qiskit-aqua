@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Expectation Algorithm Base """
+""" PauliBasisChange Class """
 
 from typing import Optional, Callable, Union
 import logging
@@ -36,13 +36,27 @@ logger = logging.getLogger(__name__)
 
 
 class PauliBasisChange(ConverterBase):
-    """ Converter for changing Paulis into other bases. By default,
-    Pauli {Z,I}^n is used as the destination basis.
+    r"""
+    Converter for changing Paulis into other bases. By default, the diagonal basis
+    composed only of Pauli {Z, I}^n is used as the destination basis to which to convert.
     Meaning, if a Pauli containing X or Y terms is passed in, which cannot be
-    sampled or evolved natively on Quantum
-    hardware, the Pauli can be replaced by a composition of a change of basis
-    circuit and a Pauli composed of only Z
-    and I terms, which can be evolved or sampled natively on gate-based Quantum hardware. """
+    sampled or evolved natively on some Quantum hardware, the Pauli can be replaced by a
+    composition of a change of basis circuit and a Pauli composed of only Z
+    and I terms (diagonal), which can be evolved or sampled natively on the Quantum
+    hardware.
+
+    The replacement function determines how the ``PauliOps`` should be replaced by their computed
+    change-of-basis ``CircuitOps`` and destinatin ``PauliOps``. Several convenient out-of-the-box
+    replacement functions have been added as static methods, such as ``measurement_replacement_fn``.
+
+    This class uses the typical basis change method found in most Quantum Computing textbooks
+    (such as on page 210 of Nielsen and Chuang's, "Quantum Computation and Quantum Information",
+    ISBN: 978-1-107-00217-3), which involves diagonalizing the single-qubit Paulis with H and S†
+    gates, mapping the eigenvectors of the diagonalized origin Pauli to the diagonalized
+    destination Pauli using CNOTS, and then de-diagonalizing any single qubit Paulis to their
+    non-diagonal destination values. Many other methods are possible, as well as variations on
+    this method, such as the placement of the CNOT chains.
+    """
 
     def __init__(self,
                  destination_basis: Optional[Union[Pauli, PauliOp]] = None,
@@ -51,24 +65,24 @@ class PauliBasisChange(ConverterBase):
         """
         Args:
             destination_basis: The Pauli into the basis of which the operators
-            will be converted. If None is
-            specified, the destination basis will be the {I,Z}^n basis requiring only
-            single qubit rotations.
-            traverse: If true and the operator passed into convert is an ListOp,
-            traverse the ListOp,
-            applying the conversion to every applicable operator within the oplist.
-            replacement_fn: A function specifying what to do with the CoB
-            instruction and destination
-            Pauli when converting an Operator and replacing converted values.
-            By default, this will be
-                1) For StateFns (or Measurements): replacing the StateFn with
-                ComposedOp(StateFn(d), c) where c
-                is the conversion circuit and d is the destination Pauli,
-                so the overall beginning and ending operators are equivalent.
-                2) For non-StateFn Operators: replacing the origin p with c·d·c†,
-                where c is the conversion circuit
-                and d is the destination, so the overall beginning and ending
-                operators are equivalent.
+                will be converted. If None is specified, the destination basis will be the
+                diagonal ({I, Z}^n) basis requiring only single qubit rotations.
+            traverse: If true and the operator passed into convert contains sub-Operators,
+                such as ListOp, traverse the Operator and apply the conversion to every
+                applicable sub-operator within it.
+            replacement_fn: A function specifying what to do with the basis-change
+                ``CircuitOp`` and destination ``PauliOp`` when converting an Operator and
+                replacing converted values. By default, this will be
+
+                    1) For StateFns (or Measurements): replacing the StateFn with
+                       ComposedOp(StateFn(d), c) where c is the conversion circuit and d is the
+                       destination Pauli, so the overall beginning and ending operators are
+                       equivalent.
+
+                    2) For non-StateFn Operators: replacing the origin p with c·d·c†, where c
+                       is the conversion circuit and d is the destination, so the overall
+                       beginning and ending operators are equivalent.
+
         """
         if destination_basis is not None:
             self.destination = destination_basis
@@ -78,12 +92,19 @@ class PauliBasisChange(ConverterBase):
         self._replacement_fn = replacement_fn or PauliBasisChange.operator_replacement_fn
 
     @property
-    def destination(self) -> PauliOp:
-        """ returns destination """
+    def destination(self) -> Optional[PauliOp]:
+        r"""
+        The destination ``PauliOp``, or ``None`` if using the default destination, the diagonal
+        basis.
+        """
         return self._destination
 
     @destination.setter
     def destination(self, dest: Union[Pauli, PauliOp]) -> None:
+        r"""
+        The destination ``PauliOp``, or ``None`` if using the default destination, the diagonal
+        basis.
+        """
         if isinstance(dest, Pauli):
             dest = PauliOp(dest)
 
@@ -93,13 +114,24 @@ class PauliBasisChange(ConverterBase):
         self._destination = dest
 
     # TODO see whether we should make this performant by handling ListOps of Paulis later.
-    # pylint: disable=inconsistent-return-statements
+    # pylint: disable=inconsistent-return-statements,too-many-return-statements
     def convert(self, operator: OperatorBase) -> OperatorBase:
-        """ Given an Operator with Paulis, converts each Pauli into the basis specified
-        by self._destination. More
-        specifically, each Pauli p will be replaced by the composition of
-        a Change-of-basis Clifford c with the
-        destination Pauli d and c†, such that p == c·d·c†, up to global phase. """
+        r"""
+        Given a ``PauliOp``, or an Operator containing ``PauliOps`` if ``_traverse`` is True,
+        converts each Pauli into the basis specified by self._destination and a
+        basis-change-circuit, calls ``replacement_fn`` with these two Operators, and replaces
+        the ``PauliOps`` with the output of ``replacement_fn``. For example, for the built-in
+        ``operator_replacement_fn`` below, each PauliOp p will be replaced by the composition
+        of the basis-change Clifford ``CircuitOp`` c with the destination PauliOp d and c†,
+        such that p = c·d·c†, up to global phase.
+
+        Args:
+            operator: The Operator to convert.
+
+        Returns:
+            The converted Operator.
+
+        """
 
         if isinstance(operator, (Pauli, PrimitiveOp)):
             cob_instr_op, dest_pauli_op = self.get_cob_circuit(operator)
@@ -140,43 +172,108 @@ class PauliBasisChange(ConverterBase):
                 return self._replacement_fn(cob_instr_op, dest_pauli_op)
             else:
                 return operator.traverse(self.convert)
-        else:
-            raise TypeError('PauliBasisChange can only accept OperatorBase objects or '
-                            'Paulis, not {}'.format(type(operator)))
+
+        return operator
 
     @staticmethod
     def measurement_replacement_fn(cob_instr_op: CircuitOp,
                                    dest_pauli_op: PauliOp) -> OperatorBase:
-        """ measurement replacement function """
+        r"""
+        A built-in convenience replacement function which produces measurements
+        isomorphic to an ``OperatorStateFn`` measurement holding the origin ``PauliOp``.
+
+        Args:
+            cob_instr_op: The basis-change ``CircuitOp``.
+            dest_pauli_op: The destination ``PauliOp``.
+
+        Returns:
+            The ``~StateFn @ CircuitOp`` composition equivalent to a measurement by the original
+            ``PauliOp``.
+        """
         return PauliBasisChange.statefn_replacement_fn(cob_instr_op, dest_pauli_op).adjoint()
 
     @staticmethod
     def statefn_replacement_fn(cob_instr_op: CircuitOp,
                                dest_pauli_op: PauliOp) -> OperatorBase:
-        """ state function replacement """
+        r"""
+        A built-in convenience replacement function which produces state functions
+        isomorphic to an ``OperatorStateFn`` state function holding the origin ``PauliOp``.
+
+        Args:
+            cob_instr_op: The basis-change ``CircuitOp``.
+            dest_pauli_op: The destination ``PauliOp``.
+
+        Returns:
+            The ``~CircuitOp @ StateFn`` composition equivalent to a state function defined by the
+            original ``PauliOp``.
+        """
         return ComposedOp([cob_instr_op.adjoint(), StateFn(dest_pauli_op)])
 
     @staticmethod
     def operator_replacement_fn(cob_instr_op: CircuitOp,
                                 dest_pauli_op: PauliOp) -> OperatorBase:
-        """ operator replacement """
+        r"""
+        A built-in convenience replacement function which produces Operators
+        isomorphic to the origin ``PauliOp``.
+
+        Args:
+            cob_instr_op: The basis-change ``CircuitOp``.
+            dest_pauli_op: The destination ``PauliOp``.
+
+        Returns:
+            The ``~CircuitOp @ PauliOp @ CircuitOp`` composition isomorphic to the
+            original ``PauliOp``.
+        """
         return ComposedOp([cob_instr_op.adjoint(), dest_pauli_op, cob_instr_op])
 
-    def get_tpb_pauli(self, op_vec: ListOp) -> Pauli:
-        """ get tpb pauli """
-        origin_z = reduce(np.logical_or, [p_op.primitive.z for p_op in op_vec.oplist])
-        origin_x = reduce(np.logical_or, [p_op.primitive.x for p_op in op_vec.oplist])
+    def get_tpb_pauli(self, list_op: ListOp) -> Pauli:
+        r"""
+        Gets the Pauli (not ``PauliOp``!) whose diagonalizing single-qubit rotations is a
+        superset of the diagonalizing single-qubit rotations for each of the Paulis in
+        ``list_op``. TBP stands for `Tensor Product Basis`.
+
+        Args:
+             list_op: the ``ListOp`` whose TBP Pauli to return.
+
+        Returns:
+             The TBP Pauli.
+
+        """
+        origin_z = reduce(np.logical_or, [p_op.primitive.z for p_op in list_op.oplist])
+        origin_x = reduce(np.logical_or, [p_op.primitive.x for p_op in list_op.oplist])
         return Pauli(x=origin_x, z=origin_z)
 
     def get_diagonal_pauli_op(self, pauli_op: PauliOp) -> PauliOp:
-        """ get diagonal pauli operation """
+        """ Get the diagonal ``PualiOp`` to which ``pauli_op`` could be rotated with only
+        single-qubit operations.
+
+        Args:
+            pauli_op: The ``PauliOp`` whose diagonal to compute.
+
+        Returns:
+            The diagonal ``PauliOp``.
+        """
         return PauliOp(Pauli(z=np.logical_or(pauli_op.primitive.z, pauli_op.primitive.x),
                              x=[False] * pauli_op.num_qubits),
                        coeff=pauli_op.coeff)
 
     def get_diagonalizing_clifford(self, pauli: Union[Pauli, PauliOp]) -> OperatorBase:
-        """ Construct single-qubit rotations to {Z, I)^n
-         Note, underlying Pauli bits are in Qiskit endianness!! """
+        r"""
+        Construct a ``CircuitOp`` with only single-qubit gates which takes the eigenvectors
+        of ``pauli`` to eigenvectors composed only of \|0⟩ and \|1⟩ tensor products. Equivalently,
+        finds the basis-change circuit to take ``pauli`` to a diagonal ``PauliOp`` composed only
+        of Z and I tensor products.
+
+        Note, underlying Pauli bits are in Qiskit endianness, so we need to reverse before we
+        begin composing with Operator flow.
+
+        Args:
+            pauli: the ``Pauli`` or ``PauliOp`` to whose diagonalizing circuit to compute.
+
+        Returns:
+            The diagonalizing ``CircuitOp``.
+
+        """
         if isinstance(pauli, PauliOp):
             pauli = pauli.primitive
 
@@ -192,7 +289,20 @@ class PauliBasisChange(ConverterBase):
     def pad_paulis_to_equal_length(self,
                                    pauli_op1: PauliOp,
                                    pauli_op2: PauliOp) -> (PauliOp, PauliOp):
-        """ pad paulis to equal length """
+        r"""
+        If ``pauli_op1`` and ``pauli_op2`` do not act over the same number of qubits, pad
+        identities to the end of the shorter of the two so they are of equal length. Padding is
+        applied to the end of the Paulis. Note that the Terra represents Paulis in big-endian
+        order, so this will appear as padding to the beginning of the Pauli x and z bit arrays.
+
+        Args:
+            pauli_op1: A pauli_op to possibly pad.
+            pauli_op2: A pauli_op to possibly pad.
+
+        Returns:
+            A tuple containing the padded PauliOps.
+
+        """
         num_qubits = max(pauli_op1.num_qubits, pauli_op2.num_qubits)
         pauli_1, pauli_2 = pauli_op1.primitive, pauli_op2.primitive
 
@@ -211,7 +321,23 @@ class PauliBasisChange(ConverterBase):
     def construct_cnot_chain(self,
                              diag_pauli_op1: PauliOp,
                              diag_pauli_op2: PauliOp) -> PrimitiveOp:
-        """ construct cnot chain """
+        r"""
+        Construct a ``CircuitOp`` (or ``PauliOp`` if equal to the identity) which takes the
+        eigenvectors of ``diag_pauli_op1`` to the eigenvectors of ``diag_pauli_op2``,
+        assuming both are diagonal (or performing this operation on their diagonalized Paulis
+        implicitly if not). This works by the insight that the eigenvalue of a diagonal Pauli's
+        eigenvector is equal to or -1 if the parity is 1 and 1 if the parity is 0, or
+        1 - (2 * parity). Therefore, using CNOTs, we can write the parity of diag_pauli_op1's
+        significant bits onto some qubit, and then write out that parity onto diag_pauli_op2's
+        significant bits.
+
+        Args:
+            diag_pauli_op1: The origin ``PauliOp``.
+            diag_pauli_op2: The destination ``PauliOp``.
+
+        Return:
+            The ``PrimitiveOp`` performs the mapping.
+        """
         # TODO be smarter about connectivity and actual distance between pauli and destination
         # TODO be smarter in general
 
@@ -267,11 +393,10 @@ class PauliBasisChange(ConverterBase):
 
         return PrimitiveOp(cnots)
 
-    # TODO update steps to remove 5) and 7).
     def get_cob_circuit(self, origin: Union[Pauli, PauliOp]) -> (PrimitiveOp, PauliOp):
         r"""
-        The goal of this module is to construct a circuit which maps the +1 and -1 eigenvectors
-        of the origin pauli to the +1 and -1 eigenvectors of the destination pauli. It does so by
+        Construct an Operator which maps the +1 and -1 eigenvectors
+        of the origin Pauli to the +1 and -1 eigenvectors of the destination Pauli. It does so by
 
         1) converting any \|i+⟩ or \|i+⟩ eigenvector bits in the origin to
            \|+⟩ and \|-⟩ with S†s, then
@@ -287,22 +412,27 @@ class PauliBasisChange(ConverterBase):
            a swap gate (only if they are different, if there are any bits which are significant
            in both origin and dest, we set both anchors to one of these bits to avoid a swap).
 
-        5) flipping the state (parity) of the destination anchor if the parity of the number
-           of pauli significant
-           bits is different from the parity of the number of destination significant bits
-           (to be flipped back in step 7)
-
-        6) writing the parity of the destination anchor bit into the other significant bits
+        5) writing the parity of the destination anchor bit into the other significant bits
            of the destination,
 
-        7) flipping back the parity of the destination anchor if we flipped it in step 5)
-
-        8) converting the \|0⟩ and \|1⟩ significant eigenvector bits to \|+⟩ and \|-⟩ eigenvector
+        6) converting the \|0⟩ and \|1⟩ significant eigenvector bits to \|+⟩ and \|-⟩ eigenvector
            bits in the destination where the destination demands it
            (e.g. pauli.x == true for a bit), using Hs 8) converting the \|+⟩ and \|-⟩
            significant eigenvector bits to \|i+⟩ and \|i-⟩ eigenvector bits in the
            destination where the destination demands it
            (e.g. pauli.x == true and pauli.z == true for a bit), using Ss
+
+        Args:
+            origin: The ``Pauli`` or ``PauliOp`` to map.
+
+        Returns:
+            A tuple of a ``PrimitiveOp`` which equals the basis change mapping and a ``PauliOp``
+            which equals the destination basis.
+
+        Raises:
+            TypeError: Attempting to convert from non-Pauli origin.
+            ValueError: Attempting to change a non-identity Pauli to an identity Pauli, or vice
+                versa.
 
         """
 
@@ -335,10 +465,10 @@ class PauliBasisChange(ConverterBase):
         # Steps 1 and 2
         cob_instruction = self.get_diagonalizing_clifford(origin)
 
-        # Construct CNOT chain, assuming full connectivity... - Steps 3)-7)
+        # Construct CNOT chain, assuming full connectivity... - Steps 3)-5)
         cob_instruction = self.construct_cnot_chain(origin, destination).compose(cob_instruction)
 
-        # Step 8 and 9
+        # Step 6 and 7
         dest_diagonlizing_clifford = self.get_diagonalizing_clifford(destination).adjoint()
         cob_instruction = dest_diagonlizing_clifford.compose(cob_instruction)
 

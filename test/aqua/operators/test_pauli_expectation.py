@@ -187,7 +187,7 @@ class TestPauliExpectation(QiskitAquaTestCase):
         num_circuits_grouped = len(sampler._circuit_ops_cache)
         self.assertEqual(num_circuits_grouped, 2)
 
-    # @unittest.skip(reason="IBMQ testing not available in general.")
+    @unittest.skip(reason="IBMQ testing not available in general.")
     def test_ibmq_grouped_pauli_expectation(self):
         """ pauli expect op vector state vector test """
         p = IBMQ.load_account()

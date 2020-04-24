@@ -43,6 +43,8 @@ class PauliExpectation(ExpectationBase):
     def __init__(self, group_paulis: bool = True) -> None:
         """
         Args:
+            group_paulis: Whether to group the Pauli measurements into commuting sums, which all
+                have the same diagonalizing circuit.
 
         """
         self._grouper = AbelianGrouper() if group_paulis else None
