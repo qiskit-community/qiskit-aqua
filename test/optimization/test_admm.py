@@ -20,7 +20,7 @@ import numpy as np
 from docplex.mp.model import Model
 from qiskit.optimization.algorithms import CplexOptimizer, MinimumEigenOptimizer
 from qiskit.optimization.algorithms.admm_optimizer import ADMMOptimizer, ADMMParameters, \
-    ADMMOptimizerResult, ADMMState
+    ADMMOptimizationResult, ADMMState
 from qiskit.optimization.problems import QuadraticProgram
 
 
@@ -46,9 +46,9 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
             solver = ADMMOptimizer(qubo_optimizer=qubo_optimizer,
                                    continuous_optimizer=continuous_optimizer,
                                    params=admm_params)
-            solution: ADMMOptimizerResult = solver.solve(op)
+            solution: ADMMOptimizationResult = solver.solve(op)
             self.assertIsNotNone(solution)
-            self.assertIsInstance(solution, ADMMOptimizerResult)
+            self.assertIsInstance(solution, ADMMOptimizationResult)
 
             self.assertIsNotNone(solution.x)
             np.testing.assert_almost_equal([10, 0], solution.x, 3)
@@ -96,7 +96,7 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
                                    continuous_optimizer=continuous_optimizer, )
             solution = solver.solve(op)
             self.assertIsNotNone(solution)
-            self.assertIsInstance(solution, ADMMOptimizerResult)
+            self.assertIsInstance(solution, ADMMOptimizationResult)
             self.assertIsNotNone(solution.x)
             np.testing.assert_almost_equal([1., 0., 1.], solution.x, 3)
             self.assertIsNotNone(solution.fval)
@@ -143,7 +143,7 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
             solution = solver.solve(op)
 
             self.assertIsNotNone(solution)
-            self.assertIsInstance(solution, ADMMOptimizerResult)
+            self.assertIsInstance(solution, ADMMOptimizationResult)
             self.assertIsNotNone(solution.x)
             np.testing.assert_almost_equal([1., 0., 1.], solution.x, 3)
             self.assertIsNotNone(solution.fval)
@@ -189,7 +189,7 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
             solution = solver.solve(op)
 
             self.assertIsNotNone(solution)
-            self.assertIsInstance(solution, ADMMOptimizerResult)
+            self.assertIsInstance(solution, ADMMOptimizationResult)
             self.assertIsNotNone(solution.x)
             np.testing.assert_almost_equal([1., 0., 0., 2.], solution.x, 3)
             self.assertIsNotNone(solution.fval)
