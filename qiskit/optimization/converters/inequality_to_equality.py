@@ -343,18 +343,13 @@ class InequalityToEquality:
         Returns:
             The result of the original problem.
         """
-        from ..algorithms.optimization_algorithm import OptimizationResult
 
-        new_result = OptimizationResult()
         # convert the optimization result into that of the original problem
         names = [x.name for x in self._dst.variables]
         vals = result.x
         new_vals = self._decode_var(names, vals)
-        new_result.x = new_vals
-        new_result.fval = result.fval
-        new_result.status = result.status
-        new_result.results = result.results
-        return new_result
+        result.x = new_vals
+        return result
 
     def _decode_var(self, names, vals) -> List[int]:
         # decode slack variables
