@@ -344,26 +344,26 @@ class ADMMOptimizer(OptimizationAlgorithm):
         return result
 
     @staticmethod
-    def _turn_to_minimization(qp: QuadraticProgram):
+    def _turn_to_minimization(problem: QuadraticProgram) -> (QuadraticProgram, float):
         """
         Turns the problem to `ObjSense.MINIMIZE` by flipping the sign of the objective function
         if initially it is `ObjSense.MAXIMIZE`. Otherwise returns the original problem.
 
         Args:
-            qp: a problem to turn to minimization.
+            problem: a problem to turn to minimization.
 
         Returns:
             A copy of the problem if sign flip is required, otherwise the original problem and
             the original sense of the problem in the numerical representation.
         """
-        sense = qp.objective.sense.value
-        if qp.objective.sense == ObjSense.MAXIMIZE:
-            qp = copy.deepcopy(qp)
-            qp.objective.sense = ObjSense.MINIMIZE
-            qp.objective.constant = (-1) * qp.objective.constant
-            qp.objective.linear = (-1) * qp.objective.linear.coefficients
-            qp.objective.quadratic = (-1) * qp.objective.quadratic.coefficients
-        return qp, sense
+        sense = problem.objective.sense.value
+        if problem.objective.sense == ObjSense.MAXIMIZE:
+            problem = copy.deepcopy(problem)
+            problem.objective.sense = ObjSense.MINIMIZE
+            problem.objective.constant = (-1) * problem.objective.constant
+            problem.objective.linear = (-1) * problem.objective.linear.coefficients
+            problem.objective.quadratic = (-1) * problem.objective.quadratic.coefficients
+        return problem, sense
 
     @staticmethod
     def _get_variable_indices(op: QuadraticProgram, var_type: VarType) -> List[int]:
@@ -410,17 +410,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         return solution
 
     def _convert_problem_representation(self) -> None:
-        """Converts problem representation into set of matrices and vectors.
-        Specifically, the optimization problem is represented as:
-
-        min_{x0, u} x0^T q0 x0 + c0^T x0 + u^T q1 u + c1^T u
-
-        s.t. a0 x0 = b0
-            a1 x0 <= b1
-            a2 z + a3 u <= b2
-            a4 u <= b3
-
-        """
+        """Converts problem representation into set of matrices and vectors."""
         binary_var_indices = set(self._state.binary_indices)
         # separate constraints
         for constraint in self._state.op.linear_constraints:
@@ -432,7 +422,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
                 constraint_var_indices = set(constraint.linear.to_dict().keys())
                 if constraint_var_indices.issubset(binary_var_indices):
                     self._state.binary_equality_constraints.append(constraint)
-                    
+
             elif constraint.sense in (ConstraintSense.LE, ConstraintSense.GE):
                 self._state.inequality_constraints.append(constraint)
 
@@ -442,12 +432,12 @@ class ADMMOptimizer(OptimizationAlgorithm):
                 self._state.equality_constraints.append(constraint)
             elif constraint.sense in (ConstraintSense.LE, ConstraintSense.GE):
                 self._state.inequality_constraints.append(constraint)
-                
+
         # objective
         self._state.q0 = self._get_q(self._state.binary_indices)
-        self._state.c0 = self._get_c(self._state.binary_indices)
+        self._state.c0 = self._state.op.objective.linear.to_array()[self._state.binary_indices]
         self._state.q1 = self._get_q(self._state.continuous_indices)
-        self._state.c1 = self._get_c(self._state.continuous_indices)
+        self._state.c1 = self._state.op.objective.linear.to_array()[self._state.continuous_indices]
         # equality constraints with binary vars only
         self._state.a0, self._state.b0 = self._get_a0_b0()
 
@@ -472,61 +462,6 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         return q
 
-    def _get_c(self, variable_indices: List[int]) -> np.ndarray:
-        """Constructs a vector for the variables with the specified indices from the linear terms
-        in the objective.
-
-        Args:
-            variable_indices: variable indices to look for.
-
-        Returns:
-            A numpy array of the shape(len(variable_indices)).
-        """
-        c = self._state.op.objective.linear.to_array().take(variable_indices)
-        return c
-
-    def _assign_row_values(self, matrix: List[List[float]], vector: List[float],
-                           constraint: LinearConstraint, variable_indices: List[int]):
-        """Appends a row to the specified matrix and vector based on the constraint specified by
-        the index using specified variables.
-
-        Args:
-            matrix: a matrix to extend.
-            vector: a vector to expand.
-            constraint_index: constraint index to look for.
-            variable_indices: variables to look for.
-
-        Returns:
-            None
-        """
-        # assign matrix row, actually pick coefficients at the positions specified in
-        # the variable_indices list
-        row = constraint.linear.to_array().take(variable_indices).tolist()
-
-        matrix.append(row)
-
-        # assign vector row.
-        vector.append(constraint.rhs)
-
-    @staticmethod
-    def _create_ndarrays(matrix: List[List[float]], vector: List[float], size: int) \
-            -> (np.ndarray, np.ndarray):
-        """Converts representation of a matrix and a vector in form of lists to numpy array.
-
-        Args:
-            matrix: matrix to convert.
-            vector: vector to convert.
-            size: size to create matrix and vector.
-
-        Returns:
-            Converted matrix and vector as numpy arrays.
-        """
-        # if we don't have such constraints, return just dummy arrays.
-        if len(matrix) != 0:
-            return np.array(matrix), np.array(vector)
-        else:
-            return np.array([0] * size).reshape((1, -1)), np.zeros(shape=(1,))
-
     def _get_a0_b0(self) -> (np.ndarray, np.ndarray):
         """Constructs a matrix and a vector from the constraints in a form of Ax = b, where
         x is a vector of binary variables.
@@ -541,9 +476,19 @@ class ADMMOptimizer(OptimizationAlgorithm):
         vector = []
 
         for constraint in self._state.binary_equality_constraints:
-            self._assign_row_values(matrix, vector, constraint, self._state.binary_indices)
+            row = constraint.linear.to_array().take(self._state.binary_indices).tolist()
 
-        return self._create_ndarrays(matrix, vector, len(self._state.binary_indices))
+            matrix.append(row)
+            vector.append(constraint.rhs)
+
+        if len(matrix) != 0:
+            np_matrix = np.array(matrix)
+            np_vector = np.array(vector)
+        else:
+            np_matrix = np.array([0] * len(self._state.binary_indices)).reshape((1, -1))
+            np_vector = np.zeros(shape=(1,))
+
+        return np_matrix, np_vector
 
     def _create_step1_problem(self) -> QuadraticProgram:
         """Creates a step 1 sub-problem.
@@ -591,7 +536,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
             # replacing Q0 objective and take of min/max sense, initially we consider minimization
             op2.objective.quadratic[var_index, var_index] = self._state.rho / 2
             # replacing linear objective
-            op2.objective.linear[var_index] = -1 * self._state.lambda_mult[i] - self._state.rho * (self._state.x0[i] - self._state.y[i])
+            op2.objective.linear[var_index] = -1 * self._state.lambda_mult[i] - self._state.rho * \
+                                              (self._state.x0[i] - self._state.y[i])
 
         # remove A0 x0 = b0 constraints
         for constraint in self._state.binary_equality_constraints:
