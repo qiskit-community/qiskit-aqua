@@ -102,7 +102,7 @@ class TestQuadraticProgramToNegativeValueOracle(QiskitOptimizationTestCase):
         except NameError as ex:
             self.skipTest(str(ex))
 
-    def _test_optnvo_4_key_all_negative(self):
+    def test_optnvo_4_key_all_negative(self):
         """Test with all negative values."""
         # Circuit parameters.
         try:
@@ -125,7 +125,7 @@ class TestQuadraticProgramToNegativeValueOracle(QiskitOptimizationTestCase):
         except NameError as ex:
             self.skipTest(str(ex))
 
-    def _test_optnvo_6_key(self):
+    def test_optnvo_6_key(self):
         """Test with 6 linear coefficients, negative quadratics, no constant."""
         # Circuit parameters.
         try:
