@@ -592,8 +592,7 @@ class QuadraticProgram:
             self.maximize(constant, linear, quadratic)
 
         # get linear constraints
-        for i in range(model.number_of_linear_constraints):
-            constraint = model.get_constraint_by_index(i)
+        for constraint in model.iter_linear_constraints():
             name = constraint.name
             sense = constraint.sense
 
@@ -617,8 +616,7 @@ class QuadraticProgram:
                 raise QiskitOptimizationError("Unsupported constraint sense: {}".format(sense))
 
         # get quadratic constraints
-        for i in range(model.number_of_quadratic_constraints):
-            constraint = model.get_quadratic_by_index(i)
+        for constraint in model.iter_quadratic_constraints():
             name = constraint.name
             sense = constraint.sense
 
