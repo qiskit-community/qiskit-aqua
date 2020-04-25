@@ -429,6 +429,8 @@ class TestVQC(QiskitAquaTestCase):
         if mode == 'circuit':
             wavefunction = QuantumCircuit(2).compose(wavefunction)
 
+        data_encoding = self.data_encoding[mode]
+
         vqc = VQC(COBYLA(maxiter=100), data_encoding, wavefunction, training_input, test_input)
 
         # sort parameters for reproducibility
