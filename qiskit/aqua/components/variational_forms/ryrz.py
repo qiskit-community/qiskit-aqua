@@ -14,6 +14,7 @@
 
 """Layers of Y+Z rotations followed by entangling gates."""
 
+import warnings
 from typing import Optional, List
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
@@ -23,8 +24,7 @@ from .variational_form import VariationalForm
 
 
 class RYRZ(VariationalForm):
-    r"""
-    The RYRZ Variational Form.
+    r"""The RYRZ Variational Form.
 
     The RYRZ trial wave function is layers of :math:`y` plus :math:`z` rotations with entanglements.
     When none of qubits are unentangled to other qubits, the number of optimizer parameters this
@@ -62,6 +62,11 @@ class RYRZ(VariationalForm):
             entanglement_gate: ('cz' | 'cx')
             skip_unentangled_qubits: Skip the qubits not in the entangler_map
         """
+        warnings.warn('The qiskit.aqua.components.variational_forms.RYRZ object is deprecated as '
+                      'of 0.7.0 and will be removed no sooner than 3 months after the release. You '
+                      'should use the qiskit.circuit.library.RYRZ object instead.',
+                      DeprecationWarning, stacklevel=2)
+
         validate_min('num_qubits', num_qubits, 1)
         validate_min('depth', depth, 1)
         validate_in_set('entanglement', entanglement, {'full', 'linear'})
