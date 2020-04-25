@@ -20,10 +20,10 @@ from test.chemistry import QiskitChemistryTestCase
 import numpy as np
 
 from qiskit import BasicAer
+from qiskit.circuit.library import RY
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE, IQPEMinimumEigensolver
 from qiskit.aqua.components.optimizers import SLSQP
-from qiskit.aqua.components.variational_forms import RY
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.applications import MolecularGroundStateEnergy
 from qiskit.chemistry.components.initial_states import HartreeFock

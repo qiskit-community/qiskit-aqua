@@ -16,12 +16,12 @@
 
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
-from qiskit import BasicAer
+from qiskit import BasicAer, QuantumCircuit
+from qiskit.circuit.library import RY
 from qiskit.aqua import aqua_globals, QuantumInstance
 from qiskit.optimization.ising import graph_partition
 from qiskit.optimization.ising.common import random_graph, sample_most_likely
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE
-from qiskit.aqua.components.variational_forms import RY
 from qiskit.aqua.components.optimizers import SPSA
 
 
@@ -69,14 +69,16 @@ class TestGraphPartition(QiskitOptimizationTestCase):
 
     def test_graph_partition_vqe(self):
         """ Graph Partition VQE test """
-        aqua_globals.random_seed = 10598
+        aqua_globals.random_seed = 10213
+        wavefunction = RY(self.qubit_op.num_qubits, insert_barriers=True,
+                          depth=5, entanglement='linear')
         result = VQE(self.qubit_op,
-                     RY(self.qubit_op.num_qubits, depth=5, entanglement='linear'),
+                     wavefunction,
                      SPSA(max_trials=300),
                      max_evals_grouped=2).run(
-                         QuantumInstance(BasicAer.get_backend('statevector_simulator'),
-                                         seed_simulator=aqua_globals.random_seed,
-                                         seed_transpiler=aqua_globals.random_seed))
+            QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                            seed_simulator=aqua_globals.random_seed,
+                            seed_transpiler=aqua_globals.random_seed))
 
         x = sample_most_likely(result['eigvecs'][0])
         # check against the oracle

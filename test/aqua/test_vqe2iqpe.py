@@ -14,6 +14,7 @@
 
 """ Test VQE to IQPE """
 
+import warnings
 import unittest
 from test.aqua import QiskitAquaTestCase
 
@@ -50,12 +51,13 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         }
         self.qubit_op = WeightedPauliOperator.from_dict(pauli_dict)
 
-    @data('varform', 'circuit', 'library')
+    @data('wrapped', 'circuit', 'library')
     def test_vqe_2_iqpe(self, wavefunction_type):
         """ vqe to iqpe test """
         backend = BasicAer.get_backend('qasm_simulator')
         num_qbits = self.qubit_op.num_qubits
-        if wavefunction_type == 'varform':
+        if wavefunction_type == 'wrapped':
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
             wavefunction = VarRYRZ(num_qbits, 3)
         elif wavefunction_type == 'circuit':
             wavefunction = QuantumCircuit(num_qbits).compose(RYRZ(num_qbits, reps=3))
@@ -64,6 +66,9 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         optimizer = SPSA(max_trials=10)
         # optimizer.set_options(**{'max_trials': 500})
         algo = VQE(self.qubit_op, wavefunction, optimizer)
+        if wavefunction_type == 'wrapped':
+            warnings.filterwarnings('always', category=DeprecationWarning)
+
         quantum_instance = QuantumInstance(backend, seed_simulator=self.seed,
                                            seed_transpiler=self.seed)
         result = algo.run(quantum_instance)
@@ -75,7 +80,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         num_time_slices = 1
         num_iterations = 6
 
-        if wavefunction_type == 'varform':
+        if wavefunction_type == 'wrapped':
             state_in = VarFormBased(wavefunction, result.optimal_point)
         else:
             param_dict = dict(zip(algo._var_form_params, result.optimal_point))

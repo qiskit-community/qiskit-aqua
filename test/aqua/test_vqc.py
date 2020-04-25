@@ -415,27 +415,29 @@ class TestVQC(QiskitAquaTestCase):
         aqua_globals.random_seed = self.seed
         if mode == 'wrapped':
             warnings.filterwarnings('ignore', category=DeprecationWarning)
-            wavefunction = VarRYRZ(2, depth=1)
+            data_encoding = FeatSecondOrderExpansion(feature_dim)
+            wavefunction = VarRYRZ(feature_dim, depth=1)
         else:
-            wavefunction = RYRZ(2, reps=1, insert_barriers=True)
+            data_encoding = SecondOrderExpansion(feature_dim)
+            x = data_encoding.ordered_parameters
+            wavefunction = RYRZ(feature_dim, reps=1, insert_barriers=True)
             theta = ParameterVector('theta', wavefunction.num_parameters)
             resorted = []
-            for i in range(4):
-                layer = wavefunction.ordered_parameters[4*i:4*(i+1)]
+            for i in range(2 * feature_dim):
+                layer = wavefunction.ordered_parameters[2 * feature_dim * i:2 * feature_dim * (i+1)]
                 resorted += layer[::2]
                 resorted += layer[1::2]
             wavefunction.assign_parameters(dict(zip(resorted, theta)), inplace=True)
 
         if mode == 'circuit':
-            wavefunction = QuantumCircuit(2).compose(wavefunction)
-
-        data_encoding = self.data_encoding[mode]
+            data_encoding = QuantumCircuit(feature_dim).compose(data_encoding)
+            wavefunction = QuantumCircuit(feature_dim).compose(wavefunction)
 
         vqc = VQC(COBYLA(maxiter=100), data_encoding, wavefunction, training_input, test_input)
 
         # sort parameters for reproducibility
         if mode in ['circuit', 'library']:
-            vqc._feature_map_params = self._sorted_data_params
+            vqc._feature_map_params = list(x)
             vqc._var_form_params = list(theta)
         else:
             warnings.filterwarnings('always', category=DeprecationWarning)
@@ -462,7 +464,7 @@ class TestVQC(QiskitAquaTestCase):
         feature_map = RawFeatureVector(feature_dimension=feature_dim)
         vqc = VQC(COBYLA(maxiter=100),
                   feature_map,
-                  RYRZ(feature_map.num_qubits, depth=3),
+                  RYRZ(feature_map.num_qubits, reps=3),
                   training_input,
                   test_input)
         result = vqc.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),

@@ -85,7 +85,7 @@ class TestReadmeSample(QiskitChemistryTestCase):
         init_state = HartreeFock(num_qubits, num_spin_orbitals, num_particles)
 
         # setup the variational form for VQE
-        from qiskit.aqua.components.variational_forms import RYRZ
+        from qiskit.circuit.library import RYRZ
         var_form = RYRZ(num_qubits, initial_state=init_state)
 
         # setup and run VQE
