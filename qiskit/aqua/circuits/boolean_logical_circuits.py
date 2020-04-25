@@ -20,6 +20,7 @@ from abc import abstractmethod, ABC
 
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.qasm import pi
+from qiskit.circuit.library import AND, OR
 
 from qiskit.aqua import AquaError
 
@@ -305,13 +306,13 @@ class CNF(BooleanLogicNormalForm):
             lits = [l[1] for l in self._ast[1:]]
             flags = BooleanLogicNormalForm._lits_to_flags(lits)
             if flags is not None:
-                circuit.AND(
-                    self._variable_register,
-                    self._output_register[0],
-                    self._ancillary_register,
-                    flags=flags,
-                    mct_mode=mct_mode
-                )
+                and_circuit = AND(num_variable_qubits=len(self._variable_register),
+                                  flags=flags, mcx_mode=mct_mode)
+                qubits = self._variable_register[:] + [self._output_register[0]]
+                if self._ancillary_register:
+                    qubits += self._ancillary_register[:and_circuit.num_ancilla_qubits]
+
+                circuit.compose(and_circuit, qubits, inplace=True)
         else:  # self._depth == 2:
             active_clause_indices = []
             # compute all clauses
@@ -328,13 +329,13 @@ class CNF(BooleanLogicNormalForm):
                 flags = BooleanLogicNormalForm._lits_to_flags(lits)
                 if flags is not None:
                     active_clause_indices.append(clause_index)
-                    circuit.OR(
-                        self._variable_register,
-                        self._clause_register[clause_index],
-                        self._ancillary_register,
-                        flags=flags,
-                        mct_mode=mct_mode
-                    )
+                    or_circuit = OR(num_variable_qubits=len(self._variable_register),
+                                    flags=flags, mcx_mode=mct_mode)
+                    qubits = self._variable_register[:] + [self._clause_register[clause_index]]
+                    if self._ancillary_register:
+                        qubits += self._ancillary_register[:or_circuit.num_ancilla_qubits]
+
+                    circuit.compose(or_circuit, qubits, inplace=True)
 
             # collect results from all clauses
             circuit.mct(
@@ -352,13 +353,13 @@ class CNF(BooleanLogicNormalForm):
                     lits = [clause_expr[1]]
                 flags = BooleanLogicNormalForm._lits_to_flags(lits)
                 if flags is not None:
-                    circuit.OR(
-                        self._variable_register,
-                        self._clause_register[clause_index],
-                        self._ancillary_register,
-                        flags=flags,
-                        mct_mode=mct_mode
-                    )
+                    or_circuit = OR(num_variable_qubits=len(self._variable_register),
+                                    flags=flags, mcx_mode=mct_mode)
+                    qubits = self._variable_register[:] + [self._clause_register[clause_index]]
+                    if self._ancillary_register:
+                        qubits += self._ancillary_register[:or_circuit.num_ancilla_qubits]
+
+                    circuit.compose(or_circuit, qubits, inplace=True)
 
         return circuit
 
@@ -411,13 +412,13 @@ class DNF(BooleanLogicNormalForm):
             lits = [l[1] for l in self._ast[1:]]
             flags = BooleanLogicNormalForm._lits_to_flags(lits)
             if flags is not None:
-                circuit.OR(
-                    self._variable_register,
-                    self._output_register[0],
-                    self._ancillary_register,
-                    flags=flags,
-                    mct_mode=mct_mode
-                )
+                or_circuit = OR(num_variable_qubits=len(self._variable_register),
+                                flags=flags, mcx_mode=mct_mode)
+                qubits = self._variable_register[:] + [self._output_register[0]]
+                if self._ancillary_register:
+                    qubits += self._ancillary_register[:or_circuit.num_ancilla_qubits]
+
+                circuit.compose(or_circuit, qubits, inplace=True)
             else:
                 circuit.u3(pi, 0, pi, self._output_register[0])
         else:  # self._depth == 2
@@ -434,13 +435,13 @@ class DNF(BooleanLogicNormalForm):
                     )
                 flags = BooleanLogicNormalForm._lits_to_flags(lits)
                 if flags is not None:
-                    circuit.AND(
-                        self._variable_register,
-                        self._clause_register[clause_index],
-                        self._ancillary_register,
-                        flags=flags,
-                        mct_mode=mct_mode
-                    )
+                    and_circuit = AND(num_variable_qubits=len(self._variable_register),
+                                      flags=flags, mcx_mode=mct_mode)
+                    qubits = self._variable_register[:] + [self._clause_register[clause_index]]
+                    if self._ancillary_register:
+                        qubits += self._ancillary_register[:and_circuit.num_ancilla_qubits]
+
+                    circuit.compose(and_circuit, qubits, inplace=True)
                 else:
                     circuit.u3(pi, 0, pi, self._clause_register[clause_index])
 
@@ -465,13 +466,13 @@ class DNF(BooleanLogicNormalForm):
                     lits = [clause_expr[1]]
                 flags = BooleanLogicNormalForm._lits_to_flags(lits)
                 if flags is not None:
-                    circuit.AND(
-                        self._variable_register,
-                        self._clause_register[clause_index],
-                        self._ancillary_register,
-                        flags=flags,
-                        mct_mode=mct_mode
-                    )
+                    and_circuit = AND(num_variable_qubits=len(self._variable_register),
+                                      flags=flags, mcx_mode=mct_mode)
+                    qubits = self._variable_register[:] + [self._clause_register[clause_index]]
+                    if self._ancillary_register:
+                        qubits += self._ancillary_register[:and_circuit.num_ancilla_qubits]
+
+                    circuit.compose(and_circuit, qubits, inplace=True)
                 else:
                     circuit.u3(pi, 0, pi, self._clause_register[clause_index])
         return circuit
@@ -528,13 +529,13 @@ class ESOP(BooleanLogicNormalForm):
             else:
                 raise AquaError('Unexpected clause expression {}.'.format(clause_expr))
             flags = BooleanLogicNormalForm._lits_to_flags(lits)
-            circuit.AND(
-                self._variable_register,
-                self._output_register[self._output_idx],
-                self._ancillary_register,
-                flags=flags,
-                mct_mode=mct_mode
-            )
+            and_circuit = AND(num_variable_qubits=len(self._variable_register),
+                              flags=flags, mcx_mode=mct_mode)
+            qubits = self._variable_register[:] + [self._output_register[self._output_idx]]
+            if self._ancillary_register:
+                qubits += self._ancillary_register[:and_circuit.num_ancilla_qubits]
+
+            circuit.compose(and_circuit, qubits, inplace=True)
 
         # compute all clauses
         if self._depth == 0:
