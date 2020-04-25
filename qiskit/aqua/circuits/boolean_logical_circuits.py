@@ -312,7 +312,7 @@ class CNF(BooleanLogicNormalForm):
                 if self._ancillary_register:
                     qubits += self._ancillary_register[:and_circuit.num_ancilla_qubits]
 
-                circuit.append(and_circuit.to_gate(), qubits)
+                circuit.compose(and_circuit, qubits, inplace=True)
         else:  # self._depth == 2:
             active_clause_indices = []
             # compute all clauses
@@ -335,7 +335,7 @@ class CNF(BooleanLogicNormalForm):
                     if self._ancillary_register:
                         qubits += self._ancillary_register[:or_circuit.num_ancilla_qubits]
 
-                    circuit.append(or_circuit.to_gate(), qubits)
+                    circuit.compose(or_circuit, qubits, inplace=True)
 
             # collect results from all clauses
             circuit.mct(
@@ -359,7 +359,7 @@ class CNF(BooleanLogicNormalForm):
                     if self._ancillary_register:
                         qubits += self._ancillary_register[:or_circuit.num_ancilla_qubits]
 
-                    circuit.append(or_circuit.to_gate(), qubits)
+                    circuit.compose(or_circuit, qubits, inplace=True)
 
         return circuit
 
@@ -418,7 +418,7 @@ class DNF(BooleanLogicNormalForm):
                 if self._ancillary_register:
                     qubits += self._ancillary_register[:or_circuit.num_ancilla_qubits]
 
-                circuit.append(or_circuit.to_gate(), qubits)
+                circuit.compose(or_circuit, qubits, inplace=True)
             else:
                 circuit.u3(pi, 0, pi, self._output_register[0])
         else:  # self._depth == 2
@@ -441,7 +441,7 @@ class DNF(BooleanLogicNormalForm):
                     if self._ancillary_register:
                         qubits += self._ancillary_register[:and_circuit.num_ancilla_qubits]
 
-                    circuit.append(and_circuit.to_gate(), qubits)
+                    circuit.compose(and_circuit, qubits, inplace=True)
                 else:
                     circuit.u3(pi, 0, pi, self._clause_register[clause_index])
 
@@ -472,7 +472,7 @@ class DNF(BooleanLogicNormalForm):
                     if self._ancillary_register:
                         qubits += self._ancillary_register[:and_circuit.num_ancilla_qubits]
 
-                    circuit.append(and_circuit.to_gate(), qubits)
+                    circuit.compose(and_circuit, qubits, inplace=True)
                 else:
                     circuit.u3(pi, 0, pi, self._clause_register[clause_index])
         return circuit
@@ -535,7 +535,7 @@ class ESOP(BooleanLogicNormalForm):
             if self._ancillary_register:
                 qubits += self._ancillary_register[:and_circuit.num_ancilla_qubits]
 
-            circuit.append(and_circuit.to_gate(), qubits)
+            circuit.compose(and_circuit, qubits, inplace=True)
 
         # compute all clauses
         if self._depth == 0:
