@@ -438,6 +438,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         self._ret['min_val'] = vqresult.optimal_value
         self._ret['opt_params'] = vqresult.optimal_point
         self._ret['eval_time'] = vqresult.optimizer_time
+        self._ret['opt_params_dict'] = vqresult.optimal_parameters
 
         if self._ret['num_optimizer_evals'] is not None and \
                 self._eval_count >= self._ret['num_optimizer_evals']:
@@ -561,10 +562,9 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         if 'opt_params' not in self._ret:
             raise AquaError("Cannot find optimal circuit before running the "
                             "algorithm to find optimal params.")
-        if isinstance(self.var_form, QuantumCircuit):
-            param_dict = dict(zip(self._var_form_params, self._ret['opt_params']))
-            return self.var_form.assign_parameters(param_dict)
-        return self._var_form.construct_circuit(self._ret['opt_params'])
+        if isinstance(self.var_form, VariationalForm):
+            return self._var_form.construct_circuit(self._ret['opt_params'])
+        return self.var_form.assign_parameters(self._ret['opt_params_dict'])
 
     def get_optimal_vector(self) -> Union[List[float], Dict[str, int]]:
         """Get the simulation outcome of the optimal circuit. """

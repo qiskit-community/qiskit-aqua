@@ -198,6 +198,7 @@ class VQAlgorithm(QuantumAlgorithm):
         result.optimizer_time = eval_time
         result.optimal_value = opt_val
         result.optimal_point = opt_params
+        result.optimal_parameters = dict(zip(self._var_form_params, opt_params))
 
         return result
 
@@ -298,6 +299,16 @@ class VQResult(AlgorithmResult):
     def optimal_point(self, value: np.ndarray) -> None:
         """ Sets optimal point """
         self.data['optimal_point'] = value
+
+    @property
+    def optimal_parameters(self) -> dict:
+        """ Returns the optimal parameters in a dictionary """
+        return self.get('optimal_parameters')
+
+    @optimal_parameters.setter
+    def optimal_parameters(self, value: dict) -> None:
+        """ Sets optimal parameters """
+        self.data['optimal_parameters'] = value
 
     def __getitem__(self, key: object) -> object:
         if key == 'num_optimizer_evals':
