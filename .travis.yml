@@ -345,7 +345,8 @@ jobs:
           - optimization37
           - optimization38
       install:
-          - pip --version
+        # dummy install cmd to prevent travis from installing requirements.txt
+        - pip --version
       script:
         - sort -f -u aqua137.dep aqua138.dep aqua237.dep aqua238.dep chemistry37.dep chemistry38.dep finance37.dep finance38.dep ml37.dep ml38.dep optimization37.dep optimization38.dep || true
     - stage: Coverage
