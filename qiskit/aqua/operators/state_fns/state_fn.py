@@ -249,7 +249,7 @@ class StateFn(OperatorBase):
         """ Compose with Self Multiple Times, undefined for StateFns.
 
         Args:
-            exponent: The number of times to compose sekf with self.
+            exponent: The number of times to compose self with self.
 
         Raises:
             ValueError: This function is not defined for StateFns.
