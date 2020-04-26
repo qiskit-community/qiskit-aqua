@@ -49,9 +49,9 @@ class NumPyEigensolver(ClassicalAlgorithm):
     def __init__(self,
                  operator: Optional[Union[OperatorBase, LegacyBaseOperator]] = None,
                  k: int = 1,
-                 aux_operators: Optional[List[Optional[Union[OperatorBase, LegacyBaseOperator]]]] =
-                 None) -> \
-            None:
+                 aux_operators: Optional[List[Optional[Union[OperatorBase,
+                                                             LegacyBaseOperator]]]] = None
+                 ) -> None:
         """
         Args:
             operator: Operator instance. If None is supplied it must be provided later before
@@ -80,7 +80,7 @@ class NumPyEigensolver(ClassicalAlgorithm):
         return self._operator
 
     @operator.setter
-    def operator(self, operator: Union[OperatorBase, LegacyBaseOperator]) -> None:
+    def operator(self, operator: Optional[Union[OperatorBase, LegacyBaseOperator]]) -> None:
         """ set operator """
         if isinstance(operator, LegacyBaseOperator):
             operator = operator.to_opflow()

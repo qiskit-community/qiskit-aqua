@@ -147,19 +147,20 @@ class IQPEMinimumEigensolver(QuantumAlgorithm, MinimumEigensolver):
         return self._in_operator
 
     @operator.setter
-    def operator(self, operator: Union[OperatorBase, LegacyBaseOperator]) -> None:
+    def operator(self, operator: Optional[Union[OperatorBase, LegacyBaseOperator]]) -> None:
         """ set operator """
         self._in_operator = operator
         self._setup(operator)
 
     @property
-    def aux_operators(self) -> List[Union[OperatorBase, LegacyBaseOperator]]:
+    def aux_operators(self) -> Optional[List[Union[OperatorBase, LegacyBaseOperator]]]:
         """ Returns aux operators """
         raise TypeError('aux_operators not supported.')
 
     @aux_operators.setter
     def aux_operators(self,
-                      aux_operators: List[Union[OperatorBase, LegacyBaseOperator]]) -> None:
+                      aux_operators: Optional[List[Union[OperatorBase, LegacyBaseOperator]]]
+                      ) -> None:
         """ Set aux operators """
         raise TypeError('aux_operators not supported.')
 

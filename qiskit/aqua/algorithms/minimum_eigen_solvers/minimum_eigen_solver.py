@@ -35,8 +35,10 @@ class MinimumEigensolver(ABC):
     @abstractmethod
     def compute_minimum_eigenvalue(
             self,
-            operator: Optional[LegacyBaseOperator] = None,
-            aux_operators: Optional[List[LegacyBaseOperator]] = None) -> 'MinimumEigensolverResult':
+            operator: Optional[Union[OperatorBase, LegacyBaseOperator]] = None,
+            aux_operators: Optional[List[Optional[Union[OperatorBase,
+                                                        LegacyBaseOperator]]]] = None
+    ) -> 'MinimumEigensolverResult':
         """
         Computes minimum eigenvalue. Operator and aux_operators can be supplied here and
         if not None will override any already set into algorithm so it can be reused with
@@ -69,13 +71,13 @@ class MinimumEigensolver(ABC):
 
     @property
     @abstractmethod
-    def operator(self) -> Optional[OperatorBase]:
+    def operator(self) -> Optional[Union[OperatorBase, LegacyBaseOperator]]:
         """ returns operator """
         pass
 
     @operator.setter
     @abstractmethod
-    def operator(self, operator: Union[OperatorBase, LegacyBaseOperator]) -> None:
+    def operator(self, operator: Optional[Union[OperatorBase, LegacyBaseOperator]]) -> None:
         """ set operator """
         pass
 

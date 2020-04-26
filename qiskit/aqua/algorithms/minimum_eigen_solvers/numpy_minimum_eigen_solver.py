@@ -32,8 +32,11 @@ class NumPyMinimumEigensolver(ClassicalAlgorithm, MinimumEigensolver):
     The Numpy Minimum Eigensolver algorithm.
     """
 
-    def __init__(self, operator: Optional[LegacyBaseOperator] = None,
-                 aux_operators: Optional[List[LegacyBaseOperator]] = None) -> None:
+    def __init__(self,
+                 operator: Optional[Union[OperatorBase, LegacyBaseOperator]] = None,
+                 aux_operators: Optional[List[Optional[Union[OperatorBase,
+                                                             LegacyBaseOperator]]]] = None
+                 ) -> None:
         """
         Args:
             operator: Operator instance
@@ -47,7 +50,7 @@ class NumPyMinimumEigensolver(ClassicalAlgorithm, MinimumEigensolver):
         return self._ces.operator
 
     @operator.setter
-    def operator(self, operator: Union[OperatorBase, LegacyBaseOperator]) -> None:
+    def operator(self, operator: Optional[Union[OperatorBase, LegacyBaseOperator]]) -> None:
         self._ces.operator = operator
 
     @property
@@ -64,8 +67,11 @@ class NumPyMinimumEigensolver(ClassicalAlgorithm, MinimumEigensolver):
         return self._ces.supports_aux_operators()
 
     def compute_minimum_eigenvalue(
-            self, operator: LegacyBaseOperator = None,
-            aux_operators: Optional[List[LegacyBaseOperator]] = None) -> MinimumEigensolverResult:
+            self,
+            operator: Optional[Union[OperatorBase, LegacyBaseOperator]] = None,
+            aux_operators: Optional[List[Optional[Union[OperatorBase,
+                                                        LegacyBaseOperator]]]] = None
+    ) -> MinimumEigensolverResult:
         super().compute_minimum_eigenvalue(operator, aux_operators)
         return self._run()
 
