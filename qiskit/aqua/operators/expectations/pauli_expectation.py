@@ -62,15 +62,25 @@ class PauliExpectation(ExpectationBase):
         """
 
         if isinstance(operator, OperatorStateFn) and operator.is_measurement:
+            # Change to Pauli representation if necessary
+            if not {'Pauli'} == operator.primitive_strings():
+                logger.warning('Measured Observable is not composed of only Paulis, converting to '
+                               'Pauli representation, which can be expensive.')
+                pauli_obsv = operator.primitive.to_pauli_op()
+                operator = StateFn(pauli_obsv, is_measurement=True, coeff=operator.coeff)
+
             if self._grouper and isinstance(operator.primitive, ListOp):
                 grouped = self._grouper.convert(operator.primitive)
                 operator = StateFn(grouped, is_measurement=True, coeff=operator.coeff)
-            # Convert the measurement into a classical
-            # basis (PauliBasisChange chooses this basis by default).
+
+            # Convert the measurement into diagonal basis (PauliBasisChange chooses
+            # this basis by default).
             cob = PauliBasisChange(replacement_fn=PauliBasisChange.measurement_replacement_fn)
             return cob.convert(operator).reduce()
+
         elif isinstance(operator, ListOp):
             return operator.traverse(self.convert).reduce()
+
         else:
             return operator
 

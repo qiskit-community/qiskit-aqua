@@ -18,7 +18,8 @@ from typing import Optional
 
 import numpy as np
 
-from qiskit.aqua.operators import OperatorBase, X, I, H, Zero, CircuitStateFn, EvolutionFactory
+from qiskit.aqua.operators import (OperatorBase, X, I, H, Zero, CircuitStateFn,
+                                   EvolutionFactory, LegacyBaseOperator)
 from qiskit.aqua.components.variational_forms import VariationalForm
 from qiskit.aqua.components.initial_states import InitialState
 
@@ -67,11 +68,11 @@ class QAOAVarForm(VariationalForm):
             mixer_terms = [(I ^ left) ^ X ^ (I ^ (num_qubits - left - 1))
                            for left in range(num_qubits)]
             self._mixer_operator = sum(mixer_terms)
+        elif isinstance(mixer_operator, LegacyBaseOperator):
+            self._mixer_operator = mixer_operator.to_opflow()
         else:
-            if not isinstance(mixer_operator, OperatorBase):
-                raise TypeError('The mixer should be a qiskit.aqua.operators.OperatorBase '
-                                + 'object, found {} instead'.format(type(mixer_operator)))
             self._mixer_operator = mixer_operator
+
         self.support_parameterized_circuit = True
 
     def construct_circuit(self, parameters, q=None):

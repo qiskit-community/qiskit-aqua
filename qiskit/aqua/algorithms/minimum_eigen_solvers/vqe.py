@@ -83,8 +83,8 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                  initial_point: Optional[np.ndarray] = None,
                  expectation_value: Optional[ExpectationBase] = None,
                  max_evals_grouped: int = 1,
-                 aux_operators: Optional[List[Optional[Union[OperatorBase, LegacyBaseOperator]]]] =
-                 None,
+                 aux_operators: Optional[List[Optional[Union[OperatorBase,
+                                                             LegacyBaseOperator]]]] = None,
                  callback: Optional[Callable[[int, np.ndarray, float, float], None]] = None,
                  quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
         """
@@ -156,7 +156,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         return self._operator
 
     @operator.setter
-    def operator(self, operator: Union[OperatorBase, LegacyBaseOperator]) -> None:
+    def operator(self, operator: Optional[Union[OperatorBase, LegacyBaseOperator]]) -> None:
         """ set operator """
         if isinstance(operator, LegacyBaseOperator):
             operator = operator.to_opflow()
@@ -377,8 +377,11 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         self._ret['aux_ops'] = np.array([self._ret['aux_ops']])
 
     def compute_minimum_eigenvalue(
-            self, operator: Optional[OperatorBase] = None,
-            aux_operators: Optional[List[OperatorBase]] = None) -> MinimumEigensolverResult:
+            self,
+            operator: Optional[Union[OperatorBase, LegacyBaseOperator]] = None,
+            aux_operators: Optional[List[Optional[Union[OperatorBase,
+                                                        LegacyBaseOperator]]]] = None
+    ) -> MinimumEigensolverResult:
         super().compute_minimum_eigenvalue(operator, aux_operators)
         return self._run()
 

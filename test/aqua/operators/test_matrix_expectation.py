@@ -132,6 +132,20 @@ class TestMatrixExpectation(QiskitAquaTestCase):
         sampled = self.sampler.convert(states_op)
         np.testing.assert_array_almost_equal((converted_meas @ sampled).eval(), valids, decimal=1)
 
+    def test_multi_representation_ops(self):
+        """ Test observables with mixed representations """
+        mixed_ops = ListOp([X.to_matrix_op(),
+                            H,
+                            H + I,
+                            X])
+        converted_meas = self.expect.convert(~StateFn(mixed_ops))
+
+        plus_mean = (converted_meas @ Plus)
+        sampled_plus = self.sampler.convert(plus_mean)
+        np.testing.assert_array_almost_equal(sampled_plus.eval(),
+                                             [1, .5**.5, (1 + .5**.5), 1],
+                                             decimal=1)
+
 
 if __name__ == '__main__':
     unittest.main()

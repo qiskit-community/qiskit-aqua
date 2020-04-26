@@ -60,6 +60,13 @@ class AerPauliExpectation(ExpectationBase):
         # CircuitSampler will look for it to know that the circuit is a Expectation
         # measurement, and not simply a
         # circuit to replace with a DictStateFn
+
+        # Change to Pauli representation if necessary
+        if not {'Pauli'} == operator.primitive_strings():
+            logger.warning('Measured Observable is not composed of only Paulis, converting to '
+                           'Pauli representation, which can be expensive.')
+            operator = operator.to_pauli_op()
+
         if isinstance(operator, SummedOp):
             paulis = [[meas.coeff, meas.primitive] for meas in operator.oplist]
             snapshot_instruction = SnapshotExpectationValue('expval_measurement',

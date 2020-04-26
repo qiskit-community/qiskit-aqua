@@ -68,7 +68,7 @@ class QAOA(VQE):
                  optimizer: Optimizer = None,
                  p: int = 1,
                  initial_state: Optional[InitialState] = None,
-                 mixer: Optional[OperatorBase] = None,
+                 mixer: Union[OperatorBase, LegacyBaseOperator] = None,
                  initial_point: Optional[np.ndarray] = None,
                  max_evals_grouped: int = 1,
                  aux_operators: Optional[List[Optional[Union[OperatorBase, LegacyBaseOperator]]]] =
@@ -106,9 +106,8 @@ class QAOA(VQE):
         validate_min('p', p, 1)
 
         self._p = p
-        self._mixer_operator = mixer
+        self._mixer_operator = mixer.to_opflow() if isinstance(mixer, LegacyBaseOperator) else mixer
         self._initial_state = initial_state
-        self._operator = None
 
         # VQE will use the operator setter, during its constructor, which is overridden below and
         # will cause the var form to be built
@@ -124,11 +123,9 @@ class QAOA(VQE):
     @VQE.operator.setter
     def operator(self, operator: Union[OperatorBase, LegacyBaseOperator]) -> None:
         """ Sets operator """
-        if operator is not None:
-            if isinstance(operator, LegacyBaseOperator):
-                operator = operator.to_opflow()
-            self._operator = operator
-            self.var_form = QAOAVarForm(operator,
-                                        self._p,
-                                        initial_state=self._initial_state,
-                                        mixer_operator=self._mixer_operator)
+        # Setting with VQE's operator property
+        super(QAOA, self.__class__).operator.__set__(self, operator)
+        self.var_form = QAOAVarForm(operator,
+                                    self._p,
+                                    initial_state=self._initial_state,
+                                    mixer_operator=self._mixer_operator)
