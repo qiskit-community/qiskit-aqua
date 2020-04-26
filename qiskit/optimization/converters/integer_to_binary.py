@@ -47,8 +47,6 @@ class IntegerToBinary:
     _delimiter = '@'  # users are supposed not to use this character in variable names
 
     def __init__(self) -> None:
-        """Initializes the internal data structure."""
-
         self._src = None
         self._dst = None
         self._conv: Dict[Variable, List[Tuple[str, int]]] = {}

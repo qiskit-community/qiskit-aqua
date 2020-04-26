@@ -136,7 +136,7 @@ class GSLS(Optimizer):
         if len(var_lb) != n:
             raise ValueError('Length of the lower bound mismatches the number of dimensions.')
         if len(var_ub) != n:
-            raise ValueError('Length of the lower bound mismatches the number of dimensions.')
+            raise ValueError('Length of the upper bound mismatches the number of dimensions.')
 
         # Initialize counters and data
         iter_count = 0
@@ -198,7 +198,9 @@ class GSLS(Optimizer):
                 consecutive_fail_iter = 0
 
                 # Reset sample set
-                prev_directions, prev_sample_set_x, prev_sample_set_y = None, None, None
+                prev_directions = None
+                prev_sample_set_x = None
+                prev_sample_set_y = None
             else:
                 # Do not accept point
                 alpha *= self._options['step_size_multiplier']

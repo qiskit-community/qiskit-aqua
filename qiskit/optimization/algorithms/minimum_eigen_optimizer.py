@@ -90,8 +90,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
 
     def __init__(self, min_eigen_solver: MinimumEigensolver, penalty: Optional[float] = None
                  ) -> None:
-        """Initializes the minimum eigen optimizer.
-
+        """
         This initializer takes the minimum eigen solver to be used to approximate the ground state
         of the resulting Hamiltonian as well as a optional penalty factor to scale penalty terms
         representing linear equality constraints. If no penalty factor is provided, a default
@@ -233,11 +232,9 @@ def eval_operator_at_bitstring(operator: Union[WeightedPauliOperator, MatrixOper
     Returns:
         The operator evaluated with the quantum state the bitstring describes.
     """
-
     # TODO check that operator size and bitstr are compatible
     circuit = QuantumCircuit(len(bitstr))
     for i, bit in enumerate(bitstr):
-        # TODO in which order to iterate over the bitstring???
         if bit == '1':
             circuit.x(i)
 

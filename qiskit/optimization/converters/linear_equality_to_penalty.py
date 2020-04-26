@@ -18,14 +18,13 @@ import copy
 from typing import Optional
 
 from ..problems import QuadraticProgram, Variable, Constraint, QuadraticObjective
-from ..exceptions.qiskit_optimization_error import QiskitOptimizationError
+from ..exceptions import QiskitOptimizationError
 
 
 class LinearEqualityToPenalty:
     """Convert a problem with only equality constraints to unconstrained with penalty terms."""
 
     def __init__(self):
-        """Initialize the internal data structure."""
         self._src = None
         self._dst = None
 
