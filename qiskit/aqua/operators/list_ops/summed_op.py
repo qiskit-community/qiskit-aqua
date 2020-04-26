@@ -18,8 +18,12 @@ from typing import List, Union
 import copy
 from functools import reduce, partial
 
+from qiskit.circuit import ParameterExpression
+
 from ..operator_base import OperatorBase
 from .list_op import ListOp
+from ..legacy.base_operator import LegacyBaseOperator
+from ..legacy.weighted_pauli_operator import WeightedPauliOperator
 
 
 class SummedOp(ListOp):
@@ -72,3 +76,23 @@ class SummedOp(ListOp):
             return reduced_ops.oplist[0]
         else:
             return reduced_ops
+
+    def to_legacy_op(self, massive: bool = False) -> LegacyBaseOperator:
+        # We do this recursively in case there are SummedOps of PauliOps in oplist.
+        legacy_ops = [op.to_legacy_op(massive=massive) for op in self.oplist]
+
+        if not all([isinstance(op, WeightedPauliOperator) for op in legacy_ops]):
+            # If any Operators in oplist cannot be represented by Legacy Operators, the error
+            # will be raised in the offending matrix-converted result (e.g. StateFn or ListOp)
+            return self.to_matrix_op(massive=massive).to_legacy_op(massive=massive)
+
+        if isinstance(self.coeff, ParameterExpression):
+            try:
+                coeff = float(self.coeff)
+            except TypeError:
+                raise TypeError('Cannot convert Operator with unbound parameter {} to Legacy '
+                                'Operator'.format(self.coeff))
+        else:
+            coeff = self.coeff
+
+        return self.combo_fn(legacy_ops) * coeff

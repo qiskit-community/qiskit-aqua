@@ -19,7 +19,7 @@ import logging
 import numpy as np
 from scipy.sparse import spmatrix
 
-from qiskit.quantum_info import Operator as MatrixOperator
+from qiskit.quantum_info import Operator
 from qiskit.circuit import ParameterExpression, Instruction
 from qiskit.extensions.hamiltonian_gate import HamiltonianGate
 
@@ -29,6 +29,7 @@ from ..list_ops.summed_op import SummedOp
 from ..list_ops.composed_op import ComposedOp
 from ..list_ops.tensored_op import TensoredOp
 from .primitive_op import PrimitiveOp
+from ..legacy.matrix_operator import MatrixOperator
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ class MatrixOp(PrimitiveOp):
     """
 
     def __init__(self,
-                 primitive: Union[list, np.ndarray, spmatrix, MatrixOperator] = None,
+                 primitive: Union[list, np.ndarray, spmatrix, Operator] = None,
                  coeff: Optional[Union[int, float, complex, ParameterExpression]] = 1.0) -> None:
         """
         Args:
@@ -54,9 +55,9 @@ class MatrixOp(PrimitiveOp):
             primitive = primitive.toarray()
 
         if isinstance(primitive, (list, np.ndarray)):
-            primitive = MatrixOperator(primitive)
+            primitive = Operator(primitive)
 
-        if not isinstance(primitive, MatrixOperator):
+        if not isinstance(primitive, Operator):
             raise TypeError(
                 'MatrixOp can only be instantiated with MatrixOperator, '
                 'not {}'.format(type(primitive)))
@@ -98,7 +99,7 @@ class MatrixOp(PrimitiveOp):
         # Will return NotImplementedError if not supported
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
-        if isinstance(other.primitive, MatrixOperator):
+        if isinstance(other.primitive, Operator):
             return MatrixOp(self.primitive.tensor(other.primitive), coeff=self.coeff * other.coeff)
 
         return TensoredOp([self, other])
@@ -168,3 +169,6 @@ class MatrixOp(PrimitiveOp):
 
     def to_instruction(self) -> Instruction:
         return PrimitiveOp(self.primitive.to_instruction(), coeff=self.coeff)
+
+    def to_legacy_op(self, massive: bool = False) -> MatrixOperator:
+        return MatrixOperator(self.to_matrix(massive=massive))

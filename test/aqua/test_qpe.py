@@ -67,9 +67,9 @@ class TestQPE(QiskitAquaTestCase):
             WeightedPauliOperator.from_dict(TestQPE.PAULI_DICT)
         qubit_op_zz = WeightedPauliOperator.from_dict(TestQPE.PAULI_DICT_ZZ)
         self._dict = {
-            'QUBIT_OP_SIMPLE': qubit_op_simple,
-            'QUBIT_OP_ZZ': qubit_op_zz,
-            'QUBIT_OP_H2_WITH_2_QUBIT_REDUCTION': qubit_op_h2_with_2_qubit_reduction
+            'QUBIT_OP_SIMPLE': qubit_op_simple.to_opflow(),
+            'QUBIT_OP_ZZ': qubit_op_zz.to_opflow(),
+            'QUBIT_OP_H2_WITH_2_QUBIT_REDUCTION': qubit_op_h2_with_2_qubit_reduction.to_opflow()
         }
 
     def tearDown(self):
@@ -89,7 +89,6 @@ class TestQPE(QiskitAquaTestCase):
         """ QPE test """
         self.log.debug('Testing QPE')
         qubit_op = self._dict[qubit_op]
-        tmp_qubit_op = qubit_op.copy()
         exact_eigensolver = NumPyMinimumEigensolver(qubit_op)
         results = exact_eigensolver.run()
 
@@ -132,7 +131,6 @@ class TestQPE(QiskitAquaTestCase):
         ))
 
         np.testing.assert_approx_equal(result.eigenvalue.real, ref_eigenval.real, significant=2)
-        self.assertEqual(tmp_qubit_op, qubit_op, "Operator is modified after QPE.")
 
         if not use_circuit_library:
             warnings.filterwarnings(action="always", category=DeprecationWarning)

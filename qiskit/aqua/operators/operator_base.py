@@ -19,9 +19,10 @@ from numbers import Number
 from abc import ABC, abstractmethod
 import numpy as np
 
-from qiskit.circuit import ParameterExpression, ParameterVector
-
 from qiskit.aqua import AquaError
+from qiskit.circuit import ParameterExpression, ParameterVector
+from .legacy.base_operator import LegacyBaseOperator
+
 
 
 class OperatorBase(ABC):
@@ -109,6 +110,29 @@ class OperatorBase(ABC):
 
         Returns:
               The NumPy ``ndarray`` equivalent to this Operator.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def to_legacy_op(self, massive: bool = False) -> LegacyBaseOperator:
+        r""" Attempt to return the Legacy Operator representation of the Operator. If self is a
+        ``SummedOp`` of ``PauliOps``, will attempt to convert to ``WeightedPauliOperator``,
+        and otherwise will simply convert to ``MatrixOp`` and then to ``MatrixOperator``. The
+        Legacy Operators cannot represent ``StateFns`` or proper ``ListOps`` (meaning not one of
+        the ``ListOp`` subclasses), so an error will be thrown if this method is called on such
+        an Operator. Also, Legacy Operators cannot represent unbound Parameter coeffs, so an error
+        will be thrown if any are present in self.
+
+        Warn if more than 16 qubits to force having to set ``massive=True`` if such a
+        large vector is desired.
+
+        Returns:
+            The ``LegacyBaseOperator`` representing this Operator.
+
+        Raises:
+            TypeError: self is an Operator which cannot be represented by a ``LegacyBaseOperator``,
+                such as ``StateFn``, proper (non-sublcass) ``ListOp``, or an Operator with an
+                unbound coeff Parameter.
         """
         raise NotImplementedError
 

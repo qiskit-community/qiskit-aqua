@@ -22,6 +22,7 @@ from scipy.sparse import spmatrix
 from qiskit.circuit import ParameterExpression
 
 from ..operator_base import OperatorBase
+from ..legacy.base_operator import LegacyBaseOperator
 
 
 class ListOp(OperatorBase):
@@ -316,6 +317,13 @@ class ListOp(OperatorBase):
         return self.__class__([op.to_pauli_op(massive=massive)
                                if not isinstance(op, StateFn) else op
                                for op in self.oplist], coeff=self.coeff).reduce()
+
+    def to_legacy_op(self, massive: bool = False) -> LegacyBaseOperator:
+        mat_op = self.to_matrix_op(massive=massive).reduce()
+        if isinstance(mat_op, ListOp):
+            raise TypeError('A hierarchical (non-subclass) ListOp cannot be represented by '
+                            'LegacyBaseOperator.')
+        return mat_op.to_legacy_op(massive=massive)
 
     # Array operations:
 
