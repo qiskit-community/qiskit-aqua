@@ -65,7 +65,9 @@ class AerPauliExpectation(ExpectationBase):
         if not {'Pauli'} == operator.primitive_strings():
             logger.warning('Measured Observable is not composed of only Paulis, converting to '
                            'Pauli representation, which can be expensive.')
-            operator = operator.to_pauli_op()
+            # Setting massive=False because this conversion is implicit. User can perform this
+            # action on the Observable with massive=True explicitly if they so choose.
+            operator = operator.to_pauli_op(massive=False)
 
         if isinstance(operator, SummedOp):
             paulis = [[meas.coeff, meas.primitive] for meas in operator.oplist]

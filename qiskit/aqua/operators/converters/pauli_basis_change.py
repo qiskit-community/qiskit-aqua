@@ -114,7 +114,7 @@ class PauliBasisChange(ConverterBase):
         self._destination = dest
 
     # TODO see whether we should make this performant by handling ListOps of Paulis later.
-    # pylint: disable=inconsistent-return-statements,too-many-return-statements
+    # pylint: disable=too-many-return-statements
     def convert(self, operator: OperatorBase) -> OperatorBase:
         r"""
         Given a ``PauliOp``, or an Operator containing ``PauliOps`` if ``_traverse`` is True,
@@ -157,7 +157,6 @@ class PauliBasisChange(ConverterBase):
                                                                       coeff=operator.coeff)
                     return listop_of_statefns.traverse(self.convert)
 
-        # TODO allow parameterized ListOp to be returned to save circuit copying.
         elif isinstance(operator, ListOp) and self._traverse and \
                 'Pauli' in operator.primitive_strings():
             # If ListOp is abelian we can find a single post-rotation circuit

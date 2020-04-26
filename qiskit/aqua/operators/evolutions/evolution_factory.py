@@ -24,13 +24,12 @@ from .matrix_evolution import MatrixEvolution
 logger = logging.getLogger(__name__)
 
 
-class EvolutionFactory():
+class EvolutionFactory:
     """ A factory class for convenient automatic selection of an Evolution algorithm based on the
     Operator to be converted.
     """
 
     @staticmethod
-    # pylint: disable=inconsistent-return-statements
     def build(operator: OperatorBase = None) -> EvolutionBase:
         r"""
         A factory method for convenient automatic selection of an Evolution algorithm based on the
@@ -47,7 +46,6 @@ class EvolutionFactory():
                 method.
 
         """
-        # pylint: disable=cyclic-import,import-outside-toplevel
         primitives = operator.primitive_strings()
         if 'Matrix' in primitives:
             return MatrixEvolution()
@@ -57,4 +55,4 @@ class EvolutionFactory():
             return PauliTrotterEvolution()
 
         else:
-            raise ValueError('Evolutions of Mixed Operators not yet supported.')
+            raise ValueError('Evolutions of mixed Operators not yet supported.')

@@ -81,7 +81,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                  var_form: Optional[Union[QuantumCircuit, VariationalForm]] = None,
                  optimizer: Optional[Optimizer] = None,
                  initial_point: Optional[np.ndarray] = None,
-                 expectation_value: Optional[ExpectationBase] = None,
+                 expectation: Optional[ExpectationBase] = None,
                  max_evals_grouped: int = 1,
                  aux_operators: Optional[List[Optional[Union[OperatorBase,
                                                              LegacyBaseOperator]]]] = None,
@@ -90,13 +90,13 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         """
 
         Args:
-            operator: Qubit operator of the Hamiltonian
+            operator: Qubit operator of the Observable
             var_form: A parameterized circuit used as Ansatz for the wave function.
             optimizer: A classical optimizer.
             initial_point: An optional initial point (i.e. initial parameter values)
                 for the optimizer. If ``None`` then VQE will look to the variational form for a
                 preferred point and if not will simply compute a random one.
-            expectation_value: The Expectation Value algorithm for taking average value of the
+            expectation: The Expectation converter for taking the average value of the
                 Observable over the var_form state function.
             max_evals_grouped: Max number of evaluations performed simultaneously. Signals the
                 given optimizer that more than one set of parameters can be supplied so that
@@ -143,7 +143,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         self._optimizer.set_max_evals_grouped(max_evals_grouped)
         self._callback = callback
 
-        self._expectation = expectation_value
+        self._expectation = expectation
         self.operator = operator
         self.aux_operators = aux_operators
 

@@ -66,7 +66,9 @@ class PauliExpectation(ExpectationBase):
             if not {'Pauli'} == operator.primitive_strings():
                 logger.warning('Measured Observable is not composed of only Paulis, converting to '
                                'Pauli representation, which can be expensive.')
-                pauli_obsv = operator.primitive.to_pauli_op()
+                # Setting massive=False because this conversion is implicit. User can perform this
+                # action on the Observable with massive=True explicitly if they so choose.
+                pauli_obsv = operator.primitive.to_pauli_op(massive=False)
                 operator = StateFn(pauli_obsv, is_measurement=True, coeff=operator.coeff)
 
             if self._grouper and isinstance(operator.primitive, ListOp):

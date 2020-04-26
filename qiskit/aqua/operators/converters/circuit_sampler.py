@@ -101,7 +101,7 @@ class CircuitSampler(ConverterBase):
 
     @property
     def backend(self) -> BaseBackend:
-        """ returns backend
+        """ Returns the backend.
 
         Returns:
              The backend used by the CircuitSampler
@@ -109,18 +109,22 @@ class CircuitSampler(ConverterBase):
         return self.quantum_instance.backend
 
     @backend.setter
-    def backend(self, backend: BaseBackend) -> None:
-        """ sets the backend
+    def backend(self, backend: BaseBackend):
+        """ Sets backend without additional configuration. """
+        self.set_backend(backend)
+
+    def set_backend(self, backend: BaseBackend, **kwargs) -> None:
+        """ Sets backend with configuration.
 
         Raises:
             ValueError: statevector or param_qobj are True when not supported by backend.
         """
-        self.quantum_instance = QuantumInstance(backend=backend)
-        self._check_quantum_instance_and_modes_consistent()
+        self.quantum_instance = QuantumInstance(backend)
+        self.quantum_instance.set_config(**kwargs)
 
     @property
     def quantum_instance(self) -> QuantumInstance:
-        """ returns quantum instance
+        """ Returns the quantum instance.
 
         Returns:
              The QuantumInstance used by the CircuitSampler
@@ -128,12 +132,14 @@ class CircuitSampler(ConverterBase):
         return self._quantum_instance
 
     @quantum_instance.setter
-    def quantum_instance(self, quantum_instance: QuantumInstance) -> None:
+    def quantum_instance(self, quantum_instance: Union[QuantumInstance, BaseBackend]) -> None:
         """ Sets the QuantumInstance.
 
         Raises:
             ValueError: statevector or param_qobj are True when not supported by backend.
         """
+        if isinstance(quantum_instance, BaseBackend):
+            quantum_instance = QuantumInstance(quantum_instance)
         self._quantum_instance = quantum_instance
         self._check_quantum_instance_and_modes_consistent()
 
@@ -158,7 +164,7 @@ class CircuitSampler(ConverterBase):
         Returns:
             The converted Operator with CircuitStateFns replaced by DictStateFns or VectorStateFns.
         """
-        if self._last_op is None or not operator == self._last_op:
+        if self._last_op is None or operator != self._last_op:
             # Clear caches
             self._last_op = operator
             self._reduced_op_cache = None
@@ -201,7 +207,6 @@ class CircuitSampler(ConverterBase):
         else:
             return replace_circuits_with_dicts(self._reduced_op_cache, param_index=0)
 
-    # pylint: disable=inconsistent-return-statements
     def _extract_circuitstatefns(self, operator: OperatorBase) -> None:
         r"""
         Recursively extract the ``CircuitStateFns`` contained in operator into the
@@ -212,8 +217,6 @@ class CircuitSampler(ConverterBase):
         elif isinstance(operator, ListOp):
             for op in operator.oplist:
                 self._extract_circuitstatefns(op)
-        else:
-            return operator
 
     def sample_circuits(self,
                         circuit_sfns: Optional[List[CircuitStateFn]] = None,
@@ -245,7 +248,9 @@ class CircuitSampler(ConverterBase):
             try:
                 self._transpiled_circ_cache = self.quantum_instance.transpile(circuits)
             except QiskitError:
-                # TODO does this fail too silently?
+                logger.debug(r'CircuitSampler failed to transpile circuits with unbound '
+                             r'parameters. Attempting to transpile only when circuits are bound '
+                             r'now, but this can hurt performance due to repeated transpilation.')
                 self._transpile_before_bind = False
                 self._transpiled_circ_cache = circuits
         else:
@@ -301,8 +306,9 @@ class CircuitSampler(ConverterBase):
             sampled_statefn_dicts[id(op_c)] = c_statefns
         return sampled_statefn_dicts
 
+    # TODO build Aer reparameterized Qobj.
     def _prepare_parameterized_run_config(self, param_bindings: dict) -> None:
-        pass
+        raise NotImplementedError
         # Wipe parameterizations, if any
         # self.quantum_instance._run_config.parameterizations = None
 
