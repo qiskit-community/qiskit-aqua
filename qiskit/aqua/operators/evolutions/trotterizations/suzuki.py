@@ -20,6 +20,7 @@ from qiskit.quantum_info import Pauli
 from .trotterization_base import TrotterizationBase
 from ...list_ops.composed_op import ComposedOp
 from ...list_ops.summed_op import SummedOp
+from ...primitive_ops.primitive_op import PrimitiveOp
 
 
 class Suzuki(TrotterizationBase):
@@ -65,7 +66,7 @@ class Suzuki(TrotterizationBase):
     def _suzuki_recursive_expansion(op_list: List[List[Union[complex, Pauli]]],
                                     evo_time: float,
                                     expansion_order: int,
-                                    reps: int) -> List:
+                                    reps: int) -> List[PrimitiveOp]:
         """
         Compute the list of pauli terms for a single slice of the suzuki expansion
         following the paper https://arxiv.org/pdf/quant-ph/0508139.pdf.
@@ -76,8 +77,9 @@ class Suzuki(TrotterizationBase):
                 adjusted for the evolution time and the number of time slices
             expansion_order: The order for the Suzuki expansion.
             reps: The number of times to repeat the expansion circuit.
+
         Returns:
-            list: slice pauli list
+            The evolution list after expansion.
         """
         if expansion_order == 1:
             # Base first-order Trotter case

@@ -41,7 +41,7 @@ class QDrift(TrotterizationBase):
 
     # pylint: disable=arguments-differ
     def convert(self, op_sum: SummedOp) -> ComposedOp:
-        # We artificially make the weights positive, TODO check if this works
+        # We artificially make the weights positive, TODO check approximation performance
         weights = np.abs([op.coeff for op in op_sum.oplist])
         lambd = sum(weights)
         N = 2 * (lambd ** 2) * (op_sum.coeff ** 2)

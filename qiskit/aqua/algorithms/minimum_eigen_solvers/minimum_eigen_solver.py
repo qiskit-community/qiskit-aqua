@@ -13,6 +13,7 @@
 # that they have been altered from the originals.
 
 """The Minimum Eigensolver interface"""
+
 import warnings
 from abc import ABC, abstractmethod
 from typing import List, Optional, Union, Dict
@@ -33,7 +34,8 @@ class MinimumEigensolver(ABC):
 
     @abstractmethod
     def compute_minimum_eigenvalue(
-            self, operator: Optional[LegacyBaseOperator] = None,
+            self,
+            operator: Optional[LegacyBaseOperator] = None,
             aux_operators: Optional[List[LegacyBaseOperator]] = None) -> 'MinimumEigensolverResult':
         """
         Computes minimum eigenvalue. Operator and aux_operators can be supplied here and
