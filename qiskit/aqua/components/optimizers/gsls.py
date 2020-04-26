@@ -18,6 +18,7 @@ from typing import Dict, Optional, Tuple, List
 import logging
 import numpy as np
 
+from qiskit.aqua import aqua_globals
 from .optimizer import Optimizer
 
 logger = logging.getLogger(__name__)
@@ -93,7 +94,7 @@ class GSLS(Optimizer):
                          variable_bounds, initial_point)
 
         if initial_point is None:
-            initial_point = np.random.normal(size=num_vars)
+            initial_point = aqua_globals.random.normal(size=num_vars)
         else:
             initial_point = np.array(initial_point)
 
@@ -234,7 +235,7 @@ class GSLS(Optimizer):
         Returns:
             A tuple containing the sampling points and the directions.
         """
-        normal_samples = np.random.normal(size=(num_points, n))
+        normal_samples = aqua_globals.random.normal(size=(num_points, n))
         row_norms = np.linalg.norm(normal_samples, axis=1, keepdims=True)
         directions = normal_samples / row_norms
         points = x + self._options['sampling_radius'] * directions

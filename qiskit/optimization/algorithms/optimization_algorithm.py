@@ -100,6 +100,10 @@ class OptimizationResult:
     def __repr__(self):
         return '([%s] / %s)' % (','.join([str(x_) for x_ in self.x]), self.fval)
 
+    def __str__(self):
+        return 'optimal value=[%s], function value=%s)' % (','.join([str(x_) for x_ in self.x]),
+                                                           self.fval)
+
     @property
     def x(self) -> Any:
         """Returns the optimal value found in the optimization.

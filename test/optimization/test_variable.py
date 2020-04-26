@@ -17,7 +17,7 @@
 import unittest
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 
-from qiskit.optimization import infinity
+from qiskit.optimization import INFINITY
 from qiskit.optimization.problems import QuadraticProgram, Variable
 
 
@@ -50,7 +50,7 @@ class TestVariable(QiskitOptimizationTestCase):
 
         self.assertEqual(variable.name, name)
         self.assertEqual(variable.lowerbound, 0)
-        self.assertEqual(variable.upperbound, infinity)
+        self.assertEqual(variable.upperbound, INFINITY)
         self.assertEqual(variable.vartype, Variable.Type.CONTINUOUS)
 
 

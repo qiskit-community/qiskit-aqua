@@ -17,7 +17,7 @@
 from enum import Enum
 from typing import Tuple, Union
 
-from qiskit.optimization import infinity, QiskitOptimizationError
+from qiskit.optimization import INFINITY, QiskitOptimizationError
 from qiskit.optimization.problems.has_quadratic_program import HasQuadraticProgram
 
 
@@ -35,7 +35,7 @@ class Variable(HasQuadraticProgram):
 
     def __init__(self, quadratic_program: 'QuadraticProgram', name: str,
                  lowerbound: Union[float, int] = 0,
-                 upperbound: Union[float, int] = infinity,
+                 upperbound: Union[float, int] = INFINITY,
                  vartype: VarType = VarType.CONTINUOUS) -> None:
         """Creates a new Variable.
 

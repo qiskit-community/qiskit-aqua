@@ -26,7 +26,7 @@ from docplex.mp.quad import QuadExpr
 from numpy import ndarray
 from scipy.sparse import spmatrix
 
-from qiskit.optimization import infinity, QiskitOptimizationError
+from qiskit.optimization import INFINITY, QiskitOptimizationError
 from qiskit.optimization.problems.constraint import Constraint
 from qiskit.optimization.problems.linear_constraint import LinearConstraint
 from qiskit.optimization.problems.linear_expression import LinearExpression
@@ -137,7 +137,7 @@ class QuadraticProgram:
 
     def _add_variable(self,
                       lowerbound: Union[float, int] = 0,
-                      upperbound: Union[float, int] = infinity,
+                      upperbound: Union[float, int] = INFINITY,
                       vartype: Variable.Type = Variable.Type.CONTINUOUS,
                       name: Optional[str] = None) -> Variable:
         """Checks whether a variable name is already taken and adds the variable to list and index
@@ -170,7 +170,7 @@ class QuadraticProgram:
         return variable
 
     def continuous_var(self, lowerbound: Union[float, int] = 0,
-                       upperbound: Union[float, int] = infinity,
+                       upperbound: Union[float, int] = INFINITY,
                        name: Optional[str] = None) -> Variable:
         """Adds a continuous variable to the quadratic program.
 
@@ -202,7 +202,7 @@ class QuadraticProgram:
         return self._add_variable(0, 1, Variable.Type.BINARY, name)
 
     def integer_var(self, lowerbound: Union[float, int] = 0,
-                    upperbound: Union[float, int] = infinity,
+                    upperbound: Union[float, int] = INFINITY,
                     name: Optional[str] = None) -> Variable:
         """Adds an integer variable to the quadratic program.
 
@@ -642,7 +642,7 @@ class QuadraticProgram:
             if right_expr.is_quad_expr():
                 for x in right_expr.linear_part.iter_variables():
                     linear[var_names[x]] = linear.get(var_names[x], 0.0) - \
-                                           right_expr.linear_part.get_coef(x)
+                        right_expr.linear_part.get_coef(x)
                 for quad_triplet in right_expr.iter_quad_triplets():
                     i = var_names[quad_triplet[0]]
                     j = var_names[quad_triplet[1]]
@@ -745,7 +745,7 @@ class QuadraticProgram:
         return mdl
 
     def pprint_as_string(self) -> str:
-        """Pretty prints the quadratic program as a string.
+        """Returns the quadratic program as a string in DOcplex's prettyprint format.
 
         Returns:
             A string representing the quadratic program.
@@ -762,7 +762,7 @@ class QuadraticProgram:
         self.to_docplex().prettyprint(out)
 
     def print_as_lp_string(self) -> str:
-        """Prints the quadratic program as a string of LP format.
+        """Returns the quadratic program as a string of LP format.
 
         Returns:
             A string representing the quadratic program.
@@ -981,11 +981,11 @@ class SubstituteVariables:
                     raise QiskitOptimizationError(
                         'Coefficient of variable substitution should be nonzero: '
                         '{} {} {}'.format(i, j, v))
-                if abs(lb_i) < infinity:
+                if abs(lb_i) < INFINITY:
                     new_lb_i = lb_i / v
                 else:
                     new_lb_i = lb_i if v > 0 else -lb_i
-                if abs(ub_i) < infinity:
+                if abs(ub_i) < INFINITY:
                     new_ub_i = ub_i / v
                 else:
                     new_ub_i = ub_i if v > 0 else -ub_i

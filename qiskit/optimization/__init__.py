@@ -27,7 +27,7 @@ Submodules
 
 """
 
-from .infinity import infinity  # must be at the top of the file
+from .infinity import INFINITY  # must be at the top of the file
 from .exceptions import QiskitOptimizationError
 from .problems import QuadraticProgram
 from ._logging import (get_qiskit_optimization_logging,
@@ -37,5 +37,5 @@ __all__ = ['QuadraticProgram',
            'QiskitOptimizationError',
            'get_qiskit_optimization_logging',
            'set_qiskit_optimization_logging',
-           'infinity'
+           'INFINITY'
            ]

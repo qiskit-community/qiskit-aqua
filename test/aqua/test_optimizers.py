@@ -30,8 +30,7 @@ class TestOptimizers(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
-        aqua_globals.random_seed = 50
-        np.random.seed(512310912)
+        aqua_globals.random_seed = 52
 
     def _optimize(self, optimizer):
         x_0 = [1.3, 0.7, 0.8, 1.9, 1.2]
