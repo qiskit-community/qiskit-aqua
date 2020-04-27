@@ -542,7 +542,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
             op2.objective.quadratic[var_index, var_index] = self._state.rho / 2
             # replacing linear objective
             op2.objective.linear[var_index] = -1 * self._state.lambda_mult[i] - self._state.rho * \
-                                              (self._state.x0[i] - self._state.y[i])
+                (self._state.x0[i] - self._state.y[i])
 
         # remove A0 x0 = b0 constraints
         for constraint in self._state.binary_equality_constraints:
