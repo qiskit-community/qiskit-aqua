@@ -189,14 +189,13 @@ class ListOp(OperatorBase):
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
         if self.num_qubits > 16 and not massive:
-            # TODO figure out sparse matrices?
             raise ValueError(
                 'to_matrix will return an exponentially large matrix, '
                 'in this case {0}x{0} elements.'
                 ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
 
         # Combination function must be able to handle classical values
-        # TODO wrap combo function in np.array? Or just here to make sure broadcasting works?
+        # TODO test if we can collapse into one.
         if self.distributive:
             return self.combo_fn([op.to_matrix() * self.coeff for op in self.oplist])
         else:

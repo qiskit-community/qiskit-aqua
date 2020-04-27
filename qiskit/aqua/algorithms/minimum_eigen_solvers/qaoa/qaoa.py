@@ -125,7 +125,7 @@ class QAOA(VQE):
         """ Sets operator """
         # Setting with VQE's operator property
         super(QAOA, self.__class__).operator.__set__(self, operator)
-        self.var_form = QAOAVarForm(operator,
+        self.var_form = QAOAVarForm(self.operator,
                                     self._p,
                                     initial_state=self._initial_state,
                                     mixer_operator=self._mixer_operator)
