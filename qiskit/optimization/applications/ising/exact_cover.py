@@ -47,7 +47,7 @@ def get_operator(list_of_subsets):
     U = []
     for sub in list_of_subsets:
         U.extend(sub)
-    U = np.unique(U)   # U is the universe
+    U = np.unique(U)  # U is the universe
 
     shift = 0
     pauli_list = []

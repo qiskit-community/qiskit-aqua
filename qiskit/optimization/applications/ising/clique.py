@@ -12,8 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
-Convert clique instances into Pauli list
+"""Convert clique instances into Pauli list
+
 Deal with Gset format. See https://web.stanford.edu/~yyye/yyye/Gset/
 """
 

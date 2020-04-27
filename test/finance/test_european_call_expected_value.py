@@ -14,6 +14,7 @@
 
 """ Test European Call Expected Value uncertainty problem """
 
+import unittest
 from test.finance import QiskitFinanceTestCase
 import warnings
 from ddt import ddt, data
@@ -95,3 +96,7 @@ class TestEuropeanCallExpectedValue(QiskitFinanceTestCase):
 
         if not use_circuits:
             warnings.filterwarnings(action="always", category=DeprecationWarning)
+
+
+if __name__ == '__main__':
+    unittest.main()

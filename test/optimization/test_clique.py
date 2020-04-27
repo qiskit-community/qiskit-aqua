@@ -20,8 +20,8 @@ import numpy as np
 from qiskit import BasicAer
 
 from qiskit.aqua import aqua_globals, QuantumInstance
-from qiskit.optimization.ising import clique
-from qiskit.optimization.ising.common import random_graph, sample_most_likely
+from qiskit.optimization.applications.ising import clique
+from qiskit.optimization.applications.ising.common import random_graph, sample_most_likely
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE
 from qiskit.aqua.components.optimizers import COBYLA
 from qiskit.aqua.components.variational_forms import RY

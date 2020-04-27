@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -59,9 +59,9 @@ The following is an example of use.
 
 """
 
+from typing import Tuple
 import logging
 from math import fsum
-from typing import Tuple
 
 import numpy as np
 from docplex.mp.constants import ComparisonType
@@ -76,18 +76,17 @@ logger = logging.getLogger(__name__)
 
 def get_operator(mdl: Model, auto_penalty: bool = True,
                  default_penalty: float = 1e5) -> Tuple[WeightedPauliOperator, float]:
-    """
-    Generate Ising Hamiltonian from a model of DOcplex.
+    """Generate Ising Hamiltonian from a model of DOcplex.
 
     Args:
-        mdl : A model of DOcplex for a optimization problem.
-        auto_penalty : If true, the penalty coefficient is automatically defined
+        mdl: A model of DOcplex for a optimization problem.
+        auto_penalty: If true, the penalty coefficient is automatically defined
                              by "_auto_define_penalty()".
-        default_penalty : The default value of the penalty coefficient for the constraints.
+        default_penalty: The default value of the penalty coefficient for the constraints.
             This value is used if "auto_penalty" is False.
 
     Returns:
-        A WeightedPauliOperator for the Hamiltonian and a constant shift for the obj function.
+        Operator for the Hamiltonian and a constant shift for the obj function.
     """
 
     _validate_input_model(mdl)
@@ -208,15 +207,14 @@ def get_operator(mdl: Model, auto_penalty: bool = True,
     return qubit_op, shift
 
 
-def _validate_input_model(mdl: Model):
-    """
-    Check whether an input model is valid. If not, raise an AquaError
+def _validate_input_model(mdl: Model) -> None:
+    """Check whether an input model is valid. If not, raise an AquaError.
 
     Args:
-         mdl : A model of DOcplex for a optimization problem.
+         mdl: A model of DOcplex for a optimization problem.
 
     Raises:
-        AquaError: Unsupported input model
+        AquaError: Unsupported input model.
     """
     valid = True
 
@@ -242,14 +240,13 @@ def _validate_input_model(mdl: Model):
 
 
 def _auto_define_penalty(mdl: Model, default_penalty: float = 1e5) -> float:
-    """
-    Automatically define the penalty coefficient.
+    """Automatically define the penalty coefficient.
+
     This returns object function's (upper bound - lower bound + 1).
 
-
     Args:
-        mdl : A model of DOcplex for a optimization problem.
-        default_penalty : The default value of the penalty coefficient for the constraints.
+        mdl: A model of DOcplex for a optimization problem.
+        default_penalty: The default value of the penalty coefficient for the constraints.
 
     Returns:
         The penalty coefficient for the Hamiltonian.

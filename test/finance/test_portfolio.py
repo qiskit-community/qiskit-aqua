@@ -14,6 +14,7 @@
 
 """ Test Portfolio """
 
+import unittest
 from test.finance import QiskitFinanceTestCase
 
 import datetime
@@ -24,9 +25,9 @@ from qiskit import BasicAer
 from qiskit.aqua import aqua_globals, QuantumInstance
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver, QAOA
 from qiskit.aqua.components.optimizers import COBYLA
-from qiskit.finance.ising import portfolio
+from qiskit.finance.applications.ising import portfolio
 from qiskit.finance.data_providers import RandomDataProvider
-from qiskit.optimization.ising.common import sample_most_likely
+from qiskit.optimization.applications.ising.common import sample_most_likely
 
 
 class TestPortfolio(QiskitFinanceTestCase):
@@ -77,3 +78,7 @@ class TestPortfolio(QiskitFinanceTestCase):
             selection, self.muu, self.sigma, self.risk, self.budget, self.penalty)
         np.testing.assert_array_equal(selection, [1, 0, 0, 1])
         self.assertAlmostEqual(value, -0.0055989)
+
+
+if __name__ == '__main__':
+    unittest.main()

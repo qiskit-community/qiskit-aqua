@@ -44,8 +44,8 @@ class TestReadmeSample(QiskitOptimizationTestCase):
         from qiskit.aqua import aqua_globals, QuantumInstance
         from qiskit.aqua.algorithms import QAOA
         from qiskit.aqua.components.optimizers import SPSA
-        from qiskit.optimization.ising import docplex, max_cut
-        from qiskit.optimization.ising.common import sample_most_likely
+        from qiskit.optimization.applications.ising import docplex, max_cut
+        from qiskit.optimization.applications.ising.common import sample_most_likely
 
         # Generate a graph of 4 nodes
         n = 4

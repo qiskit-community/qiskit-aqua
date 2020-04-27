@@ -13,11 +13,11 @@
 # that they have been altered from the originals.
 
 """
-Ising Models (:mod:`qiskit.optimization.ising`)
-===============================================
+Ising Models (:mod:`qiskit.optimization.applications.ising`)
+============================================================
 Ising models for optimization problems
 
-.. currentmodule:: qiskit.optimization.ising
+.. currentmodule:: qiskit.optimization.applications.ising
 
 Ising Models
 ============
