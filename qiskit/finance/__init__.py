@@ -27,7 +27,6 @@ Submodules
 
    components
    data_providers
-   ising
 
 """
 

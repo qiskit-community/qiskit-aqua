@@ -14,14 +14,15 @@
 
 """ Test Exact Cover """
 
+import unittest
 import json
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 from qiskit import BasicAer
 
 from qiskit.aqua import aqua_globals, QuantumInstance
-from qiskit.optimization.ising import exact_cover
-from qiskit.optimization.ising.common import sample_most_likely
+from qiskit.optimization.applications.ising import exact_cover
+from qiskit.optimization.applications.ising.common import sample_most_likely
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE
 from qiskit.aqua.components.optimizers import COBYLA
 from qiskit.aqua.components.variational_forms import RYRZ
@@ -81,3 +82,7 @@ class TestExactCover(QiskitOptimizationTestCase):
         oracle = self._brute_force()
         self.assertEqual(exact_cover.check_solution_satisfiability(ising_sol, self.list_of_subsets),
                          oracle)
+
+
+if __name__ == '__main__':
+    unittest.main()

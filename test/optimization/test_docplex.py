@@ -14,6 +14,7 @@
 
 """ Test Docplex """
 
+import unittest
 from math import fsum, isclose
 from test.optimization import QiskitOptimizationTestCase
 
@@ -24,7 +25,7 @@ from qiskit.quantum_info import Pauli
 
 from qiskit.aqua import AquaError, aqua_globals
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
-from qiskit.optimization.ising import docplex, tsp
+from qiskit.optimization.applications.ising import docplex, tsp
 from qiskit.aqua.operators import WeightedPauliOperator
 
 # Reference operators and offsets for maxcut and tsp.
@@ -338,3 +339,7 @@ class TestDocplex(QiskitOptimizationTestCase):
         self.assertEqual(result['eigenvalue'] + offset, -2)
         actual_sol = result['eigenstate'].tolist()
         self.assertListEqual(actual_sol, [0, 0, 0, 1])
+
+
+if __name__ == '__main__':
+    unittest.main()

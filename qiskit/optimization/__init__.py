@@ -15,22 +15,31 @@
 ====================================================================
 Optimization application stack for Aqua (:mod:`qiskit.optimization`)
 ====================================================================
-This is the finance domain logic....
 
 .. currentmodule:: qiskit.optimization
 
-Submodules
-==========
+Contents
+========
 
 .. autosummary::
-   :toctree:
+   :toctree: ../stubs/
+   :nosignatures:
 
-   ising
+    QuadraticProgram
+    QiskitOptimizationError
+    INFINITY
 
 """
 
+from .infinity import INFINITY  # must be at the top of the file
+from .exceptions import QiskitOptimizationError
+from .problems import QuadraticProgram
 from ._logging import (get_qiskit_optimization_logging,
                        set_qiskit_optimization_logging)
 
-__all__ = ['get_qiskit_optimization_logging',
-           'set_qiskit_optimization_logging']
+__all__ = ['QuadraticProgram',
+           'QiskitOptimizationError',
+           'get_qiskit_optimization_logging',
+           'set_qiskit_optimization_logging',
+           'INFINITY'
+           ]

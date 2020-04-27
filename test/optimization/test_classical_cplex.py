@@ -14,12 +14,13 @@
 
 """ Test Classical Cplex """
 
+import unittest
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 
 from qiskit.aqua import aqua_globals
-from qiskit.optimization.ising import max_cut
-from qiskit.optimization.ising.common import random_graph
+from qiskit.optimization.applications.ising import max_cut
+from qiskit.optimization.applications.ising.common import random_graph
 from qiskit.aqua.algorithms import ClassicalCPLEX
 
 
@@ -45,3 +46,7 @@ class TestClassicalCplex(QiskitOptimizationTestCase):
             self.assertEqual(max_cut.max_cut_value(x, self.w), 24)
         except NameError as ex:
             self.skipTest(str(ex))
+
+
+if __name__ == '__main__':
+    unittest.main()
