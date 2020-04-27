@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
+r"""
 List Operators (:mod:`qiskit.aqua.operators.list_ops`)
 ==============================================================
 List Operators are classes for storing and manipulating lists of Operators, State functions,
@@ -31,7 +31,7 @@ Operators, State Functions, and Measurements in Aqua.
 
 The base ``ListOp`` class is particularly interesting, as its ``combo_fn`` is "the identity list
 Operation". Meaning, if we understand the ``combo_fn`` as a function from a list of complex values
-to some output, one such function is returning the list as-is. This is powerful for constructing
+to some output, one such function is returning the list as\-is. This is powerful for constructing
 compact hierarchical Operators which return many measurements in multiple dimensional lists. For
 example, if we want to estimate the gradient of some Observable measurement with respect to some
 parameters in the State function, we can construct separate evaluation Operators for each
@@ -40,13 +40,12 @@ parameter's gradient which we must keep track of ourselves in a list, or we can 
 returns the full gradient vector. Another excellent example of this power is constructing a
 Quantum kernel matrix:
 
-```
-    data_sfn_list_op = ListOp(data_circuit_state_fns)
-    qkernel_op_circuits = ~data_sfn_list_op @ data_sfn_list_op
-    qkernel_sampled = CircuitSampler(backend).convert(qkernel_op_circuits)
-    qkernel_mat = qkernel_sampled.eval()
 
-```
+    >>> data_sfn_list_op = ListOp(data_circuit_state_fns)
+    >>> qkernel_op_circuits = ~data_sfn_list_op @ data_sfn_list_op
+    >>> qkernel_sampled = CircuitSampler(backend).convert(qkernel_op_circuits)
+    >>> qkernel_sampled.eval()
+
 
 This will return the 2d Quantum kernel matrix, where each element is the inner product of some
 pair of the data State functions, or in other terms, a measurement of one data ``CircuitStateFn``
