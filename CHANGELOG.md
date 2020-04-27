@@ -27,6 +27,9 @@ Added
 -   Chemistry stack automatic Z2 symmetry reduction (#870)
 -   Ising Optimization: The 0-1 Knapsack problem (#878)
 -   VQE, VQC and QSVM accept `QuantumCircuit`s as variational forms/feature maps (#905)
+-   Introduced the Operator flow, including new Operators, StateFns, and converters (#852).
+-   The QDrift Trotterization algorithm (#852).
+-   Operator evolution by Terra's `HamiltonianGate` for improved performance (#852).
 
 Changed
 -------
@@ -40,6 +43,10 @@ Changed
 -   If ibmq-provider is used and job limit is reached, `run_circuit` now waits for a previous job
     to finish before submitting the next one. (#906)
 -   Deprecate using `FeatureMap` and `VariationalForm` in VQC and QSVM (#905)
+-   The Eigensolvers and MinimumEigensolvers now accept `OperatorBase` (Operator flow) Observables 
+    in addition to the existing Operators (#852).
+-   The `BaseOperator` was renamed `LegacyBaseOperator` to avoid confusion with the new 
+    Operator flow `OperatorBase` (#852). 
 
 Removed
 -------

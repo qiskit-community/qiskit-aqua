@@ -22,7 +22,7 @@ from qiskit import QuantumCircuit, BasicAer, execute
 from qiskit.quantum_info import Statevector
 
 from qiskit.aqua.operators import (StateFn, Zero, One, Plus, Minus, PrimitiveOp,
-                                   SummedOp, H, I, Z, X, Y, CircuitStateFn)
+                                   SummedOp, H, I, Z, X, Y, CircuitStateFn, DictToCircuitSum)
 
 
 # pylint: disable=invalid-name
@@ -155,6 +155,29 @@ class TestStateConstruction(QiskitAquaTestCase):
             # It's ok if these are far apart because the dict is sampled.
             self.assertAlmostEqual(v, np.abs(dict_samples[k]) ** .5, delta=.5)
             self.assertAlmostEqual(v, np.abs(vec_samples[k]) ** .5, delta=.5)
+
+    def test_dict_to_circuit_sum(self):
+        """ Test DictToCircuitSum converter. """
+        # Test qubits < entires, so dict is converted to Initialize CircuitStateFn
+        dict_state_3q = StateFn({'101': .5, '100': .1, '000': .2, '111': .5})
+        circuit_state_3q = DictToCircuitSum().convert(dict_state_3q)
+        self.assertIsInstance(circuit_state_3q, CircuitStateFn)
+        np.testing.assert_array_almost_equal(dict_state_3q.to_matrix(),
+                                             circuit_state_3q.to_matrix())
+
+        # Test qubits >= entires, so dict is converted to Initialize CircuitStateFn
+        dict_state_4q = dict_state_3q ^ Zero
+        circuit_state_4q = DictToCircuitSum().convert(dict_state_4q)
+        self.assertIsInstance(circuit_state_4q, SummedOp)
+        np.testing.assert_array_almost_equal(dict_state_4q.to_matrix(),
+                                             circuit_state_4q.to_matrix())
+
+        # Test VectorStateFn conversion
+        vect_state_3q = dict_state_3q.to_matrix_op()
+        circuit_state_3q_vect = DictToCircuitSum().convert(vect_state_3q)
+        self.assertIsInstance(circuit_state_3q_vect, CircuitStateFn)
+        np.testing.assert_array_almost_equal(vect_state_3q.to_matrix(),
+                                             circuit_state_3q_vect.to_matrix())
 
 
 if __name__ == '__main__':
