@@ -27,6 +27,10 @@ Added
 -   Chemistry stack automatic Z2 symmetry reduction (#870)
 -   Ising Optimization: The 0-1 Knapsack problem (#878)
 -   VQE, VQC and QSVM accept `QuantumCircuit`s as variational forms/feature maps (#905)
+-   Qiskit Optimization: complete optimization stack including new `QuadraticProgram`,
+    `OptimizationAlgorithm` as well as many implementations and converters (#877). this replaces
+    the current `docplex` to `Operator` converter, which is deprecated now.
+-   New `GSLS` (Gaussian Smoothing Line Search) optimizer for variational algorithms (#877)
 
 Changed
 -------

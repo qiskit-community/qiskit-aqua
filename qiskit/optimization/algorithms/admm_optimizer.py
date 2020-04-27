@@ -238,9 +238,6 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         Returns:
             The result of the optimizer applied to the problem.
-
-        Raises:
-            QiskitOptimizationError: If the problem is incompatible with the optimizer.
         """
         # check compatibility and raise exception if incompatible
         msg = self.get_compatibility_msg(problem)
