@@ -191,7 +191,6 @@ def eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],
     elif isinstance(eigenvector, StateFn):
         eigenvector = eigenvector.to_matrix()
 
-
     solutions = []
     if isinstance(eigenvector, dict):
         all_counts = sum(eigenvector.values())
