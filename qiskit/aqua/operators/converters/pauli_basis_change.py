@@ -232,7 +232,7 @@ class PauliBasisChange(ConverterBase):
         ``list_op``. TBP stands for `Tensor Product Basis`.
 
         Args:
-             list_op: the ``ListOp`` whose TBP Pauli to return.
+             list_op: the :class:`ListOp` whose TBP Pauli to return.
 
         Returns:
              The TBP Pauli.

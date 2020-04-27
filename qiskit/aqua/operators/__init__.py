@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
+r"""
 Operators (:mod:`qiskit.aqua.operators`)
 ========================================
 Operators and State functions are the building blocks of Quantum Algorithms.
@@ -114,9 +114,9 @@ Converters
 
 The Converter submodules include objects which manipulate Operators, usually recursing over an
 Operator structure and changing certain Operators' representation. For example, the
-``PauliTrotterExpectation`` traverses an Operator structure, and replaces all of the
-``OperatorStateFn`` measurements containing non-diagonal Pauli terms into diagonalizing circuits
-following by ``OperatorStateFn`` measurement containing only diagonal Paulis.
+:class:`PauliTrotterExpectation` traverses an Operator structure, and replaces all of the
+:class:`OperatorStateFn` measurements containing non-diagonal Pauli terms into diagonalizing
+circuits following by :class:`OperatorStateFn` measurement containing only diagonal Paulis.
 
 .. autosummary::
    :toctree:
