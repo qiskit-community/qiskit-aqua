@@ -18,6 +18,7 @@ from typing import List, Union
 from qiskit.quantum_info import Pauli
 
 from .trotterization_base import TrotterizationBase
+from ...operator_base import OperatorBase
 from ...list_ops.composed_op import ComposedOp
 from ...list_ops.summed_op import SummedOp
 from ...primitive_ops.primitive_op import PrimitiveOp
@@ -53,10 +54,12 @@ class Suzuki(TrotterizationBase):
         """ sets order """
         self._order = order
 
-    # pylint: disable=arguments-differ
-    def convert(self, op_sum: SummedOp) -> ComposedOp:
+    def convert(self, operator: OperatorBase) -> OperatorBase:
+        if not isinstance(operator, SummedOp):
+            raise TypeError('Trotterization converters can only convert SummedOps.')
+
         composition_list = Suzuki._suzuki_recursive_expansion(
-            op_sum.oplist, op_sum.coeff, self.order, self.reps)
+            operator.oplist, operator.coeff, self.order, self.reps)
 
         single_rep = ComposedOp(composition_list)
         full_evo = single_rep.power(self.reps)

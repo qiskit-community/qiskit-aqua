@@ -36,17 +36,32 @@ class TrotterizationBase(EvolutionBase):
 
     @property
     def reps(self) -> int:
-        """ returns reps """
+        """ The number of repetitions to use in the Trotterization, improving the approximation
+        accuracy.
+        """
         return self._reps
 
     @reps.setter
     def reps(self, reps: int) -> None:
+        r""" Set the number of repetitions to use in the Trotterization. """
         self._reps = reps
 
-    # pylint: disable=arguments-differ
     @abstractmethod
-    def convert(self, op_sum: OperatorBase) -> OperatorBase:
-        """ trotterize """
+    def convert(self, operator: OperatorBase) -> OperatorBase:
+        r"""
+        Convert a ``SummedOp`` into a ``ComposedOp`` or ``CircuitOp`` representing an
+        approximation of e^-i*``op_sum``.
+
+        Args:
+            operator: The ``SummedOp`` to evolve.
+
+        Returns:
+            The Operator approximating op_sum's evolution.
+
+        Raises:
+            TypeError: A non-SummedOps Operator is passed into ``convert``.
+
+        """
         raise NotImplementedError
 
     # TODO @abstractmethod - trotter_error_bound

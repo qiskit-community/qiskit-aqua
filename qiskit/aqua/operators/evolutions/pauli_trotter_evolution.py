@@ -26,7 +26,8 @@ from ..list_ops.summed_op import SummedOp
 from ..primitive_ops.pauli_op import PauliOp
 from ..primitive_ops.primitive_op import PrimitiveOp
 from ..converters.pauli_basis_change import PauliBasisChange
-from ..converters.abelian_grouper import AbelianGrouper
+# TODO uncomment when we implement Abelian grouped evolution.
+# from ..converters.abelian_grouper import AbelianGrouper
 from .evolved_op import EvolvedOp
 from .trotterizations.trotterization_base import TrotterizationBase
 from .trotterizations.trotterization_factory import TrotterizationFactory
@@ -49,7 +50,9 @@ class PauliTrotterEvolution(EvolutionBase):
     def __init__(self,
                  trotter_mode: Optional[Union[str, TrotterizationBase]] = 'trotter',
                  reps: Optional[int] = 1,
-                 group_paulis: Optional[bool] = False) -> None:
+                 # TODO uncomment when we implement Abelian grouped evolution.
+                 # group_paulis: Optional[bool] = False
+                 ) -> None:
         """
         Args:
             trotter_mode: A string ('trotter', 'suzuki', or 'qdrift') to pass to the
@@ -57,9 +60,10 @@ class PauliTrotterEvolution(EvolutionBase):
                 individual Pauli evolution circuits to equal the exponentiation of the Pauli sum.
             reps: How many Trotterization repetitions to make, to improve the approximation
                 accuracy.
-            group_paulis: TODO, not yet supported. Whether to group Pauli sums into Abelian
-                sub-groups, so a single diagonalization circuit can be used for each group
-                rather than each Pauli.
+            # TODO uncomment when we implement Abelian grouped evolution.
+            # group_paulis: Whether to group Pauli sums into Abelian
+            #     sub-groups, so a single diagonalization circuit can be used for each group
+            #     rather than each Pauli.
         """
 
         if isinstance(trotter_mode, TrotterizationBase):
@@ -67,7 +71,8 @@ class PauliTrotterEvolution(EvolutionBase):
         else:
             self._trotter = TrotterizationFactory.build(mode=trotter_mode, reps=reps)
 
-        self._grouper = AbelianGrouper() if group_paulis else None
+        # TODO uncomment when we implement Abelian grouped evolution.
+        # self._grouper = AbelianGrouper() if group_paulis else None
 
     @property
     def trotter(self) -> TrotterizationBase:
@@ -90,12 +95,12 @@ class PauliTrotterEvolution(EvolutionBase):
         Returns:
             The converted operator.
         """
-        if self._grouper:
-            # Sort into commuting groups
-            operator = self._grouper.convert(operator).reduce()
+        # TODO uncomment when we implement Abelian grouped evolution.
+        # if self._grouper:
+        #     # Sort into commuting groups
+        #     operator = self._grouper.convert(operator).reduce()
         return self._recursive_convert(operator)
 
-    # pylint: disable=inconsistent-return-statements
     def _recursive_convert(self, operator: OperatorBase) -> OperatorBase:
         if isinstance(operator, EvolvedOp):
             if not {'Pauli'} == operator.primitive_strings():
@@ -103,11 +108,12 @@ class PauliTrotterEvolution(EvolutionBase):
                                'Pauli representation, which can be expensive.')
                 # Setting massive=False because this conversion is implicit. User can perform this
                 # action on the Hamiltonian with massive=True explicitly if they so choose.
-                # TODO avoid doing this repeatedly?
+                # TODO explore performance to see whether we should avoid doing this repeatedly
                 pauli_ham = operator.primitive.to_pauli_op(massive=False)
                 operator = EvolvedOp(pauli_ham, coeff=operator.coeff)
 
             if isinstance(operator.primitive, SummedOp):
+                # TODO uncomment when we implement Abelian grouped evolution.
                 # if operator.primitive.abelian:
                 #     return self.evolution_for_abelian_paulisum(operator.primitive)
                 # else:
@@ -121,8 +127,8 @@ class PauliTrotterEvolution(EvolutionBase):
                 return operator.primitive.__class__(converted_ops, coeff=operator.coeff)
         elif isinstance(operator, ListOp):
             return operator.traverse(self.convert).reduce()
-        else:
-            return operator
+
+        return operator
 
     def evolution_for_pauli(self, pauli_op: PauliOp) -> PrimitiveOp:
         r"""
@@ -135,7 +141,6 @@ class PauliTrotterEvolution(EvolutionBase):
             A ``PrimitiveOp``, either the evolution ``CircuitOp`` or a ``PauliOp`` equal to the
             identity if pauli_op is the identity.
         """
-        # TODO Evolve for group of commuting paulis
 
         def replacement_fn(cob_instr_op, dest_pauli_op):
             z_evolution = dest_pauli_op.exp_i()
@@ -150,6 +155,7 @@ class PauliTrotterEvolution(EvolutionBase):
         cob = PauliBasisChange(destination_basis=destination, replacement_fn=replacement_fn)
         return cob.convert(pauli_op)
 
-    # TODO implement grouped evolution.
+    # TODO implement Abelian grouped evolution.
     def evolution_for_abelian_paulisum(self, op_sum: SummedOp) -> PrimitiveOp:
         """ Evolution for abelian pauli sum """
+        raise NotImplementedError

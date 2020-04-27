@@ -54,7 +54,7 @@ class TestEvolution(QiskitAquaTestCase):
              (thetas[4] * Y ^ Z) + \
              (thetas[5] * Z ^ Z)
         op = op * thetas[6]
-        evolution = PauliTrotterEvolution(trotter_mode='trotter', reps=1, group_paulis=False)
+        evolution = PauliTrotterEvolution(trotter_mode='trotter', reps=1)
         # wf = (Pl^Pl) + (Ze^Ze)
         wf = (op).exp_i() @ CX @ (H ^ I) @ Zero
         mean = evolution.convert(wf)
@@ -73,7 +73,7 @@ class TestEvolution(QiskitAquaTestCase):
              (thetas[4] * Y ^ Z) + \
              (thetas[5] * Z ^ Z)
         op = thetas[0] * op
-        evolution = PauliTrotterEvolution(trotter_mode='trotter', reps=1, group_paulis=False)
+        evolution = PauliTrotterEvolution(trotter_mode='trotter', reps=1)
         # wf = (Pl^Pl) + (Ze^Ze)
         wf = (op).exp_i() @ CX @ (H ^ I) @ Zero
         wf = wf.bind_parameters({thetas: np.arange(10, 16)})
@@ -92,7 +92,7 @@ class TestEvolution(QiskitAquaTestCase):
              (thetas[4] * Y ^ Z) + \
              (thetas[5] * Z ^ Z)
         op = thetas[0] * op
-        evolution = PauliTrotterEvolution(trotter_mode='trotter', reps=1, group_paulis=False)
+        evolution = PauliTrotterEvolution(trotter_mode='trotter', reps=1)
         # wf = (Pl^Pl) + (Ze^Ze)
         wf = (op).exp_i() @ CX @ (H ^ I) @ Zero
         evo = evolution.convert(wf)
@@ -114,7 +114,7 @@ class TestEvolution(QiskitAquaTestCase):
              (thetas[4] * Y ^ Z) + \
              (thetas[5] * Z ^ Z)
         op = thetas[0] * op
-        evolution = PauliTrotterEvolution(trotter_mode='trotter', reps=1, group_paulis=False)
+        evolution = PauliTrotterEvolution(trotter_mode='trotter', reps=1)
         # wf = (Pl^Pl) + (Ze^Ze)
         wf = (op).exp_i() @ CX @ (H ^ I) @ Zero
         evo = evolution.convert(wf)
@@ -186,7 +186,7 @@ class TestEvolution(QiskitAquaTestCase):
              (thetas[4] * Y ^ Z).to_circuit_op() + \
              (thetas[5] * (Z ^ I).to_circuit_op())
         op = thetas[0] * op
-        evolution = PauliTrotterEvolution(trotter_mode='trotter', reps=1, group_paulis=False)
+        evolution = PauliTrotterEvolution(trotter_mode='trotter', reps=1)
         # wf = (Pl^Pl) + (Ze^Ze)
         wf = (op).exp_i() @ CX @ (H ^ I) @ Zero
         wf = wf.bind_parameters({thetas: np.arange(10, 16)})

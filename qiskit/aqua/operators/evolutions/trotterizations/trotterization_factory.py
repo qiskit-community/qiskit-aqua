@@ -28,8 +28,7 @@ class TrotterizationFactory():
     """ A factory for conveniently creating TrotterizationBase instances. """
 
     @staticmethod
-    # pylint: disable=inconsistent-return-statements
-    def build(mode: str,
+    def build(mode: str = 'trotter',
               reps: int = 1) -> TrotterizationBase:
         """ A factory for conveniently creating TrotterizationBase instances.
 
@@ -43,7 +42,6 @@ class TrotterizationFactory():
         Raises:
             ValueError: A string not in ['trotter', 'suzuki', 'qdrift'] is given for mode.
         """
-        # pylint: disable=cyclic-import
         if mode == 'trotter':
             return Trotter(reps=reps)
 

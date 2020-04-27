@@ -20,6 +20,7 @@ QDrift Class
 import numpy as np
 
 from .trotterization_base import TrotterizationBase
+from ...operator_base import OperatorBase
 from ...list_ops.summed_op import SummedOp
 from ...list_ops.composed_op import ComposedOp
 
@@ -39,17 +40,19 @@ class QDrift(TrotterizationBase):
         """
         super().__init__(reps=reps)
 
-    # pylint: disable=arguments-differ
-    def convert(self, op_sum: SummedOp) -> ComposedOp:
-        # We artificially make the weights positive, TODO check approximation performance
-        weights = np.abs([op.coeff for op in op_sum.oplist])
-        lambd = sum(weights)
-        N = 2 * (lambd ** 2) * (op_sum.coeff ** 2)
+    def convert(self, operator: OperatorBase) -> OperatorBase:
+        if not isinstance(operator, SummedOp):
+            raise TypeError('Trotterization converters can only convert SummedOps.')
 
-        factor = lambd * op_sum.coeff / (N * self.reps)
+        # We artificially make the weights positive, TODO check approximation performance
+        weights = np.abs([op.coeff for op in operator.oplist])
+        lambd = sum(weights)
+        N = 2 * (lambd ** 2) * (operator.coeff ** 2)
+
+        factor = lambd * operator.coeff / (N * self.reps)
         # The protocol calls for the removal of the individual coefficients,
         # and multiplication by a constant factor.
-        scaled_ops = [(op * (factor / op.coeff)).exp_i() for op in op_sum.oplist]
+        scaled_ops = [(op * (factor / op.coeff)).exp_i() for op in operator.oplist]
         sampled_ops = np.random.choice(scaled_ops, size=(int(N * self.reps),), p=weights / lambd)
 
         return ComposedOp(sampled_ops).reduce()
