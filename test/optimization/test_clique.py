@@ -14,13 +14,14 @@
 
 """ Test Clique """
 
+import unittest
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 from qiskit import BasicAer
 
 from qiskit.aqua import aqua_globals, QuantumInstance
-from qiskit.optimization.ising import clique
-from qiskit.optimization.ising.common import random_graph, sample_most_likely
+from qiskit.optimization.applications.ising import clique
+from qiskit.optimization.applications.ising.common import random_graph, sample_most_likely
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE
 from qiskit.aqua.components.optimizers import COBYLA
 from qiskit.aqua.components.variational_forms import RY
@@ -80,3 +81,7 @@ class TestClique(QiskitOptimizationTestCase):
         np.testing.assert_array_equal(ising_sol, [1, 1, 1, 1, 1])
         oracle = self._brute_force()
         self.assertEqual(clique.satisfy_or_not(ising_sol, self.w, self.k), oracle)
+
+
+if __name__ == '__main__':
+    unittest.main()

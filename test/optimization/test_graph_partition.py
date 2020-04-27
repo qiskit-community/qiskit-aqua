@@ -14,12 +14,13 @@
 
 """ Test Graph Partition """
 
+import unittest
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 from qiskit import BasicAer
 from qiskit.aqua import aqua_globals, QuantumInstance
-from qiskit.optimization.ising import graph_partition
-from qiskit.optimization.ising.common import random_graph, sample_most_likely
+from qiskit.optimization.applications.ising import graph_partition
+from qiskit.optimization.applications.ising.common import random_graph, sample_most_likely
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE
 from qiskit.aqua.components.variational_forms import RY
 from qiskit.aqua.components.optimizers import SPSA
@@ -84,3 +85,7 @@ class TestGraphPartition(QiskitOptimizationTestCase):
         np.testing.assert_array_equal(ising_sol, [0, 1, 0, 1])
         oracle = self._brute_force()
         self.assertEqual(graph_partition.objective_value(x, self.w), oracle)
+
+
+if __name__ == '__main__':
+    unittest.main()

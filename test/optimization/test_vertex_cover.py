@@ -12,15 +12,16 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Text Vertex Cover """
+""" Test Vertex Cover """
 
+import unittest
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 from qiskit import BasicAer
 
 from qiskit.aqua import aqua_globals, QuantumInstance
-from qiskit.optimization.ising import vertex_cover
-from qiskit.optimization.ising.common import random_graph, sample_most_likely
+from qiskit.optimization.applications.ising import vertex_cover
+from qiskit.optimization.applications.ising.common import random_graph, sample_most_likely
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE
 from qiskit.aqua.components.variational_forms import RYRZ
 from qiskit.aqua.components.optimizers import SPSA
@@ -83,3 +84,7 @@ class TestVertexCover(QiskitOptimizationTestCase):
         sol = vertex_cover.get_graph_solution(x)
         oracle = self._brute_force()
         self.assertEqual(np.count_nonzero(sol), oracle)
+
+
+if __name__ == '__main__':
+    unittest.main()

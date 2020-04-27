@@ -7,9 +7,9 @@
 Qiskit is made up elements that work together to enable quantum computing. This element is **Aqua**
 (Algorithms for QUantum computing Applications) providing a library of cross-domain algorithms
 upon which domain-specific applications can be built.
- 
+
 * [Aqua](#aqua)
- 
+
 Aqua includes domain application support for:
 
 * [Chemistry](#chemistry)
@@ -19,10 +19,10 @@ Aqua includes domain application support for:
 
 _**Note**: the Chemistry application stack was the first domain worked on. At the time of writing
 the other domains have some logic in them but are not as fully realised. Future work is expected to
-build out functionality in all application areas._ 
+build out functionality in all application areas._
 
 Aqua was designed to be extensible, and uses a framework where algorithms and support objects used
-by algorithms, such as optimizers, variational forms, and oracles etc,. are derived from a defined 
+by algorithms, such as optimizers, variational forms, and oracles etc,. are derived from a defined
 base class for the type. These along with other building blocks provide a means for end-users and
 developers alike to have flexibility and facilitate building and experimenting with different
 configurations and capability.
@@ -52,34 +52,34 @@ To do this follow the instructions in the
 
 Note: there some optional packages that can be installed such as IBM CPLEX for Aqua and ab-initio
 chemistry libraries/programs. Refer to Optional Install information in the sections below.
- 
+
 Note: _Optional install links are currently pointing to the source documentation in the code.
-At the time of writing the qiskit.org [API Documentation](https://qiskit.org/documentation) 
+At the time of writing the qiskit.org [API Documentation](https://qiskit.org/documentation)
 is being reworked and these links will be redone to point there once the documentation is
-updated and republished._ 
+updated and republished._
 
 ----------------------------------------------------------------------------------------------------
 
 ## Aqua
 
 The `qiskit.aqua` package contains the core cross-domain algorithms and supporting logic to run
-these on a quantum backend, whether a real device or simulator. 
+these on a quantum backend, whether a real device or simulator.
 
 ### Optional Installs
 
-* **IBM CPLEX** may be [installed](qiskit/aqua/algorithms/minimum_eigen_solvers/cplex/__init__.py#L16) 
+* **IBM CPLEX** may be [installed](qiskit/aqua/algorithms/minimum_eigen_solvers/cplex/__init__.py#L16)
   to allow use of the `ClassicalCPLEX` classical solver algorithm.
 * **PyTorch**, may be installed either using command `pip install qiskit-aqua[torch]` to install the
   package or refer to PyTorch [getting started](https://pytorch.org/get-started/locally/). PyTorch
   being installed will enable the neural networks `PyTorchDiscriminator` component to be used with
-  the QGAN algorithm.  
-  
+  the QGAN algorithm.
+
 
 ### Creating Your First Quantum Program in Qiskit Aqua
 
 Now that Qiskit is installed, it's time to begin working with Aqua.
 Let's try an experiment using `Grover`'s algorithm to find a solution for a
-Satisfiability (SAT) problem. 
+Satisfiability (SAT) problem.
 
 ```
 $ python
@@ -121,7 +121,7 @@ Form (CNF):
 (&not;<i>x</i><sub>1</sub> &or; <i>x</i><sub>2</sub> &or; <i>x</i><sub>3</sub>)
 
 The Python code above prints out one possible solution for this CNF.
-For example, output `1, -2, 3` indicates that logical expression 
+For example, output `1, -2, 3` indicates that logical expression
 (<i>x</i><sub>1</sub> &or; &not;<i>x</i><sub>2</sub> &or; <i>x</i><sub>3</sub>)
 satisfies the given CNF.
 
@@ -138,26 +138,26 @@ and
 ## Chemistry
 
 The `qiskit.chemistry` package supports problems including ground state energy computations,
-excited states and dipole moments of molecule, both open and closed-shell.  
+excited states and dipole moments of molecule, both open and closed-shell.
 
 The code comprises chemistry drivers, which when provided with a molecular
-configuration will return one and two-body integrals as well as other data that is efficiently 
+configuration will return one and two-body integrals as well as other data that is efficiently
 computed classically. This output data from a driver can then be used as input to the chemistry
 application stack that contains logic which is able to translate this into a form that is suitable
 for quantum algorithms. The conversion first creates a FermionicOperator which must then be mapped,
-e.g. by a Jordan Wigner mapping, to a qubit operator in readiness for the quantum computation. 
+e.g. by a Jordan Wigner mapping, to a qubit operator in readiness for the quantum computation.
 
 ### Optional Installs
 
 To run chemistry experiments using Qiskit Chemistry, it is recommended that you to install a
-classical computation chemistry software program/library interfaced by Qiskit Chemistry. 
+classical computation chemistry software program/library interfaced by Qiskit Chemistry.
 Several, as listed below, are supported, and while logic to interface these programs is supplied by
 Qiskit Chemistry via the above pip installation, the dependent programs/libraries themselves need
 to be installed separately.
 
 Note: As `PySCF` can be installed via pip the installation of Qiskit (Aqua) will install PySCF
 where it's supported (MacOS and Linux x86). For other platforms see the PySCF information as to
-whether this might be possible manually. 
+whether this might be possible manually.
 
 1. [Gaussian 16&trade;](qiskit/chemistry/drivers/gaussiand/__init__.py#L16), a commercial chemistry program
 2. [PSI4](qiskit/chemistry/drivers/psi4d/__init__.py#L16), a chemistry program that exposes a Python interface allowing for accessing internal objects
@@ -168,14 +168,14 @@ whether this might be possible manually.
 
 A useful functionality integrated into Qiskit Chemistry is its ability to serialize a file in
 Hierarchical Data Format 5 (HDF5) format representing all the output data from a chemistry driver.
- 
+
 The [HDF5 driver](qiskit/chemistry/drivers/hdf5d/hdf5driver.py#L25)
 accepts such such HDF5 files as input so molecular experiments can be run, albeit on the fixed data
 as stored in the file. As such, if you have some pre-created HDF5 files from created from Qiskit
 Chemistry, you can use these with the HDF5 driver even if you do not install one of the classical
-computation packages listed above.  
+computation packages listed above.
 
-A few sample HDF5 files for different are provided in the 
+A few sample HDF5 files for different are provided in the
 [chemistry folder](https://github.com/Qiskit/qiskit-community-tutorials/tree/master/chemistry)
 of the [Qiskit Community Tutorials](https://github.com/Qiskit/qiskit-community-tutorials)
 repository. This
@@ -186,7 +186,7 @@ contains further information about creating and using such HDF5 files.
 
 Now that Qiskit is installed, it's time to begin working with Chemistry.
 Let's try a chemistry application experiment using VQE (Variational Quantum Eigensolver) algorithm
-to compute the ground-state (minimum) energy of a molecule.  
+to compute the ground-state (minimum) energy of a molecule.
 
 ```python
 from qiskit.chemistry import FermionicOperator
@@ -237,12 +237,12 @@ The program above uses a quantum computer to calculate the ground state energy o
 H<sub>2</sub>, where the two atoms are configured to be at a distance of 0.735 angstroms. The molecular
 input specification is processed by PySCF driver and data is output that includes one- and
 two-body molecular-orbital integrals. From the output a fermionic-operator is created which is then
-parity mapped to generate a qubit operator. Parity mappings allow a precision-preserving optimization 
+parity mapped to generate a qubit operator. Parity mappings allow a precision-preserving optimization
 that two qubits can be tapered off; a reduction in complexity that is particularly advantageous for NISQ
 computers.
- 
+
 The qubit operator is then passed as an input to the Variational Quantum Eigensolver (VQE) algorithm,
-instantiated with a classical optimizer and an RyRz variational form (ansatz). A Hartree-Fock 
+instantiated with a classical optimizer and an RyRz variational form (ansatz). A Hartree-Fock
 initial state is used as a starting point for the variational form.
 
 The VQE algorithm is then run, in this case on the Qiskit Aer statevector simulator backend.
@@ -250,7 +250,7 @@ Here we pass a backend but it can be wrapped into a `QuantumInstance`, and that 
 `run` instead. The `QuantumInstance` API allows you to customize run-time properties of the backend,
 such as the number of shots, the maximum number of credits to use, settings for the simulator,
 initial layout of qubits in the mapping and the Terra `PassManager` that will handle the compilation
-of the circuits. By passing in a backend as is done above it is internally wrapped into a 
+of the circuits. By passing in a backend as is done above it is internally wrapped into a
 `QuantumInstance` and is a convenience when default setting suffice.
 
 ### Further examples
@@ -267,7 +267,7 @@ and
 
 The `qiskit.finance` package contains uncertainty components for stock/securities problems,
 Ising translators for portfolio optimizations and data providers to source real or random data to
-finance experiments.   
+finance experiments.
 
 ### Creating Your First Qiskit Finance Programming Experiment
 
@@ -312,20 +312,20 @@ and
 [qiskit-community-tutorials/finance](https://github.com/Qiskit/qiskit-community-tutorials/tree/master/finance).
 
 ----------------------------------------------------------------------------------------------------
- 
+
 ## Machine Learning
 
 The `qiskit.ml` package simply contains sample datasets at present. `qiskit.aqua` has some
 classification algorithms such as QSVM and VQC (Variational Quantum Classifier), where this data
 can be used for experiments, and there is also QGAN (Quantum Generative Adversarial Network)
-algorithm.  
+algorithm.
 
 ### Creating Your First Qiskit Machine Learning Programming Experiment
 
 Now that Qiskit is installed, it's time to begin working with Machine Learning.
 Let's try a experiment using VQC (Variational Quantum Classified) algorithm to
 train and test samples from a data set to see how accurately the test set can
-be classified. 
+be classified.
 
 ```python
 from qiskit import BasicAer
@@ -371,17 +371,17 @@ and
 
 ## Optimization
 
-The `qiskit.optimization` package contains Ising translators for various optimization problems such 
+The `qiskit.optimization` package contains Ising translators for various optimization problems such
 as Max-Cut, Traveling Salesman and Vehicle Routing. It also has a has an automatic Ising
 generator for a problem model specified by the user as a model in
-[docplex](qiskit/optimization/ising/docplex.py#L16). 
+[docplex](qiskit/optimization/ising/docplex.py#L16).
 
 ### Creating Your First Qiskit Optimization Programming Experiment
 
 Now that Qiskit is installed, it's time to begin working with Optimization.
 Let's try a optimization experiment using QAOA (Quantum Approximate Optimization Algorithm)
 to compute the solution of a [Max-Cut](https://en.wikipedia.org/wiki/Maximum_cut) problem using
-a docplex model to create the Ising Hamiltonian operator for QAOA.  
+a docplex model to create the Ising Hamiltonian operator for QAOA.
 
 ```python
 import networkx as nx
@@ -392,8 +392,8 @@ from qiskit import BasicAer
 from qiskit.aqua import aqua_globals, QuantumInstance
 from qiskit.aqua.algorithms import QAOA
 from qiskit.aqua.components.optimizers import SPSA
-from qiskit.optimization.ising import docplex, max_cut
-from qiskit.optimization.ising.common import sample_most_likely
+from qiskit.optimization.applications.ising import docplex, max_cut
+from qiskit.optimization.applications.ising.common import sample_most_likely
 
 # Generate a graph of 4 nodes
 n = 4
@@ -425,7 +425,7 @@ spsa = SPSA(max_trials=250)
 qaoa = QAOA(qubit_op, spsa, p=5)
 backend = BasicAer.get_backend('qasm_simulator')
 quantum_instance = QuantumInstance(backend, shots=1024, seed_simulator=seed,
-                                   seed_transpiler=seed)
+                                    seed_transpiler=seed)
 result = qaoa.run(quantum_instance)
 
 x = sample_most_likely(result.eigenstate)
@@ -471,24 +471,24 @@ For questions that are more suited for a forum, we use the **Qiskit** tag in [St
 
 ## Next Steps
 
-Now you're set up and ready to check out some of the other examples from the 
+Now you're set up and ready to check out some of the other examples from the
 [Qiskit IQX Tutorials](https://github.com/Qiskit/qiskit-iqx-tutorials)
-repository, that are used for the IBM Quantum Experience, and from the 
-[Qiskit Community Tutorials](https://github.com/Qiskit/qiskit-community-tutorials). 
+repository, that are used for the IBM Quantum Experience, and from the
+[Qiskit Community Tutorials](https://github.com/Qiskit/qiskit-community-tutorials).
 
 
 ## Authors and Citation
 
 Aqua was inspired, authored and brought about by the collective work of a team of researchers.
-Aqua continues to grow with the help and work of 
+Aqua continues to grow with the help and work of
 [many people](https://github.com/Qiskit/qiskit-aqua/graphs/contributors), who contribute
-to the project at different levels. 
-If you use Qiskit, please cite as per the provided 
+to the project at different levels.
+If you use Qiskit, please cite as per the provided
 [BibTeX file](https://github.com/Qiskit/qiskit/blob/master/Qiskit.bib).
 
 Please note that if you do not like the way your name is cited in the BibTex file then consult
 the information found in the [.mailmap](https://github.com/Qiskit/qiskit-aqua/blob/master/.mailmap)
-file. 
+file.
 
 ## License
 

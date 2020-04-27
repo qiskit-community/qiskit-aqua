@@ -14,6 +14,7 @@
 
 """ Test Data Providers """
 
+import unittest
 import datetime
 from test.finance import QiskitFinanceTestCase
 import warnings
@@ -132,3 +133,7 @@ class TestDataProviders(QiskitFinanceTestCase):
             self.fail("Test of DataOnDemandProvider should have failed due to the lack of a token.")
         except QiskitFinanceError:
             self.skipTest("Test of DataOnDemandProvider skipped due to the lack of a token.")
+
+
+if __name__ == '__main__':
+    unittest.main()

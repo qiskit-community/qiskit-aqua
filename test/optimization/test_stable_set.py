@@ -14,13 +14,14 @@
 
 """ Test Stable Set """
 
+import unittest
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 from qiskit import BasicAer
 
 from qiskit.aqua import aqua_globals, QuantumInstance
-from qiskit.optimization.ising import stable_set
-from qiskit.optimization.ising.common import random_graph, sample_most_likely
+from qiskit.optimization.applications.ising import stable_set
+from qiskit.optimization.applications.ising.common import random_graph, sample_most_likely
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE
 from qiskit.aqua.components.optimizers import L_BFGS_B
 from qiskit.aqua.components.variational_forms import RYRZ
@@ -62,3 +63,7 @@ class TestStableSet(QiskitOptimizationTestCase):
         ising_sol = stable_set.get_graph_solution(x)
         np.testing.assert_array_equal(ising_sol, [0, 0, 1, 1, 1])
         self.assertEqual(stable_set.stable_set_value(x, self.w), (3.0, False))
+
+
+if __name__ == '__main__':
+    unittest.main()
