@@ -33,24 +33,50 @@ Added
     -   OptimizationAlgorithm: A base class for optimization algorithm
     -   OptimizationResult: A base class for optimization results
     -   Summary of the optimization algorithms:
-        -   MinimumEigenOptimizer: An optimization algorithm using a minimum eigen solver, such as VQE (or a classical alternative). See the MinimumEigenSolver algorithms in Aqua.
+        -   MinimumEigenOptimizer: An optimization algorithm using a minimum eigen solver, such as VQE (or a classical 
+            alternative). See the MinimumEigenSolver algorithms in Aqua.
         -   GroverOptimizer: The Grover Adaptive Search algorithm (Gilliam et al.)
         -   ADMMOptimizer: The ADMM-based heuristic (Gambella et al.)
-        -   RecursiveMinimumEigenOptimizer: A meta-algorithm applying recursive optimization on top of a MinimumEigenOptimizer (Bravyi et al.)
+        -   RecursiveMinimumEigenOptimizer: A meta-algorithm applying recursive optimization on top of a 
+            MinimumEigenOptimizer (Bravyi et al.)
         -   CobylaOptimizer: Wrapping of SciPy’s COBYLA subroutine as optimization algorithm
         -   CplexOptimizer: Wrapping the CPLEX API as optimization algorithm
     -   A set of converters to translate different problem representations
         -   InequalityToEquality: Converts inequality constraints to equality constraints by adding slack variables
         -   IntegerToBinary: Converts integer variables to binary variables
-        -   LinearEqualityToPenalty: Converts linear equality constraints to quadratic penalty terms that are added to the objective
+        -   LinearEqualityToPenalty: Converts linear equality constraints to quadratic penalty terms that are added 
+            to the objective
         -   QuadraticProgramToOperator: Converts a QuadraticProgram to an Aqua operator
-        -   QuadraticProgramToNegativeValueOracle: Converts a QuadraticProgram to a negative-value oracle used for Grover Adaptive Search
-        -   QuadraticProgramToQubo: Converts a QuadraticProgram to a QUBO problem, a convenience converter wrapping the functionality of the IntegerToBinary and LinearEqualityToPenalty converters
--   Introduced the Operator flow, including many new tools for constructing computations
-    using Operators and State functions, and migrating to rely on Terra's Operator objects 
-    as computational primitives (#852).
--   The QDrift Trotterization algorithm (#852).
--   Operator evolution by Terra's `HamiltonianGate` for improved performance (#852).
+        -   QuadraticProgramToNegativeValueOracle: Converts a QuadraticProgram to a negative-value oracle used for 
+            Grover Adaptive Search
+        -   QuadraticProgramToQubo: Converts a QuadraticProgram to a QUBO problem, a convenience converter wrapping the 
+            functionality of the IntegerToBinary and LinearEqualityToPenalty converters
+-   Operator flow, a set of tools for constructing Physically-intuitive quantum computations using State functions, 
+    Operators, and Measurements, and relying on Terra's Operator objects as computational primitives (#852)
+    -   `OperatorBase`: A base class for Operators, State functions, Measurements, and combinations thereof
+    -   `primitive_ops`: Classes for representing basic Operator building blocks, backed by computational 
+        primitives in Terra. Includes `PrimitiveOp` (base and factory), `PauliOp`, `MatrixOp`, and `CircuitOp`
+    -   `list_ops`: Classes for representing composite Operators, State functions, and Measurements constructed 
+        from others, including `ListOp` (*non-abstract* parent), `SummedOp`, `ComposedOp`, and `TensoredOp`  
+    -   `state_fns`: Classes for representing State function and Measurement building blocks, backed by 
+        primitives in Terra (other than `DictStateFn`, which is back by a `dict`). Includes 
+        `StateFn` (base and factory), `DictStateFn`, `CircuitStateFn`, `VectorStateFn`, and `OperatorStateFn` 
+    -   `operator_globals`: A set of convenient immutable building block `OperatorBase` instances, including 
+        single-qubit Paulis (`X`, `Y`, `Z`, `I`), basic gates (`H`, `CX`, `T`, `S`, `Swap`, `CZ`), and 
+        single-qubit states (`Zero`, `One`, `Plus`, `Minus`)
+    -   `converters`: Classes for manipulating and modifying Operators, including `ConverterBase` (base), 
+        `CircuitSampler`, `PauliBasisChange`, `DictToCircuitSum`, and `AbelianGrouper`
+    -   `expectations`: Converters for changing measurements of Observables to be more efficient or tractable, 
+        including `ExpectationBase` (base), `ExpectationFactory` (factory), `PauliExpectation`,
+        `MatrixExpectation`, and `AerPauliExpectation` 
+    -   `evolutions`: Converters for changing Unitary evolutions of Hamiltonian Operators into 
+        `CircuitOps` approximating or equalling the exponentiation e^(-iHt). Includes 
+        `EvolutionBase` (base), `EvolutionFactory` (factory), `EvolvedOp` (lazy placeholder 
+         Operator for evolution), `PauliTrotterEvolution`, `MatrixEvolution`, 
+        `TrotterizationBase` (base), `TrotterizationFactory` (factory), `Trotter`, 
+        `Suzuki`, and `QDrift`
+-   The QDrift Trotterization algorithm (#852)
+-   Operator evolution by Terra's `HamiltonianGate` for improved performance (#852)
 
 Changed
 -------

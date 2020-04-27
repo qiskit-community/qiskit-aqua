@@ -176,9 +176,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
     @QuantumAlgorithm.quantum_instance.setter
     def quantum_instance(self, quantum_instance: Union[QuantumInstance, BaseBackend]) -> None:
         """ set quantum_instance """
-        if isinstance(quantum_instance, BaseBackend):
-            quantum_instance = QuantumInstance(quantum_instance)
-        self._quantum_instance = quantum_instance
+        super(VQE, self.__class__).quantum_instance.__set__(self, quantum_instance)
 
         if self._circuit_sampler is None:
             self._circuit_sampler = CircuitSampler(self._quantum_instance)
