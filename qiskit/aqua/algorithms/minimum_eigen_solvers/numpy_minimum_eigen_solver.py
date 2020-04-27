@@ -50,7 +50,7 @@ class NumPyMinimumEigensolver(ClassicalAlgorithm, MinimumEigensolver):
         return self._ces.operator
 
     @operator.setter
-    def operator(self, operator: Optional[Union[OperatorBase, LegacyBaseOperator]]) -> None:
+    def operator(self, operator: Union[OperatorBase, LegacyBaseOperator]) -> None:
         self._ces.operator = operator
 
     @property

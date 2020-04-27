@@ -144,7 +144,9 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         self._callback = callback
 
         self._expectation = expectation
-        self.operator = operator
+        self._operator = None
+        if operator is not None:
+            self.operator = operator
         self.aux_operators = aux_operators
 
         self._eval_count = 0
@@ -156,7 +158,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         return self._operator
 
     @operator.setter
-    def operator(self, operator: Optional[Union[OperatorBase, LegacyBaseOperator]]) -> None:
+    def operator(self, operator: Union[OperatorBase, LegacyBaseOperator]) -> None:
         """ set operator """
         if isinstance(operator, LegacyBaseOperator):
             operator = operator.to_opflow()

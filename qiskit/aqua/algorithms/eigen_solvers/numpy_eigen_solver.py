@@ -80,7 +80,7 @@ class NumPyEigensolver(ClassicalAlgorithm):
         return self._operator
 
     @operator.setter
-    def operator(self, operator: Optional[Union[OperatorBase, LegacyBaseOperator]]) -> None:
+    def operator(self, operator: Union[OperatorBase, LegacyBaseOperator]) -> None:
         """ set operator """
         if isinstance(operator, LegacyBaseOperator):
             operator = operator.to_opflow()

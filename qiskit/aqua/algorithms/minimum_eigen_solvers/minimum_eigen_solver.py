@@ -77,7 +77,7 @@ class MinimumEigensolver(ABC):
 
     @operator.setter
     @abstractmethod
-    def operator(self, operator: Optional[Union[OperatorBase, LegacyBaseOperator]]) -> None:
+    def operator(self, operator: Union[OperatorBase, LegacyBaseOperator]) -> None:
         """ set operator """
         pass
 

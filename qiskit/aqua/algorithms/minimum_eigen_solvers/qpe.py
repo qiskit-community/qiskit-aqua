@@ -157,7 +157,7 @@ class QPEMinimumEigensolver(QuantumAlgorithm, MinimumEigensolver):
         return self._in_operator
 
     @operator.setter
-    def operator(self, operator: Optional[Union[OperatorBase, LegacyBaseOperator]]) -> None:
+    def operator(self, operator: Union[OperatorBase, LegacyBaseOperator]) -> None:
         """ set operator """
         self._in_operator = operator
         self._setup(operator)
