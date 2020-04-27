@@ -65,8 +65,7 @@ class OptimizationAlgorithm(ABC):
 
 
 class OptimizationResultStatus(Enum):
-    """Feasible values for the termination status of an optimization algorithm.
-    """
+    """Feasible values for the termination status of an optimization algorithm."""
     SUCCESS = 0
     FAILURE = 1
     INFEASIBLE = 2
@@ -91,18 +90,17 @@ class OptimizationResult:
     def __init__(self, x: Optional[Any] = None, fval: Optional[Any] = None,
                  results: Optional[Any] = None,
                  status: OptimizationResultStatus = OptimizationResultStatus.SUCCESS) -> None:
-        """Initialize the optimization result."""
         self._val = x
         self._fval = fval
         self._results = results
         self._status = status
 
     def __repr__(self):
-        return '([%s] / %s)' % (','.join([str(x_) for x_ in self.x]), self.fval)
+        return '([{}] / {} / {})'.format(','.join([str(x_) for x_ in self.x]), self.fval,
+                                         self.status)
 
     def __str__(self):
-        return 'optimal value=[%s], function value=%s)' % (','.join([str(x_) for x_ in self.x]),
-                                                           self.fval)
+        return 'x=[{}], fval={}'.format(','.join([str(x_) for x_ in self.x]), self.fval)
 
     @property
     def x(self) -> Any:

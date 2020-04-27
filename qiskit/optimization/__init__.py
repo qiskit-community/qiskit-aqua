@@ -15,15 +15,19 @@
 ====================================================================
 Optimization application stack for Aqua (:mod:`qiskit.optimization`)
 ====================================================================
-This is the finance domain logic....
 
 .. currentmodule:: qiskit.optimization
 
-Submodules
-==========
+Contents
+========
 
 .. autosummary::
-   :toctree:
+   :toctree: ../stubs/
+   :nosignatures:
+
+    QuadraticProgram
+    QiskitOptimizationError
+    INFINITY
 
 """
 

@@ -18,7 +18,6 @@ import unittest
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 import logging
 import numpy as np
-from scipy.sparse import dok_matrix
 from docplex.mp.model import Model
 
 from qiskit.aqua.operators import WeightedPauliOperator
@@ -438,8 +437,7 @@ class TestConverters(QiskitOptimizationTestCase):
     def test_operator_to_quadraticprogram(self):
         """ Test optimization problem to operators"""
         op = QUBIT_OP_MAXIMIZE_SAMPLE
-        # offset = OFFSET_MAXIMIZE_SAMPLE
-        offset = 0
+        offset = OFFSET_MAXIMIZE_SAMPLE
 
         op2qp = OperatorToQuadraticProgram()
         quadratic = op2qp.encode(op, offset)
@@ -448,6 +446,7 @@ class TestConverters(QiskitOptimizationTestCase):
         self.assertEqual(len(quadratic.linear_constraints), 0)
         self.assertEqual(len(quadratic.quadratic_constraints), 0)
         self.assertEqual(quadratic.objective.sense, quadratic.objective.Sense.MINIMIZE)
+        self.assertAlmostEqual(quadratic.objective.constant, 900000)
 
         linear_matrix = np.zeros((1, 4))
         linear_matrix[0, 0] = -500001

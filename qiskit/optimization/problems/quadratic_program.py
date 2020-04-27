@@ -761,7 +761,7 @@ class QuadraticProgram:
         """
         self.to_docplex().prettyprint(out)
 
-    def print_as_lp_string(self) -> str:
+    def export_as_lp_string(self) -> str:
         """Returns the quadratic program as a string of LP format.
 
         Returns:
