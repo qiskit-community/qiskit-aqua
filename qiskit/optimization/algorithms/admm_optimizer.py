@@ -251,8 +251,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
         self._log.debug("Initial problem: %s", problem.print_as_lp_string())
 
         # map integer variables to binary variables
-        # int2bin = IntegerToBinary()
-        # problem = int2bin.encode(problem)
+        int2bin = IntegerToBinary()
+        problem = int2bin.encode(problem)
 
         # we deal with minimization in the optimizer, so turn the problem to minimization
         problem, sense = self._turn_to_minimization(problem)
@@ -342,7 +342,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         result = ADMMOptimizationResult(solution, objective_value, self._state)
 
         # convert back integer to binary
-        # result = int2bin.decode(result)
+        result = int2bin.decode(result)
         # debug
         self._log.debug("solution=%s, objective=%s at iteration=%s",
                         solution, objective_value, iteration)
