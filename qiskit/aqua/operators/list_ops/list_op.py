@@ -196,10 +196,10 @@ class ListOp(OperatorBase):
 
         # Combination function must be able to handle classical values
         # TODO test if we can collapse into one.
-        if self.distributive:
-            return self.combo_fn([op.to_matrix() * self.coeff for op in self.oplist])
-        else:
-            return self.combo_fn([op.to_matrix() for op in self.oplist]) * self.coeff
+        # if self.distributive:
+        #     return self.combo_fn([op.to_matrix() * self.coeff for op in self.oplist])
+        # else:
+        return self.combo_fn([op.to_matrix() for op in self.oplist]) * self.coeff
 
     def to_spmatrix(self) -> Union[spmatrix, List[spmatrix]]:
         """ Returns SciPy sparse matrix representation of the Operator.
