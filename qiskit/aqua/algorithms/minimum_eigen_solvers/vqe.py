@@ -282,14 +282,17 @@ class VQE(VQAlgorithm, MinimumEigensolver):
 
     def construct_circuit(self,
                           parameter: Union[List[float], List[Parameter], np.ndarray]
-                          ) -> List[QuantumCircuit]:
-        """Generate the ansatz circuit.
+                          ) -> OperatorBase:
+        r"""
+        Generate the ansatz circuit and expectation value measurement, and return their
+        runnable composition.
 
         Args:
             parameter: Parameters for the ansatz circuit.
 
         Returns:
-            The generated circuit.
+            The Operator equalling the measurement of the ansatz :class:`StateFn` by the
+            Observable's expectation :class:`StateFn`.
 
         Raises:
             AquaError: If no operator has been provided.
@@ -305,7 +308,15 @@ class VQE(VQAlgorithm, MinimumEigensolver):
             wave_function = self.var_form.assign_parameters(param_dict)
         else:
             wave_function = self.var_form.construct_circuit(parameter)
-        return wave_function
+
+        # If ExpectationValue was never created, create one now.
+        if not self.expectation:
+            self._try_set_expectation_value_from_factory()
+
+        observable_meas = self.expectation.convert(StateFn(self.operator,
+                                                           is_measurement=True))
+        ansatz_circuit_op = CircuitStateFn(wave_function)
+        return observable_meas.compose(ansatz_circuit_op).reduce()
 
     def supports_aux_operators(self) -> bool:
         return True
@@ -400,15 +411,8 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         Returns:
             Energy of the hamiltonian of each parameter.
         """
-        # If ExpectationValue was never created, create one now.
-        if not self.expectation:
-            self._try_set_expectation_value_from_factory()
-
         if not self._expect_op:
-            observable_meas = self.expectation.convert(StateFn(self.operator,
-                                                               is_measurement=True))
-            ansatz_circuit_op = CircuitStateFn(self.construct_circuit(self._var_form_params))
-            self._expect_op = observable_meas.compose(ansatz_circuit_op).reduce()
+            self._expect_op = self.construct_circuit(self._var_form_params)
 
         num_parameters = self.var_form.num_parameters
         parameter_sets = np.reshape(parameters, (-1, num_parameters))

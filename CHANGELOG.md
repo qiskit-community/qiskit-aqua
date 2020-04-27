@@ -27,7 +27,9 @@ Added
 -   Chemistry stack automatic Z2 symmetry reduction (#870)
 -   Ising Optimization: The 0-1 Knapsack problem (#878)
 -   VQE, VQC and QSVM accept `QuantumCircuit`s as variational forms/feature maps (#905)
--   Introduced the Operator flow, including new Operators, StateFns, and converters (#852).
+-   Introduced the Operator flow, including many new tools for constructing computations
+    using Operators and State functions, and migrating to rely on Terra's Operator objects 
+    as computational primitives (#852).
 -   The QDrift Trotterization algorithm (#852).
 -   Operator evolution by Terra's `HamiltonianGate` for improved performance (#852).
 
