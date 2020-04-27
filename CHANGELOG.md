@@ -76,7 +76,7 @@ Added
         `TrotterizationBase` (base), `TrotterizationFactory` (factory), `Trotter`, 
         `Suzuki`, and `QDrift`
 -   The QDrift Trotterization algorithm (#852)
--   Operator evolution by Terra's `HamiltonianGate` for improved performance (#852)
+-   Operator evolution using Terra's `HamiltonianGate` for improved performance (#852)
 
 Changed
 -------
