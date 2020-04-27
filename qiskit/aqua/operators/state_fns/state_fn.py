@@ -48,7 +48,7 @@ class StateFn(OperatorBase):
     """
 
     @staticmethod
-    # pylint: disable=unused-argument,inconsistent-return-statements
+    # pylint: disable=unused-argument
     def __new__(cls,
                 primitive: Union[str, dict, Result,
                                  list, np.ndarray, Statevector,

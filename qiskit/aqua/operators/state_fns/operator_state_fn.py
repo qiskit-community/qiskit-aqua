@@ -162,8 +162,9 @@ class OperatorStateFn(StateFn):
 
     def to_circuit_op(self) -> OperatorBase:
         r""" Return ``StateFnCircuit`` corresponding to this StateFn. Ignore for now because this is
-        undefined. TODO maybe diagonalize here."""
-        return self
+        undefined. TODO maybe call to_pauli_op and diagonalize here, but that could be very
+        inefficient, e.g. splitting one Stabilizer measurement into hundreds of 1 qubit Paulis."""
+        raise NotImplementedError
 
     def __str__(self) -> str:
         prim_str = str(self.primitive)

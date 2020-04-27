@@ -122,7 +122,6 @@ class DictStateFn(StateFn):
 
     def to_density_matrix(self, massive: bool = False) -> np.ndarray:
         if self.num_qubits > 16 and not massive:
-            # TODO figure out sparse matrices?
             raise ValueError(
                 'to_matrix will return an exponentially large matrix,'
                 ' in this case {0}x{0} elements.'
@@ -133,20 +132,14 @@ class DictStateFn(StateFn):
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
         if self.num_qubits > 16 and not massive:
-            # TODO figure out sparse matrices?
             raise ValueError(
                 'to_vector will return an exponentially large vector, in this case {0} elements.'
                 ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
 
         states = int(2 ** self.num_qubits)
-        # Convert vector to float.
-        # TODO just take abs instead?
         probs = np.zeros(states) + 0.j
         for k, v in self.primitive.items():
             probs[int(k, 2)] = v
-            # probs[int(k[::-1], 2)] = v
-            # TODO Remove comment after more testing: Note, we need to
-            #  reverse the bitstring to extract an int ordering
         vec = probs * self.coeff
 
         # Reshape for measurements so np.dot still works for composition.
