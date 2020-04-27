@@ -130,7 +130,7 @@ class OperatorBase(ABC):
 
         Raises:
             TypeError: self is an Operator which cannot be represented by a ``LegacyBaseOperator``,
-                such as ``StateFn``, proper (non-sublcass) ``ListOp``, or an Operator with an
+                such as ``StateFn``, proper (non-subclass) ``ListOp``, or an Operator with an
                 unbound coeff Parameter.
         """
         raise NotImplementedError
