@@ -93,13 +93,10 @@ class MatrixOp(PrimitiveOp):
         return MatrixOp(self.primitive.conjugate().transpose(), coeff=np.conj(self.coeff))
 
     def equals(self, other: OperatorBase) -> bool:
-        if not isinstance(other, PrimitiveOp) \
-                or not isinstance(self.primitive, type(other.primitive)) \
-                or not self.coeff == other.coeff:
+        if not isinstance(other, MatrixOp) or not self.coeff == other.coeff:
             return False
 
         return self.primitive == other.primitive
-        # Will return NotImplementedError if not supported
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
         if isinstance(other.primitive, Operator):

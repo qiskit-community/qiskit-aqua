@@ -47,7 +47,7 @@ class PrimitiveOp(OperatorBase):
     """
 
     @staticmethod
-    # pylint: disable=unused-argument,inconsistent-return-statements
+    # pylint: disable=unused-argument
     def __new__(cls,
                 primitive: Union[Instruction, QuantumCircuit, list,
                                  np.ndarray, spmatrix, MatrixOperator, Pauli] = None,
@@ -62,8 +62,12 @@ class PrimitiveOp(OperatorBase):
                 MatrixOperator, Pauli): The operator primitive being wrapped.
             coeff (int, float, complex, ParameterExpression): A coefficient multiplying
                 the primitive.
+
         Returns:
             The appropriate PrimitiveOp subclass for ``primitive``.
+
+        Raises:
+            TypeError: Unsupported primitive type passed.
         """
         if cls.__name__ != PrimitiveOp.__name__:
             return super().__new__(cls)
@@ -80,6 +84,9 @@ class PrimitiveOp(OperatorBase):
         if isinstance(primitive, Pauli):
             from .pauli_op import PauliOp
             return PauliOp.__new__(PauliOp)
+
+        raise TypeError('Unsupported primitive type {} passed into PrimitiveOp '
+                        'factory constructor'.format(type(primitive)))
 
     def __init__(self,
                  primitive: Union[Instruction, QuantumCircuit, list,

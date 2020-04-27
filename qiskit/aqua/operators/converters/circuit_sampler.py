@@ -306,7 +306,7 @@ class CircuitSampler(ConverterBase):
             sampled_statefn_dicts[id(op_c)] = c_statefns
         return sampled_statefn_dicts
 
-    # TODO build Aer reparameterized Qobj.
+    # TODO build Aer re-parameterized Qobj.
     def _prepare_parameterized_run_config(self, param_bindings: dict) -> None:
         raise NotImplementedError
         # Wipe parameterizations, if any

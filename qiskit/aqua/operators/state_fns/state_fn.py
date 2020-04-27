@@ -58,7 +58,19 @@ class StateFn(OperatorBase):
                 is_measurement: bool = False) -> OperatorBase:
         """ A factory method to produce the correct type of StateFn subclass
         based on the primitive passed in. Primitive, coeff, and is_measurement arguments
-        are passed into subclass's init() as-is automatically by new()."""
+        are passed into subclass's init() as-is automatically by new().
+
+        Args:
+            primitive: The primitive which defines the behavior of the underlying State function.
+            coeff: A coefficient by which the state function is multiplied.
+            is_measurement: Whether the StateFn is a measurement operator
+
+        Returns:
+            The appropriate StateFn subclass for ``primitive``.
+
+        Raises:
+            TypeError: Unsupported primitive type passed.
+        """
 
         # Prevents infinite recursion when subclasses are created
         if cls.__name__ != StateFn.__name__:
@@ -80,6 +92,9 @@ class StateFn(OperatorBase):
         if isinstance(primitive, OperatorBase):
             from .operator_state_fn import OperatorStateFn
             return OperatorStateFn.__new__(OperatorStateFn)
+
+        raise TypeError('Unsupported primitive type {} passed into StateFn '
+                        'factory constructor'.format(type(primitive)))
 
     # TODO allow normalization somehow?
     def __init__(self,

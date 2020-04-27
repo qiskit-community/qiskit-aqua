@@ -195,10 +195,6 @@ class ListOp(OperatorBase):
                 ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
 
         # Combination function must be able to handle classical values
-        # TODO test if we can collapse into one.
-        # if self.distributive:
-        #     return self.combo_fn([op.to_matrix() * self.coeff for op in self.oplist])
-        # else:
         return self.combo_fn([op.to_matrix() for op in self.oplist]) * self.coeff
 
     def to_spmatrix(self) -> Union[spmatrix, List[spmatrix]]:
@@ -206,16 +202,10 @@ class ListOp(OperatorBase):
 
         Returns:
             CSR sparse matrix representation of the Operator, or List thereof.
-
-        Raises:
-            ValueError: invalid parameters.
         """
 
         # Combination function must be able to handle classical values
-        if self.distributive:
-            return self.combo_fn([op.to_spmatrix() * self.coeff for op in self.oplist])
-        else:
-            return self.combo_fn([op.to_spmatrix() for op in self.oplist]) * self.coeff
+        return self.combo_fn([op.to_spmatrix() for op in self.oplist]) * self.coeff
 
     def eval(self,
              front: Optional[Union[str, Dict[str, complex], 'OperatorBase']] = None
@@ -248,11 +238,13 @@ class ListOp(OperatorBase):
             NotImplementedError: Raised if called for a subclass which is not distributive.
             TypeError: Operators with mixed hierarchies, such as a ListOp containing both
                 PrimitiveOps and ListOps, are not supported.
+            NotImplementedError: Attempting to call ListOp's eval from a non-distributive subclass.
 
         """
         # The below code only works for distributive ListOps, e.g. ListOp and SummedOp
         if not self.distributive:
-            raise NotImplementedError
+            raise NotImplementedError(r'ListOp\'s eval function is only defined for distributive '
+                                      r'Listops.')
 
         evals = [(self.coeff * op).eval(front) for op in self.oplist]
         if all([isinstance(op, OperatorBase) for op in evals]):

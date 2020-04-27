@@ -83,13 +83,10 @@ class CircuitOp(PrimitiveOp):
         return CircuitOp(self.primitive.inverse(), coeff=np.conj(self.coeff))
 
     def equals(self, other: OperatorBase) -> bool:
-        if not isinstance(other, PrimitiveOp) \
-                or not isinstance(self.primitive, type(other.primitive)) \
-                or not self.coeff == other.coeff:
+        if not isinstance(other, CircuitOp) or not self.coeff == other.coeff:
             return False
 
         return self.primitive == other.primitive
-        # Will return NotImplementedError if not supported
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
         # pylint: disable=cyclic-import,import-outside-toplevel
@@ -106,7 +103,6 @@ class CircuitOp(PrimitiveOp):
             new_qc.append(self.to_instruction(),
                           qargs=new_qc.qubits[other.primitive.num_qubits:])
             new_qc = new_qc.decompose()
-            # TODO Figure out what to do with cbits?
             return CircuitOp(new_qc, coeff=self.coeff * other.coeff)
 
         return TensoredOp([self, other])
@@ -129,8 +125,7 @@ class CircuitOp(PrimitiveOp):
             new_qc = QuantumCircuit(self.num_qubits)
             new_qc.append(other.to_instruction(), qargs=range(self.num_qubits))
             new_qc.append(self.to_instruction(), qargs=range(self.num_qubits))
-            # TODO Fix because converting to dag just to append is nuts
-            # TODO Figure out what to do with cbits?
+            # TODO Fix, because converting to dag just to append is nuts
             new_qc = new_qc.decompose()
             if isinstance(other, CircuitStateFn):
                 return CircuitStateFn(new_qc,

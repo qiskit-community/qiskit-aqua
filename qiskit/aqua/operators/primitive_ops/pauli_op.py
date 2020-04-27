@@ -86,7 +86,7 @@ class PauliOp(PrimitiveOp):
     def tensor(self, other: OperatorBase) -> OperatorBase:
         # Both Paulis
         if isinstance(other, PauliOp):
-            # TODO change Pauli tensor product in Terra to have optional in place
+            # Copying here because Terra's Pauli kron is in-place.
             op_copy = Pauli(x=other.primitive.x, z=other.primitive.z)
             # NOTE!!! REVERSING QISKIT ENDIANNESS HERE
             return PauliOp(op_copy.kron(self.primitive), coeff=self.coeff * other.coeff)

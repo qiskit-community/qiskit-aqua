@@ -63,12 +63,7 @@ class TensoredOp(ListOp):
     def eval(self,
              front: Union[str, dict, np.ndarray,
                           OperatorBase] = None) -> Union[OperatorBase, float, complex]:
-        # pylint: disable=cyclic-import,import-outside-toplevel
-        from ..primitive_ops import PrimitiveOp
-        # TODO replace with to_matrix_op
-        tensored_mat_op = PrimitiveOp(self.combo_fn([op.to_matrix() for op in self.oplist]),
-                                      coeff=self.coeff)
-        return tensored_mat_op.eval(front=front)
+        return self.to_matrix_op().eval(front=front)
 
     # Try collapsing list or trees of tensor products.
     # TODO do this smarter
