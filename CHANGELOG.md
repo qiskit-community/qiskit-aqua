@@ -27,10 +27,25 @@ Added
 -   Chemistry stack automatic Z2 symmetry reduction (#870)
 -   Ising Optimization: The 0-1 Knapsack problem (#878)
 -   VQE, VQC and QSVM accept `QuantumCircuit`s as variational forms/feature maps (#905)
--   Qiskit Optimization: complete optimization stack including new `QuadraticProgram`,
-    `OptimizationAlgorithm` as well as many implementations and converters (#877). this replaces
-    the current `docplex` to `Operator` converter, which is deprecated now.
 -   New `GSLS` (Gaussian Smoothing Line Search) optimizer for variational algorithms (#877)
+-   Qiskit optimization, an application stack for solving quadratic programs (#877)
+    -   QuadraticProblem: A class representing quadratic programs with quadratic and linear objective and constraints
+    -   OptimizationAlgorithm: A base class for optimization algorithm
+    -   OptimizationResult: A base class for optimization results
+    -   Summary of the optimization algorithms:
+        -   MinimumEigenOptimizer: An optimization algorithm using a minimum eigen solver, such as VQE (or a classical alternative). See the MinimumEigenSolver algorithms in Aqua.
+        -   GroverOptimizer: The Grover Adaptive Search algorithm (Gilliam et al.)
+        -   ADMMOptimizer: The ADMM-based heuristic (Gambella et al.)
+        -   RecursiveMinimumEigenOptimizer: A meta-algorithm applying recursive optimization on top of a MinimumEigenOptimizer (Bravyi et al.)
+        -   CobylaOptimizer: Wrapping of SciPy’s COBYLA subroutine as optimization algorithm
+        -   CplexOptimizer: Wrapping the CPLEX API as optimization algorithm
+    -   A set of converters to translate different problem representations
+        -   InequalityToEquality: Converts inequality constraints to equality constraints by adding slack variables
+        -   IntegerToBinary: Converts integer variables to binary variables
+        -   LinearEqualityToPenalty: Converts linear equality constraints to quadratic penalty terms that are added to the objective
+        -   QuadraticProgramToOperator: Converts a QuadraticProgram to an Aqua operator
+        -   QuadraticProgramToNegativeValueOracle: Converts a QuadraticProgram to a negative-value oracle used for Grover Adaptive Search
+        -   QuadraticProgramToQubo: Converts a QuadraticProgram to a QUBO problem, a convenience converter wrapping the functionality of the IntegerToBinary and LinearEqualityToPenalty converters
 
 Changed
 -------
