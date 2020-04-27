@@ -66,9 +66,9 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
         # map strike price to {0, ..., 2^n-1}
         lower = uncertainty_model.low
         upper = uncertainty_model.high
-        self._mapped_strike_price = int(
-            np.round((strike_price - lower) / (upper - lower) * (uncertainty_model.num_values - 1))
-        )
+        self._mapped_strike_price = int(np.round((strike_price - lower) /
+                                                 (upper - lower) *
+                                                 (uncertainty_model.num_values - 1)))
 
         # create comparator
         self._comparator = IntegerComparator(uncertainty_model.num_target_qubits,

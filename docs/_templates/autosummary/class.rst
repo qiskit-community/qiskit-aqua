@@ -35,12 +35,12 @@
    .. autosummary::
       :toctree: ../stubs/
    {% for item in all_methods %}
-      {%- if not item.startswith('_') or item in ['__call__', '__mul__', '__getitem__', '__len__'] %}
+      {%- if not item.startswith('_') or item in ['__call__', '__mul__', '__add__', '__sub__', '__xor__', '__neg__', '__invert__', '__eq__', '__truediv__', '__matmul__', '__pow__', '__getitem__', '__len__'] %}
       {{ name }}.{{ item }}
       {%- endif -%}
    {%- endfor %}
    {% for item in inherited_members %}
-      {%- if item in ['__call__', '__mul__', '__getitem__', '__len__'] %}
+      {%- if not item.startswith('_') %}
       {{ name }}.{{ item }}
       {%- endif -%}
    {%- endfor %}

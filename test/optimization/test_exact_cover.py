@@ -47,7 +47,7 @@ class TestExactCover(QiskitOptimizationTestCase):
             return [int(digit) for digit in result]  # [2:] to chop off the "0b" part
 
         subsets = len(self.list_of_subsets)
-        maximum = 2**subsets
+        maximum = 2 ** subsets
         for i in range(maximum):
             cur = bitfield(i, subsets)
             cur_v = exact_cover.check_solution_satisfiability(cur, self.list_of_subsets)

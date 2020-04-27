@@ -18,7 +18,7 @@ from typing import Union, List, Optional
 import logging
 
 import numpy as np
-from qiskit.aqua.operators import BaseOperator, Z2Symmetries
+from qiskit.aqua.operators import LegacyBaseOperator, Z2Symmetries
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.aqua.utils.validation import validate_min, validate_in_set
 from .q_equation_of_motion import QEquationOfMotion
@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 class QEomEE(NumPyMinimumEigensolver):
     """ QEomEE algorithm (classical) """
 
-    def __init__(self, operator: BaseOperator, num_orbitals: int,
+    def __init__(self, operator: LegacyBaseOperator, num_orbitals: int,
                  num_particles: Union[List[int], int],
                  qubit_mapping: str = 'parity',
                  two_qubit_reduction: bool = True,
@@ -39,8 +39,8 @@ class QEomEE(NumPyMinimumEigensolver):
                  se_list: Optional[List[List[int]]] = None,
                  de_list: Optional[List[List[int]]] = None,
                  z2_symmetries: Optional[Z2Symmetries] = None,
-                 untapered_op: Optional[BaseOperator] = None,
-                 aux_operators: Optional[List[BaseOperator]] = None) -> None:
+                 untapered_op: Optional[LegacyBaseOperator] = None,
+                 aux_operators: Optional[List[LegacyBaseOperator]] = None) -> None:
         """
         Args:
             operator: qubit operator

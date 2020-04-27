@@ -19,7 +19,7 @@ from test.chemistry import QiskitChemistryTestCase
 import numpy as np
 from ddt import ddt, idata, unpack
 from qiskit.chemistry.components.initial_states import HartreeFock
-from qiskit.aqua.operators import op_converter
+from qiskit.aqua.operators.legacy import op_converter
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType

@@ -19,6 +19,7 @@ from collections import OrderedDict
 import numpy as np
 
 from qiskit.aqua import aqua_globals
+from qiskit.aqua.operators import StateFn
 
 
 def random_graph(n, weight_range=10, edge_prob=0.3, negative_weight=True,
@@ -155,6 +156,10 @@ def sample_most_likely(state_vector):
     if isinstance(state_vector, (OrderedDict, dict)):
         # get the binary string with the largest count
         binary_string = sorted(state_vector.items(), key=lambda kv: kv[1])[-1][0]
+        x = np.asarray([int(y) for y in reversed(list(binary_string))])
+        return x
+    elif isinstance(state_vector, StateFn):
+        binary_string = list(state_vector.sample().keys())[0]
         x = np.asarray([int(y) for y in reversed(list(binary_string))])
         return x
     else:

@@ -22,8 +22,8 @@ from qiskit import QuantumRegister
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import QuantumAlgorithm
-from qiskit.aqua.operators import op_converter
-from qiskit.aqua.operators import BaseOperator
+from qiskit.aqua.operators.legacy import op_converter
+from qiskit.aqua.operators import LegacyBaseOperator
 from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.utils.validation import validate_min, validate_in_set
 
@@ -42,9 +42,9 @@ class EOH(QuantumAlgorithm):
     via, for example, Lloyd’s method or Trotter-Suzuki decomposition.
     """
 
-    def __init__(self, operator: BaseOperator,
+    def __init__(self, operator: LegacyBaseOperator,
                  initial_state: InitialState,
-                 evo_operator: BaseOperator,
+                 evo_operator: LegacyBaseOperator,
                  evo_time: float = 1,
                  num_time_slices: int = 1,
                  expansion_mode: str = 'trotter',

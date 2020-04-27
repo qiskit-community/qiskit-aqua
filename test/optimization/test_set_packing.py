@@ -44,7 +44,7 @@ class TestSetPacking(QiskitOptimizationTestCase):
             return [int(digit) for digit in result]  # [2:] to chop off the "0b" part
 
         subsets = len(self.list_of_subsets)
-        maximum = 2**subsets
+        maximum = 2 ** subsets
         max_v = -np.inf
         for i in range(maximum):
             cur = bitfield(i, subsets)

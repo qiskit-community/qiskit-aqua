@@ -295,8 +295,8 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         num_one_shots = []
 
         # maximum number of rounds
-        max_rounds = int(np.log(self._min_ratio * np.pi / 8 /
-                                self._epsilon) / np.log(self._min_ratio)) + 1
+        max_rounds = int(np.log(self._min_ratio * np.pi / 8
+                                / self._epsilon) / np.log(self._min_ratio)) + 1
         upper_half_circle = True  # initially theta is in the upper half-circle
 
         # for statevector we can directly return the probability to measure 1

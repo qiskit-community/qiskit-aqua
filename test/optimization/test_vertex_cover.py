@@ -45,7 +45,7 @@ class TestVertexCover(QiskitOptimizationTestCase):
             return [int(digit) for digit in result]  # [2:] to chop off the "0b" part
 
         nodes = self.num_nodes
-        maximum = 2**nodes
+        maximum = 2 ** nodes
         minimal_v = np.inf
         for i in range(maximum):
             cur = bitfield(i, nodes)

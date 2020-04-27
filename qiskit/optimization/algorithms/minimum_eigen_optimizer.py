@@ -20,7 +20,7 @@ import numpy as np
 
 from qiskit import QuantumCircuit, BasicAer, execute
 from qiskit.aqua.algorithms import MinimumEigensolver
-from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator
+from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator, StateFn, DictStateFn
 
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
 from ..problems.quadratic_program import QuadraticProgram
@@ -161,7 +161,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         return opt_res
 
 
-def eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray],
+def eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],
                              operator: Union[WeightedPauliOperator, MatrixOperator],
                              min_probability: float = 1e-6) -> List[Tuple[str, float, float]]:
     """Convert the eigenvector to the bitstrings and corresponding eigenvalues.
@@ -186,6 +186,11 @@ def eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray],
         TypeError: Invalid Argument
 
     """
+    if isinstance(eigenvector, DictStateFn):
+        eigenvector = {bitstr: val**2 for (bitstr, val) in eigenvector.primitive.items()}
+    elif isinstance(eigenvector, StateFn):
+        eigenvector = eigenvector.to_matrix()
+
     solutions = []
     if isinstance(eigenvector, dict):
         all_counts = sum(eigenvector.values())
