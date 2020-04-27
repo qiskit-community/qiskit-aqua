@@ -745,7 +745,7 @@ class QuadraticProgram:
         return mdl
 
     def pprint_as_string(self) -> str:
-        """Returns the quadratic program as a string in DOcplex's prettyprint format.
+        """Returns the quadratic program as a string in Docplex's pretty print format.
 
         Returns:
             A string representing the quadratic program.

@@ -527,7 +527,7 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         q_p2 = QuadraticProgram()
         q_p2.from_docplex(q_p.to_docplex())
         self.assertEqual(q_p.pprint_as_string(), q_p2.pprint_as_string())
-        self.assertEqual(q_p.print_as_lp_string(), q_p2.print_as_lp_string())
+        self.assertEqual(q_p.export_as_lp_string(), q_p2.export_as_lp_string())
 
         mod = Model('test')
         x = mod.binary_var('x')
@@ -537,7 +537,7 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         mod.add(2 * x - z == 1, 'c0')
         mod.add(2 * x - z + 3 * y * z == 1, 'q0')
         self.assertEqual(q_p.pprint_as_string(), mod.pprint_as_string())
-        self.assertEqual(q_p.print_as_lp_string(), mod.export_as_lp_string())
+        self.assertEqual(q_p.export_as_lp_string(), mod.export_as_lp_string())
 
     def test_substitute_variables(self):
         """test substitute variables"""
