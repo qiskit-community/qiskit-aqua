@@ -598,10 +598,13 @@ class QuadraticProgram:
         # get linear constraints
         for constraint in model.iter_constraints():
             if isinstance(constraint, DocplexQuadraticConstraint):
-                # ignore quadratic constraints
+                # ignore quadratic constraints here and process them later
                 continue
             if not isinstance(constraint, DocplexLinearConstraint) or \
                     isinstance(constraint, NotEqualConstraint):
+                # If any constraint is not linear/quadratic constraints, it raises an error.
+                # Notice that NotEqualConstraint is a subclass of Docplex's LinearConstraint,
+                # but it cannot be handled by Aqua optimization.
                 raise QiskitOptimizationError(
                     'Unsupported constraint: {}'.format(constraint))
             name = constraint.name
