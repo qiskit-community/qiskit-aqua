@@ -26,12 +26,30 @@ from ..legacy.base_operator import LegacyBaseOperator
 
 
 class ListOp(OperatorBase):
-    """ A class for storing and manipulating lists of operators.
-    "List" here refers to the fact that this class serves
-    as a base class for other Operator combinations which store
-    a list of operators, such as SummedOp or TensoredOp,
-    but also refers to the fact that this Operator's eval will
-    return lists of values, rather than only single complex values.
+    """
+    A Class for manipulating List Operators, and parent class to ``SummedOp``, ``ComposedOp``,
+    and ``TensoredOp``.
+
+    List Operators are classes for storing and manipulating lists of Operators, State functions,
+    or Measurements, and include some rule or ``combo_fn`` defining how the Operator functions
+    of the list constituents should be combined to form to cumulative Operator function of the
+    ``ListOp``. For example, a ``SummedOp`` has an addition-based ``combo_fn``, so once the
+    Operators in its list are evaluated against some bitstring to produce a list of results,
+    we know to add up those results to produce the final result of the ``SummedOp``'s
+    evaluation. In theory, this ``combo_fn`` can be any function over classical complex values,
+    but for convenience we've chosen for them to be defined over NumPy arrays and values. This way,
+    large numbers of evaluations, such as after calling ``to_matrix`` on the list constituents,
+    can be efficiently combined. While the combination function is defined over classical
+    values, it should be understood as the operation by which each Operators' underlying
+    function is combined to form the underlying Operator function of the ``ListOp``. In this
+    way, the ``ListOps`` are the basis for constructing large and sophisticated Operators,
+    State Functions, and Measurements in Aqua.
+
+    The base ``ListOp`` class is particularly interesting, as its ``combo_fn`` is "the identity
+    list Operation". Meaning, if we understand the ``combo_fn`` as a function from a list of
+    complex values to some output, one such function is returning the list as-is. This is
+    powerful for constructing compact hierarchical Operators which return many measurements in
+    multiple dimensional lists.
     """
 
     def __init__(self,
