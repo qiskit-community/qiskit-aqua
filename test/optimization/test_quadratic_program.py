@@ -16,7 +16,6 @@
 
 import unittest
 import tempfile
-import os
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 
 from docplex.mp.model import Model, DOcplexException
@@ -28,19 +27,6 @@ from qiskit.optimization.problems import Variable, Constraint, QuadraticObjectiv
 class TestQuadraticProgram(QiskitOptimizationTestCase):
     """Test QuadraticProgram without the members that have separate test classes
     (VariablesInterface, etc)."""
-
-    def setUp(self):
-        file, self.temp_output_file = tempfile.mkstemp(suffix='.lp')
-        os.close(file)
-        file, self.temp_problem_file = tempfile.mkstemp(suffix='.lp')
-        os.close(file)
-
-    def tearDown(self):
-        for temp in [self.temp_output_file, self.temp_problem_file]:
-            try:
-                os.remove(temp)
-            except OSError:
-                pass
 
     def test_constructor(self):
         """ test constructor """
@@ -494,19 +480,23 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
                                  '<=', 1, 'quad_leq')
         q_p.quadratic_constraint({'x': 1, 'y': 1}, {('x', 'x'): 1, ('y', 'z'): -1, ('z', 'z'): 2},
                                  '>=', 1, 'quad_geq')
-        q_p.write_to_lp_file(self.temp_output_file)
-        with open(self.temp_output_file) as file1, open(
-                'test/optimization/resources/test_quadratic_program.lp') as file2:
-            lines1 = file1.readlines()
-            lines2 = file2.readlines()
+
+        temp_output_file = tempfile.NamedTemporaryFile(mode='w+t', suffix='.lp')
+        q_p.write_to_lp_file(temp_output_file.name)
+        with open('test/optimization/resources/test_quadratic_program.lp') as reference:
+            lines1 = temp_output_file.readlines()
+            lines2 = reference.readlines()
             self.assertListEqual(lines1, lines2)
 
-        q_p.write_to_lp_file(self.temp_problem_file)
-        with open(self.temp_problem_file) as file1, open(
-                'test/optimization/resources/test_quadratic_program.lp') as file2:
-            lines1 = file1.readlines()
-            lines2 = file2.readlines()
-            self.assertListEqual(lines1, lines2)
+        temp_output_file.close()  # automatically deleted
+
+        with tempfile.TemporaryDirectory() as temp_problem_dir:
+            q_p.write_to_lp_file(temp_problem_dir)
+            with open(temp_problem_dir + '/my_problem.lp') as file1, open(
+                    'test/optimization/resources/test_quadratic_program.lp') as file2:
+                lines1 = file1.readlines()
+                lines2 = file2.readlines()
+                self.assertListEqual(lines1, lines2)
 
         with self.assertRaises(OSError):
             q_p.write_to_lp_file('/cannot/write/this/file.lp')

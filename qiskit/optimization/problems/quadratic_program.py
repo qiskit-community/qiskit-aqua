@@ -529,10 +529,11 @@ class QuadraticProgram:
 
     def from_docplex(self, model: Model) -> None:
         """Loads this quadratic program from a docplex model.
+
         Note that this supports only basic functions of docplex as follows:
-          - quadratic objective function
-          - linear / quadratic constraints
-          - binary / integer / continuous variables
+        - quadratic objective function
+        - linear / quadratic constraints
+        - binary / integer / continuous variables
 
         Args:
             model: The docplex model to be loaded.
