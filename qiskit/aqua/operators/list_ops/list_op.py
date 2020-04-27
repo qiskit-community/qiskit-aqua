@@ -125,7 +125,9 @@ class ListOp(OperatorBase):
     def adjoint(self) -> OperatorBase:
         # TODO do this lazily? Basically rebuilds the entire tree, and ops and adjoints almost
         #  always come in pairs, so an AdjointOp holding a reference could save copying.
-        return self.__class__([op.adjoint() for op in self.oplist], coeff=np.conj(self.coeff))
+        return self.__class__([op.adjoint() for op in self.oplist],
+                              coeff=np.conj(self.coeff),
+                              abelian=self.abelian)
 
     def traverse(self,
                  convert_fn: Callable,
@@ -148,7 +150,9 @@ class ListOp(OperatorBase):
         if not isinstance(scalar, (int, float, complex, ParameterExpression)):
             raise ValueError('Operators can only be scalar multiplied by float or complex, not '
                              '{} of type {}.'.format(scalar, type(scalar)))
-        return self.__class__(self.oplist, coeff=self.coeff * scalar)
+        return self.__class__(self.oplist,
+                              coeff=self.coeff * scalar,
+                              abelian=self.abelian)
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
         # Avoid circular dependency
@@ -286,11 +290,9 @@ class ListOp(OperatorBase):
             unrolled_dict = self._unroll_param_dict(param_dict)
             if isinstance(unrolled_dict, list):
                 return ListOp([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
-            coeff_param = list(self.coeff.parameters)[0]
-            if coeff_param in unrolled_dict:
-                # TODO what do we do about complex?
-                value = unrolled_dict[coeff_param]
-                param_value = float(self.coeff.bind({coeff_param: value}))
+            if self.coeff.parameters <= set(unrolled_dict.keys()):
+                binds = {param: unrolled_dict[param] for param in self.coeff.parameters}
+                param_value = float(self.coeff.bind(binds))
         return self.traverse(lambda x: x.bind_parameters(param_dict), coeff=param_value)
 
     def reduce(self) -> OperatorBase:
@@ -301,13 +303,19 @@ class ListOp(OperatorBase):
         """ Returns an equivalent Operator composed of only NumPy-based primitives, such as
         ``MatrixOp`` and ``VectorStateFn``. """
         return self.__class__([op.to_matrix_op(massive=massive) for op in self.oplist],
-                              coeff=self.coeff).reduce()
+                              coeff=self.coeff,
+                              abelian=self.abelian).reduce()
 
     def to_circuit_op(self) -> OperatorBase:
         """ Returns an equivalent Operator composed of only QuantumCircuit-based primitives,
         such as ``CircuitOp`` and ``CircuitStateFn``. """
-        return self.__class__([op.to_circuit_op() for op in self.oplist],
-                              coeff=self.coeff).reduce()
+        # pylint: disable=cyclic-import
+        from ..state_fns.operator_state_fn import OperatorStateFn
+        return self.__class__([op.to_circuit_op()
+                               if not isinstance(op, OperatorStateFn) else op
+                               for op in self.oplist],
+                              coeff=self.coeff,
+                              abelian=self.abelian).reduce()
 
     def to_pauli_op(self, massive: bool = False) -> OperatorBase:
         """ Returns an equivalent Operator composed of only Pauli-based primitives,
@@ -316,7 +324,9 @@ class ListOp(OperatorBase):
         from ..state_fns.state_fn import StateFn
         return self.__class__([op.to_pauli_op(massive=massive)
                                if not isinstance(op, StateFn) else op
-                               for op in self.oplist], coeff=self.coeff).reduce()
+                               for op in self.oplist],
+                              coeff=self.coeff,
+                              abelian=self.abelian).reduce()
 
     def to_legacy_op(self, massive: bool = False) -> LegacyBaseOperator:
         mat_op = self.to_matrix_op(massive=massive).reduce()

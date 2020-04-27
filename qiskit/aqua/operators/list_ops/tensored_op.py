@@ -18,6 +18,8 @@ from typing import List, Union
 from functools import reduce, partial
 import numpy as np
 
+from qiskit.circuit import ParameterExpression
+
 from ..operator_base import OperatorBase
 from .list_op import ListOp
 
@@ -30,7 +32,7 @@ class TensoredOp(ListOp):
     conversion to QuantumCircuits, they can be reduced by tensor product. """
     def __init__(self,
                  oplist: List[OperatorBase],
-                 coeff: Union[int, float, complex] = 1.0,
+                 coeff: Union[int, float, complex, ParameterExpression] = 1.0,
                  abelian: bool = False) -> None:
         """
         Args:
@@ -38,7 +40,10 @@ class TensoredOp(ListOp):
             coeff: A coefficient multiplying the operator
             abelian: Indicates whether the Operators in ``oplist`` are know to mutually commute.
         """
-        super().__init__(oplist, combo_fn=partial(reduce, np.kron), coeff=coeff, abelian=abelian)
+        super().__init__(oplist,
+                         combo_fn=partial(reduce, np.kron),
+                         coeff=coeff,
+                         abelian=abelian)
 
     @property
     def num_qubits(self) -> int:

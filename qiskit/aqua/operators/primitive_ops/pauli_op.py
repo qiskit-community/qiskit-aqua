@@ -269,6 +269,9 @@ class PauliOp(PrimitiveOp):
 
         return self.to_circuit().to_instruction()
 
+    def to_pauli_op(self, massive: bool = False) -> OperatorBase:
+        return self
+
     def to_legacy_op(self, massive: bool = False) -> WeightedPauliOperator:
         if isinstance(self.coeff, ParameterExpression):
             try:

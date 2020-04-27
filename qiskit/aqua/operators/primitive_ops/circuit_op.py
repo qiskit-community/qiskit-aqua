@@ -156,7 +156,9 @@ class CircuitOp(PrimitiveOp):
         unitary = execute(self.to_circuit(),
                           unitary_backend,
                           optimization_level=0).result().get_unitary()
-        return unitary * self.coeff
+        # pylint: disable=cyclic-import
+        from ..operator_globals import EVAL_SIG_DIGITS
+        return np.round(unitary * self.coeff, decimals=EVAL_SIG_DIGITS)
 
     def __str__(self) -> str:
         qc = self.reduce().to_circuit()
@@ -175,11 +177,16 @@ class CircuitOp(PrimitiveOp):
                 # pylint: disable=import-outside-toplevel
                 from ..list_ops.list_op import ListOp
                 return ListOp([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
-            if self.coeff in unrolled_dict:
-                # TODO what do we do about complex?
-                param_value = float(self.coeff.bind(unrolled_dict[self.coeff]))
-            if all(param in unrolled_dict for param in self.primitive.parameters):
-                qc = self.to_circuit().bind_parameters(param_dict)
+            if isinstance(self.coeff, ParameterExpression) \
+                    and self.coeff.parameters <= set(unrolled_dict.keys()):
+                binds = {param: unrolled_dict[param] for param in self.coeff.parameters}
+                param_value = float(self.coeff.bind(binds))
+            # & is set intersection, check if any parameters in unrolled are present in circuit
+            # This is different from bind_parameters in Terra because they check for set equality
+            if set(unrolled_dict.keys()) & self.primitive.parameters:
+                # Only bind the params found in the circuit
+                binds = {param: unrolled_dict[param] for param in self.primitive.parameters}
+                qc = self.to_circuit().bind_parameters(binds)
         return self.__class__(qc, coeff=param_value)
 
     def eval(self,

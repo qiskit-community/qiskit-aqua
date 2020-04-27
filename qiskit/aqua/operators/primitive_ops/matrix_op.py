@@ -80,7 +80,10 @@ class MatrixOp(PrimitiveOp):
                 'Sum over operators with different numbers of qubits, {} and {}, is not well '
                 'defined'.format(self.num_qubits, other.num_qubits))
 
-        if isinstance(other, MatrixOp):
+        # Terra's Operator cannot handle ParameterExpressions
+        if isinstance(other, MatrixOp) and \
+                not isinstance(self.coeff, ParameterExpression) and \
+                not isinstance(other.coeff, ParameterExpression):
             return MatrixOp((self.coeff * self.primitive) + (other.coeff * other.primitive))
 
         # Covers Paulis, Circuits, and all else.

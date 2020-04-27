@@ -75,7 +75,7 @@ class PauliTrotterEvolution(EvolutionBase):
         return self._trotter
 
     @trotter.setter
-    def trotter(self, trotter: TrotterizationBase):
+    def trotter(self, trotter: TrotterizationBase) -> None:
         """ Set TrotterizationBase used to evolve SummedOps. """
         self._trotter = trotter
 
@@ -98,6 +98,15 @@ class PauliTrotterEvolution(EvolutionBase):
     # pylint: disable=inconsistent-return-statements
     def _recursive_convert(self, operator: OperatorBase) -> OperatorBase:
         if isinstance(operator, EvolvedOp):
+            if not {'Pauli'} == operator.primitive_strings():
+                logger.warning('Evolved Hamiltonian is not composed of only Paulis, converting to '
+                               'Pauli representation, which can be expensive.')
+                # Setting massive=False because this conversion is implicit. User can perform this
+                # action on the Hamiltonian with massive=True explicitly if they so choose.
+                # TODO avoid doing this repeatedly?
+                pauli_ham = operator.primitive.to_pauli_op(massive=False)
+                operator = EvolvedOp(pauli_ham, coeff=operator.coeff)
+
             if isinstance(operator.primitive, SummedOp):
                 # if operator.primitive.abelian:
                 #     return self.evolution_for_abelian_paulisum(operator.primitive)

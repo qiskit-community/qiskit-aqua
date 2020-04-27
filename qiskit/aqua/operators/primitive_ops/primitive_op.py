@@ -201,11 +201,9 @@ class PrimitiveOp(OperatorBase):
                 # pylint: disable=import-outside-toplevel
                 from ..list_ops.list_op import ListOp
                 return ListOp([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
-            coeff_param = list(self.coeff.parameters)[0]
-            if coeff_param in unrolled_dict:
-                # TODO what do we do about complex?
-                value = unrolled_dict[coeff_param]
-                param_value = float(self.coeff.bind({coeff_param: value}))
+            if self.coeff.parameters <= set(unrolled_dict.keys()):
+                binds = {param: unrolled_dict[param] for param in self.coeff.parameters}
+                param_value = float(self.coeff.bind(binds))
         return self.__class__(self.primitive, coeff=param_value)
 
     # Nothing to collapse here.
@@ -240,12 +238,13 @@ class PrimitiveOp(OperatorBase):
         """ Returns a ``CircuitOp`` equivalent to this Operator. """
         # pylint: disable=import-outside-toplevel
         from .circuit_op import CircuitOp
-        return CircuitOp(self.to_circuit())
+        return CircuitOp(self.to_circuit(), coeff=self.coeff)
 
     # TODO change the PauliOp to depend on SparsePauliOp as its primitive
     def to_pauli_op(self, massive: bool = False) -> OperatorBase:
         """ Returns a sum of ``PauliOp`` s equivalent to this Operator. """
         mat_op = self.to_matrix_op(massive=massive)
         sparse_pauli = SparsePauliOp.from_operator(mat_op.primitive)
-        return sum([PrimitiveOp(Pauli.from_label(label), coeff)
+        return sum([PrimitiveOp(Pauli.from_label(label),
+                                coeff.real if coeff == coeff.real else coeff)
                     for (label, coeff) in sparse_pauli.to_list()]) * self.coeff

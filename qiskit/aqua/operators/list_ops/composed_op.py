@@ -18,6 +18,8 @@ from typing import List, Union
 from functools import reduce, partial
 import numpy as np
 
+from qiskit.circuit import ParameterExpression
+
 from ..operator_base import OperatorBase
 from .list_op import ListOp
 from ..state_fns.state_fn import StateFn
@@ -34,7 +36,7 @@ class ComposedOp(ListOp):
 
     def __init__(self,
                  oplist: List[OperatorBase],
-                 coeff: Union[int, float, complex] = 1.0,
+                 coeff: Union[int, float, complex, ParameterExpression] = 1.0,
                  abelian: bool = False) -> None:
         """
         Args:
@@ -42,7 +44,10 @@ class ComposedOp(ListOp):
             coeff: A coefficient multiplying the operator
             abelian: Indicates whether the Operators in ``oplist`` are know to mutually commute.
         """
-        super().__init__(oplist, combo_fn=partial(reduce, np.dot), coeff=coeff, abelian=abelian)
+        super().__init__(oplist,
+                         combo_fn=partial(reduce, np.dot),
+                         coeff=coeff,
+                         abelian=abelian)
 
     @property
     def num_qubits(self) -> int:
@@ -51,11 +56,6 @@ class ComposedOp(ListOp):
     @property
     def distributive(self) -> bool:
         return False
-
-    # TODO: need to Tensor all others with identity so dims are right? Maybe just delete this.
-    # def tensor(self, other):
-    #     """ Tensor product. We only need to Tensor to the last element in the composition. """
-    #     return ComposedOp(self.oplist[:-1] + [self.oplist[-1].tensor(other)], coeff=self.coeff)
 
     # TODO take advantage of the mixed product property, tensorpower each element in the composition
     # def tensorpower(self, other):

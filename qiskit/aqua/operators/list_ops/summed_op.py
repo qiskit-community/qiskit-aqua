@@ -34,7 +34,7 @@ class SummedOp(ListOp):
     evaluation or conversion to matrices, they can be reduced by addition. """
     def __init__(self,
                  oplist: List[OperatorBase],
-                 coeff: Union[int, float, complex] = 1.0,
+                 coeff: Union[int, float, complex, ParameterExpression] = 1.0,
                  abelian: bool = False) -> None:
         """
         Args:
@@ -42,8 +42,10 @@ class SummedOp(ListOp):
             coeff: A coefficient multiplying the operator
             abelian: Indicates whether the Operators in ``oplist`` are know to mutually commute.
         """
-        super().__init__(oplist, combo_fn=partial(reduce, lambda x, y: x + y),
-                         coeff=coeff, abelian=abelian)
+        super().__init__(oplist,
+                         combo_fn=partial(reduce, lambda x, y: x + y),
+                         coeff=coeff,
+                         abelian=abelian)
 
     @property
     def num_qubits(self) -> int:

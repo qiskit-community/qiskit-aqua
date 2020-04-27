@@ -114,11 +114,9 @@ class EvolvedOp(PrimitiveOp):
                 # pylint: disable=import-outside-toplevel
                 from ..list_ops.list_op import ListOp
                 return ListOp([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
-            coeff_param = list(self.coeff.parameters)[0]
-            if coeff_param in unrolled_dict:
-                # TODO what do we do about complex?
-                value = unrolled_dict[coeff_param]
-                param_value = float(self.coeff.bind({coeff_param: value}))
+            if self.coeff.parameters <= set(unrolled_dict.keys()):
+                binds = {param: unrolled_dict[param] for param in self.coeff.parameters}
+                param_value = float(self.coeff.bind(binds))
         return EvolvedOp(self.primitive.bind_parameters(param_dict), coeff=param_value)
 
     def eval(self,

@@ -177,6 +177,25 @@ class TestEvolution(QiskitAquaTestCase):
         wf = wf.bind_parameters({theta: 3})
         self.assertNotIn(theta, wf.to_circuit().parameters)
 
+    def test_mixed_evolution(self):
+        """ bind parameters test """
+        thetas = ParameterVector('θ', length=6)
+        op = (thetas[1] * (I ^ Z).to_matrix_op()) + \
+             (thetas[2] * (X ^ X)).to_matrix_op() + \
+             (thetas[3] * Z ^ I) + \
+             (thetas[4] * Y ^ Z).to_circuit_op() + \
+             (thetas[5] * (Z ^ I).to_circuit_op())
+        op = thetas[0] * op
+        evolution = PauliTrotterEvolution(trotter_mode='trotter', reps=1, group_paulis=False)
+        # wf = (Pl^Pl) + (Ze^Ze)
+        wf = (op).exp_i() @ CX @ (H ^ I) @ Zero
+        wf = wf.bind_parameters({thetas: np.arange(10, 16)})
+        mean = evolution.convert(wf)
+        circuit_params = mean.to_circuit().parameters
+        # Check that the no parameters are in the circuit
+        for p in thetas[1:]:
+            self.assertNotIn(p, circuit_params)
+
 
 if __name__ == '__main__':
     unittest.main()
