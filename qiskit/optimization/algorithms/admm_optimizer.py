@@ -248,7 +248,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
             raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
 
         # debug
-        self._log.debug("Initial problem: %s", problem.print_as_lp_string())
+        self._log.debug("Initial problem: %s", problem.export_as_lp_string())
 
         # map integer variables to binary variables
         int2bin = IntegerToBinary()
@@ -281,7 +281,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
                 op1 = self._create_step1_problem()
                 self._state.x0 = self._update_x0(op1)
                 # debug
-                self._log.debug("Step 1 sub-problem: %s", op1.print_as_lp_string())
+                self._log.debug("Step 1 sub-problem: %s", op1.export_as_lp_string())
             # else, no binary variables exist, and no update to be done in this case.
             # debug
             self._log.debug("x0=%s", self._state.x0)
@@ -289,7 +289,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
             op2 = self._create_step2_problem()
             self._state.u, self._state.z = self._update_x1(op2)
             # debug
-            self._log.debug("Step 2 sub-problem: %s", op2.print_as_lp_string())
+            self._log.debug("Step 2 sub-problem: %s", op2.export_as_lp_string())
             self._log.debug("u=%s", self._state.u)
             self._log.debug("z=%s", self._state.z)
 
@@ -298,7 +298,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
                     op3 = self._create_step3_problem()
                     self._state.y = self._update_y(op3)
                     # debug
-                    self._log.debug("Step 3 sub-problem: %s", op3.print_as_lp_string())
+                    self._log.debug("Step 3 sub-problem: %s", op3.export_as_lp_string())
                 # debug
                 self._log.debug("y=%s", self._state.y)
 
@@ -621,7 +621,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         Returns:
             A tuple of (binary_vars, continuous_vars, sol_val), where
                 * binary_vars: binary variable values with the min merit value
-                * continuous_vars: continuous varible values with the min merit value
+                * continuous_vars: continuous variable values with the min merit value
                 * sol_val: Value of the objective function
         """
 

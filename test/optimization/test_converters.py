@@ -17,6 +17,7 @@
 import unittest
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 import logging
+import numpy as np
 from docplex.mp.model import Model
 
 from qiskit.aqua.operators import WeightedPauliOperator
@@ -27,6 +28,7 @@ from qiskit.optimization.algorithms import OptimizationResult
 from qiskit.optimization.converters import (
     InequalityToEquality,
     QuadraticProgramToOperator,
+    OperatorToQuadraticProgram,
     IntegerToBinary,
     LinearEqualityToPenalty,
 )
@@ -431,6 +433,39 @@ class TestConverters(QiskitOptimizationTestCase):
         qubitop, offset = op2ope.encode(op2)
         self.assertListEqual(qubitop.paulis, QUBIT_OP_MAXIMIZE_SAMPLE.paulis)
         self.assertEqual(offset, OFFSET_MAXIMIZE_SAMPLE)
+
+    def test_operator_to_quadraticprogram(self):
+        """ Test optimization problem to operators"""
+        op = QUBIT_OP_MAXIMIZE_SAMPLE
+        offset = OFFSET_MAXIMIZE_SAMPLE
+
+        op2qp = OperatorToQuadraticProgram()
+        quadratic = op2qp.encode(op, offset)
+
+        self.assertEqual(len(quadratic.variables), 4)
+        self.assertEqual(len(quadratic.linear_constraints), 0)
+        self.assertEqual(len(quadratic.quadratic_constraints), 0)
+        self.assertEqual(quadratic.objective.sense, quadratic.objective.Sense.MINIMIZE)
+        self.assertAlmostEqual(quadratic.objective.constant, 900000)
+
+        linear_matrix = np.zeros((1, 4))
+        linear_matrix[0, 0] = -500001
+        linear_matrix[0, 1] = -800001
+        linear_matrix[0, 2] = -900001
+        linear_matrix[0, 3] = -800001
+
+        quadratic_matrix = np.zeros((4, 4))
+        quadratic_matrix[0, 1] = 400000
+        quadratic_matrix[0, 2] = 600000
+        quadratic_matrix[1, 2] = 1200000
+        quadratic_matrix[0, 3] = 800000
+        quadratic_matrix[1, 3] = 1600000
+        quadratic_matrix[2, 3] = 2400000
+
+        np.testing.assert_array_almost_equal(quadratic.objective.linear.coefficients.toarray(),
+                                             linear_matrix)
+        np.testing.assert_array_almost_equal(quadratic.objective.quadratic.coefficients.toarray(),
+                                             quadratic_matrix)
 
     def test_continuous_variable_decode(self):
         """ Test decode func of IntegerToBinaryConverter for continuous variables"""

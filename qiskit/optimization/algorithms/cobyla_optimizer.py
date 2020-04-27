@@ -22,7 +22,7 @@ from scipy.optimize import fmin_cobyla
 
 from qiskit.optimization.algorithms import OptimizationAlgorithm, OptimizationResult
 from qiskit.optimization.problems import QuadraticProgram, Constraint
-from qiskit.optimization import QiskitOptimizationError, infinity
+from qiskit.optimization import QiskitOptimizationError, INFINITY
 
 
 class CobylaOptimizer(OptimizationAlgorithm):
@@ -113,9 +113,9 @@ class CobylaOptimizer(OptimizationAlgorithm):
         for variable in problem.variables:
             lowerbound = variable.lowerbound
             upperbound = variable.upperbound
-            if lowerbound > -infinity:
+            if lowerbound > -INFINITY:
                 constraints += [lambda x, lb=lowerbound: x - lb]
-            if upperbound < infinity:
+            if upperbound < INFINITY:
                 constraints += [lambda x, ub=upperbound: ub - x]
 
         # pylint: disable=no-member

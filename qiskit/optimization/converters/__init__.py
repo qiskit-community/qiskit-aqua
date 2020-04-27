@@ -13,14 +13,26 @@
 # that they have been altered from the originals.
 
 """
-========================================================
+===================================================================
 Optimization stack for Aqua (:mod:`qiskit.optimization.converters`)
-========================================================
+===================================================================
 
 .. currentmodule:: qiskit.optimization.converters
 
 Structures for converting optimization problems
-==========
+===============================================
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+    InequalityToEquality
+    IntegerToBinary
+    QuadraticProgramToNegativeValueOracle
+    QuadraticProgramToOperator
+    QuadraticProgramToQubo
+    LinearEqualityToPenalty
+    OperatorToQuadraticProgram
 
 """
 

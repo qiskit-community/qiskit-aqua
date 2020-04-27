@@ -20,7 +20,7 @@ Optimization stack for Aqua (:mod:`qiskit.optimization.problems`)
 .. currentmodule:: qiskit.optimization.problems
 
 Structures for defining an optimization problem and its solution
-==========
+================================================================
 
 .. autosummary::
    :toctree: ../stubs/

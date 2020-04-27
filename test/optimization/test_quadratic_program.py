@@ -15,17 +15,32 @@
 """ Test QuadraticProgram """
 
 import unittest
+import tempfile
+import os
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 
 from docplex.mp.model import Model, DOcplexException
 
-from qiskit.optimization import QuadraticProgram, QiskitOptimizationError, infinity
+from qiskit.optimization import QuadraticProgram, QiskitOptimizationError, INFINITY
 from qiskit.optimization.problems import Variable, Constraint, QuadraticObjective
 
 
 class TestQuadraticProgram(QiskitOptimizationTestCase):
     """Test QuadraticProgram without the members that have separate test classes
     (VariablesInterface, etc)."""
+
+    def setUp(self):
+        file, self.temp_output_file = tempfile.mkstemp(suffix='.lp')
+        os.close(file)
+        file, self.temp_problem_file = tempfile.mkstemp(suffix='.lp')
+        os.close(file)
+
+    def tearDown(self):
+        for temp in [self.temp_output_file, self.temp_problem_file]:
+            try:
+                os.remove(temp)
+            except OSError:
+                pass
 
     def test_constructor(self):
         """ test constructor """
@@ -77,7 +92,7 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         x_0 = quadratic_program.continuous_var()
         self.assertEqual(x_0.name, 'x0')
         self.assertEqual(x_0.lowerbound, 0)
-        self.assertEqual(x_0.upperbound, infinity)
+        self.assertEqual(x_0.upperbound, INFINITY)
         self.assertEqual(x_0.vartype, Variable.Type.CONTINUOUS)
 
         self.assertEqual(quadratic_program.get_num_vars(), 1)
@@ -121,7 +136,7 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         x_4 = quadratic_program.integer_var()
         self.assertEqual(x_4.name, 'x4')
         self.assertEqual(x_4.lowerbound, 0)
-        self.assertEqual(x_4.upperbound, infinity)
+        self.assertEqual(x_4.upperbound, INFINITY)
         self.assertEqual(x_4.vartype, Variable.Type.INTEGER)
 
         self.assertEqual(quadratic_program.get_num_vars(), 5)
@@ -479,15 +494,15 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
                                  '<=', 1, 'quad_leq')
         q_p.quadratic_constraint({'x': 1, 'y': 1}, {('x', 'x'): 1, ('y', 'z'): -1, ('z', 'z'): 2},
                                  '>=', 1, 'quad_geq')
-        q_p.write_to_lp_file('output.lp')
-        with open('output.lp') as file1, open(
+        q_p.write_to_lp_file(self.temp_output_file)
+        with open(self.temp_output_file) as file1, open(
                 'test/optimization/resources/test_quadratic_program.lp') as file2:
             lines1 = file1.readlines()
             lines2 = file2.readlines()
             self.assertListEqual(lines1, lines2)
 
-        q_p.write_to_lp_file('.')
-        with open('my_problem.lp') as file1, open(
+        q_p.write_to_lp_file(self.temp_problem_file)
+        with open(self.temp_problem_file) as file1, open(
                 'test/optimization/resources/test_quadratic_program.lp') as file2:
             lines1 = file1.readlines()
             lines2 = file2.readlines()
@@ -512,7 +527,7 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         q_p2 = QuadraticProgram()
         q_p2.from_docplex(q_p.to_docplex())
         self.assertEqual(q_p.pprint_as_string(), q_p2.pprint_as_string())
-        self.assertEqual(q_p.print_as_lp_string(), q_p2.print_as_lp_string())
+        self.assertEqual(q_p.export_as_lp_string(), q_p2.export_as_lp_string())
 
         mod = Model('test')
         x = mod.binary_var('x')
@@ -522,7 +537,7 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         mod.add(2 * x - z == 1, 'c0')
         mod.add(2 * x - z + 3 * y * z == 1, 'q0')
         self.assertEqual(q_p.pprint_as_string(), mod.pprint_as_string())
-        self.assertEqual(q_p.print_as_lp_string(), mod.export_as_lp_string())
+        self.assertEqual(q_p.export_as_lp_string(), mod.export_as_lp_string())
 
         with self.assertRaises(QiskitOptimizationError):
             mod = Model()

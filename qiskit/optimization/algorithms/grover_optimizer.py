@@ -19,6 +19,8 @@ from typing import Optional, Dict, Union, Tuple
 import math
 import random
 import numpy as np
+from qiskit import QuantumCircuit
+from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance
 from qiskit.optimization import QiskitOptimizationError
 from qiskit.optimization.algorithms import OptimizationAlgorithm
@@ -27,8 +29,6 @@ from qiskit.optimization.converters import (QuadraticProgramToQubo,
                                             QuadraticProgramToNegativeValueOracle)
 from qiskit.optimization.algorithms.optimization_algorithm import OptimizationResult
 from qiskit.aqua.algorithms.amplitude_amplifiers.grover import Grover
-from qiskit import Aer, QuantumCircuit
-from qiskit.providers import BaseBackend
 
 
 logger = logging.getLogger(__name__)
@@ -48,10 +48,31 @@ class GroverOptimizer(OptimizationAlgorithm):
         """
         self._num_value_qubits = num_value_qubits
         self._n_iterations = num_iterations
-        if quantum_instance is None or isinstance(quantum_instance, BaseBackend):
-            backend = quantum_instance or Aer.get_backend('statevector_simulator')
-            quantum_instance = QuantumInstance(backend)
-        self._quantum_instance = quantum_instance
+        self._quantum_instance = None
+
+        if quantum_instance is not None:
+            self.quantum_instance = quantum_instance
+
+    @property
+    def quantum_instance(self) -> QuantumInstance:
+        """The quantum instance to run the circuits.
+
+        Returns:
+            The quantum instance used in the algorithm.
+        """
+        return self._quantum_instance
+
+    @quantum_instance.setter
+    def quantum_instance(self, quantum_instance: Union[BaseBackend, QuantumInstance]) -> None:
+        """Set the quantum instance used to run the circuits.
+
+        Args:
+            quantum_instance: The quantum instance to be used in the algorithm.
+        """
+        if isinstance(quantum_instance, BaseBackend):
+            self._quantum_instance = QuantumInstance(quantum_instance)
+        else:
+            self._quantum_instance = quantum_instance
 
     def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
         """Checks whether a given problem can be solved with this optimizer.
@@ -80,8 +101,12 @@ class GroverOptimizer(OptimizationAlgorithm):
             The result of the optimizer applied to the problem.
 
         Raises:
+            AttributeError: If the quantum instance has not been set.
             QiskitOptimizationError: If the problem is incompatible with the optimizer.
         """
+        if self.quantum_instance is None:
+            raise AttributeError('The quantum instance or backend has not been set.')
+
         # check compatibility and raise exception if incompatible
         msg = self.get_compatibility_msg(problem)
         if len(msg) > 0:
