@@ -20,8 +20,8 @@ from typing import Union, List, Dict
 
 from numpy import ndarray
 
-from qiskit.optimization import QiskitOptimizationError
-from qiskit.optimization.problems.has_quadratic_program import HasQuadraticProgram
+from .has_quadratic_program import HasQuadraticProgram
+from ..exceptions import QiskitOptimizationError
 
 
 class ConstraintSense(Enum):

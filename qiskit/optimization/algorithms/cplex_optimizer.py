@@ -33,16 +33,16 @@ except ImportError:
 
 
 class CplexOptimizer(OptimizationAlgorithm):
-    """The CPLEX optimizer wrapped to be used within the Qiskit Optimization.
+    """The CPLEX optimizer wrapped as an Qiskit ``OptimizationAlgorithm``.
 
     This class provides a wrapper for ``cplex.Cplex`` (https://pypi.org/project/cplex/)
     to be used within Qiskit Optimization.
 
     Examples:
-    >>> problem = QuadraticProgram()
-    >>> # specify problem here
-    >>> optimizer = CplexOptimizer()
-    >>> result = optimizer.solve(problem)
+        >>> problem = QuadraticProgram()
+        >>> # specify problem here
+        >>> optimizer = CplexOptimizer()
+        >>> result = optimizer.solve(problem)
     """
 
     def __init__(self, disp: Optional[bool] = False) -> None:

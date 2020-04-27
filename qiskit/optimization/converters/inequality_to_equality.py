@@ -40,8 +40,6 @@ class InequalityToEquality:
     _delimiter = '@'  # users are supposed not to use this character in variable names
 
     def __init__(self) -> None:
-        """Initialize the inequality to equality variable converter."""
-
         self._src = None
         self._dst = None
         self._conv: Dict[str, List[Tuple[str, int]]] = {}

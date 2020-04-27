@@ -16,7 +16,7 @@
 
 
 class HasQuadraticProgram:
-    """Abstract interface class for all objects that have a parent QuadraticProgram."""
+    """Interface class for all objects that have a parent QuadraticProgram."""
 
     def __init__(self, quadratic_program: "QuadraticProgram") -> None:
         """ Initialize object with parent QuadraticProgram.

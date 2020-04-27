@@ -21,7 +21,7 @@ import numpy as np
 
 from qiskit.aqua.operators import WeightedPauliOperator
 from ..problems.quadratic_program import QuadraticProgram
-from ..exceptions.qiskit_optimization_error import QiskitOptimizationError
+from ..exceptions import QiskitOptimizationError
 
 
 class OperatorToQuadraticProgram:

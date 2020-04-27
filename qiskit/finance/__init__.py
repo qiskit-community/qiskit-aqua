@@ -13,7 +13,7 @@
 # that they have been altered from the originals.
 """
 ==========================================================
-Finance stack for Aqua (:mod:`qiskit.finance`)
+Finance application stack for Aqua (:mod:`qiskit.finance`)
 ==========================================================
 This is the finance domain logic....
 

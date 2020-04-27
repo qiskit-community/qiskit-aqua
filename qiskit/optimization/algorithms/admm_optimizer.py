@@ -13,6 +13,7 @@
 # that they have been altered from the originals.
 
 """An implementation of the ADMM algorithm."""
+
 import logging
 import time
 from typing import List, Optional, Any
@@ -92,8 +93,7 @@ class ADMMState:
                  binary_indices: List[int],
                  continuous_indices: List[int],
                  rho_initial: float) -> None:
-        """Constructs an internal computation state of the ADMM implementation.
-
+        """
         Args:
             op: The optimization problem being solved.
             binary_indices: Indices of the binary decision variables of the original problem.
@@ -153,7 +153,7 @@ class ADMMState:
 
 
 class ADMMOptimizerResult(OptimizationResult):
-    """ ADMMOptimizer Result."""
+    """ADMMOptimizer Result."""
 
     def __init__(self, x: Optional[Any] = None, fval: Optional[Any] = None,
                  state: Optional[ADMMState] = None, results: Optional[Any] = None) -> None:
@@ -167,18 +167,20 @@ class ADMMOptimizerResult(OptimizationResult):
 
 
 class ADMMOptimizer(OptimizationAlgorithm):
+    """An implementation of the ADMM-based heuristic.
 
-    """An implementation of the ADMM-based heuristic introduced here:
-    Gambella, C., & Simonetto, A. (2020).
-     Multi-block ADMM Heuristics for Mixed-Binary Optimization on Classical and Quantum Computers.
-     arXiv preprint arXiv:2001.02069.
+    This algorithm is introduced in [1].
+
+    **References:**
+
+    [1] Gambella, C., & Simonetto, A. (2020). Multi-block ADMM Heuristics for Mixed-Binary
+        Optimization on Classical and Quantum Computers. arXiv preprint arXiv:2001.02069.
     """
 
     def __init__(self, qubo_optimizer: Optional[OptimizationAlgorithm] = None,
                  continuous_optimizer: Optional[OptimizationAlgorithm] = None,
                  params: Optional[ADMMParameters] = None) -> None:
-        """Constructs an instance of ADMMOptimizer.
-
+        """
         Args:
             qubo_optimizer: An instance of OptimizationAlgorithm that can effectively solve
                 QUBO problems.
@@ -713,7 +715,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
     def _binary_indices_to_continuous(self, binary_indices: List[int]) -> List[int]:
         # TODO: implement
-        return binary_indices
+        # return binary_indices
+        raise NotImplementedError
 
     def _create_step3_problem(self) -> QuadraticProgram:
         """Creates a step 3 sub-problem.

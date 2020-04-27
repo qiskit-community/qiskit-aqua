@@ -32,8 +32,7 @@ class LinearConstraint(Constraint):
                  sense: Constraint.Sense,
                  rhs: float
                  ) -> None:
-        """Constructs a linear constraint.
-
+        """
         Args:
             quadratic_program: The parent quadratic program.
             name: The name of the constraint.
