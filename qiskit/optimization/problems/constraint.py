@@ -20,7 +20,7 @@ from typing import Union, List, Dict
 
 from numpy import ndarray
 
-from .has_quadratic_program import QuadraticProgramElement
+from .quadratic_program_element import QuadraticProgramElement
 from ..exceptions import QiskitOptimizationError
 
 

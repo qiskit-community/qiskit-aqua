@@ -20,7 +20,7 @@ from numpy import ndarray
 from scipy.sparse import spmatrix, dok_matrix
 
 from qiskit.optimization import QiskitOptimizationError
-from qiskit.optimization.problems.has_quadratic_program import QuadraticProgramElement
+from qiskit.optimization.problems.quadratic_program_element import QuadraticProgramElement
 
 
 class LinearExpression(QuadraticProgramElement):

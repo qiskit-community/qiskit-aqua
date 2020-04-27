@@ -20,7 +20,7 @@ from typing import Union, List, Dict, Tuple
 from numpy import ndarray
 from scipy.sparse import spmatrix
 
-from qiskit.optimization.problems.has_quadratic_program import QuadraticProgramElement
+from qiskit.optimization.problems.quadratic_program_element import QuadraticProgramElement
 from qiskit.optimization.problems.linear_constraint import LinearExpression
 from qiskit.optimization.problems.quadratic_expression import QuadraticExpression
 

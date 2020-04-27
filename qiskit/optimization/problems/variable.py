@@ -18,7 +18,7 @@ from enum import Enum
 from typing import Tuple, Union
 
 from qiskit.optimization import infinity, QiskitOptimizationError
-from qiskit.optimization.problems.has_quadratic_program import QuadraticProgramElement
+from qiskit.optimization.problems.quadratic_program_element import QuadraticProgramElement
 
 
 class VarType(Enum):
