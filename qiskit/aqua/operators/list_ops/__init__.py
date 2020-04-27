@@ -39,13 +39,13 @@ measurement with respect to some parameters in the State function, we can constr
 evaluation Operators for each parameter's gradient which we must keep track of ourselves in a
 list, or we can construct a single :class:`ListOp` containing the evaluation Operators for each
 parameter, so the ``eval()`` function returns the full gradient vector. Another excellent
-example of this power is constructing a Quantum kernel matrix:
+example of this power is constructing a Quantum kernel matrix::
 
 
-    >>> data_sfn_list_op = ListOp(data_circuit_state_fns)
-    >>> qkernel_op_circuits = ~data_sfn_list_op @ data_sfn_list_op
-    >>> qkernel_sampled = CircuitSampler(backend).convert(qkernel_op_circuits)
-    >>> qkernel_sampled.eval()
+    data_sfn_list_op = ListOp(data_circuit_state_fns)
+    qkernel_op_circuits = ~data_sfn_list_op @ data_sfn_list_op
+    qkernel_sampled = CircuitSampler(backend).convert(qkernel_op_circuits)
+    qkernel_sampled.eval()
 
 
 This will return the 2d Quantum kernel matrix, where each element is the inner product of some
