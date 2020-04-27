@@ -20,7 +20,7 @@ from typing import Union, List, Dict
 
 from numpy import ndarray
 
-from .has_quadratic_program import HasQuadraticProgram
+from .quadratic_program_element import QuadraticProgramElement
 from ..exceptions import QiskitOptimizationError
 
 
@@ -58,7 +58,7 @@ class ConstraintSense(Enum):
             return ConstraintSense.GE
 
 
-class Constraint(HasQuadraticProgram):
+class Constraint(QuadraticProgramElement):
     """Abstract Constraint Class."""
 
     Sense = ConstraintSense

@@ -539,6 +539,38 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         self.assertEqual(q_p.pprint_as_string(), mod.pprint_as_string())
         self.assertEqual(q_p.export_as_lp_string(), mod.export_as_lp_string())
 
+        with self.assertRaises(QiskitOptimizationError):
+            mod = Model()
+            mod.semiinteger_var(lb=1, name='x')
+            q_p.from_docplex(mod)
+
+        with self.assertRaises(QiskitOptimizationError):
+            mod = Model()
+            x = mod.binary_var('x')
+            mod.add_range(0, 2 * x, 1)
+            q_p.from_docplex(mod)
+
+        with self.assertRaises(QiskitOptimizationError):
+            mod = Model()
+            x = mod.binary_var('x')
+            y = mod.binary_var('y')
+            mod.add_indicator(x, x + y <= 1, 1)
+            q_p.from_docplex(mod)
+
+        with self.assertRaises(QiskitOptimizationError):
+            mod = Model()
+            x = mod.binary_var('x')
+            y = mod.binary_var('y')
+            mod.add_equivalence(x, x + y <= 1, 1)
+            q_p.from_docplex(mod)
+
+        with self.assertRaises(QiskitOptimizationError):
+            mod = Model()
+            x = mod.binary_var('x')
+            y = mod.binary_var('y')
+            mod.add(mod.not_equal_constraint(x, y + 1))
+            q_p.from_docplex(mod)
+
     def test_substitute_variables(self):
         """test substitute variables"""
         q_p = QuadraticProgram('test')

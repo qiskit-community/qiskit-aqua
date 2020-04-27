@@ -67,29 +67,41 @@ class IntegerToBinary:
             QiskitOptimizationError: if variable or constraint type is not supported.
         """
 
+        # copy original QP as reference.
         self._src = copy.deepcopy(op)
-        self._dst = QuadraticProgram()
+
+        if self._src.get_num_integer_vars() > 0:
+
+            # initialize new QP
+            self._dst = QuadraticProgram()
+
+            # declare variables
+            for x in self._src.variables:
+                if x.vartype == Variable.Type.INTEGER:
+                    new_vars = self._encode_var(x.name, x.lowerbound, x.upperbound)
+                    self._conv[x] = new_vars
+                    for (var_name, _) in new_vars:
+                        self._dst.binary_var(var_name)
+                else:
+                    if x.vartype == Variable.Type.CONTINUOUS:
+                        self._dst.continuous_var(x.lowerbound, x.upperbound, x.name)
+                    elif x.vartype == Variable.Type.BINARY:
+                        self._dst.binary_var(x.name)
+                    else:
+                        raise QiskitOptimizationError(
+                            "Unsupported variable type {}".format(x.vartype))
+
+            self._substitute_int_var()
+
+        else:
+            # just copy the problem if no integer variables exist
+            self._dst = copy.deepcopy(op)
+
+        # adjust name of resulting problem if necessary
         if name:
             self._dst.name = name
         else:
             self._dst.name = self._src.name
-
-        # declare variables
-        for x in self._src.variables:
-            if x.vartype == Variable.Type.INTEGER:
-                new_vars = self._encode_var(x.name, x.lowerbound, x.upperbound)
-                self._conv[x] = new_vars
-                for (var_name, _) in new_vars:
-                    self._dst.binary_var(var_name)
-            else:
-                if x.vartype == Variable.Type.CONTINUOUS:
-                    self._dst.continuous_var(x.lowerbound, x.upperbound, x.name)
-                elif x.vartype == Variable.Type.BINARY:
-                    self._dst.binary_var(x.name)
-                else:
-                    raise QiskitOptimizationError("Unsupported variable type {}".format(x.vartype))
-
-        self._substitute_int_var()
 
         return self._dst
 

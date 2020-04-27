@@ -35,10 +35,8 @@ Structures for defining an optimization problem and its solution
    QuadraticProgram
    Variable
 
-N.B. Additional classes Constraint, LinearConstraint, QuadraticConstraint,
-QuadraticObjective, and Variable
-are not to be instantiated directly. Objects of those types are available within
-an instantiated QuadraticProgram.
+N.B. All classes but `QuadraticProgram` are not to be instantiated directly.
+Objects of those types are available within an instantiated `QuadraticProgram`.
 
 """
 

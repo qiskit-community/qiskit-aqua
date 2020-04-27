@@ -18,7 +18,7 @@ from enum import Enum
 from typing import Tuple, Union
 
 from qiskit.optimization import INFINITY, QiskitOptimizationError
-from qiskit.optimization.problems.has_quadratic_program import HasQuadraticProgram
+from qiskit.optimization.problems.quadratic_program_element import QuadraticProgramElement
 
 
 class VarType(Enum):
@@ -28,7 +28,7 @@ class VarType(Enum):
     INTEGER = 2
 
 
-class Variable(HasQuadraticProgram):
+class Variable(QuadraticProgramElement):
     """Representation of a variable."""
 
     Type = VarType
