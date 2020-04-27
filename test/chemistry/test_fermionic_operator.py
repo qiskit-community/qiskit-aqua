@@ -19,7 +19,7 @@ import unittest
 from test.chemistry import QiskitChemistryTestCase
 import numpy as np
 from qiskit.aqua.utils import random_unitary
-from qiskit.aqua.operators import op_converter
+from qiskit.aqua.operators.legacy import op_converter
 from qiskit.chemistry import FermionicOperator, QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 

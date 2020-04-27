@@ -40,6 +40,8 @@ class TestSetPacking(QiskitOptimizationTestCase):
         algo = NumPyMinimumEigensolver(self.qubit_op, aux_operators=[])
         result = algo.run()
         x = sample_most_likely(result.eigenstate)
+        if x[0] != 0:
+            x = np.logical_not(x) * 1
         np.testing.assert_array_equal(x, [0, 1, 0])
 
     def test_partition_vqe(self):

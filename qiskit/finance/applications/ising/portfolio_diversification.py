@@ -17,7 +17,7 @@
 import numpy as np
 from qiskit.quantum_info import Pauli
 
-from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.aqua.operators import WeightedPauliOperator, StateFn
 
 
 def get_operator(rho, n, q):
@@ -46,32 +46,32 @@ def get_operator(rho, n, q):
     Q2 = np.zeros([N, N])
     Q3 = np.zeros([N, N])
 
-    for x in range(n**2, n**2+n):
+    for x in range(n ** 2, n ** 2 + n):
         q0[x] = 1
 
-    Q0 = A*np.dot(q0, q0.T)
+    Q0 = A * np.dot(q0, q0.T)
     for ii in range(0, n):
         v0 = np.zeros([N, 1])
-        for jj in range(n*ii, n*(ii+1)):
+        for jj in range(n * ii, n * (ii + 1)):
             v0[jj] = 1
         Q1 = Q1 + np.dot(v0, v0.T)
-    Q1 = A*Q1
+    Q1 = A * Q1
 
     for jj in range(0, n):
         v0 = np.zeros([N, 1])
-        v0[n*jj+jj] = 1
-        v0[n**2+jj] = -1
+        v0[n * jj + jj] = 1
+        v0[n ** 2 + jj] = -1
         Q2 = Q2 + np.dot(v0, v0.T)
-    Q2 = A*Q2
+    Q2 = A * Q2
 
     for ii in range(0, n):
         for jj in range(0, n):
-            Q3[ii*n + jj, n**2+jj] = -0.5
+            Q3[ii * n + jj, n ** 2 + jj] = -0.5
             Q3[n ** 2 + jj, ii * n + jj] = -0.5
 
     Q3 = A * Q3
 
-    Q = Q0+Q1+Q2+Q3
+    Q = Q0 + Q1 + Q2 + Q3
 
     # linear term c:
     c0 = np.zeros(N)
@@ -79,19 +79,19 @@ def get_operator(rho, n, q):
     c2 = np.zeros(N)
     c3 = np.zeros(N)
 
-    for x in range(n**2):
+    for x in range(n ** 2):
         c0[x] = instance_vec[x]
-    for x in range(n**2, n**2+n):
-        c1[x] = -2*A*q
-    for x in range(n**2):
-        c2[x] = -2*A
-    for x in range(n**2):
+    for x in range(n ** 2, n ** 2 + n):
+        c1[x] = -2 * A * q
+    for x in range(n ** 2):
+        c2[x] = -2 * A
+    for x in range(n ** 2):
         c3[x] = A
 
-    g = c0+c1+c2+c3
+    g = c0 + c1 + c2 + c3
 
     # constant term r
-    c = A*(q**2 + n)
+    c = A * (q ** 2 + n)
 
     # Defining the new matrices in the Z-basis
 
@@ -142,6 +142,8 @@ def get_portfoliodiversification_solution(rho, n, q, result):  # pylint: disable
     # pylint: disable=invalid-name
     del rho, q  # unused
     v = result['eigvecs'][0]
+    if isinstance(v, StateFn):
+        v = v.to_matrix()
     # N = (n + 1) * n  # number of qubits
     N = n ** 2 + n
 
@@ -149,7 +151,7 @@ def get_portfoliodiversification_solution(rho, n, q, result):  # pylint: disable
     string_value = "{0:b}".format(index_value)
 
     while len(string_value) < N:
-        string_value = '0'+string_value
+        string_value = '0' + string_value
 
     x_state = list()
     for elements in string_value:

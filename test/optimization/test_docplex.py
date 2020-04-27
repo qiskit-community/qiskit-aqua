@@ -238,8 +238,8 @@ class TestDocplex(QiskitOptimizationTestCase):
         expected_result = ee_expected.run()
 
         # Compare objective
-        self.assertEqual(result.eigenvalue.real + offset,
-                         expected_result.eigenvalue.real + OFFSET_MAXCUT)
+        self.assertAlmostEqual(result.eigenvalue.real + offset,
+                               expected_result.eigenvalue.real + OFFSET_MAXCUT)
 
     def test_docplex_tsp(self):
         """ Docplex tsp test """
@@ -272,8 +272,8 @@ class TestDocplex(QiskitOptimizationTestCase):
         expected_result = ee_expected.run()
 
         # Compare objective
-        self.assertEqual(result.eigenvalue.real +
-                         offset, expected_result.eigenvalue.real + OFFSET_TSP)
+        self.assertAlmostEqual(result.eigenvalue.real + offset,
+                               expected_result.eigenvalue.real + OFFSET_TSP)
 
     def test_docplex_integer_constraints(self):
         """ Docplex Integer Constraints test """
@@ -291,7 +291,7 @@ class TestDocplex(QiskitOptimizationTestCase):
         expected_result = -2
 
         # Compare objective
-        self.assertEqual(result.eigenvalue.real + offset, expected_result)
+        self.assertAlmostEqual(result.eigenvalue.real + offset, expected_result)
 
     def test_docplex_constant_and_quadratic_terms_in_object_function(self):
         """ Docplex Constant and Quadratic terms in Object function test """
@@ -320,7 +320,7 @@ class TestDocplex(QiskitOptimizationTestCase):
         expected_result = -22
 
         # Compare objective
-        self.assertEqual(result.eigenvalue.real + offset, expected_result)
+        self.assertAlmostEqual(result.eigenvalue.real + offset, expected_result)
 
     def test_constants_in_left_side_and_variables_in_right_side(self):
         """ Test Constant values on the left-hand side of constraints and
@@ -337,7 +337,7 @@ class TestDocplex(QiskitOptimizationTestCase):
         result = e_e.run()
 
         self.assertEqual(result['eigenvalue'] + offset, -2)
-        actual_sol = result['eigenstate'].tolist()
+        actual_sol = result['eigenstate'].to_matrix().tolist()
         self.assertListEqual(actual_sol, [0, 0, 0, 1])
 
 

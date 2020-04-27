@@ -57,16 +57,16 @@ def get_operator(mu, sigma, q, budget, penalty):  # pylint: disable=invalid-name
     E = np.matmul(np.asmatrix(e).T, np.asmatrix(e))
 
     # map problem to Ising model
-    offset = -1*np.dot(mu, e)/2 + penalty*budget**2 - \
-        budget*n*penalty + n**2*penalty/4 + q/4*np.dot(e, np.dot(sigma, e))
-    mu_z = mu/2 + budget*penalty*e - n*penalty/2*e - q/2*np.dot(sigma, e)
-    sigma_z = penalty/4*E + q/4*sigma
+    offset = -1 * np.dot(mu, e) / 2 + penalty * budget ** 2 - \
+        budget * n * penalty + n ** 2 * penalty / 4 + q / 4 * np.dot(e, np.dot(sigma, e))
+    mu_z = mu / 2 + budget * penalty * e - n * penalty / 2 * e - q / 2 * np.dot(sigma, e)
+    sigma_z = penalty / 4 * E + q / 4 * sigma
 
     # construct operator
     pauli_list = []
     for i in range(n):
         i_ = i
-        # i_ = n-i-1
+        # i_ = n - i - 1
         if np.abs(mu_z[i_]) > 1e-6:
             xp = np.zeros(n, dtype=np.bool)
             zp = np.zeros(n, dtype=np.bool)
@@ -80,7 +80,7 @@ def get_operator(mu, sigma, q, budget, penalty):  # pylint: disable=invalid-name
                 zp = np.zeros(n, dtype=np.bool)
                 zp[i_] = True
                 zp[j_] = True
-                pauli_list.append([2*sigma_z[i_, j_], Pauli(zp, xp)])
+                pauli_list.append([2 * sigma_z[i_, j_], Pauli(zp, xp)])
         offset += sigma_z[i_, i_]
 
     return WeightedPauliOperator(paulis=pauli_list), offset

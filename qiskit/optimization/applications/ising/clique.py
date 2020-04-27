@@ -67,7 +67,7 @@ def get_operator(weight_matrix, K):  # pylint: disable=invalid-name
     pauli_list = []
     shift = 0
 
-    Y = K - 0.5 * num_nodes  # Y = K-sum_{v}{1/2}
+    Y = K - 0.5 * num_nodes  # Y = K - sum_{v}{1 / 2}
 
     A = 1000
     # Ha part:

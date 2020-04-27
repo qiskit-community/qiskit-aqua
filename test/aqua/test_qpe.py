@@ -21,7 +21,8 @@ import numpy as np
 from ddt import ddt, idata, unpack
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.operators import MatrixOperator, WeightedPauliOperator, op_converter
+from qiskit.aqua.operators import MatrixOperator, WeightedPauliOperator
+from qiskit.aqua.operators.legacy import op_converter
 from qiskit.aqua.utils import decimal_to_binary
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.aqua.algorithms import QPEMinimumEigensolver
@@ -29,54 +30,65 @@ from qiskit.circuit.library import QFT
 from qiskit.aqua.components.iqfts import Standard
 from qiskit.aqua.components.initial_states import Custom
 
-X = np.array([[0, 1], [1, 0]])
-Y = np.array([[0, -1j], [1j, 0]])
-Z = np.array([[1, 0], [0, -1]])
-_I = np.array([[1, 0], [0, 1]])
-H1 = X + Y + Z + _I
-QUBIT_OP_SIMPLE = MatrixOperator(matrix=H1)
-QUBIT_OP_SIMPLE = op_converter.to_weighted_pauli_operator(QUBIT_OP_SIMPLE)
-
-PAULI_DICT = {
-    'paulis': [
-        {"coeff": {"imag": 0.0, "real": -1.052373245772859}, "label": "II"},
-        {"coeff": {"imag": 0.0, "real": 0.39793742484318045}, "label": "IZ"},
-        {"coeff": {"imag": 0.0, "real": -0.39793742484318045}, "label": "ZI"},
-        {"coeff": {"imag": 0.0, "real": -0.01128010425623538}, "label": "ZZ"},
-        {"coeff": {"imag": 0.0, "real": 0.18093119978423156}, "label": "XX"}
-    ]
-}
-QUBIT_OP_H2_WITH_2_QUBIT_REDUCTION = WeightedPauliOperator.from_dict(PAULI_DICT)
-
-PAULI_DICT_ZZ = {
-    'paulis': [
-        {"coeff": {"imag": 0.0, "real": 1.0}, "label": "ZZ"}
-    ]
-}
-QUBIT_OP_ZZ = WeightedPauliOperator.from_dict(PAULI_DICT_ZZ)
+# pylint: disable=invalid-name
 
 
 @ddt
 class TestQPE(QiskitAquaTestCase):
     """QPE tests."""
 
+    X = np.array([[0, 1], [1, 0]])
+    Y = np.array([[0, -1j], [1j, 0]])
+    Z = np.array([[1, 0], [0, -1]])
+    _I = np.array([[1, 0], [0, 1]])
+    H1 = X + Y + Z + _I
+
+    PAULI_DICT = {
+        'paulis': [
+            {"coeff": {"imag": 0.0, "real": -1.052373245772859}, "label": "II"},
+            {"coeff": {"imag": 0.0, "real": 0.39793742484318045}, "label": "IZ"},
+            {"coeff": {"imag": 0.0, "real": -0.39793742484318045}, "label": "ZI"},
+            {"coeff": {"imag": 0.0, "real": -0.01128010425623538}, "label": "ZZ"},
+            {"coeff": {"imag": 0.0, "real": 0.18093119978423156}, "label": "XX"}
+        ]
+    }
+
+    PAULI_DICT_ZZ = {
+        'paulis': [
+            {"coeff": {"imag": 0.0, "real": 1.0}, "label": "ZZ"}
+        ]
+    }
+
+    def setUp(self):
+        super().setUp()
+        qubit_op_simple = MatrixOperator(matrix=TestQPE.H1)
+        qubit_op_simple = op_converter.to_weighted_pauli_operator(qubit_op_simple)
+        qubit_op_h2_with_2_qubit_reduction = \
+            WeightedPauliOperator.from_dict(TestQPE.PAULI_DICT)
+        qubit_op_zz = WeightedPauliOperator.from_dict(TestQPE.PAULI_DICT_ZZ)
+        self._dict = {
+            'QUBIT_OP_SIMPLE': qubit_op_simple.to_opflow(),
+            'QUBIT_OP_ZZ': qubit_op_zz.to_opflow(),
+            'QUBIT_OP_H2_WITH_2_QUBIT_REDUCTION': qubit_op_h2_with_2_qubit_reduction.to_opflow()
+        }
+
     def tearDown(self):
         super().tearDown()
         warnings.filterwarnings(action="always", category=DeprecationWarning)
 
     @idata([
-        [QUBIT_OP_SIMPLE, 'qasm_simulator', 1, 5, False],
-        [QUBIT_OP_SIMPLE, 'qasm_simulator', 1, 5, True],
-        [QUBIT_OP_ZZ, 'statevector_simulator', 1, 1, False],
-        [QUBIT_OP_ZZ, 'statevector_simulator', 1, 1, True],
-        [QUBIT_OP_H2_WITH_2_QUBIT_REDUCTION, 'statevector_simulator', 1, 6, False],
-        [QUBIT_OP_H2_WITH_2_QUBIT_REDUCTION, 'statevector_simulator', 1, 6, True],
+        ['QUBIT_OP_SIMPLE', 'qasm_simulator', 1, 5, False],
+        ['QUBIT_OP_SIMPLE', 'qasm_simulator', 1, 5, True],
+        ['QUBIT_OP_ZZ', 'statevector_simulator', 1, 1, False],
+        ['QUBIT_OP_ZZ', 'statevector_simulator', 1, 1, True],
+        ['QUBIT_OP_H2_WITH_2_QUBIT_REDUCTION', 'statevector_simulator', 1, 6, False],
+        ['QUBIT_OP_H2_WITH_2_QUBIT_REDUCTION', 'statevector_simulator', 1, 6, True],
     ])
     @unpack
     def test_qpe(self, qubit_op, simulator, num_time_slices, n_ancillae, use_circuit_library):
         """ QPE test """
         self.log.debug('Testing QPE')
-        tmp_qubit_op = qubit_op.copy()
+        qubit_op = self._dict[qubit_op]
         exact_eigensolver = NumPyMinimumEigensolver(qubit_op)
         results = exact_eigensolver.run()
 
@@ -119,7 +131,6 @@ class TestQPE(QiskitAquaTestCase):
         ))
 
         np.testing.assert_approx_equal(result.eigenvalue.real, ref_eigenval.real, significant=2)
-        self.assertEqual(tmp_qubit_op, qubit_op, "Operator is modified after QPE.")
 
         if not use_circuit_library:
             warnings.filterwarnings(action="always", category=DeprecationWarning)

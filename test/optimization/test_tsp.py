@@ -40,8 +40,14 @@ class TestTSP(QiskitOptimizationTestCase):
         algo = NumPyMinimumEigensolver(self.qubit_op)
         result = algo.run()
         x = sample_most_likely(result.eigenstate)
+        # print(self.qubit_op.to_opflow().eval(result.eigenstate).adjoint().eval(result.eigenstate))
         order = tsp.get_tsp_solution(x)
-        np.testing.assert_array_equal(order, [1, 2, 0])
+        np.testing.assert_equal(tsp.tsp_value(order, self.ins.w),
+                                tsp.tsp_value([1, 2, 0], self.ins.w))
+
+
+if __name__ == '__main__':
+    unittest.main()
 
 
 if __name__ == '__main__':

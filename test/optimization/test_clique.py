@@ -46,7 +46,7 @@ class TestClique(QiskitOptimizationTestCase):
             return [int(digit) for digit in result]
 
         nodes = self.num_nodes  # length of the bitstring that represents the assignment
-        maximum = 2**nodes
+        maximum = 2 ** nodes
         has_sol = False
         for i in range(maximum):
             cur = bitfield(i, nodes)

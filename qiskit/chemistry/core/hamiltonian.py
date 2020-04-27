@@ -154,8 +154,8 @@ class Hamiltonian(ChemistryOperator):
         new_num_beta = num_beta
         if orbitals_list:
             orbitals_list = np.array(orbitals_list)
-            orbitals_list = orbitals_list[(orbitals_list >= 0) &
-                                          (orbitals_list < qmolecule.num_orbitals)]
+            orbitals_list = \
+                orbitals_list[(orbitals_list >= 0) & (orbitals_list < qmolecule.num_orbitals)]
 
             freeze_list_alpha = [i for i in orbitals_list if i < num_alpha]
             freeze_list_beta = [i for i in orbitals_list if i < num_beta]
@@ -477,9 +477,9 @@ class Hamiltonian(ChemistryOperator):
         dipole_idx = 3
         if 'aux_ops' in algo_result and len(algo_result['aux_ops']) > 0 and \
                 len(algo_result['aux_ops'][0]) > dipole_idx:
-            dipole_moments_x = algo_result['aux_ops'][0][dipole_idx+0][0]
-            dipole_moments_y = algo_result['aux_ops'][0][dipole_idx+1][0]
-            dipole_moments_z = algo_result['aux_ops'][0][dipole_idx+2][0]
+            dipole_moments_x = algo_result['aux_ops'][0][dipole_idx + 0][0]
+            dipole_moments_y = algo_result['aux_ops'][0][dipole_idx + 1][0]
+            dipole_moments_z = algo_result['aux_ops'][0][dipole_idx + 2][0]
 
             _elec_dipole = \
                 np.array([dipole_moments_x + self._x_dipole_shift + self._ph_x_dipole_shift,
@@ -544,7 +544,7 @@ class Hamiltonian(ChemistryOperator):
         value = '['
         for i, _ in enumerate(dips):
             value += Hamiltonian._float_to_string(dips[i])
-            value += '  ' if i < len(dips)-1 else ']'
+            value += '  ' if i < len(dips) - 1 else ']'
         return value
 
     @staticmethod
