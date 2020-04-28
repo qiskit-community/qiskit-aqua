@@ -42,8 +42,7 @@ class TestHHL(QiskitAquaTestCase):
 
     def setUp(self):
         super(TestHHL, self).setUp()
-        self.random_seed = 0
-        aqua_globals.random_seed = self.random_seed
+        aqua_globals.random_seed = None
 
     def tearDown(self):
         super().tearDown()
