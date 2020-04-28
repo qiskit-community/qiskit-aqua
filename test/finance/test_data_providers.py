@@ -64,7 +64,7 @@ class TestDataProviders(QiskitFinanceTestCase):
         rnd = RandomDataProvider(seed=1)
         rnd.run()
         similarity = np.array([[1.00000000e+00, 6.2284804e-04], [6.2284804e-04, 1.00000000e+00]])
-        covariance = np.array([[1.75870991, -0.32842528], [-0.32842528, 2.31429182]])
+        covariance = np.array([[2.08413157, 0.20842107], [0.20842107, 1.99542187]])
         np.testing.assert_array_almost_equal(rnd.get_covariance_matrix(), covariance, decimal=3)
         np.testing.assert_array_almost_equal(rnd.get_similarity_matrix(), similarity, decimal=3)
 
