@@ -30,7 +30,7 @@ requirements = [
     "qiskit-ignis>=0.2.0",
     "scipy>=1.0",
     "sympy>=1.3",
-    "numpy>=1.13",
+    "numpy>=1.17",
     "psutil>=5",
     "scikit-learn>=0.20.0",
     "dlx",

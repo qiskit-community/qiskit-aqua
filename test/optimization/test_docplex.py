@@ -164,7 +164,7 @@ class TestDocplex(QiskitOptimizationTestCase):
     def test_auto_define_penalty(self):
         """ Auto define Penalty test """
         # check _auto_define_penalty() for positive coefficients.
-        positive_coefficients = aqua_globals.random.rand(10, 10)
+        positive_coefficients = aqua_globals.random.random((10, 10))
         for i in range(10):
             mdl = Model(name='Positive_auto_define_penalty')
             x = {j: mdl.binary_var(name='x_{0}'.format(j)) for j in range(10)}
@@ -175,7 +175,7 @@ class TestDocplex(QiskitOptimizationTestCase):
             self.assertEqual(isclose(actual, expected), True)
 
         # check _auto_define_penalty() for negative coefficients
-        negative_coefficients = -1 * aqua_globals.random.rand(10, 10)
+        negative_coefficients = -1 * aqua_globals.random.random((10, 10))
         for i in range(10):
             mdl = Model(name='Negative_auto_define_penalty')
             x = {j: mdl.binary_var(name='x_{0}'.format(j)) for j in range(10)}
@@ -186,7 +186,7 @@ class TestDocplex(QiskitOptimizationTestCase):
             self.assertEqual(isclose(actual, expected), True)
 
         # check _auto_define_penalty() for mixed coefficients
-        mixed_coefficients = aqua_globals.random.randint(-100, 100, (10, 10))
+        mixed_coefficients = aqua_globals.random.integers(-100, 100, (10, 10))
         for i in range(10):
             mdl = Model(name='Mixed_auto_define_penalty')
             x = {j: mdl.binary_var(name='x_{0}'.format(j)) for j in range(10)}

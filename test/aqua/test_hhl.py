@@ -268,7 +268,7 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('Testing HHL with matrix dimension other than 2**n')
 
         matrix = rmg.random_diag(n, eigrange=[0, 1])
-        vector = aqua_globals.random.random_sample(n)
+        vector = aqua_globals.random.random(n)
 
         # run NumPyLSsolver
         ref_result = NumPyLSsolver(matrix, vector).run()
@@ -313,7 +313,7 @@ class TestHHL(QiskitAquaTestCase):
 
         n = 2
         matrix = rmg.random_diag(n, eigrange=[-1, 1])
-        vector = aqua_globals.random.random_sample(n)
+        vector = aqua_globals.random.random(n)
 
         # run NumPyLSsolver
         ref_result = NumPyLSsolver(matrix, vector).run()
@@ -357,7 +357,7 @@ class TestHHL(QiskitAquaTestCase):
 
         n = 2
         matrix = rmg.random_hermitian(n, eigrange=[0, 1])
-        vector = aqua_globals.random.random_sample(n)
+        vector = aqua_globals.random.random(n)
 
         # run NumPyLSsolver
         ref_result = NumPyLSsolver(matrix, vector).run()

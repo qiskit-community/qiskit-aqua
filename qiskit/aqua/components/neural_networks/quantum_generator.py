@@ -100,7 +100,7 @@ class QuantumGenerator(GenerativeNetwork):
                               initial_state=init_distribution, entangler_map=entangler_map,
                               entanglement_gate='cz')
                 if init_params is None:
-                    init_params = aqua_globals.random.rand(var_form.num_parameters) * 2 * 1e-2
+                    init_params = aqua_globals.random.random(var_form.num_parameters) * 2 * 1e-2
                 # Set generator circuit
                 self.generator_circuit = MultivariateVariationalDistribution(num_qubits, var_form,
                                                                              init_params,
@@ -115,7 +115,7 @@ class QuantumGenerator(GenerativeNetwork):
                               entangler_map=entangler_map,
                               entanglement_gate='cz')
                 if init_params is None:
-                    init_params = aqua_globals.random.rand(var_form.num_parameters) * 2 * 1e-2
+                    init_params = aqua_globals.random.random(var_form.num_parameters) * 2 * 1e-2
                 # Set generator circuit
                 self.generator_circuit = UnivariateVariationalDistribution(
                     int(np.sum(num_qubits)), var_form, init_params, low=bounds[0], high=bounds[1])

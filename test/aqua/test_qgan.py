@@ -90,7 +90,7 @@ class TestQGAN(QiskitAquaTestCase):
                       entangler_map=entangler_map,
                       entanglement_gate='cz')
         # Set generator's initial parameters
-        init_params = aqua_globals.random.rand(var_form._num_parameters) * 2 * 1e-2
+        init_params = aqua_globals.random.random(var_form._num_parameters) * 2 * 1e-2
         # Set generator circuit
         self.g_var_form = UnivariateVariationalDistribution(sum(num_qubits), var_form, init_params,
                                                             low=self._bounds[0],

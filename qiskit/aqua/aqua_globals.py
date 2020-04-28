@@ -71,12 +71,9 @@ class QiskitAquaGlobals:
 
     @property
     def random(self):
-        """Return a numpy random."""
+        """Return a numpy np.random.Generator (default_rng)."""
         if self._random is None:
-            if self._random_seed is None:
-                self._random = np.random
-            else:
-                self._random = np.random.RandomState(self._random_seed)
+            self._random = np.random.default_rng(self._random_seed)
         return self._random
 
 
