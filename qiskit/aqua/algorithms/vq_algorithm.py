@@ -94,9 +94,10 @@ class VQAlgorithm(QuantumAlgorithm):
             self._var_form_params = ParameterVector('θ', length=var_form.num_parameters)
             self._var_form = var_form
         else:
-            raise ValueError(
-                "Unsupported type '{}' of var_form".format(
-                    type(var_form) if var_form else var_form))
+            raise ValueError('Unsupported type "{}" of var_form'.format(type(var_form)))
+
+        if self._var_form.num_parameters == 0:
+            raise ValueError('The var_form cannot have 0 parameters.')
 
     @property
     def optimizer(self) -> Optional[Optimizer]:

@@ -400,7 +400,6 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         super().compute_minimum_eigenvalue(operator, aux_operators)
         return self._run()
 
-    # This is the objective function to be passed to the optimizer that is used for evaluation
     def _energy_evaluation(self, parameters: Union[List[float], np.ndarray]
                            ) -> Union[float, List[float]]:
         """Evaluate energy at given parameters for the variational form.
@@ -421,9 +420,6 @@ class VQE(VQAlgorithm, MinimumEigensolver):
             self._expect_op = self.construct_circuit(self._var_form_params)
 
         num_parameters = self.var_form.num_parameters
-        if num_parameters == 0:
-            raise RuntimeError('No parameters in the variational form is not supported.')
-
         parameter_sets = np.reshape(parameters, (-1, num_parameters))
         # Create dict associating each parameter with the lists of parameterization values for it
         param_bindings = dict(zip(self._var_form_params, parameter_sets.transpose().tolist()))
