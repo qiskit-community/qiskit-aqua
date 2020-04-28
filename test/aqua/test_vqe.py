@@ -20,7 +20,6 @@ from test.aqua import QiskitAquaTestCase
 import numpy as np
 from ddt import ddt, unpack, data
 from qiskit import BasicAer, QuantumCircuit, IBMQ
-from qiskit.circuit import ParameterVector
 from qiskit.circuit.library import RY, RYRZ
 
 from qiskit.aqua import QuantumInstance, aqua_globals, AquaError
