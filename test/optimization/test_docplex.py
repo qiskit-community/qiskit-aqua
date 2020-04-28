@@ -127,7 +127,7 @@ QUBIT_OP_TSP = WeightedPauliOperator(
                             x=[False, False, False, False, False, False, False, False, False])],
             [50000.0, Pauli(z=[False, False, False, False, False, False, False, True, True],
                             x=[False, False, False, False, False, False, False, False, False])]])
-OFFSET_TSP = 600297.0
+OFFSET_TSP = 600279.0
 
 
 class TestDocplex(QiskitOptimizationTestCase):
@@ -332,7 +332,7 @@ class TestDocplex(QiskitOptimizationTestCase):
         mdl.add_constraint(x == y)
 
         qubit_op, offset = docplex.get_operator(mdl)
-        print(qubit_op.print_details())
+        self.log.debug(qubit_op.print_details())
         e_e = NumPyMinimumEigensolver(qubit_op)
         result = e_e.run()
 
