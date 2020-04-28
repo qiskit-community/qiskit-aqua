@@ -420,6 +420,9 @@ class VQE(VQAlgorithm, MinimumEigensolver):
             self._expect_op = self.construct_circuit(self._var_form_params)
 
         num_parameters = self.var_form.num_parameters
+        if self._var_form.num_parameters == 0:
+            raise RuntimeError('The var_form cannot have 0 parameters.')
+
         parameter_sets = np.reshape(parameters, (-1, num_parameters))
         # Create dict associating each parameter with the lists of parameterization values for it
         param_bindings = dict(zip(self._var_form_params, parameter_sets.transpose().tolist()))
