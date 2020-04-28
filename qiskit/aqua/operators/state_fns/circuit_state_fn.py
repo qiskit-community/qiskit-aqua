@@ -46,7 +46,7 @@ class CircuitStateFn(StateFn):
             is_measurement: Whether the StateFn is a measurement operator.
 
         Raises:
-            TypeError: invalid parameters.
+            TypeError: Unsupported primitive, or primitive has ClassicalRegisters.
         """
         if isinstance(primitive, Instruction):
             qc = QuantumCircuit(primitive.num_qubits)
@@ -56,6 +56,9 @@ class CircuitStateFn(StateFn):
         if not isinstance(primitive, QuantumCircuit):
             raise TypeError('CircuitStateFn can only be instantiated '
                             'with QuantumCircuit, not {}'.format(type(primitive)))
+
+        if len(primitive.clbits) != 0:
+            raise TypeError('CircuitOp does not support QuantumCircuits with ClassicalRegisters.')
 
         super().__init__(primitive, coeff=coeff, is_measurement=is_measurement)
 

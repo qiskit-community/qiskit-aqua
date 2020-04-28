@@ -170,6 +170,7 @@ class CircuitSampler(ConverterBase):
             self._reduced_op_cache = None
             self._circuit_ops_cache = None
             self._transpiled_circ_cache = None
+            self._transpile_before_bind = True
 
         if not self._reduced_op_cache:
             operator_dicts_replaced = operator.to_circuit_op()

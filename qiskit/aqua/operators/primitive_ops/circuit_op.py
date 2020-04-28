@@ -47,7 +47,7 @@ class CircuitOp(PrimitiveOp):
             coeff: A coefficient multiplying the primitive
 
         Raises:
-            TypeError: invalid parameters.
+            TypeError: Unsupported primitive, or primitive has ClassicalRegisters.
         """
         if isinstance(primitive, Instruction):
             qc = QuantumCircuit(primitive.num_qubits)
@@ -57,6 +57,9 @@ class CircuitOp(PrimitiveOp):
         if not isinstance(primitive, QuantumCircuit):
             raise TypeError('CircuitOp can only be instantiated with '
                             'QuantumCircuit, not {}'.format(type(primitive)))
+
+        if len(primitive.clbits) != 0:
+            raise TypeError('CircuitOp does not support QuantumCircuits with ClassicalRegisters.')
 
         super().__init__(primitive, coeff=coeff)
 
