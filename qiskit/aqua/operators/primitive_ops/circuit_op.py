@@ -122,11 +122,7 @@ class CircuitOp(PrimitiveOp):
             other = other.to_circuit_op()
 
         if isinstance(other, (CircuitOp, CircuitStateFn)):
-            new_qc = QuantumCircuit(self.num_qubits)
-            new_qc.append(other.to_instruction(), qargs=range(self.num_qubits))
-            new_qc.append(self.to_instruction(), qargs=range(self.num_qubits))
-            # TODO Fix, because converting to dag just to append is nuts
-            new_qc = new_qc.decompose()
+            new_qc = other.primitive.combine(self.primitive)
             if isinstance(other, CircuitStateFn):
                 return CircuitStateFn(new_qc,
                                       is_measurement=other.is_measurement,

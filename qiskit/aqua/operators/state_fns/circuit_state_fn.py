@@ -294,10 +294,11 @@ class CircuitStateFn(StateFn):
     def to_circuit(self, meas: bool = False) -> QuantumCircuit:
         """ Return QuantumCircuit representing StateFn """
         if meas:
-            qc = QuantumCircuit(self.num_qubits, self.num_qubits)
-            qc.append(self.to_instruction(), qargs=range(self.primitive.num_qubits))
-            qc.measure(qubit=range(self.num_qubits), cbit=range(self.num_qubits))
-            return qc.decompose()
+            from qiskit import ClassicalRegister
+            meas_qc = self.primitive.copy()
+            meas_qc.add_register(ClassicalRegister(self.num_qubits))
+            meas_qc.measure(qubit=range(self.num_qubits), cbit=range(self.num_qubits))
+            return meas_qc
         else:
             return self.primitive
 
