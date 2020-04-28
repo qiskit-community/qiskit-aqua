@@ -14,15 +14,16 @@
 
 """The variational form based initial state"""
 
-from typing import Union, List
+from typing import Union, List, Dict
 import numpy as np
+from qiskit import QuantumCircuit
+from qiskit.circuit import Parameter
 from qiskit.aqua import AquaError
 from qiskit.aqua.components.variational_forms import VariationalForm
 
 
 class VarFormBased:
-    """
-    The variational form based initial state.
+    """The variational form based initial state.
 
     This can been useful, say for example, if you have been doing experiments using a
     :class:`~qiskit.aqua.components.variational_forms.VariationalForm` and have parameters for
@@ -37,8 +38,8 @@ class VarFormBased:
     """
 
     def __init__(self,
-                 var_form: VariationalForm,
-                 params: Union[List[float], np.ndarray]) -> None:
+                 var_form: Union[VariationalForm, QuantumCircuit],
+                 params: Union[List[float], np.ndarray, Dict[Parameter, float]]) -> None:
         """
         Args:
             var_form: The variational form.
@@ -73,6 +74,9 @@ class VarFormBased:
             raise RuntimeError('Initial state based on variational '
                                'form does not support vector mode.')
         if mode == 'circuit':
-            return self._var_form.construct_circuit(self._var_form_params, q=register)
+            if isinstance(self._var_form, VariationalForm):
+                return self._var_form.construct_circuit(self._var_form_params, q=register)
+            return self._var_form.assign_parameters(self._var_form_params)
+
         else:
             raise AquaError('Mode should be either "vector" or "circuit"')

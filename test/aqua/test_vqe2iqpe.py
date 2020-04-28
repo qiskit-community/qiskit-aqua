@@ -21,12 +21,13 @@ from test.aqua import QiskitAquaTestCase
 import numpy as np
 from ddt import ddt, data
 from qiskit import BasicAer, QuantumCircuit
+from qiskit.circuit import ParameterVector
 from qiskit.circuit.library import RYRZ
 
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.utils import decimal_to_binary
 from qiskit.aqua.operators import WeightedPauliOperator
-from qiskit.aqua.components.initial_states import VarFormBased, Custom
+from qiskit.aqua.components.initial_states import VarFormBased
 from qiskit.aqua.components.variational_forms import RYRZ as VarRYRZ
 from qiskit.aqua.components.optimizers import SPSA
 from qiskit.aqua.algorithms import VQE
@@ -39,7 +40,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
-        self.seed = 0
+        self.seed = 8
         aqua_globals.random_seed = self.seed
         pauli_dict = {
             'paulis': [{"coeff": {"imag": 0.0, "real": -1.052373245772859}, "label": "II"},
@@ -59,15 +60,21 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         if wavefunction_type == 'wrapped':
             warnings.filterwarnings('ignore', category=DeprecationWarning)
             wavefunction = VarRYRZ(num_qbits, 3)
-        elif wavefunction_type == 'circuit':
-            wavefunction = QuantumCircuit(num_qbits).compose(RYRZ(num_qbits, reps=3))
         else:
-            wavefunction = RYRZ(num_qbits, reps=3)
+            wavefunction = RYRZ(num_qbits, reps=3, insert_barriers=True)
+            theta = ParameterVector('theta', wavefunction.num_parameters)
+            wavefunction.assign_parameters(theta, inplace=True)
+
+        if wavefunction_type == 'circuit':
+            wavefunction = QuantumCircuit(num_qbits).compose(wavefunction)
+
         optimizer = SPSA(max_trials=10)
-        # optimizer.set_options(**{'max_trials': 500})
         algo = VQE(self.qubit_op, wavefunction, optimizer)
         if wavefunction_type == 'wrapped':
             warnings.filterwarnings('always', category=DeprecationWarning)
+        else:
+            # fix parameter order for reproducibility
+            algo._var_form_params = theta
 
         quantum_instance = QuantumInstance(backend, seed_simulator=self.seed,
                                            seed_transpiler=self.seed)
@@ -81,10 +88,10 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         num_iterations = 6
 
         if wavefunction_type == 'wrapped':
-            state_in = VarFormBased(wavefunction, result.optimal_point)
+            param_dict = result.optimal_point
         else:
-            param_dict = dict(zip(algo._var_form_params, result.optimal_point))
-            state_in = Custom(num_qbits, circuit=wavefunction.assign_parameters(param_dict))
+            param_dict = result.optimal_parameters
+        state_in = VarFormBased(wavefunction, param_dict)
 
         iqpe = IQPEMinimumEigensolver(self.qubit_op, state_in, num_time_slices, num_iterations,
                                       expansion_mode='suzuki', expansion_order=2,
