@@ -18,7 +18,7 @@
 from typing import Union, Set
 import numpy as np
 
-from qiskit import QuantumCircuit, BasicAer, execute
+from qiskit import QuantumCircuit, BasicAer, execute, ClassicalRegister
 from qiskit.circuit import Instruction, ParameterExpression
 from qiskit.extensions import Initialize, IGate
 
@@ -297,7 +297,6 @@ class CircuitStateFn(StateFn):
     def to_circuit(self, meas: bool = False) -> QuantumCircuit:
         """ Return QuantumCircuit representing StateFn """
         if meas:
-            from qiskit import ClassicalRegister
             meas_qc = self.primitive.copy()
             meas_qc.add_register(ClassicalRegister(self.num_qubits))
             meas_qc.measure(qubit=range(self.num_qubits), cbit=range(self.num_qubits))
